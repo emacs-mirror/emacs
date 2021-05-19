@@ -1916,7 +1916,7 @@ w32_draw_image_foreground (struct glyph_string *s)
 	      /* HALFTONE produces better results, especially when
 		 scaling to a larger size, but Windows 9X doesn't
 		 support HALFTONE.  */
-	      if (os_subtype == OS_NT
+	      if (os_subtype == OS_SUBTYPE_NT
 		  && (pmode = SetStretchBltMode (s->hdc, HALFTONE)) != 0)
 		SetBrushOrgEx (s->hdc, 0, 0, NULL);
 	      StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
@@ -1952,7 +1952,7 @@ w32_draw_image_foreground (struct glyph_string *s)
 	    {
 	      int pmode = 0;
 	      /* Windows 9X doesn't support HALFTONE.  */
-	      if (os_subtype == OS_NT
+	      if (os_subtype == OS_SUBTYPE_NT
 		  && (pmode = SetStretchBltMode (s->hdc, HALFTONE)) != 0)
 		SetBrushOrgEx (s->hdc, 0, 0, NULL);
 	      StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
@@ -6644,7 +6644,7 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
   /* When "mouse trails" are in effect, moving the mouse cursor
      sometimes leaves behind an annoying "ghost" of the pointer.
      Avoid that by momentarily switching off mouse trails.  */
-  if (os_subtype == OS_NT
+  if (os_subtype == OS_SUBTYPE_NT
       && w32_major_version + w32_minor_version >= 6)
     ret = SystemParametersInfo (SPI_GETMOUSETRAILS, 0, &trail_num, 0);
   SetCursorPos (pt.x, pt.y);
@@ -7638,7 +7638,7 @@ specified by `file-name-coding-system'.
 This variable is set to non-nil by default when Emacs runs on Windows
 systems of the NT family, including W2K, XP, Vista, Windows 7 and
 Windows 8.  It is set to nil on Windows 9X.  */);
-  if (os_subtype == OS_9X)
+  if (os_subtype == OS_SUBTYPE_9X)
     w32_unicode_filenames = 0;
   else
     w32_unicode_filenames = 1;

@@ -151,6 +151,19 @@ form.")
         (dolist (subtest (cdr test))
           (should (file-test--do-local-variables-test str subtest)))))))
 
+(ert-deftest files-tests-permanent-local-variables ()
+  (let ((enable-local-variables nil))
+    (with-temp-buffer
+      (insert ";;; test-test.el --- tests  -*- lexical-binding: t; -*-\n\n")
+      (hack-local-variables)
+      (should (eq lexical-binding t))))
+  (let ((enable-local-variables nil)
+        (permanently-enabled-local-variables nil))
+    (with-temp-buffer
+      (insert ";;; test-test.el --- tests  -*- lexical-binding: t; -*-\n\n")
+      (hack-local-variables)
+      (should (eq lexical-binding nil)))))
+
 (defvar files-test-bug-18141-file
   (ert-resource-file "files-bug18141.el.gz")
   "Test file for bug#18141.")

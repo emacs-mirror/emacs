@@ -347,19 +347,20 @@ See `defclass' for more information."
     (when eieio-backward-compatibility
       (let ((csym (intern (concat (symbol-name cname) "-list-p"))))
         (defalias csym
-              `(lambda (obj)
-                 ,(format
-                   "Test OBJ to see if it a list of objects which are a child of type %s"
-                   cname)
-                 (when (listp obj)
-                   (let ((ans t)) ;; nil is valid
-                     ;; Loop over all the elements of the input list, test
-                     ;; each to make sure it is a child of the desired object class.
-                     (while (and obj ans)
-                       (setq ans (and (eieio-object-p (car obj))
-                                      (object-of-class-p (car obj) ,cname)))
-                       (setq obj (cdr obj)))
-                     ans))))
+          (lambda (obj)
+            (:documentation
+             (format
+              "Test OBJ to see if it a list of objects which are a child of type %s"
+              cname))
+            (when (listp obj)
+              (let ((ans t)) ;; nil is valid
+                ;; Loop over all the elements of the input list, test
+                ;; each to make sure it is a child of the desired object class.
+                (while (and obj ans)
+                  (setq ans (and (eieio-object-p (car obj))
+                                 (object-of-class-p (car obj) 'cname)))
+                  (setq obj (cdr obj)))
+                ans))))
         (make-obsolete csym (format
                              "use (cl-typep ... \\='(list-of %s)) instead"
                              cname)

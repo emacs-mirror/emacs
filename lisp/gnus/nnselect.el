@@ -777,7 +777,7 @@ If this variable is nil, or if the provided function returns nil,
 Return an article list."
   (let ((func (alist-get 'nnselect-function specs))
 	(args (alist-get 'nnselect-args specs)))
-    (condition-case err
+    (condition-case-unless-debug err
 	(funcall func args)
       (error (gnus-error 3 "nnselect-run: %s on %s gave error %s" func args err)
 	     []))))

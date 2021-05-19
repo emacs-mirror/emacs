@@ -481,6 +481,12 @@ all directory separators were changed to @samp{!} to prevent clashes.
 (This will not work correctly if your filesystem truncates the
 resulting name.)
 
+If @var{uniquify} is one of the members of
+@code{secure-hash-algorithms}, Emacs constructs the nondirectory part
+of the auto-save file name by applying that @code{secure-hash} to the
+buffer file name.  This avoids any risk of excessively long file
+names.
+
 All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
 no further transforms are tried.

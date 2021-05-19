@@ -1604,18 +1604,15 @@ START should be at the beginning of a line."
   "If non-nil, Font Lock mode uses this instead of `comment-start-skip'.")
 
 (defvar font-lock-comment-end-skip nil
-  "If non-nil, Font Lock mode uses this instead of `comment-end'.")
+  "If non-nil, Font Lock mode uses this instead of `comment-end-skip'.")
 
 (defun font-lock-fontify-syntactically-region (start end &optional loudly)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
   (syntax-propertize end)  ; Apply any needed syntax-table properties.
   (with-syntax-table (or syntax-ppss-table (syntax-table))
-    (let ((comment-end-regexp
-	   (or font-lock-comment-end-skip
-	       (regexp-quote
-	        (replace-regexp-in-string "^ *" "" comment-end))))
-          ;; Find the `start' state.
+    (when (and comment-start (not comment-end-skip)) (comment-normalize-vars))
+    (let (;; Find the `start' state.
           (state (if (or syntax-ppss-table
                          (not font-lock--syntax-table-affects-ppss))
                      (syntax-ppss start)
@@ -1648,7 +1645,9 @@ START should be at the beginning of a line."
 				      comment-start-skip))
 		      (put-text-property beg (match-end 0) 'face
 				         font-lock-comment-delimiter-face)))
-	        (if (looking-back comment-end-regexp (point-at-bol) t)
+	        (if (looking-back (or font-lock-comment-end-skip
+				      comment-end-skip)
+				  (point-at-bol) t)
 		    (put-text-property (match-beginning 0) (point) 'face
 				       font-lock-comment-delimiter-face))))
 	    (< (point) end))

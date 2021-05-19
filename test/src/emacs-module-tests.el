@@ -37,7 +37,9 @@
   "File name of the Emacs binary currently running.")
 
 (eval-and-compile
-  (defconst mod-test-file (ert-resource-file "mod-test")
+  (defconst mod-test-file
+    (expand-file-name "../test/src/emacs-module-resources/mod-test"
+                      invocation-directory)
     "File name of the module test file."))
 
 (require 'mod-test mod-test-file)

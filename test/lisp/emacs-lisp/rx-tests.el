@@ -166,6 +166,20 @@
                         (backref 1))
                     (list u v)))
                  '("1" "3")))
+  (should (equal (pcase "bz"
+                   ((rx "a" (let x nonl)) (list 1 x))
+                   (_ 'no))
+                 'no))
+  (should (equal (pcase "az"
+                   ((rx "a" (let x nonl)) (list 1 x))
+                   ((rx "b" (let x nonl)) (list 2 x))
+                   (_ 'no))
+                 '(1 "z")))
+  (should (equal (pcase "bz"
+                   ((rx "a" (let x nonl)) (list 1 x))
+                   ((rx "b" (let x nonl)) (list 2 x))
+                   (_ 'no))
+                 '(2 "z")))
   (let ((k "blue"))
     (should (equal (pcase "<blue>"
                      ((rx "<" (literal k) ">") 'ok))

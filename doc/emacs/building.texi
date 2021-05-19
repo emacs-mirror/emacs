@@ -1486,6 +1486,13 @@ Emacs Lisp code goes in a separate file whose name ends in
 @file{foo.elc}.  @xref{Byte Compilation,, Byte Compilation, elisp, the
 Emacs Lisp Reference Manual}.
 
+@cindex native compilation
+  Emacs Lisp code can also be compiled into @dfn{native code}: machine
+code not unlike the one produced by a C or Fortran compiler.  Native
+code runs even faster than byte-code.  Natively-compiled Emacs Lisp
+code is stored in files whose names end in @samp{.eln}.  @xref{Native
+Compilation,, Byte Compilation, elisp, the Emacs Lisp Reference Manual}.
+
 @findex load-file
   To @dfn{load} an Emacs Lisp file, type @kbd{M-x load-file}.  This
 command reads a file name using the minibuffer, and executes the

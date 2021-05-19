@@ -4127,12 +4127,21 @@ This function is an internal primitive--use `make-frame' instead.  */)
      cannot control visibility, so don't try.  */
   if (!f->output_data.x->explicit_parent)
     {
+      /* When called from `x-create-frame-with-faces' visibility is
+	 always explicitly nil.  */
       Lisp_Object visibility
 	= gui_display_get_arg (dpyinfo, parms, Qvisibility, 0, 0,
                                RES_TYPE_SYMBOL);
+      Lisp_Object height
+	= gui_display_get_arg (dpyinfo, parms, Qheight, 0, 0, RES_TYPE_NUMBER);
+      Lisp_Object width
+	= gui_display_get_arg (dpyinfo, parms, Qwidth, 0, 0, RES_TYPE_NUMBER);
 
       if (EQ (visibility, Qicon))
-	x_iconify_frame (f);
+	{
+	  f->was_invisible = true;
+	  x_iconify_frame (f);
+	}
       else
 	{
 	  if (EQ (visibility, Qunbound))
@@ -4140,7 +4149,16 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
 	  if (!NILP (visibility))
 	    x_make_frame_visible (f);
+	  else
+	    f->was_invisible = true;
 	}
+
+      /* Leave f->was_invisible true only if height or width were
+	 specified too.  This takes effect only when we are not called
+	 from `x-create-frame-with-faces' (see above comment).  */
+      f->was_invisible
+	= (f->was_invisible
+	   && (!EQ (height, Qunbound) || !EQ (width, Qunbound)));
 
       store_frame_param (f, Qvisibility, visibility);
     }

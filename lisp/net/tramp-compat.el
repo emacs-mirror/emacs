@@ -63,8 +63,6 @@
   `(when (functionp ,function)
      (with-no-warnings (funcall ,function ,@arguments))))
 
-(put #'tramp-compat-funcall 'tramp-suppress-trace t)
-
 (defsubst tramp-compat-temporary-file-directory ()
   "Return name of directory for temporary files.
 It is the default value of `temporary-file-directory'."
@@ -354,6 +352,9 @@ A nil value for either argument stands for the current time."
       #'string-replace
     (lambda (fromstring tostring instring)
       (replace-regexp-in-string (regexp-quote fromstring) tostring instring))))
+
+(dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
+  (put (intern elt) 'tramp-suppress-trace t))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

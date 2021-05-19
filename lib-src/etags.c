@@ -366,6 +366,7 @@ static void PS_functions (FILE *);
 static void Prolog_functions (FILE *);
 static void Python_functions (FILE *);
 static void Ruby_functions (FILE *);
+static void Rust_entries (FILE *);
 static void Scheme_functions (FILE *);
 static void TeX_commands (FILE *);
 static void Texinfo_nodes (FILE *);
@@ -752,6 +753,12 @@ a line generate a tag.  Constants also generate a tag.";
 static const char *Ruby_interpreters [] =
   { "ruby", NULL };
 
+static const char *Rust_suffixes [] =
+  { "rs", NULL };
+static const char Rust_help [] =
+  "In Rust code, tags anything defined with 'fn', 'enum', \n\
+'struct' or 'macro_rules!'.";
+
 /* Can't do the `SCM' or `scm' prefix with a version number. */
 static const char *Scheme_suffixes [] =
   { "oak", "sch", "scheme", "SCM", "scm", "SM", "sm", "ss", "t", NULL };
@@ -836,6 +843,7 @@ static language lang_names [] =
                  NULL,           Python_interpreters },
   { "ruby",      Ruby_help,      Ruby_functions,    Ruby_suffixes,
                  Ruby_filenames, Ruby_interpreters },
+  { "rust",      Rust_help,      Rust_entries,      Rust_suffixes      },
   { "scheme",    Scheme_help,    Scheme_functions,  Scheme_suffixes    },
   { "tex",       TeX_help,       TeX_commands,      TeX_suffixes       },
   { "texinfo",   Texinfo_help,   Texinfo_nodes,     Texinfo_suffixes   },
@@ -5015,6 +5023,49 @@ Ruby_functions (FILE *inf)
 	      while (*cp && *cp != '#' && notinname (*cp))
 		cp++;
 	    }
+	}
+    }
+}
+
+
+/*
+ * Rust support
+ * Look for:
+ *  - fn: Function
+ *  - struct: Structure
+ *  - enum: Enumeration
+ *  - macro_rules!: Macro
+ */
+static void
+Rust_entries (FILE *inf)
+{
+  char *cp, *name;
+  bool is_func = false;
+
+  LOOP_ON_INPUT_LINES(inf, lb, cp)
+    {
+      cp = skip_spaces(cp);
+      name = cp;
+
+      // Skip 'pub' keyworld
+      (void)LOOKING_AT (cp, "pub");
+
+      // Look for define
+      if ((is_func = LOOKING_AT (cp, "fn"))
+	  || LOOKING_AT (cp, "enum")
+	  || LOOKING_AT (cp, "struct")
+	  || (is_func = LOOKING_AT (cp, "macro_rules!")))
+	{
+	  cp = skip_spaces (cp);
+	  name = cp;
+
+	  while (!notinname (*cp))
+	    cp++;
+
+	  make_tag (name, cp - name, is_func,
+		    lb.buffer, cp - lb.buffer + 1,
+		    lineno, linecharno);
+	  is_func = false;
 	}
     }
 }

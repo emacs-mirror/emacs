@@ -251,6 +251,11 @@ matches in the target buffer are highlighted.  Each parenthesized
 sub-expression of the regexp is shown in a distinct face, which makes
 it easier to verify even very complex regexps.
 
+  Note that by default Emacs search ignores case (@pxref{Searching and
+Case}).  To enable case-sensitive regexp search and match, bind
+@code{case-fold-search} to @code{nil} around the code you want to be
+case-sensitive.
+
 @menu
 * Syntax of Regexps::       Rules for writing regular expressions.
 * Regexp Example::          Illustrates regular expression syntax.

@@ -254,7 +254,7 @@ CODE should be a function of no arguments."
   nil)
 
 (defmacro vc-run-delayed (&rest body)
-  (declare (indent 0) (debug t))
+  (declare (indent 0) (debug (def-body)))
   `(vc-exec-after (lambda () ,@body)))
 
 (defvar vc-post-command-functions nil

@@ -85,7 +85,7 @@ ${unidir}/charscript.el: ${srcdir}/Blocks.txt ${blocks}
 	$(AM_V_GEN)$(AWK) -f ${blocks} < $< > $@
 
 
-.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean gen-clean
+.PHONY: clean bootstrap-clean distclean maintainer-clean gen-clean
 
 clean:
 	rm -f ${srcdir}/*.elc unidata.txt
@@ -107,4 +107,3 @@ gen-clean:
 
 maintainer-clean: gen-clean distclean
 
-extraclean: maintainer-clean

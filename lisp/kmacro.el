@@ -167,53 +167,53 @@ macro to be executed before appending to it."
 (defvar kmacro-keymap
   (let ((map (make-sparse-keymap)))
     ;; Start, end, execute macros
-    (define-key map "s"    'kmacro-start-macro)
-    (define-key map "\C-s" 'kmacro-start-macro)
-    (define-key map "\C-k" 'kmacro-end-or-call-macro-repeat)
-    (define-key map "r"    'apply-macro-to-region-lines)
-    (define-key map "q"    'kbd-macro-query)  ;; Like C-x q
-    (define-key map "Q"    'kdb-macro-redisplay)
+    (define-key map "s"    #'kmacro-start-macro)
+    (define-key map "\C-s" #'kmacro-start-macro)
+    (define-key map "\C-k" #'kmacro-end-or-call-macro-repeat)
+    (define-key map "r"    #'apply-macro-to-region-lines)
+    (define-key map "q"    #'kbd-macro-query)  ;; Like C-x q
+    (define-key map "Q"    #'kdb-macro-redisplay)
 
     ;; macro ring
-    (define-key map "\C-n" 'kmacro-cycle-ring-next)
-    (define-key map "\C-p" 'kmacro-cycle-ring-previous)
-    (define-key map "\C-v" 'kmacro-view-macro-repeat)
-    (define-key map "\C-d" 'kmacro-delete-ring-head)
-    (define-key map "\C-t" 'kmacro-swap-ring)
-    (define-key map "\C-l" 'kmacro-call-ring-2nd-repeat)
+    (define-key map "\C-n" #'kmacro-cycle-ring-next)
+    (define-key map "\C-p" #'kmacro-cycle-ring-previous)
+    (define-key map "\C-v" #'kmacro-view-macro-repeat)
+    (define-key map "\C-d" #'kmacro-delete-ring-head)
+    (define-key map "\C-t" #'kmacro-swap-ring)
+    (define-key map "\C-l" #'kmacro-call-ring-2nd-repeat)
 
     ;; macro counter
-    (define-key map "\C-f" 'kmacro-set-format)
-    (define-key map "\C-c" 'kmacro-set-counter)
-    (define-key map "\C-i" 'kmacro-insert-counter)
-    (define-key map "\C-a" 'kmacro-add-counter)
+    (define-key map "\C-f" #'kmacro-set-format)
+    (define-key map "\C-c" #'kmacro-set-counter)
+    (define-key map "\C-i" #'kmacro-insert-counter)
+    (define-key map "\C-a" #'kmacro-add-counter)
 
     ;; macro editing
-    (define-key map "\C-e" 'kmacro-edit-macro-repeat)
-    (define-key map "\r"   'kmacro-edit-macro)
-    (define-key map "e"    'edit-kbd-macro)
-    (define-key map "l"    'kmacro-edit-lossage)
-    (define-key map " "    'kmacro-step-edit-macro)
+    (define-key map "\C-e" #'kmacro-edit-macro-repeat)
+    (define-key map "\r"   #'kmacro-edit-macro)
+    (define-key map "e"    #'edit-kbd-macro)
+    (define-key map "l"    #'kmacro-edit-lossage)
+    (define-key map " "    #'kmacro-step-edit-macro)
 
     ;; naming and binding
-    (define-key map "b"    'kmacro-bind-to-key)
-    (define-key map "n"    'kmacro-name-last-macro)
-    (define-key map "x"    'kmacro-to-register)
+    (define-key map "b"    #'kmacro-bind-to-key)
+    (define-key map "n"    #'kmacro-name-last-macro)
+    (define-key map "x"    #'kmacro-to-register)
     map)
   "Keymap for keyboard macro commands.")
 (defalias 'kmacro-keymap kmacro-keymap)
 
 ;;; Provide some binding for startup:
-;;;###autoload (global-set-key "\C-x(" 'kmacro-start-macro)
-;;;###autoload (global-set-key "\C-x)" 'kmacro-end-macro)
-;;;###autoload (global-set-key "\C-xe" 'kmacro-end-and-call-macro)
-;;;###autoload (global-set-key [f3] 'kmacro-start-macro-or-insert-counter)
-;;;###autoload (global-set-key [f4] 'kmacro-end-or-call-macro)
-;;;###autoload (global-set-key "\C-x\C-k" 'kmacro-keymap)
+;;;###autoload (global-set-key "\C-x(" #'kmacro-start-macro)
+;;;###autoload (global-set-key "\C-x)" #'kmacro-end-macro)
+;;;###autoload (global-set-key "\C-xe" #'kmacro-end-and-call-macro)
+;;;###autoload (global-set-key [f3] #'kmacro-start-macro-or-insert-counter)
+;;;###autoload (global-set-key [f4] #'kmacro-end-or-call-macro)
+;;;###autoload (global-set-key "\C-x\C-k" #'kmacro-keymap)
 ;;;###autoload (autoload 'kmacro-keymap "kmacro" "Keymap for keyboard macro commands." t 'keymap)
 
 (if kmacro-call-mouse-event
-  (global-set-key (vector kmacro-call-mouse-event) 'kmacro-end-call-mouse))
+  (global-set-key (vector kmacro-call-mouse-event) #'kmacro-end-call-mouse))
 
 
 ;;; Called from keyboard-quit
@@ -668,11 +668,13 @@ use \\[kmacro-name-last-macro]."
       (set-transient-map
        (let ((map (make-sparse-keymap)))
          (define-key map (vector repeat-key)
-           `(lambda () (interactive)
-              (kmacro-call-macro ,(and kmacro-call-repeat-with-arg arg)
-                                 'repeating nil ,(if end-macro
-						     last-kbd-macro
-						   (or macro last-kbd-macro)))))
+           (let ((ra (and kmacro-call-repeat-with-arg arg))
+                 (m (if end-macro
+			last-kbd-macro
+		      (or macro last-kbd-macro))))
+             (lambda ()
+               (interactive)
+               (kmacro-call-macro ra 'repeating nil m))))
          map)))))
 
 
@@ -780,25 +782,32 @@ If kbd macro currently being defined end it before activating it."
 ;; executing the macro later on (but that's controversial...)
 
 ;;;###autoload
-(defun kmacro-lambda-form (mac &optional counter format)
+(defun kmacro-lambda-form (mac)
   "Create lambda form for macro bound to symbol or key."
-  (if counter
-      (setq mac (list mac counter format)))
-  `(lambda (&optional arg)
-     "Keyboard macro."
-     (interactive "p")
-     (kmacro-exec-ring-item ',mac arg)))
+  ;; FIXME: This should be a "funcallable struct"!
+  (lambda (&optional arg)
+    "Keyboard macro."
+    ;; We put an "unused prompt" as a special marker so
+    ;; `kmacro-extract-lambda' can see it's "one of us".
+    (interactive "pkmacro")
+    (if (eq arg 'kmacro--extract-lambda)
+        (cons 'kmacro--extract-lambda mac)
+      (kmacro-exec-ring-item mac arg))))
 
 (defun kmacro-extract-lambda (mac)
   "Extract kmacro from a kmacro lambda form."
-  (and (eq (car-safe mac) 'lambda)
-       (setq mac (assoc 'kmacro-exec-ring-item mac))
-       (setq mac (car-safe (cdr-safe (car-safe (cdr-safe mac)))))
-       (listp mac)
-       (= (length mac) 3)
-       (arrayp (car mac))
-       mac))
-
+  (let ((mac (cond
+              ((eq (car-safe mac) 'lambda)
+               (let ((e (assoc 'kmacro-exec-ring-item mac)))
+                 (car-safe (cdr-safe (car-safe (cdr-safe e))))))
+              ((and (functionp mac)
+                    (equal (interactive-form mac) '(interactive "pkmacro")))
+               (let ((r (funcall mac 'kmacro--extract-lambda)))
+                 (and (eq (car-safe r) 'kmacro--extract-lambda) (cdr r)))))))
+    (and (consp mac)
+         (= (length mac) 3)
+         (arrayp (car mac))
+         mac)))
 
 (defalias 'kmacro-p #'kmacro-extract-lambda
   "Return non-nil if MAC is a kmacro keyboard macro.")

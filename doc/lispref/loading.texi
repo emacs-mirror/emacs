@@ -71,7 +71,11 @@ forms in it, and closes the file.
 To find the file, @code{load} first looks for a file named
 @file{@var{filename}.elc}, that is, for a file whose name is
 @var{filename} with the extension @samp{.elc} appended.  If such a
-file exists, it is loaded.  If there is no file by that name, then
+file exists, and Emacs was compiled with native-compilation support
+(@pxref{Native Compilation}), @code{load} attempts to find a
+corresponding @samp{.eln} file, and if found, loads it instead of
+@file{@var{filename}.elc}.  Otherwise, it loads
+@file{@var{filename}.elc}.  If there is no file by that name, then
 @code{load} looks for a file named @file{@var{filename}.el}.  If that
 file exists, it is loaded.  If Emacs was compiled with support for
 dynamic modules (@pxref{Dynamic Modules}), @code{load} next looks for
@@ -109,6 +113,8 @@ explicit directory name.
 If the option @code{load-prefer-newer} is non-@code{nil}, then when
 searching suffixes, @code{load} selects whichever version of a file
 (@samp{.elc}, @samp{.el}, etc.)@: has been modified most recently.
+In this case, @code{load} doesn't load the @samp{.eln}
+natively-compiled file even if it exists.
 
 If @var{filename} is a relative file name, such as @file{foo} or
 @file{baz/foo.bar}, @code{load} searches for the file using the variable
@@ -153,7 +159,8 @@ during compilation.  @xref{Compiling Macros}.
 
 Messages like @samp{Loading foo...} and @samp{Loading foo...done} appear
 in the echo area during loading unless @var{nomessage} is
-non-@code{nil}.
+non-@code{nil}.  If a natively-compiled @samp{.eln} file is loaded,
+the message says so.
 
 @cindex load errors
 Any unhandled errors while loading a file terminate loading.  If the
@@ -429,6 +436,28 @@ shadowed files, instead of displaying them in a buffer.  If the
 optional argument @code{stringp} is non-@code{nil}, it instead returns
 the shadowed files as a string.
 @end deffn
+
+  If Emacs was compiled with support for native compilation
+(@pxref{Native Compilation}), then when a @samp{.elc} byte-compiled
+file is found by searching @code{load-path}, Emacs will try to look
+for a corresponding @samp{.eln} file holding the corresponding
+natively-compiled code.  The natively-compiled files are looked up in
+the directories listed by the @code{native-comp-eln-load-path}.
+
+@vindex comp-native-version-dir
+@defvar native-comp-eln-load-path
+This variable holds a list of directories where Emacs looks for
+natively-compiled @samp{.eln} files.  File names in the list that are
+not absolute are interpreted as relative to @code{invocation-directory}
+(@pxref{System Environment}).  The last directory in the list is the
+system directory, i.e.@: the directory with @samp{.eln} files
+installed by the Emacs build and installation procedure.  In each of
+the directories in the list, Emacs looks for @samp{.eln} files in a
+subdirectory whose name is constructed from the Emacs version and an
+8-character hash that depends on the current native-compilation
+@acronym{ABI}; the name of this subdirectory is stored in the variable
+@code{comp-native-version-dir}.
+@end defvar
 
 @node Loading Non-ASCII
 @section Loading Non-@acronym{ASCII} Characters

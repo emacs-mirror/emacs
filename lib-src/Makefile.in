@@ -315,7 +315,7 @@ $(DESTDIR)${archlibdir}: all
 	fi
 
 .PHONY: install uninstall mostlyclean clean distclean maintainer-clean
-.PHONY: bootstrap-clean extraclean check tags
+.PHONY: bootstrap-clean check tags
 
 install: $(DESTDIR)${archlibdir}
 	@echo
@@ -343,6 +343,7 @@ mostlyclean:
 	rm -f core ./*.o ./*.res
 
 clean: mostlyclean
+	-rm -f seccomp-filter.bpf seccomp-filter.pfc seccomp-filter-exec.bpf seccomp-filter-exec.pfc
 	rm -f ${EXE_FILES}
 
 distclean: clean
@@ -350,8 +351,6 @@ distclean: clean
 
 bootstrap-clean maintainer-clean: distclean
 
-extraclean: maintainer-clean
-	rm -f ./*~ \#*
 
 ## Test the contents of the directory.
 check:

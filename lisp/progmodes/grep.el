@@ -473,7 +473,7 @@ buffer `default-directory'."
       (1 (if (eq (char-after (match-beginning 1)) ?\0)
              `(face nil display ,(match-string 2)))))
      ;; Hide excessive part of rgrep command
-     ("^find \\(\\. -type d .*\\\\)\\)"
+     ("^find \\(\\. -type d .*\\(?:\\\\)\\|\")\"\\)\\)"
       (1 (if grep-find-abbreviate grep-find-abbreviate-properties
            '(face nil abbreviated-command t))))
      ;; Hide excessive part of lgrep command

@@ -67,7 +67,7 @@ modify this GNU manual.''
 
 @contents
 
-@node Top, EDE Project Concepts, (dir), (dir)
+@node Top
 @top EDE
 @comment  node-name,  next,  previous,  up
 
@@ -95,7 +95,7 @@ learn and adopt GNU ways of doing things.
 * GNU Free Documentation License::  The license for this documentation.
 @end menu
 
-@node EDE Project Concepts, EDE Mode, Top, Top
+@node EDE Project Concepts
 @chapter @ede{} Project Concepts
 
 @ede{} is a generic interface for managing projects.  It specifies a
@@ -130,7 +130,7 @@ of search to files in a single target, or to discover the location of
 documentation or interface files.  @ede{} can provide this
 information.
 
-@node EDE Mode, Quick Start, EDE Project Concepts, Top
+@node EDE Mode
 @chapter @ede{} Mode
 
 @ede{} is implemented as a minor mode, which augments other modes such
@@ -147,7 +147,7 @@ bar.  This menu provides several menu items for high-level @ede{}
 commands.  These menu items, and their corresponding keybindings, are
 independent of the type of project you are actually working on.
 
-@node Quick Start, Creating a project, EDE Mode, Top
+@node Quick Start
 @chapter Quick Start
 
 Once you have @ede{} enabled, you can create a project.  This chapter
@@ -443,7 +443,7 @@ C-c . R @key{RET} @key{RET}
 If your program takes command line arguments, you can type them in
 when it offers the command line you want to use to run your program.
 
-@node Creating a project, Modifying your project, Quick Start, Top
+@node Creating a project
 @chapter Creating a project
 
 To create a new project, first visit a file that you want to include
@@ -488,7 +488,7 @@ the top-most project's makefile as a starting place for the build.  How
 the toplevel project handles subprojects in the build process is
 dependent on that project's type.
 
-@node Modifying your project, Building and Debugging, Creating a project, Top
+@node Modifying your project
 @chapter Modifying your project
 
 In this chapter, we describe the generic features for manipulating
@@ -504,7 +504,7 @@ detailed information about exactly what these features do.
 * EDE Project Features::
 @end menu
 
-@node Add/Remove target, Add/Remove files, Modifying your project, Modifying your project
+@node Add/Remove target
 @section Add/Remove target
 
 To create a new target, type @kbd{C-c . t} (@code{ede-new-target}) or
@@ -520,7 +520,7 @@ To remove a target from the project, type @kbd{M-x ede-delete-target},
 or use the @samp{Remove Target} menu item in the @samp{Project
 Options} submenu.
 
-@node Add/Remove files, Customize Features, Add/Remove target, Modifying your project
+@node Add/Remove files
 @section Add/Remove files
 
 To add the current file to an existing target, type @kbd{C-c . a}
@@ -541,7 +541,7 @@ not wish to add the file to any target, you can choose @samp{none}.
 You can customize this behavior with the variable
 @command{ede-auto-add-method}.
 
-@node Customize Features, Project Local Variables, Add/Remove files, Modifying your project
+@node Customize Features
 @section Customize Features
 
 A project, and its targets, are objects using the @samp{EIEIO} object
@@ -561,7 +561,7 @@ object, you can edit the file by typing @kbd{C-c . e}
 (@code{ede-edit-file-target}).  You should ``rescan'' the project
 afterwards (@pxref{Miscellaneous commands}).
 
-@node Project Local Variables, EDE Project Features, Customize Features, Modifying your project
+@node Project Local Variables
 @section Project Local Variables
 
 EDE projects can store and manager project local variables.  The
@@ -598,7 +598,7 @@ the format is an association list.  For example:
                          (compile-command . "make -f MyCustomMakefile all")))
 @end example
 
-@node EDE Project Features,  , Project Local Variables, Modifying your project
+@node EDE Project Features
 @section EDE Project Features
 
 This section details user facing features of an @ede{} @samp{Make}
@@ -618,7 +618,7 @@ additional details.
 * Configurations::
 @end menu
 
-@node Changing Compilers and Flags, Configurations, EDE Project Features, EDE Project Features
+@node Changing Compilers and Flags
 @subsection Changing Compilers and Flags
 
 Targets that build stuff need compilers.  To change compilers, you
@@ -638,7 +638,7 @@ see what commands are inserted.  Once you have determined the variable
 you need to modify, you can add a configuration for it.
 @xref{Configurations}.
 
-@node Configurations,  , Changing Compilers and Flags, EDE Project Features
+@node Configurations
 @subsection Configurations
 
 Configurations specify different ways to build a project.  For
@@ -658,7 +658,7 @@ block for ``configurations''.  Add a new named configuration here.
 To switch between different active configurations, modify the
 ``configuration default'' slot.
 
-@node Building and Debugging, Miscellaneous commands, Modifying your project, Top
+@node Building and Debugging
 @chapter Building and Debugging
 
 @ede{} provides the following ``project-aware'' compilation and
@@ -677,7 +677,7 @@ Build a distribution file for your project.
 
 These commands are also available from the @samp{Development} menu.
 
-@node Miscellaneous commands, Extending EDE, Building and Debugging, Top
+@node Miscellaneous commands
 @chapter Miscellaneous commands
 
 If you opt to go in and edit @ede{} project files directly---for
@@ -716,7 +716,7 @@ To activate the speedbar in this mode, type @kbd{C-c . s}
 * Simple projects::             Projects @ede{} doesn't manage.
 @end menu
 
-@node Make and Automake projects, Automake direct projects, Miscellaneous commands, Miscellaneous commands
+@node Make and Automake projects
 @section Make and Automake projects
 
 A project of @samp{ede-project} type creates a file called
@@ -728,7 +728,7 @@ in @samp{Makefile} mode, then this project will autogenerate a
 routines will also import and maintain a configure.am script and a
 host of other files required by Automake.
 
-@node Automake direct projects, Simple projects, Make and Automake projects, Miscellaneous commands
+@node Automake direct projects
 @section Automake direct projects
 
 The project type that reads @file{Makefile.am} directly is derived
@@ -738,7 +738,7 @@ distributed independently.  This mode eventually became @ede{}.  The
 not generate them automatically, or create new ones.  As such, it is
 useful as a browsing tool, or as maintenance in managing file lists.
 
-@node Simple projects,  , Automake direct projects, Miscellaneous commands
+@node Simple projects
 @section Simple Projects
 
 There is a wide array of simple projects.  In this case a simple
@@ -756,7 +756,7 @@ belonging to a project, but doesn't provide many features of a typical
 * Custom Locate::               Customizing how to locate files in a simple project
 @end menu
 
-@node ede-cpp-root, ede-emacs, Simple projects, Simple projects
+@node ede-cpp-root
 @subsection ede-cpp-root
 
 The @code{ede-cpp-root} project type allows you to create a single
@@ -897,7 +897,7 @@ of project.
 @xref{ede-cpp-root-project}, for details about the class that defines
 the @code{ede-cpp-root} project type.
 
-@node ede-emacs, ede-linux, ede-cpp-root, Simple projects
+@node ede-emacs
 @subsection ede-emacs
 
 The @code{ede-emacs} project automatically identifies an Emacs source
@@ -906,7 +906,7 @@ tree, and enables EDE project mode for it.
 It pre-populates the C Preprocessor symbol map for correct parsing,
 and has an optimized include file identification function.
 
-@node ede-linux, ede-generic-project, ede-emacs, Simple projects
+@node ede-linux
 @subsection ede-linux
 
 The @code{ede-linux} project will automatically identify a Linux
@@ -921,7 +921,7 @@ directory and its architecture, respectively.  The default is to assume that
 the build happens in the source directory and to auto-detect the
 architecture; if the auto-detection fails, you will be asked.
 
-@node ede-generic-project, Custom Locate, ede-linux, Simple projects
+@node ede-generic-project
 @subsection ede-generic-project
 
 The @code{ede-generic-project} is a project system that makes it easy
@@ -972,7 +972,7 @@ This example project will detect any directory with the file
 Customization of the project will allow you to make build and debug
 commands more precise.
 
-@node Custom Locate,  , ede-generic-project, Simple projects
+@node Custom Locate
 @subsection Custom Locate
 
 The various simple project styles all have one major drawback, which
@@ -1014,7 +1014,7 @@ simple example.
 More on idutils and cscope is in the CEDET manual, and they each have
 their own section.
 
-@node Extending EDE, GNU Free Documentation License, Miscellaneous commands, Top
+@node Extending EDE
 @chapter Extending @ede{}
 
 This chapter is intended for users who want to write new parts or fix
@@ -1069,7 +1069,7 @@ examples.
 * Compilers::                   Details of compiler classes.
 @end menu
 
-@node Development Overview, Detecting a Project, Extending EDE, Extending EDE
+@node Development Overview
 @section Development Overview
 
 @ede{} is made up of a series of classes implemented with @eieio{}.
@@ -1161,7 +1161,7 @@ Here is a high-level UML diagram for the @ede{} system created with @cogre{}..
 @end example
 
 
-@node Detecting a Project, User interface methods, Development Overview, Extending EDE
+@node Detecting a Project
 @section Detecting a Project
 
 Project detection happens with the list of @code{ede-project-autoload}
@@ -1226,7 +1226,7 @@ to the global list of all projects.  All subprojects are then created
 and assembled into the project data structures.
 
 
-@node User interface methods, Base project methods, Detecting a Project, Extending EDE
+@node User interface methods
 @section User interface methods
 
 These methods are core behaviors associated with user commands.
@@ -1258,7 +1258,7 @@ Make a distribution (tar archive) of the project.
 Rescan a project file, changing the data in the existing objects.
 @end table
 
-@node Base project methods, Sourcecode objects, User interface methods, Extending EDE
+@node Base project methods
 @section Base project methods
 
 These methods are important for querying base information from project
@@ -1296,7 +1296,7 @@ stored in.
 List all documentation a project or target is responsible for.
 @end table
 
-@node Sourcecode objects, Compiler and Linker objects, Base project methods, Extending EDE
+@node Sourcecode objects
 @section Sourcecode objects
 
 @ede{} projects track source file / target associates via source code
@@ -1342,7 +1342,7 @@ In this case, the garbage pattern is the same.
 
 @xref{Sourcecode}.
 
-@node Compiler and Linker objects, Project, Sourcecode objects, Extending EDE
+@node Compiler and Linker objects
 @section Compiler and Linker objects
 
 In order for a target to create a @file{Makefile}, it must know how to
@@ -1403,7 +1403,7 @@ See @file{ede-proj-obj.el} for examples of the combination.
 @defindex sc
 @defindex cm
 
-@node Project, Targets, Compiler and Linker objects, Extending EDE
+@node Project
 @section Project
 
 @menu
@@ -1417,7 +1417,7 @@ See @file{ede-proj-obj.el} for examples of the combination.
 * ede-step-project::
 @end menu
 
-@node ede-project-placeholder, ede-project, Project, Project
+@node ede-project-placeholder
 @subsection ede-project-placeholder
 @pjindex ede-project-placeholder
 
@@ -1503,7 +1503,7 @@ Make sure placeholder @var{THIS} is replaced with the real thing, and pass throu
 Make sure placeholder @var{THIS} is replaced with the real thing, and pass through.
 @end deffn
 
-@node ede-project, ede-cpp-root-project, ede-project-placeholder, Project
+@node ede-project
 @subsection ede-project
 @pjindex ede-project
 
@@ -1789,7 +1789,7 @@ Retrieves the slot @code{menu} from an object of class @code{ede-project}
 Commit change to local variables in @var{PROJ}.
 @end deffn
 
-@node ede-cpp-root-project, ede-simple-project, ede-project, Project
+@node ede-cpp-root-project
 @subsection ede-cpp-root-project
 @pjindex ede-cpp-root-project
 
@@ -1911,7 +1911,7 @@ Within this project @var{PROJ}, find the file @var{NAME}.
 This knows details about or source tree.
 @end deffn
 
-@node ede-simple-project, ede-simple-base-project, ede-cpp-root-project, Project
+@node ede-simple-project
 @subsection ede-simple-project
 @pjindex ede-simple-project
 
@@ -1941,7 +1941,7 @@ No children
 Commit any change to @var{PROJ} to its file.
 @end deffn
 
-@node ede-simple-base-project, ede-proj-project, ede-simple-project, Project
+@node ede-simple-base-project
 @subsection ede-simple-base-project
 @pjindex ede-simple-base-project
 
@@ -1971,7 +1971,7 @@ This one project could control a tree of subdirectories.
 @table @asis
 @end table
 
-@node ede-proj-project, project-am-makefile, ede-simple-base-project, Project
+@node ede-proj-project
 @subsection ede-proj-project
 @pjindex ede-proj-project
 
@@ -2161,7 +2161,7 @@ Return a list of files that constitutes a distribution of @var{THIS} project.
 Commit change to local variables in @var{PROJ}.
 @end deffn
 
-@node project-am-makefile, ede-step-project, ede-proj-project, Project
+@node project-am-makefile
 @subsection project-am-makefile
 @pjindex project-am-makefile
 
@@ -2203,7 +2203,7 @@ Despite the fact that this is a method, it depends on the current
 buffer being in order to provide a smart default target type.
 @end deffn
 
-@node ede-step-project,  , project-am-makefile, Project
+@node ede-step-project
 @subsection ede-step-project
 @pjindex ede-step-project
 
@@ -2328,7 +2328,7 @@ Return a list of files that constitutes a distribution of @var{THIS} project.
 Commit change to local variables in @var{PROJ}.
 @end deffn
 
-@node Targets, Sourcecode, Project, Extending EDE
+@node Targets
 @section Targets
 
 @menu
@@ -2356,7 +2356,7 @@ Commit change to local variables in @var{PROJ}.
 @end menu
 
 
-@node ede-target, ede-proj-target, Targets, Targets
+@node ede-target
 @subsection ede-target
 @tgindex ede-target
 
@@ -2565,7 +2565,7 @@ Return the name of @var{THIS} target, suitable for make or debug style commands.
 Retrieves the slot @code{menu} from an object of class @code{ede-target}
 @end deffn
 
-@node ede-proj-target, ede-proj-target-makefile, ede-target, Targets
+@node ede-proj-target
 @subsection ede-proj-target
 @tgindex ede-proj-target
 
@@ -2754,7 +2754,7 @@ sources variable.
 @end deffn
 
 
-@node ede-proj-target-makefile, semantic-ede-proj-target-grammar, ede-proj-target, Targets
+@node ede-proj-target-makefile
 @subsection ede-proj-target-makefile
 @tgindex ede-proj-target-makefile
 
@@ -2852,7 +2852,7 @@ Return a list of configuration variables from @var{THIS}.
 Use @var{CONFIGURATION} as the current configuration to query.
 @end deffn
 
-@node semantic-ede-proj-target-grammar, ede-proj-target-makefile-objectcode, ede-proj-target-makefile, Targets
+@node semantic-ede-proj-target-grammar
 @subsection semantic-ede-proj-target-grammar
 @tgindex semantic-ede-proj-target-grammar
 
@@ -2906,7 +2906,7 @@ Argument @var{THIS} is the target that should insert stuff.
 @end deffn
 
 
-@node ede-proj-target-makefile-objectcode, ede-proj-target-makefile-archive, semantic-ede-proj-target-grammar, Targets
+@node ede-proj-target-makefile-objectcode
 @subsection ede-proj-target-makefile-objectcode
 @tgindex ede-proj-target-makefile-objectcode
 
@@ -2968,7 +2968,7 @@ Argument @var{THIS} is the target to get sources from.
 @end deffn
 
 
-@node ede-proj-target-makefile-archive, ede-proj-target-makefile-program, ede-proj-target-makefile-objectcode, Targets
+@node ede-proj-target-makefile-archive
 @subsection ede-proj-target-makefile-archive
 @tgindex ede-proj-target-makefile-archive
 
@@ -3011,7 +3011,7 @@ Makefile.am generator, so use it to add this important bin program.
 @end deffn
 
 
-@node ede-proj-target-makefile-program, ede-proj-target-makefile-shared-object, ede-proj-target-makefile-archive, Targets
+@node ede-proj-target-makefile-program
 @subsection ede-proj-target-makefile-program
 @tgindex ede-proj-target-makefile-program
 
@@ -3090,7 +3090,7 @@ Insert bin_PROGRAMS variables needed by target @var{THIS}.
 @end deffn
 
 
-@node ede-proj-target-makefile-shared-object, ede-proj-target-elisp, ede-proj-target-makefile-program, Targets
+@node ede-proj-target-makefile-shared-object
 @subsection ede-proj-target-makefile-shared-object
 @tgindex ede-proj-target-makefile-shared-object
 
@@ -3150,7 +3150,7 @@ Makefile.am generator, so use it to add this important bin program.
 @end deffn
 
 
-@node ede-proj-target-elisp, ede-proj-target-elisp-autoloads, ede-proj-target-makefile-shared-object, Targets
+@node ede-proj-target-elisp
 @subsection ede-proj-target-elisp
 @tgindex ede-proj-target-elisp
 
@@ -3226,7 +3226,7 @@ There are standards in Elisp files specifying how the version string
 is found, such as a @code{-version} variable, or the standard header.
 @end deffn
 
-@node ede-proj-target-elisp-autoloads, ede-proj-target-makefile-miscelaneous, ede-proj-target-elisp, Targets
+@node ede-proj-target-elisp-autoloads
 @subsection ede-proj-target-elisp-autoloads
 @tgindex ede-proj-target-elisp-autoloads
 
@@ -3341,7 +3341,7 @@ sources variable.
 @end deffn
 
 
-@node ede-proj-target-makefile-miscelaneous, ede-proj-target-makefile-info, ede-proj-target-elisp-autoloads, Targets
+@node ede-proj-target-makefile-miscelaneous
 @subsection ede-proj-target-makefile-miscelaneous
 @tgindex ede-proj-target-makefile-miscelaneous
 
@@ -3397,7 +3397,7 @@ Return a list of files which @var{THIS} target depends on.
 @end deffn
 
 
-@node ede-proj-target-makefile-info, ede-proj-target-scheme, ede-proj-target-makefile-miscelaneous, Targets
+@node ede-proj-target-makefile-info
 @subsection ede-proj-target-makefile-info
 @tgindex ede-proj-target-makefile-info
 
@@ -3483,7 +3483,7 @@ Does the usual for Makefile mode, but splits source into two variables
 when working in Automake mode.
 @end deffn
 
-@node ede-proj-target-scheme, project-am-target, ede-proj-target-makefile-info, Targets
+@node ede-proj-target-scheme
 @subsection ede-proj-target-scheme
 @tgindex ede-proj-target-scheme
 
@@ -3527,7 +3527,7 @@ Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 
-@node project-am-target, project-am-objectcode, ede-proj-target-scheme, Targets
+@node project-am-target
 @subsection project-am-target
 @tgindex project-am-target
 
@@ -3565,7 +3565,7 @@ Run the current project in the debugger.
 Edit the target associated w/ this file.
 @end deffn
 
-@node project-am-objectcode, project-am-program, project-am-target, Targets
+@node project-am-objectcode
 @subsection project-am-objectcode
 @tgindex project-am-objectcode
 
@@ -3610,7 +3610,7 @@ Default target to use when compiling an object code target.
 There are no default header files.
 @end deffn
 
-@node project-am-program, project-am-header-noinst, project-am-objectcode, Targets
+@node project-am-program
 @subsection project-am-program
 @tgindex project-am-program
 
@@ -3648,7 +3648,7 @@ Additional LD args.
 @end table
 @end table
 
-@node project-am-header-noinst, project-am-header-inst, project-am-program, Targets
+@node project-am-header-noinst
 @subsection project-am-header-noinst
 @tgindex project-am-header-noinst
 
@@ -3681,7 +3681,7 @@ No children
 Return the default macro to 'edit' for this object.
 @end deffn
 
-@node project-am-header-inst, project-am-lisp, project-am-header-noinst, Targets
+@node project-am-header-inst
 @subsection project-am-header-inst
 @tgindex project-am-header-inst
 
@@ -3714,7 +3714,7 @@ No children
 Return the default macro to 'edit' for this object.
 @end deffn
 
-@node project-am-lisp, project-am-texinfo, project-am-header-inst, Targets
+@node project-am-lisp
 @subsection project-am-lisp
 @tgindex project-am-lisp
 
@@ -3744,7 +3744,7 @@ No children
 Return the default macro to 'edit' for this object.
 @end deffn
 
-@node project-am-texinfo, project-am-man, project-am-lisp, Targets
+@node project-am-texinfo
 @subsection project-am-texinfo
 @tgindex project-am-texinfo
 
@@ -3795,7 +3795,7 @@ Documentation is not for object @var{THIS}, but is provided by @var{THIS} for ot
 files in the project.
 @end deffn
 
-@node project-am-man,  , project-am-texinfo, Targets
+@node project-am-man
 @comment  node-name,  next,  previous,  up
 @subsection project-am-man
 @tgindex project-am-man
@@ -3826,7 +3826,7 @@ No children
 Return the default macro to 'edit' for this object type.
 @end deffn
 
-@node Sourcecode, Compilers, Targets, Extending EDE
+@node Sourcecode
 @section Sourcecode
 
 The source code type is an object designed to associated files with
@@ -3837,7 +3837,7 @@ targets.
 @end menu
 
 
-@node ede-sourcecode,  , Sourcecode, Sourcecode
+@node ede-sourcecode
 @subsection ede-sourcecode
 @scindex ede-sourcecode
 
@@ -3934,7 +3934,7 @@ Return non-@code{nil} if @var{THIS} will take @var{FILENAME} as an auxiliary .
 Return non-@code{nil} if @var{THIS} will take @var{FILENAME} as an auxiliary .
 @end deffn
 
-@node Compilers,  , Sourcecode, Extending EDE
+@node Compilers
 @section Compilers
 
 The compiler object is designed to associate source code with
@@ -3950,7 +3950,7 @@ compile commands.
 @end menu
 
 
-@node ede-compilation-program, ede-compiler, Compilers, Compilers
+@node ede-compilation-program
 @subsection ede-compilation-program
 @cmindex ede-compilation-program
 
@@ -4061,7 +4061,7 @@ Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 
-@node ede-compiler, ede-object-compiler, ede-compilation-program, Compilers
+@node ede-compiler
 @subsection ede-compiler
 @cmindex ede-compiler
 
@@ -4169,7 +4169,7 @@ Return a string based on @var{THIS} representing a make object variable.
 @end deffn
 
 
-@node ede-object-compiler, ede-linker, ede-compiler, Compilers
+@node ede-object-compiler
 @subsection ede-object-compiler
 @cmindex ede-object-compiler
 
@@ -4212,7 +4212,7 @@ A variable dedicated to dependency generation.
 Insert variables needed by the compiler @var{THIS}.
 @end deffn
 
-@node ede-linker,  , ede-object-compiler, Compilers
+@node ede-linker
 @subsection ede-linker
 @cmindex ede-linker
 
@@ -4274,7 +4274,7 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @end table
 @end table
 
-@node GNU Free Documentation License,  , Extending EDE, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

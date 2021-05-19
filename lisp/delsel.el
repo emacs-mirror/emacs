@@ -84,9 +84,11 @@ information on adapting behavior of commands in Delete Selection mode."
 
 (defvar delsel--replace-text-or-position nil)
 
+;;;###autoload
 (defun delete-active-region (&optional killp)
   "Delete the active region.
 If KILLP in not-nil, the active region is killed instead of deleted."
+  (interactive "P")
   (cond
    (killp
     ;; Don't allow `kill-region' to change the value of `this-command'.

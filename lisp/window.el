@@ -4361,43 +4361,45 @@ This may be a useful alternative binding for \\[delete-other-windows]
 
 ;; The following function is called by `set-window-buffer' _before_ it
 ;; replaces the buffer of the argument window with the new buffer.
+(defun push-window-buffer-onto-prev (&optional window)
+  "Push entry for WINDOW's buffer onto WINDOW's prev-buffers list.
+WINDOW must be a live window and defaults to the selected one.
+
+Any duplicate entries for the buffer in the list are removed."
+  (let* ((window (window-normalize-window window t))
+         (buffer (window-buffer window))
+         (w-list (window-prev-buffers window))
+         (entry (assq buffer w-list)))
+    (when entry
+      (setq w-list (assq-delete-all buffer w-list)))
+    (let ((start (window-start window))
+          (point (window-point window)))
+      (setq entry
+            (cons buffer
+                  (with-current-buffer buffer
+                    (if entry
+                        ;; We have an entry, update marker positions.
+                        (list (set-marker (nth 1 entry) start)
+                              (set-marker (nth 2 entry) point))
+                      (list (copy-marker start)
+                            (copy-marker
+                             ;; Preserve window-point-insertion-type
+                             ;; (Bug#12855)
+                             point window-point-insertion-type))))))
+      (set-window-prev-buffers window (cons entry w-list)))))
+
 (defun record-window-buffer (&optional window)
   "Record WINDOW's buffer.
 WINDOW must be a live window and defaults to the selected one."
   (let* ((window (window-normalize-window window t))
-	 (buffer (window-buffer window))
-	 (entry (assq buffer (window-prev-buffers window))))
+         (buffer (window-buffer window)))
     ;; Reset WINDOW's next buffers.  If needed, they are resurrected by
     ;; `switch-to-prev-buffer' and `switch-to-next-buffer'.
     (set-window-next-buffers window nil)
 
-    (when entry
-      ;; Remove all entries for BUFFER from WINDOW's previous buffers.
-      (set-window-prev-buffers
-       window (assq-delete-all buffer (window-prev-buffers window))))
-
     ;; Don't record insignificant buffers.
-    (when (or (not (eq (aref (buffer-name buffer) 0) ?\s))
-              (minibufferp buffer))
-      ;; Add an entry for buffer to WINDOW's previous buffers.
-      (with-current-buffer buffer
-	(let ((start (window-start window))
-	      (point (window-point window)))
-	  (setq entry
-		(cons buffer
-		      (if entry
-			  ;; We have an entry, update marker positions.
-			  (list (set-marker (nth 1 entry) start)
-				(set-marker (nth 2 entry) point))
-			;; Make new markers.
-			(list (copy-marker start)
-			      (copy-marker
-			       ;; Preserve window-point-insertion-type
-			       ;; (Bug#12855).
-			       point window-point-insertion-type)))))
-	  (set-window-prev-buffers
-	   window (cons entry (window-prev-buffers window)))))
-
+    (when (not (eq (aref (buffer-name buffer) 0) ?\s))
+      (push-window-buffer-onto-prev window)
       (run-hooks 'buffer-list-update-hook))))
 
 (defun unrecord-window-buffer (&optional window buffer)
@@ -5034,14 +5036,10 @@ nil means to not handle the buffer in a particular way.  This
   (setq window (window-normalize-window window t))
   (let* ((buffer (window-buffer window))
 	 (quit-restore (window-parameter window 'quit-restore))
-	 (prev-buffer
-	  (let* ((prev-buffers (window-prev-buffers window))
-		 (prev-buffer (caar prev-buffers)))
-	    (and (or (not (eq prev-buffer buffer))
-		     (and (cdr prev-buffers)
-			  (not (eq (setq prev-buffer (cadr prev-buffers))
-				   buffer))))
-		 prev-buffer)))
+         (prev-buffer (catch 'prev-buffer
+                        (dolist (buf (window-prev-buffers window))
+                          (unless (eq (car buf) buffer)
+                            (throw 'prev-buffer (car buf))))))
 	 quad entry)
     (cond
      ((and (not prev-buffer)
@@ -5112,7 +5110,9 @@ nil means to not handle the buffer in a particular way.  This
       (set-window-parameter window 'quit-restore nil)
       ;; Make sure that WINDOW is no more dedicated.
       (set-window-dedicated-p window nil)
-      (switch-to-prev-buffer window bury-or-kill)))
+      (unless (switch-to-prev-buffer window bury-or-kill)
+        ;; Delete WINDOW if there is no previous buffer (Bug#48367).
+        (window--delete window nil (eq bury-or-kill 'kill)))))
 
     ;; Deal with the buffer.
     (cond
@@ -8633,7 +8633,9 @@ meaning of these values in `window--display-buffer'.
 Optional `post-function' is called after the buffer is displayed in the
 window; the function takes two arguments: an old and new window.
 Optional string argument `echo' can be used to add a prefix to the
-command echo keystrokes that should describe the current prefix state."
+command echo keystrokes that should describe the current prefix state.
+This returns an \"exit function\", which can be called with no argument
+to deactivate this overriding action."
   (let* ((old-window (or (minibuffer-selected-window) (selected-window)))
          (new-window nil)
          (minibuffer-depth (minibuffer-depth))
@@ -8675,7 +8677,8 @@ command echo keystrokes that should describe the current prefix state."
     (add-hook 'post-command-hook clearfun)
     (when echofun
       (add-hook 'prefix-command-echo-keystrokes-functions echofun))
-    (push action (car display-buffer-overriding-action))))
+    (push action (car display-buffer-overriding-action))
+    exitfun))
 
 
 (defun set-window-text-height (window height)

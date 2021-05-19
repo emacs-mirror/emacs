@@ -588,7 +588,7 @@ there are Quick mode, Keypad mode, and Embedded mode.
 * Other C-x * Commands::
 @end menu
 
-@node Starting Calc, The Standard Interface, Using Calc, Using Calc
+@node Starting Calc
 @subsection Starting Calc
 
 @noindent
@@ -619,7 +619,7 @@ type the full command (like @kbd{calc-keypad}) and press Return.
 The same commands (like @kbd{C-x * c} or @kbd{C-x * *}) that start
 the Calculator also turn it off if it is already on.
 
-@node The Standard Interface, Quick Mode Overview, Starting Calc, Using Calc
+@node The Standard Interface
 @subsection The Standard Calc Interface
 
 @noindent
@@ -713,7 +713,7 @@ switch you to the Calc Trail window.  So @kbd{C-x * o} is a handy
 way to switch out of Calc momentarily to edit your file; you can then
 type @kbd{C-x * c} to switch back into Calc when you are done.
 
-@node Quick Mode Overview, Keypad Mode Overview, The Standard Interface, Using Calc
+@node Quick Mode Overview
 @subsection Quick Mode (Overview)
 
 @noindent
@@ -736,7 +736,7 @@ go into regular Calc (with @kbd{C-x * c}) to change the mode settings.
 @c [fix-ref Quick Calculator mode]
 @xref{Quick Calculator}, for further information.
 
-@node Keypad Mode Overview, Standalone Operation, Quick Mode Overview, Using Calc
+@node Keypad Mode Overview
 @subsection Keypad Mode (Overview)
 
 @noindent
@@ -814,7 +814,7 @@ left, the stack in the lower right, and the trail on top.
 @c [fix-ref Keypad Mode]
 @xref{Keypad Mode}, for further information.
 
-@node Standalone Operation, Embedded Mode Overview, Keypad Mode Overview, Using Calc
+@node Standalone Operation
 @subsection Standalone Operation
 
 @noindent
@@ -841,7 +841,7 @@ In standalone operation, quitting the Calculator (by pressing
 @kbd{q} or clicking on the keypad @key{EXIT} button) quits Emacs
 itself.
 
-@node Embedded Mode Overview, Other C-x * Commands, Standalone Operation, Using Calc
+@node Embedded Mode Overview
 @subsection Embedded Mode (Overview)
 
 @noindent
@@ -972,7 +972,7 @@ A slope of one-third corresponds to an angle of 18.4349488229 degrees.
 @c [fix-ref Embedded Mode]
 @xref{Embedded Mode}, for full details.
 
-@node Other C-x * Commands,  , Embedded Mode Overview, Using Calc
+@node Other C-x * Commands
 @subsection Other @kbd{C-x *} Commands
 
 @noindent
@@ -1329,7 +1329,7 @@ Calc.
 * Answers to Exercises::
 @end menu
 
-@node Basic Tutorial, Arithmetic Tutorial, Tutorial, Tutorial
+@node Basic Tutorial
 @section Basic Tutorial
 
 @noindent
@@ -1344,7 +1344,7 @@ to control various modes of the Calculator.
 * Modes Tutorial::          Common mode-setting commands.
 @end menu
 
-@node RPN Tutorial, Algebraic Tutorial, Basic Tutorial, Basic Tutorial
+@node RPN Tutorial
 @subsection RPN Calculations and the Stack
 
 @cindex RPN notation
@@ -1738,7 +1738,7 @@ Another common idiom is @kbd{M-0 @key{DEL}}, which clears the stack.
 (The @kbd{M-0} numeric prefix tells @key{DEL} to operate on the
 entire stack.)
 
-@node Algebraic Tutorial, Undo Tutorial, RPN Tutorial, Basic Tutorial
+@node Algebraic Tutorial
 @subsection Algebraic-Style Calculations
 
 @noindent
@@ -2038,7 +2038,7 @@ You can also ``unstore'' a variable when you are through with it:
 We will encounter formulas involving variables and functions again
 when we discuss the algebra and calculus features of the Calculator.
 
-@node Undo Tutorial, Modes Tutorial, Algebraic Tutorial, Basic Tutorial
+@node Undo Tutorial
 @subsection Undo and Redo
 
 @noindent
@@ -2175,7 +2175,7 @@ new number.  This works for formulas, vectors, and all other types
 of values you can put on the stack.  The @kbd{`} key also works
 during entry of a number or algebraic formula.
 
-@node Modes Tutorial,  , Undo Tutorial, Basic Tutorial
+@node Modes Tutorial
 @subsection Mode-Setting Commands
 
 @noindent
@@ -2655,7 +2655,7 @@ again when we change to Fraction mode.  All @samp{=>} expressions
 on the stack are recomputed every time you change any mode that
 might affect their values.
 
-@node Arithmetic Tutorial, Vector/Matrix Tutorial, Basic Tutorial, Tutorial
+@node Arithmetic Tutorial
 @section Arithmetic Tutorial
 
 @noindent
@@ -3041,7 +3041,7 @@ like @code{pv}, @code{rate}, and @code{sln}).
 @xref{Binary Functions}, to read about the commands for operating
 on binary numbers (like @code{and}, @code{xor}, and @code{lsh}).
 
-@node Vector/Matrix Tutorial, Types Tutorial, Arithmetic Tutorial, Tutorial
+@node Vector/Matrix Tutorial
 @section Vector/Matrix Tutorial
 
 @noindent
@@ -3056,7 +3056,7 @@ a vector as a list of objects.
 * List Tutorial::
 @end menu
 
-@node Vector Analysis Tutorial, Matrix Tutorial, Vector/Matrix Tutorial, Vector/Matrix Tutorial
+@node Vector Analysis Tutorial
 @subsection Vector Analysis
 
 @noindent
@@ -3181,7 +3181,7 @@ probabilities for the particle to be at the corresponding positions.
 Find the average position of the particle.
 @xref{Vector Answer 2, 2}. (@bullet{})
 
-@node Matrix Tutorial, List Tutorial, Vector Analysis Tutorial, Vector/Matrix Tutorial
+@node Matrix Tutorial
 @subsection Matrices
 
 @noindent
@@ -3507,7 +3507,7 @@ $$
 @noindent
 @xref{Matrix Answer 3, 3}. (@bullet{})
 
-@node List Tutorial,  , Matrix Tutorial, Vector/Matrix Tutorial
+@node List Tutorial
 @subsection Vectors as Lists
 
 @noindent
@@ -4214,7 +4214,7 @@ walk to walk a unit distance, but in a random direction, at each step.
 (Hint:  The @code{sincos} function returns a vector of the cosine and
 sine of an angle.)  @xref{List Answer 14, 14}. (@bullet{})
 
-@node Types Tutorial, Algebra Tutorial, Vector/Matrix Tutorial, Tutorial
+@node Types Tutorial
 @section Types Tutorial
 
 @noindent
@@ -4738,7 +4738,7 @@ Power Pill he eats doubles his speed.  How many Power Pills can he
 swallow and still travel legally on most US highways?
 @xref{Types Answer 15, 15}. (@bullet{})
 
-@node Algebra Tutorial, Programming Tutorial, Types Tutorial, Tutorial
+@node Algebra Tutorial
 @section Algebra and Calculus Tutorial
 
 @noindent
@@ -4751,7 +4751,7 @@ formulas.
 * Rewrites Tutorial::
 @end menu
 
-@node Basic Algebra Tutorial, Rewrites Tutorial, Algebra Tutorial, Algebra Tutorial
+@node Basic Algebra Tutorial
 @subsection Basic Algebra
 
 @noindent
@@ -5246,7 +5246,7 @@ details and examples.
 @c hard exercise: simplify (2^(n r) - 2^(r*(n - 1))) / (2^r - 1) 2^(n - 1)
 @c                to 2^((n-1)*(r-1)).
 
-@node Rewrites Tutorial,  , Basic Algebra Tutorial, Algebra Tutorial
+@node Rewrites Tutorial
 @subsection Rewrite Rules
 
 @noindent
@@ -5687,7 +5687,7 @@ a nasty surprise when you use Calc to balance your checkbook!)
 
 @xref{Rewrite Rules}, for the whole story on rewrite rules.
 
-@node Programming Tutorial, Answers to Exercises, Algebra Tutorial, Tutorial
+@node Programming Tutorial
 @section Programming Tutorial
 
 @noindent
@@ -6346,7 +6346,7 @@ The rest of this manual tells the whole story.
 @c Volume II of this manual, the @dfn{Calc Reference}, tells the whole story.
 
 @page
-@node Answers to Exercises,  , Programming Tutorial, Tutorial
+@node Answers to Exercises
 @section Answers to Exercises
 
 @noindent
@@ -6433,7 +6433,7 @@ This section includes answers to all the exercises in the Calc tutorial.
 \gdef\chapternofonts{\let\write=\skipwrite\oldchapternofonts}
 @end tex
 
-@node RPN Answer 1, RPN Answer 2, Answers to Exercises, Answers to Exercises
+@node RPN Answer 1
 @subsection RPN Tutorial Exercise 1
 
 @noindent
@@ -6443,7 +6443,7 @@ The result is
 @texline @math{1 - (2 \times (3 + 4)) = -13}.
 @infoline @expr{1 - (2 * (3 + 4)) = -13}.
 
-@node RPN Answer 2, RPN Answer 3, RPN Answer 1, Answers to Exercises
+@node RPN Answer 2
 @subsection RPN Tutorial Exercise 2
 
 @noindent
@@ -6500,7 +6500,7 @@ advantage of using only three stack levels.  But since Calc's stack
 can grow arbitrarily large this isn't really an issue.  Which method
 you choose is purely a matter of taste.
 
-@node RPN Answer 3, RPN Answer 4, RPN Answer 2, Answers to Exercises
+@node RPN Answer 3
 @subsection RPN Tutorial Exercise 3
 
 @noindent
@@ -6531,7 +6531,7 @@ Similarly, @kbd{M-@key{TAB}} gives you access to the number in level 3.
 @end group
 @end smallexample
 
-@node RPN Answer 4, Algebraic Answer 1, RPN Answer 3, Answers to Exercises
+@node RPN Answer 4
 @subsection RPN Tutorial Exercise 4
 
 @noindent
@@ -6569,7 +6569,7 @@ enough that Calc provides a special key, @kbd{M-@key{DEL}}, to do just that.
 @kbd{M-@key{DEL}} is just like @kbd{@key{TAB} @key{DEL}}, except that it doesn't exhibit
 the ``feature'' that tripped poor Joe.)
 
-@node Algebraic Answer 1, Algebraic Answer 2, RPN Answer 4, Answers to Exercises
+@node Algebraic Answer 1
 @subsection Algebraic Entry Tutorial Exercise 1
 
 @noindent
@@ -6582,7 +6582,7 @@ Or, RPN style, @kbd{0.5 ^}.
 a closer equivalent, since @samp{9^0.5} yields @expr{3.0} whereas
 @samp{sqrt(9)} and @samp{9^1:2} yield the exact integer @expr{3}.)
 
-@node Algebraic Answer 2, Algebraic Answer 3, Algebraic Answer 1, Answers to Exercises
+@node Algebraic Answer 2
 @subsection Algebraic Entry Tutorial Exercise 2
 
 @noindent
@@ -6591,7 +6591,7 @@ name with @samp{1+y} as its argument.  Assigning a value to a variable
 has no relation to a function by the same name.  Joe needed to use an
 explicit @samp{*} symbol here:  @samp{2 x*(1+y)}.
 
-@node Algebraic Answer 3, Modes Answer 1, Algebraic Answer 2, Answers to Exercises
+@node Algebraic Answer 3
 @subsection Algebraic Entry Tutorial Exercise 3
 
 @noindent
@@ -6608,7 +6608,7 @@ multiply infinity by zero, Calc uses another special new symbol to
 show that the answer is ``indeterminate.''  @xref{Infinities}, for
 further discussion of infinite and indeterminate values.
 
-@node Modes Answer 1, Modes Answer 2, Algebraic Answer 3, Answers to Exercises
+@node Modes Answer 1
 @subsection Modes Tutorial Exercise 1
 
 @noindent
@@ -6669,7 +6669,7 @@ in binary, octal, or hexadecimal is also exact in decimal, so the kinds
 of problems we saw in this exercise are likely to be severe only when
 you use a relatively unusual radix like 3.
 
-@node Modes Answer 2, Modes Answer 3, Modes Answer 1, Answers to Exercises
+@node Modes Answer 2
 @subsection Modes Tutorial Exercise 2
 
 If the radix is 15 or higher, we can't use the letter @samp{e} to mark
@@ -6689,7 +6689,7 @@ it by the floating-point @samp{16#1.23}).  While this wouldn't normally
 matter for display purposes, it could give you a nasty surprise if you
 copied that number into a file and later moved it back into Calc.
 
-@node Modes Answer 3, Modes Answer 4, Modes Answer 2, Answers to Exercises
+@node Modes Answer 3
 @subsection Modes Tutorial Exercise 3
 
 @noindent
@@ -6731,7 +6731,7 @@ exactly was the quantity 45 degrees, so the precision must be raised
 before anything is done after the number 45 has been entered in order
 for the higher precision to be meaningful.
 
-@node Modes Answer 4, Arithmetic Answer 1, Modes Answer 3, Answers to Exercises
+@node Modes Answer 4
 @subsection Modes Tutorial Exercise 4
 
 @noindent
@@ -6752,7 +6752,7 @@ Also, rational numbers cannot express the results of all calculations.
 There is no fractional form for the square root of two, so if you type
 @w{@kbd{2 Q}}, Calc has no choice but to give you a floating-point answer.
 
-@node Arithmetic Answer 1, Arithmetic Answer 2, Modes Answer 4, Answers to Exercises
+@node Arithmetic Answer 1
 @subsection Arithmetic Tutorial Exercise 1
 
 @noindent
@@ -6772,7 +6772,7 @@ produces the exact fraction @expr{123456789:2}, which can be rounded
 down by the @kbd{F} command without ever switching to floating-point
 format.
 
-@node Arithmetic Answer 2, Vector Answer 1, Arithmetic Answer 1, Answers to Exercises
+@node Arithmetic Answer 2
 @subsection Arithmetic Tutorial Exercise 2
 
 @noindent
@@ -6784,7 +6784,7 @@ or (when in Fraction mode) the reciprocal of an integer.  But there is
 no efficient way to search the space of all possible rational numbers
 for an exact answer, so Calc doesn't try.
 
-@node Vector Answer 1, Vector Answer 2, Arithmetic Answer 2, Answers to Exercises
+@node Vector Answer 1
 @subsection Vector Tutorial Exercise 1
 
 @noindent
@@ -6804,7 +6804,7 @@ by its length:  @kbd{@key{RET} A /}.
 The final @kbd{A} command shows that the normalized vector does
 indeed have unit length.
 
-@node Vector Answer 2, Matrix Answer 1, Vector Answer 1, Answers to Exercises
+@node Vector Answer 2
 @subsection Vector Tutorial Exercise 2
 
 @noindent
@@ -6813,14 +6813,14 @@ positions times their corresponding probabilities.  This is the
 definition of the dot product operation.  So all you need to do
 is to put the two vectors on the stack and press @kbd{*}.
 
-@node Matrix Answer 1, Matrix Answer 2, Vector Answer 2, Answers to Exercises
+@node Matrix Answer 1
 @subsection Matrix Tutorial Exercise 1
 
 @noindent
 The trick is to multiply by a vector of ones.  Use @kbd{r 4 [1 1 1] *} to
 get the row sum.  Similarly, use @kbd{[1 1] r 4 *} to get the column sum.
 
-@node Matrix Answer 2, Matrix Answer 3, Matrix Answer 1, Answers to Exercises
+@node Matrix Answer 2
 @subsection Matrix Tutorial Exercise 2
 
 @ifnottex
@@ -6866,7 +6866,7 @@ mode:
 
 Type @kbd{d N} to return to Normal display mode afterwards.
 
-@node Matrix Answer 3, List Answer 1, Matrix Answer 2, Answers to Exercises
+@node Matrix Answer 3
 @subsection Matrix Tutorial Exercise 3
 
 @noindent
@@ -6984,7 +6984,7 @@ the original system of equations to see how well they match.
 This is reasonably close to our original @expr{B} vector,
 @expr{[6, 2, 3, 11]}.
 
-@node List Answer 1, List Answer 2, Matrix Answer 3, Answers to Exercises
+@node List Answer 1
 @subsection List Tutorial Exercise 1
 
 @noindent
@@ -7016,7 +7016,7 @@ vector.
 @end group
 @end smallexample
 
-@node List Answer 2, List Answer 3, List Answer 1, Answers to Exercises
+@node List Answer 2
 @subsection List Tutorial Exercise 2
 
 @noindent
@@ -7099,7 +7099,7 @@ arithmetic functions!
 In fact, there is a built-in @kbd{a F} command that does least-squares
 fits.  @xref{Curve Fitting}.
 
-@node List Answer 3, List Answer 4, List Answer 2, Answers to Exercises
+@node List Answer 3
 @subsection List Tutorial Exercise 3
 
 @noindent
@@ -7143,7 +7143,7 @@ how many numbers are in this list.  Then we could type:
 You could also type @kbd{& ^} to take the reciprocal of 9 and
 then raise the number to that power.)
 
-@node List Answer 4, List Answer 5, List Answer 3, Answers to Exercises
+@node List Answer 4
 @subsection List Tutorial Exercise 4
 
 @noindent
@@ -7183,7 +7183,7 @@ The first divisor function is the sum of the divisors.
 Once again, the last two steps just compute a dot product for which
 a simple @kbd{*} would have worked equally well.
 
-@node List Answer 5, List Answer 6, List Answer 4, Answers to Exercises
+@node List Answer 5
 @subsection List Tutorial Exercise 5
 
 @noindent
@@ -7222,14 +7222,14 @@ Incidentally, Calc provides the @dfn{Möbius μ}
 function which is zero if and only if its argument is square-free.  It
 would be a much more convenient way to do the above test in practice.
 
-@node List Answer 6, List Answer 7, List Answer 5, Answers to Exercises
+@node List Answer 6
 @subsection List Tutorial Exercise 6
 
 @noindent
 First use @kbd{v x 6 @key{RET}} to get a list of integers, then @kbd{V M v x}
 to get a list of lists of integers!
 
-@node List Answer 7, List Answer 8, List Answer 6, Answers to Exercises
+@node List Answer 7
 @subsection List Tutorial Exercise 7
 
 @noindent
@@ -7302,7 +7302,7 @@ triangular list.
 since each element of the main vector is itself a small vector,
 @kbd{V R +} computes the sum of its elements.)
 
-@node List Answer 8, List Answer 9, List Answer 7, Answers to Exercises
+@node List Answer 8
 @subsection List Tutorial Exercise 8
 
 @noindent
@@ -7391,7 +7391,7 @@ The output from @kbd{a X} is a vector containing the value of @expr{x}
 that maximizes the function, and the function's value at that maximum.
 As you can see, our simple search got quite close to the right answer.
 
-@node List Answer 9, List Answer 10, List Answer 8, Answers to Exercises
+@node List Answer 9
 @subsection List Tutorial Exercise 9
 
 @noindent
@@ -7513,7 +7513,7 @@ Another way to do this final step would be to reduce the formula
 @end group
 @end smallexample
 
-@node List Answer 10, List Answer 11, List Answer 9, Answers to Exercises
+@node List Answer 10
 @subsection List Tutorial Exercise 10
 
 @noindent
@@ -7544,7 +7544,7 @@ Here's a more correct method:
 @end group
 @end smallexample
 
-@node List Answer 11, List Answer 12, List Answer 10, Answers to Exercises
+@node List Answer 11
 @subsection List Tutorial Exercise 11
 
 @noindent
@@ -7611,7 +7611,7 @@ will be slightly different from the one shown here!)
 If you typed @kbd{v .} and @kbd{t .} before, type them again to
 return to full-sized display of vectors.
 
-@node List Answer 12, List Answer 13, List Answer 11, Answers to Exercises
+@node List Answer 12
 @subsection List Tutorial Exercise 12
 
 @noindent
@@ -7722,7 +7722,7 @@ exercise 10, of Knuth's @emph{Art of Computer Programming}, volume II.
 If you typed @kbd{v .} and @kbd{t .} before, type them again to
 return to full-sized display of vectors.
 
-@node List Answer 13, List Answer 14, List Answer 12, Answers to Exercises
+@node List Answer 13
 @subsection List Tutorial Exercise 13
 
 @noindent
@@ -7862,7 +7862,7 @@ Later in the tutorial we will encounter @dfn{modulo forms}, which
 basically automate the idea of reducing every intermediate result
 modulo some value @var{m}.
 
-@node List Answer 14, Types Answer 1, List Answer 13, Answers to Exercises
+@node List Answer 14
 @subsection List Tutorial Exercise 14
 
 We want to use @kbd{H V U} to nest a function which adds a random
@@ -7927,7 +7927,7 @@ and in the second we could use polar complex numbers with random phase
 angles.  (This exercise was first suggested in this form by Randal
 Schwartz.)
 
-@node Types Answer 1, Types Answer 2, List Answer 14, Answers to Exercises
+@node Types Answer 1
 @subsection Types Tutorial Exercise 1
 
 @noindent
@@ -7971,7 +7971,7 @@ Notice that we didn't need to re-round the number when we reduced the
 precision.  Remember, arithmetic operations always round their inputs
 to the current precision before they begin.
 
-@node Types Answer 2, Types Answer 3, Types Answer 1, Answers to Exercises
+@node Types Answer 2
 @subsection Types Tutorial Exercise 2
 
 @noindent
@@ -8007,7 +8007,7 @@ input.  As in the @expr{1 / 0} case, Calc will only use infinities
 here if you have turned on Infinite mode.  Otherwise, it will
 treat @samp{ln(0)} as an error.
 
-@node Types Answer 3, Types Answer 4, Types Answer 2, Answers to Exercises
+@node Types Answer 3
 @subsection Types Tutorial Exercise 3
 
 @noindent
@@ -8029,7 +8029,7 @@ for infinities (only the direction counts, not the ``size''); but
 Calc is careful to write @code{nan} any time this simple model is
 unable to tell what the true answer is.
 
-@node Types Answer 4, Types Answer 5, Types Answer 3, Answers to Exercises
+@node Types Answer 4
 @subsection Types Tutorial Exercise 4
 
 @smallexample
@@ -8058,7 +8058,7 @@ The average song length is two minutes and 47.4 seconds.
 @noindent
 The album would be 53 minutes and 6 seconds long.
 
-@node Types Answer 5, Types Answer 6, Types Answer 4, Answers to Exercises
+@node Types Answer 5
 @subsection Types Tutorial Exercise 5
 
 @noindent
@@ -8110,7 +8110,7 @@ Et voilà, September 13, 1991 is a Friday.
 @noindent
 And the answer to our original question:  242 days to go.
 
-@node Types Answer 6, Types Answer 7, Types Answer 5, Answers to Exercises
+@node Types Answer 6
 @subsection Types Tutorial Exercise 6
 
 @noindent
@@ -8156,7 +8156,7 @@ of course, that the algorithm for computing leap years remains
 unchanged for that long.  @xref{Date Forms}, for some interesting
 background information in that regard.)
 
-@node Types Answer 7, Types Answer 8, Types Answer 6, Answers to Exercises
+@node Types Answer 7
 @subsection Types Tutorial Exercise 7
 
 @noindent
@@ -8201,7 +8201,7 @@ well as a vector.  This saves us some retyping of numbers.
 @noindent
 Thus the volume is 6316 cubic centimeters, within about 11 percent.
 
-@node Types Answer 8, Types Answer 9, Types Answer 7, Answers to Exercises
+@node Types Answer 8
 @subsection Types Tutorial Exercise 8
 
 @noindent
@@ -8233,7 +8233,7 @@ It may be disappointing to hear ``the answer lies somewhere between
 minus infinity and plus infinity, inclusive,'' but that's the best
 that interval arithmetic can do in this case.
 
-@node Types Answer 9, Types Answer 10, Types Answer 8, Answers to Exercises
+@node Types Answer 9
 @subsection Types Tutorial Exercise 9
 
 @smallexample
@@ -8257,7 +8257,7 @@ for different numbers.
 
 The same issue arises when you try to square an error form.
 
-@node Types Answer 10, Types Answer 11, Types Answer 9, Answers to Exercises
+@node Types Answer 10
 @subsection Types Tutorial Exercise 10
 
 @noindent
@@ -8305,7 +8305,7 @@ numbers it does an exact test; for large numbers it uses a variant
 of the Fermat test we used here.  You can use @kbd{k p} repeatedly
 to prove that a large integer is prime with any desired probability.
 
-@node Types Answer 11, Types Answer 12, Types Answer 10, Answers to Exercises
+@node Types Answer 11
 @subsection Types Tutorial Exercise 11
 
 @noindent
@@ -8353,7 +8353,7 @@ HMS form:
 The @kbd{=} key is necessary to evaluate the symbol @samp{pi} to
 the actual number 3.14159...
 
-@node Types Answer 12, Types Answer 13, Types Answer 11, Answers to Exercises
+@node Types Answer 12
 @subsection Types Tutorial Exercise 12
 
 @noindent
@@ -8383,13 +8383,13 @@ each.
 @noindent
 No matter how long it is, the album will fit nicely on one CD.
 
-@node Types Answer 13, Types Answer 14, Types Answer 12, Answers to Exercises
+@node Types Answer 13
 @subsection Types Tutorial Exercise 13
 
 @noindent
 Type @kbd{' 1 yr @key{RET} u c s @key{RET}}.  The answer is 31557600 seconds.
 
-@node Types Answer 14, Types Answer 15, Types Answer 13, Answers to Exercises
+@node Types Answer 14
 @subsection Types Tutorial Exercise 14
 
 @noindent
@@ -8423,7 +8423,7 @@ Thus a signal could take up to 81 percent of a clock cycle just to
 go from one place to another inside the computer, assuming the signal
 could actually attain the full speed of light.  Pretty tight!
 
-@node Types Answer 15, Algebra Answer 1, Types Answer 14, Answers to Exercises
+@node Types Answer 15
 @subsection Types Tutorial Exercise 15
 
 @noindent
@@ -8457,7 +8457,7 @@ answer, assuming that each successive pill doubles his speed.
 @noindent
 Thus Sam can take up to 14 pills without a worry.
 
-@node Algebra Answer 1, Algebra Answer 2, Types Answer 15, Answers to Exercises
+@node Algebra Answer 1
 @subsection Algebra Tutorial Exercise 1
 
 @noindent
@@ -8469,7 +8469,7 @@ simplified to @samp{abs(x)}, but for general complex arguments even
 that is not safe.  (@xref{Declarations}, for a way to tell Calc
 that @expr{x} is known to be real.)
 
-@node Algebra Answer 2, Algebra Answer 3, Algebra Answer 1, Answers to Exercises
+@node Algebra Answer 2
 @subsection Algebra Tutorial Exercise 2
 
 @noindent
@@ -8512,7 +8512,7 @@ familiar form.
 Sure enough, our answer (multiplied by a suitable constant) is the
 same as the original polynomial.
 
-@node Algebra Answer 3, Algebra Answer 4, Algebra Answer 2, Answers to Exercises
+@node Algebra Answer 3
 @subsection Algebra Tutorial Exercise 3
 
 @smallexample
@@ -8575,7 +8575,7 @@ same as the original polynomial.
 @end group
 @end smallexample
 
-@node Algebra Answer 4, Rewrites Answer 1, Algebra Answer 3, Answers to Exercises
+@node Algebra Answer 4
 @subsection Algebra Tutorial Exercise 4
 
 @noindent
@@ -8645,7 +8645,7 @@ same thing.
 @noindent
 Wow!  That's even better than the result from the Taylor series method.
 
-@node Rewrites Answer 1, Rewrites Answer 2, Algebra Answer 4, Answers to Exercises
+@node Rewrites Answer 1
 @subsection Rewrites Tutorial Exercise 1
 
 @noindent
@@ -8697,7 +8697,7 @@ The multiply-by-conjugate rule turns out to be useful in many
 different circumstances, such as when the denominator involves
 sines and cosines or the imaginary constant @code{i}.
 
-@node Rewrites Answer 2, Rewrites Answer 3, Rewrites Answer 1, Answers to Exercises
+@node Rewrites Answer 2
 @subsection Rewrites Tutorial Exercise 2
 
 @noindent
@@ -8733,7 +8733,7 @@ help keep this from happening by accident would be to use something like
 @samp{ZzFib} instead of @code{fib} as the name of the three-argument
 function.
 
-@node Rewrites Answer 3, Rewrites Answer 4, Rewrites Answer 2, Answers to Exercises
+@node Rewrites Answer 3
 @subsection Rewrites Tutorial Exercise 3
 
 @noindent
@@ -8755,7 +8755,7 @@ to it.  While this may seem odd, it's just as valid a solution as the
 on the lefthand side, so that the rule matches the actual variable
 @samp{x} rather than letting @samp{x} stand for something else.)
 
-@node Rewrites Answer 4, Rewrites Answer 5, Rewrites Answer 3, Answers to Exercises
+@node Rewrites Answer 4
 @subsection Rewrites Tutorial Exercise 4
 
 @noindent
@@ -8828,7 +8828,7 @@ will not get into an infinite loop.  Calc will not be able to prove
 the symbol @samp{x} is either even or odd, so none of the rules will
 apply and the rewrites will stop right away.
 
-@node Rewrites Answer 5, Rewrites Answer 6, Rewrites Answer 4, Answers to Exercises
+@node Rewrites Answer 5
 @subsection Rewrites Tutorial Exercise 5
 
 @noindent
@@ -8852,7 +8852,7 @@ Here we have taken advantage of the fact that earlier rules always
 match before later rules; @samp{nterms(x)} will only be tried if we
 already know that @samp{x} is not a sum.
 
-@node Rewrites Answer 6, Programming Answer 1, Rewrites Answer 5, Answers to Exercises
+@node Rewrites Answer 6
 @subsection Rewrites Tutorial Exercise 6
 
 @noindent
@@ -8927,7 +8927,7 @@ for a way to do this in Calc, although for something as involved as
 this it would probably be better to write the formatting routine
 in Lisp.)
 
-@node Programming Answer 1, Programming Answer 2, Rewrites Answer 6, Answers to Exercises
+@node Programming Answer 1
 @subsection Programming Tutorial Exercise 1
 
 @noindent
@@ -8940,7 +8940,7 @@ to be used within @code{ninteg}.
 The exact keystrokes are @kbd{Z F s Si @key{RET} @key{RET} C-b C-b @key{DEL} @key{DEL} @key{RET} y}.
 (The @kbd{C-b C-b @key{DEL} @key{DEL}} are what fix the argument list.)
 
-@node Programming Answer 2, Programming Answer 3, Programming Answer 1, Answers to Exercises
+@node Programming Answer 2
 @subsection Programming Tutorial Exercise 2
 
 @noindent
@@ -8957,7 +8957,7 @@ which is just what we want:  @kbd{C-x ( M-- 3 n C-x )}.
 Just for kicks, let's also do it algebraically:
 @w{@kbd{C-x ( ' -$$$, $$, $ @key{RET} C-x )}}.
 
-@node Programming Answer 3, Programming Answer 4, Programming Answer 2, Answers to Exercises
+@node Programming Answer 3
 @subsection Programming Tutorial Exercise 3
 
 @noindent
@@ -8993,13 +8993,13 @@ next command.)
 
 Using algebraic entry:  @kbd{C-x (  ' index($) @key{RET}  C-x )}.
 
-@node Programming Answer 4, Programming Answer 5, Programming Answer 3, Answers to Exercises
+@node Programming Answer 4
 @subsection Programming Tutorial Exercise 4
 
 @noindent
 Here's one way:  @kbd{C-x ( @key{RET} V R + @key{TAB} v l / C-x )}.
 
-@node Programming Answer 5, Programming Answer 6, Programming Answer 4, Answers to Exercises
+@node Programming Answer 5
 @subsection Programming Tutorial Exercise 5
 
 @smallexample
@@ -9015,7 +9015,7 @@ Here's one way:  @kbd{C-x ( @key{RET} V R + @key{TAB} v l / C-x )}.
 @noindent
 This answer is quite accurate.
 
-@node Programming Answer 6, Programming Answer 7, Programming Answer 5, Answers to Exercises
+@node Programming Answer 6
 @subsection Programming Tutorial Exercise 6
 
 @noindent
@@ -9044,7 +9044,7 @@ number (a 209-digit integer!)@: in about 10 steps; even though the
 @kbd{Z < ... Z >} solution had much simpler steps, it would have
 required so many steps that it would not have been practical.
 
-@node Programming Answer 7, Programming Answer 8, Programming Answer 6, Answers to Exercises
+@node Programming Answer 7
 @subsection Programming Tutorial Exercise 7
 
 @noindent
@@ -9085,7 +9085,7 @@ loop counter exceeds 4.
 Thus we find that the 30th harmonic number is 3.99, and the 31st
 harmonic number is 4.02.
 
-@node Programming Answer 8, Programming Answer 9, Programming Answer 7, Answers to Exercises
+@node Programming Answer 8
 @subsection Programming Tutorial Exercise 8
 
 @noindent
@@ -9201,7 +9201,7 @@ Also, of course, @kbd{a R} is a built-in command that uses Newton's
 method (among others) to look for numerical solutions to any equation.
 @xref{Root Finding}.
 
-@node Programming Answer 9, Programming Answer 10, Programming Answer 8, Answers to Exercises
+@node Programming Answer 9
 @subsection Programming Tutorial Exercise 9
 
 @noindent
@@ -9324,7 +9324,7 @@ C-x )
 @end group
 @end example
 
-@node Programming Answer 10, Programming Answer 11, Programming Answer 9, Answers to Exercises
+@node Programming Answer 10
 @subsection Programming Tutorial Exercise 10
 
 @noindent
@@ -9422,7 +9422,7 @@ C-x (  1 + 0 @key{RET} 1 C-u v x ' x @key{RET} @key{TAB} V M ^ *  C-x )
 @end group
 @end example
 
-@node Programming Answer 11, Programming Answer 12, Programming Answer 10, Answers to Exercises
+@node Programming Answer 11
 @subsection Programming Tutorial Exercise 11
 
 @noindent
@@ -9527,7 +9527,7 @@ first, because @code{read-kbd-macro} doesn't need to execute the
 definition as it reads it in.  For this reason, @code{C-x * m} is often
 the easiest way to create recursive programs in Calc.
 
-@node Programming Answer 12,  , Programming Answer 11, Answers to Exercises
+@node Programming Answer 12
 @subsection Programming Tutorial Exercise 12
 
 @noindent
@@ -9568,7 +9568,7 @@ the last rule.
 
 @c [reference]
 
-@node Introduction, Data Types, Tutorial, Top
+@node Introduction
 @chapter Introduction
 
 @noindent
@@ -9593,7 +9593,7 @@ numeric entry, undo, numeric prefix arguments, etc.
 * Troubleshooting Commands::
 @end menu
 
-@node Basic Commands, Help Commands, Introduction, Introduction
+@node Basic Commands
 @section Basic Commands
 
 @noindent
@@ -9762,7 +9762,7 @@ the stack but resets everything else to its initial state; with a
 negative prefix argument, @kbd{C-x * 0} preserves the contents of the
 stack but resets everything else to its default state.
 
-@node Help Commands, Stack Basics, Basic Commands, Introduction
+@node Help Commands
 @section Help Commands
 
 @noindent
@@ -9907,7 +9907,7 @@ distribution, and warranty information about Calc.  These work by
 pulling up the appropriate parts of the ``Copying'' or ``Reporting
 Bugs'' sections of the manual.
 
-@node Stack Basics, Numeric Entry, Help Commands, Introduction
+@node Stack Basics
 @section Stack Basics
 
 @noindent
@@ -9959,7 +9959,7 @@ The @key{TAB} key swaps the top two objects on the stack.
 @xref{Stack and Trail}, for descriptions of these and other stack-related
 commands.
 
-@node Numeric Entry, Algebraic Entry, Stack Basics, Introduction
+@node Numeric Entry
 @section Numeric Entry
 
 @noindent
@@ -9996,7 +9996,7 @@ data types.  @xref{Data Types}.
 
 During numeric entry, the only editing key available is @key{DEL}.
 
-@node Algebraic Entry, Quick Calculator, Numeric Entry, Introduction
+@node Algebraic Entry
 @section Algebraic Entry
 
 @noindent
@@ -10114,7 +10114,7 @@ is being pushed on the stack.  Thus @kbd{' 1+2 @key{RET}} pushes 3
 on the stack, but @kbd{' 1+2 @key{LFD}} pushes the formula @expr{1+2};
 you might then press @kbd{=} when it is time to evaluate this formula.
 
-@node Quick Calculator, Prefix Arguments, Algebraic Entry, Introduction
+@node Quick Calculator
 @section ``Quick Calculator'' Mode
 
 @noindent
@@ -10183,7 +10183,7 @@ or computing the answer than the full Calculator; the name ``quick''
 merely refers to the fact that it's much less hassle to use for
 small calculations.
 
-@node Prefix Arguments, Undo, Quick Calculator, Introduction
+@node Prefix Arguments
 @section Numeric Prefix Arguments
 
 @noindent
@@ -10231,7 +10231,7 @@ to the fourth power and set the precision to that value.
 Conversely, if you have typed a numeric prefix argument the @kbd{~} key
 pushes it onto the stack in the form of an integer.
 
-@node Undo, Error Messages, Prefix Arguments, Introduction
+@node Undo
 @section Undoing Mistakes
 
 @noindent
@@ -10289,7 +10289,7 @@ It is also possible to recall previous results or inputs using the trail.
 
 The standard Emacs @kbd{C-_} undo key is recognized as a synonym for @kbd{U}.
 
-@node Error Messages, Multiple Calculators, Undo, Introduction
+@node Error Messages
 @section Error Messages
 
 @noindent
@@ -10320,7 +10320,7 @@ after your computation finishes.)  By default, this occurs only for
 @emph{all} messages automatically, or to report none automatically (so
 that you must always press @kbd{w} yourself to see the messages).
 
-@node Multiple Calculators, Troubleshooting Commands, Error Messages, Introduction
+@node Multiple Calculators
 @section Multiple Calculators
 
 @noindent
@@ -10347,7 +10347,7 @@ the stack and mode settings of the buffer being quit as the new defaults.
 There is only one trail buffer, @file{*Calc Trail*}, used by all
 Calculator buffers.
 
-@node Troubleshooting Commands,  , Multiple Calculators, Introduction
+@node Troubleshooting Commands
 @section Troubleshooting Commands
 
 @noindent
@@ -10364,7 +10364,7 @@ to a bug or deficiency in Calc.
 * Debugging Calc::
 @end menu
 
-@node Autoloading Problems, Recursion Depth, Troubleshooting Commands, Troubleshooting Commands
+@node Autoloading Problems
 @subsection Autoloading Problems
 
 @noindent
@@ -10381,7 +10381,7 @@ If this happens, the easiest workaround is to type @kbd{C-x * L}
 loaded right away.  This will cause Emacs to take up a lot more
 memory than it would otherwise, but it's guaranteed to fix the problem.
 
-@node Recursion Depth, Caches, Autoloading Problems, Troubleshooting Commands
+@node Recursion Depth
 @subsection Recursion Depth
 
 @noindent
@@ -10409,7 +10409,7 @@ The default value is 1000.
 These commands also double or halve @code{max-specpdl-size}, another
 internal Lisp recursion limit.  The minimum value for this limit is 600.
 
-@node Caches, Debugging Calc, Recursion Depth, Troubleshooting Commands
+@node Caches
 @subsection Caches
 
 @noindent
@@ -10438,7 +10438,7 @@ If you suspect a Calculator cache has become corrupt, you can use the
 The @kbd{C-x * 0} (with the zero key) command also resets caches along
 with all other aspects of the Calculator's state.
 
-@node Debugging Calc,  , Caches, Troubleshooting Commands
+@node Debugging Calc
 @subsection Debugging Calc
 
 @noindent
@@ -10491,7 +10491,7 @@ error.  After you have executed @code{calc-pass-errors}, Lisp
 errors will be reported correctly but the user-friendly message
 will be lost.
 
-@node Data Types, Stack and Trail, Introduction, Top
+@node Data Types
 @chapter Data Types
 
 @noindent
@@ -10526,7 +10526,7 @@ matrices, or algebraic formulas.
 * Formulas::
 @end menu
 
-@node Integers, Fractions, Data Types, Data Types
+@node Integers
 @section Integers
 
 @noindent
@@ -10552,7 +10552,7 @@ to set the default radix for display of integers.  Numbers of any radix
 may be entered at any time.  If you press @kbd{#} at the beginning of a
 number, the current display radix is used.
 
-@node Fractions, Floats, Integers, Data Types
+@node Fractions
 @section Fractions
 
 @noindent
@@ -10573,7 +10573,7 @@ Non-decimal fractions are entered and displayed as
 @samp{@var{radix}#@var{num}:@var{denom}} (or in the analogous three-part
 form).  The numerator and denominator always use the same radix.
 
-@node Floats, Complex Numbers, Fractions, Data Types
+@node Floats
 @section Floats
 
 @noindent
@@ -10647,7 +10647,7 @@ the letter @samp{e} is a digit, so scientific notation must be written
 out, e.g., @samp{16#123.4567*16^2}.  The first two exercises of the
 Modes Tutorial explore some of the properties of non-decimal floats.
 
-@node Complex Numbers, Infinities, Floats, Data Types
+@node Complex Numbers
 @section Complex Numbers
 
 @noindent
@@ -10685,7 +10685,7 @@ A complex result in which the imaginary part is zero (or the phase angle
 is 0 or 180 degrees or @cpi{} radians) is automatically converted to a real
 number.
 
-@node Infinities, Vectors and Matrices, Complex Numbers, Data Types
+@node Infinities
 @section Infinities
 
 @noindent
@@ -10772,7 +10772,7 @@ expressions are @samp{inf - inf} and @samp{inf ^ 0}.  Also,
 Infinities are especially useful as parts of @dfn{intervals}.
 @xref{Interval Forms}.
 
-@node Vectors and Matrices, Strings, Infinities, Data Types
+@node Vectors and Matrices
 @section Vectors and Matrices
 
 @noindent
@@ -10814,7 +10814,7 @@ to build @samp{[a, b, c]}, @samp{cvec(a, n, m)} to build an
 matrix of @samp{a}s, and @samp{index(n)} to build a vector of integers
 from 1 to @samp{n}.
 
-@node Strings, HMS Forms, Vectors and Matrices, Data Types
+@node Strings
 @section Strings
 
 @noindent
@@ -10891,7 +10891,7 @@ the resulting string is breakable across multiple lines if it doesn't
 fit all on one line.  Potential break points occur at every space
 character in the string.
 
-@node HMS Forms, Date Forms, Strings, Data Types
+@node HMS Forms
 @section HMS Forms
 
 @noindent
@@ -10953,7 +10953,7 @@ two HMS forms produces a real-valued ratio of the two angles.
 Just for kicks, @kbd{M-x calc-time} pushes the current time of day on
 the stack as an HMS form.
 
-@node Date Forms, Modulo Forms, HMS Forms, Data Types
+@node Date Forms
 @section Date Forms
 
 @noindent
@@ -11109,7 +11109,7 @@ for California time.  The same is usually true of Julian day
 counts.)  The built-in @kbd{t U} command performs these
 conversions.
 
-@node Modulo Forms, Error Forms, Date Forms, Data Types
+@node Modulo Forms
 @section Modulo Forms
 
 @noindent
@@ -11193,7 +11193,7 @@ You can use @kbd{v p} and @kbd{%} to modify modulo forms.
 The algebraic function @samp{makemod(a, m)} builds the modulo form
 @w{@samp{a mod m}}.
 
-@node Error Forms, Interval Forms, Modulo Forms, Data Types
+@node Error Forms
 @section Error Forms
 
 @noindent
@@ -11308,7 +11308,7 @@ the mean and the error should be HMS forms if either one is.
 @tindex sdev
 The algebraic function @samp{sdev(a, b)} builds the error form @samp{a +/- b}.
 
-@node Interval Forms, Incomplete Objects, Error Forms, Data Types
+@node Interval Forms
 @section Interval Forms
 
 @noindent
@@ -11423,7 +11423,7 @@ should yield the interval @samp{[1..2]} again, but in fact it yields the
 (slightly too small) interval @samp{[1..1.9999999]} due to roundoff
 error.
 
-@node Incomplete Objects, Variables, Interval Forms, Data Types
+@node Incomplete Objects
 @section Incomplete Objects
 
 @noindent
@@ -11486,7 +11486,7 @@ the @code{calc-dots} command.
 If you find incomplete entry distracting, you may wish to enter vectors
 and complex numbers as algebraic formulas by pressing the apostrophe key.
 
-@node Variables, Formulas, Incomplete Objects, Data Types
+@node Variables
 @section Variables
 
 @noindent
@@ -11557,7 +11557,7 @@ a value into any of these special variables.
 
 @xref{Store and Recall}, for a discussion of commands dealing with variables.
 
-@node Formulas,  , Variables, Data Types
+@node Formulas
 @section Formulas
 
 @noindent
@@ -11715,7 +11715,7 @@ formats.
 
 @xref{Algebra}, for commands for manipulating formulas symbolically.
 
-@node Stack and Trail, Mode Settings, Data Types, Top
+@node Stack and Trail
 @chapter Stack and Trail Commands
 
 @noindent
@@ -11730,7 +11730,7 @@ type, such as numbers, vectors, formulas, and incomplete objects.)
 * Keep Arguments::
 @end menu
 
-@node Stack Manipulation, Editing Stack Entries, Stack and Trail, Stack and Trail
+@node Stack Manipulation
 @section Stack Manipulation Commands
 
 @noindent
@@ -11859,7 +11859,7 @@ the line containing @samp{30}, @kbd{C-u 2 C-x C-t} creates
 @samp{10 40 20 30 50}. With an argument of 0, @kbd{C-x C-t} will switch
 the stack objects at the levels determined by the point and the mark.
 
-@node Editing Stack Entries, Trail Commands, Stack Manipulation, Stack and Trail
+@node Editing Stack Entries
 @section Editing Stack Entries
 
 @noindent
@@ -11913,7 +11913,7 @@ The @kbd{`} key also works during numeric or algebraic entry.  The
 text entered so far is moved to the @file{*Calc Edit*} buffer for
 more extensive editing than is convenient in the minibuffer.
 
-@node Trail Commands, Keep Arguments, Editing Stack Entries, Stack and Trail
+@node Trail Commands
 @section Trail Commands
 
 @noindent
@@ -12034,7 +12034,7 @@ kills the @var{n} lines below or above the selected one.
 The @kbd{t .} (@code{calc-full-trail-vectors}) command is described
 elsewhere; @pxref{Vector and Matrix Formats}.
 
-@node Keep Arguments,  , Trail Commands, Stack and Trail
+@node Keep Arguments
 @section Keep Arguments
 
 @noindent
@@ -12077,7 +12077,7 @@ onto the stack.  Note that the order of things on the stack will be
 different than with @kbd{K}:  @kbd{2 @key{RET} 3 + M-@key{RET}} leaves
 @samp{5 2 3} on the stack instead of @samp{2 3 5}.  @xref{Undo}.
 
-@node Mode Settings, Arithmetic, Stack and Trail, Top
+@node Mode Settings
 @chapter Mode Settings
 
 @noindent
@@ -12098,7 +12098,7 @@ the @emph{appearance} or @emph{interpretation} of the stack's contents.
 * Calc Mode Line::
 @end menu
 
-@node General Mode Commands, Precision, Mode Settings, Mode Settings
+@node General Mode Commands
 @section General Mode Commands
 
 @noindent
@@ -12180,7 +12180,7 @@ the @kbd{z} and @kbd{Z} prefix keys are always distinct.  Also, the @kbd{h}
 prefix is not affected by this mode.  Press @kbd{m S} again to disable
 shifted-prefix mode.
 
-@node Precision, Inverse and Hyperbolic, General Mode Commands, Mode Settings
+@node Precision
 @section Precision
 
 @noindent
@@ -12237,7 +12237,7 @@ would round this to 150 cents, i.e., $1.50.
 @xref{Floats}, for still more on floating-point precision and related
 issues.
 
-@node Inverse and Hyperbolic, Calculation Modes, Precision, Mode Settings
+@node Inverse and Hyperbolic
 @section Inverse and Hyperbolic Flags
 
 @noindent
@@ -12280,7 +12280,7 @@ to subtract and keep arguments).
 Another Calc prefix flag, @kbd{K} (keep-arguments), is discussed
 elsewhere.  @xref{Keep Arguments}.
 
-@node Calculation Modes, Simplification Modes, Inverse and Hyperbolic, Mode Settings
+@node Calculation Modes
 @section Calculation Modes
 
 @noindent
@@ -12300,7 +12300,7 @@ The @samp{m a} (@code{calc-algebraic-mode}) command is described elsewhere
 * Working Message::
 @end menu
 
-@node Angular Modes, Polar Mode, Calculation Modes, Calculation Modes
+@node Angular Modes
 @subsection Angular Modes
 
 @noindent
@@ -12331,7 +12331,7 @@ and @kbd{m h} (@code{calc-hms-mode}) commands control the angular mode.
 The current angular mode is displayed on the Emacs mode line.
 The default angular mode is Degrees.
 
-@node Polar Mode, Fraction Mode, Angular Modes, Calculation Modes
+@node Polar Mode
 @subsection Polar Mode
 
 @noindent
@@ -12348,7 +12348,7 @@ The @kbd{m p} (@code{calc-polar-mode}) command toggles complex-number
 preference between rectangular and polar forms.  In Polar mode, all
 of the above example situations would produce polar complex numbers.
 
-@node Fraction Mode, Infinite Mode, Polar Mode, Calculation Modes
+@node Fraction Mode
 @subsection Fraction Mode
 
 @noindent
@@ -12374,7 +12374,7 @@ At any time you can use @kbd{c f} (@code{calc-float}) to convert a
 fraction to a float, or @kbd{c F} (@code{calc-fraction}) to convert a
 float to a fraction.  @xref{Conversions}.
 
-@node Infinite Mode, Symbolic Mode, Fraction Mode, Calculation Modes
+@node Infinite Mode
 @subsection Infinite Mode
 
 @noindent
@@ -12414,7 +12414,7 @@ single symbol, @samp{0}.  One consequence of this is that, while
 you might expect @samp{1 / -0 = -inf}, actually @samp{1 / -0}
 is equivalent to @samp{1 / 0}, which is equal to positive @code{inf}.
 
-@node Symbolic Mode, Matrix Mode, Infinite Mode, Calculation Modes
+@node Symbolic Mode
 @subsection Symbolic Mode
 
 @noindent
@@ -12447,7 +12447,7 @@ contains, you can use the key sequence @kbd{m s a v m s} (this uses
 @code{calc-alg-evaluate}, which resimplifies but doesn't evaluate
 variables.)
 
-@node Matrix Mode, Automatic Recomputation, Symbolic Mode, Calculation Modes
+@node Matrix Mode
 @subsection Matrix and Scalar Modes
 
 @noindent
@@ -12519,7 +12519,7 @@ of the formula without affecting the rest just select that part,
 change into Scalar mode and press @kbd{=} to resimplify the part
 under this mode, then change back to Matrix mode before deselecting.
 
-@node Automatic Recomputation, Working Message, Matrix Mode, Calculation Modes
+@node Automatic Recomputation
 @subsection Automatic Recomputation
 
 @noindent
@@ -12543,7 +12543,7 @@ To update @samp{=>} operators in an Embedded buffer while
 automatic recomputation is off, use @w{@kbd{C-x * u}}.
 @xref{Embedded Mode}.
 
-@node Working Message,  , Automatic Recomputation, Calculation Modes
+@node Working Message
 @subsection Working Messages
 
 @noindent
@@ -12570,7 +12570,7 @@ considerably, experiments have shown that their impact is actually
 quite small.  But if your terminal is slow you may find that it helps
 to turn the messages off.
 
-@node Simplification Modes, Declarations, Calculation Modes, Mode Settings
+@node Simplification Modes
 @section Simplification Modes
 
 @noindent
@@ -12651,7 +12651,7 @@ A common technique is to set the simplification mode down to the lowest
 amount of simplification you will allow to be applied automatically, then
 use manual commands like @kbd{a s} and @kbd{c c} (@code{calc-clean}) to
 perform higher types of simplifications on demand.
-@node Declarations, Display Modes, Simplification Modes, Mode Settings
+@node Declarations
 @section Declarations
 
 @noindent
@@ -12666,7 +12666,7 @@ take the fully general situation into account.
 * Functions for Declarations::
 @end menu
 
-@node Declaration Basics, Kinds of Declarations, Declarations, Declarations
+@node Declaration Basics
 @subsection Declaration Basics
 
 @noindent
@@ -12731,7 +12731,7 @@ are explicitly declared without @code{real} in some other row.
 The @kbd{s d} command declares @code{All} if you give a blank
 response to the variable-name prompt.
 
-@node Kinds of Declarations, Functions for Declarations, Declaration Basics, Declarations
+@node Kinds of Declarations
 @subsection Kinds of Declarations
 
 @noindent
@@ -12921,7 +12921,7 @@ using a variable for a new purpose, it is best to use @kbd{s d}
 or @kbd{s D} to check to make sure you don't still have an old
 declaration for the variable that will conflict with its new meaning.
 
-@node Functions for Declarations,  , Kinds of Declarations, Declarations
+@node Functions for Declarations
 @subsection Functions for Declarations
 
 @noindent
@@ -13060,7 +13060,7 @@ provably scalar, and @samp{!dscalar(a)} is ``true'' only if @code{a}
 is provably non-scalar; both are ``false'' if there is insufficient
 information to tell.
 
-@node Display Modes, Language Modes, Declarations, Mode Settings
+@node Display Modes
 @section Display Modes
 
 @noindent
@@ -13105,7 +13105,7 @@ words, @kbd{I d s} is equivalent to @kbd{H d s d @key{RET} H d (@var{old mode})}
 * Labels::
 @end menu
 
-@node Radix Modes, Grouping Digits, Display Modes, Display Modes
+@node Radix Modes
 @subsection Radix Modes
 
 @noindent
@@ -13190,7 +13190,7 @@ to
 will be represented using Calc's usual notation (in the appropriate
 radix).
 
-@node Grouping Digits, Float Formats, Radix Modes, Display Modes
+@node Grouping Digits
 @subsection Grouping Digits
 
 @noindent
@@ -13228,7 +13228,7 @@ if re-read in textual form, say by the use of @kbd{C-x * y} and @kbd{C-x * g}.
 the @samp{\,} separator, which doesn't interfere with parsing because it
 is ignored by @TeX{} language mode.
 
-@node Float Formats, Complex Formats, Grouping Digits, Display Modes
+@node Float Formats
 @subsection Float Formats
 
 @noindent
@@ -13294,7 +13294,7 @@ may wish to change this to a comma.  Note that this is only a display
 style; on entry, periods must always be used to denote floating-point
 numbers, and commas to separate elements in a list.
 
-@node Complex Formats, Fraction Formats, Float Formats, Display Modes
+@node Complex Formats
 @subsection Complex Formats
 
 @noindent
@@ -13325,7 +13325,7 @@ to @samp{(2,3)}.  Other commands (like @code{calc-sin}) will @emph{not}
 interpret the formula @samp{2 + 3 * i} as a complex number.
 @xref{Variables}, under ``special constants.''
 
-@node Fraction Formats, HMS Formats, Complex Formats, Display Modes
+@node Fraction Formats
 @subsection Fraction Formats
 
 @noindent
@@ -13362,7 +13362,7 @@ The fraction format does not affect the way fractions or integers are
 stored, only the way they appear on the screen.  The fraction format
 never affects floats.
 
-@node HMS Formats, Date Formats, Fraction Formats, Display Modes
+@node HMS Formats
 @subsection HMS Formats
 
 @noindent
@@ -13389,7 +13389,7 @@ The @kbd{'} key is recognized as ``minutes'' only if @kbd{@@} (or @kbd{h} or
 @kbd{o}) has already been pressed; otherwise it means to switch to algebraic
 entry.
 
-@node Date Formats, Truncating the Stack, HMS Formats, Display Modes
+@node Date Formats
 @subsection Date Formats
 
 @noindent
@@ -13420,7 +13420,7 @@ functions, your date formats should avoid using the @samp{#} character.
 * Standard Date Formats::
 @end menu
 
-@node ISO 8601, Date Formatting Codes, Date Formats, Date Formats
+@node ISO 8601
 @subsubsection ISO 8601
 
 @noindent
@@ -13498,7 +13498,7 @@ and seconds can be omitted, and decimals can be added.  If a date with a
 time is represented, they should be separated by a literal ``T'', so noon
 on December 13, 2012 can be represented as 2012-12-13T12:00.
 
-@node Date Formatting Codes, Free-Form Dates, ISO 8601, Date Formats
+@node Date Formatting Codes
 @subsubsection Date Formatting Codes
 
 @noindent
@@ -13689,7 +13689,7 @@ The ``j,'' ``J,'' and ``U'' formats do not make any time zone
 adjustment.  They effectively use @samp{julian(x,0)} and
 @samp{unixtime(x,0)} to make the conversion; @pxref{Date Arithmetic}.
 
-@node Free-Form Dates, Standard Date Formats, Date Formatting Codes, Date Formats
+@node Free-Form Dates
 @subsubsection Free-Form Dates
 
 @noindent
@@ -13755,7 +13755,7 @@ minus sign on the year value.
 If you always enter a four-digit year, and use a name instead
 of a number for the month, there is no danger of ambiguity.
 
-@node Standard Date Formats,  , Free-Form Dates, Date Formats
+@node Standard Date Formats
 @subsubsection Standard Date Formats
 
 @noindent
@@ -13798,7 +13798,7 @@ command (@pxref{Mode Settings}).
 @samp{IYYY-Iww-w<Thh:mm:ss>} (ISO 8601 week numbering format)
 @end table
 
-@node Truncating the Stack, Justification, Date Formats, Display Modes
+@node Truncating the Stack
 @subsection Truncating the Stack
 
 @noindent
@@ -13833,7 +13833,7 @@ The @kbd{d [} (@code{calc-truncate-up}) and @kbd{d ]}
 (@code{calc-truncate-down}) commands move the @samp{.} up or down one
 line at a time (or several lines with a prefix argument).
 
-@node Justification, Labels, Truncating the Stack, Display Modes
+@node Justification
 @subsection Justification
 
 @noindent
@@ -13894,7 +13894,7 @@ when positioning by explicit origins and widths.  In the latter
 case, the display is formatted as specified, and then uniformly
 shifted over four spaces to fit the line numbers.
 
-@node Labels,  , Justification, Display Modes
+@node Labels
 @subsection Labels
 
 @noindent
@@ -13925,7 +13925,7 @@ document (possibly using Embedded mode).  The equations would
 typically be centered, and the equation numbers would be on the
 left or right as you prefer.
 
-@node Language Modes, Modes Variable, Display Modes, Mode Settings
+@node Language Modes
 @section Language Modes
 
 @noindent
@@ -13978,7 +13978,7 @@ shifted letter key.
 * Syntax Tables::
 @end menu
 
-@node Normal Language Modes, C FORTRAN Pascal, Language Modes, Language Modes
+@node Normal Language Modes
 @subsection Normal Language Modes
 
 @noindent
@@ -14080,7 +14080,7 @@ all four modes, and unformatted notation works in any language mode
 (except that Mathematica mode expects square brackets instead of
 parentheses).
 
-@node C FORTRAN Pascal, TeX and LaTeX Language Modes, Normal Language Modes, Language Modes
+@node C FORTRAN Pascal
 @subsection C, FORTRAN, and Pascal Modes
 
 @noindent
@@ -14155,7 +14155,7 @@ modes will use upper-case letters exclusively for display, and will
 convert to lower-case on input.  With a negative prefix, these modes
 convert to lower-case for display and input.
 
-@node TeX and LaTeX Language Modes, Eqn Language Mode, C FORTRAN Pascal, Language Modes
+@node TeX and LaTeX Language Modes
 @subsection @TeX{} and @LaTeX{} Language Modes
 
 @noindent
@@ -14575,7 +14575,7 @@ $$ \pmatrix{ {a \over b} & 0 \cr 0 & 2^{(x + 1)} } $$
 @sp 2
 @end iftex
 
-@node Eqn Language Mode, Yacas Language Mode, TeX and LaTeX Language Modes, Language Modes
+@node Eqn Language Mode
 @subsection Eqn Language Mode
 
 @noindent
@@ -14651,7 +14651,7 @@ The words @code{lcol} and @code{rcol} are recognized as synonyms
 for @code{ccol} during input, and are generated instead of @code{ccol}
 if the matrix justification mode so specifies.
 
-@node Yacas Language Mode, Maxima Language Mode, Eqn Language Mode, Language Modes
+@node Yacas Language Mode
 @subsection Yacas Language Mode
 
 @noindent
@@ -14681,7 +14681,7 @@ use square brackets.  If, for example, @samp{A} represents the list
 @samp{@{a,2,c,4@}}, then @samp{A[3]} would equal @samp{c}.
 
 
-@node Maxima Language Mode, Giac Language Mode, Yacas Language Mode, Language Modes
+@node Maxima Language Mode
 @subsection Maxima Language Mode
 
 @noindent
@@ -14706,7 +14706,7 @@ Maxima uses square brackets for lists and vectors, and matrices are
 written as calls to the function @code{matrix}, given the row vectors of
 the matrix as arguments.  Square brackets are also used as subscripts.
 
-@node Giac Language Mode, Mathematica Language Mode, Maxima Language Mode, Language Modes
+@node Giac Language Mode
 @subsection Giac Language Mode
 
 @noindent
@@ -14731,7 +14731,7 @@ Calc reads @samp{2 .. 3} as the closed interval @samp{[2 .. 3]} and
 writes any kind of interval as @samp{2 .. 3}.  This means you cannot see
 the difference between an open and a closed interval while in Giac mode.
 
-@node Mathematica Language Mode, Maple Language Mode, Giac Language Mode, Language Modes
+@node Mathematica Language Mode
 @subsection Mathematica Language Mode
 
 @noindent
@@ -14754,7 +14754,7 @@ Non-decimal numbers are written, e.g., @samp{16^^7fff}.  Floating-point
 numbers in scientific notation are written @samp{1.23*10.^3}.
 Subscripts use double square brackets: @samp{a[[i]]}.
 
-@node Maple Language Mode, Compositions, Mathematica Language Mode, Language Modes
+@node Maple Language Mode
 @subsection Maple Language Mode
 
 @noindent
@@ -14788,7 +14788,7 @@ Among things not currently handled by Calc's Maple mode are the
 various quote symbols, procedures and functional operators, and
 inert (@samp{&}) operators.
 
-@node Compositions, Syntax Tables, Maple Language Mode, Language Modes
+@node Compositions
 @subsection Compositions
 
 @noindent
@@ -14824,7 +14824,7 @@ the language modes.
 * User-Defined Compositions::
 @end menu
 
-@node Composition Basics, Horizontal Compositions, Compositions, Compositions
+@node Composition Basics
 @subsubsection Composition Basics
 
 @noindent
@@ -14965,7 +14965,7 @@ in a function call), then the break points in that @code{bstring}
 will be on the same level as the break points of the surrounding
 object.
 
-@node Horizontal Compositions, Vertical Compositions, Composition Basics, Compositions
+@node Horizontal Compositions
 @subsubsection Horizontal Compositions
 
 @noindent
@@ -15009,7 +15009,7 @@ formats as @samp{2 (a + b c + (d = e))}.
 The baseline of a horizontal composition is the same as the
 baselines of the component compositions, which are all aligned.
 
-@node Vertical Compositions, Other Compositions, Horizontal Compositions, Compositions
+@node Vertical Compositions
 @subsubsection Vertical Compositions
 
 @noindent
@@ -15130,7 +15130,7 @@ Like @code{choriz}, the vertical compositions accept a second argument
 which gives the precedence to use when formatting the components.
 Vertical compositions do not support separator strings.
 
-@node Other Compositions, Information about Compositions, Vertical Compositions, Compositions
+@node Other Compositions
 @subsubsection Other Compositions
 
 @noindent
@@ -15224,7 +15224,7 @@ b   -
 @end group
 @end example
 
-@node Information about Compositions, User-Defined Compositions, Other Compositions, Compositions
+@node Information about Compositions
 @subsubsection Information about Compositions
 
 @noindent
@@ -15266,7 +15266,7 @@ For @samp{a / b} in Big mode, @code{cascent} returns 2 and @code{cdescent}
 returns 1.  The only formula for which @code{cascent} will return zero
 is @samp{cvspace(0)} or equivalents.
 
-@node User-Defined Compositions,  , Information about Compositions, Compositions
+@node User-Defined Compositions
 @subsubsection User-Defined Compositions
 
 @noindent
@@ -15397,7 +15397,7 @@ produce a large, unwieldy integer.
 You can save your display formats permanently using the @kbd{Z P}
 command (@pxref{Creating User Keys}).
 
-@node Syntax Tables,  , Compositions, Language Modes
+@node Syntax Tables
 @subsection Syntax Tables
 
 @noindent
@@ -15427,7 +15427,7 @@ the syntax tables along with the other mode settings;
 * Conditional Syntax Rules::
 @end menu
 
-@node Syntax Table Basics, Precedence in Syntax Tables, Syntax Tables, Syntax Tables
+@node Syntax Table Basics
 @subsubsection Syntax Table Basics
 
 @noindent
@@ -15575,7 +15575,7 @@ respectively).
 Finally, the notation @samp{%%} anywhere in a syntax table causes
 the rest of the line to be ignored as a comment.
 
-@node Precedence in Syntax Tables, Advanced Syntax Patterns, Syntax Table Basics, Syntax Tables
+@node Precedence in Syntax Tables
 @subsubsection Precedence
 
 @noindent
@@ -15610,7 +15610,7 @@ can create a right-associative operator.
 standard Calc operators.  For the precedences of operators in other
 language modes, look in the Calc source file @file{calc-lang.el}.
 
-@node Advanced Syntax Patterns, Conditional Syntax Rules, Precedence in Syntax Tables, Syntax Tables
+@node Advanced Syntax Patterns
 @subsubsection Advanced Syntax Patterns
 
 @noindent
@@ -15730,7 +15730,7 @@ backs up and tries the other alternative.  Thus Calc has ``partial''
 backtracking.  A fully backtracking parser would go on to make sure
 the rest of the pattern matched before finalizing the choice.
 
-@node Conditional Syntax Rules,  , Advanced Syntax Patterns, Syntax Tables
+@node Conditional Syntax Rules
 @subsubsection Conditional Syntax Rules
 
 @noindent
@@ -15804,7 +15804,7 @@ Normal language mode for editing expressions in syntax rules, so we
 must use regular Calc notation for the interval @samp{[b..c]} that
 will correspond to the Maple mode interval @samp{1..10}.
 
-@node Modes Variable, Calc Mode Line, Language Modes, Mode Settings
+@node Modes Variable
 @section The @code{Modes} Variable
 
 @noindent
@@ -15906,7 +15906,7 @@ would not work for fixed-point mode, but it wouldn't be hard to
 do a full emulation with the help of the @kbd{Z [} and @kbd{Z ]}
 programming commands.  @xref{Conditionals in Macros}.)
 
-@node Calc Mode Line,  , Modes Variable, Mode Settings
+@node Calc Mode Line
 @section The Calc Mode Line
 
 @noindent
@@ -16125,7 +16125,7 @@ Stack is truncated (@kbd{d t}; @pxref{Truncating the Stack}).
 In addition, the symbols @code{Active} and @code{~Active} can appear
 as minor modes on an Embedded buffer's mode line.  @xref{Embedded Mode}.
 
-@node Arithmetic, Scientific Functions, Mode Settings, Top
+@node Arithmetic
 @chapter Arithmetic Functions
 
 @noindent
@@ -16155,7 +16155,7 @@ interpret a prefix argument.
 * Binary Functions::
 @end menu
 
-@node Basic Arithmetic, Integer Truncation, Arithmetic, Arithmetic
+@node Basic Arithmetic
 @section Basic Arithmetic
 
 @noindent
@@ -16512,7 +16512,7 @@ way floating-point numbers work.
 Incrementing a date/time form adjusts it by a certain number of seconds.
 Incrementing a pure date form adjusts it by a certain number of days.
 
-@node Integer Truncation, Complex Number Functions, Basic Arithmetic, Arithmetic
+@node Integer Truncation
 @section Integer Truncation
 
 @noindent
@@ -16635,7 +16635,7 @@ and @kbd{f Q} (integer square root) commands, which are analogous to
 @kbd{/}, @kbd{B}, and @kbd{Q}, respectively, except that they take integer
 arguments and return the result rounded down to an integer.
 
-@node Complex Number Functions, Conversions, Integer Truncation, Arithmetic
+@node Complex Number Functions
 @section Complex Number Functions
 
 @noindent
@@ -16703,7 +16703,7 @@ The @kbd{v u} (@code{calc-unpack}) command takes the complex number
 (or other composite object) on the top of the stack and unpacks it
 into its separate components.
 
-@node Conversions, Date Arithmetic, Complex Number Functions, Arithmetic
+@node Conversions
 @section Conversions
 
 @noindent
@@ -16866,7 +16866,7 @@ you wouldn't want it automatically converted to a 100-digit integer).
 With the Hyperbolic flag, @kbd{H c c} and @kbd{H c 0} through @kbd{H c 9}
 operate non-pervasively [@code{clean}].
 
-@node Date Arithmetic, Financial Functions, Conversions, Arithmetic
+@node Date Arithmetic
 @section Date Arithmetic
 
 @noindent
@@ -16890,11 +16890,11 @@ additional argument from the top of the stack.
 @menu
 * Date Conversions::
 * Date Functions::
-* Time Zones::
 * Business Days::
+* Time Zones::
 @end menu
 
-@node Date Conversions, Date Functions, Date Arithmetic, Date Arithmetic
+@node Date Conversions
 @subsection Date Conversions
 
 @noindent
@@ -16982,7 +16982,7 @@ zone is used for that prompt.  You can also answer the first
 prompt with @kbd{$} to take the two time zone names from the
 stack (and the date to be converted from the third stack level).
 
-@node Date Functions, Business Days, Date Conversions, Date Arithmetic
+@node Date Functions
 @subsection Date Functions
 
 @noindent
@@ -17146,7 +17146,7 @@ serves this purpose.  Similarly, instead of @code{incday} and
 @xref{Basic Arithmetic}, for the @kbd{f ]} [@code{incr}] command
 which can adjust a date/time form by a certain number of seconds.
 
-@node Business Days, Time Zones, Date Functions, Date Arithmetic
+@node Business Days
 @subsection Business Days
 
 @noindent
@@ -17289,7 +17289,7 @@ any date form and returns 1 if that date falls on a weekend or
 holiday, as defined in @code{Holidays}, or 0 if the date is a
 business day.
 
-@node Time Zones,  , Business Days, Date Arithmetic
+@node Time Zones
 @subsection Time Zones
 
 @noindent
@@ -17511,7 +17511,7 @@ daylight saving time (e.g., @code{PDT} or @code{PST}) the
 the algorithms described above are used.  If @var{zone} is omitted,
 the computation is done for the current time zone.
 
-@node Financial Functions, Binary Functions, Date Arithmetic, Arithmetic
+@node Financial Functions
 @section Financial Functions
 
 @noindent
@@ -17538,7 +17538,7 @@ of this section to make sure the functions have the meaning you expect.
 * Definitions of Financial Functions::
 @end menu
 
-@node Percentages, Future Value, Financial Functions, Financial Functions
+@node Percentages
 @subsection Percentages
 
 @kindex M-%
@@ -17603,7 +17603,7 @@ in the second case, we're decreasing by 20% of 50.)  The effect
 of @kbd{40 @key{RET} 50 b %} is to compute @expr{(50-40)/40}, converting
 the answer to percentage form as if by @kbd{c %}.
 
-@node Future Value, Present Value, Percentages, Financial Functions
+@node Future Value
 @subsection Future Value
 
 @noindent
@@ -17665,7 +17665,7 @@ now counting the payment at year five (which, since it didn't have
 a chance to earn interest, counts as $1000).  Indeed, @expr{5569.96 =
 5870.73 - 1300.78 + 1000} (give or take a bit of roundoff error).
 
-@node Present Value, Related Financial Functions, Future Value, Financial Functions
+@node Present Value
 @subsection Present Value
 
 @noindent
@@ -17749,7 +17749,7 @@ The @kbd{I b N} [@code{npvb}] command computes the net present
 value where payments occur at the beginning of each interval
 rather than at the end.
 
-@node Related Financial Functions, Depreciation Functions, Present Value, Financial Functions
+@node Related Financial Functions
 @subsection Related Financial Functions
 
 @noindent
@@ -17837,7 +17837,7 @@ this rate is known as the @dfn{internal rate of return}.
 The @kbd{I b I} [@code{irrb}] command computes the internal rate of
 return assuming payments occur at the beginning of each period.
 
-@node Depreciation Functions, Definitions of Financial Functions, Related Financial Functions, Financial Functions
+@node Depreciation Functions
 @subsection Depreciation Functions
 
 @noindent
@@ -17908,7 +17908,7 @@ Summing columns with @kbd{V R : +} yields @expr{[10000, 10000, 10000]};
 the total depreciation in any method is (by definition) the
 difference between the cost and the salvage value.
 
-@node Definitions of Financial Functions,  , Depreciation Functions, Financial Functions
+@node Definitions of Financial Functions
 @subsection Definitions
 
 @noindent
@@ -18062,7 +18062,7 @@ and the depreciation is zero for all subsequent periods.  The @code{ddb}
 function returns the amount the book value decreased in the specified
 period.
 
-@node Binary Functions,  , Financial Functions, Arithmetic
+@node Binary Functions
 @section Binary Number Functions
 
 @noindent
@@ -18252,7 +18252,7 @@ unpack; type @kbd{31 @key{TAB} -} to replace each bit-number in the set
 with 31 minus that bit-number; type @kbd{b p} to pack the set back
 into a binary integer.
 
-@node Scientific Functions, Matrix Functions, Arithmetic, Top
+@node Scientific Functions
 @chapter Scientific Functions
 
 @noindent
@@ -18319,7 +18319,7 @@ interpret a prefix argument.
 * Probability Distribution Functions::
 @end menu
 
-@node Logarithmic Functions, Trigonometric and Hyperbolic Functions, Scientific Functions, Scientific Functions
+@node Logarithmic Functions
 @section Logarithmic Functions
 
 @noindent
@@ -18413,7 +18413,7 @@ The @kbd{f L} (@code{calc-lnp1}) [@code{lnp1}] command computes
 @infoline @expr{ln(x+1)},
 producing a more accurate answer when @expr{x} is close to zero.
 
-@node Trigonometric and Hyperbolic Functions, Advanced Math Functions, Logarithmic Functions, Scientific Functions
+@node Trigonometric and Hyperbolic Functions
 @section Trigonometric/Hyperbolic Functions
 
 @noindent
@@ -18590,7 +18590,7 @@ counterparts, which are also available separately as @code{calc-sech}
 [@code{sech}], @code{calc-csch} [@code{csch}] and @code{calc-coth}
 [@code{coth}].  (These commands do not accept the Inverse flag.)
 
-@node Advanced Math Functions, Branch Cuts, Trigonometric and Hyperbolic Functions, Scientific Functions
+@node Advanced Math Functions
 @section Advanced Mathematical Functions
 
 @noindent
@@ -18727,7 +18727,7 @@ Calc's implementation of the Bessel functions currently limits the
 precision to 8 digits, and may not be exact even to that precision.
 Use with care!
 
-@node Branch Cuts, Random Numbers, Advanced Math Functions, Scientific Functions
+@node Branch Cuts
 @section Branch Cuts and Principal Values
 
 @noindent
@@ -18871,7 +18871,7 @@ The ``advanced math'' functions (gamma, Bessel, etc.@:) are also defined
 for general complex arguments, but their branch cuts and principal values
 are not rigorously specified at present.
 
-@node Random Numbers, Combinatorial Functions, Branch Cuts, Scientific Functions
+@node Random Numbers
 @section Random Numbers
 
 @noindent
@@ -18999,7 +18999,7 @@ elements of this vector.  @xref{Matrix Functions}.
 * Random Number Generator::     (Complete description of Calc's algorithm)
 @end menu
 
-@node Random Number Generator,  , Random Numbers, Random Numbers
+@node Random Number Generator
 @subsection Random Number Generator
 
 Calc's random number generator uses several methods to ensure that
@@ -19097,7 +19097,7 @@ The Gaussian random numbers generated by @samp{random(0.0)} use the
 generates a pair of Gaussian random numbers at a time, so only every
 other call to @samp{random(0.0)} will require significant calculations.
 
-@node Combinatorial Functions, Probability Distribution Functions, Random Numbers, Scientific Functions
+@node Combinatorial Functions
 @section Combinatorial Functions
 
 @noindent
@@ -19313,7 +19313,7 @@ distinct factors, this is @expr{(-1)^k}.  If the input number has any
 duplicate factors (i.e., can be divided by the same prime more than once),
 the result is zero.
 
-@node Probability Distribution Functions,  , Combinatorial Functions, Scientific Functions
+@node Probability Distribution Functions
 @section Probability Distribution Functions
 
 @noindent
@@ -19464,7 +19464,7 @@ Since the distribution functions are monotonic, @kbd{a R} is guaranteed
 to be able to find a solution given any initial guess.
 @xref{Numerical Solutions}.
 
-@node Matrix Functions, Algebra, Scientific Functions, Top
+@node Matrix Functions
 @chapter Vector/Matrix Functions
 
 @noindent
@@ -19492,7 +19492,7 @@ vector of matrices, and so on.)
 * Vector and Matrix Formats::
 @end menu
 
-@node Packing and Unpacking, Building Vectors, Matrix Functions, Matrix Functions
+@node Packing and Unpacking
 @section Packing and Unpacking
 
 @noindent
@@ -19712,7 +19712,7 @@ Subscript notation is a useful way to extract a particular part
 of an object.  For example, to get the numerator of a rational
 number, you can use @samp{unpack(-10, @var{x})_1}.
 
-@node Building Vectors, Extracting Elements, Packing and Unpacking, Matrix Functions
+@node Building Vectors
 @section Building Vectors
 
 @noindent
@@ -19880,7 +19880,7 @@ representing the remainder of the vector.  Thus the vector
 Also, @samp{head([a, b, c, d]) = a}, @samp{tail([a, b, c, d]) = [b, c, d]},
 @samp{rhead([a, b, c, d]) = [a, b, c]}, and @samp{rtail([a, b, c, d]) = d}.
 
-@node Extracting Elements, Manipulating Vectors, Building Vectors, Matrix Functions
+@node Extracting Elements
 @section Extracting Vector Elements
 
 @noindent
@@ -19986,7 +19986,7 @@ produces @samp{[a, d, e]}.  It is always true that @code{subvec} and
 @xref{Selecting Subformulas}, for an alternative way to operate on
 vectors one element at a time.
 
-@node Manipulating Vectors, Vector and Matrix Arithmetic, Extracting Elements, Matrix Functions
+@node Manipulating Vectors
 @section Manipulating Vectors
 
 @noindent
@@ -20218,7 +20218,7 @@ operation across the two vectors.  @xref{Logical Operations}.  Note that
 the @code{? :} operation also discussed there allows other types of
 masking using vectors.
 
-@node Vector and Matrix Arithmetic, Set Operations, Manipulating Vectors, Matrix Functions
+@node Vector and Matrix Arithmetic
 @section Vector and Matrix Arithmetic
 
 @noindent
@@ -20340,7 +20340,7 @@ elements of the matrix.
 The @kbd{V K} (@code{calc-kron}) [@code{kron}] command computes
 the Kronecker product of two matrices.
 
-@node Set Operations, Statistical Operations, Vector and Matrix Arithmetic, Matrix Functions
+@node Set Operations
 @section Set Operations using Vectors
 
 @noindent
@@ -20530,7 +20530,7 @@ representation
 @texline (@math{2^{100}}, a 31-digit integer, in this case).
 @infoline (@expr{2^100}, a 31-digit integer, in this case).
 
-@node Statistical Operations, Reducing and Mapping, Set Operations, Matrix Functions
+@node Statistical Operations
 @section Statistical Operations on Vectors
 
 @noindent
@@ -20559,7 +20559,7 @@ probability distribution functions.
 * Paired-Sample Statistics::
 @end menu
 
-@node Single-Variable Statistics, Paired-Sample Statistics, Statistical Operations, Statistical Operations
+@node Single-Variable Statistics
 @subsection Single-Variable Statistics
 
 @noindent
@@ -20828,7 +20828,7 @@ arguments, interpreted in the same way as the other functions
 in this section.  For example, @samp{vflat(1, [2, [3, 4]], 5)}
 returns @samp{[1, 2, 3, 4, 5]}.
 
-@node Paired-Sample Statistics,  , Single-Variable Statistics, Statistical Operations
+@node Paired-Sample Statistics
 @subsection Paired-Sample Statistics
 
 @noindent
@@ -20889,7 +20889,7 @@ between sample or population statistics here.)
 $$ r_{x\!y} = { \sigma_{x\!y}^2 \over \sigma_x^2 \sigma_y^2 } $$
 @end tex
 
-@node Reducing and Mapping, Vector and Matrix Formats, Statistical Operations, Matrix Functions
+@node Reducing and Mapping
 @section Reducing and Mapping Vectors
 
 @noindent
@@ -20919,7 +20919,7 @@ While @kbd{V A} is useful in some cases, you will usually find that either
 * Generalized Products::
 @end menu
 
-@node Specifying Operators, Mapping, Reducing and Mapping, Reducing and Mapping
+@node Specifying Operators
 @subsection Specifying Operators
 
 @noindent
@@ -21070,7 +21070,7 @@ a function, since the name @code{gcd} corresponds to the Lisp variable
 automatically makes this translation, so you don't have to worry
 about it.)
 
-@node Mapping, Reducing, Specifying Operators, Reducing and Mapping
+@node Mapping
 @subsection Mapping
 
 @noindent
@@ -21167,7 +21167,7 @@ mapping command.  The default @kbd{V M} always means map-by-elements.
 @xref{Storing Variables}, for the @kbd{s m} command which modifies a
 variable's stored value using a @kbd{V M}-like operator.
 
-@node Reducing, Nesting and Fixed Points, Mapping, Reducing and Mapping
+@node Reducing
 @subsection Reducing
 
 @noindent
@@ -21248,7 +21248,7 @@ The commands @kbd{C-x * :} and @kbd{C-x * _} are equivalent to typing
 @kbd{V R : +} or @kbd{V R _ +}, respectively, to sum the columns or
 rows of the matrix.  @xref{Grabbing From Buffers}.
 
-@node Nesting and Fixed Points, Generalized Products, Reducing, Reducing and Mapping
+@node Nesting and Fixed Points
 @subsection Nesting and Fixed Points
 
 @noindent
@@ -21328,7 +21328,7 @@ computes the square root of @samp{A} given the initial guess @samp{B},
 stopping when the result is correct within the specified tolerance, or
 when 20 steps have been taken, whichever is sooner.
 
-@node Generalized Products,  , Nesting and Fixed Points, Reducing and Mapping
+@node Generalized Products
 @subsection Generalized Products
 
 @kindex v O
@@ -21365,7 +21365,7 @@ use @kbd{$} twice to take both operator formulas from the stack, the
 first (multiplicative) operator is taken from the top of the stack
 and the second (additive) operator is taken from second-to-top.
 
-@node Vector and Matrix Formats,  , Reducing and Mapping, Matrix Functions
+@node Vector and Matrix Formats
 @section Vector and Matrix Display Formats
 
 @noindent
@@ -21512,7 +21512,7 @@ line.  This mode causes all vectors, whether matrices or not, to be
 displayed with a single element per line.  Sub-vectors within the
 vectors will still use the normal linear form.
 
-@node Algebra, Units, Matrix Functions, Top
+@node Algebra
 @chapter Algebra
 
 @noindent
@@ -21552,7 +21552,7 @@ of these modes.  You may also wish to select Big display mode (@kbd{d B}).
 * Rewrite Rules::
 @end menu
 
-@node Selecting Subformulas, Algebraic Manipulation, Algebra, Algebra
+@node Selecting Subformulas
 @section Selecting Sub-Formulas
 
 @noindent
@@ -21578,7 +21578,7 @@ on one element of a vector in-place, simply select that element as a
 * Rearranging with Selections::
 @end menu
 
-@node Making Selections, Changing Selections, Selecting Subformulas, Selecting Subformulas
+@node Making Selections
 @subsection Making Selections
 
 @noindent
@@ -21739,7 +21739,7 @@ position.
 The @kbd{j c} (@code{calc-clear-selections}) command unselects all
 stack elements.
 
-@node Changing Selections, Displaying Selections, Making Selections, Selecting Subformulas
+@node Changing Selections
 @subsection Changing Selections
 
 @noindent
@@ -21828,7 +21828,7 @@ The Info @kbd{m} command is somewhat similar to Calc's @kbd{j s} and
 @kbd{j l}; in each case, you can jump directly to a sub-component
 of the hierarchy simply by pointing to it with the cursor.
 
-@node Displaying Selections, Operating on Selections, Changing Selections, Selecting Subformulas
+@node Displaying Selections
 @subsection Displaying Selections
 
 @noindent
@@ -21859,7 +21859,7 @@ and the selected sub-formula will be highlighted by using a more
 noticeable face (@code{calc-selected-face}) instead of @samp{#}
 signs. (@pxref{Customizing Calc}.)
 
-@node Operating on Selections, Rearranging with Selections, Displaying Selections, Selecting Subformulas
+@node Operating on Selections
 @subsection Operating on Selections
 
 @noindent
@@ -22016,7 +22016,7 @@ to be simplified.
 @end group
 @end smallexample
 
-@node Rearranging with Selections,  , Operating on Selections, Selecting Subformulas
+@node Rearranging with Selections
 @subsection Rearranging Formulas using Selections
 
 @noindent
@@ -22265,7 +22265,7 @@ The @kbd{j "} (@code{calc-sel-expand-formula}) command is to @kbd{a "}
 You can use the @kbd{j r} (@code{calc-rewrite-selection}) command
 to define other algebraic operations on sub-formulas.  @xref{Rewrite Rules}.
 
-@node Algebraic Manipulation, Simplifying Formulas, Selecting Subformulas, Algebra
+@node Algebraic Manipulation
 @section Algebraic Manipulation
 
 @noindent
@@ -22429,7 +22429,7 @@ evaluated immediately, even if its arguments are variables, so if
 you wish to put a call to @code{subst} onto the stack you must
 turn the default simplifications off first (with @kbd{m O}).
 
-@node Simplifying Formulas, Polynomials, Algebraic Manipulation, Algebra
+@node Simplifying Formulas
 @section Simplifying Formulas
 
 @noindent
@@ -22478,7 +22478,7 @@ combinations of @samp{sinh}s and @samp{cosh}s before simplifying.
 * Simplification of Units::
 @end menu
 
-@node Basic Simplifications, Algebraic Simplifications, Simplifying Formulas, Simplifying Formulas
+@node Basic Simplifications
 @subsection Basic Simplifications
 
 @noindent
@@ -22808,7 +22808,7 @@ Most other Calc functions have few if any basic simplifications
 defined, aside of course from evaluation when the arguments are
 suitable numbers.
 
-@node Algebraic Simplifications, Unsafe Simplifications, Basic Simplifications, Simplifying Formulas
+@node Algebraic Simplifications
 @subsection Algebraic Simplifications
 
 @noindent
@@ -23041,7 +23041,7 @@ all simplified to 0, but @expr{x > 3} is simplified to 1.
 By a similar analysis, @expr{abs(x) >= 0} is simplified to 1,
 as is @expr{x^2 >= 0} if @expr{x} is known to be real.
 
-@node Unsafe Simplifications, Simplification of Units, Algebraic Simplifications, Simplifying Formulas
+@node Unsafe Simplifications
 @subsection ``Unsafe'' Simplifications
 
 @noindent
@@ -23134,7 +23134,7 @@ on whether you believe @expr{x} is positive or negative).
 The @kbd{a M /} command can be used to divide a factor out of
 both sides of an inequality.
 
-@node Simplification of Units,  , Unsafe Simplifications, Simplifying Formulas
+@node Simplification of Units
 @subsection Simplification of Units
 
 @noindent
@@ -23219,7 +23219,7 @@ that have angular units like @code{rad} or @code{arcmin} are
 simplified by converting to base units (radians), then evaluating
 with the angular mode temporarily set to radians.
 
-@node Polynomials, Calculus, Simplifying Formulas, Algebra
+@node Polynomials
 @section Polynomials
 
 A @dfn{polynomial} is a sum of terms which are coefficients times
@@ -23443,7 +23443,7 @@ polynomial routines used in the above commands.
 @xref{Decomposing Polynomials}, for several useful functions for
 extracting the individual coefficients of a polynomial.
 
-@node Calculus, Solving Equations, Polynomials, Algebra
+@node Calculus
 @section Calculus
 
 @noindent
@@ -23461,7 +23461,7 @@ readable way.
 * Taylor Series::
 @end menu
 
-@node Differentiation, Integration, Calculus, Calculus
+@node Differentiation
 @subsection Differentiation
 
 @noindent
@@ -23519,7 +23519,7 @@ Various higher-order derivatives can be formed in the obvious way, e.g.,
 @samp{f'@var{}'2'3(x,y,z)} (@code{f} differentiated with respect to each
 argument once).
 
-@node Integration, Customizing the Integrator, Differentiation, Calculus
+@node Integration
 @subsection Integration
 
 @noindent
@@ -23606,7 +23606,7 @@ table-lookup solutions of integrals.  You might then wish to define
 rewrite rules for integration by parts, various kinds of substitutions,
 and so on.  @xref{Rewrite Rules}.
 
-@node Customizing the Integrator, Numerical Integration, Integration, Calculus
+@node Customizing the Integrator
 @subsection Customizing the Integrator
 
 @noindent
@@ -23732,7 +23732,7 @@ of times until no further changes are possible.  Rewriting by
 finished, not at every step as for @code{IntegRules} and
 @code{IntegSimpRules}.
 
-@node Numerical Integration, Taylor Series, Customizing the Integrator, Calculus
+@node Numerical Integration
 @subsection Numerical Integration
 
 @noindent
@@ -23770,7 +23770,7 @@ The integral of @samp{1/sqrt(x)} from 0 to 1 exists (it can be found
 by Calc's symbolic integrator, for example), but @kbd{a I} will fail
 because the integrand goes to infinity at one of the endpoints.
 
-@node Taylor Series,  , Numerical Integration, Calculus
+@node Taylor Series
 @subsection Taylor Series
 
 @noindent
@@ -23791,7 +23791,7 @@ If the @kbd{a i} command is unable to find a symbolic integral for a
 function, you can get an approximation by integrating the function's
 Taylor series.
 
-@node Solving Equations, Numerical Solutions, Calculus, Algebra
+@node Solving Equations
 @section Solving Equations
 
 @noindent
@@ -23835,7 +23835,7 @@ another formula with @expr{x} set equal to @expr{y/3 - 2}.
 * Decomposing Polynomials::
 @end menu
 
-@node Multiple Solutions, Solving Systems of Equations, Solving Equations, Solving Equations
+@node Multiple Solutions
 @subsection Multiple Solutions
 
 @noindent
@@ -23949,7 +23949,7 @@ formula on the stack with Symbolic mode temporarily off.)  Naturally,
 @kbd{a P} can only provide numerical roots if the polynomial coefficients
 are all numbers (real or complex).
 
-@node Solving Systems of Equations, Decomposing Polynomials, Multiple Solutions, Solving Equations
+@node Solving Systems of Equations
 @subsection Solving Systems of Equations
 
 @noindent
@@ -24016,7 +24016,7 @@ Another way to deal with certain kinds of overdetermined systems of
 equations is the @kbd{a F} command, which does least-squares fitting
 to satisfy the equations.  @xref{Curve Fitting}.
 
-@node Decomposing Polynomials,  , Solving Systems of Equations, Solving Equations
+@node Decomposing Polynomials
 @subsection Decomposing Polynomials
 
 @noindent
@@ -24160,7 +24160,7 @@ if necessary) by its content.  If the input polynomial has rational
 coefficients, the result will have integer coefficients in simplest
 terms.
 
-@node Numerical Solutions, Curve Fitting, Solving Equations, Algebra
+@node Numerical Solutions
 @section Numerical Solutions
 
 @noindent
@@ -24179,7 +24179,7 @@ on numerical data.)
 * Numerical Systems of Equations::
 @end menu
 
-@node Root Finding, Minimization, Numerical Solutions, Numerical Solutions
+@node Root Finding
 @subsection Root Finding
 
 @noindent
@@ -24255,7 +24255,7 @@ form on the stack, it will normally display an explanation for why
 no root was found.  If you miss this explanation, press @kbd{w}
 (@code{calc-why}) to get it back.
 
-@node Minimization, Numerical Systems of Equations, Root Finding, Numerical Solutions
+@node Minimization
 @subsection Minimization
 
 @noindent
@@ -24327,7 +24327,7 @@ the initial guess is a complex number the variable will be minimized
 over the complex numbers; if it is real or an interval it will
 be minimized over the reals.
 
-@node Numerical Systems of Equations,  , Minimization, Numerical Solutions
+@node Numerical Systems of Equations
 @subsection Systems of Equations
 
 @noindent
@@ -24353,7 +24353,7 @@ multidimensional @kbd{a R}, the formula being minimized should
 still be a single formula, @emph{not} a vector.  Beware that
 multidimensional minimization is currently @emph{very} slow.
 
-@node Curve Fitting, Summations, Numerical Solutions, Algebra
+@node Curve Fitting
 @section Curve Fitting
 
 @noindent
@@ -24379,7 +24379,7 @@ plotted after the formula is determined.  This will be indicated by a
 * Interpolation::
 @end menu
 
-@node Linear Fits, Polynomial and Multilinear Fits, Curve Fitting, Curve Fitting
+@node Linear Fits
 @subsection Linear Fits
 
 @noindent
@@ -24545,7 +24545,7 @@ vector of @expr{y} values.  If there is only one independent variable,
 the @expr{x} values can be either a one-row matrix or a plain vector,
 in which case the @kbd{C-u} prefix is the same as a @w{@kbd{C-u 2}} prefix.
 
-@node Polynomial and Multilinear Fits, Error Estimates for Fits, Linear Fits, Curve Fitting
+@node Polynomial and Multilinear Fits
 @subsection Polynomial and Multilinear Fits
 
 @noindent
@@ -24660,7 +24660,7 @@ would enter @kbd{a F ' 2.3 + a x}.
 Another class of models that will work but must be entered by hand
 are multinomial fits, e.g., @expr{a + b x + c y + d x^2 + e y^2 + f x y}.
 
-@node Error Estimates for Fits, Standard Nonlinear Models, Polynomial and Multilinear Fits, Curve Fitting
+@node Error Estimates for Fits
 @subsection Error Estimates for Fits
 
 @noindent
@@ -24821,7 +24821,7 @@ in the input, and thus there is no redundant information left
 over to use for a confidence test.
 @end enumerate
 
-@node Standard Nonlinear Models, Curve Fitting Details, Error Estimates for Fits, Curve Fitting
+@node Standard Nonlinear Models
 @subsection Standard Nonlinear Models
 
 @noindent
@@ -25005,7 +25005,7 @@ Fourier analysis, which is beyond the scope of the @kbd{a F} command.
 (Unfortunately, Calc does not currently have any facilities for
 taking Fourier and related transforms.)
 
-@node Curve Fitting Details, Interpolation, Standard Nonlinear Models, Curve Fitting
+@node Curve Fitting Details
 @subsection Curve Fitting Details
 
 @noindent
@@ -25397,7 +25397,7 @@ linearizer was unable to put the model into the required form.
 The @code{efit} (corresponding to @kbd{H a F}) and @code{xfit}
 (for @kbd{I a F}) functions are completely analogous.
 
-@node Interpolation,  , Curve Fitting Details, Curve Fitting
+@node Interpolation
 @subsection Polynomial Interpolation
 
 @kindex a p
@@ -25454,7 +25454,7 @@ used by @kbd{H a p}.  (The algorithm never generates these coefficients
 explicitly, and quotients of polynomials are beyond @w{@kbd{a F}}'s
 capabilities to fit.)
 
-@node Summations, Logical Operations, Curve Fitting, Algebra
+@node Summations
 @section Summations
 
 @noindent
@@ -25615,7 +25615,7 @@ like @code{sum} and @code{prod}, but its result is simply a
 vector of the results.  For example, @samp{table(a_i, i, 1, 7, 2)}
 produces @samp{[a_1, a_3, a_5, a_7]}.
 
-@node Logical Operations, Rewrite Rules, Summations, Algebra
+@node Logical Operations
 @section Logical Operations
 
 @noindent
@@ -25993,7 +25993,7 @@ declarations are used when deciding whether a formula is true;
 it returns 0 when @code{dnonzero} would return 0 or leave itself
 in symbolic form.)
 
-@node Rewrite Rules,  , Logical Operations, Algebra
+@node Rewrite Rules
 @section Rewrite Rules
 
 @noindent
@@ -26035,7 +26035,7 @@ Calc formulas.
 * Examples of Rewrite Rules::
 @end menu
 
-@node Entering Rewrite Rules, Basic Rewrite Rules, Rewrite Rules, Rewrite Rules
+@node Entering Rewrite Rules
 @subsection Entering Rewrite Rules
 
 @noindent
@@ -26101,7 +26101,7 @@ Calc also accepts an obsolete notation for rules, as vectors
 @samp{[@var{old}, @var{new}]}.  But because it is easily confused with a
 vector of two rules, the use of this notation is no longer recommended.
 
-@node Basic Rewrite Rules, Conditional Rewrite Rules, Entering Rewrite Rules, Rewrite Rules
+@node Basic Rewrite Rules
 @subsection Basic Rewrite Rules
 
 @noindent
@@ -26145,7 +26145,7 @@ throughout the target formula until no further changes are possible
 (up to a limit of 100 times).  Use @kbd{C-u 1 a r} to make only one
 change at a time.
 
-@node Conditional Rewrite Rules, Algebraic Properties of Rewrite Rules, Basic Rewrite Rules, Rewrite Rules
+@node Conditional Rewrite Rules
 @subsection Conditional Rewrite Rules
 
 @noindent
@@ -26228,7 +26228,7 @@ the condition @samp{1} is always true (nonzero) so it has no effect on
 the functioning of the rule.  (The rewrite compiler will ensure that
 it doesn't even impact the speed of matching the rule.)
 
-@node Algebraic Properties of Rewrite Rules, Other Features of Rewrite Rules, Conditional Rewrite Rules, Rewrite Rules
+@node Algebraic Properties of Rewrite Rules
 @subsection Algebraic Properties of Rewrite Rules
 
 @noindent
@@ -26567,7 +26567,7 @@ In this example, we are still allowing the pattern-matcher to
 use all the algebra it can muster, but the righthand side will
 always simplify to a literal addition like @samp{f((-y) + x)}.
 
-@node Other Features of Rewrite Rules, Composing Patterns in Rewrite Rules, Algebraic Properties of Rewrite Rules, Rewrite Rules
+@node Other Features of Rewrite Rules
 @subsection Other Features of Rewrite Rules
 
 @noindent
@@ -26969,7 +26969,7 @@ rule remembers only every fourth result.  Note that @samp{remember(1)}
 is equivalent to @samp{remember}, and @samp{remember(0)} has no effect.
 @end table
 
-@node Composing Patterns in Rewrite Rules, Nested Formulas with Rewrite Rules, Other Features of Rewrite Rules, Rewrite Rules
+@node Composing Patterns in Rewrite Rules
 @subsection Composing Patterns in Rewrite Rules
 
 @noindent
@@ -27138,7 +27138,7 @@ disastrous: since @code{a} was unbound so far, the pattern @samp{a}
 would have matched anything at all, and the pattern @samp{!!!a}
 therefore would @emph{not} have matched anything at all!
 
-@node Nested Formulas with Rewrite Rules, Multi-Phase Rewrite Rules, Composing Patterns in Rewrite Rules, Rewrite Rules
+@node Nested Formulas with Rewrite Rules
 @subsection Nested Formulas with Rewrite Rules
 
 @noindent
@@ -27222,7 +27222,7 @@ integer, or @samp{inf} or @samp{-inf}.  If @var{n} is omitted
 the @code{iterations} value from the rule set is used; if both
 are omitted, 100 is used.
 
-@node Multi-Phase Rewrite Rules, Selections with Rewrite Rules, Nested Formulas with Rewrite Rules, Rewrite Rules
+@node Multi-Phase Rewrite Rules
 @subsection Multi-Phase Rewrite Rules
 
 @noindent
@@ -27343,7 +27343,7 @@ rules were finished, some components might be put away into vectors
 before they had a chance to recombine.  By putting these rules in
 two separate phases, this problem is neatly avoided.
 
-@node Selections with Rewrite Rules, Matching Commands, Multi-Phase Rewrite Rules, Rewrite Rules
+@node Selections with Rewrite Rules
 @subsection Selections with Rewrite Rules
 
 @noindent
@@ -27416,7 +27416,7 @@ purpose rules with @samp{select( )} hints inside them so that they
 will ``do the right thing'' in both @kbd{a r} and @kbd{j r},
 both with and without selections.
 
-@node Matching Commands, Automatic Rewrites, Selections with Rewrite Rules, Rewrite Rules
+@node Matching Commands
 @subsection Matching Commands
 
 @noindent
@@ -27468,7 +27468,7 @@ the meta-variables instead of the number 1.  For example,
 @samp{vmatches(f(1,2), f(a,b))} returns @samp{[a := 1, b := 2]}.
 If the match fails, the function returns the number 0.
 
-@node Automatic Rewrites, Debugging Rewrites, Matching Commands, Rewrite Rules
+@node Automatic Rewrites
 @subsection Automatic Rewrites
 
 @noindent
@@ -27642,7 +27642,7 @@ also apply @code{EvalRules} and @code{AlgSimpRules}.  The variable
 @code{IntegSimpRules} contains simplification rules that are used
 only during integration by @kbd{a i}.
 
-@node Debugging Rewrites, Examples of Rewrite Rules, Automatic Rewrites, Rewrite Rules
+@node Debugging Rewrites
 @subsection Debugging Rewrites
 
 @noindent
@@ -27662,7 +27662,7 @@ buffer (with @kbd{C-x k *Trace* @key{RET}}).  If you leave it in
 existence and forget about it, all your future rewrite commands will
 be needlessly slow.
 
-@node Examples of Rewrite Rules,  , Debugging Rewrites, Rewrite Rules
+@node Examples of Rewrite Rules
 @subsection Examples of Rewrite Rules
 
 @noindent
@@ -27752,7 +27752,7 @@ results in the four-argument form, just append the two items
 of the rule set.  (But remember that multi-phase rule sets don't work
 in @code{EvalRules}.)
 
-@node Units, Store and Recall, Algebra, Top
+@node Units
 @chapter Operating on Units
 
 @noindent
@@ -27771,7 +27771,7 @@ begin with the @kbd{u} prefix key.
 * Musical Notes::
 @end menu
 
-@node Basic Operations on Units, The Units Table, Units, Units
+@node Basic Operations on Units
 @section Basic Operations on Units
 
 @noindent
@@ -27976,7 +27976,7 @@ is also the actual name of another unit; @samp{1e-15 t} would normally
 be considered a ``femto-ton,'' but it is written as @samp{1000 at}
 (1000 atto-tons) instead because @code{ft} would be confused with feet.
 
-@node The Units Table, Predefined Units, Basic Operations on Units, Units
+@node The Units Table
 @section The Units Table
 
 @noindent
@@ -28033,7 +28033,7 @@ for the expression @samp{62 km^2 g / s^2 mol K}, the description is
 command uses the English descriptions that appear in the righthand
 column of the Units Table.
 
-@node Predefined Units, User-Defined Units, The Units Table, Units
+@node Predefined Units
 @section Predefined Units
 
 @noindent
@@ -28130,7 +28130,7 @@ really is unitless.)
 
 @c Describe angular units, luminosity vs. steradians problem.
 
-@node User-Defined Units, Logarithmic Units, Predefined Units, Units
+@node User-Defined Units
 @section User-Defined Units
 
 @noindent
@@ -28214,7 +28214,7 @@ was already a set of user-defined units in your Calc init file, it
 is replaced by the new set.  (@xref{General Mode Commands}, for a way to
 tell Calc to use a different file for the Calc init file.)
 
-@node Logarithmic Units, Musical Notes, User-Defined Units, Units
+@node Logarithmic Units
 @section Logarithmic Units
 
 The units @code{dB} (decibels) and @code{Np} (nepers) are logarithmic
@@ -28453,7 +28453,7 @@ number; the @kbd{l /} (@code{calc-lu-divide}) [@code{lupdiv}] and
 unit by a number. Note that the reference quantities don't play a role
 in this arithmetic.
 
-@node Musical Notes, , Logarithmic Units, Units
+@node Musical Notes
 @section Musical Notes
 
 Calc can convert between musical notes and their associated
@@ -28521,7 +28521,7 @@ notation @code{B_3 + 99.9962592773 cents}; with the default value of
 @code{1}, Calc converts @code{261.625 Hz} to @code{C_4}.
 
 
-@node Store and Recall, Graphics, Units, Top
+@node Store and Recall
 @chapter Storing and Recalling
 
 @noindent
@@ -28538,7 +28538,7 @@ to variables use the @kbd{s} prefix key.
 * Evaluates-To Operator::
 @end menu
 
-@node Storing Variables, Recalling Variables, Store and Recall, Store and Recall
+@node Storing Variables
 @section Storing Variables
 
 @noindent
@@ -28766,7 +28766,7 @@ stored in the Calc variable @code{pi}.  If one of the other special
 variables, @code{inf}, @code{uinf} or @code{nan}, is given a value, its
 original behavior can be restored by voiding it with @kbd{s u}.
 
-@node Recalling Variables, Operations on Variables, Storing Variables, Store and Recall
+@node Recalling Variables
 @section Recalling Variables
 
 @noindent
@@ -28789,7 +28789,7 @@ latter will produce an error message.
 The @kbd{r} prefix may be followed by a digit, so that @kbd{r 9} is
 equivalent to @kbd{s r 9}.
 
-@node Operations on Variables, Let Command, Recalling Variables, Store and Recall
+@node Operations on Variables
 @section Other Operations on Variables
 
 @noindent
@@ -28946,7 +28946,7 @@ omits the same set of variables as @w{@kbd{s p @key{RET}}}; the difference
 is that @kbd{s i} will store the variables in any buffer, and it also
 stores in a more human-readable format.)
 
-@node Let Command, Evaluates-To Operator, Operations on Variables, Store and Recall
+@node Let Command
 @section The Let Command
 
 @noindent
@@ -28984,7 +28984,7 @@ example, letting @expr{n=2} in @samp{f(n pi)} with @kbd{a b} will
 produce @samp{f(2 pi)}, whereas @kbd{s l} would give @samp{f(6.28)}
 since the evaluation step will also evaluate @code{pi}.
 
-@node Evaluates-To Operator,  , Let Command, Store and Recall
+@node Evaluates-To Operator
 @section The Evaluates-To Operator
 
 @noindent
@@ -29110,7 +29110,7 @@ and value from the stack and replaces them with an assignment.
 @TeX{} language output.  The @dfn{eqn} mode gives similar
 treatment to @samp{=>}.
 
-@node Graphics, Kill and Yank, Store and Recall, Top
+@node Graphics
 @chapter Graphics
 
 @noindent
@@ -29141,7 +29141,7 @@ POSIX-compatible terminal.
 * Devices::
 @end menu
 
-@node Basic Graphics, Three Dimensional Graphics, Graphics, Graphics
+@node Basic Graphics
 @section Basic Graphics
 
 @noindent
@@ -29227,7 +29227,7 @@ to use @kbd{g c} if you don't want to---if you give another @kbd{g f}
 or @kbd{g p} command later on, it will reuse the existing graphics
 window if there is one.
 
-@node Three Dimensional Graphics, Managing Curves, Basic Graphics, Graphics
+@node Three Dimensional Graphics
 @section Three-Dimensional Graphics
 
 @kindex g F
@@ -29295,7 +29295,7 @@ helix (a three-dimensional spiral).
 As for @kbd{g f}, each of ``x'', ``y'', and ``z'' may instead be
 variables containing the relevant data.
 
-@node Managing Curves, Graphics Options, Three Dimensional Graphics, Graphics
+@node Managing Curves
 @section Managing Curves
 
 @noindent
@@ -29454,7 +29454,7 @@ Provided everything is set up properly, @kbd{g p} will plot to
 the screen unless you have specified otherwise and @kbd{g P} will
 always plot to the printer.
 
-@node Graphics Options, Devices, Managing Curves, Graphics
+@node Graphics Options
 @section Graphics Options
 
 @noindent
@@ -29620,7 +29620,7 @@ lines, and the third curve to have lines in style 3.  Point styles will
 still be assigned automatically, but you could store another vector in
 @code{PointStyles} to define them, too.
 
-@node Devices,  , Graphics Options, Graphics
+@node Devices
 @section Graphical Devices
 
 @noindent
@@ -29813,7 +29813,7 @@ except that it also views the @file{*Gnuplot Trail*} buffer so that
 you can see the process being killed.  This is better if you are
 killing GNUPLOT because you think it has gotten stuck.
 
-@node Kill and Yank, Keypad Mode, Graphics, Top
+@node Kill and Yank
 @chapter Kill and Yank Functions
 
 @noindent
@@ -29833,7 +29833,7 @@ work with Calc from a regular editing buffer.  @xref{Embedded Mode}.
 * X Cut and Paste::
 @end menu
 
-@node Killing From Stack, Yanking Into Stack, Kill and Yank, Kill and Yank
+@node Killing From Stack
 @section Killing from the Stack
 
 @noindent
@@ -29877,7 +29877,7 @@ with no argument copies only the number itself into the kill ring, whereas
 @kbd{C-k} with a prefix argument of 1 copies the number with its trailing
 newline.
 
-@node Yanking Into Stack, Saving Into Registers, Killing From Stack, Kill and Yank
+@node Yanking Into Stack
 @section Yanking into the Stack
 
 @noindent
@@ -29909,7 +29909,7 @@ allow the text being yanked to be read in a different base (such as if
 the text is an algebraic expression), then the prefix will have no
 effect.
 
-@node Saving Into Registers, Inserting From Registers, Yanking Into Stack, Kill and Yank
+@node Saving Into Registers
 @section Saving into Registers
 
 @noindent
@@ -29943,7 +29943,7 @@ region to the beginning of the register contents.  Both commands take
 @kbd{C-u} arguments, which will cause the region to be deleted after being
 added to the register.
 
-@node Inserting From Registers, Grabbing From Buffers, Saving Into Registers, Kill and Yank
+@node Inserting From Registers
 @section Inserting from Registers
 @noindent
 @kindex r i
@@ -29955,7 +29955,7 @@ within Calc, then the full internal structure of the contents will be
 inserted into the Calculator, otherwise whatever text is in the
 register is reparsed and then inserted into the Calculator.
 
-@node Grabbing From Buffers, Yanking Into Buffers, Inserting From Registers, Kill and Yank
+@node Grabbing From Buffers
 @section Grabbing from Other Buffers
 
 @noindent
@@ -30072,7 +30072,7 @@ handy way to find the product of a vector or matrix of numbers.
 @xref{Statistical Operations}.  Another approach would be to use
 an explicit column reduction command, @kbd{V R : *}.
 
-@node Yanking Into Buffers, X Cut and Paste, Grabbing From Buffers, Kill and Yank
+@node Yanking Into Buffers
 @section Yanking into Other Buffers
 
 @noindent
@@ -30126,7 +30126,7 @@ The @kbd{C-x * y} key sequence is equivalent to @kbd{y} except that
 it can be typed anywhere, not just in Calc.  This provides an easy
 way to guarantee that Calc knows which editing buffer you want to use!
 
-@node X Cut and Paste,  , Yanking Into Buffers, Kill and Yank
+@node X Cut and Paste
 @section X Cut and Paste
 
 @noindent
@@ -30155,7 +30155,7 @@ whole line.  So you can usually transfer a single number into Calc
 just by double-clicking on it in the shell, then middle-clicking
 in the Calc window.
 
-@node Keypad Mode, Embedded Mode, Kill and Yank, Top
+@node Keypad Mode
 @chapter Keypad Mode
 
 @noindent
@@ -30207,7 +30207,7 @@ original buffer.
 * Keypad Modes Menu::
 @end menu
 
-@node Keypad Main Menu, Keypad Functions Menu, Keypad Mode, Keypad Mode
+@node Keypad Main Menu
 @section Main Menu
 
 @smallexample
@@ -30338,7 +30338,7 @@ running standalone (the @code{full-calc-keypad} command appeared in the
 command line that started Emacs), then @kbd{OFF} is replaced with
 @kbd{EXIT}; clicking on this actually exits Emacs itself.
 
-@node Keypad Functions Menu, Keypad Binary Menu, Keypad Main Menu, Keypad Mode
+@node Keypad Functions Menu
 @section Functions Menu
 
 @smallexample
@@ -30381,7 +30381,7 @@ same limit as last time.
 @key{NXTP} finds the next prime after a number.  @kbd{INV NXTP}
 finds the previous prime.
 
-@node Keypad Binary Menu, Keypad Vectors Menu, Keypad Functions Menu, Keypad Mode
+@node Keypad Binary Menu
 @section Binary Menu
 
 @smallexample
@@ -30414,7 +30414,7 @@ and allows you to enter a new word size.  You can respond to the prompt
 using either the keyboard or the digits and @key{ENTER} from the keypad.
 The initial word size is 32 bits.
 
-@node Keypad Vectors Menu, Keypad Modes Menu, Keypad Binary Menu, Keypad Mode
+@node Keypad Vectors Menu
 @section Vectors Menu
 
 @smallexample
@@ -30496,7 +30496,7 @@ With @key{INV}, @key{HYP}, or @key{INV} and @key{HYP}, the
 @kbd{"x"} key pushes the variable names @expr{y}, @expr{z}, and
 @expr{t}, respectively.
 
-@node Keypad Modes Menu,  , Keypad Vectors Menu, Keypad Mode
+@node Keypad Modes Menu
 @section Modes Menu
 
 @smallexample
@@ -30552,7 +30552,7 @@ The @key{STO} and @key{RCL} keys are analogous to @kbd{s t} and
 variables are not available in Keypad mode.)  You can also use,
 for example, @kbd{STO + 3} to add to register 3.
 
-@node Embedded Mode, Programming, Keypad Mode, Top
+@node Embedded Mode
 @chapter Embedded Mode
 
 @noindent
@@ -30569,7 +30569,7 @@ linked to the stack and this copying is taken care of automatically.
 * Customizing Embedded Mode::
 @end menu
 
-@node Basic Embedded Mode, More About Embedded Mode, Embedded Mode, Embedded Mode
+@node Basic Embedded Mode
 @section Basic Embedded Mode
 
 @noindent
@@ -30733,7 +30733,7 @@ own Undo command (typed before you turn Embedded mode back off)
 will not do you any good, because as far as Calc is concerned
 you haven't done anything with this formula yet.
 
-@node More About Embedded Mode, Assignments in Embedded Mode, Basic Embedded Mode, Embedded Mode
+@node More About Embedded Mode
 @section More About Embedded Mode
 
 @noindent
@@ -30917,7 +30917,7 @@ embedded formula at the current point as if by @kbd{`} (@code{calc-edit}).
 Embedded mode does not have to be enabled for this to work.  Press
 @kbd{C-c C-c} to finish the edit, or @kbd{C-x k} to cancel.
 
-@node Assignments in Embedded Mode, Mode Settings in Embedded Mode, More About Embedded Mode, Embedded Mode
+@node Assignments in Embedded Mode
 @section Assignments in Embedded Mode
 
 @noindent
@@ -31143,7 +31143,7 @@ Operator}.  When you turn automatic recomputation back on, the
 stack will be updated but the Embedded buffer will not; you must
 use @kbd{C-x * u} to update the buffer by hand.
 
-@node Mode Settings in Embedded Mode, Customizing Embedded Mode, Assignments in Embedded Mode, Embedded Mode
+@node Mode Settings in Embedded Mode
 @section Mode Settings in Embedded Mode
 
 @kindex m e
@@ -31288,7 +31288,7 @@ annotations at all.
 When Embedded mode is not enabled, mode-recording modes except
 for @code{Save} have no effect.
 
-@node Customizing Embedded Mode,  , Mode Settings in Embedded Mode, Embedded Mode
+@node Customizing Embedded Mode
 @section Customizing Embedded Mode
 
 @noindent
@@ -31440,7 +31440,7 @@ is simply a newline, @code{"\n"}, but may be different for different
 major modes.  If you change this, it is a good idea still to end with a
 newline so that mode annotations will appear on lines by themselves.
 
-@node Programming, Copying, Embedded Mode, Top
+@node Programming
 @chapter Programming
 
 @noindent
@@ -31491,7 +31491,7 @@ described elsewhere; @pxref{User-Defined Compositions}.)
 * Lisp Definitions::
 @end menu
 
-@node Creating User Keys, Keyboard Macros, Programming, Programming
+@node Creating User Keys
 @section Creating User Keys
 
 @noindent
@@ -31566,7 +31566,7 @@ of a user key.  This works for keys that have been defined by either
 keyboard macros or formulas; further details are contained in the relevant
 following sections.
 
-@node Keyboard Macros, Invocation Macros, Creating User Keys, Programming
+@node Keyboard Macros
 @section Programming with Keyboard Macros
 
 @noindent
@@ -31609,7 +31609,7 @@ analogous to those provided by a traditional programmable calculator.
 * Queries in Macros::
 @end menu
 
-@node Naming Keyboard Macros, Conditionals in Macros, Keyboard Macros, Keyboard Macros
+@node Naming Keyboard Macros
 @subsection Naming Keyboard Macros
 
 @noindent
@@ -31659,7 +31659,7 @@ of spelled-out keystrokes and defines it as the current keyboard macro.
 It is a convenient way to define a keyboard macro that has been stored
 in a file, or to define a macro without executing it at the same time.
 
-@node Conditionals in Macros, Loops in Macros, Naming Keyboard Macros, Keyboard Macros
+@node Conditionals in Macros
 @subsection Conditionals in Keyboard Macros
 
 @noindent
@@ -31735,7 +31735,7 @@ If Calc gets stuck while skipping characters during the definition of a
 macro, type @kbd{Z C-g} to cancel the definition.  (Typing plain @kbd{C-g}
 actually adds a @kbd{C-g} keystroke to the macro.)
 
-@node Loops in Macros, Local Values in Macros, Conditionals in Macros, Keyboard Macros
+@node Loops in Macros
 @subsection Loops in Keyboard Macros
 
 @noindent
@@ -31828,7 +31828,7 @@ as easily as in a macro definition.
 @xref{Conditionals in Macros}, for some additional notes about
 conditional and looping commands.
 
-@node Local Values in Macros, Queries in Macros, Loops in Macros, Keyboard Macros
+@node Local Values in Macros
 @subsection Local Values in Macros
 
 @noindent
@@ -31893,7 +31893,7 @@ The contents of the stack and trail, values of non-quick variables, and
 other settings such as the language mode and the various display modes,
 are @emph{not} affected by @kbd{Z `} and @kbd{Z '}.
 
-@node Queries in Macros,  , Local Values in Macros, Keyboard Macros
+@node Queries in Macros
 @subsection Queries in Keyboard Macros
 
 @c @noindent
@@ -31933,7 +31933,7 @@ keyboard input during a keyboard macro.  In particular, you can use
 any Calculator operations interactively before pressing @kbd{C-M-c} to
 return control to the keyboard macro.
 
-@node Invocation Macros, Algebraic Definitions, Keyboard Macros, Programming
+@node Invocation Macros
 @section Invocation Macros
 
 @kindex C-x * z
@@ -31966,7 +31966,7 @@ The @kbd{m m} command saves the last invocation macro defined by
 @kbd{Z I} along with all the other Calc mode settings.
 @xref{General Mode Commands}.
 
-@node Algebraic Definitions, Lisp Definitions, Invocation Macros, Programming
+@node Algebraic Definitions
 @section Programming with Formulas
 
 @noindent
@@ -32078,7 +32078,7 @@ default simplifications cures this problem:  The definition will be stored
 in symbolic form without ever activating the @code{deriv} function.  Press
 @kbd{m D} to turn the default simplifications back on afterwards.
 
-@node Lisp Definitions,  , Algebraic Definitions, Programming
+@node Lisp Definitions
 @section Programming with Lisp
 
 @noindent
@@ -32114,7 +32114,7 @@ for the true Lisp enthusiast.
 * Internals::
 @end menu
 
-@node Defining Functions, Defining Simple Commands, Lisp Definitions, Lisp Definitions
+@node Defining Functions
 @subsection Defining New Functions
 
 @noindent
@@ -32335,7 +32335,7 @@ property are @code{defmath} calls, @code{define-key} calls that modify
 the Calc key map, and any calls that redefine things defined inside Calc.
 Ordinary @code{defun}s need not be enclosed with @code{calc-define}.
 
-@node Defining Simple Commands, Defining Stack Commands, Defining Functions, Lisp Definitions
+@node Defining Simple Commands
 @subsection Defining New Simple Commands
 
 @noindent
@@ -32497,7 +32497,7 @@ decreases the precision.
 (run-hooks 'calc-check-defines)
 @end smallexample
 
-@node Defining Stack Commands, Argument Qualifiers, Defining Simple Commands, Lisp Definitions
+@node Defining Stack Commands
 @subsection Defining New Stack-Based Commands
 
 @noindent
@@ -32599,7 +32599,7 @@ number of objects to remove from the stack and pass to the function.
 In this case, the integer @var{num} serves as a default number of
 arguments to be used when no prefix is supplied.
 
-@node Argument Qualifiers, Example Definitions, Defining Stack Commands, Lisp Definitions
+@node Argument Qualifiers
 @subsection Argument Qualifiers
 
 @noindent
@@ -32686,7 +32686,7 @@ expands to
 which performs the necessary checks and conversions before executing the
 body of the function.
 
-@node Example Definitions, Calling Calc from Your Programs, Argument Qualifiers, Lisp Definitions
+@node Example Definitions
 @subsection Example Definitions
 
 @noindent
@@ -32699,7 +32699,7 @@ These programs make use of some of the Calculator's internal functions;
 * Sine Example::
 @end menu
 
-@node Bit Counting Example, Sine Example, Example Definitions, Example Definitions
+@node Bit Counting Example
 @subsubsection Bit-Counting
 
 @noindent
@@ -32739,7 +32739,7 @@ Emacs Lisp function:
     count))
 @end smallexample
 
-@node Sine Example,  , Bit Counting Example, Example Definitions
+@node Sine Example
 @subsubsection The Sine Function
 
 @noindent
@@ -32823,7 +32823,7 @@ it carefully as shown in this second example.  For quick-and-dirty programs,
 when you know that your own use of the sine function will never encounter
 a large argument, a simpler program like the first one shown is fine.
 
-@node Calling Calc from Your Programs, Internals, Example Definitions, Lisp Definitions
+@node Calling Calc from Your Programs
 @subsection Calling Calc from Your Lisp Programs
 
 @noindent
@@ -33217,7 +33217,7 @@ Note the use of @code{insert-before-markers} when changing between
 ``F'' and ``C'', so that the character winds up before the cursor
 instead of after it.
 
-@node Internals,  , Calling Calc from Your Programs, Lisp Definitions
+@node Internals
 @subsection Calculator Internals
 
 @noindent
@@ -33257,7 +33257,7 @@ you can't prove this file will already be loaded.
 * Hooks::
 @end menu
 
-@node Data Type Formats, Interactive Lisp Functions, Internals, Internals
+@node Data Type Formats
 @subsubsection Data Type Formats
 
 @noindent
@@ -33377,7 +33377,7 @@ functions which are the outer-level call in an expression whose value is
 about to be pushed on the stack; this feature is considered obsolete
 and is not used by any built-in Calc functions.)
 
-@node Interactive Lisp Functions, Stack Lisp Functions, Data Type Formats, Internals
+@node Interactive Lisp Functions
 @subsubsection Interactive Functions
 
 @noindent
@@ -33438,7 +33438,7 @@ i.e., if the Inverse (@kbd{I} key) flag was set.
 This predicate is the analogous function for the @kbd{H} key.
 @end defun
 
-@node Stack Lisp Functions, Predicates, Interactive Lisp Functions, Internals
+@node Stack Lisp Functions
 @subsubsection Stack-Oriented Functions
 
 @noindent
@@ -33625,7 +33625,7 @@ is suppressed, but a flag is set so that the entire stack will be refreshed
 rather than just the top few elements when the macro finishes.)
 @end defun
 
-@node Predicates, Computational Lisp Functions, Stack Lisp Functions, Internals
+@node Predicates
 @subsubsection Predicates
 
 @noindent
@@ -33893,7 +33893,7 @@ This signals an error that will be reported as a floating-point overflow.
 This signals a floating-point underflow.
 @end defun
 
-@node Computational Lisp Functions, Vector Lisp Functions, Predicates, Internals
+@node Computational Lisp Functions
 @subsubsection Computational Functions
 
 @noindent
@@ -34233,7 +34233,7 @@ it returns 1 or 3.  If @var{n} is anything else, this function
 returns @code{nil}.
 @end defun
 
-@node Vector Lisp Functions, Symbolic Lisp Functions, Computational Lisp Functions, Internals
+@node Vector Lisp Functions
 @subsubsection Vector Functions
 
 @noindent
@@ -34370,7 +34370,7 @@ is true, with the side effect of exchanging the first two rows of
 @var{m}.
 @end defun
 
-@node Symbolic Lisp Functions, Formatting Lisp Functions, Vector Lisp Functions, Internals
+@node Symbolic Lisp Functions
 @subsubsection Symbolic Functions
 
 @noindent
@@ -34941,7 +34941,7 @@ Return a copy of @var{expr} with everything but units variables replaced
 by ones.
 @end defun
 
-@node Formatting Lisp Functions, Hooks, Symbolic Lisp Functions, Internals
+@node Formatting Lisp Functions
 @subsubsection I/O and Formatting Functions
 
 @noindent
@@ -35087,7 +35087,7 @@ If composition @var{c} is a ``flat'' composition, return the last
 @comment @noindent
 @comment (This section is currently unfinished.)
 
-@node Hooks,  , Formatting Lisp Functions, Internals
+@node Hooks
 @subsubsection Hooks
 
 @noindent
@@ -35242,15 +35242,15 @@ used the first time, your hook should add a variable to the
 list and also call @code{make-local-variable} itself.
 @end defvar
 
-@node Copying, GNU Free Documentation License, Programming, Top
+@node Copying
 @appendix GNU GENERAL PUBLIC LICENSE
 @include gpl.texi
 
-@node GNU Free Documentation License, Customizing Calc, Copying, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Customizing Calc, Reporting Bugs, GNU Free Documentation License, Top
+@node Customizing Calc
 @appendix Customizing Calc
 
 The usual prefix for Calc is the key sequence @kbd{C-x *}.  If you wish
@@ -35644,7 +35644,7 @@ choose from, or the user can enter their own date.
 The default value of @code{calc-gregorian-switch} is @code{nil}.
 @end defvar
 
-@node Reporting Bugs, Summary, Customizing Calc, Top
+@node Reporting Bugs
 @appendix Reporting Bugs
 
 @noindent
@@ -35669,7 +35669,7 @@ The latest version of Calc is available from Savannah, in the Emacs
 repository.  See @uref{https://savannah.gnu.org/projects/emacs}.
 
 @c [summary]
-@node Summary, Key Index, Reporting Bugs, Top
+@node Summary
 @appendix Calc Summary
 
 @noindent
@@ -36940,12 +36940,12 @@ grabs the @var{n}th mode value only.
 
 @c [end-summary]
 
-@node Key Index, Command Index, Summary, Top
+@node Key Index
 @unnumbered Index of Key Sequences
 
 @printindex ky
 
-@node Command Index, Function Index, Key Index, Top
+@node Command Index
 @unnumbered Index of Calculator Commands
 
 Since all Calculator commands begin with the prefix @samp{calc-}, the
@@ -36955,7 +36955,7 @@ types @samp{calc-} for you.  Thus, @kbd{x last-args} is short for
 
 @printindex pg
 
-@node Function Index, Concept Index, Command Index, Top
+@node Function Index
 @unnumbered Index of Algebraic Functions
 
 This is a list of built-in functions and operators usable in algebraic
@@ -36968,12 +36968,12 @@ Calc keystrokes and can also be found in the Calc Summary.
 
 @printindex tp
 
-@node Concept Index, Variable Index, Function Index, Top
+@node Concept Index
 @unnumbered Concept Index
 
 @printindex cp
 
-@node Variable Index, Lisp Function Index, Concept Index, Top
+@node Variable Index
 @unnumbered Index of Variables
 
 The variables in this list that do not contain dashes are accessible
@@ -36985,7 +36985,7 @@ in your Calc init file or @file{.emacs} file.
 
 @printindex vr
 
-@node Lisp Function Index,  , Variable Index, Top
+@node Lisp Function Index
 @unnumbered Index of Lisp Math Functions
 
 The following functions are meant to be used with @code{defmath}, not

@@ -112,7 +112,7 @@ just like digits.  Case is ignored.
 @cindex curly quotes, inserting
 @cindex curved quotes, inserting
   A few common Unicode characters can be inserted via a command
-starting with @kbd{C-x 8}.  For example, @kbd{C-x 8 [} inserts @t{‘}
+starting with @w{@kbd{C-x 8}}.  For example, @kbd{C-x 8 [} inserts @t{‘}
 which is Unicode code-point U+2018 @sc{left single quotation mark},
 sometimes called a left single ``curved quote'' or ``curly quote''.
 Similarly, @w{@kbd{C-x 8 ]}}, @kbd{C-x 8 @{} and @kbd{C-x 8 @}} insert the
@@ -895,4 +895,7 @@ Currently supported shorter key sequences are @kbd{C-x u u} instead of
 v v} to resize the selected window interactively, @kbd{M-g n n p p} to
 navigate @code{next-error} matches.  Any other key exits transient mode
 and then is executed normally.  The user option @code{repeat-exit-key}
-defines an additional key to exit this transient mode.
+defines an additional key to exit this transient mode.  Also it's
+possible to break the repetition chain automatically after idle time
+by customizing the user option @code{repeat-exit-timeout} to a number
+of seconds.

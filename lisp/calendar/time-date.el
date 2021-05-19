@@ -525,6 +525,8 @@ changes in daylight saving time are not taken into account."
 (defun decoded-time-set-defaults (time &optional default-zone)
   "Set any nil values in `decoded-time' TIME to default values.
 The default value is based on January 1st, 1970 at midnight.
+This year is used to guarantee portability; see Info
+node `(elisp) Time of Day'.
 
 TIME is modified and returned."
   (unless (decoded-time-second time)
@@ -539,7 +541,7 @@ TIME is modified and returned."
   (unless (decoded-time-month time)
     (setf (decoded-time-month time) 1))
   (unless (decoded-time-year time)
-    (setf (decoded-time-year time) 0))
+    (setf (decoded-time-year time) 1970))
 
   ;; When we don't have a time zone, default to DEFAULT-ZONE without
   ;; DST if DEFAULT-ZONE if given, and to unknown DST otherwise.

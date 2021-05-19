@@ -63,8 +63,7 @@ ordinary strings."
 (defcustom eshell-pred-load-hook nil
   "A list of functions to run when `eshell-pred' is loaded."
   :version "24.1"			; removed eshell-pred-initialize
-  :type 'hook
-  :group 'eshell-pred)
+  :type 'hook)
 
 (defcustom eshell-predicate-alist
   '((?/ . (eshell-pred-file-type ?d))   ; directories
@@ -108,8 +107,7 @@ ordinary strings."
 The format of each entry is
 
   (CHAR . PREDICATE-FUNC-SEXP)"
-  :type '(repeat (cons character sexp))
-  :group 'eshell-pred)
+  :type '(repeat (cons character sexp)))
 
 (put 'eshell-predicate-alist 'risky-local-variable t)
 
@@ -146,8 +144,7 @@ The format of each entry is
 The format of each entry is
 
   (CHAR ENTRYWISE-P MODIFIER-FUNC-SEXP)"
-  :type '(repeat (cons character sexp))
-  :group 'eshell-pred)
+  :type '(repeat (cons character sexp)))
 
 (put 'eshell-modifier-alist 'risky-local-variable t)
 
@@ -297,9 +294,9 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
 			(append
 			 eshell-current-modifiers
 			 (list
-			  `(lambda (lst)
-			     (eshell-apply-modifiers
-			      lst (quote ,preds) (quote ,mods)))))))))
+			  (lambda (lst)
+			    (eshell-apply-modifiers
+			     lst preds mods))))))))
 	  (goto-char (1+ end))
 	  (eshell-finish-arg))))))
 
@@ -324,7 +321,7 @@ resultant list of strings."
 	      (if (looking-at "[^|':]")
 		  (let ((func (read (current-buffer))))
 		    (if (and func (functionp func))
-			(setq preds (eshell-add-pred-func func preds
+			(setq preds (eshell-add-pred-func (eval func t) preds
 							  negate follow))
 		      (error "Invalid function predicate `%s'"
 			     (eshell-stringify func))))
@@ -341,8 +338,7 @@ resultant list of strings."
 		  (let ((func (read (current-buffer))))
 		    (if (and func (functionp func))
 			(setq mods
-			      (cons `(lambda (lst)
-				       (mapcar (function ,func) lst))
+			      (cons (lambda (lst) (mapcar func lst))
 				    mods))
 		      (error "Invalid function modifier `%s'"
 			     (eshell-stringify func))))
@@ -353,14 +349,14 @@ resultant list of strings."
 		(if (not mod)
 		    (error "Unknown modifier character `%c'" (char-after))
 		  (forward-char)
-		  (setq mods (cons (eval (cdr mod)) mods)))))
+		  (setq mods (cons (eval (cdr mod) t) mods)))))
 	     (t
 	      (let ((pred (assq char eshell-predicate-alist)))
 		(if (not pred)
 		    (error "Unknown predicate character `%c'" char)
 		  (forward-char)
 		  (setq preds
-			(eshell-add-pred-func (eval (cdr pred)) preds
+			(eshell-add-pred-func (eval (cdr pred) t) preds
 					      negate follow))))))))
       (end-of-buffer
        (error "Predicate or modifier ended prematurely")))
@@ -369,11 +365,11 @@ resultant list of strings."
 (defun eshell-add-pred-func (pred funcs negate follow)
   "Add the predicate function PRED to FUNCS."
   (if negate
-      (setq pred `(lambda (file)
-		    (not (funcall ,pred file)))))
+      (setq pred (lambda (file)
+		   (not (funcall pred file)))))
   (if follow
-      (setq pred `(lambda (file)
-		    (funcall ,pred (file-truename file)))))
+      (setq pred (lambda (file)
+		   (funcall pred (file-truename file)))))
   (cons pred funcs))
 
 (defun eshell-pred-user-or-group (mod-char mod-type attr-index get-id-func)
@@ -399,10 +395,10 @@ resultant list of strings."
     (unless ugid
       (error "Unknown %s name specified for modifier `%c'"
 	     mod-type mod-char))
-    `(lambda (file)
-       (let ((attrs (file-attributes file)))
-	 (if attrs
-	     (= (nth ,attr-index attrs) ,ugid))))))
+    (lambda (file)
+      (let ((attrs (file-attributes file)))
+	(if attrs
+	    (= (nth attr-index attrs) ugid))))))
 
 (defun eshell-pred-file-time (mod-char mod-type attr-index)
   "Return a predicate to test whether a file matches a certain time."
@@ -445,13 +441,13 @@ resultant list of strings."
 	  (error "Cannot stat file `%s'" file))
 	(setq when (nth attr-index attrs)))
       (goto-char (1+ end)))
-    `(lambda (file)
-       (let ((attrs (file-attributes file)))
-	 (if attrs
-             (,(cond ((eq qual ?-) #'time-less-p)
+    (let ((f (cond ((eq qual ?-) #'time-less-p)
                      ((eq qual ?+) (lambda (a b) (time-less-p b a)))
-                     (#'time-equal-p))
-	      ,when (nth ,attr-index attrs)))))))
+                     (#'time-equal-p))))
+      (lambda (file)
+	(let ((attrs (file-attributes file)))
+	  (if attrs
+              (funcall f when (nth attr-index attrs))))))))
 
 (defun eshell-pred-file-type (type)
   "Return a test which tests that the file is of a certain TYPE.
@@ -462,20 +458,20 @@ that `ls -l' will show in the first column of its display."
     (if (memq type '(?b ?c))
 	(forward-char)
       (setq type ?%)))
-  `(lambda (file)
-     (let ((attrs (eshell-file-attributes (directory-file-name file))))
-       (if attrs
-	   (memq (aref (file-attribute-modes attrs) 0)
-		 ,(if (eq type ?%)
-		      '(?b ?c)
-		    (list 'quote (list type))))))))
+  (let ((set (if (eq type ?%)
+		 '(?b ?c)
+	       (list type))))
+    (lambda (file)
+      (let ((attrs (eshell-file-attributes (directory-file-name file))))
+	(if attrs
+	    (memq (aref (file-attribute-modes attrs) 0) set))))))
 
 (defsubst eshell-pred-file-mode (mode)
   "Return a test which tests that MODE pertains to the file."
-  `(lambda (file)
-     (let ((modes (file-modes file 'nofollow)))
-       (if modes
-	   (not (zerop (logand ,mode modes)))))))
+  (lambda (file)
+    (let ((modes (file-modes file 'nofollow)))
+      (if modes
+	  (not (zerop (logand mode modes)))))))
 
 (defun eshell-pred-file-links ()
   "Return a predicate to test whether a file has a given number of links."
@@ -487,15 +483,15 @@ that `ls -l' will show in the first column of its display."
       (error "Invalid file link count modifier `l'"))
     (setq amount (string-to-number (match-string 0)))
     (goto-char (match-end 0))
-    `(lambda (file)
-       (let ((attrs (eshell-file-attributes file)))
-	 (if attrs
-	     (,(if (eq qual ?-)
-		   '<
-		 (if (eq qual ?+)
-		     '>
-		   '=))
-	      (file-attribute-link-number attrs) ,amount))))))
+    (let ((f (if (eq qual ?-)
+		 #'<
+	       (if (eq qual ?+)
+		   #'>
+		 #'=))))
+      (lambda (file)
+	(let ((attrs (eshell-file-attributes file)))
+	  (if attrs
+	      (funcall f (file-attribute-link-number attrs) amount)))))))
 
 (defun eshell-pred-file-size ()
   "Return a predicate to test whether a file is of a given size."
@@ -517,15 +513,15 @@ that `ls -l' will show in the first column of its display."
       (error "Invalid file size modifier `L'"))
     (setq amount (* (string-to-number (match-string 0)) quantum))
     (goto-char (match-end 0))
-    `(lambda (file)
-       (let ((attrs (eshell-file-attributes file)))
-	 (if attrs
-	     (,(if (eq qual ?-)
-		   '<
-		 (if (eq qual ?+)
-		     '>
-		   '=))
-	      (file-attribute-size attrs) ,amount))))))
+    (let ((f (if (eq qual ?-)
+		 #'<
+	       (if (eq qual ?+)
+		   #'>
+		 #'=))))
+      (lambda (file)
+	(let ((attrs (eshell-file-attributes file)))
+	  (if attrs
+	      (funcall f (file-attribute-size attrs) amount)))))))
 
 (defun eshell-pred-substitute (&optional repeat)
   "Return a modifier function that will substitute matches."
@@ -539,22 +535,22 @@ that `ls -l' will show in the first column of its display."
 	  replace (buffer-substring-no-properties (point) end))
     (goto-char (1+ end))
     (if repeat
-	`(lambda (lst)
-	   (mapcar
-            (lambda (str)
-              (let ((i 0))
-                (while (setq i (string-match ,match str i))
-                  (setq str (replace-match ,replace t nil str))))
-              str)
-            lst))
-      `(lambda (lst)
-	 (mapcar
-          (lambda (str)
-            (if (string-match ,match str)
-                (setq str (replace-match ,replace t nil str))
-              (error (concat str ": substitution failed")))
-            str)
-          lst)))))
+	(lambda (lst)
+	  (mapcar
+           (lambda (str)
+             (let ((i 0))
+               (while (setq i (string-match match str i))
+                 (setq str (replace-match replace t nil str))))
+             str)
+           lst))
+      (lambda (lst)
+	(mapcar
+         (lambda (str)
+           (if (string-match match str)
+               (setq str (replace-match replace t nil str))
+             (error (concat str ": substitution failed")))
+           str)
+         lst)))))
 
 (defun eshell-include-members (&optional invert-p)
   "Include only lisp members matching a regexp."
@@ -564,12 +560,12 @@ that `ls -l' will show in the first column of its display."
     (setq end (eshell-find-delimiter delim delim nil nil t)
 	  regexp (buffer-substring-no-properties (point) end))
     (goto-char (1+ end))
-    `(lambda (lst)
-       (eshell-winnow-list
-	lst nil '((lambda (elem)
-		    ,(if invert-p
-			 `(not (string-match ,regexp elem))
-		       `(string-match ,regexp elem))))))))
+    (let ((predicates
+	   (list (if invert-p
+		     (lambda (elem) (not (string-match regexp elem)))
+		   (lambda (elem) (string-match regexp elem))))))
+      (lambda (lst)
+	(eshell-winnow-list lst nil predicates)))))
 
 (defun eshell-join-members ()
   "Return a modifier function that join matches."
@@ -581,8 +577,8 @@ that `ls -l' will show in the first column of its display."
       (setq end (eshell-find-delimiter delim delim nil nil t)
 	    str (buffer-substring-no-properties (point) end))
       (goto-char (1+ end)))
-    `(lambda (lst)
-       (mapconcat 'identity lst ,str))))
+    (lambda (lst)
+      (mapconcat #'identity lst str))))
 
 (defun eshell-split-members ()
   "Return a modifier function that splits members."
@@ -593,10 +589,11 @@ that `ls -l' will show in the first column of its display."
       (setq end (eshell-find-delimiter delim delim nil nil t)
 	    sep (buffer-substring-no-properties (point) end))
       (goto-char (1+ end)))
-    `(lambda (lst)
-       (mapcar
-        (lambda (str)
-          (split-string str ,sep)) lst))))
+    (lambda (lst)
+      (mapcar
+       (lambda (str)
+         (split-string str sep))
+       lst))))
 
 (provide 'em-pred)
 

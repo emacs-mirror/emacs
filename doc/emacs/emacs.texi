@@ -99,6 +99,7 @@ Cover art by Etienne Suvasa; cover design by Matt Lee.
 
 @end titlepage
 
+@headings double
 
 @summarycontents
 @contents

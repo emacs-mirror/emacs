@@ -2166,7 +2166,7 @@ commands for those hosts, the property @t{"posix"} should be set to
 
 The default value of this property is @code{t} (not specified in
 @code{tramp-methods}).  If the remote host runs native MS Windows,
-this propery has no effect.
+this property has no effect.
 
 @item @t{"mount-point"}
 
@@ -4504,9 +4504,9 @@ Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
 @samp{%%r}, @samp{%%h} and @samp{%%p}.
 
 @vindex tramp-use-ssh-controlmaster-options
-If the @file{~/.ssh/config} is configured appropriately for the above
-behavior, then any changes to @command{ssh} can be suppressed with
-this @code{nil} setting:
+If the @file{~/.ssh/config} file is configured appropriately for the
+above behavior, then any changes to @command{ssh} can be suppressed
+with this @code{nil} setting:
 
 @lisp
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
@@ -4517,6 +4517,10 @@ this @code{nil} setting:
 This should also be set to @code{nil} if you use the
 @option{ProxyCommand} or @option{ProxyJump} options in your
 @command{ssh} configuration.
+
+On MS Windows, @code{tramp-use-ssh-controlmaster-options} is set to
+@code{nil} by default, because the MS Windows and MSYS2
+implementations of @command{OpenSSH} do not support this option properly.
 
 
 @item
@@ -5336,6 +5340,7 @@ The verbosity levels are
 @*@indent @w{ 8}  connection properties
 @*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
+@*@indent @w{11}  call traces (maintainer only)
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to a @value{tramp} debug buffer.  Such debug buffers are
@@ -5384,21 +5389,8 @@ The debug buffer is written as a file in your
 this option with care, because it could decrease the performance of
 @value{tramp} actions.
 
-To enable stepping through @value{tramp} function call traces, they
-have to be specifically enabled as shown in this code:
-
-@lisp
-@group
-(require 'trace)
-(dolist (elt (all-completions "tramp-" obarray 'functionp))
-  (trace-function-background (intern elt)))
-(untrace-function 'tramp-read-passwd)
-@end group
-@end lisp
-
-The buffer @file{*trace-output*} contains the output from the function
-call traces.  Disable @code{tramp-read-passwd} to stop password
-strings from being written to @file{*trace-output*}.
+If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
+function call traces are written to the buffer @file{*trace-output*}.
 
 
 @node GNU Free Documentation License

@@ -122,7 +122,7 @@ Todo Display Features
 @end detailmenu
 @end menu
 
-@node Overview, Todo Mode Entry Points, Top, Top
+@node Overview
 @chapter Overview
 
 The Todo mode package provides facilities for making and maintaining
@@ -146,7 +146,7 @@ most important differences, @ref{Legacy Todo Mode Files}.
 * Todo Items as Diary Entries::
 @end menu
 
-@node Levels of Organization, Todo Items as Diary Entries, , Overview
+@node Levels of Organization
 @section Levels of Organization
 
 In Todo mode each todo list is identified with a named category, so you
@@ -184,7 +184,7 @@ associating various kinds of metadata with it, e.g., the category it
 belongs to, its priority, whether it is to be included in the Emacs
 diary, date and time stamps, whether it is done or still to do.
 
-@node Todo Items as Diary Entries, , Levels of Organization, Overview
+@node Todo Items as Diary Entries
 @section Todo Items as Diary Entries
 
 You can have todo items show up in the Emacs Fancy Diary display by
@@ -213,7 +213,7 @@ from a Todo mode file, clicking or typing @key{RET} on this item will
 switch to the buffer visiting that file and properly display the item's
 category, with point on the item.
 
-@node Todo Mode Entry Points, Key Binding Conventions, Overview, Top
+@node Todo Mode Entry Points
 @chapter Todo Mode Entry Points
 
 To initialize your first todo file, invoke the command @code{todo-show}.
@@ -275,7 +275,7 @@ that was displayed on quitting current for subsequent Todo mode commands
 category in Todo mode, in which case the latter become current for Todo
 mode commands).
 
-@node Key Binding Conventions, Navigation, Todo Mode Entry Points, Top
+@node Key Binding Conventions
 @chapter Key Binding Conventions
 
 For Todo mode commands to function properly, it is essential to maintain
@@ -301,7 +301,7 @@ those beginning with @kbd{A} apply to archives (a special type of Todo
 file; @ref{Todo Archive Mode}).  Todo commands applying to items,
 which constitute the majority, are bound to lower case key sequences.
 
-@node Navigation, Editing, Key Binding Conventions, Top
+@node Navigation
 @chapter Navigation
 
 The navigation commands are for making another todo file, category, or
@@ -389,7 +389,7 @@ or higher than the current one.
 Navigation to other types of Todo files is discussed in the relevant
 sections below.
 
-@node Editing, Todo Archives, Navigation, Top
+@node Editing
 @chapter Editing
 
 Editing in Todo mode means making structural or textual changes at one
@@ -412,7 +412,7 @@ Todo mode with @kbd{q}.
 * Item Editing::
 @end menu
 
-@node File Editing, Category Editing, , Editing
+@node File Editing
 @section File Editing and Todo Edit Mode
 
 There are four file-level editing commands:
@@ -470,7 +470,7 @@ containing inconsistent information (see the cautionary note in
 displays a warning to this effect.
 @end table
 
-@node Category Editing, Item Editing, File Editing, Editing
+@node Category Editing
 @section Category Editing
 
 The following commands are available for editing specifically at the
@@ -520,7 +520,7 @@ i.e., typing @kbd{C-u C g}, prompts for a file and confines merging to a
 category in that file.
 @end table
 
-@node Item Editing, , Category Editing, Editing
+@node Item Editing
 @section Item Editing
 
 Todo mode provides commands for adding new items as well as textually
@@ -534,7 +534,7 @@ you a lot of flexibility to fine-tune these operations to your needs.
 * Relocating and Removing Items::
 @end menu
 
-@node  Inserting New Items, Editing Item Headers and Text, , Item Editing
+@node  Inserting New Items
 @subsection Inserting New Items
 
 To add a new todo item to a category, type @kbd{i}, which is bound to
@@ -761,7 +761,7 @@ calendar after you have entered the item's text, and then you can
 choose a date from the calendar.)
 
 
-@node  Editing Item Headers and Text, Relocating and Removing Items, Inserting New Items, Item Editing
+@node  Editing Item Headers and Text
 @subsection Editing Item Headers and Text
 
 To make changes to an existing item's content or header, type @kbd{e},
@@ -945,7 +945,7 @@ really want to toggle the diary-inclusion and calendar-marking status
 of all items in the category, you can do this by marking all the items
 and then invoking @kbd{e y} or @kbd{e k}, @pxref{Marked Items}).
 
-@node  Relocating and Removing Items,  , Editing Item Headers and Text, Item Editing
+@node  Relocating and Removing Items
 @subsection Relocating and Removing Items
 
 In addition to inserting a new todo item and changing the text or header
@@ -960,7 +960,7 @@ removes it from the todo list but does not delete it.
 * Done Items::
 @end menu
 
-@node Reprioritizing Items, Moving and Deleting Items, , Relocating and Removing Items
+@node Reprioritizing Items
 @subsubsection Reprioritizing Items
 
 There are three ways to change a todo item's priority:
@@ -986,7 +986,7 @@ highest priority without prompting.  (Prefix arguments have no effect
 with @kbd{r} or @kbd{l}.)
 @end table
 
-@node Moving and Deleting Items, Done Items, Reprioritizing Items, Relocating and Removing Items
+@node Moving and Deleting Items
 @subsubsection Moving and Deleting Items
 
 You can move an item to another category, thereby recategorizing it:
@@ -1032,7 +1032,7 @@ Todo command to undo a deletion.  If you want to be able to use @key{SPC} for
 confirmation, enable the option @code{todo-y-with-space}.
 @end quotation
 
-@node Done Items, , Moving and Deleting Items, Relocating and Removing Items
+@node Done Items
 @subsubsection Done Items
 
 When the activity or thing that a todo item is about has been done, it
@@ -1118,7 +1118,7 @@ item has a comment, you are asked whether to delete it from the restored
 item.
 @end table
 
-@node Todo Archives, Marked Items, Editing, Top
+@node Todo Archives
 @chapter Todo Archives
 
 When the done items section of a category itself starts to become
@@ -1134,7 +1134,7 @@ the extension @samp{.toda} instead of @samp{.todo}.
 * Todo Archive Mode::
 @end menu
 
-@node Creating and Visiting Archives, Todo Archive Mode, , Todo Archives
+@node Creating and Visiting Archives
 @section Creating and Visiting Archives
 
 Todo mode provides the following command for archiving items:
@@ -1207,7 +1207,7 @@ As with todo files, you can also visit a Todo archive by invoking a
 standard Emacs file-visiting command; this displays the first (on the
 initial invocation) or current category of the archive.
 
-@node Todo Archive Mode, , Creating and Visiting Archives, Todo Archives
+@node Todo Archive Mode
 @section Todo Archive Mode
 
 When you visit a Todo archive, the buffer is in Todo Archive mode.  It
@@ -1264,7 +1264,7 @@ The command @kbd{F k} (@pxref{File Editing}) is also available in Todo
 Archive mode.  It deletes the current archive file and prompts you
 whether to delete the corresponding todo file.
 
-@node Marked Items, Todo Categories Mode, Todo Archives, Top
+@node Marked Items
 @chapter Marked Items
 
 For many item editing commands it can make sense and be convenient to
@@ -1329,7 +1329,7 @@ todo or marked done items, so if both types of items are marked,
 invoking these commands has no effect and informs you of your
 erroneous attempt.
 
-@node Todo Categories Mode, Searching for Items, Marked Items, Top
+@node Todo Categories Mode
 @chapter Todo Categories Mode
 
 It can be helpful to have a compact overview of the categories in a
@@ -1367,7 +1367,7 @@ to visit another todo file).  To do this customize the option
 * Reordering Categories::
 @end menu
 
-@node Table of Item Counts, Reordering Categories, , Todo Categories Mode
+@node Table of Item Counts
 @section Table of Item Counts
 
 Above each column of the table is a labeled button you can press by
@@ -1428,7 +1428,7 @@ Typing @kbd{q} exits Todo Categories mode, killing the buffer and returning
 to the current category in the Todo mode or Todo Archive mode buffer
 from which you had invoked @kbd{F c}.
 
-@node Reordering Categories, , Table of Item Counts, Todo Categories Mode
+@node Reordering Categories
 @section Reordering Categories
 
 Todo Categories mode provide commands with which you can change the
@@ -1479,7 +1479,7 @@ have to renumber them again.  This is one reason why you should
 exercise caution when using @kbd{F e}.
 @end quotation
 
-@node Searching for Items, Todo Filtered Items Mode, Todo Categories Mode, Top
+@node Searching for Items
 @chapter Searching for Items
 
 It can be useful to be able to locate and examine all todo items that
@@ -1506,7 +1506,7 @@ search and remove the highlighting later.
 
 These commands are also available in Todo Archive mode.
 
-@node Todo Filtered Items Mode, Todo Display Features, Searching for Items, Top
+@node Todo Filtered Items Mode
 @chapter Todo Filtered Items Mode
 
 A more powerful alternative to sequential searching is item filtering,
@@ -1520,7 +1520,7 @@ category in a distinct mode, Todo Filtered Items mode.
 * Files of Filtered Items::
 @end menu
 
-@node Filtering Items, Todo Filtered Items Mode Commands, , Todo Filtered Items Mode
+@node Filtering Items
 @section Filtering Items
 
 Todo mode provides three ways to filter items: a general filter for
@@ -1593,7 +1593,7 @@ this invocation, overriding both @code{todo-top-priorities-overrides} and
 @code{todo-top-priorities}.
 @end itemize
 
-@node Todo Filtered Items Mode Commands, Files of Filtered Items, Filtering Items, Todo Filtered Items Mode
+@node Todo Filtered Items Mode Commands
 @section Todo Filtered Items Mode Commands
 
 The output of the item filtering commands looks similar to a regular
@@ -1650,7 +1650,7 @@ change the relative priorities of items from the same real category,
 since that would make the filtered list inconsistent with the source
 todo list.
 
-@node Files of Filtered Items, , Todo Filtered Items Mode Commands, Todo Filtered Items Mode
+@node Files of Filtered Items
 @section Files of Filtered Items
 
 Typing @kbd{s} in Todo Filtered Items mode saves the buffer of filtered
@@ -1701,7 +1701,7 @@ displaying its first category, as usual.
 The command @kbd{F k} (@pxref{File Editing}) is also available in Todo
 Filtered Items mode.  It deletes the current filtered items file.
 
-@node Todo Display Features, Printing Todo Buffers, Todo Filtered Items Mode, Top
+@node Todo Display Features
 @chapter Todo Display Features
 
 You can change the appearance of Todo mode buffers in a variety of ways.
@@ -1712,7 +1712,7 @@ You can change the appearance of Todo mode buffers in a variety of ways.
 * Other Display Commands and Options::
 @end menu
 
-@node Faces, Item Prefix, , Todo Display Features
+@node Faces
 @section Faces
 
 Each of the Todo modes uses faces to distinguish various aspects of
@@ -1737,7 +1737,7 @@ The @code{todo-faces} customization group contains a complete list of
 Todo mode faces and brief descriptions of their use.
 
 
-@node Item Prefix, Other Display Commands and Options, Faces, Todo Display Features
+@node Item Prefix
 @section Item Prefix
 
 In the default display of (real or virtual) categories in Todo mode,
@@ -1776,7 +1776,7 @@ displayed in a face (@code{todo-top-priority}) different from the face
 of the prefix of non-top-priority items, so you see at a glance how
 many items in the category are top priorities.
 
-@node Other Display Commands and Options, , Item Prefix, Todo Display Features
+@node Other Display Commands and Options
 @section Other Display Commands and Options
 
 There are two additional toggle commands that affect display in the
@@ -1842,7 +1842,7 @@ Categories mode and Todo Filtered Items mode, beyond those mentioned
 above in the sections on these modes; see the customization groups
 @code{todo-categories} and @code{todo-filtered} for details.
 
-@node Printing Todo Buffers, Legacy Todo Mode Files, Todo Display Features, Top
+@node Printing Todo Buffers
 @chapter Printing Todo Buffers
 
 If you print a Todo buffer using one of the standard Emacs printing
@@ -1865,7 +1865,7 @@ By default, Todo uses @code{ps-print-buffer-with-faces} to make the
 printable version; you can change this by setting the option
 @code{todo-print-function}.
 
-@node Legacy Todo Mode Files, GNU Free Documentation License, Printing Todo Buffers, Top
+@node Legacy Todo Mode Files
 @chapter Legacy Todo Mode Files
 
 Users of the original version of Todo mode will recognize from the
@@ -1912,7 +1912,7 @@ it often).  (A delicate part of the conversion concerns the customizable
 format of item date/time headers in the old-style; see the documentation
 string of @code{todo-legacy-date-time-regexp} for details.)
 
-@node GNU Free Documentation License, , Legacy Todo Mode Files, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

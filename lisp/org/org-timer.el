@@ -366,7 +366,7 @@ VALUE can be `on', `off', or `paused'."
        (setq org-timer-mode-line-timer nil))
      (when org-timer-display
        (setq org-timer-mode-line-timer
-	     (run-with-timer 1 1 'org-timer-update-mode-line))))))
+	     (run-with-timer 1 1 #'org-timer-update-mode-line))))))
 
 (defun org-timer-update-mode-line ()
   "Update the timer time in the mode line."
@@ -456,14 +456,15 @@ using three `C-u' prefix arguments."
   "Start countdown timer that will last SECS.
 TITLE will be appended to the notification message displayed when
 time is up."
-  (let ((msg (format "%s: time out" title)))
+  (let ((msg (format "%s: time out" title))
+        (sound org-clock-sound))
     (run-with-timer
-     secs nil `(lambda ()
-		 (setq org-timer-countdown-timer nil
-		       org-timer-start-time nil)
-		 (org-notify ,msg ,org-clock-sound)
-		 (org-timer-set-mode-line 'off)
-		 (run-hooks 'org-timer-done-hook)))))
+     secs nil (lambda ()
+		(setq org-timer-countdown-timer nil
+		      org-timer-start-time nil)
+		(org-notify msg sound)
+		(org-timer-set-mode-line 'off)
+		(run-hooks 'org-timer-done-hook)))))
 
 (defun org-timer--get-timer-title ()
   "Construct timer title.

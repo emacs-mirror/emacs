@@ -190,10 +190,10 @@ the initial buffer."
   (if (or (null multi-isearch-pause)
 	  (and multi-isearch-pause multi-isearch-current-buffer))
       (progn
-	(switch-to-buffer
-	 (setq multi-isearch-current-buffer
-	       (funcall multi-isearch-next-buffer-current-function
-			(current-buffer) t)))
+	(setq multi-isearch-current-buffer
+	      (funcall multi-isearch-next-buffer-current-function
+		       (current-buffer) t))
+	(multi-isearch-switch-buffer)
 	(goto-char (if isearch-forward (point-min) (point-max))))
     (setq multi-isearch-current-buffer (current-buffer))
     (setq isearch-wrapped nil)))
@@ -202,14 +202,25 @@ the initial buffer."
   "Save a function restoring the state of multiple buffers search.
 Save the current buffer to the additional state parameter in the
 search status stack."
-  `(lambda (cmd)
-     (multi-isearch-pop-state cmd ,(current-buffer))))
+  (let ((buf (current-buffer)))
+    (lambda (cmd)
+      (multi-isearch-pop-state cmd buf))))
 
 (defun multi-isearch-pop-state (_cmd buffer)
   "Restore the multiple buffers search state in BUFFER.
 Switch to the buffer restored from the search status stack."
-  (unless (equal buffer (current-buffer))
-    (switch-to-buffer (setq multi-isearch-current-buffer buffer))))
+  (unless (eq buffer (current-buffer))
+    (setq multi-isearch-current-buffer buffer)
+    (multi-isearch-switch-buffer)))
+
+;;;###autoload
+(defun multi-isearch-switch-buffer ()
+  "Switch to the next buffer in multi-buffer search."
+  (when (and (buffer-live-p multi-isearch-current-buffer)
+             (not (eq multi-isearch-current-buffer (current-buffer))))
+    (setq isearch-mode nil)
+    (switch-to-buffer multi-isearch-current-buffer)
+    (setq isearch-mode " M-Isearch")))
 
 
 ;;; Global multi-buffer search invocations

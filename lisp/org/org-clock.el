@@ -539,8 +539,8 @@ of a different task.")
   "Marker pointing to the task that has been interrupted by the current clock.")
 
 (defvar org-clock-mode-line-map (make-sparse-keymap))
-(define-key org-clock-mode-line-map [mode-line mouse-2] 'org-clock-goto)
-(define-key org-clock-mode-line-map [mode-line mouse-1] 'org-clock-menu)
+(define-key org-clock-mode-line-map [mode-line mouse-2] #'org-clock-goto)
+(define-key org-clock-mode-line-map [mode-line mouse-1] #'org-clock-menu)
 
 (defun org-clock--translate (s language)
   "Translate string S into using string LANGUAGE.
@@ -1414,12 +1414,12 @@ the default behavior."
 	   (setq org-clock-mode-line-timer
 		 (run-with-timer org-clock-update-period
 				 org-clock-update-period
-				 'org-clock-update-mode-line)))
+				 #'org-clock-update-mode-line)))
 	 (when org-clock-idle-timer
 	   (cancel-timer org-clock-idle-timer)
 	   (setq org-clock-idle-timer nil))
 	 (setq org-clock-idle-timer
-	       (run-with-timer 60 60 'org-resolve-clocks-if-idle))
+	       (run-with-timer 60 60 #'org-resolve-clocks-if-idle))
 	 (message "Clock starts at %s - %s" ts org--msg-extra)
 	 (run-hooks 'org-clock-in-hook))))))
 
@@ -1716,7 +1716,7 @@ to, overriding the existing value of `org-clock-out-switch-to-state'."
 	  (unless (org-clocking-p)
 	    (setq org-clock-current-task nil)))))))
 
-(add-hook 'org-clock-out-hook 'org-clock-remove-empty-clock-drawer)
+(add-hook 'org-clock-out-hook #'org-clock-remove-empty-clock-drawer)
 
 (defun org-clock-remove-empty-clock-drawer ()
   "Remove empty clock drawers in current subtree."
@@ -2012,7 +2012,7 @@ Use `\\[org-clock-remove-overlays]' to remove the subtree times."
 	      (when time (org-clock-put-overlay time)))))
 	;; Arrange to remove the overlays upon next change.
 	(when org-remove-highlights-with-change
-	  (add-hook 'before-change-functions 'org-clock-remove-overlays
+	  (add-hook 'before-change-functions #'org-clock-remove-overlays
 		    nil 'local))))
     (let* ((h (/ org-clock-file-total-minutes 60))
 	   (m (- org-clock-file-total-minutes (* 60 h))))
@@ -2063,7 +2063,7 @@ If NOREMOVE is nil, remove this function from the
     (setq org-clock-overlays nil)
     (unless noremove
       (remove-hook 'before-change-functions
-		   'org-clock-remove-overlays 'local))))
+		   #'org-clock-remove-overlays 'local))))
 
 ;;;###autoload
 (defun org-clock-out-if-current ()
@@ -2932,12 +2932,12 @@ PROPERTIES: The list properties specified in the `:properties' parameter
     (save-excursion
       (org-clock-sum ts te
 		     (when matcher
-		       `(lambda ()
-			  (let* ((todo (org-get-todo-state))
-				 (tags-list (org-get-tags))
-				 (org-scanner-tags tags-list)
-				 (org-trust-scanner-tags t))
-			    (funcall ,matcher todo tags-list nil)))))
+		       (lambda ()
+			 (let* ((todo (org-get-todo-state))
+				(tags-list (org-get-tags))
+				(org-scanner-tags tags-list)
+				(org-trust-scanner-tags t))
+			   (funcall matcher todo tags-list nil)))))
       (goto-char (point-min))
       (setq st t)
       (while (or (and (bobp) (prog1 st (setq st nil))
