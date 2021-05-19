@@ -1169,7 +1169,7 @@ ARGS are command switches passed to PROGRAM.")
 (defcustom dired-compress-file-default-suffix nil
   "Default suffix for compressing a single file.
 If nil, \".gz\" will be used."
-  :type 'string
+  :type '(choice (const :tag ".gz" nil) string)
   :group 'dired
   :version "28.1")
 
@@ -1190,7 +1190,7 @@ output file.  %i path(s) are relative, while %o is absolute.")
 (defcustom dired-compress-directory-default-suffix nil
   "Default suffix for compressing a directory.
 If nil, \".tar.gz\" will be used."
-  :type 'string
+  :type '(choice (const :tag ".tar.gz" nil) string)
   :group 'dired
   :version "28.1")
 
