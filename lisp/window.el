@@ -5110,8 +5110,7 @@ nil means to not handle the buffer in a particular way.  This
       (set-window-parameter window 'quit-restore nil)
       ;; Make sure that WINDOW is no more dedicated.
       (set-window-dedicated-p window nil)
-      (if prev-buffer
-          (switch-to-prev-buffer window bury-or-kill)
+      (unless (switch-to-prev-buffer window bury-or-kill)
         ;; Delete WINDOW if there is no previous buffer (Bug#48367).
         (window--delete window nil (eq bury-or-kill 'kill)))))
 
