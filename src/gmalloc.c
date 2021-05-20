@@ -1690,16 +1690,6 @@ valloc (size_t size)
 #undef free
 
 #ifdef HYBRID_MALLOC
-/* Declare system malloc and friends.  */
-extern void *malloc (size_t size);
-extern void *realloc (void *ptr, size_t size);
-extern void *calloc (size_t nmemb, size_t size);
-extern void free (void *ptr);
-#ifdef HAVE_ALIGNED_ALLOC
-extern void *aligned_alloc (size_t alignment, size_t size);
-#elif defined HAVE_POSIX_MEMALIGN
-extern int posix_memalign (void **memptr, size_t alignment, size_t size);
-#endif
 
 /* Assuming PTR was allocated via the hybrid malloc, return true if
    PTR was allocated via gmalloc, not the system malloc.  Also, return

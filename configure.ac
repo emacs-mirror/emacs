@@ -2309,9 +2309,6 @@ elif test "$hybrid_malloc" = yes; then
   GNU_MALLOC_reason=" (only before dumping)"
   GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=
-  # FIXME: This is to prevent Gnulib from redirecting 'free' to its
-  # replacement, instead of 'hybrid_free' in gmalloc.c.
-  gl_cv_func_free_preserves_errno=yes
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=vm-limit.o
