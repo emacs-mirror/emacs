@@ -3108,3 +3108,16 @@ Note that @code{bug-reference-url-format} may also be a function in
 order to cater for more complex scenarios, e.g., when the part before
 the actual bug number has to be used to distinguish between issues and
 merge requests where each of them has a different URL.
+
+@findex debbugs-browse-mode
+If your project is located on the server
+@url{https://debbugs.gnu.org}, you can browse bugs in Emacs using the
+@code{debbugs} package, which can be downloaded via the Package Menu
+(@pxref{Packages}).  This package adds the minor mode
+@code{debbugs-browse-mode}, which is activated on top of
+@code{bug-reference-mode} and @code{bug-reference-prog-mode} by
+
+@smallexample
+(add-hook 'bug-reference-mode-hook 'debbugs-browse-mode)
+(add-hook 'bug-reference-prog-mode-hook 'debbugs-browse-mode)
+@end smallexample
