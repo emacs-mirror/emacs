@@ -7,6 +7,9 @@ Emacs's functionality.  Please help add tests!
 See the file file-organization.org for the details of the directory
 structure and file-naming conventions.
 
+For tests in the manual/ subdirectory, look there for separate README
+files, or look for instructions in the test files themselves.
+
 Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
 "(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
 for more information on writing and running tests.
