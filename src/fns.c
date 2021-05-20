@@ -5919,7 +5919,7 @@ from the absolute start of the buffer, disregarding the narrowing.  */)
 
   /* Check that POSITION is in the accessible range of the buffer. */
   if (pos < BEGV || pos > ZV)
-    args_out_of_range (make_int (start), make_int (ZV));
+    args_out_of_range_3 (make_int (pos), make_int (BEGV), make_int (ZV));
 
   return make_int (count_lines (start, CHAR_TO_BYTE (pos)) + 1);
 }
