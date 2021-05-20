@@ -1090,12 +1090,11 @@ so e.g. like 'C-x 8 [' inserts a left single quotation mark,
 'C-x \ [' does the same.
 
 ---
-*** New user options 'read-char-by-name-sort' and 'read-char-by-name-group'.
-'read-char-by-name-sort' defines the sorting order of characters for
-completion of 'C-x 8 RET TAB' and can be customized to sort them
-by codepoints instead of character names by default.  The 't' value of
-'read-char-by-name-group' groups the characters for completion of
-'C-x 8 RET TAB' by Unicode blocks.
+*** New user option 'read-char-by-name-sort'.
+It defines the sorting order of characters for completion of 'C-x 8 RET TAB'
+and can be customized to sort them by codepoints instead of character names.
+Additionally, you can group characters by Unicode blocks after customizing
+'completions-group' and 'completions-group-sort'.
 
 ---
 *** Improved language transliteration in Malayalam input methods.
@@ -2766,6 +2765,10 @@ error and should have used dynamic binding instead.
 It accepts a list of completions and should return a list where
 each element is a list with three elements: a completion,
 a prefix string, and a suffix string.
+
++++
+** New completion function 'group-function' for grouping candidates.
+It takes two arguments: a completion candidate and a 'transform' flag.
 
 +++
 ** 'read-char-from-minibuffer' and 'y-or-n-p' support 'help-form'.
