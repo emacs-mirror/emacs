@@ -3081,6 +3081,8 @@ project's issue tracker.  @code{bug-reference-prog-mode} is a variant
 of @code{bug-reference-mode} which highlights bug references only
 inside source code comments and strings.
 
+@vindex bug-reference-bug-regexp
+@vindex bug-reference-url-format
 For its working, bug reference mode needs to know the syntax of bug
 references (@code{bug-reference-bug-regexp}), and the URL of the
 tracker where bug reports can be looked up
@@ -3090,8 +3092,8 @@ different from project to project, it makes sense to specify them in
 
 For example, let's assume in our project, we usually write references
 to bug reports as bug#1234, or Bug-1234 and that this bug's page on
-the issue tracker is https://project.org/issues/1234, then these local
-variables section would do.
+the issue tracker is @url{https://project.org/issues/1234}, then
+these local variables section would do.
 
 @smallexample
 ;; Local Variables:
@@ -3101,7 +3103,7 @@ variables section would do.
 @end smallexample
 
 The string captured by the second regexp group in
-(@code{bug-reference-bug-regexp}) is used to replace the @code{%s}
+@code{bug-reference-bug-regexp} is used to replace the @code{%s}
 template in the @code{bug-reference-url-format}.
 
 Note that @code{bug-reference-url-format} may also be a function in
@@ -3109,13 +3111,17 @@ order to cater for more complex scenarios, e.g., when the part before
 the actual bug number has to be used to distinguish between issues and
 merge requests where each of them has a different URL.
 
+
+@heading Integration with the debbugs package
+
 @findex debbugs-browse-mode
-If your project is located on the server
-@url{https://debbugs.gnu.org}, you can browse bugs in Emacs using the
-@code{debbugs} package, which can be downloaded via the Package Menu
-(@pxref{Packages}).  This package adds the minor mode
-@code{debbugs-browse-mode}, which is activated on top of
-@code{bug-reference-mode} and @code{bug-reference-prog-mode} by
+If your project's issues are tracked on the server
+@url{https://debbugs.gnu.org}, you can browse and reply to reports
+directly in Emacs using the @code{debbugs} package, which can be
+downloaded via the Package Menu (@pxref{Packages}).  This package adds
+the minor mode @code{debbugs-browse-mode}, which can be activated on
+top of @code{bug-reference-mode} and @code{bug-reference-prog-mode} as
+follows:
 
 @smallexample
 (add-hook 'bug-reference-mode-hook 'debbugs-browse-mode)
