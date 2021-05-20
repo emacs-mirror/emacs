@@ -1771,7 +1771,14 @@ char-offset in TEXT."
 	    (goto-char (point-min))
 	    (while (not (eobp))
 	      (if (memq (char-after) kill-chars)
-		  (delete-region (point) (progn (forward-line 1) (point)))
+		  (delete-region
+		   ;; Check for "\ No newline at end of file"
+		   (if (and (eq (char-after) ?\\)
+			    (save-excursion
+			      (forward-line 1) (eobp)))
+		       (1- (point))
+		     (point))
+		   (progn (forward-line 1) (point)))
 		(delete-char num-pfx-chars)
 		(forward-line 1)))))
 
