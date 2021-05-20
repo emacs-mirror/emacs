@@ -5734,7 +5734,7 @@ PROMPT is a string to prompt with."
            (complete-with-action action completions string pred)))
        nil nil nil
        (if history-pos
-           (cons 'read-from-kill-ring-history history-pos)
+           (cons 'read-from-kill-ring-history (1+ history-pos))
          'read-from-kill-ring-history)))))
 
 (defcustom yank-from-kill-ring-rotate t
@@ -5773,7 +5773,7 @@ When called from Lisp, insert STRING like `insert-for-yank' does."
   (when yank-from-kill-ring-rotate
     (let ((pos (seq-position kill-ring string)))
       (setq kill-ring-yank-pointer
-            (or (and pos (nthcdr (1+ pos) kill-ring))
+            (or (and pos (nthcdr pos kill-ring))
                 kill-ring))))
   (if (consp arg)
       ;; Swap point and mark like in `yank' and `yank-pop'.
