@@ -110,6 +110,13 @@ default:
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
 
+# We must declare it here, because it is used in .build-template.
+prep-image-base:
+  stage: prep-images
+  extends: [.job-template, .build-template]
+  variables:
+    target: emacs-base
+
 .build-template:
   needs: [prep-image-base]
   rules:
