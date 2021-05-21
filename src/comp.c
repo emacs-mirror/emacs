@@ -4056,7 +4056,8 @@ DEFUN ("comp-el-to-eln-rel-filename", Fcomp_el_to_eln_rel_filename,
       Lisp_Object sys_re =
 	concat2 (build_string ("\\`[[:ascii:]]+"),
 		 Fregexp_quote (build_string ("/" PATH_REL_LOADSEARCH "/")));
-      Lisp_Object dump_load_search = build_string (PATH_DUMPLOADSEARCH "/");
+      Lisp_Object dump_load_search =
+	Fexpand_file_name (build_string (PATH_DUMPLOADSEARCH "/"), Qnil);
 #ifdef WINDOWSNT
       dump_load_search = Fw32_long_file_name (dump_load_search);
 #endif
