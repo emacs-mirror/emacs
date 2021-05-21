@@ -748,6 +748,11 @@ If set to non-nil, Dired will dereference symbolic links when copying.
 This can be switched off on a per-usage basis by providing
 'dired-do-copy' with a 'C-u' prefix.
 
+*** New user option 'dired-do-revert-buffer'.
+Non-nil reverts the destination Dired buffer after preforming one
+of these operations: 'dired-do-copy', 'dired-do-rename',
+'dired-do-symlink', 'dired-do-hardlink'.
+
 *** New user option 'dired-mark-region' affects all Dired commands
 that mark files.  When non-nil and the region is active in Transient
 Mark mode, then Dired commands operate only on files in the active
