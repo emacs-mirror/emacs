@@ -5772,9 +5772,8 @@ When called from Lisp, insert STRING like `insert-for-yank' does."
   (insert-for-yank string)
   (when yank-from-kill-ring-rotate
     (let ((pos (seq-position kill-ring string)))
-      (setq kill-ring-yank-pointer
-            (or (and pos (nthcdr pos kill-ring))
-                kill-ring))))
+      (when pos
+        (setq kill-ring-yank-pointer (nthcdr pos kill-ring)))))
   (if (consp arg)
       ;; Swap point and mark like in `yank' and `yank-pop'.
       (goto-char (prog1 (mark t)
