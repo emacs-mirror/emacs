@@ -1358,9 +1358,12 @@ Returns a list of [group article score] vectors."
 			 "\\|")))
 	artlist vectors article group)
     (goto-char (point-min))
-    (while (not (eobp))
+    (while (not (or (eobp)
+                    (looking-at-p
+                     "\\(?:[[:space:]\n]+\\)?Process .+ finished")))
       (pcase-let ((`(,f-name ,score) (gnus-search-indexed-extract engine)))
-	(when (and (file-readable-p f-name)
+	(when (and f-name
+                   (file-readable-p f-name)
 		   (null (file-directory-p f-name))
 		   (or (null groups)
 		       (and (gnus-search-single-p query)
