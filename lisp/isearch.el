@@ -3462,6 +3462,10 @@ Can be changed via `isearch-search-fun-function' for special needs."
        (if isearch-forward #'re-search-forward #'re-search-backward)
        regexp bound noerror count))))
 
+;; This is for when we compile this file during bootstrap, with
+;; loaddefs.el still not loaded.
+(declare-function multi-isearch-switch-buffer "misearch" ())
+
 (defun isearch-search-string (string bound noerror)
   "Search for the first occurrence of STRING or its translation.
 STRING's characters are translated using `translation-table-for-input'
