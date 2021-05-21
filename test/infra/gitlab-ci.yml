@@ -111,6 +111,7 @@ default:
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
 
 .build-template:
+  needs: [prep-image-base]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
       when: always
@@ -180,6 +181,21 @@ default:
         - test/infra/*
         - test/lisp/autorevert-tests.el
         - test/lisp/filenotify-tests.el
+
+.native-comp-template:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      changes:
+        - "**/Makefile.in"
+        - .gitlab-ci.yml
+        - lisp/emacs-lisp/comp.el
+        - lisp/emacs-lisp/comp-cstr.el
+        - src/comp.{h,m}
+        - test/infra/*
+        - test/src/comp-resources/*.el
+        - test/src/comp-tests.el
+  timeout: 8 hours
 
 stages:
   - prep-images
@@ -257,10 +273,9 @@ test-gnustep:
 
 build-native-bootstrap-speed0:
   stage: native-comp-images
-  extends: [.job-template, .build-template]
+  extends: [.job-template, .build-template, .native-comp-template]
   variables:
     target: emacs-native-comp-speed0
-  timeout: 8 hours
 
 # build-native-bootstrap-speed0:
 #   # Test a full native bootstrap
