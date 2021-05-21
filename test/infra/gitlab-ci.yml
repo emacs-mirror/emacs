@@ -188,6 +188,8 @@ stages:
   - normal
   - platform-images
   - platforms
+  - native-comp-images
+  - native-comp
   - slow
 
 prep-image-base:
@@ -209,18 +211,6 @@ test-fast-inotify:
     target: emacs-inotify
     make_params: "-C test check"
 
-build-image-filenotify-gio:
-  stage: platform-images
-  extends: [.job-template, .build-template, .filenotify-gio-template]
-  variables:
-    target: emacs-filenotify-gio
-
-build-image-gnustep:
-  stage: platform-images
-  extends: [.job-template, .build-template, .gnustep-template]
-  variables:
-    target: emacs-gnustep
-
 test-lisp-inotify:
   stage: normal
   extends: [.job-template, .test-template]
@@ -235,6 +225,18 @@ test-lisp-net-inotify:
     target: emacs-inotify
     make_params: "-C test check-lisp-net"
 
+build-image-filenotify-gio:
+  stage: platform-images
+  extends: [.job-template, .build-template, .filenotify-gio-template]
+  variables:
+    target: emacs-filenotify-gio
+
+build-image-gnustep:
+  stage: platform-images
+  extends: [.job-template, .build-template, .gnustep-template]
+  variables:
+    target: emacs-gnustep
+
 test-filenotify-gio:
   # This tests file monitor libraries gfilemonitor and gio.
   stage: platforms
@@ -244,38 +246,6 @@ test-filenotify-gio:
     target: emacs-filenotify-gio
     make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
 
-build-native-bootstrap-speed0:
-  # Test a full native bootstrap
-  # Run for now only speed 0 to limit memory usage and compilation time.
-  stage: slow
-  # Uncomment the following to run it only when scheduled.
-  # only:
-  #   - schedules
-  script:
-    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
-    - ./autogen.sh autoconf
-    - ./configure --with-nativecomp
-    - make bootstrap NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
-  timeout: 8 hours
-
-build-native-bootstrap-speed1:
-  stage: slow
-  script:
-    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
-    - ./autogen.sh autoconf
-    - ./configure --with-nativecomp
-    - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
-  timeout: 8 hours
-
-build-native-bootstrap-speed2:
-  stage: slow
-  script:
-    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
-    - ./autogen.sh autoconf
-    - ./configure --with-nativecomp
-    - make bootstrap
-  timeout: 8 hours
-
 test-gnustep:
   # This tests the GNUstep build process
   stage: platforms
@@ -284,6 +254,45 @@ test-gnustep:
   variables:
     target: emacs-gnustep
     make_params: install
+
+build-native-bootstrap-speed0:
+  stage: native-comp-images
+  extends: [.job-template, .build-template]
+  variables:
+    target: emacs-native-comp-speed0
+  timeout: 8 hours
+
+# build-native-bootstrap-speed0:
+#   # Test a full native bootstrap
+#   # Run for now only speed 0 to limit memory usage and compilation time.
+#   stage: native-comp-images
+#   # Uncomment the following to run it only when scheduled.
+#   # only:
+#   #   - schedules
+#   script:
+#     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
+#     - ./autogen.sh autoconf
+#     - ./configure --with-nativecomp
+#     - make bootstrap NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
+#   timeout: 8 hours
+
+# build-native-bootstrap-speed1:
+#   stage: native-comp-images
+#   script:
+#     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
+#     - ./autogen.sh autoconf
+#     - ./configure --with-nativecomp
+#     - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
+#   timeout: 8 hours
+
+# build-native-bootstrap-speed2:
+#   stage: native-comp-images
+#   script:
+#     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
+#     - ./autogen.sh autoconf
+#     - ./configure --with-nativecomp
+#     - make bootstrap
+#   timeout: 8 hours
 
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
