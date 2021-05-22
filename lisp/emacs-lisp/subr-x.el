@@ -139,7 +139,9 @@ This is like `if-let' but doesn't handle a VARLIST of the form
   "Bind variables according to VARLIST and conditionally evaluate BODY.
 This is like `when-let' but doesn't handle a VARLIST of the form
 \(SYMBOL SOMETHING) specially."
-  (declare (indent 1) (debug if-let*))
+  (declare (indent 1)
+           (debug ((&rest [&or symbolp (symbolp form) (form)])
+                   body)))
   (list 'if-let* varlist (macroexp-progn body)))
 
 (defmacro and-let* (varlist &rest body)
@@ -190,7 +192,10 @@ Evaluate each binding in turn, stopping if a binding value is nil.
 If all are non-nil, return the value of the last form in BODY.
 
 The variable list SPEC is the same as in `if-let'."
-  (declare (indent 1) (debug if-let))
+  (declare (indent 1)
+           (debug ([&or (symbolp form)  ; must be first, Bug#48489
+                        (&rest [&or symbolp (symbolp form) (form)])]
+                   body)))
   (list 'if-let spec (macroexp-progn body)))
 
 (defsubst hash-table-empty-p (hash-table)
