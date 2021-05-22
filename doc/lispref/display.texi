@@ -7615,7 +7615,7 @@ Chars}.
   The above display conventions apply even when there is a display
 table, for any character whose entry in the active display table is
 @code{nil}.  Thus, when you set up a display table, you need only
-specify the characters for which you want special behavior.
+specify the characters for which you want special display behavior.
 
   The following variables affect how certain characters are displayed
 on the screen.  Since they change the number of columns the characters
@@ -7649,7 +7649,8 @@ command @code{tab-to-tab-stop}.  @xref{Indent Tabs}.
 (@pxref{Char-Tables}), with @code{display-table} as its subtype, which
 is used to override the usual character display conventions.  This
 section describes how to make, inspect, and assign elements to a
-display table object.
+display table object.  The next section (@pxref{Active Display Table})
+describes the various standard display tables and their precedence.
 
 @defun make-display-table
 This creates and returns a display table.  The table initially has
