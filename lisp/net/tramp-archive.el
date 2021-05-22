@@ -345,8 +345,12 @@ arguments to pass to the OPERATION."
 	      (tramp-archive-run-real-handler operation args)))))))
 
 ;;;###autoload
-(defalias
-  'tramp-archive-autoload-file-name-handler #'tramp-autoload-file-name-handler)
+(progn (defun tramp-archive-autoload-file-name-handler (operation &rest args)
+  "Load Tramp archive file name handler, and perform OPERATION."
+  (if tramp-archive-enabled
+      (let ((tramp-archive-autoload t))
+        tramp-archive-autoload ; Silence byte compiler.
+        (apply #'tramp-autoload-file-name-handler operation args)))))
 
 ;;;###autoload
 (progn (defun tramp-register-archive-file-name-handler ()

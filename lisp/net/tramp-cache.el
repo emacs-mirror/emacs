@@ -237,8 +237,7 @@ Return VALUE."
 ;;;###tramp-autoload
 (defun tramp-flush-file-properties (key file)
   "Remove all properties of FILE in the cache context of KEY."
-  (let* ((file (tramp-run-real-handler
-		#'directory-file-name (list file)))
+  (let* ((file (tramp-run-real-handler #'directory-file-name (list file)))
 	 (truename (tramp-get-file-property key file "file-truename" nil)))
     ;; Unify localname.  Remove hop from `tramp-file-name' structure.
     (setq file (tramp-compat-file-name-unquote file)

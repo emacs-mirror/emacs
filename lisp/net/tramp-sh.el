@@ -1843,7 +1843,7 @@ ID-FORMAT valid values are `string' and `integer'."
        'copy filename newname ok-if-already-exists keep-date
        preserve-uid-gid preserve-extended-attributes)
     (tramp-run-real-handler
-     'copy-file
+     #'copy-file
      (list filename newname ok-if-already-exists keep-date
 	   preserve-uid-gid preserve-extended-attributes))))
 
@@ -1884,7 +1884,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 	;; We must do it file-wise.
 	(tramp-run-real-handler
-	 'copy-directory
+	 #'copy-directory
 	 (list dirname newname keep-date parents copy-contents)))
 
       ;; When newname did exist, we have wrong cached values.
