@@ -1169,7 +1169,7 @@ ARGS are command switches passed to PROGRAM.")
 (defcustom dired-compress-file-default-suffix nil
   "Default suffix for compressing a single file.
 If nil, \".gz\" will be used."
-  :type 'string
+  :type '(choice (const :tag ".gz" nil) string)
   :group 'dired
   :version "28.1")
 
@@ -1190,7 +1190,7 @@ output file.  %i path(s) are relative, while %o is absolute.")
 (defcustom dired-compress-directory-default-suffix nil
   "Default suffix for compressing a directory.
 If nil, \".tar.gz\" will be used."
-  :type 'string
+  :type '(choice (const :tag ".tar.gz" nil) string)
   :group 'dired
   :version "28.1")
 
@@ -2065,6 +2065,25 @@ ESC or `q' to not overwrite any of the remaining files,
 	       operation success-count))))
   (dired-move-to-filename))
 
+(defcustom dired-do-revert-buffer nil
+  "Automatically revert Dired buffers after `dired-do' operations.
+This option controls whether to refresh the directory listing in a
+Dired buffer that is the destination of one of these operations:
+`dired-do-copy', `dired-do-rename', `dired-do-symlink', `dired-do-hardlink'.
+If the value is t, always revert the Dired buffer updated in the result
+of these operations.
+If the value is a function, it is called with the destination directory name
+as a single argument, and the buffer is reverted after Dired operations
+if the function returns non-nil."
+  :type '(choice
+          (const :tag "Don't revert" nil)
+          (const :tag "Always revert destination directory" t)
+          (const :tag "Revert only local Dired buffers"
+                 (lambda (dir) (not (file-remote-p dir))))
+          (function :tag "Predicate function"))
+  :group 'dired
+  :version "28.1")
+
 (defun dired-do-create-files (op-symbol file-creator operation arg
 					&optional marker-char op1
 					how-to)
@@ -2168,7 +2187,12 @@ Optional arg HOW-TO determines how to treat the target.
 	   (lambda (from)
 	     (expand-file-name (file-name-nondirectory from) target))
 	 (lambda (_from) target))
-       marker-char))))
+       marker-char)
+      (when (or (eq dired-do-revert-buffer t)
+                (and (functionp dired-do-revert-buffer)
+                     (funcall dired-do-revert-buffer target)))
+        (dired-fun-in-all-buffers (file-name-directory target) nil
+                                  #'revert-buffer)))))
 
 ;; Read arguments for a marked-files command that wants a file name,
 ;; perhaps popping up the list of marked files.

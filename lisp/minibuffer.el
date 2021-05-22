@@ -126,6 +126,13 @@ This metadata is an alist.  Currently understood keys are:
    three-element lists: completion, its prefix and suffix.  This
    function takes priority over `annotation-function' when both are
    provided, so only this function is used.
+- `group-function': function for grouping the completion candidates.
+   Takes two arguments: a completion candidate (COMPLETION) and a
+   boolean flag (TRANSFORM).  If TRANSFORM is nil, the function
+   returns the group title of the group to which the candidate
+   belongs.  The returned title may be nil.  Otherwise the function
+   returns the transformed candidate.  The transformation can remove a
+   redundant prefix, which is displayed in the group title.
 - `display-sort-function': function to sort entries in *Completions*.
    Takes one argument (COMPLETIONS) and should return a new list
    of completions.  Can operate destructively.
@@ -1138,6 +1145,44 @@ completion candidates than this number."
   :version "24.1"
   :type completion--cycling-threshold-type)
 
+(defcustom completions-group nil
+  "Enable grouping of completion candidates in the *Completions* buffer.
+See also `completions-group-format' and `completions-group-sort'."
+  :type 'boolean
+  :version "28.1")
+
+(defcustom completions-group-sort nil
+  "Sort groups in the *Completions* buffer.
+
+The value can either be nil to disable sorting, `alphabetical' for
+alphabetical sorting or a custom sorting function.  The sorting
+function takes and returns an alist of groups, where each element is a
+pair of a group title string and a list of group candidate strings."
+  :type '(choice (const :tag "No sorting" nil)
+                 (const :tag "Alphabetical sorting" alphabetical)
+                 function)
+  :version "28.1")
+
+(defcustom completions-group-format
+  (concat
+   (propertize "    " 'face 'completions-group-separator)
+   (propertize " %s " 'face 'completions-group-title)
+   (propertize " " 'face 'completions-group-separator
+               'display '(space :align-to right)))
+  "Format string used for the group title."
+  :type 'string
+  :version "28.1")
+
+(defface completions-group-title
+  '((t :inherit shadow :slant italic))
+  "Face used for the title text of the candidate group headlines."
+  :version "28.1")
+
+(defface completions-group-separator
+  '((t :inherit shadow :strike-through t))
+  "Face used for the separator lines between the candidate groups."
+  :version "28.1")
+
 (defun completion--cycle-threshold (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
          (over (completion--category-override cat 'cycle)))
@@ -1400,6 +1445,22 @@ Remove completion BASE prefix string from history elements."
                    (when (string-prefix-p base c)
                      (substring c base-size)))
                  hist)))))
+
+(defun minibuffer--group-by (group-fun sort-fun elems)
+  "Group ELEMS by GROUP-FUN and sort groups by SORT-FUN."
+  (let ((groups))
+    (dolist (cand elems)
+      (let* ((key (funcall group-fun cand nil))
+             (group (assoc key groups)))
+        (if group
+            (setcdr group (cons cand (cdr group)))
+          (push (list key cand) groups))))
+    (setq groups (nreverse groups)
+          groups (mapc (lambda (x)
+                         (setcdr x (nreverse (cdr x))))
+                       groups)
+          groups (funcall sort-fun groups))
+    (mapcan #'cdr groups)))
 
 (defun completion-all-sorted-completions (&optional start end)
   (or completion-all-sorted-completions
@@ -1747,15 +1808,17 @@ or appended to completions."
   :type 'boolean
   :version "28.1")
 
-(defun completion--insert-strings (strings)
+(defun completion--insert-strings (strings &optional group-fun)
   "Insert a list of STRINGS into the current buffer.
-Uses columns to keep the listing readable but compact.
-It also eliminates runs of equal strings."
+The candidate strings are inserted into the buffer depending on the
+completions format as specified by the variable `completions-format'.
+Runs of equal candidate strings are eliminated.  GROUP-FUN is a
+`group-function' used for grouping the completion candidates."
   (when (consp strings)
     (let* ((length (apply #'max
 			  (mapcar (lambda (s)
 				    (if (consp s)
-					(apply #'+ (mapcar #'string-width s))
+				        (apply #'+ (mapcar #'string-width s))
 				      (string-width s)))
 				  strings)))
 	   (window (get-buffer-window (current-buffer) 0))
@@ -1766,104 +1829,158 @@ It also eliminates runs of equal strings."
 		     ;; Don't allocate more columns than we can fill.
 		     ;; Windows can't show less than 3 lines anyway.
 		     (max 1 (/ (length strings) 2))))
-	   (colwidth (/ wwidth columns))
-           (column 0)
-	   (rows (/ (length strings) columns))
-	   (row 0)
-           (first t)
-	   (laststring nil))
+	   (colwidth (/ wwidth columns)))
       (unless (or tab-stop-list (null completion-tab-width)
                   (zerop (mod colwidth completion-tab-width)))
         ;; Align to tab positions for the case
         ;; when the caller uses tabs inside prefix.
         (setq colwidth (- colwidth (mod colwidth completion-tab-width))))
-      ;; The insertion should be "sensible" no matter what choices were made
-      ;; for the parameters above.
-      (dolist (str strings)
-	(unless (equal laststring str) ; Remove (consecutive) duplicates.
-	  (setq laststring str)
+      (funcall (intern (format "completion--insert-%s" completions-format))
+               strings group-fun length wwidth colwidth columns))))
+
+(defun completion--insert-horizontal (strings group-fun
+                                              length wwidth
+                                              colwidth _columns)
+  (let ((column 0)
+        (first t)
+	(last-title nil)
+        (last-string nil))
+    (dolist (str strings)
+      (unless (equal last-string str) ; Remove (consecutive) duplicates.
+	(setq last-string str)
+        (when group-fun
+          (let ((title (funcall group-fun (if (consp str) (car str) str) nil)))
+            (unless (equal title last-title)
+              (setq last-title title)
+              (when title
+                (insert (if first "" "\n") (format completions-group-format title) "\n")
+                (setq column 0
+                      first t)))))
+	(unless first
           ;; FIXME: `string-width' doesn't pay attention to
           ;; `display' properties.
-          (let ((length (if (consp str)
-                            (apply #'+ (mapcar #'string-width str))
-                          (string-width str))))
-            (cond
-             ((eq completions-format 'one-column)
-              ;; Nothing special
-              )
-	     ((eq completions-format 'vertical)
-	      ;; Vertical format
-	      (when (> row rows)
-		(forward-line (- -1 rows))
-		(setq row 0 column (+ column colwidth)))
-	      (when (> column 0)
-		(end-of-line)
-		(while (> (current-column) column)
-		  (if (eobp)
-		      (insert "\n")
-		    (forward-line 1)
-		    (end-of-line)))
-		(insert " \t")
-		(set-text-properties (1- (point)) (point)
-				     `(display (space :align-to ,column)))))
-	     (t
-	      ;; Horizontal format
-	      (unless first
-		(if (< wwidth (+ (max colwidth length) column))
-		    ;; No space for `str' at point, move to next line.
-		    (progn (insert "\n") (setq column 0))
-		  (insert " \t")
-		  ;; Leave the space unpropertized so that in the case we're
-		  ;; already past the goal column, there is still
-		  ;; a space displayed.
-		  (set-text-properties (1- (point)) (point)
-				       ;; We can set tab-width using
-				       ;; completion-tab-width, but
-				       ;; the caller can prefer using
-				       ;; \t to align prefixes.
-				       `(display (space :align-to ,column)))
-		  nil))))
-            (setq first nil)
-            (if (not (consp str))
-                (put-text-property (point) (progn (insert str) (point))
-                                   'mouse-face 'highlight)
-              ;; If `str' is a list that has 2 elements,
-              ;; then the second element is a suffix annotation.
-              ;; If `str' has 3 elements, then the second element
-              ;; is a prefix, and the third element is a suffix.
-              (let* ((prefix (when (nth 2 str) (nth 1 str)))
-                     (suffix (or (nth 2 str) (nth 1 str))))
-                (when prefix
-                  (let ((beg (point))
-                        (end (progn (insert prefix) (point))))
-                    (put-text-property beg end 'mouse-face nil)))
-                (put-text-property (point) (progn (insert (car str)) (point))
-                                   'mouse-face 'highlight)
-                (let ((beg (point))
-                      (end (progn (insert suffix) (point))))
-                  (put-text-property beg end 'mouse-face nil)
-                  ;; Put the predefined face only when suffix
-                  ;; is added via annotation-function without prefix,
-                  ;; and when the caller doesn't use own face.
-                  (unless (or prefix (text-property-not-all
-                                      0 (length suffix) 'face nil suffix))
-                    (font-lock-prepend-text-property
-                     beg end 'face 'completions-annotations)))))
-	    (cond
-             ((eq completions-format 'one-column)
-              (insert "\n"))
-	     ((eq completions-format 'vertical)
-	      ;; Vertical format
-	      (if (> column 0)
-		  (forward-line)
-		(insert "\n"))
-	      (setq row (1+ row)))
-	     (t
-	      ;; Horizontal format
-	      ;; Next column to align to.
-	      (setq column (+ column
-			      ;; Round up to a whole number of columns.
-			      (* colwidth (ceiling length colwidth))))))))))))
+	  (if (< wwidth (+ column (max colwidth
+                                       (if (consp str)
+                                           (apply #'+ (mapcar #'string-width str))
+                                         (string-width str)))))
+	      ;; No space for `str' at point, move to next line.
+	      (progn (insert "\n") (setq column 0))
+	    (insert " \t")
+	    ;; Leave the space unpropertized so that in the case we're
+	    ;; already past the goal column, there is still
+	    ;; a space displayed.
+	    (set-text-properties (1- (point)) (point)
+				 ;; We can set tab-width using
+				 ;; completion-tab-width, but
+				 ;; the caller can prefer using
+				 ;; \t to align prefixes.
+				 `(display (space :align-to ,column)))
+	    nil))
+        (setq first nil)
+        (completion--insert str group-fun)
+	;; Next column to align to.
+	(setq column (+ column
+			;; Round up to a whole number of columns.
+			(* colwidth (ceiling length colwidth))))))))
+
+(defun completion--insert-vertical (strings group-fun
+                                            _length _wwidth
+                                            colwidth columns)
+  (while strings
+    (let ((group nil)
+          (column 0)
+	  (row 0)
+          (rows)
+          (last-string nil))
+      (if group-fun
+          (let* ((str (car strings))
+                 (title (funcall group-fun (if (consp str) (car str) str) nil)))
+            (while (and strings
+                        (equal title (funcall group-fun
+                                              (if (consp (car strings))
+                                                  (car (car strings))
+                                                (car strings))
+                                              nil)))
+              (push (car strings) group)
+              (pop strings))
+            (setq group (nreverse group)))
+        (setq group strings
+              strings nil))
+      (setq rows (/ (length group) columns))
+      (when group-fun
+        (let* ((str (car group))
+               (title (funcall group-fun (if (consp str) (car str) str) nil)))
+          (when title
+            (goto-char (point-max))
+            (insert (format completions-group-format title) "\n"))))
+      (dolist (str group)
+        (unless (equal last-string str) ; Remove (consecutive) duplicates.
+	  (setq last-string str)
+	  (when (> row rows)
+            (forward-line (- -1 rows))
+	    (setq row 0 column (+ column colwidth)))
+	  (when (> column 0)
+	    (end-of-line)
+	    (while (> (current-column) column)
+	      (if (eobp)
+		  (insert "\n")
+	        (forward-line 1)
+	        (end-of-line)))
+	    (insert " \t")
+	    (set-text-properties (1- (point)) (point)
+			         `(display (space :align-to ,column))))
+          (completion--insert str group-fun)
+	  (if (> column 0)
+	      (forward-line)
+	    (insert "\n"))
+	  (setq row (1+ row)))))))
+
+(defun completion--insert-one-column (strings group-fun &rest _)
+  (let ((last-title nil) (last-string nil))
+    (dolist (str strings)
+      (unless (equal last-string str) ; Remove (consecutive) duplicates.
+	(setq last-string str)
+        (when group-fun
+          (let ((title (funcall group-fun (if (consp str) (car str) str) nil)))
+            (unless (equal title last-title)
+              (setq last-title title)
+              (when title
+                (insert (format completions-group-format title) "\n")))))
+        (completion--insert str group-fun)
+        (insert "\n")))))
+
+(defun completion--insert (str group-fun)
+  (if (not (consp str))
+      (add-text-properties
+       (point)
+       (progn
+         (insert
+          (if group-fun
+              (funcall group-fun str 'transform)
+            str))
+         (point))
+       `(mouse-face highlight completion--string ,str))
+    ;; If `str' is a list that has 2 elements,
+    ;; then the second element is a suffix annotation.
+    ;; If `str' has 3 elements, then the second element
+    ;; is a prefix, and the third element is a suffix.
+    (let* ((prefix (when (nth 2 str) (nth 1 str)))
+           (suffix (or (nth 2 str) (nth 1 str))))
+      (when prefix
+        (let ((beg (point))
+              (end (progn (insert prefix) (point))))
+          (put-text-property beg end 'mouse-face nil)))
+      (completion--insert (car str) group-fun)
+      (let ((beg (point))
+            (end (progn (insert suffix) (point))))
+        (put-text-property beg end 'mouse-face nil)
+        ;; Put the predefined face only when suffix
+        ;; is added via annotation-function without prefix,
+        ;; and when the caller doesn't use own face.
+        (unless (or prefix (text-property-not-all
+                            0 (length suffix) 'face nil suffix))
+          (font-lock-prepend-text-property
+           beg end 'face 'completions-annotations))))))
 
 (defvar completion-setup-hook nil
   "Normal hook run at the end of setting up a completion list buffer.
@@ -1923,7 +2040,7 @@ and with BASE-SIZE appended as the last element."
         completions)
        base-size))))
 
-(defun display-completion-list (completions &optional common-substring)
+(defun display-completion-list (completions &optional common-substring group-fun)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
 Each element may be just a symbol or string
 or may be a list of two strings to be printed as if concatenated.
@@ -1933,7 +2050,9 @@ alternative, the second serves as annotation.
 The actual completion alternatives, as inserted, are given `mouse-face'
 properties of `highlight'.
 At the end, this runs the normal hook `completion-setup-hook'.
-It can find the completion buffer in `standard-output'."
+It can find the completion buffer in `standard-output'.
+GROUP-FUN is a `group-function' used for grouping the completion
+candidates."
   (declare (advertised-calling-convention (completions) "24.4"))
   (if common-substring
       (setq completions (completion-hilit-commonality
@@ -1946,7 +2065,7 @@ It can find the completion buffer in `standard-output'."
 	(let ((standard-output (current-buffer))
 	      (completion-setup-hook nil))
           (with-suppressed-warnings ((callargs display-completion-list))
-	    (display-completion-list completions common-substring)))
+	    (display-completion-list completions common-substring group-fun)))
 	(princ (buffer-string)))
 
     (with-current-buffer standard-output
@@ -1954,7 +2073,7 @@ It can find the completion buffer in `standard-output'."
       (if (null completions)
           (insert "There are no possible completions of what you have typed.")
         (insert "Possible completions are:\n")
-        (completion--insert-strings completions))))
+        (completion--insert-strings completions group-fun))))
 
   (run-hooks 'completion-setup-hook)
   nil)
@@ -2067,6 +2186,8 @@ variables.")
              (aff-fun (or (completion-metadata-get all-md 'affixation-function)
                           (plist-get completion-extra-properties
                                      :affixation-function)))
+             (sort-fun (completion-metadata-get all-md 'display-sort-function))
+             (group-fun (completion-metadata-get all-md 'group-function))
              (mainbuf (current-buffer))
              ;; If the *Completions* buffer is shown in a new
              ;; window, mark it as softly-dedicated, so bury-buffer in
@@ -2098,15 +2219,32 @@ variables.")
                       ;; Remove the base-size tail because `sort' requires a properly
                       ;; nil-terminated list.
                       (when last (setcdr last nil))
-                      (setq completions
-                            ;; FIXME: This function is for the output of all-completions,
-                            ;; not completion-all-completions.  Often it's the same, but
-                            ;; not always.
-                            (let ((sort-fun (completion-metadata-get
-                                             all-md 'display-sort-function)))
-                              (if sort-fun
-                                  (funcall sort-fun completions)
-                                (sort completions 'string-lessp))))
+
+                      ;; Sort first using the `display-sort-function'.
+                      ;; FIXME: This function is for the output of
+                      ;; all-completions, not
+                      ;; completion-all-completions.  Often it's the
+                      ;; same, but not always.
+                      (setq completions (if sort-fun
+                                            (funcall sort-fun completions)
+                                          (sort completions 'string-lessp)))
+
+                      ;; After sorting, group the candidates using the
+                      ;; `group-function'.
+                      (when group-fun
+                        (setq completions
+                              (minibuffer--group-by
+                               group-fun
+                               (pcase completions-group-sort
+                                 ('nil #'identity)
+                                 ('alphabetical
+                                  (lambda (groups)
+                                    (sort groups
+                                          (lambda (x y)
+                                            (string< (car x) (car y))))))
+                                 (_ completions-group-sort))
+                               completions)))
+
                       (cond
                        (aff-fun
                         (setq completions
@@ -2152,7 +2290,7 @@ variables.")
                                                      (if (eq (car bounds) (length result))
                                                          'exact 'finished)))))))
 
-                      (display-completion-list completions)))))
+                      (display-completion-list completions nil group-fun)))))
           nil)))
     nil))
 

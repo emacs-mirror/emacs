@@ -372,8 +372,8 @@ From, and Cc against HEADER-REGEXP in
   "An alist for setting up `bug-reference-mode' in IRC modes.
 
 This takes action if `bug-reference-mode' is enabled in IRC
-channels using one of Emacs' IRC clients (rcirc and ERC).
-Currently, rcirc and ERC are supported.
+channels using one of Emacs' IRC clients.  Currently, rcirc and
+ERC are supported.
 
 Each element has the form
 

@@ -70,3 +70,18 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
 RUN make bootstrap
 RUN make -j4
+
+FROM emacs-base as emacs-native-comp-speed0
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 libgccjit-6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG make_bootstrap_params=""
+
+COPY . /checkout
+WORKDIR /checkout
+RUN ./autogen.sh autoconf
+RUN ./configure --with-nativecomp
+RUN make bootstrap -j2 NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"'
+RUN make -j4

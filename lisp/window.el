@@ -8788,7 +8788,11 @@ font on WINDOW's frame."
   (let* ((window (window-normalize-window window t))
 	 (frame (window-frame window))
 	 (default-font (face-font 'default frame)))
-    (if (and (display-multi-font-p (frame-parameter frame 'display))
+    ;; Client frames can have the 'display' parameter set like for X
+    ;; frames, even though they are TTY frames, so make sure we won't
+    ;; be duped by that up front with 'framep'.
+    (if (and (not (eq (framep frame) t))
+             (display-multi-font-p (frame-parameter frame 'display))
 	     (not (string-equal (frame-parameter frame 'font) default-font)))
         (aref (font-info default-font frame) 3)
       (frame-char-height frame))))

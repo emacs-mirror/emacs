@@ -69,7 +69,9 @@ Makefile: ../config.status $(srcdir)/Makefile.in
 # Object modules that need not be built for Emacs.
 # Emacs does not need e-regex.o (it has its own regex-emacs.c),
 # and building it would just waste time.
-not_emacs_OBJECTS = regex.o
+# Emacs also doesn't need the dynarray-related files in malloc/ and
+# the replacement 'free'.
+not_emacs_OBJECTS = regex.o malloc/%.o free.o
 
 libgnu_a_OBJECTS = fingerprint.o $(gl_LIBOBJS) \
   $(patsubst %.c,%.o,$(filter %.c,$(libgnu_a_SOURCES)))
