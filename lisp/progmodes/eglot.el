@@ -95,15 +95,37 @@
   :prefix "eglot-"
   :group 'applications)
 
-(defvar eglot-server-programs '((rust-mode . (eglot-rls "rls"))
-                                (python-mode . ("pyls"))
+(defun eglot-alternatives (alternatives)
+  "Compute server-choosing function for `eglot-server-programs'.
+Each element of ALTERNATIVES is a string PROGRAM or a list of
+strings (PROGRAM ARGS...) where program names an LSP server
+program to start with ARGS.  Returns a function of one
+argument."
+  (lambda (&optional interactive)
+    (let* ((listified (cl-loop for a in alternatives
+                               collect (if (listp a) a (list a))))
+           (available (cl-remove-if-not #'executable-find listified :key #'car)))
+      (cond ((and interactive (cdr available))
+             (let ((chosen (completing-read
+                            "[eglot] More than one server executable available:"
+                            (mapcar #'car available)
+                            nil t nil nil (car (car available)))))
+               (assoc chosen available #'equal)))
+            ((car available))
+            (t
+             (car listified))))))
+
+(defvar eglot-server-programs `((rust-mode . (eglot-rls "rls"))
+                                (python-mode
+                                 . ,(eglot-alternatives '("pyls" "pylsp")))
                                 ((js-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
                                 ((php-mode phps-mode)
                                  . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php"))
-                                ((c++-mode c-mode) . ("ccls"))
+                                ((c++-mode c-mode) . ,(eglot-alternatives
+                                                       '("clangd" "ccls")))
                                 (((caml-mode :language-id "ocaml")
                                   (tuareg-mode :language-id "ocaml") reason-mode)
                                  . ("ocamllsp"))
