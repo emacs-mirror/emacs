@@ -5110,8 +5110,7 @@ nil means to not handle the buffer in a particular way.  This
       (set-window-parameter window 'quit-restore nil)
       ;; Make sure that WINDOW is no more dedicated.
       (set-window-dedicated-p window nil)
-      (if prev-buffer
-          (switch-to-prev-buffer window bury-or-kill)
+      (unless (switch-to-prev-buffer window bury-or-kill)
         ;; Delete WINDOW if there is no previous buffer (Bug#48367).
         (window--delete window nil (eq bury-or-kill 'kill)))))
 
@@ -8634,7 +8633,9 @@ meaning of these values in `window--display-buffer'.
 Optional `post-function' is called after the buffer is displayed in the
 window; the function takes two arguments: an old and new window.
 Optional string argument `echo' can be used to add a prefix to the
-command echo keystrokes that should describe the current prefix state."
+command echo keystrokes that should describe the current prefix state.
+This returns an \"exit function\", which can be called with no argument
+to deactivate this overriding action."
   (let* ((old-window (or (minibuffer-selected-window) (selected-window)))
          (new-window nil)
          (minibuffer-depth (minibuffer-depth))
@@ -8676,7 +8677,8 @@ command echo keystrokes that should describe the current prefix state."
     (add-hook 'post-command-hook clearfun)
     (when echofun
       (add-hook 'prefix-command-echo-keystrokes-functions echofun))
-    (push action (car display-buffer-overriding-action))))
+    (push action (car display-buffer-overriding-action))
+    exitfun))
 
 
 (defun set-window-text-height (window height)

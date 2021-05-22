@@ -188,5 +188,148 @@
                   '("some/alpha" "base/epsilon" "base/delta"))
                  `("epsilon" "delta" "beta" "alpha" "gamma"  . 5))))
 
+(defun completion--pcm-score (comp)
+  "Get `completion-score' from COMP."
+  (get-text-property 0 'completion-score comp))
+
+(defun completion--pcm-first-difference-pos (comp)
+  "Get `completions-first-difference' from COMP."
+  (cl-loop for pos = (next-single-property-change 0 'face comp)
+           then (next-single-property-change pos 'face comp)
+           while pos
+           when (eq (get-text-property pos 'face comp)
+                    'completions-first-difference)
+           return pos))
+
+(ert-deftest completion-pcm-test-1 ()
+  ;; Point is at end, this does not match anything
+  (should (null
+           (completion-pcm-all-completions
+            "foo" '("hello" "world" "barfoobar") nil 3))))
+
+(ert-deftest completion-pcm-test-2 ()
+  ;; Point is at beginning, this matches "barfoobar"
+  (should (equal
+           (car (completion-pcm-all-completions
+                 "foo" '("hello" "world" "barfoobar") nil 0))
+           "barfoobar")))
+
+(ert-deftest completion-pcm-test-3 ()
+  ;; Full match!
+  (should (eql
+           (completion--pcm-score
+            (car (completion-pcm-all-completions
+                  "R" '("R" "hello") nil 1)))
+           1.0)))
+
+(ert-deftest completion-pcm-test-4 ()
+  ;; One fourth of a match and no match due to point being at the end
+  (should (eql
+           (completion--pcm-score
+            (car (completion-pcm-all-completions
+                  "RO" '("RaOb") nil 1)))
+           (/ 1.0 4.0)))
+  (should (null
+           (completion-pcm-all-completions
+            "RO" '("RaOb") nil 2))))
+
+(ert-deftest completion-pcm-test-5 ()
+  ;; Since point is at the beginning, there is nothing that can really
+  ;; be typed anymore
+  (should (null
+           (completion--pcm-first-difference-pos
+            (car (completion-pcm-all-completions
+                  "f" '("few" "many") nil 0))))))
+
+(ert-deftest completion-pcm-test-6 ()
+  ;; Wildcards and delimiters work
+  (should (equal
+           (car (completion-pcm-all-completions
+                 "li-pac*" '("list-packages") nil 7))
+           "list-packages"))
+  (should (null
+           (car (completion-pcm-all-completions
+                 "li-pac*" '("do-not-list-packages") nil 7)))))
+
+(ert-deftest completion-substring-test-1 ()
+  ;; One third of a match!
+  (should (equal
+           (car (completion-substring-all-completions
+                 "foo" '("hello" "world" "barfoobar") nil 3))
+           "barfoobar"))
+  (should (eql
+           (completion--pcm-score
+            (car (completion-substring-all-completions
+                  "foo" '("hello" "world" "barfoobar") nil 3)))
+           (/ 1.0 3.0))))
+
+(ert-deftest completion-substring-test-2 ()
+  ;; Full match!
+  (should (eql
+           (completion--pcm-score
+            (car (completion-substring-all-completions
+                  "R" '("R" "hello") nil 1)))
+           1.0)))
+
+(ert-deftest completion-substring-test-3 ()
+  ;; Substring match
+  (should (equal
+           (car (completion-substring-all-completions
+                 "custgroup" '("customize-group") nil 4))
+           "customize-group"))
+  (should (null
+           (car (completion-substring-all-completions
+                 "custgroup" '("customize-group") nil 5)))))
+
+(ert-deftest completion-substring-test-4 ()
+  ;; `completions-first-difference' should be at the right place
+  (should (eql
+           (completion--pcm-first-difference-pos
+            (car (completion-substring-all-completions
+                  "jab" '("dabjobstabby" "many") nil 1)))
+           4))
+  (should (null
+           (completion--pcm-first-difference-pos
+            (car (completion-substring-all-completions
+                  "jab" '("dabjabstabby" "many") nil 1)))))
+  (should (equal
+           (completion--pcm-first-difference-pos
+            (car (completion-substring-all-completions
+                  "jab" '("dabjabstabby" "many") nil 3)))
+           6)))
+
+(ert-deftest completion-flex-test-1 ()
+  ;; Fuzzy match
+  (should (equal
+           (car (completion-flex-all-completions
+                 "foo" '("hello" "world" "fabrobazo") nil 3))
+           "fabrobazo")))
+
+(ert-deftest completion-flex-test-2 ()
+  ;; Full match!
+  (should (eql
+           (completion--pcm-score
+            (car (completion-flex-all-completions
+                  "R" '("R" "hello") nil 1)))
+           1.0)))
+
+(ert-deftest completion-flex-test-3 ()
+  ;; Another fuzzy match, but more of a "substring" one
+  (should (equal
+           (car (completion-flex-all-completions
+                 "custgroup" '("customize-group-other-window") nil 4))
+           "customize-group-other-window"))
+  ;; `completions-first-difference' should be at the right place
+  (should (equal
+           (completion--pcm-first-difference-pos
+            (car (completion-flex-all-completions
+                  "custgroup" '("customize-group-other-window") nil 4)))
+           4))
+  (should (equal
+           (completion--pcm-first-difference-pos
+            (car (completion-flex-all-completions
+                  "custgroup" '("customize-group-other-window") nil 9)))
+           15)))
+
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here

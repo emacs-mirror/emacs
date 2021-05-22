@@ -896,6 +896,44 @@ beginning of the line."
       (xref--search-property 'xref-item))
   (xref-show-location-at-point))
 
+(defcustom xref-truncation-width 400
+  "The column to visually \"truncate\" each Xref buffer line to."
+  :type '(choice
+          (integer :tag "Number of columns")
+          (const :tag "Disable truncation" nil)))
+
+(defun xref--apply-truncation ()
+  (let ((bol (line-beginning-position))
+        (eol (line-end-position))
+        (inhibit-read-only t)
+        pos adjusted-bol)
+    (when (and xref-truncation-width
+               (> (- eol bol) xref-truncation-width)
+               ;; Either truncation not applied yet, or it hides the current
+               ;; position: need to refresh.
+               (or (and (null (get-text-property (1- eol) 'invisible))
+                        (null (get-text-property bol 'invisible)))
+                   (get-text-property (point) 'invisible)))
+      (setq adjusted-bol
+            (cond
+             ((eq (get-text-property bol 'face) 'xref-line-number)
+              (next-single-char-property-change bol 'face))
+             (t bol)))
+      (cond
+       ((< (- (point) bol) xref-truncation-width)
+        (setq pos (+ bol xref-truncation-width))
+        (remove-text-properties bol pos '(invisible))
+        (put-text-property pos eol 'invisible 'ellipsis))
+       ((< (- eol (point)) xref-truncation-width)
+        (setq pos (- eol xref-truncation-width))
+        (remove-text-properties pos eol '(invisible))
+        (put-text-property adjusted-bol pos 'invisible 'ellipsis))
+       (t
+        (setq pos (- (point) (/ xref-truncation-width 2)))
+        (put-text-property adjusted-bol pos 'invisible 'ellipsis)
+        (remove-text-properties pos (+ pos xref-truncation-width) '(invisible))
+        (put-text-property (+ pos xref-truncation-width) eol 'invisible 'ellipsis))))))
+
 (defun xref--insert-xrefs (xref-alist)
   "Insert XREF-ALIST in the current-buffer.
 XREF-ALIST is of the form ((GROUP . (XREF ...)) ...), where
@@ -939,6 +977,11 @@ GROUP is a string for decoration purposes and XREF is an
                         (setq prev-line line
                               prev-group group))))
            (insert "\n"))
+  (add-to-invisibility-spec '(ellipsis . t))
+  (save-excursion
+    (goto-char (point-min))
+    (while (= 0 (forward-line 1))
+      (xref--apply-truncation)))
   (run-hooks 'xref-after-update-hook))
 
 (defun xref--analyze (xrefs)
@@ -976,6 +1019,7 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
         (buffer-undo-list t))
     (erase-buffer)
     (xref--insert-xrefs xref-alist)
+    (add-hook 'post-command-hook 'xref--apply-truncation nil t)
     (goto-char (point-min))
     (setq xref--original-window (assoc-default 'window alist)
           xref--original-window-intent (assoc-default 'display-action alist))

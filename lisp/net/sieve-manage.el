@@ -89,18 +89,15 @@
 
 (defcustom sieve-manage-log "*sieve-manage-log*"
   "Name of buffer for managesieve session trace."
-  :type 'string
-  :group 'sieve-manage)
+  :type 'string)
 
 (defcustom sieve-manage-server-eol "\r\n"
   "The EOL string sent from the server."
-  :type 'string
-  :group 'sieve-manage)
+  :type 'string)
 
 (defcustom sieve-manage-client-eol "\r\n"
   "The EOL string we send to the server."
-  :type 'string
-  :group 'sieve-manage)
+  :type 'string)
 
 (defcustom sieve-manage-authenticators '(digest-md5
 					 cram-md5
@@ -112,8 +109,7 @@
   ;; FIXME Improve this.  It's not `set'.
   ;; It's like (repeat (choice (const ...))), where each choice can
   ;; only appear once.
-  :type '(repeat symbol)
-  :group 'sieve-manage)
+  :type '(repeat symbol))
 
 (defcustom sieve-manage-authenticator-alist
   '((cram-md5   sieve-manage-cram-md5-p       sieve-manage-cram-md5-auth)
@@ -130,26 +126,22 @@ NAME names the authenticator.  CHECK is a function returning non-nil if
 the server support the authenticator and AUTHENTICATE is a function
 for doing the actual authentication."
   :type '(repeat (list (symbol :tag "Name") (function :tag "Check function")
-		       (function :tag "Authentication function")))
-  :group 'sieve-manage)
+		       (function :tag "Authentication function"))))
 
 (defcustom sieve-manage-default-port "sieve"
   "Default port number or service name for managesieve protocol."
   :type '(choice integer string)
-  :version "24.4"
-  :group 'sieve-manage)
+  :version "24.4")
 
 (defcustom sieve-manage-default-stream 'network
   "Default stream type to use for `sieve-manage'."
   :version "24.1"
-  :type 'symbol
-  :group 'sieve-manage)
+  :type 'symbol)
 
 (defcustom sieve-manage-ignore-starttls nil
   "Ignore STARTTLS even if STARTTLS capability is provided."
   :version "26.1"
-  :type 'boolean
-  :group 'sieve-manage)
+  :type 'boolean)
 
 ;; Internal variables:
 
@@ -247,7 +239,7 @@ Return the buffer associated with the connection."
            (sasl-read-passphrase
             ;; We *need* to copy the password, because sasl will modify it
             ;; somehow.
-            `(lambda (prompt) ,(copy-sequence user-password)))
+            (lambda (_prompt) (copy-sequence user-password)))
            (step (sasl-next-step client nil))
            (_tag (sieve-manage-send
                  (concat

@@ -82,4 +82,29 @@ quoted directory names (Bug#47799)."
            (ert-fail (format-message "Unexpected references: %S"
                                      otherwise))))))))
 
+(cl-defstruct project-tests--trivial root ignores)
+
+(cl-defmethod project-root ((project project-tests--trivial))
+  (project-tests--trivial-root project))
+
+(cl-defmethod project-ignores ((project project-tests--trivial) _dir)
+  (project-tests--trivial-ignores project))
+
+(ert-deftest project-ignores ()
+  "Check that `project-files' correctly ignores the files
+returned by `project-ignores' if the root directory is a
+directory name (Bug#48471)."
+  (skip-unless (executable-find find-program))
+  (project-tests--with-temporary-directory dir
+    (make-empty-file (expand-file-name "some-file" dir))
+    (make-empty-file (expand-file-name "ignored-file" dir))
+    (let* ((project (make-project-tests--trivial
+                     :root (file-name-as-directory dir)
+                     :ignores '("./ignored-file")))
+           (files (project-files project))
+           (relative-files
+            (cl-loop for file in files
+                     collect (file-relative-name file dir))))
+      (should (equal relative-files '("some-file"))))))
+
 ;;; project-tests.el ends here

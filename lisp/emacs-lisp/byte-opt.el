@@ -951,12 +951,20 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
   "Whether EXPR is a constant symbol."
   (and (macroexp-const-p expr) (symbolp (eval expr))))
 
+(defun byte-optimize--fixnump (o)
+  "Return whether O is guaranteed to be a fixnum in all Emacsen.
+See Info node `(elisp) Integer Basics'."
+  (and (fixnump o) (<= -536870912 o 536870911)))
+
 (defun byte-optimize-equal (form)
-  ;; Replace `equal' or `eql' with `eq' if at least one arg is a symbol.
+  ;; Replace `equal' or `eql' with `eq' if at least one arg is a
+  ;; symbol or fixnum.
   (byte-optimize-binary-predicate
    (if (= (length (cdr form)) 2)
        (if (or (byte-optimize--constant-symbol-p (nth 1 form))
-               (byte-optimize--constant-symbol-p (nth 2 form)))
+               (byte-optimize--constant-symbol-p (nth 2 form))
+               (byte-optimize--fixnump (nth 1 form))
+               (byte-optimize--fixnump (nth 2 form)))
            (cons 'eq (cdr form))
          form)
      ;; Arity errors reported elsewhere.
@@ -964,14 +972,19 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 
 (defun byte-optimize-member (form)
   ;; Replace `member' or `memql' with `memq' if the first arg is a symbol,
-  ;; or the second arg is a list of symbols.
+  ;; or the second arg is a list of symbols.  Same with fixnums.
   (if (= (length (cdr form)) 2)
       (if (or (byte-optimize--constant-symbol-p (nth 1 form))
+              (byte-optimize--fixnump (nth 1 form))
               (let ((arg2 (nth 2 form)))
                 (and (macroexp-const-p arg2)
                      (let ((listval (eval arg2)))
                        (and (listp listval)
-                            (not (memq nil (mapcar #'symbolp listval))))))))
+                            (not (memq nil (mapcar
+                                            (lambda (o)
+                                              (or (symbolp o)
+                                                  (byte-optimize--fixnump o)))
+                                            listval))))))))
           (cons 'memq (cdr form))
         form)
     ;; Arity errors reported elsewhere.
@@ -979,11 +992,12 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 
 (defun byte-optimize-assoc (form)
   ;; Replace 2-argument `assoc' with `assq', `rassoc' with `rassq',
-  ;; if the first arg is a symbol.
+  ;; if the first arg is a symbol or fixnum.
   (cond
    ((/= (length form) 3)
     form)
-   ((byte-optimize--constant-symbol-p (nth 1 form))
+   ((or (byte-optimize--constant-symbol-p (nth 1 form))
+        (byte-optimize--fixnump (nth 1 form)))
     (cons (if (eq (car form) 'assoc) 'assq 'rassq)
           (cdr form)))
    (t (byte-optimize-constant-args form))))

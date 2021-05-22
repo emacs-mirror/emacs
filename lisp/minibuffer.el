@@ -2449,8 +2449,10 @@ The completion method is determined by `completion-at-point-functions'."
   (define-key map "\C-g" 'abort-minibuffers)
   (define-key map "\M-<" 'minibuffer-beginning-of-buffer)
 
-  (define-key map "\r" 'exit-minibuffer)
-  (define-key map "\n" 'exit-minibuffer))
+  ;; Put RET last so that it is shown in doc strings in preference to
+  ;; C-j, when using the \\[exit-minibuffer] notation.
+  (define-key map "\n" 'exit-minibuffer)
+  (define-key map "\r" 'exit-minibuffer))
 
 (defvar minibuffer-local-completion-map
   (let ((map (make-sparse-keymap)))

@@ -827,15 +827,15 @@ This command was defined by `facemenu-add-new-face'."
 	  (key
 	   (setq function (intern (concat "facemenu-set-" name)))
 	   (fset function
-		 `(lambda ()
-		    ,docstring
-		    (interactive)
-		    (facemenu-set-face
-		     (quote ,symbol)
-		     (if (and mark-active (not current-prefix-arg))
-			 (region-beginning))
-		     (if (and mark-active (not current-prefix-arg))
-			 (region-end)))))
+		 (lambda ()
+		   (:documentation docstring)
+		   (interactive)
+		   (facemenu-set-face
+		    symbol
+		    (if (and mark-active (not current-prefix-arg))
+			(region-beginning))
+		    (if (and mark-active (not current-prefix-arg))
+			(region-end)))))
 	   (define-key 'facemenu-keymap key (cons name function))
 	   (define-key menu key (cons name function)))
 	  ;; Faces with no keyboard equivalent.  Figure out where to put it:

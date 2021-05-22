@@ -338,9 +338,21 @@ recently executed command not bound to an input event\"."
   "Key that stops the modal repeating of keys in sequence.
 For example, you can set it to <return> like `isearch-exit'."
   :type '(choice (const :tag "No special key to exit repeating sequence" nil)
-		 (key-sequence :tag "Key that exits repeating sequence"))
+                 (key-sequence :tag "Key that exits repeating sequence"))
   :group 'convenience
   :version "28.1")
+
+(defcustom repeat-exit-timeout nil
+  "Break the repetition chain of keys after specified timeout.
+When a number, exit the repeat mode after idle time of the specified
+number of seconds."
+  :type '(choice (const :tag "No timeout to exit repeating sequence" nil)
+                 (number :tag "Timeout in seconds to exit repeating"))
+  :group 'convenience
+  :version "28.1")
+
+(defvar repeat-exit-timer nil
+  "Timer activated after the last key typed in the repeating key sequence.")
 
 (defcustom repeat-keep-prefix t
   "Keep the prefix arg of the previous command."
@@ -420,16 +432,32 @@ When Repeat mode is enabled, and the command symbol has the property named
                 (setq prefix-arg current-prefix-arg))
 
               (setq repeat-in-progress t)
-              (set-transient-map map))))))
+              (let ((exitfun (set-transient-map map)))
+
+                (when repeat-exit-timer
+                  (cancel-timer repeat-exit-timer)
+                  (setq repeat-exit-timer nil))
+
+                (when repeat-exit-timeout
+                  (setq repeat-exit-timer
+                        (run-with-idle-timer
+                         repeat-exit-timeout nil
+                         (lambda ()
+                           (setq repeat-in-progress nil)
+                           (funcall exitfun)
+                           (funcall repeat-echo-function nil)))))))))))
 
     (setq repeat-map nil)
     (when (and was-in-progress (not repeat-in-progress))
+      (when repeat-exit-timer
+        (cancel-timer repeat-exit-timer)
+        (setq repeat-exit-timer nil))
       (funcall repeat-echo-function nil))))
 
-(defun repeat-echo-message-string (map)
+(defun repeat-echo-message-string (keymap)
   "Return a string with a list of repeating keys."
   (let (keys)
-    (map-keymap (lambda (key _) (push key keys)) map)
+    (map-keymap (lambda (key _) (push key keys)) keymap)
     (format-message "Repeat with %s%s"
                     (mapconcat (lambda (key)
                                  (key-description (vector key)))
@@ -439,21 +467,23 @@ When Repeat mode is enabled, and the command symbol has the property named
                                 (key-description repeat-exit-key))
                       ""))))
 
-(defun repeat-echo-message (map)
+(defun repeat-echo-message (keymap)
   "Display available repeating keys in the echo area."
-  (when map
-    (let ((mess (repeat-echo-message-string map)))
-      (if (current-message)
-          (message "%s [%s]" (current-message) mess)
-        (message mess)))))
+  (if keymap
+      (let ((mess (repeat-echo-message-string keymap)))
+        (if (current-message)
+            (message "%s [%s]" (current-message) mess)
+          (message mess)))
+    (when (string-prefix-p "Repeat with " (current-message))
+      (message nil))))
 
 (defvar repeat-echo-mode-line-string
   (propertize "[Repeating...] " 'face 'mode-line-emphasis)
   "String displayed in the mode line in repeating mode.")
 
-(defun repeat-echo-mode-line (map)
+(defun repeat-echo-mode-line (keymap)
   "Display the repeat indicator in the mode line."
-  (if map
+  (if keymap
       (unless (assq 'repeat-in-progress mode-line-modes)
         (add-to-list 'mode-line-modes (list 'repeat-in-progress
                                             repeat-echo-mode-line-string)))

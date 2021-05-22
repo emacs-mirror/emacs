@@ -1294,8 +1294,8 @@ elements are present."
 
 ;; First, some common methods.
 
-(cl-defgeneric gnus-search-indexed-parse-output (engine server &optional groups)
-  "Parse the results of ENGINE's query against SERVER in GROUPS.
+(cl-defgeneric gnus-search-indexed-parse-output (engine server query &optional groups)
+  "Parse the results of ENGINE's QUERY against SERVER in GROUPS.
 Locally-indexed search engines return results as a list of
 filenames, sometimes with additional information.  Returns a list
 of viable results, in the form of a list of [group article score]

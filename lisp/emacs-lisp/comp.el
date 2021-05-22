@@ -148,8 +148,13 @@ As asynchronous native compilation always starts from a pristine
 environment, it is more sensitive to such omissions, and might be
 unable to compile such Lisp source files correctly.
 
-Set this variable to nil if these warnings annoy you."
-  :type 'boolean
+Set this variable to nil to suppress warnings altogether, or to
+the symbol `silent' to log warnings but not pop up the *Warnings*
+buffer."
+  :type '(choice
+          (const :tag "Do not report warnings" nil)
+          (const :tag "Report and display warnings" t)
+          (const :tag "Report but do not display warnings" 'silent))
   :version "28.1")
 
 (defcustom native-comp-async-query-on-exit nil
@@ -3874,14 +3879,18 @@ processes from `comp-async-compilations'"
 (defun comp-accept-and-process-async-output (process)
   "Accept PROCESS output and check for diagnostic messages."
   (if native-comp-async-report-warnings-errors
-      (with-current-buffer (process-buffer process)
-        (save-excursion
-          (accept-process-output process)
-          (goto-char (or comp-last-scanned-async-output (point-min)))
-          (while (re-search-forward "^.*?\\(?:Error\\|Warning\\): .*$"
-                                    nil t)
-            (display-warning 'comp (match-string 0)))
-          (setq comp-last-scanned-async-output (point-max))))
+      (let ((warning-suppress-types
+             (if (eq native-comp-async-report-warnings-errors 'silent)
+                 (cons '(comp) warning-suppress-types)
+               warning-suppress-types)))
+        (with-current-buffer (process-buffer process)
+          (save-excursion
+            (accept-process-output process)
+            (goto-char (or comp-last-scanned-async-output (point-min)))
+            (while (re-search-forward "^.*?\\(?:Error\\|Warning\\): .*$"
+                                      nil t)
+              (display-warning 'comp (match-string 0)))
+            (setq comp-last-scanned-async-output (point-max)))))
     (accept-process-output process)))
 
 (defun comp-run-async-workers ()

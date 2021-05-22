@@ -5,6 +5,12 @@ rolls around, add that year to every FSF (and AIST) copyright notice.
 Do this by running the 'admin/update-copyright' script on a fresh repo
 checkout.  Inspect the results for plausibility, then commit them.
 
+You should also run the etags test suite in test/manual/etags/.  It
+will most probably fail because the contents of the test files changes
+due to copyright years update, so you need to move each ETAGS and
+CTAGS file produced by the test runs into the corresponding
+ETAGS.good* and CTAGS.good files, and then commit the new test files.
+
 There's no need to worry about whether an individual file has changed
 in a given year - it's sufficient that Emacs as a whole has changed.
 

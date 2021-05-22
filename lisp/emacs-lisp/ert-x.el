@@ -98,7 +98,7 @@ To be used in ERT tests.  If BODY finishes successfully, the test
 buffer is killed; if there is an error, the test buffer is kept
 around on error for further inspection.  Its name is derived from
 the name of the test and the result of NAME-FORM."
-  (declare (debug ((":name" form) body))
+  (declare (debug ((":name" form) def-body))
            (indent 1))
   `(ert--call-with-test-buffer ,name-form (lambda () ,@body)))
 

@@ -334,12 +334,13 @@ forms, but this command has now been changed to work more like
 'eval-defun', and reset the values as specified.
 
 +++
-** Standalone 'M-y' uses the minibuffer to complete previous kills.
-When 'M-y' is typed not after a yank command, it activates the minibuffer
-where you can browse previous kills using the minibuffer history or
-completion.  In Isearch, you can bind 'C-s M-y' to the command
-'isearch-yank-pop' that uses the minibuffer with completion on
-previous kills to read a string and append it to the search string.
+** Standalone 'M-y' allows interactive selection from previous kills.
+'M-y' can now be typed after a command that is not a yank command.
+When invoked like that, it prompts in the minibuffer for one of the
+previous kills, offering completion and minibuffer-history navigation
+through previous kills recorded in the kill ring.  A similar feature
+in Isearch can be invoked if you bind 'C-s M-y' to the command
+'isearch-yank-pop'.
 
 ---
 ** New user options 'copy-region-blink-delay' and 'delete-pair-blink-delay'.
@@ -710,6 +711,18 @@ This user option controls how 'ls' switches are displayed in the mode
 line, and allows truncating them (to preserve space on the mode line)
 or showing them literally, either instead of, or in addition to,
 displaying "by name" or "by date" sort order.
+
++++
+*** New user option 'dired-compress-directory-default-suffix'.
+This user option controls default suffix for compressing a directory.
+If it's nil, ".tar.gz" will be used.  Refer to
+'dired-compress-files-alist' for a list of supported suffixes.
+
++++
+*** New user option 'dired-compress-file-default-suffix'.
+This user option controls the default suffix for compressing files.
+If it's nil, ".gz" will be used.  Refer to 'dired-compress-file-alist'
+for a list of supported suffixes.
 
 ---
 *** Broken and circular links are shown with the 'dired-broken-symlink' face.
@@ -2372,6 +2385,8 @@ You can type 'C-x u u' instead of 'C-x u C-x u' to undo many changes,
 'M-g n n p p' to navigate next-error matches.  Any other key exits
 transient mode and then is executed normally.  'repeat-exit-key'
 defines an additional key to exit mode like 'isearch-exit' ('RET').
+The user option 'repeat-exit-timeout' specifies the number of
+seconds of idle time to break the repetition chain automatically.
 With 'repeat-keep-prefix' you can keep the prefix arg of the previous
 command.  For example, this can help to reverse the window navigation
 direction with e.g. 'C-x o M-- o o'.  Also it can help to set a new

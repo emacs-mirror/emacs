@@ -1108,12 +1108,12 @@ queries the server for the existing fields and displays a corresponding form."
                                                  proto-name)))
                    (if (not (fboundp command))
                        (fset command
-                             `(lambda ()
-                                (interactive)
-                                (eudc-set-server ,server (quote ,protocol))
-                                (message "Selected directory server is now %s (%s)"
-                                         ,server
-                                         ,proto-name))))
+                             (lambda ()
+                               (interactive)
+                               (eudc-set-server server protocol)
+                               (message "Selected directory server is now %s (%s)"
+                                        server
+                                        proto-name))))
                    (vector (format "%s (%s)" server proto-name)
                            command
                            :style 'radio

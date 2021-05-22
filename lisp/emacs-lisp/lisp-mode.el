@@ -682,10 +682,16 @@ font-lock keywords will not be case sensitive."
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
+  ;; Expects outline-regexp is ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|("
+  ;; and point is at the beginning of a matching line.
   (let ((len (- (match-end 0) (match-beginning 0))))
-    (if (looking-at "(\\|;;;###autoload")
-	1000
-      len)))
+    (cond ((looking-at "(\\|;;;###autoload")
+           1000)
+          ((looking-at ";;\\(;+\\) ")
+           (- (match-end 1) (match-beginning 1)))
+          ;; Above should match everything but just in case.
+          (t
+           len))))
 
 (defun lisp-current-defun-name ()
   "Return the name of the defun at point, or nil."

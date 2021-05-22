@@ -759,6 +759,7 @@ Install_Abort_Handler/p	ada-src/2ataspri.ads	/^   procedure Install_Abort_Handle
 Install_Error_Handler/p	ada-src/2ataspri.adb	/^   procedure Install_Error_Handler (Handler : Syst/
 Install_Error_Handler/p	ada-src/2ataspri.ads	/^   procedure Install_Error_Handler (Handler : Syst/
 Invoking gzip	tex-src/gzip.texi	/^@node Invoking gzip, Advanced usage, Sample, Top$/
+IpAddrKind	rs-src/test.rs	3
 IsControlChar	pas-src/common.pas	/^function IsControlChar; (*($/
 IsControlCharName	pas-src/common.pas	/^function IsControlCharName($/
 Is_Set/f	ada-src/2ataspri.adb	/^   function  Is_Set (Cell : in TAS_Cell) return Bo/
@@ -984,6 +985,7 @@ MoveLayerBottom	lua-src/allegro.lua	/^function MoveLayerBottom ()$/
 MoveLayerTop	lua-src/allegro.lua	/^function MoveLayerTop ()$/
 Mtest.go	go-src/test.go	1
 Mtest.go	go-src/test.go	/^func main() {$/
+Mtest.rs	rs-src/test.rs	/^fn main() {$/
 Mtest1.go	go-src/test1.go	1
 Mtest1.go	go-src/test1.go	/^func main() {$/
 Mx.cc	cp-src/x.cc	/^main(int argc, char *argv[])$/
@@ -1153,7 +1155,6 @@ Python_help	c-src/etags.c	660
 Python_suffixes	c-src/etags.c	658
 QUIT	c-src/emacs/src/lisp.h	3101
 QUITP	c-src/emacs/src/lisp.h	3112
-Qpre_abbrev_expand_hook	c-src/abbrev.c	83
 RANGED_INTEGERP	c-src/emacs/src/lisp.h	/^RANGED_INTEGERP (intmax_t lo, Lisp_Object x, intma/
 RCSid	objc-src/PackInsp.m	30
 READABLE_EVENTS_DO_TIMERS_NOW	c-src/emacs/src/keyboard.c	346
@@ -1498,7 +1499,6 @@ Vglobal_abbrev_table	c-src/abbrev.c	48
 Vlast_abbrev	c-src/abbrev.c	70
 Vlast_abbrev_text	c-src/abbrev.c	75
 Vlispy_mouse_stem	c-src/emacs/src/keyboard.c	5172
-Vpre_abbrev_expand_hook	c-src/abbrev.c	83
 WAIT_READING_MAX	c-src/emacs/src/lisp.h	4281
 WAIT_READING_MAX	c-src/emacs/src/lisp.h	4283
 WARNINGS	make-src/Makefile	/^WARNINGS=-pedantic -Wall -Wpointer-arith -Winline /
@@ -1732,7 +1732,6 @@ Z	c-src/h.h	100
 \1	c-src/abbrev.c	/^  DEFVAR_PER_BUFFER ("local-abbrev-table", &curren/
 \1	c-src/abbrev.c	/^  DEFVAR_BOOL ("abbrevs-changed", &abbrevs_changed/
 \1	c-src/abbrev.c	/^  DEFVAR_BOOL ("abbrev-all-caps", &abbrev_all_caps/
-\1	c-src/abbrev.c	/^  DEFVAR_LISP ("pre-abbrev-expand-hook", &Vpre_abb/
 \1	c-src/emacs/src/keyboard.c	/^  DEFVAR_LISP ("internal--top-level-message", Vint/
 \1	c-src/emacs/src/keyboard.c	/^  DEFVAR_LISP ("last-command-event", last_command_/
 \1	c-src/emacs/src/keyboard.c	/^  DEFVAR_LISP ("last-nonmenu-event", last_nonmenu_/
@@ -4326,6 +4325,7 @@ test	php-src/ptest.php	/^test $/
 test-begin	scm-src/test.scm	/^(define-syntax test-begin$/
 test.me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 test.me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
+test1	rs-src/test.rs	/^fn test1() {$/
 test_undefined	c-src/emacs/src/keyboard.c	/^test_undefined (Lisp_Object binding)$/
 texttreelist	prol-src/natded.prolog	/^texttreelist([]).$/
 there-is-a-=-in-the-middle!	scm-src/test.scm	/^(define (there-is-a-=-in-the-middle!) #t)$/

@@ -465,8 +465,7 @@ pgtk_set_window_size (struct frame *f, bool change_gravity,
      internal clipping.
    -------------------------------------------------------------------------- */
 {
-  PGTK_TRACE ("pgtk_set_window_size(%dx%d, %s)", width, height,
-	      pixelwise ? "pixel" : "char");
+  PGTK_TRACE ("pgtk_set_window_size(%dx%d)", width, height);
   int pixelwidth, pixelheight;
 
   block_input ();

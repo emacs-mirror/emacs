@@ -4581,8 +4581,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((default-directory tramp-test-temporary-file-directory)
-	  (tmp-name1 (tramp--test-make-temp-name nil quoted))
-	  (tmp-name2 (tramp--test-make-temp-name 'local quoted))
+	  (tmp-name (tramp--test-make-temp-name nil quoted))
 	  kill-buffer-query-functions proc)
       (with-no-warnings (should-not (make-process)))
 
@@ -4610,13 +4609,13 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
       ;; Simple process using a file.
       (unwind-protect
 	  (with-temp-buffer
-	    (write-region "foo" nil tmp-name1)
-	    (should (file-exists-p tmp-name1))
+	    (write-region "foo" nil tmp-name)
+	    (should (file-exists-p tmp-name))
 	    (setq proc
 		  (with-no-warnings
 		    (make-process
 		     :name "test2" :buffer (current-buffer)
-		     :command `("cat" ,(file-name-nondirectory tmp-name1))
+		     :command `("cat" ,(file-name-nondirectory tmp-name))
 		     :file-handler t)))
 	    (should (processp proc))
 	    ;; Read output.
@@ -4628,7 +4627,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	;; Cleanup.
 	(ignore-errors
 	  (delete-process proc)
-	  (delete-file tmp-name1)))
+	  (delete-file tmp-name)))
 
       ;; Process filter.
       (unwind-protect
@@ -4692,11 +4691,17 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 			 :stderr stderr
 			 :file-handler t)))
 		(should (processp proc))
-		;; Read stderr.
+		;; Read output.
 		(with-timeout (10 (tramp--test-timeout-handler))
 		  (while (accept-process-output proc 0 nil t)))
-		(delete-process proc)
+		;; Read stderr.
 		(with-current-buffer stderr
+		  (with-timeout (10 (tramp--test-timeout-handler))
+		    (while (not (string-match-p
+				 "No such file or directory" (buffer-string)))
+		      (while (accept-process-output
+			      (get-buffer-process stderr) 0 nil t))))
+		  (delete-process proc)
 		  (should
 		   (string-match-p
 		    "cat:.* No such file or directory" (buffer-string)))))
@@ -4707,30 +4712,29 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
       ;; Process with stderr file.
       (unless (tramp-direct-async-process-p)
-	(dolist (tmpfile `(,tmp-name1 ,tmp-name2))
-	  (unwind-protect
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq proc
+		    (with-no-warnings
+		      (make-process
+		       :name "test6" :buffer (current-buffer)
+		       :command '("cat" "/does-not-exist")
+		       :stderr tmp-name
+		       :file-handler t)))
+	      (should (processp proc))
+	      ;; Read stderr.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (accept-process-output proc nil nil t)))
+	      (delete-process proc)
 	      (with-temp-buffer
-		(setq proc
-		      (with-no-warnings
-			(make-process
-			 :name "test6" :buffer (current-buffer)
-			 :command '("cat" "/does-not-exist")
-			 :stderr tmpfile
-			 :file-handler t)))
-		(should (processp proc))
-		;; Read stderr.
-		(with-timeout (10 (tramp--test-timeout-handler))
-		  (while (accept-process-output proc nil nil t)))
-		(delete-process proc)
-		(with-temp-buffer
-		  (insert-file-contents tmpfile)
-		  (should
-		   (string-match-p
-		    "cat:.* No such file or directory" (buffer-string)))))
+		(insert-file-contents tmp-name)
+		(should
+		 (string-match-p
+		  "cat:.* No such file or directory" (buffer-string)))))
 
-	    ;; Cleanup.
-	    (ignore-errors (delete-process proc))
-	    (ignore-errors (delete-file tmpfile))))))))
+	  ;; Cleanup.
+	  (ignore-errors (delete-process proc))
+	  (ignore-errors (delete-file tmp-name)))))))
 
 (tramp--test--deftest-direct-async-process tramp-test30-make-process
   "Check direct async `make-process'.")
