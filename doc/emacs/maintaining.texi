@@ -3144,8 +3144,8 @@ mailreader @ref{Gnus} and @ref{Rmail} are supported.
 @item
 Setup for IRC channels configurable by the variable
 @code{bug-reference-setup-from-irc-alist}.  The built-in IRC clients
-Rcirc, @xref{,,,Rcirc, Rcirc}, and ERC, @xref{,,,ERC, ERC}, are
-supported.
+Rcirc, @xref{Top, Rcirc,, rcirc, The Rcirc Manual}, and ERC,
+@xref{Top, ERC,, erc, The ERC Manual}, are supported.
 @end enumerate
 
 For almost all of those modes, it's enough to simply enable
