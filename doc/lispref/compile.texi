@@ -1028,7 +1028,10 @@ execution unit.
 @defopt native-comp-async-report-warnings-errors
 If this variable's value is non-@code{nil}, warnings and errors from
 asynchronous native-compilation subprocesses are reported in the main
-Emacs session.  The default is @code{t}.
+Emacs session in a buffer named @file{*Warnings*}.  The default value
+@code{t} means display the resulting buffer.  To log warnings without
+popping up the @file{*Warnings*} buffer, set this variable to
+@code{silent}.
 @end defopt
 
 @defopt native-comp-async-query-on-exit
