@@ -360,10 +360,10 @@ Return argument is of the form (\"HOLDER\" \"YEAR1\" ... \"YEARN\")"
   "Split up an email address X into full name and real email address.
 The value is a cons of the form (FULLNAME . ADDRESS)."
   (cond ((string-match "\\(.+\\) [(<]\\(\\S-+@\\S-+\\)[>)]" x)
-	 (cons (match-string 1 x)
+	 (cons (string-trim-right (match-string 1 x))
 	       (match-string 2 x)))
 	((string-match "\\(\\S-+@\\S-+\\) [(<]\\(.*\\)[>)]" x)
-	 (cons (match-string 2 x)
+	 (cons (string-trim-right (match-string 2 x))
 	       (match-string 1 x)))
 	((string-match "\\S-+@\\S-+" x)
 	 (cons nil x))
