@@ -1337,4 +1337,33 @@ Doubling the prefix separates the letter and prefix. --a -> -a
  ("``"  ["`"])
  )
 
+(quail-define-package
+ "lakota-slo-prefix" "Lakota" "SLO " t
+ "Suggested Lakota Orthography input method with prefix modifier.
+To add stress to a vowel, simply type the single quote ' before the vowel.
+The glottal stop is produced by repeating the ' character.  All other
+characters are bound to a single key.  Mitákuyepi philámayayapi ló."
+nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ;; accented vowels
+ ("'a" ?á) ("'A" ?Á)
+ ("'e" ?é) ("'E" ?É)
+ ("'i" ?í) ("'I" ?Í)
+ ("'o" ?ó) ("'O" ?Ó)
+ ("'u" ?ú) ("'U" ?Ú)
+
+ ;; consonants with caron
+ ("c" ?č) ("C" ?Č)
+ ("j" ?ȟ) ("J" ?Ȟ)
+ ("q" ?ǧ) ("Q" ?Ǧ)
+ ("x" ?ž) ("X" ?Ž)
+ ("r" ?š) ("R" ?Š)
+
+ ;; velar nasal n
+ ("f" ?ŋ)
+
+ ;; glottal stop
+ ("''" ?’))
+
 ;;; latin-pre.el ends here

@@ -1298,6 +1298,64 @@ Doubling the postfix separates the letter and postfix: e.g. a\\=`\\=` -> a\\=`
  ("a__" ["a_"])
  )
 
+;; Input modes of various orthographies for the Lakota language.
+;; I'd like to acknowledge the elders and ancestors who fought
+;; to keep the language and culture alive.
+;; Grant Shangreaux <grant@churls.world> 2021-05-23
+
+(quail-define-package
+ "lakota-white-hat-postfix" "Lakota" "Lak " t
+ "Lakota White Hat orthography input method with postfix modifiers.
+The `f' key produces the nasal ŋ while unused letters `r' and `v' add
+the combining dot above and macron diacritics respectively.  This allows
+production of all the consonants:
+
+cv -> c̄    hr -> ḣ    pv -> p̄    tv -> t̄
+cr -> ċ    kv -> k̄    pr -> ṗ    tr -> ṫ
+gr -> ġ    kr -> k̇    sr -> ṡ    zr -> ż
+
+The glottal stop is produced by repeating the ' character.  This orthography
+does not use stress diacritics on vowels. Mit̄ak̄uyep̄i p̄ilamayayap̄ilo."
+nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("f" ?ŋ)
+ ("''" ?’)
+ ;; using hex representation as these characters combine with the ? syntax
+ ("r" #x307)                            ; COMBINING DOT ABOVE
+ ("v" #x304))                            ; COMBINING MACRON
+
+
+
+(quail-define-package
+ "lakota-slo-postfix" "Lakota" "SLO " t
+ "Suggested Lakota Orthography input method with postfix modifier.
+To add stress to a vowel, simply type the single quote ' after the vowel.
+The glottal stop is produced by repeating the ' character.  All other
+characters are bound to a single key.  Mitákuyepi philámayayapi ló."
+nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ;; accented vowels
+ ("a'" ?á) ("A'" ?Á)
+ ("e'" ?é) ("E'" ?É)
+ ("i'" ?í) ("I'" ?Í)
+ ("o'" ?ó) ("O'" ?Ó)
+ ("u'" ?ú) ("U'" ?Ú)
+
+ ;; consonants with caron
+ ("c" ?č) ("C" ?Č)
+ ("j" ?ȟ) ("J" ?Ȟ)
+ ("q" ?ǧ) ("Q" ?Ǧ)
+ ("x" ?ž) ("X" ?Ž)
+ ("r" ?š) ("R" ?Š)
+
+ ;; velar nasal n
+ ("f" ?ŋ)
+
+ ;; glottal stop
+ ("''" ?’))
+
 (quail-define-package
  "norwegian-postfix" "Latin-1" "NO<" t
  "Norwegian (Norsk) input method (rule: AE->Æ   OE->Ø   AA->Å   E\\='->É
