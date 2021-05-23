@@ -1823,6 +1823,9 @@ ones. PREFIX is for internal use and should not be used."
                 (setq bindings
                       (append bindings
                               (which-key--get-keymap-bindings def t key))))
+               ((and def (consp def))
+                (cl-pushnew (cons key-desc (car def))
+                            bindings :test (lambda (a b) (string= (car a) (car b)))))
                (t
                 (when def
                   (cl-pushnew
