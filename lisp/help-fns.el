@@ -126,38 +126,40 @@ with the current prefix.  The files are chosen according to
   :group 'help
   :version "26.3")
 
-(defun help--symbol-completion-table-affixation (completions)
-  (mapcar (lambda (c)
-            (let* ((s (intern c))
-                   (doc (condition-case nil (documentation s) (error nil)))
-                   (doc (and doc (substring doc 0 (string-match "\n" doc)))))
-              (list c (propertize
-                       (concat (cond ((commandp s)
-                                      "c") ; command
-                                     ((eq (car-safe (symbol-function s)) 'macro)
-                                      "m") ; macro
-                                     ((fboundp s)
-                                      "f") ; function
-                                     ((custom-variable-p s)
-                                      "u") ; user option
-                                     ((boundp s)
-                                      "v") ; variable
-                                     ((facep s)
-                                      "a") ; fAce
-                                     ((and (fboundp 'cl-find-class)
-                                           (cl-find-class s))
-                                      "t")  ; CL type
-                                     (" ")) ; something else
-                               " ")         ; prefix separator
-                       'face 'completions-annotations)
-                    (if doc (propertize (format " -- %s" doc)
-                                        'face 'completions-annotations)
-                      ""))))
-          completions))
+(defun help--symbol-completion-table-annotation (completion)
+  (let* ((s (intern completion))
+         (doc (ignore-errors (documentation s)))
+         (doc (and doc (substring doc 0 (string-match "\n" doc))))
+         (annotation (and doc
+                          (propertize (format " -- %s" doc)
+                                      'face 'completions-annotations))))
+    (when annotation
+      (propertize
+       annotation
+       'prefix (propertize
+                (concat (cond ((commandp s)
+                               "c") ; command
+                              ((eq (car-safe (symbol-function s)) 'macro)
+                               "m") ; macro
+                              ((fboundp s)
+                               "f") ; function
+                              ((custom-variable-p s)
+                               "u") ; user option
+                              ((boundp s)
+                               "v") ; variable
+                              ((facep s)
+                               "a") ; fAce
+                              ((and (fboundp 'cl-find-class)
+                                    (cl-find-class s))
+                               "t")  ; CL type
+                              (" ")) ; something else
+                        " ")         ; prefix separator
+                'face 'completions-annotations)
+       'suffix annotation))))
 
 (defun help--symbol-completion-table (string pred action)
   (if (and completions-detailed (eq action 'metadata))
-      '(metadata (affixation-function . help--symbol-completion-table-affixation))
+      '(metadata (annotation-function . help--symbol-completion-table-annotation))
     (when help-enable-completion-autoload
       (let ((prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
         (help--load-prefixes prefixes)))

@@ -1927,21 +1927,25 @@ completion behavior is overridden.  @xref{Completion Variables}.
 @item annotation-function
 The value should be a function for @dfn{annotating} completions.  The
 function should take one argument, @var{string}, which is a possible
-completion.  It should return a string, which is displayed after the
-completion @var{string} in the @file{*Completions*} buffer.
-Unless this function puts own face on the annotation suffix string,
-the @code{completions-annotations} face is added by default to
-that string.
+completion.  It may return a string, which is meant to be displayed
+along with @var{string} in the settings such as the
+@file{*Completions*}.  If the returned is propertized with strings for
+the @code{prefix} or @code{suffix} text properties (@pxref{Text
+Properties}), those properties function as more specific hints of how
+to display.  Unless this function puts own face on the annotation
+strings, the @code{completions-annotations} face is added by default
+to them.
 
 @item affixation-function
-The value should be a function for adding prefixes and suffixes to
-completions.  The function should take one argument,
-@var{completions}, which is a list of possible completions.  It should
-return such a list of @var{completions} where each element contains a list
-of three elements: a completion, a prefix which is displayed before
-the completion string in the @file{*Completions*} buffer, and
-a suffix displayed after the completion string.  This function
-takes priority over @code{annotation-function}.
+This function does exactly the same as @code{annotation-function} but
+takes priority over it and uses a different protocol.  The value
+should be a function for adding prefixes and suffixes to completions.
+The function should take one argument, @var{completions}, which is a
+list of possible completions.  It should return such a list of
+@var{completions} where each element contains a list of three
+elements: a completion, a prefix which is displayed before the
+completion string in the @file{*Completions*} buffer, and a suffix
+displayed after the completion string.
 
 @item group-function
 The value should be a function for grouping the completion candidates.

@@ -2004,7 +2004,7 @@ This function uses the `read-extended-command-predicate' user option."
        (lambda (string pred action)
          (if (and suggest-key-bindings (eq action 'metadata))
 	     '(metadata
-	       (affixation-function . read-extended-command--affixation)
+	       (annotation-function . read-extended-command--annotation)
 	       (category . command))
            (let ((pred
                   (if (memq action '(nil t))
@@ -2093,25 +2093,24 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
     (and (get-text-property (point) 'button)
          (eq (get-text-property (point) 'category) category))))
 
-(defun read-extended-command--affixation (command-names)
+(defun read-extended-command--annotation (command-name)
+  ;; why is this `with-selected-window' here?
   (with-selected-window (or (minibuffer-selected-window) (selected-window))
-    (mapcar
-     (lambda (command-name)
-       (let* ((fun (and (stringp command-name) (intern-soft command-name)))
-              (binding (where-is-internal fun overriding-local-map t))
-              (obsolete (get fun 'byte-obsolete-info))
-              (alias (symbol-function fun))
-              (suffix (cond ((symbolp alias)
-                             (format " (%s)" alias))
-                            (obsolete
-                             (format " (%s)" (car obsolete)))
-                            ((and binding (not (stringp binding)))
-                             (format " (%s)" (key-description binding)))
-                            (t ""))))
-         (put-text-property 0 (length suffix)
-                            'face 'completions-annotations suffix)
-         (list command-name "" suffix)))
-     command-names)))
+    (let* ((fun (and (stringp command-name) (intern-soft command-name)))
+           (binding (where-is-internal fun overriding-local-map t))
+           (obsolete (get fun 'byte-obsolete-info))
+           (alias (symbol-function fun))
+           (annotation (cond ((symbolp alias)
+                              (format " (%s)" alias))
+                             (obsolete
+                              (format " (%s)" (car obsolete)))
+                             ((and binding (not (stringp binding)))
+                              (format " (%s)" (key-description binding)))
+                             (t ""))))
+      (put-text-property 0 (length annotation)
+                         'face 'completions-annotations annotation)
+      (when annotation
+        (propertize annotation 'prefix "" 'suffix annotation)))))
 
 (defcustom suggest-key-bindings t
   "Non-nil means show the equivalent key-binding when M-x command has one.

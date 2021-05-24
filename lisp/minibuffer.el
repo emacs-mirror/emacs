@@ -2251,11 +2251,20 @@ variables.")
                               (funcall aff-fun completions)))
                        (ann-fun
                         (setq completions
-                              (mapcar (lambda (s)
-                                        (let ((ann (funcall ann-fun s)))
-                                          (if ann (list s ann) s)))
-                                      completions))))
-
+                              (mapcar
+                               (lambda (s)
+                                 (let* ((ann (funcall ann-fun s))
+                                        (prefix-hint
+                                         (and ann
+                                              (get-text-property 0 'prefix ann)))
+                                        (suffix-hint
+                                         (and ann
+                                              (get-text-property 0 'suffix ann))))
+                                   (cond (prefix-hint
+                                          (list s prefix-hint (or suffix-hint "")))
+                                         (ann (list s ann))
+                                         (t s))))
+                               completions))))
                       (with-current-buffer standard-output
                         (setq-local completion-base-position
                              (list (+ start base-size)
