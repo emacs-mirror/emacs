@@ -7945,6 +7945,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 
 	       ;; Make a .trashinfo file.  Use O_EXCL, as per trash-spec 1.0.
 	       (let* ((files-base (file-name-nondirectory fn))
+                      (is-directory (file-directory-p fn))
                       (overwrite nil)
                       info-fn)
                  ;; We're checking further down whether the info file
@@ -7956,7 +7957,8 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
                          files-base (file-name-nondirectory
                                      (make-temp-file
                                       (expand-file-name
-                                       files-base trash-files-dir)))))
+                                       files-base trash-files-dir)
+                                      is-directory))))
 		 (setq info-fn (expand-file-name
 				(concat files-base ".trashinfo")
 				trash-info-dir))
