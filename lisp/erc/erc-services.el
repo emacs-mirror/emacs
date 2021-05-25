@@ -197,7 +197,7 @@ Example of use:
 			(const GalaxyNet)
 			(const GRnet)
 			(const iip)
-                        (const Libera)
+                        (const Libera.Chat)
 			(const OFTC)
 			(const QuakeNet)
 			(const Rizon)
@@ -265,8 +265,8 @@ Example of use:
      "type\\s-/squery\\s-Trent\\s-identify\\s-<password>"
      "Trent@anon.iip"
      "IDENTIFY" nil "SQUERY" nil)
-    (Libera
-     "NickServ!NickServ@services."
+    (Libera.Chat
+     "NickServ!NickServ@services.libera.chat"
      ;; Libera.Chat also accepts a password at login, see the `erc'
      ;; :password argument.
      "This\\s-nickname\\s-is\\s-registered.\\s-Please\\s-choose"
