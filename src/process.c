@@ -8495,10 +8495,13 @@ The variable takes effect when `start-process' is called.  */);
   Vprocess_adaptive_read_buffering = Qt;
 
   DEFVAR_BOOL ("process-prioritize-lower-fds", process_prioritize_lower_fds,
-	       doc: /* If nil, try to not prioritize reading from any specific process.
-Emacs loops through file descriptors to receive data from subprocesses.  After
-accepting output from the first file descriptor with available data, restart the
-loop from the file descriptor 0 if this option is non-nil.  */);
+	       doc: /* Whether to start checking for subprocess output from first file descriptor.
+Emacs loops through file descriptors to check for output from subprocesses.
+If this variable is nil, the default, then after accepting output from a
+subprocess, Emacs will continue checking the rest of descriptors, starting
+from the one following the descriptor it just read.  If this variable is
+non-nil, Emacs will always restart the loop from the first file descriptor,
+thus favoring processes with lower descriptors.  */);
   process_prioritize_lower_fds = 0;
 
   DEFVAR_LISP ("interrupt-process-functions", Vinterrupt_process_functions,
