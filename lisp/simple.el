@@ -1661,6 +1661,7 @@ in *Help* buffer.  See also the command `describe-char'."
     (define-key m "\t" 'completion-at-point)
     (define-key m "\r" 'read--expression-try-read)
     (define-key m "\n" 'read--expression-try-read)
+    (define-key m "\M-g\M-c" 'read-expression-switch-to-completions)
     (set-keymap-parent m minibuffer-local-map)
     m))
 
@@ -8848,7 +8849,7 @@ makes it easier to edit it."
     (define-key map "z" 'kill-current-buffer)
     (define-key map "n" 'next-completion)
     (define-key map "p" 'previous-completion)
-    (define-key map "\M-g" 'switch-to-minibuffer)
+    (define-key map "\M-g\M-c" 'switch-to-minibuffer)
     map)
   "Local map for completion list buffers.")
 
@@ -9137,6 +9138,12 @@ select the completion near point.\n\n"))))))
       ;; FIXME: Perhaps this should be done in `minibuffer-completion-help'.
       (when (bobp)
 	(next-completion 1)))))
+
+(defun read-expression-switch-to-completions ()
+  "Select the completion list window while reading an expression."
+  (interactive)
+  (completion-help-at-point)
+  (switch-to-completions))
 
 (defun switch-to-minibuffer ()
   "Select the minibuffer window."
