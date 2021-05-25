@@ -8834,6 +8834,8 @@ makes it easier to edit it."
 
 (defvar completion-list-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
+    (define-key map "g" nil) ;; There's nothing to revert from.
     (define-key map [mouse-2] 'choose-completion)
     (define-key map [follow-link] 'mouse-face)
     (define-key map [down-mouse-2] nil)
@@ -8843,8 +8845,10 @@ makes it easier to edit it."
     (define-key map [right] 'next-completion)
     (define-key map [?\t] 'next-completion)
     (define-key map [backtab] 'previous-completion)
-    (define-key map "q" 'quit-window)
     (define-key map "z" 'kill-current-buffer)
+    (define-key map "n" 'next-completion)
+    (define-key map "p" 'previous-completion)
+    (define-key map "\M-g" 'switch-to-minibuffer)
     map)
   "Local map for completion list buffers.")
 
@@ -9133,6 +9137,12 @@ select the completion near point.\n\n"))))))
       ;; FIXME: Perhaps this should be done in `minibuffer-completion-help'.
       (when (bobp)
 	(next-completion 1)))))
+
+(defun switch-to-minibuffer ()
+  "Select the minibuffer window."
+  (interactive)
+  (when (active-minibuffer-window)
+    (select-window (active-minibuffer-window))))
 
 ;;; Support keyboard commands to turn on various modifiers.
 
