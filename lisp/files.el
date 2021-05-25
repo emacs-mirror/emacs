@@ -4359,6 +4359,9 @@ Return the new class name, which is a symbol named DIR."
                      (let ((read-circle nil))
                        (read (current-buffer)))
                    (end-of-file nil))))
+            (unless (listp newvars)
+              (message "Invalid data in %s: %s" file newvars)
+              (setq newvars nil))
             (setq variables
                   ;; Try and avoid loading `map' since that also loads cl-lib
                   ;; which then might hamper bytecomp warnings (bug#30635).
