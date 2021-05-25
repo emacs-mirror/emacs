@@ -268,32 +268,18 @@
        ;; The byte-code will be really inlined in byte-compile-unfold-bcf.
        `(,fn ,@(cdr form)))
       ((or `(lambda . ,_) `(closure . ,_))
-       (if (not (or (eq fn localfn)     ;From the same file => same mode.
-                    (eq (car fn)        ;Same mode.
-                        (if lexical-binding 'closure 'lambda))))
-           ;; While byte-compile-unfold-bcf can inline dynbind byte-code into
-           ;; letbind byte-code (or any other combination for that matter), we
-           ;; can only inline dynbind source into dynbind source or letbind
-           ;; source into letbind source.
-           (progn
-             ;; We can of course byte-compile the inlined function
-             ;; first, and then inline its byte-code.
-             (byte-compile name)
-             `(,(symbol-function name) ,@(cdr form)))
-         (let ((newfn (if (eq fn localfn)
-                          ;; If `fn' is from the same file, it has already
-                          ;; been preprocessed!
-                          `(function ,fn)
-                        ;; Try and process it "in its original environment".
-                        (let ((byte-compile-bound-variables nil))
-                          (byte-compile-preprocess
-                           (byte-compile--reify-function fn))))))
-           (if (eq (car-safe newfn) 'function)
-               (macroexp--unfold-lambda `(,(cadr newfn) ,@(cdr form)))
-             ;; This can happen because of macroexp-warn-and-return &co.
-             (byte-compile-warn
-              "Inlining closure %S failed" name)
-             form))))
+       (if (eq fn localfn)     ;From the same file => same mode.
+           (macroexp--unfold-lambda `(,fn ,@(cdr form)))
+         ;; While byte-compile-unfold-bcf can inline dynbind byte-code into
+         ;; letbind byte-code (or any other combination for that matter), we
+         ;; can only inline dynbind source into dynbind source or letbind
+         ;; source into letbind source.
+         ;; We can of course byte-compile the inlined function
+         ;; first, and then inline its byte-code.  This also has the advantage
+         ;; that the final code does not depend on the order of compilation
+         ;; of ELisp files, making the build more reproducible.
+         (byte-compile name)
+         `(,(symbol-function name) ,@(cdr form))))
 
       (_ ;; Give up on inlining.
        form))))
@@ -369,7 +355,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
   ;; to   `(if . (or `(,exp ,then ,else) pcase--dontcare))'.
   ;;
   ;; The resulting macroexpansion is also significantly cleaner/smaller/faster.
-  (declare (indent 1) (debug (form &rest (pcase-PAT body))))
+  (declare (indent 1) (debug pcase))
   `(pcase ,exp
      . ,(mapcar (lambda (case)
                   `(,(pcase (car case)
