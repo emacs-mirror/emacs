@@ -2179,20 +2179,21 @@ Optional arg HOW-TO determines how to treat the target.
           (error "%s: Target directory does not exist: %s" operation target))
       ;; rename-file bombs when moving directories unless we do this:
       (or into-dir (setq target (directory-file-name target)))
-      (dired-create-files
-       file-creator operation fn-list
-       (if into-dir			; target is a directory
-	   ;; This function uses fluid variable target when called
-	   ;; inside dired-create-files:
-	   (lambda (from)
-	     (expand-file-name (file-name-nondirectory from) target))
-	 (lambda (_from) target))
-       marker-char)
-      (when (or (eq dired-do-revert-buffer t)
-                (and (functionp dired-do-revert-buffer)
-                     (funcall dired-do-revert-buffer target)))
-        (dired-fun-in-all-buffers (file-name-directory target) nil
-                                  #'revert-buffer)))))
+      (prog1
+          (dired-create-files
+           file-creator operation fn-list
+           (if into-dir			; target is a directory
+	       ;; This function uses fluid variable target when called
+	       ;; inside dired-create-files:
+	       (lambda (from)
+	         (expand-file-name (file-name-nondirectory from) target))
+	     (lambda (_from) target))
+           marker-char)
+        (when (or (eq dired-do-revert-buffer t)
+                  (and (functionp dired-do-revert-buffer)
+                       (funcall dired-do-revert-buffer target)))
+          (dired-fun-in-all-buffers (file-name-directory target) nil
+                                    #'revert-buffer))))))
 
 ;; Read arguments for a marked-files command that wants a file name,
 ;; perhaps popping up the list of marked files.
