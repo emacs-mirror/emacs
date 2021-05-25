@@ -3107,7 +3107,8 @@ on encoding."
 (defun mule--ucs-names-group (name transform)
   (if transform
       name
-    (let ((script (aref char-script-table (gethash name ucs-names))))
+    (let* ((char (gethash name ucs-names))
+           (script (and char (aref char-script-table char))))
       (if script (symbol-name script) "ungrouped"))))
 
 (defun char-from-name (string &optional ignore-case)
