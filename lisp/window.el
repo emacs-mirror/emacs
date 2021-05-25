@@ -10055,6 +10055,9 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
                 ;; already selected.
                 (and (not (eq frame (selected-frame)))
                      (frame-parameter frame 'no-accept-focus))
+                ;; Don't switch if window autoselection with mouse is active
+                ;; and minibuffer window is selected.
+                (and mouse-autoselect-window (window-minibuffer-p))
                 ;; Don't switch to minibuffer window unless it's active.
                 (and (window-minibuffer-p window)
                      (not (minibuffer-window-active-p window))))
