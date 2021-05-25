@@ -716,7 +716,30 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
                           (safe-length completion-all-sorted-completions))))))
               (overlay-put icomplete-overlay 'after-string text))))))))
 
-(cl-defun icomplete--render-vertical (comps &aux scroll-above scroll-below)
+(defun icomplete--affixate (md prospects)
+  "Affixate PROSPECTS given completion metadata MD.
+Return a list of (COMP PREFIX SUFFIX)."
+  (let ((aff-fun (or (completion-metadata-get md 'affixation-function)
+                     (plist-get completion-extra-properties :affixation-function)))
+        (ann-fun (or (completion-metadata-get md 'annotation-function)
+                     (plist-get completion-extra-properties :annotation-function))))
+    (cond (aff-fun
+           (funcall aff-fun prospects))
+          (ann-fun
+           (mapcar
+            (lambda (comp)
+              (let ((suffix (or (funcall ann-fun comp) "")))
+                (list comp ""
+                      ;; The default completion UI adds the
+                      ;; `completions-annotations' face if no
+                      ;; other faces are present.
+                      (if (text-property-not-all 0 (length suffix) 'face nil suffix)
+                          suffix
+                        (propertize suffix 'face 'completions-annotations)))))
+            prospects))
+          (prospects))))
+
+(cl-defun icomplete--render-vertical (comps md &aux scroll-above scroll-below)
   ;; Welcome to loopapalooza!
   ;;
   ;; First, be mindful of `icomplete-scroll' and manual scrolls.  If
@@ -768,14 +791,32 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
            finally (setq scroll-below scroll-below-aux))
   ;; Now figure out spacing and layout
   ;;
-  (let ((selected (substring (car comps))))
-    (add-face-text-property 0 (length selected)
-                            'icomplete-selected-match 'append selected)
-    (concat " " icomplete-separator
-            (mapconcat
-             #'identity
-             (nconc scroll-above (list selected) scroll-below)
-             icomplete-separator))))
+  (cl-loop
+   with selected = (substring (car comps))
+   initially (add-face-text-property 0 (length selected)
+                                     'icomplete-selected-match 'append selected)
+   with torender = (nconc scroll-above (list selected) scroll-below)
+   with triplets = (icomplete--affixate md torender)
+   initially (when (eq triplets torender)
+               (cl-return-from icomplete--render-vertical
+                 (concat
+                  " \n"
+                  (mapconcat #'identity torender icomplete-separator))))
+   for (comp prefix) in triplets
+   maximizing (length prefix) into max-prefix-len
+   maximizing (length comp) into max-comp-len
+   finally return
+   ;; Finally, render
+   ;;
+   (concat
+    " \n"
+    (cl-loop for (comp prefix suffix) in triplets
+             concat prefix
+             concat (make-string (- max-prefix-len (length prefix)) ? )
+             concat comp
+             concat (make-string (- max-comp-len (length comp)) ? )
+             concat suffix
+             concat icomplete-separator))))
 
 ;;;_ > icomplete-completions (name candidates predicate require-match)
 (defun icomplete-completions (name candidates predicate require-match)
@@ -821,7 +862,7 @@ matches exist."
 	(progn ;;(debug (format "Candidates=%S field=%S" candidates name))
 	  (format " %sNo matches%s" open-bracket close-bracket))
       (if icomplete-vertical-mode
-	  (icomplete--render-vertical comps)
+	  (icomplete--render-vertical comps md)
         (let* ((last (if (consp comps) (last comps)))
                ;; Save the "base size" encoded in `comps' then
                ;; removing making `comps' a proper list.
