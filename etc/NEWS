@@ -2705,6 +2705,13 @@ the Emacs Lisp reference manual for background.
 
 * Lisp Changes in Emacs 28.1
 
+---
+** New variable 'process-prioritize-lower-fds'.
+When looping through file descriptors to handle subprocess output, try
+to continue from where the previous loop left off instead of always
+beginning from file descriptor zero.  Set this variable to t to get
+the old behaviour.
+
 +++
 ** New function 'sxhash-equal-including-properties'.
 This is identical to 'sxhash-equal' but accounting also for string

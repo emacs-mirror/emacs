@@ -5134,6 +5134,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     Lisp_Object wait_for_cell,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
+  static int last_read_channel = -1;
   int channel, nfds;
   fd_set Available;
   fd_set Writeok;
@@ -5188,6 +5189,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   while (1)
     {
       bool process_skipped = false;
+      bool wrapped;
+      int channel_start;
 
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
@@ -5722,8 +5725,21 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
             d->func (channel, d->data);
 	}
 
-      for (channel = 0; channel <= max_desc; channel++)
+      /* Do round robin if `process-pritoritize-lower-fds' is nil. */
+      channel_start
+	= process_prioritize_lower_fds ? 0 : last_read_channel + 1;
+
+      for (channel = channel_start, wrapped = false;
+	   !wrapped || (channel < channel_start && channel <= max_desc);
+	   channel++)
 	{
+	  if (channel > max_desc)
+	    {
+	      wrapped = true;
+	      channel = -1;
+	      continue;
+	    }
+
 	  if (FD_ISSET (channel, &Available)
 	      && ((fd_callback_info[channel].flags & (KEYBOARD_FD | PROCESS_FD))
 		  == PROCESS_FD))
@@ -5761,6 +5777,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		     don't try to read from any other processes
 		     before doing the select again.  */
 		  FD_ZERO (&Available);
+		  last_read_channel = channel;
 
 		  if (do_display)
 		    redisplay_preserve_echo_area (12);
@@ -8476,6 +8493,13 @@ If the value is t, the delay is reset after each write to the process; any other
 non-nil value means that the delay is not reset on write.
 The variable takes effect when `start-process' is called.  */);
   Vprocess_adaptive_read_buffering = Qt;
+
+  DEFVAR_BOOL ("process-prioritize-lower-fds", process_prioritize_lower_fds,
+	       doc: /* If nil, try to not prioritize reading from any specific process.
+Emacs loops through file descriptors to receive data from subprocesses.  After
+accepting output from the first file descriptor with available data, restart the
+loop from the file descriptor 0 if this option is non-nil.  */);
+  process_prioritize_lower_fds = 0;
 
   DEFVAR_LISP ("interrupt-process-functions", Vinterrupt_process_functions,
 	       doc: /* List of functions to be called for `interrupt-process'.
