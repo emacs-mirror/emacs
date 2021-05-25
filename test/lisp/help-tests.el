@@ -110,13 +110,18 @@ C-<tab>		file-cache-minibuffer-complete
 <prior>		switch-to-completions
 <up>		previous-line-or-history-element
 
+M-g		Prefix Command
 M-v		switch-to-completions
+
+M-g ESC		Prefix Command
 
 M-<		minibuffer-beginning-of-buffer
 M-n		next-history-element
 M-p		previous-history-element
 M-r		previous-matching-history-element
 M-s		next-matching-history-element
+
+M-g M-c		switch-to-completions
 
 ")))
 
