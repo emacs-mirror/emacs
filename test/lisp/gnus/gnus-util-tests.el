@@ -132,41 +132,4 @@
   (should (equal '("1") (gnus-setdiff '(2 "1" 2) '(2))))
   (should (equal '("1" "1") (gnus-setdiff '(2 "1" 2 "1") '(2)))))
 
-(ert-deftest gnus-base64-repad ()
-  (should-error (gnus-base64-repad 1)
-                :type 'wrong-type-argument)
-
-  ;; RFC4648 test vectors
-  (should (equal "" (gnus-base64-repad "")))
-  (should (equal "Zg==" (gnus-base64-repad "Zg==")))
-  (should (equal "Zm8=" (gnus-base64-repad "Zm8=")))
-  (should (equal "Zm9v" (gnus-base64-repad "Zm9v")))
-  (should (equal "Zm9vYg==" (gnus-base64-repad "Zm9vYg==")))
-  (should (equal "Zm9vYmE=" (gnus-base64-repad "Zm9vYmE=")))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9vYmFy")))
-
-  (should (equal "Zm8=" (gnus-base64-repad "Zm8")))
-  (should (equal "Zg==" (gnus-base64-repad "Zg")))
-  (should (equal "Zg==" (gnus-base64-repad "Zg====")))
-
-  (should-error (gnus-base64-repad " ")
-                :type 'error)
-  (should-error (gnus-base64-repad "Zg== ")
-                :type 'error)
-  (should-error (gnus-base64-repad "Z?\x00g==")
-                :type 'error)
-  ;; line-length
-  (should-error (gnus-base64-repad "Zg====" nil 4)
-                :type 'error)
-  ;; reject-newlines
-  (should-error (gnus-base64-repad "Zm9v\r\nYmFy" t)
-                :type 'error)
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9vYmFy" t)))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\nYmFy")))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\nYmFy\n")))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\n YmFy\r\n")))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v \r\n\tYmFy")))
-  (should-error (gnus-base64-repad "Zm9v\r\nYmFy" nil 3)
-                :type 'error))
-
 ;;; gnustest-gnus-util.el ends here
