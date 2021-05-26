@@ -2777,7 +2777,9 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                    (eglot--glob-compile globPattern t t))
                  watchers))
          (dirs-to-watch
-          (eglot--directories-recursively default-directory)))
+          (delete-dups (mapcar #'file-name-directory
+                               (project-files
+                                (eglot--project server))))))
     (cl-labels
         ((handle-event
           (event)
@@ -2877,15 +2879,6 @@ If NOERROR, return predicate, else erroring function."
 (defun eglot--glob-emit-range (arg self next)
   (when (eq ?! (aref arg 1)) (aset arg 1 ?^))
   `(,self () (re-search-forward ,(concat "\\=" arg)) (,next)))
-
-(defun eglot--directories-recursively (&optional dir)
-  "Because `directory-files-recursively' isn't complete in 26.3."
-  (cons (setq dir (expand-file-name (or dir default-directory)))
-        (cl-loop with default-directory = dir
-                 with completion-regexp-list = '("^[^.]")
-                 for f in (file-name-all-completions "" dir)
-                 if (and (file-directory-p f) (not (string= "node_modules/" f)))
-                 append (eglot--directories-recursively f))))
 
 
 ;;; Rust-specific
