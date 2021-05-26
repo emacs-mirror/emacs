@@ -361,6 +361,23 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 	  chars = end - i;
 	  bytes = string_char_to_byte (string, end) - i_byte;
 	}
+      else if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
+	       && ! NILP (Vauto_composition_mode)
+	       && find_automatic_composition (i, -1, &ignore, &end, &val, string)
+	       && end > i)
+	{
+	  int j;
+	  for (thiswidth = 0, j = 0; j < LGSTRING_GLYPH_LEN (val); j++)
+	    {
+	      Lisp_Object g = LGSTRING_GLYPH (val, j);
+
+	      if (NILP (g))
+		break;
+	      thiswidth += char_width (LGLYPH_CHAR (g), dp);
+	    }
+	  chars = end - i;
+	  bytes = string_char_to_byte (string, end) - i_byte;
+	}
       else
 	{
 	  int c;

@@ -953,8 +953,12 @@ char_composable_p (int c)
   Lisp_Object val;
   return (c >= ' '
 	  && (c == ZERO_WIDTH_NON_JOINER || c == ZERO_WIDTH_JOINER
-	      || (val = CHAR_TABLE_REF (Vunicode_category_table, c),
-		  (FIXNUMP (val) && (XFIXNUM (val) <= UNICODE_CATEGORY_Zs)))));
+	      /* unicode-category-table may not be available during
+		 dumping.  */
+	      || (CHAR_TABLE_P (Vunicode_category_table)
+		  && (val = CHAR_TABLE_REF (Vunicode_category_table, c),
+		      (FIXNUMP (val)
+		       && (XFIXNUM (val) <= UNICODE_CATEGORY_Zs))))));
 }
 
 /* Update cmp_it->stop_pos to the next position after CHARPOS (and
@@ -1475,7 +1479,7 @@ struct position_record
    representing the composition, and return true.  Otherwise, *GSTRING to
    Qnil, and return false.  */
 
-static bool
+bool
 find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
 			    ptrdiff_t *start, ptrdiff_t *end,
 			    Lisp_Object *gstring, Lisp_Object string)
