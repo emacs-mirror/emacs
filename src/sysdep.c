@@ -3626,7 +3626,7 @@ system_process_attributes (Lisp_Object pid)
   ttyname = proc.ki_tdev == NODEV ? NULL : devname (proc.ki_tdev, S_IFCHR);
   unblock_input ();
   if (ttyname)
-    attrs = Fcons (Fcons (Qtty, build_string (ttyname)), attrs);
+    attrs = Fcons (Fcons (Qttname, build_string (ttyname)), attrs);
 
   attrs = Fcons (Fcons (Qtpgid,   INT_TO_INTEGER (proc.ki_tpgid)), attrs);
   attrs = Fcons (Fcons (Qminflt,  INT_TO_INTEGER (proc.ki_rusage.ru_minflt)),
