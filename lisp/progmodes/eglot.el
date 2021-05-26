@@ -2884,7 +2884,7 @@ If NOERROR, return predicate, else erroring function."
         (cl-loop with default-directory = dir
                  with completion-regexp-list = '("^[^.]")
                  for f in (file-name-all-completions "" dir)
-                 if (file-directory-p f)
+                 if (and (file-directory-p f) (not (string= "node_modules/" f)))
                  append (eglot--directories-recursively f))))
 
 
