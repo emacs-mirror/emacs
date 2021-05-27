@@ -394,9 +394,12 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 				 SBYTES (default_font))))
 		{
 		  Lisp_Object font_info = Ffont_info (default_font, Qnil);
-		  font_width = XFIXNUM (AREF (font_info, 11));
-		  if (font_width <= 0)
-		    font_width = XFIXNUM (AREF (font_info, 10));
+		  if (VECTORP (font_info))
+		    {
+		      font_width = XFIXNUM (AREF (font_info, 11));
+		      if (font_width <= 0)
+			font_width = XFIXNUM (AREF (font_info, 10));
+		    }
 		}
 	    }
 	  thiswidth = (double) pixelwidth / font_width + 0.5;
