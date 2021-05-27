@@ -154,9 +154,9 @@ Client arenas
       ``sizeof(void *)``. Larger granularity reduces overheads, but
       increases :term:`fragmentation` and :term:`retention`.
 
-    * :c:macro:`MPS_KEY_PAUSE_TIME` (type :c:type:`double`, default
-      0.1) is the maximum time, in seconds, that operations within the
-      arena may pause the :term:`client program` for. See
+    * :c:macro:`MPS_KEY_PAUSE_TIME` (type ``double``, default 0.1) is
+      the maximum time, in seconds, that operations within the arena
+      may pause the :term:`client program` for. See
       :c:func:`mps_arena_pause_time_set` for details.
 
     For example::
@@ -262,16 +262,16 @@ Virtual memory arenas
       that's smaller than the operating system page size, the MPS
       rounds it up to the page size and continues.
 
-    * :c:macro:`MPS_KEY_SPARE` (type :c:type:`double`, default 0.75)
-      is the maximum proportion of committed memory that the arena
-      will keep spare for future allocations.  If the proportion of
-      spare committed memory exceeds this, then the arena will return
-      some of it to the operating system for use by other processes.
-      See :c:func:`mps_arena_spare` for details.
+    * :c:macro:`MPS_KEY_SPARE` (type ``double``, default 0.75) is the
+      maximum proportion of committed memory that the arena will keep
+      spare for future allocations. If the proportion of spare
+      committed memory exceeds this, then the arena will return some
+      of it to the operating system for use by other processes. See
+      :c:func:`mps_arena_spare` for details.
 
-    * :c:macro:`MPS_KEY_PAUSE_TIME` (type :c:type:`double`, default
-      0.1) is the maximum time, in seconds, that operations within the
-      arena may pause the :term:`client program` for. See
+    * :c:macro:`MPS_KEY_PAUSE_TIME` (type ``double``, default 0.1) is
+      the maximum time, in seconds, that operations within the arena
+      may pause the :term:`client program` for. See
       :c:func:`mps_arena_pause_time_set` for details.
 
     A sixth optional :term:`keyword argument` may be passed, but it

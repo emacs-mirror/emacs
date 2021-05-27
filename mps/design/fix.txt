@@ -32,7 +32,7 @@ object referred to by the ref (the one that it is supposed to be
 fixing) has not previously been marked (that is, this is the first
 reference to this object that has been fixed), and that the object was
 white (that is, in condemned space), it should (but need not) set the
-field to ``FALSE`` in the passed ``ScanState````wasMarked`` .
+``wasMarked`` field to ``FALSE`` in the passed ``ScanState``.
 
 _`.was-marked.otherwise`: Otherwise, the fix method must
 leave the ``wasMarked`` field unchanged.

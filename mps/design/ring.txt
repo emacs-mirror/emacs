@@ -122,7 +122,7 @@ parent-children rings it returns the number of children.
 Iteration
 .........
 
-``RING_FOR(Ring node, Ring ring, Ring next)``
+``RING_FOR(node, ring, next)``
 
 _`.for`: A macro is used for iterating over the elements in a ring.
 This macro is called ``RING_FOR()``. ``RING_FOR()`` takes three arguments.
@@ -163,11 +163,11 @@ Element access
 
 _`.next`: ``RingNext()`` returns the next node in the ring.
 
-``Ring (RingPrev)(Ring ring)``
+``Ring RingPrev(Ring ring)``
 
 _`.prev`: ``RingPrev()`` returns the previous node in the ring.
 
-``RING_ELT(type, field, Ring node)``
+``RING_ELT(type, field, node)``
 
 _`.elt`: ``RING_ELT()`` is a macro that converts a pointer to a ring
 structure into a pointer to the enclosing parent structure.
@@ -182,17 +182,17 @@ result is a pointer to the enclosing structure.
 Append / Remove
 ...............
 
-``void RingAppend(Ring ring, Ring new)``
+``void RingAppend(ring, new)``
 
 _`.append`: ``RingAppend()`` appends a singleton ring to a ring (such
 that the newly added element will be last in the iteration sequence).
 
-``void (RingInsert)(Ring ring, Ring new)``
+``void RingInsert(Ring ring, Ring new)``
 
 _`.insert`: ``RingInsert()`` adds a singleton ring to a ring (such that
 the newly added element will be first in the iteration sequence).
 
-``void (RingRemove)(Ring old)``
+``void RingRemove(Ring old)``
 
 _`.remove`: ``RingRemove()`` removes an element from a ring. The newly
 removed element becomes a singleton ring. It is an error for the

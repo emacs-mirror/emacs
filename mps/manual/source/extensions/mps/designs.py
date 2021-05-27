@@ -34,13 +34,22 @@ TYPES = '''
 
 '''
 
+# Macros that are improperly named (not all-caps).
+MACROS = '''
+
+    ClassOfPoly CouldBeA IsA IsSubclass Method MustBeA
+    MustBeA_CRITICAL NextMethod SetClassOfPoly SuperclassPoly
+
+'''
+
 mode = re.compile(r'\.\. mode: .*\n')
 prefix = re.compile(r'^:Tag: ([a-z][a-z.0-9-]*[a-z0-9])$', re.MULTILINE)
 rst_tag = re.compile(r'^:(?:Author|Date|Status|Revision|Copyright|Organization|Format|Index terms|Readership):.*?$\n', re.MULTILINE | re.IGNORECASE)
 mps_tag = re.compile(r'_`\.([a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`:')
 mps_ref = re.compile(r'`(\.[a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`_(?:        )?')
 funcdef = re.compile(r'^``([^`]*\([^`]*\))``$', re.MULTILINE)
-macrodef = re.compile(r'^``([A-Z][A-Z0-9_]+)``$', re.MULTILINE)
+macrodef = re.compile(r'^``((?:[A-Z][A-Z0-9_]+|{})(?:\([^`]*\))?)``$'
+                      .format('|'.join(map(re.escape, MACROS.split()))), re.MULTILINE)
 macro = re.compile(r'``([A-Z][A-Z0-9_]+)``(?:       )?')
 typedef = re.compile(r'^``typedef ([^`]*)``$', re.MULTILINE) 
 func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
@@ -115,8 +124,8 @@ def convert_file(name, source, dest):
     s = mps_tag.sub(r':mps:tag:`\1`', s)
     s = mps_ref.sub(r':mps:ref:`\1`', s)
     s = typedef.sub(r'.. c:type:: \1', s)
-    s = funcdef.sub(r'.. c:function:: \1', s)
     s = macrodef.sub(r'.. c:macro:: \1', s)
+    s = funcdef.sub(r'.. c:function:: \1', s)
     s = typename.sub(r':c:type:`\1`', s)
     s = func.sub(r':c:func:`\1`', s)
     s = macro.sub(r':c:macro:`\1`', s)

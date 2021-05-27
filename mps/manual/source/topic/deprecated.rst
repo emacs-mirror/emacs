@@ -69,7 +69,7 @@ Deprecated in version 1.118
 Deprecated in version 1.115
 ...........................
 
-.. c:type:: typedef mps_pool_class_t mps_class_t
+.. c:type:: mps_pool_class_t mps_class_t
 
     .. deprecated::
 
@@ -313,7 +313,7 @@ Deprecated in version 1.115
     :c:func:`mps_root_create_reg`.
 
     ``ss`` is the :term:`scan state`. It must be passed to
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
+    :c:macro:`MPS_SCAN_BEGIN` and :c:macro:`MPS_SCAN_END` to delimit a
     sequence of fix operations, and to the functions
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
     :term:`reference`.
@@ -339,7 +339,7 @@ Deprecated in version 1.115
         :ref:`topic-scanning`.
 
 
-.. c:function:: mps_reg_scan_t mps_stack_scan_ambig
+.. c:var:: mps_reg_scan_t mps_stack_scan_ambig
 
     .. deprecated::
 
@@ -367,7 +367,7 @@ Deprecated in version 1.115
 Deprecated in version 1.113
 ...........................
 
-.. c:function:: MPS_ARGS_DONE(args)
+.. c:macro:: MPS_ARGS_DONE(args)
 
     .. deprecated::
 

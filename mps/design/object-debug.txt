@@ -342,7 +342,11 @@ fenceposts around an object. The ``NULL`` method checks tails.
 _`.interface.tags.alloc`: Two functions to extend the existing
 ``mps_alloc()`` (request.???.??? proposes to remove the varargs)
 
-``void (*mps_objects_step_t)(mps_addr_t addr, size_t size, mps_fmt_t format, mps_pool_t pool, void *tag_data, void *p)``
+``typedef void (*mps_objects_step_t)(mps_addr_t addr, size_t size, mps_fmt_t format, mps_pool_t pool, void *tag_data, void *p)``
+
+_`.interface.tags.walker.type`: Type of walker function for
+``mps_pool_walk()`` and ``mps_arena_walk()``.
+
 ``void mps_pool_walk(mps_arena_t arena, mps_pool_t pool, mps_objects_step_t step, void *p)``
 ``void mps_arena_walk(mps_arena_t arena, mps_objects_step_t step, void *p)``
 

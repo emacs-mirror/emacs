@@ -250,12 +250,12 @@ Cautions
       or calling :c:func:`longjmp`);
 
    d. call any functions or macros in the MPS other than
-      :c:func:`MPS_SCAN_BEGIN`, :c:func:`MPS_SCAN_END`,
+      :c:macro:`MPS_SCAN_BEGIN`, :c:macro:`MPS_SCAN_END`,
       :c:func:`MPS_FIX1`, :c:func:`MPS_FIX12`, :c:func:`MPS_FIX2`, and
-      :c:func:`MPS_FIX_CALL`.
+      :c:macro:`MPS_FIX_CALL`.
 
    It's permissible to call other functions in the client program, but
-   see :c:func:`MPS_FIX_CALL` for a restriction on passing the
+   see :c:macro:`MPS_FIX_CALL` for a restriction on passing the
    :term:`scan state`.
 
 #. Subject to the above constraints, format methods can freely access:
@@ -382,7 +382,7 @@ Format methods
     The type of the :term:`scan method` of an :term:`object format`.
 
     ``ss`` is the :term:`scan state`. It must be passed to
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
+    :c:macro:`MPS_SCAN_BEGIN` and :c:macro:`MPS_SCAN_END` to delimit a
     sequence of fix operations, and to the functions
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
     :term:`reference`.
