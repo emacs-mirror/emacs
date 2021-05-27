@@ -340,7 +340,7 @@ Root interface
     The type of root scanning functions for :c:func:`mps_root_create`.
 
     ``ss`` is the :term:`scan state`. It must be passed to
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
+    :c:macro:`MPS_SCAN_BEGIN` and :c:macro:`MPS_SCAN_END` to delimit a
     sequence of fix operations, and to the functions
     :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
     :term:`reference`.
