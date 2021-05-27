@@ -15,7 +15,6 @@ matrix:
 notifications:
   email:
     - mps-travis@ravenbrook.com
-  irc: "irc.freenode.net#memorypoolsystem"
 # This shows how you can ask Travis to install or update packages.
 #before_install:
 #  - if test "$TRAVIS_OS_NAME" = "linux"; then sudo apt-get -qq update; fi
