@@ -732,6 +732,86 @@ Default value of MODIFIERS is `shift-super'."
                                (windmove-swap-states-down down))))
 
 
+
+(defconst windmove--default-keybindings-type
+  `(choice (const :tag "Don't bind" nil)
+           (cons :tag "Bind using"
+                 (key-sequence :tag "Prefix")
+                 (set :tag "Modifier"
+                      :greedy t
+                      ;; See `(elisp) Keyboard Events'
+                      (const :tag "Meta" meta)
+                      (const :tag "Control" control)
+                      (const :tag "Shift" shift)
+                      (const :tag "Hyper" hyper)
+                      (const :tag "Super" super)
+                      (const :tag "Alt" alt))))
+  "Customisation type for windmove modifiers.")
+
+(defcustom windmove-default-keybindings nil
+  "Default bindings for regular windmove commands."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-left left)
+            (windmove-right right)
+            (windmove-up up)
+            (windmove-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1"
+  :group 'windmove)
+
+(defcustom windmove-display-default-keybindings nil
+  "Default bindings for display windmove commands."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-display-left left)
+            (windmove-display-right right)
+            (windmove-display-up up)
+            (windmove-display-down down)
+            (windmove-display-same-window ?0)
+            (windmove-display-new-frame ?f)
+            (windmove-display-new-tab ?t))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1"
+  :group 'windmove)
+
+(defcustom windmove-delete-default-keybindings nil
+  "Default bindings for delete windmove commands."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-delete-left left)
+            (windmove-delete-right right)
+            (windmove-delete-up up)
+            (windmove-delete-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1"
+  :group 'windmove)
+
+(defcustom windmove-swap-states-default-keybindings nil
+  "Default bindings for swap-state windmove commands."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-swap-states-left left)
+            (windmove-swap-states-right right)
+            (windmove-swap-states-up up)
+            (windmove-swap-states-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1"
+  :group 'windmove)
+
+
 (provide 'windmove)
 
 ;;; windmove.el ends here
