@@ -278,7 +278,10 @@
          ;; first, and then inline its byte-code.  This also has the advantage
          ;; that the final code does not depend on the order of compilation
          ;; of ELisp files, making the build more reproducible.
-         (byte-compile name)
+         ;; Since we are called from inside the optimiser, we need to make
+         ;; sure not to propagate lexvar values.
+         (dlet ((byte-optimize--lexvars nil))
+           (byte-compile name))
          `(,(symbol-function name) ,@(cdr form))))
 
       (_ ;; Give up on inlining.
