@@ -2702,6 +2702,12 @@ The implementation was buggy, and multiple '&define' forms in an '&or'
 form should be exceedingly rare.  See the Info node "(elisp) Backtracking" in
 the Emacs Lisp reference manual for background.
 
+---
+** 'sql-*-statement-starters' are no longer defcustoms.
+These variables describe facts about the SQL standard and
+product-specific additions.  There should be no need for users to
+customize them.
+
 
 * Lisp Changes in Emacs 28.1
 
