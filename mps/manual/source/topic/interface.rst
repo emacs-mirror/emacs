@@ -135,7 +135,7 @@ There are two kinds of types declared in the MPS interface:
     whose implementation is not public. These only exist so that code
     can be inlined using macros. The most important of these is the
     :term:`scan state` structure ``mps_ss_s``, which is accessed by
-    scanning macros such as :c:func:`MPS_SCAN_BEGIN` and
+    scanning macros such as :c:macro:`MPS_SCAN_BEGIN` and
     :c:func:`MPS_FIX12`.
 
 
@@ -249,7 +249,7 @@ Macros
           res = (mps_reserve)(...);  /* calls function */
 
 #.  Statement-like macros have names in uppercase, for example
-    :c:func:`MPS_RESERVE_BLOCK`. These macros behave like statements
+    :c:macro:`MPS_RESERVE_BLOCK`. These macros behave like statements
     rather than expressions, so that you cannot write::
 
         (MPS_RESERVE_BLOCK(res, p, ap, size), 0)

@@ -121,7 +121,7 @@ MVFF interface
       and the maximum is the arena grain size
       (see :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`).
 
-    * :c:macro:`MPS_KEY_SPARE` (type :c:type:`double`, default 0.75)
+    * :c:macro:`MPS_KEY_SPARE` (type ``double``, default 0.75)
       is the maximum proportion of memory that the pool will keep
       spare for future allocations. If the proportion of memory that's
       free exceeds this, then the pool will return some of it to the
