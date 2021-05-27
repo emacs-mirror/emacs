@@ -666,7 +666,7 @@ There can be any number of :example/:result elements."
    :no-eval (re-search-backward "^foo$" nil t)
    :eg-result 43)
   (looking-at-p
-   :no-eval (looking-at "f[0-9]")
+   :no-eval (looking-at-p "f[0-9]")
    :eg-result t)
   "Match Data"
   (match-string
