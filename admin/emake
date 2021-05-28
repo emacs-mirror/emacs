@@ -34,7 +34,7 @@ egrep --line-buffered -v "^make|\
 SCRAPE|\
 INFO.*Scraping.*[.] ?\$|\
 INFO.*Scraping.*done\$|\
-GEN.*etc/doc|\
+GEN.*etc/DOC|\
 ^Waiting for git|\
 ^Finding pointers|\
 ^Using load-path|\
