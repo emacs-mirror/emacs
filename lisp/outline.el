@@ -205,7 +205,9 @@ in the file it applies to.")
                                  (list 'face (outline-font-lock-face)
                                        'keymap outline-mode-cycle-map)
                                (list 'face nil
-                                     'keymap outline-mode-cycle-map)))
+                                     'keymap outline-mode-cycle-map))
+                           (if outline-minor-mode-highlight
+                               (list 'face (outline-font-lock-face))))
                        (outline-font-lock-face))
                   (when outline-minor-mode
                     (pcase outline-minor-mode-highlight
