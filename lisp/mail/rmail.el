@@ -3360,7 +3360,7 @@ tags such as [tag]."
     ;; Corporate mailing systems sometimes add `[External] :'; if that happened,
     ;; delete everything up thru there.  Empirically, that deletion makes
     ;; the Subject match the other messages in the thread.
-    (if (string-match "[[]external][ \t\n]*:" subject)
+    (if (string-match "\\[external][ \t\n]*:" subject)
         (setq subject (substring subject (match-end 0))))
     (setq subject (rfc2047-decode-string subject))
     (setq subject (replace-regexp-in-string regexp "" subject))
