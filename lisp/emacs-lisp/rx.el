@@ -1442,10 +1442,9 @@ following constructs:
                    introduced by a previous (let REF ...)
                    construct."
   (let* ((rx--pcase-vars nil)
-         (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps))))
-         (nvars (length rx--pcase-vars)))
+         (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps)))))
     `(and (pred stringp)
-          ,(pcase nvars
+          ,(pcase (length rx--pcase-vars)
             (0
              ;; No variables bound: a single predicate suffices.
              `(pred (string-match ,regexp)))
@@ -1458,7 +1457,7 @@ following constructs:
                          (match-string 1 s)
                        0))
                    (and ,(car rx--pcase-vars) (pred (not numberp)))))
-            (_
+            (nvars
              ;; Pack the submatches into a dotted list which is then
              ;; immediately destructured into individual variables again.
              ;; This is of course slightly inefficient.
