@@ -339,7 +339,6 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
      contains only ascii and eight-bit-graphic, but that's
      intentional.  */
   bool multibyte = SCHARS (string) < SBYTES (string);
-  unsigned char *str = SDATA (string);
   ptrdiff_t i = from, i_byte = from ? string_char_to_byte (string, from) : 0;
   ptrdiff_t from_byte = i_byte;
   ptrdiff_t width = 0;
@@ -414,6 +413,7 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
       else
 	{
 	  int c;
+	  unsigned char *str = SDATA (string);
 
 	  if (multibyte)
 	    {
