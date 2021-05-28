@@ -376,9 +376,13 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 	       && find_automatic_composition (i, -1, &ignore, &end, &val, string)
 	       && end > i)
 	{
-	  int pixelwidth = composition_gstring_width (val, 0,
-						      LGSTRING_GLYPH_LEN (val),
-						      NULL);
+	  int j;
+	  for (j = 0; j < LGSTRING_GLYPH_LEN (val); j++)
+	    if (NILP (LGSTRING_GLYPH (val, j)))
+	      break;
+
+	  int pixelwidth = composition_gstring_width (val, 0, j, NULL);
+
 	  /* The below is somewhat expensive, so compute it only once
 	     for the entire loop, and only if needed.  */
 	  if (font_width < 0)
