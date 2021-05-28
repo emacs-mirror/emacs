@@ -349,7 +349,7 @@ faces to major mode's faces."
                  (const :tag "Append outline faces to major mode faces" append)
                  (const :tag "Highlight separately from major mode faces" t))
   :version "28.1")
-;;;###autoload(put 'outline-minor-mode-highlight 'safe-local-variable 'booleanp)
+;;;###autoload(put 'outline-minor-mode-highlight 'safe-local-variable 'symbolp)
 
 (defun outline-minor-mode-highlight-buffer ()
   ;; Fallback to overlays when font-lock is unsupported.
