@@ -616,8 +616,8 @@ use the default system font by setting the variable
 For this to work, Emacs must have been compiled with support for
 Gsettings (or the older Gconf).  (To be specific, the Gsettings
 configuration names used are
-@samp{/desktop/gnome/interface/monospace_font_name} and
-@samp{/desktop/gnome/interface/font_name}.)
+@samp{org.gnome.desktop.interface monospace-font-name} and
+@samp{org.gnome.desktop.interface font-name}.)
 
 @item
 Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font
