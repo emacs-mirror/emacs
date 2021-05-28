@@ -221,7 +221,7 @@ There can be any number of :example/:result elements."
   (string-greaterp
    :eval (string-greaterp "foo" "bar"))
   (string-version-lessp
-   :eval (string-lessp "foo32.png" "bar4.png"))
+   :eval (string-version-lessp "pic4.png" "pic32.png"))
   (string-prefix-p
    :eval (string-prefix-p "foo" "foobar"))
   (string-suffix-p
@@ -613,7 +613,7 @@ There can be any number of :example/:result elements."
   (lax-plist-get
    :eval (lax-plist-get '("a" 1 "b" 2 "c" 3) "b"))
   (lax-plist-put
-   :no-eval (setq plist (plist-put plist "d" 4))
+   :no-eval (setq plist (lax-plist-put plist "d" 4))
    :eq-result '("a" 1 "b" 2 "c" 3 "d" 4))
   (plist-member
    :eval (plist-member '(a 1 b 2 c 3) 'b))
@@ -838,7 +838,7 @@ There can be any number of :example/:result elements."
   (point
    :eval (point))
   (point-min
-   :eval (point-max))
+   :eval (point-min))
   (point-max
    :eval (point-max))
   (line-beginning-position
@@ -1056,7 +1056,7 @@ There can be any number of :example/:result elements."
   (logb
    :eval (logb 10.5))
   (ffloor
-   :eval (floor 1.2))
+   :eval (ffloor 1.2))
   (fceiling
    :eval (fceiling 1.2))
   (ftruncate
