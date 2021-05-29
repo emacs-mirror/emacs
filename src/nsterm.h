@@ -348,16 +348,6 @@ typedef id instancetype;
 #endif
 
 
-/* macOS 10.14 and above cannot draw directly "to the glass" and
-   therefore we draw to an offscreen buffer and swap it in when the
-   toolkit wants to draw the frame. GNUstep and macOS 10.7 and below
-   do not support this method, so we revert to drawing directly to the
-   glass.  */
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101400
-#define NS_DRAW_TO_BUFFER 1
-#endif
-
-
 /* ==========================================================================
 
    NSColor, EmacsColor category.
@@ -423,7 +413,7 @@ typedef id instancetype;
    ========================================================================== */
 
 @class EmacsToolbar;
-@class EmacsSurface;
+@class EmacsLayer;
 
 #ifdef NS_IMPL_COCOA
 @interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
@@ -443,9 +433,6 @@ typedef id instancetype;
    int maximized_width, maximized_height;
    NSWindow *nonfs_window;
    BOOL fs_is_native;
-#ifdef NS_DRAW_TO_BUFFER
-   EmacsSurface *surface;
-#endif
 @public
    struct frame *emacsframe;
    int scrollbarsNeedingUpdate;
@@ -483,9 +470,9 @@ typedef id instancetype;
 #endif
 - (int)fullscreenState;
 
-#ifdef NS_DRAW_TO_BUFFER
-- (void)focusOnDrawingBuffer;
-- (void)unfocusDrawingBuffer;
+#ifdef NS_IMPL_COCOA
+- (void)lockFocus;
+- (void)unlockFocus;
 #endif
 - (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
 
@@ -714,23 +701,17 @@ typedef id instancetype;
 + (CGFloat)scrollerWidth;
 @end
 
-#ifdef NS_DRAW_TO_BUFFER
-@interface EmacsSurface : NSObject
+#ifdef NS_IMPL_COCOA
+@interface EmacsLayer : CALayer
 {
   NSMutableArray *cache;
-  NSSize size;
   CGColorSpaceRef colorSpace;
   IOSurfaceRef currentSurface;
-  IOSurfaceRef lastSurface;
   CGContextRef context;
-  CGFloat scale;
 }
-- (id) initWithSize: (NSSize)s ColorSpace: (CGColorSpaceRef)cs Scale: (CGFloat)scale;
-- (void) dealloc;
-- (NSSize) getSize;
+- (id) initWithColorSpace: (CGColorSpaceRef)cs;
+- (void) setColorSpace: (CGColorSpaceRef)cs;
 - (CGContextRef) getContext;
-- (void) releaseContext;
-- (IOSurfaceRef) getSurface;
 @end
 #endif
 

@@ -70,9 +70,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #ifdef NS_IMPL_COCOA
 #include "macfont.h"
 #include <Carbon/Carbon.h>
-#endif
-
-#ifdef NS_DRAW_TO_BUFFER
 #include <IOSurface/IOSurface.h>
 #endif
 
@@ -272,9 +269,6 @@ long context_menu_value = 0;
 
 /* display update */
 static struct frame *ns_updating_frame;
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-static NSView *focus_view = NULL;
-#endif
 static int ns_window_num = 0;
 static BOOL gsaved = NO;
 #ifdef NS_IMPL_COCOA
@@ -1039,26 +1033,7 @@ ns_update_begin (struct frame *f)
 #endif
 
   ns_updating_frame = f;
-#ifdef NS_DRAW_TO_BUFFER
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
-    {
-#endif
-      [view focusOnDrawingBuffer];
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-    }
-  else
-    {
-#endif
-#endif /* NS_DRAW_TO_BUFFER */
-
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-      [view lockFocus];
-#endif
-#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-    }
-#endif
-
+  [view lockFocus];
 }
 
 
@@ -1069,39 +1044,21 @@ ns_update_end (struct frame *f)
    external (RIF) call; for whole frame, called after gui_update_window_end
    -------------------------------------------------------------------------- */
 {
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
   EmacsView *view = FRAME_NS_VIEW (f);
-#endif
 
   NSTRACE_WHEN (NSTRACE_GROUP_UPDATES, "ns_update_end");
 
 /*   if (f == MOUSE_HL_INFO (f)->mouse_face_mouse_frame) */
   MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
-#ifdef NS_DRAW_TO_BUFFER
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
-    {
-#endif
-      [FRAME_NS_VIEW (f) unfocusDrawingBuffer];
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-    }
-  else
-    {
-#endif
-#endif /* NS_DRAW_TO_BUFFER */
+  block_input ();
 
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-      block_input ();
-
-      [view unlockFocus];
-      [[view window] flushWindow];
-
-      unblock_input ();
+  [view unlockFocus];
+#if defined (NS_IMPL_GNUSTEP)
+  [[view window] flushWindow];
 #endif
-#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-    }
-#endif
+
+  unblock_input ();
   ns_updating_frame = NULL;
 }
 
@@ -1116,8 +1073,6 @@ ns_focus (struct frame *f, NSRect *r, int n)
      the entire window.
    -------------------------------------------------------------------------- */
 {
-  EmacsView *view = FRAME_NS_VIEW (f);
-
   NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "ns_focus");
   if (r != NULL)
     {
@@ -1126,38 +1081,9 @@ ns_focus (struct frame *f, NSRect *r, int n)
 
   if (f != ns_updating_frame)
     {
-#ifdef NS_DRAW_TO_BUFFER
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-      if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
-        {
-#endif
-          [view focusOnDrawingBuffer];
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-        }
-      else
-        {
-#endif
-#endif /* NS_DRAW_TO_BUFFER */
-
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-          if (view != focus_view)
-            {
-              if (focus_view != NULL)
-                {
-                  [focus_view unlockFocus];
-                  [[focus_view window] flushWindow];
-                }
-
-              if (view)
-                [view lockFocus];
-              focus_view = view;
-            }
-#endif
-#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-        }
-#endif
+      EmacsView *view = FRAME_NS_VIEW (f);
+      [view lockFocus];
     }
-
 
   /* clipping */
   if (r)
@@ -1186,35 +1112,14 @@ ns_unfocus (struct frame *f)
       gsaved = NO;
     }
 
-#ifdef NS_DRAW_TO_BUFFER
-  #if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-  if ([FRAME_NS_VIEW (f) wantsUpdateLayer])
+  if (f != ns_updating_frame)
     {
+      EmacsView *view = FRAME_NS_VIEW (f);
+      [view unlockFocus];
+#if defined (NS_IMPL_GNUSTEP)
+      [[view window] flushWindow];
 #endif
-      if (! ns_updating_frame)
-        [FRAME_NS_VIEW (f) unfocusDrawingBuffer];
-      [FRAME_NS_VIEW (f) setNeedsDisplay:YES];
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
     }
-  else
-    {
-#endif
-#endif /* NS_DRAW_TO_BUFFER */
-
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-      if (f != ns_updating_frame)
-        {
-          if (focus_view != NULL)
-            {
-              [focus_view unlockFocus];
-              [[focus_view window] flushWindow];
-              focus_view = NULL;
-            }
-        }
-#endif
-#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-    }
-#endif
 }
 
 
@@ -1381,7 +1286,7 @@ ns_ring_bell (struct frame *f)
     }
 }
 
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
 static void
 hide_bell (void)
 /* --------------------------------------------------------------------------
@@ -6178,10 +6083,6 @@ not_in_argv (NSString *arg)
               name:NSViewFrameDidChangeNotification
             object:nil];
 
-#ifdef NS_DRAW_TO_BUFFER
-  [surface release];
-#endif
-
   [toolbar release];
   if (fs_state == FULLSCREEN_BOTH)
     [nonfs_window release];
@@ -7192,24 +7093,6 @@ not_in_argv (NSString *arg)
 
   NSTRACE ("[EmacsView viewDidResize]");
 
-#ifdef NS_DRAW_TO_BUFFER
-  /* If the buffer size doesn't match the view's backing size, destroy
-     the buffer and let it be recreated at the correct size later.  */
-  if ([self wantsUpdateLayer] && surface)
-    {
-      NSRect surfaceRect = {{0, 0}, [surface getSize]};
-      NSRect frameRect = [[self window] convertRectToBacking:frame];
-
-      if (!NSEqualRects (frameRect, surfaceRect))
-        {
-          [surface release];
-          surface = nil;
-
-          [self setNeedsDisplay:YES];
-        }
-    }
-#endif
-
   neww = (int)NSWidth (frame);
   newh = (int)NSHeight (frame);
   oldw = FRAME_PIXEL_WIDTH (emacsframe);
@@ -7388,16 +7271,6 @@ not_in_argv (NSString *arg)
   [self initWithFrame: r];
   [self setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
 
-#ifdef NS_DRAW_TO_BUFFER
-  /* These settings mean AppKit will retain the contents of the frame
-     on resize.  Unfortunately it also means the frame will not be
-     automatically marked for display, but we can do that ourselves in
-     viewDidResize.  */
-  [self setLayerContentsRedrawPolicy:
-          NSViewLayerContentsRedrawOnSetNeedsDisplay];
-  [self setLayerContentsPlacement:NSViewLayerContentsPlacementTopLeft];
-#endif
-
   FRAME_NS_VIEW (f) = self;
   emacsframe = f;
 #ifdef NS_IMPL_COCOA
@@ -7436,6 +7309,17 @@ not_in_argv (NSString *arg)
 #endif
 
   [[win contentView] addSubview: self];
+
+#ifdef NS_IMPL_COCOA
+  /* These settings mean AppKit will retain the contents of the frame
+     on resize.  Unfortunately it also means the frame will not be
+     automatically marked for display, but we can do that ourselves in
+     viewDidResize.  */
+  [self setWantsLayer:YES];
+  [self setLayerContentsRedrawPolicy:
+          NSViewLayerContentsRedrawOnSetNeedsDisplay];
+  [self setLayerContentsPlacement:NSViewLayerContentsPlacementTopLeft];
+#endif
 
   if (ns_drag_types)
     [self registerForDraggedTypes: ns_drag_types];
@@ -8201,44 +8085,54 @@ not_in_argv (NSString *arg)
 }
 
 
-#ifdef NS_DRAW_TO_BUFFER
-- (void)focusOnDrawingBuffer
+#ifdef NS_IMPL_COCOA
+- (CALayer *)makeBackingLayer;
 {
-  CGFloat scale = [[self window] backingScaleFactor];
+  EmacsLayer *l = [[EmacsLayer alloc]
+                    initWithColorSpace:[[[self window] colorSpace] CGColorSpace]];
+  [l setDelegate:(id)self];
+  [l setContentsScale:[[self window] backingScaleFactor]];
 
-  NSTRACE ("[EmacsView focusOnDrawingBuffer]");
-
-  if (! surface)
-    {
-      NSRect frame = [self frame];
-      NSSize s = NSMakeSize (NSWidth (frame) * scale, NSHeight (frame) * scale);
-
-      surface = [[EmacsSurface alloc] initWithSize:s
-                                        ColorSpace:[[[self window] colorSpace]
-                                                     CGColorSpace]
-                                             Scale:scale];
-
-      /* Since we're using NSViewLayerContentsRedrawOnSetNeedsDisplay
-         the layer's scale factor is not set automatically, so do it
-         now.  */
-      [[self layer] setContentsScale:scale];
-    }
-
-  CGContextRef context = [surface getContext];
-
-  [NSGraphicsContext
-    setCurrentContext:[NSGraphicsContext
-                        graphicsContextWithCGContext:context
-                                             flipped:YES]];
+  return l;
 }
 
 
-- (void)unfocusDrawingBuffer
+- (void)lockFocus
 {
-  NSTRACE ("[EmacsView unfocusDrawingBuffer]");
+  NSTRACE ("[EmacsView lockFocus]");
 
-  [NSGraphicsContext setCurrentContext:nil];
-  [self setNeedsDisplay:YES];
+  if ([self wantsLayer])
+    {
+      CGContextRef context = [(EmacsLayer*)[self layer] getContext];
+
+      [NSGraphicsContext
+        setCurrentContext:[NSGraphicsContext
+                            graphicsContextWithCGContext:context
+                                                 flipped:YES]];
+    }
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  else
+    [super lockFocus];
+#endif
+}
+
+
+- (void)unlockFocus
+{
+  NSTRACE ("[EmacsView unlockFocus]");
+
+  if ([self wantsLayer])
+    {
+      [NSGraphicsContext setCurrentContext:nil];
+      [self setNeedsDisplay:YES];
+    }
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  else
+    {
+      [super unlockFocus];
+      [super flushWindow];
+    }
+#endif
 }
 
 
@@ -8247,18 +8141,19 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("EmacsView windowDidChangeBackingProperties:]");
 
-  if ([self wantsUpdateLayer])
+  if ([self wantsLayer])
     {
       NSRect frame = [self frame];
+      EmacsLayer *layer = (EmacsLayer *)[self layer];
 
-      [surface release];
-      surface = nil;
+      [layer setContentsScale:[[notification object] backingScaleFactor]];
+      [layer setColorSpace:[[[notification object] colorSpace] CGColorSpace]];
 
       ns_clear_frame (emacsframe);
       expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
     }
 }
-#endif /* NS_DRAW_TO_BUFFER */
+#endif /* NS_IMPL_COCOA */
 
 
 - (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect
@@ -8267,11 +8162,9 @@ not_in_argv (NSString *arg)
   NSTRACE_RECT ("Source", srcRect);
   NSTRACE_RECT ("Destination", dstRect);
 
-#ifdef NS_DRAW_TO_BUFFER
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-  if ([self wantsUpdateLayer])
+#ifdef NS_IMPL_COCOA
+  if ([self wantsLayer])
     {
-#endif
       double scale = [[self window] backingScaleFactor];
       CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
       int bpp = CGBitmapContextGetBitsPerPixel (context) / 8;
@@ -8297,14 +8190,14 @@ not_in_argv (NSString *arg)
                    (char *) srcPixels + y * rowSize,
                    srcRowSize);
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
     }
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
   else
     {
 #endif
-#endif /* NS_DRAW_TO_BUFFER */
+#endif /* NS_IMPL_COCOA */
 
-#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
       hide_bell();              // Ensure the bell image isn't scrolled.
 
       ns_focus (emacsframe, &dstRect, 1);
@@ -8313,76 +8206,39 @@ not_in_argv (NSString *arg)
                                     dstRect.origin.y - srcRect.origin.y)];
       ns_unfocus (emacsframe);
 #endif
-#if defined (NS_DRAW_TO_BUFFER) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
     }
 #endif
 }
 
 
-#ifdef NS_DRAW_TO_BUFFER
+#ifdef NS_IMPL_COCOA
 /* If the frame has been garbaged but the toolkit wants to draw, for
    example when resizing the frame, we end up with a blank screen.
    Sometimes this results in an unpleasant flicker, so try to
-   redisplay before drawing.  */
-- (void)viewWillDraw
+   redisplay before drawing.
+
+   This used to be done in viewWillDraw, but with the custom layer
+   that method is not called.  */
+- (void)layout
 {
-  if (FRAME_GARBAGED_P (emacsframe)
-      && !redisplaying_p
-      && [self wantsUpdateLayer])
-    {
-      /* If there is IO going on when redisplay is run here Emacs
-         crashes.  I think it's because this code will always be run
-         within the run loop and for whatever reason processing input
-         is dangerous.  This technique was stolen wholesale from
-         nsmenu.m and seems to work.  */
-      bool owfi = waiting_for_input;
-      waiting_for_input = 0;
-      block_input ();
+  [super layout];
 
-      redisplay ();
+  /* If there is IO going on when redisplay is run here Emacs
+     crashes.  I think it's because this code will always be run
+     within the run loop and for whatever reason processing input
+     is dangerous.  This technique was stolen wholesale from
+     nsmenu.m and seems to work.  */
+  bool owfi = waiting_for_input;
+  waiting_for_input = 0;
+  block_input ();
 
-      unblock_input ();
-      waiting_for_input = owfi;
-    }
-}
+  redisplay ();
 
-
-- (BOOL)wantsUpdateLayer
-{
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-  if (NSAppKitVersionNumber < 1671)
-    return NO;
-#endif
-
-  /* Running on macOS 10.14 or above.  */
-  return YES;
-}
-
-
-- (void)updateLayer
-{
-  NSTRACE ("[EmacsView updateLayer]");
-
-  /* We run redisplay on frames that are garbaged, but marked for
-     display, before updateLayer is called so if the frame is still
-     garbaged that means the last redisplay must have refused to
-     update the frame.  */
-  if (FRAME_GARBAGED_P (emacsframe))
-    return;
-
-  /* This can fail to update the screen if the same surface is
-     provided twice in a row, even if its contents have changed.
-     There's a private method, -[CALayer setContentsChanged], that we
-     could use to force it, but we shouldn't often get the same
-     surface twice in a row.  */
-  [surface releaseContext];
-  [[self layer] setContents:(id)[surface getSurface]];
-  [surface performSelectorOnMainThread:@selector (getContext)
-                            withObject:nil
-                         waitUntilDone:NO];
+  unblock_input ();
+  waiting_for_input = owfi;
 }
 #endif
-
 
 - (void)drawRect: (NSRect)rect
 {
@@ -9550,7 +9406,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 @end  /* EmacsScroller */
 
 
-#ifdef NS_DRAW_TO_BUFFER
+#ifdef NS_IMPL_COCOA
 
 /* ==========================================================================
 
@@ -9558,7 +9414,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 
    ========================================================================== */
 
-@implementation EmacsSurface
+@implementation EmacsLayer
 
 
 /* An IOSurface is a pixel buffer that is efficiently copied to VRAM
@@ -9571,80 +9427,106 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
    ability to draw to the screen at any time, we need to keep a cache
    of multiple surfaces that we can use at will.
 
-   The EmacsSurface class maintains this cache of surfaces, and
+   The EmacsLayer class maintains this cache of surfaces, and
    handles the conversion to a CGGraphicsContext that AppKit can use
    to draw on.
 
    The cache is simple: if a free surface is found it is removed from
-   the cache and set as the "current" surface.  Once Emacs is done
-   with drawing to the current surface, the previous surface that was
-   drawn to is added to the cache for reuse, and the current one is
-   set as the last surface.  If no free surfaces are found in the
-   cache then a new one is created.
-
-   When AppKit wants to update the screen, we provide it with the last
-   surface, as that has the most recent data.
-
-   FIXME: It is possible for the cache to grow if Emacs draws faster
-   than the surfaces can be drawn to the screen, so there should
-   probably be some sort of pruning job that removes excess
-   surfaces.  */
+   the cache and set as the "current" surface.  Emacs draws to the
+   surface and when the layer wants to update the screen we set it's
+   contents to the surface and then add it back on to the end of the
+   cache.  If no free surfaces are found in the cache then a new one
+   is created.  */
 
 #define CACHE_MAX_SIZE 2
 
-- (id) initWithSize: (NSSize)s
-         ColorSpace: (CGColorSpaceRef)cs
-              Scale: (CGFloat)scl
+- (id) initWithColorSpace: (CGColorSpaceRef)cs
 {
-  NSTRACE ("[EmacsSurface initWithSize:ColorSpace:]");
+  NSTRACE ("[EmacsLayer initWithColorSpace:]");
 
-  [super init];
-
-  cache = [[NSMutableArray arrayWithCapacity:CACHE_MAX_SIZE] retain];
-  size = s;
-  colorSpace = cs;
-  scale = scl;
+  self = [super init];
+  if (self)
+    {
+      cache = [[NSMutableArray arrayWithCapacity:CACHE_MAX_SIZE] retain];
+      colorSpace = cs;
+    }
+  else
+    {
+      return nil;
+    }
 
   return self;
 }
 
 
+- (void) setColorSpace: (CGColorSpaceRef)cs
+{
+  /* We don't need to clear the cache because the new colorspace will
+     be used next time we create a new context.  */
+  colorSpace = cs;
+}
+
+
 - (void) dealloc
 {
-  if (context)
-    CGContextRelease (context);
-
-  if (currentSurface)
-    CFRelease (currentSurface);
-
-  for (id object in cache)
-    CFRelease ((IOSurfaceRef)object);
-
+  [self releaseSurfaces];
   [cache release];
 
   [super dealloc];
 }
 
 
-/* Return the size values our cached data is using.  */
-- (NSSize) getSize
+- (void) releaseSurfaces
 {
-  return size;
+  [self setContents:nil];
+  [self releaseContext];
+
+  if (currentSurface)
+    {
+      CFRelease (currentSurface);
+      currentSurface = nil;
+    }
+
+  if (cache)
+    {
+      for (id object in cache)
+        CFRelease ((IOSurfaceRef)object);
+
+      [cache removeAllObjects];
+    }
 }
 
 
-/* Return a CGContextRef that can be used for drawing to the screen.
-   This must ALWAYS be paired with a call to releaseContext, and the
-   calls cannot be nested.  */
+/* Check whether the current bounds match the IOSurfaces we are using.
+   If they do return YES, otherwise NO.  */
+- (BOOL) checkDimensions
+{
+  int width = NSWidth ([self bounds]) * [self contentsScale];
+  int height = NSHeight ([self bounds]) * [self contentsScale];
+  IOSurfaceRef s = currentSurface ? currentSurface
+    : (IOSurfaceRef)[cache firstObject];
+
+  return !s || (IOSurfaceGetWidth (s) == width
+                && IOSurfaceGetHeight (s) == height);
+}
+
+
+/* Return a CGContextRef that can be used for drawing to the screen.  */
 - (CGContextRef) getContext
 {
-  NSTRACE ("[EmacsSurface getContext]");
+  CGFloat scale = [self contentsScale];
+
+  NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer getContext]");
+  NSTRACE_MSG ("IOSurface count: %lu", [cache count] + (currentSurface ? 1 : 0));
+
+  if (![self checkDimensions])
+    [self releaseSurfaces];
 
   if (!context)
     {
       IOSurfaceRef surface = NULL;
-
-      NSTRACE_MSG ("IOSurface count: %lu", [cache count] + (lastSurface ? 1 : 0));
+      int width = NSWidth ([self bounds]) * scale;
+      int height = NSHeight ([self bounds]) * scale;
 
       for (id object in cache)
         {
@@ -9667,11 +9549,11 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
       else if (!surface)
         {
           int bytesPerRow = IOSurfaceAlignProperty (kIOSurfaceBytesPerRow,
-                                                    size.width * 4);
+                                                    width * 4);
 
           surface = IOSurfaceCreate
-            ((CFDictionaryRef)@{(id)kIOSurfaceWidth:[NSNumber numberWithInt:size.width],
-                (id)kIOSurfaceHeight:[NSNumber numberWithInt:size.height],
+            ((CFDictionaryRef)@{(id)kIOSurfaceWidth:[NSNumber numberWithInt:width],
+                (id)kIOSurfaceHeight:[NSNumber numberWithInt:height],
                 (id)kIOSurfaceBytesPerRow:[NSNumber numberWithInt:bytesPerRow],
                 (id)kIOSurfaceBytesPerElement:[NSNumber numberWithInt:4],
                 (id)kIOSurfacePixelFormat:[NSNumber numberWithUnsignedInt:'BGRA']});
@@ -9694,7 +9576,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
                                        (kCGImageAlphaPremultipliedFirst
                                         | kCGBitmapByteOrder32Host));
 
-      CGContextTranslateCTM(context, 0, size.height);
+      CGContextTranslateCTM(context, 0, IOSurfaceGetHeight (currentSurface));
       CGContextScaleCTM(context, scale, -scale);
     }
 
@@ -9706,7 +9588,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
    IOSurface, so it will be sent to VRAM.  */
 - (void) releaseContext
 {
-  NSTRACE ("[EmacsSurface releaseContextAndGetSurface]");
+  NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer releaseContext]");
 
   if (!context)
     return;
@@ -9717,19 +9599,34 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   IOReturn lockStatus = IOSurfaceUnlock (currentSurface, 0, nil);
   if (lockStatus != kIOReturnSuccess)
     NSLog (@"Failed to unlock surface: %x", lockStatus);
-
-  /* Put currentSurface back on the end of the cache.  */
-  [cache addObject:(id)currentSurface];
-  lastSurface = currentSurface;
-  currentSurface = NULL;
 }
 
 
-/* Get the IOSurface that we want to draw to the screen.  */
-- (IOSurfaceRef) getSurface
+- (void) display
 {
-  /* lastSurface always contains the most up-to-date and complete data.  */
-  return lastSurface;
+  NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer display]");
+
+  if (context)
+    {
+      [self releaseContext];
+
+#if CACHE_MAX_SIZE == 1
+      /* This forces the layer to see the surface as updated.  */
+      [self setContents:nil];
+#endif
+
+      [self setContents:(id)currentSurface];
+
+      /* Put currentSurface back on the end of the cache.  */
+      [cache addObject:(id)currentSurface];
+      currentSurface = NULL;
+
+      /* Schedule a run of getContext so that if Emacs is idle it will
+         perform the buffer copy, etc.  */
+      [self performSelectorOnMainThread:@selector (getContext)
+                             withObject:nil
+                          waitUntilDone:NO];
+    }
 }
 
 
@@ -9739,19 +9636,20 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 - (void) copyContentsTo: (IOSurfaceRef) destination
 {
   IOReturn lockStatus;
+  IOSurfaceRef source = (IOSurfaceRef)[self contents];
   void *sourceData, *destinationData;
   int numBytes = IOSurfaceGetAllocSize (destination);
 
-  NSTRACE ("[EmacsSurface copyContentsTo:]");
+  NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer copyContentsTo:]");
 
-  if (!lastSurface || lastSurface == destination)
+  if (!source || source == destination)
     return;
 
-  lockStatus = IOSurfaceLock (lastSurface, kIOSurfaceLockReadOnly, nil);
+  lockStatus = IOSurfaceLock (source, kIOSurfaceLockReadOnly, nil);
   if (lockStatus != kIOReturnSuccess)
     NSLog (@"Failed to lock source surface: %x", lockStatus);
 
-  sourceData = IOSurfaceGetBaseAddress (lastSurface);
+  sourceData = IOSurfaceGetBaseAddress (source);
   destinationData = IOSurfaceGetBaseAddress (destination);
 
   /* Since every IOSurface should have the exact same settings, a
@@ -9759,17 +9657,17 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
      the other.  */
   memcpy (destinationData, sourceData, numBytes);
 
-  lockStatus = IOSurfaceUnlock (lastSurface, kIOSurfaceLockReadOnly, nil);
+  lockStatus = IOSurfaceUnlock (source, kIOSurfaceLockReadOnly, nil);
   if (lockStatus != kIOReturnSuccess)
     NSLog (@"Failed to unlock source surface: %x", lockStatus);
 }
 
 #undef CACHE_MAX_SIZE
 
-@end /* EmacsSurface */
+@end /* EmacsLayer */
 
 
-#endif
+#endif /* NS_IMPL_COCOA */
 
 
 #ifdef NS_IMPL_GNUSTEP

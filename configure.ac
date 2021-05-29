@@ -5660,7 +5660,8 @@ case "$opsys" in
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
      if test "$NS_IMPL_COCOA" = "yes"; then
-        libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon -framework IOSurface"
+        libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon \
+                    -framework IOSurface -framework QuartzCore"
      fi
    else
      libs_nsgui=
