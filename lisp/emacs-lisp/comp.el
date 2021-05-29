@@ -154,7 +154,7 @@ buffer."
   :type '(choice
           (const :tag "Do not report warnings" nil)
           (const :tag "Report and display warnings" t)
-          (const :tag "Report but do not display warnings" 'silent))
+          (const :tag "Report but do not display warnings" silent))
   :version "28.1")
 
 (defcustom native-comp-async-query-on-exit nil

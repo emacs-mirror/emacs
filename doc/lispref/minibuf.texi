@@ -1943,6 +1943,16 @@ the completion string in the @file{*Completions*} buffer, and
 a suffix displayed after the completion string.  This function
 takes priority over @code{annotation-function}.
 
+@item group-function
+The value should be a function for grouping the completion candidates.
+The function must take two arguments, @var{completion}, which is a
+completion candidate and @var{transform}, which is a boolean flag.  If
+@var{transform} is @code{nil}, the function must return the group
+title of the group to which the candidate belongs.  The returned title
+can also be @code{nil}.  Otherwise the function must return the
+transformed candidate.  The transformation can for example remove a
+redundant prefix, which is displayed in the group title.
+
 @item display-sort-function
 The value should be a function for sorting completions.  The function
 should take one argument, a list of completion strings, and return a

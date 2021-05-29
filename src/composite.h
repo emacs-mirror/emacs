@@ -320,6 +320,10 @@ extern bool composition_gstring_p (Lisp_Object);
 extern int composition_gstring_width (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                       struct font_metrics *);
 
+extern bool find_automatic_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t *,
+					ptrdiff_t *, Lisp_Object *,
+					Lisp_Object);
+
 extern void composition_compute_stop_pos (struct composition_it *,
                                           ptrdiff_t, ptrdiff_t, ptrdiff_t,
                                           Lisp_Object);

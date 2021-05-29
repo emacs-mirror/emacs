@@ -941,7 +941,8 @@ For more details, see Info node `(cl)Loop Facility'.
                                "above" "below" "by" "in" "on" "=" "across"
                                "repeat" "while" "until" "always" "never"
                                "thereis" "collect" "append" "nconc" "sum"
-                               "count" "maximize" "minimize" "if" "unless"
+                               "count" "maximize" "minimize"
+                               "if" "when" "unless"
                                "return"]
                           form]
                          ["using" (symbolp symbolp)]

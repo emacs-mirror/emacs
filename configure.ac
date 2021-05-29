@@ -2285,6 +2285,9 @@ doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 hybrid_malloc=
 system_malloc=yes
 
+dnl This must be before the test of $ac_cv_func_sbrk below.
+AC_CHECK_FUNCS_ONCE([sbrk])
+
 test $with_unexec = yes &&
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
@@ -4752,7 +4755,7 @@ AC_CHECK_HEADERS(valgrind/valgrind.h)
 
 AC_CHECK_MEMBERS([struct unipair.unicode], [], [], [[#include <linux/kd.h>]])
 
-AC_CHECK_FUNCS_ONCE([__lsan_ignore_object sbrk])
+AC_CHECK_FUNCS_ONCE([__lsan_ignore_object])
 
 AC_FUNC_FORK
 

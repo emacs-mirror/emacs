@@ -1690,16 +1690,6 @@ valloc (size_t size)
 #undef free
 
 #ifdef HYBRID_MALLOC
-/* Declare system malloc and friends.  */
-extern void *malloc (size_t size);
-extern void *realloc (void *ptr, size_t size);
-extern void *calloc (size_t nmemb, size_t size);
-extern void free (void *ptr);
-#ifdef HAVE_ALIGNED_ALLOC
-extern void *aligned_alloc (size_t alignment, size_t size);
-#elif defined HAVE_POSIX_MEMALIGN
-extern int posix_memalign (void **memptr, size_t alignment, size_t size);
-#endif
 
 /* Assuming PTR was allocated via the hybrid malloc, return true if
    PTR was allocated via gmalloc, not the system malloc.  Also, return
@@ -1736,13 +1726,31 @@ hybrid_calloc (size_t nmemb, size_t size)
   return gcalloc (nmemb, size);
 }
 
-void
-hybrid_free (void *ptr)
+static void
+hybrid_free_1 (void *ptr)
 {
   if (allocated_via_gmalloc (ptr))
     gfree (ptr);
   else
     free (ptr);
+}
+
+void
+hybrid_free (void *ptr)
+{
+  /* Stolen from Gnulib, to make sure we preserve errno.  */
+#if defined __GNUC__ && !defined __clang__
+  int err[2];
+  err[0] = errno;
+  err[1] = errno;
+  errno = 0;
+  hybrid_free_1 (ptr);
+  errno = err[errno == 0];
+#else
+  int err = errno;
+  hybrid_free_1 (ptr);
+  errno = err;
+#endif
 }
 
 #if defined HAVE_ALIGNED_ALLOC || defined HAVE_POSIX_MEMALIGN

@@ -1452,8 +1452,8 @@ DEFUN ("insert-char", Finsert_char, Sinsert_char, 1, 3,
               (prefix-numeric-value current-prefix-arg)\
               t))",
        doc: /* Insert COUNT copies of CHARACTER.
-Interactively, prompt for CHARACTER.  You can specify CHARACTER in one
-of these ways:
+Interactively, prompt for CHARACTER using `read-char-by-name'.
+You can specify CHARACTER in one of these ways:
 
  - As its Unicode character name, e.g. \"LATIN SMALL LETTER A\".
    Completion is available; if you type a substring of the name

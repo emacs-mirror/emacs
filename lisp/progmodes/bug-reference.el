@@ -138,7 +138,7 @@ The second subexpression should match the bug reference (usually a number)."
 	(when url
 	  (browse-url url))))))
 
-(defun bug-reference--maybe-setup-from-vc (url url-rx bug-rx bug-url-fmt)
+(defun bug-reference-maybe-setup-from-vc (url url-rx bug-rx bug-url-fmt)
   (when (string-match url-rx url)
     (setq-local bug-reference-bug-regexp bug-rx)
     (setq-local bug-reference-url-format
@@ -224,7 +224,7 @@ and apply it if applicable."
         (when url
           (catch 'found
             (dolist (config bug-reference-setup-from-vc-alist)
-              (when (apply #'bug-reference--maybe-setup-from-vc
+              (when (apply #'bug-reference-maybe-setup-from-vc
                            url config)
                 (throw 'found t)))))))))
 
@@ -258,7 +258,7 @@ same `bug-reference-url-format' and `bug-reference-url-format'.")
 
 (defvar gnus-newsgroup-name)
 
-(defun bug-reference--maybe-setup-from-mail (group header-values)
+(defun bug-reference-maybe-setup-from-mail (group header-values)
   "Set up according to mail GROUP or HEADER-VALUES.
 Group is a mail group/folder name and HEADER-VALUES is a list of
 mail header values, e.g., the values of From, To, Cc, List-ID,
@@ -294,53 +294,51 @@ and set it if applicable."
     ;; article changes.
     (add-hook 'gnus-article-prepare-hook
               #'bug-reference--try-setup-gnus-article)
-    (bug-reference--maybe-setup-from-mail gnus-newsgroup-name nil)))
+    (bug-reference-maybe-setup-from-mail gnus-newsgroup-name nil)))
 
 (defvar gnus-article-buffer)
 (defvar gnus-original-article-buffer)
 (defvar gnus-summary-buffer)
 
 (defun bug-reference--try-setup-gnus-article ()
-  (with-demoted-errors
-      "Error in bug-reference--try-setup-gnus-article: %S"
-    (when (and bug-reference-mode ;; Only if enabled in article buffers.
-               (derived-mode-p
-                'gnus-article-mode
-                ;; Apparently, gnus-article-prepare-hook is run in the
-                ;; summary buffer...
-                'gnus-summary-mode)
-               gnus-article-buffer
-               gnus-original-article-buffer
-               (buffer-live-p (get-buffer gnus-article-buffer))
-               (buffer-live-p (get-buffer gnus-original-article-buffer)))
-      (with-current-buffer gnus-article-buffer
-        (catch 'setup-done
-          ;; Copy over the values from the summary buffer.
-          (when (and gnus-summary-buffer
-                     (buffer-live-p gnus-summary-buffer))
-            (setq-local bug-reference-bug-regexp
-                        (with-current-buffer gnus-summary-buffer
-                          bug-reference-bug-regexp))
-            (setq-local bug-reference-url-format
-                        (with-current-buffer gnus-summary-buffer
-                          bug-reference-url-format))
-            (when (and bug-reference-bug-regexp
-                       bug-reference-url-format)
-              (throw 'setup-done t)))
-          ;; If the summary had no values, try setting according to
-          ;; the values of the From, To, and Cc headers.
-          (let (header-values)
-            (with-current-buffer
-                (get-buffer gnus-original-article-buffer)
-              (save-excursion
-                (goto-char (point-min))
-                ;; The Newsgroup is omitted because we already matched
-                ;; based on group name in the summary buffer.
-                (dolist (field '("list-id" "to" "from" "cc"))
-                  (let ((val (mail-fetch-field field)))
-                    (when val
-                      (push val header-values))))))
-            (bug-reference--maybe-setup-from-mail nil header-values)))))))
+  (when (and bug-reference-mode ;; Only if enabled in article buffers.
+             (derived-mode-p
+              'gnus-article-mode
+              ;; Apparently, gnus-article-prepare-hook is run in the
+              ;; summary buffer...
+              'gnus-summary-mode)
+             gnus-article-buffer
+             gnus-original-article-buffer
+             (buffer-live-p (get-buffer gnus-article-buffer))
+             (buffer-live-p (get-buffer gnus-original-article-buffer)))
+    (with-current-buffer gnus-article-buffer
+      (catch 'setup-done
+        ;; Copy over the values from the summary buffer.
+        (when (and gnus-summary-buffer
+                   (buffer-live-p gnus-summary-buffer))
+          (setq-local bug-reference-bug-regexp
+                      (with-current-buffer gnus-summary-buffer
+                        bug-reference-bug-regexp))
+          (setq-local bug-reference-url-format
+                      (with-current-buffer gnus-summary-buffer
+                        bug-reference-url-format))
+          (when (and bug-reference-bug-regexp
+                     bug-reference-url-format)
+            (throw 'setup-done t)))
+        ;; If the summary had no values, try setting according to
+        ;; the values of the From, To, and Cc headers.
+        (let (header-values)
+          (with-current-buffer
+              (get-buffer gnus-original-article-buffer)
+            (save-excursion
+              (goto-char (point-min))
+              ;; The Newsgroup is omitted because we already matched
+              ;; based on group name in the summary buffer.
+              (dolist (field '("list-id" "to" "from" "cc"))
+                (let ((val (mail-fetch-field field)))
+                  (when val
+                    (push val header-values))))))
+          (bug-reference-maybe-setup-from-mail nil header-values))))))
 
 (defun bug-reference-try-setup-from-rmail ()
   "Try setting up `bug-reference-mode' from the current rmail mail.
@@ -349,19 +347,17 @@ Guesses suitable `bug-reference-bug-regexp' and
 file's name against GROUP-REGEXP and the values of List-Id, To,
 From, and Cc against HEADER-REGEXP in
 `bug-reference-setup-from-mail-alist'."
-  (with-demoted-errors
-      "Error in bug-reference-try-setup-from-rmail: %S"
-    (when (and bug-reference-mode
-               (derived-mode-p 'rmail-mode))
-      (let (header-values)
-        (save-excursion
-          (goto-char (point-min))
-          (dolist (field '("list-id" "to" "from" "cc"))
-            (let ((val (mail-fetch-field field)))
-              (when val
-                (push val header-values)))))
-        (bug-reference--maybe-setup-from-mail
-         (buffer-file-name) header-values)))))
+  (when (and bug-reference-mode
+             (derived-mode-p 'rmail-mode))
+    (let (header-values)
+      (save-excursion
+        (goto-char (point-min))
+        (dolist (field '("list-id" "to" "from" "cc"))
+          (let ((val (mail-fetch-field field)))
+            (when val
+              (push val header-values)))))
+      (bug-reference-maybe-setup-from-mail
+       (buffer-file-name) header-values))))
 
 (defvar bug-reference-setup-from-irc-alist
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
@@ -372,8 +368,8 @@ From, and Cc against HEADER-REGEXP in
   "An alist for setting up `bug-reference-mode' in IRC modes.
 
 This takes action if `bug-reference-mode' is enabled in IRC
-channels using one of Emacs' IRC clients (rcirc and ERC).
-Currently, rcirc and ERC are supported.
+channels using one of Emacs' IRC clients.  Currently, rcirc and
+ERC are supported.
 
 Each element has the form
 
@@ -386,7 +382,7 @@ If all given entries match, BUG-REGEXP is set as
 `bug-reference-bug-regexp' and URL-FORMAT is set as
 `bug-reference-url-format'.")
 
-(defun bug-reference--maybe-setup-from-irc (channel network)
+(defun bug-reference-maybe-setup-from-irc (channel network)
   "Set up according to IRC CHANNEL or NETWORK.
 CHANNEL is an IRC channel name (or generally a target, i.e., it
 could also be a user name) and NETWORK is that channel's network
@@ -422,7 +418,7 @@ corresponding BUG-REGEXP and URL-FORMAT are set."
 Test each configuration in `bug-reference-setup-from-irc-alist'
 and set it if applicable."
   (when (derived-mode-p 'rcirc-mode)
-    (bug-reference--maybe-setup-from-irc
+    (bug-reference-maybe-setup-from-irc
      rcirc-target
      (and rcirc-server-buffer
           (buffer-live-p rcirc-server-buffer)
@@ -437,7 +433,7 @@ and set it if applicable."
 Test each configuration in `bug-reference-setup-from-irc-alist'
 and set it if applicable."
   (when (derived-mode-p 'erc-mode)
-    (bug-reference--maybe-setup-from-irc
+    (bug-reference-maybe-setup-from-irc
      (erc-format-target)
      (erc-network-name))))
 

@@ -1146,7 +1146,10 @@ are ignored."
 	 (if (string-match "buffer" (symbol-name ediff-job-name))
 	     ediff-coding-system-for-write
 	   ediff-coding-system-for-read))
-	args)
+        (process-environment
+         ;; Avoid localization of messages so we can parse the output.
+         (cons "LC_MESSAGES=C" process-environment))
+        args)
     (setq args (append (split-string options)
                        (mapcar (lambda (file)
                                  (when (stringp file)

@@ -1757,6 +1757,12 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete-variable 'load-dangerous-libraries
                         "no longer used." "27.1")
 
+(defvar inhibit--record-char nil
+  "Obsolete variable.
+This was used internally by quail.el and keyboard.c in Emacs 27.
+It does nothing in Emacs 28.")
+(make-obsolete-variable 'inhibit--record-char nil "28.1")
+
 ;; We can't actually make `values' obsolete, because that will result
 ;; in warnings when using `values' in let-bindings.
 ;;(make-obsolete-variable 'values "no longer used" "28.1")

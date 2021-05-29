@@ -127,7 +127,7 @@ This is like `if-let' but doesn't handle a VARLIST of the form
 \(SYMBOL SOMETHING) specially."
   (declare (indent 2)
            (debug ((&rest [&or symbolp (symbolp form) (form)])
-                   form body)))
+                   body)))
   (if varlist
       `(let* ,(setq varlist (internal--build-bindings varlist))
          (if ,(caar (last varlist))
@@ -146,9 +146,7 @@ This is like `when-let' but doesn't handle a VARLIST of the form
   "Bind variables according to VARLIST and conditionally evaluate BODY.
 Like `when-let*', except if BODY is empty and all the bindings
 are non-nil, then the result is non-nil."
-  (declare (indent 1)
-           (debug ((&rest [&or symbolp (symbolp form) (form)])
-                   body)))
+  (declare (indent 1) (debug if-let*))
   (let (res)
     (if varlist
         `(let* ,(setq varlist (internal--build-bindings varlist))
@@ -176,7 +174,7 @@ with an old syntax that accepted only one binding."
   (declare (indent 2)
            (debug ([&or (symbolp form)  ; must be first, Bug#48489
                         (&rest [&or symbolp (symbolp form) (form)])]
-                   form body)))
+                   body)))
   (when (and (<= (length spec) 2)
              (not (listp (car spec))))
     ;; Adjust the single binding case

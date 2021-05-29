@@ -32,8 +32,8 @@
 
 ;; As a default, ERC has the data for the official nickname services on
 ;; the networks Austnet, BrasNET, Dalnet, freenode, GalaxyNet, GRnet,
-;; and Slashnet.  You can add more by using M-x customize-variable RET
-;; erc-nickserv-alist.
+;; Libera.Chat and Slashnet.  You can add more by using
+;;   M-x customize-variable RET erc-nickserv-alist.
 
 ;; Usage:
 ;;
@@ -197,6 +197,7 @@ Example of use:
 			(const GalaxyNet)
 			(const GRnet)
 			(const iip)
+                        (const Libera.Chat)
 			(const OFTC)
 			(const QuakeNet)
 			(const Rizon)
@@ -264,6 +265,15 @@ Example of use:
      "type\\s-/squery\\s-Trent\\s-identify\\s-<password>"
      "Trent@anon.iip"
      "IDENTIFY" nil "SQUERY" nil)
+    (Libera.Chat
+     "NickServ!NickServ@services.libera.chat"
+     ;; Libera.Chat also accepts a password at login, see the `erc'
+     ;; :password argument.
+     "This\\s-nickname\\s-is\\s-registered.\\s-Please\\s-choose"
+     "NickServ"
+     "IDENTIFY" nil nil
+     ;; See also the 901 response code message.
+     "You\\s-are\\s-now\\s-identified\\s-for\\s-")
     (OFTC
      "NickServ!services@services.oftc.net"
      ;; OFTC's NickServ doesn't ask you to identify anymore.

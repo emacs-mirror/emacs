@@ -5892,12 +5892,14 @@ in OBJECT.  */)
 
 DEFUN ("line-number-at-pos", Fline_number_at_pos,
        Sline_number_at_pos, 0, 2, 0,
-       doc: /* Return the line number at POSITION.
-If POSITION is nil, use the current buffer location.
+       doc: /* Return the line number at POSITION in the current buffer.
+If POSITION is nil or omitted, it defaults to point's position in the
+current buffer.
 
-If the buffer is narrowed, the position returned is the position in the
-visible part of the buffer.  If ABSOLUTE is non-nil, count the lines
-from the absolute start of the buffer.  */)
+If the buffer is narrowed, the return value by default counts the lines
+from the beginning of the accessible portion of the buffer.  But if the
+second optional argument ABSOLUTE is non-nil, the value counts the lines
+from the absolute start of the buffer, disregarding the narrowing.  */)
   (register Lisp_Object position, Lisp_Object absolute)
 {
   ptrdiff_t pos, start = BEGV_BYTE;
@@ -5915,9 +5917,9 @@ from the absolute start of the buffer.  */)
   if (!NILP (absolute))
     start = BEG_BYTE;
 
-  /* Check that POSITION is n the visible range of the buffer. */
+  /* Check that POSITION is in the accessible range of the buffer. */
   if (pos < BEGV || pos > ZV)
-    args_out_of_range (make_int (start), make_int (ZV));
+    args_out_of_range_3 (make_int (pos), make_int (BEGV), make_int (ZV));
 
   return make_int (count_lines (start, CHAR_TO_BYTE (pos)) + 1);
 }

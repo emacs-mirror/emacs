@@ -1767,13 +1767,26 @@ char-offset in TEXT."
 	    (delete-region (point-min) keep))
 	  ;; Remove line-prefix characters, and unneeded lines (unified diffs).
           ;; Also skip lines like "\ No newline at end of file"
-	  (let ((kill-chars (list (if destp ?- ?+) ?\\)))
+	  (let ((kill-chars (list (if destp ?- ?+) ?\\))
+                curr-char last-char)
 	    (goto-char (point-min))
 	    (while (not (eobp))
-	      (if (memq (char-after) kill-chars)
-		  (delete-region (point) (progn (forward-line 1) (point)))
+	      (setq curr-char (char-after))
+	      (if (memq curr-char kill-chars)
+		  (delete-region
+		   ;; Check for "\ No newline at end of file"
+		   (if (and (eq curr-char ?\\)
+			    (not (eq last-char (if destp ?- ?+)))
+			    (save-excursion
+			      (forward-line 1)
+			      (or (eobp) (and (eq last-char ?-)
+					      (eq (char-after) ?+)))))
+		       (max (1- (point)) (point-min))
+		     (point))
+		   (progn (forward-line 1) (point)))
 		(delete-char num-pfx-chars)
-		(forward-line 1)))))
+		(forward-line 1))
+	      (setq last-char curr-char))))
 
 	(let ((text (buffer-substring-no-properties (point-min) (point-max))))
 	  (if char-offset (cons text (- (point) (point-min))) text))))))

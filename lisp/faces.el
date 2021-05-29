@@ -46,7 +46,7 @@ the terminal-initialization file to be loaded."
     ("vt320" . "vt200")
     ("vt400" . "vt200")
     ("vt420" . "vt200")
-    )
+    ("alacritty" . "xterm"))
   "Alist of terminal type aliases.
 Entries are of the form (TYPE . ALIAS), where both elements are strings.
 This means to treat a terminal of type TYPE as if it were of type ALIAS."

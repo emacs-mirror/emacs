@@ -219,10 +219,9 @@ or can be downloaded from @url{https://savannah.gnu.org/projects/emacs/}.
 @summarycontents
 @contents
 
-@node    Top, Introduction, (dir), (dir)
-@comment node-name, next, previous, up
 
 @ifnottex
+@node    Top
 @top @ccmode{}
 
 @ccmode{} is a GNU Emacs mode for editing files containing C, C++,
@@ -360,8 +359,7 @@ Custom Macros
 @end detailmenu
 @end menu
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Introduction, Overview, Top, Top
-@comment node-name, next, previous, up
+@node    Introduction
 @chapter Introduction
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -420,7 +418,7 @@ also like to thank all the @ccmode{} victims who help enormously
 during the early beta stages of @ccmode{}'s development.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Overview, Getting Started, Introduction, Top
+@node    Overview
 @comment  node-name,  next,  previous,  up@cindex organization of the manual
 @chapter Overview of the Manual
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -489,8 +487,7 @@ project: whether for updating @ccmode{} or submitting bug reports.
 Finally, there are the customary indices.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Getting Started, Commands, Overview, Top
-@comment node-name, next, previous, up
+@node    Getting Started
 @chapter Getting Started
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -601,8 +598,7 @@ where @samp{XX} is the minor release number.
 @end deffn
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Commands, Font Locking, Getting Started, Top
-@comment node-name, next, previous, up
+@node    Commands
 @chapter Commands
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -638,7 +634,7 @@ structures.
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Indentation Commands, Comment Commands, Commands, Commands
+@node    Indentation Commands
 @comment node-name, next, previous,up
 @section Indentation Commands
 @cindex indentation
@@ -817,8 +813,7 @@ often (in seconds) progress messages are to be displayed.
 @end defopt
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Comment Commands, Movement Commands, Indentation Commands, Commands
-@comment node-name, next, previous, up
+@node    Comment Commands
 @section Comment Commands
 @cindex comments (insertion of)
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -886,8 +881,7 @@ lines.
 @end table
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Movement Commands, Filling and Breaking, Comment Commands, Commands
-@comment node-name, next, previous, up
+@node    Movement Commands
 @section Movement Commands
 @cindex movement
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1042,7 +1036,7 @@ Movement}.  They might be removed from a future release of @ccmode{}.
 @end table
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Filling and Breaking, Minor Modes, Movement Commands, Commands
+@node    Filling and Breaking
 @comment  node-name,  next,  previous,  up
 @section Filling and Line Breaking Commands
 @cindex text filling
@@ -1136,8 +1130,7 @@ line break.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Minor Modes, Electric Keys, Filling and Breaking, Commands
-@comment node-name, next, previous, up
+@node    Minor Modes
 @section Minor Modes
 @cindex Minor Modes
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1257,8 +1250,7 @@ value will turn it (or them) off.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Electric Keys, Auto-newlines, Minor Modes, Commands
-@comment node-name, next, previous, up
+@node    Electric Keys
 @section Electric Keys and Keywords
 @cindex electric characters
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1437,8 +1429,7 @@ modes except IDL mode, since CORBA IDL doesn't have any statements.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Auto-newlines, Hungry WS Deletion, Electric Keys, Commands
-@comment node-name, next, previous, up
+@node    Auto-newlines
 @section Auto-newline Insertion
 @cindex auto-newline
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1493,8 +1484,7 @@ clean-ups listed by key.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Hungry WS Deletion, Subword Movement, Auto-newlines, Commands
-@comment node-name, next, previous, up
+@node    Hungry WS Deletion
 @section Hungry Deletion of Whitespace
 @cindex hungry-deletion
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1651,8 +1641,7 @@ trouble with this in GNU Emacs.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Subword Movement, Other Commands, Hungry WS Deletion, Commands
-@comment node-name, next, previous, up
+@node    Subword Movement
 @section Subword Movement and Editing
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1744,8 +1733,7 @@ As a bonus, you can also use @code{subword-mode} in non-@ccmode{}
 buffers by typing @kbd{M-x subword-mode}.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Other Commands,  , Subword Movement, Commands
-@comment node-name, next, previous, up
+@node    Other Commands
 @section Other Commands
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1842,8 +1830,7 @@ ask for help in the standard (X)Emacs forums.
 @end table
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Font Locking, Config Basics, Commands, Top
-@comment node-name, next, previous, up
+@node    Font Locking
 @chapter Font Locking
 @cindex font locking
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1874,8 +1861,7 @@ sections apply to the other languages.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Font Locking Preliminaries, Faces, Font Locking, Font Locking
-@comment node-name, next, previous, up
+@node    Font Locking Preliminaries
 @section Font Locking Preliminaries
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1972,8 +1958,7 @@ recognize types.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Faces, Doc Comments, Font Locking Preliminaries, Font Locking
-@comment node-name, next, previous, up
+@node    Faces
 @section Faces
 @cindex faces
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2071,8 +2056,7 @@ since those aren't syntactic errors in themselves.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Doc Comments, Wrong Comment Style, Faces, Font Locking
-@comment node-name, next, previous, up
+@node    Doc Comments
 @section Documentation Comments
 @cindex documentation comments
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2156,7 +2140,7 @@ If you add support for another doc comment style, please consider
 contributing it: send a note to @email{bug-cc-mode@@gnu.org}.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Wrong Comment Style, Misc Font Locking, Doc Comments, Font Locking
+@node    Wrong Comment Style
 @comment  node-name,  next,  previous,  up
 @section Marking ``Wrong'' style comments
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2178,7 +2162,7 @@ which aren't of the default style will be fontified with
 @end defvar
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Misc Font Locking, AWK Mode Font Locking, Wrong Comment Style, Font Locking
+@node    Misc Font Locking
 @comment  node-name,  next,  previous,  up
 @section Miscellaneous Font Locking
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2233,7 +2217,7 @@ section only applies when CC Mode cannot disambiguate a construct in
 any other way.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    AWK Mode Font Locking,  , Misc Font Locking, Font Locking
+@node    AWK Mode Font Locking
 @comment  node-name,  next,  previous,  up
 @section AWK Mode Font Locking
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2294,7 +2278,7 @@ escaped newline.  The @samp{\} is highlighted.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Config Basics, Custom Filling and Breaking, Font Locking, Top
+@node    Config Basics
 @comment  node-name,  next,  previous,  up
 @chapter Configuration Basics
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2486,8 +2470,7 @@ have it enabled by default by placing the following in your
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    CC Hooks, Style Variables, Config Basics, Config Basics
-@comment node-name, next, previous, up
+@node    CC Hooks
 @section Hooks
 @cindex mode hooks
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2560,8 +2543,7 @@ file.
 @end example
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Style Variables, Styles, CC Hooks, Config Basics
-@comment node-name, next, previous, up
+@node    Style Variables
 @section Style Variables
 @cindex styles
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2648,8 +2630,7 @@ Commas});@*
 (@pxref{Custom Macros}).
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Styles,  , Style Variables, Config Basics
-@comment node-name, next, previous, up
+@node    Styles
 @section Styles
 @cindex styles
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2683,8 +2664,7 @@ already formatted piece of your code, @ref{Guessing the Style}.
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Built-in Styles, Choosing a Style, Styles, Styles
-@comment node-name, next, previous, up
+@node    Built-in Styles
 @subsection Built-in Styles
 @cindex styles, built-in
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2761,8 +2741,7 @@ afterwards.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Choosing a Style, Adding Styles, Built-in Styles, Styles
-@comment node-name, next, previous, up
+@node    Choosing a Style
 @subsection Choosing a Style
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -2819,8 +2798,7 @@ string.
 @end defvar
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Adding Styles, Guessing the Style, Choosing a Style, Styles
-@comment node-name, next, previous, up
+@node    Adding Styles
 @subsection Adding and Amending Styles
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -2907,8 +2885,7 @@ should not be changed directly; use @code{c-add-style} instead.
 @end defvar
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Guessing the Style, File Styles, Adding Styles, Styles
-@comment node-name, next, previous, up
+@node    Guessing the Style
 @subsection Guessing the Style
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -3030,8 +3007,7 @@ these offsets or the parent style name.
 @end table
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    File Styles,  , Guessing the Style, Styles
-@comment node-name, next, previous, up
+@node    File Styles
 @subsection File Styles
 @cindex styles, file local
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3079,8 +3055,7 @@ mode hooks (@pxref{CC Hooks}).  Any individual setting of a variable
 will override one made through @code{c-file-style} or
 @code{c-file-offsets}.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Custom Filling and Breaking, Custom Auto-newlines, Config Basics, Top
-@comment node-name, next, previous, up
+@node    Custom Filling and Breaking
 @chapter Customizing Filling and Line Breaking
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -3298,8 +3273,7 @@ as one comment, and the rest of the paragraph handling code
 inconsistent behavior.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Custom Auto-newlines, Clean-ups, Custom Filling and Breaking, Top
-@comment node-name, next, previous, up
+@node    Custom Auto-newlines
 @chapter Customizing Auto-newlines
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -3354,8 +3328,7 @@ circumstances.  @xref{Clean-ups}.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Hanging Braces, Hanging Colons, Custom Auto-newlines, Custom Auto-newlines
-@comment node-name, next, previous, up
+@node    Hanging Braces
 @section Hanging Braces
 @cindex hanging braces
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3504,8 +3477,7 @@ themselves.
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Custom Braces,  , Hanging Braces, Hanging Braces
-@comment node-name, next, previous, up
+@node    Custom Braces
 @subsection Custom Brace Hanging
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -3592,8 +3564,7 @@ In all other cases, it returns the list @samp{(before after)} so
 that the brace appears on a line by itself.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Hanging Colons, Hanging Semicolons and Commas, Hanging Braces, Custom Auto-newlines
-@comment node-name, next, previous, up
+@node    Hanging Colons
 @section Hanging Colons
 @cindex hanging colons
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3635,8 +3606,7 @@ them are controlled by a different mechanism, called @dfn{clean-ups} in
 @ccmode{}.  @xref{Clean-ups}, for details.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Hanging Semicolons and Commas,  , Hanging Colons, Custom Auto-newlines
-@comment node-name, next, previous, up
+@node    Hanging Semicolons and Commas
 @section Hanging Semicolons and Commas
 @cindex hanging semicolons
 @cindex hanging commas
@@ -3715,8 +3685,7 @@ newlines after semicolons inside one-line inline method definitions
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Clean-ups, Indentation Engine Basics, Custom Auto-newlines, Top
-@comment node-name, next, previous, up
+@node    Clean-ups
 @chapter Clean-ups
 @cindex clean-ups
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3968,8 +3937,7 @@ situation if you just want a literal @samp{/} inserted.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Indentation Engine Basics, Customizing Indentation, Clean-ups, Top
-@comment node-name, next, previous, up
+@node    Indentation Engine Basics
 @chapter Indentation Engine Basics
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4028,8 +3996,7 @@ of the variables associated with indentation, not even
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Syntactic Analysis, Syntactic Symbols, Indentation Engine Basics, Indentation Engine Basics
-@comment node-name, next, previous, up
+@node    Syntactic Analysis
 @section Syntactic Analysis
 @cindex syntactic analysis
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -4187,8 +4154,7 @@ anchor position.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Syntactic Symbols, Indentation Calculation, Syntactic Analysis, Indentation Engine Basics
-@comment node-name, next, previous, up
+@node    Syntactic Symbols
 @section Syntactic Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4435,8 +4401,7 @@ Java.  @ref{Java Symbols}.
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Function Symbols, Class Symbols, Syntactic Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Function Symbols
 @subsection Function Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4478,8 +4443,7 @@ isn't much special about them.  Note however that line 8 is given
 on the previous line.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Class Symbols, Conditional Construct Symbols, Function Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Class Symbols
 @subsection Class related Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4625,8 +4589,7 @@ Here, line 1 is analyzed as a @code{topmost-intro}, but lines 2 and 3
 are both analyzed as @code{template-args-cont} lines.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Conditional Construct Symbols, Switch Statement Symbols, Class Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Conditional Construct Symbols
 @subsection Conditional Construct Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4693,8 +4656,7 @@ the same line as the preceding close brace, that line would still have
 @code{block-close} syntax.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Switch Statement Symbols, Brace List Symbols, Conditional Construct Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Switch Statement Symbols
 @subsection Switch Statement Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4729,8 +4691,7 @@ is treated slightly differently since it contains a brace that opens a
 block; it is given @code{statement-case-open} syntax.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Brace List Symbols, External Scope Symbols, Switch Statement Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Brace List Symbols
 @subsection Brace List Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4796,8 +4757,7 @@ giving @code{brace-list-entry} an offset of
 @code{brace-list-entry} anchored on the @samp{1} of line 8.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    External Scope Symbols, Paren List Symbols, Brace List Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    External Scope Symbols
 @subsection External Scope Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4860,8 +4820,7 @@ that isn't the case for historical reasons.}
 @end table
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Paren List Symbols, Literal Symbols, External Scope Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Paren List Symbols
 @subsection Parenthesis (Argument) List Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -4920,8 +4879,7 @@ parenthesis that opens an argument list, appearing on a separate line,
 is assigned the @code{statement-cont} syntax instead.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Literal Symbols, Multiline Macro Symbols, Paren List Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Literal Symbols
 @subsection Comment String Label and Macro Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5009,8 +4967,7 @@ Line 17 is assigned @code{stream-op} syntax.
 @end itemize
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Multiline Macro Symbols, Objective-C Method Symbols, Literal Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Multiline Macro Symbols
 @subsection Multiline Macro Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5050,8 +5007,7 @@ macros.}.
 @xref{Custom Macros}, for more info about the treatment of macros.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Objective-C Method Symbols, Java Symbols, Multiline Macro Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Objective-C Method Symbols
 @subsection Objective-C Method Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5077,8 +5033,7 @@ assigned @code{objc-method-args-cont} syntax.  Lines 5 and 6 are both
 assigned @code{objc-method-call-cont} syntax.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Java Symbols, Statement Block Symbols, Objective-C Method Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Java Symbols
 @subsection Java Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5115,8 +5070,7 @@ syntax due to it being a continuation of a variable declaration where preceding
 the declaration is an annotation.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Statement Block Symbols, K&R Symbols, Java Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    Statement Block Symbols
 @subsection Statement Block Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5194,8 +5148,7 @@ example above.  The other similar special function, @code{gauge}, is
 handled like this too.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    K&R Symbols,  , Statement Block Symbols, Syntactic Symbols
-@comment node-name, next, previous, up
+@node    K&R Symbols
 @subsection K&R Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5221,8 +5174,7 @@ syntax.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Indentation Calculation,  , Syntactic Symbols, Indentation Engine Basics
-@comment node-name, next, previous, up
+@node    Indentation Calculation
 @section Indentation Calculation
 @cindex indentation
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -5320,8 +5272,7 @@ minibuffer when you hit @kbd{TAB}.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Customizing Indentation, Custom Macros, Indentation Engine Basics, Top
-@comment node-name, next, previous, up
+@node    Customizing Indentation
 @chapter Customizing Indentation
 @cindex customization, indentation
 @cindex indentation
@@ -5367,8 +5318,7 @@ indentation.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    c-offsets-alist, Interactive Customization, Customizing Indentation, Customizing Indentation
-@comment node-name, next, previous, up
+@node    c-offsets-alist
 @section c-offsets-alist
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5536,8 +5486,7 @@ it doesn't work well with some of the alignment functions that return
 @code{c-strict-syntax-p} set to @code{nil}.}.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Interactive Customization, Line-Up Functions, c-offsets-alist, Customizing Indentation
-@comment node-name, next, previous, up
+@node    Interactive Customization
 @section Interactive Customization
 @cindex customization, interactive
 @cindex interactive customization
@@ -5644,8 +5593,7 @@ for that syntactic element.
 @c End of MOVE THIS BIT.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Line-Up Functions, Custom Line-Up, Interactive Customization, Customizing Indentation
-@comment node-name, next, previous, up
+@node    Line-Up Functions
 @section Line-Up Functions
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5718,8 +5666,7 @@ Works with:
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Brace/Paren Line-Up, List Line-Up, Line-Up Functions, Line-Up Functions
-@comment node-name, next, previous, up
+@node    Brace/Paren Line-Up
 @subsection Brace and Parenthesis Line-Up Functions
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5975,8 +5922,7 @@ and @code{inextern-lang}.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    List Line-Up, Operator Line-Up, Brace/Paren Line-Up, Line-Up Functions
-@comment node-name, next, previous, up
+@node    List Line-Up
 @subsection List Line-Up Functions
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -6300,8 +6246,7 @@ the current line with the colon on the previous line.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Operator Line-Up, Comment Line-Up, List Line-Up, Line-Up Functions
-@comment node-name, next, previous, up
+@node    Operator Line-Up
 @subsection Operator Line-Up Functions
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -6468,8 +6413,7 @@ lineup functions.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Comment Line-Up, Misc Line-Up, Operator Line-Up, Line-Up Functions
-@comment node-name, next, previous, up
+@node    Comment Line-Up
 @subsection Comment Line-Up Functions
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -6578,8 +6522,7 @@ expressions.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Misc Line-Up,  , Comment Line-Up, Line-Up Functions
-@comment node-name, next, previous, up
+@node    Misc Line-Up
 @subsection Miscellaneous Line-Up Functions
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -6780,8 +6723,7 @@ the_larch,            @hereFn{c-lineup-topmost-intro-cont}
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Custom Line-Up, Other Indentation, Line-Up Functions, Customizing Indentation
-@comment node-name, next, previous, up
+@node    Custom Line-Up
 @section Custom Line-Up Functions
 @cindex customization, indentation functions
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -6896,8 +6838,7 @@ any syntactic symbol that appears in @code{c-offsets-alist} can have a
 custom line-up function associated with it.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Other Indentation,  , Custom Line-Up, Customizing Indentation
-@comment node-name, next, previous, up
+@node    Other Indentation
 @section Other Special Indentations
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -6948,8 +6889,7 @@ functions to this hook, not remove them.  @xref{Style Variables}.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Custom Macros, Odds and Ends, Customizing Indentation, Top
-@comment node-name, next, previous, up
+@node    Custom Macros
 @chapter Customizing Macros
 @cindex macros
 @cindex preprocessor directives
@@ -6997,7 +6937,7 @@ Macros}.
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Macro Backslashes, Macros with ;, Custom Macros, Custom Macros
+@node     Macro Backslashes
 @comment  node-name,  next,  previous,  up
 @section Customizing Macro Backslashes
 @cindex @code{#define}
@@ -7045,7 +6985,7 @@ get aligned only when you explicitly invoke the command
 @end defopt
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node Macros with ;, Noise Macros, Macro Backslashes, Custom Macros
+@node Macros with ;
 @comment  node-name,  next,  previous,  up
 @section Macros with semicolons
 @cindex macros with semicolons
@@ -7103,8 +7043,7 @@ initialization code, after the mode hooks have run.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Noise Macros, Indenting Directives, Macros with ;, Custom Macros
-@comment node-name, next, previous, up
+@node    Noise Macros
 @section Noise Macros
 @cindex noise macros
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -7160,8 +7099,7 @@ after the mode hooks have run.
 @end defun
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Indenting Directives, , Noise Macros, Custom Macros
-@comment node-name, next, previous, up
+@node    Indenting Directives
 @section Indenting Directives
 @cindex Indenting Directives
 @cindex Indenting #pragma
@@ -7202,8 +7140,7 @@ depends on that variable.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Odds and Ends, Sample Init File, Custom Macros, Top
-@comment node-name, next, previous, up
+@node    Odds and Ends
 @chapter Odds and Ends
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7246,8 +7183,7 @@ anchoring position to indent the line in that case.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Sample Init File, Performance Issues, Odds and Ends, Top
-@comment node-name, next, previous, up
+@node    Sample Init File
 @appendix Sample Init File
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7305,8 +7241,7 @@ to change some of the actual values.
 @end verbatim
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Performance Issues, Limitations and Known Bugs, Sample Init File, Top
-@comment node-name, next, previous, up
+@node    Performance Issues
 @appendix Performance Issues
 @cindex performance
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -7414,8 +7349,7 @@ more info.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Limitations and Known Bugs, FAQ, Performance Issues, Top
-@comment node-name, next, previous, up
+@node    Limitations and Known Bugs
 @appendix Limitations and Known Bugs
 @cindex limitations
 @cindex bugs
@@ -7480,8 +7414,7 @@ early on:
 @end itemize
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    FAQ, Updating CC Mode, Limitations and Known Bugs, Top
-@comment node-name, next, previous, up
+@node    FAQ
 @appendix Frequently Asked Questions
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7609,8 +7542,7 @@ there since it's got its own system to keep track of blocks.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Updating CC Mode, Mailing Lists and Bug Reports, FAQ, Top
-@comment node-name, next, previous, up
+@node    Updating CC Mode
 @appendix Getting the Latest CC Mode Release
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7629,8 +7561,7 @@ compatibility, etc.@: are all available on the web site:
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Mailing Lists and Bug Reports, GNU Free Documentation License, Updating CC Mode, Top
-@comment node-name, next, previous, up
+@node    Mailing Lists and Bug Reports
 @appendix Mailing Lists and Submitting Bug Reports
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7673,15 +7604,14 @@ to the Usenet newsgroups @code{gnu.emacs.sources}, @code{comp.emacs},
 @c There is no newsgroup for Pike.  :-(
 
 
-@node GNU Free Documentation License, Command and Function Index, Mailing Lists and Bug Reports, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
 
 @c Removed the tentative node "Mode Initialization" from here, 2005/8/27.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Command and Function Index, Variable Index, GNU Free Documentation License, Top
-@comment node-name, next, previous, up
+@node    Command and Function Index
 @unnumbered Command and Function Index
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7695,8 +7625,7 @@ Since most @ccmode{} commands are prepended with the string
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Variable Index, Concept and Key Index, Command and Function Index, Top
-@comment node-name, next, previous, up
+@node    Variable Index
 @unnumbered Variable Index
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7710,8 +7639,7 @@ Since most @ccmode{} variables are prepended with the string
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Concept and Key Index,  , Variable Index, Top
-@comment node-name, next, previous, up
+@node    Concept and Key Index
 @unnumbered Concept and Key Index
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

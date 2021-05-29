@@ -4008,15 +4008,16 @@ DEFUN ("comp-el-to-eln-rel-filename", Fcomp_el_to_eln_rel_filename,
 {
   CHECK_STRING (filename);
 
-  /* Use `file-truename' or fall back to `expand-file-name' when the
-     first is not available (bug#44701).
-
-     `file-truename' is not available only for a short phases of the
-     bootstrap before file.el is loaded, given we do not symlink
-     inside the build directory this should work.  */
-  filename = NILP (Ffboundp (intern_c_string ("file-truename")))
-    ? Fexpand_file_name (filename, Qnil)
-    : CALL1I (file-truename, filename);
+  /* Resolve possible symlinks in FILENAME, so that path_hash below
+     always compares equal. (Bug#44701).  */
+  filename = Fexpand_file_name (filename, Qnil);
+  char *file_normalized = realpath (SSDATA (ENCODE_FILE (filename)), NULL);
+  if (file_normalized)
+    {
+      filename = DECODE_FILE (make_unibyte_string (file_normalized,
+						   strlen (file_normalized)));
+      xfree (file_normalized);
+    }
 
   if (NILP (Ffile_exists_p (filename)))
     xsignal1 (Qfile_missing, filename);
@@ -4056,7 +4057,8 @@ DEFUN ("comp-el-to-eln-rel-filename", Fcomp_el_to_eln_rel_filename,
       Lisp_Object sys_re =
 	concat2 (build_string ("\\`[[:ascii:]]+"),
 		 Fregexp_quote (build_string ("/" PATH_REL_LOADSEARCH "/")));
-      Lisp_Object dump_load_search = build_string (PATH_DUMPLOADSEARCH "/");
+      Lisp_Object dump_load_search =
+	Fexpand_file_name (build_string (PATH_DUMPLOADSEARCH "/"), Qnil);
 #ifdef WINDOWSNT
       dump_load_search = Fw32_long_file_name (dump_load_search);
 #endif

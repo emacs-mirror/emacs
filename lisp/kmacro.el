@@ -782,17 +782,23 @@ If kbd macro currently being defined end it before activating it."
 ;; executing the macro later on (but that's controversial...)
 
 ;;;###autoload
-(defun kmacro-lambda-form (mac)
+(defun kmacro-lambda-form (mac &optional counter format)
   "Create lambda form for macro bound to symbol or key."
-  ;; FIXME: This should be a "funcallable struct"!
-  (lambda (&optional arg)
-    "Keyboard macro."
-    ;; We put an "unused prompt" as a special marker so
-    ;; `kmacro-extract-lambda' can see it's "one of us".
-    (interactive "pkmacro")
-    (if (eq arg 'kmacro--extract-lambda)
-        (cons 'kmacro--extract-lambda mac)
-      (kmacro-exec-ring-item mac arg))))
+  ;; Apparently, there are two different ways this is called:
+  ;; either `counter' and `format' are both provided and `mac' is a vector,
+  ;; or only `mac' is provided, as a list (MAC COUNTER FORMAT).
+  ;; The first is used from `insert-kbd-macro' and `edmacro-finish-edit',
+  ;; while the second is used from within this file.
+  (let ((mac (if counter (list mac counter format) mac)))
+    ;; FIXME: This should be a "funcallable struct"!
+    (lambda (&optional arg)
+      "Keyboard macro."
+      ;; We put an "unused prompt" as a special marker so
+      ;; `kmacro-extract-lambda' can see it's "one of us".
+      (interactive "pkmacro")
+      (if (eq arg 'kmacro--extract-lambda)
+          (cons 'kmacro--extract-lambda mac)
+        (kmacro-exec-ring-item mac arg)))))
 
 (defun kmacro-extract-lambda (mac)
   "Extract kmacro from a kmacro lambda form."

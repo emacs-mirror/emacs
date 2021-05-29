@@ -1076,7 +1076,9 @@ during splitting, which may be slow."
                   "UID COPY %s %S")
                 (nnimap-article-ranges (gnus-compress-sequence articles))
                 (nnimap-group-to-imap (gnus-group-real-name nnmail-expiry-target)))
-               (set (if can-move 'deleted-articles 'articles-to-delete) articles))))
+               (if can-move
+                   (setq deleted-articles articles)
+                 (setq articles-to-delete articles)))))
       t)
      (t
       (dolist (article articles)

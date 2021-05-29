@@ -650,7 +650,7 @@ component is used as the target of the symlink."
        'rename filename newname ok-if-already-exists
        'keep-date 'preserve-uid-gid)
     (tramp-run-real-handler
-     'rename-file (list filename newname ok-if-already-exists))))
+     #'rename-file (list filename newname ok-if-already-exists))))
 
 (defun tramp-sudoedit-handle-set-file-acl (filename acl-string)
   "Like `set-file-acl' for Tramp files."

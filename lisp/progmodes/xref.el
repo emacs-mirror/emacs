@@ -1088,6 +1088,12 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
 (define-obsolete-function-alias 'xref--show-defs-buffer-at-bottom
   #'xref-show-definitions-buffer-at-bottom "28.1")
 
+(defun xref--completing-read-group (cand transform)
+  "Return group title of candidate CAND or TRANSFORM the candidate."
+  (if transform
+      (substring cand (1+ (next-single-property-change 0 'xref--group cand)))
+    (get-text-property 0 'xref--group cand)))
+
 (defun xref-show-definitions-completing-read (fetcher alist)
   "Let the user choose the target definition with completion.
 
@@ -1116,10 +1122,12 @@ between them by typing in the minibuffer with completion."
                                     (format #("%d:" 0 2 (face xref-line-number))
                                             line)
                                   ""))
+                               (group-prefix
+                                (substring group group-prefix-length))
                                (group-fmt
-                                (propertize
-                                 (substring group group-prefix-length)
-                                 'face 'xref-file-header))
+                                (propertize group-prefix
+                                            'face 'xref-file-header
+                                            'xref--group group-prefix))
                                (candidate
                                 (format "%s:%s%s" group-fmt line-fmt summary)))
                           (push (cons candidate xref) xref-alist-with-line-info)))))
@@ -1131,7 +1139,9 @@ between them by typing in the minibuffer with completion."
                          (lambda (string pred action)
                            (cond
                             ((eq action 'metadata)
-                             '(metadata . ((category . xref-location))))
+                             `(metadata
+                               . ((category . xref-location)
+                                  (group-function . ,#'xref--completing-read-group))))
                             (t
                              (complete-with-action action collection string pred)))))
                         (def (caar collection)))

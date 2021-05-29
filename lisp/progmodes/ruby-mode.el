@@ -2421,6 +2421,15 @@ If there is no Rubocop config file, Rubocop will be passed a flag
    report-fn
    args))
 
+(defconst ruby--prettify-symbols-alist
+  '(("<=" . ?≤)
+    (">=" . ?≥)
+    ("->"  . ?→)
+    ("=>"  . ?⇒)
+    ("::" . ?∷)
+    ("lambda" . ?λ))
+  "Value for `prettify-symbols-alist' in `ruby-mode'.")
+
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"
   "Major mode for editing Ruby code."
@@ -2437,6 +2446,7 @@ If there is no Rubocop config file, Rubocop will be passed a flag
 
   (setq-local font-lock-defaults '((ruby-font-lock-keywords) nil nil
                                    ((?_ . "w"))))
+  (setq-local prettify-symbols-alist ruby--prettify-symbols-alist)
 
   (setq-local syntax-propertize-function #'ruby-syntax-propertize))
 

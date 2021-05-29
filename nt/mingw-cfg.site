@@ -90,8 +90,9 @@ ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
 # Avoid compiling Gnulib's canonicalize-lgpl.c, which fails
 ac_cv_func_canonicalize_file_name=yes
-ac_cv_func_realpath="not-needed"
-gl_cv_func_realpath_works="no-but-not-needed-so-yes"
+# Implemented in w32.c
+ac_cv_func_realpath=yes
+gl_cv_func_realpath_works=yes
 # Implemented in w32.c
 ac_cv_func_fcntl=yes
 gl_cv_func_fcntl_f_dupfd_cloexec=yes

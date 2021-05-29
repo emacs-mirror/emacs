@@ -374,9 +374,9 @@ used with the completion list:
 @itemx @key{prior}
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
 the completion list (@code{switch-to-completions}).  This paves the
-way for using the commands below.  @key{PageUp} or @key{prior} does
-the same.  You can also select the window in other ways
-(@pxref{Windows}).
+way for using the commands below.  @key{PageUp}, @key{prior} and
+@kbd{M-g M-c} does the same.  You can also select the window in other
+ways (@pxref{Windows}).
 
 @findex choose-completion
 @item @key{RET}
@@ -388,12 +388,14 @@ point (@code{choose-completion}).
 @findex next-completion
 @item @key{TAB}
 @item @key{RIGHT}
+@item @key{n}
 While in the completion list buffer, these keys move point to the
 following completion alternative (@code{next-completion}).
 
 @findex previous-completion
 @item @key{S-TAB}
 @item @key{LEFT}
+@item @key{p}
 While in the completion list buffer, these keys move point to the
 previous completion alternative (@code{previous-completion}).
 

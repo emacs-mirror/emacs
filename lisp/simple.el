@@ -1661,6 +1661,7 @@ in *Help* buffer.  See also the command `describe-char'."
     (define-key m "\t" 'completion-at-point)
     (define-key m "\r" 'read--expression-try-read)
     (define-key m "\n" 'read--expression-try-read)
+    (define-key m "\M-g\M-c" 'read-expression-switch-to-completions)
     (set-keymap-parent m minibuffer-local-map)
     m))
 
@@ -5683,6 +5684,9 @@ PROMPT is a string to prompt with."
   ;; `current-kill' updates `kill-ring' with a possible interprogram-paste
   (current-kill 0)
   (let* ((history-add-new-input nil)
+         (history-pos (when yank-from-kill-ring-rotate
+                        (- (length kill-ring)
+                           (length kill-ring-yank-pointer))))
          (ellipsis (if (char-displayable-p ?…) "…" "..."))
          ;; Remove keymaps from text properties of copied string,
          ;; because typing RET in the minibuffer might call
@@ -5730,7 +5734,16 @@ PROMPT is a string to prompt with."
              '(metadata (display-sort-function . identity))
            (complete-with-action action completions string pred)))
        nil nil nil
-       'read-from-kill-ring-history))))
+       (if history-pos
+           (cons 'read-from-kill-ring-history (1+ history-pos))
+         'read-from-kill-ring-history)))))
+
+(defcustom yank-from-kill-ring-rotate t
+  "Whether using `yank-from-kill-ring' should rotate `kill-ring-yank-pointer'.
+If non-nil, the kill ring is rotated after selecting previously killed text."
+  :type 'boolean
+  :group 'killing
+  :version "28.1")
 
 (defun yank-from-kill-ring (string &optional arg)
   "Select a stretch of previously killed text and insert (\"paste\") it.
@@ -5755,12 +5768,18 @@ beginning of the inserted text and mark at the end, like `yank' does.
 When called from Lisp, insert STRING like `insert-for-yank' does."
   (interactive (list (read-from-kill-ring "Yank from kill-ring: ")
                      current-prefix-arg))
+  (setq yank-window-start (window-start))
   (push-mark)
   (insert-for-yank string)
+  (when yank-from-kill-ring-rotate
+    (let ((pos (seq-position kill-ring string)))
+      (when pos
+        (setq kill-ring-yank-pointer (nthcdr pos kill-ring)))))
   (if (consp arg)
-      ;; Swap point and mark like in `yank'.
+      ;; Swap point and mark like in `yank' and `yank-pop'.
       (goto-char (prog1 (mark t)
                    (set-marker (mark-marker) (point) (current-buffer))))))
+
 
 ;; Some kill commands.
 
@@ -8816,6 +8835,8 @@ makes it easier to edit it."
 
 (defvar completion-list-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
+    (define-key map "g" nil) ;; There's nothing to revert from.
     (define-key map [mouse-2] 'choose-completion)
     (define-key map [follow-link] 'mouse-face)
     (define-key map [down-mouse-2] nil)
@@ -8825,8 +8846,10 @@ makes it easier to edit it."
     (define-key map [right] 'next-completion)
     (define-key map [?\t] 'next-completion)
     (define-key map [backtab] 'previous-completion)
-    (define-key map "q" 'quit-window)
     (define-key map "z" 'kill-current-buffer)
+    (define-key map "n" 'next-completion)
+    (define-key map "p" 'previous-completion)
+    (define-key map "\M-g\M-c" 'switch-to-minibuffer)
     map)
   "Local map for completion list buffers.")
 
@@ -8913,18 +8936,17 @@ If EVENT, use EVENT's position to determine the starting position."
           (choice
            (save-excursion
              (goto-char (posn-point (event-start event)))
-             (let (beg end)
+             (let (beg)
                (cond
                 ((and (not (eobp)) (get-text-property (point) 'mouse-face))
-                 (setq end (point) beg (1+ (point))))
+                 (setq beg (1+ (point))))
                 ((and (not (bobp))
                       (get-text-property (1- (point)) 'mouse-face))
-                 (setq end (1- (point)) beg (point)))
+                 (setq beg (point)))
                 (t (error "No completion here")))
                (setq beg (previous-single-property-change beg 'mouse-face))
-               (setq end (or (next-single-property-change end 'mouse-face)
-                             (point-max)))
-               (buffer-substring-no-properties beg end)))))
+               (substring-no-properties
+                (get-text-property beg 'completion--string))))))
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))
@@ -9116,6 +9138,18 @@ select the completion near point.\n\n"))))))
       ;; FIXME: Perhaps this should be done in `minibuffer-completion-help'.
       (when (bobp)
 	(next-completion 1)))))
+
+(defun read-expression-switch-to-completions ()
+  "Select the completion list window while reading an expression."
+  (interactive)
+  (completion-help-at-point)
+  (switch-to-completions))
+
+(defun switch-to-minibuffer ()
+  "Select the minibuffer window."
+  (interactive)
+  (when (active-minibuffer-window)
+    (select-window (active-minibuffer-window))))
 
 ;;; Support keyboard commands to turn on various modifiers.
 
