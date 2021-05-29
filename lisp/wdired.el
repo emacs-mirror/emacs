@@ -351,13 +351,32 @@ or \\[wdired-abort-changes] to abort changes")))
 ;; This code is a copy of some dired-get-filename lines.
 (defsubst wdired-normalize-filename (file unquotep)
   (when unquotep
-    (setq file
-          ;; FIXME: shouldn't we check for a `b' argument or somesuch before
-          ;; doing such unquoting?  --Stef
-          (read (concat
-                 "\"" (replace-regexp-in-string
-                       "\\([^\\]\\|\\`\\)\"" "\\1\\\\\"" file)
-                 "\""))))
+    ;; Unquote names quoted by ls or by dired-insert-directory.
+    ;; This code was written using `read' to unquote, because
+    ;; it's faster than substituting \007 (4 chars) -> ^G (1
+    ;; char) etc. in a lisp loop.  Unfortunately, this decision
+    ;; has necessitated hacks such as dealing with filenames
+    ;; with quotation marks in their names.
+    (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
+      (setq file (replace-match "\\\"" nil t file 1)))
+    ;; Unescape any spaces escaped by ls -b (bug#10469).
+    ;; Other -b quotes, eg \t, \n, work transparently.
+    (if (dired-switches-escape-p dired-actual-switches)
+        (let ((start 0)
+              (rep "")
+              (shift -1))
+          (while (string-match "\\(\\\\\\) " file start)
+            (setq file (replace-match rep nil t file 1)
+                  start (+ shift (match-end 0))))))
+    (when (eq system-type 'windows-nt)
+      (save-match-data
+	(let ((start 0))
+	  (while (string-match "\\\\" file start)
+	    (aset file (match-beginning 0) ?/)
+	    (setq start (match-end 0))))))
+
+    ;; Hence we don't need to worry about converting `\\' back to `\'.
+    (setq file (read (concat "\"" file "\""))))
   (and file buffer-file-coding-system
        (not file-name-coding-system)
        (not default-file-name-coding-system)

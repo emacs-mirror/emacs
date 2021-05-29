@@ -245,10 +245,7 @@ or comment."
                              'electric-indent-functions
                              last-command-event)
                             (memq last-command-event electric-indent-chars))))
-               (not
-                (or (memq act '(nil no-indent))
-                    ;; In a string or comment.
-                    (unless (eq act 'do-indent) (nth 8 (syntax-ppss))))))))
+               (not (memq act '(nil no-indent))))))
       ;; If we error during indent, silently give up since this is an
       ;; automatic action that the user didn't explicitly request.
       ;; But we don't want to suppress errors from elsewhere in *this*
