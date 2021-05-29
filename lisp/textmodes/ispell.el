@@ -3431,7 +3431,7 @@ Returns the sum SHIFT due to changes in word replacements."
 		(word-len (length (car poss)))
 		(line-end (copy-marker ispell-end))
 		(line-start (copy-marker ispell-start))
-                accepted recheck-region replace)
+		recheck-region replace)
 	    (goto-char word-start)
 	    ;; Adjust the horizontal scroll & point
 	    (ispell-horiz-scroll)
@@ -3486,18 +3486,13 @@ Returns the sum SHIFT due to changes in word replacements."
 
             ;; Insert correction if needed.
             (cond
-             ((equal 0 replace)         ; INSERT
+             ((or (null replace)
+                  (equal 0 replace))	; ACCEPT/INSERT
               (if (equal 0 replace)     ; BUFFER-LOCAL DICT ADD
                   (ispell-add-per-file-word-list (car poss)))
               ;; Do not recheck accepted word on this line.
               (setq accept-list (cons (car poss) accept-list)))
-             (t
-              ;; The user hit SPC, so accept this word, but keep
-              ;; checking the rest of the line.
-              (unless replace
-                (setq accepted t)
-                (setq replace (list (buffer-substring-no-properties
-                                     (point) (+ word-len (point))))))
+             (t				; Replacement word selected or entered.
               (delete-region (point) (+ word-len (point)))
               (if (not (listp replace))
                   (progn
@@ -3516,9 +3511,9 @@ Returns the sum SHIFT due to changes in word replacements."
                         (query-replace (car poss) (car replace) t)))
                   (goto-char word-start)
                   ;; Do not recheck if already accepted.
-                  (if (or accepted
-                          (member replace-word accept-list))
-                      (setq replace replace-word)
+                  (if (member replace-word accept-list)
+                      (setq accept-list (cons replace-word accept-list)
+                            replace replace-word)
                     (let ((region-end (copy-marker ispell-region-end)))
                       (setq recheck-region ispell-filter
                             ispell-filter nil ; Save filter.
