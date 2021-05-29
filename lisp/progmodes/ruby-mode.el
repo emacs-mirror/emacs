@@ -2426,7 +2426,8 @@ If there is no Rubocop config file, Rubocop will be passed a flag
     (">=" . ?≥)
     ("->"  . ?→)
     ("=>"  . ?⇒)
-    ("::" . ?∷))
+    ("::" . ?∷)
+    ("lambda" . ?λ))
   "Value for `prettify-symbols-alist' in `ruby-mode'.")
 
 ;;;###autoload
