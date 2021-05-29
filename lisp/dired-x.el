@@ -941,10 +941,15 @@ Each element of this list looks like
 
     (REGEXP COMMAND...)
 
-where each COMMAND can either be a string or a Lisp expression that evaluates
+COMMAND will be used if REGEXP matches the file to be processed.
+If several files are to be processed, REGEXP has to match all the
+files.
+
+Each COMMAND can either be a string or a Lisp expression that evaluates
 to a string.  If this expression needs to consult the name of the file for
 which the shell commands are being requested, it can access that file name
 as the variable `file'.
+
 If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
 with \\[previous-history-element] (M-p) .
