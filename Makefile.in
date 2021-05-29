@@ -185,8 +185,8 @@ x_default_search_path=@x_default_search_path@
 # Where the etc/emacs.desktop file is to be installed.
 desktopdir=$(datarootdir)/applications
 
-# Where the etc/emacs.appdata.xml file is to be installed.
-appdatadir=$(datarootdir)/metainfo
+# Where the etc/emacs.metainfo.xml file is to be installed.
+metainfodir=$(datarootdir)/metainfo
 
 # Where the etc/emacs.service file is to be installed.
 # The system value (typically /usr/lib/systemd/user) can be
@@ -721,11 +721,11 @@ install-etc:
 	  ${srcdir}/etc/emacsclient.desktop > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/$${client_name}.desktop"; \
 	rm -f $${tmp}
-	umask 022; ${MKDIR_P} "$(DESTDIR)${appdatadir}"
-	tmp=etc/emacs.tmpappdata; rm -f $${tmp}; \
+	umask 022; ${MKDIR_P} "$(DESTDIR)${metainfodir}"
+	tmp=etc/emacs.tmpmetainfo; rm -f $${tmp}; \
 	sed -e "s/emacs\.desktop/${EMACS_NAME}.desktop/" \
-	  ${srcdir}/etc/emacs.appdata.xml > $${tmp}; \
-	${INSTALL_DATA} $${tmp} "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"; \
+	  ${srcdir}/etc/emacs.metainfo.xml > $${tmp}; \
+	${INSTALL_DATA} $${tmp} "$(DESTDIR)${metainfodir}/${EMACS_NAME}.metainfo.xml"; \
 	rm -f $${tmp}
 	umask 022; $(MKDIR_P) "$(DESTDIR)$(systemdunitdir)"
 	tmp=etc/emacs.tmpservice; rm -f $${tmp}; \
@@ -811,7 +811,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	     "hicolor/scalable/mimetypes/${EMACS_NAME}-document23.svg"; \
 	fi)
 	-rm -f "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"
-	-rm -f "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"
+	-rm -f "$(DESTDIR)${metainfodir}/${EMACS_NAME}.metainfo.xml"
 	-rm -f "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"
   ifneq (,$(use_gamedir))
 	for file in snake-scores tetris-scores; do \
