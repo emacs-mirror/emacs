@@ -6984,8 +6984,11 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   {
     GdkScreen *gscr = gdk_display_get_default_screen (dpyinfo->gdpy);
 
-    gdouble dpi = 96.0 * pgtk_text_scaling_factor();
-    gdk_screen_set_resolution (gscr, dpi);
+    gdouble dpi = gdk_screen_get_resolution (gscr);
+    if (dpi < 0)
+	dpi = 96.0;
+
+    dpi *= pgtk_text_scaling_factor();
     dpyinfo->resx = dpi;
     dpyinfo->resy = dpi;
   }
