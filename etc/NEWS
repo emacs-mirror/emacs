@@ -442,6 +442,11 @@ major mode.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Completion List Mode
+New key bindings have been added: 'n' and 'p' to navigate completions,
+and 'M-g M-c' to switch to the minibuffer, and you can also switch back
+to the completion list buffer with 'M-g M-c'.
+
 ** Benchmark
 *** New function 'benchmark-call' to measure the execution time of a function.
 Additionally, the number of repetitions can be expressed as a minimal duration
@@ -2491,6 +2496,14 @@ This is to keep the same behavior as Eshell.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+---
+** Some floating-point numbers are now handled differently by the Lisp reader.
+In previous versions of Emacs, numbers with a trailing dot and an exponent
+were read as integers and the exponent ignored: 2.e6 was interpreted as the
+integer 2.  Such numerals are now read as floats with the exponent included:
+2.e6 is now read as the floating-point value 2000000.0.
+That is, (read-from-string "1.e3") => (1000.0 . 4) now.
+
 +++
 ** The 'lexical-binding' local variable is always enabled.
 Previously, if 'enable-local-variables' was nil, a 'lexical-binding'
@@ -2697,8 +2710,23 @@ The implementation was buggy, and multiple '&define' forms in an '&or'
 form should be exceedingly rare.  See the Info node "(elisp) Backtracking" in
 the Emacs Lisp reference manual for background.
 
+---
+** 'sql-*-statement-starters' are no longer defcustoms.
+These variables describe facts about the SQL standard and
+product-specific additions.  There should be no need for users to
+customize them.
+
 
 * Lisp Changes in Emacs 28.1
+
+---
+** Emacs now attempts to test for high-rate subprocess output more fairly.
+When several subprocesses produce output simultaneously at high rate,
+Emacs will now by default attempt to service them all in a round-robin
+fashion.  Set the new variable 'process-prioritize-lower-fds' to a
+non-nil value to get back the old behavior, whereby after reading
+from a subprocess, Emacs would check for output of other subprocesses
+in a way that is likely to read from the same process again.
 
 +++
 ** New function 'sxhash-equal-including-properties'.

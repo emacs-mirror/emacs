@@ -225,7 +225,8 @@ Value is:
  `x' for an Emacs frame that is really an X window,
  `w32' for an Emacs frame that is a window on MS-Windows display,
  `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
- `pc' for a direct-write MS-DOS frame.
+ `pc' for a direct-write MS-DOS frame,
+ `pgtk' for an Emacs frame running entirely in GTK.
 See also `frame-live-p'.  */)
   (Lisp_Object object)
 {

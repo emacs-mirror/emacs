@@ -42,6 +42,8 @@
 (declare-function tramp-dissect-file-name "tramp")
 (declare-function tramp-file-name-equal-p "tramp")
 (declare-function tramp-tramp-file-p "tramp")
+(declare-function tramp-rename-files "tramp-cmds")
+(declare-function tramp-rename-these-files "tramp-cmds")
 (defvar eshell-path-env)
 (defvar ido-read-file-name-non-ido)
 (defvar info-lookup-alist)
@@ -184,14 +186,14 @@ NAME must be equal to `tramp-current-connection'."
 ;;; Integration of ido.el:
 
 (with-eval-after-load 'ido
-  (add-to-list 'ido-read-file-name-non-ido 'tramp-rename-files)
-  (add-to-list 'ido-read-file-name-non-ido 'tramp-these-rename-files)
+  (add-to-list 'ido-read-file-name-non-ido #'tramp-rename-files)
+  (add-to-list 'ido-read-file-name-non-ido #'tramp-rename-these-files)
   (add-hook 'tramp-integration-unload-hook
 	    (lambda ()
 	      (setq ido-read-file-name-non-ido
-		    (delq 'tramp-these-rename-files ido-read-file-name-non-ido)
+		    (delq #'tramp-rename-these-files ido-read-file-name-non-ido)
 		    ido-read-file-name-non-ido
-		    (delq 'tramp-rename-files ido-read-file-name-non-ido)))))
+		    (delq #'tramp-rename-files ido-read-file-name-non-ido)))))
 
 ;;; Integration of ivy.el:
 
@@ -199,17 +201,17 @@ NAME must be equal to `tramp-current-connection'."
   (add-to-list 'ivy-completing-read-handlers-alist
 	       '(tramp-rename-files . completing-read-default))
   (add-to-list 'ivy-completing-read-handlers-alist
-	       '(tramp-these-rename-files . completing-read-default))
+	       '(tramp-rename-these-files . completing-read-default))
   (add-hook
    'tramp-integration-unload-hook
    (lambda ()
      (setq ivy-completing-read-handlers-alist
 	   (delete
-	    (assq 'tramp-these-rename-files ivy-completing-read-handlers-alist)
+	    (assq #'tramp-rename-these-files ivy-completing-read-handlers-alist)
 	    ivy-completing-read-handlers-alist)
 	   ivy-completing-read-handlers-alist
 	   (delete
-	    (assq 'tramp-rename-files ivy-completing-read-handlers-alist)
+	    (assq #'tramp-rename-files ivy-completing-read-handlers-alist)
 	    ivy-completing-read-handlers-alist)))))
 
 ;;; Integration of info-look.el:

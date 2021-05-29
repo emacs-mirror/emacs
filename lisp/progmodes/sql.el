@@ -998,20 +998,6 @@ for the first time."
   :version "24.1"
   :type 'hook)
 
-;; Customization for ANSI
-
-(defcustom sql-ansi-statement-starters
-  (regexp-opt '("create" "alter" "drop"
-                "select" "insert" "update" "delete" "merge"
-                "grant" "revoke"))
-  "Regexp of keywords that start SQL commands.
-
-All products share this list; products should define a regexp to
-identify additional keywords in a variable defined by
-the :statement feature."
-  :version "24.1"
-  :type 'regexp)
-
 ;; Customization for Oracle
 
 (defcustom sql-oracle-program "sqlplus"
@@ -1033,12 +1019,6 @@ You will find the file in your Orant\\bin directory."
   "List of login parameters needed to connect to Oracle."
   :type 'sql-login-params
   :version "24.1")
-
-(defcustom sql-oracle-statement-starters
-  (regexp-opt '("declare" "begin" "with"))
-  "Additional statement starting keywords in Oracle."
-  :version "24.1"
-  :type 'string)
 
 (defcustom sql-oracle-scan-on t
   "Non-nil if placeholders should be replaced in Oracle SQLi.
@@ -1239,13 +1219,6 @@ add your name with a \"-U\" prefix (such as \"-Umark\") to the list."
           (when (string-match "^ \\([^ |]+\\) +|.*" row)
             (push (match-string 1 row) res))))
       (nreverse res))))
-
-(defcustom sql-postgres-statement-starters
-  (regexp-opt '("with"))
-  "Additional statement-starting keywords in Postgres."
-  :type 'string
-  :group 'SQL
-  :version "28.1")
 
 ;; Customization for Interbase
 
@@ -1509,6 +1482,26 @@ Based on `comint-mode-map'.")
           (string-to-list "!#$%&+,.:;<=>?@\\|"))
     table)
   "Syntax table used in `sql-mode' and `sql-interactive-mode'.")
+
+;; Motion Function Keywords
+
+(defvar sql-ansi-statement-starters
+  (regexp-opt '("create" "alter" "drop"
+                "select" "insert" "update" "delete" "merge"
+                "grant" "revoke"))
+  "Regexp of keywords that start SQL commands.
+
+All products share this list; products should define a regexp to
+identify additional keywords in a variable defined by
+the :statement feature.")
+
+(defvar sql-oracle-statement-starters
+  (regexp-opt '("declare" "begin" "with"))
+  "Additional statement-starting keywords in Oracle.")
+
+(defvar sql-postgres-statement-starters
+  (regexp-opt '("with"))
+  "Additional statement-starting keywords in Postgres.")
 
 ;; Font lock support
 

@@ -460,7 +460,8 @@ Non-nil means always go to the next Octave code line after sending."
          (smie-rule-parent octave-block-offset)
        ;; For (invalid) code between switch and case.
        ;; (if (smie-rule-parent-p "switch") 4)
-       nil))))
+       nil))
+    ('(:after . "=") octave-block-offset)))
 
 (defun octave-indent-comment ()
   "A function for `smie-indent-functions' (which see)."

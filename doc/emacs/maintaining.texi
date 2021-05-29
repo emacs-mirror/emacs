@@ -3123,8 +3123,10 @@ variables itself by calling the functions in
 @code{bug-reference-auto-setup-functions} one after the other until
 one is able to set the variables.
 
+@vindex bug-reference-setup-from-vc-alist
+@vindex bug-reference-setup-from-mail-alist
+@vindex bug-reference-setup-from-irc-alist
   Right now, there are three types of setup functions.
-
 @enumerate
 @item
 Setup for version-controlled files configurable by the variable
@@ -3144,8 +3146,8 @@ mailreader @ref{Gnus} and @ref{Rmail} are supported.
 @item
 Setup for IRC channels configurable by the variable
 @code{bug-reference-setup-from-irc-alist}.  The built-in IRC clients
-Rcirc, @xref{,,,Rcirc, Rcirc}, and ERC, @xref{,,,ERC, ERC}, are
-supported.
+Rcirc, @xref{Top, Rcirc,, rcirc, The Rcirc Manual}, and ERC,
+@xref{Top, ERC,, erc, The ERC Manual}, are supported.
 @end enumerate
 
 For almost all of those modes, it's enough to simply enable
@@ -3175,6 +3177,38 @@ function @code{bug-reference-mode-force-auto-setup} which activates
 @code{bug-reference-mode} and forces auto-setup.  The reason is that
 with Rmail all messages reside in the same buffer but the setup needs
 to be performed whenever another messages is displayed.
+
+
+@heading Adding support for third-party packages
+
+@vindex bug-reference-auto-setup-functions
+Adding support for bug-reference' auto-setup is usually quite
+straight-forward: write a setup function of zero arguments which
+gathers the required information (e.g., List-Id/To/From/Cc mail header
+values in the case of a MUA), and then calls one of the following
+helper functions:
+@itemize @bullet
+@item
+@code{bug-reference-maybe-setup-from-vc} which does the setup
+according to @code{bug-reference-setup-from-vc-alist},
+
+@item
+@code{bug-reference-maybe-setup-from-mail} which does the setup
+according to @code{bug-reference-setup-from-mail-alist},
+
+@item
+and @code{bug-reference-maybe-setup-from-irc} which does the setup
+according to @code{bug-reference-setup-from-irc-alist}.
+@end itemize
+A setup function should return non-nil if it could setup bug-reference
+mode which is the case if the last thing the function does is calling
+one of the helper functions above.
+
+Finally, the setup function has to be added to
+@code{bug-reference-auto-setup-functions}.
+
+Note that these auto-setup functions should check as a first step if
+they are applicable, e.g., by checking the @code{major-mode} value.
 
 
 @heading Integration with the debbugs package

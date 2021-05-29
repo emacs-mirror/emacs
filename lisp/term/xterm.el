@@ -770,8 +770,7 @@ Can be nil to mean \"no timeout\".")
 By not redisplaying right away for xterm queries, we can avoid
 unsightly flashing during initialization. Give up and redisplay
 anyway if we've been waiting a little while."
-  (let ((start-time (current-time))
-        (inhibit--record-char t))
+  (let ((start-time (current-time)))
     (or (let ((inhibit-redisplay t))
           (read-event nil nil xterm-query-redisplay-timeout))
         (read-event nil nil
@@ -839,8 +838,8 @@ We run the first FUNCTION whose STRING matches the input events."
    basemap
    (make-composed-keymap map (keymap-parent basemap))))
 
-(defun terminal-init-xterm ()
-  "Terminal initialization function for xterm."
+(defun xterm--init ()
+  "Initialize the terminal for xterm."
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
   ;; rxvt's keybindings are incompatible with xterm's. It is
   ;; better in that case to use rxvt's initialization function.
@@ -882,9 +881,18 @@ We run the first FUNCTION whose STRING matches the input events."
   ;; support it just ignore the sequence.
   (xterm--init-bracketed-paste-mode)
   ;; We likewise unconditionally enable support for focus tracking.
-  (xterm--init-focus-tracking)
+  (xterm--init-focus-tracking))
 
-  (run-hooks 'terminal-init-xterm-hook))
+(defun terminal-init-xterm ()
+  "Terminal initialization function for xterm."
+  (unwind-protect
+      (progn
+        (xterm--init)
+        ;; If the terminal initialization completed without errors, clear
+        ;; the lossage to discard the responses of the terminal emulator
+        ;; during initialization; otherwise they appear in the recent keys.
+        (clear-this-command-keys))
+    (run-hooks 'terminal-init-xterm-hook)))
 
 (defun xterm--init-modify-other-keys ()
   "Terminal initialization for xterm's modifyOtherKeys support."

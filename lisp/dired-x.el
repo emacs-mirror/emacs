@@ -576,7 +576,7 @@ files in the active region if `dired-mark-region' is non-nil."
 
 (defalias 'virtual-dired 'dired-virtual)
 (defun dired-virtual (dirname &optional switches)
-  "Put this buffer into Virtual Dired mode.
+  "Put this Dired buffer into Virtual Dired mode.
 
 In Virtual Dired mode, all commands that do not actually consult the
 filesystem will work.
@@ -608,7 +608,8 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   ;; hand if you want them.
 
   (interactive
-   (list (read-string "Virtual Dired directory: " (dired-virtual-guess-dir))))
+   (list (read-directory-name "Virtual Dired directory: "
+                              nil (dired-virtual-guess-dir))))
   (goto-char (point-min))
   (or (looking-at-p "  ")
       ;; if not already indented, do it now:
@@ -940,10 +941,15 @@ Each element of this list looks like
 
     (REGEXP COMMAND...)
 
-where each COMMAND can either be a string or a Lisp expression that evaluates
+COMMAND will be used if REGEXP matches the file to be processed.
+If several files are to be processed, REGEXP has to match all the
+files.
+
+Each COMMAND can either be a string or a Lisp expression that evaluates
 to a string.  If this expression needs to consult the name of the file for
 which the shell commands are being requested, it can access that file name
 as the variable `file'.
+
 If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
 with \\[previous-history-element] (M-p) .

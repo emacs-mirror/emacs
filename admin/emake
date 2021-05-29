@@ -32,7 +32,9 @@ s#^./temacs.*#  \\& #
 egrep --line-buffered -v "^make|\
 ^Loading|\
 SCRAPE|\
-INFO.*Scraping.*[.]\$|\
+INFO.*Scraping.*[.] ?\$|\
+INFO.*Scraping.*done\$|\
+GEN.*etc/DOC|\
 ^Waiting for git|\
 ^Finding pointers|\
 ^Using load-path|\

@@ -51,7 +51,7 @@ This is useful for ChangeLogs."
  "\\(©\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
 \\|[Cc]opyright\\s *:?\\s *©\\)\
 \\s *[^0-9\n]*\\s *\
-\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
+\\([1-9]\\([-0-9, ';/*%#\n\t–]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "What your copyright notice looks like.
 The second \\( \\) construct must match the years."
   :type 'regexp)
@@ -69,7 +69,7 @@ someone else or to a group for which you do not work."
 ;;;###autoload(put 'copyright-names-regexp 'safe-local-variable 'stringp)
 
 (defcustom copyright-years-regexp
- "\\(\\s *\\)\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
+  "\\(\\s *\\)\\([1-9]\\([-0-9, ';/*%#\n\t–]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "Match additional copyright notice years.
 The second \\( \\) construct must match the years."
   :type 'regexp)
@@ -197,8 +197,8 @@ skips to the end of all the years."
 						  (point))))
 			    100)
 			 1)
-		     (or (eq (char-after (+ (point) size -1)) ?-)
-			 (eq (char-after (+ (point) size -2)) ?-)))
+		     (or (memq (char-after (+ (point) size -1)) '(?- ?–))
+			 (memq (char-after (+ (point) size -2)) '(?- ?–))))
 		;; This is a range so just replace the end part.
 		(delete-char size)
 	      ;; Insert a comma with the preferred number of spaces.
@@ -287,7 +287,7 @@ independently replaces consecutive years with a range."
 	  (setq year (string-to-number (match-string 0)))
 	  (and (setq sep (char-before))
 	       (/= (char-syntax sep) ?\s)
-	       (/= sep ?-)
+	       (not (memq sep '(?- ?–)))
 	       (insert " "))
 	  (when (< year 100)
 	    (insert (if (>= year 50) "19" "20"))
@@ -297,7 +297,7 @@ independently replaces consecutive years with a range."
 	    ;; If the previous thing was a range, don't try to tack more on.
 	    ;; Ie not 2000-2005 -> 2000-2005-2007
 	    ;; TODO should merge into existing range if possible.
-	    (if (eq sep ?-)
+	    (if (memq sep '(?- ?–))
 		(setq prev-year nil
 		      year nil)
 	      (if (and prev-year (= year (1+ prev-year)))
@@ -306,7 +306,7 @@ independently replaces consecutive years with a range."
 			   (> prev-year first-year))
 		  (goto-char range-end)
 		  (delete-region range-start range-end)
-		  (insert (format "-%d" prev-year))
+		  (insert (format "%c%d" sep prev-year))
 		  (goto-char p))
 		(setq first-year year
 		      range-start (point)))))

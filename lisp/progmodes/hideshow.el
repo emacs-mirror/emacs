@@ -310,7 +310,7 @@ a block), `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
 These commands include the toggling commands (when the result is to show
 a block), `hs-show-all' and `hs-show-block'.")
 
-(defvar hs-set-up-overlay #'ignore
+(defcustom hs-set-up-overlay #'ignore
   "Function called with one arg, OV, a newly initialized overlay.
 Hideshow puts a unique overlay on each range of text to be hidden
 in the buffer.  Here is a simple example of how to use this variable:
@@ -326,7 +326,9 @@ in the buffer.  Here is a simple example of how to use this variable:
 
 This example shows how to get information from the overlay as well
 as how to set its `display' property.  See `hs-make-overlay' and
-info node `(elisp)Overlays'.")
+info node `(elisp)Overlays'."
+  :type 'function
+  :version "28.1")
 
 ;;---------------------------------------------------------------------------
 ;; internal variables

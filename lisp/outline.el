@@ -205,7 +205,9 @@ in the file it applies to.")
                                  (list 'face (outline-font-lock-face)
                                        'keymap outline-mode-cycle-map)
                                (list 'face nil
-                                     'keymap outline-mode-cycle-map)))
+                                     'keymap outline-mode-cycle-map))
+                           (if outline-minor-mode-highlight
+                               (list 'face (outline-font-lock-face))))
                        (outline-font-lock-face))
                   (when outline-minor-mode
                     (pcase outline-minor-mode-highlight
@@ -349,7 +351,7 @@ faces to major mode's faces."
                  (const :tag "Append outline faces to major mode faces" append)
                  (const :tag "Highlight separately from major mode faces" t))
   :version "28.1")
-;;;###autoload(put 'outline-minor-mode-highlight 'safe-local-variable 'booleanp)
+;;;###autoload(put 'outline-minor-mode-highlight 'safe-local-variable 'symbolp)
 
 (defun outline-minor-mode-highlight-buffer ()
   ;; Fallback to overlays when font-lock is unsupported.

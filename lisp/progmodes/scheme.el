@@ -299,7 +299,9 @@ See `run-hooks'."
        (concat
         "(" (regexp-opt
              '("begin" "call-with-current-continuation" "call/cc"
-               "call-with-input-file" "call-with-output-file" "case" "cond"
+               "call-with-input-file" "call-with-output-file"
+               "call-with-port"
+               "case" "cond"
                "do" "else" "for-each" "if" "lambda" "λ"
                "let" "let*" "let-syntax" "letrec" "letrec-syntax"
                ;; R6RS library subforms.
@@ -542,6 +544,7 @@ indentation."
 (put 'library 'scheme-indent-function 1) ; R6RS
 
 (put 'call-with-input-file 'scheme-indent-function 1)
+(put 'call-with-port 'scheme-indent-function 1)
 (put 'with-input-from-file 'scheme-indent-function 1)
 (put 'with-input-from-port 'scheme-indent-function 1)
 (put 'call-with-output-file 'scheme-indent-function 1)

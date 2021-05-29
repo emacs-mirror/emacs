@@ -3626,7 +3626,7 @@ system_process_attributes (Lisp_Object pid)
   ttyname = proc.ki_tdev == NODEV ? NULL : devname (proc.ki_tdev, S_IFCHR);
   unblock_input ();
   if (ttyname)
-    attrs = Fcons (Fcons (Qtty, build_string (ttyname)), attrs);
+    attrs = Fcons (Fcons (Qttname, build_string (ttyname)), attrs);
 
   attrs = Fcons (Fcons (Qtpgid,   INT_TO_INTEGER (proc.ki_tpgid)), attrs);
   attrs = Fcons (Fcons (Qminflt,  INT_TO_INTEGER (proc.ki_rusage.ru_minflt)),
@@ -3898,20 +3898,19 @@ system_process_attributes (Lisp_Object pid)
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
-  int proc_id;
+  int proc_id, i;
   struct passwd *pw;
   struct group  *gr;
   char *ttyname;
   struct timeval starttime;
   struct timespec t, now;
-  struct rusage *rusage;
   dev_t tdev;
   uid_t uid;
   gid_t gid;
 
   int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID};
   struct kinfo_proc proc;
-  size_t proclen = sizeof proc;
+  size_t len = sizeof proc;
 
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_comm;
@@ -3920,7 +3919,7 @@ system_process_attributes (Lisp_Object pid)
   CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
-  if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0 || proclen == 0)
+  if (sysctl (mib, 4, &proc, &len, NULL, 0) != 0 || len == 0)
     return attrs;
 
   uid = proc.kp_eproc.e_ucred.cr_uid;
@@ -3957,8 +3956,8 @@ system_process_attributes (Lisp_Object pid)
   decoded_comm = (code_convert_string_norecord
 		  (build_unibyte_string (comm),
 		   Vlocale_coding_system, 0));
-
   attrs = Fcons (Fcons (Qcomm, decoded_comm), attrs);
+
   {
     char state[2] = {'\0', '\0'};
     switch (proc.kp_proc.p_stat)
@@ -3994,27 +3993,24 @@ system_process_attributes (Lisp_Object pid)
   ttyname = tdev == NODEV ? NULL : devname (tdev, S_IFCHR);
   unblock_input ();
   if (ttyname)
-    attrs = Fcons (Fcons (Qtty, build_string (ttyname)), attrs);
+    attrs = Fcons (Fcons (Qttname, build_string (ttyname)), attrs);
 
   attrs = Fcons (Fcons (Qtpgid, INT_TO_INTEGER (proc.kp_eproc.e_tpgid)),
 		 attrs);
 
-  rusage = proc.kp_proc.p_ru;
-  if (rusage)
+  rusage_info_current ri;
+  if (proc_pid_rusage(proc_id, RUSAGE_INFO_CURRENT, (rusage_info_t *) &ri) == 0)
     {
-      attrs = Fcons (Fcons (Qminflt, INT_TO_INTEGER (rusage->ru_minflt)),
-		     attrs);
-      attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (rusage->ru_majflt)),
-		     attrs);
+      struct timespec utime = make_timespec (ri.ri_user_time / TIMESPEC_HZ,
+					     ri.ri_user_time % TIMESPEC_HZ);
+      struct timespec stime = make_timespec (ri.ri_system_time / TIMESPEC_HZ,
+					     ri.ri_system_time % TIMESPEC_HZ);
+      attrs = Fcons (Fcons (Qutime, make_lisp_time (utime)), attrs);
+      attrs = Fcons (Fcons (Qstime, make_lisp_time (stime)), attrs);
+      attrs = Fcons (Fcons (Qtime, make_lisp_time (timespec_add (utime, stime))), attrs);
 
-      attrs = Fcons (Fcons (Qutime, make_lisp_timeval (rusage->ru_utime)),
-		     attrs);
-      attrs = Fcons (Fcons (Qstime, make_lisp_timeval (rusage->ru_stime)),
-		     attrs);
-      t = timespec_add (timeval_to_timespec (rusage->ru_utime),
-			timeval_to_timespec (rusage->ru_stime));
-      attrs = Fcons (Fcons (Qtime, make_lisp_time (t)), attrs);
-    }
+      attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (ri.ri_pageins)), attrs);
+  }
 
   starttime = proc.kp_proc.p_starttime;
   attrs = Fcons (Fcons (Qnice,  make_fixnum (proc.kp_proc.p_nice)), attrs);
@@ -4023,6 +4019,50 @@ system_process_attributes (Lisp_Object pid)
   now = current_timespec ();
   t = timespec_sub (now, timeval_to_timespec (starttime));
   attrs = Fcons (Fcons (Qetime, make_lisp_time (t)), attrs);
+
+  struct proc_taskinfo taskinfo;
+  if (proc_pidinfo (proc_id, PROC_PIDTASKINFO, 0, &taskinfo, sizeof (taskinfo)) > 0)
+    {
+      attrs = Fcons (Fcons (Qvsize, make_fixnum (taskinfo.pti_virtual_size / 1024)), attrs);
+      attrs = Fcons (Fcons (Qrss, make_fixnum (taskinfo.pti_resident_size / 1024)), attrs);
+      attrs = Fcons (Fcons (Qthcount, make_fixnum (taskinfo.pti_threadnum)), attrs);
+    }
+
+#ifdef KERN_PROCARGS2
+  char args[ARG_MAX];
+  mib[1] = KERN_PROCARGS2;
+  mib[2] = proc_id;
+  len = sizeof args;
+
+  if (sysctl (mib, 3, &args, &len, NULL, 0) == 0 && len != 0)
+    {
+      char *start, *end;
+
+      int argc = *(int*)args; /* argc is the first int */
+      start = args + sizeof (int);
+
+      start += strlen (start) + 1; /* skip executable name and any '\0's */
+      while ((start - args < len) && ! *start) start++;
+
+      /* skip argv to find real end */
+      for (i = 0, end = start; i < argc && (end - args) < len; i++)
+	{
+	  end += strlen (end) + 1;
+	}
+
+      len = end - start;
+      for (int i = 0; i < len; i++)
+	{
+	  if (! start[i] && i < len - 1)
+	    start[i] = ' ';
+	}
+
+      AUTO_STRING (comm, start);
+      decoded_comm = code_convert_string_norecord (comm,
+						   Vlocale_coding_system, 0);
+      attrs = Fcons (Fcons (Qargs, decoded_comm), attrs);
+    }
+#endif	/* KERN_PROCARGS2 */
 
   return attrs;
 }

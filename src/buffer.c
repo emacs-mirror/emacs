@@ -5681,10 +5681,10 @@ inserts one or more TAB characters, this variable will affect the
 indentation step as well, even if `indent-tabs-mode' is non-nil.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &BVAR (current_buffer, ctl_arrow), Qnil,
-		     doc: /* Non-nil means display control chars with uparrow.
-A value of nil means use backslash and octal digits.
-This variable does not apply to characters whose display is specified
-in the current display table (if there is one).  */);
+		     doc: /* Non-nil means display control chars with uparrow `^'.
+A value of nil means use backslash `\\' and octal digits.
+This variable does not apply to characters whose display is specified in
+the current display table (if there is one; see `standard-display-table').  */);
 
   DEFVAR_PER_BUFFER ("enable-multibyte-characters",
 		     &BVAR (current_buffer, enable_multibyte_characters),

@@ -187,6 +187,7 @@ extern DWORD multiByteToWideCharFlags;
 
 extern char *w32_my_exename (void);
 extern const char *w32_relocate (const char *);
+extern char *realpath (const char *, char *);
 
 extern void init_environment (char **);
 extern void check_windows_init_file (void);

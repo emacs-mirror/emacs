@@ -2054,7 +2054,10 @@ You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mar
 
 (defun bookmark-bmenu-save ()
   "Save the current list into a bookmark file.
-With a prefix arg, prompts for a file to save them in."
+With a prefix arg, prompts for a file to save them in.
+
+See also the related behaviors of `bookmark-load' and
+`bookmark-bmenu-load'."
   (interactive nil bookmark-bmenu-mode)
   (save-excursion
     (save-window-excursion
@@ -2063,7 +2066,19 @@ With a prefix arg, prompts for a file to save them in."
 
 
 (defun bookmark-bmenu-load ()
-  "Load the bookmark file and rebuild the bookmark menu-buffer."
+  "Load bookmarks from a file and rebuild the bookmark menu-buffer.
+Prompt for a file, with the default choice being the value of
+`bookmark-default-file'.
+
+With a prefix argument, replace the current ambient bookmarks
+(i.e., the ones in `bookmark-alist') with the ones from the selected
+file and make that file be the new value of `bookmark-default-file'.
+In other words, a prefix argument means \"switch over to the bookmark
+universe defined in the loaded file\".  Without a prefix argument,
+just add the loaded bookmarks into the current ambient set.
+
+See the documentation for `bookmark-load' for more details; see also
+the related behaviors of `bookmark-save' and `bookmark-bmenu-save'."
   (interactive nil bookmark-bmenu-mode)
   (bookmark-bmenu-ensure-position)
   (save-excursion

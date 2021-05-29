@@ -237,7 +237,8 @@ precede the number and its exponent.  For example, @samp{1500.0},
 @samp{+15e2}, @samp{15.0e+2}, @samp{+1500000e-3}, and @samp{.15e4} are
 five ways of writing a floating-point number whose value is 1500.
 They are all equivalent.  Like Common Lisp, Emacs Lisp requires at
-least one digit after any decimal point in a floating-point number;
+least one digit after a decimal point in a floating-point number that
+does not have an exponent;
 @samp{1500.} is an integer, not a floating-point number.
 
   Emacs Lisp treats @code{-0.0} as numerically equal to ordinary zero

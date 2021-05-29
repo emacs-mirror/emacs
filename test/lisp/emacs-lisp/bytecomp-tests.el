@@ -1312,6 +1312,24 @@ compiled correctly."
                    (funcall f 3))
                  4)))
 
+(declare-function bc-test-alpha-f (ert-resource-file "bc-test-alpha.el"))
+
+(ert-deftest bytecomp-defsubst ()
+  ;; Check that lexical variables don't leak into inlined code.  See
+  ;; https://lists.gnu.org/archive/html/emacs-devel/2021-05/msg01227.html
+
+  ;; First, remove any trace of the functions and package defined:
+  (fmakunbound 'bc-test-alpha-f)
+  (fmakunbound 'bc-test-beta-f)
+  (setq features (delq 'bc-test-beta features))
+  ;; Byte-compile one file that uses a function from another file that isn't
+  ;; compiled.
+  (let ((file (ert-resource-file "bc-test-alpha.el"))
+        (load-path (cons (ert-resource-directory) load-path)))
+    (byte-compile-file file)
+    (load-file (concat file "c"))
+    (should (equal (bc-test-alpha-f 'a) '(nil a)))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
