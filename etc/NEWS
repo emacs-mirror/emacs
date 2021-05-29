@@ -2496,6 +2496,13 @@ This is to keep the same behavior as Eshell.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+---
+** Some floating point numbers are now handled differently by the Lisp reader.
+In previous versions of Emacs, floating point numbers like 1.e6 would
+be read as 1.  This has now been changed, and the Lisp reader will now
+read that construct as 1000000.0.
+That is, (read-from-string "1.e6") => (1000000.0 . 4) now.
+
 +++
 ** The 'lexical-binding' local variable is always enabled.
 Previously, if 'enable-local-variables' was nil, a 'lexical-binding'
