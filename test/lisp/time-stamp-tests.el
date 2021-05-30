@@ -525,7 +525,7 @@
       (should (equal (time-stamp-string "%#Z" ref-time1) utc-abbr)))))
 
 (ert-deftest time-stamp-format-time-zone-offset ()
-  "Test time-stamp format %z."
+  "Tests time-stamp legacy format %z and new offset format %5z."
   (with-time-stamp-test-env
     (let ((utc-abbr (format-time-string "%#Z" ref-time1 t)))
     ;; documented 1995-2019, warned since 2019, will change
@@ -544,6 +544,7 @@
     (should (equal (time-stamp-string "%_z" ref-time1) "+0000"))
     (should (equal (time-stamp-string "%:z" ref-time1) "+00:00"))
     (should (equal (time-stamp-string "%::z" ref-time1) "+00:00:00"))
+    (should (equal (time-stamp-string "%9::z" ref-time1) "+00:00:00"))
     (should (equal (time-stamp-string "%:::z" ref-time1) "+00"))))
 
 (ert-deftest time-stamp-format-non-date-conversions ()

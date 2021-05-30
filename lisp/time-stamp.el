@@ -499,7 +499,8 @@ and all `time-stamp-format' compatibility."
 			        (< ind fmt-len)))
 		         (if (and (<= ?0 cur-char) (>= ?9 cur-char))
 			     ;; get format width
-			     (let ((field-index ind))
+			     (let ((field-index ind)
+			           (first-digit cur-char))
 			       (while (progn
 				        (setq ind (1+ ind))
 				        (setq cur-char (if (< ind fmt-len)
@@ -510,6 +511,7 @@ and all `time-stamp-format' compatibility."
 			       (setq field-width
 				     (substring format field-index ind))
 			       (setq ind (1- ind))
+			       (setq cur-char first-digit)
 			       t))))
 	      (setq prev-char cur-char)
 	      ;; some characters we actually use
