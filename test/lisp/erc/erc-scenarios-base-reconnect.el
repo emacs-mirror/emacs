@@ -95,7 +95,7 @@
       (with-current-buffer erc-server-buffer
         (funcall expect 10 "Connection failed!  Re-establishing")))
 
-    (should (equal erc-autojoin-channels-alist '(("foonet.org" "#chan"))))
+    (should (equal erc-autojoin-channels-alist '((FooNet "#chan"))))
 
     (funcall test)
 
