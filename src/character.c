@@ -328,12 +328,14 @@ strwidth (const char *str, ptrdiff_t len)
    compositions.  If PRECISION > 0, return the width of longest
    substring that doesn't exceed PRECISION, and set number of
    characters and bytes of the substring in *NCHARS and *NBYTES
-   respectively.  FROM and TO are zero-based character indices
-   that define the substring of STRING to consider.  */
+   respectively.  FROM and TO are zero-based character indices that
+   define the substring of STRING to consider.  If AUTO_COMP is
+   non-zero, account for automatic compositions in STRING.  */
 
 ptrdiff_t
 lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
-		   ptrdiff_t precision, ptrdiff_t *nchars, ptrdiff_t *nbytes)
+		   ptrdiff_t precision, ptrdiff_t *nchars, ptrdiff_t *nbytes,
+		   bool auto_comp)
 {
   /* This set multibyte to 0 even if STRING is multibyte when it
      contains only ascii and eight-bit-graphic, but that's
@@ -370,7 +372,8 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 	  bytes = string_char_to_byte (string, end) - i_byte;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
-      else if (f && FRAME_WINDOW_P (f)
+      else if (auto_comp
+	       && f && FRAME_WINDOW_P (f)
 	       && multibyte
 	       && find_automatic_composition (i, -1, &ignore, &end, &val, string)
 	       && end > i)
@@ -471,7 +474,7 @@ usage: (string-width STRING &optional FROM TO)  */)
 
   CHECK_STRING (str);
   validate_subarray (str, from, to, SCHARS (str), &ifrom, &ito);
-  XSETFASTINT (val, lisp_string_width (str, ifrom, ito, -1, NULL, NULL));
+  XSETFASTINT (val, lisp_string_width (str, ifrom, ito, -1, NULL, NULL, true));
   return val;
 }
 
