@@ -4217,12 +4217,22 @@ impose the use of a shell (with its need to quote arguments)."
 	    (shell-command-on-region (point) (point) command
 				     output-buffer nil error-buffer)))))))
 
+(defun max-mini-window-lines (&optional frame)
+  "Compute maximum number of lines for echo area in FRAME.
+As defined by `max-mini-window-height'.  FRAME defaults to the
+selected frame.  Result may be a floating-point number,
+i.e. include a fractional number of lines."
+  (cond ((floatp max-mini-window-height) (* (frame-height frame)
+					    max-mini-window-height))
+	((integerp max-mini-window-height) max-mini-window-height)
+	(t 1)))
+
 (defun display-message-or-buffer (message &optional buffer-name action frame)
   "Display MESSAGE in the echo area if possible, otherwise in a pop-up buffer.
 MESSAGE may be either a string or a buffer.
 
 A pop-up buffer is displayed using `display-buffer' if MESSAGE is too long
-for maximum height of the echo area, as defined by `max-mini-window-height'
+for maximum height of the echo area, as defined by `max-mini-window-lines'
 if `resize-mini-windows' is non-nil.
 
 Returns either the string shown in the echo area, or when a pop-up
@@ -4261,14 +4271,7 @@ and are used only if a pop-up buffer is displayed."
 	     (cond ((= lines 0))
 		   ((and (or (<= lines 1)
 			     (<= lines
-				 (if resize-mini-windows
-				     (cond ((floatp max-mini-window-height)
-					    (* (frame-height)
-					       max-mini-window-height))
-					   ((integerp max-mini-window-height)
-					    max-mini-window-height)
-					   (t
-					    1))
+				 (if resize-mini-windows (max-mini-window-lines)
 				   1)))
 			 ;; Don't use the echo area if the output buffer is
 			 ;; already displayed in the selected frame.
