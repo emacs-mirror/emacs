@@ -39,8 +39,8 @@
 (defvar indent-line-function 'indent-relative
   "Function to indent the current line.
 This function will be called with no arguments.
-If it is called somewhere where auto-indentation cannot be done
-\(e.g. inside a string), the function should simply return `noindent'.
+If it is called somewhere where it cannot auto-indent, the function
+should return `noindent' to signal that it didn't.
 Setting this function is all you need to make TAB indent appropriately.
 Don't rebind TAB unless you really need to.")
 
