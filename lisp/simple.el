@@ -4217,6 +4217,14 @@ impose the use of a shell (with its need to quote arguments)."
 	    (shell-command-on-region (point) (point) command
 				     output-buffer nil error-buffer)))))))
 
+(defun max-mini-window-height (&optional frame)
+  "Compute number of lines for `max-mini-window-height' in FRAME.
+FRAME defaults to the selected frame."
+  (cond ((floatp max-mini-window-height) (* (frame-height frame)
+					    max-mini-window-height))
+	((integerp max-mini-window-height) max-mini-window-height)
+	(t 1)))
+
 (defun display-message-or-buffer (message &optional buffer-name action frame)
   "Display MESSAGE in the echo area if possible, otherwise in a pop-up buffer.
 MESSAGE may be either a string or a buffer.
@@ -4261,14 +4269,7 @@ and are used only if a pop-up buffer is displayed."
 	     (cond ((= lines 0))
 		   ((and (or (<= lines 1)
 			     (<= lines
-				 (if resize-mini-windows
-				     (cond ((floatp max-mini-window-height)
-					    (* (frame-height)
-					       max-mini-window-height))
-					   ((integerp max-mini-window-height)
-					    max-mini-window-height)
-					   (t
-					    1))
+				 (if resize-mini-windows (max-mini-window-height)
 				   1)))
 			 ;; Don't use the echo area if the output buffer is
 			 ;; already displayed in the selected frame.

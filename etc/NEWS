@@ -534,9 +534,12 @@ indentation is done using SMIE or with the old ad-hoc code.
 ** Icomplete
 
 +++
-*** New minor mode 'icomplete-vertical-mode'.
-This mode is intended to be used with Icomplete or Fido, to display the
-list of completions candidates vertically instead of horizontally.
+*** New minor mode 'icomplete-vertical-mode', alias 'fido-vertical-mode'
+This mode is intended to be used with Icomplete or Fido, to display
+the list of completions candidates vertically instead of horizontally.
+When used with Fido mode ('M-x fido-mode') it will behave more like a
+typical scrolling dropdown widget instead of rotating the completions
+around and keeping the selection always at the top.
 
 ---
 ** Specific warnings can now be disabled from the warning buffer.
