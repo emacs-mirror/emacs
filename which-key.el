@@ -1143,17 +1143,14 @@ total height."
     (when (and which-key-idle-secondary-delay which-key--secondary-timer-active)
       (which-key--start-timer))
     (which-key--lighter-restore)
-    (cl-case which-key-popup-type
-      ;; Not necessary to hide minibuffer
-      ;; (minibuffer (which-key--hide-buffer-minibuffer))
-      (side-window (which-key--hide-buffer-side-window))
-      (frame (which-key--hide-buffer-frame))
-      (custom (funcall which-key-custom-hide-popup-function)))))
+    (which-key--hide-popup-ignore-command)))
 
 (defun which-key--hide-popup-ignore-command ()
   "Version of `which-key--hide-popup' without the check of
 `real-this-command'."
   (cl-case which-key-popup-type
+    ;; Not necessary to hide minibuffer
+    ;; (minibuffer (which-key--hide-buffer-minibuffer))
     (side-window (which-key--hide-buffer-side-window))
     (frame (which-key--hide-buffer-frame))
     (custom (funcall which-key-custom-hide-popup-function))))
