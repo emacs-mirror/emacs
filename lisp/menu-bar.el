@@ -2240,10 +2240,6 @@ Buffers menu is regenerated."
 (defvar-local list-buffers-directory nil
   "String to display in buffer listings for buffers not visiting a file.")
 
-(defun menu-bar-select-buffer ()
-  (interactive)
-  (switch-to-buffer last-command-event))
-
 (defun menu-bar-select-frame (frame)
   (make-frame-visible frame)
   (raise-frame frame)

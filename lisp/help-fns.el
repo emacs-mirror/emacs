@@ -268,7 +268,9 @@ If we can't find the file name, nil is returned."
   (let ((docbuf (get-buffer-create " *DOC*"))
 	(name (if (eq 'var kind)
 		  (concat "V" (symbol-name subr-or-var))
-		(concat "F" (subr-name (advice--cd*r subr-or-var))))))
+		(concat "F" (if (symbolp subr-or-var)
+                                (symbol-name subr-or-var)
+                              (subr-name (advice--cd*r subr-or-var)))))))
     (with-current-buffer docbuf
       (goto-char (point-min))
       (if (eobp)

@@ -1052,6 +1052,10 @@ variable `msb-menu-cond'."
       (msb--split-menus-2 list 0 nil)
     list))
 
+(defun menu-bar-select-buffer ()
+  (interactive)
+  (switch-to-buffer last-command-event))
+
 (defun msb--make-keymap-menu (raw-menu)
   (let ((end 'menu-bar-select-buffer)
 	(mcount 0))

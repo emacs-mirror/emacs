@@ -572,12 +572,14 @@ The function is called by @code{syntax-ppss} (@pxref{Position Parse}),
 and by Font Lock mode during syntactic fontification (@pxref{Syntactic
 Font Lock}).  It is called with two arguments, @var{start} and
 @var{end}, which are the starting and ending positions of the text on
-which it should act.  It is allowed to call @code{syntax-ppss} on any
-position before @var{end}, but if a Lisp program calls
-@code{syntax-ppss} on some position and later modifies the buffer at
-some earlier position, then it is that program's responsibility to
-call @code{syntax-ppss-flush-cache} to flush the now obsolete info
-from the cache.
+which it should act.  It is allowed to arbitrarily move point within
+the region delimited by @var{start} and @var{end}; such motions don't
+need to use @code{save-excursion} (@pxref{Excursions}).  It is also
+allowed to call @code{syntax-ppss} on any position before @var{end},
+but if a Lisp program calls @code{syntax-ppss} on some position and
+later modifies the buffer at some earlier position, then it is that
+program's responsibility to call @code{syntax-ppss-flush-cache} to
+flush the now obsolete info from the cache.
 
 @strong{Caution:} When this variable is non-@code{nil}, Emacs removes
 @code{syntax-table} text properties arbitrarily and relies on

@@ -1528,7 +1528,7 @@ See `custom-enabled-themes' for a list of enabled themes."
 	(let* ((prop   (car s))
 	       (symbol (cadr s))
 	       (val (assq-delete-all theme (get symbol prop))))
-          (custom-push-theme prop symbol theme 'reset)
+          (put symbol prop val)
 	  (cond
 	   ((eq prop 'theme-value)
             (custom-theme-recalc-variable symbol)
