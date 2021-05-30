@@ -60,8 +60,10 @@ FUNCTIONS is a list of elements on the form:
    :args ARGS
    :eval EXAMPLE-FORM
    :no-eval EXAMPLE-FORM
+   :no-eval* EXAMPLE-FORM
    :no-value EXAMPLE-FORM
    :result RESULT-FORM
+   :result-string RESULT-FORM
    :eg-result RESULT-FORM
    :eg-result-string RESULT-FORM)
 
