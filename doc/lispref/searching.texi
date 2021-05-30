@@ -363,7 +363,7 @@ preceding expression either once or not at all.  For example,
 @anchor{Non-greedy repetition}
 @item @samp{*?}, @samp{+?}, @samp{??}
 @cindex non-greedy repetition characters in regexp
-These are @dfn{non-greedy} variants of the operators @samp{*}, @samp{+}
+are @dfn{non-greedy} variants of the operators @samp{*}, @samp{+}
 and @samp{?}.  Where those operators match the largest possible
 substring (consistent with matching the entire containing expression),
 the non-greedy variants match the smallest possible substring
@@ -438,6 +438,13 @@ including newline.  However, a reversed range should always be from
 the letter @samp{z} to the letter @samp{a} to make it clear that it is
 not a typo; for example, @samp{[+-*/]} should be avoided, because it
 matches only @samp{/} rather than the likely-intended four characters.
+
+@item
+If the end points of a range are raw 8-bit bytes (@pxref{Text
+Representations}), or if the range start is ASCII and the end is a raw
+byte (as in @samp{[a-\377]}), the range will match only ASCII
+characters and raw 8-bit bytes, but not non-ASCII characters.  This
+feature is intended for searching text in unibyte buffers and strings.
 @end enumerate
 
 Some kinds of character alternatives are not the best style even
