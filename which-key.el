@@ -1175,7 +1175,10 @@ popup)."
 
 (defun which-key--popup-showing-p ()
   (and (bufferp which-key--buffer)
-       (window-live-p (get-buffer-window which-key--buffer))))
+       (or (window-live-p (get-buffer-window which-key--buffer))
+	   (let ((window (get-buffer-window which-key--buffer t)))
+	     (and (window-live-p window)
+		  (frame-visible-p (window-frame window)))))))
 
 (defun which-key--show-popup (act-popup-dim)
   "Show the which-key buffer.
