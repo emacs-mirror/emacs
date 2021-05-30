@@ -753,7 +753,7 @@ valid keys missing and it might be showing some invalid keys."
   :group 'which-key
   :type 'boolean)
 
-;;;;; God-mode
+;;;; God-mode
 
 (defvar which-key--god-mode-support-enabled nil
   "Support god-mode if non-nil. This is experimental,
