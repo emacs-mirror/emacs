@@ -724,8 +724,8 @@ update.")
      (which-key--pages-num-pages which-key--pages-obj)))
 
 (defsubst which-key--current-prefix ()
-  (when which-key--pages-obj
-    (which-key--pages-prefix which-key--pages-obj)))
+  (and which-key--pages-obj
+       (which-key--pages-prefix which-key--pages-obj)))
 
 (defmacro which-key--debug-message (&rest msg)
   `(when which-key--debug-buffer-name
@@ -1182,7 +1182,8 @@ popup)."
 ACT-POPUP-DIM includes the dimensions, (height . width) of the
 buffer text to be displayed in the popup.  Return nil if no window
 is shown, or if there is no need to start the closing timer."
-  (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
+  (when (and (> (car act-popup-dim) 0)
+	     (> (cdr act-popup-dim) 0))
     (cl-case which-key-popup-type
       ;; Not called for minibuffer
       ;; (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
@@ -2449,9 +2450,9 @@ prefix) if `which-key-use-C-h-commands' is non nil."
   (interactive)
   (cond ((and (not (which-key--popup-showing-p))
               which-key-show-early-on-C-h)
-         (let* ((current-prefix
-                 (butlast
-                  (listify-key-sequence (which-key--this-command-keys)))))
+         (let ((current-prefix
+                (butlast
+                 (listify-key-sequence (which-key--this-command-keys)))))
            (which-key-reload-key-sequence current-prefix)
            (if which-key-idle-secondary-delay
                (which-key--start-timer which-key-idle-secondary-delay t)
@@ -2773,10 +2774,8 @@ Finally, show the buffer."
   (which-key--stop-timer)
   (setq which-key--secondary-timer-active secondary)
   (setq which-key--timer
-        (run-with-idle-timer
-         (if delay
-             delay
-           which-key-idle-delay) t #'which-key--update)))
+        (run-with-idle-timer (or delay which-key-idle-delay)
+			     t #'which-key--update)))
 
 (defun which-key--stop-timer ()
   "Deactivate idle timer for `which-key--update'."
