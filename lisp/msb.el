@@ -1052,9 +1052,12 @@ variable `msb-menu-cond'."
       (msb--split-menus-2 list 0 nil)
     list))
 
+(defun msb--select-buffer ()
+  (interactive)
+  (switch-to-buffer last-command-event))
+
 (defun msb--make-keymap-menu (raw-menu)
-  (let ((end 'menu-bar-select-buffer)
-	(mcount 0))
+  (let ((mcount 0))
     (mapcar
      (lambda (sub-menu)
        (cond
@@ -1063,7 +1066,7 @@ variable `msb-menu-cond'."
 	(t
 	 (let ((buffers (mapcar (lambda (item)
 				  (cons (buffer-name (cdr item))
-					(cons (car item) end)))
+					(cons (car item) 'msb--select-buffer)))
 				(cdr sub-menu))))
 	   (nconc (list (cl-incf mcount) (car sub-menu)
 			'keymap (car sub-menu))

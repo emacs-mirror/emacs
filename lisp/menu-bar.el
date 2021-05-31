@@ -2241,6 +2241,7 @@ Buffers menu is regenerated."
   "String to display in buffer listings for buffers not visiting a file.")
 
 (defun menu-bar-select-buffer ()
+  (declare (obsolete nil "28.1"))
   (interactive)
   (switch-to-buffer last-command-event))
 
