@@ -5018,6 +5018,10 @@ static short const internal_border_parts[] = {
 
 static Lisp_Object button_down_location;
 
+/* A cons recording the original frame-relative x and y coordinates of
+   the down mouse event.  */
+static Lisp_Object frame_relative_event_pos;
+
 /* Information about the most recent up-going button event:  Which
    button, what location, and what time.  */
 
@@ -5669,6 +5673,7 @@ make_lispy_event (struct input_event *event)
 	      double_click_count = 1;
 	    button_down_time = event->timestamp;
 	    *start_pos_ptr = Fcopy_alist (position);
+	    frame_relative_event_pos = Fcons (event->x, event->y);
 	    ignore_mouse_drag_p = false;
 	  }
 
@@ -5691,20 +5696,12 @@ make_lispy_event (struct input_event *event)
 	      ignore_mouse_drag_p = false;
 	    else
 	      {
-		Lisp_Object new_down, down;
 		intmax_t xdiff = double_click_fuzz, ydiff = double_click_fuzz;
 
-		/* The third element of every position
-		   should be the (x,y) pair.  */
-		down = Fcar (Fcdr (Fcdr (start_pos)));
-		new_down = Fcar (Fcdr (Fcdr (position)));
-
-		if (CONSP (down)
-		    && FIXNUMP (XCAR (down)) && FIXNUMP (XCDR (down)))
-		  {
-		    xdiff = XFIXNUM (XCAR (new_down)) - XFIXNUM (XCAR (down));
-		    ydiff = XFIXNUM (XCDR (new_down)) - XFIXNUM (XCDR (down));
-		  }
+		xdiff = XFIXNUM (event->x)
+		  - XFIXNUM (XCAR (frame_relative_event_pos));
+		ydiff = XFIXNUM (event->y)
+		  - XFIXNUM (XCDR (frame_relative_event_pos));
 
 		if (! (0 < double_click_fuzz
 		       && - double_click_fuzz < xdiff
@@ -5721,11 +5718,50 @@ make_lispy_event (struct input_event *event)
 			  a click.  But mouse-drag-region completely ignores
 			  this case and it hasn't caused any real problem, so
 			  it's probably OK to ignore it as well.  */
-		       && EQ (Fcar (Fcdr (start_pos)), Fcar (Fcdr (position)))))
+		       && (EQ (Fcar (Fcdr (start_pos)),
+			       Fcar (Fcdr (position))) /* Same buffer pos */
+			   || !EQ (Fcar (start_pos),
+				   Fcar (position))))) /* Different window */
 		  {
 		    /* Mouse has moved enough.  */
 		    button_down_time = 0;
 		    click_or_drag_modifier = drag_modifier;
+		  }
+		else if (((!EQ (Fcar (start_pos), Fcar (position)))
+			  || (!EQ (Fcar (Fcdr (start_pos)),
+				   Fcar (Fcdr (position)))))
+			 /* Was the down event in a window body? */
+			 && FIXNUMP (Fcar (Fcdr (start_pos)))
+			 && WINDOW_LIVE_P (Fcar (start_pos))
+			 && Ffboundp (Qwindow_edges))
+		  /* If the window (etc.) at the mouse position has
+		     changed between the down event and the up event,
+		     we assume there's been a redisplay between the
+		     two events, and we pretend the mouse is still in
+		     the old window to prevent a spurious drag event
+		     being generated.  */
+		  {
+		    Lisp_Object edges
+		      = call4 (Qwindow_edges, Fcar (start_pos), Qt, Qnil, Qt);
+		    int new_x = XFIXNUM (Fcar (frame_relative_event_pos));
+		    int new_y = XFIXNUM (Fcdr (frame_relative_event_pos));
+
+		    /* If the up-event is outside the down-event's
+		       window, use coordinates that are within it.  */
+		    if (new_x < XFIXNUM (Fcar (edges)))
+		      new_x = XFIXNUM (Fcar (edges));
+		    else if (new_x >= XFIXNUM (Fcar (Fcdr (Fcdr (edges)))))
+		      new_x = XFIXNUM (Fcar (Fcdr (Fcdr (edges)))) - 1;
+		    if (new_y < XFIXNUM (Fcar (Fcdr (edges))))
+		      new_y = XFIXNUM (Fcar (Fcdr (edges)));
+		    else if (new_y
+			     >= XFIXNUM (Fcar (Fcdr (Fcdr (Fcdr (edges))))))
+		      new_y = XFIXNUM (Fcar (Fcdr (Fcdr (Fcdr (edges))))) - 1;
+
+		    position = make_lispy_position
+		      (XFRAME (event->frame_or_window),
+		       make_fixnum (new_x), make_fixnum (new_y),
+		       event->timestamp);
 		  }
 	      }
 
@@ -11645,6 +11681,7 @@ syms_of_keyboard (void)
   DEFSYM (Qmake_frame_visible, "make-frame-visible");
   DEFSYM (Qselect_window, "select-window");
   DEFSYM (Qselection_request, "selection-request");
+  DEFSYM (Qwindow_edges, "window-edges");
   {
     int i;
 
@@ -11661,6 +11698,7 @@ syms_of_keyboard (void)
 
   button_down_location = make_nil_vector (5);
   staticpro (&button_down_location);
+  staticpro (&frame_relative_event_pos);
   mouse_syms = make_nil_vector (5);
   staticpro (&mouse_syms);
   wheel_syms = make_nil_vector (ARRAYELTS (lispy_wheel_names));
