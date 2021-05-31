@@ -5733,7 +5733,7 @@ make_lispy_event (struct input_event *event)
 			 /* Was the down event in a window body? */
 			 && FIXNUMP (Fcar (Fcdr (start_pos)))
 			 && WINDOW_LIVE_P (Fcar (start_pos))
-			 && Ffboundp (Qwindow_edges))
+			 && !NILP (Ffboundp (Qwindow_edges)))
 		  /* If the window (etc.) at the mouse position has
 		     changed between the down event and the up event,
 		     we assume there's been a redisplay between the
