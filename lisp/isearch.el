@@ -404,7 +404,7 @@ A value of nil means highlight all matches shown on the screen."
 		 (integer :tag "Some"))
   :group 'lazy-highlight)
 
-(defcustom lazy-highlight-buffer-max-at-a-time 20
+(defcustom lazy-highlight-buffer-max-at-a-time 200 ; 20 (bug#48581)
   "Maximum matches to highlight at a time (for `lazy-highlight-buffer').
 Larger values may reduce Isearch's responsiveness to user input;
 smaller values make matches highlight slowly.
