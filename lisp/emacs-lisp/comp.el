@@ -3941,7 +3941,11 @@ display a message."
                    (load1 load)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
-                             :buffer (get-buffer-create comp-async-buffer-name)
+                             :buffer (with-current-buffer
+                                         (get-buffer-create
+                                          comp-async-buffer-name)
+                                       (setf buffer-read-only t)
+			               (current-buffer))
                              :command (list
                                        (expand-file-name invocation-name
                                                          invocation-directory)
@@ -3970,8 +3974,9 @@ display a message."
     (run-hooks 'native-comp-async-all-done-hook)
     (with-current-buffer (get-buffer-create comp-async-buffer-name)
       (save-excursion
-        (goto-char (point-max))
-        (insert "Compilation finished.\n")))
+        (let ((buffer-read-only nil))
+          (goto-char (point-max))
+          (insert "Compilation finished.\n"))))
     ;; `comp-deferred-pending-h' should be empty at this stage.
     ;; Reset it anyway.
     (clrhash comp-deferred-pending-h)))
