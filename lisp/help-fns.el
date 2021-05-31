@@ -1029,10 +1029,7 @@ it is displayed along with the global value."
                            ;; Since the variable may only exist in the
                            ;; original buffer, we have to look for it
                            ;; there.
-                           (condition-case nil
-                               (buffer-local-value vv orig-buffer)
-                             (:success t)
-                             (void-variable nil)))))
+                           (buffer-local-boundp vv orig-buffer))))
                 t nil nil
                 (if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
