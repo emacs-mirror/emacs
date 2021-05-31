@@ -1024,12 +1024,15 @@ it is displayed along with the global value."
                 (format-prompt "Describe variable" (and (symbolp v) v))
                 #'help--symbol-completion-table
                 (lambda (vv)
-                  ;; In case the variable only exists in the buffer
-                  ;; the command we switch back to that buffer before
-                  ;; we examine the variable.
-                  (with-current-buffer orig-buffer
-                    (or (get vv 'variable-documentation)
-                        (and (boundp vv) (not (keywordp vv))))))
+                  (or (get vv 'variable-documentation)
+                      (and (not (keywordp vv))
+                           ;; Since the variable may only exist in the
+                           ;; original buffer, we have to look for it
+                           ;; there.
+                           (condition-case nil
+                               (buffer-local-value vv orig-buffer)
+                             (:success t)
+                             (void-variable nil)))))
                 t nil nil
                 (if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
