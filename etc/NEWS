@@ -2726,6 +2726,10 @@ customize them.
 
 * Lisp Changes in Emacs 28.1
 
++++
+** New function 'buffer-local-boundp'.
+This predicate says whether a symbol is bound in a specific buffer.
+
 ---
 ** Emacs now attempts to test for high-rate subprocess output more fairly.
 When several subprocesses produce output simultaneously at high rate,
