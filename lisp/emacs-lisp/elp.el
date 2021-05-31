@@ -483,6 +483,10 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 		      'face 'link
 		      'help-echo "mouse-2 or RET jumps to definition")))
 
+(define-derived-mode elp-results-mode special-mode "ELP"
+  "Mode for ELP results"
+  :interactive nil)
+
 ;;;###autoload
 (defun elp-results ()
   "Display current profiling results.
@@ -490,11 +494,12 @@ If `elp-reset-after-results' is non-nil, then current profiling
 information for all instrumented functions is reset after results are
 displayed."
   (interactive)
-  (let ((curbuf (current-buffer))
-	(resultsbuf (if elp-recycle-buffers-p
-			(get-buffer-create elp-results-buffer)
-		      (generate-new-buffer elp-results-buffer))))
-    (set-buffer resultsbuf)
+  (pop-to-buffer
+   (if elp-recycle-buffers-p
+       (get-buffer-create elp-results-buffer)
+     (generate-new-buffer elp-results-buffer)))
+  (elp-results-mode)
+  (let ((inhibit-read-only t))
     (erase-buffer)
     ;; get the length of the longest function name being profiled
     (let* ((longest 0)
@@ -565,9 +570,6 @@ displayed."
       (if elp-sort-by-function
 	  (setq resvec (sort resvec elp-sort-by-function)))
       (mapc 'elp-output-result resvec))
-    ;; now pop up results buffer
-    (set-buffer curbuf)
-    (pop-to-buffer resultsbuf)
     ;; copy results to standard-output?
     (if (or elp-use-standard-output noninteractive)
         (princ (buffer-substring (point-min) (point-max)))
