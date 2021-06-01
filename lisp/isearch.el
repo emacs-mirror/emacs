@@ -412,7 +412,7 @@ A value of nil means highlight all matches in the buffer."
   :type '(choice (const :tag "All" nil)
 		 (integer :tag "Some"))
   :group 'lazy-highlight
-  :version "27.1")
+  :version "28.1")
 
 (defcustom lazy-highlight-buffer nil
   "Controls the lazy-highlighting of the full buffer.
