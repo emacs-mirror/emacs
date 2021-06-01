@@ -112,6 +112,13 @@ filters.
 * Changes in Emacs 28.1
 
 +++
+** Etags support for the Mercury programming language (https://mercurylang.org).
+** Etags command line option --declarations now has Mercury-specific behavior.
+All Mercury declarations are tagged by default.
+For compatibility with Prolog etags support, predicates and functions appearing
+first in clauses will also be tagged if etags is run with '--declarations'.
+
++++
 ** New command 'font-lock-update', bound to 'C-x x f'.
 This command updates the syntax highlighting in this buffer.
 
