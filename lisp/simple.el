@@ -4334,7 +4334,7 @@ current buffer after START.
 
 Optional fifth arg REPLACE, if non-nil, means to insert the
 output in place of text from START to END, putting point and mark
-around it.
+around it.  If REPLACE is the symbol `no-mark', don't set the mark.
 
 Optional sixth arg ERROR-BUFFER, if non-nil, specifies a buffer
 or buffer name to which to direct the command's standard error
@@ -4409,7 +4409,9 @@ characters."
           (let ((swap (and replace (< start end))))
             ;; Don't muck with mark unless REPLACE says we should.
             (goto-char start)
-            (and replace (push-mark (point) 'nomsg))
+            (when (and replace
+                       (not (eq replace 'no-mark)))
+              (push-mark (point) 'nomsg))
             (setq exit-status
                   (call-shell-region start end command replace
                                        (if error-file
@@ -4420,7 +4422,9 @@ characters."
             ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
             ;; 	 (kill-buffer shell-buffer)))
             ;; Don't muck with mark unless REPLACE says we should.
-            (and replace swap (exchange-point-and-mark)))
+            (when (and replace swap
+                       (not (eq replace 'no-mark)))
+              (exchange-point-and-mark)))
         ;; No prefix argument: put the output in a temp buffer,
         ;; replacing its entire contents.
         (let ((buffer (get-buffer-create

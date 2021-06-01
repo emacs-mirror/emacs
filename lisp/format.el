@@ -181,7 +181,7 @@ it should be a Lisp function.  BUFFER is currently ignored."
 	;; We should perhaps go via a temporary buffer and copy it
 	;; back, in case of errors.
 	(if (and (zerop (save-window-excursion
-			  (shell-command-on-region from to method t t
+			  (shell-command-on-region from to method t 'no-mark
 						   error-buff)))
 		 ;; gzip gives zero exit status with bad args, for instance.
 		 (zerop (with-current-buffer error-buff
