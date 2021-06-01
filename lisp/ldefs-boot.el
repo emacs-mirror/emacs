@@ -1063,7 +1063,7 @@ or a non-nil `apropos-do-all' argument.
 
 \(fn PATTERN)" t nil)
 
-(defalias 'command-apropos 'apropos-command)
+(defalias 'command-apropos #'apropos-command)
 
 (autoload 'apropos-command "apropos" "\
 Show commands (interactively callable functions) that match PATTERN.
@@ -5339,14 +5339,14 @@ clashes.
 \(fn NAME PREFIX &optional FIRST)" nil nil)
 
 (autoload 'comp-clean-up-stale-eln "comp" "\
-Given FILE remove all its *.eln files in `comp-eln-load-path'
+Given FILE remove all its *.eln files in `native-comp-eln-load-path'
 sharing the original source filename (including FILE).
 
 \(fn FILE)" nil nil)
 
 (autoload 'comp-lookup-eln "comp" "\
 Given a Lisp source FILENAME return the corresponding .eln file if found.
-Search happens in `comp-eln-load-path'.
+Search happens in `native-comp-eln-load-path'.
 
 \(fn FILENAME)" nil nil)
 
@@ -5374,7 +5374,7 @@ Native compilation equivalent to `batch-byte-compile'." nil nil)
 Like `batch-native-compile', but used for bootstrap.
 Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
-directory (the last entry in `comp-eln-load-path').
+directory (the last entry in `native-comp-eln-load-path').
 If the environment variable 'NATIVE_DISABLED' is set, only byte
 compile." nil nil)
 
@@ -5394,7 +5394,7 @@ nil -- Select all files.
 a string -- A regular expression selecting files with matching names.
 a function -- A function selecting files with matching names.
 
-The variable `comp-async-jobs-number' specifies the number
+The variable `native-comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously.
 
 \(fn FILES &optional RECURSIVELY LOAD SELECTOR)" nil nil)
@@ -7208,6 +7208,12 @@ See `delete-selection-helper' and `delete-selection-pre-hook' for
 information on adapting behavior of commands in Delete Selection mode.
 
 \(fn &optional ARG)" t nil)
+
+(autoload 'delete-active-region "delsel" "\
+Delete the active region.
+If KILLP in not-nil, the active region is killed instead of deleted.
+
+\(fn &optional KILLP)" t nil)
 
 (register-definition-prefixes "delsel" '("del" "minibuffer-keyboard-quit"))
 
@@ -9389,6 +9395,26 @@ an EDE controlled project.
 ;;;### (autoloads nil "edebug" "emacs-lisp/edebug.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
+(defvar edebug-all-defs nil "\
+If non-nil, evaluating defining forms instruments for Edebug.
+This applies to `eval-defun', `eval-region', `eval-buffer', and
+`eval-current-buffer'.  `eval-region' is also called by
+`eval-last-sexp', and `eval-print-last-sexp'.
+
+You can use the command `edebug-all-defs' to toggle the value of this
+variable.  You may wish to make it local to each buffer with
+\(make-local-variable \\='edebug-all-defs) in your
+`emacs-lisp-mode-hook'.")
+
+(custom-autoload 'edebug-all-defs "edebug" t)
+
+(defvar edebug-all-forms nil "\
+Non-nil means evaluation of all forms will instrument for Edebug.
+This doesn't apply to loading or evaluations in the minibuffer.
+Use the command `edebug-all-forms' to toggle the value of this option.")
+
+(custom-autoload 'edebug-all-forms "edebug" t)
+
 (autoload 'edebug-basic-spec "edebug" "\
 Return t if SPEC uses only extant spec symbols.
 An extant spec symbol is a symbol that is not a function and has a
@@ -10545,6 +10571,26 @@ Encrypt marked files." t nil)
 
 ;;;***
 
+;;;### (autoloads nil "epa-ks" "epa-ks.el" (0 0 0 0))
+;;; Generated autoloads from epa-ks.el
+
+(autoload 'epa-search-keys "epa-ks" "\
+Ask a keyserver for all keys matching QUERY.
+
+The keyserver to be used is specified by `epa-keyserver'.
+
+If EXACT is non-nil (interactively, prefix argument), require
+exact matches.
+
+Note that the request may fail if the query is not specific
+enough, since keyservers have strict timeout settings.
+
+\(fn QUERY EXACT)" t nil)
+
+(register-definition-prefixes "epa-ks" '("epa-k"))
+
+;;;***
+
 ;;;### (autoloads nil "epa-mail" "epa-mail.el" (0 0 0 0))
 ;;; Generated autoloads from epa-mail.el
 
@@ -10758,8 +10804,8 @@ Example usage:
 
     (erc-tls :server \"chat.freenode.net\" :port 6697
              :client-certificate
-             '(\"/data/bandali/my-cert.key\"
-               \"/data/bandali/my-cert.crt\"))
+             '(\"/home/bandali/my-cert.key\"
+               \"/home/bandali/my-cert.crt\"))
 
 \(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE)" t nil)
 
@@ -12602,6 +12648,10 @@ Being on a `#include' line pulls in that file.
 
 If optional IN-OTHER-WINDOW is non-nil, find the file in the other window.
 If optional IGNORE-INCLUDE is non-nil, ignore being on `#include' lines.
+
+If optional EVENT is non-nil (default `last-nonmenu-event', move
+point to the end position of that event before calling the
+various ff-* hooks.
 
 Variables of interest include:
 
@@ -15762,6 +15812,12 @@ When called from lisp, FUNCTION may also be a function object.
 
 \(fn FUNCTION)" t nil)
 
+(autoload 'describe-command "help-fns" "\
+Display the full documentation of COMMAND (a symbol).
+When called from lisp, COMMAND may also be a function object.
+
+\(fn COMMAND)" t nil)
+
 (autoload 'help-C-file-name "help-fns" "\
 Return the name of the C file where SUBR-OR-VAR is defined.
 KIND should be `var' for a variable or `subr' for a subroutine.
@@ -16076,22 +16132,30 @@ also supported.
 
 There are several ways to change text in hexl mode:
 
-ASCII characters (character between space (0x20) and tilde (0x7E)) are
-bound to self-insert so you can simply type the character and it will
-insert itself (actually overstrike) into the buffer.
+Self-inserting characters are bound to `hexl-self-insert' so you
+can simply type the character and it will insert itself (actually
+overstrike) into the buffer.  However, inserting non-ASCII characters
+requires caution: the buffer's coding-system should correspond to
+the encoding on disk, and multibyte characters should be inserted
+with cursor on the first byte of a multibyte sequence whose length
+is identical to the length of the multibyte sequence to be inserted,
+otherwise this could produce invalid multibyte sequences.  Non-ASCII
+characters in ISO-2022 encodings should preferably inserted byte by
+byte, to avoid problems caused by the designation sequences before
+the actual characters.
 
 \\[hexl-quoted-insert] followed by another keystroke allows you to insert the key even if
 it isn't bound to self-insert.  An octal number can be supplied in place
 of another key to insert the octal number's ASCII representation.
 
-\\[hexl-insert-hex-char] will insert a given hexadecimal value (if it is between 0 and 0xFF)
-into the buffer at the current point.
+\\[hexl-insert-hex-char] will insert a given hexadecimal value
+into the buffer at the current address.
 
-\\[hexl-insert-octal-char] will insert a given octal value (if it is between 0 and 0377)
-into the buffer at the current point.
+\\[hexl-insert-octal-char] will insert a given octal value
+into the buffer at the current address.
 
-\\[hexl-insert-decimal-char] will insert a given decimal value (if it is between 0 and 255)
-into the buffer at the current point.
+\\[hexl-insert-decimal-char] will insert a given decimal value
+into the buffer at the current address..
 
 \\[hexl-mode-exit] will exit `hexl-mode'.
 
@@ -16107,7 +16171,8 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 (autoload 'hexl-find-file "hexl" "\
 Edit file FILENAME as a binary file in hex dump format.
 Switch to a buffer visiting file FILENAME, creating one if none exists,
-and edit the file in `hexl-mode'.
+and edit the file in `hexl-mode'.  The buffer's coding-system will be
+no-conversion, unlike if you visit it normally and then invoke `hexl-mode'.
 
 \(fn FILENAME)" t nil)
 
@@ -17195,7 +17260,7 @@ resized depends on `resize-mini-windows'.
  (make-obsolete 'iswitchb-mode
    "use `icomplete-mode' or `ido-mode' instead." "24.4"))
 
-(register-definition-prefixes "icomplete" '("icomplete-"))
+(register-definition-prefixes "icomplete" '("fido-vertical-mode" "icomplete-"))
 
 ;;;***
 
@@ -19272,7 +19337,7 @@ It is not recommended to set this variable permanently to anything but nil.")
 Uninstall jka-compr.
 This removes the entries in `file-name-handler-alist' and `auto-mode-alist'
 and `inhibit-local-variables-suffixes' that were added
-by `jka-compr-installed'." nil nil)
+by `jka-compr-install'." nil nil)
 
 (register-definition-prefixes "jka-compr" '("compression-error" "jka-compr-"))
 
@@ -19437,12 +19502,12 @@ and the return value is the length of the conversion.
 
 ;;;### (autoloads nil "kmacro" "kmacro.el" (0 0 0 0))
 ;;; Generated autoloads from kmacro.el
- (global-set-key "\C-x(" 'kmacro-start-macro)
- (global-set-key "\C-x)" 'kmacro-end-macro)
- (global-set-key "\C-xe" 'kmacro-end-and-call-macro)
- (global-set-key [f3] 'kmacro-start-macro-or-insert-counter)
- (global-set-key [f4] 'kmacro-end-or-call-macro)
- (global-set-key "\C-x\C-k" 'kmacro-keymap)
+ (global-set-key "\C-x(" #'kmacro-start-macro)
+ (global-set-key "\C-x)" #'kmacro-end-macro)
+ (global-set-key "\C-xe" #'kmacro-end-and-call-macro)
+ (global-set-key [f3] #'kmacro-start-macro-or-insert-counter)
+ (global-set-key [f4] #'kmacro-end-or-call-macro)
+ (global-set-key "\C-x\C-k" #'kmacro-keymap)
  (autoload 'kmacro-keymap "kmacro" "Keymap for keyboard macro commands." t 'keymap)
 
 (autoload 'kmacro-exec-ring-item "kmacro" "\
@@ -19950,28 +20015,28 @@ except that FILTER is not optional.
 ;;; Generated autoloads from vc/log-edit.el
 
 (autoload 'log-edit "log-edit" "\
-Setup a buffer to enter a log message.
-The buffer is put in mode MODE or `log-edit-mode' if MODE is nil.
+Setup a buffer to enter a VC commit log message.
+The buffer is put in mode MODE, or `log-edit-mode' if MODE is nil.
 \\<log-edit-mode-map>
 If SETUP is non-nil, erase the buffer and run `log-edit-hook'.
 Set mark and point around the entire contents of the buffer, so
 that it is easy to kill the contents of the buffer with
-\\[kill-region].  Once the user is done editing the message,
-invoking the command \\[log-edit-done] (`log-edit-done') will
-call CALLBACK to do the actual commit.
+\\[kill-region].  Once the user is done editing the message, he
+or she is expected to invoke the command \\[log-edit-done] (`log-edit-done'),
+which will call CALLBACK, a function to do the actual commit.
 
-PARAMS if non-nil is an alist of variables and buffer-local
-values to give them in the Log Edit buffer.  Possible keys and
-associated values:
+PARAMS, if non-nil, is an alist of variables and buffer-local
+values to give to those variables in the Log Edit buffer.  Possible
+keys and associated values are:
  `log-edit-listfun' -- function taking no arguments that returns the list of
- files that are concerned by the current operation (using relative names);
+    files that are concerned by the current operation (using relative names);
  `log-edit-diff-function' -- function taking no arguments that
- displays a diff of the files concerned by the current operation.
+    displays a diff of the files concerned by the current operation.
  `vc-log-fileset' -- the VC fileset to be committed (if any).
 
-If BUFFER is non-nil `log-edit' will jump to that buffer, use it
+If BUFFER is non-nil, `log-edit' will switch to that buffer, use it
 to edit the log message and go back to the current buffer when
-done.  Otherwise, it uses the current buffer.
+done.  Otherwise, this function will use the current buffer.
 
 \(fn CALLBACK &optional SETUP PARAMS BUFFER MODE &rest IGNORE)" nil nil)
 
@@ -20510,6 +20575,50 @@ The mail client is taken to be the handler of mailto URLs." nil nil)
 
 ;;;### (autoloads nil "mairix" "net/mairix.el" (0 0 0 0))
 ;;; Generated autoloads from net/mairix.el
+
+(autoload 'mairix-search "mairix" "\
+Call Mairix with SEARCH.
+If THREADS is non-nil, also display whole threads of found
+messages.  Results will be put into the default search file.
+
+\(fn SEARCH THREADS)" t nil)
+
+(autoload 'mairix-use-saved-search "mairix" "\
+Use a saved search for querying Mairix." t nil)
+
+(autoload 'mairix-edit-saved-searches-customize "mairix" "\
+Edit the list of saved searches in a customization buffer." t nil)
+
+(autoload 'mairix-search-from-this-article "mairix" "\
+Search messages from sender of the current article.
+This is effectively a shortcut for calling `mairix-search' with
+f:current_from.  If prefix THREADS is non-nil, include whole
+threads.
+
+\(fn THREADS)" t nil)
+
+(autoload 'mairix-search-thread-this-article "mairix" "\
+Search thread for the current article.
+This is effectively a shortcut for calling `mairix-search'
+with m:msgid of the current article and enabled threads." t nil)
+
+(autoload 'mairix-widget-search-based-on-article "mairix" "\
+Create mairix query based on current article using widgets." t nil)
+
+(autoload 'mairix-edit-saved-searches "mairix" "\
+Edit current mairix searches." t nil)
+
+(autoload 'mairix-widget-search "mairix" "\
+Create mairix query interactively using graphical widgets.
+MVALUES may contain values from current article.
+
+\(fn &optional MVALUES)" t nil)
+
+(autoload 'mairix-update-database "mairix" "\
+Call mairix for updating the database for SERVERS.
+Mairix will be called asynchronously unless
+`mairix-synchronous-update' is t.  Mairix will be called with
+`mairix-update-options'." t nil)
 
 (register-definition-prefixes "mairix" '("mairix-"))
 
@@ -21517,6 +21626,9 @@ Sequence of files visited by multiple file buffers Isearch.")
 (autoload 'multi-isearch-setup "misearch" "\
 Set up isearch to search multiple buffers.
 Intended to be added to `isearch-mode-hook'." nil nil)
+
+(autoload 'multi-isearch-switch-buffer "misearch" "\
+Switch to the next buffer in multi-buffer search." nil nil)
 
 (autoload 'multi-isearch-buffers "misearch" "\
 Start multi-buffer Isearch on a list of BUFFERS.
@@ -24243,7 +24355,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 
 \(fn)" t nil)
 (put 'outline-minor-mode-cycle 'safe-local-variable 'booleanp)
-(put 'outline-minor-mode-highlight 'safe-local-variable 'booleanp)
+(put 'outline-minor-mode-highlight 'safe-local-variable 'symbolp)
 
 (autoload 'outline-minor-mode "outline" "\
 Toggle Outline minor mode.
@@ -25312,14 +25424,14 @@ Macroexpand EXPRESSION and pretty-print its value.
 
 (autoload 'pp-eval-last-sexp "pp" "\
 Run `pp-eval-expression' on sexp before point.
-With argument, pretty-print output into current buffer.
+With ARG, pretty-print output into current buffer.
 Ignores leading comment characters.
 
 \(fn ARG)" t nil)
 
 (autoload 'pp-macroexpand-last-sexp "pp" "\
 Run `pp-macroexpand-expression' on sexp before point.
-With argument, pretty-print output into current buffer.
+With ARG, pretty-print output into current buffer.
 Ignores leading comment characters.
 
 \(fn ARG)" t nil)
@@ -26996,7 +27108,12 @@ the regexp builder.  It displays a buffer named \"*RE-Builder*\"
 in another window, initially containing an empty regexp.
 
 As you edit the regexp in the \"*RE-Builder*\" buffer, the
-matching parts of the target buffer will be highlighted." t nil)
+matching parts of the target buffer will be highlighted.
+
+Case-sensitivity can be toggled with \\[reb-toggle-case].  The
+regexp builder supports three different forms of input which can
+be set with \\[reb-change-syntax].  More options and details are
+provided in the Commentary section of this library." t nil)
 
 (register-definition-prefixes "re-builder" '("re-builder-unload-function" "reb-"))
 
@@ -28016,28 +28133,37 @@ than appending to it.  Deletes the message after writing if
 ;;; Generated autoloads from emacs-lisp/rmc.el
 
 (autoload 'read-multiple-choice "rmc" "\
-Ask user a multiple choice question.
-PROMPT should be a string that will be displayed as the prompt.
+Ask user to select an entry from CHOICES, promting with PROMPT.
+This function allows to ask the user a multiple-choice question.
 
-CHOICES is a list of (KEY NAME [DESCRIPTION]).  KEY is a
-character to be entered.  NAME is a short name for the entry to
-be displayed while prompting (if there's room, it might be
-shortened).  DESCRIPTION is an optional longer explanation that
-will be displayed in a help buffer if the user requests more
-help.
+CHOICES should be a list of the form (KEY NAME [DESCRIPTION]).
+KEY is a character the user should type to select the entry.
+NAME is a short name for the entry to be displayed while prompting
+\(if there's no room, it might be shortened).
+DESCRIPTION is an optional longer description of the entry; it will
+be displayed in a help buffer if the user requests more help.  This
+help description has a fixed format in columns.  For greater
+flexibility, instead of passing a DESCRIPTION, the caller can pass
+the optional argument HELP-STRING.  This argument is a string that
+should contain a more detailed description of all of the possible
+choices.  `read-multiple-choice' will display that description in a
+help buffer if the user requests that.
 
 This function translates user input into responses by consulting
 the bindings in `query-replace-map'; see the documentation of
-that variable for more information.  In this case, the useful
-bindings are `recenter', `scroll-up', and `scroll-down'.  If the
-user enters `recenter', `scroll-up', or `scroll-down' responses,
-perform the requested window recentering or scrolling and ask
-again.
+that variable for more information.  The relevant bindings for the
+purposes of this function are `recenter', `scroll-up', `scroll-down',
+and `edit'.
+If the user types the `recenter', `scroll-up', or `scroll-down'
+responses, the function performs the requested window recentering or
+scrolling, and then asks the question again.  If the user enters `edit',
+the function starts a recursive edit.  When the user exit the recursive
+edit, the multiple-choice prompt gains focus again.
 
-When `use-dialog-box' is t (the default), this function can pop
-up a dialog window to collect the user input.  That functionality
-requires `display-popup-menus-p' to return t.  Otherwise, a
-text dialog will be used.
+When `use-dialog-box' is t (the default), and the command using this
+function was invoked via the mouse, this function pops up a GUI dialog
+to collect the user input, but only if Emacs is capable of using GUI
+dialogs.  Otherwise, the function will always use text-mode dialogs.
 
 The return value is the matching entry from the CHOICES list.
 
@@ -28048,7 +28174,7 @@ Usage example:
                         (?s \"session only\")
                         (?n \"no\")))
 
-\(fn PROMPT CHOICES)" nil nil)
+\(fn PROMPT CHOICES &optional HELP-STRING)" nil nil)
 
 ;;;***
 
@@ -28559,7 +28685,7 @@ For more details, see Info node `(elisp) Extending Rx'.
 
 (function-put 'rx-define 'lisp-indent-function 'defun)
 
-(eval-and-compile (defun rx--pcase-macroexpander (&rest regexps) "A pattern that matches strings against `rx' REGEXPS in sexp form.\nREGEXPS are interpreted as in `rx'.  The pattern matches any\nstring that is a match for REGEXPS, as if by `string-match'.\n\nIn addition to the usual `rx' syntax, REGEXPS can contain the\nfollowing constructs:\n\n  (let REF RX...)  binds the symbol REF to a submatch that matches\n                   the regular expressions RX.  REF is bound in\n                   CODE to the string of the submatch or nil, but\n                   can also be used in `backref'.\n  (backref REF)    matches whatever the submatch REF matched.\n                   REF can be a number, as usual, or a name\n                   introduced by a previous (let REF ...)\n                   construct." (let* ((rx--pcase-vars nil) (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps)))) (nvars (length rx--pcase-vars))) `(and (pred stringp) ,(if (zerop nvars) `(pred (string-match ,regexp)) `(app (lambda (s) (and (string-match ,regexp s) ,(rx--reduce-right (lambda (a b) `(cons ,a ,b)) (mapcar (lambda (i) `(match-string ,i s)) (number-sequence 1 nvars))))) ,(list '\` (rx--reduce-right #'cons (mapcar (lambda (name) (list '\, name)) (reverse rx--pcase-vars))))))))))
+(eval-and-compile (defun rx--pcase-macroexpander (&rest regexps) "A pattern that matches strings against `rx' REGEXPS in sexp form.\nREGEXPS are interpreted as in `rx'.  The pattern matches any\nstring that is a match for REGEXPS, as if by `string-match'.\n\nIn addition to the usual `rx' syntax, REGEXPS can contain the\nfollowing constructs:\n\n  (let REF RX...)  binds the symbol REF to a submatch that matches\n                   the regular expressions RX.  REF is bound in\n                   CODE to the string of the submatch or nil, but\n                   can also be used in `backref'.\n  (backref REF)    matches whatever the submatch REF matched.\n                   REF can be a number, as usual, or a name\n                   introduced by a previous (let REF ...)\n                   construct." (let* ((rx--pcase-vars nil) (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps))))) `(and (pred stringp) ,(pcase (length rx--pcase-vars) (0 `(pred (string-match ,regexp))) (1 `(app (lambda (s) (if (string-match ,regexp s) (match-string 1 s) 0)) (and ,(car rx--pcase-vars) (pred (not numberp))))) (nvars `(app (lambda (s) (and (string-match ,regexp s) ,(rx--reduce-right (lambda (a b) `(cons ,a ,b)) (mapcar (lambda (i) `(match-string ,i s)) (number-sequence 1 nvars))))) ,(list '\` (rx--reduce-right #'cons (mapcar (lambda (name) (list '\, name)) (reverse rx--pcase-vars)))))))))))
 
 (define-symbol-prop 'rx--pcase-macroexpander 'edebug-form-spec 'nil)
 
@@ -29934,7 +30060,7 @@ Pop to a buffer with short documentation summary for functions in GROUP.
 
 \(fn GROUP)" t nil)
 
-(register-definition-prefixes "shortdoc" '("alist" "buffer" "define-short-documentation-group" "file" "hash-table" "list" "number" "process" "regexp" "sequence" "shortdoc-" "string" "vector"))
+(register-definition-prefixes "shortdoc" '("alist" "buffer" "define-short-documentation-group" "file" "hash-table" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "vector"))
 
 ;;;***
 
@@ -34136,10 +34262,10 @@ match file names at root of the underlying local file system,
 like \"/sys\" or \"/C:\".")
 
 (defun tramp-autoload-file-name-handler (operation &rest args) "\
-Load Tramp file name handler, and perform OPERATION." (tramp-unload-file-name-handlers) (when tramp-mode (let ((default-directory temporary-file-directory)) (load "tramp" 'noerror 'nomessage))) (apply operation args))
+Load Tramp file name handler, and perform OPERATION." (tramp-unload-file-name-handlers) (when tramp-mode (let ((default-directory temporary-file-directory)) (when (bound-and-true-p tramp-archive-autoload) (load "tramp-archive" 'noerror 'nomessage)) (load "tramp" 'noerror 'nomessage))) (apply operation args))
 
 (defun tramp-register-autoload-file-name-handlers nil "\
-Add Tramp file name handlers to `file-name-handler-alist' during autoload." (add-to-list 'file-name-handler-alist (cons tramp-autoload-file-name-regexp 'tramp-autoload-file-name-handler)) (put #'tramp-autoload-file-name-handler 'safe-magic t))
+Add Tramp file name handlers to `file-name-handler-alist' during autoload." (add-to-list 'file-name-handler-alist (cons tramp-autoload-file-name-regexp #'tramp-autoload-file-name-handler)) (put #'tramp-autoload-file-name-handler 'safe-magic t))
  (tramp-register-autoload-file-name-handlers)
 
 (defun tramp-unload-file-name-handlers nil "\
@@ -34177,7 +34303,8 @@ It must be supported by libarchive(3).")
 (defmacro tramp-archive-autoload-file-name-regexp nil "\
 Regular expression matching archive file names." '(concat "\\`" "\\(" ".+" "\\." (regexp-opt tramp-archive-suffixes) "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*" "\\)" "\\(" "/" ".*" "\\)" "\\'"))
 
-(defalias 'tramp-archive-autoload-file-name-handler #'tramp-autoload-file-name-handler)
+(defun tramp-archive-autoload-file-name-handler (operation &rest args) "\
+Load Tramp archive file name handler, and perform OPERATION." (when tramp-archive-enabled (let ((default-directory temporary-file-directory) (tramp-archive-autoload t)) tramp-archive-autoload (apply #'tramp-autoload-file-name-handler operation args))))
 
 (defun tramp-register-archive-file-name-handler nil "\
 Add archive file name handler to `file-name-handler-alist'." (when tramp-archive-enabled (add-to-list 'file-name-handler-alist (cons (tramp-archive-autoload-file-name-regexp) #'tramp-archive-autoload-file-name-handler)) (put #'tramp-archive-autoload-file-name-handler 'safe-magic t)))
