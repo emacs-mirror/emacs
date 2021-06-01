@@ -1176,9 +1176,9 @@ popup)."
 (defun which-key--popup-showing-p ()
   (and (bufferp which-key--buffer)
        (or (window-live-p (get-buffer-window which-key--buffer))
-	   (let ((window (get-buffer-window which-key--buffer t)))
-	     (and (window-live-p window)
-		  (frame-visible-p (window-frame window)))))))
+           (let ((window (get-buffer-window which-key--buffer t)))
+             (and (window-live-p window)
+                  (frame-visible-p (window-frame window)))))))
 
 (defun which-key--show-popup (act-popup-dim)
   "Show the which-key buffer.
@@ -1186,7 +1186,7 @@ ACT-POPUP-DIM includes the dimensions, (height . width) of the
 buffer text to be displayed in the popup.  Return nil if no window
 is shown, or if there is no need to start the closing timer."
   (when (and (> (car act-popup-dim) 0)
-	     (> (cdr act-popup-dim) 0))
+             (> (cdr act-popup-dim) 0))
     (cl-case which-key-popup-type
       ;; Not called for minibuffer
       ;; (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
@@ -2779,7 +2779,7 @@ Finally, show the buffer."
   (setq which-key--secondary-timer-active secondary)
   (setq which-key--timer
         (run-with-idle-timer (or delay which-key-idle-delay)
-			     t #'which-key--update)))
+                             t #'which-key--update)))
 
 (defun which-key--stop-timer ()
   "Deactivate idle timer for `which-key--update'."
