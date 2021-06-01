@@ -43,7 +43,8 @@
 
 This is used by `epa-ks-lookup-key', for looking up public keys."
   :type '(choice :tag "Keyserver"
-                 (const random)
+                 (repeat :tag "Random pool"
+                         (string :tag "Keyserver address"))
                  (const "keyring.debian.org")
                  (const "keys.gnupg.net")
                  (const "keyserver.ubuntu.com")
@@ -141,20 +142,33 @@ Keys are marked using `epa-ks-mark-key-to-fetch'."
         (epa-ks--fetch-key id))))
   (tabulated-list-clear-all-tags))
 
+(defun epa-ks--query-url (query exact)
+  "Return URL for QUERY.
+If EXACT is non-nil, don't accept approximate matches."
+  (format "https://%s/pks/lookup?%s"
+          (cond ((null epa-keyserver)
+                 (user-error "Empty keyserver pool"))
+                ((listp epa-keyserver)
+                 (nth (random (length epa-keyserver))
+                      epa-keyserver))
+                ((stringp epa-keyserver)
+                 epa-keyserver)
+                ((error "Invalid type for `epa-keyserver'")))
+          (url-build-query-string
+           (append `(("search" ,query)
+                     ("options" "mr")
+                     ("op" "index"))
+                   (and exact '(("exact" "on")))))))
+
 (defun epa-ks--fetch-key (id)
   "Send request to import key with specified ID."
   (url-retrieve
-   (format "https://%s/pks/lookup?%s"
-           epa-keyserver
-           (url-build-query-string
-            `(("search" ,(concat "0x" (url-hexify-string id)))
-              ("options" "mr")
-              ("op" "get"))))
+   (epa-ks--query-url (concat "0x" (url-hexify-string id)) t)
    (lambda (status)
      (when (plist-get status :error)
        (error "Request failed: %s"
-           (caddr (assq (caddr (plist-get status :error))
-                        url-http-codes))))
+              (caddr (assq (caddr (plist-get status :error))
+                           url-http-codes))))
      (forward-paragraph)
      (save-excursion
        (goto-char (point-max))
@@ -224,13 +238,7 @@ enough, since keyservers have strict timeout settings."
         (erase-buffer))
       (epa-ks-search-mode))
     (url-retrieve
-     (format "https://%s/pks/lookup?%s"
-             epa-keyserver
-             (url-build-query-string
-              (append `(("search" ,query)
-                        ("options" "mr")
-                        ("op" "index"))
-                      (and exact '(("exact" "on"))))))
+     (epa-ks--query-url query exact)
      (lambda (status)
        (when (plist-get status :error)
          (when buf
