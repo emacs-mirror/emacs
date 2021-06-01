@@ -53,7 +53,7 @@
   "Compile the compiler and load it to compile it-self.
 Check that the resulting binaries do not differ."
   :tags '(:expensive-test :nativecomp)
-  (let* ((byte-native-for-bootstrap t) ; FIXME HACK
+  (let* ((byte+native-compile t) ; FIXME HACK
          (comp-src (expand-file-name "../../../lisp/emacs-lisp/comp.el"
                                      (ert-resource-directory)))
          (comp1-src (make-temp-file "stage1-" nil ".el"))

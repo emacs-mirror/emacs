@@ -606,7 +606,7 @@ Each element is (INDEX . VALUE)")
   "Non nil while native compiling.")
 (defvar byte-native-qualities nil
   "To spill default qualities from the compiled file.")
-(defvar byte-native-for-bootstrap nil
+(defvar byte+native-compile nil
   "Non nil while compiling for bootstrap."
   ;; During bootstrap we produce both the .eln and the .elc together.
   ;; Because the make target is the later this has to be produced as
@@ -2109,7 +2109,7 @@ See also `emacs-lisp-byte-compile-and-load'."
 	      ;; recompiled).  Previously this was accomplished by
 	      ;; deleting target-file before writing it.
 	      (if byte-native-compiling
-                  (if byte-native-for-bootstrap
+                  (if byte+native-compile
                       ;; Defer elc final renaming.
                       (setf byte-to-native-output-file
                             (cons tempfile target-file))

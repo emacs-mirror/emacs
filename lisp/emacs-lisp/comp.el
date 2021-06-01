@@ -1337,7 +1337,7 @@ clashes."
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
                                         filename
-                                        (when byte-native-for-bootstrap
+                                        (when byte+native-compile
                                           (car (last native-comp-eln-load-path))))))
   (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
@@ -3643,7 +3643,7 @@ Prepare every function for final compilation and drive the C back-end."
     ;; unless during bootstrap or async compilation (bug#45056).  GCC
     ;; leaks memory but also interfere with the ability of Emacs to
     ;; detect when a sub-process completes (TODO understand why).
-    (if (or byte-native-for-bootstrap comp-async-compilation)
+    (if (or byte+native-compile comp-async-compilation)
 	(comp-final1)
       ;; Call comp-final1 in a child process.
       (let* ((output (comp-ctxt-output comp-ctxt))
@@ -4171,7 +4171,7 @@ it won’t work in an interactive Emacs.
 Native compilation equivalent to `batch-byte-compile'."
   (comp-ensure-native-compiler)
   (cl-loop for file in command-line-args-left
-           if (or (null byte-native-for-bootstrap)
+           if (or (null byte+native-compile)
                   (cl-notany (lambda (re) (string-match re file))
                              native-comp-bootstrap-deny-list))
            do (comp--native-compile file)
@@ -4179,7 +4179,7 @@ Native compilation equivalent to `batch-byte-compile'."
            do (byte-compile-file file)))
 
 ;;;###autoload
-(defun batch-byte-native-compile-for-bootstrap ()
+(defun batch-byte+native-compile ()
   "Like `batch-native-compile', but used for bootstrap.
 Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
@@ -4190,7 +4190,7 @@ compile."
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)
     (cl-assert (length= command-line-args-left 1))
-    (let ((byte-native-for-bootstrap t)
+    (let ((byte+native-compile t)
           (byte-to-native-output-file nil))
       (batch-native-compile)
       (pcase byte-to-native-output-file
