@@ -484,7 +484,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 		      'help-echo "mouse-2 or RET jumps to definition")))
 
 (define-derived-mode elp-results-mode special-mode "ELP"
-  "Mode for ELP results"
+  "Mode for ELP results."
   :interactive nil)
 
 ;;;###autoload

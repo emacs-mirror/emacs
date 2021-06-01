@@ -1040,7 +1040,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
     ;; sync states (running a batch job)
     (setq global-whitespace-newline-mode global-whitespace-mode)))
 (make-obsolete 'global-whitespace-newline-mode
-               "Use `global-whitespace-mode' with `whitespace-style' set to `(newline-mark newline)' instead"
+               "use `global-whitespace-mode' with `whitespace-style' set to `(newline-mark newline)' instead."
                "28.1")
 
 
