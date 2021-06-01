@@ -724,8 +724,8 @@ update.")
      (which-key--pages-num-pages which-key--pages-obj)))
 
 (defsubst which-key--current-prefix ()
-  (when which-key--pages-obj
-    (which-key--pages-prefix which-key--pages-obj)))
+  (and which-key--pages-obj
+       (which-key--pages-prefix which-key--pages-obj)))
 
 (defmacro which-key--debug-message (&rest msg)
   `(when which-key--debug-buffer-name
@@ -753,7 +753,7 @@ valid keys missing and it might be showing some invalid keys."
   :group 'which-key
   :type 'boolean)
 
-;;;;; God-mode
+;;;; God-mode
 
 (defvar which-key--god-mode-support-enabled nil
   "Support god-mode if non-nil. This is experimental,
@@ -1143,17 +1143,14 @@ total height."
     (when (and which-key-idle-secondary-delay which-key--secondary-timer-active)
       (which-key--start-timer))
     (which-key--lighter-restore)
-    (cl-case which-key-popup-type
-      ;; Not necessary to hide minibuffer
-      ;; (minibuffer (which-key--hide-buffer-minibuffer))
-      (side-window (which-key--hide-buffer-side-window))
-      (frame (which-key--hide-buffer-frame))
-      (custom (funcall which-key-custom-hide-popup-function)))))
+    (which-key--hide-popup-ignore-command)))
 
 (defun which-key--hide-popup-ignore-command ()
   "Version of `which-key--hide-popup' without the check of
 `real-this-command'."
   (cl-case which-key-popup-type
+    ;; Not necessary to hide minibuffer
+    ;; (minibuffer (which-key--hide-buffer-minibuffer))
     (side-window (which-key--hide-buffer-side-window))
     (frame (which-key--hide-buffer-frame))
     (custom (funcall which-key-custom-hide-popup-function))))
@@ -1178,14 +1175,18 @@ popup)."
 
 (defun which-key--popup-showing-p ()
   (and (bufferp which-key--buffer)
-       (window-live-p (get-buffer-window which-key--buffer))))
+       (or (window-live-p (get-buffer-window which-key--buffer))
+	   (let ((window (get-buffer-window which-key--buffer t)))
+	     (and (window-live-p window)
+		  (frame-visible-p (window-frame window)))))))
 
 (defun which-key--show-popup (act-popup-dim)
   "Show the which-key buffer.
 ACT-POPUP-DIM includes the dimensions, (height . width) of the
 buffer text to be displayed in the popup.  Return nil if no window
 is shown, or if there is no need to start the closing timer."
-  (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
+  (when (and (> (car act-popup-dim) 0)
+	     (> (cdr act-popup-dim) 0))
     (cl-case which-key-popup-type
       ;; Not called for minibuffer
       ;; (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
@@ -2455,9 +2456,9 @@ prefix) if `which-key-use-C-h-commands' is non nil."
   (interactive)
   (cond ((and (not (which-key--popup-showing-p))
               which-key-show-early-on-C-h)
-         (let* ((current-prefix
-                 (butlast
-                  (listify-key-sequence (which-key--this-command-keys)))))
+         (let ((current-prefix
+                (butlast
+                 (listify-key-sequence (which-key--this-command-keys)))))
            (which-key-reload-key-sequence current-prefix)
            (if which-key-idle-secondary-delay
                (which-key--start-timer which-key-idle-secondary-delay t)
@@ -2779,10 +2780,8 @@ Finally, show the buffer."
   (which-key--stop-timer)
   (setq which-key--secondary-timer-active secondary)
   (setq which-key--timer
-        (run-with-idle-timer
-         (if delay
-             delay
-           which-key-idle-delay) t #'which-key--update)))
+        (run-with-idle-timer (or delay which-key-idle-delay)
+			     t #'which-key--update)))
 
 (defun which-key--stop-timer ()
   "Deactivate idle timer for `which-key--update'."
