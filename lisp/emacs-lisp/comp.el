@@ -200,6 +200,9 @@ Emacs Lisp file:
 \;; Local Variables:\n;; no-native-compile: t\n;; End:")
 ;;;###autoload(put 'no-native-compile 'safe-local-variable 'booleanp)
 
+(defvar native-compile-target-directory nil
+  "When non-nil force the target directory for the eln files being compiled.")
+
 (defvar comp-log-time-report nil
   "If non-nil, log a time report for each pass.")
 
@@ -1337,8 +1340,9 @@ clashes."
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
                                         filename
-                                        (when byte+native-compile
-                                          (car (last native-comp-eln-load-path))))))
+                                        (or native-compile-target-directory
+                                            (when byte+native-compile
+                                              (car (last native-comp-eln-load-path)))))))
   (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
@@ -4183,9 +4187,9 @@ Native compilation equivalent to `batch-byte-compile'."
   "Like `batch-native-compile', but used for bootstrap.
 Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
-directory (the last entry in `native-comp-eln-load-path').
-If the environment variable 'NATIVE_DISABLED' is set, only byte
-compile."
+directory (the last entry in `native-comp-eln-load-path') unless
+`native-compile-target-directory' is non-nil.  If the environment
+variable 'NATIVE_DISABLED' is set, only byte compile."
   (comp-ensure-native-compiler)
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)
