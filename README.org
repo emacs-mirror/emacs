@@ -444,6 +444,9 @@
 
   Note =C-h= is by default equivalent to =?= in this context.
 
+  Note also that using =C-h= will not work with the =C-h= prefix, unless you
+  make further adjustments. See Issues #93 and #175, for example.
+
 **** Method 2: Bind your own keys
 
      Essentially, all you need to do for a prefix like =C-x= is the following
