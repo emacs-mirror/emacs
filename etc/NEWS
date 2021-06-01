@@ -880,6 +880,10 @@ If non-nil, only branches and remotes are considered when doing
 completion over Git branch names.  The default is nil, which causes
 tags to be considered as well.
 
+---
+*** New user option 'vc-git-log-switches'.
+String or list of strings specifying switches for Git log under VC.
+
 ** Gnus
 
 +++
