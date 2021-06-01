@@ -445,7 +445,7 @@
   Note =C-h= is by default equivalent to =?= in this context.
 
   Note also that using =C-h= will not work with the =C-h= prefix, unless you
-  make further adjustments. See Issues #93 and #175, for example.
+  make further adjustments. See Issues [[https://github.com/justbur/emacs-which-key/issues/93][#93]] and [[https://github.com/justbur/emacs-which-key/issues/175][#175]] for example.
 
 **** Method 2: Bind your own keys
 
