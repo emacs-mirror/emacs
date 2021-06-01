@@ -125,6 +125,9 @@ This variable is expected to be made buffer-local by modes.")
 (defvar hl-line-overlay-buffer nil
   "Most recently visited buffer in which Hl-Line mode is enabled.")
 
+(defvar hl-line-overlay-priority -50
+  "Priority used on the overlay used by hl-line.")
+
 ;;;###autoload
 (define-minor-mode hl-line-mode
   "Toggle highlighting of the current line (Hl-Line mode).
@@ -152,7 +155,7 @@ line about point in the selected window only."
 
 (defun hl-line-make-overlay ()
   (let ((ol (make-overlay (point) (point))))
-    (overlay-put ol 'priority -50)           ;(bug#16192)
+    (overlay-put ol 'priority hl-line-overlay-priority) ;(bug#16192)
     (overlay-put ol 'face hl-line-face)
     ol))
 

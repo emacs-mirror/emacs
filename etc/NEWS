@@ -1991,6 +1991,11 @@ Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 
 ** Miscellaneous
 
+---
+*** New variable 'hl-line-overlay-priority'.
+This can be used to change the priority of the hl-line overlays.
+
++++
 *** New command 'mailcap-view-file'.
 This command will open a viewer based on the file type, as determined
 by ~/.mailcap and related files and variables.
