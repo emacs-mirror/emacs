@@ -1991,6 +1991,10 @@ Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 
 ** Miscellaneous
 
+*** New command 'mailcap-view-file'.
+This command will open a viewer based on the file type, as determined
+by ~/.mailcap and related files and variables.
+
 +++
 *** New command 'C-x C-k Q' to force redisplay in keyboard macros.
 
