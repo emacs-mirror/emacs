@@ -1183,6 +1183,14 @@ newsgroups."
   :group 'gnus-summary-marks
   :type 'character)
 
+(defcustom gnus-process-mark-toggle nil
+  "If non-nil the process mark command toggles the process mark."
+  :version "28.1"
+  :group 'gnus-summary
+  :group 'gnus-group-various
+  :group 'gnus-group-topic
+  :type 'boolean)
+
 (defcustom gnus-large-newsgroup 200
   "The number of articles which indicates a large newsgroup.
 If the number of articles in a newsgroup is greater than this value,

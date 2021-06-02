@@ -2774,7 +2774,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Hide marked" gnus-summary-limit-exclude-marks t]
 	 ["Show expunged" gnus-summary-limit-include-expunged t])
 	("Process Mark"
-	 ["Set mark" gnus-summary-mark-as-processable t]
+	 ["Set/Toggle mark" gnus-summary-mark-as-processable t]
 	 ["Remove mark" gnus-summary-unmark-as-processable t]
 	 ["Remove all marks" gnus-summary-unmark-all-processable t]
 	 ["Invert marks" gnus-uu-invert-processable t]
@@ -10951,10 +10951,14 @@ number of articles marked is returned."
 	  (n (abs n)))
       (while (and
 	      (> n 0)
-	      (if unmark
-		  (gnus-summary-remove-process-mark
-		   (gnus-summary-article-number))
-		(gnus-summary-set-process-mark (gnus-summary-article-number)))
+	      (let ((article (gnus-summary-article-number)))
+		(if unmark
+		    (gnus-summary-remove-process-mark article)
+		  (if gnus-process-mark-toggle
+		      (if (memq article gnus-newsgroup-processable)
+			  (gnus-summary-remove-process-mark article)
+			(gnus-summary-set-process-mark article))
+		    (gnus-summary-set-process-mark article))))
 	      (zerop (gnus-summary-next-subject (if backward -1 1) nil t)))
 	(setq n (1- n)))
       (when (/= 0 n)

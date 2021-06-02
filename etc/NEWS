@@ -836,6 +836,11 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** New user option 'gnus-process-mark-toggle'.
+If non-nil, the `#' command in the Group and Summary buffers will
+toggle instead of setting the process mark.
+
++++
 *** New user option 'gnus-registry-register-all'.
 If non-nil (the default), create registry entries for all messages.
 If nil, don't automatically create entries, they must be created
