@@ -411,7 +411,7 @@ Platform    Status
 ``w3ppmv``  *Not supported*
 ``xca6ll``  Supported
 ``xci3gc``  *Not supported*
-``xci3ll``  Supported
+``xci3ll``  *Not supported*
 ``xci6gc``  *Not supported*
 ``xci6ll``  Supported
 ``xcppgc``  *Not supported*
