@@ -700,7 +700,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
      when setting family in ns_spec_to_descriptor().  */
   if (ns_attribute_fvalue (fontDesc, NSFontWeightTrait) > 0.50F)
       traits |= NSBoldFontMask;
-  if (fabs (ns_attribute_fvalue (fontDesc, NSFontSlantTrait) > 0.05F))
+  if (ns_attribute_fvalue (fontDesc, NSFontSlantTrait) > 0.05F)
       traits |= NSItalicFontMask;
 
   /* see https://web.archive.org/web/20100201175731/http://cocoadev.com/forums/comments.php?DiscussionID=74 */
