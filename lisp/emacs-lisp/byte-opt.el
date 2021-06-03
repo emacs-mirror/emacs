@@ -343,7 +343,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
       (numberp expr)
       (stringp expr)
       (and (consp expr)
-           (eq (car expr) 'quote)
+           (memq (car expr) '(quote function))
            (symbolp (cadr expr)))
       (keywordp expr)))
 
