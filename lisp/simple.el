@@ -5742,7 +5742,8 @@ PROMPT is a string to prompt with."
            (complete-with-action action completions string pred)))
        nil nil nil
        (if history-pos
-           (cons 'read-from-kill-ring-history (1+ history-pos))
+           (cons 'read-from-kill-ring-history
+                 (if (zerop history-pos) history-pos (1+ history-pos)))
          'read-from-kill-ring-history)))))
 
 (defcustom yank-from-kill-ring-rotate t
