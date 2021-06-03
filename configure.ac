@@ -3790,8 +3790,8 @@ the libgccjit library; see config.log for the details of the failure.
 The test program can be found here:
 <https://gcc.gnu.org/onlinedocs/jit/intro/tutorial01.html>.
 You can try compiling it yourself to investigate the issues.
-Please report the issue to your distribution if libgccjit was installed through
-that.
+Please report the issue to your distribution if libgccjit was installed
+through that.
 You can find the instructions on how to compile and install libgccjit from
 source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])])
