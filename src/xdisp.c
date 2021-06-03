@@ -35639,8 +35639,10 @@ as usual.  If the function returns a string, the returned string is
 displayed in the echo area.  If this function returns any other non-nil
 value, this means that the message was already handled, and the original
 message text will not be displayed in the echo area.
-See also `clear-message-function' that can be used to clear the
-message displayed by this function.  */);
+
+Also see `clear-message-function' (which can be used to clear the
+message displayed by this function), and `command-error-function'
+(which controls how error messages are displayed).  */);
   Vset_message_function = Qnil;
 
   DEFVAR_LISP ("clear-message-function", Vclear_message_function,

@@ -12303,7 +12303,10 @@ Called with three arguments:
 - the error data, a list of the form (SIGNALED-CONDITION . SIGNAL-DATA)
   such as what `condition-case' would bind its variable to,
 - the context (a string which normally goes at the start of the message),
-- the Lisp function within which the error was signaled.  */);
+- the Lisp function within which the error was signaled.
+
+Also see `set-message-function' (which controls how non-error messages
+are displayed).  */);
   Vcommand_error_function = intern ("command-error-default-function");
 
   DEFVAR_LISP ("enable-disabled-menus-and-buttons",
