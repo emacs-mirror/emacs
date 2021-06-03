@@ -126,29 +126,35 @@ with the current prefix.  The files are chosen according to
   :group 'help
   :version "26.3")
 
+(defun help--symbol-class (s)
+  "Return symbol class characters for symbol S."
+  (when (stringp s)
+    (setq s (intern-soft s)))
+  (cond ((commandp s)
+         "c")                           ; command
+        ((eq (car-safe (symbol-function s)) 'macro)
+         "m")                           ; macro
+        ((fboundp s)
+         "f")                           ; function
+        ((custom-variable-p s)
+         "u")                           ; user option
+        ((boundp s)
+         "v")                           ; variable
+        ((facep s)
+         "a")                           ; fAce
+        ((and (fboundp 'cl-find-class)
+              (cl-find-class s))
+         "t")                           ; CL type
+        (" ")                           ; something else
+        ))
+
 (defun help--symbol-completion-table-affixation (completions)
   (mapcar (lambda (c)
             (let* ((s (intern c))
                    (doc (condition-case nil (documentation s) (error nil)))
                    (doc (and doc (substring doc 0 (string-match "\n" doc)))))
               (list c (propertize
-                       (concat (cond ((commandp s)
-                                      "c") ; command
-                                     ((eq (car-safe (symbol-function s)) 'macro)
-                                      "m") ; macro
-                                     ((fboundp s)
-                                      "f") ; function
-                                     ((custom-variable-p s)
-                                      "u") ; user option
-                                     ((boundp s)
-                                      "v") ; variable
-                                     ((facep s)
-                                      "a") ; fAce
-                                     ((and (fboundp 'cl-find-class)
-                                           (cl-find-class s))
-                                      "t")  ; CL type
-                                     (" ")) ; something else
-                               " ")         ; prefix separator
+                       (concat (help--symbol-class s) " ") ; prefix separator
                        'face 'completions-annotations)
                     (if doc (propertize (format " -- %s" doc)
                                         'face 'completions-annotations)
