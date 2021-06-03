@@ -149,6 +149,9 @@
   :type '(choice (const nil) string)
   :version "25.1")
 
+(define-obsolete-variable-alias 'hide-ifdef-expand-reinclusion-protection
+  'hide-ifdef-expand-reinclusion-guard "28.1")
+
 (defcustom hide-ifdef-expand-reinclusion-guard t
   "Non-nil means don't hide an entire header file enclosed by #ifndef...#endif.
 Most C/C++ headers are usually wrapped with ifdefs to prevent re-inclusion:
@@ -170,9 +173,6 @@ This behavior is generally undesirable.  If this option is non-nil, the
 outermost #if is always visible."
   :type 'boolean
   :version "25.1")
-
-(define-obsolete-variable-alias 'hide-ifdef-expand-reinclusion-protection
-  'hide-ifdef-expand-reinclusion-guard "28.1")
 
 (defcustom hide-ifdef-header-regexp
   "\\.h\\(h\\|xx\\|pp\\|\\+\\+\\)?\\'"
