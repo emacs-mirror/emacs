@@ -3785,9 +3785,11 @@ If you are sure you want Emacs be compiled without ELisp native compiler,
 pass the --without-nativecomp option to configure.])])
 
 AC_DEFUN([libgccjit_broken], [
-  AC_MSG_ERROR([The installed libgccjit did not pass the smoke test.
-You can verify it yourself by compiling:
+  AC_MSG_ERROR([The installed libgccjit failed to compile and run a test program using
+the libgccjit library; see config.log for the details of the failure.
+The test program can be found here:
 <https://gcc.gnu.org/onlinedocs/jit/intro/tutorial01.html>.
+You can try compiling it yourself to investigate the issues.
 Please report the issue to your distribution if libgccjit was installed through
 that.
 You can find the instructions on how to compile and install libgccjit from
