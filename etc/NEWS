@@ -555,6 +555,14 @@ disabled entirely.
 ---
 *** Autoload the main entry point 'mspool-show'.
 
+** Windmove
+
+*** New user options can be used to customize windmove keybindings.
+There options include 'windmove-default-keybindings',
+'windmove-display-default-keybindings',
+'windmove-delete-default-keybindings',
+'windmove-swap-states-default-keybindings'.
+
 ** Windows
 
 +++
