@@ -125,14 +125,13 @@
           (unless (member elem seen) (push elem res)))))
     (nreverse res)))
 
-(defun mpc-intersection (l1 l2 &optional selectfun)
+(defun mpc-intersection (l1 l2 selectfun)
   "Return L1 after removing all elements not found in L2.
-If SELECTFUN is non-nil, elements aren't compared directly, but instead
+Elements aren't compared directly, but instead
 they are passed through SELECTFUN before comparison."
-  (when selectfun
-    (setq l1 (mapcar selectfun l1))
-    (setq l2 (mapcar selectfun l2)))
-  (seq-intersection l1 l2))
+  (seq-intersection l1 l2 (lambda (x y)
+                            (equal (funcall selectfun x)
+                                   (funcall selectfun y)))))
 
 (defun mpc-event-set-point (event)
   (condition-case nil (posn-set-point (event-end event))
