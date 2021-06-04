@@ -749,7 +749,8 @@ Default value of MODIFIERS is `shift-super'."
   "Customisation type for windmove modifiers.")
 
 (defcustom windmove-default-keybindings nil
-  "Default bindings for regular windmove commands."
+  "Default keybindings for regular windmove commands.
+See `windmove-default-keybindings' for more detail."
   :set (lambda (sym val)
          (windmove-install-defaults
           (car val) (cdr val)
@@ -764,7 +765,8 @@ Default value of MODIFIERS is `shift-super'."
   :group 'windmove)
 
 (defcustom windmove-display-default-keybindings nil
-  "Default bindings for display windmove commands."
+  "Default keybindings for windmove directional buffer display commands.
+See `windmove-display-default-keybindings' for more detail."
   :set (lambda (sym val)
          (windmove-install-defaults
           (car val) (cdr val)
@@ -782,7 +784,8 @@ Default value of MODIFIERS is `shift-super'."
   :group 'windmove)
 
 (defcustom windmove-delete-default-keybindings nil
-  "Default bindings for delete windmove commands."
+  "Default keybindings for windmove directional window deletion commands.
+See `windmove-delete-default-keybindings' for more detail."
   :set (lambda (sym val)
          (windmove-install-defaults
           (car val) (cdr val)
@@ -797,7 +800,8 @@ Default value of MODIFIERS is `shift-super'."
   :group 'windmove)
 
 (defcustom windmove-swap-states-default-keybindings nil
-  "Default bindings for swap-state windmove commands."
+  "Default keybindings for windmove's directional window swap-state commands.
+See `windmove-swap-states-default-keybindings' for more detail."
   :set (lambda (sym val)
          (windmove-install-defaults
           (car val) (cdr val)

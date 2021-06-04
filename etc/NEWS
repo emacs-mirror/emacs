@@ -557,8 +557,8 @@ disabled entirely.
 
 ** Windmove
 
-*** New user options can be used to customize windmove keybindings.
-There options include 'windmove-default-keybindings',
+*** New user options to customize windmove keybindings.
+These options include 'windmove-default-keybindings',
 'windmove-display-default-keybindings',
 'windmove-delete-default-keybindings',
 'windmove-swap-states-default-keybindings'.
