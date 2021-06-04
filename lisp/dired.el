@@ -3280,15 +3280,19 @@ non-empty directories is allowed."
   (interactive)
   (let* ((dired-marker-char dired-del-marker)
 	 (regexp (dired-marker-regexp))
-	 case-fold-search)
+	 case-fold-search markers)
     (if (save-excursion (goto-char (point-min))
 			(re-search-forward regexp nil t))
 	(dired-internal-do-deletions
          (nreverse
 	  ;; this can't move point since ARG is nil
-	  (dired-map-over-marks (cons (dired-get-filename) (point))
+	  (dired-map-over-marks (cons (dired-get-filename)
+                                      (let ((m (point-marker)))
+                                        (push m markers)
+                                        m))
 			        nil))
 	 nil t)
+      (dolist (m markers) (set-marker m nil))
       (or nomessage
 	  (message "(No deletions requested)")))))
 
@@ -3299,12 +3303,17 @@ non-empty directories is allowed."
   ;; This is more consistent with the file marking feature than
   ;; dired-do-flagged-delete.
   (interactive "P")
-  (dired-internal-do-deletions
-   (nreverse
-    ;; this may move point if ARG is an integer
-    (dired-map-over-marks (cons (dired-get-filename) (point))
-			  arg))
-   arg t))
+  (let (markers)
+    (dired-internal-do-deletions
+     (nreverse
+      ;; this may move point if ARG is an integer
+      (dired-map-over-marks (cons (dired-get-filename)
+                                  (let ((m (point-marker)))
+                                    (push m markers)
+                                    m))
+                            arg))
+     arg t)
+    (dolist (m markers) (set-marker m nil))))
 
 (defvar dired-deletion-confirmer 'yes-or-no-p) ; or y-or-n-p?
 
@@ -3312,11 +3321,6 @@ non-empty directories is allowed."
   ;; L is an alist of files to delete, with their buffer positions.
   ;; ARG is the prefix arg.
   ;; Filenames are absolute.
-  ;; (car L) *must* be the *last* (bottommost) file in the dired buffer.
-  ;; That way as changes are made in the buffer they do not shift the
-  ;; lines still to be changed, so the (point) values in L stay valid.
-  ;; Also, for subdirs in natural order, a subdir's files are deleted
-  ;; before the subdir itself - the other way around would not work.
   (let* ((files (mapcar #'car l))
 	 (count (length l))
 	 (succ 0)
@@ -3337,9 +3341,10 @@ non-empty directories is allowed."
 		 (make-progress-reporter
 		  (if trashing "Trashing..." "Deleting...")
 		  succ count))
-		failures) ;; files better be in reverse order for this loop!
+		failures)
 	    (while l
-	      (goto-char (cdr (car l)))
+	      (goto-char (marker-position (cdr (car l))))
+              (dired-move-to-filename)
 	      (let ((inhibit-read-only t))
 		(condition-case err
 		    (let ((fn (car (car l))))
