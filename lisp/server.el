@@ -1603,7 +1603,9 @@ prevent a backup for it.)  The variable `server-temp-file-regexp' controls
 which filenames are considered temporary.
 
 If invoked with a prefix argument, or if there is no server process running,
-starts server process and that is all.  Invoked by \\[server-edit]."
+starts server process and that is all.  Invoked by \\[server-edit].
+
+To abort an edit instead of saying \"Done\", use \\[server-edit-abort]."
   (interactive "P")
   (cond
    ((or arg
@@ -1612,6 +1614,17 @@ starts server process and that is all.  Invoked by \\[server-edit]."
     (server-mode 1))
    (server-clients (apply #'server-switch-buffer (server-done)))
    (t (message "No server editing buffers exist"))))
+
+(defun server-edit-abort ()
+  "Abort editing the current client buffer."
+  (interactive)
+  (if server-clients
+      (mapc (lambda (proc)
+              (server-send-string
+               proc (concat "-error "
+                            (server-quote-arg "Aborted by the user"))))
+            server-clients)
+    (message "This buffer has no clients")))
 
 (defun server-switch-buffer (&optional next-buffer killed-one filepos
                                        this-frame-only)
