@@ -514,7 +514,8 @@ is set to nil, this message is inhibited.
 *** New command 'server-edit-abort'.
 This command (not bound to any key by default) can be used to abort
 an edit instead of marking it as "Done" (which the 'C-x #' command
-does).
+does).  The 'emacsclient' program exits with an abnormal status as
+result of this command.
 
 ** Perl mode
 
