@@ -3375,13 +3375,7 @@ Give an empty topic name to go to the Index node itself."
 	    (setq exact (cons found exact)
 		  matches (delq found matches)))
           (setq Info-history-list ohist-list)
-	  (setq Info-index-alternatives
-                ;; Weed out index entries that refer to the same line.
-                (seq-uniq
-                 (nconc exact (nreverse matches))
-                 (lambda (m1 m2)
-                   (and (equal (nth 1 m1) (nth 1 m2))
-                        (equal (nth 3 m1) (nth 3 m2))))))
+	  (setq Info-index-alternatives (nconc exact (nreverse matches)))
 	  (Info-index-next 0)))))
 
 (defun Info-index-next (num)
