@@ -2262,7 +2262,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 			    (meta_key == 3 && c < 0x100 && (c & 0x80))
 			    ? meta_modifier
 			    : 0;
-			  events[i] = make_fixnum ((c & ~0x80) | modifier;
+			  events[i] = make_fixnum ((c & ~0x80) | modifier);
 			}
 		    }
 		}
