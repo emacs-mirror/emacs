@@ -406,6 +406,24 @@ typedef id instancetype;
 @end
 #endif
 
+/* EmacsWindow  */
+@interface EmacsWindow : NSWindow
+{
+  NSPoint grabOffset;
+}
+
+#ifdef NS_IMPL_GNUSTEP
+- (NSInteger) orderedIndex;
+#endif
+
+- (instancetype)initWithEmacsFrame:(struct frame *)f;
+- (instancetype)initWithEmacsFrame:(struct frame *)f fullscreen:(BOOL)fullscreen screen:(NSScreen *)screen;
+- (NSInteger)borderWidth;
+- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
+- (void)setAppearance;
+@end
+
+
 /* ==========================================================================
 
    The main Emacs view
@@ -429,9 +447,8 @@ typedef id instancetype;
    NSString *workingText;
    BOOL processingCompose;
    int fs_state, fs_before_fs, next_maximized;
-   int bwidth;
    int maximized_width, maximized_height;
-   NSWindow *nonfs_window;
+   EmacsWindow *nonfs_window;
    BOOL fs_is_native;
 @public
    struct frame *emacsframe;
@@ -484,27 +501,6 @@ typedef id instancetype;
 - (void)windowDidBecomeKey;
 @end
 
-
-/* Small utility used for processing resize events under Cocoa.  */
-@interface EmacsWindow : NSWindow
-{
-  NSPoint grabOffset;
-}
-
-#ifdef NS_IMPL_GNUSTEP
-- (NSInteger) orderedIndex;
-#endif
-
-- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
-- (void)setAppearance;
-@end
-
-
-/* Fullscreen version of the above.  */
-@interface EmacsFSWindow : EmacsWindow
-{
-}
-@end
 
 /* ==========================================================================
 

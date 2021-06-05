@@ -1720,7 +1720,6 @@ ns_set_window_size (struct frame *f,
   unblock_input ();
 }
 
-#ifdef NS_IMPL_COCOA
 void
 ns_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 /* --------------------------------------------------------------------------
@@ -1730,45 +1729,37 @@ ns_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
      dragged, resized, iconified, maximized or deleted with the mouse.  If
      nil, draw the frame with all the elements listed above unless these
      have been suspended via window manager settings.
-
-     GNUStep cannot change an existing window's style.
    -------------------------------------------------------------------------- */
 {
-  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-  NSWindow *window = [view window];
-
   NSTRACE ("ns_set_undecorated");
 
   if (!EQ (new_value, old_value))
     {
+      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+      NSWindow *oldWindow = [view window];
+      NSWindow *newWindow;
+
       block_input ();
 
-      if (NILP (new_value))
-        {
-          FRAME_UNDECORATED (f) = false;
-          [window setStyleMask: ((window.styleMask | FRAME_DECORATED_FLAGS)
-                                  ^ FRAME_UNDECORATED_FLAGS)];
+      FRAME_UNDECORATED (f) = !NILP (new_value);
 
-          [view createToolbar: f];
-        }
-      else
-        {
-          [window setToolbar: nil];
-          /* Do I need to release the toolbar here?  */
+      newWindow = [[EmacsWindow alloc] initWithEmacsFrame:f];
 
-          FRAME_UNDECORATED (f) = true;
-          [window setStyleMask: ((window.styleMask | FRAME_UNDECORATED_FLAGS)
-                                 ^ FRAME_DECORATED_FLAGS)];
-        }
+      if (!FRAME_UNDECORATED (f))
+        [view createToolbar: f];
 
-      /* At this point it seems we don't have an active NSResponder,
-         so some key presses (TAB) are swallowed by the system.  */
-      [window makeFirstResponder: view];
+      if ([oldWindow isKeyWindow])
+        [newWindow makeKeyAndOrderFront:NSApp];
+
+      [newWindow setIsVisible:[oldWindow isVisible]];
+      if ([oldWindow isMiniaturized])
+        [newWindow miniaturize:NSApp];
+
+      [oldWindow close];
 
       unblock_input ();
     }
 }
-#endif /* NS_IMPL_COCOA */
 
 void
 ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
@@ -7239,12 +7230,6 @@ not_in_argv (NSString *arg)
 
 - (instancetype) initFrameFromEmacs: (struct frame *)f
 {
-  NSRect r, wr;
-  Lisp_Object tem;
-  EmacsWindow *win;
-  NSColor *col;
-  NSString *name;
-
   NSTRACE ("[EmacsView initFrameFromEmacs:]");
   NSTRACE_MSG ("cols:%d lines:%d", f->text_cols, f->text_lines);
 
@@ -7266,9 +7251,9 @@ not_in_argv (NSString *arg)
   nonfs_window = nil;
 
   ns_userRect = NSMakeRect (0, 0, 0, 0);
-  r = NSMakeRect (0, 0, FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
-                 FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines));
-  [self initWithFrame: r];
+  [self initWithFrame:
+          NSMakeRect (0, 0, FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
+                      FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines))];
   [self setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
 
   FRAME_NS_VIEW (f) = self;
@@ -7278,37 +7263,7 @@ not_in_argv (NSString *arg)
   maximizing_resize = NO;
 #endif
 
-  win = [[EmacsWindow alloc]
-            initWithContentRect: r
-                      styleMask: (FRAME_UNDECORATED (f)
-                                  ? FRAME_UNDECORATED_FLAGS
-                                  : FRAME_DECORATED_FLAGS)
-                        backing: NSBackingStoreBuffered
-                          defer: YES];
-
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
-#endif
-    if (FRAME_PARENT_FRAME (f))
-      [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
-    else
-      [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-#endif
-
-  wr = [win frame];
-  bwidth = f->border_width = wr.size.width - r.size.width;
-
-  [win setAcceptsMouseMovedEvents: YES];
-  [win setDelegate: self];
-#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
-#if MAC_OS_X_VERSION_MAX_ALLOWED > 1090
-  if ([win respondsToSelector: @selector(useOptimizedDrawing:)])
-#endif
-    [win useOptimizedDrawing: YES];
-#endif
-
-  [[win contentView] addSubview: self];
+  [[EmacsWindow alloc] initWithEmacsFrame:f];
 
 #ifdef NS_IMPL_COCOA
   /* These settings mean AppKit will retain the contents of the frame
@@ -7324,64 +7279,9 @@ not_in_argv (NSString *arg)
   if (ns_drag_types)
     [self registerForDraggedTypes: ns_drag_types];
 
-  tem = f->name;
-  name = NILP (tem) ? @"Emacs" : [NSString stringWithLispString:tem];
-  [win setTitle: name];
-
   /* toolbar support */
   if (! FRAME_UNDECORATED (f))
     [self createToolbar: f];
-
-
-  [win setAppearance];
-
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
-  if ([win respondsToSelector: @selector(titlebarAppearsTransparent)])
-    win.titlebarAppearsTransparent = FRAME_NS_TRANSPARENT_TITLEBAR (f);
-#endif
-
-  tem = f->icon_name;
-  if (!NILP (tem))
-    [win setMiniwindowTitle:
-           [NSString stringWithLispString:tem]];
-
-  if (FRAME_PARENT_FRAME (f) != NULL)
-    {
-      NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
-      [parent addChildWindow: win
-                     ordered: NSWindowAbove];
-    }
-
-  if (FRAME_Z_GROUP (f) != z_group_none)
-      win.level = NSNormalWindowLevel
-        + (FRAME_Z_GROUP_BELOW (f) ? -1 : 1);
-
-  {
-    NSScreen *screen = [win screen];
-
-    if (screen != 0)
-      {
-        NSPoint pt = NSMakePoint
-          (IN_BOUND (-SCREENMAX, f->left_pos
-                     + NS_PARENT_WINDOW_LEFT_POS (f), SCREENMAX),
-           IN_BOUND (-SCREENMAX,
-                     NS_PARENT_WINDOW_TOP_POS (f) - f->top_pos,
-                     SCREENMAX));
-
-        [win setFrameTopLeftPoint: pt];
-
-        NSTRACE_RECT ("new frame", [win frame]);
-      }
-  }
-
-  [win makeFirstResponder: self];
-
-  col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-				 (FACE_FROM_ID (emacsframe, DEFAULT_FACE_ID)),
-				 emacsframe);
-  [win setBackgroundColor: col];
-  if ([col alphaComponent] != (EmacsCGFloat) 1.0)
-    [win setOpaque: NO];
 
 #if !defined (NS_IMPL_COCOA) \
   || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
@@ -7399,14 +7299,6 @@ not_in_argv (NSString *arg)
       addObserver:self
          selector:@selector (viewDidResize:)
              name:NSViewFrameDidChangeNotification object:nil];
-
-  /* macOS Sierra automatically enables tabbed windows.  We can't
-     allow this to be enabled until it's available on a Free system.
-     Currently it only happens by accident and is buggy anyway.  */
-#ifdef NS_IMPL_COCOA
-  if ([win respondsToSelector: @selector(setTabbingMode:)])
-    [win setTabbingMode: NSWindowTabbingModeDisallowed];
-#endif
 
   ns_window_num++;
   return self;
@@ -7797,7 +7689,7 @@ not_in_argv (NSString *arg)
 
 - (void)toggleFullScreen: (id)sender
 {
-  NSWindow *w, *fw;
+  EmacsWindow *w, *fw;
   BOOL onFirstScreen;
   struct frame *f;
   NSRect r, wr;
@@ -7816,7 +7708,7 @@ not_in_argv (NSString *arg)
       return;
     }
 
-  w = [self window];
+  w = (EmacsWindow *)[self window];
   onFirstScreen = [[w screen] isEqual:[[NSScreen screens] objectAtIndex:0]];
   f = emacsframe;
   wr = [w frame];
@@ -7851,27 +7743,9 @@ not_in_argv (NSString *arg)
 #endif
         }
 
-      fw = [[EmacsFSWindow alloc]
-                       initWithContentRect:[w contentRectForFrameRect:wr]
-                                 styleMask:NSWindowStyleMaskBorderless
-                                   backing:NSBackingStoreBuffered
-                                     defer:YES
-                                    screen:screen];
-
-      [fw setContentView:[w contentView]];
-      [fw setTitle:[w title]];
-      [fw setDelegate:self];
-      [fw setAcceptsMouseMovedEvents: YES];
-#if !defined (NS_IMPL_COCOA) \
-  || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
-#if MAC_OS_X_VERSION_MAX_ALLOWED > 1090
-      if ([fw respondsToSelector: @selector(useOptimizedDrawing:)])
-#endif
-        [fw useOptimizedDrawing: YES];
-#endif
-      [fw setBackgroundColor: col];
-      if ([col alphaComponent] != (EmacsCGFloat) 1.0)
-        [fw setOpaque: NO];
+      fw = [[EmacsWindow alloc] initWithEmacsFrame:emacsframe
+                                        fullscreen:YES
+                                            screen:screen];
 
       f->border_width = 0;
 
@@ -7879,7 +7753,6 @@ not_in_argv (NSString *arg)
 
       [self windowWillEnterFullScreen];
       [fw makeKeyAndOrderFront:NSApp];
-      [fw makeFirstResponder:self];
       [w orderOut:self];
       r = [fw frameRectForContentRect:[screen frame]];
       [fw setFrame: r display:YES animate:ns_use_fullscreen_animation];
@@ -7906,7 +7779,7 @@ not_in_argv (NSString *arg)
       if ([col alphaComponent] != (EmacsCGFloat) 1.0)
         [w setOpaque: NO];
 
-      f->border_width = bwidth;
+      f->border_width = [w borderWidth];
 
       // To do: consider using [NSNotificationCenter postNotificationName:] to
       // send notifications.
@@ -8483,6 +8356,133 @@ not_in_argv (NSString *arg)
 
 @implementation EmacsWindow
 
+
+- (instancetype) initWithEmacsFrame:(struct frame *)f
+{
+  return [self initWithEmacsFrame:f fullscreen:NO screen:nil];
+}
+
+
+- (instancetype) initWithEmacsFrame:(struct frame *)f
+                         fullscreen:(BOOL)fullscreen
+                             screen:(NSScreen *)screen
+{
+  NSWindowStyleMask styleMask;
+
+  NSTRACE ("[EmacsWindow initWithEmacsFrame:fullscreen:screen:]");
+
+  if (fullscreen)
+    styleMask = NSWindowStyleMaskBorderless;
+  else if (FRAME_UNDECORATED (f))
+    styleMask = FRAME_UNDECORATED_FLAGS;
+  else
+    styleMask = FRAME_DECORATED_FLAGS;
+
+
+  self = [super initWithContentRect:
+                  NSMakeRect (0, 0,
+                              FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
+                              FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines))
+                          styleMask:styleMask
+                            backing:NSBackingStoreBuffered
+                              defer:YES
+                             screen:screen];
+  if (self)
+    {
+      NSString *name;
+      NSColor *col;
+      NSScreen *screen = [self screen];
+      EmacsView *view = FRAME_NS_VIEW (f);
+
+      [self setDelegate:view];
+      [[self contentView] addSubview:view];
+      [self makeFirstResponder:view];
+
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
+#if MAC_OS_X_VERSION_MAX_ALLOWED > 1090
+      if ([self respondsToSelector: @selector(useOptimizedDrawing:)])
+#endif
+        [self useOptimizedDrawing:YES];
+#endif
+
+      [self setAcceptsMouseMovedEvents:YES];
+
+      name = NILP (f->name) ? @"Emacs" : [NSString stringWithLispString:f->name];
+      [self setTitle:name];
+
+      if (!NILP (f->icon_name))
+        [self setMiniwindowTitle:
+                [NSString stringWithLispString:f->icon_name]];
+
+      [self setAppearance];
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
+      if ([self respondsToSelector:@selector(titlebarAppearsTransparent)])
+        [self setTitlebarAppearsTransparent:FRAME_NS_TRANSPARENT_TITLEBAR (f)];
+#endif
+
+      #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+      if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
+#endif
+        if (FRAME_PARENT_FRAME (f))
+          [self setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
+        else
+          [self setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+#endif
+
+      if (FRAME_PARENT_FRAME (f) != NULL)
+        {
+          NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
+          [parent addChildWindow:self
+                         ordered:NSWindowAbove];
+        }
+
+      if (FRAME_Z_GROUP (f) != z_group_none)
+        [self setLevel:NSNormalWindowLevel + (FRAME_Z_GROUP_BELOW (f) ? -1 : 1)];
+
+      if (screen != 0)
+        {
+          NSPoint pt = NSMakePoint
+            (IN_BOUND (-SCREENMAX, f->left_pos
+                       + NS_PARENT_WINDOW_LEFT_POS (f), SCREENMAX),
+             IN_BOUND (-SCREENMAX,
+                       NS_PARENT_WINDOW_TOP_POS (f) - f->top_pos,
+                       SCREENMAX));
+
+          [self setFrameTopLeftPoint:pt];
+
+          NSTRACE_RECT ("new frame", [self frame]);
+        }
+
+      f->border_width = [self borderWidth];
+
+      col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
+                                     (FACE_FROM_ID (f, DEFAULT_FACE_ID)),
+                                     f);
+      [self setBackgroundColor:col];
+      if ([col alphaComponent] != (EmacsCGFloat) 1.0)
+        [self setOpaque:NO];
+
+      /* macOS Sierra automatically enables tabbed windows.  We can't
+         allow this to be enabled until it's available on a Free system.
+         Currently it only happens by accident and is buggy anyway.  */
+#ifdef NS_IMPL_COCOA
+      if ([self respondsToSelector:@selector(setTabbingMode:)])
+        [self setTabbingMode:NSWindowTabbingModeDisallowed];
+#endif
+    }
+
+  return self;
+}
+
+
+- (NSInteger) borderWidth
+{
+  return NSWidth ([self frame]) - NSWidth ([[self contentView] frame]);
+}
+
+
 /* It seems the only way to reorder child frames is by removing them
    from the parent and then reattaching them in the correct order.  */
 
@@ -8892,22 +8892,15 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 {
   return !FRAME_NO_ACCEPT_FOCUS (((EmacsView *)[self delegate])->emacsframe);
 }
-@end /* EmacsWindow */
-
-
-@implementation EmacsFSWindow
-
-- (BOOL)canBecomeKeyWindow
-{
-  return YES;
-}
 
 - (BOOL)canBecomeMainWindow
+  /* Required for fullscreen and undecorated windows.  */
 {
   return YES;
 }
 
-@end
+@end /* EmacsWindow */
+
 
 /* ==========================================================================
 
