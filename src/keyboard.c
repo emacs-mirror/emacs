@@ -2254,8 +2254,17 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 		{
 		  int i;
 		  if (meta_key != 2)
-		    for (i = 0; i < n; i++)
-		      events[i] = make_fixnum (XFIXNUM (events[i]) & ~0x80);
+		    {
+		      for (i = 0; i < n; i++)
+			{
+			  int c = XFIXNUM (events[i]);
+			  int modifier =
+			    (meta_key == 3 && c < 0x100 && (c & 0x80))
+			    ? meta_modifier
+			    : 0;
+			  events[i] = make_fixnum ((c & ~0x80) | modifier;
+			}
+		    }
 		}
 	      else
 		{
@@ -2264,7 +2273,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 		  int i;
 		  for (i = 0; i < n; i++)
 		    src[i] = XFIXNUM (events[i]);
-		  if (meta_key != 2)
+		  if (meta_key < 2) /* input-meta-mode is t or nil */
 		    for (i = 0; i < n; i++)
 		      src[i] &= ~0x80;
 		  coding->destination = dest;
@@ -2282,7 +2291,18 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 		      eassert (coding->carryover_bytes == 0);
 		      n = 0;
 		      while (n < coding->produced_char)
-			events[n++] = make_fixnum (string_char_advance (&p));
+			{
+			  int c = string_char_advance (&p);
+			  if (meta_key == 3)
+			    {
+			      int modifier
+				= (c < 0x100 && (c & 0x80)
+				   ? meta_modifier
+				   : 0);
+			      c = (c & ~0x80) | modifier;
+			    }
+			  events[n++] = make_fixnum (c);
+			}
 		    }
 		}
 	    }
@@ -7068,7 +7088,7 @@ tty_read_avail_input (struct terminal *terminal,
       buf.modifiers = 0;
       if (tty->meta_key == 1 && (cbuf[i] & 0x80))
         buf.modifiers = meta_modifier;
-      if (tty->meta_key != 2)
+      if (tty->meta_key < 2)
         cbuf[i] &= ~0x80;
 
       buf.code = cbuf[i];
@@ -11075,7 +11095,10 @@ See also `current-input-mode'.  */)
 DEFUN ("set-input-meta-mode", Fset_input_meta_mode, Sset_input_meta_mode, 1, 2, 0,
        doc: /* Enable or disable 8-bit input on TERMINAL.
 If META is t, Emacs will accept 8-bit input, and interpret the 8th
-bit as the Meta modifier.
+bit as the Meta modifier before it decodes the characters.
+
+If META is `encoded', Emacs will interpret the 8th bit of single-byte
+characters after decoding the characters.
 
 If META is nil, Emacs will ignore the top bit, on the assumption it is
 parity.
@@ -11104,6 +11127,8 @@ See also `current-input-mode'.  */)
     new_meta = 0;
   else if (EQ (meta, Qt))
     new_meta = 1;
+  else if (EQ (meta, Qencoded))
+    new_meta = 3;
   else
     new_meta = 2;
 
@@ -11166,6 +11191,8 @@ Second arg FLOW non-nil means use ^S/^Q flow control for output to terminal
  (no effect except in CBREAK mode).
 Third arg META t means accept 8-bit input (for a Meta key).
  META nil means ignore the top bit, on the assumption it is parity.
+ META `encoded' means accept 8-bit input and interpret Meta after
+   decoding the input characters.
  Otherwise, accept 8-bit input and don't use the top bit for Meta.
 Optional fourth arg QUIT if non-nil specifies character to use for quitting.
 See also `current-input-mode'.  */)
@@ -11186,9 +11213,12 @@ The value is a list of the form (INTERRUPT FLOW META QUIT), where
     nil, Emacs is using CBREAK mode.
   FLOW is non-nil if Emacs uses ^S/^Q flow control for output to the
     terminal; this does not apply if Emacs uses interrupt-driven input.
-  META is t if accepting 8-bit input with 8th bit as Meta flag.
-    META nil means ignoring the top bit, on the assumption it is parity.
-    META is neither t nor nil if accepting 8-bit input and using
+  META is t if accepting 8-bit unencoded input with 8th bit as Meta flag.
+  META is `encoded' if accepting 8-bit encoded input with 8th bit as
+    Meta flag which has to be interpreted after decoding the input.
+  META is nil if ignoring the top bit of input, on the assumption that
+    it is a parity bit.
+  META is neither t nor nil if accepting 8-bit input and using
     all 8 bits as the character code.
   QUIT is the character Emacs currently uses to quit.
 The elements of this list correspond to the arguments of
@@ -11204,7 +11234,9 @@ The elements of this list correspond to the arguments of
       flow = FRAME_TTY (sf)->flow_control ? Qt : Qnil;
       meta = (FRAME_TTY (sf)->meta_key == 2
 	      ? make_fixnum (0)
-	      : (CURTTY ()->meta_key == 1 ? Qt : Qnil));
+	      : (CURTTY ()->meta_key == 1
+		 ? Qt
+		 : (CURTTY ()->meta_key == 3 ? Qencoded : Qnil)));
     }
   else
     {
@@ -11695,6 +11727,7 @@ syms_of_keyboard (void)
       }
   }
   DEFSYM (Qno_record, "no-record");
+  DEFSYM (Qencoded, "encoded");
 
   button_down_location = make_nil_vector (5);
   staticpro (&button_down_location);
