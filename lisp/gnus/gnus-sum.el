@@ -8247,7 +8247,7 @@ If NOT-MATCHING, excluding articles that have subjects that match a regexp."
 	(let ((articles (gnus-summary-find-matching
 			 (or header "subject") subject 'all nil nil
 			 not-matching)))
-	  (unless articles
+	  (unless (or articles not-matching)
 	    (error "Found no matches for \"%s\"" subject))
 	  (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8318,7 +8318,7 @@ To and Cc headers are checked.  You need to include them in
 				 (and (memq a to) a))
 			       cc)
 		     (nconc to cc))))
-	     (unless articles
+	     (unless (or articles not-matching)
 	       (error "Found no matches for \"%s\"" recipient))
 	     (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8374,7 +8374,7 @@ in `nnmail-extra-headers'."
 		     (nconc (if (eq to t) nil to)
 			    (if (eq cc t) nil cc)
 			    from))))
-	     (unless articles
+	     (unless (or articles not-matching)
 	       (error "Found no matches for \"%s\"" address))
 	     (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8465,7 +8465,7 @@ articles that are younger than AGE days."
 	(let ((articles (gnus-summary-find-matching
 			 (cons 'extra header) regexp 'all nil nil
 			 not-matching)))
-	  (unless articles
+	  (unless (or articles not-matching)
 	    (error "Found no matches for \"%s\"" regexp))
 	  (gnus-summary-limit articles))
       (gnus-summary-position-point))))
