@@ -2369,11 +2369,17 @@ has no effect except in @sc{cbreak} mode.
 
 The argument @var{meta} controls support for input character codes
 above 127.  If @var{meta} is @code{t}, Emacs converts characters with
-the 8th bit set into Meta characters.  If @var{meta} is @code{nil},
+the 8th bit set into Meta characters, before it decodes them as needed
+(@pxref{Terminal I/O Encoding}).  If @var{meta} is @code{nil},
 Emacs disregards the 8th bit; this is necessary when the terminal uses
-it as a parity bit.  If @var{meta} is neither @code{t} nor @code{nil},
-Emacs uses all 8 bits of input unchanged.  This is good for terminals
-that use 8-bit character sets.
+it as a parity bit.  If @var{meta} is the symbol @code{encoded}, Emacs
+first decodes the characters using all the 8 bits of each byte, and
+then converts the decoded single-byte characters into Meta characters
+if they have their eighth bit set.  Finally, if @var{meta} is neither
+@code{t} nor @code{nil} nor @code{encoded}, Emacs uses all 8 bits of
+input unchanged, both before and after decoding them.  This is good
+for terminals that use 8-bit character sets and don't encode the Meta
+modifier as the eighth bit.
 
 If @var{quit-char} is non-@code{nil}, it specifies the character to
 use for quitting.  Normally this character is @kbd{C-g}.
@@ -2398,9 +2404,11 @@ flow control for output to the terminal.  This value is meaningful only
 when @var{interrupt} is @code{nil}.
 @item meta
 is @code{t} if Emacs treats the eighth bit of input characters as
-the meta bit; @code{nil} means Emacs clears the eighth bit of every
-input character; any other value means Emacs uses all eight bits as the
-basic character code.
+the Meta bit before decoding input; @code{encoded} if Emacs treats the
+eighth bit of the decoded single-byte characters as the Meta bit;
+@code{nil} if Emacs clears the eighth bit of every input character;
+any other value means Emacs uses all eight bits as the basic character
+code.
 @item quit
 is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 @end table

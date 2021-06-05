@@ -295,6 +295,17 @@ default, 9.5 MiB).  Press '?' or 'C-h' in that prompt to read more
 about the different options to visit a file, how you can disable the
 prompt, and how you can tweak the file size threshold.
 
++++
+** Improved support for terminal emulators that encode the Meta flag.
+Some terminal emulators set the 8th bit of Meta characters, and then
+encode the resulting character code as if it were non-ASCII character
+above codepoint 127.  Previously, the only way of using these in Emacs
+was to set up the terminal emulator to use the ESC characters to send
+Meta characters to Emacs, e.g., send "ESC x" when the user types
+'M-x'.  You can now avoid the need for this setup of such terminal
+emulators by using the new input-meta-mode with the special value
+'encoded' with these terminal emulators.
+
 
 * Editing Changes in Emacs 28.1
 
