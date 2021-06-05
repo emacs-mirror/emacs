@@ -2728,6 +2728,26 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   return attributes_list;
 }
 
+double
+pgtk_frame_scale_factor (struct frame *f)
+{
+  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  GdkDisplay *gdpy = dpyinfo->gdpy;
+
+  block_input ();
+
+  GdkWindow *gwin = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+  GdkMonitor *gmon = gdk_display_get_monitor_at_window (gdpy, gwin);
+
+  /* GTK returns scaled sizes for the workareas.  */
+  double scale = pgtk_get_monitor_scale_factor (gdk_monitor_get_model (gmon));
+  if (scale == 0.0)
+    scale = gdk_monitor_get_scale_factor (gmon);
+
+  unblock_input ();
+
+  return scale;
+}
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes, 0, 1, 0,
        doc: /* Return the number of bitplanes of the display TERMINAL.

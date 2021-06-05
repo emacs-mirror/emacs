@@ -920,6 +920,8 @@ default_pixels_per_inch_y (void)
 /* Scale factor of frame F.  */
 #if defined HAVE_NS
 # define FRAME_SCALE_FACTOR(f) (FRAME_NS_P (f) ? ns_frame_scale_factor (f) : 1)
+#elif defined HAVE_PGTK
+# define FRAME_SCALE_FACTOR(f) (FRAME_PGTK_P (f) ? pgtk_frame_scale_factor (f) : 1)
 #else
 # define FRAME_SCALE_FACTOR(f) 1
 #endif
