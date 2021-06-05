@@ -549,6 +549,16 @@ Icomplete, completions are rotated and selection kept at the top.
 When used with Fido, completions scroll like a typical dropdown
 widget.
 
+*** Default value of 'icomplete-compute-delay has been changed to 0.15 s.
+
+*** Default value of 'icomplete-max-delay-chars' has been changed to 2.
+
+*** Reduced blinking while completing the next completions set.
+Icomplete doesn't hide the hint with the previously computed
+completions anymore when compute delay is in effect, or the previous
+computation has been aborted by input. Instead it shows the previous
+completions until the new ones are ready.
+
 ---
 ** Specific warnings can now be disabled from the warning buffer.
 When a warning is displayed to the user, the resulting buffer now has

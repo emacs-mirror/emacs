@@ -115,7 +115,7 @@ Otherwise this should be a list of the completion tables (e.g.,
   :type 'integer
   :version "26.1")
 
-(defcustom icomplete-compute-delay .3
+(defcustom icomplete-compute-delay .15
   "Completions-computation stall, used only with large-number completions.
 See `icomplete-delay-completions-threshold'."
   :type 'number)
@@ -124,7 +124,7 @@ See `icomplete-delay-completions-threshold'."
   "Pending-completions number over which to apply `icomplete-compute-delay'."
   :type 'integer)
 
-(defcustom icomplete-max-delay-chars 3
+(defcustom icomplete-max-delay-chars 2
   "Maximum number of initial chars to apply `icomplete-compute-delay'."
   :type 'integer)
 
@@ -157,10 +157,6 @@ icompletion is occurring."
 (defvar icomplete--initial-input nil
   "Initial input in the minibuffer when icomplete-mode was activated.
 Used to implement the option `icomplete-show-matches-on-no-input'.")
-
-(defun icomplete-pre-command-hook ()
- (let ((non-essential t))
-   (icomplete-tidy)))
 
 (defun icomplete-post-command-hook ()
   (let ((non-essential t)) ;E.g. don't prompt for password!
@@ -490,7 +486,6 @@ Usually run by inclusion in `minibuffer-setup-hook'."
     (setq icomplete--scrolled-completions nil)
     (use-local-map (make-composed-keymap icomplete-minibuffer-map
     					 (current-local-map)))
-    (add-hook 'pre-command-hook  #'icomplete-pre-command-hook  nil t)
     (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)
     (run-hooks 'icomplete-minibuffer-setup-hook)))
 
@@ -504,7 +499,6 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (setq icomplete--in-region-buffer nil)
       (delete-overlay icomplete-overlay)
       (kill-local-variable 'completion-show-inline-help)
-      (remove-hook 'pre-command-hook  'icomplete-pre-command-hook  t)
       (remove-hook 'post-command-hook 'icomplete-post-command-hook t)
       (message nil)))
   (when (and completion-in-region-mode
@@ -516,7 +510,6 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (unless (memq icomplete-minibuffer-map (cdr tem))
 	(setcdr tem (make-composed-keymap icomplete-minibuffer-map
 					  (cdr tem)))))
-    (add-hook 'pre-command-hook  'icomplete-pre-command-hook  nil t)
     (add-hook 'post-command-hook 'icomplete-post-command-hook nil t)))
 
 (defun icomplete--sorted-completions ()
@@ -639,13 +632,6 @@ resized depends on `resize-mini-windows'."
 
 
 ;;;_* Completion
-
-;;;_ > icomplete-tidy ()
-(defun icomplete-tidy ()
-  "Remove completions display (if any) prior to new user input.
-Should be run in on the minibuffer `pre-command-hook'.
-See `icomplete-mode' and `minibuffer-setup-hook'."
-  (delete-overlay icomplete-overlay))
 
 ;;;_ > icomplete-exhibit ()
 (defun icomplete-exhibit ()
