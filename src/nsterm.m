@@ -1640,8 +1640,6 @@ ns_make_frame_visible (struct frame *f)
          fullscreen also.  So skip handleFS as this will print an error.  */
       if ([view fsIsNative] && [view isFullscreen])
         {
-          // maybe it is not necessary to wait
-          [view waitFullScreenTransition];
           return;
         }
 
@@ -2057,11 +2055,7 @@ ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
           // child frame must not be in fullscreen
           if ([view fsIsNative] && [view isFullscreen])
-            {
-              // in case child is going fullscreen
-              [view waitFullScreenTransition];
-              [view toggleFullScreen:child];
-            }
+            [view toggleFullScreen:child];
           NSTRACE ("child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary");
           [child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
 #endif
@@ -7489,7 +7483,6 @@ not_in_argv (NSString *arg)
 #endif
     fs_is_native = ns_use_native_fullscreen;
 #endif
-  in_fullscreen_transition = NO;
 
   maximized_width = maximized_height = -1;
   nonfs_window = nil;
@@ -7862,7 +7855,6 @@ not_in_argv (NSString *arg)
 - (void)windowWillEnterFullScreen:(NSNotification *)notification
 {
   NSTRACE ("[EmacsView windowWillEnterFullScreen:]");
-  in_fullscreen_transition = YES;
   [self windowWillEnterFullScreen];
 }
 - (void)windowWillEnterFullScreen /* provided for direct calls */
@@ -7875,7 +7867,6 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsView windowDidEnterFullScreen:]");
   [self windowDidEnterFullScreen];
-  in_fullscreen_transition = NO;
 }
 
 - (void)windowDidEnterFullScreen /* provided for direct calls */
@@ -7914,7 +7905,6 @@ not_in_argv (NSString *arg)
 - (void)windowWillExitFullScreen:(NSNotification *)notification
 {
   NSTRACE ("[EmacsView windowWillExitFullScreen:]");
-  in_fullscreen_transition = YES;
   [self windowWillExitFullScreen];
 }
 
@@ -7934,7 +7924,6 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsView windowDidExitFullScreen:]");
   [self windowDidExitFullScreen];
-  in_fullscreen_transition = NO;
 }
 
 - (void)windowDidExitFullScreen /* provided for direct calls */
@@ -7961,22 +7950,6 @@ not_in_argv (NSString *arg)
 
   if (next_maximized != -1)
     [[self window] performZoom:self];
-}
-
-- (BOOL)inFullScreenTransition
-{
-  return in_fullscreen_transition;
-}
-
-- (void)waitFullScreenTransition
-{
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-  while ([self inFullScreenTransition])
-    {
-      NSTRACE ("wait for fullscreen");
-      wait_reading_process_output (0, 300000000, 0, 1, Qnil, NULL, 0);
-    }
-#endif
 }
 
 - (BOOL)fsIsNative
@@ -8058,14 +8031,8 @@ not_in_argv (NSString *arg)
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
       if ([[self window] respondsToSelector: @selector(toggleFullScreen:)])
-        {
 #endif
-          [[self window] toggleFullScreen:sender];
-          // wait for fullscreen animation complete (bug#28496)
-          [self waitFullScreenTransition];
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-        }
-#endif
+        [[self window] toggleFullScreen:sender];
 #endif
       return;
     }
