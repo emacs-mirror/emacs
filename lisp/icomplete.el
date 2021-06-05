@@ -331,7 +331,8 @@ require user confirmation."
                    (file-name-directory (icomplete--field-string))))
          (current (car completion-all-sorted-completions))
          (probe (and dir current
-                     (expand-file-name (directory-file-name current) dir))))
+                     (expand-file-name (directory-file-name current)
+                                       (substitute-env-vars dir)))))
     (cond ((and probe (file-directory-p probe) (not (string= current "./")))
            (icomplete-force-complete))
           (t
