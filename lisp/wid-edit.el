@@ -4011,7 +4011,10 @@ is inline."
 
 (defun widget-boolean-prompt-value (_widget prompt _value _unbound)
   ;; Toggle a boolean.
-  (y-or-n-p prompt))
+  ;; Say what "y" means.  A la
+  ;; "Set customized value for bar to true: (y or n)"
+  (y-or-n-p (concat (replace-regexp-in-string ": ?\\'" "" prompt)
+                    " true: ")))
 
 ;;; The `color' Widget.
 
