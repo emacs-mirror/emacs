@@ -1810,7 +1810,7 @@ find_entries (FILE *inf)
     {
       lang = get_language_from_filename (curfdp->infname, true);
 
-      /* Disambiguate file names between Objc and Mercury */
+      /* Disambiguate file names between Objc and Mercury. */
       if (lang != NULL && strcmp (lang->name, "objc") == 0)
 	test_objc_is_mercury (curfdp->infname, &lang);
 
@@ -6105,7 +6105,7 @@ prolog_atom (char *s, size_t pos)
 /*
  * Support for Mercury
  *
- * Assumes that the declarationa starts at column 0.
+ * Assumes that the declarations start at column 0.
  * Original code by Sunichirou Sugou (1989) for Prolog.
  * Rewritten by Anders Lindgren (1996) for Prolog.
  * Adapted by Fabrice Nicol (2021) for Mercury.
@@ -6121,11 +6121,11 @@ static bool is_mercury_quantifier = false;
 static bool is_mercury_declaration = false;
 
 /*
- * Objective-C and Mercury have identical file extension .m
+ * Objective-C and Mercury have identical file extension .m.
  * To disambiguate between Objective C and Mercury, parse file
  * with the following heuristics hook:
- *   - if line starts with :- choose Mercury unconditionally,
- *   - if line starts with #, @, choose Objective-C,
+ *   - if line starts with :-, choose Mercury unconditionally;
+ *   - if line starts with #, @, choose Objective-C;
  *   - otherwise compute the following ratio:
  *
  *     r = (number of lines with :-
@@ -6137,12 +6137,12 @@ static bool is_mercury_declaration = false;
  *
  * If r > mercury_heuristics_ratio, choose Mercury.
  * Experimental tests show that a possibly optimal default value for
- * this floor value is around 0.5. This is the default value for
+ * this floor value is around 0.5.  This is the default value for
  * MERCURY_HEURISTICS_RATIO, defined in the first lines of this file.
- * The closer r to 0.5, the closer the source code to pure Prolog.
+ * The closer r is to 0.5, the closer the source code to pure Prolog.
  * Idiomatic Mercury is scored either with r = 1.0 or higher.
- * Objective-C is scored with r = 0.0. When this fails, the r-score never
- * rose above 0.1 in Objective-C tests.
+ * Objective-C is scored with r = 0.0.  When this fails, the r-score
+ * never rose above 0.1 in Objective-C tests.
  */
 
 static void
@@ -6183,7 +6183,7 @@ test_objc_is_mercury (char *this_file, language **lang)
 	  found_dot = ! commented_line;
 	  only_space_before = false;
 	  break;
-	case  '%': /* More frequent in Mercury. May be modulo in Obj.-C.  */
+	case  '%': /* More frequent in Mercury.  May be modulo in Obj.-C.  */
 	  if (! commented_line)
 	    {
 	      ++percentage_signs;
@@ -6228,7 +6228,7 @@ test_objc_is_mercury (char *this_file, language **lang)
 	    }
 	  else
 	    {
-	      /* p :- q. Frequent in Mercury.
+	      /* p :- q.  Frequent in Mercury.
 		 Rare or in quoted exprs in Obj.-C.  */
 	      if (c == '-' && ! commented_line)
 		++rule_signs;
@@ -6253,7 +6253,7 @@ test_objc_is_mercury (char *this_file, language **lang)
 	}
     }
 
-  /* Fallback heuristic test. Not failsafe but errless in pratice.  */
+  /* Fallback heuristic test.  Not failsafe but errless in pratice.  */
   ratio = ((float) rule_signs + percentage_signs + mercury_dots) / lines;
 
  out:
@@ -6262,7 +6262,7 @@ test_objc_is_mercury (char *this_file, language **lang)
 
   if (ratio > mercury_heuristics_ratio)
     {
-      /* Change the language from Objective C to Mercury.  */
+      /* Change the language from Objective-C to Mercury.  */
       static language lang0 = { "mercury", Mercury_help, Mercury_functions,
 	Mercury_suffixes };
       *lang = &lang0;
