@@ -1791,6 +1791,7 @@ external browser instead of the default one."
         (funcall browse-url-secondary-browser-function url)
       (browse-url url))))
 
+;;;###autoload
 (defun browse-url-button-open-url (url)
   "Open URL using `browse-url'.
 If `current-prefix-arg' is non-nil, use

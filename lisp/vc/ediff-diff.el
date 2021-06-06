@@ -231,10 +231,7 @@ one optional arguments, diff-number to refine.")
 	   (sit-for 2)
 	   ;; 1 is an error exit code
 	   1)
-	  (t (message "Computing differences between %s and %s ..."
-		      (file-name-nondirectory file1)
-		      (file-name-nondirectory file2))
-	     ;; this erases the diff buffer automatically
+	  (t ;; this erases the diff buffer automatically
 	     (ediff-exec-process ediff-diff-program
 				 diff-buffer
 				 'synchronize

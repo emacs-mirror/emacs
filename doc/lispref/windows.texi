@@ -1838,6 +1838,14 @@ with @var{window} as the selected window without needlessly running
 @code{buffer-list-update-hook}.
 @end defmac
 
+@defmac with-selected-frame frame forms@dots{}
+This macro executes @var{forms} with @var{frame} as the selected
+frame.  The value returned is the value of the last form in
+@var{forms}.  This macro saves and restores the selected frame, and
+changes the order of neither the recently selected windows nor the
+buffers in the buffer list.
+@end defmac
+
 @defun frame-selected-window &optional frame
 This function returns the window on @var{frame} that is selected
 within that frame.  @var{frame} should be a live frame; if omitted or

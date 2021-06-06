@@ -170,12 +170,17 @@ If `gnus-visible-headers' is non-nil, this variable will be ignored."
   "All headers that do not match this regexp will be hidden.
 This variable can also be a list of regexp of headers to remain visible.
 If this variable is non-nil, `gnus-ignored-headers' will be ignored."
-  :type '(choice
-	  (repeat :value-to-internal (lambda (widget value)
-				       (custom-split-regexp-maybe value))
-		  :match (lambda (widget value)
-			   (or (stringp value)
-			       (widget-editable-list-match widget value)))
+  :type `(choice
+	  (repeat :value-to-internal
+		  ,(lambda (_widget value)
+		     ;; FIXME: Are we sure this can't be used without
+		     ;; loading cus-edit?
+		     (declare-function custom-split-regexp-maybe
+		                       "cus-edit" (regexp))
+		     (custom-split-regexp-maybe value))
+		  :match ,(lambda (widget value)
+			    (or (stringp value)
+			        (widget-editable-list-match widget value)))
 		  regexp)
 	  (const :tag "Use gnus-ignored-headers" nil)
 	  regexp)
@@ -402,14 +407,14 @@ the entire emphasized word.  The third is a number that says what
 regexp grouping should be displayed and highlighted.  The fourth
 is the face used for highlighting."
   :type
-  '(repeat
+  `(repeat
     (menu-choice
      :format "%[Customizing Style%]\n%v"
      :indent 2
      (group :tag "Default"
 	    :value ("" 0 0 default)
 	    :value-create
-	    (lambda (widget)
+	    ,(lambda (widget)
 	      (let ((value (widget-get
 			    (cadr (widget-get (widget-get widget :parent)
 					      :args))
@@ -3738,7 +3743,7 @@ is to run."
     (setq n 1))
   (gnus-stop-date-timer)
   (setq article-lapsed-timer
-	(run-at-time 1 n 'article-update-date-lapsed)))
+	(run-at-time 1 n #'article-update-date-lapsed)))
 
 (defun gnus-stop-date-timer ()
   "Stop the Date timer."
@@ -4405,7 +4410,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   "\M-g" gnus-article-read-summary-keys)
 
 (substitute-key-definition
- 'undefined 'gnus-article-read-summary-keys gnus-article-mode-map)
+ #'undefined #'gnus-article-read-summary-keys gnus-article-mode-map)
 
 (defvar gnus-article-send-map)
 (gnus-define-keys (gnus-article-send-map "S" gnus-article-mode-map)
@@ -4483,12 +4488,12 @@ commands:
   (make-local-variable 'gnus-article-image-alist)
   (make-local-variable 'gnus-article-charset)
   (make-local-variable 'gnus-article-ignored-charsets)
-  (setq-local bookmark-make-record-function 'gnus-summary-bookmark-make-record)
+  (setq-local bookmark-make-record-function #'gnus-summary-bookmark-make-record)
   ;; Prevent Emacs from displaying non-break space with
   ;; `nobreak-space' face.
   (setq-local nobreak-char-display nil)
   ;; Enable `gnus-article-remove-images' to delete images shr.el renders.
-  (setq-local shr-put-image-function 'gnus-shr-put-image)
+  (setq-local shr-put-image-function #'gnus-shr-put-image)
   (unless gnus-article-show-cursor
     (setq cursor-in-non-selected-windows nil))
   (gnus-set-default-directory)
@@ -4723,16 +4728,17 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 (define-derived-mode gnus-sticky-article-mode gnus-article-mode "StickyArticle"
   "Mode for sticky articles."
   ;; Release bindings that won't work.
-  (substitute-key-definition 'gnus-article-read-summary-keys 'undefined
+  (substitute-key-definition #'gnus-article-read-summary-keys #'undefined
 			     gnus-sticky-article-mode-map)
-  (substitute-key-definition 'gnus-article-refer-article 'undefined
+  (substitute-key-definition #'gnus-article-refer-article #'undefined
 			     gnus-sticky-article-mode-map)
   (dolist (k '("e" "h" "s" "F" "R"))
     (define-key gnus-sticky-article-mode-map k nil))
-  (define-key gnus-sticky-article-mode-map "k" 'gnus-kill-sticky-article-buffer)
-  (define-key gnus-sticky-article-mode-map "q" 'bury-buffer)
-  (define-key gnus-sticky-article-mode-map "\C-hc" 'describe-key-briefly)
-  (define-key gnus-sticky-article-mode-map "\C-hk" 'describe-key))
+  (define-key gnus-sticky-article-mode-map "k"
+    #'gnus-kill-sticky-article-buffer)
+  (define-key gnus-sticky-article-mode-map "q"     #'bury-buffer)
+  (define-key gnus-sticky-article-mode-map "\C-hc" #'describe-key-briefly)
+  (define-key gnus-sticky-article-mode-map "\C-hk" #'describe-key))
 
 (defun gnus-sticky-article (arg)
   "Make the current article sticky.
@@ -4863,9 +4869,9 @@ General format specifiers can also be used.  See Info node
 
 (defvar gnus-mime-button-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'gnus-article-push-button)
-    (define-key map [mouse-2] 'gnus-article-push-button)
-    (define-key map [down-mouse-3] 'gnus-mime-button-menu)
+    (define-key map "\r"           #'gnus-article-push-button)
+    (define-key map [mouse-2]      #'gnus-article-push-button)
+    (define-key map [down-mouse-3] #'gnus-mime-button-menu)
     (dolist (c gnus-mime-button-commands)
       (define-key map (cadr c) (car c)))
     map))
@@ -6138,7 +6144,7 @@ If nil, don't show those extra buttons."
   (let* ((preferred (or preferred (mm-preferred-alternative handles)))
 	 (ihandles handles)
 	 (point (point))
-	 handle (inhibit-read-only t) begend not-pref) ;; from
+	 (inhibit-read-only t) begend not-pref) ;; from
     (save-window-excursion
       (save-restriction
 	(when ibegend
@@ -6152,8 +6158,8 @@ If nil, don't show those extra buttons."
 	  (mm-remove-parts handles))
 	(setq begend (list (point-marker)))
 	;; Do the toggle.
-	(unless (setq not-pref (cadr (member preferred ihandles)))
-	  (setq not-pref (car ihandles)))
+	(setq not-pref (or (cadr (member preferred ihandles))
+	                   (car ihandles)))
 	(when (or ibegend
 		  (not preferred)
 		  (not (gnus-unbuttonized-mime-type-p
@@ -6164,22 +6170,22 @@ If nil, don't show those extra buttons."
 	   (progn
 	     (insert (format "%d.  " id))
 	     (point))
-	   `(gnus-callback
-	     (lambda (handles)
-	       (unless ,(not ibegend)
-		 (setq gnus-article-mime-handle-alist
-		       ',gnus-article-mime-handle-alist))
-	       (gnus-mime-display-alternative
-		',ihandles ',not-pref ',begend ,id))
-	     keymap ,gnus-mime-button-map
-	     mouse-face ,gnus-article-mouse-face
-	     face ,gnus-article-button-face
-	     follow-link t
-	     gnus-part ,id
-	     article-type multipart
-	     rear-nonsticky t))
+	   (let ((gamha gnus-article-mime-handle-alist))
+	     `(gnus-callback
+	       ,(lambda (_handles)
+		  (unless (not ibegend)
+		    (setq gnus-article-mime-handle-alist gamha))
+		  (gnus-mime-display-alternative
+		   ihandles not-pref begend id))
+	       keymap ,gnus-mime-button-map
+	       mouse-face ,gnus-article-mouse-face
+	       face ,gnus-article-button-face
+	       follow-link t
+	       gnus-part ,id
+	       article-type multipart
+	       rear-nonsticky t)))
 	  ;; Do the handles
-	  (while (setq handle (pop handles))
+	  (dolist (handle handles)
 	    (add-text-properties
 	     ;; (setq from
 	     (point) ;; )
@@ -6188,22 +6194,22 @@ If nil, don't show those extra buttons."
 			       (if (equal handle preferred) ?* ? )
 			       (mm-handle-media-type handle)))
 	       (point))
-	     `(gnus-callback
-	       (lambda (handles)
-		 (unless ,(not ibegend)
-		   (setq gnus-article-mime-handle-alist
-			 ',gnus-article-mime-handle-alist))
-		 (gnus-mime-display-alternative
-		  ',ihandles ',handle ',begend ,id))
-	       keymap ,gnus-mime-button-map
-	       mouse-face ,gnus-article-mouse-face
-	       face ,gnus-article-button-face
-	       follow-link t
-	       gnus-part ,id
-	       button t
-	       category t
-	       gnus-data ,handle
-	       rear-nonsticky t))
+	     (let ((gamha gnus-article-mime-handle-alist))
+	       `(gnus-callback
+		 ,(lambda (_handles)
+		    (unless (not ibegend)
+		      (setq gnus-article-mime-handle-alist gamha))
+		    (gnus-mime-display-alternative
+		     ihandles handle begend id))
+		 keymap ,gnus-mime-button-map
+		 mouse-face ,gnus-article-mouse-face
+		 face ,gnus-article-button-face
+		 follow-link t
+		 gnus-part ,id
+		 button t
+		 category t
+		 gnus-data ,handle
+		 rear-nonsticky t)))
 	    (insert "  "))
 	  (insert "\n\n"))
 	(when preferred
@@ -6308,7 +6314,8 @@ is the string to use when it is inactive.")
     (setq gnus-article-image-alist (delq entry gnus-article-image-alist))
     (gnus-delete-wash-type category)))
 
-(defalias 'gnus-article-hide-headers-if-wanted 'gnus-article-maybe-hide-headers)
+(defalias 'gnus-article-hide-headers-if-wanted
+  #'gnus-article-maybe-hide-headers)
 
 (defun gnus-article-maybe-hide-headers ()
   "Hide unwanted headers if `gnus-have-all-headers' is nil.
@@ -6874,7 +6881,7 @@ then we display only bindings that start with that prefix."
 	parent agent draft)
     (define-key keymap "S" map)
     (define-key map [t] nil)
-    (define-key summap [t] 'undefined)
+    (define-key summap [t] #'undefined)
     (with-current-buffer gnus-article-current-summary
       (dolist (key sumkeys)
 	(define-key summap key (key-binding key (current-local-map))))
@@ -6910,10 +6917,11 @@ then we display only bindings that start with that prefix."
       (setq-local gnus-agent-summary-mode agent)
       (setq-local gnus-draft-mode draft)
       (describe-bindings prefix))
-    (let ((item `((lambda (prefix)
-		    (with-current-buffer ,(current-buffer)
-		      (gnus-article-describe-bindings prefix)))
-		  ,prefix)))
+    (let* ((cb (current-buffer))
+	   (item `(,(lambda (prefix)
+		      (with-current-buffer cb
+		        (gnus-article-describe-bindings prefix)))
+		   ,prefix)))
       ;; Loading `help-mode' here is necessary if `describe-bindings'
       ;; is replaced with something, e.g. `helm-descbinds'.
       (require 'help-mode)
@@ -8394,14 +8402,14 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 (defvar gnus-prev-page-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'gnus-button-prev-page)
-    (define-key map "\r" 'gnus-button-prev-page)
+    (define-key map [mouse-2] #'gnus-button-prev-page)
+    (define-key map "\r"      #'gnus-button-prev-page)
     map))
 
 (defvar gnus-next-page-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'gnus-button-next-page)
-    (define-key map "\r" 'gnus-button-next-page)
+    (define-key map [mouse-2] #'gnus-button-next-page)
+    (define-key map "\r"      #'gnus-button-next-page)
     map))
 
 (defun gnus-insert-prev-page-button ()
@@ -8705,9 +8713,9 @@ For example:
 
 (defvar gnus-mime-security-button-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'gnus-article-push-button)
-    (define-key map [mouse-2] 'gnus-article-push-button)
-    (define-key map [down-mouse-3] 'gnus-mime-security-button-menu)
+    (define-key map "\r"           #'gnus-article-push-button)
+    (define-key map [mouse-2]      #'gnus-article-push-button)
+    (define-key map [down-mouse-3] #'gnus-mime-security-button-menu)
     (dolist (c gnus-mime-security-button-commands)
       (define-key map (cadr c) (car c)))
     map))

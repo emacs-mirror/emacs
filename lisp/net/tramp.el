@@ -2048,7 +2048,7 @@ function is meant for debugging purposes."
 
 (put #'tramp-backtrace 'tramp-suppress-trace t)
 
-(defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
+(defun tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.
 VEC-OR-PROC identifies the connection to use, SIGNAL is the
 signal identifier to be raised, remaining arguments passed to

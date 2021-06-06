@@ -724,8 +724,9 @@ typedef id instancetype;
   IOSurfaceRef currentSurface;
   IOSurfaceRef lastSurface;
   CGContextRef context;
+  CGFloat scale;
 }
-- (id) initWithSize: (NSSize)s ColorSpace: (CGColorSpaceRef)cs;
+- (id) initWithSize: (NSSize)s ColorSpace: (CGColorSpaceRef)cs Scale: (CGFloat)scale;
 - (void) dealloc;
 - (NSSize) getSize;
 - (CGContextRef) getContext;

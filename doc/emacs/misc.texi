@@ -1864,6 +1864,12 @@ it to exit.  Programs that use @env{EDITOR} usually wait for the
 editor---in this case @command{emacsclient}---to exit before doing
 something else.
 
+@findex server-edit-abort
+  If you want to abandon the edit instead, use the @w{@kbd{M-x
+server-edit-abort}} command.  This sends a message back to the
+@command{emacsclient} program, telling it to exit with abnormal exit
+status, and doesn't save any buffers.
+
   You can also call @command{emacsclient} with multiple file name
 arguments: @samp{emacsclient @var{file1} @var{file2} ...} tells the
 Emacs server to visit @var{file1}, @var{file2}, and so forth.  Emacs

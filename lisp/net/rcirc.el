@@ -2502,7 +2502,8 @@ If ARG is given, opens the URL in a new browser window."
 			'follow-link t
 			'rcirc-url url
 			'action (lambda (button)
-				  (browse-url (button-get button 'rcirc-url))))
+				  (browse-url-button-open-url
+                                   (button-get button 'rcirc-url))))
       ;; Record the URL if it is not already the latest stored URL.
       (unless (string= url (caar rcirc-urls))
         (push (cons url start) rcirc-urls)))))

@@ -50,6 +50,8 @@
 ;;; Code:
 
 (require 'rfn-eshadow) ; rfn-eshadow-overlay
+(require 'simple) ; max-mini-window-lines
+(require 'cl-lib)
 
 (defgroup icomplete nil
   "Show completions dynamically in minibuffer."
@@ -99,6 +101,10 @@ Otherwise this should be a list of the completion tables (e.g.,
   "Face used by Icomplete for highlighting first match."
   :version "24.4")
 
+(defface icomplete-selected-match '((t :inherit highlight))
+  "Face used by `icomplete-vertical-mode' for the selected candidate."
+  :version "24.4")
+
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-height 2
   ;; We used to compute how many lines 100 characters would take in
@@ -109,7 +115,7 @@ Otherwise this should be a list of the completion tables (e.g.,
   :type 'integer
   :version "26.1")
 
-(defcustom icomplete-compute-delay .3
+(defcustom icomplete-compute-delay .15
   "Completions-computation stall, used only with large-number completions.
 See `icomplete-delay-completions-threshold'."
   :type 'number)
@@ -118,7 +124,7 @@ See `icomplete-delay-completions-threshold'."
   "Pending-completions number over which to apply `icomplete-compute-delay'."
   :type 'integer)
 
-(defcustom icomplete-max-delay-chars 3
+(defcustom icomplete-max-delay-chars 2
   "Maximum number of initial chars to apply `icomplete-compute-delay'."
   :type 'integer)
 
@@ -151,10 +157,6 @@ icompletion is occurring."
 (defvar icomplete--initial-input nil
   "Initial input in the minibuffer when icomplete-mode was activated.
 Used to implement the option `icomplete-show-matches-on-no-input'.")
-
-(defun icomplete-pre-command-hook ()
- (let ((non-essential t))
-   (icomplete-tidy)))
 
 (defun icomplete-post-command-hook ()
   (let ((non-essential t)) ;E.g. don't prompt for password!
@@ -215,6 +217,29 @@ the default otherwise."
   ;; We're not at all interested in cycling here (bug#34077).
   (minibuffer-force-complete nil nil 'dont-cycle))
 
+;; Apropos `icomplete-scroll', we implement "scrolling icomplete"
+;; within classic icomplete, which is "rotating", by contrast.
+;;
+;; The two variables supporing this are
+;; `icomplete--scrolled-completions' and `icomplete--scrolled-past'.
+;; They come into play when:
+;;
+;; - The user invokes commands `icomplete-forward-completions' and
+;;   `icomplete-backward-completions', thus "manually" scrolling to a
+;;   given position;
+;;
+;; - The user re-filters a selection that had already been manually
+;;   scrolled.  The system attempts to keep the previous selection
+;;   stable in the face of the new filtering.  This is mostly done in
+;;   `icomplete--render-vertical'.
+;;
+(defvar icomplete-scroll nil
+  "If non-nil, scroll candidates list instead of rotating it.")
+(defvar icomplete--scrolled-completions nil
+  "If non-nil, tail of completions list manually scrolled to.")
+(defvar icomplete--scrolled-past nil
+  "If non-nil, reverse tail of completions scrolled past.")
+
 (defun icomplete-forward-completions ()
   "Step forward completions by one entry.
 Second entry becomes the first and can be selected with
@@ -223,10 +248,14 @@ Second entry becomes the first and can be selected with
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
          (comps (completion-all-sorted-completions beg end))
-	 (last (last comps)))
-    (when comps
-      (setcdr last (cons (car comps) (cdr last)))
-      (completion--cache-all-sorted-completions beg end (cdr comps)))))
+         (last (last comps)))
+    (when (consp (cdr comps))
+      (cond (icomplete-scroll
+             (push (pop comps) icomplete--scrolled-past)
+             (setq icomplete--scrolled-completions comps))
+            (t
+             (setcdr (last comps) (cons (pop comps) (cdr last)))))
+      (completion--cache-all-sorted-completions beg end comps))))
 
 (defun icomplete-backward-completions ()
   "Step backward completions by one entry.
@@ -236,12 +265,16 @@ Last entry becomes the first and can be selected with
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
          (comps (completion-all-sorted-completions beg end))
-	 (last-but-one (last comps 2))
-	 (last (cdr last-but-one)))
-    (when (consp last)		      ; At least two elements in comps
-      (setcdr last-but-one (cdr last))
-      (push (car last) comps)
-      (completion--cache-all-sorted-completions beg end comps))))
+	 last-but-one)
+    (cond ((and icomplete-scroll icomplete--scrolled-past)
+           (push (pop icomplete--scrolled-past) comps)
+           (setq icomplete--scrolled-completions comps))
+          ((and (not icomplete-scroll)
+                (consp (cdr (setq last-but-one (last comps 2)))))
+           ;; At least two elements in comps
+           (push (car (cdr last-but-one)) comps)
+           (setcdr last-but-one (cdr (cdr last-but-one)))))
+    (completion--cache-all-sorted-completions beg end comps)))
 
 ;;; Helpers for `fido-mode' (or `ido-mode' emulation)
 ;;;
@@ -298,7 +331,8 @@ require user confirmation."
                    (file-name-directory (icomplete--field-string))))
          (current (car completion-all-sorted-completions))
          (probe (and dir current
-                     (expand-file-name (directory-file-name current) dir))))
+                     (expand-file-name (directory-file-name current)
+                                       (substitute-env-vars dir)))))
     (cond ((and probe (file-directory-p probe) (not (string= current "./")))
            (icomplete-force-complete))
           (t
@@ -351,6 +385,7 @@ if that doesn't produce a completion match."
     (setq-local icomplete-tidy-shadowed-file-names t
                 icomplete-show-matches-on-no-input t
                 icomplete-hide-common-prefix nil
+                icomplete-scroll (not (null icomplete-vertical-mode))
                 completion-styles '(flex)
                 completion-flex-nospace nil
                 completion-category-defaults nil
@@ -449,9 +484,9 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
     (setq-local icomplete--initial-input (icomplete--field-string))
     (setq-local completion-show-inline-help nil)
+    (setq icomplete--scrolled-completions nil)
     (use-local-map (make-composed-keymap icomplete-minibuffer-map
     					 (current-local-map)))
-    (add-hook 'pre-command-hook  #'icomplete-pre-command-hook  nil t)
     (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)
     (run-hooks 'icomplete-minibuffer-setup-hook)))
 
@@ -465,7 +500,6 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (setq icomplete--in-region-buffer nil)
       (delete-overlay icomplete-overlay)
       (kill-local-variable 'completion-show-inline-help)
-      (remove-hook 'pre-command-hook  'icomplete-pre-command-hook  t)
       (remove-hook 'post-command-hook 'icomplete-post-command-hook t)
       (message nil)))
   (when (and completion-in-region-mode
@@ -477,12 +511,12 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (unless (memq icomplete-minibuffer-map (cdr tem))
 	(setcdr tem (make-composed-keymap icomplete-minibuffer-map
 					  (cdr tem)))))
-    (add-hook 'pre-command-hook  'icomplete-pre-command-hook  nil t)
     (add-hook 'post-command-hook 'icomplete-post-command-hook nil t)))
 
 (defun icomplete--sorted-completions ()
   (or completion-all-sorted-completions
       (cl-loop
+       initially (setq icomplete--scrolled-past nil) ; Invalidate scrolled state
        with beg = (icomplete--field-beg)
        with end = (icomplete--field-end)
        with all = (completion-all-sorted-completions beg end)
@@ -593,17 +627,12 @@ resized depends on `resize-mini-windows'."
     (add-hook 'icomplete-minibuffer-setup-hook
               #'icomplete--vertical-minibuffer-setup)))
 
+(defalias 'fido-vertical-mode 'icomplete-vertical-mode)
+
 
 
 
 ;;;_* Completion
-
-;;;_ > icomplete-tidy ()
-(defun icomplete-tidy ()
-  "Remove completions display (if any) prior to new user input.
-Should be run in on the minibuffer `pre-command-hook'.
-See `icomplete-mode' and `minibuffer-setup-hook'."
-  (delete-overlay icomplete-overlay))
 
 ;;;_ > icomplete-exhibit ()
 (defun icomplete-exhibit ()
@@ -659,12 +688,125 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
                  deactivate-mark)
             ;; Do nothing if while-no-input was aborted.
             (when (stringp text)
-              (move-overlay icomplete-overlay (point) (point) (current-buffer))
+              (move-overlay icomplete-overlay (point-min) (point) (current-buffer))
               ;; The current C cursor code doesn't know to use the overlay's
               ;; marker's stickiness to figure out whether to place the cursor
               ;; before or after the string, so let's spoon-feed it the pos.
               (put-text-property 0 1 'cursor t text)
+              (overlay-put
+               icomplete-overlay 'before-string
+               (and icomplete-scroll
+                    (let ((past (length icomplete--scrolled-past)))
+                      (format
+                       "%s/%s "
+                       (1+ past)
+                       (+ past
+                          (safe-length completion-all-sorted-completions))))))
               (overlay-put icomplete-overlay 'after-string text))))))))
+
+(defun icomplete--affixate (md prospects)
+  "Affixate PROSPECTS given completion metadata MD.
+Return a list of (COMP PREFIX SUFFIX)."
+  (let ((aff-fun (or (completion-metadata-get md 'affixation-function)
+                     (plist-get completion-extra-properties :affixation-function)))
+        (ann-fun (or (completion-metadata-get md 'annotation-function)
+                     (plist-get completion-extra-properties :annotation-function))))
+    (cond (aff-fun
+           (funcall aff-fun prospects))
+          (ann-fun
+           (mapcar
+            (lambda (comp)
+              (let ((suffix (or (funcall ann-fun comp) "")))
+                (list comp ""
+                      ;; The default completion UI adds the
+                      ;; `completions-annotations' face if no
+                      ;; other faces are present.
+                      (if (text-property-not-all 0 (length suffix) 'face nil suffix)
+                          suffix
+                        (propertize suffix 'face 'completions-annotations)))))
+            prospects))
+          (prospects))))
+
+(cl-defun icomplete--render-vertical (comps md &aux scroll-above scroll-below)
+  ;; Welcome to loopapalooza!
+  ;;
+  ;; First, be mindful of `icomplete-scroll' and manual scrolls.  If
+  ;; `icomplete--scrolled-completions' and `icomplete--scrolled-past'
+  ;; are:
+  ;;
+  ;; - both nil, there is no manual scroll;
+  ;; - both non-nil, there is a healthy manual scroll the doesn't need
+  ;;   to be readjusted (user just moved around the minibuffer, for
+  ;;   example)l
+  ;; - non-nil and nil, respectively, a refiltering took place and we
+  ;;   need attempt to readjust them to the new filtered `comps'.
+  (when (and icomplete-scroll
+             icomplete--scrolled-completions
+             (null icomplete--scrolled-past))
+    (cl-loop with preds
+             for (comp . rest) on comps
+             when (equal comp (car icomplete--scrolled-completions))
+             do
+             (setq icomplete--scrolled-past preds
+                   comps (cons comp rest))
+             (completion--cache-all-sorted-completions
+              (icomplete--field-beg)
+              (icomplete--field-end)
+              comps)
+             and return nil
+             do (push comp preds)
+             finally (setq icomplete--scrolled-completions nil)))
+  ;; Then, in this pretty ugly loop, collect completions to display
+  ;; above and below the selected one, considering scrolling
+  ;; positions.
+  (cl-loop with preds = icomplete--scrolled-past
+           with succs = (cdr comps)
+           with max-lines = (1- (min
+                                 icomplete-prospects-height
+                                 (truncate (max-mini-window-lines) 1)))
+           with max-above = (- max-lines
+                               1
+                               (cl-loop for (_ . r) on comps
+                                        repeat (truncate max-lines 2)
+                                        while (listp r)
+                                        count 1))
+           repeat max-lines
+           for neighbour = nil
+           if (and preds (> max-above 0)) do
+           (push (setq neighbour (pop preds)) scroll-above)
+           (cl-decf max-above)
+           else if (consp succs) collect
+           (setq neighbour (pop succs)) into scroll-below-aux
+           while neighbour
+           finally (setq scroll-below scroll-below-aux))
+  ;; Now figure out spacing and layout
+  ;;
+  (cl-loop
+   with selected = (substring (car comps))
+   initially (add-face-text-property 0 (length selected)
+                                     'icomplete-selected-match 'append selected)
+   with torender = (nconc scroll-above (list selected) scroll-below)
+   with triplets = (icomplete--affixate md torender)
+   initially (when (eq triplets torender)
+               (cl-return-from icomplete--render-vertical
+                 (concat
+                  " \n"
+                  (mapconcat #'identity torender icomplete-separator))))
+   for (comp prefix) in triplets
+   maximizing (length prefix) into max-prefix-len
+   maximizing (length comp) into max-comp-len
+   finally return
+   ;; Finally, render
+   ;;
+   (concat
+    " \n"
+    (cl-loop for (comp prefix suffix) in triplets
+             concat prefix
+             concat (make-string (- max-prefix-len (length prefix)) ? )
+             concat comp
+             concat (make-string (- max-comp-len (length comp)) ? )
+             concat suffix
+             concat icomplete-separator))))
 
 ;;;_ > icomplete-completions (name candidates predicate require-match)
 (defun icomplete-completions (name candidates predicate require-match)
@@ -703,126 +845,126 @@ matches exist."
             predicate))
 	 (md (completion--field-metadata (icomplete--field-beg)))
 	 (comps (icomplete--sorted-completions))
-         (last (if (consp comps) (last comps)))
-         (base-size (cdr last))
          (open-bracket (if require-match "(" "["))
          (close-bracket (if require-match ")" "]")))
     ;; `concat'/`mapconcat' is the slow part.
     (if (not (consp comps))
 	(progn ;;(debug (format "Candidates=%S field=%S" candidates name))
 	  (format " %sNo matches%s" open-bracket close-bracket))
-      (if last (setcdr last nil))
-      (let* ((most-try
-              (if (and base-size (> base-size 0))
+      (if icomplete-vertical-mode
+	  (icomplete--render-vertical comps md)
+        (let* ((last (if (consp comps) (last comps)))
+               ;; Save the "base size" encoded in `comps' then
+               ;; removing making `comps' a proper list.
+               (base-size (prog1 (cdr last)
+                            (if last (setcdr last nil))))
+               (most-try
+                (if (and base-size (> base-size 0))
+                    (completion-try-completion
+                     name candidates predicate (length name) md)
+                  ;; If the `comps' are 0-based, the result should be
+                  ;; the same with `comps'.
                   (completion-try-completion
-                   name candidates predicate (length name) md)
-                ;; If the `comps' are 0-based, the result should be
-                ;; the same with `comps'.
-                (completion-try-completion
-                 name comps nil (length name) md)))
-	     (most (if (consp most-try) (car most-try)
-                     (if most-try (car comps) "")))
-             ;; Compare name and most, so we can determine if name is
-             ;; a prefix of most, or something else.
-	     (compare (compare-strings name nil nil
-				       most nil nil completion-ignore-case))
-	     (ellipsis (if (char-displayable-p ?…) "…" "..."))
-	     (determ (unless (or (eq t compare) (eq t most-try)
-				 (= (setq compare (1- (abs compare)))
-				    (length most)))
-		       (concat open-bracket
-			       (cond
-				((= compare (length name))
-                                 ;; Typical case: name is a prefix.
-				 (substring most compare))
-                                ;; Don't bother truncating if it doesn't gain
-                                ;; us at least 2 columns.
-				((< compare (+ 2 (string-width ellipsis))) most)
-				(t (concat ellipsis (substring most compare))))
-			       close-bracket)))
-	     ;;"-prospects" - more than one candidate
-	     (prospects-len (+ (string-width
-				(or determ (concat open-bracket close-bracket)))
-			       (string-width icomplete-separator)
-			       (+ 2 (string-width ellipsis)) ;; take {…} into account
-			       (string-width (buffer-string))))
-             (prospects-max
-              ;; Max total length to use, including the minibuffer content.
-              (* (+ icomplete-prospects-height
-                    ;; If the minibuffer content already uses up more than
-                    ;; one line, increase the allowable space accordingly.
-                    (/ prospects-len (window-width)))
-                 (window-width)))
-             ;; Find the common prefix among `comps'.
-             ;; We can't use the optimization below because its assumptions
-             ;; aren't always true, e.g. when completion-cycling (bug#10850):
-             ;; (if (eq t (compare-strings (car comps) nil (length most)
-             ;; 			 most nil nil completion-ignore-case))
-             ;;     ;; Common case.
-             ;;     (length most)
-             ;; Else, use try-completion.
-	     (prefix (when icomplete-hide-common-prefix
-		       (try-completion "" comps)))
-             (prefix-len
-	      (and (stringp prefix)
-                   ;; Only hide the prefix if the corresponding info
-                   ;; is already displayed via `most'.
-                   (string-prefix-p prefix most t)
-                   (length prefix))) ;;)
-	     prospects comp limit)
-	(if (or (eq most-try t) (not (consp (cdr comps))))
-	    (setq prospects nil)
-	  (when (member name comps)
-	    ;; NAME is complete but not unique.  This scenario poses
-	    ;; following UI issues:
-	    ;;
-	    ;; - When `icomplete-hide-common-prefix' is non-nil, NAME
-	    ;;   is stripped empty.  This would make the entry
-	    ;;   inconspicuous.
-	    ;;
-	    ;; - Due to sorting of completions, NAME may not be the
-	    ;;   first of the prospects and could be hidden deep in
-	    ;;   the displayed string.
-	    ;;
-	    ;; - Because of `icomplete-prospects-height' , NAME may
-	    ;;   not even be displayed to the user.
-	    ;;
-	    ;; To circumvent all the above problems, provide a visual
-	    ;; cue to the user via an "empty string" in the try
-	    ;; completion field.
-	    (setq determ (concat open-bracket "" close-bracket)))
-	  ;; Compute prospects for display.
-	  (while (and comps (not limit))
-	    (setq comp
-		  (if prefix-len (substring (car comps) prefix-len) (car comps))
-		  comps (cdr comps))
-	    (setq prospects-len
-                  (+ (string-width comp)
-		     (string-width icomplete-separator)
-		     prospects-len))
-	    (if (< prospects-len prospects-max)
-		(push comp prospects)
-	      (setq limit t))))
-	(setq prospects (nreverse prospects))
-	;; Decorate first of the prospects.
-	(when prospects
-	  (let ((first (copy-sequence (pop prospects))))
-	    (put-text-property 0 (length first)
-			       'face 'icomplete-first-match first)
-	    (push first prospects)))
-        ;; Restore the base-size info, since completion-all-sorted-completions
-        ;; is cached.
-        (if last (setcdr last base-size))
-	(if prospects
-	    (concat determ
-		    (if icomplete-vertical-mode " \n" "{")
-		    (mapconcat 'identity prospects (if icomplete-vertical-mode
-                                                       "\n"
-                                                       icomplete-separator))
-		    (unless icomplete-vertical-mode
-                      (concat (and limit (concat icomplete-separator ellipsis))
-                              "}")))
-	  (concat determ " [Matched]"))))))
+                   name comps nil (length name) md)))
+               (most (if (consp most-try) (car most-try)
+                       (if most-try (car comps) "")))
+               ;; Compare name and most, so we can determine if name is
+               ;; a prefix of most, or something else.
+               (compare (compare-strings name nil nil
+                                         most nil nil completion-ignore-case))
+               (ellipsis (if (char-displayable-p ?…) "…" "..."))
+               (determ (unless (or (eq t compare) (eq t most-try)
+                                   (= (setq compare (1- (abs compare)))
+                                      (length most)))
+                         (concat open-bracket
+                                 (cond
+                                  ((= compare (length name))
+                                   ;; Typical case: name is a prefix.
+                                   (substring most compare))
+                                  ;; Don't bother truncating if it doesn't gain
+                                  ;; us at least 2 columns.
+                                  ((< compare (+ 2 (string-width ellipsis))) most)
+                                  (t (concat ellipsis (substring most compare))))
+                                 close-bracket)))
+               ;;"-prospects" - more than one candidate
+               (prospects-len (+ (string-width
+                                  (or determ (concat open-bracket close-bracket)))
+                                 (string-width icomplete-separator)
+                                 (+ 2 (string-width ellipsis)) ;; take {…} into account
+                                 (string-width (buffer-string))))
+               (prospects-max
+                ;; Max total length to use, including the minibuffer content.
+                (* (+ icomplete-prospects-height
+                      ;; If the minibuffer content already uses up more than
+                      ;; one line, increase the allowable space accordingly.
+                      (/ prospects-len (window-width)))
+                   (window-width)))
+               ;; Find the common prefix among `comps'.
+               ;; We can't use the optimization below because its assumptions
+               ;; aren't always true, e.g. when completion-cycling (bug#10850):
+               ;; (if (eq t (compare-strings (car comps) nil (length most)
+               ;;                        most nil nil completion-ignore-case))
+               ;;     ;; Common case.
+               ;;     (length most)
+               ;; Else, use try-completion.
+               (prefix (when icomplete-hide-common-prefix
+                         (try-completion "" comps)))
+               (prefix-len
+                (and (stringp prefix)
+                     ;; Only hide the prefix if the corresponding info
+                     ;; is already displayed via `most'.
+                     (string-prefix-p prefix most t)
+                     (length prefix))) ;;)
+               prospects comp limit)
+          (prog1
+              (if (or (eq most-try t) (and (not icomplete-scroll)
+                                           (not (consp (cdr comps)))))
+                  (concat determ " [Matched]")
+                (when (member name comps)
+                  ;; NAME is complete but not unique.  This scenario poses
+                  ;; following UI issues:
+                  ;;
+                  ;; - When `icomplete-hide-common-prefix' is non-nil, NAME
+                  ;;   is stripped empty.  This would make the entry
+                  ;;   inconspicuous.
+                  ;;
+                  ;; - Due to sorting of completions, NAME may not be the
+                  ;;   first of the prospects and could be hidden deep in
+                  ;;   the displayed string.
+                  ;;
+                  ;; - Because of `icomplete-prospects-height' , NAME may
+                  ;;   not even be displayed to the user.
+                  ;;
+                  ;; To circumvent all the above problems, provide a visual
+                  ;; cue to the user via an "empty string" in the try
+                  ;; completion field.
+                  (setq determ (concat open-bracket "" close-bracket)))
+                (while (and comps (not limit))
+                  (setq comp
+                        (if prefix-len (substring (car comps) prefix-len) (car comps))
+                        comps (cdr comps))
+                  (setq prospects-len
+                        (+ (string-width comp)
+                           (string-width icomplete-separator)
+                           prospects-len))
+                  (if (< prospects-len prospects-max)
+                      (push comp prospects)
+                    (setq limit t)))
+                (setq prospects (nreverse prospects))
+                ;; Decorate first of the prospects.
+                (when prospects
+                  (let ((first (copy-sequence (pop prospects))))
+                    (put-text-property 0 (length first)
+                                       'face 'icomplete-first-match first)
+                    (push first prospects)))
+                (concat determ
+                        "{"
+                        (mapconcat 'identity prospects icomplete-separator)
+                        (concat (and limit (concat icomplete-separator ellipsis))
+                                "}")))
+            ;; Restore the base-size info, since completion-all-sorted-completions
+            ;; is cached.
+            (if last (setcdr last base-size))))))))
 
 ;;; Iswitchb compatibility
 

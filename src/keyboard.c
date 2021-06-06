@@ -2254,8 +2254,17 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 		{
 		  int i;
 		  if (meta_key != 2)
-		    for (i = 0; i < n; i++)
-		      events[i] = make_fixnum (XFIXNUM (events[i]) & ~0x80);
+		    {
+		      for (i = 0; i < n; i++)
+			{
+			  int c = XFIXNUM (events[i]);
+			  int modifier =
+			    (meta_key == 3 && c < 0x100 && (c & 0x80))
+			    ? meta_modifier
+			    : 0;
+			  events[i] = make_fixnum ((c & ~0x80) | modifier);
+			}
+		    }
 		}
 	      else
 		{
@@ -2264,7 +2273,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 		  int i;
 		  for (i = 0; i < n; i++)
 		    src[i] = XFIXNUM (events[i]);
-		  if (meta_key != 2)
+		  if (meta_key < 2) /* input-meta-mode is t or nil */
 		    for (i = 0; i < n; i++)
 		      src[i] &= ~0x80;
 		  coding->destination = dest;
@@ -2282,7 +2291,18 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 		      eassert (coding->carryover_bytes == 0);
 		      n = 0;
 		      while (n < coding->produced_char)
-			events[n++] = make_fixnum (string_char_advance (&p));
+			{
+			  int c = string_char_advance (&p);
+			  if (meta_key == 3)
+			    {
+			      int modifier
+				= (c < 0x100 && (c & 0x80)
+				   ? meta_modifier
+				   : 0);
+			      c = (c & ~0x80) | modifier;
+			    }
+			  events[n++] = make_fixnum (c);
+			}
 		    }
 		}
 	    }
@@ -5021,6 +5041,10 @@ static short const internal_border_parts[] = {
 
 static Lisp_Object button_down_location;
 
+/* A cons recording the original frame-relative x and y coordinates of
+   the down mouse event.  */
+static Lisp_Object frame_relative_event_pos;
+
 /* Information about the most recent up-going button event:  Which
    button, what location, and what time.  */
 
@@ -5672,6 +5696,7 @@ make_lispy_event (struct input_event *event)
 	      double_click_count = 1;
 	    button_down_time = event->timestamp;
 	    *start_pos_ptr = Fcopy_alist (position);
+	    frame_relative_event_pos = Fcons (event->x, event->y);
 	    ignore_mouse_drag_p = false;
 	  }
 
@@ -5694,20 +5719,12 @@ make_lispy_event (struct input_event *event)
 	      ignore_mouse_drag_p = false;
 	    else
 	      {
-		Lisp_Object new_down, down;
 		intmax_t xdiff = double_click_fuzz, ydiff = double_click_fuzz;
 
-		/* The third element of every position
-		   should be the (x,y) pair.  */
-		down = Fcar (Fcdr (Fcdr (start_pos)));
-		new_down = Fcar (Fcdr (Fcdr (position)));
-
-		if (CONSP (down)
-		    && FIXNUMP (XCAR (down)) && FIXNUMP (XCDR (down)))
-		  {
-		    xdiff = XFIXNUM (XCAR (new_down)) - XFIXNUM (XCAR (down));
-		    ydiff = XFIXNUM (XCDR (new_down)) - XFIXNUM (XCDR (down));
-		  }
+		xdiff = XFIXNUM (event->x)
+		  - XFIXNUM (XCAR (frame_relative_event_pos));
+		ydiff = XFIXNUM (event->y)
+		  - XFIXNUM (XCDR (frame_relative_event_pos));
 
 		if (! (0 < double_click_fuzz
 		       && - double_click_fuzz < xdiff
@@ -5724,11 +5741,50 @@ make_lispy_event (struct input_event *event)
 			  a click.  But mouse-drag-region completely ignores
 			  this case and it hasn't caused any real problem, so
 			  it's probably OK to ignore it as well.  */
-		       && EQ (Fcar (Fcdr (start_pos)), Fcar (Fcdr (position)))))
+		       && (EQ (Fcar (Fcdr (start_pos)),
+			       Fcar (Fcdr (position))) /* Same buffer pos */
+			   || !EQ (Fcar (start_pos),
+				   Fcar (position))))) /* Different window */
 		  {
 		    /* Mouse has moved enough.  */
 		    button_down_time = 0;
 		    click_or_drag_modifier = drag_modifier;
+		  }
+		else if (((!EQ (Fcar (start_pos), Fcar (position)))
+			  || (!EQ (Fcar (Fcdr (start_pos)),
+				   Fcar (Fcdr (position)))))
+			 /* Was the down event in a window body? */
+			 && FIXNUMP (Fcar (Fcdr (start_pos)))
+			 && WINDOW_LIVE_P (Fcar (start_pos))
+			 && !NILP (Ffboundp (Qwindow_edges)))
+		  /* If the window (etc.) at the mouse position has
+		     changed between the down event and the up event,
+		     we assume there's been a redisplay between the
+		     two events, and we pretend the mouse is still in
+		     the old window to prevent a spurious drag event
+		     being generated.  */
+		  {
+		    Lisp_Object edges
+		      = call4 (Qwindow_edges, Fcar (start_pos), Qt, Qnil, Qt);
+		    int new_x = XFIXNUM (Fcar (frame_relative_event_pos));
+		    int new_y = XFIXNUM (Fcdr (frame_relative_event_pos));
+
+		    /* If the up-event is outside the down-event's
+		       window, use coordinates that are within it.  */
+		    if (new_x < XFIXNUM (Fcar (edges)))
+		      new_x = XFIXNUM (Fcar (edges));
+		    else if (new_x >= XFIXNUM (Fcar (Fcdr (Fcdr (edges)))))
+		      new_x = XFIXNUM (Fcar (Fcdr (Fcdr (edges)))) - 1;
+		    if (new_y < XFIXNUM (Fcar (Fcdr (edges))))
+		      new_y = XFIXNUM (Fcar (Fcdr (edges)));
+		    else if (new_y
+			     >= XFIXNUM (Fcar (Fcdr (Fcdr (Fcdr (edges))))))
+		      new_y = XFIXNUM (Fcar (Fcdr (Fcdr (Fcdr (edges))))) - 1;
+
+		    position = make_lispy_position
+		      (XFRAME (event->frame_or_window),
+		       make_fixnum (new_x), make_fixnum (new_y),
+		       event->timestamp);
 		  }
 	      }
 
@@ -7040,7 +7096,7 @@ tty_read_avail_input (struct terminal *terminal,
       buf.modifiers = 0;
       if (tty->meta_key == 1 && (cbuf[i] & 0x80))
         buf.modifiers = meta_modifier;
-      if (tty->meta_key != 2)
+      if (tty->meta_key < 2)
         cbuf[i] &= ~0x80;
 
       buf.code = cbuf[i];
@@ -11047,7 +11103,10 @@ See also `current-input-mode'.  */)
 DEFUN ("set-input-meta-mode", Fset_input_meta_mode, Sset_input_meta_mode, 1, 2, 0,
        doc: /* Enable or disable 8-bit input on TERMINAL.
 If META is t, Emacs will accept 8-bit input, and interpret the 8th
-bit as the Meta modifier.
+bit as the Meta modifier before it decodes the characters.
+
+If META is `encoded', Emacs will interpret the 8th bit of single-byte
+characters after decoding the characters.
 
 If META is nil, Emacs will ignore the top bit, on the assumption it is
 parity.
@@ -11076,6 +11135,8 @@ See also `current-input-mode'.  */)
     new_meta = 0;
   else if (EQ (meta, Qt))
     new_meta = 1;
+  else if (EQ (meta, Qencoded))
+    new_meta = 3;
   else
     new_meta = 2;
 
@@ -11138,6 +11199,8 @@ Second arg FLOW non-nil means use ^S/^Q flow control for output to terminal
  (no effect except in CBREAK mode).
 Third arg META t means accept 8-bit input (for a Meta key).
  META nil means ignore the top bit, on the assumption it is parity.
+ META `encoded' means accept 8-bit input and interpret Meta after
+   decoding the input characters.
  Otherwise, accept 8-bit input and don't use the top bit for Meta.
 Optional fourth arg QUIT if non-nil specifies character to use for quitting.
 See also `current-input-mode'.  */)
@@ -11158,9 +11221,12 @@ The value is a list of the form (INTERRUPT FLOW META QUIT), where
     nil, Emacs is using CBREAK mode.
   FLOW is non-nil if Emacs uses ^S/^Q flow control for output to the
     terminal; this does not apply if Emacs uses interrupt-driven input.
-  META is t if accepting 8-bit input with 8th bit as Meta flag.
-    META nil means ignoring the top bit, on the assumption it is parity.
-    META is neither t nor nil if accepting 8-bit input and using
+  META is t if accepting 8-bit unencoded input with 8th bit as Meta flag.
+  META is `encoded' if accepting 8-bit encoded input with 8th bit as
+    Meta flag which has to be interpreted after decoding the input.
+  META is nil if ignoring the top bit of input, on the assumption that
+    it is a parity bit.
+  META is neither t nor nil if accepting 8-bit input and using
     all 8 bits as the character code.
   QUIT is the character Emacs currently uses to quit.
 The elements of this list correspond to the arguments of
@@ -11176,7 +11242,9 @@ The elements of this list correspond to the arguments of
       flow = FRAME_TTY (sf)->flow_control ? Qt : Qnil;
       meta = (FRAME_TTY (sf)->meta_key == 2
 	      ? make_fixnum (0)
-	      : (CURTTY ()->meta_key == 1 ? Qt : Qnil));
+	      : (CURTTY ()->meta_key == 1
+		 ? Qt
+		 : (CURTTY ()->meta_key == 3 ? Qencoded : Qnil)));
     }
   else
     {
@@ -11653,6 +11721,7 @@ syms_of_keyboard (void)
   DEFSYM (Qmake_frame_visible, "make-frame-visible");
   DEFSYM (Qselect_window, "select-window");
   DEFSYM (Qselection_request, "selection-request");
+  DEFSYM (Qwindow_edges, "window-edges");
   {
     int i;
 
@@ -11666,9 +11735,11 @@ syms_of_keyboard (void)
       }
   }
   DEFSYM (Qno_record, "no-record");
+  DEFSYM (Qencoded, "encoded");
 
   button_down_location = make_nil_vector (5);
   staticpro (&button_down_location);
+  staticpro (&frame_relative_event_pos);
   mouse_syms = make_nil_vector (5);
   staticpro (&mouse_syms);
   wheel_syms = make_nil_vector (ARRAYELTS (lispy_wheel_names));
@@ -12273,7 +12344,10 @@ Called with three arguments:
 - the error data, a list of the form (SIGNALED-CONDITION . SIGNAL-DATA)
   such as what `condition-case' would bind its variable to,
 - the context (a string which normally goes at the start of the message),
-- the Lisp function within which the error was signaled.  */);
+- the Lisp function within which the error was signaled.
+
+Also see `set-message-function' (which controls how non-error messages
+are displayed).  */);
   Vcommand_error_function = intern ("command-error-default-function");
 
   DEFVAR_LISP ("enable-disabled-menus-and-buttons",

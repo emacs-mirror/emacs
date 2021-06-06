@@ -375,7 +375,8 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
       else if (auto_comp
 	       && f && FRAME_WINDOW_P (f)
 	       && multibyte
-	       && find_automatic_composition (i, -1, &ignore, &end, &val, string)
+	       && find_automatic_composition (i, -1, i, &ignore,
+					      &end, &val, string)
 	       && end > i)
 	{
 	  int j;

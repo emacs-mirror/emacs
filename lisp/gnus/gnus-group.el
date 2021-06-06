@@ -894,14 +894,14 @@ simple manner."
 	["Sort by real name" gnus-group-sort-selected-groups-by-real-name
 	 (not (gnus-topic-mode-p))])
        ("Mark"
-	["Mark group" gnus-group-mark-group
+	["Set/Toggle mark" gnus-group-mark-group
 	 (and (gnus-group-group-name)
 	      (not (memq (gnus-group-group-name) gnus-group-marked)))]
-	["Unmark group" gnus-group-unmark-group
+	["Remove mark" gnus-group-unmark-group
 	 (and (gnus-group-group-name)
 	      (memq (gnus-group-group-name) gnus-group-marked))]
-	["Unmark all" gnus-group-unmark-all-groups gnus-group-marked]
-	["Mark regexp..." gnus-group-mark-regexp t]
+	["Remove all marks" gnus-group-unmark-all-groups gnus-group-marked]
+	["Mark by regexp..." gnus-group-mark-regexp t]
 	["Mark region" gnus-group-mark-region :active mark-active]
 	["Mark buffer" gnus-group-mark-buffer t]
 	["Execute command" gnus-group-universal-argument
@@ -1865,7 +1865,7 @@ If FIRST-TOO, the current line is also eligible as a target."
     (forward-char (or (cdr (assq 'process gnus-group-mark-positions)) 2))
     (eq (char-after) gnus-process-mark)))
 
-(defun gnus-group-mark-group (n &optional unmark no-advance)
+(defun gnus-group-mark-group (n &optional unmark no-advance no-toggle)
   "Mark the current group."
   (interactive "p" gnus-group-mode)
   (let ((buffer-read-only nil)
@@ -1877,23 +1877,33 @@ If FIRST-TOO, the current line is also eligible as a target."
 	(beginning-of-line)
 	(forward-char (or (cdr (assq 'process gnus-group-mark-positions)) 2))
 	(delete-char 1)
-	(if unmark
-	    (progn
-	      (setq gnus-group-marked (delete group gnus-group-marked))
-              (insert-char ?\s 1 t))
-	   (setq gnus-group-marked
-		 (cons group (delete group gnus-group-marked)))
-	   (insert-char gnus-process-mark 1 t)))
+	(if (and gnus-process-mark-toggle (not no-toggle))
+	    (if (memq group gnus-group-marked)
+		(gnus-group-mark-update group t)
+	      (gnus-group-mark-update group))
+	  (gnus-group-mark-update group unmark)))
       (unless no-advance
 	(gnus-group-next-group 1))
       (cl-decf n))
     (gnus-group-position-point)
     n))
 
+(defun gnus-group-mark-update (n &optional unmark)
+  "Set the process mark on current group and update the group line."
+  (if unmark
+      (progn
+	(setq gnus-group-marked
+	      (delete n gnus-group-marked))
+	(insert-char ?\s 1 t))
+    (progn
+      (setq gnus-group-marked
+	    (cons n (delete n gnus-group-marked)))
+      (insert-char gnus-process-mark 1 t))))
+
 (defun gnus-group-unmark-group (n)
   "Remove the mark from the current group."
   (interactive "p" gnus-group-mode)
-  (gnus-group-mark-group n 'unmark)
+  (gnus-group-mark-group n 'unmark nil t)
   (gnus-group-position-point))
 
 (defun gnus-group-unmark-all-groups ()
@@ -1910,7 +1920,7 @@ If UNMARK, remove the mark instead."
   (let ((num (count-lines beg end)))
     (save-excursion
       (goto-char beg)
-      (- num (gnus-group-mark-group num unmark)))))
+      (- num (gnus-group-mark-group num unmark nil t)))))
 
 (defun gnus-group-mark-buffer (&optional unmark)
   "Mark all groups in the buffer.
@@ -1935,7 +1945,7 @@ If UNMARK, remove the mark instead."
 Return nil if the group isn't displayed."
   (if (gnus-group-goto-group group nil test-marked)
       (save-excursion
-	(gnus-group-mark-group 1 'unmark t)
+	(gnus-group-mark-group 1 'unmark t t)
 	t)
     (setq gnus-group-marked
 	  (delete group gnus-group-marked))
@@ -1945,7 +1955,7 @@ Return nil if the group isn't displayed."
   "Set the process mark on GROUP."
   (if (gnus-group-goto-group group)
       (save-excursion
-	(gnus-group-mark-group 1 nil t))
+	(gnus-group-mark-group 1 nil t t))
     (setq gnus-group-marked (cons group (delete group gnus-group-marked)))))
 
 (defun gnus-group-universal-argument (arg &optional _groups func)

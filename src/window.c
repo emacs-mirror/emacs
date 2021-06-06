@@ -468,6 +468,7 @@ Return WINDOW.  */)
   else
     {
       fset_selected_window (XFRAME (frame), window);
+      /* Don't clear FRAME's select_mini_window_flag here.  */
       return window;
     }
 }
@@ -516,6 +517,9 @@ select_window (Lisp_Object window, Lisp_Object norecord,
   if (FRAME_TOOLTIP_P (f))
     /* Do not select a tooltip window (Bug#47207).  */
     error ("Cannot select a tooltip window");
+
+  /* We deinitely want to select WINDOW, not the mini-window.  */
+  f->select_mini_window_flag = false;
 
   /* Make the selected window's buffer current.  */
   Fset_buffer (w->contents);
@@ -3242,6 +3246,9 @@ window-start value is reasonable when this function is called.  */)
 	  if (EQ (selected_frame, w->frame))
 	    Fselect_window (window, Qnil);
 	  else
+	    /* Do not clear f->select_mini_window_flag here.  If the
+	       last selected window on F was an active minibuffer, we
+	       want to return to it on a later Fselect_frame.  */
 	    fset_selected_window (f, window);
 	}
     }
@@ -5153,6 +5160,9 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
 	    Fselect_window (new_selected_window, Qt);
 	  else
+	    /* Do not clear f->select_mini_window_flag here.  If the
+	       last selected window on F was an active minibuffer, we
+	       want to return to it on a later Fselect_frame.  */
 	    fset_selected_window (f, new_selected_window);
 
 	  unblock_input ();

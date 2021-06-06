@@ -2583,7 +2583,9 @@ with the process mark and then execute the command.
 @itemx M m
 @kindex M m @r{(Group)}
 @findex gnus-group-mark-group
-Set the mark on the current group (@code{gnus-group-mark-group}).
+Set the mark on the current group (@code{gnus-group-mark-group}).@*
+If @code{gnus-process-mark-toggle} is non-@code{nil}, toggle the
+existing process mark for the current group.
 
 @item M-#
 @kindex M-# @r{(Group)}
@@ -4043,7 +4045,9 @@ Toggle hiding empty topics
 @findex gnus-topic-mark-topic
 Mark all groups in the current topic with the process mark
 (@code{gnus-topic-mark-topic}).  This command works recursively on
-sub-topics unless given a prefix.
+sub-topics unless given a prefix.@*
+If @code{gnus-process-mark-toggle} is non-@code{nil}, toggle the
+existing process mark for the current topic.
 
 @item T M-#
 @kindex T M-# @r{(Topic)}
@@ -6618,13 +6622,15 @@ articles into the cache.  For more information,
 @kindex M P p @r{(Summary)}
 @findex gnus-summary-mark-as-processable
 Mark the current article with the process mark
-(@code{gnus-summary-mark-as-processable}).
-@findex gnus-summary-unmark-as-processable
+(@code{gnus-summary-mark-as-processable}).@*
+If @code{gnus-process-mark-toggle} is non-@code{nil}, toggle the
+existing process mark for the current article.
 
 @item M P u
 @itemx M-#
 @kindex M P u @r{(Summary)}
 @kindex M-# @r{(Summary)}
+@findex gnus-summary-unmark-as-processable
 Remove the process mark, if any, from the current article
 (@code{gnus-summary-unmark-as-processable}).
 
@@ -10568,7 +10574,9 @@ Pick the article or thread on the current line
 entire thread when used at the first article of the thread.  Otherwise,
 it selects just the article.  If given a numerical prefix, go to that
 thread or article and pick it.  (The line number is normally displayed
-at the beginning of the summary pick lines.)
+at the beginning of the summary pick lines.)  If
+@code{gnus-process-mark-toggle} is non-@code{nil}, this key will
+unpick an already picked article.
 
 @item @key{SPC}
 @kindex SPC @r{(Pick)}

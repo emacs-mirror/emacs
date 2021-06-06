@@ -274,7 +274,7 @@ $(THEFILE)c:
 ifeq ($(HAVE_NATIVE_COMP),yes)
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-l comp -f byte-compile-refresh-preloaded \
-		-f batch-byte-native-compile-for-bootstrap $(THEFILE)
+		-f batch-byte+native-compile $(THEFILE)
 else
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-l bytecomp -f byte-compile-refresh-preloaded \
@@ -295,7 +295,7 @@ endif
 ifeq ($(HAVE_NATIVE_COMP),yes)
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
-	-l comp -f batch-byte-native-compile-for-bootstrap $<
+	-l comp -f batch-byte+native-compile $<
 else
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $<

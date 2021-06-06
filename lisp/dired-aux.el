@@ -1963,6 +1963,9 @@ or with the current marker character if MARKER-CHAR is t."
     (let (to overwrite-query
 	     overwrite-backup-query)	; for dired-handle-overwrite
       (dolist (from fn-list)
+        ;; Position point on the current file -- this is useful if
+        ;; handling a number of files to show where we're working at.
+        (dired-goto-file from)
         (setq to (funcall name-constructor from))
         (if (equal to from)
             (progn

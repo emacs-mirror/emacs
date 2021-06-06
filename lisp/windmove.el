@@ -426,19 +426,53 @@ unless `windmove-create-window' is non-nil and a new window is created."
 ;; I don't think these bindings will work on non-X terminals; you
 ;; probably want to use different bindings in that case.
 
+(defvar windmove-mode-map (make-sparse-keymap)
+  "Map used by `windmove-install-defaults'.")
+
+(define-minor-mode windmove-mode
+  "Global minor mode for default windmove commands."
+  :keymap windmove-mode-map
+  :init-value t
+  :global t)
+
+(defun windmove-install-defaults (prefix modifiers alist &optional uninstall)
+  "Install keys as specified by ALIST.
+Every element of ALIST has the form (FN KEY), where KEY is
+appended to MODIFIERS, adding PREFIX to the beginning, before
+installing the key.  Previous bindings of FN are unbound.
+If UNINSTALL is non-nil, just remove the keys from ALIST."
+  (dolist (bind alist)
+    (dolist (old (where-is-internal (car bind) windmove-mode-map))
+      (define-key windmove-mode-map old nil))
+    (unless uninstall
+      (let ((key (vconcat (if (or (equal prefix [ignore])
+                                  (eq prefix 'none))
+                              nil prefix)
+                          (list (append modifiers (cdr bind))))))
+        (when (eq (key-binding key) #'self-insert-command)
+          (warn "Command %S is shadowing self-insert-key" (car bind)))
+        (let ((old-fn (lookup-key windmove-mode-map key)))
+          (when (functionp old-fn)
+            (warn "Overriding %S with %S" old-fn (car bind))))
+        (define-key windmove-mode-map key (car bind))))))
+
 ;;;###autoload
 (defun windmove-default-keybindings (&optional modifiers)
   "Set up keybindings for `windmove'.
 Keybindings are of the form MODIFIERS-{left,right,up,down},
 where MODIFIERS is either a list of modifiers or a single modifier.
+If MODIFIERS is `none', the keybindings will be directly bound to
+the arrow keys.
 Default value of MODIFIERS is `shift'."
   (interactive)
   (unless modifiers (setq modifiers 'shift))
+  (when (eq modifiers 'none) (setq modifiers nil))
   (unless (listp modifiers) (setq modifiers (list modifiers)))
-  (global-set-key (vector (append modifiers '(left)))  'windmove-left)
-  (global-set-key (vector (append modifiers '(right))) 'windmove-right)
-  (global-set-key (vector (append modifiers '(up)))    'windmove-up)
-  (global-set-key (vector (append modifiers '(down)))  'windmove-down))
+  (windmove-install-defaults nil modifiers
+                             '((windmove-left left)
+                               (windmove-right right)
+                               (windmove-up up)
+                               (windmove-down down))))
 
 
 ;;; Directional window display and selection
@@ -546,17 +580,21 @@ See the logic of the prefix ARG in `windmove-display-in-direction'."
 Keys are bound to commands that display the next buffer in the specified
 direction.  Keybindings are of the form MODIFIERS-{left,right,up,down},
 where MODIFIERS is either a list of modifiers or a single modifier.
+If MODIFIERS is `none', the keybindings will be directly bound to
+the arrow keys.
 Default value of MODIFIERS is `shift-meta'."
   (interactive)
   (unless modifiers (setq modifiers '(shift meta)))
+  (when (eq modifiers 'none) (setq modifiers nil))
   (unless (listp modifiers) (setq modifiers (list modifiers)))
-  (global-set-key (vector (append modifiers '(left)))  'windmove-display-left)
-  (global-set-key (vector (append modifiers '(right))) 'windmove-display-right)
-  (global-set-key (vector (append modifiers '(up)))    'windmove-display-up)
-  (global-set-key (vector (append modifiers '(down)))  'windmove-display-down)
-  (global-set-key (vector (append modifiers '(?0)))    'windmove-display-same-window)
-  (global-set-key (vector (append modifiers '(?f)))    'windmove-display-new-frame)
-  (global-set-key (vector (append modifiers '(?t)))    'windmove-display-new-tab))
+  (windmove-install-defaults nil modifiers
+                             '((windmove-display-left left)
+                               (windmove-display-right right)
+                               (windmove-display-up up)
+                               (windmove-display-down down)
+                               (windmove-display-same-window ?0)
+                               (windmove-display-new-frame ?f)
+                               (windmove-display-new-tab ?t))))
 
 
 ;;; Directional window deletion
@@ -618,16 +656,22 @@ select the window that was below the current one."
 Keys are bound to commands that delete windows in the specified
 direction.  Keybindings are of the form PREFIX MODIFIERS-{left,right,up,down},
 where PREFIX is a prefix key and MODIFIERS is either a list of modifiers or
-a single modifier.  Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
+a single modifier.
+If PREFIX is `none', no prefix is used. If MODIFIERS is `none', the keybindings
+are directly bound to the arrow keys.
+Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
   (interactive)
   (unless prefix (setq prefix '(?\C-x)))
+  (when (eq prefix 'none) (setq prefix nil))
   (unless (listp prefix) (setq prefix (list prefix)))
   (unless modifiers (setq modifiers '(shift)))
+  (when (eq modifiers 'none) (setq modifiers nil))
   (unless (listp modifiers) (setq modifiers (list modifiers)))
-  (global-set-key (vector prefix (append modifiers '(left)))  'windmove-delete-left)
-  (global-set-key (vector prefix (append modifiers '(right))) 'windmove-delete-right)
-  (global-set-key (vector prefix (append modifiers '(up)))    'windmove-delete-up)
-  (global-set-key (vector prefix (append modifiers '(down)))  'windmove-delete-down))
+  (windmove-install-defaults prefix modifiers
+                             '((windmove-delete-left left)
+                               (windmove-delete-right right)
+                               (windmove-delete-up up)
+                               (windmove-delete-down down))))
 
 
 ;;; Directional window swap states
@@ -673,14 +717,103 @@ from the opposite side of the frame."
 Keys are bound to commands that swap the states of the selected window
 with the window in the specified direction.  Keybindings are of the form
 MODIFIERS-{left,right,up,down}, where MODIFIERS is either a list of modifiers
-or a single modifier.  Default value of MODIFIERS is `shift-super'."
+or a single modifier.
+If MODIFIERS is `none', the keybindings will be directly bound to the
+arrow keys.
+Default value of MODIFIERS is `shift-super'."
   (interactive)
   (unless modifiers (setq modifiers '(shift super)))
+  (when (eq modifiers 'none) (setq modifiers nil))
   (unless (listp modifiers) (setq modifiers (list modifiers)))
-  (global-set-key (vector (append modifiers '(left)))  'windmove-swap-states-left)
-  (global-set-key (vector (append modifiers '(right))) 'windmove-swap-states-right)
-  (global-set-key (vector (append modifiers '(up)))    'windmove-swap-states-up)
-  (global-set-key (vector (append modifiers '(down)))  'windmove-swap-states-down))
+  (windmove-install-defaults nil modifiers
+                             '((windmove-swap-states-left left)
+                               (windmove-swap-states-right right)
+                               (windmove-swap-states-up up)
+                               (windmove-swap-states-down down))))
+
+
+
+(defconst windmove--default-keybindings-type
+  `(choice (const :tag "Don't bind" nil)
+           (cons :tag "Bind using"
+                 (key-sequence :tag "Prefix")
+                 (set :tag "Modifier"
+                      :greedy t
+                      ;; See `(elisp) Keyboard Events'
+                      (const :tag "Meta" meta)
+                      (const :tag "Control" control)
+                      (const :tag "Shift" shift)
+                      (const :tag "Hyper" hyper)
+                      (const :tag "Super" super)
+                      (const :tag "Alt" alt))))
+  "Customisation type for windmove modifiers.")
+
+(defcustom windmove-default-keybindings nil
+  "Default keybindings for regular windmove commands.
+See `windmove-default-keybindings' for more detail."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-left left)
+            (windmove-right right)
+            (windmove-up up)
+            (windmove-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1"
+  :group 'windmove)
+
+(defcustom windmove-display-default-keybindings nil
+  "Default keybindings for windmove directional buffer display commands.
+See `windmove-display-default-keybindings' for more detail."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-display-left left)
+            (windmove-display-right right)
+            (windmove-display-up up)
+            (windmove-display-down down)
+            (windmove-display-same-window ?0)
+            (windmove-display-new-frame ?f)
+            (windmove-display-new-tab ?t))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1"
+  :group 'windmove)
+
+(defcustom windmove-delete-default-keybindings nil
+  "Default keybindings for windmove directional window deletion commands.
+See `windmove-delete-default-keybindings' for more detail."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-delete-left left)
+            (windmove-delete-right right)
+            (windmove-delete-up up)
+            (windmove-delete-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1"
+  :group 'windmove)
+
+(defcustom windmove-swap-states-default-keybindings nil
+  "Default keybindings for windmove's directional window swap-state commands.
+See `windmove-swap-states-default-keybindings' for more detail."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-swap-states-left left)
+            (windmove-swap-states-right right)
+            (windmove-swap-states-up up)
+            (windmove-swap-states-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1"
+  :group 'windmove)
 
 
 (provide 'windmove)
