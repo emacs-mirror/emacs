@@ -3484,7 +3484,8 @@ between 0 and 1, and with faces `completions-common-part',
   (when completions
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
            (point-idx (completion-pcm--pattern-point-idx pattern))
-           (case-fold-search completion-ignore-case))
+           (case-fold-search completion-ignore-case)
+           last-md)
       (mapcar
        (lambda (str)
 	 ;; Don't modify the string itself.
@@ -3493,7 +3494,7 @@ between 0 and 1, and with faces `completions-common-part',
            (error "Internal error: %s does not match %s" re str))
          (let* ((pos (if point-idx (match-beginning point-idx) (match-end 0)))
                 (match-end (match-end 0))
-                (md (cddr (match-data)))
+                (md (cddr (setq last-md (match-data t last-md))))
                 (from 0)
                 (end (length str))
                 ;; To understand how this works, consider these simple
