@@ -663,4 +663,6 @@ extern bool xg_set_icon_from_xpm_data (struct frame *f, const char **data);
 
 extern bool pgtk_text_icon (struct frame *f, const char *icon_name);
 
+extern double pgtk_frame_scale_factor (struct frame *);
+
 #endif /* HAVE_PGTK */
