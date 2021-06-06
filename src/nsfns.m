@@ -1953,14 +1953,23 @@ DEFUN ("ns-hide-emacs", Fns_hide_emacs, Sns_hide_emacs,
        doc: /* If ON is non-nil, the entire Emacs application is hidden.
 Otherwise if Emacs is hidden, it is unhidden.
 If ON is equal to `activate', Emacs is unhidden and becomes
-the active application.  */)
-     (Lisp_Object on)
+the active application.
+If ON is equal to `activate-front', Emacs is unhidden and
+becomes the active application, but only the selected frame
+is layered in front of the windows of other applications.  */)
+  (Lisp_Object on)
 {
   check_window_system (NULL);
   if (EQ (on, intern ("activate")))
     {
       [NSApp unhide: NSApp];
       [NSApp activateIgnoringOtherApps: YES];
+    }
+  else if (EQ (on, intern ("activate-front")))
+    {
+      [NSApp unhide: NSApp];
+      [[NSRunningApplication currentApplication]
+        activateWithOptions: NSApplicationActivateIgnoringOtherApps];
     }
   else if (NILP (on))
     [NSApp unhide: NSApp];
