@@ -1808,7 +1808,7 @@ argument is passed to `next-file', which see)."
 (defun tags-search (regexp &optional files)
   "Search through all files listed in tags table for match for REGEXP.
 Stops when a match is found.
-To continue searching for next match, use command \\[tags-loop-continue].
+To continue searching for next match, use the command \\[fileloop-continue].
 
 If FILES if non-nil should be a list or an iterator returning the
 files to search.  The search will be restricted to these files.
@@ -1834,7 +1834,7 @@ Also see the documentation of the `tags-file-name' variable."
   "Do `query-replace-regexp' of FROM with TO on all files listed in tags table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue].
+with the command \\[fileloop-continue].
 For non-interactive use, superseded by `fileloop-initialize-replace'."
   (declare (advertised-calling-convention (from to &optional delimited) "27.1"))
   (interactive (query-replace-read-args "Tags query replace (regexp)" t t))

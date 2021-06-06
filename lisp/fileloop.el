@@ -171,7 +171,8 @@ operating on the next file and nil otherwise."
 		(goto-char pos))
 	    (push-mark original-point t))
 
-	  (switch-to-buffer (current-buffer))
+          (let (switch-to-buffer-preserve-window-point)
+	    (switch-to-buffer (current-buffer)))
 
 	  ;; Now operate on the file.
 	  ;; If value is non-nil, continue to scan the next file.
