@@ -10795,6 +10795,9 @@ include the height of both, if present, in the return value.  */)
 	  it.max_descent = max (it.max_descent, it.descent);
 	}
     }
+  else
+    bidi_unshelve_cache (it2data, true);
+
   if (!NILP (x_limit))
     {
       /* Don't return more than X-LIMIT.  */
