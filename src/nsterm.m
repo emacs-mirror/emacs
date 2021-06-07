@@ -7628,6 +7628,14 @@ not_in_argv (NSString *arg)
          selector:@selector (viewDidResize:)
              name:NSViewFrameDidChangeNotification object:nil];
 
+  /* macOS Sierra automatically enables tabbed windows.  We can't
+     allow this to be enabled until it's available on a Free system.
+     Currently it only happens by accident and is buggy anyway.  */
+#ifdef NS_IMPL_COCOA
+  if ([win respondsToSelector: @selector(setTabbingMode:)])
+    [win setTabbingMode: NSWindowTabbingModeDisallowed];
+#endif
+
   ns_window_num++;
   return self;
 }
