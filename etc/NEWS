@@ -1599,6 +1599,11 @@ symbol property to the browsing commands.  With a new command
 'browse-url-with-browser-kind', an URL can explicitly be browsed with
 either an internal or external browser.
 
+---
+*** Support for browsing of remote files.
+If a remote file is taken, a local temporary copy of that file is
+passed to the browser.
+
 *** Support for the conkeror browser is now obsolete.
 
 *** Support for the Mosaic browser has been removed.
