@@ -518,7 +518,7 @@ That is, if called with the following arguments, @var{server} and
 for the values of the other parameters.
 
 @example
-(erc :server "chat.freenode.net" :full-name "Harry S Truman")
+(erc :server "chat.freenode.net" :full-name "J. Random Hacker")
 @end example
 @end defun
 
@@ -545,7 +545,7 @@ for the values of the other parameters, and @code{client-certificate}
 will be @code{nil}.
 
 @example
-(erc-tls :server "chat.freenode.net" :full-name "Harry S Truman")
+(erc-tls :server "chat.freenode.net" :full-name "J. Random Hacker")
 @end example
 
 To use a certificate with @code{erc-tls}, specify the optional
