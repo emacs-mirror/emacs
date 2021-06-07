@@ -806,6 +806,7 @@ narrowed."
 		(or buffer-file-name
 		    (and (boundp 'dired-directory) dired-directory)))))
       (when (or (not file-name)
+                (file-remote-p file-name)
                 ;; This can happen when we're looking at a file from a
                 ;; zip file buffer, for instance.
                 (not (file-exists-p file-name)))
