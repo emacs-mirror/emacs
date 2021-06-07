@@ -774,25 +774,24 @@ The value depends on `grep-command', `grep-template',
 		(let ((gcmd (format "%s <C> %s <R>"
 				    grep-program grep-options))
 		      (null (if grep-use-null-device
-				(format "%s " (null-device))
-			      "")))
-		  (cond ((eq grep-find-use-xargs 'gnu)
-			 (format "%s <D> <X> -type f <F> -print0 | \"%s\" -0 %s"
-				 find-program xargs-program gcmd))
-			((eq grep-find-use-xargs 'gnu-sort)
-			 (format "%s <D> <X> -type f <F> -print0 | sort -z | \"%s\" -0 %s"
-				 find-program xargs-program gcmd))
-			((eq grep-find-use-xargs 'exec)
-			 (format "%s <D> <X> -type f <F> -exec %s %s %s%s"
-				 find-program gcmd quot-braces null quot-scolon))
-			((eq grep-find-use-xargs 'exec-plus)
-			 (format "%s <D> <X> -type f <F> -exec %s %s%s +"
-				 find-program gcmd null quot-braces))
-			(t
-			 (format "%s <D> <X> -type f <F> -print | \"%s\" %s"
-				 find-program xargs-program gcmd))))))))
-
-    ;; Save defaults for this host.
+                                (format "%s " (null-device))
+                              "")))
+                  (cond ((eq grep-find-use-xargs 'gnu)
+                         (format "%s -H <D> <X> -type f <F> -print0 | \"%s\" -0 %s"
+                                 find-program xargs-program gcmd))
+                        ((eq grep-find-use-xargs 'gnu-sort)
+                         (format "%s -H <D> <X> -type f <F> -print0 | sort -z | \"%s\" -0 %s"
+                                 find-program xargs-program gcmd))
+                        ((eq grep-find-use-xargs 'exec)
+                         (format "%s -H <D> <X> -type f <F> -exec %s %s %s%s"
+                                 find-program gcmd quot-braces null quot-scolon))
+                        ((eq grep-find-use-xargs 'exec-plus)
+                         (format "%s -H <D> <X> -type f <F> -exec %s %s%s +"
+                                 find-program gcmd null quot-braces))
+                        (t
+                         (format "%s -H <D> <X> -type f <F> -print | \"%s\" %s"
+                                 find-program xargs-program gcmd))))))))
+     ;; Save defaults for this host.
     (setq grep-host-defaults-alist
 	  (delete (assq host-id grep-host-defaults-alist)
 		  grep-host-defaults-alist))
