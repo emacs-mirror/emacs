@@ -1093,6 +1093,8 @@ grep-like tools.
 On systems where the grep command supports it, directories will be
 skipped.
 
+*** 'grep-find-template' now includes the 'find' option '-H'.
+
 ** Help
 
 ---
