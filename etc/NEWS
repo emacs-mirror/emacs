@@ -116,7 +116,7 @@ filters.
 See https://mercurylang.org.
 
 +++
-** Etags command line option --declarations now has Mercury-specific behavior.
+** Etags command line option '--declarations' now has Mercury-specific behavior.
 All Mercury declarations are tagged by default.  However, for
 compatibility with 'etags' support for Prolog, predicates and
 functions appearing first in clauses will also be tagged if 'etags' is
@@ -311,7 +311,7 @@ prompt, and how you can tweak the file size threshold.
 Some terminal emulators set the 8th bit of Meta characters, and then
 encode the resulting character code as if it were non-ASCII character
 above codepoint 127.  Previously, the only way of using these in Emacs
-was to set up the terminal emulator to use the ESC characters to send
+was to set up the terminal emulator to use the 'ESC' characters to send
 Meta characters to Emacs, e.g., send "ESC x" when the user types
 'M-x'.  You can now avoid the need for this setup of such terminal
 emulators by using the new input-meta-mode with the special value
@@ -571,14 +571,14 @@ Icomplete, completions are rotated and selection kept at the top.
 When used with Fido, completions scroll like a typical dropdown
 widget.
 
-*** Default value of 'icomplete-compute-delay has been changed to 0.15 s.
+*** Default value of 'icomplete-compute-delay' has been changed to 0.15 s.
 
 *** Default value of 'icomplete-max-delay-chars' has been changed to 2.
 
 *** Reduced blinking while completing the next completions set.
 Icomplete doesn't hide the hint with the previously computed
 completions anymore when compute delay is in effect, or the previous
-computation has been aborted by input. Instead it shows the previous
+computation has been aborted by input.  Instead it shows the previous
 completions until the new ones are ready.
 
 ---
@@ -1115,14 +1115,14 @@ GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
 +++
 *** New command 'describe-command' shows help for a command.
 This can be used instead of 'describe-function' for interactive
-commands and is globally bound to `C-h x'.
+commands and is globally bound to 'C-h x'.
 
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
 ---
 *** New user option 'describe-bindings-outline'.
-It enables outlines in the output buffer of `describe-bindings' that
+It enables outlines in the output buffer of 'describe-bindings' that
 can provide a better overview in a long list of available bindings.
 
 ---
@@ -2056,7 +2056,7 @@ This can be used to change the priority of the hl-line overlays.
 +++
 *** New command 'mailcap-view-file'.
 This command will open a viewer based on the file type, as determined
-by ~/.mailcap and related files and variables.
+by "~/.mailcap" and related files and variables.
 
 +++
 *** New command 'C-x C-k Q' to force redisplay in keyboard macros.
@@ -2518,7 +2518,7 @@ similar to prefix arguments, but are more flexible and discoverable.
 
 * Incompatible Editing Changes in Emacs 28.1
 
-** `electric-indent-mode` now also indents inside strings and comments,
+** 'electric-indent-mode' now also indents inside strings and comments,
 (unless the indentation function doesn't, of course).
 To recover the previous behavior you can use:
 
@@ -2576,7 +2576,7 @@ In previous versions of Emacs, numbers with a trailing dot and an exponent
 were read as integers and the exponent ignored: 2.e6 was interpreted as the
 integer 2.  Such numerals are now read as floats with the exponent included:
 2.e6 is now read as the floating-point value 2000000.0.
-That is, (read-from-string "1.e3") => (1000.0 . 4) now.
+That is, '(read-from-string "1.e3")' => '(1000.0 . 4)' now.
 
 +++
 ** The 'lexical-binding' local variable is always enabled.
@@ -2785,7 +2785,7 @@ form should be exceedingly rare.  See the Info node "(elisp) Backtracking" in
 the Emacs Lisp reference manual for background.
 
 ---
-** 'sql-*-statement-starters' are no longer defcustoms.
+** 'sql-*-statement-starters' are no longer user options.
 These variables describe facts about the SQL standard and
 product-specific additions.  There should be no need for users to
 customize them.
@@ -3232,10 +3232,10 @@ The new variable 'xwidget-webkit-download-dir' says where to download to.
 +++
 ** On macOS, Emacs now supports native tabs (in macOS 10.12 and later).
 Native tabbing behavior is specified system-wide via System
-Preferences, under under General > 'Prefer tabs when opening
-documents'. In macOS versions 10.15 and earlier, this option is
-located under Dock instead. Note that this feature is unrelated to the
-Emacs 'tab-bar-mode'.
+Preferences, under under "General => Prefer tabs when opening
+documents".  In macOS versions 10.15 and earlier, this option is
+located under Dock instead.  Note that this feature is unrelated to
+the Emacs 'tab-bar-mode'.
 
 +++
 ** On MS-Windows, Emacs can now toggle the IME.
