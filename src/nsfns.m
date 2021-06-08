@@ -3024,7 +3024,8 @@ all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
 }
 
 @implementation NSString (EmacsString)
-/* Make an NSString from a Lisp string.  */
+/* Make an NSString from a Lisp string.  STRING must not be in an
+   encoded form (e.g. UTF-8).  */
 + (NSString *)stringWithLispString:(Lisp_Object)string
 {
   /* Shortcut for the common case.  */
