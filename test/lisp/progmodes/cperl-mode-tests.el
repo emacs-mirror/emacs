@@ -37,7 +37,7 @@
 ;;; Utilities
 
 (defun cperl-test-ppss (text regexp)
-  "Return the `syntax-ppss' of the first character matched by REGEXP in TEXT."
+  "Return the `syntax-ppss' after the last character matched by REGEXP in TEXT."
   (interactive)
   (with-temp-buffer
     (insert text)
@@ -377,6 +377,26 @@ documentation it does the right thing anyway."
      (cperl-indent-command)
      (forward-line 1))))
 
+(ert-deftest cperl-test-bug-23992 ()
+  "Verify that substitutions are fontified directly after \"|&\".
+Regular expressions are strings in both perl-mode and cperl-mode."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-23992.pl"))
+    (funcall cperl-test-mode)
+    (goto-char (point-min))
+    ;; "or" operator, with spaces
+    (search-forward "RIGHT")
+    (should (nth 3 (syntax-ppss)))
+    ;; "or" operator, without spaces
+    (search-forward "RIGHT")
+    (should (nth 3 (syntax-ppss)))
+    ;; "and" operator, with spaces
+    (search-forward "RIGHT")
+    (should (nth 3 (syntax-ppss)))
+    ;; "and" operator, without spaces
+    (search-forward "RIGHT")
+    (should (nth 3 (syntax-ppss)))))
+
 (ert-deftest cperl-test-bug-28650 ()
   "Verify that regular expressions are recognized after 'return'.
 The test uses the syntax property \"inside a string\" for the
@@ -448,14 +468,14 @@ If seen as regular expression, then the slash is displayed using
 font-lock-constant-face.  If seen as a division, then it doesn't
 have a face property."
   :tags '(:fontification)
-  ;; The next two Perl expressions have divisions.  Perl "punctuation"
-  ;; operators don't get a face.
+  ;; The next two Perl expressions have divisions.  The slash does not
+  ;; start a string.
   (let ((code "{ $a++ / $b }"))
     (should (equal (nth 8 (cperl-test-ppss code "/")) nil)))
   (let ((code "{ $a-- / $b }"))
     (should (equal (nth 8 (cperl-test-ppss code "/")) nil)))
-  ;; The next two Perl expressions have regular expressions.  The
-  ;; delimiter of a RE is fontified with font-lock-constant-face.
+  ;; The next two Perl expressions have regular expressions. The slash
+  ;; starts a string.
   (let ((code "{ $a+ / $b } # /"))
     (should (equal (nth 8 (cperl-test-ppss code "/")) 7)))
   (let ((code "{ $a- / $b } # /"))
