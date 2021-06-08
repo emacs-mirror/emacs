@@ -246,6 +246,11 @@ composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
 /* Macros for lispy glyph-string.  This is completely different from
    struct glyph_string.  */
 
+/* LGSTRING is a string of font glyphs, LGLYPHs.  It is represented as
+   a Lisp vector, with components shown below.  Once LGSTRING was
+   processed by a shaping engine, it holds font glyphs for one or more
+   grapheme clusters.  */
+
 #define LGSTRING_HEADER(lgs) AREF (lgs, 0)
 #define LGSTRING_SET_HEADER(lgs, header) ASET (lgs, 0, header)
 
@@ -259,6 +264,10 @@ composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
 #define LGSTRING_ID(lgs) AREF (lgs, 1)
 #define LGSTRING_SET_ID(lgs, id) ASET (lgs, 1, id)
 
+/* LGSTRING_GLYPH_LEN is the maximum number of LGLYPHs that the
+   LGSTRING can hold.  This is NOT the actual number of valid LGLYPHs;
+   to find the latter, walk the glyphs returned by LGSTRING_GLYPH
+   until the first one that is nil.  */
 #define LGSTRING_GLYPH_LEN(lgs) (ASIZE ((lgs)) - 2)
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 2)
 #define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 2, (val))
@@ -278,6 +287,14 @@ enum lglyph_indices
     LGLYPH_SIZE
   };
 
+/* Each LGLYPH is a single font glyph, whose font code is in
+   LGLYPH_CODE.
+   LGLYPH_FROM and LGLYPH_TO are indices into LGSTRING; all the
+   LGLYPHs that share the same values of LGLYPH_FROM and LGLYPH_TO
+   belong to the same grapheme cluster.
+   LGLYPH_CHAR is one of the characters, usually the first one, that
+   contributed to the glyph (since there isn't a 1:1 correspondence
+   between composed characters and the font glyphs).  */
 #define LGLYPH_NEW() make_nil_vector (LGLYPH_SIZE)
 #define LGLYPH_FROM(g) XFIXNUM (AREF ((g), LGLYPH_IX_FROM))
 #define LGLYPH_TO(g) XFIXNUM (AREF ((g), LGLYPH_IX_TO))
