@@ -1183,8 +1183,8 @@ newsgroups."
   :group 'gnus-summary-marks
   :type 'character)
 
-(defcustom gnus-process-mark-toggle nil
-  "If non-nil the process mark command toggles the process mark."
+(defcustom gnus-process-mark-toggle t
+  "If nil the process mark command only sets the process mark."
   :version "28.1"
   :group 'gnus-summary
   :group 'gnus-group-various

@@ -894,7 +894,7 @@ simple manner."
 	["Sort by real name" gnus-group-sort-selected-groups-by-real-name
 	 (not (gnus-topic-mode-p))])
        ("Mark"
-	["Set/Toggle mark" gnus-group-mark-group
+	["Toggle/Set mark" gnus-group-mark-group
 	 (and (gnus-group-group-name)
 	      (not (memq (gnus-group-group-name) gnus-group-marked)))]
 	["Remove mark" gnus-group-unmark-group

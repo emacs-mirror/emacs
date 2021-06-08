@@ -883,9 +883,14 @@ tags to be considered as well.
 ** Gnus
 
 +++
+*** The '#' command in the Group and Summary buffer now toggles,
+instead of sets, the process mark.
+
++++
 *** New user option 'gnus-process-mark-toggle'.
-If non-nil, the `#' command in the Group and Summary buffers will
-toggle instead of setting the process mark.
+If non-nil (the default), the `#' command in the Group and Summary
+buffers will toggle, instead of set, the process mark.
+
 
 +++
 *** New user option 'gnus-registry-register-all'.

@@ -2774,7 +2774,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Hide marked" gnus-summary-limit-exclude-marks t]
 	 ["Show expunged" gnus-summary-limit-include-expunged t])
 	("Process Mark"
-	 ["Set/Toggle mark" gnus-summary-mark-as-processable t]
+	 ["Toggle/Set mark" gnus-summary-mark-as-processable t]
 	 ["Remove mark" gnus-summary-unmark-as-processable t]
 	 ["Remove all marks" gnus-summary-unmark-all-processable t]
 	 ["Invert marks" gnus-uu-invert-processable t]
