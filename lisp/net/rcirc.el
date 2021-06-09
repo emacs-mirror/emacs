@@ -391,6 +391,11 @@ will be killed."
   :version "24.3"
   :type 'boolean)
 
+(defcustom rcirc-nick-filter #'identity
+  "Function applied to nicknames before displaying."
+  :version "28.1"
+  :type 'function)
+
 (defvar rcirc-nick nil
   "The nickname used for the current connection.")
 
@@ -1118,11 +1123,13 @@ The list is updated automatically by `defun-rcirc-command'.")
 		       rcirc-prompt-end-marker)))
 	      (table (cond
                       ;; No completion before the prompt
-                      ((<  beg rcirc-prompt-end-marker) nil)
+                      ((< beg rcirc-prompt-end-marker) nil)
                       ;; Only complete nicks mid-message
                       ((> beg rcirc-prompt-end-marker)
-                       (rcirc-channel-nicks (rcirc-buffer-process)
-					    rcirc-target))
+                       (mapcar rcirc-nick-filter
+                               (rcirc-channel-nicks
+                                (rcirc-buffer-process)
+				rcirc-target)))
                       ;; Complete commands at the beginning of the
                       ;; message, when the first character is a dash
                       ((eq (char-after beg) ?/)
@@ -1135,7 +1142,7 @@ The list is updated automatically by `defun-rcirc-command'.")
                       ;; Complete usernames right after the prompt by
                       ;; appending a colon after the name
                       ((mapcar
-                        (lambda (str) (concat str ": "))
+                        (lambda (str) (concat (funcall rcirc-nick-filter str) ": "))
                         (rcirc-channel-nicks (rcirc-buffer-process)
 					     rcirc-target))))))
 	 (list beg (point) table))))
@@ -1601,7 +1608,7 @@ communication."
 	  (sender (if (or (not sender)
 			  (string= (rcirc-server-name process) sender))
 		      ""
-		    sender))
+		    (funcall rcirc-nick-filter sender)))
 	  face)
       (while (re-search-forward "%\\(\\(f\\(.\\)\\)\\|\\(.\\)\\)" nil t)
 	(rcirc-add-face start (match-beginning 0) face)
@@ -2044,7 +2051,7 @@ INPUT is a string containing nicknames separated by SEP.
 This function does not alter the INPUT string."
   (let* ((parts (split-string input sep t))
          (sorted (sort parts 'rcirc-nickname<)))
-    (mapconcat 'identity sorted sep)))
+    (mapconcat rcirc-nick-filter sorted sep)))
 
 ;;; activity tracking
 (defvar rcirc-track-minor-mode-map
