@@ -64,7 +64,7 @@ endif
 ../config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
 	$(MAKE) -C .. $(notdir $@)
 Makefile: ../config.status $(srcdir)/Makefile.in
-	$(MAKE) -C .. src/$@
+	$(MAKE) -C .. lib/$@
 
 # Object modules that need not be built for Emacs.
 # Emacs does not need e-regex.o (it has its own regex-emacs.c),
