@@ -56,10 +56,10 @@
   :group 'applications)
 
 (defcustom rcirc-server-alist
-  '(("chat.freenode.net" :channels ("#rcirc")
-     ;; Don't use the TLS port by default, in case gnutls is not available.
-     ;; :port 7000 :encryption tls
-     ))
+  (if (gnutls-available-p)
+      '(("irc.libera.chat" :channels ("#rcirc")
+         :port 6697 :encryption tls))
+    '(("irc.libera.chat" :channels ("#rcirc"))))
   "An alist of IRC connections to establish when running `rcirc'.
 Each element looks like (SERVER-NAME PARAMETERS).
 
@@ -120,7 +120,8 @@ display purposes. If absent, the real server name will be displayed instead."
                                     (:channels (repeat string))
                                     (:encryption (choice (const tls)
                                                          (const plain)))
-                                    (:server-alias string)))))
+                                    (:server-alias string))))
+  :version "28.1")
 
 (defcustom rcirc-default-port 6667
   "The default port to connect to."
