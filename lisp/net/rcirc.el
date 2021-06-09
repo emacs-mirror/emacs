@@ -580,6 +580,7 @@ See `rcirc-connect' for more details on these variables.")
     "server-time"                       ;https://ircv3.net/specs/extensions/server-time
     "batch"                             ;https://ircv3.net/specs/extensions/batch
     "message-ids"                       ;https://ircv3.net/specs/extensions/message-ids
+    "invite-notify"                     ;https://ircv3.net/specs/extensions/invite-notify
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
@@ -3247,11 +3248,21 @@ Passwords are stored in `rcirc-authinfo' (which see)."
                (format "AUTH %s %s" nick (car args))))))))))
 
 (defun rcirc-handler-INVITE (process sender args _text)
-  "Notify user of an invitation.
-SENDER and ARGS (in concatenated form) are passed on to
-`rcirc-print'.  PROCESS is the process object for the current
-connection."
-  (rcirc-print process sender "INVITE" nil (mapconcat 'identity args " ") t))
+  "Notify user of an invitation from SENDER.
+ARGS should have the form (TARGET CHANNEL).  PROCESS is the
+process object for the current connection."
+  (let ((self (buffer-local-value 'rcirc-nick rcirc-process))
+        (target (car args))
+        (chan (cadr args)))
+    (if (string= target self)
+        (rcirc-print process sender "INVITE" nil
+                     (format "%s invited you to %s"
+                             sender chan)
+                     t)
+      (rcirc-print process sender "INVITE" chan
+                   (format "%s invited %s"
+                           sender target)
+                   t))))
 
 (defun rcirc-handler-ERROR (process sender args _text)
   "Print a error message.
