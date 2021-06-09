@@ -7020,43 +7020,6 @@ not_in_argv (NSString *arg)
 }
 
 
-- (void)windowDidResize: (NSNotification *)notification
-{
-  NSTRACE ("[EmacsView windowDidResize:]");
-  if (!FRAME_LIVE_P (emacsframe))
-    {
-      NSTRACE_MSG ("Ignored (frame dead)");
-      return;
-    }
-  if (emacsframe->output_data.ns->in_animation)
-    {
-      NSTRACE_MSG ("Ignored (in animation)");
-      return;
-    }
-
-  if (! [self fsIsNative])
-    {
-      NSWindow *theWindow = [notification object];
-      /* We can get notification on the non-FS window when in
-         fullscreen mode.  */
-      if ([self window] != theWindow) return;
-    }
-
-  NSTRACE_RECT ("frame", [[notification object] frame]);
-
-#ifdef NS_IMPL_GNUSTEP
-  NSWindow *theWindow = [notification object];
-
-   /* In GNUstep, at least currently, it's possible to get a didResize
-      without getting a willResize, therefore we need to act as if we got
-      the willResize now.  */
-  NSSize sz = [theWindow frame].size;
-  sz = [self windowWillResize: theWindow toSize: sz];
-#endif /* NS_IMPL_GNUSTEP */
-
-  ns_send_appdefined (-1);
-}
-
 #ifdef NS_IMPL_COCOA
 - (void)viewDidEndLiveResize
 {
@@ -7074,38 +7037,30 @@ not_in_argv (NSString *arg)
 #endif /* NS_IMPL_COCOA */
 
 
-- (void)viewDidResize:(NSNotification *)notification
+- (void)resizeWithOldSuperviewSize: (NSSize)oldSize
 {
-  NSRect frame = [self frame];
-  int neww, newh, oldw, oldh;
+  NSRect frame;
+  int width, height;
+
+  NSTRACE ("[EmacsView resizeWithOldSuperviewSize:]");
+
+  [super resizeWithOldSuperviewSize:oldSize];
 
   if (! FRAME_LIVE_P (emacsframe))
     return;
 
-  NSTRACE ("[EmacsView viewDidResize]");
+  frame = [self frame];
+  width = (int)NSWidth (frame);
+  height = (int)NSHeight (frame);
 
-  neww = (int)NSWidth (frame);
-  newh = (int)NSHeight (frame);
-  oldw = FRAME_PIXEL_WIDTH (emacsframe);
-  oldh = FRAME_PIXEL_HEIGHT (emacsframe);
+  NSTRACE_SIZE ("New size", NSMakeSize (width, height));
+  NSTRACE_SIZE ("Original size", size);
 
-  /* Don't want to do anything when the view size hasn't changed. */
-  if (emacsframe->new_size_p
-      ? (newh == emacsframe->new_height
-         && neww == emacsframe->new_width)
-      : (oldh == newh && oldw == neww))
-    {
-      NSTRACE_MSG ("No change");
-      return;
-    }
-
-  NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
-  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
-
-  change_frame_size (emacsframe, neww, newh, false, YES, false);
+  change_frame_size (emacsframe, width, height, false, YES, false);
 
   SET_FRAME_GARBAGED (emacsframe);
   cancel_mouse_face (emacsframe);
+  ns_send_appdefined (-1);
 }
 
 
@@ -7269,7 +7224,7 @@ not_in_argv (NSString *arg)
   /* These settings mean AppKit will retain the contents of the frame
      on resize.  Unfortunately it also means the frame will not be
      automatically marked for display, but we can do that ourselves in
-     viewDidResize.  */
+     resizeWithOldSuperviewSize.  */
   [self setWantsLayer:YES];
   [self setLayerContentsRedrawPolicy:
           NSViewLayerContentsRedrawOnSetNeedsDisplay];
@@ -7292,13 +7247,6 @@ not_in_argv (NSString *arg)
 #endif
   [NSApp registerServicesMenuSendTypes: ns_send_types
                            returnTypes: [NSArray array]];
-
-  /* Set up view resize notifications.  */
-  [self setPostsFrameChangedNotifications:YES];
-  [[NSNotificationCenter defaultCenter]
-      addObserver:self
-         selector:@selector (viewDidResize:)
-             name:NSViewFrameDidChangeNotification object:nil];
 
   ns_window_num++;
   return self;
