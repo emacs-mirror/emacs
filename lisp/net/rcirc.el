@@ -3322,6 +3322,14 @@ is the process object for the current connection."
       ;; All requested capabilities have been responded to
       (rcirc-send-string process "CAP" "END"))))
 
+(defun rcirc-handler-TAGMSG (process sender _args _text)
+  "Handle a empty tag message from SENDER.
+PROCESS is the process object for the current connection."
+  (dolist (tag rcirc-message-tags)
+    (when-let ((handler (intern-soft (concat "rcirc-tag-handler-" (car tag))))
+               ((fboundp handler)))
+      (funcall handler process sender (cdr tag)))))
+
 (defun rcirc-handler-BATCH (process _sender args _text)
   "Open or close a batch.
 ARGS should have the form (tag type . parameters) when starting a
