@@ -1380,7 +1380,7 @@ The argument JUSTIFY is passed on to `fill-region'."
 
 (defun rcirc-process-input-line (line)
   "Process LINE as a message or a command."
-  (if (string-match "^/\\([^ ]+\\) ?\\(.*\\)$" line)
+  (if (string-match "^/\\([^/ ][^ ]*\\) ?\\(.*\\)$" line)
       (rcirc-process-command (match-string 1 line)
 			     (match-string 2 line)
 			     line)
@@ -1398,25 +1398,20 @@ The argument JUSTIFY is passed on to `fill-region'."
   "Process COMMAND with arguments ARGS.
 LINE is the raw input, from which COMMAND and ARGS was
 extracted."
-  (if (eq (aref command 0) ?/)
-      ;; "//text" will send "/text" as a message
-      (rcirc-process-message (substring line 1))
-    (let ((fun (intern-soft (concat "rcirc-cmd-" command)))
-	  (process (rcirc-buffer-process)))
-      (newline)
-      (with-current-buffer (current-buffer)
-	(delete-region rcirc-prompt-end-marker (point))
-	(if (string= command "me")
-	    (rcirc-print process (rcirc-buffer-nick)
-			 "ACTION" rcirc-target args)
+  (let ((fun (intern-soft (concat "rcirc-cmd-" command)))
+	(process (rcirc-buffer-process)))
+    (newline)
+    (with-current-buffer (current-buffer)
+      (delete-region rcirc-prompt-end-marker (point))
+      (if (string= command "me")
 	  (rcirc-print process (rcirc-buffer-nick)
-		       "COMMAND" rcirc-target line))
-	(set-marker rcirc-prompt-end-marker (point))
-	(if (fboundp fun)
-	    (funcall fun args process rcirc-target)
-	  (rcirc-send-string process
-			     (concat command " :" args)))))))
-
+		       "ACTION" rcirc-target args)
+	(rcirc-print process (rcirc-buffer-nick)
+		     "COMMAND" rcirc-target line))
+      (set-marker rcirc-prompt-end-marker (point))
+      (if (fboundp fun)
+	  (funcall fun args process rcirc-target)
+	(rcirc-send-string process command : args)))))
 
 (defvar-local rcirc-parent-buffer nil
   "Message buffer that requested a multiline buffer.")
