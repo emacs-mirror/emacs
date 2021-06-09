@@ -578,6 +578,7 @@ See `rcirc-connect' for more details on these variables.")
 (defvar rcirc-implemented-capabilities
   '("message-tags"                      ;https://ircv3.net/specs/extensions/message-tags
     "server-time"                       ;https://ircv3.net/specs/extensions/server-time
+    "batch"                             ;https://ircv3.net/specs/extensions/batch
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
@@ -867,6 +868,22 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defvar rcirc-message-tags nil
   "Alist of parsed message tags.")
 
+(defvar rcirc-supported-batch-types
+  '()
+  "List of recognized batch types.
+Each element has the form (TYPE HANDLE), where TYPE is a string
+and HANDLE is either the symbol `immediate' or `deferred'.
+Messages in an immediate batch are handled just like regular
+messages, while deferred messages are stored in
+`rcirc-batch-messages'.")
+
+(defvar-local rcirc-batch-attributes nil
+  "Alist mapping batch IDs to parameters.")
+
+(defvar-local rcirc-batched-messages nil
+  "Alist mapping batch IDs to deferred messages.
+Note that the messages are stored in reverse order.")
+
 (defsubst rcirc-get-tag (key &optional default)
   "Return tag value for KEY or DEFAULT."
   (alist-get key rcirc-message-tags default nil #'string=))
@@ -915,9 +932,18 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
                             (push (substring text (match-end 0)) args)
                           (cl-assert (= i (length text))))
                         (cl-callf nreverse args)))
-        (if (not (fboundp handler))
-            (rcirc-handler-generic process cmd sender args text)
-          (funcall handler process sender args text))
+        (cond ((and-let* ((batch-id (rcirc-get-tag "batch"))
+                          (type (cadr (assoc batch-id rcirc-batch-attributes)))
+                          (attr (assoc type rcirc-supported-batch-types))
+                          ((eq (cadr attr) 'deferred)))
+                 ;; handle deferred batch messages later
+                 (push (list cmd process sender args text rcirc-message-tags)
+                       (alist-get batch-id rcirc-batched-messages
+                                  nil nil #'string=))
+                 t))
+              ((not (fboundp handler))
+               (rcirc-handler-generic process cmd sender args text))
+              ((funcall handler process sender args text)))
         (run-hook-with-args 'rcirc-receive-message-functions
                             process cmd sender args text))
     (message "UNHANDLED: %s" text)))
@@ -3293,6 +3319,50 @@ is the process object for the current connection."
     (when (null rcirc-requested-capabilities)
       ;; All requested capabilities have been responded to
       (rcirc-send-string process "CAP" "END"))))
+
+(defun rcirc-handler-BATCH (process _sender args _text)
+  "Open or close a batch.
+ARGS should have the form (tag type . parameters) when starting a
+batch, or (tag) when closing a batch.  PROCESS is the process
+object for the current connection."
+  (with-rcirc-process-buffer process
+    (let ((type (cadr args))
+          (id (substring (car args) 1)))
+      (cond
+       ((= (aref (car args) 0) ?+)      ;start a new batch
+        (when (assoc id rcirc-batch-attributes)
+          (error "Starting batch with already used ID"))
+        (setf (alist-get id rcirc-batch-attributes nil nil #'string=)
+              (cons type (cddr args))))
+       ((= (aref (car args) 0) ?-)      ;close a batch
+        (unless (assoc id rcirc-batch-attributes)
+          (error "Closing a unknown batch"))
+        (let ((type (car (alist-get id rcirc-batch-attributes
+                                    nil nil #'string=))))
+          (when (eq (car (alist-get type rcirc-supported-batch-types
+                                    nil nil #'string=))
+                    'deferred)
+            (let ((messages (alist-get id rcirc-batched-messages
+                                       nil nil #'string=))
+                  (bhandler (intern-soft (concat "rcirc-batch-handler-" type))))
+              (if (fboundp bhandler)
+                  (funcall bhandler process id (nreverse messages))
+                (dolist (message (nreverse messages))
+                  (let ((cmd (nth 0 message))
+                        (process (nth 1 message))
+                        (sender (nth 2 message))
+                        (args (nth 3 message))
+                        (text (nth 4 message))
+                        (rcirc-message-tags (nth 5 message)))
+                    (if-let (handler (intern-soft (concat "rcirc-handler-" cmd)))
+                        (funcall handler process sender args text)
+                      (rcirc-handler-generic process cmd sender args text))))))))
+        (setq rcirc-batch-attributes
+              (delq (assoc id rcirc-batch-attributes)
+                    rcirc-batch-attributes)
+              rcirc-batched-messages
+              (delq (assoc id rcirc-batched-messages)
+                    rcirc-batched-messages)))))))
 
 
 (defgroup rcirc-faces nil
