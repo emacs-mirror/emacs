@@ -577,6 +577,7 @@ See `rcirc-connect' for more details on these variables.")
 ;;; IRCv3 capability negotiation (https://ircv3.net/specs/extensions/capability-negotiation)
 (defvar rcirc-implemented-capabilities
   '("message-tags"                      ;https://ircv3.net/specs/extensions/message-tags
+    "server-time"                       ;https://ircv3.net/specs/extensions/server-time
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
@@ -1702,11 +1703,13 @@ connection."
 	       ;; do not ignore if we sent the message
  	       (not (string= sender (rcirc-nick process))))
     (let* ((buffer (rcirc-target-buffer process sender response target text))
+           (time (if-let ((time (rcirc-get-tag "time")))
+                     (parse-iso8601-time-string time)
+                   (current-time)))
 	   (inhibit-read-only t))
       (with-current-buffer buffer
 	(let ((moving (= (point) rcirc-prompt-end-marker))
-	      (old-point (point-marker))
-	      (fill-start (marker-position rcirc-prompt-start-marker)))
+	      (old-point (point-marker)))
 
 	  (setq text (decode-coding-string text rcirc-decode-coding-system))
 	  (unless (string= sender (rcirc-nick process))
@@ -1720,25 +1723,31 @@ connection."
 	  ;; temporarily set the marker insertion-type because
 	  ;; insert-before-markers results in hidden text in new buffers
 	  (goto-char rcirc-prompt-start-marker)
+          (catch 'exit
+            (while (not (bobp))
+              (goto-char (or (previous-single-property-change (point) 'hard)
+                             (point-min)))
+              (when (let ((then (get-text-property (point) 'rcirc-time)))
+                      (and then (time-less-p then time)))
+                (next-single-property-change (point) 'hard)
+                (forward-char 1)
+                (throw 'exit nil))))
 	  (set-marker-insertion-type rcirc-prompt-start-marker t)
 	  (set-marker-insertion-type rcirc-prompt-end-marker t)
 
-	  (let ((start (point)))
-	    (insert (rcirc-format-response-string process sender response nil
-						  text)
-		    (propertize "\n" 'hard t))
+          ;; run markup functions
+          (cl-assert (bolp))
+          (save-excursion
+            (save-restriction
+              (narrow-to-region (point) (point))
+              (insert (rcirc-format-response-string process sender response
+                                                    nil text)
+                    (propertize "\n" 'hard t))
 
- 	    ;; squeeze spaces out of text before rcirc-text
-	    (fill-region fill-start
-			 (1- (or (next-single-property-change fill-start
-							      'rcirc-text)
-				 rcirc-prompt-end-marker)))
+              ;; squeeze spaces out of text before rcirc-text
+              (fill-region (point-min) (point-max))
 
-	    ;; run markup functions
- 	    (save-excursion
- 	      (save-restriction
- 		(narrow-to-region start rcirc-prompt-start-marker)
-		(goto-char (or (next-single-property-change start 'rcirc-text)
+              (goto-char (or (next-single-property-change (point-min) 'rcirc-text)
 			       (point)))
 		(when (rcirc-buffer-process)
 		  (save-excursion (rcirc-markup-timestamp sender response))
@@ -1749,14 +1758,18 @@ connection."
 
 		(when rcirc-read-only-flag
 		  (add-text-properties (point-min) (point-max)
-				       '(read-only t front-sticky t))))
-	      ;; make text omittable
+                                     '(read-only t front-sticky t)))
+
+              (add-text-properties (point-min) (point-max)
+                                   (list 'rcirc-time time))
+
+              ;; make text omittable
 	      (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
 		(if (and (not (string= (rcirc-nick process) sender))
 			 (member response rcirc-omit-responses)
 			 (or (not last-activity-lines)
 			     (< rcirc-omit-threshold last-activity-lines)))
-		    (put-text-property (1- start) (1- rcirc-prompt-start-marker)
+                  (put-text-property (point-min) (point-max)
 				       'invisible 'rcirc-omit)
 		  ;; otherwise increment the line count
 		  (setq rcirc-current-line (1+ rcirc-current-line))))))
@@ -1778,11 +1791,11 @@ connection."
 					 (window-buffer w))
 				     (>= (window-point w)
 					 rcirc-prompt-end-marker))
-			      (set-window-point w (point-max))))
+			    (set-window-point w (point-max))))
 			nil t)
 
 	  ;; restore the point
-	  (goto-char (if moving rcirc-prompt-end-marker old-point))
+	  (goto-char (if moving rcirc-prompt-end-marker old-point)))
 
 	  ;; keep window on bottom line if it was already there
 	  (when rcirc-scroll-show-maximum-output
@@ -1799,26 +1812,26 @@ connection."
 
 	  ;; flush undo (can we do something smarter here?)
 	  (buffer-disable-undo)
-	  (buffer-enable-undo))
+	  (buffer-enable-undo)
 
-	;; record mode line activity
-	(when (and activity
-		   (not rcirc-ignore-buffer-activity-flag)
-		   (not (and rcirc-dim-nicks sender
-			     (string-match (regexp-opt rcirc-dim-nicks) sender)
-			     (rcirc-channel-p target))))
-	      (rcirc-record-activity (current-buffer)
-				     (when (not (rcirc-channel-p rcirc-target))
-				       'nick)))
+        ;; record mode line activity
+        (when (and activity
+                   (not rcirc-ignore-buffer-activity-flag)
+                   (not (and rcirc-dim-nicks sender
+                             (string-match (regexp-opt rcirc-dim-nicks) sender)
+                             (rcirc-channel-p target))))
+            (rcirc-record-activity (current-buffer)
+                                   (when (not (rcirc-channel-p rcirc-target))
+                                     'nick)))
 
-	(when (and rcirc-log-flag
-		   (or target
-		       rcirc-log-process-buffers))
-	  (rcirc-log process sender response target text))
+        (when (and rcirc-log-flag
+                   (or target
+                       rcirc-log-process-buffers))
+          (rcirc-log process sender response target text))
 
-	(sit-for 0)			; displayed text before hook
-	(run-hook-with-args 'rcirc-print-functions
-			    process sender response target text)))))
+        (sit-for 0)			; displayed text before hook
+        (run-hook-with-args 'rcirc-print-functions
+                            process sender response target text)))))
 
 (defun rcirc-generate-log-filename (process target)
   "Return filename for log file based on PROCESS and TARGET."
@@ -1846,10 +1859,12 @@ guarantee valid filenames for the current OS."
   "Record TEXT from SENDER to TARGET to be logged.
 The message is logged in `rcirc-log', and is later written to
 disk.  PROCESS is the process object for the current connection."
-  (let ((filename (funcall rcirc-log-filename-function process target)))
+  (let ((filename (funcall rcirc-log-filename-function process target))
+        (time (and-let* ((time (rcirc-get-tag "time")))
+                (parse-iso8601-time-string time))))
     (unless (null filename)
       (let ((cell (assoc-string filename rcirc-log-alist))
-	    (line (concat (format-time-string rcirc-time-format)
+	    (line (concat (format-time-string rcirc-time-format time)
 			  (substring-no-properties
 			   (rcirc-format-response-string process sender
 							 response target text))
@@ -2631,8 +2646,10 @@ If ARG is given, opens the URL in a new browser window."
 (defun rcirc-markup-timestamp (_sender _response)
   "Insert a timestamp."
   (goto-char (point-min))
-  (insert (rcirc-facify (format-time-string rcirc-time-format)
-			'rcirc-timestamp)))
+  (let ((time (and-let* ((time (rcirc-get-tag "time")))
+                (parse-iso8601-time-string time))))
+    (insert (rcirc-facify (format-time-string rcirc-time-format time)
+			  'rcirc-timestamp))))
 
 (defun rcirc-markup-attributes (_sender _response)
   "Highlight IRC markup, indicated by ASCII control codes."
