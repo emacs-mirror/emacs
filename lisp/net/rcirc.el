@@ -44,6 +44,7 @@
 (require 'cl-lib)
 (require 'ring)
 (require 'time-date)
+(require 'auth-source)
 (eval-when-compile (require 'subr-x))
 
 (defconst rcirc-id-string (concat "rcirc on GNU Emacs " emacs-version))
@@ -500,6 +501,12 @@ If ARG is non-nil, instead prompt for connection parameters."
               (encryption (plist-get (cdr c) :encryption))
               (server-alias (plist-get (cdr c) :server-alias))
               contact)
+          (when-let (((not password))
+                     (auth (auth-source-search :host server
+                                               :user user-name
+                                               :port port))
+                     (fn (plist-get (car auth) :secret)))
+            (setq password (funcall fn)))
 	  (when server
 	    (let (connected)
 	      (dolist (p (rcirc-process-list))
