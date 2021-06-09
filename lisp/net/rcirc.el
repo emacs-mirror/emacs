@@ -629,10 +629,9 @@ that are joined after authentication."
 
       ;; identify
       (unless (zerop (length password))
-        (rcirc-send-string process (concat "PASS " password)))
-      (rcirc-send-string process (concat "NICK " nick))
-      (rcirc-send-string process (concat "USER " user-name
-                                         " 0 * :" full-name))
+        (rcirc-send-string process "PASS" password))
+      (rcirc-send-string process "NICK" nick)
+      (rcirc-send-string process "USER" user-name "0" "*" : full-name)
 
       ;; setup ping timer if necessary
       (unless rcirc-keepalive-timer
@@ -875,9 +874,21 @@ used as the message body."
   "Check if PROCESS is open or running."
   (memq (process-status process) '(run open)))
 
-(defun rcirc-send-string (process string)
-  "Send PROCESS a STRING plus a newline."
-  (let ((string (concat (encode-coding-string string rcirc-encode-coding-system)
+(defun rcirc-send-string (process &rest parts)
+  "Send PROCESS a PARTS plus a newline.
+PARTS may contain a `:' symbol, to designate that the next string
+is the message, that should be prefixed by a colon.  If the last
+element in PARTS is a list, append it to PARTS."
+  (let ((last (car (last parts))))
+    (when (listp last)
+      (setf parts (append (butlast parts) last))))
+  (when-let (message (memq : parts))
+    (cl-check-type (cadr message) string)
+    (setf (cadr message) (concat ":" (cadr message))
+          parts (remq : parts)))
+  (let ((string (concat (encode-coding-string
+                         (mapconcat #'identity parts " ")
+                         rcirc-encode-coding-system)
                         "\n")))
     (unless (rcirc--connection-open-p process)
       (error "Network connection to %s is not open"
@@ -888,13 +899,15 @@ used as the message body."
 (defun rcirc-send-privmsg (process target string)
   "Send TARGET the message in STRING via PROCESS."
   (cl-check-type target string)
-  (rcirc-send-string process (format "PRIVMSG %s :%s" target string)))
+  (rcirc-send-string process "PRIVMSG" target : string))
+
+(defun rcirc-ctcp-wrap (&rest args)
+  "Join ARGS into a string wrapped by ASCII 1 charterers."
+  (concat "\C-a" (string-join (delq nil args) " ") "\C-a"))
 
 (defun rcirc-send-ctcp (process target request &optional args)
   "Send TARGET a REQUEST via PROCESS."
-  (let ((args (if args (concat " " args) "")))
-    (rcirc-send-privmsg process target
-                        (format "\C-a%s%s\C-a" request args))))
+  (rcirc-send-privmsg process target (rcirc-ctcp-wrap request args)))
 
 (defun rcirc-buffer-process (&optional buffer)
   "Return the process associated with channel BUFFER.
@@ -953,7 +966,7 @@ If SILENT is non-nil, do not print the message in any irc buffer."
   (let ((response (if noticep "NOTICE" "PRIVMSG")))
     (rcirc-get-buffer-create process target)
     (dolist (msg (rcirc-split-message message))
-      (rcirc-send-string process (concat response " " target " :" msg))
+      (rcirc-send-string process response target : msg)
       (unless silent
 	(rcirc-print process (rcirc-nick process) response target msg)))))
 
@@ -1278,7 +1291,7 @@ with it."
       (rcirc-update-short-buffer-names)
       (if (rcirc-channel-p rcirc-target)
 	  (rcirc-send-string (rcirc-buffer-process)
-			     (concat "PART " rcirc-target " :" reason))
+                             "PART" rcirc-target : reason)
 	(when rcirc-target
 	  (rcirc-remove-nick-channel (rcirc-buffer-process)
 				     (rcirc-buffer-nick)
@@ -2309,7 +2322,7 @@ CHANNELS is a comma- or space-separated string of channel names."
                             (rcirc-get-buffer-create process ch))
                           split-channels))
          (channels (mapconcat 'identity split-channels ",")))
-    (rcirc-send-string process (concat "JOIN " channels))
+    (rcirc-send-string process "JOIN" channels)
     (when (not (eq (selected-window) (minibuffer-window)))
       (dolist (b buffers) ;; order the new channel buffers in the buffer list
         (switch-to-buffer b)))))
@@ -2322,7 +2335,7 @@ CHANNELS is a comma- or space-separated string of channel names."
 				  (with-rcirc-server-buffer rcirc-nick-table))
 		 " "
 		 (read-string "Channel: "))))
-  (rcirc-send-string process (concat "INVITE " nick-channel)))
+  (rcirc-send-string process "INVITE" nick-channel))
 
 (defun-rcirc-command part (channel)
   "Part CHANNEL.
@@ -2338,15 +2351,14 @@ to `rcirc-default-part-reason'."
       (setq channel (if (match-beginning 1)
                         (match-string 1 channel)
                       target)))
-    (rcirc-send-string process (concat "PART " channel " :" msg))))
+    (rcirc-send-string process "PART" channel : msg)))
 
 (defun-rcirc-command quit (reason)
   "Send a quit message to server with REASON."
   (interactive "sQuit reason: ")
-  (rcirc-send-string process (concat "QUIT :"
-				     (if (not (zerop (length reason)))
+  (rcirc-send-string process "QUIT" : (if (not (zerop (length reason)))
 					 reason
-                                       rcirc-default-quit-reason))))
+                                       rcirc-default-quit-reason)))
 
 (defun-rcirc-command reconnect (_)
   "Reconnect to current server."
@@ -2366,7 +2378,7 @@ to `rcirc-default-part-reason'."
   (interactive "i")
   (when (null nick)
     (setq nick (read-string "New nick: " (rcirc-nick process))))
-  (rcirc-send-string process (concat "NICK " nick)))
+  (rcirc-send-string process "NICK" nick))
 
 (defun-rcirc-command names (channel)
   "Display list of names in CHANNEL or in current channel if CHANNEL is nil.
@@ -2378,7 +2390,7 @@ If called interactively, prompt for a channel when prefix arg is supplied."
   (let ((channel (if (> (length channel) 0)
                      channel
                    target)))
-    (rcirc-send-string process (concat "NAMES " channel))))
+    (rcirc-send-string process "NAMES" channel)))
 
 (defun-rcirc-command topic (topic)
   "List TOPIC for the TARGET channel.
@@ -2386,32 +2398,32 @@ With a prefix arg, prompt for new topic."
   (interactive "P")
   (if (and (called-interactively-p 'interactive) topic)
       (setq topic (read-string "New Topic: " rcirc-topic)))
-  (rcirc-send-string process (concat "TOPIC " target
-                                     (when (> (length topic) 0)
-                                       (concat " :" topic)))))
+  (if (> (length topic) 0)
+      (rcirc-send-string process "TOPIC" : topic)
+    (rcirc-send-string process "TOPIC")))
 
 (defun-rcirc-command whois (nick)
   "Request information from server about NICK."
   (interactive (list
                 (completing-read "Whois: "
                                  (with-rcirc-server-buffer rcirc-nick-table))))
-  (rcirc-send-string process (concat "WHOIS " nick)))
+  (rcirc-send-string process "WHOIS" nick))
 
 (defun-rcirc-command mode (args)
   "Set mode with ARGS."
   (interactive (list (concat (read-string "Mode nick or channel: ")
                              " " (read-string "Mode: "))))
-  (rcirc-send-string process (concat "MODE " args)))
+  (rcirc-send-string process "MODE" args))
 
 (defun-rcirc-command list (channels)
   "Request information on CHANNELS from server."
   (interactive "sList Channels: ")
-  (rcirc-send-string process (concat "LIST " channels)))
+  (rcirc-send-string process "LIST" channels))
 
 (defun-rcirc-command oper (args)
   "Send operator command to server."
   (interactive "sOper args: ")
-  (rcirc-send-string process (concat "OPER " args)))
+  (rcirc-send-string process "OPER" args))
 
 (defun-rcirc-command quote (message)
   "Send MESSAGE literally to server."
@@ -2426,10 +2438,8 @@ With a prefix arg, prompt for new topic."
 					  (rcirc-buffer-process)
 					  rcirc-target))
                         (read-from-minibuffer "Kick reason: "))))
-  (let* ((arglist (split-string arg))
-         (argstring (concat (car arglist) " :"
-                            (mapconcat 'identity (cdr arglist) " "))))
-    (rcirc-send-string process (concat "KICK " target " " argstring))))
+  (let ((args (split-string arg)))
+    (rcirc-send-string process "KICK" target (car args) : (cdr args))))
 
 (defun rcirc-cmd-ctcp (args &optional process _target)
   "Handle ARGS as a CTCP command.
@@ -2943,8 +2953,7 @@ PROCESS is the process object for the current connection."
 ARGS should have the form (MESSAGE).  MESSAGE is relayed back to
 the server.  PROCESS is the process object for the current
 connection."
-  (rcirc-send-string process (concat "PONG :" (car args))))
-
+  (rcirc-send-string process "PONG" : (car args)))
 
 (defun rcirc-handler-PONG (_process _sender _args _text)
   "Ignore all incoming PONG messages.")
@@ -3187,10 +3196,8 @@ current connection."
 (defun rcirc-handler-ctcp-VERSION (process _target sender _message)
   "Handle a CTCP VERSION message from SENDER.
 PROCESS is the process object for the current connection."
-  (rcirc-send-string process
-                     (concat "NOTICE " sender
-                             " :\C-aVERSION " rcirc-id-string
-                             "\C-a")))
+  (rcirc-send-string process "NOTICE" sender :
+                     (rcirc-ctcp-wrap "VERSION" rcirc-id-string)))
 
 (defun rcirc-handler-ctcp-ACTION (process target sender message)
   "Handle a CTCP ACTION MESSAGE from SENDER to TARGET.
@@ -3200,9 +3207,8 @@ PROCESS is the process object for the current connection."
 (defun rcirc-handler-ctcp-TIME (process _target sender _message)
   "Respond to CTCP TIME message from SENDER.
 PROCESS is the process object for the current connection."
-  (rcirc-send-string process
-                     (concat "NOTICE " sender
-                             " :\C-aTIME " (current-time-string) "\C-a")))
+  (rcirc-send-string process "NOTICE" sender :
+                     (rcirc-ctcp-wrap "TIME" (current-time-string))))
 
 (defun rcirc-handler-CTCP-response (process _target sender message)
   "Handle CTCP response MESSAGE from SENDER.
