@@ -892,7 +892,7 @@ instead of sets, the process mark.
 
 +++
 *** New user option 'gnus-process-mark-toggle'.
-If non-nil (the default), the `#' command in the Group and Summary
+If non-nil (the default), the '#' command in the Group and Summary
 buffers will toggle, instead of set, the process mark.
 
 
@@ -1318,6 +1318,12 @@ it when producing a doc string.
 *** New command in 'shell-mode': 'narrow-to-prompt'.
 This is bound to 'C-x n d' in 'shell-mode' buffers, and narrows to the
 command line under point (and any following output).
+
+---
+*** New user option 'shell-has-auto-cd'.
+If non-nil, 'shell-mode' handles implicit "cd" commands, changing the
+directory if the command is a directory.  Useful for shells like "zsh"
+that has this feature.
 
 ** Eshell
 
