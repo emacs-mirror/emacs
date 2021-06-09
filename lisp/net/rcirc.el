@@ -579,6 +579,7 @@ See `rcirc-connect' for more details on these variables.")
   '("message-tags"                      ;https://ircv3.net/specs/extensions/message-tags
     "server-time"                       ;https://ircv3.net/specs/extensions/server-time
     "batch"                             ;https://ircv3.net/specs/extensions/batch
+    "message-ids"                       ;https://ircv3.net/specs/extensions/message-ids
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
@@ -1766,9 +1767,10 @@ connection."
           (save-excursion
             (save-restriction
               (narrow-to-region (point) (point))
-              (insert (rcirc-format-response-string process sender response
-                                                    nil text)
-                    (propertize "\n" 'hard t))
+              (insert (propertize (rcirc-format-response-string process sender response
+                                                              nil text)
+                                'rcirc-msgid (rcirc-get-tag "msgid"))
+		      (propertize "\n" 'hard t))
 
               ;; squeeze spaces out of text before rcirc-text
               (fill-region (point-min) (point-max))
