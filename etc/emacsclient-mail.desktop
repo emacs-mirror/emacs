@@ -5,7 +5,7 @@ Exec=sh -c 'exec emacsclient --alternate-editor= --display="$DISPLAY" --eval "(m
 Icon=emacs
 Name=Emacs (Mail, Client)
 MimeType=x-scheme-handler/mailto;
-NoDisplay=false
+NoDisplay=true
 Terminal=false
 Type=Application
 Actions=new-window;new-instance;
