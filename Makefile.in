@@ -742,6 +742,19 @@ install-etc:
 	  ${srcdir}/etc/emacsclient.desktop > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/$${client_name}.desktop"; \
 	rm -f $${tmp}
+	tmp=etc/emacs-mail.tmpdesktop; rm -f $${tmp}; \
+	sed -e "/^Exec=emacs/ s/emacs/${EMACS_NAME}/" \
+	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
+	  ${srcdir}/etc/emacs-mail.desktop > $${tmp}; \
+	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/${EMACS_NAME}-mail.desktop"; \
+	rm -f $${tmp}
+	tmp=etc/emacsclient-mail.tmpdesktop; rm -f $${tmp}; \
+	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
+	sed -e "/^Exec=emacsclient/ s|emacsclient|${bindir}/$${client_name}|" \
+	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
+	  ${srcdir}/etc/emacsclient-mail.desktop > $${tmp}; \
+	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/$${client_name}-mail.desktop"; \
+	rm -f $${tmp}
 	umask 022; ${MKDIR_P} "$(DESTDIR)${metainfodir}"
 	tmp=etc/emacs.tmpmetainfo; rm -f $${tmp}; \
 	sed -e "s/emacs\.desktop/${EMACS_NAME}.desktop/" \
