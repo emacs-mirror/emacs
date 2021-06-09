@@ -397,6 +397,24 @@ Regular expressions are strings in both perl-mode and cperl-mode."
     (search-forward "RIGHT")
     (should (nth 3 (syntax-ppss)))))
 
+(ert-deftest cperl-test-bug-25098 ()
+  "Verify that a quotelike operator is recognized after a fat comma \"=>\".
+Related, check that calling a method named q is not mistaken as a
+quotelike operator."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-25098.pl"))
+    (funcall cperl-test-mode)
+    (goto-char (point-min))
+    ;; good example from the bug report, with a space
+    (search-forward "q{")
+    (should (nth 3 (syntax-ppss)))
+    ;; bad (but now fixed) example from the bug report, without space
+    (search-forward "q{")
+    (should (nth 3 (syntax-ppss)))
+    ;; calling a method "q" (parens instead of braces to make it valid)
+    (search-forward "q(")
+    (should-not (nth 3 (syntax-ppss)))))
+
 (ert-deftest cperl-test-bug-28650 ()
   "Verify that regular expressions are recognized after 'return'.
 The test uses the syntax property \"inside a string\" for the

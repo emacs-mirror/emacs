@@ -285,7 +285,7 @@
              (put-text-property (match-beginning 2) (match-end 2)
                                 'syntax-table (string-to-syntax "\""))
              (perl-syntax-propertize-special-constructs end)))))
-      ("\\(^\\|[?:.,;=|&!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\(?:\\([^])}>= \n\t]\\)\\|\\(?3:=\\)[^>]\\)"
+      ("\\(^\\|[?:.,;=|&!~({[ \t]\\|=>\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\(?:\\([^])}>= \n\t]\\)\\|\\(?3:=\\)[^>]\\)"
        ;; Nasty cases:
        ;; /foo/m  $a->m  $#m $m @m %m
        ;; \s (appears often in regexps).
