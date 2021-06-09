@@ -2242,54 +2242,66 @@ prefix with another element in PAIRS."
 ;; the current buffer/channel/user, and ARGS, which is a string
 ;; containing the text following the /cmd.
 
-(defmacro defun-rcirc-command (command argument
-                                       docstring interactive-form
-			               &rest body)
-  "Define COMMAND that operates on ARGUMENT.
-This macro internally defines an interactive function, prefixing
-COMMAND with `rcirc-cmd-'.  DOCSTRING, INTERACTIVE-FORM and BODY
-are passed directly to `defun'."
-  `(progn
-     (add-to-list 'rcirc-client-commands ,(concat "/" (symbol-name command)))
-     (defun ,(intern (concat "rcirc-cmd-" (symbol-name command)))
-       (,@argument &optional process target)
-       ,(concat docstring "\n\nNote: If PROCESS or TARGET are nil, the values given"
-		"\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
-       ,interactive-form
-       (let ((process (or process (rcirc-buffer-process)))
-	     (target (or target rcirc-target)))
-         (ignore target)        ; mark `target' variable as ignorable
-	 ,@body))))
+(defmacro rcirc-define-command (command arguments &rest body)
+  "Define a new client COMMAND in BODY that takes ARGUMENTS.
+Just like `defun', a string at the beginning of BODY is
+interpreted as the documentation string.  Following that, an
+interactive form can specified."
+  (declare (debug (symbolp (&rest symbolp) def-body))
+           (indent defun))
+  (cl-check-type command symbol)
+  (cl-check-type arguments list)
+  (let ((fn-name (intern (concat "rcirc-cmd-" (symbol-name command))) )
+        (regexp (with-temp-buffer
+                  (insert "\\`")
+                  (when arguments
+                    (dotimes (_ (1- (length arguments)))
+                      (insert "\\(.+?\\)[[:space:]]*"))
+                    (insert "\\(.*\\)"))
+                  (insert "[[:space:]]*\\'")
+                  (buffer-string)))
+        (argument (gensym))
+        documentation
+        interactive-spec)
+    (when (stringp (car body))
+      (setq documentation (pop body)))
+    (when (eq (car-safe (car-safe body)) 'interactive)
+      (setq interactive-spec (cdr (pop body))))
+    `(progn
+       (defun ,fn-name (,argument &optional process target)
+         ,(concat documentation
+                  "\n\nNote: If PROCESS or TARGET are nil, the values given"
+		  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
+         (interactive ,@interactive-spec)
+         (unless (if (listp ,argument)
+                     (= (length ,argument) ,(length arguments))
+                   (string-match ,regexp ,argument))
+           (user-error "Malformed input: %S" ',arguments))
+         (let ((process (or process (rcirc-buffer-process)))
+	       (target (or target rcirc-target)))
+           (ignore target process)
+           (let (,@(cl-loop
+                    for i from 0 for arg in arguments
+                    collect `(,arg (if (listp ,argument)
+                                               (nth ,i ,argument)
+                                             (match-string ,(1+ i) ,argument)))))
+             ,@body)))
+       (add-to-list 'rcirc-client-commands ,(concat "/" (symbol-name command))))))
 
-(defun-rcirc-command msg (message)
-  "Send private MESSAGE to TARGET."
-  (interactive "i")
-  (if (null message)
-      (progn
-        (setq target (completing-read "Message nick: "
+(define-obsolete-function-alias
+  'defun-rcirc-command
+  'rcirc-define-command
+  "28.1")
+
+(rcirc-define-command msg (chan-or-nick message)
+  "Send MESSAGE to CHAN-OR-NICK."
+  (interactive (list (completing-read "Message nick: "
                                       (with-rcirc-server-buffer
-					rcirc-nick-table)))
-        (when (> (length target) 0)
-          (setq message (read-string (format "Message %s: " target)))
-          (when (> (length message) 0)
-            (rcirc-send-message process target message))))
-    (if (not (string-match "\\([^ ]+\\) \\(.+\\)" message))
-        (message "Not enough args, or something.")
-      (setq target (match-string 1 message)
-            message (match-string 2 message))
-      (rcirc-send-message process target message))))
+					rcirc-nick-table))
+                     (read-string "Message: ")))
+  (rcirc-send-message process chan-or-nick message))
 
-(defun-rcirc-command query (nick)
-  "Open a private chat buffer to NICK."
-  (interactive (list (completing-read "Query nick: "
-                                      (with-rcirc-server-buffer rcirc-nick-table))))
-  (let ((existing-buffer (rcirc-get-buffer process nick)))
-    (switch-to-buffer (or existing-buffer
-			  (rcirc-get-buffer-create process nick)))
-    (when (not existing-buffer)
-      (rcirc-cmd-whois nick))))
-
-(defun-rcirc-command join (channels)
+(rcirc-define-command join (channels)
   "Join CHANNELS.
 CHANNELS is a comma- or space-separated string of channel names."
   (interactive "sJoin channels: ")
@@ -2303,17 +2315,15 @@ CHANNELS is a comma- or space-separated string of channel names."
       (dolist (b buffers) ;; order the new channel buffers in the buffer list
         (switch-to-buffer b)))))
 
-(defun-rcirc-command invite (nick-channel)
+(rcirc-define-command invite (nick channel)
   "Invite NICK to CHANNEL."
   (interactive (list
-		(concat
-		 (completing-read "Invite nick: "
-				  (with-rcirc-server-buffer rcirc-nick-table))
-		 " "
-		 (read-string "Channel: "))))
-  (rcirc-send-string process "INVITE" nick-channel))
+                (completing-read "Invite nick: "
+				 (with-rcirc-server-buffer rcirc-nick-table))
+                (read-string "Channel: ")))
+  (rcirc-send-string process "INVITE" nick channel))
 
-(defun-rcirc-command part (channel)
+(rcirc-define-command part (channel)
   "Part CHANNEL.
 CHANNEL should be a string of the form \"#CHANNEL-NAME REASON\".
 If omitted, CHANNEL-NAME defaults to TARGET, and REASON defaults
@@ -2329,14 +2339,14 @@ to `rcirc-default-part-reason'."
                       target)))
     (rcirc-send-string process "PART" channel : msg)))
 
-(defun-rcirc-command quit (reason)
+(rcirc-define-command quit (reason)
   "Send a quit message to server with REASON."
   (interactive "sQuit reason: ")
   (rcirc-send-string process "QUIT" : (if (not (zerop (length reason)))
 					 reason
                                        rcirc-default-quit-reason)))
 
-(defun-rcirc-command reconnect (_)
+(rcirc-define-command reconnect (_)
   "Reconnect to current server."
   (interactive "i")
   (with-rcirc-server-buffer
@@ -2349,73 +2359,67 @@ to `rcirc-default-part-reason'."
 				  (mapcar #'car rcirc-buffer-alist)))
 	  (apply #'rcirc-connect conn-info))))))
 
-(defun-rcirc-command nick (nick)
+(rcirc-define-command nick (nick)
   "Change nick to NICK."
-  (interactive "i")
-  (when (null nick)
-    (setq nick (read-string "New nick: " (rcirc-nick process))))
+  (interactive (list (read-string "New nick: ")))
   (rcirc-send-string process "NICK" nick))
 
-(defun-rcirc-command names (channel)
+(rcirc-define-command names (channel)
   "Display list of names in CHANNEL or in current channel if CHANNEL is nil.
 If called interactively, prompt for a channel when prefix arg is supplied."
-  (interactive "P")
-  (if (called-interactively-p 'interactive)
-      (if channel
-          (setq channel (read-string "List names in channel: " target))))
+  (interactive (list (and current-prefix-arg
+                          (read-string "List names in channel: "))))
   (let ((channel (if (> (length channel) 0)
                      channel
                    target)))
     (rcirc-send-string process "NAMES" channel)))
 
-(defun-rcirc-command topic (topic)
+(rcirc-define-command topic (topic)
   "List TOPIC for the TARGET channel.
 With a prefix arg, prompt for new topic."
-  (interactive "P")
-  (if (and (called-interactively-p 'interactive) topic)
-      (setq topic (read-string "New Topic: " rcirc-topic)))
+  (interactive (list (and current-prefix-arg
+                          (read-string "List names in channel: "))))
   (if (> (length topic) 0)
       (rcirc-send-string process "TOPIC" : topic)
     (rcirc-send-string process "TOPIC")))
 
-(defun-rcirc-command whois (nick)
+(rcirc-define-command whois (nick)
   "Request information from server about NICK."
-  (interactive (list
-                (completing-read "Whois: "
-                                 (with-rcirc-server-buffer rcirc-nick-table))))
+  (interactive (list (completing-read
+                      "Whois: "
+                      (with-rcirc-server-buffer rcirc-nick-table))))
   (rcirc-send-string process "WHOIS" nick))
 
-(defun-rcirc-command mode (args)
-  "Set mode with ARGS."
-  (interactive (list (concat (read-string "Mode nick or channel: ")
-                             " " (read-string "Mode: "))))
-  (rcirc-send-string process "MODE" args))
+(rcirc-define-command mode (nick-or-chan mode)
+  "Set NICK-OR-CHAN mode to MODE."
+  (interactive (list (read-string "Mode nick or channel: ")
+                     (read-string "Mode: ")))
+  (rcirc-send-string process "MODE" nick-or-chan mode))
 
-(defun-rcirc-command list (channels)
+(rcirc-define-command list (channels)
   "Request information on CHANNELS from server."
   (interactive "sList Channels: ")
   (rcirc-send-string process "LIST" channels))
 
-(defun-rcirc-command oper (args)
+(rcirc-define-command oper (args)
   "Send operator command to server."
   (interactive "sOper args: ")
   (rcirc-send-string process "OPER" args))
 
-(defun-rcirc-command quote (message)
+(rcirc-define-command quote (message)
   "Send MESSAGE literally to server."
   (interactive "sServer message: ")
   (rcirc-send-string process message))
 
-(defun-rcirc-command kick (arg)
+(rcirc-define-command kick (nick reason)
   "Kick NICK from current channel."
   (interactive (list
-                (concat (completing-read "Kick nick: "
-                                         (rcirc-channel-nicks
-					  (rcirc-buffer-process)
-					  rcirc-target))
-                        (read-from-minibuffer "Kick reason: "))))
-  (let ((args (split-string arg)))
-    (rcirc-send-string process "KICK" target (car args) : (cdr args))))
+                (completing-read "Kick nick: "
+                                 (rcirc-channel-nicks
+				  (rcirc-buffer-process)
+				  rcirc-target))
+                (read-from-minibuffer "Kick reason: ")))
+  (rcirc-send-string process "KICK" target nick : reason))
 
 (defun rcirc-cmd-ctcp (args &optional process _target)
   "Handle ARGS as a CTCP command.
@@ -2451,7 +2455,7 @@ PROCESS is the process object for the current connection."
   set)
 
 
-(defun-rcirc-command ignore (nick)
+(rcirc-define-command ignore (nick)
   "Manage the ignore list.
 Ignore NICK, unignore NICK if already ignored, or list ignored
 nicks when no NICK is given.  When listing ignored nicks, the
@@ -2468,7 +2472,7 @@ ones added to the list automatically are marked with an asterisk."
 			      "*" "")))
 		rcirc-ignore-list " ")))
 
-(defun-rcirc-command bright (nick)
+(rcirc-define-command bright (nick)
   "Manage the bright nick list."
   (interactive "sToggle emphasis of nick: ")
   (setq rcirc-bright-nicks
@@ -2477,7 +2481,7 @@ ones added to the list automatically are marked with an asterisk."
   (rcirc-print process nil "BRIGHT" target
 	       (mapconcat 'identity rcirc-bright-nicks " ")))
 
-(defun-rcirc-command dim (nick)
+(rcirc-define-command dim (nick)
   "Manage the dim nick list."
   (interactive "sToggle deemphasis of nick: ")
   (setq rcirc-dim-nicks
@@ -2486,7 +2490,7 @@ ones added to the list automatically are marked with an asterisk."
   (rcirc-print process nil "DIM" target
 	       (mapconcat 'identity rcirc-dim-nicks " ")))
 
-(defun-rcirc-command keyword (keyword)
+(rcirc-define-command keyword (keyword)
   "Manage the keyword list.
 Mark KEYWORD, unmark KEYWORD if already marked, or list marked
 keywords when no KEYWORD is given."
