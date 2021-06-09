@@ -45,6 +45,7 @@
 (require 'ring)
 (require 'time-date)
 (require 'auth-source)
+(require 'parse-time)
 (eval-when-compile (require 'subr-x))
 (eval-when-compile (require 'rx))
 
@@ -573,6 +574,16 @@ See `rcirc-connect' for more details on these variables.")
 (defvar rcirc-process nil
   "Network process for the current connection.")
 
+;;; IRCv3 capability negotiation (https://ircv3.net/specs/extensions/capability-negotiation)
+(defvar rcirc-implemented-capabilities
+  '("message-tags"                      ;https://ircv3.net/specs/extensions/message-tags
+    )
+  "A list of capabilities that rcirc supports.")
+(defvar-local rcirc-requested-capabilities nil
+  "A list of capabilities that client has requested.")
+(defvar-local rcirc-acked-capabilities nil
+  "A list of capabilities that the server supports.")
+
 ;;;###autoload
 (defun rcirc-connect (server &optional port nick user-name
                              full-name startup-channels password encryption
@@ -628,6 +639,9 @@ that are joined after authentication."
       (add-hook 'auto-save-hook 'rcirc-log-write)
 
       ;; identify
+      (dolist (cap rcirc-implemented-capabilities)
+        (rcirc-send-string process "CAP" "REQ" : cap)
+        (push cap rcirc-requested-capabilities))
       (unless (zerop (length password))
         (rcirc-send-string process "PASS" password))
       (rcirc-send-string process "NICK" nick)
@@ -820,24 +834,74 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
     (rcirc-process-server-response-1 process text)))
 
 (defconst rcirc-process-regexp
-  ;; See https://tools.ietf.org/html/rfc2812#section-2.3.1.  We're a
-  ;; bit more accepting than the RFC: We allow any non-space
-  ;; characters in the command name, multiple spaces between
-  ;; arguments, and allow the last argument to omit the leading ":",
-  ;; even if there are less than 15 arguments.
-  (rx line-start
-      (optional
-       (group ":" (group (one-or-more (not (any " ")))) " "))
-      (group (one-or-more (not (any " ")))))
+  (rx-let ((message-tag ; message tags as specified in
+                        ; https://ircv3.net/specs/extensions/message-tags
+            (: (? "+")
+               (? (+ (or alnum "-")) (+ "." (+ (or alnum "-"))) "/")
+               (+ (any alnum "-"))
+               (? "="
+                  (* (not (any 0 ?\n ?\r ?\; ?\s)))))))
+    (rx line-start
+        (optional "@" (group message-tag (* ";" message-tag)) (+ space))
+        ;; See https://tools.ietf.org/html/rfc2812#section-2.3.1.
+        ;; We're a bit more accepting than the RFC: We allow any non-space
+        ;; characters in the command name, multiple spaces between
+        ;; arguments, and allow the last argument to omit the leading ":",
+        ;; even if there are less than 15 arguments.
+        (optional
+         (group ":" (group (one-or-more (not (any " ")))) " "))
+        (group (one-or-more (not (any " "))))))
   "Regular expression used for parsing server response.")
+
+(defconst rcirc-tag-regexp
+  (rx bos
+      (group
+       (? "+")
+       (? (+ (or alnum "-")) (+ "." (+ (or alnum "-"))) "/")
+       (+ (any alnum "-")))
+      (? "=" (group (* (not (any 0 ?\n ?\r ?\; ?\s)))))
+      eos)
+  "Regular expression used for destructing a tag.")
+
+(defvar rcirc-message-tags nil
+  "Alist of parsed message tags.")
+
+(defsubst rcirc-get-tag (key &optional default)
+  "Return tag value for KEY or DEFAULT."
+  (alist-get key rcirc-message-tags default nil #'string=))
 
 (defun rcirc-process-server-response-1 (process text)
   "Parse TEXT as received from PROCESS."
   (if (string-match rcirc-process-regexp text)
-      (let* ((user (match-string 2 text))
+      (let* ((rcirc-message-tags
+              (append
+               (and-let* ((tag-data (match-string 1 text)))
+                 (save-match-data
+                   (mapcar
+                    (lambda (tag)
+                      (unless (string-match rcirc-tag-regexp tag)
+                        ;; This should not happen, unless there is
+                        ;; a mismatch between this regular
+                        ;; expression and `rcirc-process-regexp'.
+                        (error "Malformed tag %S" tag))
+                      (cons (match-string 1 tag)
+                            (replace-regexp-in-string
+                             (rx (* ?\\ ?\\) ?\\ (any ?: ?s ?\\ ?r ?n))
+                             (lambda (rep)
+                               (concat (substring rep 0 -2)
+                                       (cl-case (aref rep (1- (length rep)))
+                                         (?:  ";")
+                                         (?s  " ")
+                                         (?\\ "\\\\")
+                                         (?r  "\r")
+                                         (?n  "\n"))))
+                             (match-string 2 tag))))
+                    (split-string tag-data ";"))))
+               rcirc-message-tags))
+             (user (match-string 3 text))
 	     (sender (rcirc-user-nick user))
-             (cmd (match-string 3 text))
-             (cmd-end (match-end 3))
+             (cmd (match-string 4 text))
+             (cmd-end (match-end 4))
              (args nil)
              (handler (intern-soft (concat "rcirc-handler-" cmd))))
         (cl-loop with i = cmd-end
@@ -3194,6 +3258,24 @@ PROCESS is the process object for the current connection."
   "Handle CTCP response MESSAGE from SENDER.
 PROCESS is the process object for the current connection."
   (rcirc-print process sender "CTCP" nil message t))
+
+(defun rcirc-handler-CAP (process _sender args _text)
+  "Handle capability negotiation messages.
+ARGS should have the form (USER SUBCOMMAND . ARGUMENTS).  PROCESS
+is the process object for the current connection."
+  (with-rcirc-process-buffer process
+    (let ((subcmd (cadr args)))
+      (dolist (cap (cddr args))
+        (cond ((string= subcmd "ACK")
+               (push cap rcirc-acked-capabilities)
+               (setq rcirc-requested-capabilities
+                     (delete cap rcirc-requested-capabilities)))
+              ((string= subcmd "NAK")
+               (setq rcirc-requested-capabilities
+                     (delete cap rcirc-requested-capabilities))))))
+    (when (null rcirc-requested-capabilities)
+      ;; All requested capabilities have been responded to
+      (rcirc-send-string process "CAP" "END"))))
 
 
 (defgroup rcirc-faces nil
