@@ -1023,49 +1023,29 @@ The list is updated automatically by `defun-rcirc-command'.")
 		     (if (re-search-backward "[[:space:]@]" rcirc-prompt-end-marker t)
 			 (1+ (point))
 		       rcirc-prompt-end-marker)))
-	      (table (if (and (= beg rcirc-prompt-end-marker)
-			      (eq (char-after beg) ?/))
-			 (delete-dups
-			  (nconc (sort (copy-sequence rcirc-client-commands)
-				       'string-lessp)
-				 (sort (copy-sequence rcirc-server-commands)
-				       'string-lessp)))
-		       (rcirc-channel-nicks (rcirc-buffer-process)
-					    rcirc-target))))
+	      (table (cond
+                      ;; No completion before the prompt
+                      ((<  beg rcirc-prompt-end-marker) nil)
+                      ;; Only complete nicks mid-message
+                      ((> beg rcirc-prompt-end-marker)
+                       (rcirc-channel-nicks (rcirc-buffer-process)
+					    rcirc-target))
+                      ;; Complete commands at the beginning of the
+                      ;; message, when the first character is a dash
+                      ((eq (char-after beg) ?/)
+                       (mapcar
+                        (lambda (cmd) (concat cmd " "))
+                        (nconc (sort (copy-sequence rcirc-client-commands)
+				     'string-lessp)
+			       (sort (copy-sequence rcirc-server-commands)
+				     'string-lessp))))
+                      ;; Complete usernames right after the prompt by
+                      ;; appending a colon after the name
+                      ((mapcar
+                        (lambda (str) (concat str ": "))
+                        (rcirc-channel-nicks (rcirc-buffer-process)
+					     rcirc-target))))))
 	 (list beg (point) table))))
-
-(defvar rcirc-completions nil
-  "List of possible completions to cycle through.")
-
-(defvar rcirc-completion-start nil
-  "Point indicating where completion starts.")
-
-(defun rcirc-complete ()
-  "Cycle through completions from list of nicks in channel or IRC commands.
-IRC command completion is performed only if `/' is the first input char."
-  (interactive)
-  (unless (rcirc-looking-at-input)
-    (error "Point not located after rcirc prompt"))
-  (if (eq last-command this-command)
-      (setq rcirc-completions
-	    (append (cdr rcirc-completions) (list (car rcirc-completions))))
-    (let ((completion-ignore-case t)
-	  (table (rcirc-completion-at-point)))
-      (setq rcirc-completion-start (car table))
-      (setq rcirc-completions
-	    (and rcirc-completion-start
-		 (all-completions (buffer-substring rcirc-completion-start
-						    (cadr table))
-				  (nth 2 table))))))
-  (let ((completion (car rcirc-completions)))
-    (when completion
-      (delete-region rcirc-completion-start (point))
-      (insert
-       (cond
-        ((= (aref completion 0) ?/) (concat completion " "))
-        ((= rcirc-completion-start rcirc-prompt-end-marker)
-         (format rcirc-nick-completion-format completion))
-        (t completion))))))
 
 (defun set-rcirc-decode-coding-system (coding-system)
   "Set the decode CODING-SYSTEM used in this channel."
@@ -1082,7 +1062,7 @@ IRC command completion is performed only if `/' is the first input char."
     (define-key map (kbd "RET") 'rcirc-send-input)
     (define-key map (kbd "M-p") 'rcirc-insert-prev-input)
     (define-key map (kbd "M-n") 'rcirc-insert-next-input)
-    (define-key map (kbd "TAB") 'rcirc-complete)
+    (define-key map (kbd "TAB") 'completion-at-point)
     (define-key map (kbd "C-c C-b") 'rcirc-browse-url)
     (define-key map (kbd "C-c C-c") 'rcirc-edit-multiline)
     (define-key map (kbd "C-c C-j") 'rcirc-cmd-join)
@@ -1195,6 +1175,7 @@ This number is independent of the number of lines in the buffer.")
 
   (add-hook 'completion-at-point-functions
             'rcirc-completion-at-point nil 'local)
+  (setq-local completion-cycle-threshold t)
 
   (run-mode-hooks 'rcirc-mode-hook))
 
