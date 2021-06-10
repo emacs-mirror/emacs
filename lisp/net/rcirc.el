@@ -194,7 +194,7 @@ If nil, no maximum is applied."
   "Responses which will be hidden when `rcirc-omit-mode' is enabled."
   :type '(repeat string))
 
-(defvar rcirc-prompt-start-marker nil
+(defvar-local rcirc-prompt-start-marker nil
   "Marker indicating the beginning of the message prompt.")
 
 (define-minor-mode rcirc-omit-mode
@@ -396,16 +396,16 @@ will be killed."
   :version "28.1"
   :type 'function)
 
-(defvar rcirc-nick nil
+(defvar-local rcirc-nick nil
   "The nickname used for the current connection.")
 
-(defvar rcirc-prompt-end-marker nil
+(defvar-local rcirc-prompt-end-marker nil
   "Marker indicating the end of the message prompt.")
 
-(defvar rcirc-nick-table nil
+(defvar-local rcirc-nick-table nil
   "Hash table mapping nicks to channels.")
 
-(defvar rcirc-recent-quit-alist nil
+(defvar-local rcirc-recent-quit-alist nil
   "Alist of nicks that have recently quit or parted the channel.")
 
 (defvar rcirc-nick-syntax-table
@@ -416,7 +416,7 @@ will be killed."
     table)
   "Syntax table which includes all nick characters as word constituents.")
 
-(defvar rcirc-buffer-alist nil
+(defvar-local rcirc-buffer-alist nil
   "Alist of (TARGET . BUFFER) pairs.")
 
 (defvar rcirc-activity nil
@@ -426,16 +426,16 @@ will be killed."
   "String displayed in mode line representing `rcirc-activity'.")
 (put 'rcirc-activity-string 'risky-local-variable t)
 
-(defvar rcirc-server-buffer nil
+(defvar-local rcirc-server-buffer nil
   "The server buffer associated with this channel buffer.")
 
-(defvar rcirc-server-parameters nil
+(defvar-local rcirc-server-parameters nil
   "List of parameters received from the server.")
 
-(defvar rcirc-target nil
+(defvar-local rcirc-target nil
   "The channel or user associated with this buffer.")
 
-(defvar rcirc-urls nil
+(defvar-local rcirc-urls nil
   "List of URLs seen in the current buffer and their start positions.")
 (put 'rcirc-urls 'permanent-local t)
 
@@ -443,7 +443,7 @@ will be killed."
   "Kill connection after this many seconds if there is no activity.")
 
 
-(defvar rcirc-startup-channels nil
+(defvar-local rcirc-startup-channels nil
   "List of channel names to join after authenticating.")
 
 (defvar rcirc-server-name-history nil
@@ -551,32 +551,32 @@ If ARG is non-nil, instead prompt for connection parameters."
 (defalias 'irc 'rcirc)
 
 
-(defvar rcirc-process-output nil
+(defvar-local rcirc-process-output nil
   "Partial message response.")
-(defvar rcirc-topic nil
+(defvar-local rcirc-topic nil
   "Topic of the current channel.")
 (defvar rcirc-keepalive-timer nil
   "Timer for sending KEEPALIVE message.")
-(defvar rcirc-last-server-message-time nil
+(defvar-local rcirc-last-server-message-time nil
   "Timestamp for the last server response.")
-(defvar rcirc-server nil
+(defvar-local rcirc-server nil
   "Server provided by server.")
-(defvar rcirc-server-name nil
+(defvar-local rcirc-server-name nil
   "Server name given by 001 response.")
-(defvar rcirc-timeout-timer nil
+(defvar-local rcirc-timeout-timer nil
   "Timer for determining a network timeout.")
-(defvar rcirc-user-authenticated nil
+(defvar-local rcirc-user-authenticated nil
   "Flag indicating if the user is authenticated.")
-(defvar rcirc-user-disconnect nil
+(defvar-local rcirc-user-disconnect nil
   "Flag indicating if the connection was broken.")
-(defvar rcirc-connecting nil
+(defvar-local rcirc-connecting nil
   "Flag indicating if the connection is being established.")
-(defvar rcirc-connection-info nil
+(defvar-local rcirc-connection-info nil
   "Information about the current connection.
 If defined, it is a list of this form (SERVER PORT NICK USER-NAME
 FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION SERVER-ALIAS).
 See `rcirc-connect' for more details on these variables.")
-(defvar rcirc-process nil
+(defvar-local rcirc-process nil
   "Network process for the current connection.")
 
 ;;; IRCv3 capability negotiation (https://ircv3.net/specs/extensions/capability-negotiation)
@@ -626,25 +626,18 @@ that are joined after authentication."
       (set-process-sentinel process 'rcirc-sentinel)
       (set-process-filter process 'rcirc-filter)
 
-      (setq-local rcirc-connection-info
-		  (list server port nick user-name full-name startup-channels
-			password encryption server-alias))
-      (setq-local rcirc-process process)
-      (setq-local rcirc-server server)
-      (setq-local rcirc-server-name
-                  (or server-alias server)) ; Update when we get 001 response.
-      (setq-local rcirc-buffer-alist nil)
-      (setq-local rcirc-nick-table (make-hash-table :test 'equal))
-      (setq-local rcirc-nick nick)
-      (setq-local rcirc-process-output nil)
-      (setq-local rcirc-startup-channels startup-channels)
-      (setq-local rcirc-last-server-message-time (current-time))
+      (setq rcirc-connection-info
+	    (list server port nick user-name full-name startup-channels
+		  password encryption server-alias))
+      (setq rcirc-process process)
+      (setq rcirc-server server)
+      (setq rcirc-server-name (or server-alias server)) ; Update when we get 001 response.
+      (setq rcirc-nick-table (make-hash-table :test 'equal))
+      (setq rcirc-nick nick)
+      (setq rcirc-startup-channels startup-channels)
+      (setq rcirc-last-server-message-time (current-time))
 
-      (setq-local rcirc-timeout-timer nil)
-      (setq-local rcirc-user-disconnect nil)
-      (setq-local rcirc-user-authenticated nil)
-      (setq-local rcirc-connecting t)
-      (setq-local rcirc-server-parameters nil)
+      (setq rcirc-connecting t)
 
       (add-hook 'auto-save-hook 'rcirc-log-write)
 
@@ -756,7 +749,7 @@ When 0, do not auto-reconnect."
   :version "25.1"
   :type 'integer)
 
-(defvar rcirc-last-connect-time nil
+(defvar-local rcirc-last-connect-time nil
   "The last time the buffer was connected.")
 
 (defun rcirc-sentinel (process sentinel)
@@ -1070,10 +1063,10 @@ If SILENT is non-nil, do not print the message in any irc buffer."
       (unless silent
 	(rcirc-print process (rcirc-nick process) response target msg)))))
 
-(defvar rcirc-input-ring nil
+(defvar-local rcirc-input-ring nil
   "Ring object for input.")
 
-(defvar rcirc-input-ring-index 0
+(defvar-local rcirc-input-ring-index 0
   "Current position in the input ring.")
 
 (defun rcirc-prev-input-string (arg)
@@ -1187,20 +1180,20 @@ The list is updated automatically by `defun-rcirc-command'.")
     map)
   "Keymap for rcirc mode.")
 
-(defvar rcirc-short-buffer-name nil
+(defvar-local rcirc-short-buffer-name nil
   "Generated abbreviation to use to indicate buffer activity.")
 
 (defvar rcirc-mode-hook nil
   "Hook run when setting up rcirc buffer.")
 
-(defvar rcirc-last-post-time nil
+(defvar-local rcirc-last-post-time nil
   "Timestamp indicating last user action.")
 
 (defvar rcirc-log-alist nil
   "Alist of lines to log to disk when `rcirc-log-flag' is non-nil.
 Each element looks like (FILENAME . TEXT).")
 
-(defvar rcirc-current-line 0
+(defvar-local rcirc-current-line 0
   "The current number of responses printed in this channel.
 This number is independent of the number of lines in the buffer.")
 
@@ -1215,7 +1208,7 @@ This number is independent of the number of lines in the buffer.")
   (setq major-mode 'rcirc-mode)
   (setq mode-line-process nil)
 
-  (setq-local rcirc-input-ring
+  (setq rcirc-input-ring
 	      ;; If rcirc-input-ring is already a ring with desired
 	      ;; size do not re-initialize.
 	      (if (and (ring-p rcirc-input-ring)
@@ -1223,18 +1216,14 @@ This number is independent of the number of lines in the buffer.")
 			  rcirc-input-ring-size))
 		  rcirc-input-ring
 		(make-ring rcirc-input-ring-size)))
-  (setq-local rcirc-server-buffer (process-buffer process))
-  (setq-local rcirc-target target)
-  (setq-local rcirc-topic nil)
-  (setq-local rcirc-last-post-time (current-time))
+  (setq rcirc-server-buffer (process-buffer process))
+  (setq rcirc-target target)
+  (setq rcirc-last-post-time (current-time))
   (setq-local fill-paragraph-function 'rcirc-fill-paragraph)
-  (setq-local rcirc-recent-quit-alist nil)
-  (setq-local rcirc-current-line 0)
-  (setq-local rcirc-last-connect-time (current-time))
+  (setq rcirc-current-line 0)
+  (setq rcirc-last-connect-time (current-time))
 
   (use-hard-newlines t)
-  (setq-local rcirc-short-buffer-name nil)
-  (setq-local rcirc-urls nil)
 
   ;; setup for omitting responses
   (setq buffer-invisibility-spec '())
@@ -1255,8 +1244,8 @@ This number is independent of the number of lines in the buffer.")
 		    (if (consp (cdr i)) (cddr i) (cdr i))))))
 
   ;; setup the prompt and markers
-  (setq-local rcirc-prompt-start-marker (point-max-marker))
-  (setq-local rcirc-prompt-end-marker (point-max-marker))
+  (setq rcirc-prompt-start-marker (point-max-marker))
+  (setq rcirc-prompt-end-marker (point-max-marker))
   (rcirc-update-prompt)
   (goto-char rcirc-prompt-end-marker)
 
