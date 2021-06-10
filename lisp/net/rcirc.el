@@ -194,6 +194,17 @@ If nil, no maximum is applied."
   "Responses which will be hidden when `rcirc-omit-mode' is enabled."
   :type '(repeat string))
 
+(defcustom rcirc-omit-after-reconnect
+  '("JOIN" "TOPIC" "NAMES")
+  "Types of messages to hide right after reconnecting."
+  :type '(repeat string)
+  :version "28.1")
+
+(defvar-local rcirc-reconncting nil
+  "Non-nil means we have just reconnected.
+This is used to hide the message types enumerated in
+`rcirc-supress-after-reconnect'.")
+
 (defvar-local rcirc-prompt-start-marker nil
   "Marker indicating the beginning of the message prompt.")
 
@@ -1795,7 +1806,10 @@ connection."
               ;; make text omittable
 	      (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
 		(if (and (not (string= (rcirc-nick process) sender))
-			 (member response rcirc-omit-responses)
+			 (or (member response rcirc-omit-responses)
+                             (if (member response rcirc-omit-after-reconnect)
+                                 rcirc-reconncting
+                               (setq rcirc-reconncting nil)))
 			 (or (not last-activity-lines)
 			     (< rcirc-omit-threshold last-activity-lines)))
                   (put-text-property (point-min) (point-max)
@@ -2465,6 +2479,9 @@ to `rcirc-default-part-reason'."
 	  (setf (nth 5 conn-info)
 		(cl-remove-if-not #'rcirc-channel-p
 				  (mapcar #'car rcirc-buffer-alist)))
+          (dolist (buf (nth 5 conn-info))
+            (with-current-buffer (cdr (assoc buf rcirc-buffer-alist))
+              (setq rcirc-reconncting t)))
 	  (apply #'rcirc-connect conn-info))))))
 
 (rcirc-define-command nick (nick)
