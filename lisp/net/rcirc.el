@@ -621,7 +621,8 @@ that are joined after authentication."
       (set-process-coding-system process 'raw-text 'raw-text)
       (switch-to-buffer (rcirc-generate-new-buffer-name process nil))
       (set-process-buffer process (current-buffer))
-      (rcirc-mode process nil)
+      (unless (eq major-mode 'rcirc-mode)
+        (rcirc-mode process nil))
       (set-process-sentinel process 'rcirc-sentinel)
       (set-process-filter process 'rcirc-filter)
 
@@ -662,6 +663,7 @@ that are joined after authentication."
 	      (run-at-time 0 (/ rcirc-timeout-seconds 2) 'rcirc-keepalive)))
 
       (message "Connecting to %s...done" (or server-alias server))
+      (setq mode-line-process nil)
 
       ;; return process object
       process)))
@@ -1412,9 +1414,11 @@ Create the buffer if it doesn't exist."
 	(let ((new-buffer (get-buffer-create
 			   (rcirc-generate-new-buffer-name process target))))
 	  (with-current-buffer new-buffer
-	    (rcirc-mode process target)
+            (unless (eq major-mode 'rcirc-mode)
+	      (rcirc-mode process target)))
+            (setq mode-line-process nil)
 	    (rcirc-put-nick-channel process (rcirc-nick process) target
-				    rcirc-current-line))
+				    rcirc-current-line)
 	  new-buffer)))))
 
 (defun rcirc-send-input ()
