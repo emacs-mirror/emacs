@@ -6399,7 +6399,7 @@ mercury_decl (char *s, size_t pos)
     {
       if (strcmp (buf, "pred") != 0 && strcmp (buf, "func") != 0) /* Bad syntax.  */
 	return 0;
-      is_mercury_quantifier = false; /* Beset to base value.  */
+      is_mercury_quantifier = false; /* Reset to base value.  */
       found_decl_tag = true;
     }
   else
@@ -6530,7 +6530,7 @@ mercury_pr (char *s, char *last, ptrdiff_t lastlen)
       len0 = skip_spaces (s + 2) - s;
     }
 
-  size_t len = mercury_decl (s , len0);
+  size_t len = mercury_decl (s, len0);
   if (len == 0) return 0;
   len += len0;
 
@@ -6545,7 +6545,22 @@ mercury_pr (char *s, char *last, ptrdiff_t lastlen)
 	 the first line.  */
       || is_mercury_type)
     {
-      make_tag (s, 0, true, s, len, lineno, linecharno);
+      char *name = skip_non_spaces (s + len0);
+      size_t namelen;
+      if (name >= s + len)
+	{
+	  name = s;
+	  namelen = len;
+	}
+      else
+	{
+	  name = skip_spaces (name);
+	  namelen = len - (name - s);
+	}
+      /* Remove trailing non-name characters.  */
+      while (namelen > 0 && notinname (name[namelen - 1]))
+	namelen--;
+      make_tag (name, namelen, true, s, len, lineno, linecharno);
       return len;
     }
 
