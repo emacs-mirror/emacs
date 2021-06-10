@@ -605,6 +605,17 @@ These options include 'windmove-default-keybindings',
 ** Windows
 
 +++
+*** New option 'delete-window-set-selected'.
+This allows to choose a frame's selected window after deleting the
+previously selected one.
+
++++
+*** New argument NO-OTHER for some window functions.
+'get-lru-window', ‘get-mru-window’ and 'get-largest-window' now accept a
+new optional argument NO-OTHER which if non-nil avoids returning a
+window whose 'no-other-window' parameter is non-nil.
+
++++
 *** New 'display-buffer' function 'display-buffer-use-least-recent-window'.
 This is like 'display-buffer-use-some-window', but won't reuse the
 current window, and when called repeatedly will try not to reuse a
