@@ -2363,25 +2363,33 @@ prefix with another element in PAIRS."
 
 (defmacro rcirc-define-command (command arguments &rest body)
   "Define a new client COMMAND in BODY that takes ARGUMENTS.
-Just like `defun', a string at the beginning of BODY is
-interpreted as the documentation string.  Following that, an
-interactive form can specified."
+ARGUMENTS may designate optional arguments using a single
+`&optional' symbol.  Just like `defun', a string at the beginning
+of BODY is interpreted as the documentation string.  Following
+that, an interactive form can specified."
   (declare (debug (symbolp (&rest symbolp) def-body))
            (indent defun))
   (cl-check-type command symbol)
   (cl-check-type arguments list)
-  (let ((fn-name (intern (concat "rcirc-cmd-" (symbol-name command))) )
-        (regexp (with-temp-buffer
-                  (insert "\\`")
-                  (when arguments
-                    (dotimes (_ (1- (length arguments)))
-                      (insert "\\(.+?\\)[[:space:]]*"))
-                    (insert "\\(.*\\)"))
-                  (insert "[[:space:]]*\\'")
-                  (buffer-string)))
-        (argument (gensym))
-        documentation
-        interactive-spec)
+  (let* ((fn-name (intern (concat "rcirc-cmd-" (symbol-name command))))
+         (total (length (remq '&optional arguments)))
+         (required (- (length arguments) (length (memq '&optional arguments))))
+         (optional (- total required))
+         (regexp (with-temp-buffer
+                   (insert "\\`")
+                   (when arguments
+                     (dotimes (_ (1- (length arguments)))
+                       (insert "\\(?:\\(.+?\\)[[:space:]]*"))
+                     (insert "\\(.*\\)")
+                     (dotimes (i (1- (length arguments)))
+                       (when (< i optional)
+                         (insert "?"))
+                       (insert "\\)")))
+                   (insert "[[:space:]]*\\'")
+                   (buffer-string)))
+         (argument (gensym))
+         documentation
+         interactive-spec)
     (when (stringp (car body))
       (setq documentation (pop body)))
     (when (eq (car-safe (car-safe body)) 'interactive)
@@ -2393,17 +2401,17 @@ interactive form can specified."
 		  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
          (interactive ,@interactive-spec)
          (unless (if (listp ,argument)
-                     (= (length ,argument) ,(length arguments))
+                     (not (<= ,required (length ,argument) ,total))
                    (string-match ,regexp ,argument))
            (user-error "Malformed input: %S" ',arguments))
          (let ((process (or process (rcirc-buffer-process)))
 	       (target (or target rcirc-target)))
            (ignore target process)
            (let (,@(cl-loop
-                    for i from 0 for arg in arguments
+                    for i from 0 for arg in (delq '&optional arguments)
                     collect `(,arg (if (listp ,argument)
-                                               (nth ,i ,argument)
-                                             (match-string ,(1+ i) ,argument)))))
+                                       (nth ,i ,argument)
+                                     (match-string ,(1+ i) ,argument)))))
              ,@body)))
        (add-to-list 'rcirc-client-commands ,(concat "/" (symbol-name command))))))
 
@@ -2442,30 +2450,22 @@ CHANNELS is a comma- or space-separated string of channel names."
                 (read-string "Channel: ")))
   (rcirc-send-string process "INVITE" nick channel))
 
-(rcirc-define-command part (channel)
+(rcirc-define-command part (&optional channel reason)
   "Part CHANNEL.
 CHANNEL should be a string of the form \"#CHANNEL-NAME REASON\".
 If omitted, CHANNEL-NAME defaults to TARGET, and REASON defaults
 to `rcirc-default-part-reason'."
-  (interactive "sPart channel: ")
-  (let ((channel (if (> (length channel) 0) channel target))
-        (msg rcirc-default-part-reason))
-    (when (string-match "\\`\\([&#+!]\\S-+\\)?\\s-*\\(.+\\)?\\'" channel)
-      (when (match-beginning 2)
-        (setq msg (match-string 2 channel)))
-      (setq channel (if (match-beginning 1)
-                        (match-string 1 channel)
-                      target)))
-    (rcirc-send-string process "PART" channel : msg)))
+  (interactive "sPart channel: \nsReason: ")
+  (rcirc-send-string process "PART" (or channel target)
+                     : (or reason rcirc-default-part-reason)))
 
-(rcirc-define-command quit (reason)
+(rcirc-define-command quit (&optional reason)
   "Send a quit message to server with REASON."
   (interactive "sQuit reason: ")
-  (rcirc-send-string process "QUIT" : (if (not (zerop (length reason)))
-					 reason
-                                       rcirc-default-quit-reason)))
+  (rcirc-send-string process "QUIT"
+                     : (or reason rcirc-default-quit-reason)))
 
-(rcirc-define-command reconnect (_)
+(rcirc-define-command reconnect ()
   "Reconnect to current server."
   (interactive "i")
   (with-rcirc-server-buffer
@@ -2483,15 +2483,12 @@ to `rcirc-default-part-reason'."
   (interactive (list (read-string "New nick: ")))
   (rcirc-send-string process "NICK" nick))
 
-(rcirc-define-command names (channel)
+(rcirc-define-command names (&optional channel)
   "Display list of names in CHANNEL or in current channel if CHANNEL is nil.
 If called interactively, prompt for a channel when prefix arg is supplied."
   (interactive (list (and current-prefix-arg
                           (read-string "List names in channel: "))))
-  (let ((channel (if (> (length channel) 0)
-                     channel
-                   target)))
-    (rcirc-send-string process "NAMES" channel)))
+  (rcirc-send-string process "NAMES" (or channel target)))
 
 (rcirc-define-command topic (topic)
   "List TOPIC for the TARGET channel.
