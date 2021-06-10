@@ -359,7 +359,11 @@ ns_update_menubar (struct frame *f, bool deep_p)
         {
           NSString *titleStr = [NSString stringWithUTF8String: wv->name];
           NSMenuItem *item = (NSMenuItem *)[menu itemAtIndex:i];
-          submenu = (EmacsMenu*)[item submenu];
+          submenu = (EmacsMenu *)[item submenu];
+
+#ifdef NS_IMPL_GNUSTEP
+          [submenu close];
+#endif
 
           [item setTitle:titleStr];
           [submenu setTitle:titleStr];
@@ -382,6 +386,12 @@ ns_update_menubar (struct frame *f, bool deep_p)
   while (i < [menu numberOfItems])
     {
       /* Remove any extra items.  */
+#ifdef NS_IMPL_GNUSTEP
+      NSMenuItem *item = (NSMenuItem *)[menu itemAtIndex:i];
+      EmacsMenu *submenu = (EmacsMenu *)[item submenu];
+      [submenu close];
+#endif
+
       [menu removeItemAtIndex:i];
     }
 
@@ -715,20 +725,38 @@ prettify_key (const char *key)
 }
 
 #ifdef NS_IMPL_GNUSTEP
+- (void) close
+{
+    /* Close all the submenus.  This has the unfortunate side-effect of
+     breaking tear-off menus, however if we don't do this then we get
+     a crash when the menus are removed during updates.  */
+  for (int i = 0 ; i < [self numberOfItems] ; i++)
+    {
+      NSMenuItem *item = [self itemAtIndex:i];
+      if ([item hasSubmenu])
+        [(EmacsMenu *)[item submenu] close];
+    }
+
+  [super close];
+}
+
 /* GNUstep seems to have a number of required methods in
    NSMenuDelegate that are optional in Cocoa.  */
 
 - (void) menuWillOpen:(NSMenu *)menu
 {
 }
+
 - (void) menuDidClose:(NSMenu *)menu
 {
 }
+
 - (NSRect)confinementRectForMenu:(NSMenu *)menu
                         onScreen:(NSScreen *)screen
 {
   return NSZeroRect;
 }
+
 - (void)menu:(NSMenu *)menu willHighlightItem:(NSMenuItem *)item
 {
 }
