@@ -562,13 +562,6 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          `(catch ,(byte-optimize-form tag nil)
             . ,(byte-optimize-body exps for-effect))))
 
-      (`(ignore . ,exps)
-       ;; Don't treat the args to `ignore' as being
-       ;; computed for effect.  We want to avoid the warnings
-       ;; that might occur if they were treated that way.
-       ;; However, don't actually bother calling `ignore'.
-       `(progn ,@(mapcar #'byte-optimize-form exps) nil))
-
       ;; Needed as long as we run byte-optimize-form after cconv.
       (`(internal-make-closure . ,_)
        ;; Look up free vars and mark them to be kept, so that they
@@ -1419,7 +1412,9 @@ See Info node `(elisp) Integer Basics'."
 	 fixnump floatp following-char framep
 	 get-largest-window get-lru-window
 	 hash-table-p
-	 identity ignore integerp integer-or-marker-p interactive-p
+         ;; `ignore' isn't here because we don't want calls to it elided;
+         ;; see `byte-compile-ignore'.
+	 identity integerp integer-or-marker-p interactive-p
 	 invocation-directory invocation-name
 	 keymapp keywordp
 	 list listp
