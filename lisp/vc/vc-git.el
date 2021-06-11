@@ -127,9 +127,9 @@ If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
 		 (repeat :tag "Argument List" :value ("") string))
   :version "25.1")
 
-(defcustom vc-git-log-switches t
+(defcustom vc-git-log-switches nil
   "String or list of strings specifying switches for Git log under VC."
-  :type '(choice (const :tag "None" t)
+  :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
   :version "28.1")
@@ -1171,10 +1171,10 @@ If LIMIT is a revision string, use it as an end-revision."
 		(when shortlog
 		  `("--graph" "--decorate" "--date=short"
                     ,(format "--pretty=tformat:%s"
-			     (car vc-git-root-log-format))
-		    "--abbrev-commit"))
-                (vc-switches 'git 'log)
-		(when (numberp limit)
+                             (car vc-git-root-log-format))
+                    "--abbrev-commit"))
+                vc-git-log-switches
+                (when (numberp limit)
                   (list "-n" (format "%s" limit)))
 		(when start-revision
                   (if (and limit (not (numberp limit)))
