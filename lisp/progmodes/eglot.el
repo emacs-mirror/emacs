@@ -104,7 +104,8 @@ argument."
   (lambda (&optional interactive)
     (let* ((listified (cl-loop for a in alternatives
                                collect (if (listp a) a (list a))))
-           (available (cl-remove-if-not #'executable-find listified :key #'car)))
+           (available (cl-remove-if-not (lambda (a) (eglot--executable-find a t))
+                                        listified :key #'car)))
       (cond ((and interactive (cdr available))
              (let ((chosen (completing-read
                             "[eglot] More than one server executable available:"
