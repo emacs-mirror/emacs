@@ -37,8 +37,7 @@
   "Return the time in seconds elapsed for execution of FORMS."
   (declare (indent 0) (debug t))
   (let ((t1 (make-symbol "t1")))
-    `(let (,t1)
-       (setq ,t1 (current-time))
+    `(let ((,t1 (current-time)))
        ,@forms
        (float-time (time-since ,t1)))))
 
