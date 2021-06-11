@@ -3752,13 +3752,17 @@ the message given by REASON."
       (setq buffer (current-buffer)))
     (with-current-buffer buffer
       (setq erc-server-quitting nil)
-      (setq erc-server-reconnecting t)
+      (with-suppressed-warnings ((obsolete erc-server-reconnecting))
+        (setq erc-server-reconnecting t))
+      (setq erc--server-reconnecting t)
       (setq erc-server-reconnect-count 0)
       (setq process (get-buffer-process (erc-server-buffer)))
       (if process
           (delete-process process)
         (erc-server-reconnect))
-      (setq erc-server-reconnecting nil)))
+      (with-suppressed-warnings ((obsolete erc-server-reconnecting))
+        (setq erc-server-reconnecting nil))
+      (setq erc--server-reconnecting nil)))
   t)
 (put 'erc-cmd-RECONNECT 'process-not-needed t)
 

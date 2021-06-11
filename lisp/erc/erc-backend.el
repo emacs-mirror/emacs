@@ -197,7 +197,13 @@ active, use the `erc-server-process-alive' function instead.")
   "Non-nil if the user requests a quit.")
 
 (defvar-local erc-server-reconnecting nil
-  "Non-nil if reconnecting or scheduled to.")
+  "Non-nil if the user requests an explicit reconnect, and the
+current IRC process is still alive.")
+(make-obsolete-variable 'erc-server-reconnecting
+                        "see `erc--server-reconnecting'" "29.1")
+
+(defvar-local erc--server-reconnecting nil
+  "Non-nil when reconnecting.")
 
 (defvar-local erc-server-timed-out nil
   "Non-nil if the IRC server failed to respond to a ping.")
@@ -532,7 +538,8 @@ TLS (see `erc-session-client-certificate' for more details)."
     (with-current-buffer buffer
       (setq erc-server-process process)
       (setq erc-server-quitting nil)
-      (setq erc-server-reconnecting nil)
+      (setq erc-server-reconnecting nil
+            erc--server-reconnecting nil)
       (setq erc-server-timed-out nil)
       (setq erc-server-banned nil)
       (setq erc-server-error-occurred nil)
@@ -616,7 +623,7 @@ Make sure you are in an ERC buffer when running this."
             (erc-parse-server-response process line)))))))
 
 (defun erc--server-reconnect-p (event)
-  "Return non-nil if ERC should attempt to reconnect automatically.
+  "Return non-nil when ERC should attempt to reconnect.
 EVENT is the message received from the closed connection process."
   (and erc-server-auto-reconnect
        (not erc-server-banned)
@@ -631,6 +638,14 @@ EVENT is the message received from the closed connection process."
        ;; open-network-stream-nowait error for connection refused
        (if (string-match "^failed with code 111" event) 'nonblocking t)))
 
+(defun erc-server-reconnect-p (event)
+  "Return non-nil if ERC should attempt to reconnect automatically.
+EVENT is the message received from the closed connection process."
+  (declare (obsolete "see `erc--server-reconnect-p'" "29.1"))
+  (or (with-suppressed-warnings ((obsolete erc-server-reconnecting))
+        erc-server-reconnecting)
+      (erc--server-reconnect-p event)))
+
 (defun erc-process-sentinel-2 (event buffer)
   "Called when `erc-process-sentinel-1' has detected an unexpected disconnect."
   (if (not (buffer-live-p buffer))
@@ -642,7 +657,7 @@ EVENT is the message received from the closed connection process."
         (if (not reconnect-p)
             ;; terminate, do not reconnect
             (progn
-              (setq erc-server-reconnecting nil)
+              (setq erc--server-reconnecting nil)
               (erc-display-message nil 'error (current-buffer)
                                    'terminated ?e event)
               ;; Update mode line indicators
@@ -651,7 +666,8 @@ EVENT is the message received from the closed connection process."
           ;; reconnect
           (condition-case nil
               (progn
-                (setq erc-server-reconnecting t
+                (setq erc-server-reconnecting nil
+                      erc--server-reconnecting t
                       erc-server-reconnect-count (1+ erc-server-reconnect-count))
                 (setq delay erc-server-reconnect-timeout)
                 (run-at-time delay nil
