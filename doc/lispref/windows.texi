@@ -1320,23 +1320,23 @@ Parameters}.
 
 When @code{delete-window} deletes the selected window of its frame, it
 has to make another window the new selected window of that frame.  The
-following option allows to choose which window gets selected instead.
+following option allows configuring which window is chosen.
 
 @defopt delete-window-choose-selected
-This option allows to specify which window should become a frame's
+This option allows specifying which window should become a frame's
 selected window after @code{delete-window} has deleted the previously
 selected one.  Possible choices are
 
 @itemize
 @item @code{mru}
-(the default) to choose the most recently used window on that frame.
+(the default) choose the most recently used window on that frame.
 
 @item @code{pos}
-to choose the window comprising the frame coordinates of point of the
+choose the window comprising the frame coordinates of point of the
 previously selected window on that frame.
 
 @item @code{nil}
-to choose the first window (the window returned by
+choose the first window (the window returned by
 @code{frame-first-window}) on that frame.
 @end itemize
 
