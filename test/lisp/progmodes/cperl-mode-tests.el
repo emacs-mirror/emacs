@@ -377,6 +377,17 @@ documentation it does the right thing anyway."
      (cperl-indent-command)
      (forward-line 1))))
 
+(ert-deftest cperl-test-bug-22355 ()
+  "Verify that substitutions are fontified directly after \"|&\".
+Regular expressions are strings in both perl-mode and cperl-mode."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-22355.pl"))
+    (funcall cperl-test-mode)
+    (goto-char (point-min))
+    ;; Just check for the start of the string
+    (search-forward "{")
+    (should (nth 3 (syntax-ppss)))))
+
 (ert-deftest cperl-test-bug-23992 ()
   "Verify that substitutions are fontified directly after \"|&\".
 Regular expressions are strings in both perl-mode and cperl-mode."
