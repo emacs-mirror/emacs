@@ -4142,16 +4142,16 @@ frame can be safely deleted."
       ;; of its frame.
       t))))
 
-(defun window-at-pos (x y &optional frame no-other)
+(defun window-at-x-y (x y &optional frame no-other)
   "Return live window at coordinates X, Y on specified FRAME.
-X and Y are counted in pixels from an origin at 0, 0 of FRAME's
-native frame.  A coordinate on an edge shared by two windows is
-attributed to the window on the right (or below).  Return nil if
-no such window can be found.
+X and Y are FRAME-relative pixel coordinates.  A coordinate on an
+edge shared by two windows is attributed to the window on the
+right (or below).  Return nil if no such window can be found.
 
 Optional argument FRAME must specify a live frame and defaults to
 the selected one.  Optional argument NO-OTHER non-nil means to
-not return a window with a non-nil 'no-other-window' parameter."
+return nil if the window located at the specified coordinates has
+a non-nil `no-other-window' parameter."
   (setq frame (window-normalize-frame frame))
   (let* ((root-edges (window-edges (frame-root-window frame) nil nil t))
          (root-left (nth 2 root-edges))
@@ -4169,7 +4169,7 @@ not return a window with a non-nil 'no-other-window' parameter."
 	       (throw 'window window)))))
        frame))))
 
-(defcustom delete-window-set-selected 'mru
+(defcustom delete-window-choose-selected 'mru
   "How to choose a frame's selected window after window deletion.
 When a frame's selected window gets deleted, Emacs has to choose
 another live window on that frame to serve as its selected
@@ -4177,14 +4177,17 @@ window.  This option allows to control which window gets selected
 instead.
 
 The possible choices are 'mru' (the default) to select the most
-recently used window on that frame and 'pos' to choose the window
-at the position of point of the previously selected window.  If
-this is nil, choose the frame's first window instead.  A window
-with a non-nil 'no-other-window' parameter is never chosen."
+recently used window on that frame, and 'pos' to choose the
+window at the frame coordinates of point of the previously
+selected window.  If this is nil, choose the frame's first window
+instead.  A window with a non-nil `no-other-window' parameter is
+chosen only if all windows on that frame have that parameter set
+to a non-nil value."
   :type '(choice (const :tag "Most recently used" mru)
                  (const :tag "At position of deleted" pos)
                  (const :tag "Frame's first " nil))
   :group 'windows
+  :group 'frames
   :version "28.1")
 
 (defun delete-window (&optional window)
@@ -4207,7 +4210,7 @@ that is its frame's root window.
 
 If WINDOW is the selected window on its frame, choose some other
 window as that frame's selected window according to the value of
-the option `delete-window-set-selected'."
+the option `delete-window-choose-selected'."
   (interactive)
   (setq window (window-normalize-window window))
   (let* ((frame (window-frame window))
@@ -4263,7 +4266,7 @@ the option `delete-window-set-selected'."
 	  ;; Can't do without resizing fixed-size windows.
 	  (window--resize-siblings window (- size) horizontal t)))
 
-        (when (eq delete-window-set-selected 'pos)
+        (when (eq delete-window-choose-selected 'pos)
           ;; Remember edges and position of point of the selected window
           ;; of WINDOW'S frame.
           (setq frame-selected-window-edges
@@ -4276,8 +4279,8 @@ the option `delete-window-set-selected'."
 	(window--pixel-to-total frame horizontal)
 
         ;; If we deleted the selected window of WINDOW's frame, choose
-        ;; another one based on `delete-window-set-selected'.  Note
-        ;; that both `window-at-pos' and `get-mru-window' may fail to
+        ;; another one based on `delete-window-choose-selected'.  Note
+        ;; that both `window-at-x-y' and `get-mru-window' may fail to
         ;; produce a suitable window in which case we will fall back on
         ;; its frame's first window, chosen by `delete-window-internal'.
         (cond
@@ -4287,7 +4290,7 @@ the option `delete-window-set-selected'."
                ;; selected window.  Try to find the window that is now
                ;; at that position.
                (let ((new-frame-selected-window
-		      (window-at-pos
+		      (window-at-x-y
                        (+ (nth 0 frame-selected-window-edges)
                           (car frame-selected-window-pos))
                        (+ (nth 1 frame-selected-window-edges)
@@ -4297,7 +4300,7 @@ the option `delete-window-set-selected'."
                       ;; Select window at WINDOW's position at point.
 	              (set-frame-selected-window
                        frame new-frame-selected-window)))))
-         ((and (eq delete-window-set-selected 'mru)
+         ((and (eq delete-window-choose-selected 'mru)
                ;; Try to use the most recently used window.
                (let ((mru-window (get-mru-window frame nil nil t)))
                  (and mru-window
