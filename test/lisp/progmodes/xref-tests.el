@@ -117,18 +117,14 @@
     (should (null (marker-position (cdr (nth 0 (cdr cons2))))))))
 
 (ert-deftest xref--xref-file-name-display-is-abs ()
-  (let* ((xref-file-name-display 'abs)
-         ;; Some older BSD find versions can produce '//' in the output.
-         (expected (list
-                    (concat xref-tests--data-dir "/?file1.txt")
-                    (concat xref-tests--data-dir "/?file2.txt")))
-         (actual (delete-dups
-                  (mapcar 'xref-location-group
-                          (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))))
-    (should (= (length expected) (length actual)))
-    (should (cl-every (lambda (e1 e2)
-                        (string-match-p e1 e2))
-                      expected actual))))
+  (let ((xref-file-name-display 'abs))
+    (should (equal
+             (delete-dups
+              (mapcar 'xref-location-group
+                      (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
+             (list
+              (concat xref-tests--data-dir "file1.txt")
+              (concat xref-tests--data-dir "file2.txt"))))))
 
 (ert-deftest xref--xref-file-name-display-is-nondirectory ()
   (let ((xref-file-name-display 'nondirectory))
@@ -144,17 +140,13 @@
           (file-name-directory (directory-file-name xref-tests--data-dir)))
          (project-find-functions
           (lambda (_) (cons 'transient data-parent-dir)))
-         (xref-file-name-display 'project-relative)
-         ;; Some older BSD find versions can produce '//' in the output.
-         (expected (list
-                    "xref-resources//?file1.txt"
-                    "xref-resources//?file2.txt"))
-         (actual (delete-dups
-                  (mapcar 'xref-location-group
-                          (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))))
-    (should (and (= (length expected) (length actual))
-                 (cl-every (lambda (e1 e2)
-                             (string-match-p e1 e2))
-                           expected actual)))))
+         (xref-file-name-display 'project-relative))
+    (should (equal
+             (delete-dups
+              (mapcar 'xref-location-group
+                      (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
+             (list
+              "xref-resources/file1.txt"
+              "xref-resources/file2.txt")))))
 
 ;;; xref-tests.el ends here

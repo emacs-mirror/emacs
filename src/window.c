@@ -5148,15 +5148,13 @@ Signal an error when WINDOW is the only window on its frame.  */)
       adjust_frame_glyphs (f);
 
       if (!WINDOW_LIVE_P (FRAME_SELECTED_WINDOW (f)))
-	/* We deleted the frame's selected window.  */
+	/* We apparently deleted the frame's selected window; use the
+	   frame's first window as substitute but don't record it yet.
+	   `delete-window' may have something better up its sleeves.  */
 	{
 	  /* Use the frame's first window as fallback ...  */
 	  Lisp_Object new_selected_window = Fframe_first_window (frame);
-	  /* ... but preferably use its most recently used window.  */
-	  Lisp_Object mru_window;
 
-	  /* `get-mru-window' might fail for some reason so play it safe
-	  - promote the first window _without recording it_ first.  */
 	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
 	    Fselect_window (new_selected_window, Qt);
 	  else
@@ -5164,24 +5162,9 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	       last selected window on F was an active minibuffer, we
 	       want to return to it on a later Fselect_frame.  */
 	    fset_selected_window (f, new_selected_window);
-
-	  unblock_input ();
-
-	  /* Now look whether `get-mru-window' gets us something.  */
-	  mru_window = call1 (Qget_mru_window, frame);
-	  if (WINDOW_LIVE_P (mru_window)
-	      && EQ (XWINDOW (mru_window)->frame, frame))
-	    new_selected_window = mru_window;
-
-	  /* If all ended up well, we now promote the mru window.  */
-	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
-	    Fselect_window (new_selected_window, Qnil);
-	  else
-	    fset_selected_window (f, new_selected_window);
 	}
-      else
-	unblock_input ();
 
+      unblock_input ();
       FRAME_WINDOW_CHANGE (f) = true;
     }
   else

@@ -365,7 +365,7 @@ Like @kbd{i}, but you can also specify dictionary completion
 information.
 
 @item u
-Insert the lower-case version of this word in your private dic@-tion@-ary
+Insert the lower-case version of this word in your private dictionary
 file.
 
 @item l @var{word} @key{RET}

@@ -2583,27 +2583,28 @@ with the process mark and then execute the command.
 @itemx M m
 @kindex M m @r{(Group)}
 @findex gnus-group-mark-group
-Set the mark on the current group (@code{gnus-group-mark-group}).@*
-If @code{gnus-process-mark-toggle} is non-@code{nil}, toggle the
-existing process mark for the current group.
+Toggle the process mark for the current group
+(@code{gnus-group-mark-group}).@*
+If @code{gnus-process-mark-toggle} is @code{nil}, set the process mark
+for the current group.
 
 @item M-#
 @kindex M-# @r{(Group)}
 @itemx M u
 @kindex M u @r{(Group)}
 @findex gnus-group-unmark-group
-Remove the mark from the current group
+Remove the process mark, if any, from the current group
 (@code{gnus-group-unmark-group}).
 
 @item M U
 @kindex M U @r{(Group)}
 @findex gnus-group-unmark-all-groups
-Remove the mark from all groups (@code{gnus-group-unmark-all-groups}).
+Remove the process mark from all groups (@code{gnus-group-unmark-all-groups}).
 
 @item M w
 @kindex M w @r{(Group)}
 @findex gnus-group-mark-region
-Mark all groups between point and mark (@code{gnus-group-mark-region}).
+Mark groups in region (@code{gnus-group-mark-region}).
 
 @item M b
 @kindex M b @r{(Group)}
@@ -4043,11 +4044,11 @@ Toggle hiding empty topics
 @item T #
 @kindex T # @r{(Topic)}
 @findex gnus-topic-mark-topic
-Mark all groups in the current topic with the process mark
+Toggle the process mark for all groups in the current topic
 (@code{gnus-topic-mark-topic}).  This command works recursively on
 sub-topics unless given a prefix.@*
-If @code{gnus-process-mark-toggle} is non-@code{nil}, toggle the
-existing process mark for the current topic.
+If @code{gnus-process-mark-toggle} is @code{nil}, set the process mark
+for the current topic.
 
 @item T M-#
 @kindex T M-# @r{(Topic)}
@@ -6621,10 +6622,10 @@ articles into the cache.  For more information,
 @kindex # @r{(Summary)}
 @kindex M P p @r{(Summary)}
 @findex gnus-summary-mark-as-processable
-Mark the current article with the process mark
+Toggle the process mark for the current article
 (@code{gnus-summary-mark-as-processable}).@*
-If @code{gnus-process-mark-toggle} is non-@code{nil}, toggle the
-existing process mark for the current article.
+If @code{gnus-process-mark-toggle} is @code{nil}, set the process mark
+for the current article.
 
 @item M P u
 @itemx M-#
@@ -10568,15 +10569,15 @@ Here are the available keystrokes when using pick mode:
 @item .
 @kindex . @r{(Pick)}
 @findex gnus-pick-article-or-thread
-Pick the article or thread on the current line
-(@code{gnus-pick-article-or-thread}).  If the variable
+Pick the article or thread on the current line or unpick it if is
+already picked (@code{gnus-pick-article-or-thread}).  If the variable
 @code{gnus-thread-hide-subtree} is true, then this key selects the
 entire thread when used at the first article of the thread.  Otherwise,
 it selects just the article.  If given a numerical prefix, go to that
 thread or article and pick it.  (The line number is normally displayed
 at the beginning of the summary pick lines.)  If
-@code{gnus-process-mark-toggle} is non-@code{nil}, this key will
-unpick an already picked article.
+@code{gnus-process-mark-toggle} is @code{nil}, this key will pick an
+article or thread.
 
 @item @key{SPC}
 @kindex SPC @r{(Pick)}

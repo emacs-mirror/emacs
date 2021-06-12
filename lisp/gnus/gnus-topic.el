@@ -1112,7 +1112,7 @@ articles in the topic and its subtopics."
 	["Delete" gnus-topic-delete t]
 	["Rename..." gnus-topic-rename t]
 	["Create..." gnus-topic-create-topic t]
-	["Set/Toggle mark" gnus-topic-mark-topic t]
+	["Toggle/Set mark" gnus-topic-mark-topic t]
 	["Indent" gnus-topic-indent t]
 	["Sort" gnus-topic-sort-topics t]
 	["Previous topic" gnus-topic-goto-previous-topic t]

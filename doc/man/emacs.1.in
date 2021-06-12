@@ -197,7 +197,7 @@ searches for Lisp files.
 .\" START DELETING HERE IF YOU'RE NOT USING X
 .SS Using Emacs with X
 .I Emacs
-has been tailored to work well with the X window system.
+has been tailored to work well with the X Window System.
 If you run
 .I Emacs
 from under X windows, it will create its own X window to
@@ -566,7 +566,7 @@ distribution.
 /usr/local/share/info \(em files for the Info documentation browser.
 The complete text of the Emacs reference manual is included in a
 convenient tree structured form.
-Also includes the Emacs Lisp Reference Manual, useful to anyone
+This includes the Emacs Lisp Reference Manual, useful to anyone
 wishing to write programs in the Emacs Lisp extension language,
 and the Introduction to Programming in Emacs Lisp.
 

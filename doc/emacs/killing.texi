@@ -311,13 +311,13 @@ the end.  Using any other prefix argument specifies an earlier kill;
 e.g., @kbd{C-u 4 C-y} reinserts the fourth most recent kill.
 @xref{Earlier Kills}.
 
-  On graphical displays, @kbd{C-y} first checks if another application
-has placed any text in the system clipboard more recently than the
-last Emacs kill.  If so, it inserts the clipboard's text instead.
-Thus, Emacs effectively treats ``cut'' or ``copy'' clipboard
-operations performed in other applications like Emacs kills, except
-that they are not recorded in the kill ring.  @xref{Cut and Paste},
-for details.
+  On graphical displays and on capable text-mode displays, @kbd{C-y}
+first checks if another application has placed any text in the system
+clipboard more recently than the last Emacs kill.  If so, it inserts
+the clipboard's text instead.  Thus, Emacs effectively treats ``cut''
+or ``copy'' clipboard operations performed in other applications like
+Emacs kills, except that they are not recorded in the kill ring.
+@xref{Cut and Paste}, for details.
 
 @menu
 * Kill Ring::           Where killed text is stored.
@@ -371,12 +371,12 @@ command, it works differently, see below.)
 last-yank pointer which points at an entry in the kill ring.  Each
 time you kill, the last-yank pointer moves to the newly made entry at
 the front of the ring.  @kbd{C-y} yanks the entry which the last-yank
-pointer points to.  @kbd{M-y} moves the last-yank pointer to a
-different entry, and the text in the buffer changes to match.  Enough
-@kbd{M-y} commands can move the pointer to any entry in the ring, so
-you can get any entry into the buffer.  Eventually the pointer reaches
-the end of the ring; the next @kbd{M-y} loops back around to the first
-entry again.
+pointer points to.  @kbd{M-y} after a @kbd{C-y} or another @kbd{M-y}
+moves the last-yank pointer to the previous entry, and the text in the
+buffer changes to match.  Enough @kbd{M-y} commands one after another
+can move the pointer to any entry in the ring, so you can get any
+entry into the buffer.  Eventually the pointer reaches the end of the
+ring; the next @kbd{M-y} loops back around to the first entry again.
 
   @kbd{M-y} moves the last-yank pointer around the ring, but it does
 not change the order of the entries in the ring, which always runs from
@@ -388,12 +388,13 @@ pointer by.  A negative argument moves the pointer toward the front of
 the ring; from the front of the ring, it moves around to the last
 entry and continues forward from there.
 
-  Once the text you are looking for is brought into the buffer, you can
-stop doing @kbd{M-y} commands and it will stay there.  It's just a copy
-of the kill ring entry, so editing it in the buffer does not change
-what's in the ring.  As long as no new killing is done, the last-yank
-pointer remains at the same place in the kill ring, so repeating
-@kbd{C-y} will yank another copy of the same previous kill.
+  Once the text you are looking for is brought into the buffer, you
+can stop doing @kbd{M-y} commands and the last yanked text will stay
+there.  It's just a copy of the kill ring entry, so editing it in the
+buffer does not change what's in the ring.  As long as no new killing
+is done, the last-yank pointer remains at the same place in the kill
+ring, so repeating @kbd{C-y} will yank another copy of the same
+previous kill.
 
   When you call @kbd{C-y} with a numeric argument, that also sets the
 last-yank pointer to the entry that it yanks.
@@ -404,11 +405,18 @@ one of the previous kills.  You can use the minibuffer history
 commands (@pxref{Minibuffer History}) to navigate or search through
 the entries in the kill ring until you find the one you want to
 reinsert.  Or you can use completion commands (@pxref{Completion
-Commands}) to complete on the list of entries in the kill ring or pop
-up the @file{*Completions*} buffer with the candidate entries from
-which you can choose.  After selecting the kill-ring entry, you can
-optionally edit it in the minibuffer.  Finally, type @kbd{RET} to exit
-the minibuffer and insert the selected text.
+Commands}) to complete on an entry from the list of entries in the
+kill ring or pop up the @file{*Completions*} buffer with the candidate
+entries from which you can choose.  After selecting the kill-ring
+entry, you can optionally edit it in the minibuffer.  Finally, type
+@kbd{RET} to exit the minibuffer and insert the text of the selected
+kill-ring entry.  Like in case of @kbd{M-y} after another yank
+command, the last-yank pointer is left pointing at the text you just
+yanked, whether it is one of the previous kills or an entry from the
+kill-ring that you edited before inserting it.  (In the latter case,
+the edited entry is added to the front of the kill-ring.)  So here,
+too, typing @kbd{C-y} will yank another copy of the text just
+inserted.
 
   When invoked with a plain prefix argument (@kbd{C-u M-y}) after a
 command that is not a yank command, @kbd{M-y} leaves the cursor in

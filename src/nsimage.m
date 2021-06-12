@@ -254,15 +254,15 @@ ns_image_size_in_bytes (void *img)
   NSImageRep *imgRep;
   Lisp_Object found;
   EmacsImage *image;
+  NSString *filename;
 
   /* Search bitmap-file-path for the file, if appropriate.  */
   found = image_find_image_file (file);
   if (!STRINGP (found))
     return nil;
-  found = ENCODE_FILE (found);
+  filename = [NSString stringWithLispString:found];
 
-  image = [[EmacsImage alloc] initByReferencingFile:
-                     [NSString stringWithLispString: found]];
+  image = [[EmacsImage alloc] initByReferencingFile:filename];
 
   image->bmRep = nil;
 #ifdef NS_IMPL_COCOA
@@ -277,8 +277,7 @@ ns_image_size_in_bytes (void *img)
     }
 
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
-
-  [image setName: [NSString stringWithLispString: file]];
+  [image setName:filename];
 
   return image;
 }

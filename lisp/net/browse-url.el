@@ -47,6 +47,7 @@
 ;; browse-url-xdg-open                freedesktop.org xdg-open
 ;; browse-url-kde                     KDE konqueror (kfm)
 ;; browse-url-elinks                  Elinks      Don't know (tried with 0.12.GIT)
+;; eww-browse-url                     Emacs Web Wowser
 
 ;; Browsers can cache Web pages so it may be necessary to tell them to
 ;; reload the current page if it has changed (e.g., if you have edited
@@ -773,6 +774,8 @@ interactively.  Turn the filename into a URL with function
 	  (cond ((not (buffer-modified-p)))
 		(browse-url-save-file (save-buffer))
 		(t (message "%s modified since last save" file))))))
+  (when (file-remote-p file)
+    (setq file (file-local-copy file)))
   (browse-url (browse-url-file-url file))
   (run-hooks 'browse-url-of-file-hook))
 

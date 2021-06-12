@@ -321,6 +321,15 @@ Thus, this does not include the shell's current directory.")
 (defvar shell-dirstack-query nil
   "Command used by `shell-resync-dirs' to query the shell.")
 
+(defcustom shell-has-auto-cd nil
+  "If non-nil, `shell-mode' handles implicit \"cd\" commands.
+Implicit \"cd\" is changing the directory if the command is a directory.
+You can make this variable buffer-local to change it, per shell-mode instance.
+Useful for shells like zsh that has this feature."
+  :type 'boolean
+  :group 'shell-directories
+  :version "28.1")
+
 (defvar shell-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-f" 'shell-forward-command)
@@ -836,13 +845,15 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 			       str) ; skip whitespace
 			      (match-end 0)))
 		(case-fold-search)
-		end cmd arg1)
+		end cmd arg1 cmd-subst-fn)
 	    (while (string-match shell-command-regexp str start)
 	      (setq end (match-end 0)
 		    cmd (comint-arguments (substring str start end) 0 0)
 		    arg1 (comint-arguments (substring str start end) 1 1))
 	      (if arg1
 		  (setq arg1 (shell-unquote-argument arg1)))
+              (if shell-has-auto-cd
+                  (setq cmd-subst-fn (comint-substitute-in-file-name cmd)))
 	      (cond ((string-match (concat "\\`\\(" shell-popd-regexp
 					   "\\)\\($\\|[ \t]\\)")
 				   cmd)
@@ -859,7 +870,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 			  (string-match (concat "\\`\\(" shell-chdrive-regexp
 						"\\)\\($\\|[ \t]\\)")
 					cmd))
-		     (shell-process-cd (comint-substitute-in-file-name cmd))))
+		     (shell-process-cd (comint-substitute-in-file-name cmd)))
+                    ((and shell-has-auto-cd (file-directory-p cmd-subst-fn))
+                     (shell-process-cd cmd-subst-fn)))
 	      (setq start (progn (string-match shell-command-separator-regexp
 					       str end)
 				 ;; skip again

@@ -6248,8 +6248,11 @@ Non-file buffers need a custom function."
                         (dolist (regexp revert-without-query)
                           (when (string-match regexp file-name)
                             (throw 'found t)))))
-                 (yes-or-no-p (format "Revert buffer from file %s? "
-                                      file-name)))
+                 (yes-or-no-p
+                  (format (if (buffer-modified-p)
+                              "Discard edits and reread from %s? "
+                            "Revert buffer from file %s? ")
+                          file-name)))
              (run-hooks 'before-revert-hook)
              ;; If file was backed up but has changed since,
              ;; we should make another backup.

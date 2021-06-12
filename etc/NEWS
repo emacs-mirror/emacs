@@ -112,6 +112,17 @@ filters.
 * Changes in Emacs 28.1
 
 +++
+** Etags now supports the Mercury programming language.
+See https://mercurylang.org.
+
++++
+** Etags command line option '--declarations' now has Mercury-specific behavior.
+All Mercury declarations are tagged by default.  However, for
+compatibility with 'etags' support for Prolog, predicates and
+functions appearing first in clauses will also be tagged if 'etags' is
+invoked with the '--declarations' command-line option.
+
++++
 ** New command 'font-lock-update', bound to 'C-x x f'.
 This command updates the syntax highlighting in this buffer.
 
@@ -300,7 +311,7 @@ prompt, and how you can tweak the file size threshold.
 Some terminal emulators set the 8th bit of Meta characters, and then
 encode the resulting character code as if it were non-ASCII character
 above codepoint 127.  Previously, the only way of using these in Emacs
-was to set up the terminal emulator to use the ESC characters to send
+was to set up the terminal emulator to use the 'ESC' characters to send
 Meta characters to Emacs, e.g., send "ESC x" when the user types
 'M-x'.  You can now avoid the need for this setup of such terminal
 emulators by using the new input-meta-mode with the special value
@@ -560,14 +571,14 @@ Icomplete, completions are rotated and selection kept at the top.
 When used with Fido, completions scroll like a typical dropdown
 widget.
 
-*** Default value of 'icomplete-compute-delay has been changed to 0.15 s.
+*** Default value of 'icomplete-compute-delay' has been changed to 0.15 s.
 
 *** Default value of 'icomplete-max-delay-chars' has been changed to 2.
 
 *** Reduced blinking while completing the next completions set.
 Icomplete doesn't hide the hint with the previously computed
 completions anymore when compute delay is in effect, or the previous
-computation has been aborted by input. Instead it shows the previous
+computation has been aborted by input.  Instead it shows the previous
 completions until the new ones are ready.
 
 ---
@@ -592,6 +603,17 @@ These options include 'windmove-default-keybindings',
 'windmove-swap-states-default-keybindings'.
 
 ** Windows
+
++++
+*** New option 'delete-window-choose-selected'.
+This allows to choose a frame's selected window after deleting the
+previously selected one.
+
++++
+*** New argument NO-OTHER for some window functions.
+'get-lru-window', ‘get-mru-window’ and 'get-largest-window' now accept a
+new optional argument NO-OTHER which, if non-nil, avoids returning a
+window whose 'no-other-window' parameter is non-nil.
 
 +++
 *** New 'display-buffer' function 'display-buffer-use-least-recent-window'.
@@ -869,12 +891,21 @@ If non-nil, only branches and remotes are considered when doing
 completion over Git branch names.  The default is nil, which causes
 tags to be considered as well.
 
+---
+*** New user option 'vc-git-log-switches'.
+String or list of strings specifying switches for Git log under VC.
+
 ** Gnus
 
 +++
+*** The '#' command in the Group and Summary buffer now toggles,
+instead of sets, the process mark.
+
++++
 *** New user option 'gnus-process-mark-toggle'.
-If non-nil, the `#' command in the Group and Summary buffers will
-toggle instead of setting the process mark.
+If non-nil (the default), the '#' command in the Group and Summary
+buffers will toggle, instead of set, the process mark.
+
 
 +++
 *** New user option 'gnus-registry-register-all'.
@@ -1082,6 +1113,15 @@ grep-like tools.
 On systems where the grep command supports it, directories will be
 skipped.
 
+*** Commands that use 'grep-find' now follow symlinks for command-line args.
+This is because the default value of 'grep-find-template' now includes
+the 'find' option '-H'.  Commands that use that variable, including
+indirectly via a call to 'xref-matches-in-directory', might be
+affected.  In particular, there should be no need anymore to ensure
+any directory names on the 'find' command lines end in a slash.
+This change is for better compatibility with old versions of non-GNU
+'find', such as the one used on macOS.
+
 ** Help
 
 ---
@@ -1102,14 +1142,14 @@ GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
 +++
 *** New command 'describe-command' shows help for a command.
 This can be used instead of 'describe-function' for interactive
-commands and is globally bound to `C-h x'.
+commands and is globally bound to 'C-h x'.
 
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
 ---
 *** New user option 'describe-bindings-outline'.
-It enables outlines in the output buffer of `describe-bindings' that
+It enables outlines in the output buffer of 'describe-bindings' that
 can provide a better overview in a long list of available bindings.
 
 ---
@@ -1296,6 +1336,12 @@ it when producing a doc string.
 *** New command in 'shell-mode': 'narrow-to-prompt'.
 This is bound to 'C-x n d' in 'shell-mode' buffers, and narrows to the
 command line under point (and any following output).
+
+---
+*** New user option 'shell-has-auto-cd'.
+If non-nil, 'shell-mode' handles implicit "cd" commands, changing the
+directory if the command is a directory.  Useful for shells like "zsh"
+that has this feature.
 
 ** Eshell
 
@@ -1585,6 +1631,11 @@ with the URL).  This is done by adding a 'browse-url-browser-kind'
 symbol property to the browsing commands.  With a new command
 'browse-url-with-browser-kind', an URL can explicitly be browsed with
 either an internal or external browser.
+
+---
+*** Support for browsing of remote files.
+If a remote file is taken, a local temporary copy of that file is
+passed to the browser.
 
 *** Support for the conkeror browser is now obsolete.
 
@@ -2043,7 +2094,7 @@ This can be used to change the priority of the hl-line overlays.
 +++
 *** New command 'mailcap-view-file'.
 This command will open a viewer based on the file type, as determined
-by ~/.mailcap and related files and variables.
+by "~/.mailcap" and related files and variables.
 
 +++
 *** New command 'C-x C-k Q' to force redisplay in keyboard macros.
@@ -2505,7 +2556,7 @@ similar to prefix arguments, but are more flexible and discoverable.
 
 * Incompatible Editing Changes in Emacs 28.1
 
-** `electric-indent-mode` now also indents inside strings and comments,
+** 'electric-indent-mode' now also indents inside strings and comments,
 (unless the indentation function doesn't, of course).
 To recover the previous behavior you can use:
 
@@ -2563,7 +2614,7 @@ In previous versions of Emacs, numbers with a trailing dot and an exponent
 were read as integers and the exponent ignored: 2.e6 was interpreted as the
 integer 2.  Such numerals are now read as floats with the exponent included:
 2.e6 is now read as the floating-point value 2000000.0.
-That is, (read-from-string "1.e3") => (1000.0 . 4) now.
+That is, '(read-from-string "1.e3")' => '(1000.0 . 4)' now.
 
 +++
 ** The 'lexical-binding' local variable is always enabled.
@@ -2772,7 +2823,7 @@ form should be exceedingly rare.  See the Info node "(elisp) Backtracking" in
 the Emacs Lisp reference manual for background.
 
 ---
-** 'sql-*-statement-starters' are no longer defcustoms.
+** 'sql-*-statement-starters' are no longer user options.
 These variables describe facts about the SQL standard and
 product-specific additions.  There should be no need for users to
 customize them.
