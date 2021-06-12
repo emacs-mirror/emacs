@@ -650,74 +650,6 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
     (define-key map "7" 'fortran-electric-line-number)
     (define-key map "8" 'fortran-electric-line-number)
     (define-key map "9" 'fortran-electric-line-number)
-
-    (easy-menu-define fortran-menu map "Menu for Fortran mode."
-      `("Fortran"
-        ["Manual" (info "(emacs)Fortran") :active t
-         :help "Read the Emacs manual chapter on Fortran mode"]
-        ("Customization"
-         ,(custom-menu-create 'fortran)
-         ;; FIXME useless?
-         ["Set"  Custom-set :active t
-          :help "Set current value of all edited settings in the buffer"]
-         ["Save" Custom-save :active t
-          :help "Set and save all edited settings"]
-         ["Reset to Current" Custom-reset-current :active t
-          :help "Reset all edited settings to current"]
-         ["Reset to Saved" Custom-reset-saved :active t
-          :help "Reset all edited or set settings to saved"]
-         ["Reset to Standard Settings" Custom-reset-standard :active t
-          :help "Erase all customizations in buffer"]
-         )
-        "--"
-        ["Comment Region" fortran-comment-region mark-active]
-        ["Uncomment Region"
-         (fortran-comment-region (region-beginning) (region-end) 1)
-         mark-active]
-        ["Indent Region"     indent-region mark-active]
-        ["Indent Subprogram" fortran-indent-subprogram t]
-        "--"
-        ["Beginning of Subprogram" fortran-beginning-of-subprogram :active t
-         :help "Move point to the start of the current subprogram"]
-        ["End of Subprogram" fortran-end-of-subprogram :active t
-         :help "Move point to the end of the current subprogram"]
-        ("Mark"
-         :help "Mark a region of code"
-         ["Subprogram" mark-defun      t]
-         ["IF Block"   fortran-mark-if t]
-         ["DO Block"   fortran-mark-do t]
-         )
-        ["Narrow to Subprogram" narrow-to-defun t]
-        ["Widen" widen t]
-        "--"
-        ["Temporary Column Ruler" fortran-column-ruler :active t
-         :help "Briefly display Fortran column numbers"]
-        ;; May not be '72', depending on fortran-line-length, but this
-        ;; seems ok for a menu item.
-        ["72-column Window" fortran-window-create :active t
-         :help "Set window width to Fortran line length"]
-        ["Full Width Window"
-         (enlarge-window-horizontally (- (frame-width) (window-width)))
-         :active (not (window-full-width-p))
-         :help "Make window full width"]
-        ["Momentary 72-Column Window" fortran-window-create-momentarily
-         :active t :help "Briefly set window width to Fortran line length"]
-        "--"
-        ["Break Line at Point" fortran-split-line :active t
-         :help "Break the current line at point"]
-        ["Join Line" fortran-join-line :active t
-         :help "Join the current line to the previous one"]
-        ["Fill Statement/Comment" fill-paragraph t]
-        "--"
-        ["Toggle Auto Fill" auto-fill-mode :selected auto-fill-function
-         :style toggle
-         :help "Automatically fill text while typing in this buffer"]
-        ["Toggle Abbrev Mode" abbrev-mode :selected abbrev-mode
-         :style toggle :help "Expand abbreviations while typing in this buffer"]
-        ["Add Imenu Menu" imenu-add-menubar-index
-         :active   (not (lookup-key (current-local-map) [menu-bar index]))
-         :included (fboundp 'imenu-add-to-menubar)
-         :help "Add an index menu to the menu-bar"]))
     map)
   "Keymap used in Fortran mode.")
 
@@ -2208,6 +2140,81 @@ arg DO-SPACE prevents stripping the whitespace."
                 (buffer-substring-no-properties (point) (progn (backward-sexp)
                                                                (point)))))
         "main"))))
+
+;; The menu is defined at the end because `custom-menu-create' is
+;; called at load time and will result in (recursively) loading this
+;; file otherwise.
+(easy-menu-define fortran-menu fortran-mode-map "Menu for Fortran mode."
+  `("Fortran"
+    ["Manual" (info "(emacs)Fortran") :active t
+     :help "Read the Emacs manual chapter on Fortran mode"]
+    ("Customization"
+     ,(progn
+        ;; Tell the byte compiler that `features' is lexical.
+        (with-no-warnings (defvar features))
+        (let ((features (cons 'fortran features)))
+          (custom-menu-create 'fortran)))
+     ;; FIXME useless?
+     ["Set"  Custom-set :active t
+      :help "Set current value of all edited settings in the buffer"]
+     ["Save" Custom-save :active t
+      :help "Set and save all edited settings"]
+     ["Reset to Current" Custom-reset-current :active t
+      :help "Reset all edited settings to current"]
+     ["Reset to Saved" Custom-reset-saved :active t
+      :help "Reset all edited or set settings to saved"]
+     ["Reset to Standard Settings" Custom-reset-standard :active t
+      :help "Erase all customizations in buffer"]
+     )
+    "--"
+    ["Comment Region" fortran-comment-region mark-active]
+    ["Uncomment Region"
+     (fortran-comment-region (region-beginning) (region-end) 1)
+     mark-active]
+    ["Indent Region"     indent-region mark-active]
+    ["Indent Subprogram" fortran-indent-subprogram t]
+    "--"
+    ["Beginning of Subprogram" fortran-beginning-of-subprogram :active t
+     :help "Move point to the start of the current subprogram"]
+    ["End of Subprogram" fortran-end-of-subprogram :active t
+     :help "Move point to the end of the current subprogram"]
+    ("Mark"
+     :help "Mark a region of code"
+     ["Subprogram" mark-defun      t]
+     ["IF Block"   fortran-mark-if t]
+     ["DO Block"   fortran-mark-do t]
+     )
+    ["Narrow to Subprogram" narrow-to-defun t]
+    ["Widen" widen t]
+    "--"
+    ["Temporary Column Ruler" fortran-column-ruler :active t
+     :help "Briefly display Fortran column numbers"]
+    ;; May not be '72', depending on fortran-line-length, but this
+    ;; seems ok for a menu item.
+    ["72-column Window" fortran-window-create :active t
+     :help "Set window width to Fortran line length"]
+    ["Full Width Window"
+     (enlarge-window-horizontally (- (frame-width) (window-width)))
+     :active (not (window-full-width-p))
+     :help "Make window full width"]
+    ["Momentary 72-Column Window" fortran-window-create-momentarily
+     :active t :help "Briefly set window width to Fortran line length"]
+    "--"
+    ["Break Line at Point" fortran-split-line :active t
+     :help "Break the current line at point"]
+    ["Join Line" fortran-join-line :active t
+     :help "Join the current line to the previous one"]
+    ["Fill Statement/Comment" fill-paragraph t]
+    "--"
+    ["Toggle Auto Fill" auto-fill-mode :selected auto-fill-function
+     :style toggle
+     :help "Automatically fill text while typing in this buffer"]
+    ["Toggle Abbrev Mode" abbrev-mode :selected abbrev-mode
+     :style toggle :help "Expand abbreviations while typing in this buffer"]
+    ["Add Imenu Menu" imenu-add-menubar-index
+     :active   (not (lookup-key (current-local-map) [menu-bar index]))
+     :included (fboundp 'imenu-add-to-menubar)
+     :help "Add an index menu to the menu-bar"]))
 
 (provide 'fortran)
 
