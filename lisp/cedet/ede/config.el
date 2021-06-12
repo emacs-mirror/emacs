@@ -96,7 +96,7 @@ and also want to save some extra level of configuration.")
 This filename excludes the directory name and is used to
 initialize the :file slot of the persistent baseclass.")
    (config-class
-    :initform ede-extra-config
+    :initform 'ede-extra-config
     :allocation :class
     :type class
     :documentation

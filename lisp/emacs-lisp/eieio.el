@@ -131,6 +131,7 @@ and reference them using the function `class-option'."
 
   (let ((testsym1 (intern (concat (symbol-name name) "-p")))
         (testsym2 (intern (format "%s--eieio-childp" name)))
+        (warnings '())
         (accessors ()))
 
     ;; Collect the accessors we need to define.
@@ -145,6 +146,8 @@ and reference them using the function `class-option'."
         ;; Update eieio--known-slot-names already in case we compile code which
         ;; uses this before the class is loaded.
         (cl-pushnew sname eieio--known-slot-names)
+        (when (eq alloc :class)
+          (cl-pushnew sname eieio--known-class-slot-names))
 
 	(if eieio-error-unsupported-class-tags
 	    (let ((tmp soptions))
@@ -176,8 +179,22 @@ and reference them using the function `class-option'."
 	    (signal 'invalid-slot-type (list :label label)))
 
 	;; Is there an initarg, but allocation of class?
-	(if (and initarg (eq alloc :class))
-	    (message "Class allocated slots do not need :initarg"))
+	(when (and initarg (eq alloc :class))
+	  (push (format "Meaningless :initarg for class allocated slot '%S'"
+	                sname)
+	        warnings))
+
+        (let ((init (plist-get soptions :initform)))
+          (unless (or (macroexp-const-p init)
+                      (eieio--eval-default-p init))
+            ;; FIXME: Historically, EIEIO used a heuristic to try and guess
+            ;; whether the initform is a form to be evaluated or just
+            ;; a constant.  We use `eieio--eval-default-p' to see what the
+            ;; heuristic says and if it disagrees with normal evaluation
+            ;; then tweak the initform to make it fit and emit
+            ;; a warning accordingly.
+            (push (format "Ambiguous initform needs quoting: %S" init)
+                  warnings)))
 
 	;; Anyone can have an accessor function.  This creates a function
 	;; of the specified name, and also performs a `defsetf' if applicable
@@ -223,6 +240,8 @@ This method is obsolete."
 	))
 
     `(progn
+       ,@(mapcar (lambda (w) (macroexp-warn-and-return w `(progn ',w) 'compile-only))
+                 warnings)
        ;; This test must be created right away so we can have self-
        ;; referencing classes.  ei, a class whose slot can contain only
        ;; pointers to itself.
@@ -282,9 +301,7 @@ This method is obsolete."
 ;;; Get/Set slots in an object.
 ;;
 (defmacro oref (obj slot)
-  "Retrieve the value stored in OBJ in the slot named by SLOT.
-Slot is the name of the slot when created by `defclass' or the label
-created by the :initarg tag."
+  "Retrieve the value stored in OBJ in the slot named by SLOT."
   (declare (debug (form symbolp)))
   `(eieio-oref ,obj (quote ,slot)))
 
@@ -292,13 +309,11 @@ created by the :initarg tag."
 (defalias 'set-slot-value #'eieio-oset)
 (make-obsolete 'set-slot-value "use (setf (slot-value ..) ..) instead" "25.1")
 
-(defmacro oref-default (obj slot)
-  "Get the default value of OBJ (maybe a class) for SLOT.
-The default value is the value installed in a class with the :initform
-tag.  SLOT can be the slot name, or the tag specified by the :initarg
-tag in the `defclass' call."
+(defmacro oref-default (class slot)
+  "Get the value of class allocated slot SLOT.
+CLASS can also be an object, in which case we use the object's class."
   (declare (debug (form symbolp)))
-  `(eieio-oref-default ,obj (quote ,slot)))
+  `(eieio-oref-default ,class (quote ,slot)))
 
 ;;; Handy CLOS macros
 ;;
@@ -538,11 +553,11 @@ OBJECT can be an instance or a class."
 	      ((eieio-object-p object) (eieio-oref object slot))
 	      ((symbolp object)        (eieio-oref-default object slot))
 	      (t (signal 'wrong-type-argument (list 'eieio-object-p object))))
-	     eieio-unbound))))
+	     eieio--unbound))))
 
 (defun slot-makeunbound (object slot)
   "In OBJECT, make SLOT unbound."
-  (eieio-oset object slot eieio-unbound))
+  (eieio-oset object slot eieio--unbound))
 
 (defun slot-exists-p (object-or-class slot)
   "Return non-nil if OBJECT-OR-CLASS has SLOT."
@@ -740,18 +755,14 @@ dynamically set from SLOTS."
          (slots (eieio--class-slots this-class)))
     (dotimes (i (length slots))
       ;; For each slot, see if we need to evaluate it.
-      ;;
-      ;; Paul Landes said in an email:
-      ;; > CL evaluates it if it can, and otherwise, leaves it as
-      ;; > the quoted thing as you already have.  This is by the
-      ;; > Sonya E. Keene book and other things I've look at on the
-      ;; > web.
       (let* ((slot (aref slots i))
-             (initform (cl--slot-descriptor-initform slot))
-             (dflt (eieio-default-eval-maybe initform)))
-        (when (not (eq dflt initform))
+             (initform (cl--slot-descriptor-initform slot)))
+        ;; Those slots whose initform is constant already have the right
+        ;; value set in the default-object.
+        (unless (macroexp-const-p initform)
           ;; FIXME: We should be able to just do (aset this (+ i <cst>) dflt)!
-          (eieio-oset this (cl--slot-descriptor-name slot) dflt)))))
+          (eieio-oset this (cl--slot-descriptor-name slot)
+                      (eval initform t))))))
   ;; Shared initialize will parse our slots for us.
   (shared-initialize this slots))
 
