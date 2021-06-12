@@ -759,7 +759,7 @@ for use in `interactive'."
 
 ;;;###autoload
 (defun browse-url-of-file (&optional file)
-  "Ask a WWW browser to display FILE.
+  "Use a web browser to display FILE.
 Display the current buffer's file if FILE is nil or if called
 interactively.  Turn the filename into a URL with function
 `browse-url-file-url'.  Pass the URL to a browser using the
@@ -796,7 +796,9 @@ Use variable `browse-url-filename-alist' to map filenames to URLs."
 
 ;;;###autoload
 (defun browse-url-of-buffer (&optional buffer)
-  "Ask a WWW browser to display BUFFER.
+  "Use a web browser to display BUFFER.
+See `browse-url' for details.
+
 Display the current buffer if BUFFER is nil.  Display only the
 currently visible part of BUFFER (from a temporary file) if buffer is
 narrowed."
@@ -845,7 +847,8 @@ If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
 
 ;;;###autoload
 (defun browse-url-of-region (min max)
-  "Ask a WWW browser to display the current region."
+  "Use a web browser to display the current region.
+See `browse-url' for details."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -859,13 +862,17 @@ If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
 
 ;;;###autoload
 (defun browse-url (url &rest args)
-  "Ask a WWW browser to load URL.
-Prompt for a URL, defaulting to the URL at or before point.
-Invokes a suitable browser function which does the actual job.
+  "Open URL using a configurable method.
+This will typically (by default) open URL with an external web
+browser, but a wide variety of different methods can be used,
+depending on the URL type.
 
 The variables `browse-url-browser-function',
 `browse-url-handlers', and `browse-url-default-handlers'
 determine which browser function to use.
+
+This command prompts for a URL, defaulting to the URL at or
+before point.
 
 The additional ARGS are passed to the browser function.  See the
 doc strings of the actual functions, starting with
@@ -898,8 +905,8 @@ If ARGS are omitted, the default is to pass
 
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
-  "Ask a WWW browser to load the URL at or before point.
-Variable `browse-url-browser-function' says which browser to use.
+  "Open URL at point using a configurable method.
+See `browse-url' for details.
 Optional prefix argument ARG non-nil inverts the value of the option
 `browse-url-new-window-flag'."
   (interactive "P")
@@ -940,10 +947,11 @@ opposite of the browser kind of `browse-url-browser-function'."
 
 ;;;###autoload
 (defun browse-url-at-mouse (event)
-  "Ask a WWW browser to load a URL clicked with the mouse.
-The URL is the one around or before the position of the mouse click
-but point is not changed.  Variable `browse-url-browser-function'
-says which browser to use."
+  "Use a web browser to load a URL clicked with the mouse.
+See `browse-url' for details.
+
+The URL is the one around or before the position of the mouse
+click but point is not changed."
   (interactive "e")
   (save-excursion
     (mouse-set-point event)
