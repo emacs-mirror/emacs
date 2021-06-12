@@ -1453,7 +1453,7 @@ ns_make_frame_visible (struct frame *f)
   if (!FRAME_VISIBLE_P (f))
     {
       EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-      NSWindow *window = [view window];
+      EmacsWindow *window = (EmacsWindow *)[view window];
 
       SET_FRAME_VISIBLE (f, 1);
       ns_raise_frame (f, ! FRAME_NO_FOCUS_ON_MAP (f));
@@ -1476,11 +1476,8 @@ ns_make_frame_visible (struct frame *f)
          relationship, so reinstate it.  */
       if ([window parentWindow] == nil && FRAME_PARENT_FRAME (f) != NULL)
         {
-          NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
-
           block_input ();
-          [parent addChildWindow: window
-                         ordered: NSWindowAbove];
+          [window setParentChildRelationships];
           unblock_input ();
 
           /* If the parent frame moved while the child frame was
@@ -1783,7 +1780,6 @@ ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
    -------------------------------------------------------------------------- */
 {
   struct frame *p = NULL;
-  NSWindow *parent, *child;
 
   NSTRACE ("ns_set_parent_frame");
 
@@ -1796,72 +1792,11 @@ ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
       error ("Invalid specification of `parent-frame'");
     }
 
-  if (p != FRAME_PARENT_FRAME (f))
-    {
-      block_input ();
-      child = [FRAME_NS_VIEW (f) window];
+  fset_parent_frame (f, new_value);
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-#endif
-
-      if ([child parentWindow] != nil)
-        {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-          parent = [child parentWindow];
-#endif
-
-          [[child parentWindow] removeChildWindow:child];
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-          if ([child respondsToSelector:@selector(setAccessibilitySubrole:)])
-#endif
-              [child setAccessibilitySubrole:NSAccessibilityStandardWindowSubrole];
-#endif
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-          if (NILP (new_value))
-            {
-              NSTRACE ("child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary");
-              [child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-              // if current parent in fullscreen and no new parent make child fullscreen
-              while (parent) {
-                if (([parent styleMask] & NSWindowStyleMaskFullScreen) != 0)
-                  {
-                    [view toggleFullScreen:child];
-                    break;
-                  }
-                // check all parents
-                parent = [parent parentWindow];
-              }
-            }
-#endif
-        }
-
-      if (!NILP (new_value))
-        {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-          // child frame must not be in fullscreen
-          if ([view fsIsNative] && [view isFullscreen])
-            [view toggleFullScreen:child];
-          NSTRACE ("child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary");
-          [child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
-#endif
-          parent = [FRAME_NS_VIEW (p) window];
-
-          [parent addChildWindow: child
-                         ordered: NSWindowAbove];
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-          if ([child respondsToSelector:@selector(setAccessibilitySubrole:)])
-#endif
-              [child setAccessibilitySubrole:NSAccessibilityFloatingWindowSubrole];
-#endif
-        }
-
-      unblock_input ();
-
-      fset_parent_frame (f, new_value);
-    }
+  block_input ();
+  [(EmacsWindow *)[FRAME_NS_VIEW (f) window] setParentChildRelationships];
+  unblock_input ();
 }
 
 void
@@ -7574,7 +7509,7 @@ not_in_argv (NSString *arg)
       NSWindowCollectionBehavior b = [win collectionBehavior];
       if (ns_use_native_fullscreen)
         {
-          if ([win parentWindow])
+          if (FRAME_PARENT_FRAME (emacsframe))
             {
               b &= ~NSWindowCollectionBehaviorFullScreenPrimary;
               b |= NSWindowCollectionBehaviorFullScreenAuxiliary;
@@ -8336,22 +8271,7 @@ not_in_argv (NSString *arg)
         [self setTitlebarAppearsTransparent:FRAME_NS_TRANSPARENT_TITLEBAR (f)];
 #endif
 
-      #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-      if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
-#endif
-        if (FRAME_PARENT_FRAME (f))
-          [self setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
-        else
-          [self setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-#endif
-
-      if (FRAME_PARENT_FRAME (f) != NULL)
-        {
-          NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
-          [parent addChildWindow:self
-                         ordered:NSWindowAbove];
-        }
+      [self setParentChildRelationships];
 
       if (FRAME_Z_GROUP (f) != z_group_none)
         [self setLevel:NSNormalWindowLevel + (FRAME_Z_GROUP_BELOW (f) ? -1 : 1)];
@@ -8429,6 +8349,96 @@ not_in_argv (NSString *arg)
 - (NSInteger) borderWidth
 {
   return NSWidth ([self frame]) - NSWidth ([[self contentView] frame]);
+}
+
+
+- (void)setParentChildRelationships
+  /* After certain operations, for example making a frame visible or
+     resetting the NSWindow through modifying the undecorated status,
+     the parent/child relationship may be broken.  We can also use
+     this method to set them, as long as the frame struct already has
+     the correct relationship set.  */
+{
+  NSTRACE ("[EmacsWindow setParentChildRelationships]");
+
+  Lisp_Object frame, tail;
+  EmacsView *ourView = (EmacsView *)[self delegate];
+  struct frame *ourFrame = ourView->emacsframe;
+  struct frame *parentFrame = FRAME_PARENT_FRAME (ourFrame);
+  EmacsWindow *oldParentWindow = (EmacsWindow *)[self parentWindow];
+
+
+#ifdef NS_IMPL_COCOA
+  /* We have to set the accesibility subroles and/or the collection
+     behaviors early otherwise child windows may not go fullscreen as
+     expected later.  */
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
+  if ([child respondsToSelector:@selector(setAccessibilitySubrole:)])
+#endif
+    /* Set the accessibilty subroles.  */
+    if (parentFrame)
+      [self setAccessibilitySubrole:NSAccessibilityFloatingWindowSubrole];
+    else
+      [self setAccessibilitySubrole:NSAccessibilityStandardWindowSubrole];
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+  [ourView updateCollectionBehavior];
+#endif
+#endif
+
+
+  /* Check if we have an incorrectly set parent.  */
+  if ((! parentFrame && oldParentWindow)
+      || (parentFrame && oldParentWindow
+          && ((EmacsView *)[oldParentWindow delegate])->emacsframe != parentFrame))
+    {
+      [[self parentWindow] removeChildWindow:self];
+
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+      if ([ourView respondsToSelector:@selector (toggleFullScreen)]
+#endif
+          /* If we are the descendent of a fullscreen window and we
+             have no new parent, go fullscreen.  */
+          {
+            NSWindow *parent = (NSWindow *)oldParentWindow;
+            while (parent)
+              {
+                if (([parent styleMask] & NSWindowStyleMaskFullScreen) != 0)
+                  {
+                    [ourView toggleFullScreen:self];
+                    break;
+                  }
+                parent = [parent parentWindow];
+              }
+          }
+#endif
+    }
+
+  if (parentFrame)
+    {
+      NSWindow *parentWindow = [FRAME_NS_VIEW (parentFrame) window];
+
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+      if ([ourView respondsToSelector:@selector (toggleFullScreen)]
+#endif
+          /* Child frames must not be fullscreen.  */
+          if ([ourView fsIsNative] && [ourView isFullscreen])
+            [ourView toggleFullScreen:self];
+#endif
+
+      [parentWindow addChildWindow:self
+                           ordered:NSWindowAbove];
+    }
+
+  /* Check our child windows are configured correctly.  */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (FRAME_PARENT_FRAME (XFRAME (frame)) == ourFrame)
+        [(EmacsWindow *)[FRAME_NS_VIEW (XFRAME (frame)) window] setParentChildRelationships];
+    }
 }
 
 

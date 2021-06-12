@@ -418,6 +418,7 @@ typedef id instancetype;
 
 - (instancetype)initWithEmacsFrame:(struct frame *)f;
 - (instancetype)initWithEmacsFrame:(struct frame *)f fullscreen:(BOOL)fullscreen screen:(NSScreen *)screen;
+- (void)setParentChildRelationships;
 - (NSInteger)borderWidth;
 - (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
 - (void)setAppearance;
