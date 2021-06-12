@@ -5246,6 +5246,12 @@ have to disable fetching headers with @samp{XOVER}:
 Be aware, though, that this will make entering an @acronym{NNTP} group
 much, much slower, so this is not recommended.
 
+One particular scenario in which it can be desirable to not use
+@samp{XOVER} is for @code{nnvirtual} groups in order to support
+limiting by extra headers (e.g., by the newsgroup of its component
+groups).  Because group parameters are not inherited, a separate
+select method for the component groups with the appropriate
+@code{nov-is-evil} set as a method variable is required.
 
 @node Summary Buffer Mode Line
 @subsection Summary Buffer Mode Line
