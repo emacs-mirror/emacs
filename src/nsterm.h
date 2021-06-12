@@ -453,9 +453,7 @@ typedef id instancetype;
 @public
    struct frame *emacsframe;
    int scrollbarsNeedingUpdate;
-   EmacsToolbar *toolbar;
    NSRect ns_userRect;
-   BOOL wait_for_tool_bar;
    }
 
 /* AppKit-side interface */
@@ -469,9 +467,7 @@ typedef id instancetype;
 
 /* Emacs-side interface */
 - (instancetype) initFrameFromEmacs: (struct frame *) f;
-- (void) createToolbar: (struct frame *)f;
 - (void) setWindowClosing: (BOOL)closing;
-- (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
 - (void) handleFS;
 - (void) setFSValue: (int)value;

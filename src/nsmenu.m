@@ -991,12 +991,11 @@ free_frame_tool_bar (struct frame *f)
   NSTRACE ("free_frame_tool_bar");
 
   block_input ();
-  view->wait_for_tool_bar = NO;
 
   /* Note: This triggers an animation, which calls windowDidResize
      repeatedly.  */
   f->output_data.ns->in_animation = 1;
-  [[view toolbar] setVisible: NO];
+  [[[view window] toolbar] setVisible: NO];
   f->output_data.ns->in_animation = 0;
 
   unblock_input ();
@@ -1009,12 +1008,12 @@ update_frame_tool_bar (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   int i, k = 0;
-  EmacsView *view = FRAME_NS_VIEW (f);
-  EmacsToolbar *toolbar = [view toolbar];
+  NSWindow *window = [FRAME_NS_VIEW (f) window];
+  EmacsToolbar *toolbar = (EmacsToolbar *)[window toolbar];
 
   NSTRACE ("update_frame_tool_bar");
 
-  if (view == nil || toolbar == nil) return;
+  if (window == nil || toolbar == nil) return;
   block_input ();
 
 #ifdef NS_IMPL_COCOA
@@ -1120,13 +1119,6 @@ update_frame_tool_bar (struct frame *f)
       [newDict release];
     }
 #endif
-
-  if (view->wait_for_tool_bar && FRAME_TOOLBAR_HEIGHT (f) > 0)
-    {
-      view->wait_for_tool_bar = NO;
-      [view setNeedsDisplay: YES];
-    }
-
   unblock_input ();
 }
 

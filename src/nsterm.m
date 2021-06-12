@@ -1026,7 +1026,7 @@ ns_update_begin (struct frame *f)
   {
     // Fix reappearing tool bar in fullscreen for Mac OS X 10.7
     BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (f) ? YES : NO;
-    NSToolbar *toolbar = [FRAME_NS_VIEW (f) toolbar];
+    NSToolbar *toolbar = [[FRAME_NS_VIEW (f) window] toolbar];
     if (! tbar_visible != ! [toolbar isVisible])
       [toolbar setVisible: tbar_visible];
   }
@@ -1744,9 +1744,6 @@ ns_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
       FRAME_UNDECORATED (f) = !NILP (new_value);
 
       newWindow = [[EmacsWindow alloc] initWithEmacsFrame:f];
-
-      if (!FRAME_UNDECORATED (f))
-        [view createToolbar: f];
 
       if ([oldWindow isKeyWindow])
         [newWindow makeKeyAndOrderFront:NSApp];
@@ -6074,7 +6071,6 @@ not_in_argv (NSString *arg)
               name:NSViewFrameDidChangeNotification
             object:nil];
 
-  [toolbar release];
   if (fs_state == FULLSCREEN_BOTH)
     [nonfs_window release];
   [super dealloc];
@@ -7155,34 +7151,6 @@ not_in_argv (NSString *arg)
 }
 
 
-- (void)createToolbar: (struct frame *)f
-{
-  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-  NSWindow *window = [view window];
-
-  toolbar = [[EmacsToolbar alloc] initForView: self withIdentifier:
-                   [NSString stringWithFormat: @"Emacs Frame %d",
-                             ns_window_num]];
-  [toolbar setVisible: NO];
-  [window setToolbar: toolbar];
-
-  /* Don't set frame garbaged until tool bar is up to date?
-     This avoids an extra clear and redraw (flicker) at frame creation.  */
-  if (FRAME_EXTERNAL_TOOL_BAR (f)) wait_for_tool_bar = YES;
-  else wait_for_tool_bar = NO;
-
-
-#ifdef NS_IMPL_COCOA
-  {
-    NSButton *toggleButton;
-    toggleButton = [window standardWindowButton: NSWindowToolbarButton];
-    [toggleButton setTarget: self];
-    [toggleButton setAction: @selector (toggleToolbar: )];
-  }
-#endif
-}
-
-
 - (instancetype) initFrameFromEmacs: (struct frame *)f
 {
   NSTRACE ("[EmacsView initFrameFromEmacs:]");
@@ -7233,10 +7201,6 @@ not_in_argv (NSString *arg)
 
   if (ns_drag_types)
     [self registerForDraggedTypes: ns_drag_types];
-
-  /* toolbar support */
-  if (! FRAME_UNDECORATED (f))
-    [self createToolbar: f];
 
 #if !defined (NS_IMPL_COCOA) \
   || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
@@ -7517,7 +7481,7 @@ not_in_argv (NSString *arg)
           [NSApp setPresentationOptions: options];
         }
 #endif
-      [toolbar setVisible:tbar_visible];
+      [[[self window]toolbar] setVisible:tbar_visible];
     }
 }
 
@@ -7560,12 +7524,12 @@ not_in_argv (NSString *arg)
 #endif
   if (FRAME_EXTERNAL_TOOL_BAR (emacsframe))
     {
-      [toolbar setVisible:YES];
+      [[[self window] toolbar] setVisible:YES];
       update_frame_tool_bar (emacsframe);
       [[self window] display];
     }
   else
-    [toolbar setVisible:NO];
+    [[[self window] toolbar] setVisible:NO];
 
   if (next_maximized != -1)
     [[self window] performZoom:self];
@@ -7861,12 +7825,6 @@ not_in_argv (NSString *arg)
 
   ns_send_appdefined (-1);
   return self;
-}
-
-
-- (EmacsToolbar *)toolbar
-{
-  return toolbar;
 }
 
 
@@ -8421,6 +8379,10 @@ not_in_argv (NSString *arg)
       if ([col alphaComponent] != (EmacsCGFloat) 1.0)
         [self setOpaque:NO];
 
+      /* toolbar support */
+      if (! FRAME_UNDECORATED (f))
+        [self createToolbar:f];
+
       /* macOS Sierra automatically enables tabbed windows.  We can't
          allow this to be enabled until it's available on a Free system.
          Currently it only happens by accident and is buggy anyway.  */
@@ -8433,6 +8395,36 @@ not_in_argv (NSString *arg)
   return self;
 }
 
+
+- (void)createToolbar: (struct frame *)f
+{
+  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+
+  EmacsToolbar *toolbar = [[EmacsToolbar alloc]
+                            initForView:view
+                            withIdentifier:[NSString stringWithLispString:f->name]];
+  [self setToolbar:toolbar];
+
+  update_frame_tool_bar (f);
+
+#ifdef NS_IMPL_COCOA
+  {
+    NSButton *toggleButton;
+    toggleButton = [self standardWindowButton:NSWindowToolbarButton];
+    [toggleButton setTarget:view];
+    [toggleButton setAction:@selector (toggleToolbar:)];
+  }
+#endif
+}
+
+- (void)dealloc
+{
+  NSTRACE ("[EmacsWindow dealloc]");
+
+  /* We need to release the toolbar ourselves.  */
+  [[self toolbar] release];
+  [super dealloc];
+}
 
 - (NSInteger) borderWidth
 {
