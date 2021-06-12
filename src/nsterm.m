@@ -8040,24 +8040,33 @@ not_in_argv (NSString *arg)
    redisplay before drawing.
 
    This used to be done in viewWillDraw, but with the custom layer
-   that method is not called.  */
-- (void)layout
+   that method is not called.  We cannot call redisplay directly from
+   [NSView layout], because it may trigger another round of layout by
+   changing the frame size and recursive layout calls are banned.  It
+   appears to be safe to call redisplay here.  */
+- (void)layoutSublayersOfLayer:(CALayer *)layer
 {
-  [super layout];
+  if (!redisplaying_p && FRAME_GARBAGED_P (emacsframe))
+    {
+      /* If there is IO going on when redisplay is run here Emacs
+         crashes.  I think it's because this code will always be run
+         within the run loop and for whatever reason processing input
+         is dangerous.  This technique was stolen wholesale from
+         nsmenu.m and seems to work.
 
-  /* If there is IO going on when redisplay is run here Emacs
-     crashes.  I think it's because this code will always be run
-     within the run loop and for whatever reason processing input
-     is dangerous.  This technique was stolen wholesale from
-     nsmenu.m and seems to work.  */
-  bool owfi = waiting_for_input;
-  waiting_for_input = 0;
-  block_input ();
+         FIXME: I can't provoke a crash using layoutSublayersOfLayer,
+         however I can't understand why it would be different from
+         viewWillDraw.  I'll leave this commented out for now, but if
+         nobody reports a crash it can be removed.  */
+      // bool owfi = waiting_for_input;
+      // waiting_for_input = 0;
+      // block_input ();
 
-  redisplay ();
+      redisplay ();
 
-  unblock_input ();
-  waiting_for_input = owfi;
+      // unblock_input ();
+      // waiting_for_input = owfi;
+    }
 }
 #endif
 
