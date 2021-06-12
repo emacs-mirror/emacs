@@ -518,7 +518,7 @@ On Nextstep, TERMINAL is unused.  */)
 
   obj = gtk_clipboard_get_owner (cb);
 
-  return g_object_get_qdata (obj, quark_data) != NULL ? Qt : Qnil;
+  return obj && g_object_get_qdata (obj, quark_data) != NULL ? Qt : Qnil;
 }
 
 
