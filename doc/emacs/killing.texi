@@ -522,11 +522,14 @@ clipboard.
 
 @vindex save-interprogram-paste-before-kill
   When an Emacs kill command puts text in the clipboard, the existing
-clipboard contents are normally lost.  Optionally, you can change
-@code{save-interprogram-paste-before-kill} to @code{t}.  Then Emacs
-will first save the clipboard to its kill ring, preventing you from
-losing the old clipboard data---at the risk of high memory consumption
-if that data turns out to be large.
+clipboard contents are normally lost.  Optionally, Emacs can save the
+existing clipboard contents to the kill ring, preventing you from
+losing the old clipboard data.  If
+@code{save-interprogram-paste-before-kill} changed to a number, then
+this data is copied over if it's smaller (in characters) than this
+number.  If this variable is any other non-@code{nil} value, it's
+always copied over---at the risk of high memory consumption if that
+data turns out to be large.
 
   Yank commands, such as @kbd{C-y} (@code{yank}), also use the
 clipboard.  If another application ``owns'' the clipboard---i.e., if

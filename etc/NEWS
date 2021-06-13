@@ -2087,6 +2087,11 @@ Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 
 ** Miscellaneous
 
++++
+*** 'save-interprogram-paste-before-kill' can now be a number.
+In that case, it's interpreted as a limit to how long the clipboard
+data can be before saving to the kill ring.
+
 ---
 *** New variable 'hl-line-overlay-priority'.
 This can be used to change the priority of the hl-line overlays.
