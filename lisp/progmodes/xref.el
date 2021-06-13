@@ -1464,7 +1464,7 @@ IGNORES is a list of glob patterns for files to ignore."
        ;; do that reliably enough, without creating false negatives?
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
-                                     (file-name-as-directory
+                                     (directory-file-name
                                       (file-name-unquote
                                        (file-local-name (expand-file-name dir))))
                                      ignores))

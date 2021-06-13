@@ -443,7 +443,6 @@ typedef id instancetype;
    int maximized_width, maximized_height;
    NSWindow *nonfs_window;
    BOOL fs_is_native;
-   BOOL in_fullscreen_transition;
 #ifdef NS_DRAW_TO_BUFFER
    EmacsSurface *surface;
 #endif
@@ -475,8 +474,6 @@ typedef id instancetype;
 - (void) toggleFullScreen: (id) sender;
 - (BOOL) fsIsNative;
 - (BOOL) isFullscreen;
-- (BOOL) inFullScreenTransition;
-- (void) waitFullScreenTransition;
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 - (void) updateCollectionBehavior;
 #endif
@@ -724,8 +721,9 @@ typedef id instancetype;
   IOSurfaceRef currentSurface;
   IOSurfaceRef lastSurface;
   CGContextRef context;
+  CGFloat scale;
 }
-- (id) initWithSize: (NSSize)s ColorSpace: (CGColorSpaceRef)cs;
+- (id) initWithSize: (NSSize)s ColorSpace: (CGColorSpaceRef)cs Scale: (CGFloat)scale;
 - (void) dealloc;
 - (NSSize) getSize;
 - (CGContextRef) getContext;

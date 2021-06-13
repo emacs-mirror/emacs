@@ -462,195 +462,203 @@ and all `time-stamp-format' compatibility."
   (let ((fmt-len (length format))
 	(ind 0)
 	cur-char
-	(prev-char nil)
-	(result "")
-	field-width
-	field-result
-	alt-form change-case upcase
-	(paren-level 0))
+	(result ""))
     (while (< ind fmt-len)
       (setq cur-char (aref format ind))
       (setq
        result
-       (concat result
-      (cond
-       ((eq cur-char ?%)
-	;; eat any additional args to allow for future expansion
-	(setq alt-form 0 change-case nil upcase nil field-width "")
-	(while (progn
-		 (setq ind (1+ ind))
-		 (setq cur-char (if (< ind fmt-len)
-				    (aref format ind)
-				  ?\0))
-		 (or (eq ?. cur-char)
-		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
-		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
-		     (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
-		     (and (eq ?\( cur-char)
-			  (not (eq prev-char ?\\))
-			  (setq paren-level (1+ paren-level)))
-		     (if (and (eq ?\) cur-char)
+       (concat
+        result
+        (cond
+         ((eq cur-char ?%)
+	  (let ((prev-char nil)
+		(field-width "")
+		field-result
+		(alt-form 0)
+		(change-case nil)
+		(upcase nil)
+		(paren-level 0))
+	    ;; eat any additional args to allow for future expansion
+	    (while (progn
+		     (setq ind (1+ ind))
+		     (setq cur-char (if (< ind fmt-len)
+				        (aref format ind)
+				      ?\0))
+		     (or (eq ?. cur-char)
+		         (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
+		         (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
+		         (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
+		         (and (eq ?\( cur-char)
 			      (not (eq prev-char ?\\))
-			      (> paren-level 0))
-			 (setq paren-level (1- paren-level))
-		       (and (> paren-level 0)
-			    (< ind fmt-len)))
-		     (if (and (<= ?0 cur-char) (>= ?9 cur-char))
-			 ;; get format width
-			 (let ((field-index ind))
-			   (while (progn
-				    (setq ind (1+ ind))
-				    (setq cur-char (if (< ind fmt-len)
-						       (aref format ind)
-						     ?\0))
-				    (and (<= ?0 cur-char) (>= ?9 cur-char))))
-			   (setq field-width (substring format field-index ind))
-			   (setq ind (1- ind))
-			   t))))
-	  (setq prev-char cur-char)
-	  ;; some characters we actually use
-	  (cond ((eq cur-char ?:)
-		 (setq alt-form (1+ alt-form)))
-		((eq cur-char ?#)
-		 (setq change-case t))
-		((eq cur-char ?^)
-		 (setq upcase t))
-		((eq cur-char ?-)
-		 (setq field-width "1"))
-		((eq cur-char ?_)
-		 (setq field-width "2"))))
-	(setq field-result
-	(cond
-	 ((eq cur-char ?%)
-	  "%")
-	 ((eq cur-char ?a)		;day of week
-          (if (> alt-form 0)
-               (if (string-equal field-width "")
-                   (time-stamp--format "%A" time)
-                 "")			;discourage "%:3a"
-            (if (or change-case upcase)
-                (time-stamp--format "%#a" time)
-	      (time-stamp--format "%a" time))))
-	 ((eq cur-char ?A)
-	  (if (or change-case upcase (not (string-equal field-width "")))
-	      (time-stamp--format "%#A" time)
-	    (time-stamp--format "%A" time)))
-	 ((eq cur-char ?b)		;month name
-          (if (> alt-form 0)
-               (if (string-equal field-width "")
-                   (time-stamp--format "%B" time)
-                 "")			;discourage "%:3b"
-            (if (or change-case upcase)
-                (time-stamp--format "%#b" time)
-	      (time-stamp--format "%b" time))))
-	 ((eq cur-char ?B)
-	  (if (or change-case upcase (not (string-equal field-width "")))
-	      (time-stamp--format "%#B" time)
-	    (time-stamp--format "%B" time)))
-	 ((eq cur-char ?d)		;day of month, 1-31
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?H)		;hour, 0-23
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?I)		;hour, 1-12
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?m)		;month number, 1-12
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?M)		;minute, 0-59
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?p)		;am or pm
-	  (if change-case
-              (time-stamp--format "%#p" time)
-            (time-stamp--format "%p" time)))
-	 ((eq cur-char ?P)		;AM or PM
-	  (time-stamp--format "%p" time))
-	 ((eq cur-char ?S)		;seconds, 00-60
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?w)		;weekday number, Sunday is 0
-	  (time-stamp--format "%w" time))
-	 ((eq cur-char ?y)		;year
-          (if (> alt-form 0)
-              (string-to-number (time-stamp--format "%Y" time))
-            (if (or (string-equal field-width "")
-                    (<= (string-to-number field-width) 2))
-                (string-to-number (time-stamp--format "%y" time))
-              (time-stamp-conv-warn (format "%%%sy" field-width) "%Y")
-              (string-to-number (time-stamp--format "%Y" time)))))
-	 ((eq cur-char ?Y)		;4-digit year
-	  (string-to-number (time-stamp--format "%Y" time)))
-	 ((eq cur-char ?z)		;time zone offset
-	  (if change-case
-	      ""			;discourage %z variations
-            (cond ((= alt-form 0)
-                   (if (string-equal field-width "")
-                       (progn
-                         (time-stamp-conv-warn "%z" "%#Z")
-                         (time-stamp--format "%#Z" time))
-                     (cond ((string-equal field-width "1")
-                            (setq field-width "3")) ;%-z -> "+00"
-                           ((string-equal field-width "2")
-                            (setq field-width "5")) ;%_z -> "+0000"
-                           ((string-equal field-width "4")
-                            (setq field-width "0"))) ;discourage %4z
-                     (time-stamp--format "%z" time)))
-                  ((= alt-form 1)
-                   (time-stamp--format "%:z" time))
-                  ((= alt-form 2)
-                   (time-stamp--format "%::z" time))
-                  ((= alt-form 3)
-                   (time-stamp--format "%:::z" time)))))
-	 ((eq cur-char ?Z)              ;time zone name
-	  (if change-case
-	      (time-stamp--format "%#Z" time)
-	    (time-stamp--format "%Z" time)))
-	 ((eq cur-char ?f)		;buffer-file-name, base name only
-	  (if buffer-file-name
-	      (file-name-nondirectory buffer-file-name)
-	    time-stamp-no-file))
-	 ((eq cur-char ?F)		;buffer-file-name, full path
-	  (or buffer-file-name
-	      time-stamp-no-file))
-	 ((eq cur-char ?s)		;system name, legacy
-	  (system-name))
-	 ((eq cur-char ?u)		;user name, legacy
-	  (user-login-name))
-	 ((eq cur-char ?U)		;user full name, legacy
-	  (user-full-name))
-	 ((eq cur-char ?l)		;login name
-	  (user-login-name))
-	 ((eq cur-char ?L)		;full name of logged-in user
-	  (user-full-name))
-	 ((eq cur-char ?h)		;mail host name
-	  (or mail-host-address (system-name)))
-	 ((eq cur-char ?q)		;unqualified host name
-	  (let ((qualname (system-name)))
-	    (if (string-match "\\." qualname)
-		(substring qualname 0 (match-beginning 0))
-	      qualname)))
-	 ((eq cur-char ?Q)		;fully-qualified host name
-	  (system-name))
-	 ))
-        (and (numberp field-result)
-             (= alt-form 0)
-             (string-equal field-width "")
-             ;; no width provided; set width for default
-             (setq field-width "02"))
-	(let ((padded-result
-	       (format (format "%%%s%c"
-			       field-width
-			       (if (numberp field-result) ?d ?s))
-		       (or field-result ""))))
-	  (let* ((initial-length (length padded-result))
-		 (desired-length (if (string-equal field-width "")
-				     initial-length
-				   (string-to-number field-width))))
-	    (if (> initial-length desired-length)
-		;; truncate strings on right
-		(if (stringp field-result)
-		    (substring padded-result 0 desired-length)
-                  padded-result)	;numbers don't truncate
-	      padded-result))))
-       (t
-	(char-to-string cur-char)))))
+			      (setq paren-level (1+ paren-level)))
+		         (if (and (eq ?\) cur-char)
+			          (not (eq prev-char ?\\))
+			          (> paren-level 0))
+			     (setq paren-level (1- paren-level))
+		           (and (> paren-level 0)
+			        (< ind fmt-len)))
+		         (if (and (<= ?0 cur-char) (>= ?9 cur-char))
+			     ;; get format width
+			     (let ((field-index ind)
+			           (first-digit cur-char))
+			       (while (progn
+				        (setq ind (1+ ind))
+				        (setq cur-char (if (< ind fmt-len)
+						           (aref format ind)
+						         ?\0))
+					(and (<= ?0 cur-char)
+					     (>= ?9 cur-char))))
+			       (setq field-width
+				     (substring format field-index ind))
+			       (setq ind (1- ind))
+			       (setq cur-char first-digit)
+			       t))))
+	      (setq prev-char cur-char)
+	      ;; some characters we actually use
+	      (cond ((eq cur-char ?:)
+		     (setq alt-form (1+ alt-form)))
+		    ((eq cur-char ?#)
+		     (setq change-case t))
+		    ((eq cur-char ?^)
+		     (setq upcase t))
+		    ((eq cur-char ?-)
+		     (setq field-width "1"))
+		    ((eq cur-char ?_)
+		     (setq field-width "2"))))
+	    (setq field-result
+	          (cond
+	           ((eq cur-char ?%)
+	            "%")
+	           ((eq cur-char ?a)    ;day of week
+                    (if (> alt-form 0)
+                        (if (string-equal field-width "")
+                            (time-stamp--format "%A" time)
+                          "")           ;discourage "%:3a"
+                      (if (or change-case upcase)
+                          (time-stamp--format "%#a" time)
+	                (time-stamp--format "%a" time))))
+	           ((eq cur-char ?A)
+		    (if (or change-case upcase (not (string-equal field-width
+								  "")))
+			(time-stamp--format "%#A" time)
+	              (time-stamp--format "%A" time)))
+	           ((eq cur-char ?b)    ;month name
+                    (if (> alt-form 0)
+                        (if (string-equal field-width "")
+                            (time-stamp--format "%B" time)
+                          "")           ;discourage "%:3b"
+                      (if (or change-case upcase)
+                          (time-stamp--format "%#b" time)
+	                (time-stamp--format "%b" time))))
+		   ((eq cur-char ?B)
+		    (if (or change-case upcase (not (string-equal field-width
+								  "")))
+			(time-stamp--format "%#B" time)
+	              (time-stamp--format "%B" time)))
+	           ((eq cur-char ?d)    ;day of month, 1-31
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?H)    ;hour, 0-23
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?I)    ;hour, 1-12
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?m)    ;month number, 1-12
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?M)    ;minute, 0-59
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?p)    ;am or pm
+	            (if change-case
+                        (time-stamp--format "%#p" time)
+                      (time-stamp--format "%p" time)))
+	           ((eq cur-char ?P)    ;AM or PM
+	            (time-stamp--format "%p" time))
+	           ((eq cur-char ?S)    ;seconds, 00-60
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?w)    ;weekday number, Sunday is 0
+	            (time-stamp--format "%w" time))
+	           ((eq cur-char ?y)    ;year
+                    (if (> alt-form 0)
+                        (string-to-number (time-stamp--format "%Y" time))
+                      (if (or (string-equal field-width "")
+                              (<= (string-to-number field-width) 2))
+                          (string-to-number (time-stamp--format "%y" time))
+                        (time-stamp-conv-warn (format "%%%sy" field-width) "%Y")
+                        (string-to-number (time-stamp--format "%Y" time)))))
+	           ((eq cur-char ?Y)    ;4-digit year
+	            (string-to-number (time-stamp--format "%Y" time)))
+	           ((eq cur-char ?z)    ;time zone offset
+	            (if change-case
+	                ""              ;discourage %z variations
+                      (cond ((= alt-form 0)
+                             (if (string-equal field-width "")
+                                 (progn
+                                   (time-stamp-conv-warn "%z" "%#Z")
+                                   (time-stamp--format "%#Z" time))
+                               (cond ((string-equal field-width "1")
+                                      (setq field-width "3")) ;%-z -> "+00"
+                                     ((string-equal field-width "2")
+                                      (setq field-width "5")) ;%_z -> "+0000"
+                                     ((string-equal field-width "4")
+                                      (setq field-width "0"))) ;discourage %4z
+                               (time-stamp--format "%z" time)))
+                            ((= alt-form 1)
+                             (time-stamp--format "%:z" time))
+                            ((= alt-form 2)
+                             (time-stamp--format "%::z" time))
+                            ((= alt-form 3)
+                             (time-stamp--format "%:::z" time)))))
+	           ((eq cur-char ?Z)    ;time zone name
+	            (if change-case
+	                (time-stamp--format "%#Z" time)
+	              (time-stamp--format "%Z" time)))
+	           ((eq cur-char ?f)    ;buffer-file-name, base name only
+	            (if buffer-file-name
+	                (file-name-nondirectory buffer-file-name)
+	              time-stamp-no-file))
+	           ((eq cur-char ?F)    ;buffer-file-name, full path
+	            (or buffer-file-name
+	                time-stamp-no-file))
+	           ((eq cur-char ?s)    ;system name, legacy
+	            (system-name))
+	           ((eq cur-char ?u)    ;user name, legacy
+	            (user-login-name))
+	           ((eq cur-char ?U)    ;user full name, legacy
+	            (user-full-name))
+	           ((eq cur-char ?l)    ;login name
+	            (user-login-name))
+	           ((eq cur-char ?L)    ;full name of logged-in user
+	            (user-full-name))
+	           ((eq cur-char ?h)    ;mail host name
+	            (or mail-host-address (system-name)))
+	           ((eq cur-char ?q)    ;unqualified host name
+	            (let ((qualname (system-name)))
+	              (if (string-match "\\." qualname)
+		          (substring qualname 0 (match-beginning 0))
+	                qualname)))
+	           ((eq cur-char ?Q)    ;fully-qualified host name
+	            (system-name))
+	           ))
+            (and (numberp field-result)
+                 (= alt-form 0)
+                 (string-equal field-width "")
+                 ;; no width provided; set width for default
+                 (setq field-width "02"))
+	    (let ((padded-result
+	           (format (format "%%%s%c"
+			           field-width
+			           (if (numberp field-result) ?d ?s))
+		           (or field-result ""))))
+	      (let* ((initial-length (length padded-result))
+		     (desired-length (if (string-equal field-width "")
+				         initial-length
+				       (string-to-number field-width))))
+	        (if (> initial-length desired-length)
+		    ;; truncate strings on right
+		    (if (stringp field-result)
+		        (substring padded-result 0 desired-length)
+                      padded-result)	;numbers don't truncate
+	          padded-result)))))
+         (t
+	  (char-to-string cur-char)))))
       (setq ind (1+ ind)))
     result))
 

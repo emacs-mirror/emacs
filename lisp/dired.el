@@ -2820,10 +2820,12 @@ You can then feed the file name(s) to other commands with \\[yank]."
 
 ;; Keeping Dired buffers in sync with the filesystem and with each other
 
-(defun dired-buffers-for-dir (dir &optional file)
+(defun dired-buffers-for-dir (dir &optional file subdirs)
   "Return a list of buffers for DIR (top level or in-situ subdir).
 If FILE is non-nil, include only those whose wildcard pattern (if any)
 matches FILE.
+If SUBDIRS is non-nil, also include the dired buffers of
+directories below DIR.
 The list is in reverse order of buffer creation, most recent last.
 As a side effect, killed dired buffers for DIR are removed from
 dired-buffers."
@@ -2835,19 +2837,20 @@ dired-buffers."
        ((null (buffer-name buf))
 	;; Buffer is killed - clean up:
 	(setq dired-buffers (delq elt dired-buffers)))
-       ((dired-in-this-tree-p dir (car elt))
+       ((file-in-directory-p (car elt) dir)
 	(with-current-buffer buf
-	  (and (assoc dir dired-subdir-alist)
-	       (or (null file)
-		   (if (stringp dired-directory)
-		       (let ((wildcards (file-name-nondirectory
-					 dired-directory)))
-			 (or (zerop (length wildcards))
-			     (string-match-p (dired-glob-regexp wildcards)
-                                             file)))
-		     (member (expand-file-name file dir)
-			     (cdr dired-directory))))
-	       (setq result (cons buf result)))))))
+          (when (and (or subdirs
+                         (assoc dir dired-subdir-alist))
+	             (or (null file)
+		         (if (stringp dired-directory)
+		             (let ((wildcards (file-name-nondirectory
+					       dired-directory)))
+			       (or (zerop (length wildcards))
+			           (string-match-p (dired-glob-regexp wildcards)
+                                                   file)))
+		           (member (expand-file-name file dir)
+			           (cdr dired-directory)))))
+            (setq result (cons buf result)))))))
     result))
 
 (defun dired-glob-regexp (pattern)
@@ -2912,6 +2915,7 @@ dired-buffers."
   ;;"Is FILE part of the directory tree starting at DIR?"
   (let (case-fold-search)
     (string-match-p (concat "^" (regexp-quote dir)) file)))
+(make-obsolete 'dired-in-this-tree-p 'file-in-directory-p "28.1")
 (define-obsolete-function-alias 'dired-in-this-tree
   'dired-in-this-tree-p "27.1")
 
@@ -3280,15 +3284,19 @@ non-empty directories is allowed."
   (interactive)
   (let* ((dired-marker-char dired-del-marker)
 	 (regexp (dired-marker-regexp))
-	 case-fold-search)
+	 case-fold-search markers)
     (if (save-excursion (goto-char (point-min))
 			(re-search-forward regexp nil t))
 	(dired-internal-do-deletions
          (nreverse
 	  ;; this can't move point since ARG is nil
-	  (dired-map-over-marks (cons (dired-get-filename) (point))
+	  (dired-map-over-marks (cons (dired-get-filename)
+                                      (let ((m (point-marker)))
+                                        (push m markers)
+                                        m))
 			        nil))
 	 nil t)
+      (dolist (m markers) (set-marker m nil))
       (or nomessage
 	  (message "(No deletions requested)")))))
 
@@ -3299,12 +3307,17 @@ non-empty directories is allowed."
   ;; This is more consistent with the file marking feature than
   ;; dired-do-flagged-delete.
   (interactive "P")
-  (dired-internal-do-deletions
-   (nreverse
-    ;; this may move point if ARG is an integer
-    (dired-map-over-marks (cons (dired-get-filename) (point))
-			  arg))
-   arg t))
+  (let (markers)
+    (dired-internal-do-deletions
+     (nreverse
+      ;; this may move point if ARG is an integer
+      (dired-map-over-marks (cons (dired-get-filename)
+                                  (let ((m (point-marker)))
+                                    (push m markers)
+                                    m))
+                            arg))
+     arg t)
+    (dolist (m markers) (set-marker m nil))))
 
 (defvar dired-deletion-confirmer 'yes-or-no-p) ; or y-or-n-p?
 
@@ -3312,11 +3325,6 @@ non-empty directories is allowed."
   ;; L is an alist of files to delete, with their buffer positions.
   ;; ARG is the prefix arg.
   ;; Filenames are absolute.
-  ;; (car L) *must* be the *last* (bottommost) file in the dired buffer.
-  ;; That way as changes are made in the buffer they do not shift the
-  ;; lines still to be changed, so the (point) values in L stay valid.
-  ;; Also, for subdirs in natural order, a subdir's files are deleted
-  ;; before the subdir itself - the other way around would not work.
   (let* ((files (mapcar #'car l))
 	 (count (length l))
 	 (succ 0)
@@ -3337,9 +3345,10 @@ non-empty directories is allowed."
 		 (make-progress-reporter
 		  (if trashing "Trashing..." "Deleting...")
 		  succ count))
-		failures) ;; files better be in reverse order for this loop!
+		failures)
 	    (while l
-	      (goto-char (cdr (car l)))
+	      (goto-char (marker-position (cdr (car l))))
+              (dired-move-to-filename)
 	      (let ((inhibit-read-only t))
 		(condition-case err
 		    (let ((fn (car (car l))))
@@ -3422,7 +3431,8 @@ confirmation.  To disable the confirmation, see
                                      (file-name-nondirectory fn))))
                (not dired-clean-confirm-killing-deleted-buffers))
            (kill-buffer buf)))
-    (let ((buf-list (dired-buffers-for-dir (expand-file-name fn))))
+    (let ((buf-list (dired-buffers-for-dir (expand-file-name fn)
+                                           nil 'subdirs)))
       (and buf-list
            (or (and dired-clean-confirm-killing-deleted-buffers
                     (y-or-n-p

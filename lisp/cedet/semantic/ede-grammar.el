@@ -38,13 +38,13 @@
    (keybindings :initform nil)
    (phony :initform t)
    (sourcetype :initform
-	       (semantic-ede-source-grammar-wisent
-		semantic-ede-source-grammar-bovine
-		))
+	       '(semantic-ede-source-grammar-wisent
+		 semantic-ede-source-grammar-bovine
+		 ))
    (availablecompilers :initform
-		       (semantic-ede-grammar-compiler-wisent
-			semantic-ede-grammar-compiler-bovine
-			))
+		       '(semantic-ede-grammar-compiler-wisent
+			 semantic-ede-grammar-compiler-bovine
+			 ))
    (aux-packages :initform '("semantic" "cedet-compat"))
    (pre-load-packages :initform '("cedet-compat" "semantic/grammar" "semantic/bovine/grammar" "semantic/wisent/grammar"))
    )

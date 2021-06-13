@@ -462,6 +462,11 @@ struct frame
      in X builds only.  */
   bool_bf was_invisible : 1;
 
+  /* True when the frame isn't selected, and selecting it in the
+     future should select the mini-window rather than the currently
+     selected window in the frame, assuming there is still an active
+     minibuffer in that mini-window.  */
+  bool_bf select_mini_window_flag : 1;
   /* Bitfield area ends here.  */
 
   /* This frame's change stamp, set the last time window change

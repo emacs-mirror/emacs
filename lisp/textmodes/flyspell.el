@@ -1263,14 +1263,27 @@ spell-check."
 			     (t
 			      (setq flyspell-word-cache-result nil)
 			      ;; Highlight the location as incorrect,
-			      ;; including offset specified in POSS.
+			      ;; including offset specified in POSS
+			      ;; and only for the length of the
+			      ;; misspelled word specified by POSS.
 			      (if flyspell-highlight-flag
-				  (flyspell-highlight-incorrect-region
-				   (if (and (consp poss)
-					    (integerp (nth 1 poss)))
-				       (+ start (nth 1 poss) -1)
-				     start)
-				   end poss)
+                                  (let ((hstart start)
+                                        (hend end)
+                                        offset misspelled)
+                                    (when (consp poss)
+                                      (setq misspelled (car poss)
+                                            offset (nth 1 poss))
+                                      (if (integerp offset)
+                                          (setq hstart (+ start offset -1)))
+                                      ;; POSS includes the misspelled
+                                      ;; word; use that to figure out
+                                      ;; how many characters to highlight.
+                                      (if (stringp misspelled)
+                                          (setq hend
+                                                (+ hstart
+                                                   (length misspelled)))))
+				    (flyspell-highlight-incorrect-region
+                                     hstart hend poss))
 				(flyspell-notify-misspell word poss))
 			      nil))))
 	      ;; return to original location

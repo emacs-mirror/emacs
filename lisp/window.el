@@ -2499,14 +2499,16 @@ and no others."
 
 (defalias 'some-window 'get-window-with-predicate)
 
-(defun get-lru-window (&optional all-frames dedicated not-selected)
+(defun get-lru-window (&optional all-frames dedicated not-selected no-other)
    "Return the least recently used window on frames specified by ALL-FRAMES.
 Return a full-width window if possible.  A minibuffer window is
 never a candidate.  A dedicated window is never a candidate
 unless DEDICATED is non-nil, so if all windows are dedicated, the
 value is nil.  Avoid returning the selected window if possible.
 Optional argument NOT-SELECTED non-nil means never return the
-selected window.
+selected window.  Optional argument NO-OTHER non-nil means to
+never return a window whose 'no-other-window' parameter is
+non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -2526,7 +2528,9 @@ selected frame and no others."
    (let (best-window best-time second-best-window second-best-time time)
     (dolist (window (window-list-1 nil 'nomini all-frames))
       (when (and (or dedicated (not (window-dedicated-p window)))
-		 (or (not not-selected) (not (eq window (selected-window)))))
+		 (or (not not-selected) (not (eq window (selected-window))))
+                 (or (not no-other)
+                     (not (window-parameter window 'no-other-window))))
 	(setq time (window-use-time window))
 	(if (or (eq window (selected-window))
 		(not (window-full-width-p window)))
@@ -2538,12 +2542,14 @@ selected frame and no others."
 	    (setq best-window window)))))
     (or best-window second-best-window)))
 
-(defun get-mru-window (&optional all-frames dedicated not-selected)
+(defun get-mru-window (&optional all-frames dedicated not-selected no-other)
    "Return the most recently used window on frames specified by ALL-FRAMES.
 A minibuffer window is never a candidate.  A dedicated window is
 never a candidate unless DEDICATED is non-nil, so if all windows
 are dedicated, the value is nil.  Optional argument NOT-SELECTED
-non-nil means never return the selected window.
+non-nil means never return the selected window.  Optional
+argument NO-OTHER non-nil means to never return a window whose
+'no-other-window' parameter is non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -2565,17 +2571,21 @@ selected frame and no others."
       (setq time (window-use-time window))
       (when (and (or dedicated (not (window-dedicated-p window)))
 		 (or (not not-selected) (not (eq window (selected-window))))
-		 (or (not best-time) (> time best-time)))
+                 (or (not no-other)
+                     (not (window-parameter window 'no-other-window)))
+                 (or (not best-time) (> time best-time)))
 	(setq best-time time)
 	(setq best-window window)))
     best-window))
 
-(defun get-largest-window (&optional all-frames dedicated not-selected)
+(defun get-largest-window (&optional all-frames dedicated not-selected no-other)
   "Return the largest window on frames specified by ALL-FRAMES.
 A minibuffer window is never a candidate.  A dedicated window is
 never a candidate unless DEDICATED is non-nil, so if all windows
 are dedicated, the value is nil.  Optional argument NOT-SELECTED
-non-nil means never return the selected window.
+non-nil means never return the selected window.  Optional
+argument NO-OTHER non-nil means to never return a window whose
+'no-other-window' parameter is non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -2596,7 +2606,9 @@ selected frame and no others."
 	best-window size)
     (dolist (window (window-list-1 nil 'nomini all-frames))
       (when (and (or dedicated (not (window-dedicated-p window)))
-		 (or (not not-selected) (not (eq window (selected-window)))))
+		 (or (not not-selected) (not (eq window (selected-window))))
+                 (or (not no-other)
+                     (not (window-parameter window 'no-other-window))))
 	(setq size (* (window-pixel-height window)
 		      (window-pixel-width window)))
 	(when (> size best-size)
@@ -4130,18 +4142,56 @@ frame can be safely deleted."
       ;; of its frame.
       t))))
 
-(defun window--in-subtree-p (window root)
-  "Return t if WINDOW is either ROOT or a member of ROOT's subtree."
-  (or (eq window root)
-      (let ((parent (window-parent window)))
-	(catch 'done
-	  (while parent
-	    (if (eq parent root)
-		(throw 'done t)
-	      (setq parent (window-parent parent))))))))
+(defun window-at-x-y (x y &optional frame no-other)
+  "Return live window at coordinates X, Y on specified FRAME.
+X and Y are FRAME-relative pixel coordinates.  A coordinate on an
+edge shared by two windows is attributed to the window on the
+right (or below).  Return nil if no such window can be found.
+
+Optional argument FRAME must specify a live frame and defaults to
+the selected one.  Optional argument NO-OTHER non-nil means to
+return nil if the window located at the specified coordinates has
+a non-nil `no-other-window' parameter."
+  (setq frame (window-normalize-frame frame))
+  (let* ((root-edges (window-edges (frame-root-window frame) nil nil t))
+         (root-left (nth 2 root-edges))
+         (root-bottom (nth 3 root-edges)))
+    (catch 'window
+      (walk-window-tree
+       (lambda (window)
+         (let ((edges (window-edges window nil nil t)))
+	   (when (and (>= x (nth 0 edges))
+                      (or (< x (nth 2 edges)) (= x root-left))
+		      (>= y (nth 1 edges))
+                      (or (< y (nth 3 edges)) (= y root-bottom)))
+             (if (and no-other (window-parameter window 'no-other-window))
+                 (throw 'window nil)
+	       (throw 'window window)))))
+       frame))))
+
+(defcustom delete-window-choose-selected 'mru
+  "How to choose a frame's selected window after window deletion.
+When a frame's selected window gets deleted, Emacs has to choose
+another live window on that frame to serve as its selected
+window.  This option allows to control which window gets selected
+instead.
+
+The possible choices are 'mru' (the default) to select the most
+recently used window on that frame, and 'pos' to choose the
+window at the frame coordinates of point of the previously
+selected window.  If this is nil, choose the frame's first window
+instead.  A window with a non-nil `no-other-window' parameter is
+chosen only if all windows on that frame have that parameter set
+to a non-nil value."
+  :type '(choice (const :tag "Most recently used" mru)
+                 (const :tag "At position of deleted" pos)
+                 (const :tag "Frame's first " nil))
+  :group 'windows
+  :group 'frames
+  :version "28.1")
 
 (defun delete-window (&optional window)
-  "Delete WINDOW.
+  "Delete specified WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
 Return nil.
 
@@ -4156,7 +4206,11 @@ Otherwise, if WINDOW is part of an atomic window, call
 `delete-window' with the root of the atomic window as its
 argument.  Signal an error if WINDOW is either the only window on
 its frame, the last non-side window, or part of an atomic window
-that is its frame's root window."
+that is its frame's root window.
+
+If WINDOW is the selected window on its frame, choose some other
+window as that frame's selected window according to the value of
+the option `delete-window-choose-selected'."
   (interactive)
   (setq window (window-normalize-window window))
   (let* ((frame (window-frame window))
@@ -4191,11 +4245,11 @@ that is its frame's root window."
              (window-combination-resize
               (or window-combination-resize
                   (window-parameter parent 'window-side)))
-	     (frame-selected
-	      (window--in-subtree-p (frame-selected-window frame) window))
+             (frame-selected-window (frame-selected-window frame))
 	     ;; Emacs 23 preferably gives WINDOW's space to its left
 	     ;; sibling.
-	     (sibling (or (window-left window) (window-right window))))
+	     (sibling (or (window-left window) (window-right window)))
+             frame-selected-window-edges frame-selected-window-pos)
 	(window--resize-reset frame horizontal)
 	(cond
 	 ((and (not (eq window-combination-resize t))
@@ -4211,15 +4265,63 @@ that is its frame's root window."
 	 (t
 	  ;; Can't do without resizing fixed-size windows.
 	  (window--resize-siblings window (- size) horizontal t)))
+
+        (when (eq delete-window-choose-selected 'pos)
+          ;; Remember edges and position of point of the selected window
+          ;; of WINDOW'S frame.
+          (setq frame-selected-window-edges
+                (window-edges frame-selected-window nil nil t))
+          (setq frame-selected-window-pos
+                (nth 2 (posn-at-point nil frame-selected-window))))
+
 	;; Actually delete WINDOW.
 	(delete-window-internal window)
 	(window--pixel-to-total frame horizontal)
-	(when (and frame-selected
-		   (window-parameter
-		    (frame-selected-window frame) 'no-other-window))
-	  ;; `delete-window-internal' has selected a window that should
-	  ;; not be selected, fix this here.
-	  (other-window -1 frame))
+
+        ;; If we deleted the selected window of WINDOW's frame, choose
+        ;; another one based on `delete-window-choose-selected'.  Note
+        ;; that both `window-at-x-y' and `get-mru-window' may fail to
+        ;; produce a suitable window in which case we will fall back on
+        ;; its frame's first window, chosen by `delete-window-internal'.
+        (cond
+         ((window-live-p frame-selected-window))
+         ((and frame-selected-window-pos
+               ;; We have a recorded position of point of the previously
+               ;; selected window.  Try to find the window that is now
+               ;; at that position.
+               (let ((new-frame-selected-window
+		      (window-at-x-y
+                       (+ (nth 0 frame-selected-window-edges)
+                          (car frame-selected-window-pos))
+                       (+ (nth 1 frame-selected-window-edges)
+                          (cdr frame-selected-window-pos))
+                       frame t)))
+                 (and new-frame-selected-window
+                      ;; Select window at WINDOW's position at point.
+	              (set-frame-selected-window
+                       frame new-frame-selected-window)))))
+         ((and (eq delete-window-choose-selected 'mru)
+               ;; Try to use the most recently used window.
+               (let ((mru-window (get-mru-window frame nil nil t)))
+                 (and mru-window
+	              (set-frame-selected-window frame mru-window)))))
+         ((and (window-parameter
+                (frame-selected-window frame) 'no-other-window)
+               ;; If `delete-window-internal' selected a window with a
+               ;; non-nil 'no-other-window' parameter as its frame's
+               ;; selected window, try to choose another one.
+               (catch 'found
+                 (walk-window-tree
+                  (lambda (other)
+                    (unless (window-parameter other 'no-other-window)
+                      (set-frame-selected-window frame other)
+                      (throw 'found t)))
+                  frame))))
+         (t
+          ;; Record the window chosen by `delete-window-internal'.
+          (set-frame-selected-window
+           frame (frame-selected-window frame))))
+
 	(window--check frame)
 	;; Always return nil.
 	nil))))

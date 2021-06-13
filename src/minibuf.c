@@ -2385,7 +2385,7 @@ default top level value is used.  */);
   Vminibuffer_setup_hook = Qnil;
 
   DEFVAR_LISP ("minibuffer-exit-hook", Vminibuffer_exit_hook,
-	       doc: /* Normal hook run just after exit from minibuffer.  */);
+	       doc: /* Normal hook run whenever a minibuffer is exited.  */);
   Vminibuffer_exit_hook = Qnil;
 
   DEFVAR_LISP ("history-length", Vhistory_length,

@@ -2225,7 +2225,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
+   (erc :server \"chat.freenode.net\" :full-name \"J. Random Hacker\")
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
@@ -2260,7 +2260,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc-tls :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
+   (erc-tls :server \"chat.freenode.net\" :full-name \"J. Random Hacker\")
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked

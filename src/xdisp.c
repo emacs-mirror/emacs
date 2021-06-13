@@ -10795,6 +10795,9 @@ include the height of both, if present, in the return value.  */)
 	  it.max_descent = max (it.max_descent, it.descent);
 	}
     }
+  else
+    bidi_unshelve_cache (it2data, true);
+
   if (!NILP (x_limit))
     {
       /* Don't return more than X-LIMIT.  */
@@ -22386,15 +22389,23 @@ extend_face_to_end_of_line (struct it *it)
       it->face_id = (it->glyph_row->ends_at_zv_p ?
                      default_face->id : face->id);
 
-      /* Display fill-column indicator if needed.  */
-      const int indicator_column = fill_column_indicator_column (it, 1);
-
       /* Make sure our idea of current_x is in sync with the glyphs
 	 actually in the glyph row.  They might differ because
 	 append_space_for_newline can insert one glyph without
 	 updating current_x.  */
       it->current_x = it->glyph_row->used[TEXT_AREA];
 
+      /* The above assignment causes the code below to use a
+	 non-standard semantics of it->current_x: it is measured
+	 relative to the beginning of the text-area, thus disregarding
+	 the window's hscroll.  That is why we need to correct the
+	 indicator column for the hscroll, otherwise the indicator
+	 will not move together with the text as result of horizontal
+	 scrolling.  */
+      const int indicator_column =
+	fill_column_indicator_column (it, 1) - it->first_visible_x;
+
+      /* Display fill-column indicator if needed.  */
       while (it->current_x <= it->last_visible_x)
 	{
 	  if (it->current_x != indicator_column)
@@ -30305,7 +30316,7 @@ produce_glyphless_glyph (struct it *it, bool for_no_font, Lisp_Object acronym)
 
       /* +4 is for vertical bars of a box plus 1-pixel spaces at both side.  */
       width = max (metrics_upper.width, metrics_lower.width) + 4;
-      upper_xoff = upper_yoff = 2; /* the typical case */
+      upper_xoff = lower_xoff = 2; /* the typical case */
       if (base_width >= width)
 	{
 	  /* Align the upper to the left, the lower to the right.  */
@@ -30319,13 +30330,7 @@ produce_glyphless_glyph (struct it *it, bool for_no_font, Lisp_Object acronym)
 	  if (metrics_upper.width >= metrics_lower.width)
 	    lower_xoff = (width - metrics_lower.width) / 2;
 	  else
-	    {
-	      /* FIXME: This code doesn't look right.  It formerly was
-		 missing the "lower_xoff = 0;", which couldn't have
-		 been right since it left lower_xoff uninitialized.  */
-	      lower_xoff = 0;
-	      upper_xoff = (width - metrics_upper.width) / 2;
-	    }
+	    upper_xoff = (width - metrics_upper.width) / 2;
 	}
 
       /* +5 is for horizontal bars of a box plus 1-pixel spaces at
@@ -35660,8 +35665,10 @@ as usual.  If the function returns a string, the returned string is
 displayed in the echo area.  If this function returns any other non-nil
 value, this means that the message was already handled, and the original
 message text will not be displayed in the echo area.
-See also `clear-message-function' that can be used to clear the
-message displayed by this function.  */);
+
+Also see `clear-message-function' (which can be used to clear the
+message displayed by this function), and `command-error-function'
+(which controls how error messages are displayed).  */);
   Vset_message_function = Qnil;
 
   DEFVAR_LISP ("clear-message-function", Vclear_message_function,

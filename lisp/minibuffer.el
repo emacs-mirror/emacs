@@ -741,14 +741,16 @@ If ARGS are provided, then pass MESSAGE through `format-message'."
                 ;; Don't overwrite the face properties the caller has set
                 (text-properties-at 0 message))
       (setq message (apply #'propertize message minibuffer-message-properties)))
-    (let ((ol (make-overlay (point-max) (point-max) nil t t))
-          ;; A quit during sit-for normally only interrupts the sit-for,
-          ;; but since minibuffer-message is used at the end of a command,
-          ;; at a time when the command has virtually finished already, a C-g
-          ;; should really cause an abort-recursive-edit instead (i.e. as if
-          ;; the C-g had been typed at top-level).  Binding inhibit-quit here
-          ;; is an attempt to get that behavior.
-          (inhibit-quit t))
+    ;; Put overlay either on `minibuffer-message' property, or at EOB.
+    (let* ((ovpos (minibuffer--message-overlay-pos))
+           (ol (make-overlay ovpos ovpos nil t t))
+           ;; A quit during sit-for normally only interrupts the sit-for,
+           ;; but since minibuffer-message is used at the end of a command,
+           ;; at a time when the command has virtually finished already, a C-g
+           ;; should really cause an abort-recursive-edit instead (i.e. as if
+           ;; the C-g had been typed at top-level).  Binding inhibit-quit here
+           ;; is an attempt to get that behavior.
+           (inhibit-quit t))
       (unwind-protect
           (progn
             (unless (zerop (length message))
@@ -757,6 +759,12 @@ If ARGS are provided, then pass MESSAGE through `format-message'."
               ;; before or after the string, so let's spoon-feed it the pos.
               (put-text-property 0 1 'cursor t message))
             (overlay-put ol 'after-string message)
+            ;; Make sure the overlay with the message is displayed before
+            ;; any other overlays in that position, in case they have
+            ;; resize-mini-windows set to nil and the other overlay strings
+            ;; are too long for the mini-window width.  This makes sure the
+            ;; temporary message will always be visible.
+            (overlay-put ol 'priority 1100)
             (sit-for (or minibuffer-message-timeout 1000000)))
         (delete-overlay ol)))))
 
@@ -778,8 +786,10 @@ and `clear-minibuffer-message' called automatically via
 (defvar minibuffer-message-overlay nil)
 
 (defun minibuffer--message-overlay-pos ()
-  "Return position where `set-minibuffer-message' shall put message overlay."
-  ;; Starting from point, look for non-nil 'minibuffer-message'
+  "Return position where minibuffer message functions shall put message overlay.
+The minibuffer message functions include `minibuffer-message' and
+`set-minibuffer-message'."
+  ;; Starting from point, look for non-nil `minibuffer-message'
   ;; property, and return its position.  If none found, return the EOB
   ;; position.
   (let* ((pt (point))
@@ -824,7 +834,7 @@ via `set-message-function'."
           ;; The current C cursor code doesn't know to use the overlay's
           ;; marker's stickiness to figure out whether to place the cursor
           ;; before or after the string, so let's spoon-feed it the pos.
-          (put-text-property 0 1 'cursor 1 message))
+          (put-text-property 0 1 'cursor t message))
         (overlay-put minibuffer-message-overlay 'after-string message)
         ;; Make sure the overlay with the message is displayed before
         ;; any other overlays in that position, in case they have
@@ -3484,7 +3494,8 @@ between 0 and 1, and with faces `completions-common-part',
   (when completions
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
            (point-idx (completion-pcm--pattern-point-idx pattern))
-           (case-fold-search completion-ignore-case))
+           (case-fold-search completion-ignore-case)
+           last-md)
       (mapcar
        (lambda (str)
 	 ;; Don't modify the string itself.
@@ -3493,7 +3504,7 @@ between 0 and 1, and with faces `completions-common-part',
            (error "Internal error: %s does not match %s" re str))
          (let* ((pos (if point-idx (match-beginning point-idx) (match-end 0)))
                 (match-end (match-end 0))
-                (md (cddr (match-data)))
+                (md (cddr (setq last-md (match-data t last-md))))
                 (from 0)
                 (end (length str))
                 ;; To understand how this works, consider these simple

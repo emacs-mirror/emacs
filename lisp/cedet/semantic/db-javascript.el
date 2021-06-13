@@ -80,7 +80,7 @@ See bottom of this file for instructions on managing this list.")
 
 ;;; Classes:
 (defclass semanticdb-table-javascript (semanticdb-search-results-table)
-  ((major-mode :initform javascript-mode)
+  ((major-mode :initform #'javascript-mode)
    )
   "A table for returning search results from javascript.")
 
@@ -88,7 +88,7 @@ See bottom of this file for instructions on managing this list.")
   (semanticdb-project-database
    eieio-singleton ;this db is for js globals, so singleton is appropriate
    )
-  ((new-table-class :initform semanticdb-table-javascript
+  ((new-table-class :initform 'semanticdb-table-javascript
 		    :type class
 		    :documentation
 		    "New tables created for this database are of this class.")

@@ -684,5 +684,15 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (>= (length (apropos-internal "^help" #'commandp)) 15))
   (should-not (apropos-internal "^next-line$" #'keymapp)))
 
+
+(ert-deftest test-buffer-local-boundp ()
+  (let ((buf (generate-new-buffer "boundp")))
+    (with-current-buffer buf
+      (setq-local test-boundp t))
+    (setq test-global-boundp t)
+    (should (buffer-local-boundp 'test-boundp buf))
+    (should-not (buffer-local-boundp 'test-not-boundp buf))
+    (should (buffer-local-boundp 'test-global-boundp buf))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

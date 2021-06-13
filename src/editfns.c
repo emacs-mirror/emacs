@@ -3390,7 +3390,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		  ptrdiff_t nch, nby;
 		  nchars_string = SCHARS (arg);
 		  width = lisp_string_width (arg, 0, nchars_string, prec,
-					     &nch, &nby);
+					     &nch, &nby, false);
 		  if (prec < 0)
 		    nbytes = SBYTES (arg);
 		  else

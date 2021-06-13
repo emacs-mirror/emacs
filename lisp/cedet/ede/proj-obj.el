@@ -34,8 +34,8 @@
 ;;; Code:
 (defclass ede-proj-target-makefile-objectcode (ede-proj-target-makefile)
   (;; Give this a new default
-   (configuration-variables :initform ("debug" . (("CFLAGS" . "-g")
-						  ("LDFLAGS" . "-g"))))
+   (configuration-variables :initform '("debug" . (("CFLAGS" . "-g")
+						   ("LDFLAGS" . "-g"))))
    ;; @TODO - add an include path.
    (availablecompilers :initform '(ede-gcc-compiler
 				   ede-g++-compiler

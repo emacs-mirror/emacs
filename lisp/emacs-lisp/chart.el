@@ -203,7 +203,7 @@ Make sure the width/height is correct."
 
 (defclass chart-bar (chart)
   ((direction :initarg :direction
-	      :initform vertical))
+	      :initform 'vertical))
   "Subclass for bar charts (vertical or horizontal).")
 
 (cl-defmethod chart-draw ((c chart) &optional buff)

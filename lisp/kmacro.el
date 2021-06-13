@@ -482,7 +482,7 @@ without repeating the prefix."
 
 
 (defun kmacro-view-ring-2nd ()
-  "Display the current head of the keyboard macro ring."
+  "Display the second macro in the keyboard macro ring."
   (interactive)
   (unless (kmacro-ring-empty-p)
     (kmacro-display (car (car kmacro-ring)) nil "2nd macro")))

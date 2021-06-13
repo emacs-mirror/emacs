@@ -1112,7 +1112,7 @@ articles in the topic and its subtopics."
 	["Delete" gnus-topic-delete t]
 	["Rename..." gnus-topic-rename t]
 	["Create..." gnus-topic-create-topic t]
-	["Mark" gnus-topic-mark-topic t]
+	["Toggle/Set mark" gnus-topic-mark-topic t]
 	["Indent" gnus-topic-indent t]
 	["Sort" gnus-topic-sort-topics t]
 	["Previous topic" gnus-topic-goto-previous-topic t]
@@ -1436,7 +1436,7 @@ If PERMANENT, make it stay shown in subsequent sessions as well."
 	(setcar (cdr (cadr topic)) 'visible)
 	(gnus-group-list-groups)))))
 
-(defun gnus-topic-mark-topic (topic &optional unmark non-recursive)
+(defun gnus-topic-mark-topic (topic &optional unmark non-recursive no-toggle)
   "Mark all groups in the TOPIC with the process mark.
 If NON-RECURSIVE (which is the prefix) is t, don't mark its subtopics."
   (interactive
@@ -1450,8 +1450,13 @@ If NON-RECURSIVE (which is the prefix) is t, don't mark its subtopics."
       (let ((groups (gnus-topic-find-groups topic gnus-level-killed t nil
 					    (not non-recursive))))
 	(while groups
-	  (funcall (if unmark 'gnus-group-remove-mark 'gnus-group-set-mark)
-		   (gnus-info-group (nth 1 (pop groups)))))))))
+          (let ((group (gnus-info-group (nth 1 (pop groups)))))
+	    (if (and gnus-process-mark-toggle (not no-toggle))
+                (if (memq group gnus-group-marked)
+                    (gnus-group-remove-mark group )
+                  (gnus-group-set-mark group))
+              (if unmark (gnus-group-remove-mark group)
+                (gnus-group-set-mark group)))))))))
 
 (defun gnus-topic-unmark-topic (topic &optional _dummy non-recursive)
   "Remove the process mark from all groups in the TOPIC.
@@ -1462,7 +1467,7 @@ If NON-RECURSIVE (which is the prefix) is t, don't unmark its subtopics."
 	       gnus-topic-mode)
   (if (not topic)
       (call-interactively 'gnus-group-unmark-group)
-    (gnus-topic-mark-topic topic t non-recursive)))
+    (gnus-topic-mark-topic topic t non-recursive t)))
 
 (defun gnus-topic-get-new-news-this-topic (&optional n)
   "Check for new news in the current topic."

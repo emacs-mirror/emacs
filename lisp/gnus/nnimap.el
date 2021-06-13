@@ -428,8 +428,9 @@ during splitting, which may be slow."
 		      (time-subtract
 		       now
 		       (nnimap-last-command-time nnimap-object))))
-            (ignore-errors              ;E.g. "buffer foo has no process".
-              (nnimap-send-command "NOOP"))))))))
+            (with-local-quit
+              (ignore-errors          ;E.g. "buffer foo has no process".
+                (nnimap-send-command "NOOP")))))))))
 
 (defun nnimap-open-connection (buffer)
   ;; Be backwards-compatible -- the earlier value of nnimap-stream was

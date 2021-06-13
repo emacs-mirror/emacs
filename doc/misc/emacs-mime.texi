@@ -1870,6 +1870,11 @@ A customizable list of viewers that take preference over
 Interface functions:
 
 @table @code
+@item mailcap-view-file
+@findex mailcap-view-file
+Prompt for a file name, and start a viewer applicable for the file
+type in question.
+
 @item mailcap-parse-mailcaps
 @findex mailcap-parse-mailcaps
 @vindex mailcap-prefer-mailcap-viewers

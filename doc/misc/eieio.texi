@@ -115,10 +115,10 @@ Each class can have methods, which are defined like this:
 (cl-defmethod call-person ((pers person) &optional scriptname)
   "Dial the phone for the person PERS.
 Execute the program SCRIPTNAME to dial the phone."
-  (message "Dialing the phone for %s"  (oref pers name))
+  (message "Dialing the phone for %s"  (slot-value pers 'name))
   (shell-command (concat (or scriptname "dialphone.sh")
                          " "
-                         (oref pers phone))))
+                         (slot-value pers 'phone))))
 @end example
 
 @noindent
@@ -693,16 +693,43 @@ for each slot.  For example:
 @node Accessing Slots
 @chapter Accessing Slots
 
-There are several ways to access slot values in an object.  The naming
-and argument-order conventions are similar to those used for
-referencing vectors (@pxref{Vectors,,,elisp,GNU Emacs Lisp Reference
-Manual}).
+There are several ways to access slot values in an object.
+The following accessors are defined by CLOS to reference or modify
+slot values, and use the previously mentioned set/ref routines.
+
+@defun slot-value object slot
+@anchor{slot-value}
+This function retrieves the value of @var{slot} from @var{object}.
+
+This is a generalized variable that can be used with @code{setf} to
+modify the value stored in @var{slot}.  @xref{Generalized
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+@end defun
+
+@defun set-slot-value object slot value
+@anchor{set-slot-value}
+This function sets the value of @var{slot} from @var{object}.
+
+This is not a CLOS function, but is the obsolete setter for
+@code{slot-value} used by the @code{setf} macro.  It is therefore
+recommended to use @w{@code{(setf (slot-value @var{object} @var{slot})
+@var{value})}} instead.
+@end defun
+
+@defun slot-makeunbound object slot
+This function unbinds @var{slot} in @var{object}.  Referencing an
+unbound slot can signal an error.
+@end defun
+
+The following accessors follow a naming and argument-order conventions
+are similar to those used for referencing vectors
+(@pxref{Vectors,,,elisp,GNU Emacs Lisp Reference Manual}).
 
 @defmac oref obj slot
 @anchor{oref}
 This macro retrieves the value stored in @var{obj} in the named
-@var{slot}.  Slot names are determined by @code{defclass} which
-creates the slot.
+@var{slot}.  Unlike @code{slot-value}, the symbol for @var{slot} must
+not be quoted.
 
 This is a generalized variable that can be used with @code{setf} to
 modify the value stored in @var{slot}.  @xref{Generalized
@@ -736,35 +763,6 @@ changed, this can be arranged by simply executing this bit of code:
 (oset-default data-object reference (list my-special-object))
 @end example
 @end defmac
-
-The following accessors are defined by CLOS to reference or modify
-slot values, and use the previously mentioned set/ref routines.
-
-@defun slot-value object slot
-@anchor{slot-value}
-This function retrieves the value of @var{slot} from @var{object}.
-Unlike @code{oref}, the symbol for @var{slot} must be quoted.
-
-This is a generalized variable that can be used with @code{setf} to
-modify the value stored in @var{slot}.  @xref{Generalized
-Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
-@end defun
-
-@defun set-slot-value object slot value
-@anchor{set-slot-value}
-This function sets the value of @var{slot} from @var{object}.  Unlike
-@code{oset}, the symbol for @var{slot} must be quoted.
-
-This is not a CLOS function, but is the obsolete setter for
-@code{slot-value} used by the @code{setf} macro.  It is therefore
-recommended to use @w{@code{(setf (slot-value @var{object} @var{slot})
-@var{value})}} instead.
-@end defun
-
-@defun slot-makeunbound object slot
-This function unbinds @var{slot} in @var{object}.  Referencing an
-unbound slot can signal an error.
-@end defun
 
 @defun object-add-to-list object slot item &optional append
 @anchor{object-add-to-list}
@@ -807,7 +805,7 @@ Where each @var{var} is the local variable given to the associated
 variable name of the same name as the slot.
 
 @example
-(defclass myclass () (x :initform 1))
+(defclass myclass () ((x :initform 1)))
 (setq mc (make-instance 'myclass))
 (with-slots (x) mc x)                      => 1
 (with-slots ((something x)) mc something)  => 1
@@ -981,8 +979,8 @@ the @code{subclass} specializer with @code{cl-defmethod}:
     new))
 @end example
 
-The first argument of a static method will be a class rather than an
-object.  Use the functions @code{oref-default} or @code{oset-default} which
+The argument of a static method will be a class rather than an object.
+Use the functions @code{oref-default} or @code{oset-default} which
 will work on a class.
 
 A class's @code{make-instance} method is defined as a static
@@ -1236,12 +1234,6 @@ of CLOS.
 
 @defun eieio-class-slots obj
 Return the list of public slots for @var{obj}.
-@end defun
-
-@defun class-slot-initarg class slot
-For the given @var{class} return an :initarg associated with
-@var{slot}.  Not all slots have initargs, so the return value can be
-@code{nil}.
 @end defun
 
 @node Base Classes
@@ -1656,8 +1648,8 @@ Method invoked when an attempt to access a slot in @var{object} fails.
 that was requested, and optional @var{new-value} is the value that was desired
 to be set.
 
-This method is called from @code{oref}, @code{oset}, and other functions which
-directly reference slots in EIEIO objects.
+This method is called from @code{slot-value}, @code{set-slot-value},
+and other functions which directly reference slots in EIEIO objects.
 
 The default method signals an error of type @code{invalid-slot-name}.
 @xref{Signals}.

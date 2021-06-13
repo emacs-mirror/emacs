@@ -89,6 +89,8 @@ DICT-ENTRIES are additional dictionary values to add."
     ;; for this insertion step.
     ))
 
+(eieio-declare-slots (point :allocation :class))
+
 (defun srecode-insert-fcn (template dictionary &optional stream skipresolver)
   "Insert TEMPLATE using DICTIONARY into STREAM.
 Optional SKIPRESOLVER means to avoid refreshing the tag list,
@@ -134,13 +136,13 @@ has set everything up already."
 	  )
       (srecode-insert-method template dictionary))
     ;; Handle specialization of the POINT inserter.
-    (when (and (bufferp standard-output)
-	       (slot-boundp 'srecode-template-inserter-point 'point)
-	       )
-      (set-buffer standard-output)
-      (setq end-mark (point-marker))
-      (goto-char  (oref-default 'srecode-template-inserter-point point)))
-    (oset-default 'srecode-template-inserter-point point eieio-unbound)
+    (when (bufferp standard-output)
+      (let ((point (oref-default 'srecode-template-inserter-point point)))
+        (when point
+          (set-buffer standard-output)
+          (setq end-mark (point-marker))
+          (goto-char point))))
+    (oset-default 'srecode-template-inserter-point point nil)
 
     ;; Return the end-mark.
     (or end-mark (point)))
@@ -733,6 +735,7 @@ DEPTH.")
 	"The character code used to identify inserters of this style.")
    (point :type (or null marker)
 	  :allocation :class
+	  :initform nil
 	  :documentation
 	  "Record the value of (point) in this class slot.
 It is the responsibility of the inserter algorithm to clear this

@@ -1582,6 +1582,12 @@ buffer-local binding in buffer @var{buffer}, it returns the default
 value (@pxref{Default Value}) of @var{variable} instead.
 @end defun
 
+@defun buffer-local-boundp variable buffer
+This returns non-@code{nil} if there's either a buffer-local binding
+of @var{variable} (a symbol) in buffer @var{buffer}, or @var{variable}
+has a global binding.
+@end defun
+
 @defun buffer-local-variables &optional buffer
 This function returns a list describing the buffer-local variables in
 buffer @var{buffer}.  (If @var{buffer} is omitted, the current buffer

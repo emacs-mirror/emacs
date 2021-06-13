@@ -379,7 +379,7 @@ input."
              (if (eq eshell-hist-ignoredups 'erase)
                  ;; Remove any old occurrences of the input, and put
                  ;; the new one at the end.
-                 (progn
+                 (unless (ring-empty-p eshell-history-ring)
                    (ring-remove eshell-history-ring
 	                        (ring-member eshell-history-ring input))
                    t)

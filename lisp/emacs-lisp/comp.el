@@ -200,6 +200,9 @@ Emacs Lisp file:
 \;; Local Variables:\n;; no-native-compile: t\n;; End:")
 ;;;###autoload(put 'no-native-compile 'safe-local-variable 'booleanp)
 
+(defvar native-compile-target-directory nil
+  "When non-nil force the target directory for the eln files being compiled.")
+
 (defvar comp-log-time-report nil
   "If non-nil, log a time report for each pass.")
 
@@ -1337,8 +1340,9 @@ clashes."
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
                                         filename
-                                        (when byte-native-for-bootstrap
-                                          (car (last native-comp-eln-load-path))))))
+                                        (or native-compile-target-directory
+                                            (when byte+native-compile
+                                              (car (last native-comp-eln-load-path)))))))
   (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
@@ -3643,7 +3647,7 @@ Prepare every function for final compilation and drive the C back-end."
     ;; unless during bootstrap or async compilation (bug#45056).  GCC
     ;; leaks memory but also interfere with the ability of Emacs to
     ;; detect when a sub-process completes (TODO understand why).
-    (if (or byte-native-for-bootstrap comp-async-compilation)
+    (if (or byte+native-compile comp-async-compilation)
 	(comp-final1)
       ;; Call comp-final1 in a child process.
       (let* ((output (comp-ctxt-output comp-ctxt))
@@ -3941,7 +3945,11 @@ display a message."
                    (load1 load)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
-                             :buffer (get-buffer-create comp-async-buffer-name)
+                             :buffer (with-current-buffer
+                                         (get-buffer-create
+                                          comp-async-buffer-name)
+                                       (setf buffer-read-only t)
+			               (current-buffer))
                              :command (list
                                        (expand-file-name invocation-name
                                                          invocation-directory)
@@ -3970,8 +3978,9 @@ display a message."
     (run-hooks 'native-comp-async-all-done-hook)
     (with-current-buffer (get-buffer-create comp-async-buffer-name)
       (save-excursion
-        (goto-char (point-max))
-        (insert "Compilation finished.\n")))
+        (let ((buffer-read-only nil))
+          (goto-char (point-max))
+          (insert "Compilation finished.\n"))))
     ;; `comp-deferred-pending-h' should be empty at this stage.
     ;; Reset it anyway.
     (clrhash comp-deferred-pending-h)))
@@ -4166,7 +4175,7 @@ it won’t work in an interactive Emacs.
 Native compilation equivalent to `batch-byte-compile'."
   (comp-ensure-native-compiler)
   (cl-loop for file in command-line-args-left
-           if (or (null byte-native-for-bootstrap)
+           if (or (null byte+native-compile)
                   (cl-notany (lambda (re) (string-match re file))
                              native-comp-bootstrap-deny-list))
            do (comp--native-compile file)
@@ -4174,18 +4183,18 @@ Native compilation equivalent to `batch-byte-compile'."
            do (byte-compile-file file)))
 
 ;;;###autoload
-(defun batch-byte-native-compile-for-bootstrap ()
+(defun batch-byte+native-compile ()
   "Like `batch-native-compile', but used for bootstrap.
 Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
-directory (the last entry in `native-comp-eln-load-path').
-If the environment variable 'NATIVE_DISABLED' is set, only byte
-compile."
+directory (the last entry in `native-comp-eln-load-path') unless
+`native-compile-target-directory' is non-nil.  If the environment
+variable 'NATIVE_DISABLED' is set, only byte compile."
   (comp-ensure-native-compiler)
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)
     (cl-assert (length= command-line-args-left 1))
-    (let ((byte-native-for-bootstrap t)
+    (let ((byte+native-compile t)
           (byte-to-native-output-file nil))
       (batch-native-compile)
       (pcase byte-to-native-output-file

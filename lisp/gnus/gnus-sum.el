@@ -2774,7 +2774,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Hide marked" gnus-summary-limit-exclude-marks t]
 	 ["Show expunged" gnus-summary-limit-include-expunged t])
 	("Process Mark"
-	 ["Set mark" gnus-summary-mark-as-processable t]
+	 ["Toggle/Set mark" gnus-summary-mark-as-processable t]
 	 ["Remove mark" gnus-summary-unmark-as-processable t]
 	 ["Remove all marks" gnus-summary-unmark-all-processable t]
 	 ["Invert marks" gnus-uu-invert-processable t]
@@ -8247,7 +8247,7 @@ If NOT-MATCHING, excluding articles that have subjects that match a regexp."
 	(let ((articles (gnus-summary-find-matching
 			 (or header "subject") subject 'all nil nil
 			 not-matching)))
-	  (unless articles
+	  (unless (or articles not-matching)
 	    (error "Found no matches for \"%s\"" subject))
 	  (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8318,7 +8318,7 @@ To and Cc headers are checked.  You need to include them in
 				 (and (memq a to) a))
 			       cc)
 		     (nconc to cc))))
-	     (unless articles
+	     (unless (or articles not-matching)
 	       (error "Found no matches for \"%s\"" recipient))
 	     (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8374,7 +8374,7 @@ in `nnmail-extra-headers'."
 		     (nconc (if (eq to t) nil to)
 			    (if (eq cc t) nil cc)
 			    from))))
-	     (unless articles
+	     (unless (or articles not-matching)
 	       (error "Found no matches for \"%s\"" address))
 	     (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8465,7 +8465,7 @@ articles that are younger than AGE days."
 	(let ((articles (gnus-summary-find-matching
 			 (cons 'extra header) regexp 'all nil nil
 			 not-matching)))
-	  (unless articles
+	  (unless (or articles not-matching)
 	    (error "Found no matches for \"%s\"" regexp))
 	  (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -10951,10 +10951,14 @@ number of articles marked is returned."
 	  (n (abs n)))
       (while (and
 	      (> n 0)
-	      (if unmark
-		  (gnus-summary-remove-process-mark
-		   (gnus-summary-article-number))
-		(gnus-summary-set-process-mark (gnus-summary-article-number)))
+	      (let ((article (gnus-summary-article-number)))
+		(if unmark
+		    (gnus-summary-remove-process-mark article)
+		  (if gnus-process-mark-toggle
+		      (if (memq article gnus-newsgroup-processable)
+			  (gnus-summary-remove-process-mark article)
+			(gnus-summary-set-process-mark article))
+		    (gnus-summary-set-process-mark article))))
 	      (zerop (gnus-summary-next-subject (if backward -1 1) nil t)))
 	(setq n (1- n)))
       (when (/= 0 n)

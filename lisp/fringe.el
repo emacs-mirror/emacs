@@ -181,7 +181,11 @@ When setting this variable in a Lisp program, call
 `set-fringe-mode' afterward to make it take real effect.
 
 To modify the appearance of the fringe in a specific frame, use
-the interactive function `set-fringe-style'."
+the interactive function `set-fringe-style'.
+
+Note that, despite the name, this is not a variable that controls
+a (major or minor) Emacs mode, but controls the appearance of the
+fringes."
   :type `(choice
           ,@ (mapcar (lambda (style)
                       (let ((name
@@ -248,7 +252,10 @@ Fringe widths set by `set-window-fringes' override the default
 fringe widths set by this command.  This command applies to all
 frames that exist and frames to be created in the future.  If you
 want to set the default appearance of fringes on the selected
-frame only, see the command `set-fringe-style'."
+frame only, see the command `set-fringe-style'.
+
+Note that, despite the name, this is not a (major or minor) Emacs
+mode, but a command that controls the appearance of the fringes."
   (interactive (list (fringe-query-style 'all-frames)))
   (set-fringe-mode mode))
 

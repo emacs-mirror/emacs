@@ -60,8 +60,10 @@ FUNCTIONS is a list of elements on the form:
    :args ARGS
    :eval EXAMPLE-FORM
    :no-eval EXAMPLE-FORM
+   :no-eval* EXAMPLE-FORM
    :no-value EXAMPLE-FORM
    :result RESULT-FORM
+   :result-string RESULT-FORM
    :eg-result RESULT-FORM
    :eg-result-string RESULT-FORM)
 
@@ -886,6 +888,52 @@ There can be any number of :example/:result elements."
    :no-value (lock-buffer "/tmp/foo"))
   (unlock-buffer
    :no-value (lock-buffer)))
+
+(define-short-documentation-group overlay
+  "Predicates"
+  (overlayp
+   :no-eval (overlayp some-overlay)
+   :eg-result t)
+  "Creation and Deletion"
+  (make-overlay
+   :args (beg end &optional buffer)
+   :no-eval (make-overlay 1 10)
+   :eg-result-string "#<overlay from 1 to 10 in *foo*>")
+  (delete-overlay
+   :no-eval (delete-overlay foo)
+   :eg-result t)
+  "Searching Overlays"
+  (overlays-at
+   :no-eval (overlays-at 15)
+   :eg-result-string "(#<overlay from 1 to 10 in *foo*>)")
+  (overlays-in
+   :no-eval (overlays-in 1 30)
+   :eg-result-string "(#<overlay from 1 to 10 in *foo*>)")
+  (next-overlay-change
+   :no-eval (next-overlay-change 1)
+   :eg-result 20)
+  (previous-overlay-change
+   :no-eval (previous-overlay-change 30)
+   :eg-result 20)
+  "Overlay Properties"
+  (overlay-start
+   :no-eval (overlay-start foo)
+   :eg-result 1)
+  (overlay-end
+   :no-eval (overlay-end foo)
+   :eg-result 10)
+  (overlay-put
+   :no-eval (overlay-put foo 'happy t)
+   :eg-result t)
+  (overlay-get
+   :no-eval (overlay-get foo 'happy)
+   :eg-result t)
+  (overlay-buffer
+   :no-eval (overlay-buffer foo))
+  "Moving Overlays"
+  (move-overlay
+   :no-eval (move-overlay foo 5 20)
+   :eg-result-string "#<overlay from 5 to 20 in *foo*>"))
 
 (define-short-documentation-group process
   (make-process

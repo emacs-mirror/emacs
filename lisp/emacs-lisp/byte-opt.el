@@ -343,7 +343,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
       (numberp expr)
       (stringp expr)
       (and (consp expr)
-           (eq (car expr) 'quote)
+           (memq (car expr) '(quote function))
            (symbolp (cadr expr)))
       (keywordp expr)))
 
@@ -1267,6 +1267,14 @@ See Info node `(elisp) Integer Basics'."
 	      (setq form (list 'cdr form)))
 	    form)
 	form)
+    form))
+
+(put 'cons 'byte-optimizer #'byte-optimize-cons)
+(defun byte-optimize-cons (form)
+  ;; (cons X nil) => (list X)
+  (if (and (= (safe-length form) 3)
+           (null (nth 2 form)))
+      `(list ,(nth 1 form))
     form))
 
 ;; Fixme: delete-char -> delete-region (byte-coded)

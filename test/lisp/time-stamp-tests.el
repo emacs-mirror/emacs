@@ -486,7 +486,10 @@
   "Test time-stamp format %Y."
   (with-time-stamp-test-env
     ;; implemented since 1997, documented since 2019
-    (should (equal (time-stamp-string "%Y" ref-time1) "2006"))))
+    (should (equal (time-stamp-string "%Y" ref-time1) "2006"))
+    ;; numbers do not truncate
+    (should (equal (time-stamp-string "%2Y" ref-time1) "2006"))
+    (should (equal (time-stamp-string "%02Y" ref-time1) "2006"))))
 
 (ert-deftest time-stamp-format-am-pm ()
   "Test time-stamp formats for AM and PM strings."
@@ -522,7 +525,7 @@
       (should (equal (time-stamp-string "%#Z" ref-time1) utc-abbr)))))
 
 (ert-deftest time-stamp-format-time-zone-offset ()
-  "Test time-stamp format %z."
+  "Tests time-stamp legacy format %z and new offset format %5z."
   (with-time-stamp-test-env
     (let ((utc-abbr (format-time-string "%#Z" ref-time1 t)))
     ;; documented 1995-2019, warned since 2019, will change
@@ -541,6 +544,7 @@
     (should (equal (time-stamp-string "%_z" ref-time1) "+0000"))
     (should (equal (time-stamp-string "%:z" ref-time1) "+00:00"))
     (should (equal (time-stamp-string "%::z" ref-time1) "+00:00:00"))
+    (should (equal (time-stamp-string "%9::z" ref-time1) "+00:00:00"))
     (should (equal (time-stamp-string "%:::z" ref-time1) "+00"))))
 
 (ert-deftest time-stamp-format-non-date-conversions ()
@@ -586,6 +590,9 @@
      (should (equal (time-stamp-string "%(st(u)ff)B" ref-time3) May))
      ;; escaped parens do not change the nesting level
      (should (equal (time-stamp-string "%(st\\)u\\(ff)B" ref-time3) May))
+     ;; incorrectly nested parens do not crash us
+     (should-not (equal (time-stamp-string "%(stuffB" ref-time3) May))
+     (should-not (equal (time-stamp-string "%)B" ref-time3) May))
      ;; not all punctuation is allowed
      (should-not (equal (time-stamp-string "%&B" ref-time3) May)))))
 
@@ -593,6 +600,33 @@
   "Test that without a %, the text is copied literally."
   (with-time-stamp-test-env
     (should (equal (time-stamp-string "No percent" ref-time1) "No percent"))))
+
+(ert-deftest time-stamp-format-multiple-conversions ()
+  "Tests that multiple %-conversions are independent."
+  (with-time-stamp-test-env
+    (let ((Mon (format-time-string "%a" ref-time1 t))
+          (MON (format-time-string "%^a" ref-time1 t))
+          (Monday (format-time-string "%A" ref-time1 t)))
+      ;; change-case flag is independent
+      (should (equal (time-stamp-string "%a.%#a.%a" ref-time1)
+                     (concat Mon "." MON "." Mon)))
+      ;; up-case flag is independent
+      (should (equal (time-stamp-string "%a.%^a.%a" ref-time1)
+                     (concat Mon "." MON "." Mon)))
+      ;; underscore flag is independent
+      (should (equal (time-stamp-string "%_d.%d.%_d" ref-time1) " 2.02. 2"))
+      ;; minus flag is independendent
+      (should (equal (time-stamp-string "%d.%-d.%d" ref-time1) "02.2.02"))
+      ;; 0 flag is independendent
+      (should (equal (time-stamp-string "%2d.%02d.%2d" ref-time1) " 2.02. 2"))
+      ;; field width is independent
+      (should (equal
+               (time-stamp-string "%6Y.%Y.%6Y" ref-time1) "  2006.2006.  2006"))
+      ;; colon modifier is independent
+      (should (equal (time-stamp-string "%a.%:a.%a" ref-time1)
+                     (concat Mon "." Monday "." Mon)))
+      ;; format letter is independent
+      (should (equal (time-stamp-string "%H:%M" ref-time1) "15:04")))))
 
 (ert-deftest time-stamp-format-string-width ()
   "Test time-stamp string width modifiers."
