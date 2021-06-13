@@ -121,9 +121,8 @@ Face used for temporary highlighting of tags for effect."
 			 (face-background 'pulse-highlight-start-face)
 			 ))
   (set-face-extend 'pulse-highlight-face
-                   ;; If there's a face, use the :extend from that.
-                   ;; Otherwise, set it to nil.
-                   (and face (face-extend-p face nil t)))
+                   (face-extend-p (or face 'pulse-highlight-start-face)
+                                  nil t))
   (put 'pulse-highlight-face :startface (or face
 					    'pulse-highlight-start-face))
   (setq pulse-momentary-iteration 0))
