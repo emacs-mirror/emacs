@@ -550,7 +550,7 @@ type detected."
 		 (end (point))
 		 (parsed (url-generic-parse-url (cdr (assq 'src (cadr img))))))
 	    (when (and (null (url-type parsed))
-		       (url-filename parsed)
+                       (not (zerop (length (url-filename parsed))))
 		       (file-exists-p (url-filename parsed)))
 	      (goto-char start)
 	      (when (search-forward (url-filename parsed) end t)
