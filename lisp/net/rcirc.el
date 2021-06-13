@@ -2211,7 +2211,6 @@ activity.  Only run if the buffer is not visible and
 (defvar rcirc-update-activity-string-hook nil
   "Hook run whenever the activity string is updated.")
 
-;; TODO: add mouse properties
 (defun rcirc-update-activity-string ()
   "Update mode-line string."
   (let* ((pair (rcirc-split-activity rcirc-activity))
@@ -2238,12 +2237,17 @@ activity.  Only run if the buffer is not visible and
 	       (let ((s (substring-no-properties (rcirc-short-buffer-name b))))
 		 (with-current-buffer b
 		   (dolist (type rcirc-activity-types)
-		     (rcirc-add-face 0 (length s)
-				     (cl-case type
+                     (rcirc-facify s (cl-case type
 				       (nick 'rcirc-track-nick)
-				       (keyword 'rcirc-track-keyword))
-				     s)))
-		 s))
+				       (keyword 'rcirc-track-keyword)))))
+                 (let ((map (make-mode-line-mouse-map
+                             'mouse-1
+                             (lambda ()
+                               (interactive)
+                               (pop-to-buffer b)))))
+                   (propertize s
+                               'mouse-face 'mode-line-highlight
+                               'local-map map))))
 	     buffers ","))
 
 (defun rcirc-short-buffer-name (buffer)
