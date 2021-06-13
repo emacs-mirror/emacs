@@ -2154,7 +2154,8 @@ With prefix ARG, go to the next low priority buffer with activity."
                    (concat
                     "  Type C-u " (key-description (this-command-keys))
                     " for low priority activity.")
-                 "")))))
+                 ""))))
+  (rcirc-update-activity-string))
 
 (define-obsolete-variable-alias 'rcirc-activity-hooks
   'rcirc-activity-functions "24.3")
