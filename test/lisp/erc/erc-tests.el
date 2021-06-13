@@ -236,6 +236,7 @@
   (let (erc-server-last-sent-time
         erc-server-flood-queue
         (orig-erc-cmd-MSG (symbol-function 'erc-cmd-MSG))
+        (erc-default-recipients '("#chan"))
         calls)
     (with-temp-buffer
       (cl-letf (((symbol-function 'erc-cmd-MSG)
@@ -247,9 +248,7 @@
                 ((symbol-function 'erc-server-process-alive)
                  (lambda () t))
                 ((symbol-function 'erc-server-send-queue)
-                 #'ignore)
-                ((symbol-function 'erc-default-target)
-                 (lambda () "" "#chan")))
+                 #'ignore))
 
         (ert-info ("Dispatch to user command handler")
 
@@ -258,6 +257,16 @@
             (should (equal (pop calls) " #chan hi"))
             (should (equal (pop erc-server-flood-queue)
                            '("PRIVMSG #chan :hi\r\n" . utf-8))))
+
+          (ert-info ("Quote preserves line intact")
+            (erc-process-input-line "/QUOTE FAKE foo bar\n")
+            (should (equal (pop erc-server-flood-queue)
+                           '("FAKE foo bar\r\n" . utf-8))))
+
+          (ert-info ("Unknown command respected")
+            (erc-process-input-line "/FAKE foo bar\n")
+            (should (equal (pop erc-server-flood-queue)
+                           '("FAKE foo bar\r\n" . utf-8))))
 
           (ert-info ("Spaces preserved")
             (erc-process-input-line "/msg #chan hi you\n")
