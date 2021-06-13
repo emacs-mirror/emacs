@@ -5037,16 +5037,16 @@ ring directly.")
   "The tail of the kill ring whose car is the last thing yanked.")
 
 (defcustom save-interprogram-paste-before-kill nil
-  "Save existing clipboard text into kill ring before replacing it.
-A non-nil value ensures that Emacs kill operations do not
-irrevocably overwrite existing clipboard text by saving it to the
-`kill-ring' prior to the kill.  Such text can subsequently be
-retrieved via \\[yank] \\[yank-pop].
+  "Whether to save existing clipboard text into kill ring before replacing it.
+A non-nil value means the clipboard text is saved to the `kill-ring'
+prior to any kill command.  Such text can subsequently be retrieved
+via \\[yank] \\[yank-pop].  This ensures that Emacs kill operations
+do not irrevocably overwrite existing clipboard text.
 
-This variable can be either a number (in which case the clipboard
-data is only saved if it's shorter (in characters) than that
-number.  Any other non-nil value will save the clipboard data
-unconditionally."
+The value of this variable can also be a number, in which case the
+clipboard data is only saved to the `kill-ring' if it's shorter
+(in characters) than that number.  Any other non-nil value will save
+the clipboard data unconditionally."
   :type '(choice (const :tag "Always" t)
                  number)
   :group 'killing
