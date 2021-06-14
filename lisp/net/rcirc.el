@@ -1157,15 +1157,25 @@ The list is updated automatically by `defun-rcirc-command'.")
                      '(metadata (cycle-sort-function . identity))
                    (complete-with-action action table str pred)))))))
 
-(defun set-rcirc-decode-coding-system (coding-system)
+(defun rcirc-set-decode-coding-system (coding-system)
   "Set the decode CODING-SYSTEM used in this channel."
   (interactive "zCoding system for incoming messages: ")
   (setq-local rcirc-decode-coding-system coding-system))
 
-(defun set-rcirc-encode-coding-system (coding-system)
+(define-obsolete-function-alias
+  'rcirc-set-decode-coding-system
+  'set-rcirc-decode-coding-system
+  "28.1")
+
+(defun rcirc-set-encode-coding-system (coding-system)
   "Set the encode CODING-SYSTEM used in this channel."
   (interactive "zCoding system for outgoing messages: ")
   (setq-local rcirc-encode-coding-system coding-system))
+
+(define-obsolete-function-alias
+  'rcirc-set-encode-coding-system
+  'set-rcirc-encode-coding-system
+  "28.1")
 
 (defvar rcirc-mode-map
   (let ((map (make-sparse-keymap)))
