@@ -603,7 +603,7 @@ Each element is (INDEX . VALUE)")
   form lexical)
 
 (defvar byte-native-compiling nil
-  "Non nil while native compiling.")
+  "Non-nil while native compiling.")
 (defvar byte-native-qualities nil
   "To spill default qualities from the compiled file.")
 (defvar byte+native-compile nil
