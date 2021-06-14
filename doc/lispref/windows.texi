@@ -2191,12 +2191,13 @@ the name of an existing buffer; if omitted or @code{nil}, it defaults to
 the current buffer.
 
 The replacement buffer in each window is chosen via
-@code{switch-to-prev-buffer} (@pxref{Window History}).  Any dedicated
-window displaying @var{buffer-or-name} is deleted if possible
-(@pxref{Dedicated Windows}).  If such a window is the only window on its
-frame and there are other frames on the same terminal, the frame is
-deleted as well.  If the dedicated window is the only window on the only
-frame on its terminal, the buffer is replaced anyway.
+@code{switch-to-prev-buffer} (@pxref{Window History}).  With the
+exception of side windows (@pxref{Side Windows}), any dedicated window
+displaying @var{buffer-or-name} is deleted if possible (@pxref{Dedicated
+Windows}).  If such a window is the only window on its frame and there
+are other frames on the same terminal, the frame is deleted as well.
+If the dedicated window is the only window on the only frame on its
+terminal, the buffer is replaced anyway.
 @end deffn
 
 
@@ -3013,6 +3014,8 @@ If non-@code{nil}, such an entry tells @code{display-buffer} to mark
 any window it creates as dedicated to its buffer (@pxref{Dedicated
 Windows}).  It does that by calling @code{set-window-dedicated-p} with
 the chosen window as first argument and the entry's value as second.
+Side windows are by default dedicated with the value @code{side}
+((@pxref{Side Window Options and Functions}).
 
 @vindex preserve-size@r{, a buffer display action alist entry}
 @item preserve-size
@@ -4061,18 +4064,19 @@ slightly different, see below.
 
    Functions supposed to remove a buffer from a window or a window from
 a frame can behave specially when a window they operate on is dedicated.
-We will distinguish three basic cases, namely where (1) the window is
+We will distinguish four basic cases, namely where (1) the window is
 not the only window on its frame, (2) the window is the only window on
-its frame but there are other frames on the same terminal left, and (3)
-the window is the only window on the only frame on the same terminal.
+its frame but there are other frames on the same terminal left, (3)
+the window is the only window on the only frame on the same terminal,
+and (4) the dedication's value is @code{side}
+(@pxref{Displaying Buffers in Side Windows}).
 
    In particular, @code{delete-windows-on} (@pxref{Deleting Windows})
-handles case (2) by deleting the associated frame and case (3) by
-showing another buffer in that frame's only window.  The function
+handles case (2) by deleting the associated frame and cases (3) and (4)
+by showing another buffer in that frame's only window.  The function
 @code{replace-buffer-in-windows} (@pxref{Buffers and Windows}) which is
 called when a buffer gets killed, deletes the window in case (1) and
 behaves like @code{delete-windows-on} otherwise.
-@c FIXME: Does replace-buffer-in-windows _delete_ a window in case (1)?
 
    When @code{bury-buffer} (@pxref{Buffer List}) operates on the
 selected window (which shows the buffer that shall be buried), it
@@ -4335,6 +4339,25 @@ means to use a slot following (that is, below or on the right of) the
 middle slot.  Hence, all windows on a specific side are ordered by their
 @code{slot} value.  If unspecified, the window is located in the middle
 of the specified side.
+
+@item dedicated
+The dedicated flag (@pxref{Dedicated Windows}) has a slightly different
+meaning for side windows.  When a side window is created, that flag is
+set to the value @code{side} to prevent @code{display-buffer} to use the
+window in other action functions.  Its value persists across invocations
+of @code{quit-window}, @code{kill-buffer}, @code{previous-buffer} and
+@code{next-buffer}.
+
+In particular, these commands will refrain from showing, in a side
+window, buffers that have not been displayed in that window before.
+They will also refrain from having a normal, non-side window show a
+buffer that has been already displayed in a side window.  A notable
+exception to the latter rule occurs when an application, after
+displaying a buffer, resets that buffer’s local variables.  To override
+these rules and always delete a side window with @code{quit-window} or
+@code{kill-buffer}, and eventually prevent the use of
+@code{previous-buffer} and @code{next-buffer}, set this value to
+@code{t} or specify a value via @code{display-buffer-mark-dedicated}.
 @end table
 
 If you specify the same slot on the same side for two or more different
@@ -4354,16 +4377,6 @@ split by any buffer display action (@pxref{Buffer Display Action
 Functions}) unless it is explicitly specified as target of that
 action.  Note also that @code{delete-other-windows} cannot make a side
 window the only window on its frame (@pxref{Deleting Windows}).
-
-   Once set up, side windows also change the behavior of the commands
-@code{switch-to-prev-buffer} and @code{switch-to-next-buffer}
-(@pxref{Window History}).  In particular, these commands will refrain
-from showing, in a side window, buffers that have not been displayed in
-that window before.  They will also refrain from having a normal,
-non-side window show a buffer that has been already displayed in a side
-window.  A notable exception to the latter rule occurs when an
-application, after displaying a buffer, resets that buffer's local
-variables.
 
 
 @node Side Window Options and Functions
