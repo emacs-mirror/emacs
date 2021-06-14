@@ -1261,7 +1261,7 @@ uses @file{@trampfn{mtp,,}} as the default name.
 As the name indicates, the method @option{nextcloud} allows you to
 access OwnCloud or NextCloud hosted files and directories.  Like the
 @option{gdrive} method, your credentials must be populated in your
-@command{Online Accounts} application outside Emacs. The method
+@command{Online Accounts} application outside Emacs.  The method
 supports port numbers.
 
 @item @option{sftp}
@@ -2842,6 +2842,13 @@ auto-saved files to the same directory as the original file.
 Alternatively, set the user option @code{tramp-auto-save-directory}
 to direct all auto saves to that location.
 
+@vindex tramp-allow-unsafe-temporary-files
+Per default, @value{tramp} asks for confirmation if a
+@samp{root}-owned backup or auto-save remote file has to be written to
+your local temporary directory.  If you want to suppress this
+confirmation question, set user option
+@code{tramp-allow-unsafe-temporary-files} to @code{t}.
+
 
 @node Keeping files encrypted
 @section Protect remote files by encryption
@@ -3309,12 +3316,12 @@ For ad-hoc definitions to be saved automatically in
 
 Ad-hoc proxies can take patterns @code{%h} or @code{%u} like in
 @code{tramp-default-proxies-alist}.  The following file name expands
-to user @code{root} on host @code{remotehost}, starting with an
-@option{ssh} session on host @code{remotehost}:
+to user @samp{root} on host @samp{remotehost}, starting with an
+@option{ssh} session on host @samp{remotehost}:
 @samp{@value{prefix}ssh@value{postfixhop}%h|su@value{postfixhop}remotehost@value{postfix}}.
 
 On the other hand, if a trailing hop does not specify a host name,
-the host name of the previous hop is reused. Therefore, the following
+the host name of the previous hop is reused.  Therefore, the following
 file name is equivalent to the previous example:
 @samp{@value{prefix}ssh@value{postfixhop}remotehost|su@value{postfixhop}@value{postfix}}.
 
@@ -5294,7 +5301,7 @@ attributes cache in its process sentinel with this code:
 @end lisp
 
 Since @value{tramp} traverses subdirectories starting with the
-root-directory, it is most likely sufficient to make the
+root directory, it is most likely sufficient to make the
 @code{default-directory} of the process buffer as the root directory.
 
 

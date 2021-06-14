@@ -605,7 +605,7 @@ These options include 'windmove-default-keybindings',
 ** Windows
 
 +++
-*** New option 'delete-window-choose-selected'.
+*** New user option 'delete-window-choose-selected'.
 This allows to choose a frame's selected window after deleting the
 previously selected one.
 
@@ -1402,6 +1402,11 @@ is experimental.
 When non-nil, this user option instructs Tramp to mirror the debug
 buffer to a file under the "/tmp/" directory.  This is useful, if (in
 rare cases) Tramp blocks Emacs, and we need further debug information.
+
++++
+*** Writing sensitive auto-save or backup files to the local temporary
+directory must be confirmed.  In order to suppress this confirmation,
+set user option 'tramp-allow-unsafe-temporary-files' to t.
 
 ** Tempo
 

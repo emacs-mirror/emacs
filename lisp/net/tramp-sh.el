@@ -5296,8 +5296,7 @@ Nonexistent directories are removed from spec."
 	;; cache the result for the session only.  Otherwise, the
 	;; result is cached persistently.
 	(if (memq 'tramp-own-remote-path tramp-remote-path)
-	    (tramp-get-process vec)
-	  vec)
+	    (tramp-get-process vec) vec)
 	"remote-path"
       (let* ((remote-path (copy-tree tramp-remote-path))
 	     (elt1 (memq 'tramp-default-remote-path remote-path))
