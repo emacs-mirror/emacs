@@ -1859,7 +1859,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (while blist
       (with-current-buffer (car blist)
 	(if (and buffer-file-name
-		 (dired-in-this-tree-p buffer-file-name expanded-from-dir))
+		 (file-in-directory-p buffer-file-name expanded-from-dir))
 	    (let ((modflag (buffer-modified-p))
 		  (to-file (replace-regexp-in-string
 			    (concat "^" (regexp-quote from-dir))
@@ -1878,7 +1878,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (while alist
       (setq elt (car alist)
 	    alist (cdr alist))
-      (if (dired-in-this-tree-p (car elt) expanded-dir)
+      (if (file-in-directory-p (car elt) expanded-dir)
 	  ;; ELT's subdir is affected by the rename
 	  (dired-rename-subdir-2 elt dir to)))
     (if (equal dir default-directory)
@@ -2707,7 +2707,7 @@ This function takes some pains to conform to `ls -lR' output."
       (setq switches (string-replace "R" "" switches))
       (dolist (cur-ass dired-subdir-alist)
 	(let ((cur-dir (car cur-ass)))
-	  (and (dired-in-this-tree-p cur-dir dirname)
+	  (and (file-in-directory-p cur-dir dirname)
 	       (let ((cur-cons (assoc-string cur-dir dired-switches-alist)))
 		 (if cur-cons
 		     (setcdr cur-cons switches)
@@ -2719,7 +2719,7 @@ This function takes some pains to conform to `ls -lR' output."
 (defun dired-insert-subdir-validate (dirname &optional switches)
   ;; Check that it is valid to insert DIRNAME with SWITCHES.
   ;; Signal an error if invalid (e.g. user typed `i' on `..').
-  (or (dired-in-this-tree-p dirname (expand-file-name default-directory))
+  (or (file-in-directory-p dirname (expand-file-name default-directory))
       (error  "%s: not in this directory tree" dirname))
   (let ((real-switches (or switches dired-subdir-switches)))
     (when real-switches
@@ -2760,7 +2760,7 @@ of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
       (setq dir (car (car s-alist))
 	    s-alist (cdr s-alist))
       (and (or kill-root (not (string-equal dir dirname)))
-	   (dired-in-this-tree-p dir dirname)
+	   (file-in-directory-p dir dirname)
 	   (dired-goto-subdir dir)
 	   (setq m-alist (nconc (dired-kill-subdir remember-marks) m-alist))))
     m-alist))
@@ -2992,7 +2992,7 @@ Lower levels are unaffected."
       (while rest
 	(setq elt (car rest)
 	      rest (cdr rest))
-	(if (dired-in-this-tree-p (directory-file-name (car elt)) dir)
+	(if (file-in-directory-p (directory-file-name (car elt)) dir)
 	    (setq rest nil
 		  pos (dired-goto-subdir (car elt))))))
     (if pos

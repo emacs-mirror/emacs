@@ -46,7 +46,7 @@
 	     :documentation "A string for testing custom.
 This is the next line of documentation.")
    (listostuff :initarg :listostuff
-	       :initform ("1" "2" "3")
+	       :initform '("1" "2" "3")
 	       :type list
 	       :custom (repeat (string :tag "Stuff"))
 	       :label "List of Strings"

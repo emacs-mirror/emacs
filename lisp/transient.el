@@ -932,7 +932,7 @@ example, sets a variable use `transient-define-infix' instead.
           (if (eq k :class)
               (setq class pop)
             (setq args (plist-put args k pop)))))
-      (vector (or level (oref-default 'transient-child level))
+      (vector (or level 1)
               (or class
                   (if (vectorp car)
                       'transient-columns
@@ -1003,7 +1003,7 @@ example, sets a variable use `transient-define-infix' instead.
     (unless (plist-get args :key)
       (when-let ((shortarg (plist-get args :shortarg)))
         (setq args (plist-put args :key shortarg))))
-    (list (or level (oref-default 'transient-child level))
+    (list (or level 1)
           (or class 'transient-suffix)
           args)))
 
@@ -3583,9 +3583,9 @@ we stop there."
 ;;;; `transient-lisp-variable'
 
 (defclass transient-lisp-variable (transient-variable)
-  ((reader :initform transient-lisp-variable--reader)
+  ((reader :initform #'transient-lisp-variable--reader)
    (always-read :initform t)
-   (set-value :initarg :set-value :initform set))
+   (set-value :initarg :set-value :initform #'set))
   "[Experimental] Class used for Lisp variables.")
 
 (cl-defmethod transient-init-value ((obj transient-lisp-variable))

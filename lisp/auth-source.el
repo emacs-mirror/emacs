@@ -121,12 +121,12 @@ let-binding."
          :initform nil
          :documentation "Internal backend data.")
    (create-function :initarg :create-function
-                    :initform ignore
+                    :initform #'ignore
                     :type function
                     :custom function
                     :documentation "The create function.")
    (search-function :initarg :search-function
-                    :initform ignore
+                    :initform #'ignore
                     :type function
                     :custom function
                     :documentation "The search function.")))

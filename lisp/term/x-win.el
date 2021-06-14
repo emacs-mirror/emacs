@@ -1355,7 +1355,7 @@ This returns an error if any Emacs frames are X frames."
 (declare-function x-get-selection-internal "xselect.c"
 		  (selection-symbol target-type &optional time-stamp terminal))
 
-(add-to-list 'display-format-alist '("\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" . x))
+(add-to-list 'display-format-alist '("\\`.*:[0-9]+\\(\\.[0-9]+\\)?\\'" . x))
 (cl-defmethod handle-args-function (args &context (window-system x))
   (x-handle-args args))
 

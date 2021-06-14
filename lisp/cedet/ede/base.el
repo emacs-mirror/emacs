@@ -47,7 +47,7 @@
 ;; and features of those files.
 
 (defclass ede-target (eieio-speedbar-directory-button eieio-named)
-  ((buttonface :initform speedbar-file-face) ;override for superclass
+  ((buttonface :initform 'speedbar-file-face) ;override for superclass
    (name :initarg :name
 	 :type string
 	 :custom string
@@ -91,16 +91,16 @@ This is used to match target objects with the compilers they can use, and
 which files this object is interested in."
 	       :accessor ede-object-sourcecode)
    (keybindings :allocation :class
-		:initform (("D" . ede-debug-target))
+		:initform '(("D" . ede-debug-target))
 		:documentation
 "Keybindings specialized to this type of target."
 		:accessor ede-object-keybindings)
    (menu :allocation :class
-	 :initform ( [ "Debug target" ede-debug-target
-		       (ede-buffer-belongs-to-target-p) ]
-		     [ "Run target" ede-run-target
-		       (ede-buffer-belongs-to-target-p) ]
-		     )
+	 :initform '( [ "Debug target" ede-debug-target
+		        (ede-buffer-belongs-to-target-p) ]
+		      [ "Run target" ede-run-target
+		        (ede-buffer-belongs-to-target-p) ]
+		      )
 	 :documentation "Menu specialized to this type of target."
 	 :accessor ede-object-menu)
    )
@@ -236,7 +236,7 @@ also be of a form used by TRAMP for use with scp, or rcp.")
 This FTP site should be in Emacs form as needed by `ange-ftp'.
 If this slot is nil, then use `ftp-site' instead.")
    (configurations :initarg :configurations
-		   :initform ("debug" "release")
+		   :initform '("debug" "release")
 		   :type list
 		   :custom (repeat string)
 		   :label "Configuration Options"
@@ -258,25 +258,25 @@ and target specific elements such as build variables.")
 		    :group (settings)
 		    :documentation "Project local variables")
    (keybindings :allocation :class
-		:initform (("D" . ede-debug-target)
-			   ("R" . ede-run-target))
+		:initform '(("D" . ede-debug-target)
+			    ("R" . ede-run-target))
 		:documentation "Keybindings specialized to this type of target."
 		:accessor ede-object-keybindings)
    (menu :allocation :class
 	 :initform
-	 (
-	  [ "Update Version" ede-update-version ede-object ]
-	  [ "Version Control Status" ede-vc-project-directory ede-object ]
-	  [ "Edit Project Homepage" ede-edit-web-page
-	    (and ede-object (oref (ede-toplevel) web-site-file)) ]
-	  [ "Browse Project URL" ede-web-browse-home
-	    (and ede-object
-		 (not (string= "" (oref (ede-toplevel) web-site-url)))) ]
-	  "--"
-	  [ "Rescan Project Files" ede-rescan-toplevel t ]
-	  [ "Edit Projectfile" ede-edit-file-target
-	    (ede-buffer-belongs-to-project-p) ]
-	  )
+	 '(
+	   [ "Update Version" ede-update-version ede-object ]
+	   [ "Version Control Status" ede-vc-project-directory ede-object ]
+	   [ "Edit Project Homepage" ede-edit-web-page
+	     (and ede-object (oref (ede-toplevel) web-site-file)) ]
+	   [ "Browse Project URL" ede-web-browse-home
+	     (and ede-object
+		  (not (string= "" (oref (ede-toplevel) web-site-url)))) ]
+	   "--"
+	   [ "Rescan Project Files" ede-rescan-toplevel t ]
+	   [ "Edit Projectfile" ede-edit-file-target
+	     (ede-buffer-belongs-to-project-p) ]
+	   )
 	 :documentation "Menu specialized to this type of target."
 	 :accessor ede-object-menu)
    )
