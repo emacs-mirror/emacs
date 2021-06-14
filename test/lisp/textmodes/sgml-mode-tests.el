@@ -206,7 +206,7 @@ The point is set to the beginning of the buffer."
 
 (ert-deftest sgml-test-brackets ()
   "Test fontification of apostrophe preceded by paired-bracket character."
-  (let (brackets results)
+  (let (brackets)
     (map-char-table
      (lambda (key value)
        (setq brackets (cons (list
