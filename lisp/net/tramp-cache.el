@@ -70,7 +70,8 @@
 ;;   process key retrieved by `tramp-get-process' (the main connection
 ;;   process).  Other processes could reuse these properties, avoiding
 ;;   recomputation when a new asynchronous process is created by
-;;   `make-process'.  Examples are "remote-path" or "device" (tramp-adb.el).
+;;   `make-process'.  Examples are "remote-path",
+;;   "unsafe-temporary-file" or "device" (tramp-adb.el).
 
 ;;; Code:
 
@@ -470,11 +471,11 @@ used to cache connection properties of the local machine."
 	;; don't save either, because all other properties might
 	;; depend on the login name, and we want to give the
 	;; possibility to use another login name later on.  Key
-	;; "started" exists for the "ftp" method only, which must be
+	;; "started" exists for the "ftp" method only, which must not
 	;; be kept persistent.
 	(maphash
 	 (lambda (key value)
-	   (if (and (tramp-file-name-p key) value
+	   (if (and (tramp-file-name-p key) (hash-table-p value)
 		    (not (string-equal
 			  (tramp-file-name-method key) tramp-archive-method))
 		    (not (tramp-file-name-localname key))

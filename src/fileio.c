@@ -1830,6 +1830,9 @@ the value of that variable.  The variable name should be terminated
 with a character not a letter, digit or underscore; otherwise, enclose
 the entire variable name in braces.
 
+If FOO is not defined in the environment, `$FOO' is left unchanged in
+the value of this function.
+
 If `/~' appears, all of FILENAME through that `/' is discarded.
 If `//' appears, everything up to and including the first of
 those `/' is discarded.  */)

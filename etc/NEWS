@@ -605,7 +605,7 @@ These options include 'windmove-default-keybindings',
 ** Windows
 
 +++
-*** New option 'delete-window-choose-selected'.
+*** New user option 'delete-window-choose-selected'.
 This allows to choose a frame's selected window after deleting the
 previously selected one.
 
@@ -1403,6 +1403,11 @@ When non-nil, this user option instructs Tramp to mirror the debug
 buffer to a file under the "/tmp/" directory.  This is useful, if (in
 rare cases) Tramp blocks Emacs, and we need further debug information.
 
++++
+*** Writing sensitive auto-save or backup files to the local temporary
+directory must be confirmed.  In order to suppress this confirmation,
+set user option 'tramp-allow-unsafe-temporary-files' to t.
+
 ** Tempo
 
 ---
@@ -2086,6 +2091,13 @@ This is so 'C-a' works as in other modes, and in particular holding
 Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 
 ** Miscellaneous
+
++++
+*** 'save-interprogram-paste-before-kill' can now be a number.
+In that case, it's interpreted as a limit on the size of the clipboard
+data that will be saved to the 'kill-ring' prior to killing text: if
+the size of the clipboard data is greater than or equal to the limit,
+it will not be saved.
 
 ---
 *** New variable 'hl-line-overlay-priority'.
