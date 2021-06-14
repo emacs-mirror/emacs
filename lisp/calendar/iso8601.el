@@ -231,17 +231,22 @@ See `decode-time' for the meaning of FORM."
                            (string-to-number (match-string 2 time))))
               (second (and (match-string 3 time)
                            (string-to-number (match-string 3 time))))
-	      (fraction (and (not (zerop (length (match-string 4 time))))
-                             (string-to-number (match-string 4 time)))))
+              (frac-string (match-string 4 time))
+              fraction fraction-precision)
+          (when frac-string
+            ;; Remove trailing zeroes.
+            (setq frac-string (replace-regexp-in-string "0+\\'" "" frac-string))
+            (when (length> frac-string 0)
+              (setq fraction (string-to-number frac-string)
+                    fraction-precision (length frac-string))))
           (when (and fraction
                      (eq form t))
             (cond
              ;; Sub-second time.
              (second
-              (let ((digits (1+ (truncate (log fraction 10)))))
-                (setq second (cons (+ (* second (expt 10 digits))
-                                      fraction)
-                                   (expt 10 digits)))))
+              (setq second (cons (+ (* second (expt 10 fraction-precision))
+                                    fraction)
+                                 (expt 10 fraction-precision))))
              ;; Fractional minute.
              (minute
               (setq second (iso8601--decimalize fraction 60)))
