@@ -607,11 +607,7 @@ Each element is (INDEX . VALUE)")
 (defvar byte-native-qualities nil
   "To spill default qualities from the compiled file.")
 (defvar byte+native-compile nil
-  "Non nil while compiling for bootstrap."
-  ;; During bootstrap we produce both the .eln and the .elc together.
-  ;; Because the make target is the later this has to be produced as
-  ;; last to be resilient against build interruptions.
-)
+  "Non-nil while producing at the same time byte and native code.")
 (defvar byte-to-native-lambdas-h nil
   "Hash byte-code -> byte-to-native-lambda.")
 (defvar byte-to-native-top-level-forms nil
