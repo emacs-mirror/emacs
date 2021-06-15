@@ -9086,6 +9086,9 @@ Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
 Or click to select one with the mouse.
 
+See the `completions-format' user option to control how this
+buffer is formatted.
+
 \\{completion-list-mode-map}")
 
 (defun completion-list-mode-finish ()
