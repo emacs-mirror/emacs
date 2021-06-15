@@ -681,8 +681,10 @@ that are joined after authentication."
 (defmacro with-rcirc-server-buffer (&rest body)
   "Evaluate BODY in the server buffer of the current channel."
   (declare (indent 0) (debug t))
-  `(with-current-buffer rcirc-server-buffer
-     ,@body))
+  `(if (buffer-live-p rcirc-server-buffer)
+       (with-current-buffer rcirc-server-buffer
+         ,@body)
+     (user-error "Server buffer was killed")))
 
 (define-obsolete-function-alias 'rcirc-float-time 'float-time "26.1")
 
@@ -1037,7 +1039,7 @@ With no argument or nil as argument, use the current buffer."
   "Return the nick associated with BUFFER.
 With no argument or nil as argument, use the current buffer."
   (with-current-buffer (or buffer (current-buffer))
-    (with-current-buffer rcirc-server-buffer
+    (with-rcirc-server-buffer
       (or rcirc-nick rcirc-default-nick))))
 
 (defvar rcirc-max-message-length 420
@@ -2132,9 +2134,7 @@ This function does not alter the INPUT string."
 (defun rcirc-switch-to-server-buffer ()
   "Switch to the server buffer associated with current channel buffer."
   (interactive)
-  (unless (buffer-live-p rcirc-server-buffer)
-    (error "No such buffer"))
-  (switch-to-buffer rcirc-server-buffer))
+  (switch-to-buffer (with-rcirc-server-buffer (current-buffer))))
 
 (defun rcirc-jump-to-first-unread-line ()
   "Move the point to the first unread line in this buffer."
