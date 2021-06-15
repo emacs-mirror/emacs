@@ -260,6 +260,13 @@ systems.
 @xref{Top, Aspell,, aspell, The Aspell Manual}.
 @end ifnottex
 
+@vindex ispell-program-name
+  If you have only one of the spelling checker programs installed,
+Emacs will find it when you invoke for the first time one of the
+commands described here.  If you have more than one of them installed,
+you can control which one is used by customizing the variable
+@code{ispell-program-name}.
+
 @table @kbd
 @item M-$
 Check and correct spelling of the word at point (@code{ispell-word}).
