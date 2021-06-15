@@ -21,6 +21,7 @@
 
 (require 'ert)
 (require 'ert-x)
+(require 'cl-lib)
 
 (ert-deftest parse-partial-sexp-continue-over-comment-marker ()
   "Continue a parse that stopped in the middle of a comment marker."
@@ -55,6 +56,16 @@
                      pps-aftC))
       (should (equal (parse-partial-sexp aftC pointX nil nil pps-aftC)
                      ppsX)))))
+
+(ert-deftest syntax-class-character-test ()
+  (cl-loop for char across " .w_()'\"$\\/<>@!|"
+           for i from 0
+           do (should (= char (syntax-class-to-char i)))
+           when (string-to-syntax (string char))
+           do (should (= char (syntax-class-to-char
+                               (car (string-to-syntax (string char)))))))
+  (should-error (syntax-class-to-char -1))
+  (should-error (syntax-class-to-char 200)))
 
 (ert-deftest parse-partial-sexp-paren-comments ()
   "Test syntax parsing with paren comment markers.

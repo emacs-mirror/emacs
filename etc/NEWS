@@ -2844,6 +2844,11 @@ customize them.
 * Lisp Changes in Emacs 28.1
 
 +++
+** New function 'syntax-class-to-char'.
+This does the almost the opposite of 'string-to-syntax' -- it returns
+the syntax descriptor (a character) given a raw syntax descriptor.
+
++++
 ** New function 'buffer-local-boundp'.
 This predicate says whether a symbol is bound in a specific buffer.
 
