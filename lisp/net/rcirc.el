@@ -1732,6 +1732,8 @@ PROCESS is the process object for the current connection."
 
 (defvar rcirc-markup-text-functions
   '(rcirc-markup-attributes
+    rcirc-color-attributes
+    rcirc-remove-markup-codes
     rcirc-markup-my-nick
     rcirc-markup-urls
     rcirc-markup-keywords
@@ -2715,20 +2717,70 @@ If ARG is given, opens the URL in a new browser window."
 
 (defun rcirc-markup-attributes (_sender _response)
   "Highlight IRC markup, indicated by ASCII control codes."
-  (while (re-search-forward "\\([\C-b\C-_\C-v]\\).*?\\(\\1\\|\C-o\\)" nil t)
+  (while (re-search-forward
+          (rx (group (or #x02 #x1d #x1f #x1e #x11))
+              (*? nonl)
+              (group (or (backref 1) (+ #x0f) eol)))
+          nil t)
     (rcirc-add-face (match-beginning 0) (match-end 0)
-		    (cl-case (char-after (match-beginning 1))
-		      (?\C-b 'bold)
-		      (?\C-v 'italic)
-		      (?\C-_ 'underline)))
-    ;; keep the ^O since it could terminate other attributes
-    (when (not (eq ?\C-o (char-before (match-end 2))))
-      (delete-region (match-beginning 2) (match-end 2)))
-    (delete-region (match-beginning 1) (match-end 1))
-    (goto-char (match-beginning 1)))
-  ;; remove the ^O characters now
-  (goto-char (point-min))
-  (while (re-search-forward "\C-o+" nil t)
+                    (cl-case (char-after (match-beginning 0))
+                      (#x02 'bold)
+                      (#x1d 'italic)
+                      (#x1f 'underline)
+                      (#x1e '(:strike-through t))
+                      (#x11 'rcirc-monospace-text)))
+    (goto-char (1+ (match-beginning 0)))))
+
+(defconst rcirc-color-codes
+  ;; Taken from https://modern.ircdocs.horse/formatting.html
+  ["white" "black" "blue" "green" "red" "brown" "magenta"
+   "orange" "yellow" "light green" "cyan" "light cyan"
+   "light blue" "pink" "grey" "light grey"
+   "#470000" "#472100" "#474700" "#324700" "#004700" "#00472c"
+   "#004747" "#002747" "#000047" "#2e0047" "#470047" "#47002a"
+   "#740000" "#743a00" "#747400" "#517400" "#007400" "#007449"
+   "#007474" "#004074" "#000074" "#4b0074" "#740074" "#740045"
+   "#b50000" "#b56300" "#b5b500" "#7db500" "#00b500" "#00b571"
+   "#00b5b5" "#0063b5" "#0000b5" "#7500b5" "#b500b5" "#b5006b"
+   "#ff0000" "#ff8c00" "#ffff00" "#b2ff00" "#00ff00" "#00ffa0"
+   "#00ffff" "#008cff" "#0000ff" "#a500ff" "#ff00ff" "#ff0098"
+   "#ff5959" "#ffb459" "#ffff71" "#cfff60" "#6fff6f" "#65ffc9"
+   "#6dffff" "#59b4ff" "#5959ff" "#c459ff" "#ff66ff" "#ff59bc"
+   "#ff9c9c" "#ffd39c" "#ffff9c" "#e2ff9c" "#9cff9c" "#9cffdb"
+   "#9cffff" "#9cd3ff" "#9c9cff" "#dc9cff" "#ff9cff" "#ff94d3"
+   "#000000" "#131313" "#282828" "#363636" "#4d4d4d" "#656565"
+   "#818181" "#9f9f9f" "#bcbcbc" "#e2e2e2" "#ffffff"]
+  "Vector of colors for each IRC color code.")
+
+(defun rcirc-color-attributes (_sender _response)
+  "Highlight IRC color-codes, indicated by ASCII control codes."
+  (while (re-search-forward
+          (rx #x03
+              (? (group (= 2 digit)) (? "," (group (= 2 digit))))
+              (*? nonl)
+              (or #x03 #x0f eol))
+          nil t)
+    (let (foreground background)
+      (when-let ((fg-raw (match-string 1))
+                 (fg (string-to-number fg-raw))
+                 ((<= 0 fg (1- (length rcirc-color-codes)))))
+        (setq foreground (aref rcirc-color-codes fg)))
+      (when-let ((bg-raw (match-string 2))
+                 (bg (string-to-number bg-raw))
+                 ((<= 0 bg (1- (length rcirc-color-codes)))))
+        (setq background (aref rcirc-color-codes bg)))
+      (rcirc-add-face (match-beginning 0) (match-end 0)
+                           `(face (:foreground
+                                   ,foreground
+                                   :background
+                                   ,background))))))
+
+(defun rcirc-remove-markup-codes (_sender _response)
+  "Remove ASCII control codes used to designate markup."
+  (while (re-search-forward
+          (rx (or #x02 #x1d #x1f #x1e #x11 #x0f
+                  (: #x03 (? (= 2 digit) (? "," (= 2 digit))))))
+          nil t)
     (delete-region (match-beginning 0) (match-end 0))))
 
 (defun rcirc-markup-my-nick (_sender response)
@@ -3423,6 +3475,10 @@ object for the current connection."
   "Faces for rcirc."
   :group 'rcirc
   :group 'faces)
+
+(defface rcirc-monospace-text
+  '((t :family "Monospace"))
+  "Face used for monospace text in messages.")
 
 (defface rcirc-my-nick			; font-lock-function-name-face
   '((((class color) (min-colors 88) (background light)) :foreground "Blue1")
