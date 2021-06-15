@@ -2403,8 +2403,8 @@ that, an interactive form can specified."
                    (insert "\\`")
                    (when arguments
                      (dotimes (_ (1- (length arguments)))
-                       (insert "\\(?:\\(.+?\\)[[:space:]]*"))
-                     (insert "\\(.*\\)")
+                       (insert "\\(?:\\(.+?\\)"))
+                     (insert "\\(?:[[:space:]]+\\(.*\\)\\)")
                      (dotimes (i (1- (length arguments)))
                        (when (< i optional)
                          (insert "?"))
