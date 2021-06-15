@@ -175,7 +175,7 @@ classified as spam (see the option `mh-junk-program')."
 
 SpamAssassin is one of the more popular spam filtering programs.
 Get it from your local distribution or from the SpamAssassin web
-site at URL `http://spamassassin.org/'.
+site at URL `https://spamassassin.apache.org/'.
 
 To use SpamAssassin, add the following recipes to
 \".procmailrc\":
@@ -196,7 +196,7 @@ To use SpamAssassin, add the following recipes to
     * ^X-Spam-Status: Yes
     spam/.
 
-If you don't use \"spamc\", use \"spamassassin -P -a\".
+If you don't use \"spamc\", use \"spamassassin\".
 
 Note that one of the recipes above throws away messages with a
 score greater than or equal to 10. Here's how you can determine a
@@ -243,16 +243,7 @@ in the \"blacklist_from\" entries from the last blank line in
 information can be used so that you can replace multiple
 \"blacklist_from\" entries with a single wildcard entry such as:
 
-    blacklist_from *@*amazingoffersdirect2u.com
-
-In versions of SpamAssassin (2.50 and on) that support a Bayesian
-classifier, \\[mh-junk-blacklist] uses the program \"sa-learn\"
-to recategorize the message as spam. Neither MH-E, nor
-SpamAssassin, rebuilds the database after adding words, so you
-will need to run \"sa-learn --rebuild\" periodically. This can be
-done by adding the following to your crontab:
-
-    0 * * * *   sa-learn --rebuild > /dev/null 2>&1"
+    blacklist_from *@*amazingoffersdirect2u.com"
   (unless mh-spamassassin-executable
     (error "Unable to find the spamassassin executable"))
   (let ((current-folder mh-current-folder)
@@ -264,13 +255,13 @@ done by adding the following to your crontab:
     ;; (this happens if mh-junk-background is t).
     (with-current-buffer mh-log-buffer
       (call-process mh-spamassassin-executable msg-file mh-junk-background nil
-                    ;;"--report" "--remove-from-whitelist"
-                    "-r" "-R")          ; spamassassin V2.20
+                    ;; -R removes from allow-list
+                    "--report" "-R")
     (when mh-sa-learn-executable
       (message "Recategorizing message %d as spam..." msg)
       (mh-truncate-log-buffer)
       (call-process mh-sa-learn-executable msg-file mh-junk-background nil
-                    "--single" "--spam" "--local" "--no-rebuild")))
+                    "--spam" "--local" "--no-sync")))
     (message "Blacklisting sender of message %d..." msg)
     (with-current-buffer (get-buffer-create mh-temp-buffer)
       (erase-buffer)
@@ -304,8 +295,7 @@ See `mh-spamassassin-blacklist' for more information."
       (erase-buffer)
       (message "Removing spamassassin markup from message %d..." msg)
       (call-process mh-spamassassin-executable msg-file t nil
-                    ;; "--remove-markup"
-                    "-d")               ; spamassassin V2.20
+                    "--remove-markup")
       (if show-buffer
           (kill-buffer show-buffer))
       (write-file msg-file)
@@ -316,7 +306,7 @@ See `mh-spamassassin-blacklist' for more information."
         ;; (this happens if mh-junk-background is t).
         (with-current-buffer mh-log-buffer
           (call-process mh-sa-learn-executable msg-file mh-junk-background nil
-                        "--single" "--ham" "--local" "--no-rebuild")))
+                        "--ham" "--local" "--no-sync")))
       (message "Whitelisting sender of message %d..." msg)
       (setq from
             (car (mh-funcall-if-exists
