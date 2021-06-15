@@ -2047,11 +2047,7 @@ or t, which means that `auth-source' will be queried for the
 private key and the certificate.
 
 Returns the buffer for the given server or channel."
-  (let ((server-announced-name (when (and (boundp 'erc-session-server)
-                                          (string= server erc-session-server))
-                                 erc-server-announced-name))
-        (connected-p (unless connect erc-server-connected))
-        (buffer (erc-get-buffer-create server port channel))
+  (let ((buffer (erc-get-buffer-create server port channel))
         (old-buffer (current-buffer))
         old-point
         (continued-session (and erc-reuse-buffers erc--server-reconnecting)))
@@ -2062,8 +2058,9 @@ Returns the buffer for the given server or channel."
     (let ((old-recon-count erc-server-reconnect-count))
       (erc-mode)
       (setq erc-server-reconnect-count old-recon-count))
-    (setq erc-server-announced-name server-announced-name)
-    (setq erc-server-connected connected-p)
+    (when (setq erc-server-connected (not connect))
+      (setq erc-server-announced-name
+            (buffer-local-value 'erc-server-announced-name old-buffer)))
     ;; connection parameters
     (setq erc-server-process process)
     (setq erc-insert-marker (make-marker))
