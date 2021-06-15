@@ -997,7 +997,7 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
         (title-mode-alist
          (or (cdr-safe (assq mode which-key--prefix-title-alist)) (list))))
     (while key-sequence
-    ;; normalize key sequences before adding
+      ;; normalize key sequences before adding
       (let ((key-seq (key-description (kbd key-sequence)))
             (replace (or (and (functionp replacement) replacement)
                          (car-safe replacement)
@@ -1646,7 +1646,7 @@ If KEY contains any \"special keys\" defined in
           (let ((beg (match-beginning 0)) (end (match-end 0)))
             (concat (substring key-w-face 0 beg)
                     (which-key--propertize (substring key-w-face beg (1+ beg))
-                                'face 'which-key-special-key-face)
+                                           'face 'which-key-special-key-face)
                     (substring key-w-face end
                                (which-key--string-width key-w-face))))
         key-w-face))))
@@ -2711,7 +2711,7 @@ Finally, show the buffer."
                (bound-and-true-p god-local-mode)
                (eq this-command 'god-mode-self-insert))
       (setq this-command-keys (when which-key--god-mode-key-string
-                          (kbd which-key--god-mode-key-string))))
+                                (kbd which-key--god-mode-key-string))))
     this-command-keys))
 
 (defun which-key--update ()
