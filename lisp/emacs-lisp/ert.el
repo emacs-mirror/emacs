@@ -1279,6 +1279,23 @@ EXPECTEDP specifies whether the result was expected."
              (ert-test-quit '("quit" "QUIT")))))
     (elt s (if expectedp 0 1))))
 
+(defun ert-reason-for-test-result (result)
+  "Return the reason given for RESULT, as a string.
+
+The reason is the argument given when invoking `ert-fail' or `ert-skip'.
+It is output using `prin1' prefixed by two spaces.
+
+If no reason was given, or for a successful RESULT, return the
+empty string."
+  (let ((reason
+         (and
+          (ert-test-result-with-condition-p result)
+          (cadr (ert-test-result-with-condition-condition result))))
+        (print-escape-newlines t)
+        (print-level 6)
+        (print-length 10))
+    (if reason (format "  %S" reason) "")))
+
 (defun ert--pp-with-indentation-and-newline (object)
   "Pretty-print OBJECT, indenting it to the current column of point.
 Ensures a final newline is inserted."
@@ -1369,18 +1386,24 @@ Returns the stats object."
               (cl-loop for test across (ert--stats-tests stats)
                        for result = (ert-test-most-recent-result test) do
                        (when (not (ert-test-result-expected-p test result))
-                         (message "%9s  %S"
+                         (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
-                                  (ert-test-name test))))
+                                  (ert-test-name test)
+                                  (if (getenv "EMACS_TEST_VERBOSE")
+                                      (ert-reason-for-test-result result)
+                                    ""))))
               (message "%s" ""))
             (unless (zerop skipped)
               (message "%s skipped results:" skipped)
               (cl-loop for test across (ert--stats-tests stats)
                        for result = (ert-test-most-recent-result test) do
                        (when (ert-test-result-type-p result :skipped)
-                         (message "%9s  %S"
+                         (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
-                                  (ert-test-name test))))
+                                  (ert-test-name test)
+                                  (if (getenv "EMACS_TEST_VERBOSE")
+                                      (ert-reason-for-test-result result)
+                                    ""))))
               (message "%s" "")))))
        (test-started
         )

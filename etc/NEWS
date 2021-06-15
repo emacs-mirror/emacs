@@ -2090,6 +2090,13 @@ This allows mode-specific alterations to how 'thing-at-point' works.
 This is so 'C-a' works as in other modes, and in particular holding
 Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 
+** ERT
+
++++
+*** ERT can now output more verbose test failure reports.
+If the EMACS_TEST_VERBOSE environment variable is set, failure
+summaries will include the failing condition.
+
 ** Miscellaneous
 
 +++
