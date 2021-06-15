@@ -1635,7 +1635,10 @@ URLs."
          ;; Ignore these `substitute-command-keys' substitutions.
          (seq "\\" (or "="
                        (seq "<" (* (not ">")) ">")
-                       (seq "{" (* (not "}")) "}")))))
+                       (seq "{" (* (not "}")) "}")))
+         ;; Ignore the function signature that's stashed at the end of
+         ;; the doc string (in some circumstances).
+         (seq bol "(fn (" (* nonl))))
     ""
     ;; Heuristic: assume these substitutions are of some length N.
     (replace-regexp-in-string
