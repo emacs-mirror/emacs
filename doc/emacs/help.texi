@@ -451,6 +451,11 @@ Go forward to the next help topic (@code{help-go-forward}).
 @item C-c C-b
 @itemx l
 Go back to the previous help topic (@code{help-go-back}).
+@item s
+View the source of the current help topic (if any)
+(@code{help-view-source}).
+@item i
+Look up the current topic in the manual(s) (@code{help-goto-info}).
 @end table
 
 @cindex hyperlink

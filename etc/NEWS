@@ -1124,6 +1124,15 @@ This change is for better compatibility with old versions of non-GNU
 
 ** Help
 
++++
+*** New command 'help-view-source' ('s')
+This command will view the source file (if any) of the current help
+topic.
+
++++
+*** New command 'help-goto-info' ('i')
+This command will look up the current symbol (if any) in Info.
+
 ---
 *** The 'help-for-help' ('C-h C-h') screen has been redesigned.
 
