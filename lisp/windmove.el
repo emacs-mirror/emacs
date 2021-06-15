@@ -144,9 +144,18 @@ is inactive."
   "Whether movement off the edge of the frame creates a new window.
 If this variable is set to t, moving left from the leftmost window in
 a frame will create a new window on the left, and similarly for the other
-directions."
-  :type 'boolean
-  :version "27.1")
+directions.
+This variable may also be a function to be called in this circumstance
+by `windmove-do-window-select'.  The function should accept then as
+argument the DIRECTION targeted, an interactive ARG and a WINDOW
+corresponding to the currently selected window.  It should also return
+a valid window that `windmove-do-window-select' will select,
+or the symbol `no-select' to ignore that final selection."
+  :type '(choice
+          (const :tag "Don't create new windows" nil)
+          (const :tag "Create new windows" t)
+          (function :tag "Provide a function"))
+  :version "28.1")
 
 ;; If your Emacs sometimes places an empty column between two adjacent
 ;; windows, you may wish to set this delta to 2.
@@ -356,19 +365,23 @@ use the left or top edge of WINDOW as reference point."
   "Move to the window at direction DIR as seen from WINDOW.
 DIR, ARG, and WINDOW are handled as by `windmove-find-other-window'.
 If no window is at direction DIR, an error is signaled.
-If `windmove-create-window' is non-nil, try to create a new window
+If `windmove-create-window' is a function, call that function with
+DIR, ARG and WINDOW.  If it is non-nil, try to create a new window
 in direction DIR instead."
   (let ((other-window (windmove-find-other-window dir arg window)))
     (when (and windmove-create-window
                (or (null other-window)
                    (and (window-minibuffer-p other-window)
                         (not (minibuffer-window-active-p other-window)))))
-      (setq other-window (split-window window nil dir)))
+      (setq other-window (if (functionp windmove-create-window)
+                             (funcall windmove-create-window dir arg window)
+                           (split-window window nil dir))))
     (cond ((null other-window)
            (user-error "No window %s from selected window" dir))
           ((and (window-minibuffer-p other-window)
                 (not (minibuffer-window-active-p other-window)))
            (user-error "Minibuffer is inactive"))
+          ((eq other-window 'no-select))
           (t
            (select-window other-window)))))
 
