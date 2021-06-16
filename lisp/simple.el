@@ -5047,8 +5047,9 @@ The value of this variable can also be a number, in which case the
 clipboard data is only saved to the `kill-ring' if it's shorter
 (in characters) than that number.  Any other non-nil value will save
 the clipboard data unconditionally."
-  :type '(choice (const :tag "Always" t)
-                 number)
+  :type '(choice (const nil)
+                 number
+                 (other :tag "Always" t))
   :group 'killing
   :version "23.2")
 
