@@ -34380,7 +34380,7 @@ gui_draw_bottom_divider (struct window *w)
 		  && !NILP (XWINDOW (p->parent)->next))))
 	x1 -= WINDOW_RIGHT_DIVIDER_WIDTH (w);
 
-	FRAME_RIF (f)->draw_window_divider (w, x0, x1, y0, y1);
+      FRAME_RIF (f)->draw_window_divider (w, x0, x1, y0, y1);
     }
 }
 
