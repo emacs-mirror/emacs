@@ -4769,14 +4769,9 @@ load_path_default (void)
     return decode_env_path (0, PATH_DUMPLOADSEARCH, 0);
 
   Lisp_Object lpath = Qnil;
-  const char *normal = PATH_LOADSEARCH;
   const char *loadpath = NULL;
 
-#ifdef HAVE_NS
-  loadpath = ns_load_path ();
-#endif
-
-  lpath = decode_env_path (0, loadpath ? loadpath : normal, 0);
+  lpath = decode_env_path (0, PATH_LOADSEARCH, 0);
 
   if (!NILP (Vinstallation_directory))
     {

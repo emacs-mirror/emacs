@@ -499,118 +499,35 @@ append2 (Lisp_Object list, Lisp_Object item)
 
 
 const char *
-ns_etc_directory (void)
-/* If running as a self-contained app bundle, return as a string the
-   filename of the etc directory, if present; else nil.  */
+ns_relocate (const char *epath)
+/* If we're running in a self-contained app bundle some hard-coded
+   paths are relative to the root of the bundle, so work out the full
+   path.
+
+   FIXME: I think this should be able to handle cases where multiple
+   directories are separated by colons.  */
 {
+#ifdef NS_SELF_CONTAINED
   NSBundle *bundle = [NSBundle mainBundle];
-  NSString *resourceDir = [bundle resourcePath];
-  NSString *resourcePath;
+  NSString *root = [bundle bundlePath];
+  NSString *original = [NSString stringWithUTF8String:epath];
+  NSString *fixedPath = [NSString pathWithComponents:@[root, original]];
   NSFileManager *fileManager = [NSFileManager defaultManager];
-  BOOL isDir;
 
-  resourcePath = [resourceDir stringByAppendingPathComponent: @"etc"];
-  if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-    {
-      if (isDir) return [resourcePath UTF8String];
-    }
-  return NULL;
-}
+  if (![original isAbsolutePath]
+      && [fileManager fileExistsAtPath:fixedPath isDirectory:NULL])
+    return [fixedPath UTF8String];
 
+  /* If we reach here either the path is absolute and therefore we
+     don't need to complete it, or we're unable to relocate the
+     file/directory.  If it's the latter it may be because the user is
+     trying to use a bundled app as though it's a Unix style install
+     and we have no way to guess what was intended, so return the
+     original string unaltered.  */
 
-const char *
-ns_exec_path (void)
-/* If running as a self-contained app bundle, return as a path string
-   the filenames of the libexec and bin directories, ie libexec:bin.
-   Otherwise, return nil.
-   Normally, Emacs does not add its own bin/ directory to the PATH.
-   However, a self-contained NS build has a different layout, with
-   bin/ and libexec/ subdirectories in the directory that contains
-   Emacs.app itself.
-   We put libexec first, because init_callproc_1 uses the first
-   element to initialize exec-directory.  An alternative would be
-   for init_callproc to check for invocation-directory/libexec.
-*/
-{
-  NSBundle *bundle = [NSBundle mainBundle];
-  NSString *resourceDir = [bundle resourcePath];
-  NSString *binDir = [bundle bundlePath];
-  NSString *resourcePath, *resourcePaths;
-  NSRange range;
-  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
-  NSFileManager *fileManager = [NSFileManager defaultManager];
-  NSArray *paths;
-  NSEnumerator *pathEnum;
-  BOOL isDir;
-
-  range = [resourceDir rangeOfString: @"Contents"];
-  if (range.location != NSNotFound)
-    {
-      binDir = [binDir stringByAppendingPathComponent: @"Contents"];
-#ifdef NS_IMPL_COCOA
-      binDir = [binDir stringByAppendingPathComponent: @"MacOS"];
 #endif
-    }
 
-  paths = [binDir stringsByAppendingPaths:
-                [NSArray arrayWithObjects: @"libexec", @"bin", nil]];
-  pathEnum = [paths objectEnumerator];
-  resourcePaths = @"";
-
-  while ((resourcePath = [pathEnum nextObject]))
-    {
-      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-        if (isDir)
-          {
-            if ([resourcePaths length] > 0)
-              resourcePaths
-                = [resourcePaths stringByAppendingString: pathSeparator];
-            resourcePaths
-              = [resourcePaths stringByAppendingString: resourcePath];
-          }
-    }
-  if ([resourcePaths length] > 0) return [resourcePaths UTF8String];
-
-  return NULL;
-}
-
-
-const char *
-ns_load_path (void)
-/* If running as a self-contained app bundle, return as a path string
-   the filenames of the site-lisp and lisp directories.
-   Ie, site-lisp:lisp.  Otherwise, return nil.  */
-{
-  NSBundle *bundle = [NSBundle mainBundle];
-  NSString *resourceDir = [bundle resourcePath];
-  NSString *resourcePath, *resourcePaths;
-  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
-  NSFileManager *fileManager = [NSFileManager defaultManager];
-  BOOL isDir;
-  NSArray *paths = [resourceDir stringsByAppendingPaths:
-                              [NSArray arrayWithObjects:
-                                         @"site-lisp", @"lisp", nil]];
-  NSEnumerator *pathEnum = [paths objectEnumerator];
-  resourcePaths = @"";
-
-  /* Hack to skip site-lisp.  */
-  if (no_site_lisp) resourcePath = [pathEnum nextObject];
-
-  while ((resourcePath = [pathEnum nextObject]))
-    {
-      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-        if (isDir)
-          {
-            if ([resourcePaths length] > 0)
-              resourcePaths
-                = [resourcePaths stringByAppendingString: pathSeparator];
-            resourcePaths
-              = [resourcePaths stringByAppendingString: resourcePath];
-          }
-    }
-  if ([resourcePaths length] > 0) return [resourcePaths UTF8String];
-
-  return NULL;
+  return epath;
 }
 
 

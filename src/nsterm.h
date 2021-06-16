@@ -1190,9 +1190,7 @@ extern void ns_run_ascript (void);
 #define NSAPP_DATA2_RUNFILEDIALOG 11
 extern void ns_run_file_dialog (void);
 
-extern const char *ns_etc_directory (void);
-extern const char *ns_exec_path (void);
-extern const char *ns_load_path (void);
+extern const char *ns_relocate (const char *epath);
 extern void syms_of_nsterm (void);
 extern void syms_of_nsfns (void);
 extern void syms_of_nsmenu (void);

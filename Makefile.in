@@ -106,8 +106,11 @@ USE_STARTUP_NOTIFICATION = @USE_STARTUP_NOTIFICATION@
 
 # Location to install Emacs.app under GNUstep / macOS.
 # Later values may use these.
+ns_appdir=@ns_appdir@
 ns_appbindir=@ns_appbindir@
+ns_applibexecdir=@ns_applibexecdir@
 ns_appresdir=@ns_appresdir@
+ns_applibdir=@ns_applibdir@
 # Either yes or no depending on whether this is a relocatable Emacs.app.
 ns_self_contained=@ns_self_contained@
 
@@ -330,12 +333,12 @@ BIN_DESTDIR='$(DESTDIR)${bindir}/'
 ELN_DESTDIR = $(DESTDIR)${libdir}/emacs/${version}/
 else
 BIN_DESTDIR='${ns_appbindir}/'
-ELN_DESTDIR = ${ns_appresdir}/
+ELN_DESTDIR = ${ns_applibdir}/emacs/${version}/
 endif
 
 all: ${SUBDIR} info
 
-.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 etc-emacsver
+.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 epaths-force-ns-self-contained etc-emacsver
 
 # If configure were to just generate emacsver.tex from emacsver.tex.in
 # in the normal way, the timestamp of emacsver.tex would always be
@@ -402,6 +405,17 @@ epaths-force-w32:
 	  -e '/^.*#/s/@VER@/${version}/g' 			\
 	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
 	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
+	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
+
+# A NextStep style app bundle is relocatable, so instead of
+# hard-coding paths try to generate them at run-time.
+#
+# The paths are mostly the same, and the bundle paths are different
+# between macOS and GNUstep, so just replace any references to the app
+# bundle root itself with the relative path.
+epaths-force-ns-self-contained: epaths-force
+	@(sed < ${srcdir}/src/epaths.h > epaths.h.$$$$	\
+	  -e 's;${ns_appdir}/;;') &&			\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
 lib-src src: $(NTDIR) lib

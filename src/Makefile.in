@@ -55,7 +55,7 @@ lwlibdir = ../lwlib
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
 
-## ns-app if HAVE_NS, else empty.
+## ns-app if NS self contained app, else empty.
 OTHER_FILES = @OTHER_FILES@
 
 ## Flags to pass for profiling builds
