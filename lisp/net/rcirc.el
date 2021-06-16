@@ -2245,7 +2245,8 @@ activity.  Only run if the buffer is not visible and
 		((not (null (rcirc-process-list)))
 		 "[]")
 		(t "[]")))
-    (run-hooks 'rcirc-update-activity-string-hook)))
+    (run-hooks 'rcirc-update-activity-string-hook)
+    (force-mode-line-update t)))
 
 (defun rcirc-activity-string (buffers)
   "Generate activity string for all BUFFERS."
