@@ -39,8 +39,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "puresize.h"
 #include "gnutls.h"
 
-static void sort_vector_copy (Lisp_Object, ptrdiff_t,
-			      Lisp_Object *restrict, Lisp_Object *restrict);
+static void sort_vector_copy (Lisp_Object pred, ptrdiff_t len,
+			      Lisp_Object src[restrict VLA_ELEMS (len)],
+			      Lisp_Object dest[restrict VLA_ELEMS (len)]);
 enum equal_kind { EQUAL_NO_QUIT, EQUAL_PLAIN, EQUAL_INCLUDING_PROPERTIES };
 static bool internal_equal (Lisp_Object, Lisp_Object,
 			    enum equal_kind, int, Lisp_Object);
