@@ -130,23 +130,25 @@ with the current prefix.  The files are chosen according to
   "Return symbol class characters for symbol S."
   (when (stringp s)
     (setq s (intern-soft s)))
-  (cond ((commandp s)
-         "c")                           ; command
-        ((eq (car-safe (symbol-function s)) 'macro)
-         "m")                           ; macro
-        ((fboundp s)
-         "f")                           ; function
-        ((custom-variable-p s)
-         "u")                           ; user option
-        ((boundp s)
-         "v")                           ; variable
-        ((facep s)
-         "a")                           ; fAce
-        ((and (fboundp 'cl-find-class)
-              (cl-find-class s))
-         "t")                           ; CL type
-        (" ")                           ; something else
-        ))
+  (concat
+   (when (fboundp s)
+     (concat
+      (cond
+       ((commandp s) "c")
+       ((eq (car-safe (symbol-function s)) 'macro) "m")
+       (t "f"))
+      (and (let ((flist (indirect-function s)))
+             (advice--p (if (eq 'macro (car-safe flist)) (cdr flist) flist)))
+           "!")
+      (and (get s 'byte-obsolete-info) "-")))
+   (when (boundp s)
+     (concat
+      (if (custom-variable-p s) "u" "v")
+      (and (local-variable-if-set-p s) "'")
+      (and (ignore-errors (not (equal (symbol-value s) (default-value s)))) "*")
+      (and (get s 'byte-obsolete-variable) "-")))
+   (and (facep s) "a")
+   (and (fboundp 'cl-find-class) (cl-find-class s) "t")))
 
 (defun help--symbol-completion-table-affixation (completions)
   (mapcar (lambda (c)
@@ -154,7 +156,7 @@ with the current prefix.  The files are chosen according to
                    (doc (condition-case nil (documentation s) (error nil)))
                    (doc (and doc (substring doc 0 (string-match "\n" doc)))))
               (list c (propertize
-                       (concat (help--symbol-class s) " ") ; prefix separator
+                       (format "%-4s" (help--symbol-class s))
                        'face 'completions-annotations)
                     (if doc (propertize (format " -- %s" doc)
                                         'face 'completions-annotations)
