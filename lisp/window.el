@@ -8768,6 +8768,7 @@ to deactivate this overriding action."
          (new-window nil)
          (minibuffer-depth (minibuffer-depth))
          (clearfun (make-symbol "clear-display-buffer-overriding-action"))
+         (postfun (make-symbol "post-display-buffer-override-next-command"))
          (action (lambda (buffer alist)
                    (unless (> (minibuffer-depth) minibuffer-depth)
                      (let* ((ret (funcall pre-function buffer alist))
@@ -8776,21 +8777,23 @@ to deactivate this overriding action."
                        (setq new-window (window--display-buffer buffer window
                                                                 type alist))
                        ;; Reset display-buffer-overriding-action
-                       ;; after the first buffer display action
+                       ;; after the first display-buffer action (bug#39722).
                        (funcall clearfun)
-                       (setq post-function nil)
                        new-window))))
          (command this-command)
          (echofun (when echo (lambda () echo)))
          (exitfun
           (lambda ()
-            (setcar display-buffer-overriding-action
-                    (delq action (car display-buffer-overriding-action)))
-            (remove-hook 'post-command-hook clearfun)
+            (funcall clearfun)
+            (remove-hook 'post-command-hook postfun)
             (remove-hook 'prefix-command-echo-keystrokes-functions echofun)
             (when (functionp post-function)
               (funcall post-function old-window new-window)))))
     (fset clearfun
+          (lambda ()
+            (setcar display-buffer-overriding-action
+                    (delq action (car display-buffer-overriding-action)))))
+    (fset postfun
           (lambda ()
             (unless (or
 		     ;; Remove the hook immediately
@@ -8800,9 +8803,8 @@ to deactivate this overriding action."
 		     ;; adding the hook by the same command below.
 		     (eq this-command command))
               (funcall exitfun))))
-    ;; Reset display-buffer-overriding-action
-    ;; after the next command finishes
-    (add-hook 'post-command-hook clearfun)
+    ;; Call post-function after the next command finishes (bug#49057).
+    (add-hook 'post-command-hook postfun)
     (when echofun
       (add-hook 'prefix-command-echo-keystrokes-functions echofun))
     (push action (car display-buffer-overriding-action))

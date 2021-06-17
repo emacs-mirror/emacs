@@ -497,8 +497,20 @@ Default value of MODIFIERS is `shift'."
 ;;; Directional window display and selection
 
 (defcustom windmove-display-no-select nil
-  "Whether the window should be selected after displaying the buffer in it."
-  :type 'boolean
+  "Whether the window should be selected after displaying the buffer in it.
+If `nil', then the new window where the buffer is displayed will be selected.
+If `ignore', then don't select a window: neither the new nor the old window,
+thus allowing the next command to decide what window it selects.
+Other non-nil values will reselect the old window that was selected before.
+
+The value of this variable can be overridden by the prefix arg of the
+windmove-display-* commands that use `windmove-display-in-direction'.
+
+When `switch-to-buffer-obey-display-actions' is non-nil,
+`switch-to-buffer' commands are also supported."
+  :type '(choice (const :tag "Select new window" nil)
+                 (const :tag "Select old window" t)
+                 (const :tag "Don't select a window" ignore))
   :version "27.1")
 
 (defun windmove-display-in-direction (dir &optional arg)
@@ -506,11 +518,17 @@ Default value of MODIFIERS is `shift'."
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
 Create a new window if there is no window in that direction.
-By default, select the window with a displayed buffer.
-If prefix ARG is `C-u', reselect a previously selected window.
-If `windmove-display-no-select' is non-nil, this command doesn't
-select the window with a displayed buffer, and the meaning of
-the prefix argument is reversed.
+
+By default, select the new window with a displayed buffer.
+If `windmove-display-no-select' is `ignore', then allow the next command
+to decide what window it selects.  With other non-nil values of
+`windmove-display-no-select', this function reselects
+a previously selected old window.
+
+If prefix ARG is `C-u', reselect a previously selected old window.
+If `windmove-display-no-select' is non-nil, the meaning of
+the prefix argument is reversed and it selects the new window.
+
 When `switch-to-buffer-obey-display-actions' is non-nil,
 `switch-to-buffer' commands are also supported."
   (let ((no-select (xor (consp arg) windmove-display-no-select)))
@@ -542,35 +560,40 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
            (setq window (split-window nil nil dir) type 'window))
          (cons window type)))
      (lambda (old-window new-window)
-       (when (window-live-p (if no-select old-window new-window))
+       (when (and (not (eq windmove-display-no-select 'ignore))
+                  (window-live-p (if no-select old-window new-window)))
          (select-window (if no-select old-window new-window))))
      (format "[display-%s]" dir))))
 
 ;;;###autoload
 (defun windmove-display-left (&optional arg)
   "Display the next buffer in window to the left of the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'left arg))
 
 ;;;###autoload
 (defun windmove-display-up (&optional arg)
   "Display the next buffer in window above the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'up arg))
 
 ;;;###autoload
 (defun windmove-display-right (&optional arg)
   "Display the next buffer in window to the right of the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'right arg))
 
 ;;;###autoload
 (defun windmove-display-down (&optional arg)
   "Display the next buffer in window below the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'down arg))
 
