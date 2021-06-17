@@ -121,7 +121,7 @@
        (regexp "tables?" "tab\\." "Tabellen?"))
       ("table*"    ?t nil nil caption)
 
-      ("\\footnote[]{}" ?n "fn:" "~\\ref{%s}" 2
+      ("\\footnote[]{}" ?n "fn:" "~\\footref{%s}" 2
        (regexp "footnotes?" "Fussnoten?"))
 
       ("any"       ?\  " "   "~\\ref{%s}" nil)
