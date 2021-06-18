@@ -1693,8 +1693,13 @@ This function is an internal primitive--use `make-frame' instead.  */ )
       unblock_input ();
     }
 
-  if (FRAME_GTK_OUTER_WIDGET (f))
-    gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
+  if (FRAME_GTK_OUTER_WIDGET (f)) {
+    GList *w = gtk_container_get_children(GTK_CONTAINER(FRAME_GTK_OUTER_WIDGET (f)));
+    for (; w != NULL; w = w->next)
+      {
+	gtk_widget_show_all (GTK_WIDGET(w->data));
+      }
+  }
 
   gui_default_parameter (f, parms, Qno_focus_on_map, Qnil,
 			 NULL, NULL, RES_TYPE_BOOLEAN);
