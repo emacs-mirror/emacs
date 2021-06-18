@@ -6597,8 +6597,6 @@ mercury_pr (char *s, char *last, ptrdiff_t lastlen)
 	     && c_isspace (s[pos - namelength - offset]))
 	--offset;
 
-      /* There is no need to correct namelength or call notinname.  */
-
       make_tag (s + pos - namelength - offset, namelength - 1, true,
 				s, pos - offset - 1, lineno, linecharno);
       return pos;

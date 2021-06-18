@@ -3102,6 +3102,7 @@ foperator	c-src/etags.c	2411
 force_auto_save_soon	c-src/emacs/src/keyboard.c	/^force_auto_save_soon (void)$/
 force_explicit_name	c-src/etags.c	265
 force_quit_count	c-src/emacs/src/keyboard.c	10387
+foreign_export	merc-src/accumulator.m	/^:- pragma foreign_export("C", unravel_univ(in, out/
 formatSize	objc-src/PackInsp.m	/^-(const char *)formatSize:(const char *)size inBuf/
 found	c-src/emacs/src/lisp.h	2344
 fracas	html-src/software.html	/^Fracas$/
@@ -3230,20 +3231,6 @@ help_form_saved_window_configs	c-src/emacs/src/keyboard.c	2156
 helpwin	pyt-src/server.py	/^def helpwin(helpdict):$/
 hide_cursor	cp-src/screen.cpp	/^void hide_cursor(void)$/
 hlds	merc-src/accumulator.m	/^:- import_module hlds.$/
-hlds.assertion	merc-src/accumulator.m	/^:- import_module hlds.assertion.$/
-hlds.goal_util	merc-src/accumulator.m	/^:- import_module hlds.goal_util.$/
-hlds.hlds_error_util	merc-src/accumulator.m	/^:- import_module hlds.hlds_error_util.$/
-hlds.hlds_goal	merc-src/accumulator.m	/^:- import_module hlds.hlds_goal.$/
-hlds.hlds_module	merc-src/accumulator.m	/^:- import_module hlds.hlds_module.$/
-hlds.hlds_out	merc-src/accumulator.m	/^:- import_module hlds.hlds_out.$/
-hlds.hlds_out.hlds_out_util	merc-src/accumulator.m	/^:- import_module hlds.hlds_out.hlds_out_util.$/
-hlds.hlds_pred	merc-src/accumulator.m	/^:- import_module hlds.hlds_pred.$/
-hlds.hlds_promise	merc-src/accumulator.m	/^:- import_module hlds.hlds_promise.$/
-hlds.instmap	merc-src/accumulator.m	/^:- import_module hlds.instmap.$/
-hlds.pred_table	merc-src/accumulator.m	/^:- import_module hlds.pred_table.$/
-hlds.quantification	merc-src/accumulator.m	/^:- import_module hlds.quantification.$/
-hlds.status	merc-src/accumulator.m	/^:- import_module hlds.status.$/
-hlds.vartypes	merc-src/accumulator.m	/^:- import_module hlds.vartypes.$/
 htmltreelist	prol-src/natded.prolog	/^htmltreelist([]).$/
 hybrid_aligned_alloc	c-src/emacs/src/gmalloc.c	/^hybrid_aligned_alloc (size_t alignment, size_t siz/
 hybrid_calloc	c-src/emacs/src/gmalloc.c	/^hybrid_calloc (size_t nmemb, size_t size)$/
@@ -3272,6 +3259,7 @@ ignore_mouse_drag_p	c-src/emacs/src/keyboard.c	1256
 ill=\relax	tex-src/texinfo.tex	/^\\let\\refill=\\relax$/
 immediate_quit	c-src/emacs/src/keyboard.c	174
 impatto	html-src/softwarelibero.html	/^Impatto pratico del software libero$/
+implementation	merc-src/accumulator.m	/^:- implementation.$/
 in_word_set	c-src/etags.c	/^in_word_set (register const char *str, register un/
 inattribute	c-src/etags.c	2400
 inc	cp-src/Range.h	/^  double inc (void) const { return rng_inc;   }$/
@@ -3320,6 +3308,7 @@ integertonmstr	pas-src/common.pas	/^function integertonmstr; (* (TheInteger : in
 intensity1	f-src/entry.for	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
 intensity1	f-src/entry.strange_suffix	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
 intensity1	f-src/entry.strange	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
+interface	merc-src/accumulator.m	/^:- interface.$/
 interface_locate	c-src/c.c	/^interface_locate(void)$/
 intern	c-src/emacs/src/lisp.h	/^intern (const char *str)$/
 intern_c_string	c-src/emacs/src/lisp.h	/^intern_c_string (const char *str)$/
@@ -3451,9 +3440,6 @@ level	c-src/emacs/src/lisp.h	3153
 lex	prol-src/natded.prolog	/^lex(W,SynOut,Sem):-$/
 lexptr	y-src/cccp.y	332
 libs	merc-src/accumulator.m	/^:- import_module libs.$/
-libs.globals	merc-src/accumulator.m	/^:- import_module libs.globals.$/
-libs.optimization_options	merc-src/accumulator.m	/^:- import_module libs.optimization_options.$/
-libs.options	merc-src/accumulator.m	/^:- import_module libs.options.$/
 licenze	html-src/softwarelibero.html	/^Licenze d'uso di un programma$/
 limit	cp-src/Range.h	/^  double limit (void) const { return rng_limit; }$/
 line	c-src/etags.c	2493
@@ -3595,7 +3581,6 @@ mcheck	c-src/emacs/src/gmalloc.c	/^mcheck (void (*func) (enum mcheck_status))$/
 mcheck_status	c-src/emacs/src/gmalloc.c	283
 mcheck_used	c-src/emacs/src/gmalloc.c	2012
 mdbcomp	merc-src/accumulator.m	/^:- import_module mdbcomp.$/
-mdbcomp.sym_name	merc-src/accumulator.m	/^:- import_module mdbcomp.sym_name.$/
 me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
 memalign	c-src/emacs/src/gmalloc.c	/^memalign (size_t alignment, size_t size)$/
@@ -3890,11 +3875,6 @@ parse_return_error	y-src/cccp.y	70
 parse_solitary_modifier	c-src/emacs/src/keyboard.c	/^parse_solitary_modifier (Lisp_Object symbol)$/
 parse_tool_bar_item	c-src/emacs/src/keyboard.c	/^parse_tool_bar_item (Lisp_Object key, Lisp_Object /
 parse_tree	merc-src/accumulator.m	/^:- import_module parse_tree.$/
-parse_tree.error_util	merc-src/accumulator.m	/^:- import_module parse_tree.error_util.$/
-parse_tree.prog_data	merc-src/accumulator.m	/^:- import_module parse_tree.prog_data.$/
-parse_tree.prog_mode	merc-src/accumulator.m	/^:- import_module parse_tree.prog_mode.$/
-parse_tree.prog_util	merc-src/accumulator.m	/^:- import_module parse_tree.prog_util.$/
-parse_tree.set_of_var	merc-src/accumulator.m	/^:- import_module parse_tree.set_of_var.$/
 pat	c-src/etags.c	262
 pattern	c-src/etags.c	260
 pdlcount	c-src/emacs/src/lisp.h	3046
@@ -4277,6 +4257,7 @@ step_everybody	cp-src/clheir.cpp	/^void step_everybody(void)$/
 stop_polling	c-src/emacs/src/keyboard.c	/^stop_polling (void)$/
 store_info	merc-src/accumulator.m	/^:- type store_info$/
 store_user_signal_events	c-src/emacs/src/keyboard.c	/^store_user_signal_events (void)$/
+stored_goal_plain_call	merc-src/accumulator.m	/^:- inst stored_goal_plain_call for goal_store.stor/
 str	go-src/test1.go	9
 strcaseeq	c-src/etags.c	/^#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=/
 streq	c-src/etags.c	/^#define streq(s,t)	(assert ((s)!=NULL || (t)!=NULL/
@@ -4484,9 +4465,6 @@ tpcmd	c-src/h.h	15
 track-mouse	c-src/emacs/src/keyboard.c	/^DEFUN ("internal--track-mouse", Ftrack_mouse, Stra/
 tracking_off	c-src/emacs/src/keyboard.c	/^tracking_off (Lisp_Object old_value)$/
 traffic_light	cp-src/conway.cpp	/^void traffic_light(int x, int y)$/
-transform_hlds.accumulator	merc-src/accumulator.m	/^:- module transform_hlds.accumulator.$/
-transform_hlds.accumulator	merc-src/accumulator.m	/^:- end_module transform_hlds.accumulator.$/
-transform_hlds.goal_store	merc-src/accumulator.m	/^:- import_module transform_hlds.goal_store.$/
 translate	c-src/emacs/src/regex.h	361
 treats	cp-src/c.C	131
 tt	prol-src/natded.prolog	/^tt:-$/
@@ -4533,6 +4511,7 @@ unblock_input_to	c-src/emacs/src/keyboard.c	/^unblock_input_to (int level)$/
 unchar	c-src/h.h	99
 unexpand-abbrev	c-src/abbrev.c	/^DEFUN ("unexpand-abbrev", Funexpand_abbrev, Sunexp/
 univ	merc-src/accumulator.m	/^:- import_module univ.$/
+unravel_univ	merc-src/accumulator.m	/^:- some [T] pred unravel_univ(univ::in, T::out) is/
 unread_switch_frame	c-src/emacs/src/keyboard.c	204
 unsignedp	y-src/cccp.y	112
 unwind	c-src/emacs/src/lisp.h	2962
