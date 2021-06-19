@@ -1054,6 +1054,130 @@ also print the number."
 			       count))
     count))
 
+(defun kill-matching-lines (regexp &optional rstart rend interactive)
+  "Kill lines containing matches for REGEXP.
+
+When called from Lisp (and usually when called interactively as
+well, see below), applies to the part of the buffer after point.
+The line point is in is killed if and only if it contains a match
+for REGEXP starting after point.
+
+If REGEXP contains upper case characters (excluding those
+preceded by `\\') and `search-upper-case' is non-nil, the
+matching is case-sensitive.
+
+Second and third args RSTART and REND specify the region to
+operate on.  Lines partially contained in this region are killed
+if and only if they contain a match entirely contained in the
+region.
+
+Interactively, in Transient Mark mode when the mark is active,
+operate on the contents of the region.  Otherwise, operate from
+point to the end of (the accessible portion of) the buffer.
+
+If a match is split across lines, all the lines it lies in are
+killed.  They are killed _before_ looking for the next match.
+Hence, a match starting on the same line at which another match
+ended is ignored.
+
+Return the number of killed matching lines.  When called
+interactively, also print the number."
+  (interactive
+   (progn
+     (barf-if-buffer-read-only)
+     (keep-lines-read-args "Kill lines containing match for regexp")))
+  (if rstart
+      (progn
+	(goto-char (min rstart rend))
+	(setq rend (copy-marker (max rstart rend))))
+    (if (and interactive (use-region-p))
+	(setq rstart (region-beginning)
+	      rend (copy-marker (region-end)))
+      (setq rstart (point)
+	    rend (point-max-marker)))
+    (goto-char rstart))
+  (let ((count 0)
+        (case-fold-search
+	 (if (and case-fold-search search-upper-case)
+	     (isearch-no-upper-case-p regexp t)
+	   case-fold-search)))
+    (save-excursion
+      (while (and (< (point) rend)
+		  (re-search-forward regexp rend t))
+        (unless (zerop count)
+          (setq last-command 'kill-region))
+	(kill-region (save-excursion (goto-char (match-beginning 0))
+                                     (forward-line 0)
+                                     (point))
+                     (progn (forward-line 1) (point)))
+        (setq count (1+ count))))
+    (set-marker rend nil)
+    (when interactive (message (ngettext "Killed %d matching line"
+					 "Killed %d matching lines"
+					 count)
+			       count))
+    count))
+
+(defun copy-matching-lines (regexp &optional rstart rend interactive)
+  "Copy lines containing matches for REGEXP to the kill ring.
+
+When called from Lisp (and usually when called interactively as
+well, see below), applies to the part of the buffer after point.
+The line point is in is copied if and only if it contains a match
+for REGEXP starting after point.
+
+If REGEXP contains upper case characters (excluding those
+preceded by `\\') and `search-upper-case' is non-nil, the
+matching is case-sensitive.
+
+Second and third args RSTART and REND specify the region to
+operate on.  Lines partially contained in this region are copied
+if and only if they contain a match entirely contained in the
+region.
+
+Interactively, in Transient Mark mode when the mark is active,
+operate on the contents of the region.  Otherwise, operate from
+point to the end of (the accessible portion of) the buffer.
+
+If a match is split across lines, all the lines it lies in are
+copied.
+
+Return the number of copied matching lines.  When called
+interactively, also print the number."
+  (interactive
+   (keep-lines-read-args "Copy lines containing match for regexp"))
+  (if rstart
+      (progn
+	(goto-char (min rstart rend))
+	(setq rend (copy-marker (max rstart rend))))
+    (if (and interactive (use-region-p))
+	(setq rstart (region-beginning)
+	      rend (copy-marker (region-end)))
+      (setq rstart (point)
+	    rend (point-max-marker)))
+    (goto-char rstart))
+  (let ((count 0)
+        (case-fold-search
+	 (if (and case-fold-search search-upper-case)
+	     (isearch-no-upper-case-p regexp t)
+	   case-fold-search)))
+    (save-excursion
+      (while (and (< (point) rend)
+		  (re-search-forward regexp rend t))
+	(unless (zerop count)
+          (setq last-command 'kill-region))
+	(copy-region-as-kill (save-excursion (goto-char (match-beginning 0))
+                                             (forward-line 0)
+                                             (point))
+                             (progn (forward-line 1) (point)))
+        (setq count (1+ count))))
+    (set-marker rend nil)
+    (when interactive (message (ngettext "Copied %d matching line"
+					 "Copied %d matching lines"
+					 count)
+			       count))
+    count))
+
 (defun how-many (regexp &optional rstart rend interactive)
   "Print and return number of matches for REGEXP following point.
 When called from Lisp and INTERACTIVE is omitted or nil, just return

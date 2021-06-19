@@ -484,6 +484,11 @@ highlighting on heading lines using standard outline faces.  This
 works well only when there are no conflicts with faces used by the
 major mode.
 
+** New commands 'copy-matching-lines' and 'kill-matching-lines'.
+These commands are similar to the command 'flush-lines',
+but add the matching lines to the kill ring as a single string,
+including the newlines that separate the lines.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
