@@ -898,6 +898,12 @@ String or list of strings specifying switches for Git log under VC.
 ** Gnus
 
 +++
+*** New Summary buffer sort options for extra headers.
+The extra header sort option ('C-c C-s C-x') prompts for a header
+and fails if no sort function has been defined. Sorting by
+Newsgroups ('C-c C-s C-u') has been pre-defined.
+
++++
 *** The '#' command in the Group and Summary buffer now toggles,
 instead of sets, the process mark.
 
