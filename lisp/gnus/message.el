@@ -8722,16 +8722,19 @@ Header and body are separated by `mail-header-separator'."
 
 (defun message-replace-header (header new-value &optional after force)
   "Remove HEADER and insert the NEW-VALUE.
-If AFTER, insert after this header.  If FORCE, insert new field
-even if NEW-VALUE is empty."
+If AFTER, insert after this header.  AFTER may be a list of
+headers.  If FORCE, insert new field even if NEW-VALUE is empty."
   ;; Similar to `nnheader-replace-header' but for message buffers.
   (save-excursion
     (save-restriction
       (message-narrow-to-headers)
       (message-remove-header header))
     (when (or force (> (length new-value) 0))
-      (if after
-	  (message-position-on-field header after)
+      (when after
+        (if (listp after)
+            (apply #'message-position-on-field
+                   (append (list header) after))
+          (message-position-on-field header after))
 	(message-position-on-field header))
       (insert new-value))))
 
