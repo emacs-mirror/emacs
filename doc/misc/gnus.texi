@@ -4126,6 +4126,8 @@ Visibility.
 Level.
 @item g
 Number of groups in the topic.
+@item G
+Number of groups in the topic and all its subtopics.
 @item a
 Number of unread articles in the topic.
 @item A

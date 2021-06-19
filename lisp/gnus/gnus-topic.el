@@ -54,6 +54,7 @@ with some simple extensions.
 %n  Topic name.
 %v  Nothing if the topic is visible, \"...\" otherwise.
 %g  Number of groups in the topic.
+%G  Number of groups in the topic and its subtopics.
 %a  Number of unread articles in the groups in the topic.
 %A  Number of unread articles in the groups in the topic and its subtopics.
 
@@ -87,6 +88,7 @@ See Info node `(gnus)Formatting Variables'."
     (?v visible ?s)
     (?i indentation ?s)
     (?g number-of-groups ?d)
+    (?G total-number-of-groups ?d)
     (?a (gnus-topic-articles-in-topic entries) ?d)
     (?A total-number-of-articles ?d)
     (?l level ?d)))
@@ -485,16 +487,18 @@ If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
 If SILENT, don't insert anything.  Return the number of unread
 articles in the topic and its subtopics."
   (let* ((type (pop topicl))
+	 (entries-level (if gnus-group-listed-groups
+			    gnus-level-killed
+			  list-level))
+	 (all (or predicate gnus-group-listed-groups
+		  (cdr (assq 'visible
+			     (gnus-topic-hierarchical-parameters
+			      (car type))))))
+	 (lowest (if gnus-group-listed-groups 0 lowest))
 	 (entries (gnus-topic-find-groups
-		   (car type)
-		   (if gnus-group-listed-groups
-		       gnus-level-killed
-		     list-level)
-		   (or predicate gnus-group-listed-groups
-		       (cdr (assq 'visible
-				  (gnus-topic-hierarchical-parameters
-				   (car type)))))
-		   (if gnus-group-listed-groups 0 lowest)))
+		   (car type) entries-level all lowest))
+	 (all-groups (gnus-topic-find-groups
+		      (car type) entries-level all lowest t))
 	 (visiblep (and (eq (nth 1 type) 'visible) (not silent)))
 	 (gnus-group-indentation
 	  (make-string (* gnus-topic-indent-level level) ? ))
@@ -573,7 +577,7 @@ articles in the topic and its subtopics."
       (gnus-topic-insert-topic-line
        (car type) visiblep
        (not (eq (nth 2 type) 'hidden))
-       level all-entries unread))
+       level all-entries unread all-groups))
     (gnus-topic-update-unreads (car type) unread)
     (gnus-group--setup-tool-bar-update beg end)
     (goto-char end)
@@ -627,10 +631,10 @@ articles in the topic and its subtopics."
 (defvar gnus-tmp-header)
 
 (defun gnus-topic-insert-topic-line (name visiblep shownp level entries
-					  &optional unread)
+					  &optional unread all-groups)
   (gnus--\,@
    (let ((vars '(indentation visible name level number-of-groups
-                 total-number-of-articles entries)))
+                 total-number-of-groups total-number-of-articles entries)))
      `((with-suppressed-warnings ((lexical ,@vars))
          ,@(mapcar (lambda (s) `(defvar ,s)) vars)))))
   (let* ((visible (if visiblep "" "..."))
@@ -639,6 +643,7 @@ articles in the topic and its subtopics."
 	 (indentation (make-string (* gnus-topic-indent-level level) ? ))
 	 (total-number-of-articles unread)
 	 (number-of-groups (length entries))
+	 (total-number-of-groups (length all-groups))
 	 (active-topic (eq gnus-topic-alist gnus-topic-active-alist))
 	 gnus-tmp-header)
     (gnus-topic-update-unreads name unread)
@@ -731,6 +736,9 @@ articles in the topic and its subtopics."
 	 (entries (gnus-topic-find-groups
 		   (car type) (car gnus-group-list-mode)
 		   (cdr gnus-group-list-mode)))
+	 (all-groups (gnus-topic-find-groups
+		   (car type) (car gnus-group-list-mode)
+		   (cdr gnus-group-list-mode) nil t))
 	entry)
     (while children
       (cl-incf unread (gnus-topic-unread (caar (pop children)))))
@@ -738,7 +746,7 @@ articles in the topic and its subtopics."
       (when (numberp (car entry))
 	(cl-incf unread (car entry))))
     (gnus-topic-insert-topic-line
-     topic t t (car (gnus-topic-find-topology topic)) nil unread)))
+     topic t t (car (gnus-topic-find-topology topic)) nil unread all-groups)))
 
 (defun gnus-topic-goto-missing-topic (topic)
   (if (gnus-topic-goto-topic topic)
@@ -768,6 +776,9 @@ articles in the topic and its subtopics."
 	 (entries (gnus-topic-find-groups
 		   (car type) (car gnus-group-list-mode)
 		   (cdr gnus-group-list-mode)))
+	 (all-groups (gnus-topic-find-groups
+		   (car type) (car gnus-group-list-mode)
+		   (cdr gnus-group-list-mode) t))
 	 (parent (gnus-topic-parent-topic topic-name))
 	 (all-entries entries)
 	 (unread 0)
@@ -786,7 +797,7 @@ articles in the topic and its subtopics."
       (gnus-topic-insert-topic-line
        (car type) (gnus-topic-visible-p)
        (not (eq (nth 2 type) 'hidden))
-       (gnus-group-topic-level) all-entries unread)
+       (gnus-group-topic-level) all-entries unread all-groups)
       (gnus-delete-line)
       (forward-line -1)
       (setq new-unread (gnus-group-topic-unread)))
