@@ -997,11 +997,12 @@ start looking for ways to optimize that piece.
 @findex profiler-report
 @findex profiler-stop
 Emacs has built-in support for this.  To begin profiling, type
-@kbd{M-x profiler-start}.  You can choose to profile by processor
-usage, memory usage, or both.  Then run the code you'd like to speed
-up.  After that, type @kbd{M-x profiler-report} to display a summary
-buffer for each resource (cpu and memory) that you chose to profile.
-The names of the report buffers include the times at which the reports
+@w{@kbd{M-x profiler-start}}.  You can choose to sample CPU usage
+periodically (@code{cpu}), when memory is allocated (@code{memory}),
+or both.  Then run the code you'd like to speed up.  After that, type
+@kbd{M-x profiler-report} to display a summary buffer for CPU usage
+sampled by each type (cpu and memory) that you chose to profile.  The
+names of the report buffers include the times at which the reports
 were generated, so you can generate another report later on without
 erasing previous results.  When you have finished profiling, type
 @kbd{M-x profiler-stop} (there is a small overhead associated with
@@ -1009,7 +1010,7 @@ profiling, so we don't recommend leaving it active except when you are
 actually running the code you want to examine).
 
 The profiler report buffer shows, on each line, a function that was
-called, followed by how much resources (cpu or memory) it used in
+called, followed by how much CPU resources it used in
 absolute and percentage terms since profiling started.  If a given
 line has a @samp{+} symbol at the left-hand side, you can expand that
 line by typing @kbd{@key{RET}}, in order to see the function(s) called
