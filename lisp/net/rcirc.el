@@ -2104,12 +2104,8 @@ This function does not alter the INPUT string."
     (remove-hook 'window-configuration-change-hook
 		 'rcirc-window-configuration-change)))
 
-(or (assq 'rcirc-ignore-buffer-activity-flag minor-mode-alist)
-    (setq minor-mode-alist
-          (cons '(rcirc-ignore-buffer-activity-flag " Ignore") minor-mode-alist)))
-(or (assq 'rcirc-low-priority-flag minor-mode-alist)
-    (setq minor-mode-alist
-          (cons '(rcirc-low-priority-flag " LowPri") minor-mode-alist)))
+(add-to-list 'minor-mode-alist '(rcirc-ignore-buffer-activity-flag " Ignore"))
+(add-to-list 'minor-mode-alist '(rcirc-low-priority-flag " LowPri"))
 
 (defun rcirc-toggle-ignore-buffer-activity ()
   "Toggle the value of `rcirc-ignore-buffer-activity-flag'."
