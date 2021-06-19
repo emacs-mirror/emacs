@@ -1131,13 +1131,12 @@ This change is for better compatibility with old versions of non-GNU
 ** Help
 
 +++
-*** New command 'help-view-source' ('s')
-This command will view the source file (if any) of the current help
-topic.
-
-+++
-*** New command 'help-goto-info' ('i')
-This command will look up the current symbol (if any) in Info.
+*** New convenience commands with short keys in the Help buffer.
+New command 'help-view-source' ('s') will view the source file (if
+any) of the current help topic.  New command 'help-goto-info' ('i')
+will look up the current symbol (if any) in Info.  New command
+'help-customize' ('c') will customize the variable or the face
+(if any) whose doc string is being shown in the Help buffer.
 
 ---
 *** The 'help-for-help' ('C-h C-h') screen has been redesigned.

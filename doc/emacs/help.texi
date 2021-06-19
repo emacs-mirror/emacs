@@ -456,6 +456,8 @@ View the source of the current help topic (if any)
 (@code{help-view-source}).
 @item i
 Look up the current topic in the manual(s) (@code{help-goto-info}).
+@item c
+Customize the variable or the face (@code{help-customize}).
 @end table
 
 @cindex hyperlink

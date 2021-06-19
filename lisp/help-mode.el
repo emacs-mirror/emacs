@@ -46,6 +46,7 @@
     (define-key map "\r" 'help-follow)
     (define-key map "s" 'help-view-source)
     (define-key map "i" 'help-goto-info)
+    (define-key map "c" 'help-customize)
     map)
   "Keymap for Help mode.")
 
@@ -63,11 +64,13 @@
     ["Move to Previous Button" backward-button
      :help "Move to the Previous Button in the help buffer"]
     ["Move to Next Button" forward-button
-      :help "Move to the Next Button in the help buffer"]
+     :help "Move to the Next Button in the help buffer"]
     ["View Source" help-view-source
      :help "Go to the source file for the current help item"]
     ["Goto Info" help-goto-info
-     :help "Go to the info node for the current help item"]))
+     :help "Go to the info node for the current help item"]
+    ["Customize" help-customize
+     :help "Customize variable or face"]))
 
 (defvar help-mode-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -745,6 +748,16 @@ See `help-make-xrefs'."
     (error "No symbol to look up in the current buffer"))
   (info-lookup-symbol (plist-get help-mode--current-data :symbol)
                       'emacs-lisp-mode))
+
+(defun help-customize ()
+  "Customize variable or face."
+  (interactive nil help-mode)
+  (let ((sym (plist-get help-mode--current-data :symbol)))
+    (unless (or (boundp sym) (facep sym))
+      (user-error "No variable or face to customize"))
+    (cond
+     ((boundp sym) (customize-variable sym))
+     ((facep sym) (customize-face sym)))))
 
 (defun help-do-xref (_pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.
