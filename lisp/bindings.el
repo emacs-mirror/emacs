@@ -611,8 +611,8 @@ Switch to the most recently selected buffer other than the current one."
 
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil.
-Note that if `lexical-binding' is in effect, this refers to the
-global value outside of any lexical scope."
+Note that if `lexical-binding' is in effect, this function isn't
+meaningful if it refers to a lexically bound variable."
   `(and (boundp (quote ,var)) ,var))
 
 ;; Use mode-line-mode-menu for local minor-modes only.
