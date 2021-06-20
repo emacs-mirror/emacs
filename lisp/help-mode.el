@@ -750,7 +750,7 @@ See `help-make-xrefs'."
                       'emacs-lisp-mode))
 
 (defun help-customize ()
-  "Customize variable or face."
+  "Customize variable or face whose doc string is shown in the current buffer."
   (interactive nil help-mode)
   (let ((sym (plist-get help-mode--current-data :symbol)))
     (unless (or (boundp sym) (facep sym))
