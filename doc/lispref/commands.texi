@@ -454,10 +454,13 @@ This kind of input is used by commands such as @code{describe-key} and
 @code{global-set-key}.
 
 @item K
-A key sequence, whose definition you intend to change.  This works like
-@samp{k}, except that it suppresses, for the last input event in the key
-sequence, the conversions that are normally used (when necessary) to
-convert an undefined key into a defined one.
+A key sequence on a form that can be used as input to functions like
+@code{define-key}.  This works like @samp{k}, except that it
+suppresses, for the last input event in the key sequence, the
+conversions that are normally used (when necessary) to convert an
+undefined key into a defined one (@pxref{Key Sequence Input}), so this
+form is usually used when prompting for a new key sequence that is to
+be bound to a command.
 
 @item m
 @cindex marker argument

@@ -5381,12 +5381,24 @@ pgtk_handle_draw (GtkWidget * widget, cairo_t * cr, gpointer * data)
 
 static void
 size_allocate (GtkWidget * widget, GtkAllocation * alloc,
-	       gpointer * user_data)
+	       gpointer user_data)
 {
   PGTK_TRACE ("size-alloc: %dx%d+%d+%d.", alloc->width, alloc->height,
 	      alloc->x, alloc->y);
 
   struct frame *f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+
+  /* Between a frame is created and not shown, size is allocated and
+   * this handler is called.  When that, since the widget's window is
+   * NULL, we can't get f, pgtk_cr_update_surface_desired_size is not
+   * called, and its size is 0x0.  That causes empty frame.
+   *
+   * Fortunately since we know f in pgtk_set_event_handler, we can get
+   * it through user_data;
+   */
+  if (!f)
+    f = user_data;
+
   if (f)
     {
       PGTK_TRACE ("%dx%d", alloc->width, alloc->height);
@@ -6705,7 +6717,7 @@ pgtk_set_event_handler (struct frame *f)
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "map-event",
 		    G_CALLBACK (map_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "size-allocate",
-		    G_CALLBACK (size_allocate), NULL);
+		    G_CALLBACK (size_allocate), f);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "key-press-event",
 		    G_CALLBACK (key_press_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "key-release-event",

@@ -694,7 +694,7 @@ that form should be displayed.")
    "\\|\\(\\w+\\)"))
 
 ;; C++11 Unicode string literals (L"" u8"" u"" U"" R"" LR"" u8R"" uR"")
-(defconst hif-unicode-prefix-regexp  "\\(?:u8R?\\|[uUL]R?\\\|R\\)")
+(defconst hif-unicode-prefix-regexp  "\\(?:u8R?\\|[uUL]R?\\|R\\)")
 (defconst hif-string-literal-regexp
   (concat hif-unicode-prefix-regexp "?"
           "\\(\"\\(?:[^\"\\]\\|\\\\.\\)*\"\\)"))

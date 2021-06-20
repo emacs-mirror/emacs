@@ -5047,8 +5047,9 @@ The value of this variable can also be a number, in which case the
 clipboard data is only saved to the `kill-ring' if it's shorter
 (in characters) than that number.  Any other non-nil value will save
 the clipboard data unconditionally."
-  :type '(choice (const :tag "Always" t)
-                 number)
+  :type '(choice (const nil)
+                 number
+                 (other :tag "Always" t))
   :group 'killing
   :version "23.2")
 
@@ -9085,6 +9086,9 @@ back on `completion-list-insert-choice-function' when nil."
 Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
 Or click to select one with the mouse.
+
+See the `completions-format' user option to control how this
+buffer is formatted.
 
 \\{completion-list-mode-map}")
 

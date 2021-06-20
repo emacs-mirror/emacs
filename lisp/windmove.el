@@ -138,17 +138,24 @@ If this variable is set to t, moving left from the leftmost window in
 a frame will find the rightmost one, and similarly for the other
 directions.  The minibuffer is skipped over in up/down movements if it
 is inactive."
-  :type 'boolean
-  :group 'windmove)
+  :type 'boolean)
 
 (defcustom windmove-create-window nil
   "Whether movement off the edge of the frame creates a new window.
 If this variable is set to t, moving left from the leftmost window in
 a frame will create a new window on the left, and similarly for the other
-directions."
-  :type 'boolean
-  :group 'windmove
-  :version "27.1")
+directions.
+This variable may also be a function to be called in this circumstance
+by `windmove-do-window-select'.  The function should accept then as
+argument the DIRECTION targeted, an interactive ARG and a WINDOW
+corresponding to the currently selected window.  It should also return
+a valid window that `windmove-do-window-select' will select,
+or the symbol `no-select' to ignore that final selection."
+  :type '(choice
+          (const :tag "Don't create new windows" nil)
+          (const :tag "Create new windows" t)
+          (function :tag "Provide a function"))
+  :version "28.1")
 
 ;; If your Emacs sometimes places an empty column between two adjacent
 ;; windows, you may wish to set this delta to 2.
@@ -157,10 +164,17 @@ directions."
 Measured in characters either horizontally or vertically; setting this
 to a value larger than 1 may be useful in getting around window-
 placement bugs in old versions of Emacs."
-  :type 'number
-  :group 'windmove)
+  :type 'number)
 (make-obsolete-variable 'windmove-window-distance-delta
                         "no longer used." "27.1")
+
+(defcustom windmove-allow-all-windows nil
+  "Whether the windmove commands are allowed to target all type of windows.
+If this variable is set to non-nil, all windmove commmands will
+ignore the `no-other-window' parameter applied by `display-buffer-alist'
+or `set-window-parameter'."
+  :type 'boolean
+  :version "28.1")
 
 
 ;; Note:
@@ -342,7 +356,8 @@ WINDOW must be a live window and defaults to the selected one.
 Optional ARG, if negative, means to use the right or bottom edge of
 WINDOW as reference position, instead of `window-point'; if positive,
 use the left or top edge of WINDOW as reference point."
-  (window-in-direction dir window nil arg windmove-wrap-around t))
+  (window-in-direction dir window windmove-allow-all-windows
+                       arg windmove-wrap-around t))
 
 ;; Selects the window that's hopefully at the location returned by
 ;; `windmove-find-other-window', or screams if there's no window there.
@@ -350,19 +365,23 @@ use the left or top edge of WINDOW as reference point."
   "Move to the window at direction DIR as seen from WINDOW.
 DIR, ARG, and WINDOW are handled as by `windmove-find-other-window'.
 If no window is at direction DIR, an error is signaled.
-If `windmove-create-window' is non-nil, try to create a new window
+If `windmove-create-window' is a function, call that function with
+DIR, ARG and WINDOW.  If it is non-nil, try to create a new window
 in direction DIR instead."
   (let ((other-window (windmove-find-other-window dir arg window)))
     (when (and windmove-create-window
                (or (null other-window)
                    (and (window-minibuffer-p other-window)
                         (not (minibuffer-window-active-p other-window)))))
-      (setq other-window (split-window window nil dir)))
+      (setq other-window (if (functionp windmove-create-window)
+                             (funcall windmove-create-window dir arg window)
+                           (split-window window nil dir))))
     (cond ((null other-window)
            (user-error "No window %s from selected window" dir))
           ((and (window-minibuffer-p other-window)
                 (not (minibuffer-window-active-p other-window)))
            (user-error "Minibuffer is inactive"))
+          ((eq other-window 'no-select))
           (t
            (select-window other-window)))))
 
@@ -478,9 +497,20 @@ Default value of MODIFIERS is `shift'."
 ;;; Directional window display and selection
 
 (defcustom windmove-display-no-select nil
-  "Whether the window should be selected after displaying the buffer in it."
-  :type 'boolean
-  :group 'windmove
+  "Whether the window should be selected after displaying the buffer in it.
+If `nil', then the new window where the buffer is displayed will be selected.
+If `ignore', then don't select a window: neither the new nor the old window,
+thus allowing the next command to decide what window it selects.
+Other non-nil values will reselect the old window that was selected before.
+
+The value of this variable can be overridden by the prefix arg of the
+windmove-display-* commands that use `windmove-display-in-direction'.
+
+When `switch-to-buffer-obey-display-actions' is non-nil,
+`switch-to-buffer' commands are also supported."
+  :type '(choice (const :tag "Select new window" nil)
+                 (const :tag "Select old window" t)
+                 (const :tag "Don't select a window" ignore))
   :version "27.1")
 
 (defun windmove-display-in-direction (dir &optional arg)
@@ -488,11 +518,17 @@ Default value of MODIFIERS is `shift'."
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
 Create a new window if there is no window in that direction.
-By default, select the window with a displayed buffer.
-If prefix ARG is `C-u', reselect a previously selected window.
-If `windmove-display-no-select' is non-nil, this command doesn't
-select the window with a displayed buffer, and the meaning of
-the prefix argument is reversed.
+
+By default, select the new window with a displayed buffer.
+If `windmove-display-no-select' is `ignore', then allow the next command
+to decide what window it selects.  With other non-nil values of
+`windmove-display-no-select', this function reselects
+a previously selected old window.
+
+If prefix ARG is `C-u', reselect a previously selected old window.
+If `windmove-display-no-select' is non-nil, the meaning of
+the prefix argument is reversed and it selects the new window.
+
 When `switch-to-buffer-obey-display-actions' is non-nil,
 `switch-to-buffer' commands are also supported."
   (let ((no-select (xor (consp arg) windmove-display-no-select)))
@@ -517,42 +553,47 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
                        ((eq dir 'same-window)
                         (selected-window))
                        (t (window-in-direction
-                           dir nil nil
+                           dir nil windmove-allow-all-windows
                            (and arg (prefix-numeric-value arg))
                            windmove-wrap-around 'nomini)))))
          (unless window
            (setq window (split-window nil nil dir) type 'window))
          (cons window type)))
      (lambda (old-window new-window)
-       (when (window-live-p (if no-select old-window new-window))
+       (when (and (not (eq windmove-display-no-select 'ignore))
+                  (window-live-p (if no-select old-window new-window)))
          (select-window (if no-select old-window new-window))))
      (format "[display-%s]" dir))))
 
 ;;;###autoload
 (defun windmove-display-left (&optional arg)
   "Display the next buffer in window to the left of the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'left arg))
 
 ;;;###autoload
 (defun windmove-display-up (&optional arg)
   "Display the next buffer in window above the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'up arg))
 
 ;;;###autoload
 (defun windmove-display-right (&optional arg)
   "Display the next buffer in window to the right of the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'right arg))
 
 ;;;###autoload
 (defun windmove-display-down (&optional arg)
   "Display the next buffer in window below the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'down arg))
 
@@ -606,8 +647,8 @@ With `M-0' prefix, delete the selected window and
 select the window at direction DIR.
 When `windmove-wrap-around' is non-nil, takes the window
 from the opposite side of the frame."
-  (let ((other-window (window-in-direction dir nil nil arg
-                                           windmove-wrap-around 'nomini)))
+  (let ((other-window (window-in-direction dir nil windmove-allow-all-windows
+                                           arg windmove-wrap-around 'nomini)))
     (cond ((null other-window)
            (user-error "No window %s from selected window" dir))
           (t
@@ -680,8 +721,8 @@ Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
   "Swap the states of the selected window and the window at direction DIR.
 When `windmove-wrap-around' is non-nil, takes the window
 from the opposite side of the frame."
-  (let ((other-window (window-in-direction dir nil nil nil
-                                           windmove-wrap-around 'nomini)))
+  (let ((other-window (window-in-direction dir nil windmove-allow-all-windows
+                                           nil windmove-wrap-around 'nomini)))
     (cond ((or (null other-window) (window-minibuffer-p other-window))
            (user-error "No window %s from selected window" dir))
           (t
@@ -761,8 +802,7 @@ See `windmove-default-keybindings' for more detail."
           (null val))
          (set-default sym val))
   :type windmove--default-keybindings-type
-  :version "28.1"
-  :group 'windmove)
+  :version "28.1")
 
 (defcustom windmove-display-default-keybindings nil
   "Default keybindings for windmove directional buffer display commands.
@@ -780,8 +820,7 @@ See `windmove-display-default-keybindings' for more detail."
           (null val))
          (set-default sym val))
   :type windmove--default-keybindings-type
-  :version "28.1"
-  :group 'windmove)
+  :version "28.1")
 
 (defcustom windmove-delete-default-keybindings nil
   "Default keybindings for windmove directional window deletion commands.
@@ -796,8 +835,7 @@ See `windmove-delete-default-keybindings' for more detail."
           (null val))
          (set-default sym val))
   :type windmove--default-keybindings-type
-  :version "28.1"
-  :group 'windmove)
+  :version "28.1")
 
 (defcustom windmove-swap-states-default-keybindings nil
   "Default keybindings for windmove's directional window swap-state commands.
@@ -812,8 +850,7 @@ See `windmove-swap-states-default-keybindings' for more detail."
           (null val))
          (set-default sym val))
   :type windmove--default-keybindings-type
-  :version "28.1"
-  :group 'windmove)
+  :version "28.1")
 
 
 (provide 'windmove)

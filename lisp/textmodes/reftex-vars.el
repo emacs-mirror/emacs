@@ -121,7 +121,7 @@
        (regexp "tables?" "tab\\." "Tabellen?"))
       ("table*"    ?t nil nil caption)
 
-      ("\\footnote[]{}" ?n "fn:" "~\\ref{%s}" 2
+      ("\\footnote[]{}" ?n "fn:" "~\\footref{%s}" 2
        (regexp "footnotes?" "Fussnoten?"))
 
       ("any"       ?\  " "   "~\\ref{%s}" nil)
@@ -1059,7 +1059,7 @@ This is used to string together whole reference sets, like
 
 (defcustom reftex-ref-style-alist
   '(("Default" t
-     (("\\ref" ?\C-m) ("\\Ref" ?R) ("\\pageref" ?p)))
+     (("\\ref" ?\C-m) ("\\Ref" ?R) ("\\footref" ?n) ("\\pageref" ?p)))
     ("Varioref" "varioref"
      (("\\vref" ?v) ("\\Vref" ?V) ("\\vpageref" ?g)))
     ("Fancyref" "fancyref"
@@ -1079,7 +1079,7 @@ the macro type is being prompted for.  (See also
 `reftex-ref-macro-prompt'.)  The keys, represented as characters,
 have to be unique."
   :group 'reftex-referencing-labels
-  :version "27.1"
+  :version "28.1"
   :type '(alist :key-type (string :tag "Style name")
 		:value-type (group (choice :tag "Package"
 					   (const :tag "Any package" t)

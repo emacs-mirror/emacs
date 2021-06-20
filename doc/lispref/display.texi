@@ -3007,9 +3007,10 @@ This function returns non-@code{nil} if face @var{face} specifies
 a non-@code{nil} @code{:inverse-video} attribute.
 @end defun
 
-@defun face-extend-p face &optional frame
+@defun face-extend-p face &optional frame inherit
 This function returns non-@code{nil} if face @var{face} specifies
-a non-@code{nil} @code{:extend} attribute.
+a non-@code{nil} @code{:extend} attribute.  The @var{inherit} argument
+is passed to @code{face-attribute}.
 @end defun
 
 

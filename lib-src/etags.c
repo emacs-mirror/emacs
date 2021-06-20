@@ -6081,10 +6081,10 @@ prolog_atom (char *s, size_t pos)
 	      pos++;
 	      if (s[pos] != '\'')
 		break;
-	      pos++;		/* A double quote */
+	      pos++;		/* A double quote  */
 	    }
 	  else if (s[pos] == '\0')
-	    /* Multiline quoted atoms are ignored. */
+	    /* Multiline quoted atoms are ignored.  */
 	    return 0;
 	  else if (s[pos] == '\\')
 	    {
@@ -6119,6 +6119,13 @@ static void mercury_skip_comment (linebuffer *, FILE *);
 static bool is_mercury_type = false;
 static bool is_mercury_quantifier = false;
 static bool is_mercury_declaration = false;
+typedef struct
+{
+  size_t pos;          /* Position reached in parsing tag name.  */
+  size_t namelength;   /* Length of tag name  */
+  size_t totlength;    /* Total length of parsed tag: this field is currently
+			  reserved for control and debugging.   */
+} mercury_pos_t;
 
 /*
  * Objective-C and Mercury have identical file extension .m.
@@ -6374,10 +6381,12 @@ static const char *Mercury_decl_tags[] = {"type", "solver type", "pred",
   "initialise", "finalise", "mutable", "module", "interface", "implementation",
   "import_module", "use_module", "include_module", "end_module", "some", "all"};
 
-static size_t
+static mercury_pos_t
 mercury_decl (char *s, size_t pos)
 {
-  if (s == NULL) return 0;
+  mercury_pos_t null_pos = {0, 0, 0};
+
+  if (s == NULL) return null_pos;
 
   size_t origpos;
   origpos = pos;
@@ -6398,7 +6407,8 @@ mercury_decl (char *s, size_t pos)
   if (is_mercury_quantifier)
     {
       if (strcmp (buf, "pred") != 0 && strcmp (buf, "func") != 0) /* Bad syntax.  */
-	return 0;
+	return null_pos;
+
       is_mercury_quantifier = false; /* Reset to base value.  */
       found_decl_tag = true;
     }
@@ -6418,7 +6428,7 @@ mercury_decl (char *s, size_t pos)
 		  is_mercury_quantifier = true;
 		}
 
-	      break;  /* Found declaration tag of rank j. */
+	      break;  /* Found declaration tag of rank j.  */
 	    }
 	  else
 	    /* 'solver type' has a blank in the middle,
@@ -6461,24 +6471,36 @@ mercury_decl (char *s, size_t pos)
       if (found_decl_tag)
 	pos = skip_spaces (s + pos) - s; /* Skip len blanks again.  */
       else
-	return 0;
+	return null_pos;
     }
 
   /* From now on it is the same as for Prolog except for module dots.  */
+
+  size_t start_of_name = pos;
 
   if (c_islower (s[pos]) || s[pos] == '_' )
     {
       /* The name is unquoted.
          Do not confuse module dots with end-of-declaration dots.  */
+      int module_dot_pos = 0;
 
       while (c_isalnum (s[pos])
              || s[pos] == '_'
              || (s[pos] == '.' /* A module dot.  */
                  && s + pos + 1 != NULL
-                 && (c_isalnum (s[pos + 1]) || s[pos + 1] == '_')))
+                 && (c_isalnum (s[pos + 1]) || s[pos + 1] == '_')
+		 && (module_dot_pos = pos)))  /* Record module dot position.
+				                 Erase module from name.  */
 	++pos;
 
-      return pos - origpos;
+      if (module_dot_pos)
+	{
+	  start_of_name = module_dot_pos + 2;
+	  ++pos;
+        }
+
+      mercury_pos_t position = {pos, pos - start_of_name + 1, pos - origpos};
+      return position;
     }
   else if (s[pos] == '\'')
     {
@@ -6493,28 +6515,37 @@ mercury_decl (char *s, size_t pos)
 	      ++pos; /* A double quote.  */
 	    }
 	  else if (s[pos] == '\0')  /* Multiline quoted atoms are ignored.  */
-	    return 0;
+	    return null_pos;
 	  else if (s[pos] == '\\')
 	    {
 	      if (s[pos+1] == '\0')
-		return 0;
+		return null_pos;
 	      pos += 2;
 	    }
 	  else
 	    ++pos;
 	}
-      return pos - origpos;
+
+      mercury_pos_t position = {pos, pos - start_of_name + 1, pos - origpos};
+      return position;
     }
   else if (is_mercury_quantifier && s[pos] == '[')   /* :- some [T] pred/func.  */
     {
       for (++pos; s + pos != NULL && s[pos] != ']'; ++pos) {}
-      if (s + pos == NULL) return 0;
+      if (s + pos == NULL) return null_pos;
       ++pos;
       pos = skip_spaces (s + pos) - s;
-      return mercury_decl (s, pos) + pos - origpos;
+      mercury_pos_t position = mercury_decl (s, pos);
+      position.totlength += pos - origpos;
+      return position;
+    }
+  else if (s[pos] == '.')  /* as in ':- interface.'  */
+    {
+      mercury_pos_t position = {pos, pos - origpos + 1, pos - origpos};
+      return position;
     }
   else
-    return 0;
+    return null_pos;
 }
 
 static ptrdiff_t
@@ -6523,6 +6554,7 @@ mercury_pr (char *s, char *last, ptrdiff_t lastlen)
   size_t len0 = 0;
   is_mercury_type = false;
   is_mercury_quantifier = false;
+  bool stop_at_rule = false;
 
   if (is_mercury_declaration)
     {
@@ -6530,38 +6562,44 @@ mercury_pr (char *s, char *last, ptrdiff_t lastlen)
       len0 = skip_spaces (s + 2) - s;
     }
 
-  size_t len = mercury_decl (s, len0);
-  if (len == 0) return 0;
-  len += len0;
+  mercury_pos_t position = mercury_decl (s, len0);
+  size_t pos = position.pos;
+  int offset = 0;  /* may be < 0  */
+  if (pos == 0) return 0;
 
-  if (( (s[len] == '.'  /* This is a statement dot, not a module dot.  */
-	 || (s[len] == '(' && (len += 1))
-         || (s[len] == ':'  /* Stopping in case of a rule.  */
-	     && s[len + 1] == '-'
-	     && (len += 2)))
-	&& (lastlen != len || memcmp (s, last, len) != 0)
+  /* Skip white space for:
+     a. rules in definitions before :-
+     b. 0-arity predicates with inlined modes.
+     c. possibly multiline type definitions  */
+
+  while (c_isspace (s[pos])) { ++pos; ++offset; }
+
+  if (( ((s[pos] == '.' && (pos += 1))     /* case 1
+                                              This is a statement dot,
+                                              not a module dot. */
+	 || c_isalnum(s[pos])              /* 0-arity procedures  */
+	 || (s[pos] == '(' && (pos += 1))  /* case 2: arity > 0   */
+	 || ((s[pos] == ':')               /* case 3: rules  */
+	     && s[pos + 1] == '-' && (stop_at_rule = true)))
+     && (lastlen != pos || memcmp (s, last, pos) != 0)
 	)
       /* Types are often declared on several lines so keeping just
 	 the first line.  */
-      || is_mercury_type)
+
+      || is_mercury_type)  /* When types are implemented.  */
     {
-      char *name = skip_non_spaces (s + len0);
-      size_t namelen;
-      if (name >= s + len)
-	{
-	  name = s;
-	  namelen = len;
-	}
-      else
-	{
-	  name = skip_spaces (name);
-	  namelen = len - (name - s);
-	}
-      /* Remove trailing non-name characters.  */
-      while (namelen > 0 && notinname (name[namelen - 1]))
-	namelen--;
-      make_tag (name, namelen, true, s, len, lineno, linecharno);
-      return len;
+      size_t namelength = position.namelength;
+      if (stop_at_rule && offset) --offset;
+
+      /* Left-trim type definitions.  */
+
+      while (pos > namelength + offset
+	     && c_isspace (s[pos - namelength - offset]))
+	--offset;
+
+      make_tag (s + pos - namelength - offset, namelength - 1, true,
+				s, pos - offset - 1, lineno, linecharno);
+      return pos;
     }
 
   return 0;

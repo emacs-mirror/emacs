@@ -898,6 +898,12 @@ String or list of strings specifying switches for Git log under VC.
 ** Gnus
 
 +++
+*** New Summary buffer sort options for extra headers.
+The extra header sort option ('C-c C-s C-x') prompts for a header
+and fails if no sort function has been defined. Sorting by
+Newsgroups ('C-c C-s C-u') has been pre-defined.
+
++++
 *** The '#' command in the Group and Summary buffer now toggles,
 instead of sets, the process mark.
 
@@ -1123,6 +1129,14 @@ This change is for better compatibility with old versions of non-GNU
 'find', such as the one used on macOS.
 
 ** Help
+
++++
+*** New convenience commands with short keys in the Help buffer.
+New command 'help-view-source' ('s') will view the source file (if
+any) of the current help topic.  New command 'help-goto-info' ('i')
+will look up the current symbol (if any) in Info.  New command
+'help-customize' ('c') will customize the variable or the face
+(if any) whose doc string is being shown in the Help buffer.
 
 ---
 *** The 'help-for-help' ('C-h C-h') screen has been redesigned.
@@ -2090,6 +2104,13 @@ This allows mode-specific alterations to how 'thing-at-point' works.
 This is so 'C-a' works as in other modes, and in particular holding
 Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 
+** ERT
+
++++
+*** ERT can now output more verbose test failure reports.
+If the EMACS_TEST_VERBOSE environment variable is set, failure
+summaries will include the failing condition.
+
 ** Miscellaneous
 
 +++
@@ -2842,6 +2863,12 @@ customize them.
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+** New function 'syntax-class-to-char'.
+This does almost the opposite of 'string-to-syntax' -- it returns the
+syntax descriptor (a character) given a raw syntax descriptor (an
+integer).
 
 +++
 ** New function 'buffer-local-boundp'.

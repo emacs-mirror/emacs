@@ -1047,6 +1047,11 @@ Given a syntax descriptor @var{desc} (a string), this function returns
 the corresponding raw syntax descriptor.
 @end defun
 
+@defun syntax-class-to-char syntax
+Given a raw syntax descriptor @var{syntax} (an integer), this function
+returns the corresponding syntax descriptor (a character).
+@end defun
+
 @defun syntax-after pos
 This function returns the raw syntax descriptor for the character in
 the buffer after position @var{pos}, taking account of syntax

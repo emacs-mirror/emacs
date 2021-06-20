@@ -44,6 +44,9 @@
     (define-key map [XF86Forward] 'help-go-forward)
     (define-key map "\C-c\C-c" 'help-follow-symbol)
     (define-key map "\r" 'help-follow)
+    (define-key map "s" 'help-view-source)
+    (define-key map "i" 'help-goto-info)
+    (define-key map "c" 'help-customize)
     map)
   "Keymap for Help mode.")
 
@@ -61,7 +64,13 @@
     ["Move to Previous Button" backward-button
      :help "Move to the Previous Button in the help buffer"]
     ["Move to Next Button" forward-button
-      :help "Move to the Next Button in the help buffer"]))
+     :help "Move to the Next Button in the help buffer"]
+    ["View Source" help-view-source
+     :help "Go to the source file for the current help item"]
+    ["Goto Info" help-goto-info
+     :help "Go to the info node for the current help item"]
+    ["Customize" help-customize
+     :help "Customize variable or face"]))
 
 (defvar help-mode-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -323,6 +332,7 @@ The format is (FUNCTION ARGS...).")
   'help-echo (purecopy "mouse-2, RET: show corresponding NEWS announcement"))
 
 (defvar bookmark-make-record-function)
+(defvar help-mode--current-data nil)
 
 ;;;###autoload
 (define-derived-mode help-mode special-mode "Help"
@@ -334,6 +344,7 @@ Commands:
               #'help-mode-revert-buffer)
   (setq-local tool-bar-map
               help-mode-tool-bar-map)
+  (setq-local help-mode--current-data nil)
   (setq-local bookmark-make-record-function
               #'help-bookmark-make-record))
 
@@ -721,6 +732,32 @@ See `help-make-xrefs'."
   (if help-xref-forward-stack
       (help-xref-go-forward (current-buffer))
     (user-error "No next help buffer")))
+
+(defun help-view-source ()
+  "View the source of the current help item."
+  (interactive nil help-mode)
+  (unless (plist-get help-mode--current-data :file)
+    (error "Source file for the current help item is not defined"))
+  (help-function-def--button-function (plist-get help-mode--current-data :symbol)
+                                      (plist-get help-mode--current-data :file)))
+
+(defun help-goto-info ()
+  "View the *info* node of the current help item."
+  (interactive nil help-mode)
+  (unless help-mode--current-data
+    (error "No symbol to look up in the current buffer"))
+  (info-lookup-symbol (plist-get help-mode--current-data :symbol)
+                      'emacs-lisp-mode))
+
+(defun help-customize ()
+  "Customize variable or face whose doc string is shown in the current buffer."
+  (interactive nil help-mode)
+  (let ((sym (plist-get help-mode--current-data :symbol)))
+    (unless (or (boundp sym) (facep sym))
+      (user-error "No variable or face to customize"))
+    (cond
+     ((boundp sym) (customize-variable sym))
+     ((facep sym) (customize-face sym)))))
 
 (defun help-do-xref (_pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.
