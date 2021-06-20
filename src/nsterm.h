@@ -504,6 +504,10 @@ typedef id instancetype;
   NSPoint grabOffset;
 }
 
+#ifdef NS_IMPL_GNUSTEP
+- (NSInteger) orderedIndex;
+#endif
+
 - (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
 - (void)setAppearance;
 @end

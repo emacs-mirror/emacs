@@ -1219,6 +1219,13 @@ deprecated.  Errors in the Inscript method were corrected.
 *** New input method 'cham'.
 There's also a Cham greeting in "etc/HELLO".
 
+---
+*** New input methods for Lakota language orthographies.
+Two orthographies are represented here, the Suggested Lakota Orthography
+and what is known as the White Hat Orthography.  Input methods lakota-slo-prefix,
+lakota-slo-postfix, and lakota-white-hat-postfix have been added.
+There is also a Lakota greeting in "etc/HELLO".
+
 ** Ispell
 
 +++

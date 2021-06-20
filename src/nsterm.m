@@ -8763,6 +8763,16 @@ not_in_argv (NSString *arg)
 }
 
 
+#ifdef NS_IMPL_GNUSTEP
+/* orderedIndex isn't yet available in GNUstep, but it seems pretty
+   easy to implement.  */
+- (NSInteger) orderedIndex
+{
+  return [[NSApp orderedWindows] indexOfObjectIdenticalTo:self];
+}
+#endif
+
+
 /* The array returned by [NSWindow parentWindow] may already be
    sorted, but the documentation doesn't tell us whether or not it is,
    so to be safe we'll sort it.  */
