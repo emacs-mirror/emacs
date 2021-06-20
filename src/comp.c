@@ -2687,7 +2687,7 @@ declare_runtime_imported_funcs (void)
   Lisp_Object field_list = Qnil;
 
 #define ADD_IMPORTED(f_name, ret_type, nargs, args)			       \
-  {									       \
+  do {									       \
     Lisp_Object name = intern_c_string (STR (f_name));			       \
     Lisp_Object field =							       \
       make_mint_ptr (declare_imported_func (name, ret_type, nargs, args));     \

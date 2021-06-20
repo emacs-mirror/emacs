@@ -415,7 +415,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 		(when (window-live-p (setq posn-window (posn-window start)))
 		  ;; Add left edge of `posn-window' to `position'.
 		  (setq position (+ (window-pixel-left posn-window) position))
-		  (unless (nth 1 start)
+		  (unless (posn-area start)
 		    ;; Add width of objects on the left of the text area to
 		    ;; `position'.
 		    (when (eq (window-current-scroll-bars posn-window) 'left)
@@ -494,9 +494,11 @@ must be one of the symbols `header', `mode', or `vertical'."
 	       (define-key map [header-line] map)
 	       (define-key map [vertical-line] map)
 	       ;; ... and some maybe even with a right- or bottom-divider
-	       ;; prefix.
+	       ;; or left- or right-margin prefix ...
 	       (define-key map [right-divider] map)
 	       (define-key map [bottom-divider] map)
+	       (define-key map [left-margin] map)
+	       (define-key map [right-margin] map)
 	       map)
 	     t (lambda () (setq track-mouse old-track-mouse)))))))
 

@@ -4064,10 +4064,10 @@ extern ptrdiff_t doprnt (char *, ptrdiff_t, const char *, const char *,
 			 va_list);
 extern ptrdiff_t esprintf (char *, char const *, ...)
   ATTRIBUTE_FORMAT_PRINTF (2, 3);
-extern ptrdiff_t exprintf (char **, ptrdiff_t *, char const *, ptrdiff_t,
+extern ptrdiff_t exprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
 			   char const *, ...)
   ATTRIBUTE_FORMAT_PRINTF (5, 6);
-extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char const *, ptrdiff_t,
+extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
 			    char const *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (5, 0);
 

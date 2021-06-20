@@ -4126,6 +4126,8 @@ Visibility.
 Level.
 @item g
 Number of groups in the topic.
+@item G
+Number of groups in the topic and all its subtopics.
 @item a
 Number of unread articles in the topic.
 @item A
@@ -7525,6 +7527,7 @@ Matching}).
 @findex gnus-thread-sort-by-author
 @findex gnus-thread-sort-by-recipient
 @findex gnus-thread-sort-by-number
+@findex gnus-thread-sort-by-newsgroups
 @findex gnus-thread-sort-by-random
 @vindex gnus-thread-sort-functions
 @findex gnus-thread-sort-by-most-recent-number
@@ -7542,6 +7545,7 @@ predicate functions include @code{gnus-thread-sort-by-number},
 @code{gnus-thread-sort-by-score},
 @code{gnus-thread-sort-by-most-recent-number},
 @code{gnus-thread-sort-by-most-recent-date},
+@code{gnus-thread-sort-by-newsgroups} and
 @code{gnus-thread-sort-by-random} and
 @code{gnus-thread-sort-by-total-score}.
 
@@ -7603,6 +7607,7 @@ tickles your fancy.
 @findex gnus-article-sort-by-score
 @findex gnus-article-sort-by-subject
 @findex gnus-article-sort-by-author
+@findex gnus-article-sort-by-newsgroups
 @findex gnus-article-sort-by-random
 @findex gnus-article-sort-by-number
 @findex gnus-article-sort-by-most-recent-number
@@ -7614,8 +7619,8 @@ different functions for article comparison.  Available sorting
 predicate functions are @code{gnus-article-sort-by-number},
 @code{gnus-article-sort-by-author},
 @code{gnus-article-sort-by-subject}, @code{gnus-article-sort-by-date},
-@code{gnus-article-sort-by-random}, and
-@code{gnus-article-sort-by-score}.
+@code{gnus-article-sort-by-newsgroups}, @code{gnus-article-sort-by-random},
+and @code{gnus-article-sort-by-score}.
 
 If you want to sort an unthreaded summary display by subject, you could
 say something like:
@@ -10402,6 +10407,17 @@ Sort by article ``readedness'' marks (@code{gnus-summary-sort-by-marks}).
 @kindex C-c C-s C-i @r{(Summary)}
 @findex gnus-summary-sort-by-score
 Sort by score (@code{gnus-summary-sort-by-score}).
+
+@item C-c C-s C-u
+@kindex C-c C-s C-u @r{(Summary)}
+@findex gnus-summary-sort-by-newsgroups
+Sort by newsgroups (@code{gnus-summary-sort-by-newsgroups}).
+
+@item C-c C-s C-x
+@kindex C-c C-s C-x @r{(Summary)}
+@findex gnus-summary-sort-by-extra
+Prompts for extra header to sort by (@code{gnus-summary-sort-by-extra}).
+An error will be raised if no sort functions for the header are defined.
 
 @item C-c C-s C-r
 @kindex C-c C-s C-r @r{(Summary)}

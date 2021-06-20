@@ -630,6 +630,14 @@ in a cyclic manner.  If you give @code{completion-cycle-threshold} a
 numeric value @var{n}, completion commands switch to this cycling
 behavior only when there are @var{n} or fewer alternatives.
 
+@vindex completions-format
+  When displaying completions, Emacs will normally pop up a new buffer
+to display the completions.  The completions will (by default) be
+sorted in columns horizontally in alphabetical order, but this can be
+changed by changing the @code{completions-format} user option.  If
+@code{vertical}, sort the completions vertically in columns instead,
+and if @code{one-column}, just use a single column.
+
 @node Minibuffer History
 @section Minibuffer History
 @cindex minibuffer history

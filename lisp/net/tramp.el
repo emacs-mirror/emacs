@@ -3627,6 +3627,11 @@ User is always nil."
 	(and (file-directory-p (file-name-directory filename))
 	     (file-writable-p (file-name-directory filename)))))))
 
+(defcustom tramp-allow-unsafe-temporary-files nil
+  "Whether root-owned auto-save or backup files can be written to \"/tmp\"."
+  :version "28.1"
+  :type 'boolean)
+
 (defun tramp-handle-find-backup-file-name (filename)
   "Like `find-backup-file-name' for Tramp files."
   (with-parsed-tramp-file-name filename nil
@@ -3642,8 +3647,25 @@ User is always nil."
 		       (tramp-make-tramp-file-name v (cdr x))
 		     (cdr x))))
 		tramp-backup-directory-alist)
-	     backup-directory-alist)))
-      (tramp-run-real-handler #'find-backup-file-name (list filename)))))
+	     backup-directory-alist))
+	  (uid (tramp-compat-file-attribute-user-id
+		(file-attributes filename 'integer)))
+	  result)
+      (prog1 ;; Run plain `find-backup-file-name'.
+	  (setq result
+		(tramp-run-real-handler
+		 #'find-backup-file-name (list filename)))
+        ;; Protect against security hole.
+	(when (and (natnump uid) (zerop uid)
+		   (file-in-directory-p (car result) temporary-file-directory)
+		   (not tramp-allow-unsafe-temporary-files)
+		   (not (with-tramp-connection-property
+			    (tramp-get-process v) "unsafe-temporary-file"
+			  (yes-or-no-p
+			   (concat
+			    "Backup file on local temporary directory, "
+			    "do you want to continue? ")))))
+	  (tramp-error v 'file-error "Unsafe backup file name"))))))
 
 (defun tramp-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)
@@ -5225,37 +5247,52 @@ Return the local name of the temporary file."
   "Like `make-auto-save-file-name' for Tramp files.
 Returns a file name in `tramp-auto-save-directory' for autosaving
 this file, if that variable is non-nil."
-  (when (stringp tramp-auto-save-directory)
-    (setq tramp-auto-save-directory
-	  (expand-file-name tramp-auto-save-directory)))
-  ;; Create directory.
-  (unless (or (null tramp-auto-save-directory)
-	      (file-exists-p tramp-auto-save-directory))
-    (make-directory tramp-auto-save-directory t))
+  (with-parsed-tramp-file-name buffer-file-name nil
+    (when (stringp tramp-auto-save-directory)
+      (setq tramp-auto-save-directory
+	    (expand-file-name tramp-auto-save-directory)))
+    ;; Create directory.
+    (unless (or (null tramp-auto-save-directory)
+		(file-exists-p tramp-auto-save-directory))
+      (make-directory tramp-auto-save-directory t))
 
-  (let ((system-type
-	 (if (and (stringp tramp-auto-save-directory)
-		  (tramp-tramp-file-p tramp-auto-save-directory))
-	     'not-windows
-	   system-type))
-	(auto-save-file-name-transforms
-	 (if (null tramp-auto-save-directory)
-	     auto-save-file-name-transforms))
-	(buffer-file-name
-	 (if (null tramp-auto-save-directory)
-	     buffer-file-name
-	   (expand-file-name
-	    (tramp-subst-strs-in-string
-	     '(("_" . "|")
-	       ("/" . "_a")
-	       (":" . "_b")
-	       ("|" . "__")
-	       ("[" . "_l")
-	       ("]" . "_r"))
-	     (tramp-compat-file-name-unquote (buffer-file-name)))
-	    tramp-auto-save-directory))))
-    ;; Run plain `make-auto-save-file-name'.
-    (tramp-run-real-handler #'make-auto-save-file-name nil)))
+    (let ((system-type
+	   (if (and (stringp tramp-auto-save-directory)
+		    (tramp-tramp-file-p tramp-auto-save-directory))
+	       'not-windows
+	     system-type))
+	  (auto-save-file-name-transforms
+	   (if (null tramp-auto-save-directory)
+	       auto-save-file-name-transforms))
+	  (uid (tramp-compat-file-attribute-user-id
+		(file-attributes buffer-file-name 'integer)))
+	  (buffer-file-name
+	   (if (null tramp-auto-save-directory)
+	       buffer-file-name
+	     (expand-file-name
+	      (tramp-subst-strs-in-string
+	       '(("_" . "|")
+		 ("/" . "_a")
+		 (":" . "_b")
+		 ("|" . "__")
+		 ("[" . "_l")
+		 ("]" . "_r"))
+	       (tramp-compat-file-name-unquote (buffer-file-name)))
+	      tramp-auto-save-directory)))
+	  result)
+      (prog1 ;; Run plain `make-auto-save-file-name'.
+	  (setq result (tramp-run-real-handler #'make-auto-save-file-name nil))
+	;; Protect against security hole.
+	(when (and (natnump uid) (zerop uid)
+		   (file-in-directory-p result temporary-file-directory)
+		   (not tramp-allow-unsafe-temporary-files)
+		   (not (with-tramp-connection-property
+			    (tramp-get-process v) "unsafe-temporary-file"
+			  (yes-or-no-p
+			   (concat
+			    "Autosave file on local temporary directory, "
+			    "do you want to continue? ")))))
+	  (tramp-error v 'file-error "Unsafe autosave file name"))))))
 
 (defun tramp-subst-strs-in-string (alist string)
   "Replace all occurrences of the string FROM with TO in STRING.

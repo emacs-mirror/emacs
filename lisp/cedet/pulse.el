@@ -120,9 +120,9 @@ Face used for temporary highlighting of tags for effect."
 			   (face-background face nil t)
 			 (face-background 'pulse-highlight-start-face)
 			 ))
-  (and face
-       (set-face-extend 'pulse-highlight-face
-                        (face-extend-p face nil t)))
+  (set-face-extend 'pulse-highlight-face
+                   (face-extend-p (or face 'pulse-highlight-start-face)
+                                  nil t))
   (put 'pulse-highlight-face :startface (or face
 					    'pulse-highlight-start-face))
   (setq pulse-momentary-iteration 0))

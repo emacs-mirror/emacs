@@ -87,7 +87,8 @@ information on adapting behavior of commands in Delete Selection mode."
 ;;;###autoload
 (defun delete-active-region (&optional killp)
   "Delete the active region.
-If KILLP in not-nil, the active region is killed instead of deleted."
+If KILLP is non-nil, or if called interactively with a prefix argument,
+the active region is killed instead of deleted."
   (interactive "P")
   (cond
    (killp
@@ -107,7 +108,7 @@ If KILLP in not-nil, the active region is killed instead of deleted."
   "Repeat replacing text of highlighted region with typed text.
 Search for the next stretch of text identical to the region last replaced
 by typing text over it and replaces it with the same stretch of text.
-With ARG, repeat that many times.  `C-u' means until end of buffer."
+With ARG, repeat that many times.  `\\[universal-argument]' means until end of buffer."
   (interactive "P")
   (let ((old-text (and delete-selection-save-to-register
                        (get-register delete-selection-save-to-register)))

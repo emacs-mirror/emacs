@@ -1952,3 +1952,11 @@ chain_subst_2([A | As], AtoB, BtoC, AtoC) :-
 %---------------------------------------------------------------------------%
 :- end_module transform_hlds.accumulator.
 %---------------------------------------------------------------------------%
+
+:- some [T] pred unravel_univ(univ::in, T::out) is det.
+:- pragma foreign_export("C", unravel_univ(in, out), "ML_unravel_univ").
+:- pragma foreign_export("C#", unravel_univ(in, out), "ML_unravel_univ").
+:- pragma foreign_export("Java", unravel_univ(in, out), "ML_unravel_univ").
+
+unravel_univ(Univ, X) :-
+    univ_value(Univ) = X.

@@ -321,6 +321,7 @@ They shall still be supported"
   "Check `directory-file-name'.
 This checks also `file-name-as-directory', `file-name-directory',
 `file-name-nondirectory' and `unhandled-file-name-directory'."
+  :tags '(:unstable) ;; Temporarily.
   (skip-unless tramp-archive-enabled)
 
   (should

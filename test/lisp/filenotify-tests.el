@@ -200,7 +200,10 @@ Return nil when any other file notification watch is still active."
 
 (setq file-notify-debug nil
       password-cache-expiry nil
-      tramp-verbose 0)
+      tramp-verbose 0
+      ;; When the remote user id is 0, Tramp refuses unsafe temporary files.
+      tramp-allow-unsafe-temporary-files
+      (or tramp-allow-unsafe-temporary-files noninteractive))
 
 ;; This should happen on hydra only.
 (when (getenv "EMACS_HYDRA_CI")

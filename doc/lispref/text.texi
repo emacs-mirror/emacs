@@ -4166,7 +4166,7 @@ file names only:
 If the condition value is anything else, then the position is inside a
 link and the condition itself is the action code.  Clearly, you should
 specify this kind of condition only when applying the condition via a
-text or property overlay on the link text (so that it does not apply
+text or overlay property on the link text (so that it does not apply
 to the entire buffer).
 @end table
 

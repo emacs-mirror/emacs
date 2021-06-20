@@ -229,6 +229,16 @@ is greater than 10.
 	"%s %f sec"
 	,message (float-time (time-subtract (current-time) start))))))
 
+;; `always' is introduced with Emacs 28.1.
+(defalias 'tramp--test-always
+  (if (fboundp 'always)
+      #'always
+    (lambda (&rest _arguments)
+      "Do nothing and return t.
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `ignore'."
+      t)))
+
 (ert-deftest tramp-test00-availability ()
   "Test availability of Tramp functions."
   :expected-result (if (tramp--test-enabled) :passed :failed)
@@ -2454,9 +2464,9 @@ This checks also `file-name-as-directory', `file-name-directory',
 			tramp--test-messages))))))))
 
 	    ;; Do not overwrite if excluded.
-	    (cl-letf (((symbol-function #'y-or-n-p) (lambda (_prompt) t))
+	    (cl-letf (((symbol-function #'y-or-n-p) #'tramp--test-always)
 		      ;; Ange-FTP.
-		      ((symbol-function 'yes-or-no-p) (lambda (_prompt) t)))
+		      ((symbol-function 'yes-or-no-p) #'tramp--test-always))
 	      (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
 	    ;; `mustbenew' is passed to Tramp since Emacs 26.1.
 	    (when (tramp--test-emacs26-p)
@@ -3671,7 +3681,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(should-error
 		 (make-symbolic-link tmp-name1 tmp-name2 0)
 		 :type 'file-already-exists)))
-	    (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_prompt) t)))
+	    (cl-letf (((symbol-function #'yes-or-no-p) #'tramp--test-always))
 	      (make-symbolic-link tmp-name1 tmp-name2 0)
 	      (should
 	       (string-equal
@@ -3747,7 +3757,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (should-error
 		(add-name-to-file tmp-name1 tmp-name2 0)
 		:type 'file-already-exists))
-	     (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_prompt) t)))
+	     (cl-letf (((symbol-function #'yes-or-no-p) #'tramp--test-always))
 	       (add-name-to-file tmp-name1 tmp-name2 0)
 	       (should (file-regular-p tmp-name2)))
 	     (add-name-to-file tmp-name1 tmp-name2 'ok-if-already-exists)
@@ -4545,7 +4555,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (declare (indent 1))
   ;; `make-process' supports file name handlers since Emacs 27.
-  (when (let ((file-name-handler-alist '(("" . (lambda (&rest _) t)))))
+  (when (let ((file-name-handler-alist '(("" . #'tramp--test-always))))
 	  (ignore-errors (make-process :file-handler t)))
     `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
        ,docstring
@@ -4561,7 +4571,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	 ;; `file-truename' does it by side-effect.  Suppress
 	 ;; `tramp--test-enabled', in order to keep the connection.
 	 ;; Suppress "Process ... finished" messages.
-	 (cl-letf (((symbol-function #'tramp--test-enabled) (lambda nil t))
+	 (cl-letf (((symbol-function #'tramp--test-enabled) #'tramp--test-always)
 		   ((symbol-function #'internal-default-process-sentinel)
 		    #'ignore))
 	   (file-truename tramp-test-temporary-file-directory)
@@ -5554,11 +5564,38 @@ Use direct async.")
 			 ("]" . "_r"))
 		       (tramp-compat-file-name-unquote tmp-name1)))
 		     tmp-name2)))
-		  (should (file-directory-p tmp-name2))))))
+		  (should (file-directory-p tmp-name2)))))
+
+	    ;; Create temporary file.  This shall check for sensible
+	    ;; files, owned by root.
+	    (let ((tramp-auto-save-directory temporary-file-directory)
+		  tramp-allow-unsafe-temporary-files)
+	      (write-region "foo" nil tmp-name1)
+	      (when (zerop (or (tramp-compat-file-attribute-user-id
+				(file-attributes tmp-name1))
+			       tramp-unknown-id-integer))
+		(with-temp-buffer
+		  (setq buffer-file-name tmp-name1)
+		  (tramp-cleanup-connection
+		   tramp-test-vec 'keep-debug 'keep-password)
+		  (let ((tramp-allow-unsafe-temporary-files t))
+		    (should (stringp (make-auto-save-file-name))))
+		  (tramp-cleanup-connection
+		   tramp-test-vec 'keep-debug 'keep-password)
+		  (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
+		    (should-error
+		     (make-auto-save-file-name)
+		     :type 'file-error))
+		  (tramp-cleanup-connection
+		   tramp-test-vec 'keep-debug 'keep-password)
+		  (cl-letf (((symbol-function #'yes-or-no-p)
+			     #'tramp--test-always))
+		    (should (stringp (make-auto-save-file-name))))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name1))
-	(ignore-errors (delete-directory tmp-name2 'recursive))))))
+	(ignore-errors (delete-directory tmp-name2 'recursive))
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)))))
 
 (ert-deftest tramp-test38-find-backup-file-name ()
   "Check `find-backup-file-name'."
@@ -5672,7 +5709,37 @@ Use direct async.")
 	      (should (file-directory-p tmp-name2))))
 
 	;; Cleanup.
-	(ignore-errors (delete-directory tmp-name2 'recursive))))))
+	(ignore-errors (delete-directory tmp-name2 'recursive)))
+
+      (unwind-protect
+	  ;; Create temporary file.  This shall check for sensible
+	  ;; files, owned by root.
+	  (let ((backup-directory-alist `(("." . ,temporary-file-directory)))
+		tramp-allow-unsafe-temporary-files
+		tramp-backup-directory-alist)
+	    (write-region "foo" nil tmp-name1)
+	    (when (zerop (or (tramp-compat-file-attribute-user-id
+			      (file-attributes tmp-name1))
+			     tramp-unknown-id-integer))
+	      (tramp-cleanup-connection
+	       tramp-test-vec 'keep-debug 'keep-password)
+	      (let ((tramp-allow-unsafe-temporary-files t))
+		(should (stringp (car (find-backup-file-name tmp-name1)))))
+	      (tramp-cleanup-connection
+	       tramp-test-vec 'keep-debug 'keep-password)
+	      (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
+		(should-error
+		 (find-backup-file-name tmp-name1)
+		 :type 'file-error))
+	      (tramp-cleanup-connection
+	       tramp-test-vec 'keep-debug 'keep-password)
+	      (cl-letf (((symbol-function #'yes-or-no-p)
+			 #'tramp--test-always))
+		(should (stringp (car (find-backup-file-name tmp-name1)))))))
+
+	;; Cleanup.
+	(ignore-errors (delete-file tmp-name1))
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)))))
 
 ;; The functions were introduced in Emacs 26.1.
 (ert-deftest tramp-test39-make-nearby-temp-file ()

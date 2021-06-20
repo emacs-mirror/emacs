@@ -5037,12 +5037,19 @@ ring directly.")
   "The tail of the kill ring whose car is the last thing yanked.")
 
 (defcustom save-interprogram-paste-before-kill nil
-  "Save existing clipboard text into kill ring before replacing it.
-A non-nil value ensures that Emacs kill operations do not
-irrevocably overwrite existing clipboard text by saving it to the
-`kill-ring' prior to the kill.  Such text can subsequently be
-retrieved via \\[yank] \\[yank-pop]."
-  :type 'boolean
+  "Whether to save existing clipboard text into kill ring before replacing it.
+A non-nil value means the clipboard text is saved to the `kill-ring'
+prior to any kill command.  Such text can subsequently be retrieved
+via \\[yank] \\[yank-pop].  This ensures that Emacs kill operations
+do not irrevocably overwrite existing clipboard text.
+
+The value of this variable can also be a number, in which case the
+clipboard data is only saved to the `kill-ring' if it's shorter
+(in characters) than that number.  Any other non-nil value will save
+the clipboard data unconditionally."
+  :type '(choice (const nil)
+                 number
+                 (other :tag "Always" t))
   :group 'killing
   :version "23.2")
 
@@ -5079,13 +5086,18 @@ argument should still be a \"useful\" string for such uses."
     (let ((interprogram-paste (and interprogram-paste-function
                                    (funcall interprogram-paste-function))))
       (when interprogram-paste
-        (dolist (s (if (listp interprogram-paste)
-                       ;; Use `reverse' to avoid modifying external data.
-                       (reverse interprogram-paste)
-		     (list interprogram-paste)))
-	  (unless (and kill-do-not-save-duplicates
-		       (equal-including-properties s (car kill-ring)))
-	    (push s kill-ring))))))
+        (setq interprogram-paste
+              (if (listp interprogram-paste)
+                  ;; Use `reverse' to avoid modifying external data.
+                  (reverse interprogram-paste)
+		(list interprogram-paste)))
+        (when (or (not (numberp save-interprogram-paste-before-kill))
+                  (< (seq-reduce #'+ (mapcar #'length interprogram-paste) 0)
+                     save-interprogram-paste-before-kill))
+          (dolist (s interprogram-paste)
+	    (unless (and kill-do-not-save-duplicates
+                         (equal-including-properties s (car kill-ring)))
+	      (push s kill-ring)))))))
   (unless (and kill-do-not-save-duplicates
 	       (equal-including-properties string (car kill-ring)))
     (if (and replace kill-ring)
@@ -9074,6 +9086,9 @@ back on `completion-list-insert-choice-function' when nil."
 Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
 Or click to select one with the mouse.
+
+See the `completions-format' user option to control how this
+buffer is formatted.
 
 \\{completion-list-mode-map}")
 

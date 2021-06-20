@@ -328,6 +328,8 @@ arguments to pass to the OPERATION."
         ;; `filename' could be a quoted file name.  Or the file
         ;; archive could be a directory, see Bug#30293.
         (if (or (null archive)
+                (not (tramp-archive-run-real-handler
+                      #'file-exists-p (list archive)))
 	        (tramp-archive-run-real-handler
                  #'file-directory-p (list archive)))
             (tramp-archive-run-real-handler operation args)
