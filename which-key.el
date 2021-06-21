@@ -914,11 +914,13 @@ both have the same effect for the \"C-x C-w\" key binding, but
 the latter causes which-key to verify that the key sequence is
 actually bound to write-file before performing the replacement."
   (while key
-    (let ((string (if (stringp replacement)
-                      replacement
-                    (car-safe replacement)))
-          (command (cdr-safe replacement)))
-      (define-key keymap (kbd key) (cons string command)))
+    (cond ((consp replacement)
+           (define-key keymap (kbd key) replacement))
+          ((stringp replacement)
+           (define-key keymap (kbd key) (cons replacement
+                                              (lookup-key keymap (kbd key)))))
+          (t
+           (user-error "replacement is neither a cons cell or a string")))
     (setq key (pop more)
           replacement (pop more))))
 (put 'which-key-add-keymap-based-replacements 'lisp-indent-function 'defun)

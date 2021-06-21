@@ -29,20 +29,17 @@
 
 (ert-deftest which-key-test--keymap-based-bindings ()
   (let ((map (make-sparse-keymap))
-        (emacs-lisp-mode-map (copy-keymap emacs-lisp-mode-map)))
-    (emacs-lisp-mode)
-    (define-key map "x" 'ignore)
-    (define-key emacs-lisp-mode-map "\C-c\C-a" 'complete)
-    (define-key emacs-lisp-mode-map "\C-c\C-b" map)
-    (which-key-add-keymap-based-replacements emacs-lisp-mode-map
-      "C-c C-a" '("mycomplete" . complete)
-      "C-c C-b" "mymap")
+        (prefix-map (make-sparse-keymap)))
+    (define-key prefix-map "x" 'ignore)
+    (define-key map "\C-a" 'complete)
+    (define-key map "\C-b" prefix-map)
+    (which-key-add-keymap-based-replacements map
+      "C-a" '("mycomplete" . complete)
+      "C-b" "mymap")
     (should (equal
-             (which-key--maybe-replace '("C-c C-a" . "complete"))
-             '("C-c C-a" . "mycomplete")))
-    (should (equal
-             (which-key--maybe-replace '("C-c C-b" . ""))
-             '("C-c C-b" . "mymap")))))
+             (which-key--get-keymap-bindings map)
+             '(("C-a" . "mycomplete")
+               ("C-b" . "mymap"))))))
 
 (ert-deftest which-key-test--prefix-declaration ()
   "Test `which-key-declare-prefixes' and
