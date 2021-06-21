@@ -1399,8 +1399,7 @@ Uses `string-lessp' after applying lowercase."
   (string-lessp (downcase (cdr acons)) (downcase (cdr bcons))))
 
 (defsubst which-key--group-p (description)
-  (or (string-match-p "^\\(group:\\|Prefix\\)" description)
-      (keymapp (intern description))))
+  (keymapp (intern description)))
 
 (defun which-key-prefix-then-key-order (acons bcons)
   "Order first by whether A and/or B is a prefix with no prefix
@@ -1739,19 +1738,19 @@ alists. Returns a list (key separator description)."
 Requires `which-key-compute-remaps' to be non-nil"
   (let (remap)
     (if (and which-key-compute-remaps
-             (setq remap (command-remapping (intern binding))))
+             (setq remap (command-remapping binding)))
         (copy-sequence (symbol-name remap))
       (copy-sequence (symbol-name binding)))))
 
 (defun which-key--get-keymap-bindings-1
-    "Helper function for `which-key--get-keymap-bindings'"
-    (keymap start &optional prefix all ignore-commands)
+    (keymap start &optional prefix filter all ignore-commands)
+  "See `which-key--get-keymap-bindings'."
   (let ((bindings start)
         (prefix-map (if prefix (lookup-key keymap prefix) keymap)))
     (when (keymapp prefix-map)
       (map-keymap
        (lambda (ev def)
-         (let* ((key (append prefix (list ev)))
+         (let* ((key (vconcat prefix (list ev)))
                 (key-desc (key-description key)))
            (cond
             ((assoc key-desc bindings))
@@ -1768,25 +1767,29 @@ Requires `which-key-compute-remaps' to be non-nil"
                       (and (numberp ev) (= ev 27))))
              (setq bindings
                    (which-key--get-keymap-bindings-1
-                    keymap bindings key all ignore-commands)))
+                    keymap bindings key nil all ignore-commands)))
             (def
-             (push
-              (cons key-desc
-                    (cond
-                     ((keymapp def) "+prefix")
-                     ((symbolp def) (which-key--compute-binding def))
-                     ((eq 'lambda (car-safe def)) "lambda")
-                     ((eq 'menu-item (car-safe def))
-                      (keymap--menu-item-binding def))
-                     ((stringp def) def)
-                     ((vectorp def) (key-description def))
-                     ((consp def) (car def))
-                     (t "unknown")))
-              bindings)))))
+             (let ((binding
+                     (cons key-desc
+                           (cond
+                            ((keymapp def) "prefix")
+                            ((symbolp def) (which-key--compute-binding def))
+                            ((eq 'lambda (car-safe def)) "lambda")
+                            ((eq 'menu-item (car-safe def))
+                             (keymap--menu-item-binding def))
+                            ((stringp def) def)
+                            ((vectorp def) (key-description def))
+                            ((consp def) (car def))
+                            (t "unknown")))))
+               (when (or (null filter)
+                         (and (functionp filter)
+                              (funcall filter binding)))
+                 (push binding bindings)))))))
        prefix-map))
     bindings))
 
-(defun which-key--get-keymap-bindings (keymap &optional prefix start all evil)
+(defun which-key--get-keymap-bindings
+    (keymap &optional start prefix filter all evil)
   "Retrieve top-level bindings from KEYMAP.
 PREFIX limits bindings to those starting with this key
 sequence. START is a list of existing bindings to add to.  If ALL
@@ -1799,16 +1802,18 @@ EVIL is non-nil, extract active evil bidings."
            (lookup-key keymap (kbd (format "<%s-state>" evil-state))))))
     (when (keymapp evil-map)
       (setq bindings (which-key--get-keymap-bindings-1
-                      evil-map bindings prefix all ignore)))
-    (which-key--get-keymap-bindings-1 keymap bindings prefix all ignore)))
+                      evil-map bindings prefix filter all ignore)))
+    (which-key--get-keymap-bindings-1
+     keymap bindings prefix filter all ignore)))
 
-(defun which-key--get-current-bindings (&optional prefix)
+(defun which-key--get-current-bindings (&optional prefix filter)
   "Generate a list of current active bindings."
   (let (bindings)
     (dolist (map (current-active-maps t) bindings)
       (when (cdr map)
         (setq bindings
-              (which-key--get-keymap-bindings map prefix bindings))))))
+              (which-key--get-keymap-bindings
+               map bindings prefix filter))))))
 
 (defun which-key--get-bindings (&optional prefix keymap filter recursive)
   "Collect key bindings.
@@ -1818,13 +1823,12 @@ is a function to use to filter the bindings. If RECURSIVE is
 non-nil, then bindings are collected recursively for all prefixes."
   (let* ((unformatted
           (cond ((keymapp keymap)
-                 (which-key--get-keymap-bindings keymap recursive))
+                 (which-key--get-keymap-bindings
+                  keymap prefix filter recursive))
                 (keymap
                  (error "%s is not a keymap" keymap))
                 (t
-                 (which-key--get-current-bindings prefix)))))
-    (when filter
-      (setq unformatted (cl-remove-if-not filter unformatted)))
+                 (which-key--get-current-bindings prefix filter)))))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted which-key-sort-order)))
