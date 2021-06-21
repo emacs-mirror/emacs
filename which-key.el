@@ -525,24 +525,6 @@ it."
   :group 'which-key
   :type 'boolean)
 
-(defcustom which-key-enable-extended-define-key nil
-  "Advise `define-key' to make which-key aware of definitions of the form
-
-  \(define-key KEYMAP KEY '(\"DESCRIPTION\" . DEF))
-
-With the advice, this definition will have the side effect of
-creating a replacement in `which-key-replacement-alist' that
-replaces DEF with DESCRIPTION when the key sequence ends in
-KEY. Using a cons cell like this is a valid definition for
-`define-key'. All this does is to make which-key aware of it.
-
-Since many higher level keybinding functions use `define-key'
-internally, this will affect most if not all of those as well.
-
-This variable must be set before loading which-key."
-  :group 'which-key
-  :type 'boolean)
-
 ;; Hooks
 (defcustom which-key-init-buffer-hook '()
   "Hook run when which-key buffer is initialized."
@@ -938,8 +920,7 @@ actually bound to write-file before performing the replacement."
                       replacement
                     (car-safe replacement)))
           (command (cdr-safe replacement)))
-      (define-key keymap (which-key--pseudo-key (kbd key))
-        `(which-key ,(cons string command))))
+      (define-key keymap (kbd key) (cons string command)))
     (setq key (pop more)
           replacement (pop more))))
 (put 'which-key-add-keymap-based-replacements 'lisp-indent-function 'defun)
@@ -1043,19 +1024,6 @@ If AT-ROOT is non-nil the binding is also placed at the root of MAP."
      (when (keymapp df)
        (which-key-define-key-recursively df key def t)))
    map))
-
-(defun which-key--process-define-key-args (keymap key def)
-  "When DEF takes the form (\"DESCRIPTION\". DEF), make sure
-which-key uses \"DESCRIPTION\" for this binding. This function is
-meant to be used as :before advice for `define-key'."
-  (with-demoted-errors "Which-key extended define-key error: %s"
-    (when (and (consp def)
-               (stringp (car def))
-               (symbolp (cdr def)))
-      (define-key keymap (which-key--pseudo-key key) `(which-key ,def)))))
-
-(when which-key-enable-extended-define-key
-  (advice-add #'define-key :before #'which-key--process-define-key-args))
 
 ;;; Functions for computing window sizes
 
@@ -1493,20 +1461,6 @@ local bindings coming first. Within these categories order using
                (string-match-p binding-regexp
                                (cdr key-binding)))))))
 
-(defun which-key--get-pseudo-binding (key-binding &optional prefix)
-  (let* ((key (kbd (car key-binding)))
-         (pseudo-binding (key-binding (which-key--pseudo-key key prefix))))
-    (when pseudo-binding
-      (let* ((command-replacement (cadr pseudo-binding))
-             (pseudo-desc (car command-replacement))
-             (pseudo-def (cdr command-replacement)))
-        (when (and (stringp pseudo-desc)
-                   (or (null pseudo-def)
-                       ;; don't verify keymaps
-                       (keymapp pseudo-def)
-                       (eq pseudo-def (key-binding key))))
-          (cons (car key-binding) pseudo-desc))))))
-
 (defsubst which-key--replace-in-binding (key-binding repl)
   (cond ((or (not (consp repl)) (null (cdr repl)))
          key-binding)
@@ -1542,26 +1496,23 @@ local bindings coming first. Within these categories order using
   "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
 which are strings. KEY is of the form produced by `key-binding'."
-  (let* ((pseudo-binding (which-key--get-pseudo-binding key-binding prefix)))
-    (if pseudo-binding
-        pseudo-binding
-      (let* ((replacer (if which-key-allow-multiple-replacements
-                           #'which-key--replace-in-repl-list-many
-                         #'which-key--replace-in-repl-list-once)))
-        (pcase
-            (apply replacer
-                   (list key-binding
-                         (cdr-safe (assq major-mode which-key-replacement-alist))))
-          (`(replaced . ,repl)
-           (if which-key-allow-multiple-replacements
-               (pcase (apply replacer (list repl which-key-replacement-alist))
-                 (`(replaced . ,repl) repl)
-                 ('() repl))
-             repl))
-          ('()
-           (pcase (apply replacer (list key-binding which-key-replacement-alist))
+  (let* ((replacer (if which-key-allow-multiple-replacements
+                       #'which-key--replace-in-repl-list-many
+                     #'which-key--replace-in-repl-list-once)))
+    (pcase
+        (apply replacer
+               (list key-binding
+                     (cdr-safe (assq major-mode which-key-replacement-alist))))
+      (`(replaced . ,repl)
+       (if which-key-allow-multiple-replacements
+           (pcase (apply replacer (list repl which-key-replacement-alist))
              (`(replaced . ,repl) repl)
-             ('() key-binding))))))))
+             ('() repl))
+         repl))
+      ('()
+       (pcase (apply replacer (list key-binding which-key-replacement-alist))
+         (`(replaced . ,repl) repl)
+         ('() key-binding))))))
 
 (defsubst which-key--current-key-list (&optional key-str)
   (append (listify-key-sequence (which-key--current-prefix))
@@ -1592,12 +1543,6 @@ which are strings. KEY is of the form produced by `key-binding'."
            map (kbd (which-key--current-key-string (car keydesc))))))
      (or (eq lookup (intern (cdr keydesc)))
          (and (keymapp lookup) (string= (cdr keydesc) "Prefix Command"))))))
-
-(defun which-key--pseudo-key (key &optional prefix)
-  "Replace the last key in the sequence KEY by a special symbol
-in order for which-key to allow looking up a description for the key."
-  (let ((seq (listify-key-sequence key)))
-    (vconcat (or prefix (butlast seq)) [which-key] (last seq))))
 
 (defun which-key--maybe-get-prefix-title (keys)
   "KEYS is a string produced by `key-description'.
