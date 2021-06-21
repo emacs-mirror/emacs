@@ -691,12 +691,9 @@ that are joined after authentication."
 (defun rcirc-prompt-for-encryption (server-plist)
   "Prompt the user for the encryption method to use.
 SERVER-PLIST is the property list for the server."
-  (let ((choices '("plain" "tls"))
-        (default (or (plist-get server-plist :encryption)
-                     "plain")))
-    (intern
-     (completing-read (format-prompt "Encryption" default)
-                      choices nil t nil nil default))))
+  (if (or (eq (plist-get server-plist :encryption) 'plain)
+          (yes-or-no-p "Encrypt connection?"))
+      'tls 'plain))
 
 (defun rcirc-keepalive ()
   "Send keep alive pings to active rcirc processes.
