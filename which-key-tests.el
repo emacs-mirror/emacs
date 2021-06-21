@@ -189,7 +189,7 @@
                 ("A" . "Z")
                 ("b" . "y")
                 ("B" . "Y")
-                ("p" . "Prefix")
+                ("p" . "prefix")
                 ("SPC" . "x")
                 ("C-a" . "w"))))
     (let ((which-key-sort-uppercase-first t))

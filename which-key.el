@@ -1401,7 +1401,8 @@ Uses `string-lessp' after applying lowercase."
   (string-lessp (downcase (cdr acons)) (downcase (cdr bcons))))
 
 (defsubst which-key--group-p (description)
-  (keymapp (intern description)))
+  (or (equal description "prefix")
+      (keymapp (intern description))))
 
 (defun which-key-prefix-then-key-order (acons bcons)
   "Order first by whether A and/or B is a prefix with no prefix
