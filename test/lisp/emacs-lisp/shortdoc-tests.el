@@ -34,7 +34,7 @@
         (let ((fun (car item))
               (props (cdr item)))
           (while props
-            (when (memq (car props) '(:eval :no-eval :no-eval*))
+            (when (memq (car props) '(:eval :no-eval :no-eval* :no-value))
               (let* ((example (cadr props))
                      (expr (cond
                             ((consp example) example)
