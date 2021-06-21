@@ -2288,7 +2288,8 @@ the various files."
 	;; Check to see if the file looks uncommonly large.
 	(when (not (or buf nowarn))
           (when (eq (abort-if-file-too-large
-                     (file-attribute-size attributes) "open" filename t)
+                     (file-attribute-size attributes) "open" filename
+                     (not rawfile))
                     'raw)
             (setf rawfile t))
 	  (warn-maybe-out-of-memory (file-attribute-size attributes)))
