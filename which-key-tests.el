@@ -39,7 +39,7 @@
     (should (equal
              (which-key--get-keymap-bindings map)
              '(("C-a" . "mycomplete")
-               ("C-b" . "mymap"))))))
+               ("C-b" . "group:mymap"))))))
 
 (ert-deftest which-key-test--prefix-declaration ()
   "Test `which-key-declare-prefixes' and
