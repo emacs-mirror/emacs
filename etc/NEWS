@@ -1169,6 +1169,11 @@ can provide a better overview in a long list of available bindings.
 ---
 *** New keybinding 'C-h R' prompts for a manual to display and displays it.
 
+---
+*** Closing the *Help* buffer from the toolbar now buries the buffer.
+In previous Emacs versions, the *Help* buffer was killed instead when
+clicking the "X" icon in the tool bar.
+
 +++
 ** New command 'lossage-size'.
 It allows users to set the maximum number of keystrokes and commands
