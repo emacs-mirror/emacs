@@ -3,6 +3,11 @@
   [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
 
 ** Recent Changes
+*** 2021-06-21: Add support for menu-item bindings
+    =which-key= will now detect and compute the result of =menu-item=
+    bindings. As a consequence of reworking the internals,
+    =which-key-enable-extended-define-key= is now obsolete (the associated
+    behavior is supported by default).
 
 *** 2020-08-28: Added =which-key-add-keymap-based-replacements=
     This function provides an alternative interface allowing replacements to be
@@ -34,6 +39,7 @@
 ** Table of Contents                                                  :TOC_3:
 - [[#which-key][which-key]]
   - [[#recent-changes][Recent Changes]]
+    - [[#2021-06-21-add-support-for-menu-item-bindings][2021-06-21: Add support for menu-item bindings]]
     - [[#2020-08-28-added-which-key-add-keymap-based-replacements][2020-08-28: Added =which-key-add-keymap-based-replacements=]]
     - [[#2019-08-01-added-which-key-show-early-on-c-h][2019-08-01: Added =which-key-show-early-on-C-h=]]
     - [[#2017-12-13-added-which-key-enable-extended-define-key][2017-12-13: Added =which-key-enable-extended-define-key=]]
@@ -275,30 +281,26 @@
          "f" '("foo" . long-command-name-foo)
          ;; or
          ;; "f" "foo" (see the docstring)
-         "b" '("bar-prefix")
+         "b" '("bar-prefix" . (keymap))
          ;; or
          ;; "b" "bar-prefix" (see the docstring)
        )
      #+END_SRC
 
      uses =define-key= to add two bindings and tells which-key to use the string
-     "foo" in place of "command-foo" and the string "bar-prefix" for
-     some-prefix-map. Note that =which-key-add-keymap-based-replacements= will
-     not bind a command, so =define-key= must still be used.
-
-     Alternatively, you may set =which-key-enable-extended-define-key= to =t=
-     before loading which-key and accomplish the same effect using only
-     =define-key= as follows.
+     "foo" in place of "command-foo" and the string "bar-prefix" for an empty
+     prefix map. =which-key-add-keymap-based-replacements= uses =define-key= to
+     bind (or rebind) the command, and you may also use =define-key= directly as
+     follows.
 
      #+BEGIN_SRC emacs-lisp
      (define-key some-map "f" '("foo" . command-foo))
-     (define-key some-map "b" '("bar-prefix"))
+     (define-key some-map "b" '("bar-prefix" . (keymap)))
      #+END_SRC
 
-     The option =which-key-enable-extended-define-key= advises =define-key= to
-     allow which-key to use the =(NAME . COMMAND)= notation to simultaneously
-     define a command and give that command a name using =define-key=. Since
-     many key-binding utilities use =define-key= internally, this functionality
+     Here =define-key= uses the natively supported =(NAME . COMMAND)= notation
+     to simultaneously define a command and give that command a name. Since many
+     key-binding utilities use =define-key= internally, this functionality
      should be available with your favorite method of defining keys as well.
 
      There are other methods of telling which-key to replace command names,
