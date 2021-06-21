@@ -1745,6 +1745,14 @@ Requires `which-key-compute-remaps' to be non-nil"
         (copy-sequence (symbol-name remap))
       (copy-sequence (symbol-name binding)))))
 
+(defun which-key--get-menu-item-binding (def)
+  "Retrieve binding for menu-item"
+  ;; see `keymap--menu-item-binding'
+  (let* ((binding (nth 2 def))
+         (plist (nthcdr 3 def))
+         (filter (plist-get plist :filter)))
+    (if filter (funcall filter binding) binding)))
+
 (defun which-key--get-keymap-bindings-1
     (keymap start &optional prefix filter all ignore-commands)
   "See `which-key--get-keymap-bindings'."
@@ -1772,14 +1780,17 @@ Requires `which-key-compute-remaps' to be non-nil"
                    (which-key--get-keymap-bindings-1
                     keymap bindings key nil all ignore-commands)))
             (def
-             (let ((binding
+             (let* ((def (if (eq 'menu-item (car-safe def))
+                             (which-key--get-menu-item-binding def)
+                           def))
+                    (binding
                      (cons key-desc
                            (cond
                             ((keymapp def) "prefix")
                             ((symbolp def) (which-key--compute-binding def))
                             ((eq 'lambda (car-safe def)) "lambda")
                             ((eq 'menu-item (car-safe def))
-                             (keymap--menu-item-binding def))
+                             (which-key--get-menu-item-binding def))
                             ((stringp def) def)
                             ((vectorp def) (key-description def))
                             ((consp def) (car def))
