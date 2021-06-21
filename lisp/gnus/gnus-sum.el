@@ -5083,17 +5083,17 @@ using some other form will lead to serious barfage."
   (gnus-article-sort-by-author
    (gnus-thread-header h1)  (gnus-thread-header h2)))
 
+(defsubst gnus-article-sort-extract-extra (name header)
+  (let ((extract
+	 (funcall gnus-extract-address-components
+		  (or (cdr (assq name (mail-header-extra header)))
+		      ""))))
+    (or (car extract) (cadr extract))))
+
 (defsubst gnus-article-sort-by-recipient (h1 h2)
   "Sort articles by recipient."
-  (gnus-string<
-   (let ((extract (funcall
-		   gnus-extract-address-components
-		   (or (cdr (assq 'To (mail-header-extra h1))) ""))))
-     (or (car extract) (cadr extract)))
-   (let ((extract (funcall
-		   gnus-extract-address-components
-		   (or (cdr (assq 'To (mail-header-extra h2))) ""))))
-     (or (car extract) (cadr extract)))))
+  (let ((ex (lambda (h) (gnus-article-sort-extract-extra 'To h))))
+    (gnus-string< (funcall ex h1) (funcall ex h2))))
 
 (defun gnus-thread-sort-by-recipient (h1 h2)
   "Sort threads by root recipient."
@@ -5188,22 +5188,15 @@ Unscored articles will be counted as having a score of zero."
   "Sort threads such that the thread with the most recently dated article comes first."
   (> (gnus-thread-latest-date h1) (gnus-thread-latest-date h2)))
 
-(defun gnus-article-sort-by-newsgroups (h1 h2)
+(defsubst gnus-article-sort-by-newsgroups (h1 h2)
   "Sort articles by newsgroups."
-  (let ((ex
-         (lambda (h)
-           (let ((extract
-                  (funcall gnus-extract-address-components
-		           (or (cdr (assq 'Newsgroups (mail-header-extra h)))
-                               ""))))
-             (or (car extract) (cadr extract))))))
+  (let ((ex (lambda (h) (gnus-article-sort-extract-extra 'Newsgroups h))))
     (gnus-string< (funcall ex h1) (funcall ex h2))))
 
 (defun gnus-thread-sort-by-newsgroups (h1 h2)
   "Sort threads by root newsgroups."
   (gnus-article-sort-by-newsgroups
    (gnus-thread-header h1) (gnus-thread-header h2)))
-
 
 ; Since this is called not only to sort the top-level threads, but
 ; also in recursive sorts to order the articles within a thread, each
