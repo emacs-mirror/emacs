@@ -522,6 +522,11 @@ it."
   :group 'which-key
   :type 'boolean)
 
+(make-obsolete-variable
+ 'which-key-enable-extended-define-key
+ "which-key-enable-extended-define-key is obsolete and has no effect."
+ "2021-06-21")
+
 ;; Hooks
 (defcustom which-key-init-buffer-hook '()
   "Hook run when which-key buffer is initialized."
