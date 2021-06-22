@@ -1406,8 +1406,7 @@ Uses `string-lessp' after applying lowercase."
 
 (defsubst which-key--group-p (description)
   (or (string-equal description "prefix")
-      (and (length> description 6)
-           (string-equal (substring description 0 6) "group:"))
+      (string-match-p "^group:" description)
       (keymapp (intern description))))
 
 (defun which-key-prefix-then-key-order (acons bcons)
