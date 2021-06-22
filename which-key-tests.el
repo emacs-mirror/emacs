@@ -36,11 +36,14 @@
     (define-key map "\C-b" prefix-map)
     (which-key-add-keymap-based-replacements map
       "C-a" '("mycomplete" . complete)
-      "C-b" "mymap")
+      "C-b" "mymap"
+      "C-c" "mymap2")
+    (define-key map "\C-ca" 'foo)
     (should (equal
              (which-key--get-keymap-bindings map)
              '(("C-a" . "mycomplete")
-               ("C-b" . "group:mymap"))))))
+               ("C-b" . "group:mymap")
+               ("C-c" . "group:mymap2"))))))
 
 (ert-deftest which-key-test--prefix-declaration ()
   "Test `which-key-declare-prefixes' and

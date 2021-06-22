@@ -922,8 +922,15 @@ actually bound to write-file before performing the replacement."
     (cond ((consp replacement)
            (define-key keymap (kbd key) replacement))
           ((stringp replacement)
-           (define-key keymap (kbd key) (cons replacement
-                                              (lookup-key keymap (kbd key)))))
+           (let ((binding (lookup-key keymap (kbd key))))
+             (if (or (null binding)
+                     (numberp binding))
+                 ;; using a keymap in case someone intends to make this a
+                 ;; prefix. If they want to bind something else, they will just
+                 ;; end up overriding the prefix map
+                 (define-key keymap (kbd key)
+                   (cons replacement (make-sparse-keymap)))
+               (define-key keymap (kbd key) (cons replacement binding)))))
           (t
            (user-error "replacement is neither a cons cell or a string")))
     (setq key (pop more)
