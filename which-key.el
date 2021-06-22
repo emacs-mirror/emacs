@@ -909,20 +909,16 @@ For backwards compatibility, REPLACEMENT can also be a string,
 but the above format is preferred, and the option to use a string
 for REPLACEMENT will eventually be removed."
   (while key
-    (cond ((consp replacement)
-           (define-key keymap (kbd key) replacement))
-          ((stringp replacement)
-           (let ((binding (lookup-key keymap (kbd key))))
-             (if (or (null binding)
-                     (numberp binding))
-                 ;; using a keymap in case someone intends to make this a
-                 ;; prefix. If they want to bind something else, they will just
-                 ;; end up overriding the prefix map
-                 (define-key keymap (kbd key)
-                   (cons replacement (make-sparse-keymap)))
-               (define-key keymap (kbd key) (cons replacement binding)))))
-          (t
-           (user-error "replacement is neither a cons cell or a string")))
+    (let ((def
+           (cond
+            ((consp replacement) replacement)
+            ((stringp replacement)
+             (cons replacement
+                   (or (which-key--safe-lookup-key keymap (kbd key))
+                       (make-sparse-keymap))))
+            (t
+             (user-error "replacement is neither a cons cell or a string")))))
+      (define-key keymap (kbd key) def))
     (setq key (pop more)
           replacement (pop more))))
 (put 'which-key-add-keymap-based-replacements 'lisp-indent-function 'defun)
@@ -1445,8 +1441,13 @@ local bindings coming first. Within these categories order using
   (if (stringp maybe-string) (string-width maybe-string) 0))
 
 (defsubst which-key--safe-lookup-key (keymap key)
-  "Version of `lookup-key' that allows KEYMAP to be nil. KEY is not checked."
-  (when (keymapp keymap) (lookup-key keymap key)))
+  "Version of `lookup-key' that allows KEYMAP to be nil.
+Also convert numeric results of `lookup-key' to nil. KEY is not
+checked."
+  (when (keymapp keymap)
+    (let ((result (lookup-key keymap key)))
+      (when (and result (not (numberp result)))
+        result))))
 
 (defsubst which-key--butlast-string (str)
   (mapconcat #'identity (butlast (split-string str)) " "))
