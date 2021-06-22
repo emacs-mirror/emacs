@@ -1612,6 +1612,9 @@ These new navigation commands are bound to 'n' and 'p' in
 *** New command 'apropos-function'.
 This works like 'C-u M-x apropos-command' but is more discoverable.
 
+*** New face 'apropos-button'.
+Applies to buttons that indicate a face.
+
 ** CC Mode
 
 *** Added support for Doxygen documentation style.
