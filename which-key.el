@@ -1343,7 +1343,9 @@ width) in lines and characters respectively."
   "Sorting function used for `which-key-key-order' and
 `which-key-key-order-alpha'."
   (save-match-data
-    (let* ((rngrgxp "^\\([^ ]+\\) \\.\\. [^ ]+")
+    (let* ((a (which-key--extract-key a))
+           (b (which-key--extract-key b))
+           (rngrgxp "^\\([^ ]+\\) \\.\\. [^ ]+")
            (a (if (string-match rngrgxp a) (match-string 1 a) a))
            (b (if (string-match rngrgxp b) (match-string 1 b) b))
            (aem? (string-equal a ""))
