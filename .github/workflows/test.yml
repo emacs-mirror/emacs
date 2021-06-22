@@ -20,16 +20,21 @@ jobs:
           - 27.2
           - snapshot
     steps:
-    - uses: purcell/setup-emacs@master
-      with:
-        version: ${{ matrix.emacs_version }}
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+          architecture: 'x64'
+      - uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs_version }}
 
-    - uses: actions/checkout@v2
-    - name: Install Cask
-      uses: conao3/setup-cask@master
-      with:
-        version: 'snapshot'
-    - name: Install dependencies
-      run: 'cask install'
-    - name: Run tests
-      run: 'cask exec emacs -Q -batch -L . -l which-key-tests.el -f ert-run-tests-batch-and-exit'
+      - uses: actions/checkout@v2
+      - name: Install Cask
+        uses: conao3/setup-cask@master
+        with:
+          version: 'snapshot'
+      - name: Install dependencies
+        run: 'cask install'
+      - name: Run tests
+        run: 'cask exec emacs -Q -batch -L . -l which-key-tests.el -f ert-run-tests-batch-and-exit'
