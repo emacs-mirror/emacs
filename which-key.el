@@ -254,7 +254,7 @@ disabled by default. Try this to see the effect.
   :type 'string)
 
 (defcustom which-key-show-prefix 'echo
-  "Whether to and where to display the current prefix sequence.
+  "Whether to and where to display the current prefix sequence
 Possible choices are echo for echo area (the default), left, top
 and nil. Nil turns the feature off."
   :group 'which-key
@@ -266,7 +266,7 @@ and nil. Nil turns the feature off."
                 (const :tag "Hide" nil)))
 
 (defcustom which-key-popup-type 'side-window
-  "Supported types are minibuffer, side-window, frame, and custom."
+  "Supported types are minibuffer, side-window, frame, and custom"
   :group 'which-key
   :type '(radio (const :tag "Show in minibuffer" minibuffer)
                 (const :tag "Show in side window" side-window)
@@ -274,12 +274,12 @@ and nil. Nil turns the feature off."
                 (const :tag "Use your custom display functions" custom)))
 
 (defcustom which-key-min-display-lines 1
-  "The minimum number of horizontal lines to display in the which-key buffer."
+  "Minimum number of horizontal lines to display in the which-key buffer"
   :group 'which-key
   :type 'integer)
 
 (defcustom which-key-max-display-columns nil
-  "The maximum number of columns to display in the which-key buffer.
+  "Maximum number of columns to display in the which-key buffer
 nil means don't impose a maximum."
   :group 'which-key
   :type '(choice integer (const :tag "Unbounded" nil)))
@@ -304,25 +304,23 @@ location is tried."
 docstring of `display-buffer-in-side-window',
 
 ‘slot’ if non-nil, specifies the window slot where to display
-  BUFFER.  A value of zero or nil means use the middle slot on
-  the specified side.  A negative value means use a slot
-  preceding (that is, above or on the left of) the middle slot.
-  A positive value means use a slot following (that is, below or
-  on the right of) the middle slot.  The default is zero."
+BUFFER.  A value of zero or nil means use the middle slot on the
+specified side.  A negative value means use a slot
+preceding (that is, above or on the left of) the middle slot.  A
+positive value means use a slot following (that is, below or on
+the right of) the middle slot.  The default is zero."
   :group 'which-key
   :type 'integer)
 
 (defcustom which-key-side-window-max-width 0.333
-  "Maximum width of which-key popup when type is side-window and
-location is left or right.
-This variable can also be a number between 0 and 1. In that case, it denotes
-a percentage out of the frame's width."
+  "Maximum width of which-key popup when type is side-window
+This variable can also be a number between 0 and 1. In that case,
+it denotes a percentage out of the frame's width."
   :group 'which-key
   :type 'float)
 
 (defcustom which-key-side-window-max-height 0.25
-  "Maximum height of which-key popup when type is side-window and
-location is top or bottom.
+  "Maximum height of which-key popup when type is side-window
 This variable can also be a number between 0 and 1. In that case, it denotes
 a percentage out of the frame's height."
   :group 'which-key
