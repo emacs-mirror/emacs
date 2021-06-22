@@ -13,12 +13,11 @@ jobs:
     strategy:
       matrix:
         emacs_version:
-          - 25.1
-          - 25.2
-          - 25.3
           - 26.1
           - 26.2
           - 26.3
+          - 27.1
+          - 27.2
           - snapshot
     steps:
     - uses: purcell/setup-emacs@master
@@ -26,5 +25,11 @@ jobs:
         version: ${{ matrix.emacs_version }}
 
     - uses: actions/checkout@v2
+    - name: Install cask
+      run: |
+        git clone https://github.com/cask/cask ~/.cask
+        echo "${HOME}/.cask/bin" >> $GITHUB_PATH
+    - name: Install dependencies
+      run: 'cask install'
     - name: Run tests
       run: 'emacs -Q -batch -L . -l which-key-tests.el -f ert-run-tests-batch-and-exit'
