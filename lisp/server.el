@@ -1308,7 +1308,17 @@ The following commands are accepted by the client:
 						       frame-parameters))
 		   ;; When resuming on a tty, tty-name is nil.
 		   (tty-name
-		    (server-create-tty-frame tty-name tty-type proc))))
+		    (server-create-tty-frame tty-name tty-type proc))
+
+                   ;; If there won't be a current frame to use, fall
+                   ;; back to trying to create a new one.
+		   ((and use-current-frame
+			 (daemonp)
+			 (null (cdr (frame-list)))
+			 (eq (selected-frame) terminal-frame)
+			 display)
+		    (setq tty-name nil tty-type nil)
+		    (server-select-display display))))
 
             (process-put
              proc 'continuation
