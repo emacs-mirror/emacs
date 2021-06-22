@@ -26,6 +26,7 @@
 
 (require 'which-key)
 (require 'ert)
+(require 'evil)
 
 (ert-deftest which-key-test--keymap-based-bindings ()
   (let ((map (make-sparse-keymap))
@@ -141,7 +142,6 @@
         (evil-local-mode t)
         (evil-state 'normal)
         which-key-replacement-alist)
-    (require 'evil)
     (define-key map [which-key-a] '(which-key "blah"))
     (define-key map "b" 'ignore)
     (define-key map "c" "c")
