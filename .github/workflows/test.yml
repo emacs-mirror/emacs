@@ -25,11 +25,11 @@ jobs:
         version: ${{ matrix.emacs_version }}
 
     - uses: actions/checkout@v2
-    - name: Install cask
-      run: |
-        git clone https://github.com/cask/cask ~/.cask
-        echo "${HOME}/.cask/bin" >> $GITHUB_PATH
+    - name: Install Cask
+      uses: conao3/setup-cask@master
+      with:
+        version: 'snapshot'
     - name: Install dependencies
       run: 'cask install'
     - name: Run tests
-      run: 'emacs -Q -batch -L . -l which-key-tests.el -f ert-run-tests-batch-and-exit'
+      run: 'cask exec emacs -Q -batch -L . -l which-key-tests.el -f ert-run-tests-batch-and-exit'
