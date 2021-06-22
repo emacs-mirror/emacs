@@ -91,6 +91,12 @@ proper pty support that Emacs needs.
 
 * Startup Changes in Emacs 28.1
 
+---
+** In GTK builds, Emacs now supports startup notification.
+This means that Emacs won't steal keyboard focus upon startup
+(when started via the Desktop) if the user is typing into another
+application.
+
 ** Emacs can support 24-bit color TTY without terminfo database.
 If your text-mode terminal supports 24-bit true color, but your system
 lacks the terminfo database, you can instruct Emacs to support 24-bit
