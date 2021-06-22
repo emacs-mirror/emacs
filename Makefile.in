@@ -753,7 +753,7 @@ install-etc:
 	done
 
 ### Install native compiled Lisp files.
-install-eln:
+install-eln: lisp
 ifeq ($(HAVE_NATIVE_COMP),yes)
 	find native-lisp -type d -exec $(MKDIR_P) "$(ELN_DESTDIR){}" \; ; \
 	find native-lisp -type f -exec ${INSTALL_DATA} "{}" "$(ELN_DESTDIR){}" \;
