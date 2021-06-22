@@ -271,37 +271,38 @@
 **** Keymap-based replacement
      Using this method, which-key can display a custom string for a key
      definition in some keymap. There are two ways to define a keymap-based
-     replacement. The first is to use
-     =which-key-add-keymap-based-replacements=. The statement
-
-     #+BEGIN_SRC emacs-lisp
-       (define-key some-map "f" 'long-command-name-foo)
-       (define-key some-map "b" some-prefix-map)
-       (which-key-add-keymap-based-replacements some-map
-         "f" '("foo" . long-command-name-foo)
-         ;; or
-         ;; "f" "foo" (see the docstring)
-         "b" '("bar-prefix" . (keymap))
-         ;; or
-         ;; "b" "bar-prefix" (see the docstring)
-       )
-     #+END_SRC
-
-     uses =define-key= to add two bindings and tells which-key to use the string
-     "foo" in place of "command-foo" and the string "bar-prefix" for an empty
-     prefix map. =which-key-add-keymap-based-replacements= uses =define-key= to
-     bind (or rebind) the command, and you may also use =define-key= directly as
-     follows.
+     replacement. The preferred way is to use =define-key= (or a command that
+     uses =define-key= internally) with a cons cell as the definition. For
+     example,
 
      #+BEGIN_SRC emacs-lisp
      (define-key some-map "f" '("foo" . command-foo))
      (define-key some-map "b" '("bar-prefix" . (keymap)))
      #+END_SRC
 
-     Here =define-key= uses the natively supported =(NAME . COMMAND)= notation
-     to simultaneously define a command and give that command a name. Since many
-     key-binding utilities use =define-key= internally, this functionality
-     should be available with your favorite method of defining keys as well.
+     binds =command-foo= to =f= in =some-map=, but also stores the string "foo"
+     which which-key will extract to use to describe this command. The second
+     example binds an empty keymap to =b= in =some-map= and uses "bar-prefix" to
+     describe it. These bindings are accepted by =define-key= natively (i.e.,
+     with or without which-key being loaded). Since many key-binding utilities
+     use =define-key= internally, this functionality should be available with
+     your favorite method of defining keys as well.
+
+     The second method is to use =which-key-add-keymap-based-replacements=. The
+     statement
+
+     #+BEGIN_SRC emacs-lisp
+       (define-key some-map "f" 'long-command-name-foo)
+       (define-key some-map "b" some-prefix-map)
+       (which-key-add-keymap-based-replacements some-map
+         "f" '("foo" . long-command-name-foo)
+         "b" '("bar-prefix" . (keymap)))
+     #+END_SRC
+
+     uses =define-key= to add two bindings and tells which-key to use the string
+     "foo" in place of "command-foo" and the string "bar-prefix" for an empty
+     prefix map. =which-key-add-keymap-based-replacements= just uses
+     =define-key= to bind (or rebind) the command.
 
      There are other methods of telling which-key to replace command names,
      which are described next. The keymap-based replacements should be the most
