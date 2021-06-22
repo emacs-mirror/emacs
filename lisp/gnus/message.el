@@ -8730,11 +8730,11 @@ headers.  If FORCE, insert new field even if NEW-VALUE is empty."
       (message-narrow-to-headers)
       (message-remove-header header))
     (when (or force (> (length new-value) 0))
-      (when after
-        (if (listp after)
-            (apply #'message-position-on-field
-                   (append (list header) after))
-          (message-position-on-field header after))
+      (if after
+          (apply #'message-position-on-field header
+                 (if (listp after)
+                     after
+                   (list after)))
 	(message-position-on-field header))
       (insert new-value))))
 
