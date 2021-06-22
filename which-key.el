@@ -1506,7 +1506,7 @@ local bindings coming first. Within these categories order using
         (setq key-binding (which-key--replace-in-binding key-binding repl))))
     (when found `(replaced . ,key-binding))))
 
-(defun which-key--maybe-replace (key-binding &optional prefix)
+(defun which-key--maybe-replace (key-binding)
   "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
 which are strings. KEY is of the form produced by `key-binding'."
@@ -1721,17 +1721,13 @@ alists. Returns a list (key separator description)."
         (local-map (current-local-map))
         new-list)
     (dolist (key-binding unformatted)
-      (let* ((key (car key-binding))
+      (let* ((keys (car key-binding))
              (orig-desc (cdr key-binding))
              (group (which-key--group-p orig-desc))
-             ;; At top-level prefix is nil
-             (keys (if prefix
-                       (concat (key-description prefix) " " key)
-                     key))
              (local (eq (which-key--safe-lookup-key local-map (kbd keys))
                         (intern orig-desc)))
              (hl-face (which-key--highlight-face orig-desc))
-             (key-binding (which-key--maybe-replace (cons keys orig-desc) prefix))
+             (key-binding (which-key--maybe-replace key-binding))
              (final-desc (which-key--propertize-description
                           (cdr key-binding) group local hl-face orig-desc)))
         (when final-desc
