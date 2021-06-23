@@ -330,50 +330,22 @@ of the menu's data."
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
 
-(defun bindings--menu-item-string (item)
-  "Return the menu-item string for ITEM, or nil if not a menu-item."
-  (cond
-   ((not (consp item)) nil)             ; Not a menu-item.
-   ((eq 'menu-item (car item))
-    (eval (cadr item)))
-   ((stringp (car item))
-    (car item))
-   (t nil)))                            ; Not a menu-item either.
-
-(defun bindings--sort-keymap (keymap)
-  "Sort the bindings in KEYMAP in alphabetical order.
-The order of bindings in a keymap matters only when it is used as
-a menu, so this function is not useful for non-menu keymaps."
-  (unless (keymapp keymap)
-    (signal 'wrong-type-argument (list 'keymapp keymap)))
-  (setcdr keymap
-          (sort (cdr keymap)
-                (lambda (a b)
-                  (string< (bindings--menu-item-string (cdr-safe a))
-                           (bindings--menu-item-string (cdr-safe b))))))
-  keymap)
-
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
     (bindings--define-key map [mode-line down-mouse-1]
       `(menu-item "Menu Bar" ignore
         :filter ,(lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
-    (bindings--define-key map [mode-line down-mouse-3]
-      `(menu-item "Menu Bar" ,mode-line-mode-menu
-                  :filter bindings--sort-keymap))
+    (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
     map) "\
 Keymap to display on major mode.")
 
 (defvar mode-line-minor-mode-keymap
-  (let ((map (make-sparse-keymap))
-        (mode-menu-binding
-         `(menu-item "Menu Bar" ,mode-line-mode-menu
-           :filter bindings--sort-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map [mode-line down-mouse-1] 'mouse-minor-mode-menu)
     (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
-    (define-key map [mode-line down-mouse-3] mode-menu-binding)
-    (define-key map [header-line down-mouse-3] mode-menu-binding)
+    (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
+    (define-key map [header-line down-mouse-3] mode-line-mode-menu)
     map) "\
 Keymap to display on minor modes.")
 
