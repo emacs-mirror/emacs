@@ -107,17 +107,17 @@
   "Symbol that defines the primary language in SERA --> FIDEL conversion.
 The value should be one of: `tigrigna', `amharic' or `english'."
   :version "28.1"
-  :type '(choice (const :tag "Tigrigna" 'tigrigna)
-                 (const :tag "Amharic" 'amharic)
-                 (const :tag "English" 'english)))
+  :type '(choice (const :tag "Tigrigna" tigrigna)
+                 (const :tag "Amharic" amharic)
+                 (const :tag "English" english)))
 
 (defcustom ethio-secondary-language 'english
   "Symbol that defines the secondary language in SERA --> FIDEL conversion.
 The value should be one of: `tigrigna', `amharic' or `english'."
   :version "28.1"
-  :type '(choice (const :tag "Tigrigna" 'tigrigna)
-                 (const :tag "Amharic" 'amharic)
-                 (const :tag "English" 'english)))
+  :type '(choice (const :tag "Tigrigna" tigrigna)
+                 (const :tag "Amharic" amharic)
+                 (const :tag "English" english)))
 
 (defcustom ethio-use-colon-for-colon nil
   "Non-nil means associate ASCII colon with Ethiopic colon.
@@ -127,7 +127,7 @@ variable."
   :version "28.1"
   :type 'boolean)
 
-(defvar ethio-use-three-dot-question nil
+(defcustom ethio-use-three-dot-question nil
   "If non-nil, associate ASCII question mark with Ethiopic question mark.
 The Ethiopic old style question mark is three vertically stacked dots.
 If nil, associate ASCII question mark with Ethiopic stylized question
@@ -135,7 +135,7 @@ mark.  All SERA <--> FIDEL converters refer this variable."
   :version "28.1"
   :type 'boolean)
 
-(defvar ethio-quote-vowel-always nil
+(defcustom ethio-quote-vowel-always nil
   "Non-nil means always put an apostrophe before an isolated vowel.
 This happens in FIDEL --> SERA conversions.  Isolated vowels at
 word beginning do not get an apostrophe put before them.
@@ -144,13 +144,13 @@ isolated vowel."
   :version "28.1"
   :type 'boolean)
 
-(defvar ethio-W-sixth-always nil
+(defcustom ethio-W-sixth-always nil
   "Non-nil means convert the Wu-form of a 12-form consonant to \"W'\".
 This is instead of \"Wu\" in FIDEL --> SERA conversion."
   :version "28.1"
   :type 'boolean)
 
-(defvar ethio-numeric-reduction 0
+(defcustom ethio-numeric-reduction 0
   "Degree of reduction in converting Ethiopic digits into Arabic digits.
 Should be 0, 1 or 2.
 For example, ({10}{9}{100}{80}{7}) is converted into:
@@ -160,7 +160,7 @@ For example, ({10}{9}{100}{80}{7}) is converted into:
   :version "28.1"
   :type 'integer)
 
-(defvar ethio-java-save-lowercase nil
+(defcustom ethio-java-save-lowercase nil
   "Non-nil means save Ethiopic characters in lowercase hex numbers to Java files.
 If nil, use uppercases."
   :version "28.1"
