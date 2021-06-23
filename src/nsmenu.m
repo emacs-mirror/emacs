@@ -1089,10 +1089,10 @@ update_frame_tool_bar (struct frame *f)
 #undef TOOLPROP
     }
 
-  if (![toolbar isVisible])
+  if ([toolbar isVisible] != FRAME_EXTERNAL_TOOL_BAR (f))
     {
       f->output_data.ns->in_animation = 1;
-      [toolbar setVisible: YES];
+      [toolbar setVisible: FRAME_EXTERNAL_TOOL_BAR (f)];
       f->output_data.ns->in_animation = 0;
     }
 
