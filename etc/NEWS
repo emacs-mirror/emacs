@@ -2135,6 +2135,9 @@ summaries will include the failing condition.
 ** Miscellaneous
 
 +++
+*** rcirc now supports SASL authentication.
+
++++
 *** 'save-interprogram-paste-before-kill' can now be a number.
 In that case, it's interpreted as a limit on the size of the clipboard
 data that will be saved to the 'kill-ring' prior to killing text: if
