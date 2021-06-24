@@ -3374,7 +3374,8 @@ If optional arg BUTTON is non-nil, describe its associated package."
         (forward-line 1)))))
 
 (defvar package--quick-help-keys
-  '(("install," "delete," "unmark," ("execute" . 1))
+  '((("mark for installation," . 9)
+     ("mark for deletion," . 9) "unmark," ("execute marked actions" . 1))
     ("next," "previous")
     ("Hide-package," "(-toggle-hidden")
     ("g-refresh-contents," "/-filter," "help")))
