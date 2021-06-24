@@ -261,13 +261,15 @@ The ARGUMENTS for each METHOD symbol are:
   `chanserv': NICK CHANNEL PASSWORD
   `bitlbee': NICK PASSWORD
   `quakenet': ACCOUNT PASSWORD
+  `sasl': NICK PASSWORD
 
 Examples:
  ((\"freenode\" nickserv \"bob\" \"p455w0rd\")
   (\"freenode\" chanserv \"bob\" \"#bobland\" \"passwd99\")
   (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
   (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\")
-  (\"quakenet.org\" quakenet \"bobby\" \"sekrit\"))"
+  (\"quakenet.org\" quakenet \"bobby\" \"sekrit\")
+  (\"oftc\" sasl \"bob\" \"hunter2\"))"
   :type '(alist :key-type (regexp :tag "Server")
 		:value-type (choice (list :tag "NickServ"
 					  (const nickserv)
@@ -285,6 +287,10 @@ Examples:
                                     (list :tag "QuakeNet"
                                           (const quakenet)
                                           (string :tag "Account")
+                                          (string :tag "Password"))
+                                    (list :tag "SASL"
+                                          (const sasl)
+                                          (string :tag "Nick")
                                           (string :tag "Password")))))
 
 (defcustom rcirc-auto-authenticate-flag t
@@ -597,12 +603,31 @@ See `rcirc-connect' for more details on these variables.")
     "batch"                             ;https://ircv3.net/specs/extensions/batch
     "message-ids"                       ;https://ircv3.net/specs/extensions/message-ids
     "invite-notify"                     ;https://ircv3.net/specs/extensions/invite-notify
+    "sasl"                              ;https://ircv3.net/specs/extensions/sasl-3.1
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
   "A list of capabilities that client has requested.")
 (defvar-local rcirc-acked-capabilities nil
   "A list of capabilities that the server supports.")
+
+(defun rcirc-get-server-method (server)
+  "Return authentication method for SERVER."
+  (catch 'method
+    (dolist (i rcirc-authinfo)
+      (let ((server-i (car i))
+	    (method (cadr i)))
+	(when (string-match server-i server)
+          (throw 'method method))))))
+
+(defun rcirc-get-server-password (server)
+  "Return password for SERVER."
+  (catch 'pass
+    (dolist (i rcirc-authinfo)
+      (let ((server-i (car i))
+	    (args (cdddr i)))
+	(when (string-match server-i server)
+          (throw 'pass (car args)))))))
 
 ;;;###autoload
 (defun rcirc-connect (server &optional port nick user-name
@@ -3317,7 +3342,8 @@ Passwords are stored in `rcirc-authinfo' (which see)."
                  (rcirc-send-privmsg
                   process
                   "&bitlbee"
-                  (concat "IDENTIFY " (car args)))))
+                  (concat "IDENTIFY " (car args))))
+                (sasl nil))
             ;; quakenet authentication doesn't rely on the user's nickname.
             ;; the variable `nick' here represents the Q account name.
             (when (eq method 'quakenet)
@@ -3394,6 +3420,7 @@ PROCESS is the process object for the current connection."
 PROCESS is the process object for the current connection."
   (rcirc-print process sender "CTCP" nil message t))
 
+
 (defun rcirc-handler-CAP (process _sender args _text)
   "Handle capability negotiation messages.
 ARGS should have the form (USER SUBCOMMAND . ARGUMENTS).  PROCESS
@@ -3463,6 +3490,17 @@ object for the current connection."
               rcirc-batched-messages
               (delq (assoc id rcirc-batched-messages)
                     rcirc-batched-messages)))))))
+
+(defun rcirc-handler-AUTHENTICATE (process _cmd _args _text)
+  "Respond to authentication request.
+PROCESS is the process object for the current connection."
+  (rcirc-send-string
+   process
+   "AUTHENTICATE"
+   (base64-encode-string
+    ;; use connection user-name
+    (concat "\0" (nth 3 rcirc-connection-info)
+            "\0" (rcirc-get-server-password rcirc-server)))))
 
 
 (defgroup rcirc-faces nil

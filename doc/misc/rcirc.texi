@@ -590,6 +590,12 @@ Use this symbol if you need to identify yourself in the Bitlbee channel
 as follows: @code{identify secret}.  The necessary arguments are the
 nickname you want to use this for, and the password to use.
 
+@item sasl
+@cindex sasl authentication
+Use this symbol if you want to use @acronym{SASL} authentication.  The
+necessary arguments are the nickname you want to use this for, and the
+password to use.
+
 @cindex gateway to other IM services
 @cindex instant messaging, other services
 @cindex Jabber
