@@ -332,15 +332,11 @@ Menu of mode operations in the mode line.")
 
 (defun bindings--menu-item-string (item)
   "Return the menu-item string for ITEM, or nil if not a menu-item."
-  (cond
-   ((not (consp item)) nil)             ; Not a menu-item.
-   ((eq 'menu-item (car item))
-    (eval (cadr item)))
-   ((stringp (car item))
-    (car item))
-   (t nil)))                            ; Not a menu-item either.
+  (pcase item
+    (`(menu-item ,name . ,_) (eval name t))
+    (`(,(and (pred stringp) name) . ,_) name)))
 
-(defun bindings--sort-keymap (map)
+(defun bindings--sort-menu-keymap (map)
   "Sort the bindings in MAP in alphabetical order by menu-item string.
 The order of bindings in a keymap matters only when it is used as
 a menu, so this function is not useful for non-menu keymaps."
@@ -368,7 +364,7 @@ a menu, so this function is not useful for non-menu keymaps."
     (define-key map [mode-line mouse-2] 'describe-mode)
     (bindings--define-key map [mode-line down-mouse-3]
       `(menu-item "Menu Bar" ,mode-line-mode-menu
-        :filter bindings--sort-keymap))
+        :filter bindings--sort-menu-keymap))
     map) "\
 Keymap to display on major mode.")
 
@@ -376,7 +372,7 @@ Keymap to display on major mode.")
   (let ((map (make-sparse-keymap))
         (mode-menu-binding
          `(menu-item "Menu Bar" ,mode-line-mode-menu
-           :filter bindings--sort-keymap)))
+           :filter bindings--sort-menu-keymap)))
     (define-key map [mode-line down-mouse-1] 'mouse-minor-mode-menu)
     (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
     (define-key map [mode-line down-mouse-3] mode-menu-binding)
