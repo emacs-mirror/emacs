@@ -897,8 +897,14 @@ Outputs to the current buffer."
                (list (cl-prin1-to-string (cl--slot-descriptor-name slot))
                      (cl-prin1-to-string (cl--slot-descriptor-type slot))
                      (cl-prin1-to-string (cl--slot-descriptor-initform slot))
-                     (let ((doc (plist-get (cl--slot-descriptor-props slot)
-                                           :documentation)))
+                     (let ((doc
+                            ;; The props are an alist in a `defclass',
+                            ;; but a plist when describing a `cl-defstruct'.
+                            (if (consp (car (cl--slot-descriptor-props slot)))
+                                (alist-get :documentation
+                                           (cl--slot-descriptor-props slot))
+                              (plist-get (cl--slot-descriptor-props slot)
+                                         :documentation))))
                        (if (not doc) ""
                          (setq has-doc t)
                          (substitute-command-keys doc)))))
