@@ -313,12 +313,13 @@ It should only be stopped when ran from inside ert--run-test-internal."
                                  (list :form `(,,fn ,@,args))
                                  (unless (eql ,value ',default-value)
                                    (list :value ,value))
-                                 (let ((-explainer-
-                                        (and (symbolp ',fn-name)
-                                             (get ',fn-name 'ert-explainer))))
-                                   (when -explainer-
-                                     (list :explanation
-                                           (apply -explainer- ,args)))))
+                                 (unless (eql ,value ',default-value)
+                                   (let ((-explainer-
+                                          (and (symbolp ',fn-name)
+                                               (get ',fn-name 'ert-explainer))))
+                                     (when -explainer-
+                                       (list :explanation
+                                             (apply -explainer- ,args))))))
                          value)
                ,value))))))))
 
