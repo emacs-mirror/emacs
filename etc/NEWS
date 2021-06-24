@@ -2134,6 +2134,9 @@ summaries will include the failing condition.
 
 ** Miscellaneous
 
+---
+*** `C-x M-x dig' will now prompt for a query type to use.
+
 +++
 *** rcirc now supports SASL authentication.
 
