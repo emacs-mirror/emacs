@@ -117,6 +117,10 @@ filters.
 
 * Changes in Emacs 28.1
 
+** 'blink-cursor-mode' is now enabled by default regardless of the UI.
+It used to be enabled when Emacs is started in GUI mode but not when started
+in text mode.  The cursor still only actually blinks in GUI frames.
+
 +++
 ** Etags now supports the Mercury programming language.
 See https://mercurylang.org.
@@ -295,14 +299,6 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 ---
 ** Commands 'set-frame-width' and 'set-frame-height' can now get their
 input using the minibuffer.
-
----
-** New user option 'bookmark-menu-confirm-deletion'.
-In Bookmark Menu mode, Emacs by default does not prompt for
-confirmation when you type 'x' to execute the deletion of bookmarks
-that have been marked for deletion.  However, if this new option is
-non-nil then Emacs will require confirmation with 'yes-or-no-p' before
-deleting.
 
 ---
 ** New help window when Emacs prompts before opening a large file.
@@ -489,10 +485,6 @@ in seconds.
 *** New function 'macroexp-warn-and-return' to help emit warnings.
 This used to be named 'macroexp--warn-and-return' and has proved useful
 and well-behaved enough to lose the "internal" marker.
-
-** 'blink-cursor-mode' is now enabled by default regardless of the UI.
-It used to be enabled when Emacs is started in GUI mode but not when started
-in text mode.  The cursor still only actually blinks in GUI frames.
 
 ** Bindat
 
@@ -1292,6 +1284,14 @@ the variables 'bookmark-bmenu-use-header-line' and
 *** New user option 'bookmark-fontify'.
 If non-nil, setting a bookmark will colorize the current line with
 'bookmark-face'.
+
+---
+*** New user option 'bookmark-menu-confirm-deletion'.
+In Bookmark Menu mode, Emacs by default does not prompt for
+confirmation when you type 'x' to execute the deletion of bookmarks
+that have been marked for deletion.  However, if this new option is
+non-nil then Emacs will require confirmation with 'yes-or-no-p' before
+deleting.
 
 ** Edebug
 
