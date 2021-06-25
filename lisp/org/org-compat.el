@@ -1151,8 +1151,8 @@ key."
     ((guard (not (lookup-key calendar-mode-map "c")))
      (local-set-key "c" #'org-calendar-goto-agenda))
     (_ nil))
-  (unless (and (boundp 'org-agenda-diary-file)
-	       (eq org-agenda-diary-file 'diary-file))
+  (when (and (boundp 'org-agenda-diary-file)
+	     (not (eq org-agenda-diary-file 'diary-file)))
     (local-set-key org-calendar-insert-diary-entry-key
 		   #'org-agenda-diary-entry)))
 
