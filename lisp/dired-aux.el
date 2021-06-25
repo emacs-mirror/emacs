@@ -3208,10 +3208,12 @@ REGEXP should use constructs supported by your local `grep' command."
                                   files))
                    (push mark files)))
                (nreverse marks))
+              (message "Searching...")
               (setq xrefs
                     (xref-matches-in-files regexp files))
               (unless xrefs
                 (user-error "No matches for: %s" regexp))
+              (message "Searching...done")
               xrefs))))
     (xref--show-xrefs fetcher nil)))
 

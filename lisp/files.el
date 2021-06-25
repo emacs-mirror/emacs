@@ -2288,7 +2288,8 @@ the various files."
 	;; Check to see if the file looks uncommonly large.
 	(when (not (or buf nowarn))
           (when (eq (abort-if-file-too-large
-                     (file-attribute-size attributes) "open" filename t)
+                     (file-attribute-size attributes) "open" filename
+                     (not rawfile))
                     'raw)
             (setf rawfile t))
 	  (warn-maybe-out-of-memory (file-attribute-size attributes)))
@@ -2429,7 +2430,8 @@ Do you want to revisit the file normally now? ")))
 	   (set-buffer-multibyte t))
       (if rawfile
 	  (condition-case ()
-	      (let ((inhibit-read-only t))
+	      (let ((inhibit-read-only t)
+                    (enable-local-variables nil))
 		(insert-file-contents-literally filename t))
 	    (file-error
 	     (when (and (file-exists-p filename)
@@ -2468,7 +2470,7 @@ Do you want to revisit the file normally now? ")))
 	   (not (funcall backup-enable-predicate buffer-file-name))
            (setq-local backup-inhibited t))
       (if rawfile
-	  (progn
+	  (let ((enable-local-variables nil))
 	    (set-buffer-multibyte nil)
 	    (setq buffer-file-coding-system 'no-conversion)
 	    (set-buffer-major-mode buf)

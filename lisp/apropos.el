@@ -96,6 +96,11 @@ include key-binding information in its output."
   "Face for property name in Apropos output, or nil for none."
   :version "24.3")
 
+(defface apropos-button
+  '((t (:inherit (font-lock-variable-name-face button))))
+  "Face for buttons that indicate a face in Apropos."
+  :version "28.1")
+
 (defface apropos-function-button
   '((t (:inherit (font-lock-function-name-face button))))
   "Button face indicating a function, macro, or command in Apropos."
@@ -276,7 +281,7 @@ before `apropos-mode' makes it buffer-local.")
 (define-button-type 'apropos-face
   'apropos-label "Face"
   'apropos-short-label "F"
-  'face '(font-lock-variable-name-face button)
+  'face 'apropos-button
   'help-echo "mouse-2, RET: Display more help on this face"
   'follow-link t
   'action (lambda (button)

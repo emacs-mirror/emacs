@@ -2132,6 +2132,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 (defvar tex-compile-commands
   `(,@(mapcar (lambda (prefix)
                 `((concat ,prefix tex-command
+                          " " tex-start-options
                           " " (if (< 0 (length tex-start-commands))
                                   (shell-quote-argument tex-start-commands))
                           " %f")

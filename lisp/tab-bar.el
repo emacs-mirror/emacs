@@ -138,15 +138,12 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   (when (and (memq 'tab-bar-format-global tab-bar-format)
              (member '(global-mode-string ("" global-mode-string " "))
                      mode-line-misc-info))
-    (setq mode-line-misc-info
-          (append '(global-mode-string
-                    ("" (:eval (if (and tab-bar-mode
-                                        (memq 'tab-bar-format-global
-                                              tab-bar-format))
-                                   "" global-mode-string))
-                     " "))
-                  (remove '(global-mode-string ("" global-mode-string " "))
-                          mode-line-misc-info)))))
+    (setf (alist-get 'global-mode-string mode-line-misc-info)
+          '(("" (:eval (if (and tab-bar-mode
+                                (memq 'tab-bar-format-global
+                                      tab-bar-format))
+                           "" global-mode-string))
+             " ")))))
 
 (defun tab-bar--undefine-keys ()
   "Uninstall key bindings previously bound by `tab-bar--define-keys'."

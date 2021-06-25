@@ -100,6 +100,8 @@ FIND_DELETE = @FIND_DELETE@
 
 HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
+USE_STARTUP_NOTIFICATION = @USE_STARTUP_NOTIFICATION@
+
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / macOS.
@@ -713,11 +715,15 @@ install-man:
 ## Note: emacs22 does not have all the resolutions.
 EMACS_ICON=emacs
 
+ifeq (${USE_STARTUP_NOTIFICATION},no)
+USE_STARTUP_NOTIFICATION_SED_CMD=-e "/^StartupNotify=true$$/d"
+endif
 install-etc:
 	umask 022; ${MKDIR_P} "$(DESTDIR)${desktopdir}"
 	tmp=etc/emacs.tmpdesktop; rm -f $${tmp}; \
 	sed -e "/^Exec=emacs/ s/emacs/${EMACS_NAME}/" \
 	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
+	  $(USE_STARTUP_NOTIFICATION_SED_CMD) \
 	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"; \
 	rm -f $${tmp}
@@ -725,6 +731,7 @@ install-etc:
 	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
 	sed -e "/^Exec=emacsclient/ s|emacsclient|${bindir}/$${client_name}|" \
 	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
+	  $(USE_STARTUP_NOTIFICATION_SED_CMD) \
 	  ${srcdir}/etc/emacsclient.desktop > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/$${client_name}.desktop"; \
 	rm -f $${tmp}
@@ -760,7 +767,7 @@ install-etc:
 	done
 
 ### Install native compiled Lisp files.
-install-eln:
+install-eln: lisp
 ifeq ($(HAVE_NATIVE_COMP),yes)
 	find native-lisp -type d -exec $(MKDIR_P) "$(ELN_DESTDIR){}" \; ; \
 	find native-lisp -type f -exec ${INSTALL_DATA} "{}" "$(ELN_DESTDIR){}" \;

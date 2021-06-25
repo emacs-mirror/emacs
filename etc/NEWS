@@ -91,6 +91,12 @@ proper pty support that Emacs needs.
 
 * Startup Changes in Emacs 28.1
 
+---
+** In GTK builds, Emacs now supports startup notification.
+This means that Emacs won't steal keyboard focus upon startup
+(when started via the Desktop) if the user is typing into another
+application.
+
 ** Emacs can support 24-bit color TTY without terminfo database.
 If your text-mode terminal supports 24-bit true color, but your system
 lacks the terminfo database, you can instruct Emacs to support 24-bit
@@ -1169,6 +1175,11 @@ can provide a better overview in a long list of available bindings.
 ---
 *** New keybinding 'C-h R' prompts for a manual to display and displays it.
 
+---
+*** Closing the *Help* buffer from the toolbar now buries the buffer.
+In previous Emacs versions, the *Help* buffer was killed instead when
+clicking the "X" icon in the tool bar.
+
 +++
 ** New command 'lossage-size'.
 It allows users to set the maximum number of keystrokes and commands
@@ -1600,6 +1611,9 @@ These new navigation commands are bound to 'n' and 'p' in
 
 *** New command 'apropos-function'.
 This works like 'C-u M-x apropos-command' but is more discoverable.
+
+*** New face 'apropos-button'.
+Applies to buttons that indicate a face.
 
 ** CC Mode
 
@@ -2119,6 +2133,12 @@ If the EMACS_TEST_VERBOSE environment variable is set, failure
 summaries will include the failing condition.
 
 ** Miscellaneous
+
+---
+*** `C-x M-x dig' will now prompt for a query type to use.
+
++++
+*** rcirc now supports SASL authentication.
 
 +++
 *** 'save-interprogram-paste-before-kill' can now be a number.

@@ -92,10 +92,14 @@ If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
 
+To check whether the minor mode is enabled in the current buffer,
+evaluate `%S'.
+
 The mode's hook is called both when the mode is enabled and when
 it is disabled.")
 
-(defun easy-mmode--mode-docstring (doc mode-pretty-name keymap-sym)
+(defun easy-mmode--mode-docstring (doc mode-pretty-name keymap-sym
+                                       getter)
   (let ((doc (or doc (format "Toggle %s on or off.
 
 \\{%s}" mode-pretty-name keymap-sym))))
@@ -104,7 +108,8 @@ it is disabled.")
       (let* ((fill-prefix nil)
              (docs-fc (bound-and-true-p emacs-lisp-docstring-fill-column))
              (fill-column (if (integerp docs-fc) docs-fc 65))
-             (argdoc (format easy-mmode--arg-docstring mode-pretty-name))
+             (argdoc (format easy-mmode--arg-docstring mode-pretty-name
+                             getter))
              (filled (if (fboundp 'fill-region)
                          (with-temp-buffer
                            (insert argdoc)
@@ -308,7 +313,8 @@ or call the function `%s'."))))
        ,(funcall
          warnwrap
          `(defun ,modefun (&optional arg ,@extra-args)
-            ,(easy-mmode--mode-docstring doc pretty-name keymap-sym)
+            ,(easy-mmode--mode-docstring doc pretty-name keymap-sym
+                                         getter)
             ,(when interactive
 	       ;; Use `toggle' rather than (if ,mode 0 1) so that using
 	       ;; repeat-command still does the toggling correctly.
