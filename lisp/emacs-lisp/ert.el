@@ -1301,7 +1301,7 @@ empty string."
   "Pretty-print OBJECT, indenting it to the current column of point.
 Ensures a final newline is inserted."
   (let ((begin (point))
-        (pp-escape-newlines nil)
+        (pp-escape-newlines t)
         (print-escape-control-characters t))
     (pp object (current-buffer))
     (unless (bolp) (insert "\n"))
