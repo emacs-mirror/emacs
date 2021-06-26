@@ -4769,7 +4769,6 @@ load_path_default (void)
     return decode_env_path (0, PATH_DUMPLOADSEARCH, 0);
 
   Lisp_Object lpath = Qnil;
-  const char *loadpath = NULL;
 
   lpath = decode_env_path (0, PATH_LOADSEARCH, 0);
 
