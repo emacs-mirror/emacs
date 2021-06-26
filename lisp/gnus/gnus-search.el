@@ -1278,17 +1278,23 @@ elements are present."
       str)))
 
 (defun gnus-search-imap-handle-flag (flag)
-  "Make sure string FLAG is something IMAP will recognize."
-  ;; What else?  What about the KEYWORD search key?
+  "Adjust string FLAG to help IMAP recognize it.
+If it's one of the RFC3501 flags, make sure it's upcased.
+Otherwise, if FLAG starts with a \"$\", treat as a KEYWORD
+search.  Otherwise, drop the flag."
   (setq flag
 	(pcase flag
 	  ("flag" "flagged")
 	  ("read" "seen")
 	  ("replied" "answered")
 	  (_ flag)))
-  (if (member flag '("seen" "answered" "deleted" "draft" "flagged"))
-      (upcase flag)
-    ""))
+  (cond
+   ((member flag '("seen" "answered" "deleted" "draft" "flagged" "recent"))
+    (upcase flag))
+   ((string-prefix-p "$" flag)
+    (format "KEYWORD %s" flag))
+   ;; TODO: Provide a user option to treat *all* marks as a KEYWORDs?
+   (t "")))
 
 ;;; Methods for the indexed search engines.
 
