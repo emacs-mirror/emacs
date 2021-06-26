@@ -1790,17 +1790,12 @@ is added, provided that matches some possible completion.
 Return nil if there is no valid completion, else t."
   (interactive)
   (completion-in-region--single-word
-   (minibuffer--completion-prompt-end) (point-max)
-   minibuffer-completion-table minibuffer-completion-predicate))
+   (minibuffer--completion-prompt-end) (point-max)))
 
-(defun completion-in-region--single-word (beg end collection
-                                              &optional predicate)
-  (let ((minibuffer-completion-table collection)
-        (minibuffer-completion-predicate predicate))
-    (pcase (completion--do-completion beg end
-                                      #'completion--try-word-completion)
+(defun completion-in-region--single-word (beg end)
+  (pcase (completion--do-completion beg end #'completion--try-word-completion)
     (#b000 nil)
-      (_     t))))
+    (_     t)))
 
 (defface completions-annotations '((t :inherit (italic shadow)))
   "Face to use for annotations in the *Completions* buffer.")
