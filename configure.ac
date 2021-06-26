@@ -6020,12 +6020,12 @@ dnl the use of force in the 'epaths-force' rule in Makefile.in.
 AC_CONFIG_COMMANDS([src/epaths.h], [
 if test "${opsys}" = "mingw32"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
-elif test "$EN_NS_SELF_CONTAINED" = "yes"; then
+elif test "$HAVE_NS" = "yes" && test "$EN_NS_SELF_CONTAINED" = "yes"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-ns-self-contained
 else
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
 fi || AC_MSG_ERROR(['src/epaths.h' could not be made.])
-], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"
+], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys" HAVE_NS="$HAVE_NS"
     EN_NS_SELF_CONTAINED="$EN_NS_SELF_CONTAINED"])
 
 dnl NB we have to cheat and use the ac_... version because abs_top_srcdir
