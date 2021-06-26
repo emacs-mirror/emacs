@@ -277,11 +277,9 @@ static NSView *focus_view = NULL;
 #endif
 static int ns_window_num = 0;
 static BOOL gsaved = NO;
-static BOOL ns_fake_keydown = NO;
 #ifdef NS_IMPL_COCOA
 static BOOL ns_menu_bar_is_hidden = NO;
 #endif
-/* static int debug_lock = 0; */
 
 /* event loop */
 static BOOL send_appdefined = YES;
@@ -6293,9 +6291,7 @@ not_in_argv (NSString *arg)
   NSTRACE ("[EmacsView keyDown:]");
 
   /* Rhapsody and macOS give up and down events for the arrow keys.  */
-  if (ns_fake_keydown == YES)
-    ns_fake_keydown = NO;
-  else if ([theEvent type] != NSEventTypeKeyDown)
+  if ([theEvent type] != NSEventTypeKeyDown)
     return;
 
   if (!emacs_event)
