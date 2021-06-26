@@ -1351,68 +1351,59 @@ Returns a list of [group article score] vectors."
 
 (cl-defmethod gnus-search-indexed-parse-output ((engine gnus-search-indexed)
 						server query &optional groups)
-  (let ((prefix (slot-value engine 'remove-prefix))
-	(group-regexp (when groups
-			(mapconcat
-			 (lambda (group-name)
-			   (mapconcat #'regexp-quote
-				      (split-string
-				       (gnus-group-real-name group-name)
-				       "[.\\/]")
-				      "[.\\\\/]"))
-			 groups
-			 "\\|")))
-	artlist vectors article group)
+  (let ((prefix (or (slot-value engine 'remove-prefix)
+                    ""))
+	artlist article group)
     (goto-char (point-min))
+    ;; Prep prefix, we want to at least be removing the root
+    ;; filesystem separator.
+    (when (stringp prefix)
+      (setq prefix (file-name-as-directory
+                    (expand-file-name prefix "/"))))
     (while (not (or (eobp)
                     (looking-at-p
                      "\\(?:[[:space:]\n]+\\)?Process .+ finished")))
       (pcase-let ((`(,f-name ,score) (gnus-search-indexed-extract engine)))
 	(when (and f-name
                    (file-readable-p f-name)
-		   (null (file-directory-p f-name))
-		   (or (null groups)
-		       (and (gnus-search-single-p query)
-			    (alist-get 'thread query))
-		       (string-match-p group-regexp f-name)))
-	  (push (list f-name score) artlist))))
+		   (null (file-directory-p f-name)))
+          (setq group
+                (replace-regexp-in-string
+	         "[/\\]" "."
+	         (replace-regexp-in-string
+	          "/?\\(cur\\|new\\|tmp\\)?/\\'" ""
+	          (replace-regexp-in-string
+	           "\\`\\." ""
+	           (string-remove-prefix
+                    prefix (file-name-directory f-name))
+                   nil t)
+	          nil t)
+	         nil t))
+          (setq group (gnus-group-full-name group server))
+          (setq article (file-name-nondirectory f-name)
+                article
+                ;; TODO: Provide a cleaner way of producing final
+                ;; article numbers for the various backends.
+                (if (string-match-p "\\`[[:digit:]]+\\'" article)
+		    (string-to-number article)
+		  (nnmaildir-base-name-to-article-number
+		   (substring article 0 (string-match ":" article))
+		   group (string-remove-prefix "nnmaildir:" server))))
+          (when (and (numberp article)
+                     (or (null groups)
+                         (member group groups)))
+	    (push (list f-name article group score)
+                  artlist)))))
     ;; Are we running an additional grep query?
     (when-let ((grep-reg (alist-get 'grep query)))
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
-    ;; Prep prefix.
-    (when (and prefix (null (string-empty-p prefix)))
-      (setq prefix (file-name-as-directory (expand-file-name prefix))))
-    ;; Turn (file-name score) into [group article score].
-    (pcase-dolist (`(,f-name ,score) artlist)
-      (setq article (file-name-nondirectory f-name)
-	    group (file-name-directory f-name))
-      ;; Remove prefix.
-      (when prefix
-	(setq group (string-remove-prefix prefix group)))
-      ;; Break the directory name down until it's something that
-      ;; (probably) can be used as a group name.
-      (setq group
-	    (replace-regexp-in-string
-	     "[/\\]" "."
-	     (replace-regexp-in-string
-	      "/?\\(cur\\|new\\|tmp\\)?/\\'" ""
-	      (replace-regexp-in-string
-	       "^[./\\]" ""
-	       group nil t)
-	      nil t)
-	     nil t))
-
-      (push (vector (gnus-group-full-name group server)
-		    (if (string-match-p "\\`[[:digit:]]+\\'" article)
-			(string-to-number article)
-		      (nnmaildir-base-name-to-article-number
-		       (substring article 0 (string-match ":" article))
-		       group (string-remove-prefix "nnmaildir:" server)))
-		    (if (numberp score)
-			score
-		      (string-to-number score)))
-	    vectors))
-    vectors))
+    ;; Munge into the list of vectors expected by nnselect.
+    (mapcar (pcase-lambda (`(,_ ,article ,group ,score))
+              (vector group article
+                      (if (numberp score)
+			  score
+		        (string-to-number score))))
+            artlist)))
 
 (cl-defmethod gnus-search-indexed-extract ((_engine gnus-search-indexed))
   "Base implementation treats the whole line as a filename, and
