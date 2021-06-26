@@ -882,6 +882,12 @@ If the current buffer is not a minibuffer, erase its entire contents."
   ;; is on, the field doesn't cover the entire minibuffer contents.
   (delete-region (minibuffer-prompt-end) (point-max)))
 
+(defun completion--prompt-end ()
+  (let ((end (minibuffer-prompt-end)))
+    (if (< (point) end)
+        (user-error "Can't complete in prompt")
+      end)))
+
 (defvar completion-show-inline-help t
   "If non-nil, print helpful inline messages during completion.")
 
@@ -1349,10 +1355,9 @@ If no characters can be completed, display a list of possible completions.
 If you repeat this command after it displayed such a list,
 scroll the window of possible completions."
   (interactive)
-  (when (<= (minibuffer-prompt-end) (point))
-    (completion-in-region (minibuffer-prompt-end) (point-max)
-                          minibuffer-completion-table
-                          minibuffer-completion-predicate)))
+  (completion-in-region (completion--prompt-end) (point-max)
+                        minibuffer-completion-table
+                        minibuffer-completion-predicate))
 
 (defun completion--in-region-1 (beg end)
   ;; If the previous command was not this,
@@ -1530,7 +1535,7 @@ Remove completion BASE prefix string from history elements."
   (unless completion-cycling
     (minibuffer-force-complete nil nil 'dont-cycle))
   (completion--complete-and-exit
-   (minibuffer-prompt-end) (point-max) #'exit-minibuffer
+   (completion--prompt-end) (point-max) #'exit-minibuffer
    ;; If the previous completion completed to an element which fails
    ;; test-completion, then we shouldn't exit, but that should be rare.
    (lambda ()
@@ -1548,7 +1553,7 @@ DONT-CYCLE tells the function not to setup cycling."
   ;; FIXME: Need to deal with the extra-size issue here as well.
   ;; FIXME: ~/src/emacs/t<M-TAB>/lisp/minibuffer.el completes to
   ;; ~/src/emacs/trunk/ and throws away lisp/minibuffer.el.
-  (let* ((start (copy-marker (or start (minibuffer-prompt-end))))
+  (let* ((start (copy-marker (or start (completion--prompt-end))))
          (end (or end (point-max)))
          ;; (md (completion--field-metadata start))
          (all (completion-all-sorted-completions start end))
@@ -1619,7 +1624,7 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
  `minibuffer-confirm-exit-commands', and accept the input
  otherwise."
   (interactive)
-  (completion-complete-and-exit (minibuffer-prompt-end) (point-max)
+  (completion-complete-and-exit (completion--prompt-end) (point-max)
                                 #'exit-minibuffer))
 
 (defun completion-complete-and-exit (beg end exit-function)
@@ -1785,7 +1790,7 @@ is added, provided that matches some possible completion.
 Return nil if there is no valid completion, else t."
   (interactive)
   (completion-in-region--single-word
-   (minibuffer-prompt-end) (point-max)
+   (completion--prompt-end) (point-max)
    minibuffer-completion-table minibuffer-completion-predicate))
 
 (defun completion-in-region--single-word (beg end collection
@@ -2159,7 +2164,7 @@ variables.")
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
   (message "Making completion list...")
-  (let* ((start (or start (minibuffer-prompt-end)))
+  (let* ((start (or start (completion--prompt-end)))
          (end (or end (point-max)))
          (string (buffer-substring start end))
          (md (completion--field-metadata start))
