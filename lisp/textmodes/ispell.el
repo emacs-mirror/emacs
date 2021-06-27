@@ -1765,10 +1765,12 @@ You can set this variable in hooks in your init file -- eg:
 If asynchronous subprocesses are not supported, call function `ispell-filter'
 and pass it the output of the last Ispell invocation."
   (if ispell-async-processp
-      (let ((timeout (if timeout-msecs
-			 (+ (or timeout-secs 0) (/ timeout-msecs 1000.0))
-		       timeout-secs)))
-	(accept-process-output ispell-process timeout))
+      (if (process-live-p ispell-process)
+       (let ((timeout (if timeout-msecs
+			  (+ (or timeout-secs 0) (/ timeout-msecs 1000.0))
+		        timeout-secs)))
+	 (accept-process-output ispell-process timeout))
+       (error "No Ispell process to read output from!"))
     (if (null ispell-process)
 	(error "No Ispell process to read output from!")
       (let ((buf ispell-output-buffer)
@@ -1793,7 +1795,8 @@ Only works for Aspell and Enchant."
 (defun ispell-send-string (string)
   "Send the string STRING to the Ispell process."
   (if ispell-async-processp
-      (process-send-string ispell-process string)
+      (if (process-live-p ispell-process)
+       (process-send-string ispell-process string))
     ;; Asynchronous subprocesses aren't supported on this losing system.
     ;; We keep all the directives passed to Ispell during the entire
     ;; session in a buffer, and pass them anew each time we invoke
