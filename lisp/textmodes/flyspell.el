@@ -401,18 +401,12 @@ like <img alt=\"Some thing.\">."
     (let ((f (get-text-property (1- (point)) 'face)))
       (memq f flyspell-prog-text-faces))))
 
-(defvar flyspell--prev-meta-tab-binding nil
-  "Records the binding of M-TAB in effect before flyspell was activated.")
-
 ;;;###autoload
 (defun flyspell-prog-mode ()
   "Turn on `flyspell-mode' for comments and strings."
   (interactive)
   (setq flyspell-generic-check-word-predicate
         #'flyspell-generic-progmode-verify)
-  (setq-local flyspell--prev-meta-tab-binding
-              (or (local-key-binding "\M-\t" t)
-                  (global-key-binding "\M-\t" t)))
   (flyspell-mode 1)
   (run-hooks 'flyspell-prog-mode-hook))
 
@@ -1990,15 +1984,14 @@ spell-check."
   (interactive)
   ;; If we are not in the construct where flyspell should be active,
   ;; invoke the original binding of M-TAB, if that was recorded.
-  (if (and (local-variable-p 'flyspell--prev-meta-tab-binding)
-           (commandp flyspell--prev-meta-tab-binding t)
-           (functionp flyspell-generic-check-word-predicate)
-           (not (funcall flyspell-generic-check-word-predicate))
-           (equal (where-is-internal 'flyspell-auto-correct-word nil t)
-                  [?\M-\t]))
-      (call-interactively flyspell--prev-meta-tab-binding)
-    (let ((pos     (point))
-          (old-max (point-max)))
+  (let ((pos     (point))
+        (old-max (point-max))
+        (next-cmd (and (functionp flyspell-generic-check-word-predicate)
+                       (not (funcall flyspell-generic-check-word-predicate))
+                       (let ((flyspell-mode nil))
+                         (key-binding (this-command-keys))))))
+    (if next-cmd
+        (command-execute next-cmd)
       ;; Flush a possibly stale cache from previous invocations of
       ;; flyspell-auto-correct-word/flyspell-auto-correct-previous-word.
       (if (not (memq last-command '(flyspell-auto-correct-word
