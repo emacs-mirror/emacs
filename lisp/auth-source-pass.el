@@ -6,8 +6,6 @@
 ;;         Nicolas Petton <nicolas@petton.fr>
 ;;         Keith Amidon <camalot@picnicpark.org>
 ;; Version: 5.0.0
-;; Package-Requires: ((emacs "25"))
-;; Url: https://github.com/DamienCassou/auth-password-store
 ;; Created: 07 Jun 2015
 
 ;; This file is part of GNU Emacs.
