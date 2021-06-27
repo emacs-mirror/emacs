@@ -1211,18 +1211,7 @@ If LANG is omitted, get the extra word characters for the default language."
                     `(,lang "[[:alpha:]]" "[^[:alpha:]]"
                             ,(ispell--get-extra-word-characters lang) t nil nil utf-8))
                   dictionaries)))
-    ;; Merge into FOUND any elements from the standard ispell-dictionary-base-alist
-    ;; which have no element in FOUND at all.
-    (dolist (dict ispell-dictionary-base-alist)
-      (unless (assoc (car dict) found)
-	(setq found (nconc found (list dict)))))
-    (setq ispell-enchant-dictionary-alist found)
-    ;; Add a default entry
-    (let ((default-dict
-            `(nil "[[:alpha:]]" "[^[:alpha:]]"
-                  ,(ispell--get-extra-word-characters)
-                  t nil nil utf-8)))
-      (push default-dict ispell-enchant-dictionary-alist))))
+    (setq ispell-enchant-dictionary-alist found)))
 
 ;; Set params according to the selected spellchecker
 
