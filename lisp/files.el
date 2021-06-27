@@ -4041,7 +4041,7 @@ already the major mode."
     ('eval
      (pcase val
        (`(add-hook ',hook . ,_) (hack-one-local-variable--obsolete hook)))
-     (save-excursion (eval val)))
+     (save-excursion (eval val t)))
     (_
      (hack-one-local-variable--obsolete var)
      ;; Make sure the string has no text properties.
