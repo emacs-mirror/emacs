@@ -167,15 +167,13 @@ The secret is the first line of CONTENTS."
 (defun auth-source-pass--parse-data (contents)
   "Parse the password-store data in the string CONTENTS and return an alist.
 CONTENTS is the contents of a password-store formatted file."
-  (let ((lines (split-string contents "\n" t "[ \t]+")))
+  (let ((lines (cdr (split-string contents "\n" t "[ \t]+"))))
     (seq-remove #'null
                 (mapcar (lambda (line)
-                          (let ((pair (mapcar (lambda (s) (string-trim s))
-                                              (split-string line ":"))))
-                            (when (> (length pair) 1)
-                              (cons (car pair)
-                                    (mapconcat #'identity (cdr pair) ":")))))
-                        (cdr lines)))))
+                          (when-let ((pos (seq-position line ?:)))
+                            (cons (string-trim (substring line 0 pos))
+                                  (string-trim (substring line (1+ pos))))))
+                        lines))))
 
 (defun auth-source-pass--do-debug (&rest msg)
   "Call `auth-source-do-debug` with MSG and a prefix."

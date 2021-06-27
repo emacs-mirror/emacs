@@ -49,6 +49,12 @@
                    '(("key1" . "val1")
                      ("key2" . "val2"))))))
 
+(ert-deftest auth-source-pass-parse-with-colons-in-data ()
+  (let ((content "pass\n--\nkey1 :val1\nkey2: please: keep my space after colon\n\n"))
+    (should (equal (auth-source-pass--parse-data content)
+                   '(("key1" . "val1")
+                     ("key2" . "please: keep my space after colon"))))))
+
 (defvar auth-source-pass--debug-log nil
   "Contains a list of all messages passed to `auth-source-do-debug`.")
 
