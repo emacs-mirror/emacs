@@ -60,11 +60,10 @@
 (cl-defun auth-source-pass-search (&rest spec
                                          &key backend type host user port
                                          &allow-other-keys)
-  "Given a property list SPEC, return search matches from the :backend.
-See `auth-source-search' for details on SPEC.
+  "Given some search query, return matching credentials.
 
-HOST can be a string or a list of strings, but USER and PORT are expected
-to be a string only."
+See `auth-source-search' for details on the parameters SPEC, BACKEND, TYPE,
+HOST, USER and PORT."
   (cl-assert (or (null type) (eq type (oref backend type)))
              t "Invalid password-store search: %s %s")
   (cond ((eq host t)
@@ -126,7 +125,7 @@ ENTRY is the name of a password-store entry.
 The key used to retrieve the password is the symbol `secret'.
 
 The convention used as the format for a password-store file is
-the following (see https://www.passwordstore.org/#organization):
+the following (see URL `https://www.passwordstore.org/#organization'):
 
 secret
 key1: value1
@@ -278,7 +277,7 @@ If ENTRIES is nil, use the result of calling `auth-source-pass-entries' instead.
 (defun auth-source-pass--generate-entry-suffixes (hostname user port)
   "Return a list of possible entry path suffixes in the password-store.
 
-Based on the supported pathname patterns for HOSTNAME, USER, &
+Based on the supported filename patterns for HOSTNAME, USER, &
 PORT, return a list of possible suffixes for matching entries in
 the password-store.
 
@@ -326,3 +325,5 @@ then NAME & USER, then NAME & PORT, then just NAME."
 
 (provide 'auth-source-pass)
 ;;; auth-source-pass.el ends here
+
+;; LocalWords:  backend hostname
