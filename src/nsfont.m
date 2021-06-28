@@ -277,30 +277,36 @@ ns_ascii_average_width (NSFont *sfont)
 
 
 /* Return whether set1 covers set2 to a reasonable extent given by pct.
-   We check, out of each 16 Unicode char range containing chars in set2,
-   whether at least one character is present in set1.
-   This must be true for pct of the pairs to consider it covering.  */
+
+   The GNUstep bitmap representation doesn't match Apple's
+   description.  It appears to be a single block of bytes, not broken
+   up into planes, where the last byte contains the highest character
+   the character set supports.  */
 static BOOL
 ns_charset_covers(NSCharacterSet *set1, NSCharacterSet *set2, float pct)
 {
-    const unsigned short *bytes1 = [[set1 bitmapRepresentation] bytes];
-    const unsigned short *bytes2 = [[set2 bitmapRepresentation] bytes];
-    int i, off = 0, tot = 0;
+  NSData *font = [set1 bitmapRepresentation];
+  NSData *script = [set2 bitmapRepresentation];
 
-    /* Work around what appears to be a GNUstep bug.
-       See <https://bugs.gnu.org/11853>.  */
-    if (! (bytes1 && bytes2))
-      return NO;
+  uint8_t *fontPlane = (uint8_t *)[font bytes];
+  uint8_t *scriptPlane = (uint8_t *)[script bytes];
 
-    for (i=0; i<4096; i++, bytes1++, bytes2++)
-	if (*bytes2)
-	  {
-	    tot++;
-	    if (*bytes1 == 0)  // *bytes1 & *bytes2 != *bytes2
-		off++;
-	  }
-    // fprintf(stderr, "off = %d\ttot = %d\n", off,tot);
-    return (float)off / tot < 1.0F - pct;
+  int covered = 0, total = 0;
+
+  for (ptrdiff_t b = 0 ; b < [script length] ; b++)
+    for (int i = 0 ; i < 8 ; i++)
+      {
+        if (*(scriptPlane + b) & (1 << i))
+          {
+            total++;
+
+            if (b < [font length]
+                && *(fontPlane + b) & (1 << i))
+              covered++;
+          }
+      }
+
+  return (float)covered / total >= 1.0F - pct;
 }
 
 
