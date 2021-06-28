@@ -610,6 +610,8 @@ See `rcirc-connect' for more details on these variables.")
   "A list of capabilities that client has requested.")
 (defvar-local rcirc-acked-capabilities nil
   "A list of capabilities that the server supports.")
+(defvar-local rcirc-finished-sasl t
+  "Check whether SASL authentication has completed")
 
 (defun rcirc-get-server-method (server)
   "Return authentication method for SERVER."
@@ -650,10 +652,13 @@ that are joined after authentication."
 	   (user-name (or user-name rcirc-default-user-name))
 	   (full-name (or full-name rcirc-default-full-name))
 	   (startup-channels startup-channels)
+           (use-sasl (eq (rcirc-get-server-method server) 'sasl))
            (process (open-network-stream
                      (or server-alias server) nil server port-number
                      :type (or encryption 'plain))))
       ;; set up process
+      (when use-sasl
+        (setq-local rcirc-finished-sasl nil))
       (set-process-coding-system process 'raw-text 'raw-text)
       (switch-to-buffer (rcirc-generate-new-buffer-name process nil))
       (set-process-buffer process (current-buffer))
@@ -685,6 +690,10 @@ that are joined after authentication."
         (rcirc-send-string process "PASS" password))
       (rcirc-send-string process "NICK" nick)
       (rcirc-send-string process "USER" user-name "0" "*" : full-name)
+      ;; Setup sasl, and initiate authentication.
+      (when (and rcirc-auto-authenticate-flag
+                 use-sasl)
+        (rcirc-send-string process "AUTHENTICATE" "PLAIN"))
 
       ;; setup ping timer if necessary
       (unless rcirc-keepalive-timer
@@ -3435,7 +3444,7 @@ is the process object for the current connection."
               ((string= subcmd "NAK")
                (setq rcirc-requested-capabilities
                      (delete cap rcirc-requested-capabilities))))))
-    (when (null rcirc-requested-capabilities)
+    (when (and (null rcirc-requested-capabilities) rcirc-finished-sasl)
       ;; All requested capabilities have been responded to
       (rcirc-send-string process "CAP" "END"))))
 
@@ -3500,7 +3509,9 @@ PROCESS is the process object for the current connection."
    (base64-encode-string
     ;; use connection user-name
     (concat "\0" (nth 3 rcirc-connection-info)
-            "\0" (rcirc-get-server-password rcirc-server)))))
+            "\0" (rcirc-get-server-password rcirc-server))))
+  (setq-local rcirc-finished-sasl t)
+  (rcirc-send-string process "CAP" "END"))
 
 
 (defgroup rcirc-faces nil
