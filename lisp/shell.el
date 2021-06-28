@@ -759,7 +759,8 @@ Make the shell buffer the current buffer, and return it.
                  (file-local-name
                   (expand-file-name
                    (read-file-name "Remote shell path: " default-directory
-                                   shell-file-name t shell-file-name)))))
+                                   shell-file-name t shell-file-name
+                                   #'file-remote-p)))))
 
    ;; Rain or shine, BUFFER must be current by now.
    (unless (comint-check-proc buffer)
