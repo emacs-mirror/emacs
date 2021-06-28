@@ -414,7 +414,7 @@ epaths-force-w32:
 # between macOS and GNUstep, so just replace any references to the app
 # bundle root itself with the relative path.
 epaths-force-ns-self-contained: epaths-force
-	@(sed < ${srcdir}/src/epaths.h > epaths.h.$$$$	\
+	@(sed < src/epaths.h > epaths.h.$$$$		\
 	  -e 's;${ns_appdir}/;;') &&			\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
