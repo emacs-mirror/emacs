@@ -657,8 +657,6 @@ that are joined after authentication."
                      (or server-alias server) nil server port-number
                      :type (or encryption 'plain))))
       ;; set up process
-      (when use-sasl
-        (setq-local rcirc-finished-sasl nil))
       (set-process-coding-system process 'raw-text 'raw-text)
       (switch-to-buffer (rcirc-generate-new-buffer-name process nil))
       (set-process-buffer process (current-buffer))
@@ -682,6 +680,8 @@ that are joined after authentication."
 
       (add-hook 'auto-save-hook 'rcirc-log-write)
 
+      (when use-sasl
+        (setq-local rcirc-finished-sasl nil))
       ;; identify
       (dolist (cap rcirc-implemented-capabilities)
         (rcirc-send-string process "CAP" "REQ" : cap)
@@ -3509,9 +3509,14 @@ PROCESS is the process object for the current connection."
    (base64-encode-string
     ;; use connection user-name
     (concat "\0" (nth 3 rcirc-connection-info)
-            "\0" (rcirc-get-server-password rcirc-server))))
-  (setq-local rcirc-finished-sasl t)
-  (rcirc-send-string process "CAP" "END"))
+            "\0" (rcirc-get-server-password rcirc-server)))))
+
+(defun rcirc-handler-900 (process sender args _text)
+  "Respond to a successful authentication response"
+  (rcirc-handler-generic process "900" sender args nil)
+  (when (not rcirc-finished-sasl)
+    (setq-local rcirc-finished-sasl t)
+    (rcirc-send-string process "CAP" "END")))
 
 
 (defgroup rcirc-faces nil
