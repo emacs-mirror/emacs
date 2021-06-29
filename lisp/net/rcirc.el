@@ -3516,7 +3516,8 @@ PROCESS is the process object for the current connection."
   (rcirc-handler-generic process "900" sender args nil)
   (when (not rcirc-finished-sasl)
     (setq-local rcirc-finished-sasl t)
-    (rcirc-send-string process "CAP" "END")))
+    (rcirc-send-string process "CAP" "END"))
+  (rcirc-join-channels-post-auth process))
 
 
 (defgroup rcirc-faces nil
