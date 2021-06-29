@@ -511,7 +511,9 @@ ns_relocate (const char *epath)
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *root = [bundle bundlePath];
   NSString *original = [NSString stringWithUTF8String:epath];
-  NSString *fixedPath = [NSString pathWithComponents:@[root, original]];
+  NSString *fixedPath = [NSString pathWithComponents:
+                                    [NSArray arrayWithObjects:
+                                               root, original, nil]];
   NSFileManager *fileManager = [NSFileManager defaultManager];
 
   if (![original isAbsolutePath]
