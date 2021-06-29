@@ -4393,8 +4393,7 @@ of."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (tramp-run-real-handler
-       #'write-region (list start end tmpfile append 'no-message lockname))
+      (write-region start end tmpfile append 'no-message lockname)
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error

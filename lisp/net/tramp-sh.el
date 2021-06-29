@@ -3225,7 +3225,6 @@ implementation will be used."
       (run-hooks 'tramp-handle-file-local-copy-hook)
       tmpfile)))
 
-;; CCC grok LOCKNAME
 (defun tramp-sh-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
@@ -3254,9 +3253,7 @@ implementation will be used."
 		  (or (file-directory-p localname)
 		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (tramp-run-real-handler
-	   #'write-region
-	   (list start end localname append 'no-message lockname))
+	  (write-region start end localname append 'no-message lockname)
 
 	(let* ((modes (tramp-default-file-modes
 		       filename (and (eq mustbenew 'excl) 'nofollow)))
@@ -3289,13 +3286,10 @@ implementation will be used."
 	  ;; file.  We call `set-visited-file-modtime' ourselves later
 	  ;; on.  We must ensure that `file-coding-system-alist'
 	  ;; matches `tmpfile'.
-	  (let (file-name-handler-alist
-		(file-coding-system-alist
+	  (let ((file-coding-system-alist
 		 (tramp-find-file-name-coding-system-alist filename tmpfile)))
 	    (condition-case err
-		(tramp-run-real-handler
-		 #'write-region
-		 (list start end tmpfile append 'no-message lockname))
+		(write-region start end tmpfile append 'no-message lockname)
 	      ((error quit)
 	       (setq tramp-temp-buffer-file-name nil)
 	       (delete-file tmpfile)
