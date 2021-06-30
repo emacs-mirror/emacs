@@ -84,9 +84,9 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 (defconst easy-mmode--arg-docstring
   "
 
-If called interactively, toggle `%s'.  If the prefix argument is
-positive, enable the mode, and if it is zero or negative, disable
-the mode.
+This is a minor mode.  If called interactively, toggle the `%s'
+mode.  If the prefix argument is positive, enable the mode, and
+if it is zero or negative, disable the mode.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
