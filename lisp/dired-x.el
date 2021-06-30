@@ -623,7 +623,7 @@ you can relist single subdirs using \\[dired-do-redisplay]."
                     (and (looking-at "^  wildcard ")
                          (buffer-substring (match-end 0)
                                            (line-end-position))))))
-  (if wildcard
+    (if wildcard
         (setq dirname (expand-file-name wildcard default-directory))))
   ;; If raw ls listing (not a saved old dired buffer), give it a
   ;; decent subdir headerline:
@@ -723,27 +723,27 @@ Also useful for `auto-mode-alist' like this:
 ;;; GUESS SHELL COMMAND.
 
 ;; Brief Description:
-;;;
+;;
 ;; * `dired-do-shell-command' is bound to `!' by dired.el.
-;;;
+;;
 ;; * `dired-guess-shell-command' provides smarter defaults for
-;;;    dired-aux.el's `dired-read-shell-command'.
-;;;
+;;    dired-aux.el's `dired-read-shell-command'.
+;;
 ;; * `dired-guess-shell-command' calls `dired-guess-default' with list of
-;;;    marked files.
-;;;
+;;    marked files.
+;;
 ;; * Parse `dired-guess-shell-alist-user' and
-;;;   `dired-guess-shell-alist-default' (in that order) for the first REGEXP
-;;;   that matches the first file in the file list.
-;;;
+;;   `dired-guess-shell-alist-default' (in that order) for the first REGEXP
+;;   that matches the first file in the file list.
+;;
 ;; * If the REGEXP matches all the entries of the file list then evaluate
-;;;   COMMAND, which is either a string or a Lisp expression returning a
-;;;   string.  COMMAND may be a list of commands.
-;;;
+;;   COMMAND, which is either a string or a Lisp expression returning a
+;;   string.  COMMAND may be a list of commands.
+;;
 ;; * Return this command to `dired-guess-shell-command' which prompts user
-;;;   with it.  The list of commands is put into the list of default values.
-;;;   If a command is used successfully then it is stored permanently in
-;;;   `dired-shell-command-history'.
+;;   with it.  The list of commands is put into the list of default values.
+;;   If a command is used successfully then it is stored permanently in
+;;   `dired-shell-command-history'.
 
 ;; Guess what shell command to apply to a file.
 (defvar dired-shell-command-history nil
@@ -1089,7 +1089,7 @@ results in
 
 ;;;###autoload
 (defun dired-do-relsymlink (&optional arg)
-   "Relative symlink all marked (or next ARG) files into a directory.
+  "Relative symlink all marked (or next ARG) files into a directory.
 Otherwise make a relative symbolic link to the current file.
 This creates relative symbolic links like
 
@@ -1102,7 +1102,7 @@ not absolute ones like
 For absolute symlinks, use \\[dired-do-symlink]."
   (interactive "P")
   (dired-do-create-files 'relsymlink #'dired-make-relative-symlink
-                           "RelSymLink" arg dired-keep-marker-relsymlink))
+                         "RelSymLink" arg dired-keep-marker-relsymlink))
 
 (autoload 'dired-mark-read-regexp "dired-aux")
 (autoload 'dired-do-create-files-regexp "dired-aux")
@@ -1120,27 +1120,27 @@ for more info."
 ;;; VISIT ALL MARKED FILES SIMULTANEOUSLY.
 
 ;; Brief Description:
-;;;
+;;
 ;; `dired-do-find-marked-files' is bound to `F' by dired-x.el.
-;;;
+;;
 ;; * Use `dired-get-marked-files' to collect the marked files in the current
-;;;   Dired Buffer into a list of filenames `FILE-LIST'.
-;;;
+;;   Dired Buffer into a list of filenames `FILE-LIST'.
+;;
 ;; * Pass FILE-LIST to `dired-simultaneous-find-file' all with
-;;;   `dired-do-find-marked-files''s prefix argument NOSELECT.
-;;;
+;;   `dired-do-find-marked-files''s prefix argument NOSELECT.
+;;
 ;; * `dired-simultaneous-find-file' runs through FILE-LIST decrementing the
-;;;   list each time.
-;;;
+;;   list each time.
+;;
 ;; * If NOSELECT is non-nil then just run `find-file-noselect' on each
-;;;   element of FILE-LIST.
-;;;
+;;   element of FILE-LIST.
+;;
 ;; * If NOSELECT is nil then calculate the `size' of the window for each file
-;;;   by dividing the `window-height' by length of FILE-LIST.  Thus, `size' is
-;;;   cognizant of the window-configuration.
-;;;
+;;   by dividing the `window-height' by length of FILE-LIST.  Thus, `size' is
+;;   cognizant of the window-configuration.
+;;
 ;; * If `size' is too small abort, otherwise run `find-file' on each element
-;;;   of FILE-LIST giving each a window of height `size'.
+;;   of FILE-LIST giving each a window of height `size'.
 
 (defun dired-do-find-marked-files (&optional noselect)
   "Find all marked files displaying all of them simultaneously.
@@ -1196,8 +1196,8 @@ NOSELECT the files are merely found but not selected."
 
 (defun dired-man ()
   "Run `man' on this file."
-;; Used also to say: "Display old buffer if buffer name matches filename."
-;; but I have no idea what that means.
+  ;; Used also to say: "Display old buffer if buffer name matches filename."
+  ;; but I have no idea what that means.
   (interactive)
   (require 'man)
   (let* ((file (dired-get-filename))

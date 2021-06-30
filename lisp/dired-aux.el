@@ -135,7 +135,7 @@ substituted, and will be passed through normally to the shell.
 
 %s
 
-(Press ^ to %s markers below these occurrences.)
+\(Press ^ to %s markers below these occurrences.)
 "
    "`"
    (string (aref command (car char-positions)))
@@ -288,12 +288,12 @@ If this file is a backup, diff it with its original.
 The backup file is the first file given to `diff'.
 With prefix arg, prompt for argument SWITCHES which is options for `diff'."
   (interactive
-    (if current-prefix-arg
-	(list (read-string "Options for diff: "
-			   (if (stringp diff-switches)
-			       diff-switches
-			     (mapconcat #'identity diff-switches " "))))
-      nil))
+   (if current-prefix-arg
+       (list (read-string "Options for diff: "
+			  (if (stringp diff-switches)
+			      diff-switches
+			    (mapconcat #'identity diff-switches " "))))
+     nil))
   (diff-backup (dired-get-filename) switches))
 
 ;;;###autoload
@@ -636,7 +636,7 @@ Uses the shell command coming from variables `lpr-command' and
     (dired-run-shell-command (dired-shell-stuff-it command file-list nil))))
 
 (defun dired-mark-read-string (prompt initial op-symbol arg files
-			       &optional default-value collection)
+			              &optional default-value collection)
   "Read args for a Dired marked-files command, prompting with PROMPT.
 Return the user input (a string).
 
@@ -871,8 +871,8 @@ can be produced by `dired-get-marked-files', for example.
 `dired-guess-shell-alist-default' and
 `dired-guess-shell-alist-user' are consulted when the user is
 prompted for the shell command to use interactively."
-;;Functions dired-run-shell-command and dired-shell-stuff-it do the
-;;actual work and can be redefined for customization.
+  ;; Functions dired-run-shell-command and dired-shell-stuff-it do the
+  ;; actual work and can be redefined for customization.
   (interactive
    (let ((files (dired-get-marked-files t current-prefix-arg nil nil t)))
      (list
@@ -914,13 +914,13 @@ prompted for the shell command to use interactively."
   "Separates marked files in dired shell commands.")
 
 (defun dired-shell-stuff-it (command file-list on-each &optional _raw-arg)
-;; "Make up a shell command line from COMMAND and FILE-LIST.
-;; If ON-EACH is t, COMMAND should be applied to each file, else
-;; simply concat all files and apply COMMAND to this.
-;; FILE-LIST's elements will be quoted for the shell."
-;; Might be redefined for smarter things and could then use RAW-ARG
-;; (coming from interactive P and currently ignored) to decide what to do.
-;; Smart would be a way to access basename or extension of file names.
+  ;; "Make up a shell command line from COMMAND and FILE-LIST.
+  ;; If ON-EACH is t, COMMAND should be applied to each file, else
+  ;; simply concat all files and apply COMMAND to this.
+  ;; FILE-LIST's elements will be quoted for the shell."
+  ;; Might be redefined for smarter things and could then use RAW-ARG
+  ;; (coming from interactive P and currently ignored) to decide what to do.
+  ;; Smart would be a way to access basename or extension of file names.
   (let* ((in-background (string-match "[ \t]*&[ \t]*\\'" command))
 	 (command (if in-background
 		      (substring command 0 (match-beginning 0))
@@ -1382,19 +1382,19 @@ see `dired-compress-file-alist' for the supported suffixes list."
 				   (dired-mark-prompt arg files) "? ")))))
 
 (defun dired-map-over-marks-check (fun arg op-symbol &optional show-progress)
-;  "Map FUN over marked files (with second ARG like in dired-map-over-marks)
-; and display failures.
+  ;;  "Map FUN over marked files (with second ARG like in dired-map-over-marks)
+  ;; and display failures.
 
-; FUN takes zero args.  It returns non-nil (the offending object, e.g.
-; the short form of the filename) for a failure and probably logs a
-; detailed error explanation using function `dired-log'.
+  ;; FUN takes zero args.  It returns non-nil (the offending object, e.g.
+  ;; the short form of the filename) for a failure and probably logs a
+  ;; detailed error explanation using function `dired-log'.
 
-; OP-SYMBOL is a symbol describing the operation performed (e.g.
-; `compress').  It is used with `dired-mark-pop-up' to prompt the user
-; (e.g. with `Compress * [2 files]? ') and to display errors (e.g.
-; `Failed to compress 1 of 2 files - type W to see why ("foo")')
+  ;; OP-SYMBOL is a symbol describing the operation performed (e.g.
+  ;; `compress').  It is used with `dired-mark-pop-up' to prompt the user
+  ;; (e.g. with `Compress * [2 files]? ') and to display errors (e.g.
+  ;; `Failed to compress 1 of 2 files - type W to see why ("foo")')
 
-; SHOW-PROGRESS if non-nil means redisplay dired after each file."
+  ;; SHOW-PROGRESS if non-nil means redisplay dired after each file."
   (if (dired-mark-confirm op-symbol arg)
       (let* ((total-list;; all of FUN's return values
 	      (dired-map-over-marks (funcall fun) arg show-progress))
@@ -1486,7 +1486,7 @@ uncompress and unpack all the files in the archive."
   ;; Return nil for success, offending file name else.
   (let ((file (dired-get-filename)) failure)
     (condition-case err
-      (load file nil nil t)
+        (load file nil nil t)
       (error (setq failure err)))
     (if (not failure)
 	nil
@@ -1700,7 +1700,7 @@ files matching `dired-omit-regexp'."
     (forward-line 1)
     (while (and (not (eolp))		; don't cross subdir boundary
 		(not (dired-move-to-filename)))
-	(forward-line 1))
+      (forward-line 1))
     (point)))
 
 ;;;###autoload
@@ -2415,7 +2415,7 @@ suggested for the target directory depends on the value of
 For relative symlinks, use \\[dired-do-relsymlink]."
   (interactive "P")
   (dired-do-create-files 'symlink #'make-symbolic-link
-			   "Symlink" arg dired-keep-marker-symlink))
+                         "Symlink" arg dired-keep-marker-symlink))
 
 ;;;###autoload
 (defun dired-do-hardlink (&optional arg)
@@ -2428,7 +2428,7 @@ suggested for the target directory depends on the value of
 `dired-dwim-target', which see."
   (interactive "P")
   (dired-do-create-files 'hardlink #'dired-hardlink
-			   "Hardlink" arg dired-keep-marker-hardlink))
+                         "Hardlink" arg dired-keep-marker-hardlink))
 
 (defun dired-hardlink (file newname &optional ok-if-already-exists)
   (dired-handle-overwrite newname)
@@ -2455,7 +2455,7 @@ of `dired-dwim-target', which see."
 (defvar rename-regexp-query)
 
 (defun dired-do-create-files-regexp
-  (file-creator operation arg regexp newname &optional whole-name marker-char)
+    (file-creator operation arg regexp newname &optional whole-name marker-char)
   ;; Create a new file for each marked file using regexps.
   ;; FILE-CREATOR and OPERATION as in dired-create-files.
   ;; ARG as in dired-get-marked-files.
@@ -2575,7 +2575,7 @@ See function `dired-do-rename-regexp' for more info."
 (defvar rename-non-directory-query)
 
 (defun dired-create-files-non-directory
-  (file-creator basename-constructor operation arg)
+    (file-creator basename-constructor operation arg)
   ;; Perform FILE-CREATOR on the non-directory part of marked files
   ;; using function BASENAME-CONSTRUCTOR, with query for each file.
   ;; OPERATION like in dired-create-files, ARG as in dired-get-marked-files.

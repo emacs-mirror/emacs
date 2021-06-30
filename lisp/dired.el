@@ -53,7 +53,6 @@
   :prefix "dired-"
   :group 'dired)
 
-
 ;;;###autoload
 (defcustom dired-listing-switches (purecopy "-al")
   "Switches passed to `ls' for Dired.  MUST contain the `l' option.
@@ -78,9 +77,9 @@ some of the `ls' switches are not supported; see the doc string of
 (defcustom dired-subdir-switches nil
   "If non-nil, switches passed to `ls' for inserting subdirectories.
 If nil, `dired-listing-switches' is used."
-   :group 'dired
-   :type '(choice (const :tag "Use dired-listing-switches" nil)
-                  (string :tag "Switches")))
+  :group 'dired
+  :type '(choice (const :tag "Use dired-listing-switches" nil)
+                 (string :tag "Switches")))
 
 (defcustom dired-maybe-use-globstar nil
   "If non-nil, enable globstar if the shell supports it.
@@ -144,8 +143,8 @@ For more details, see Info node `(emacs)ls in Lisp'."
 
 (defcustom dired-touch-program "touch"
   "Name of touch command (usually `touch')."
-   :group 'dired
-   :type 'file)
+  :group 'dired
+  :type 'file)
 
 (defcustom dired-ls-F-marks-symlinks nil
   "Informs Dired about how `ls -lF' marks symbolic links.
@@ -220,7 +219,7 @@ or the most recently used window with a Dired buffer, or to use any other
 function.  When the value is a function, it will be called with no
 arguments and is expected to return a list of directories which will
 be used as defaults (i.e. default target and \"future history\")
-(though, `dired-dwim-target-defaults' might modify it a bit).
+\(though, `dired-dwim-target-defaults' might modify it a bit).
 The value t prefers the next windows on the same frame.
 
 The target is used in the prompt for file copy, rename etc."
@@ -247,9 +246,9 @@ The target is used in the prompt for file copy, rename etc."
 This is similar to the \"-L\" option for the \"cp\" shell command."
   :type 'boolean
   :group 'dired)
-                                        ;
-; These variables were deleted and the replacements are on files.el.
-; We leave aliases behind for back-compatibility.
+
+;; These variables were deleted and the replacements are on files.el.
+;; We leave aliases behind for back-compatibility.
 (define-obsolete-variable-alias 'dired-free-space-program
   'directory-free-space-program "27.1")
 (define-obsolete-variable-alias 'dired-free-space-args
@@ -376,8 +375,8 @@ This is what the do-commands look for, and what the mark-commands store.")
   "Character used to flag files for deletion.")
 
 (defvar dired-shrink-to-fit t
-;; I see no reason ever to make this nil -- rms.
-;;  (> baud-rate search-slow-speed)
+  ;; I see no reason ever to make this nil -- rms.
+  ;;  (> baud-rate search-slow-speed)
   "Non-nil means Dired shrinks the display buffer to fit the marked files.")
 (make-obsolete-variable 'dired-shrink-to-fit
 			"use the Customization interface to add a new rule
@@ -425,7 +424,7 @@ The directory name must be absolute, but need not be fully expanded.")
                                  "[bcsp][^:]"))
 (defvar dired-re-exe;; match ls permission string of an executable file
   (mapconcat (lambda (x)
-		(concat dired-re-maybe-mark dired-re-inode-size x))
+	       (concat dired-re-maybe-mark dired-re-inode-size x))
 	     '("-[-r][-w][xs][-r][-w].[-r][-w]."
 	       "-[-r][-w].[-r][-w][xs][-r][-w]."
 	       "-[-r][-w].[-r][-w].[-r][-w][xst]")
@@ -684,7 +683,7 @@ Subexpression 2 must end right before the \\n.")
    ;;
    ;; Directory headers.
    (list dired-subdir-regexp '(1 dired-header-face))
-)
+   )
   "Additional expressions to highlight in Dired mode.")
 
 (defvar dnd-protocol-alist)
@@ -1969,7 +1968,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ;; No need to do this, now that top-level items are fewer.
     ;;;;
     ;; Get rid of the Edit menu bar item to save space.
-    ;(define-key map [menu-bar edit] 'undefined)
+    ;;(define-key map [menu-bar edit] 'undefined)
 
     map)
   "Local keymap for Dired mode buffers.")
@@ -2282,7 +2281,8 @@ Keybindings:
   "Summarize basic Dired commands and show recent Dired errors."
   (interactive)
   (dired-why)
-  ;>> this should check the key-bindings and use substitute-command-keys if non-standard
+  ;; FIXME this should check the key-bindings and use
+  ;; substitute-command-keys if non-standard
   (message
    "d-elete, u-ndelete, x-punge, f-ind, o-ther window, R-ename, C-opy, h-elp"))
 
@@ -2581,7 +2581,7 @@ Otherwise, an error occurs in these cases."
       (concat (dired-current-directory localp) file)))))
 
 (defun dired-string-replace-match (regexp string newtext
-                                   &optional literal global)
+                                          &optional literal global)
   "Replace first match of REGEXP in STRING with NEWTEXT.
 If it does not match, nil is returned instead of the new string.
 Optional arg LITERAL means to take NEWTEXT literally.
@@ -2592,7 +2592,7 @@ Optional arg GLOBAL means to replace all matches."
 	  (let ((from-end (- (length string) (match-end 0))))
 	    (setq ret (setq string (replace-match newtext t literal string)))
 	    (setq start (- (length string) from-end))))
-	  ret)
+	ret)
     (if (not (string-match regexp string 0))
 	nil
       (replace-match newtext t literal string))))
@@ -2776,9 +2776,9 @@ If EOL, it should be an position to use instead of
       (or no-error
 	  (not (eq opoint (point)))
 	  (error "%s" (if hidden
-		     (substitute-command-keys
-		      "File line is hidden, type \\[dired-hide-subdir] to unhide")
-		   "No file on this line")))
+                          (substitute-command-keys
+                           "File line is hidden, type \\[dired-hide-subdir] to unhide")
+                        "No file on this line")))
       (if (eq opoint (point))
 	  nil
 	(point)))))
@@ -2887,8 +2887,6 @@ dired-buffers."
 	     (substring pattern matched-in-pattern))
 	    "\\'")))
 
-
-
 (defun dired-advertise ()
   ;;"Advertise in variable `dired-buffers' that we dired `default-directory'."
   ;; With wildcards we actually advertise too much.
@@ -2936,8 +2934,8 @@ dired-buffers."
       (beginning-of-line)		; alist stores b-o-l positions
       (and (zerop (- (point)
                      (cdr (assoc cur-dir
-						  dired-subdir-alist))))
-	   cur-dir))))
+                                 dired-subdir-alist))))
+           cur-dir))))
 
 (define-obsolete-function-alias 'dired-get-subdir-min 'cdr "27.1")
 
@@ -3046,11 +3044,11 @@ instead of `dired-actual-switches'."
 		    new-dir-name)
 	      (setq new-dir-name res)))
 	  (dired-alist-add-1 new-dir-name
-           ;; Place a sub directory boundary between lines.
-           (save-excursion
-             (goto-char (match-beginning 0))
-             (beginning-of-line)
-             (point-marker)))))
+                             ;; Place a sub directory boundary between lines.
+                             (save-excursion
+                               (goto-char (match-beginning 0))
+                               (beginning-of-line)
+                               (point-marker)))))
       (if (and (> count 1) (called-interactively-p 'interactive))
 	  (message "Buffer includes %d directories" count)))
     ;; We don't need to sort it because it is in buffer order per
@@ -3378,7 +3376,7 @@ non-empty directories is allowed."
 (defun dired-fun-in-all-buffers (directory file fun &rest args)
   "In all buffers dired'ing DIRECTORY, run FUN with ARGS.
 If the buffer has a wildcard pattern, check that it matches FILE.
-(FILE does not include a directory component.)
+\(FILE does not include a directory component.)
 FILE may be nil, in which case ignore it.
 Return list of buffers where FUN succeeded (i.e., returned non-nil)."
   (let (success-list)
@@ -3860,8 +3858,7 @@ since it was last visited."
 		  (with-temp-buffer
 		    (insert-file-contents fn)
 		    (goto-char (point-min))
-		    (re-search-forward regexp nil t))))
-		      )))
+		    (re-search-forward regexp nil t)))))))
      "matching file")))
 
 (defun dired-flag-files-regexp (regexp)
@@ -4406,10 +4403,10 @@ Ask means pop up a menu for the user to select one of copy, move or link."
      (desktop-file-name dired-directory dirname))
    ;; Subdirectories in `dired-subdir-alist'.
    (cdr
-     (nreverse
-       (mapcar
-        (lambda (f) (desktop-file-name (car f) dirname))
-         dired-subdir-alist)))))
+    (nreverse
+     (mapcar
+      (lambda (f) (desktop-file-name (car f) dirname))
+      dired-subdir-alist)))))
 
 (defun dired-restore-desktop-buffer (_file-name
                                      _buffer-name
