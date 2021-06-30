@@ -537,6 +537,14 @@ an edit instead of marking it as "Done" (which the 'C-x #' command
 does).  The 'emacsclient' program exits with an abnormal status as
 result of this command.
 
++++
+*** New desktop integration for connecting to the server.
+If your operating system’s desktop environment is
+freedesktop.org-compatible (which is true of most GNU/Linux and other
+recent Unix-like GUIs), you may use the new "Emacs (Client)" desktop
+menu entry to open files in an existing Emacs instance rather than
+starting a new one.  The daemon starts if not already running.
+
 ** Perl mode
 
 ---
