@@ -5060,6 +5060,16 @@ The comparison is done using `equal-including-properties'."
   :group 'killing
   :version "23.2")
 
+(defcustom kill-transform-function nil
+  "Function to call to transform a string before it's put on the kill ring.
+The function is called with one parameter (the string that's to
+be put on the kill ring).  It should return a string or nil.  If
+the latter, the string is not put on the kill ring."
+  :type '(choice (const :tag "No transform" nil)
+                 function)
+  :group 'killing
+  :version "28.1")
+
 (defun kill-new (string &optional replace)
   "Make STRING the latest kill in the kill ring.
 Set `kill-ring-yank-pointer' to point to it.
@@ -5075,38 +5085,41 @@ When the yank handler has a non-nil PARAM element, the original STRING
 argument is not used by `insert-for-yank'.  However, since Lisp code
 may access and use elements from the kill ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
-  (unless (and kill-do-not-save-duplicates
-	       ;; Due to text properties such as 'yank-handler that
-	       ;; can alter the contents to yank, comparison using
-	       ;; `equal' is unsafe.
-	       (equal-including-properties string (car kill-ring)))
-    (if (fboundp 'menu-bar-update-yank-menu)
-	(menu-bar-update-yank-menu string (and replace (car kill-ring)))))
-  (when save-interprogram-paste-before-kill
-    (let ((interprogram-paste (and interprogram-paste-function
-                                   (funcall interprogram-paste-function))))
-      (when interprogram-paste
-        (setq interprogram-paste
-              (if (listp interprogram-paste)
-                  ;; Use `reverse' to avoid modifying external data.
-                  (reverse interprogram-paste)
-		(list interprogram-paste)))
-        (when (or (not (numberp save-interprogram-paste-before-kill))
-                  (< (seq-reduce #'+ (mapcar #'length interprogram-paste) 0)
-                     save-interprogram-paste-before-kill))
-          (dolist (s interprogram-paste)
-	    (unless (and kill-do-not-save-duplicates
-                         (equal-including-properties s (car kill-ring)))
-	      (push s kill-ring)))))))
-  (unless (and kill-do-not-save-duplicates
-	       (equal-including-properties string (car kill-ring)))
-    (if (and replace kill-ring)
-	(setcar kill-ring string)
-      (let ((history-delete-duplicates nil))
-        (add-to-history 'kill-ring string kill-ring-max t))))
-  (setq kill-ring-yank-pointer kill-ring)
-  (if interprogram-cut-function
-      (funcall interprogram-cut-function string)))
+  ;; Allow the user to transform or ignore the string.
+  (when (or (not kill-transform-function)
+            (setq string (funcall kill-transform-function string)))
+    (unless (and kill-do-not-save-duplicates
+	         ;; Due to text properties such as 'yank-handler that
+	         ;; can alter the contents to yank, comparison using
+	         ;; `equal' is unsafe.
+	         (equal-including-properties string (car kill-ring)))
+      (if (fboundp 'menu-bar-update-yank-menu)
+	  (menu-bar-update-yank-menu string (and replace (car kill-ring)))))
+    (when save-interprogram-paste-before-kill
+      (let ((interprogram-paste (and interprogram-paste-function
+                                     (funcall interprogram-paste-function))))
+        (when interprogram-paste
+          (setq interprogram-paste
+                (if (listp interprogram-paste)
+                    ;; Use `reverse' to avoid modifying external data.
+                    (reverse interprogram-paste)
+		  (list interprogram-paste)))
+          (when (or (not (numberp save-interprogram-paste-before-kill))
+                    (< (seq-reduce #'+ (mapcar #'length interprogram-paste) 0)
+                       save-interprogram-paste-before-kill))
+            (dolist (s interprogram-paste)
+	      (unless (and kill-do-not-save-duplicates
+                           (equal-including-properties s (car kill-ring)))
+	        (push s kill-ring)))))))
+    (unless (and kill-do-not-save-duplicates
+	         (equal-including-properties string (car kill-ring)))
+      (if (and replace kill-ring)
+	  (setcar kill-ring string)
+        (let ((history-delete-duplicates nil))
+          (add-to-history 'kill-ring string kill-ring-max t))))
+    (setq kill-ring-yank-pointer kill-ring)
+    (if interprogram-cut-function
+        (funcall interprogram-cut-function string))))
 
 ;; It has been argued that this should work like `self-insert-command'
 ;; which merges insertions in `buffer-undo-list' in groups of 20

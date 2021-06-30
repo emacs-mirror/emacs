@@ -2142,6 +2142,11 @@ summaries will include the failing condition.
 
 ** Miscellaneous
 
++++
+*** New user option 'kill-transform-function'.
+This can be used to transform (and suppress) strings from entering the
+kill ring.
+
 ---
 *** `C-u M-x dig' will now prompt for a query type to use.
 
