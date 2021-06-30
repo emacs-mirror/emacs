@@ -333,7 +333,7 @@ BIN_DESTDIR='$(DESTDIR)${bindir}/'
 ELN_DESTDIR = $(DESTDIR)${libdir}/emacs/${version}/
 else
 BIN_DESTDIR='${ns_appbindir}/'
-ELN_DESTDIR = ${ns_applibdir}/emacs/${version}/
+ELN_DESTDIR = ${ns_applibdir}/
 endif
 
 all: ${SUBDIR} info

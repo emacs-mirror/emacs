@@ -1895,7 +1895,7 @@ if test "${with_ns}" != no; then
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}/Contents/MacOS
      ns_applibexecdir=${ns_appdir}/Contents/MacOS/libexec
-     ns_applibdir=${ns_appdir}/Contents/MacOS/lib
+     ns_applibdir=${ns_appdir}/Contents/Frameworks
      ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=Cocoa/Emacs.base
      ns_fontfile=macfont.o
@@ -1954,7 +1954,7 @@ fail;
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
      ns_applibexecdir=${ns_appdir}/libexec
-     ns_applibdir=${ns_appdir}/lib
+     ns_applibdir=${ns_appdir}/Frameworks
      ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=GNUstep/Emacs.base
      ns_fontfile=nsfont.o
