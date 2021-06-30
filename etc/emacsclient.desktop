@@ -9,5 +9,5 @@ Type=Application
 Terminal=false
 Categories=Development;TextEditor;
 StartupNotify=true
-StartupWMClass=Emacsd
+StartupWMClass=Emacs
 Keywords=Text;Editor;
