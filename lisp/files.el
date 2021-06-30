@@ -4894,6 +4894,27 @@ extension, the value is \"\"."
         (if period
             "")))))
 
+(defun file-name-with-extension (filename extension)
+  "Set the EXTENSION of a FILENAME.
+The extension (in a file name) is the part that begins with the last \".\".
+
+Trims a leading dot from the EXTENSION so that either \"foo\" or
+\".foo\" can be given.
+
+Errors if the filename or extension are empty, or if the given
+filename has the format of a directory.
+
+See also `file-name-sans-extension'."
+  (let ((extn (string-trim-left extension "[.]")))
+    (cond ((string-empty-p filename)
+           (error "Empty filename: %s" filename))
+          ((string-empty-p extn)
+           (error "Malformed extension: %s" extension))
+          ((directory-name-p filename)
+           (error "Filename is a directory: %s" filename))
+          (t
+           (concat (file-name-sans-extension filename) "." extn)))))
+
 (defun file-name-base (&optional filename)
   "Return the base name of the FILENAME: no directory, no extension."
   (declare (advertised-calling-convention (filename) "27.1"))

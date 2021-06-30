@@ -3059,6 +3059,11 @@ been added, and takes a callback to handle the return status.
 ** 'ascii' is now a coding system alias for 'us-ascii'.
 
 +++
+** New function 'file-name-with-extension'.
+This function allows a canonical way to set/replace the extension of a
+filename string.
+
++++
 ** New function 'file-backup-file-names'.
 This function returns the list of file names of all the backup files
 of its file argument.

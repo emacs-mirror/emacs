@@ -1478,5 +1478,23 @@ The door of all subtleties!
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
 
+(ert-deftest files-tests-file-name-with-extension-good ()
+  "Test that `file-name-with-extension' succeeds with reasonable input."
+  (should (string= (file-name-with-extension "Jack" "css") "Jack.css"))
+  (should (string= (file-name-with-extension "Jack" ".css") "Jack.css"))
+  (should (string= (file-name-with-extension "Jack.scss" "css") "Jack.css"))
+  (should (string= (file-name-with-extension "/path/to/Jack.md" "org") "/path/to/Jack.org")))
+
+(ert-deftest files-tests-file-name-with-extension-bad ()
+  "Test that `file-name-with-extension' fails on malformed input."
+  (should-error (file-name-with-extension nil nil))
+  (should-error (file-name-with-extension "Jack" nil))
+  (should-error (file-name-with-extension nil "css"))
+  (should-error (file-name-with-extension "" ""))
+  (should-error (file-name-with-extension "" "css"))
+  (should-error (file-name-with-extension "Jack" ""))
+  (should-error (file-name-with-extension "Jack" "."))
+  (should-error (file-name-with-extension "/is/a/directory/" "css")))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here

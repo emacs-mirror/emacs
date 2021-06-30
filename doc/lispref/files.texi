@@ -2129,6 +2129,25 @@ the period that delimits the extension, and if @var{filename} has no
 extension, the value is @code{""}.
 @end defun
 
+@defun file-name-with-extension filename extension
+This function returns @var{filename} with its extension set to
+@var{extension}.  A single leading dot in the @var{extension} will be
+stripped if there is one.  For example:
+
+@example
+(file-name-with-extension "file" "el")
+     @result{} "file.el"
+(file-name-with-extension "file" ".el")
+     @result{} "file.el"
+(file-name-with-extension "file.c" "el")
+     @result{} "file.el"
+@end example
+
+Note that this function will error if @var{filename} or
+@var{extension} are empty, or if the @var{filename} is shaped like a
+directory (i.e. if @code{directory-name-p} returns non-@code{nil}).
+@end defun
+
 @defun file-name-sans-extension filename
 This function returns @var{filename} minus its extension, if any.  The
 version/backup part, if present, is only removed if the file has an
