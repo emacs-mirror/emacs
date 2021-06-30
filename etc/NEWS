@@ -2592,6 +2592,10 @@ GPG key servers can now be queried for keys with the
 'M-x epa-search-keys' command.  Keys can then be added to your
 personal key ring.
 
++++
+** Function 'lm-maintainer' was replaced with 'lm-maintainers'.
+The former is now declared obsolete.
+
 
 * New Modes and Packages in Emacs 28.1
 
