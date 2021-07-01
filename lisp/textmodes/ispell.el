@@ -1076,7 +1076,7 @@ dictionary from that list was found."
           (split-string
            (with-temp-buffer
              (ispell-call-process ispell-program-name
-                            null-device
+                            nil
                             t
                             nil
                             "-D"
