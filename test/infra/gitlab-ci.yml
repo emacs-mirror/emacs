@@ -44,6 +44,7 @@ workflow:
 variables:
   GIT_STRATEGY: fetch
   EMACS_EMBA_CI: 1
+  EMACS_TEST_VERBOSE: 1
   # # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
   # DOCKER_HOST: tcp://docker:2376
   # DOCKER_TLS_CERTDIR: "/certs"
