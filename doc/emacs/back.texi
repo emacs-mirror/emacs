@@ -39,7 +39,7 @@ and creating Makefiles for GNU/Linux, UNIX, Windows/DOS, and VMS
 systems.
 
 @item
-Support for typing and displaying in @strong{60 non- English languages},
+Support for typing and displaying in @strong{60 non-English languages},
 including Arabic, Chinese, Czech, Hebrew, Hindi, Japanese, Korean,
 Russian, Vietnamese, and all Western European languages.
 
