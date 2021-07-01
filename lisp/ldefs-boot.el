@@ -25860,8 +25860,12 @@ Proced buffers.
 (autoload 'profiler-start "profiler" "\
 Start/restart profilers.
 MODE can be one of `cpu', `mem', or `cpu+mem'.
-If MODE is `cpu' or `cpu+mem', time-based profiler will be started.
-Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started.
+If MODE is `cpu' or `cpu+mem', start the time-based profiler,
+   whereby CPU is sampled periodically using the SIGPROF signal.
+If MODE is `mem' or `cpu+mem', start profiler that samples CPU
+   whenever memory-allocation functions are called -- this is useful
+   if SIGPROF is not supported, or is unreliable, or is not sampling
+   at a high enough frequency.
 
 \(fn MODE)" t nil)
 
