@@ -13,7 +13,7 @@ StartupWMClass=Emacs
 Keywords=Text;Editor;
 Actions=new-window;new-instance;
 
-[Desktop Action new-instance]
+[Desktop Action new-window]
 Name=New Window
 Exec=emacsclient --alternate-editor= --create-frame %F
 
