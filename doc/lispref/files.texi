@@ -718,7 +718,7 @@ Emacs can then detect the first attempt to modify a buffer visiting a
 file that is locked by another Emacs job, and ask the user what to do.
 The file lock is really a file, a symbolic link with a special name,
 stored in the same directory as the file you are editing.  The name is
-constructed by prepending @file{.#} to the filename of the buffer.
+constructed by prepending @file{.#} to the file name of the buffer.
 The target of the symbolic link will be of the form
 @code{@var{user}@@@var{host}.@var{pid}:@var{boot}}, where @var{user}
 is replaced with the current username (from @code{user-login-name}),
@@ -1932,7 +1932,7 @@ is a symbolic link and @var{flag} is @code{nofollow}.
 
 @defun set-file-extended-attributes filename attribute-alist
 This function sets the Emacs-recognized extended file attributes for
-@code{filename}.  The second argument @var{attribute-alist} should be
+@var{filename}.  The second argument @var{attribute-alist} should be
 an alist of the same form returned by @code{file-extended-attributes}.
 The return value is @code{t} if the attributes are successfully set,
 otherwise it is @code{nil}.
@@ -2145,7 +2145,7 @@ stripped if there is one.  For example:
 
 Note that this function will error if @var{filename} or
 @var{extension} are empty, or if the @var{filename} is shaped like a
-directory (i.e. if @code{directory-name-p} returns non-@code{nil}).
+directory (i.e., if @code{directory-name-p} returns non-@code{nil}).
 @end defun
 
 @defun file-name-sans-extension filename
@@ -2434,7 +2434,7 @@ might begin with a literal @samp{~}, you can use @code{(concat
 (file-name-as-directory directory) filename)} instead of
 @code{(expand-file-name filename directory)}.
 
-Filenames containing @samp{.} or @samp{..} are simplified to their
+File names containing @samp{.} or @samp{..} are simplified to their
 canonical form:
 
 @example
@@ -3476,11 +3476,11 @@ identifies the remote system.
 
 This identifier string can include a host name and a user name, as
 well as characters designating the method used to access the remote
-system.  For example, the remote identifier string for the filename
+system.  For example, the remote identifier string for the file name
 @code{/sudo::/some/file} is @code{/sudo:root@@localhost:}.
 
 If @code{file-remote-p} returns the same identifier for two different
-filenames, that means they are stored on the same file system and can
+file names, that means they are stored on the same file system and can
 be accessed locally with respect to each other.  This means, for
 example, that it is possible to start a remote process accessing both
 files at the same time.  Implementers of file name handlers need to

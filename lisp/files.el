@@ -1011,7 +1011,7 @@ Any directory whose name matches this regexp will be treated like
 a kind of root directory by `locate-dominating-file', which will stop its
 search when it bumps into it.
 The default regexp prevents fruitless and time-consuming attempts to find
-special files in directories in which filenames are interpreted as hostnames,
+special files in directories in which file names are interpreted as host names,
 or mount points potentially requiring authentication as a different user.")
 
 (defun locate-dominating-file (file name)
@@ -2959,7 +2959,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
      ("\\.xmp\\'" . image-mode)
      ("\\.xwd\\'" . image-mode)
      ("\\.yuv\\'" . image-mode)))
-  "Alist of filename patterns vs corresponding major mode functions.
+  "Alist of file name patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
 Visiting a file whose name matches REGEXP specifies FUNCTION as the
@@ -3152,7 +3152,7 @@ To find the right major mode, this function checks for a -*- mode tag
 checks for a `mode:' entry in the Local Variables section of the file,
 checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
-compares the filename against the entries in `auto-mode-alist',
+compares the file name against the entries in `auto-mode-alist',
 then matches the buffer beginning against `magic-fallback-mode-alist'.
 
 If `enable-local-variables' is nil, or if the file name matches
@@ -4901,8 +4901,8 @@ The extension (in a file name) is the part that begins with the last \".\".
 Trims a leading dot from the EXTENSION so that either \"foo\" or
 \".foo\" can be given.
 
-Errors if the filename or extension are empty, or if the given
-filename has the format of a directory.
+Errors if the FILENAME or EXTENSION are empty, or if the given
+FILENAME has the format of a directory.
 
 See also `file-name-sans-extension'."
   (let ((extn (string-trim-left extension "[.]")))
@@ -4941,7 +4941,7 @@ See also `backup-directory-alist'."
 		 (function :tag "Function")))
 
 (defcustom backup-directory-alist nil
-  "Alist of filename patterns and backup directory names.
+  "Alist of file name patterns and backup directory names.
 Each element looks like (REGEXP . DIRECTORY).  Backups of files with
 names matching REGEXP will be made in DIRECTORY.  DIRECTORY may be
 relative or absolute.  If it is absolute, so that all matching files
@@ -4954,7 +4954,7 @@ For the common case of all backups going into one directory, the alist
 should contain a single element pairing \".\" with the appropriate
 directory name.
 
-If this variable is nil, or it fails to match a filename, the backup
+If this variable is nil, or it fails to match a file name, the backup
 is made in the original file's directory.
 
 On MS-DOS filesystems without long names this variable is always
@@ -6780,7 +6780,7 @@ See also `make-auto-save-file-name'."
 
 (defun wildcard-to-regexp (wildcard)
   "Given a shell file name pattern WILDCARD, return an equivalent regexp.
-The generated regexp will match a filename only if the filename
+The generated regexp will match a file name only if the file name
 matches that wildcard according to shell rules.  Only wildcards known
 by `sh' are supported."
   (let* ((i (string-match "[[.*+\\^$?]" wildcard))
@@ -7500,7 +7500,7 @@ If the current frame has no client, kill Emacs itself using
 
 With prefix ARG, silently save all file-visiting buffers, then kill.
 
-If emacsclient was started with a list of filenames to edit, then
+If emacsclient was started with a list of file names to edit, then
 only these files will be asked to be saved."
   (interactive "P")
   (if (frame-parameter nil 'client)
