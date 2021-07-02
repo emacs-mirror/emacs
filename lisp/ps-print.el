@@ -6506,10 +6506,11 @@ If FACE is not a valid face name, use default face."
     (and (buffer-live-p ps-buffer)
 	 (buffer-modified-p ps-buffer)
 	 (not (yes-or-no-p "Unprinted PostScript waiting; exit anyway? "))
-	 (error "Unprinted PostScript"))))
+	 (error "Unprinted PostScript")))
+  t)
 
 (unless noninteractive
-  (add-hook 'kill-emacs-hook #'ps-kill-emacs-check))
+  (add-hook 'kill-emacs-query-functions #'ps-kill-emacs-check))
 
 (provide 'ps-print)
 
