@@ -319,6 +319,10 @@ Meta characters to Emacs, e.g., send "ESC x" when the user types
 emulators by using the new input-meta-mode with the special value
 'encoded' with these terminal emulators.
 
++++
+** New frame parameter 'drag-with-tab-line'.
+This parameter, similar to 'drag-with-header-line', allows moving frames
+by dragging the tab lines of their topmost windows with the mouse.
 
 * Editing Changes in Emacs 28.1
 
