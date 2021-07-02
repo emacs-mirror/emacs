@@ -2455,7 +2455,7 @@ that, an interactive form can specified."
          (unless (if (listp ,argument)
                      (not (<= ,required (length ,argument) ,total))
                    (string-match ,regexp ,argument))
-           (user-error "Malformed input: %S" ',arguments))
+           (user-error "Malformed input (%s): %S" ,command ',arguments))
          (let ((process (or process (rcirc-buffer-process)))
 	       (target (or target rcirc-target)))
            (ignore target process)
