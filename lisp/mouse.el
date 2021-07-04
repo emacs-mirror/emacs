@@ -550,6 +550,18 @@ the frame instead."
         (when (frame-parameter frame 'drag-with-header-line)
           (mouse-drag-frame-move start-event))))))
 
+(defun mouse-drag-tab-line (start-event)
+  "Drag frame with tab line in its topmost window.
+START-EVENT is the starting mouse event of the drag action."
+  (interactive "e")
+  (let* ((start (event-start start-event))
+	 (window (posn-window start)))
+    (when (and (window-live-p window)
+               (window-at-side-p window 'top))
+      (let ((frame (window-frame window)))
+        (when (frame-parameter frame 'drag-with-tab-line)
+          (mouse-drag-frame-move start-event))))))
+
 (defun mouse-drag-vertical-line (start-event)
   "Change the width of a window by dragging on a vertical line.
 START-EVENT is the starting mouse event of the drag action."
@@ -678,6 +690,7 @@ frame with the mouse."
              ;; with a mode-line, header-line or vertical-line prefix ...
              (define-key map [mode-line] map)
              (define-key map [header-line] map)
+             (define-key map [tab-line] map)
              (define-key map [vertical-line] map)
              ;; ... and some maybe even with a right- or bottom-divider
              ;; prefix.
@@ -904,6 +917,7 @@ frame with the mouse."
              ;; with a mode-line, header-line or vertical-line prefix ...
              (define-key map [mode-line] map)
              (define-key map [header-line] map)
+             (define-key map [tab-line] map)
              (define-key map [vertical-line] map)
              ;; ... and some maybe even with a right- or bottom-divider
              ;; prefix.
@@ -2908,6 +2922,7 @@ is copied instead of being cut."
 ;; versions.
 (global-set-key [header-line down-mouse-1] 'mouse-drag-header-line)
 (global-set-key [header-line mouse-1] 'mouse-select-window)
+(global-set-key [tab-line down-mouse-1] 'mouse-drag-tab-line)
 (global-set-key [tab-line mouse-1] 'mouse-select-window)
 ;; (global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
 (global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)

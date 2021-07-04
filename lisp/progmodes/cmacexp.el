@@ -141,7 +141,7 @@ Normally display output in temp buffer, but
 prefix arg means replace the region with it.
 
 `c-macro-preprocessor' specifies the preprocessor to use.
-Tf the user option `c-macro-prompt-flag' is non-nil
+If the user option `c-macro-prompt-flag' is non-nil
 prompt for arguments to the preprocessor \(e.g. `-DDEBUG -I ./include'),
 otherwise use `c-macro-cppflags'.
 

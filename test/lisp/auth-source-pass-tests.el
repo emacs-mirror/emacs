@@ -49,6 +49,12 @@
                    '(("key1" . "val1")
                      ("key2" . "val2"))))))
 
+(ert-deftest auth-source-pass-parse-with-colons-in-data ()
+  (let ((content "pass\n--\nkey1 :val1\nkey2: please: keep my space after colon\n\n"))
+    (should (equal (auth-source-pass--parse-data content)
+                   '(("key1" . "val1")
+                     ("key2" . "please: keep my space after colon"))))))
+
 (defvar auth-source-pass--debug-log nil
   "Contains a list of all messages passed to `auth-source-do-debug`.")
 
@@ -424,20 +430,36 @@ HOSTNAME, USER and PORT are passed unchanged to
   (auth-source-pass--with-store-find-foo
       '(("foo" ("secret" . "foo password")))
     (let ((result (auth-source-pass--build-result "foo" 512 "user")))
+      (should (equal (plist-get result :host) "foo"))
       (should (equal (plist-get result :port) 512))
       (should (equal (plist-get result :user) "user")))))
 
 (ert-deftest auth-source-pass-build-result-return-entry-values ()
   (auth-source-pass--with-store-find-foo '(("foo" ("port" . 512) ("user" . "anuser")))
     (let ((result (auth-source-pass--build-result "foo" nil nil)))
+      (should (equal (plist-get result :host) "foo"))
       (should (equal (plist-get result :port) 512))
       (should (equal (plist-get result :user) "anuser")))))
 
 (ert-deftest auth-source-pass-build-result-entry-takes-precedence ()
-  (auth-source-pass--with-store-find-foo '(("foo" ("port" . 512) ("user" . "anuser")))
+  (auth-source-pass--with-store-find-foo '(("foo" ("host" . "bar") ("port" . 512) ("user" . "anuser")))
     (let ((result (auth-source-pass--build-result "foo" 1024 "anotheruser")))
+      (should (equal (plist-get result :host) "bar"))
       (should (equal (plist-get result :port) 512))
       (should (equal (plist-get result :user) "anuser")))))
+
+(ert-deftest auth-source-pass-build-result-with-multiple-hosts ()
+  (auth-source-pass--with-store-find-foo
+      '(("foo" ("secret" . "foo password")))
+    (let ((result (auth-source-pass--build-result '("bar" "foo") 512 "user")))
+      (should (equal (plist-get result :host) "foo"))
+      (should (equal (plist-get result :port) 512))
+      (should (equal (plist-get result :user) "user")))))
+
+(ert-deftest auth-source-pass-build-result-with-multiple-hosts-no-match ()
+  (auth-source-pass--with-store-find-foo
+      '(("foo" ("secret" . "foo password")))
+    (should-not (auth-source-pass--build-result '("bar" "baz") 512 "user"))))
 
 (ert-deftest auth-source-pass-can-start-from-auth-source-search ()
   (auth-source-pass--with-store '(("gitlab.com" ("user" . "someone")))

@@ -116,11 +116,13 @@ static CHILD_SETUP_TYPE child_setup (int, int, int, char **, char **,
 				     const char *);
 
 /* Return the current buffer's working directory, or the home
-   directory if it's unreachable, as a string suitable for a system call.
-   Signal an error if the result would not be an accessible directory.  */
+   directory if it's unreachable.  If ENCODE is true, return as a string
+   suitable for a system call; otherwise, return a string in its
+   internal representation.  Signal an error if the result would not be
+   an accessible directory.  */
 
 Lisp_Object
-encode_current_directory (void)
+get_current_directory (bool encode)
 {
   Lisp_Object curdir = BVAR (current_buffer, directory);
   Lisp_Object dir = Funhandled_file_name_directory (curdir);
@@ -131,12 +133,12 @@ encode_current_directory (void)
     dir = build_string ("~");
 
   dir = expand_and_dir_to_file (dir);
-  dir = ENCODE_FILE (remove_slash_colon (dir));
+  Lisp_Object encoded_dir = ENCODE_FILE (remove_slash_colon (dir));
 
-  if (! file_accessible_directory_p (dir))
+  if (! file_accessible_directory_p (encoded_dir))
     report_file_error ("Setting current directory", curdir);
 
-  return dir;
+  return encode ? encoded_dir : dir;
 }
 
 /* If P is reapable, record it as a deleted process and kill it.
@@ -225,8 +227,9 @@ DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
 The remaining arguments are optional.
 
 The program's input comes from file INFILE (nil means `null-device').
-If you want to make the input come from an Emacs buffer, use
-`call-process-region' instead.
+If INFILE is a relative path, it will be looked for relative to the
+directory where the process is run (see below).  If you want to make the
+input come from an Emacs buffer, use `call-process-region' instead.
 
 Third argument DESTINATION specifies how to handle program's output.
 If DESTINATION is a buffer, or t that stands for the current buffer,
@@ -270,7 +273,9 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
   if (nargs >= 2 && ! NILP (args[1]))
     {
-      infile = Fexpand_file_name (args[1], BVAR (current_buffer, directory));
+      /* Expand infile relative to the current buffer's current
+	 directory, or its unhandled equivalent ("~").  */
+      infile = Fexpand_file_name (args[1], get_current_directory (false));
       CHECK_STRING (infile);
     }
   else
@@ -439,7 +444,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
      buffer's current directory, or its unhandled equivalent.  We
      can't just have the child check for an error when it does the
      chdir, since it's in a vfork.  */
-  current_dir = encode_current_directory ();
+  current_dir = get_current_directory (true);
 
   if (STRINGP (error_file))
     {
@@ -1661,32 +1666,15 @@ make_environment_block (Lisp_Object current_dir)
 void
 init_callproc_1 (void)
 {
-#ifdef HAVE_NS
-  const char *etc_dir = ns_etc_directory ();
-  const char *path_exec = ns_exec_path ();
-#endif
-
-  Vdata_directory = decode_env_path ("EMACSDATA",
-#ifdef HAVE_NS
-                                             etc_dir ? etc_dir :
-#endif
-                                             PATH_DATA, 0);
+  Vdata_directory = decode_env_path ("EMACSDATA", PATH_DATA, 0);
   Vdata_directory = Ffile_name_as_directory (Fcar (Vdata_directory));
 
-  Vdoc_directory = decode_env_path ("EMACSDOC",
-#ifdef HAVE_NS
-                                             etc_dir ? etc_dir :
-#endif
-                                             PATH_DOC, 0);
+  Vdoc_directory = decode_env_path ("EMACSDOC", PATH_DOC, 0);
   Vdoc_directory = Ffile_name_as_directory (Fcar (Vdoc_directory));
 
   /* Check the EMACSPATH environment variable, defaulting to the
      PATH_EXEC path from epaths.h.  */
-  Vexec_path = decode_env_path ("EMACSPATH",
-#ifdef HAVE_NS
-                                path_exec ? path_exec :
-#endif
-                                PATH_EXEC, 0);
+  Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC, 0);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   /* FIXME?  For ns, path_exec should go at the front?  */
   Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
@@ -1701,10 +1689,6 @@ init_callproc (void)
 
   char *sh;
   Lisp_Object tempdir;
-#ifdef HAVE_NS
-  if (data_dir == 0)
-    data_dir = ns_etc_directory () != 0;
-#endif
 
   if (!NILP (Vinstallation_directory))
     {
@@ -1716,15 +1700,8 @@ init_callproc (void)
 	  /* MSDOS uses wrapped binaries, so don't do this.  */
       if (NILP (Fmember (tem, Vexec_path)))
 	{
-#ifdef HAVE_NS
-	  const char *path_exec = ns_exec_path ();
-#endif
 	  /* Running uninstalled, so default to tem rather than PATH_EXEC.  */
-	  Vexec_path = decode_env_path ("EMACSPATH",
-#ifdef HAVE_NS
-					path_exec ? path_exec :
-#endif
-					SSDATA (tem), 0);
+	  Vexec_path = decode_env_path ("EMACSPATH", SSDATA (tem), 0);
 	  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
 	}
 

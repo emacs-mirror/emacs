@@ -28,6 +28,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pdumper.h"
 #include "keyboard.h"
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 #if defined HAVE_GLIB && ! defined (HAVE_NS)
 #include <xgselect.h>
 #else
@@ -735,6 +739,15 @@ run_thread (void *state)
   struct thread_state *self = state;
   struct thread_state **iter;
 
+#ifdef HAVE_NS
+  /* Allocate an autorelease pool in case this thread calls any
+     Objective C code.
+
+     FIXME: In long running threads we may want to drain the pool
+     regularly instead of just at the end.  */
+  void *pool = ns_alloc_autorelease_pool ();
+#endif
+
   self->m_stack_bottom = self->stack_top = &stack_pos.c;
   self->thread_id = sys_thread_self ();
 
@@ -776,6 +789,10 @@ run_thread (void *state)
 
   current_thread = NULL;
   sys_cond_broadcast (&self->thread_condvar);
+
+#ifdef HAVE_NS
+  ns_release_autorelease_pool (pool);
+#endif
 
   /* Unlink this thread from the list of all threads.  Note that we
      have to do this very late, after broadcasting our death.

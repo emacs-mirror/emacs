@@ -360,10 +360,10 @@ Return argument is of the form (\"HOLDER\" \"YEAR1\" ... \"YEARN\")"
   "Split up an email address X into full name and real email address.
 The value is a cons of the form (FULLNAME . ADDRESS)."
   (cond ((string-match "\\(.+\\) [(<]\\(\\S-+@\\S-+\\)[>)]" x)
-	 (cons (match-string 1 x)
+	 (cons (string-trim-right (match-string 1 x))
 	       (match-string 2 x)))
 	((string-match "\\(\\S-+@\\S-+\\) [(<]\\(.*\\)[>)]" x)
-	 (cons (match-string 2 x)
+	 (cons (string-trim-right (match-string 2 x))
 	       (match-string 1 x)))
 	((string-match "\\S-+@\\S-+" x)
 	 (cons nil x))
@@ -378,14 +378,22 @@ the cdr is an email address."
     (let ((authorlist (lm-header-multiline "author")))
       (mapcar #'lm-crack-address authorlist))))
 
+(defun lm-maintainers (&optional file)
+  "Return the maintainer list of file FILE, or current buffer if FILE is nil.
+If the maintainers are unspecified, then return the authors.
+Each element of the list is a cons; the car is the full name,
+the cdr is an email address."
+  (lm-with-file file
+    (mapcar #'lm-crack-address
+            (or (lm-header-multiline "maintainer")
+                (lm-header-multiline "author")))))
+
 (defun lm-maintainer (&optional file)
   "Return the maintainer of file FILE, or current buffer if FILE is nil.
+If the maintainer is unspecified, then return the author.
 The return value has the form (NAME . ADDRESS)."
-  (lm-with-file file
-    (let ((maint (lm-header "maintainer")))
-      (if maint
-	  (lm-crack-address maint)
-	(car (lm-authors))))))
+  (declare (obsolete lm-maintainers "28.1"))
+  (car (lm-maintainers file)))
 
 (defun lm-creation-date (&optional file)
   "Return the created date given in file FILE, or current buffer if FILE is nil."
@@ -545,7 +553,7 @@ copyright notice is allowed."
 		"Can't find package name")
 	       ((not (lm-authors))
 		"`Author:' tag missing")
-	       ((not (lm-maintainer))
+	       ((not (lm-maintainers))
 		"`Maintainer:' tag missing")
 	       ((not (lm-summary))
 		"Can't find the one-line summary description")
@@ -613,7 +621,7 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
   (interactive "sBug Subject: ")
   (require 'emacsbug)
   (let ((package (lm-get-package-name))
-	(addr (lm-maintainer))
+	(addr (car (lm-maintainers)))
 	(version (lm-version)))
     (compose-mail (if addr
 		      (concat (car addr) " <" (cdr addr) ">")

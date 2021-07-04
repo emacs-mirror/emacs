@@ -269,6 +269,21 @@ happens.  But if you set the variable @code{kill-read-only-ok} to a
 non-@code{nil} value, they just print a message in the echo area to
 explain why the text has not been erased.
 
+@vindex kill-transform-function
+  Before saving the kill to the kill ring, you can transform the
+string using @code{kill-transform-function}.  It's called with the
+string to be killed, and it should return the string you want to be
+saved.  It can also return @code{nil}, in which case the string won't
+be saved to the kill ring.  For instance, if you never want to save
+a pure white space string to the kill ring, you can say:
+
+@lisp
+(setq kill-transform-function
+      (lambda (string)
+        (and (not (string-blank-p string))
+             string)))
+@end lisp
+
 @vindex kill-do-not-save-duplicates
   If you change the variable @code{kill-do-not-save-duplicates} to a
 non-@code{nil} value, identical subsequent kills yield a single

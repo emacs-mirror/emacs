@@ -268,6 +268,9 @@ There can be any number of :example/:result elements."
    :eval (file-name-extension "/tmp/foo.txt"))
   (file-name-sans-extension
    :eval (file-name-sans-extension "/tmp/foo.txt"))
+  (file-name-with-extension
+   :eval (file-name-with-extension "foo.txt" "bin")
+   :eval (file-name-with-extension "foo" "bin"))
   (file-name-base
    :eval (file-name-base "/tmp/foo.txt"))
   (file-relative-name
@@ -887,7 +890,7 @@ There can be any number of :example/:result elements."
   (lock-buffer
    :no-value (lock-buffer "/tmp/foo"))
   (unlock-buffer
-   :no-value (lock-buffer)))
+   :no-value (unlock-buffer)))
 
 (define-short-documentation-group overlay
   "Predicates"
@@ -1283,11 +1286,11 @@ Example:
   (let ((glist (assq group shortdoc--groups)))
     (unless glist
       (setq glist (list group))
-      (setq shortdoc--groups (append shortdoc--groups (list glist))))
+      (push glist shortdoc--groups))
     (let ((slist (member section glist)))
       (unless slist
         (setq slist (list section))
-        (setq slist (append glist slist)))
+        (nconc glist slist))
       (while (and (cdr slist)
                   (not (stringp (cadr slist))))
         (setq slist (cdr slist)))

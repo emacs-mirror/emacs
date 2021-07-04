@@ -6280,8 +6280,9 @@ Use the `ls' command."
 		      x ""))
              (not (string-empty-p x))
 	     ;; ?\n and ?/ shouldn't be part of any file name.  ?\t,
-	     ;; ?. and ?? do not work for "smb" method.
-	     (replace-regexp-in-string "[\t\n/.?]" "" x)))
+	     ;; ?. and ?? do not work for "smb" method.  " " does not
+	     ;; work at begin or end of the string for MS Windows.
+	     (replace-regexp-in-string "[ \t\n/.?]" "" x)))
 	  language-info-alist)))))))
 
 (ert-deftest tramp-test41-utf8 ()

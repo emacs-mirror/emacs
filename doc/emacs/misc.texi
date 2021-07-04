@@ -1757,6 +1757,13 @@ expression @code{(+ 1 2)} on the @samp{foo} server, and returns
 @code{3}.  (If there is no server with that name, an error is
 signaled.)  Currently, this feature is mainly useful for developers.
 
+  If your operating system’s desktop environment is
+@url{https://www.freedesktop.org/wiki/Specifications/,,freedesktop.org-compatible}
+(which is true of most GNU/Linux and other recent Unix-like GUIs), you
+may use the @samp{Emacs (Client)} menu entry to connect to an Emacs
+server with @command{emacsclient}.  The daemon starts if not
+already running.
+
 @menu
 * TCP Emacs server::     Listening to a TCP socket.
 * Invoking emacsclient:: Connecting to the Emacs server.

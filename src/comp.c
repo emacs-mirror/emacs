@@ -744,8 +744,34 @@ hash_native_abi (void)
 			Vsystem_configuration_options),
 	       Fmapconcat (intern_c_string ("comp--subr-signature"),
 			   Vcomp_subr_list, build_string (""))));
+
+  Lisp_Object version = Vemacs_version;
+
+#ifdef NS_SELF_CONTAINED
+  /* MacOS self contained app bundles do not like having dots in the
+     directory names under the Contents/Frameworks directory, so
+     convert them to underscores.  */
+  version = STRING_MULTIBYTE (Vemacs_version)
+    ? make_uninit_multibyte_string (SCHARS (Vemacs_version),
+				    SBYTES (Vemacs_version))
+    : make_uninit_string (SBYTES (Vemacs_version));
+
+  const unsigned char *from = SDATA (Vemacs_version);
+  unsigned char *to = SDATA (version);
+
+  while (from < SDATA (Vemacs_version) + SBYTES (Vemacs_version))
+    {
+      unsigned char c = *from++;
+
+      if (c == '.')
+	c = '_';
+
+      *to++ = c;
+    }
+#endif
+
   Vcomp_native_version_dir =
-    concat3 (Vemacs_version, build_string ("-"), Vcomp_abi_hash);
+    concat3 (version, build_string ("-"), Vcomp_abi_hash);
 }
 
 static void

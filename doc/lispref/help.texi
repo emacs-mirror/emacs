@@ -818,7 +818,7 @@ summaries of using those functions.  The optional argument
 @var{functions} is a list whose elements are of the form:
 
 @lisp
-(@var{func} @var{keyword} @var{val} @dots{})
+(@var{func} [@var{keyword} @var{val}]@dots{})
 @end lisp
 
 The following keywords are recognized:
@@ -914,7 +914,7 @@ eg. @click{} t
 @itemx :eg-result-string
 These two are the same as @code{:result} and @code{:eg-result},
 respectively, but are inserted as is.  This is useful when the result
-is unreadable or should be on a particular form:
+is unreadable or should be of a particular form:
 
 @example
 :no-eval (find-file "/tmp/foo")

@@ -30,10 +30,10 @@
 ;; are made to test if NickServ is the real NickServ for a given network or
 ;; server.
 
-;; As a default, ERC has the data for the official nickname services on
-;; the networks Austnet, BrasNET, Dalnet, freenode, GalaxyNet, GRnet,
-;; Libera.Chat and Slashnet.  You can add more by using
-;;   M-x customize-variable RET erc-nickserv-alist.
+;; As a default, ERC has the data for the official nickname services
+;; on the networks Austnet, BrasNET, Dalnet, freenode, GalaxyNet,
+;; GRnet, Libera.Chat, and Slashnet.  You can add more by using
+;; M-x customize-variable RET erc-nickserv-alist.
 
 ;; Usage:
 ;;
@@ -43,9 +43,10 @@
 ;; (erc-services-mode 1)
 ;;
 ;; Add your nickname and NickServ password to `erc-nickserv-passwords'.
-;; Using the freenode network as an example:
+;; Using the Libera.Chat network as an example:
 ;;
-;; (setq erc-nickserv-passwords '((freenode (("nickname" "password")))))
+;; (setq erc-nickserv-passwords
+;;       '((Libera.Chat (("nickname" "password")))))
 ;;
 ;; The default automatic identification mode is autodetection of NickServ
 ;; identify requests.  Set the variable `erc-nickserv-identify-mode' if
@@ -181,8 +182,8 @@ passwords to be used.
 
 Example of use:
   (setq erc-nickserv-passwords
-        \\='((freenode ((\"nick-one\" . \"password\")
-                     (\"nick-two\" . \"password\")))
+        \\='((Libera.Chat ((\"nick-one\" . \"password\")
+                        (\"nick-two\" . \"password\")))
           (DALnet ((\"nick\" . \"password\")))))"
   :type '(repeat
 	  (list :tag "Network"

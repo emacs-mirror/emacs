@@ -1081,24 +1081,15 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
   "Specify Printing menu-bar entry.")
 
 (defun pr-global-menubar (menu-spec)
-  (let ((menu-file '("menu-bar" "file")))
-    (cond
-     (pr-menu-print-item
-      (easy-menu-add-item global-map menu-file
-                          (easy-menu-create-menu "Print" menu-spec)
-                          "print-buffer")
-      (dolist (item '("print-buffer"          "print-region"
-                      "ps-print-buffer-faces" "ps-print-region-faces"
-                      "ps-print-buffer"       "ps-print-region"))
-        (easy-menu-remove-item global-map menu-file item))
-      (setq pr-menu-print-item nil
-            pr-menu-bar (vector 'menu-bar
-                                (easy-menu-intern (nth 1 menu-file))
-                                (easy-menu-intern "Print"))))
-     (t
-      (easy-menu-add-item global-map menu-file
-                          (easy-menu-create-menu "Print" menu-spec)))
-     )))
+  (let ((menu-file '("menu-bar" "file"))
+        (submenu-path [menu-bar file Print])
+        (submenu (easy-menu-create-menu "Print" menu-spec)))
+    (cond (pr-menu-print-item
+           (easy-menu-add-item global-map menu-file submenu "Print")
+           (easy-menu-remove-item global-map menu-file "print")
+           (setq pr-menu-print-item nil
+                 pr-menu-bar submenu-path))
+          (t (easy-menu-add-item global-map menu-file submenu)))))
 
 (defun pr-menu-position (entry index horizontal)
   (let ((pos (cdr (mouse-pixel-position))))

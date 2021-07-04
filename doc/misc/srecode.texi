@@ -259,7 +259,7 @@ contexts to have the same name.  Some standard contexts are
 @code{file}, @code{declaration}, and @code{classdecl}.
 
 A context can be automatically derived as well based on the parsing
-state from @i{Semantic}.  @inforef{Top, Semantic Manual, semantic}.
+state from @i{Semantic}.  @xref{Top, Semantic Manual,, semantic}.
 
 @section Applications
 Commands that do a particular user task which involves also writing

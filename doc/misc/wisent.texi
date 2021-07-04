@@ -1575,7 +1575,7 @@ To use the Wisent parser with @semantic{} you have to define
 your grammar in @dfn{WY} form, a grammar format very close
 to the one used by Bison.
 
-Please @inforef{top, Semantic Grammar Framework Manual, grammar-fw}
+Please see @ref{top, Semantic Grammar Framework Manual,, grammar-fw},
 for more information on @semantic{} grammars.
 
 @menu
@@ -1962,8 +1962,8 @@ See implementation of the function @code{wisent-skip-token} in
 
 @findex semantic-lex
 The lexical analysis step of @semantic{} is performed by the general
-function @code{semantic-lex}.  For more information, @inforef{Writing
-Lexers, ,semantic-langdev}.
+function @code{semantic-lex}.  For more information, see @ref{Writing
+Lexers, Semantic Language Development,,semantic-langdev}.
 
 @code{semantic-lex} produces lexical tokens of the form:
 

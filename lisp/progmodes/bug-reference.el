@@ -362,7 +362,7 @@ From, and Cc against HEADER-REGEXP in
 (defvar bug-reference-setup-from-irc-alist
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
                                 "erc") 'words))
-     "freenode"
+     "Libera.Chat"
      "\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in IRC modes.
@@ -377,8 +377,8 @@ Each element has the form
 
 CHANNEL-REGEXP is a regexp matched against the current IRC
 channel name (e.g. #emacs).  NETWORK-REGEXP is matched against
-the IRC network name (e.g. freenode).  Both entries are optional.
-If all given entries match, BUG-REGEXP is set as
+the IRC network name (e.g. Libera.Chat).  Both entries are
+optional.  If all given entries match, BUG-REGEXP is set as
 `bug-reference-bug-regexp' and URL-FORMAT is set as
 `bug-reference-url-format'.")
 

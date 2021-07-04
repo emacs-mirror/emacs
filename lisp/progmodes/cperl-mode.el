@@ -3981,7 +3981,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 					      (not (memq (preceding-char)
 							 '(?$ ?@ ?& ?%)))
 					      (looking-at
-					       "\\(while\\|if\\|unless\\|until\\|and\\|or\\|not\\|xor\\|split\\|grep\\|map\\|print\\|say\\|return\\)\\>"))))
+					       "\\(while\\|if\\|unless\\|until\\|for\\(each\\)?\\|and\\|or\\|not\\|xor\\|split\\|grep\\|map\\|print\\|say\\|return\\)\\>"))))
 				    (and (eq (preceding-char) ?.)
 					 (eq (char-after (- (point) 2)) ?.))
 				    (bobp))

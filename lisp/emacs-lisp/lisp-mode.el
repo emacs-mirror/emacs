@@ -765,7 +765,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      :help "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'"]))
 
 (define-derived-mode lisp-mode lisp-data-mode "Lisp"
-  "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
+  "Major mode for editing programs in Common Lisp and other similar Lisps.
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.

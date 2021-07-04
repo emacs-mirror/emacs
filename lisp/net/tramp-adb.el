@@ -549,8 +549,7 @@ But handle the case, if the \"test\" command is not available."
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok)
 	(set-file-modes tmpfile (logior (or (file-modes tmpfile) 0) #o0600)))
-      (tramp-run-real-handler
-       #'write-region (list start end tmpfile append 'no-message lockname))
+      (write-region start end tmpfile append 'no-message lockname)
       (with-tramp-progress-reporter
         v 3 (format-message
              "Moving tmp file `%s' to `%s'" tmpfile filename)

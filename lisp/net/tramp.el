@@ -3648,17 +3648,17 @@ User is always nil."
 		     (cdr x))))
 		tramp-backup-directory-alist)
 	     backup-directory-alist))
-	  (uid (tramp-compat-file-attribute-user-id
-		(file-attributes filename 'integer)))
 	  result)
       (prog1 ;; Run plain `find-backup-file-name'.
 	  (setq result
 		(tramp-run-real-handler
 		 #'find-backup-file-name (list filename)))
         ;; Protect against security hole.
-	(when (and (natnump uid) (zerop uid)
+	(when (and (not tramp-allow-unsafe-temporary-files)
 		   (file-in-directory-p (car result) temporary-file-directory)
-		   (not tramp-allow-unsafe-temporary-files)
+		   (zerop (or (tramp-compat-file-attribute-user-id
+			       (file-attributes filename 'integer))
+			      tramp-unknown-id-integer))
 		   (not (with-tramp-connection-property
 			    (tramp-get-process v) "unsafe-temporary-file"
 			  (yes-or-no-p
@@ -4386,8 +4386,7 @@ of."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (tramp-run-real-handler
-       #'write-region (list start end tmpfile append 'no-message lockname))
+      (write-region start end tmpfile append 'no-message lockname)
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error
@@ -5264,8 +5263,7 @@ this file, if that variable is non-nil."
 	  (auto-save-file-name-transforms
 	   (if (null tramp-auto-save-directory)
 	       auto-save-file-name-transforms))
-	  (uid (tramp-compat-file-attribute-user-id
-		(file-attributes buffer-file-name 'integer)))
+	  (filename buffer-file-name)
 	  (buffer-file-name
 	   (if (null tramp-auto-save-directory)
 	       buffer-file-name
@@ -5283,9 +5281,11 @@ this file, if that variable is non-nil."
       (prog1 ;; Run plain `make-auto-save-file-name'.
 	  (setq result (tramp-run-real-handler #'make-auto-save-file-name nil))
 	;; Protect against security hole.
-	(when (and (natnump uid) (zerop uid)
+	(when (and (not tramp-allow-unsafe-temporary-files)
 		   (file-in-directory-p result temporary-file-directory)
-		   (not tramp-allow-unsafe-temporary-files)
+		   (zerop (or (tramp-compat-file-attribute-user-id
+			       (file-attributes filename 'integer))
+			      tramp-unknown-id-integer))
 		   (not (with-tramp-connection-property
 			    (tramp-get-process v) "unsafe-temporary-file"
 			  (yes-or-no-p
