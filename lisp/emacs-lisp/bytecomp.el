@@ -1857,8 +1857,7 @@ also be compiled."
                         (file-readable-p source)
 			(not (string-match "\\`\\.#" file))
                         (not (auto-save-file-name-p source))
-                        (not (string-equal dir-locals-file
-                                           (file-name-nondirectory source))))
+                        (not (member source (dir-locals--all-files directory))))
                    (progn (cl-incf
                            (pcase (byte-recompile-file source force arg)
                              ('no-byte-compile skip-count)
