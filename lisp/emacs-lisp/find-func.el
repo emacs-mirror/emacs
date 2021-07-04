@@ -123,10 +123,18 @@ should insert the feature name."
   :group 'xref
   :version "25.1")
 
+(defun find-function--defface (symbol)
+  (catch 'found
+    (while (re-search-forward (format find-face-regexp symbol) nil t)
+      (unless (ppss-comment-or-string-start
+               (save-excursion (syntax-ppss (match-beginning 0))))
+        ;; We're not in a comment or a string.
+        (throw 'found t)))))
+
 (defvar find-function-regexp-alist
   '((nil . find-function-regexp)
     (defvar . find-variable-regexp)
-    (defface . find-face-regexp)
+    (defface . find-function--defface)
     (feature . find-feature-regexp)
     (defalias . find-alias-regexp))
   "Alist mapping definition types into regexp variables.

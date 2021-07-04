@@ -6,8 +6,6 @@
 ;;         Nicolas Petton <nicolas@petton.fr>
 ;;         Keith Amidon <camalot@picnicpark.org>
 ;; Version: 5.0.0
-;; Package-Requires: ((emacs "25"))
-;; Url: https://github.com/DamienCassou/auth-password-store
 ;; Created: 07 Jun 2015
 
 ;; This file is part of GNU Emacs.
@@ -60,14 +58,12 @@
 (cl-defun auth-source-pass-search (&rest spec
                                          &key backend type host user port
                                          &allow-other-keys)
-  "Given a property list SPEC, return search matches from the :backend.
-See `auth-source-search' for details on SPEC."
+  "Given some search query, return matching credentials.
+
+See `auth-source-search' for details on the parameters SPEC, BACKEND, TYPE,
+HOST, USER and PORT."
   (cl-assert (or (null type) (eq type (oref backend type)))
              t "Invalid password-store search: %s %s")
-  (when (consp host)
-    (warn "auth-source-pass ignores all but first host in spec.")
-    ;; Take the first non-nil item of the list of hosts
-    (setq host (seq-find #'identity host)))
   (cond ((eq host t)
          (warn "auth-source-pass does not handle host wildcards.")
          nil)
@@ -78,12 +74,14 @@ See `auth-source-search' for details on SPEC."
          (when-let ((result (auth-source-pass--build-result host port user)))
            (list result)))))
 
-(defun auth-source-pass--build-result (host port user)
-  "Build auth-source-pass entry matching HOST, PORT and USER."
-  (let ((entry-data (auth-source-pass--find-match host user port)))
+(defun auth-source-pass--build-result (hosts port user)
+  "Build auth-source-pass entry matching HOSTS, PORT and USER.
+
+HOSTS can be a string or a list of strings."
+  (let ((entry-data (auth-source-pass--find-match hosts user port)))
     (when entry-data
       (let ((retval (list
-                     :host host
+                     :host (auth-source-pass--get-attr "host" entry-data)
                      :port (or (auth-source-pass--get-attr "port" entry-data) port)
                      :user (or (auth-source-pass--get-attr "user" entry-data) user)
                      :secret (lambda () (auth-source-pass--get-attr 'secret entry-data)))))
@@ -125,7 +123,7 @@ ENTRY is the name of a password-store entry.
 The key used to retrieve the password is the symbol `secret'.
 
 The convention used as the format for a password-store file is
-the following (see https://www.passwordstore.org/#organization):
+the following (see URL `https://www.passwordstore.org/#organization'):
 
 secret
 key1: value1
@@ -169,15 +167,13 @@ The secret is the first line of CONTENTS."
 (defun auth-source-pass--parse-data (contents)
   "Parse the password-store data in the string CONTENTS and return an alist.
 CONTENTS is the contents of a password-store formatted file."
-  (let ((lines (split-string contents "\n" t "[ \t]+")))
+  (let ((lines (cdr (split-string contents "\n" t "[ \t]+"))))
     (seq-remove #'null
                 (mapcar (lambda (line)
-                          (let ((pair (mapcar (lambda (s) (string-trim s))
-                                              (split-string line ":"))))
-                            (when (> (length pair) 1)
-                              (cons (car pair)
-                                    (mapconcat #'identity (cdr pair) ":")))))
-                        (cdr lines)))))
+                          (when-let ((pos (seq-position line ?:)))
+                            (cons (string-trim (substring line 0 pos))
+                                  (string-trim (substring line (1+ pos))))))
+                        lines))))
 
 (defun auth-source-pass--do-debug (&rest msg)
   "Call `auth-source-do-debug` with MSG and a prefix."
@@ -194,12 +190,21 @@ CONTENTS is the contents of a password-store formatted file."
      (lambda (file) (file-name-sans-extension (file-relative-name file store-dir)))
      (directory-files-recursively store-dir "\\.gpg\\'"))))
 
-(defun auth-source-pass--find-match (host user port)
-  "Return password-store entry data matching HOST, USER and PORT.
+(defun auth-source-pass--find-match (hosts user port)
+  "Return password-store entry data matching HOSTS, USER and PORT.
 
-Disambiguate between user provided inside HOST (e.g., user@server.com) and
-inside USER by giving priority to USER.  Same for PORT."
-  (apply #'auth-source-pass--find-match-unambiguous (auth-source-pass--disambiguate host user port)))
+Disambiguate between user provided inside HOSTS (e.g., user@server.com) and
+inside USER by giving priority to USER.  Same for PORT.
+HOSTS can be a string or a list of strings."
+  (seq-some (lambda (host)
+              (let ((entry (apply #'auth-source-pass--find-match-unambiguous
+                                   (auth-source-pass--disambiguate host user port))))
+                (if (or (null entry) (assoc "host" entry))
+                    entry
+                  (cons (cons "host" host) entry))))
+            (if (listp hosts)
+                hosts
+              (list hosts))))
 
 (defun auth-source-pass--disambiguate (host &optional user port)
   "Return (HOST USER PORT) after disambiguation.
@@ -268,7 +273,7 @@ If ENTRIES is nil, use the result of calling `auth-source-pass-entries' instead.
 (defun auth-source-pass--generate-entry-suffixes (hostname user port)
   "Return a list of possible entry path suffixes in the password-store.
 
-Based on the supported pathname patterns for HOSTNAME, USER, &
+Based on the supported filename patterns for HOSTNAME, USER, &
 PORT, return a list of possible suffixes for matching entries in
 the password-store.
 
@@ -316,3 +321,5 @@ then NAME & USER, then NAME & PORT, then just NAME."
 
 (provide 'auth-source-pass)
 ;;; auth-source-pass.el ends here
+
+;; LocalWords:  backend hostname

@@ -34,12 +34,27 @@ static GMainContext *glib_main_context;
 
 void release_select_lock (void)
 {
+#if GNUC_PREREQ (4, 7, 0)
+  if (__atomic_sub_fetch (&threads_holding_glib_lock, 1, __ATOMIC_ACQ_REL) == 0)
+    g_main_context_release (glib_main_context);
+#else
   if (--threads_holding_glib_lock == 0)
     g_main_context_release (glib_main_context);
+#endif
 }
 
 static void acquire_select_lock (GMainContext *context)
 {
+#if GNUC_PREREQ (4, 7, 0)
+  if (__atomic_fetch_add (&threads_holding_glib_lock, 1, __ATOMIC_ACQ_REL) == 0)
+    {
+      glib_main_context = context;
+      while (!g_main_context_acquire (context))
+	{
+	  /* Spin. */
+	}
+    }
+#else
   if (threads_holding_glib_lock++ == 0)
     {
       glib_main_context = context;
@@ -48,6 +63,7 @@ static void acquire_select_lock (GMainContext *context)
 	  /* Spin. */
 	}
     }
+#endif
 }
 
 /* `xg_select' is a `pselect' replacement.  Why do we need a separate function?

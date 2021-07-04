@@ -2490,10 +2490,10 @@ We skip anomalous low-level topics, a la `allout-aberrant-container-p'."
 
 ;;;_  - Subtree Charting
 ;;;_   " These routines either produce or assess charts, which are
-;;; nested lists of the locations of topics within a subtree.
-;;;
-;;; Charts enable efficient subtree navigation by providing a reusable basis
-;;; for elaborate, compound assessment and adjustment of a subtree.
+;; nested lists of the locations of topics within a subtree.
+;;
+;; Charts enable efficient subtree navigation by providing a reusable basis
+;; for elaborate, compound assessment and adjustment of a subtree.
 
 ;;;_   > allout-chart-subtree (&optional levels visible orig-depth prev-depth)
 (defun allout-chart-subtree (&optional levels visible orig-depth prev-depth)

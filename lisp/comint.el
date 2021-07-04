@@ -54,7 +54,7 @@
 ;; instead of shell-mode, see the notes at the end of this file.
 
 
-;; Brief Command Documentation:
+;;; Brief Command Documentation:
 ;;============================================================================
 ;; Comint Mode Commands: (common to all derived modes, like shell & cmulisp
 ;; mode)
@@ -106,7 +106,7 @@
 (require 'regexp-opt)                   ;For regexp-opt-charset.
 (eval-when-compile (require 'subr-x))
 
-;; Buffer Local Variables:
+;;; Buffer Local Variables:
 ;;============================================================================
 ;; Comint mode buffer local variables:
 ;;  comint-prompt-regexp		string	comint-bol uses to match prompt
@@ -150,10 +150,10 @@
   :group 'comint)
 
 ;; Unused.
-;;; (defgroup comint-source nil
-;;;   "Source finding facilities in comint."
-;;;   :prefix "comint-"
-;;;   :group 'comint)
+;; (defgroup comint-source nil
+;;   "Source finding facilities in comint."
+;;   :prefix "comint-"
+;;   :group 'comint)
 
 (defvar comint-prompt-regexp "^"
   "Regexp to recognize prompts in the inferior process.
@@ -924,8 +924,8 @@ by the global keymap (usually `mouse-yank-at-click')."
         ;; Insert the input at point
         (insert input)))))
 
-;; Input history processing in a buffer
-;; ===========================================================================
+;;; Input history processing in a buffer
+;;============================================================================
 ;; Useful input history functions, courtesy of the Ergo group.
 
 ;; Eleven commands:
@@ -2847,7 +2847,7 @@ updated using `comint-update-fence', if necessary."
 	  (kill-region beg end)
 	  (comint-update-fence))))))
 
-;; Support for source-file processing commands.
+;;; Support for source-file processing commands.
 ;;============================================================================
 ;; Many command-interpreters (e.g., Lisp, Scheme, Soar) have
 ;; commands that process files of source text (e.g. loading or compiling
@@ -2981,8 +2981,8 @@ A typical use:
 ;;     -Olin
 
 
-;; Simple process query facility.
-;; ===========================================================================
+;;; Simple process query facility.
+;;============================================================================
 ;; This function is for commands that want to send a query to the process
 ;; and show the response to the user. For example, a command to get the
 ;; arglist for a Common Lisp function might send a "(arglist 'foo)" query
@@ -3018,8 +3018,8 @@ its response can be seen."
 	    (set-window-point proc-win opoint)))))))
 
 
-;; Filename/command/history completion in a buffer
-;; ===========================================================================
+;;; Filename/command/history completion in a buffer
+;;============================================================================
 ;; Useful completion functions, courtesy of the Ergo group.
 
 ;; Six commands:
@@ -3883,8 +3883,8 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 	  (forward-line 1)))
       (nreverse results))))
 
-;; Converting process modes to use comint mode
-;; ===========================================================================
+;;; Converting process modes to use comint mode
+;;============================================================================
 ;; The code in the Emacs 19 distribution has all been modified to use comint
 ;; where needed.  However, there are `third-party' packages out there that
 ;; still use the old shell mode.  Here's a guide to conversion.

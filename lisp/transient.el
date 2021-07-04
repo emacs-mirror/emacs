@@ -7,7 +7,7 @@
 ;; Keywords: bindings
 
 ;; Package-Requires: ((emacs "25.1"))
-;; Package-Version: 0.3.4
+;; Package-Version: 0.3.6
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -161,7 +161,12 @@ function should accept two arguments: a buffer to display and
 an alist of the same form as ALIST.  See `display-buffer' for
 details.
 
-The default is (display-buffer-in-side-window (side . bottom)).
+The default is:
+
+  (display-buffer-in-side-window
+    (side . bottom)
+    (inhibit-same-window . t))
+
 This displays the window at the bottom of the selected frame.
 Another useful value is (display-buffer-below-selected).  This
 is what `magit-popup' used by default.  For more alternatives
@@ -234,6 +239,20 @@ and `transient-nonstandard-key'."
   :group 'transient
   :type 'boolean)
 
+(defcustom transient-highlight-higher-levels nil
+  "Whether to highlight suffixes on higher levels.
+
+This is primarily intended for package authors.
+
+When non-nil then highlight the description of suffixes whose
+level is above 4, the default of `transient-default-level'.
+Assuming you have set that variable to 7, this highlights all
+suffixes that won't be available to users without them making
+the same customization."
+  :package-version '(transient . "0.3.6")
+  :group 'transient
+  :type 'boolean)
+
 (defcustom transient-substitute-key-function nil
   "Function used to modify key bindings.
 
@@ -296,7 +315,20 @@ be remapped to `fixed-pitch' in that buffer."
   :group 'transient
   :type 'boolean)
 
-(defcustom transient-default-level 4
+(defcustom transient-force-single-column nil
+  "Whether to force use of a single column to display suffixes.
+
+This might be useful for users with low vision who use large
+text and might otherwise have to scroll in two dimensions."
+  :package-version '(transient . "0.3.6")
+  :group 'transient
+  :type 'boolean)
+
+(defconst transient--default-child-level 1)
+
+(defconst transient--default-prefix-level 4)
+
+(defcustom transient-default-level transient--default-prefix-level
   "Control what suffix levels are made available by default.
 
 Each suffix command is placed on a level and each prefix command
@@ -428,6 +460,11 @@ See info node `(transient)Enabling and Disabling Suffixes'."
   '((t :background "red" :foreground "black" :weight bold))
   "Face used for disabled levels while editing suffix levels.
 See info node `(transient)Enabling and Disabling Suffixes'."
+  :group 'transient-faces)
+
+(defface transient-higher-level '((t :underline t))
+  "Face optionally used to highlight suffixes on higher levels.
+Also see option `transient-highlight-higher-levels'."
   :group 'transient-faces)
 
 (defface transient-separator
@@ -569,7 +606,7 @@ the prototype is stored in the clone's `prototype' slot.")
 (defclass transient-child ()
   ((level
     :initarg :level
-    :initform 1
+    :initform (symbol-value 'transient--default-child-level)
     :documentation "Enable if level of prefix is equal or greater.")
    (if
     :initarg :if
@@ -932,7 +969,7 @@ example, sets a variable use `transient-define-infix' instead.
           (if (eq k :class)
               (setq class pop)
             (setq args (plist-put args k pop)))))
-      (vector (or level 1)
+      (vector (or level transient--default-child-level)
               (or class
                   (if (vectorp car)
                       'transient-columns
@@ -1003,7 +1040,7 @@ example, sets a variable use `transient-define-infix' instead.
     (unless (plist-get args :key)
       (when-let ((shortarg (plist-get args :shortarg)))
         (setq args (plist-put args :key shortarg))))
-    (list (or level 1)
+    (list (or level transient--default-child-level)
           (or class 'transient-suffix)
           args)))
 
@@ -1968,6 +2005,11 @@ value.  Otherwise return CHILDREN as is."
 
 (defun transient--post-command ()
   (transient--debug 'post-command)
+  (unless this-command
+    (transient--debug "-- force pre-exit from post-command")
+    (message "Quit transient!")
+    (transient--pre-exit)
+    (setq transient--exitp t))
   (if transient--exitp
       (progn
         (unless (and (eq transient--exitp 'replace)
@@ -2043,7 +2085,8 @@ value.  Otherwise return CHILDREN as is."
     (if (symbolp arg)
         (message "-- %-16s (cmd: %s, event: %S, exit: %s)"
                  arg
-                 (transient--suffix-symbol this-command)
+                 (or (transient--suffix-symbol this-command)
+                     (list this-command this-original-command last-command))
                  (key-description (this-command-keys-vector))
                  transient--exitp)
       (apply #'message arg args))))
@@ -2913,13 +2956,21 @@ have a history of their own.")
          (cw (mapcar (lambda (col) (apply #'max (mapcar #'length col)))
                      columns))
          (cc (transient--seq-reductions-from (apply-partially #'+ 3) cw 0)))
-    (dotimes (r rs)
-      (dotimes (c cs)
-        (insert (make-string (- (nth c cc) (current-column)) ?\s))
-        (when-let ((cell (nth r (nth c columns))))
-          (insert cell))
-        (when (= c (1- cs))
-          (insert ?\n))))))
+    (if transient-force-single-column
+        (dotimes (c cs)
+          (dotimes (r rs)
+            (when-let ((cell (nth r (nth c columns))))
+              (unless (equal cell "")
+                (insert cell ?\n))))
+          (unless (= c (1- cs))
+            (insert ?\n)))
+      (dotimes (r rs)
+        (dotimes (c cs)
+          (insert (make-string (- (nth c cc) (current-column)) ?\s))
+          (when-let ((cell (nth r (nth c columns))))
+            (insert cell))
+          (when (= c (1- cs))
+            (insert ?\n)))))))
 
 (cl-defmethod transient--insert-group ((group transient-subgroups))
   (let* ((subgroups (oref group suffixes))
@@ -2974,9 +3025,7 @@ Optional support for popup buttons is also implemented here."
                                          'transient-disabled-suffix))))
               (cl-call-next-method obj))))
     (when (oref obj inapt)
-      (set-text-properties 0 (length str)
-                           (list 'face 'transient-inapt-suffix)
-                           str))
+      (add-face-text-property 0 (length str) 'transient-inapt-suffix nil str))
     (if transient-enable-popup-navigation
         (make-text-button str nil
                           'type 'transient-button
@@ -3088,9 +3137,15 @@ If the OBJ's `key' is currently unreachable, then apply the face
                        (funcall (oref transient--prefix suffix-description)
                                 obj))
                   (propertize "(BUG: no description)" 'face 'error))))
-    (if (transient--key-unreachable-p obj)
-        (propertize desc 'face 'transient-unreachable)
-      desc)))
+    (cond ((transient--key-unreachable-p obj)
+           (propertize desc 'face 'transient-unreachable))
+          ((and transient-highlight-higher-levels
+                (> (oref obj level) transient--default-prefix-level))
+           (add-face-text-property
+            0 (length desc) 'transient-higher-level nil desc)
+           desc)
+          (t
+           desc))))
 
 (cl-defgeneric transient-format-value (obj)
   "Format OBJ's value for display and return the result.")
@@ -3192,13 +3247,16 @@ Show the first one that is specified."
         (transient--show-manpage manpage)
       (transient--describe-function (oref obj command)))))
 
-(cl-defmethod transient-show-help ((_   transient-suffix))
+(cl-defmethod transient-show-help ((obj transient-suffix))
   "Show the command doc-string."
   (if (eq this-original-command 'transient-help)
       (if-let ((manpage (oref transient--prefix man-page)))
           (transient--show-manpage manpage)
         (transient--describe-function (oref transient--prefix command)))
-    (transient--describe-function this-original-command)))
+    (if-let ((prefix (get (transient--suffix-command obj) 'transient--prefix))
+             (manpage (oref prefix man-page)))
+        (transient--show-manpage manpage)
+      (transient--describe-function this-original-command))))
 
 (cl-defmethod transient-show-help ((obj transient-infix))
   "Show the manpage if defined or the command doc-string.

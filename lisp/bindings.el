@@ -363,7 +363,7 @@ a menu, so this function is not useful for non-menu keymaps."
         :filter ,(lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
     (bindings--define-key map [mode-line down-mouse-3]
-      `(menu-item "Menu Bar" ,mode-line-mode-menu
+      `(menu-item "Minor Modes" ,mode-line-mode-menu
         :filter bindings--sort-menu-keymap))
     map) "\
 Keymap to display on major mode.")

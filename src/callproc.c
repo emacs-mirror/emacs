@@ -1661,32 +1661,15 @@ make_environment_block (Lisp_Object current_dir)
 void
 init_callproc_1 (void)
 {
-#ifdef HAVE_NS
-  const char *etc_dir = ns_etc_directory ();
-  const char *path_exec = ns_exec_path ();
-#endif
-
-  Vdata_directory = decode_env_path ("EMACSDATA",
-#ifdef HAVE_NS
-                                             etc_dir ? etc_dir :
-#endif
-                                             PATH_DATA, 0);
+  Vdata_directory = decode_env_path ("EMACSDATA", PATH_DATA, 0);
   Vdata_directory = Ffile_name_as_directory (Fcar (Vdata_directory));
 
-  Vdoc_directory = decode_env_path ("EMACSDOC",
-#ifdef HAVE_NS
-                                             etc_dir ? etc_dir :
-#endif
-                                             PATH_DOC, 0);
+  Vdoc_directory = decode_env_path ("EMACSDOC", PATH_DOC, 0);
   Vdoc_directory = Ffile_name_as_directory (Fcar (Vdoc_directory));
 
   /* Check the EMACSPATH environment variable, defaulting to the
      PATH_EXEC path from epaths.h.  */
-  Vexec_path = decode_env_path ("EMACSPATH",
-#ifdef HAVE_NS
-                                path_exec ? path_exec :
-#endif
-                                PATH_EXEC, 0);
+  Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC, 0);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   /* FIXME?  For ns, path_exec should go at the front?  */
   Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
@@ -1701,10 +1684,6 @@ init_callproc (void)
 
   char *sh;
   Lisp_Object tempdir;
-#ifdef HAVE_NS
-  if (data_dir == 0)
-    data_dir = ns_etc_directory () != 0;
-#endif
 
   if (!NILP (Vinstallation_directory))
     {
@@ -1716,15 +1695,8 @@ init_callproc (void)
 	  /* MSDOS uses wrapped binaries, so don't do this.  */
       if (NILP (Fmember (tem, Vexec_path)))
 	{
-#ifdef HAVE_NS
-	  const char *path_exec = ns_exec_path ();
-#endif
 	  /* Running uninstalled, so default to tem rather than PATH_EXEC.  */
-	  Vexec_path = decode_env_path ("EMACSPATH",
-#ifdef HAVE_NS
-					path_exec ? path_exec :
-#endif
-					SSDATA (tem), 0);
+	  Vexec_path = decode_env_path ("EMACSPATH", SSDATA (tem), 0);
 	  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
 	}
 

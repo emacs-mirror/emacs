@@ -1761,7 +1761,7 @@ See `erc-display-server-message'." nil
      's324 ?c channel ?m modes)))
 
 (define-erc-response-handler (328)
-  "Channel URL (on freenode network)." nil
+  "Channel URL." nil
   (let ((channel (cadr (erc-response.command-args parsed)))
         (url (erc-response.contents parsed)))
     (erc-display-message parsed 'notice (erc-get-buffer channel proc)

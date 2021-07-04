@@ -629,13 +629,14 @@ Emacs Lisp Reference Manual}).
 
 @findex describe-prefix-bindings
   You can get a list of subcommands for a particular prefix key by
-typing @kbd{C-h}, @kbd{?}, or @key{F1}
+typing @kbd{C-h}, @kbd{?}, or @key{f1}
 (@code{describe-prefix-bindings}) after the prefix key.  (There are a
 few prefix keys for which not all of these keys work---those that
 provide their own bindings for that key.  One of these prefix keys
-is @key{ESC}, because @kbd{@key{ESC} C-h} is actually @kbd{C-M-h},
-which marks a defun.  However, @w{@kbd{@key{ESC} @key{F1}}} and
-@w{@kbd{@key{ESC} ?}} work fine.)
+is @key{ESC}, because @kbd{@key{ESC} C-h} and @kbd{@key{ESC} ?} are
+actually @kbd{C-M-h} (@code{mark-defun}) and @kbd{M-?}
+(@code{xref-find-references}), respectively.  However,
+@w{@kbd{@key{ESC} @key{f1}}} works fine.)
 
 @findex describe-keymap
 Finally, @kbd{M-x describe-keymap} prompts for the name of a keymap,

@@ -1034,7 +1034,7 @@ the conventional possibilities for @var{header-name}:
 
 @table @samp
 @item Author
-This line states the name and email address of at least the principal
+This header states the name and email address of at least the principal
 author of the library.  If there are multiple authors, list them on
 continuation lines led by @code{;;} and a tab or at least two spaces.
 We recommend including a contact email address, of the form
@@ -1053,8 +1053,8 @@ This header has the same format as the Author header.  It lists the
 person(s) who currently maintain(s) the file (respond to bug reports,
 etc.).
 
-If there is no maintainer line, the person(s) in the Author field
-is/are presumed to be the maintainers.  Some files in Emacs use
+If there is no Maintainer header, the person(s) in the Author header
+is/are presumed to be the maintainer(s).  Some files in Emacs use
 @samp{emacs-devel@@gnu.org} for the maintainer, which means the author is
 no longer responsible for the file, and that it is maintained as part
 of Emacs.

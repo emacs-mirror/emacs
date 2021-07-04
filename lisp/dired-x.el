@@ -44,7 +44,8 @@
 ;; but maybe not if a dired-x function is being autoloaded.
 (require 'dired)
 
-;;; User-defined variables.
+
+;;; User-defined variables
 
 (defgroup dired-x nil
   "Extended directory editing (dired-x)."
@@ -217,7 +218,9 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   :type 'boolean
   :group 'dired-x)
 
-;;; KEY BINDINGS.
+
+;;; Key bindings
+
 (when (keymapp (lookup-key dired-mode-map "*"))
   (define-key dired-mode-map "*(" 'dired-mark-sexp)
   (define-key dired-mode-map "*O" 'dired-mark-omitted)
@@ -234,7 +237,8 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 (define-key dired-mode-map "Y"  'dired-do-relsymlink)
 (define-key dired-mode-map "V" 'dired-do-run-mail)
 
-;;; MENU BINDINGS
+
+;;; Menu bindings
 
 (when-let ((menu (lookup-key dired-mode-map [menu-bar])))
   (easy-menu-add-item menu '("Operate")
@@ -274,7 +278,7 @@ files"]
                       "Refresh"))
 
 
-;; Install into appropriate hooks.
+;;; Install into appropriate hooks
 
 (add-hook 'dired-mode-hook 'dired-extra-startup)
 (add-hook 'dired-after-readin-hook 'dired-omit-expunge)
@@ -303,7 +307,7 @@ See also the functions:
   (dired-omit-startup))
 
 
-;;; EXTENSION MARKING FUNCTIONS.
+;;; Extension marking functions
 
 (defun dired--mark-suffix-interactive-spec ()
   (let* ((default
@@ -432,7 +436,7 @@ See variables `dired-texinfo-unclean-extensions',
                                 (list ".dvi"))))
 
 
-;;; OMITTING.
+;;; Omitting
 
 ;; Enhanced omitting of lines from directory listings.
 ;; Marked files are never omitted.
@@ -570,7 +574,7 @@ files in the active region if `dired-mark-region' is non-nil."
      msg)))
 
 
-;;; VIRTUAL DIRED MODE.
+;;; Virtual dired mode
 
 ;; For browsing `ls -lR' listings in a dired-like fashion.
 
@@ -623,7 +627,7 @@ you can relist single subdirs using \\[dired-do-redisplay]."
                     (and (looking-at "^  wildcard ")
                          (buffer-substring (match-end 0)
                                            (line-end-position))))))
-  (if wildcard
+    (if wildcard
         (setq dirname (expand-file-name wildcard default-directory))))
   ;; If raw ls listing (not a saved old dired buffer), give it a
   ;; decent subdir headerline:
@@ -693,7 +697,7 @@ Also useful for `auto-mode-alist' like this:
   (dired-virtual (dired-virtual-guess-dir)))
 
 
-;;; SMART SHELL.
+;;; Smart shell
 
 ;; An Emacs buffer can have but one working directory, stored in the
 ;; buffer-local variable `default-directory'.  A Dired buffer may have
@@ -720,30 +724,30 @@ Also useful for `auto-mode-alist' like this:
     (shell-command command output-buffer error-buffer)))
 
 
-;;; GUESS SHELL COMMAND.
+;;; Guess shell command
 
 ;; Brief Description:
-;;;
+;;
 ;; * `dired-do-shell-command' is bound to `!' by dired.el.
-;;;
+;;
 ;; * `dired-guess-shell-command' provides smarter defaults for
-;;;    dired-aux.el's `dired-read-shell-command'.
-;;;
+;;    dired-aux.el's `dired-read-shell-command'.
+;;
 ;; * `dired-guess-shell-command' calls `dired-guess-default' with list of
-;;;    marked files.
-;;;
+;;    marked files.
+;;
 ;; * Parse `dired-guess-shell-alist-user' and
-;;;   `dired-guess-shell-alist-default' (in that order) for the first REGEXP
-;;;   that matches the first file in the file list.
-;;;
+;;   `dired-guess-shell-alist-default' (in that order) for the first REGEXP
+;;   that matches the first file in the file list.
+;;
 ;; * If the REGEXP matches all the entries of the file list then evaluate
-;;;   COMMAND, which is either a string or a Lisp expression returning a
-;;;   string.  COMMAND may be a list of commands.
-;;;
+;;   COMMAND, which is either a string or a Lisp expression returning a
+;;   string.  COMMAND may be a list of commands.
+;;
 ;; * Return this command to `dired-guess-shell-command' which prompts user
-;;;   with it.  The list of commands is put into the list of default values.
-;;;   If a command is used successfully then it is stored permanently in
-;;;   `dired-shell-command-history'.
+;;   with it.  The list of commands is put into the list of default values.
+;;   If a command is used successfully then it is stored permanently in
+;;   `dired-shell-command-history'.
 
 ;; Guess what shell command to apply to a file.
 (defvar dired-shell-command-history nil
@@ -1028,7 +1032,7 @@ See `dired-guess-shell-alist-user'."
       (if (equal val "") default val))))
 
 
-;;; RELATIVE SYMBOLIC LINKS.
+;;; Relative symbolic links
 
 (declare-function make-symbolic-link "fileio.c")
 
@@ -1089,7 +1093,7 @@ results in
 
 ;;;###autoload
 (defun dired-do-relsymlink (&optional arg)
-   "Relative symlink all marked (or next ARG) files into a directory.
+  "Relative symlink all marked (or next ARG) files into a directory.
 Otherwise make a relative symbolic link to the current file.
 This creates relative symbolic links like
 
@@ -1102,7 +1106,7 @@ not absolute ones like
 For absolute symlinks, use \\[dired-do-symlink]."
   (interactive "P")
   (dired-do-create-files 'relsymlink #'dired-make-relative-symlink
-                           "RelSymLink" arg dired-keep-marker-relsymlink))
+                         "RelSymLink" arg dired-keep-marker-relsymlink))
 
 (autoload 'dired-mark-read-regexp "dired-aux")
 (autoload 'dired-do-create-files-regexp "dired-aux")
@@ -1117,30 +1121,30 @@ for more info."
    "RelSymLink" arg regexp newname whole-name dired-keep-marker-relsymlink))
 
 
-;;; VISIT ALL MARKED FILES SIMULTANEOUSLY.
+;;; Visit all marked files simultaneously
 
 ;; Brief Description:
-;;;
+;;
 ;; `dired-do-find-marked-files' is bound to `F' by dired-x.el.
-;;;
+;;
 ;; * Use `dired-get-marked-files' to collect the marked files in the current
-;;;   Dired Buffer into a list of filenames `FILE-LIST'.
-;;;
+;;   Dired Buffer into a list of filenames `FILE-LIST'.
+;;
 ;; * Pass FILE-LIST to `dired-simultaneous-find-file' all with
-;;;   `dired-do-find-marked-files''s prefix argument NOSELECT.
-;;;
+;;   `dired-do-find-marked-files''s prefix argument NOSELECT.
+;;
 ;; * `dired-simultaneous-find-file' runs through FILE-LIST decrementing the
-;;;   list each time.
-;;;
+;;   list each time.
+;;
 ;; * If NOSELECT is non-nil then just run `find-file-noselect' on each
-;;;   element of FILE-LIST.
-;;;
+;;   element of FILE-LIST.
+;;
 ;; * If NOSELECT is nil then calculate the `size' of the window for each file
-;;;   by dividing the `window-height' by length of FILE-LIST.  Thus, `size' is
-;;;   cognizant of the window-configuration.
-;;;
+;;   by dividing the `window-height' by length of FILE-LIST.  Thus, `size' is
+;;   cognizant of the window-configuration.
+;;
 ;; * If `size' is too small abort, otherwise run `find-file' on each element
-;;;   of FILE-LIST giving each a window of height `size'.
+;;   of FILE-LIST giving each a window of height `size'.
 
 (defun dired-do-find-marked-files (&optional noselect)
   "Find all marked files displaying all of them simultaneously.
@@ -1186,7 +1190,7 @@ NOSELECT the files are merely found but not selected."
         (find-file file)))))
 
 
-;;; MISCELLANEOUS COMMANDS.
+;;; Miscellaneous commands
 
 ;; Run man on files.
 
@@ -1196,8 +1200,8 @@ NOSELECT the files are merely found but not selected."
 
 (defun dired-man ()
   "Run `man' on this file."
-;; Used also to say: "Display old buffer if buffer name matches filename."
-;; but I have no idea what that means.
+  ;; Used also to say: "Display old buffer if buffer name matches filename."
+  ;; but I have no idea what that means.
   (interactive)
   (require 'man)
   (let* ((file (dired-get-filename))
@@ -1254,7 +1258,7 @@ otherwise."
 	  (dired-rmail)))))
 
 
-;;; MISCELLANEOUS INTERNAL FUNCTIONS.
+;;; Miscellaneous internal functions
 
 ;; This should be a builtin
 (defun dired-buffer-more-recently-used-p (buffer1 buffer2)
@@ -1264,7 +1268,6 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
        (memq buffer1 (buffer-list))
        (not (memq buffer1 (memq buffer2 (buffer-list))))))
 
-
 ;; Needed if ls -lh is supported and also for GNU ls -ls.
 (defun dired-x--string-to-number (str)
   "Like `string-to-number' but recognize a trailing unit prefix.
@@ -1437,7 +1440,7 @@ only in the active region if `dired-mark-region' is non-nil."
      (format "'%s file" predicate))))
 
 
-;;; FIND FILE AT POINT.
+;;; Find file at point
 
 (defcustom dired-x-hands-off-my-keys t
   "Non-nil means don't remap `find-file' to `dired-x-find-file'.
@@ -1484,7 +1487,8 @@ a prefix argument, when it offers the filename near point as a default."
   (interactive (list (dired-x-read-filename-at-point "Find file: ")))
   (find-file-other-window filename))
 
-;;; Internal functions.
+
+;;; Internal functions
 
 ;; Fixme: This should probably use `thing-at-point'.  -- fx
 (define-obsolete-function-alias 'dired-filename-at-point
@@ -1532,8 +1536,9 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 
 (define-obsolete-function-alias 'read-filename-at-point
   'dired-x-read-filename-at-point "24.1") ; is this even needed?
+
 
-;;; BUG REPORTS
+;;; Epilog
 
 (define-obsolete-function-alias 'dired-x-submit-report 'report-emacs-bug "24.1")
 

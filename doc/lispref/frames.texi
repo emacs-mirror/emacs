@@ -2023,8 +2023,8 @@ the @sc{cdr} of the cell is either @code{t} or @code{top-only}.
 
 The parameters described below provide support for resizing a frame by
 dragging its internal borders with the mouse.  They also allow moving a
-frame with the mouse by dragging the header line of its topmost or the
-mode line of its bottommost window.
+frame with the mouse by dragging the header or tab line of its topmost
+or the mode line of its bottommost window.
 
 These parameters are mostly useful for child frames (@pxref{Child
 Frames}) that come without window manager decorations.  If necessary,
@@ -2040,6 +2040,11 @@ borders, if present, with the mouse.
 @item drag-with-header-line
 If non-@code{nil}, the frame can be moved with the mouse by dragging the
 header line of its topmost window.
+
+@vindex drag-with-tab-line@r{, a frame parameter}
+@item drag-with-tab-line
+If non-@code{nil}, the frame can be moved with the mouse by dragging the
+tab line of its topmost window.
 
 @vindex drag-with-mode-line@r{, a frame parameter}
 @item drag-with-mode-line

@@ -276,8 +276,8 @@ Last entry becomes the first and can be selected with
            (setcdr last-but-one (cdr (cdr last-but-one)))))
     (completion--cache-all-sorted-completions beg end comps)))
 
-;;; Helpers for `fido-mode' (or `ido-mode' emulation)
-;;;
+;;;_* Helpers for `fido-mode' (or `ido-mode' emulation)
+
 (defun icomplete-fido-kill ()
   "Kill line or current completion, like `ido-mode'.
 If killing to the end of line make sense, call `kill-line',
@@ -859,13 +859,16 @@ matches exist."
                (base-size (prog1 (cdr last)
                             (if last (setcdr last nil))))
                (most-try
-                (if (and base-size (> base-size 0))
+                ;; icomplete-hide-common-prefix logic is used
+                ;; unconditionally when there is single match.
+                (when (or icomplete-hide-common-prefix (not (cdr comps)))
+                  (if (and base-size (> base-size 0))
+                      (completion-try-completion
+                       name candidates predicate (length name) md)
+                    ;; If the `comps' are 0-based, the result should be
+                    ;; the same with `comps'.
                     (completion-try-completion
-                     name candidates predicate (length name) md)
-                  ;; If the `comps' are 0-based, the result should be
-                  ;; the same with `comps'.
-                  (completion-try-completion
-                   name comps nil (length name) md)))
+                     name comps nil (length name) md))))
                (most (if (consp most-try) (car most-try)
                        (if most-try (car comps) "")))
                ;; Compare name and most, so we can determine if name is
@@ -966,7 +969,7 @@ matches exist."
             ;; is cached.
             (if last (setcdr last base-size))))))))
 
-;;; Iswitchb compatibility
+;;;_* Iswitchb compatibility
 
 ;; We moved Iswitchb to `obsolete' in 24.4, but autoloads in files in
 ;; `obsolete' aren't obeyed (since that would encourage people to keep using
@@ -981,7 +984,7 @@ matches exist."
 
 (provide 'icomplete)
 
-;;_* Local emacs vars.
+;;;_* Local emacs vars.
 ;;Local variables:
 ;;allout-layout: (-2 :)
 ;;End:

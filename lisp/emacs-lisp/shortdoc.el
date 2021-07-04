@@ -268,6 +268,9 @@ There can be any number of :example/:result elements."
    :eval (file-name-extension "/tmp/foo.txt"))
   (file-name-sans-extension
    :eval (file-name-sans-extension "/tmp/foo.txt"))
+  (file-name-with-extension
+   :eval (file-name-with-extension "foo.txt" "bin")
+   :eval (file-name-with-extension "foo" "bin"))
   (file-name-base
    :eval (file-name-base "/tmp/foo.txt"))
   (file-relative-name

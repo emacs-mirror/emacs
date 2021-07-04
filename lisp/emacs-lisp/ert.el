@@ -1301,7 +1301,7 @@ empty string."
   "Pretty-print OBJECT, indenting it to the current column of point.
 Ensures a final newline is inserted."
   (let ((begin (point))
-        (pp-escape-newlines nil)
+        (pp-escape-newlines t)
         (print-escape-control-characters t))
     (pp object (current-buffer))
     (unless (bolp) (insert "\n"))
@@ -1552,7 +1552,7 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
     (when badtests
       (message "%d files did not finish:" (length badtests))
       (mapc (lambda (l) (message "  %s" l)) badtests)
-      (if (getenv "EMACS_HYDRA_CI")
+      (if (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
           (with-temp-buffer
             (dolist (f badtests)
               (erase-buffer)
@@ -1568,8 +1568,8 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
       (setq tests (sort tests (lambda (x y) (> (car x) (car y)))))
       (when (< high (length tests)) (setcdr (nthcdr (1- high) tests) nil))
       (message "%s" (mapconcat #'cdr tests "\n")))
-    ;; More details on hydra, where the logs are harder to get to.
-    (when (and (getenv "EMACS_HYDRA_CI")
+    ;; More details on hydra and emba, where the logs are harder to get to.
+    (when (and (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
                (not (zerop (+ nunexpected nskipped))))
       (message "\nDETAILS")
       (message "-------")

@@ -1270,7 +1270,7 @@ See `auth-source-search' for details on SPEC."
 ;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t :create-extra-keys '((A "default A") (B)))
 
 (cl-defun auth-source-netrc-create (&rest spec
-                                    &key backend host port create
+                                    &key backend host port create user
                                     &allow-other-keys)
   (let* ((base-required '(host user port secret))
          ;; we know (because of an assertion in auth-source-search) that the
@@ -1278,6 +1278,7 @@ See `auth-source-search' for details on SPEC."
          (create-extra (if (eq t create) nil create))
          (current-data (car (auth-source-search :max 1
                                                 :host host
+                                                :user user
                                                 :port port)))
          (required (append base-required create-extra))
          (file (oref backend source))
