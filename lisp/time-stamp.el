@@ -25,7 +25,7 @@
 
 ;; A template in a file can be updated with a new time stamp when
 ;; you save the file.  For example:
-;;     static char *ts = "sdmain.c Time-stamp: <2001-08-13 10:20:51 gildea>";
+;;     static char *ts = "sdmain.c Time-stamp: <2020-04-18 14:10:21 gildea>";
 
 ;; To use time-stamping, add this line to your init file:
 ;;     (add-hook 'before-save-hook 'time-stamp)
@@ -278,7 +278,7 @@ look like one of the following:
       Time-stamp: <>
       Time-stamp: \" \"
 The time stamp is written between the brackets or quotes:
-      Time-stamp: <2001-02-18 10:20:51 gildea>
+      Time-stamp: <2020-08-07 17:10:21 gildea>
 
 The time stamp is updated only if the variable
 `time-stamp-active' is non-nil.
@@ -422,7 +422,7 @@ Returns the end point, which is where `time-stamp' begins the next search."
 ;;;###autoload
 (defun time-stamp-toggle-active (&optional arg)
   "Toggle `time-stamp-active', setting whether \\[time-stamp] updates a buffer.
-With ARG, turn time stamping on if and only if arg is positive."
+With ARG, turn time stamping on if and only if ARG is positive."
   (interactive "P")
   (setq time-stamp-active
 	(if (null arg)
@@ -457,200 +457,225 @@ normally the current time is used."
 (defun time-stamp-string-preprocess (format &optional time)
   "Use a FORMAT to format date, time, file, and user information.
 Optional second argument TIME is only for testing.
-Implements non-time extensions to `format-time-string'
+Implements extensions to `format-time-string'
 and all `time-stamp-format' compatibility."
   (let ((fmt-len (length format))
 	(ind 0)
 	cur-char
-	(prev-char nil)
-	(result "")
-	field-width
-	field-result
-	alt-form change-case upcase
-	(paren-level 0))
+	(result ""))
     (while (< ind fmt-len)
       (setq cur-char (aref format ind))
       (setq
        result
-       (concat result
-      (cond
-       ((eq cur-char ?%)
-	;; eat any additional args to allow for future expansion
-	(setq alt-form 0 change-case nil upcase nil field-width "")
-	(while (progn
-		 (setq ind (1+ ind))
-		 (setq cur-char (if (< ind fmt-len)
-				    (aref format ind)
-				  ?\0))
-		 (or (eq ?. cur-char)
-		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
-		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
-		     (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
-		     (and (eq ?\( cur-char)
-			  (not (eq prev-char ?\\))
-			  (setq paren-level (1+ paren-level)))
-		     (if (and (eq ?\) cur-char)
+       (concat
+        result
+        (cond
+         ((eq cur-char ?%)
+	  (let ((prev-char nil)
+		(field-width "")
+		field-result
+		(alt-form 0)
+		(change-case nil)
+		(upcase nil)
+		(flag-pad-with-spaces nil)
+		(flag-pad-with-zeros nil)
+		(flag-minimize nil)
+		(paren-level 0))
+	    ;; eat any additional args to allow for future expansion
+	    (while (progn
+		     (setq ind (1+ ind))
+		     (setq cur-char (if (< ind fmt-len)
+				        (aref format ind)
+				      ?\0))
+		     (or (eq ?. cur-char)
+		         (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
+		         (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
+		         (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
+		         (and (eq ?\( cur-char)
 			      (not (eq prev-char ?\\))
-			      (> paren-level 0))
-			 (setq paren-level (1- paren-level))
-		       (and (> paren-level 0)
-			    (< ind fmt-len)))
-		     (if (and (<= ?0 cur-char) (>= ?9 cur-char))
-			 ;; get format width
-			 (let ((field-index ind))
-			   (while (progn
-				    (setq ind (1+ ind))
-				    (setq cur-char (if (< ind fmt-len)
-						       (aref format ind)
-						     ?\0))
-				    (and (<= ?0 cur-char) (>= ?9 cur-char))))
-			   (setq field-width (substring format field-index ind))
-			   (setq ind (1- ind))
-			   t))))
-	  (setq prev-char cur-char)
-	  ;; some characters we actually use
-	  (cond ((eq cur-char ?:)
-		 (setq alt-form (1+ alt-form)))
-		((eq cur-char ?#)
-		 (setq change-case t))
-		((eq cur-char ?^)
-		 (setq upcase t))
-		((eq cur-char ?-)
-		 (setq field-width "1"))
-		((eq cur-char ?_)
-		 (setq field-width "2"))))
-	(setq field-result
-	(cond
-	 ((eq cur-char ?%)
-	  "%")
-	 ((eq cur-char ?a)		;day of week
-          (if (> alt-form 0)
-               (if (string-equal field-width "")
-                   (time-stamp--format "%A" time)
-                 "")			;discourage "%:3a"
-            (if (or change-case upcase)
-                (time-stamp--format "%#a" time)
-	      (time-stamp--format "%a" time))))
-	 ((eq cur-char ?A)
-	  (if (or change-case upcase (not (string-equal field-width "")))
-	      (time-stamp--format "%#A" time)
-	    (time-stamp--format "%A" time)))
-	 ((eq cur-char ?b)		;month name
-          (if (> alt-form 0)
-               (if (string-equal field-width "")
-                   (time-stamp--format "%B" time)
-                 "")			;discourage "%:3b"
-            (if (or change-case upcase)
-                (time-stamp--format "%#b" time)
-	      (time-stamp--format "%b" time))))
-	 ((eq cur-char ?B)
-	  (if (or change-case upcase (not (string-equal field-width "")))
-	      (time-stamp--format "%#B" time)
-	    (time-stamp--format "%B" time)))
-	 ((eq cur-char ?d)		;day of month, 1-31
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?H)		;hour, 0-23
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?I)		;hour, 1-12
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?m)		;month number, 1-12
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?M)		;minute, 0-59
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?p)		;am or pm
-	  (if change-case
-              (time-stamp--format "%#p" time)
-            (time-stamp--format "%p" time)))
-	 ((eq cur-char ?P)		;AM or PM
-	  (time-stamp--format "%p" time))
-	 ((eq cur-char ?S)		;seconds, 00-60
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?w)		;weekday number, Sunday is 0
-	  (time-stamp--format "%w" time))
-	 ((eq cur-char ?y)		;year
-          (if (> alt-form 0)
-              (string-to-number (time-stamp--format "%Y" time))
-            (if (or (string-equal field-width "")
-                    (<= (string-to-number field-width) 2))
-                (string-to-number (time-stamp--format "%y" time))
-              (time-stamp-conv-warn (format "%%%sy" field-width) "%Y")
-              (string-to-number (time-stamp--format "%Y" time)))))
-	 ((eq cur-char ?Y)		;4-digit year
-	  (string-to-number (time-stamp--format "%Y" time)))
-	 ((eq cur-char ?z)		;time zone offset
-	  (if change-case
-	      ""			;discourage %z variations
-            (cond ((= alt-form 0)
-                   (if (string-equal field-width "")
-                       (progn
-                         (time-stamp-conv-warn "%z" "%#Z")
-                         (time-stamp--format "%#Z" time))
-                     (cond ((string-equal field-width "1")
-                            (setq field-width "3")) ;%-z -> "+00"
-                           ((string-equal field-width "2")
-                            (setq field-width "5")) ;%_z -> "+0000"
-                           ((string-equal field-width "4")
-                            (setq field-width "0"))) ;discourage %4z
-                     (time-stamp--format "%z" time)))
-                  ((= alt-form 1)
-                   (time-stamp--format "%:z" time))
-                  ((= alt-form 2)
-                   (time-stamp--format "%::z" time))
-                  ((= alt-form 3)
-                   (time-stamp--format "%:::z" time)))))
-	 ((eq cur-char ?Z)              ;time zone name
-	  (if change-case
-	      (time-stamp--format "%#Z" time)
-	    (time-stamp--format "%Z" time)))
-	 ((eq cur-char ?f)		;buffer-file-name, base name only
-	  (if buffer-file-name
-	      (file-name-nondirectory buffer-file-name)
-	    time-stamp-no-file))
-	 ((eq cur-char ?F)		;buffer-file-name, full path
-	  (or buffer-file-name
-	      time-stamp-no-file))
-	 ((eq cur-char ?s)		;system name, legacy
-	  (system-name))
-	 ((eq cur-char ?u)		;user name, legacy
-	  (user-login-name))
-	 ((eq cur-char ?U)		;user full name, legacy
-	  (user-full-name))
-	 ((eq cur-char ?l)		;login name
-	  (user-login-name))
-	 ((eq cur-char ?L)		;full name of logged-in user
-	  (user-full-name))
-	 ((eq cur-char ?h)		;mail host name
-	  (or mail-host-address (system-name)))
-	 ((eq cur-char ?q)		;unqualified host name
-	  (let ((qualname (system-name)))
-	    (if (string-match "\\." qualname)
-		(substring qualname 0 (match-beginning 0))
-	      qualname)))
-	 ((eq cur-char ?Q)		;fully-qualified host name
-	  (system-name))
-	 ))
-        (and (numberp field-result)
-             (= alt-form 0)
-             (string-equal field-width "")
-             ;; no width provided; set width for default
-             (setq field-width "02"))
-	(let ((padded-result
-	       (format (format "%%%s%c"
-			       field-width
-			       (if (numberp field-result) ?d ?s))
-		       (or field-result ""))))
-	  (let* ((initial-length (length padded-result))
-		 (desired-length (if (string-equal field-width "")
-				     initial-length
-				   (string-to-number field-width))))
-	    (if (> initial-length desired-length)
-		;; truncate strings on right
-		(if (stringp field-result)
-		    (substring padded-result 0 desired-length)
-                  padded-result)	;numbers don't truncate
-	      padded-result))))
-       (t
-	(char-to-string cur-char)))))
+			      (setq paren-level (1+ paren-level)))
+		         (if (and (eq ?\) cur-char)
+			          (not (eq prev-char ?\\))
+			          (> paren-level 0))
+			     (setq paren-level (1- paren-level))
+		           (and (> paren-level 0)
+			        (< ind fmt-len)))
+		         (if (and (<= ?0 cur-char) (>= ?9 cur-char))
+			     ;; get format width
+			     (let ((field-index ind)
+			           (first-digit cur-char))
+			       (while (progn
+				        (setq ind (1+ ind))
+				        (setq cur-char (if (< ind fmt-len)
+						           (aref format ind)
+						         ?\0))
+					(and (<= ?0 cur-char)
+					     (>= ?9 cur-char))))
+			       (setq field-width
+				     (substring format field-index ind))
+			       (setq ind (1- ind))
+			       (setq cur-char first-digit)
+			       t))))
+	      (setq prev-char cur-char)
+	      ;; some characters we actually use
+	      (cond ((eq cur-char ?:)
+		     (setq alt-form (1+ alt-form)))
+		    ((eq cur-char ?#)
+		     (setq change-case t))
+		    ((eq cur-char ?^)
+		     (setq upcase t))
+		    ((eq cur-char ?0)
+		     (setq flag-pad-with-zeros t))
+		    ((eq cur-char ?-)
+		     (setq field-width "1" flag-minimize t))
+		    ((eq cur-char ?_)
+		     (setq field-width "2" flag-pad-with-spaces t))))
+	    (setq field-result
+	          (cond
+	           ((eq cur-char ?%)
+	            "%")
+	           ((eq cur-char ?a)    ;day of week
+                    (if (> alt-form 0)
+                        (if (string-equal field-width "")
+                            (time-stamp--format "%A" time)
+                          "")           ;discourage "%:3a"
+                      (if (or change-case upcase)
+                          (time-stamp--format "%#a" time)
+	                (time-stamp--format "%a" time))))
+	           ((eq cur-char ?A)
+		    (if (or change-case upcase (not (string-equal field-width
+								  "")))
+			(time-stamp--format "%#A" time)
+	              (time-stamp--format "%A" time)))
+	           ((eq cur-char ?b)    ;month name
+                    (if (> alt-form 0)
+                        (if (string-equal field-width "")
+                            (time-stamp--format "%B" time)
+                          "")           ;discourage "%:3b"
+                      (if (or change-case upcase)
+                          (time-stamp--format "%#b" time)
+	                (time-stamp--format "%b" time))))
+		   ((eq cur-char ?B)
+		    (if (or change-case upcase (not (string-equal field-width
+								  "")))
+			(time-stamp--format "%#B" time)
+	              (time-stamp--format "%B" time)))
+	           ((eq cur-char ?d)    ;day of month, 1-31
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?H)    ;hour, 0-23
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?I)    ;hour, 1-12
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?m)    ;month number, 1-12
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?M)    ;minute, 0-59
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?p)    ;am or pm
+	            (if change-case
+                        (time-stamp--format "%#p" time)
+                      (time-stamp--format "%p" time)))
+	           ((eq cur-char ?P)    ;AM or PM
+	            (time-stamp--format "%p" time))
+	           ((eq cur-char ?S)    ;seconds, 00-60
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?w)    ;weekday number, Sunday is 0
+	            (time-stamp--format "%w" time))
+	           ((eq cur-char ?y)    ;year
+                    (if (> alt-form 0)
+                        (string-to-number (time-stamp--format "%Y" time))
+                      (if (or (string-equal field-width "")
+                              (<= (string-to-number field-width) 2))
+                          (string-to-number (time-stamp--format "%y" time))
+                        (time-stamp-conv-warn (format "%%%sy" field-width) "%Y")
+                        (string-to-number (time-stamp--format "%Y" time)))))
+	           ((eq cur-char ?Y)    ;4-digit year
+	            (string-to-number (time-stamp--format "%Y" time)))
+	           ((eq cur-char ?z)    ;time zone offset
+                    (let ((field-width-num (string-to-number field-width))
+                          ;; Handle numeric time zone ourselves, because
+                          ;; current-time-zone cannot handle offsets
+                          ;; greater than 24 hours.
+                          (offset-secs
+                           (cond ((numberp time-stamp-time-zone)
+                                  time-stamp-time-zone)
+                                 ((and (consp time-stamp-time-zone)
+                                       (numberp (car time-stamp-time-zone)))
+                                  (car time-stamp-time-zone))
+                                 ;; interpret text time zone
+                                 (t (car (current-time-zone
+                                          time time-stamp-time-zone))))))
+	              ;; we do our own padding; do not let it be updated further
+	              (setq field-width "")
+	              (cond (change-case
+		             "")        ;discourage %z variations
+		            ((and (= alt-form 0)
+			          (not flag-minimize)
+			          (not flag-pad-with-spaces)
+			          (not flag-pad-with-zeros)
+			          (= field-width-num 0))
+		             (time-stamp-conv-warn "%z" "%#Z")
+		             (time-stamp--format "%#Z" time))
+			    (t (time-stamp-formatz-from-parsed-options
+				flag-minimize
+				flag-pad-with-spaces
+				flag-pad-with-zeros
+				alt-form
+				field-width-num
+				offset-secs)))))
+	           ((eq cur-char ?Z)    ;time zone name
+	            (if change-case
+	                (time-stamp--format "%#Z" time)
+	              (time-stamp--format "%Z" time)))
+	           ((eq cur-char ?f)    ;buffer-file-name, base name only
+	            (if buffer-file-name
+	                (file-name-nondirectory buffer-file-name)
+	              time-stamp-no-file))
+	           ((eq cur-char ?F)    ;buffer-file-name, full path
+	            (or buffer-file-name
+	                time-stamp-no-file))
+	           ((eq cur-char ?s)    ;system name, legacy
+	            (system-name))
+	           ((eq cur-char ?u)    ;user name, legacy
+	            (user-login-name))
+	           ((eq cur-char ?U)    ;user full name, legacy
+	            (user-full-name))
+	           ((eq cur-char ?l)    ;login name
+	            (user-login-name))
+	           ((eq cur-char ?L)    ;full name of logged-in user
+	            (user-full-name))
+	           ((eq cur-char ?h)    ;mail host name
+	            (or mail-host-address (system-name)))
+	           ((eq cur-char ?q)    ;unqualified host name
+	            (let ((qualname (system-name)))
+	              (if (string-match "\\." qualname)
+		          (substring qualname 0 (match-beginning 0))
+	                qualname)))
+	           ((eq cur-char ?Q)    ;fully-qualified host name
+	            (system-name))
+	           ))
+            (and (numberp field-result)
+                 (= alt-form 0)
+                 (string-equal field-width "")
+                 ;; no width provided; set width for default
+                 (setq field-width "02"))
+	    (let ((padded-result
+	           (format (format "%%%s%c"
+			           field-width
+			           (if (numberp field-result) ?d ?s))
+		           (or field-result ""))))
+	      (let* ((initial-length (length padded-result))
+		     (desired-length (if (string-equal field-width "")
+				         initial-length
+				       (string-to-number field-width))))
+	        (if (> initial-length desired-length)
+		    ;; truncate strings on right
+		    (if (and (stringp field-result)
+			     (not (eq cur-char ?z))) ;offset does not truncate
+		        (substring padded-result 0 desired-length)
+                      padded-result)	;numbers don't truncate
+	          padded-result)))))
+         (t
+	  (char-to-string cur-char)))))
       (setq ind (1+ ind)))
     result))
 
@@ -689,6 +714,176 @@ Suggests replacing OLD-FORM with NEW-FORM."
 	     "The following obsolescent time-stamp-format construct(s) were found:\n\n")))
       (insert "\"" old-form "\" -- use " new-form "\n"))
     (display-buffer "*Time-stamp-compatibility*"))))
+
+;;; A principled, expressive implementation of time zone offset
+;;; formatting ("%z" and variants).
+
+;;; * Overarching principle for %z
+
+;; The output should be clear and complete.
+;;
+;; That is,
+;; a) it should be unambiguous what offset is represented, and
+;; b) it should be possible to exactly recreate the offset.
+
+;;; * Principles for %z
+
+;; - The numeric fields are HHMMSS.
+;; - The fixed point is at the left.  The first 2 digits are always
+;;   hours, the next 2 (if they exist) minutes, and next 2 (if they
+;;   exist) seconds.  "+11" is 11 hours (not 11 minutes, not 11 seconds).
+;;   "+1015" is 10 hours 15 minutes (not 10 minutes 15 seconds).
+;; - Each of the three numeric fields is two digits.
+;;   "+1" and "+100" are illegal.  (Is that 1 hour? 10 hours? 100 hours?)
+;; - The MMSS fields may be omitted only if both are 00.  Thus, the width
+;;   of the field depends on the data.  (This is similar to how
+;;   %B is always long enough to spell the entire month name.)
+;; - The SS field may be omitted only if it is 00.
+;; - Colons between the numeric fields are an option, unless the hours
+;;   field is greater than 99, when colons are needed to prevent ambiguity.
+;; - If padding with zeros, we must pad on the right, because the
+;;   fixed point is at the left.  (This is similar to how %N,
+;;   fractional seconds, must add its zeros on the right.)
+;; - After zero-padding has filled out minutes and seconds with zeros,
+;;   further padding can be blanks only.
+;;   Any additional zeros would be confusing.
+
+;;; * Padding for %z
+
+;; Padding is under-specified, so we had to make choices.
+;;
+;; Principles guiding our choices:
+;;
+;; - The syntax should be easy to remember and the effect predictable.
+;; - It should be possible to produces as many useful effects as possible.
+;;
+;; Padding choices:
+;;
+;; - By default, pad with spaces, as other formats with non-digits do.
+;;   The "0" flag pads first with zeros, until seconds are filled out.
+;; - If padding with spaces, pad on the right.  This is consistent with
+;;   how zero-padding works.  Padding on the right also keeps the fixed
+;;   point in the same place, as other formats do for any given width.
+;; - The %_z format always outputs seconds, allowing all added padding
+;;   to be spaces.  Without this rule, there would be no way to
+;;   request seconds that worked for both 2- and 3-digit hours.
+;; - Conflicting options are rejected, lest users depend
+;;   on incidental behavior.
+;;
+;; Padding combos that make no sense and are thus disallowed:
+;;
+;; %-:z   - minus minimizes to hours, : expands to minutes
+;; %-::z  - minus minimizes to hours, :: expands to seconds
+;; %_:z   - underscore requires seconds, : displays minutes
+;; %_:::z - underscore requires seconds, ::: minimizes to hours
+;;
+;; Example padding effects (with offsets of 99 and 100 hours):
+;;
+;; %-7z   "+99    "   "+100:00"
+;;  %7z   "+9900  "   "+100:00"
+;; %07z   "+990000"   "+100:00"
+;; %_7z   "+990000"   "+100:00:00"
+;;
+;; %7:::z "+99    "   "+100:00"
+;; %7:z   "+99:00 "   "+100:00"
+;; %07:z  "+99:00:00" "+100:00"
+;; %7::z  "+99:00:00" "+100:00:00"
+
+;;; * BNF syntax of the offset string produced by %z
+
+;; <offset> ::= <sign><hours>[<minutes>[<seconds>]]<padding> |
+;;              <sign><hours>[<colonminutes>[<colonseconds>]]<padding> |
+;;              <sign><bighours><colonminutes>[<colonseconds>]<padding>
+;; <sign> ::= "+"|"-"
+;; <hours> ::= <2digits>
+;; <minutes> ::= <2digits>
+;; <seconds> ::= <2digits>
+;; <colonminutes> ::= ":"<minutes>
+;; <colonseconds> ::= ":"<seconds>
+;; <2digits> ::= <digit><digit>
+;; <digit> ::= "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9"
+;; <bighours> ::= <digit>*<digit><2digits>
+;; <padding> ::= " "*
+
+(defun time-stamp-formatz-from-parsed-options (flag-minimize
+                                               flag-pad-spaces-only
+                                               flag-pad-zeros-first
+                                               colon-count
+                                               field-width
+                                               offset-secs)
+  "Formats a time offset according to a %z variation.
+The caller of this function must have already parsed the %z format
+string; this function accepts just the parts of the format.
+
+With no flags, the output includes hours and minutes: +-HHMM
+unless there is a non-zero seconds part, in which case the seconds
+are included: +-HHMMSS
+
+FLAG-MINIMIZE is whether \"-\" was specified.  If non-nil, the
+output may be limited to hours if minutes and seconds are zero.
+
+FLAG-PAD-SPACES-ONLY is whether \"_\" was specified.  If non-nil,
+seconds must be output, so that any padding can be spaces only.
+
+FLAG-PAD-ZEROS-FIRST is whether \"0\" was specified.  If non-nil,
+padding to the requested FIELD-WIDTH (if any) is done by adding
+00 seconds before padding with spaces.
+
+COLON-COUNT is the number of colons preceding the \"z\" (0-3).  One or
+two colons put that many colons in the output (+-HH:MM or +-HH:MM:SS).
+Three colons outputs only hours if minutes and seconds are zero and
+includes colon separators if minutes and seconds are output.
+
+FIELD-WIDTH is a whole number giving the minimum number of characters
+in the output; 0 specifies no minimum.  Additional characters will be
+added on the right if necessary.  The added characters will be spaces
+unless FLAG-PAD-ZEROS-FIRST is non-nil.
+
+OFFSET-SECS is the time zone offset (in seconds east of UTC) to be
+formatted according to the preceding parameters."
+  (let ((hrs (/ (abs offset-secs) 3600))
+        (mins (/ (% (abs offset-secs) 3600) 60))
+        (secs (% (abs offset-secs) 60))
+        (result ""))
+    ;; valid option combo?
+    (cond
+     ((not (or (and flag-minimize (> colon-count 0))
+               (and flag-pad-spaces-only (> colon-count 0))
+               (and flag-pad-spaces-only flag-minimize)
+               (and flag-pad-spaces-only flag-pad-zeros-first)
+               (and flag-pad-zeros-first flag-minimize)))
+      (setq result (concat result (if (>= offset-secs 0) "+" "-")))
+      (setq result (concat result (format "%02d" hrs)))
+      ;; Need minutes?
+      (cond
+       ((or (> hrs 99)
+            (> mins 0)
+            (> secs 0)
+            (not (or flag-minimize (= colon-count 3)))
+            (and (> field-width (length result))
+                 flag-pad-zeros-first))
+        ;; Need colon before minutes?
+        (if (or (> colon-count 0)
+                (> hrs 99))
+            (setq result (concat result ":")))
+        (setq result (concat result (format "%02d" mins)))
+        ;; Need seconds, too?
+        (cond
+         ((or (> secs 0)
+              (= colon-count 2)
+              flag-pad-spaces-only
+              (and (> field-width (length result))
+                   flag-pad-zeros-first))
+          ;; Need colon before seconds?
+          (if (or (> colon-count 0)
+                  (> hrs 99))
+              (setq result (concat result ":")))
+          (setq result (concat result (format "%02d" secs)))))))
+      ;; Need padding?
+      (let ((needed-padding (- field-width (length result))))
+        (if (> needed-padding 0)
+            (setq result (concat result (make-string needed-padding ?\s)))))))
+    result))
 
 (provide 'time-stamp)
 

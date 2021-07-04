@@ -738,8 +738,11 @@ is described by the variable `mh-variants'."
       ;; Make a unique list of directories, keeping the given order.
       ;; We don't want the same MH variant to be listed multiple times.
       (cl-loop for dir in (append mh-path mh-sys-path exec-path) do
-               (setq dir (file-chase-links (directory-file-name dir)))
-               (cl-pushnew dir list-unique :test #'equal))
+               ;; skip relative dirs, typically "."
+               (if (file-name-absolute-p dir)
+                   (progn
+                     (setq dir (file-chase-links (directory-file-name dir)))
+                     (cl-pushnew dir list-unique :test #'equal))))
       (cl-loop for dir in (nreverse list-unique) do
                (when (and dir (file-accessible-directory-p dir))
                  (let ((variant (mh-variant-info dir)))

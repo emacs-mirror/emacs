@@ -988,9 +988,7 @@ one window."
   (let ((buf (ibuffer-current-buffer t)))
     (bury-buffer (current-buffer))
     (if noselect
-	(let ((curwin (selected-window)))
-	  (pop-to-buffer buf)
-	  (select-window curwin))
+        (display-buffer buf)
       (switch-to-buffer-other-window buf))))
 
 (defun ibuffer-visit-buffer-other-window-noselect ()
@@ -1081,8 +1079,11 @@ a new window in the current frame, splitting vertically."
   ;; Make sure that redisplay is performed, otherwise there can be a
   ;; bad interaction with code in the window-scroll-functions hook
   (redisplay t)
-  (fit-window-to-buffer nil (when owin (/ (frame-height)
-					  (length (window-list (selected-frame)))))))
+  (when (buffer-local-value 'ibuffer-auto-mode (window-buffer))
+    (fit-window-to-buffer
+     nil (and owin
+              (/ (frame-height)
+	         (length (window-list (selected-frame))))))))
 
 (defun ibuffer-confirm-operation-on (operation names)
   "Display a buffer asking whether to perform OPERATION on NAMES."

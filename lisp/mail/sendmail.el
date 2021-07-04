@@ -30,6 +30,7 @@
 (require 'mail-utils)
 (require 'rfc2047)
 (autoload 'message-make-date "message")
+(autoload 'message-narrow-to-headers "message")
 
 (defgroup sendmail nil
   "Mail sending commands for Emacs."
@@ -725,14 +726,21 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
   (setq paragraph-separate
-	(concat (regexp-quote mail-header-separator)
+        (if (zerop (length mail-header-separator))
+	    (concat
 		;; This is based on adaptive-fill-regexp (presumably
 		;; the idea is to allow navigation etc of cited paragraphs).
-		"$\\|\t*[-–!|#%;>*·•‣⁃◦ ]+$"
+		"\t*[-–!|#%;>*·•‣⁃◦ ]+$"
 		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
 		"--\\( \\|-+\\)$\\|"
-		page-delimiter)))
-
+		page-delimiter)
+	  (concat (regexp-quote mail-header-separator)
+                  ;; This is based on adaptive-fill-regexp (presumably
+                  ;; the idea is to allow navigation etc of cited paragraphs).
+                  "$\\|\t*[-–!|#%;>*·•‣⁃◦ ]+$"
+                  "\\|[ \t]*[-[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
+                  "--\\( \\|-+\\)$\\|"
+                  page-delimiter))))
 
 (defun mail-header-end ()
   "Return the buffer location of the end of headers, as a number."
@@ -762,10 +770,11 @@ Concretely: replace the first blank line in the header with the separator."
   "Remove header separator to put the message in correct form for sendmail.
 Leave point at the start of the delimiter line."
   (goto-char (point-min))
-  (when (re-search-forward
-	 (concat "^" (regexp-quote mail-header-separator) "\n")
-	 nil t)
-    (replace-match "\n"))
+  (unless (zerop (length mail-header-separator))
+    (when (re-search-forward
+           (concat "^" (regexp-quote mail-header-separator) "\n")
+           nil t)
+      (replace-match "\n")))
   (rfc822-goto-eoh))
 
 (defun mail-mode-auto-fill ()
@@ -887,8 +896,9 @@ the user from the mailer."
                 (concat "\\(?:[[:space:];,]\\|\\`\\)"
                         (regexp-opt mail-mailing-lists t)
                         "\\(?:[[:space:];,]\\|\\'\\)"))))
-        (mail-combine-fields "To")
-        (mail-combine-fields "Cc")
+        (unless noninteractive
+          (mail-combine-fields "To")
+          (mail-combine-fields "Cc"))
 	;; If there are mailing lists defined
 	(when ml
 	  (save-excursion
@@ -930,7 +940,9 @@ the user from the mailer."
 		(error "Message contains non-ASCII characters"))))
 	;; Complain about any invalid line.
 	(goto-char (point-min))
-	(re-search-forward (regexp-quote mail-header-separator) (point-max) t)
+        ;; Search for mail-header-eeparator as whole line.
+	(re-search-forward (concat "^" (regexp-quote mail-header-separator) "$")
+                           (point-max) t)
 	(let ((header-end (or (match-beginning 0) (point-max))))
 	  (goto-char (point-min))
 	  (while (< (point) header-end)
@@ -961,7 +973,10 @@ the user from the mailer."
 
 (defun mail-envelope-from ()
   "Return the envelope mail address to use when sending mail.
-This function uses `mail-envelope-from'."
+This function uses the `mail-envelope-from' variable.
+
+The buffer should be narrowed to the headers of the mail message
+before this function is called."
   (if (eq mail-envelope-from 'header)
       (nth 1 (mail-extract-address-components
  	      (mail-fetch-field "From")))
@@ -1177,7 +1192,12 @@ external program defined by `sendmail-program'."
 	;; local binding in the mail buffer will take effect.
 	(envelope-from
 	 (and mail-specify-envelope-from
-	      (or (mail-envelope-from) user-mail-address))))
+	      (or (save-restriction
+                    ;; Only look at the headers when fetching the
+                    ;; envelope address.
+                    (message-narrow-to-headers)
+                    (mail-envelope-from))
+                  user-mail-address))))
     (unwind-protect
 	(with-current-buffer tembuf
 	  (erase-buffer)

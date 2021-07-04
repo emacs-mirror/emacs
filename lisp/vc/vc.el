@@ -979,6 +979,9 @@ be reported.
 If NO-ERROR is nil, signal an error that no VC backend is
 responsible for the given file."
   (or (and (not (file-directory-p file)) (vc-backend file))
+      ;; FIXME it would be more efficient to walk up the directory tree,
+      ;; stopping the first time a backend is responsible.
+      ;;
       ;; First try: find a responsible backend.  If this is for registration,
       ;; it must be a backend under which FILE is not yet registered.
       (let ((dirs (delq nil

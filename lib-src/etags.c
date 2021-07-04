@@ -142,7 +142,14 @@ University of California, as described above. */
 # define CTAGS false
 #endif
 
-/* Copy to DEST from SRC (containing LEN bytes), and append a NUL byte.  */
+/* Define MERCURY_HEURISTICS_RATIO as it was necessary to disambiguate
+   Mercury from Objective C, which have same file extensions .m
+   See comments before function test_objc_is_mercury for details.  */
+#ifndef  MERCURY_HEURISTICS_RATIO
+# define MERCURY_HEURISTICS_RATIO 0.5
+#endif
+
+/* COPY to DEST from SRC (containing LEN bytes), and append a NUL byte.  */
 static void
 memcpyz (void *dest, void const *src, ptrdiff_t len)
 {
@@ -359,6 +366,7 @@ static void HTML_labels (FILE *);
 static void Lisp_functions (FILE *);
 static void Lua_functions (FILE *);
 static void Makefile_targets (FILE *);
+static void Mercury_functions (FILE *);
 static void Pascal_functions (FILE *);
 static void Perl_functions (FILE *);
 static void PHP_functions (FILE *);
@@ -366,6 +374,7 @@ static void PS_functions (FILE *);
 static void Prolog_functions (FILE *);
 static void Python_functions (FILE *);
 static void Ruby_functions (FILE *);
+static void Rust_entries (FILE *);
 static void Scheme_functions (FILE *);
 static void TeX_commands (FILE *);
 static void Texinfo_nodes (FILE *);
@@ -378,6 +387,7 @@ static ptrdiff_t readline_internal (linebuffer *, FILE *, char const *);
 static bool nocase_tail (const char *);
 static void get_tag (char *, char **);
 static void get_lispy_tag (char *);
+static void test_objc_is_mercury (char *, language **);
 
 static void analyze_regex (char *);
 static void free_regexps (void);
@@ -683,10 +693,22 @@ static const char Makefile_help [] =
 "In makefiles, targets are tags; additionally, variables are tags\n\
 unless you specify '--no-globals'.";
 
+/* Mercury and Objective C share the same .m file extensions.  */
+static const char *Mercury_suffixes [] =
+  {"m",
+   NULL};
+static const char Mercury_help [] =
+  "In Mercury code, tags are all declarations beginning a line with ':-'\n\
+and optionally Prolog-like definitions (first rule for a predicate or \
+function).\n\
+To enable this behavior, run etags using --declarations.";
+static bool with_mercury_definitions = false;
+float mercury_heuristics_ratio = MERCURY_HEURISTICS_RATIO;
+
 static const char *Objc_suffixes [] =
-  { "lm",			/* Objective lex file */
-    "m",			/* Objective C file */
-     NULL };
+  { "lm",			/* Objective lex file  */
+    "m",			/* By default, Objective C file will be assumed.  */
+     NULL};
 static const char Objc_help [] =
 "In Objective C code, tags include Objective C definitions for classes,\n\
 class categories, methods and protocols.  Tags for variables and\n\
@@ -751,6 +773,12 @@ static const char Ruby_help [] =
 a line generate a tag.  Constants also generate a tag.";
 static const char *Ruby_interpreters [] =
   { "ruby", NULL };
+
+static const char *Rust_suffixes [] =
+  { "rs", NULL };
+static const char Rust_help [] =
+  "In Rust code, tags anything defined with 'fn', 'enum', \n\
+'struct' or 'macro_rules!'.";
 
 /* Can't do the `SCM' or `scm' prefix with a version number. */
 static const char *Scheme_suffixes [] =
@@ -824,7 +852,9 @@ static language lang_names [] =
   { "lisp",      Lisp_help,      Lisp_functions,    Lisp_suffixes      },
   { "lua",       Lua_help,Lua_functions,Lua_suffixes,NULL,Lua_interpreters},
   { "makefile",  Makefile_help,Makefile_targets,NULL,Makefile_filenames},
+  /* objc listed before mercury as it is a better default for .m extensions.  */
   { "objc",      Objc_help,      plain_C_entries,   Objc_suffixes      },
+  { "mercury",   Mercury_help,   Mercury_functions, Mercury_suffixes   },
   { "pascal",    Pascal_help,    Pascal_functions,  Pascal_suffixes    },
   { "perl",Perl_help,Perl_functions,Perl_suffixes,NULL,Perl_interpreters},
   { "php",       PHP_help,       PHP_functions,     PHP_suffixes       },
@@ -836,6 +866,7 @@ static language lang_names [] =
                  NULL,           Python_interpreters },
   { "ruby",      Ruby_help,      Ruby_functions,    Ruby_suffixes,
                  Ruby_filenames, Ruby_interpreters },
+  { "rust",      Rust_help,      Rust_entries,      Rust_suffixes      },
   { "scheme",    Scheme_help,    Scheme_functions,  Scheme_suffixes    },
   { "tex",       TeX_help,       TeX_commands,      TeX_suffixes       },
   { "texinfo",   Texinfo_help,   Texinfo_nodes,     Texinfo_suffixes   },
@@ -949,6 +980,9 @@ Relative ones are stored relative to the output file's directory.\n");
   else
     puts
       ("\tand create tags for extern variables unless --no-globals is used.");
+
+  puts ("In Mercury, tag both declarations starting a line with ':-' and first\n\
+        predicates or functions in clauses.");
 
   if (CTAGS)
     puts ("-d, --defines\n\
@@ -1776,6 +1810,11 @@ find_entries (FILE *inf)
   if (parser == NULL)
     {
       lang = get_language_from_filename (curfdp->infname, true);
+
+      /* Disambiguate file names between Objc and Mercury. */
+      if (lang != NULL && strcmp (lang->name, "objc") == 0)
+	test_objc_is_mercury (curfdp->infname, &lang);
+
       if (lang != NULL && lang->function != NULL)
 	{
 	  curfdp->lang = lang;
@@ -5022,6 +5061,49 @@ Ruby_functions (FILE *inf)
 
 
 /*
+ * Rust support
+ * Look for:
+ *  - fn: Function
+ *  - struct: Structure
+ *  - enum: Enumeration
+ *  - macro_rules!: Macro
+ */
+static void
+Rust_entries (FILE *inf)
+{
+  char *cp, *name;
+  bool is_func = false;
+
+  LOOP_ON_INPUT_LINES(inf, lb, cp)
+    {
+      cp = skip_spaces(cp);
+      name = cp;
+
+      // Skip 'pub' keyworld
+      (void)LOOKING_AT (cp, "pub");
+
+      // Look for define
+      if ((is_func = LOOKING_AT (cp, "fn"))
+	  || LOOKING_AT (cp, "enum")
+	  || LOOKING_AT (cp, "struct")
+	  || (is_func = LOOKING_AT (cp, "macro_rules!")))
+	{
+	  cp = skip_spaces (cp);
+	  name = cp;
+
+	  while (!notinname (*cp))
+	    cp++;
+
+	  make_tag (name, cp - name, is_func,
+		    lb.buffer, cp - lb.buffer + 1,
+		    lineno, linecharno);
+	  is_func = false;
+	}
+    }
+}
+
+
+/*
  * PHP support
  * Look for:
  *  - /^[ \t]*function[ \t\n]+[^ \t\n(]+/
@@ -6000,10 +6082,10 @@ prolog_atom (char *s, size_t pos)
 	      pos++;
 	      if (s[pos] != '\'')
 		break;
-	      pos++;		/* A double quote */
+	      pos++;		/* A double quote  */
 	    }
 	  else if (s[pos] == '\0')
-	    /* Multiline quoted atoms are ignored. */
+	    /* Multiline quoted atoms are ignored.  */
 	    return 0;
 	  else if (s[pos] == '\\')
 	    {
@@ -6018,6 +6100,510 @@ prolog_atom (char *s, size_t pos)
     }
   else
     return 0;
+}
+
+
+/*
+ * Support for Mercury
+ *
+ * Assumes that the declarations start at column 0.
+ * Original code by Sunichirou Sugou (1989) for Prolog.
+ * Rewritten by Anders Lindgren (1996) for Prolog.
+ * Adapted by Fabrice Nicol (2021) for Mercury.
+ * Note: Prolog-support behavior is preserved if
+ * --declarations is used, corresponding to
+ * with_mercury_definitions=true.
+ */
+
+static ptrdiff_t mercury_pr (char *, char *, ptrdiff_t);
+static void mercury_skip_comment (linebuffer *, FILE *);
+static bool is_mercury_type = false;
+static bool is_mercury_quantifier = false;
+static bool is_mercury_declaration = false;
+typedef struct
+{
+  size_t pos;          /* Position reached in parsing tag name.  */
+  size_t namelength;   /* Length of tag name  */
+  size_t totlength;    /* Total length of parsed tag: this field is currently
+			  reserved for control and debugging.   */
+} mercury_pos_t;
+
+/*
+ * Objective-C and Mercury have identical file extension .m.
+ * To disambiguate between Objective C and Mercury, parse file
+ * with the following heuristics hook:
+ *   - if line starts with :-, choose Mercury unconditionally;
+ *   - if line starts with #, @, choose Objective-C;
+ *   - otherwise compute the following ratio:
+ *
+ *     r = (number of lines with :-
+ *          or % in non-commented parts or . at trimmed EOL)
+ *         / (number of lines - number of lines starting by any amount
+ *                        of whitespace, optionally followed by comment(s))
+ *
+ * Note: strings are neglected in counts.
+ *
+ * If r > mercury_heuristics_ratio, choose Mercury.
+ * Experimental tests show that a possibly optimal default value for
+ * this floor value is around 0.5.  This is the default value for
+ * MERCURY_HEURISTICS_RATIO, defined in the first lines of this file.
+ * The closer r is to 0.5, the closer the source code to pure Prolog.
+ * Idiomatic Mercury is scored either with r = 1.0 or higher.
+ * Objective-C is scored with r = 0.0.  When this fails, the r-score
+ * never rose above 0.1 in Objective-C tests.
+ */
+
+static void
+test_objc_is_mercury (char *this_file, language **lang)
+{
+  if (this_file == NULL) return;
+  FILE* fp = fopen (this_file, "r");
+  if (fp == NULL)
+    pfatal (this_file);
+
+  bool blank_line = false; /* Line starting with any amount of white space
+			      followed by optional comment(s).  */
+  bool commented_line = false;
+  bool found_dot = false;
+  bool only_space_before = true;
+  bool start_of_line = true;
+  int c;
+  intmax_t lines = 1;
+  intmax_t mercury_dots = 0;
+  intmax_t percentage_signs = 0;
+  intmax_t rule_signs = 0;
+  float ratio = 0;
+
+  while ((c = fgetc (fp)) != EOF)
+    {
+      switch (c)
+	{
+	case '\n':
+	  if (! blank_line) ++lines;
+	  blank_line = true;
+	  commented_line = false;
+	  start_of_line = true;
+	  if (found_dot) ++mercury_dots;
+	  found_dot = false;
+	  only_space_before = true;
+	  break;
+	case '.':
+	  found_dot = ! commented_line;
+	  only_space_before = false;
+	  break;
+	case  '%': /* More frequent in Mercury.  May be modulo in Obj.-C.  */
+	  if (! commented_line)
+	    {
+	      ++percentage_signs;
+	      /* Cannot tell if it is a comment or modulo yet for sure.
+                 Yet works for heuristic purposes.  */
+	      commented_line = true;
+	    }
+	  found_dot = false;
+	  start_of_line = false;
+	  only_space_before = false;
+	  break;
+	case  '/':
+	  {
+	    int d = fgetc (fp);
+	    found_dot = false;
+	    only_space_before = false;
+	    if (! commented_line)
+	      {
+		if (d == '*')
+		  commented_line = true;
+		else
+		  /* If d == '/', cannot tell if it is an Obj.-C comment:
+		     may be Mercury integ. division.  */
+		    blank_line = false;
+	      }
+	  }
+	  FALLTHROUGH;
+        case  ' ':
+        case '\t':
+	  start_of_line = false;
+	  break;
+        case ':':
+	  c = fgetc (fp);
+	  if (start_of_line)
+	    {
+	      if (c == '-')
+		{
+		  ratio = 1.0; /* Failsafe, not an operator in Obj.-C.  */
+		  goto out;
+		}
+	      start_of_line = false;
+	    }
+	  else
+	    {
+	      /* p :- q.  Frequent in Mercury.
+		 Rare or in quoted exprs in Obj.-C.  */
+	      if (c == '-' && ! commented_line)
+		++rule_signs;
+	    }
+	  blank_line = false;
+	  found_dot = false;
+	  only_space_before = false;
+          break;
+	case '@':
+        case '#':
+	  if (start_of_line || only_space_before)
+	    {
+	      ratio = 0.0;
+	      goto out;
+	    }
+	  FALLTHROUGH;
+	default:
+	  start_of_line = false;
+	  blank_line = false;
+	  found_dot = false;
+	  only_space_before = false;
+	}
+    }
+
+  /* Fallback heuristic test.  Not failsafe but errless in pratice.  */
+  ratio = ((float) rule_signs + percentage_signs + mercury_dots) / lines;
+
+ out:
+  if (fclose (fp) == EOF)
+    pfatal (this_file);
+
+  if (ratio > mercury_heuristics_ratio)
+    {
+      /* Change the language from Objective-C to Mercury.  */
+      static language lang0 = { "mercury", Mercury_help, Mercury_functions,
+	Mercury_suffixes };
+      *lang = &lang0;
+    }
+}
+
+static void
+Mercury_functions (FILE *inf)
+{
+  char *cp, *last = NULL;
+  ptrdiff_t lastlen = 0, allocated = 0;
+  if (declarations) with_mercury_definitions = true;
+
+  LOOP_ON_INPUT_LINES (inf, lb, cp)
+    {
+      if (cp[0] == '\0')   /* Empty line.  */
+	continue;
+      else if (c_isspace (cp[0]) || cp[0] == '%')
+	/*  A Prolog-type comment or anything other than a declaration.  */
+	continue;
+      else if (cp[0] == '/' && cp[1] == '*')  /* Mercury C-type comment.  */
+        mercury_skip_comment (&lb, inf);
+      else
+	{
+	  is_mercury_declaration = (cp[0] == ':' && cp[1] == '-');
+
+          if (is_mercury_declaration
+	      || with_mercury_definitions)
+	    {
+	      ptrdiff_t len = mercury_pr (cp, last, lastlen);
+	      if (0 < len)
+		{
+		  /* Store the declaration to avoid generating duplicate
+		     tags later.  */
+		  if (allocated <= len)
+		    {
+		      xrnew (last, len + 1, 1);
+		      allocated = len + 1;
+		    }
+		  memcpyz (last, cp, len);
+		  lastlen = len;
+		}
+	    }
+	}
+    }
+  free (last);
+}
+
+static void
+mercury_skip_comment (linebuffer *plb, FILE *inf)
+{
+  char *cp;
+
+  do
+    {
+      for (cp = plb->buffer; *cp != '\0'; ++cp)
+	if (cp[0] == '*' && cp[1] == '/')
+	  return;
+      readline (plb, inf);
+    }
+  while (perhaps_more_input (inf));
+}
+
+/*
+ * A declaration is added if it matches:
+ *     <beginning of line>:-<whitespace><Mercury Term><whitespace>(
+ * If with_mercury_definitions == true, we also add:
+ *     <beginning of line><Mercury item><whitespace>(
+ * or  <beginning of line><Mercury item><whitespace>:-
+ * As for Prolog support, different arities and types are not taken into
+ * consideration.
+ * Item is added to the tags database if it doesn't match the
+ * name of the previous declaration.
+ *
+ * Consume a Mercury declaration.
+ * Return the number of bytes consumed, or 0 if there was an error.
+ *
+ * A Mercury declaration must be one of:
+ *  :- type
+ *  :- solver type
+ *  :- pred
+ *  :- func
+ *  :- inst
+ *  :- mode
+ *  :- typeclass
+ *  :- instance
+ *  :- pragma
+ *  :- promise
+ *  :- initialise
+ *  :- finalise
+ *  :- mutable
+ *  :- module
+ *  :- interface
+ *  :- implementation
+ *  :- import_module
+ *  :- use_module
+ *  :- include_module
+ *  :- end_module
+ * followed on the same line by an alphanumeric sequence, starting with a lower
+ * case letter or by a single-quoted arbitrary string.
+ * Single quotes can escape themselves.  Backslash quotes everything.
+ *
+ * Return the size of the name of the declaration or 0 if no header was found.
+ * As quantifiers may precede functions or predicates, we must list them too.
+ */
+
+static const char *Mercury_decl_tags[] = {"type", "solver type", "pred",
+  "func", "inst", "mode", "typeclass", "instance", "pragma", "promise",
+  "initialise", "finalise", "mutable", "module", "interface", "implementation",
+  "import_module", "use_module", "include_module", "end_module", "some", "all"};
+
+static mercury_pos_t
+mercury_decl (char *s, size_t pos)
+{
+  mercury_pos_t null_pos = {0, 0, 0};
+
+  if (s == NULL) return null_pos;
+
+  size_t origpos;
+  origpos = pos;
+
+  while (s + pos != NULL && (c_isalnum (s[pos]) || s[pos] == '_')) ++pos;
+
+  unsigned char decl_type_length = pos - origpos;
+  char buf[decl_type_length + 1];
+  memset (buf, 0, decl_type_length + 1);
+
+  /* Mercury declaration tags.  Consume them, then check the declaration item
+     following :- is legitimate, then go on as in the prolog case.  */
+
+  memcpy (buf, &s[origpos], decl_type_length);
+
+  bool found_decl_tag = false;
+
+  if (is_mercury_quantifier)
+    {
+      if (strcmp (buf, "pred") != 0 && strcmp (buf, "func") != 0) /* Bad syntax.  */
+	return null_pos;
+
+      is_mercury_quantifier = false; /* Reset to base value.  */
+      found_decl_tag = true;
+    }
+  else
+    {
+      for (int j = 0; j < sizeof (Mercury_decl_tags) / sizeof (char*); ++j)
+	{
+	  if (strcmp (buf, Mercury_decl_tags[j]) == 0)
+	    {
+	      found_decl_tag = true;
+	      if (strcmp (buf, "type") == 0)
+		is_mercury_type = true;
+
+	      if (strcmp (buf, "some") == 0
+		  || strcmp (buf, "all") == 0)
+		{
+		  is_mercury_quantifier = true;
+		}
+
+	      break;  /* Found declaration tag of rank j.  */
+	    }
+	  else
+	    /* 'solver type' has a blank in the middle,
+	       so this is the hard case.  */
+	    if (strcmp (buf, "solver") == 0)
+	      {
+		++pos;
+		while (s + pos != NULL && (c_isalnum (s[pos]) || s[pos] == '_'))
+		  ++pos;
+
+		decl_type_length = pos - origpos;
+		char buf2[decl_type_length + 1];
+		memset (buf2, 0, decl_type_length + 1);
+		memcpy (buf2, &s[origpos], decl_type_length);
+
+		if (strcmp (buf2, "solver type") == 0)
+		  {
+		    found_decl_tag = false;
+		    break;  /* Found declaration tag of rank j.  */
+		  }
+	      }
+	}
+    }
+
+  /* If with_mercury_definitions == false
+   * this is a Mercury syntax error, ignoring... */
+
+  if (with_mercury_definitions)
+    {
+      if (found_decl_tag)
+	pos = skip_spaces (s + pos) - s; /* Skip len blanks again.  */
+      else
+	/* Prolog-like behavior
+	 * we have parsed the predicate once, yet inappropriately
+	 * so restarting again the parsing step.  */
+	pos = 0;
+    }
+  else
+    {
+      if (found_decl_tag)
+	pos = skip_spaces (s + pos) - s; /* Skip len blanks again.  */
+      else
+	return null_pos;
+    }
+
+  /* From now on it is the same as for Prolog except for module dots.  */
+
+  size_t start_of_name = pos;
+
+  if (c_islower (s[pos]) || s[pos] == '_' )
+    {
+      /* The name is unquoted.
+         Do not confuse module dots with end-of-declaration dots.  */
+      int module_dot_pos = 0;
+
+      while (c_isalnum (s[pos])
+             || s[pos] == '_'
+             || (s[pos] == '.' /* A module dot.  */
+                 && s + pos + 1 != NULL
+                 && (c_isalnum (s[pos + 1]) || s[pos + 1] == '_')
+		 && (module_dot_pos = pos)))  /* Record module dot position.
+				                 Erase module from name.  */
+	++pos;
+
+      if (module_dot_pos)
+	{
+	  start_of_name = module_dot_pos + 2;
+	  ++pos;
+        }
+
+      mercury_pos_t position = {pos, pos - start_of_name + 1, pos - origpos};
+      return position;
+    }
+  else if (s[pos] == '\'')
+    {
+      ++pos;
+      for (;;)
+	{
+	  if (s[pos] == '\'')
+	    {
+	      ++pos;
+	      if (s[pos] != '\'')
+		break;
+	      ++pos; /* A double quote.  */
+	    }
+	  else if (s[pos] == '\0')  /* Multiline quoted atoms are ignored.  */
+	    return null_pos;
+	  else if (s[pos] == '\\')
+	    {
+	      if (s[pos+1] == '\0')
+		return null_pos;
+	      pos += 2;
+	    }
+	  else
+	    ++pos;
+	}
+
+      mercury_pos_t position = {pos, pos - start_of_name + 1, pos - origpos};
+      return position;
+    }
+  else if (is_mercury_quantifier && s[pos] == '[')   /* :- some [T] pred/func.  */
+    {
+      for (++pos; s + pos != NULL && s[pos] != ']'; ++pos) {}
+      if (s + pos == NULL) return null_pos;
+      ++pos;
+      pos = skip_spaces (s + pos) - s;
+      mercury_pos_t position = mercury_decl (s, pos);
+      position.totlength += pos - origpos;
+      return position;
+    }
+  else if (s[pos] == '.')  /* as in ':- interface.'  */
+    {
+      mercury_pos_t position = {pos, pos - origpos + 1, pos - origpos};
+      return position;
+    }
+  else
+    return null_pos;
+}
+
+static ptrdiff_t
+mercury_pr (char *s, char *last, ptrdiff_t lastlen)
+{
+  size_t len0 = 0;
+  is_mercury_type = false;
+  is_mercury_quantifier = false;
+  bool stop_at_rule = false;
+
+  if (is_mercury_declaration)
+    {
+      /* Skip len0 blanks only for declarations.  */
+      len0 = skip_spaces (s + 2) - s;
+    }
+
+  mercury_pos_t position = mercury_decl (s, len0);
+  size_t pos = position.pos;
+  int offset = 0;  /* may be < 0  */
+  if (pos == 0) return 0;
+
+  /* Skip white space for:
+     a. rules in definitions before :-
+     b. 0-arity predicates with inlined modes.
+     c. possibly multiline type definitions  */
+
+  while (c_isspace (s[pos])) { ++pos; ++offset; }
+
+  if (( ((s[pos] == '.' && (pos += 1))     /* case 1
+                                              This is a statement dot,
+                                              not a module dot. */
+	 || c_isalnum(s[pos])              /* 0-arity procedures  */
+	 || (s[pos] == '(' && (pos += 1))  /* case 2: arity > 0   */
+	 || ((s[pos] == ':')               /* case 3: rules  */
+	     && s[pos + 1] == '-' && (stop_at_rule = true)))
+     && (lastlen != pos || memcmp (s, last, pos) != 0)
+	)
+      /* Types are often declared on several lines so keeping just
+	 the first line.  */
+
+      || is_mercury_type)  /* When types are implemented.  */
+    {
+      size_t namelength = position.namelength;
+      if (stop_at_rule && offset) --offset;
+
+      /* Left-trim type definitions.  */
+
+      while (pos > namelength + offset
+	     && c_isspace (s[pos - namelength - offset]))
+	--offset;
+
+      make_tag (s + pos - namelength - offset, namelength - 1, true,
+				s, pos - offset - 1, lineno, linecharno);
+      return pos;
+    }
+
+  return 0;
 }
 
 

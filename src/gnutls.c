@@ -625,16 +625,11 @@ gnutls_try_handshake (struct Lisp_Process *proc)
 
   while ((ret = gnutls_handshake (state)) < 0)
     {
-      if (gnutls_error_is_fatal (ret))
-	return emacs_gnutls_handle_error (state, ret);
-      do
-	ret = gnutls_handshake (state);
-      while (ret == GNUTLS_E_INTERRUPTED);
-
-      if (0 <= ret || emacs_gnutls_handle_error (state, ret) == 0
-	  || non_blocking)
+      if (emacs_gnutls_handle_error (state, ret) == 0) /* fatal */
 	break;
       maybe_quit ();
+      if (non_blocking && ret != GNUTLS_E_INTERRUPTED)
+	break;
     }
 
   proc->gnutls_initstage = GNUTLS_STAGE_HANDSHAKE_TRIED;

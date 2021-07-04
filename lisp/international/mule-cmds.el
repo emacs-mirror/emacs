@@ -2963,18 +2963,22 @@ STR should be a unibyte string."
    str " "))
 
 (defun encode-coding-char (char coding-system &optional charset)
-  "Encode CHAR by CODING-SYSTEM and return the resulting string.
+  "Encode CHAR by CODING-SYSTEM and return the resulting string of bytes.
 If CODING-SYSTEM can't safely encode CHAR, return nil.
 The 3rd optional argument CHARSET, if non-nil, is a charset preferred
 on encoding."
   (let* ((str1 (string char))
 	 (str2 (string char char))
 	 (found (find-coding-systems-string str1))
-	enc1 enc2 i1 i2)
-    (if (eq (car-safe found) 'undecided) ;Aka (not (multibyte-string-p str1))
-        ;; `char' is ASCII.
+         (bom-p (coding-system-get coding-system :bom))
+	 enc1 enc2 i0 i1 i2)
+    ;; If CHAR is ASCII and CODING-SYSTEM doesn't prepend a BOM, just
+    ;; encode CHAR.
+    (if (and (eq (car-safe found) 'undecided)
+             (null bom-p))
 	(encode-coding-string str1 coding-system)
-      (when (memq (coding-system-base coding-system) found)
+      (when (or (eq (car-safe found) 'undecided)
+                (memq (coding-system-base coding-system) found))
 	;; We must find the encoded string of CHAR.  But, just encoding
 	;; CHAR will put extra control sequences (usually to designate
 	;; ASCII charset) at the tail if type of CODING is ISO 2022.
@@ -2995,7 +2999,19 @@ on encoding."
 	;; Now (substring enc1 i1) and (substring enc2 i2) are the same,
 	;; and they are the extra control sequences at the tail to
 	;; exclude.
-	(substring enc2 0 i2)))))
+
+        ;; We also need to exclude the leading 2 or 3 bytes if they
+        ;; come from a BOM.
+        (setq i0
+              (if bom-p
+                  (cond
+                   ((eq (coding-system-type coding-system) 'utf-8)
+                    3)
+                   ((eq (coding-system-type coding-system) 'utf-16)
+                    2)
+                   (t 0))
+                0))
+	(substring enc2 i0 i2)))))
 
 ;; Backwards compatibility.  These might be better with :init-value t,
 ;; but that breaks loadup.
@@ -3088,35 +3104,12 @@ on encoding."
               (list name (concat (if char (list char) " ") "\t") "")))
           names))
 
-(defun mule--ucs-names-group (names)
-  (let* ((codes-and-names
-          (mapcar (lambda (name) (cons (gethash name ucs-names) name)) names))
-         (grouped
-          (seq-group-by
-           (lambda (code-name)
-             (let ((script (aref char-script-table (car code-name))))
-               (if script (symbol-name script) "ungrouped")))
-           codes-and-names))
-         names-with-header header)
-    (dolist (group (sort grouped (lambda (a b) (string< (car a) (car b)))))
-      (setq header t)
-      (dolist (code-name (cdr group))
-        (push (list
-               (cdr code-name)
-               (concat
-                (if header
-                    (progn
-                      (setq header nil)
-                      (concat "\n" (propertize
-                                    (format "* %s\n" (car group))
-                                    'face 'header-line)))
-                  "")
-                ;; prefix
-                (if (car code-name) (format "%c" (car code-name)) " ") "\t")
-               ;; suffix
-               "")
-              names-with-header)))
-    (nreverse names-with-header)))
+(defun mule--ucs-names-group (name transform)
+  (if transform
+      name
+    (let* ((char (gethash name ucs-names))
+           (script (and char (aref char-script-table char))))
+      (if script (symbol-name script) "ungrouped"))))
 
 (defun char-from-name (string &optional ignore-case)
   "Return a character as a number from its Unicode name STRING.
@@ -3148,14 +3141,6 @@ Defines the sorting order either by character names or their codepoints."
   :group 'mule
   :version "28.1")
 
-(defcustom read-char-by-name-group nil
-  "How to group characters for `read-char-by-name' completion.
-When t, split characters to sections of Unicode blocks
-sorted alphabetically."
-  :type 'boolean
-  :group 'mule
-  :version "28.1")
-
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.
 Display PROMPT and read a string that represents a character by its
@@ -3169,8 +3154,9 @@ preceded by an asterisk `*' and use completion, it will show all
 the characters whose names include that substring, not necessarily
 at the beginning of the name.
 
-The options `read-char-by-name-sort' and `read-char-by-name-group'
-define the sorting order of completion characters and how to group them.
+The options `read-char-by-name-sort', `completions-group', and
+`completions-group-sort' define the sorting order of completion characters,
+whether to group them, and how to sort groups.
 
 Accept a name like \"CIRCULATION FUNCTION\", a hexadecimal
 number like \"2A10\", or a number in hash notation (e.g.,
@@ -3188,11 +3174,12 @@ as names, not numbers."
 		 `(metadata
 		   (display-sort-function
 		    . ,(when (eq read-char-by-name-sort 'code)
-                         #'mule--ucs-names-sort-by-code))
+			 #'mule--ucs-names-sort-by-code))
 		   (affixation-function
-		    . ,(if read-char-by-name-group
-                           #'mule--ucs-names-group
-                         #'mule--ucs-names-affixation))
+		    . ,#'mule--ucs-names-affixation)
+		   (group-function
+		    . ,(when completions-group
+			 #'mule--ucs-names-group))
 		   (category . unicode-name))
 	       (complete-with-action action (ucs-names) string pred)))))
 	 (char

@@ -110,7 +110,12 @@ stack is broken."
 	       :type (or null string)
 	       :documentation
 	       "If there is a colon in the inserter's name, it represents
-additional static argument data."))
+additional static argument data.")
+   (key :initform nil :allocation :class
+        :documentation
+        "The character code used to identify inserters of this style.
+All children of this class should specify `key' slot with appropriate
+:initform value."))
   "This represents an item to be inserted via a template macro.
 Plain text strings are not handled via this baseclass."
   :abstract t)

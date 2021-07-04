@@ -1109,6 +1109,23 @@ this is probably the wrong function to use, because it can't take
   return make_fixnum (syntax_code_spec[SYNTAX (char_int)]);
 }
 
+DEFUN ("syntax-class-to-char", Fsyntax_class_to_char,
+       Ssyntax_class_to_char, 1, 1, 0,
+       doc: /* Return the syntax char of CLASS, described by an integer.
+For example, if SYNTAX is word constituent (the integer 2), the
+character `w' (119) is returned.  */)
+  (Lisp_Object syntax)
+{
+  int syn;
+  CHECK_FIXNUM (syntax);
+  syn = XFIXNUM (syntax);
+
+  if (syn < 0 || syn >= sizeof syntax_code_spec)
+    args_out_of_range (make_fixnum (sizeof syntax_code_spec - 1),
+		       syntax);
+  return make_fixnum (syntax_code_spec[syn]);
+}
+
 DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
        doc: /* Return the matching parenthesis of CHARACTER, or nil if none.  */)
   (Lisp_Object character)
@@ -3782,6 +3799,7 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Scopy_syntax_table);
   defsubr (&Sset_syntax_table);
   defsubr (&Schar_syntax);
+  defsubr (&Ssyntax_class_to_char);
   defsubr (&Smatching_paren);
   defsubr (&Sstring_to_syntax);
   defsubr (&Smodify_syntax_entry);

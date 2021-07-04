@@ -2583,25 +2583,28 @@ with the process mark and then execute the command.
 @itemx M m
 @kindex M m @r{(Group)}
 @findex gnus-group-mark-group
-Set the mark on the current group (@code{gnus-group-mark-group}).
+Toggle the process mark for the current group
+(@code{gnus-group-mark-group}).@*
+If @code{gnus-process-mark-toggle} is @code{nil}, set the process mark
+for the current group.
 
 @item M-#
 @kindex M-# @r{(Group)}
 @itemx M u
 @kindex M u @r{(Group)}
 @findex gnus-group-unmark-group
-Remove the mark from the current group
+Remove the process mark, if any, from the current group
 (@code{gnus-group-unmark-group}).
 
 @item M U
 @kindex M U @r{(Group)}
 @findex gnus-group-unmark-all-groups
-Remove the mark from all groups (@code{gnus-group-unmark-all-groups}).
+Remove the process mark from all groups (@code{gnus-group-unmark-all-groups}).
 
 @item M w
 @kindex M w @r{(Group)}
 @findex gnus-group-mark-region
-Mark all groups between point and mark (@code{gnus-group-mark-region}).
+Mark groups in region (@code{gnus-group-mark-region}).
 
 @item M b
 @kindex M b @r{(Group)}
@@ -4041,9 +4044,11 @@ Toggle hiding empty topics
 @item T #
 @kindex T # @r{(Topic)}
 @findex gnus-topic-mark-topic
-Mark all groups in the current topic with the process mark
+Toggle the process mark for all groups in the current topic
 (@code{gnus-topic-mark-topic}).  This command works recursively on
-sub-topics unless given a prefix.
+sub-topics unless given a prefix.@*
+If @code{gnus-process-mark-toggle} is @code{nil}, set the process mark
+for the current topic.
 
 @item T M-#
 @kindex T M-# @r{(Topic)}
@@ -4121,6 +4126,8 @@ Visibility.
 Level.
 @item g
 Number of groups in the topic.
+@item G
+Number of groups in the topic and all its subtopics.
 @item a
 Number of unread articles in the topic.
 @item A
@@ -5230,8 +5237,23 @@ Newsgroups:full
 @end example
 
 to the end of her @file{overview.fmt} file, then you can use that just
-as you would the extra headers from the mail groups.
+as you would the extra headers from the mail groups.  Otherwise, you
+have to disable fetching headers with @samp{XOVER}:
 
+@lisp
+(setq nntp-nov-is-evil t
+      gnus-nov-is-evil t)
+@end lisp
+
+Be aware, though, that this will make entering an @acronym{NNTP} group
+much, much slower, so this is not recommended.
+
+One particular scenario in which it can be desirable to not use
+@samp{XOVER} is for @code{nnvirtual} groups in order to support
+limiting by extra headers (e.g., by the newsgroup of its component
+groups).  Because group parameters are not inherited, a separate
+select method for the component groups with the appropriate
+@code{nov-is-evil} set as a method variable is required.
 
 @node Summary Buffer Mode Line
 @subsection Summary Buffer Mode Line
@@ -6608,14 +6630,16 @@ articles into the cache.  For more information,
 @kindex # @r{(Summary)}
 @kindex M P p @r{(Summary)}
 @findex gnus-summary-mark-as-processable
-Mark the current article with the process mark
-(@code{gnus-summary-mark-as-processable}).
-@findex gnus-summary-unmark-as-processable
+Toggle the process mark for the current article
+(@code{gnus-summary-mark-as-processable}).@*
+If @code{gnus-process-mark-toggle} is @code{nil}, set the process mark
+for the current article.
 
 @item M P u
 @itemx M-#
 @kindex M P u @r{(Summary)}
 @kindex M-# @r{(Summary)}
+@findex gnus-summary-unmark-as-processable
 Remove the process mark, if any, from the current article
 (@code{gnus-summary-unmark-as-processable}).
 
@@ -7503,6 +7527,7 @@ Matching}).
 @findex gnus-thread-sort-by-author
 @findex gnus-thread-sort-by-recipient
 @findex gnus-thread-sort-by-number
+@findex gnus-thread-sort-by-newsgroups
 @findex gnus-thread-sort-by-random
 @vindex gnus-thread-sort-functions
 @findex gnus-thread-sort-by-most-recent-number
@@ -7520,6 +7545,7 @@ predicate functions include @code{gnus-thread-sort-by-number},
 @code{gnus-thread-sort-by-score},
 @code{gnus-thread-sort-by-most-recent-number},
 @code{gnus-thread-sort-by-most-recent-date},
+@code{gnus-thread-sort-by-newsgroups} and
 @code{gnus-thread-sort-by-random} and
 @code{gnus-thread-sort-by-total-score}.
 
@@ -7581,6 +7607,7 @@ tickles your fancy.
 @findex gnus-article-sort-by-score
 @findex gnus-article-sort-by-subject
 @findex gnus-article-sort-by-author
+@findex gnus-article-sort-by-newsgroups
 @findex gnus-article-sort-by-random
 @findex gnus-article-sort-by-number
 @findex gnus-article-sort-by-most-recent-number
@@ -7592,8 +7619,8 @@ different functions for article comparison.  Available sorting
 predicate functions are @code{gnus-article-sort-by-number},
 @code{gnus-article-sort-by-author},
 @code{gnus-article-sort-by-subject}, @code{gnus-article-sort-by-date},
-@code{gnus-article-sort-by-random}, and
-@code{gnus-article-sort-by-score}.
+@code{gnus-article-sort-by-newsgroups}, @code{gnus-article-sort-by-random},
+and @code{gnus-article-sort-by-score}.
 
 If you want to sort an unthreaded summary display by subject, you could
 say something like:
@@ -10381,6 +10408,17 @@ Sort by article ``readedness'' marks (@code{gnus-summary-sort-by-marks}).
 @findex gnus-summary-sort-by-score
 Sort by score (@code{gnus-summary-sort-by-score}).
 
+@item C-c C-s C-u
+@kindex C-c C-s C-u @r{(Summary)}
+@findex gnus-summary-sort-by-newsgroups
+Sort by newsgroups (@code{gnus-summary-sort-by-newsgroups}).
+
+@item C-c C-s C-x
+@kindex C-c C-s C-x @r{(Summary)}
+@findex gnus-summary-sort-by-extra
+Prompts for extra header to sort by (@code{gnus-summary-sort-by-extra}).
+An error will be raised if no sort functions for the header are defined.
+
 @item C-c C-s C-r
 @kindex C-c C-s C-r @r{(Summary)}
 @findex gnus-summary-sort-by-random
@@ -10553,13 +10591,15 @@ Here are the available keystrokes when using pick mode:
 @item .
 @kindex . @r{(Pick)}
 @findex gnus-pick-article-or-thread
-Pick the article or thread on the current line
-(@code{gnus-pick-article-or-thread}).  If the variable
+Pick the article or thread on the current line or unpick it if is
+already picked (@code{gnus-pick-article-or-thread}).  If the variable
 @code{gnus-thread-hide-subtree} is true, then this key selects the
 entire thread when used at the first article of the thread.  Otherwise,
 it selects just the article.  If given a numerical prefix, go to that
 thread or article and pick it.  (The line number is normally displayed
-at the beginning of the summary pick lines.)
+at the beginning of the summary pick lines.)  If
+@code{gnus-process-mark-toggle} is @code{nil}, this key will pick an
+article or thread.
 
 @item @key{SPC}
 @kindex SPC @r{(Pick)}
@@ -14514,6 +14554,17 @@ If non-@code{nil}, omit the IMAP namespace prefix in nnimap group
 names.  If your IMAP mailboxes are called something like @samp{INBOX}
 and @samp{INBOX.Lists.emacs}, but you'd like the nnimap group names to
 be @samp{INBOX} and @samp{Lists.emacs}, you should enable this option.
+
+@item nnimap-keepalive-intervals
+By default, nnimap will send occasional @samp{NOOP} (keepalive)
+commands to the server, to keep the connection alive.  This option
+governs how often that happens.  It is a cons of two integers,
+representing seconds: first how often to run the keepalive check, and
+the second how many seconds of user inactivity are required to
+actually send the command.  The default, @code{(900 . 300)}, means run
+the check every fifteen minutes and, if the user has been inactive for
+five minutes, send the keepalive command.  Set to @code{nil} to
+disable keepalive commands altogether.
 
 @end table
 

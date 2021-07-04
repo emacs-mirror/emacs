@@ -333,7 +333,10 @@ If ARG is non-nil, mark the key."
     (insert
      (propertize
       (concat "  " (epa--button-key-text key))
-      'epa-key key))
+      'epa-key key
+      ;; Allow TAB to tab to the key.
+      'button t
+      'category t))
     (insert "\n")))
 
 (defun epa--list-keys (name secret &optional doc)

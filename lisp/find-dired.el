@@ -225,8 +225,8 @@ it finishes, type \\[kill-find]."
       (use-local-map map))
     (setq-local dired-sort-inhibit t)
     (setq-local revert-buffer-function
-                `(lambda (ignore-auto noconfirm)
-                   (find-dired ,dir ,find-args)))
+                (lambda (_ignore-auto _noconfirm)
+                  (find-dired dir find-args)))
     ;; Set subdir-alist so that Tree Dired will work:
     (if (fboundp 'dired-simple-subdir-alist)
 	;; will work even with nested dired format (dired-nstd.el,v 1.15

@@ -57,7 +57,9 @@ SYNTAX can be one of the symbols `default' (default),
    (all-completions
     "*tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))
    (all-completions
-    "*debug tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
+    "*debug tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))
+   (all-completions
+    "*trace tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
 
 (defun tramp-list-remote-buffers ()
   "Return a list of all buffers with remote `default-directory'."
@@ -496,7 +498,7 @@ This is needed if there are compatibility problems."
       ((dir (tramp-compat-funcall
 	     'package-desc-dir
 	     (car (alist-get 'tramp (bound-and-true-p package-alist))))))
-    (dolist (elc (directory-files dir 'full "\\.elc$"))
+    (dolist (elc (directory-files dir 'full "\\.elc\\'"))
       (delete-file elc))
     (with-current-buffer (get-buffer-create byte-compile-log-buffer)
       (let ((inhibit-read-only t))

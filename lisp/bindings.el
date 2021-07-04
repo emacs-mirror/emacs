@@ -330,22 +330,53 @@ of the menu's data."
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
 
+(defun bindings--menu-item-string (item)
+  "Return the menu-item string for ITEM, or nil if not a menu-item."
+  (pcase item
+    (`(menu-item ,name . ,_) (eval name t))
+    (`(,(and (pred stringp) name) . ,_) name)))
+
+(defun bindings--sort-menu-keymap (map)
+  "Sort the bindings in MAP in alphabetical order by menu-item string.
+The order of bindings in a keymap matters only when it is used as
+a menu, so this function is not useful for non-menu keymaps."
+  (let ((bindings nil)
+        (prompt (keymap-prompt map)))
+    (while (keymapp map)
+      (setq map (map-keymap
+                 (lambda (key item)
+                   ;; FIXME: Handle char-ranges here?
+                   (push (cons key item) bindings))
+                 map)))
+    ;; Sort the bindings and make a new keymap from them.
+    (setq bindings
+          (sort bindings
+                (lambda (a b)
+                  (string< (bindings--menu-item-string (cdr-safe a))
+                           (bindings--menu-item-string (cdr-safe b))))))
+    (nconc (make-sparse-keymap prompt) bindings)))
+
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
     (bindings--define-key map [mode-line down-mouse-1]
       `(menu-item "Menu Bar" ignore
         :filter ,(lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
-    (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
+    (bindings--define-key map [mode-line down-mouse-3]
+      `(menu-item "Minor Modes" ,mode-line-mode-menu
+        :filter bindings--sort-menu-keymap))
     map) "\
 Keymap to display on major mode.")
 
 (defvar mode-line-minor-mode-keymap
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+        (mode-menu-binding
+         `(menu-item "Menu Bar" ,mode-line-mode-menu
+           :filter bindings--sort-menu-keymap)))
     (define-key map [mode-line down-mouse-1] 'mouse-minor-mode-menu)
     (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
-    (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
-    (define-key map [header-line down-mouse-3] mode-line-mode-menu)
+    (define-key map [mode-line down-mouse-3] mode-menu-binding)
+    (define-key map [header-line down-mouse-3] mode-menu-binding)
     map) "\
 Keymap to display on minor modes.")
 
@@ -610,7 +641,9 @@ Switch to the most recently selected buffer other than the current one."
     (previous-buffer)))
 
 (defmacro bound-and-true-p (var)
-  "Return the value of symbol VAR if it is bound, else nil."
+  "Return the value of symbol VAR if it is bound, else nil.
+Note that if `lexical-binding' is in effect, this function isn't
+meaningful if it refers to a lexically bound variable."
   `(and (boundp (quote ,var)) ,var))
 
 ;; Use mode-line-mode-menu for local minor-modes only.

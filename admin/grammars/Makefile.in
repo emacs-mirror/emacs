@@ -95,7 +95,7 @@ ${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
-.PHONY: distclean bootstrap-clean maintainer-clean extraclean gen-clean
+.PHONY: distclean bootstrap-clean maintainer-clean gen-clean
 
 distclean:
 	rm -f Makefile
@@ -108,7 +108,6 @@ gen-clean:
 
 maintainer-clean: gen-clean distclean
 
-extraclean: maintainer-clean
 
 
 # Makefile.in ends here

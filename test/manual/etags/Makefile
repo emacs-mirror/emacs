@@ -16,6 +16,7 @@ HTMLSRC=$(addprefix ./html-src/,softwarelibero.html index.shtml algrthms.html so
 #JAVASRC=$(addprefix ./java-src/, )
 LUASRC=$(addprefix ./lua-src/,allegro.lua test.lua)
 MAKESRC=$(addprefix ./make-src/,Makefile)
+MERCSRC=$(addprefix ./merc-src/,accumulator.m)
 OBJCSRC=$(addprefix ./objc-src/,Subprocess.h Subprocess.m PackInsp.h PackInsp.m)
 OBJCPPSRC=$(addprefix ./objcpp-src/,SimpleCalc.H SimpleCalc.M)
 PASSRC=$(addprefix ./pas-src/,common.pas)
@@ -25,13 +26,14 @@ PSSRC=$(addprefix ./ps-src/,rfc1245.ps)
 PROLSRC=$(addprefix ./prol-src/,ordsets.prolog natded.prolog)
 PYTSRC=$(addprefix ./pyt-src/,server.py)
 RBSRC=$(addprefix ./ruby-src/,test.rb test1.ru)
+RSSRC=$(addprefix ./rs-src/,test.rs)
 SCMSRC=$(addprefix ./scm-src/,test.scm)
 TEXSRC=$(addprefix ./tex-src/,testenv.tex gzip.texi texinfo.tex nonewline.tex)
 YSRC=$(addprefix ./y-src/,parse.y parse.c atest.y cccp.c cccp.y)
 SRCS=${ADASRC} ${ASRC} ${CSRC} ${CPSRC} ${ELSRC} ${ERLSRC} ${FSRC}\
      ${FORTHSRC} ${GOSRC} ${HTMLSRC} ${JAVASRC} ${LUASRC} ${MAKESRC}\
      ${OBJCSRC} ${OBJCPPSRC} ${PASSRC} ${PHPSRC} ${PERLSRC} ${PSSRC}\
-     ${PROLSRC} ${PYTSRC} ${RBSRC} ${SCMSRC} ${TEXSRC} ${YSRC}
+     ${PROLSRC} ${PYTSRC} ${RBSRC} ${RSSRC} ${SCMSRC} ${TEXSRC} ${YSRC} ${MERCSRC}
 NONSRCS=./f-src/entry.strange ./erl-src/lists.erl ./cp-src/clheir.hpp.gz
 
 ETAGS_PROG=../../../lib-src/etags

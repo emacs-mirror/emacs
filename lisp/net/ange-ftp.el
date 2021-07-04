@@ -949,7 +949,11 @@ Some AT&T folks claim to use something called `pftp' here."
   :type 'string)
 
 (defcustom ange-ftp-ftp-program-args '("-i" "-n" "-g" "-v")
-  "A list of arguments passed to the FTP program when started."
+  ;; Clients that use the BSD editline instead of the GNU readline
+  ;; library may need to disable command line editing. (Bug#48494)
+  "A list of arguments passed to the FTP program when started.
+Some FTP clients may also require the \"-e\" argument, which disables
+command line editing."
   :group 'ange-ftp
   :type '(repeat string))
 

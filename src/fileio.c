@@ -1830,6 +1830,9 @@ the value of that variable.  The variable name should be terminated
 with a character not a letter, digit or underscore; otherwise, enclose
 the entire variable name in braces.
 
+If FOO is not defined in the environment, `$FOO' is left unchanged in
+the value of this function.
+
 If `/~' appears, all of FILENAME through that `/' is discarded.
 If `//' appears, everything up to and including the first of
 those `/' is discarded.  */)
@@ -2987,12 +2990,16 @@ file_directory_p (Lisp_Object file)
 DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p,
        Sfile_accessible_directory_p, 1, 1, 0,
        doc: /* Return t if FILENAME names a directory you can open.
-For the value to be t, FILENAME must specify the name of a directory
-as a file, and the directory must allow you to open files in it.  In
-order to use a directory as a buffer's current directory, this
-predicate must return true.  A directory name spec may be given
-instead; then the value is t if the directory so specified exists and
-really is a readable and searchable directory.  */)
+This means that FILENAME must specify the name of a directory, and the
+directory must allow you to open files in it.  If this isn't the case,
+return nil.
+
+FILENAME can either be a directory name (eg. \"/tmp/foo/\") or the
+file name of a file which is a directory (eg. \"/tmp/foo\", without
+the final slash).
+
+In order to use a directory as a buffer's current directory, this
+predicate must return true.  */)
   (Lisp_Object filename)
 {
   Lisp_Object absname;

@@ -124,12 +124,11 @@ supertypes from the most specific to least specific.")
                             (get name 'cl-struct-print))
           (cl--find-class name)))))
 
-(defun cl--plist-remove (plist member)
-  (cond
-   ((null plist) nil)
-   ((null member) plist)
-   ((eq plist member) (cddr plist))
-   (t `(,(car plist) ,(cadr plist) ,@(cl--plist-remove (cddr plist) member)))))
+(defun cl--plist-to-alist (plist)
+  (let ((res '()))
+    (while plist
+      (push (cons (pop plist) (pop plist)) res))
+    (nreverse res)))
 
 (defun cl--struct-register-child (parent tag)
   ;; Can't use (cl-typep parent 'cl-structure-class) at this stage
@@ -164,12 +163,14 @@ supertypes from the most specific to least specific.")
                        (i 0)
                        (offset (if type 0 1)))
                    (dolist (slot slots)
-                     (let* ((props (cddr slot))
-                            (typep (plist-member props :type))
-                            (type (if typep (cadr typep) t)))
+                     (let* ((props (cl--plist-to-alist (cddr slot)))
+                            (typep (assq :type props))
+                            (type (if (null typep) t
+                                    (setq props (delq typep props))
+                                    (cdr typep))))
                        (aset v i (cl--make-slot-desc
                                   (car slot) (nth 1 slot)
-                                  type (cl--plist-remove props typep))))
+                                  type props)))
                      (puthash (car slot) (+ i offset) index-table)
                      (cl-incf i))
                    v))

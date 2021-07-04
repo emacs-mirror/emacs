@@ -896,6 +896,44 @@ beginning of the line."
       (xref--search-property 'xref-item))
   (xref-show-location-at-point))
 
+(defcustom xref-truncation-width 400
+  "The column to visually \"truncate\" each Xref buffer line to."
+  :type '(choice
+          (integer :tag "Number of columns")
+          (const :tag "Disable truncation" nil)))
+
+(defun xref--apply-truncation ()
+  (let ((bol (line-beginning-position))
+        (eol (line-end-position))
+        (inhibit-read-only t)
+        pos adjusted-bol)
+    (when (and xref-truncation-width
+               (> (- eol bol) xref-truncation-width)
+               ;; Either truncation not applied yet, or it hides the current
+               ;; position: need to refresh.
+               (or (and (null (get-text-property (1- eol) 'invisible))
+                        (null (get-text-property bol 'invisible)))
+                   (get-text-property (point) 'invisible)))
+      (setq adjusted-bol
+            (cond
+             ((eq (get-text-property bol 'face) 'xref-line-number)
+              (next-single-char-property-change bol 'face))
+             (t bol)))
+      (cond
+       ((< (- (point) bol) xref-truncation-width)
+        (setq pos (+ bol xref-truncation-width))
+        (remove-text-properties bol pos '(invisible))
+        (put-text-property pos eol 'invisible 'ellipsis))
+       ((< (- eol (point)) xref-truncation-width)
+        (setq pos (- eol xref-truncation-width))
+        (remove-text-properties pos eol '(invisible))
+        (put-text-property adjusted-bol pos 'invisible 'ellipsis))
+       (t
+        (setq pos (- (point) (/ xref-truncation-width 2)))
+        (put-text-property adjusted-bol pos 'invisible 'ellipsis)
+        (remove-text-properties pos (+ pos xref-truncation-width) '(invisible))
+        (put-text-property (+ pos xref-truncation-width) eol 'invisible 'ellipsis))))))
+
 (defun xref--insert-xrefs (xref-alist)
   "Insert XREF-ALIST in the current-buffer.
 XREF-ALIST is of the form ((GROUP . (XREF ...)) ...), where
@@ -939,6 +977,11 @@ GROUP is a string for decoration purposes and XREF is an
                         (setq prev-line line
                               prev-group group))))
            (insert "\n"))
+  (add-to-invisibility-spec '(ellipsis . t))
+  (save-excursion
+    (goto-char (point-min))
+    (while (= 0 (forward-line 1))
+      (xref--apply-truncation)))
   (run-hooks 'xref-after-update-hook))
 
 (defun xref--analyze (xrefs)
@@ -976,6 +1019,7 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
         (buffer-undo-list t))
     (erase-buffer)
     (xref--insert-xrefs xref-alist)
+    (add-hook 'post-command-hook 'xref--apply-truncation nil t)
     (goto-char (point-min))
     (setq xref--original-window (assoc-default 'window alist)
           xref--original-window-intent (assoc-default 'display-action alist))
@@ -1044,6 +1088,12 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
 (define-obsolete-function-alias 'xref--show-defs-buffer-at-bottom
   #'xref-show-definitions-buffer-at-bottom "28.1")
 
+(defun xref--completing-read-group (cand transform)
+  "Return group title of candidate CAND or TRANSFORM the candidate."
+  (if transform
+      (substring cand (1+ (next-single-property-change 0 'xref--group cand)))
+    (get-text-property 0 'xref--group cand)))
+
 (defun xref-show-definitions-completing-read (fetcher alist)
   "Let the user choose the target definition with completion.
 
@@ -1072,10 +1122,12 @@ between them by typing in the minibuffer with completion."
                                     (format #("%d:" 0 2 (face xref-line-number))
                                             line)
                                   ""))
+                               (group-prefix
+                                (substring group group-prefix-length))
                                (group-fmt
-                                (propertize
-                                 (substring group group-prefix-length)
-                                 'face 'xref-file-header))
+                                (propertize group-prefix
+                                            'face 'xref-file-header
+                                            'xref--group group-prefix))
                                (candidate
                                 (format "%s:%s%s" group-fmt line-fmt summary)))
                           (push (cons candidate xref) xref-alist-with-line-info)))))
@@ -1087,7 +1139,9 @@ between them by typing in the minibuffer with completion."
                          (lambda (string pred action)
                            (cond
                             ((eq action 'metadata)
-                             '(metadata . ((category . xref-location))))
+                             `(metadata
+                               . ((category . xref-location)
+                                  (group-function . ,#'xref--completing-read-group))))
                             (t
                              (complete-with-action action collection string pred)))))
                         (def (caar collection)))
@@ -1410,7 +1464,7 @@ IGNORES is a list of glob patterns for files to ignore."
        ;; do that reliably enough, without creating false negatives?
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
-                                     (file-name-as-directory
+                                     (directory-file-name
                                       (file-name-unquote
                                        (file-local-name (expand-file-name dir))))
                                      ignores))

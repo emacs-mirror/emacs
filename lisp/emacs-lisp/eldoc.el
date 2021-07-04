@@ -538,7 +538,7 @@ documentation to potentially appear in the echo are is truncated."
            (and truncatedp
                 (eq eldoc-echo-area-prefer-doc-buffer
                     'maybe)))
-       (get-buffer-window eldoc--doc-buffer)))
+       (get-buffer-window eldoc--doc-buffer 'visible)))
 
 (defun eldoc-display-in-echo-area (docs _interactive)
   "Display DOCS in echo area.

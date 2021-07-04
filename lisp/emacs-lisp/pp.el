@@ -139,7 +139,7 @@ Also add the value to the front of the list in the variable `values'."
   (pp-display-expression (macroexpand-1 expression) "*Pp Macroexpand Output*"))
 
 (defun pp-last-sexp ()
-  "Read sexp before point.  Ignores leading comment characters."
+  "Read sexp before point.  Ignore leading comment characters."
   (with-syntax-table emacs-lisp-mode-syntax-table
     (let ((pt (point)))
       (save-excursion
@@ -159,7 +159,7 @@ Also add the value to the front of the list in the variable `values'."
 ;;;###autoload
 (defun pp-eval-last-sexp (arg)
   "Run `pp-eval-expression' on sexp before point.
-With argument, pretty-print output into current buffer.
+With ARG, pretty-print output into current buffer.
 Ignores leading comment characters."
   (interactive "P")
   (if arg
@@ -172,7 +172,7 @@ Ignores leading comment characters."
 ;;;###autoload
 (defun pp-macroexpand-last-sexp (arg)
   "Run `pp-macroexpand-expression' on sexp before point.
-With argument, pretty-print output into current buffer.
+With ARG, pretty-print output into current buffer.
 Ignores leading comment characters."
   (interactive "P")
   (if arg

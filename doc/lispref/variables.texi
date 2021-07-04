@@ -1582,6 +1582,12 @@ buffer-local binding in buffer @var{buffer}, it returns the default
 value (@pxref{Default Value}) of @var{variable} instead.
 @end defun
 
+@defun buffer-local-boundp variable buffer
+This returns non-@code{nil} if there's either a buffer-local binding
+of @var{variable} (a symbol) in buffer @var{buffer}, or @var{variable}
+has a global binding.
+@end defun
+
 @defun buffer-local-variables &optional buffer
 This function returns a list describing the buffer-local variables in
 buffer @var{buffer}.  (If @var{buffer} is omitted, the current buffer
@@ -1883,6 +1889,14 @@ This is a list of regular expressions.  If a file has a name
 matching an element of this list, then it is not scanned for
 any form of file-local variable.  For examples of why you might want
 to use this, @pxref{Auto Major Mode}.
+@end defvar
+
+@defvar permanently-enabled-local-variables
+Some local variable settings will, by default, be heeded even if
+@code{enable-local-variables} is @code{nil}.  By default, this is only
+the case for the @code{lexical-binding} local variable setting, but
+this can be controlled by using this variable, which is a list of
+symbols.
 @end defvar
 
 @defun hack-local-variables &optional handle-mode

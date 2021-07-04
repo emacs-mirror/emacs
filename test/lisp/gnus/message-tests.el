@@ -154,6 +154,35 @@
                       "\"larsi@gnus.org\" <larsi@gnus.org>")
                      "larsi@gnus.org")))
 
+(ert-deftest message-replace-header ()
+  (with-temp-buffer
+    (save-excursion
+      (insert "From: dang@gnus.org
+To: user1,
+    user2
+Cc: user3,
+    user4
+--text follows this line--
+Hello.
+"))
+    (save-excursion
+      (message-replace-header "From" "ding@gnus.org")
+      (should (cl-search "ding" (message-field-value "From"))))
+    (save-excursion
+      (message-replace-header "From" "dong@gnus.org" "To")
+      (should (cl-search "dong" (message-field-value "From")))
+      (should (re-search-forward "From:"))
+      (should-error (re-search-forward "To:"))
+      (should (re-search-forward "Cc:")))
+    (save-excursion
+      (message-replace-header "From" "dang@gnus.org" (split-string "To Cc"))
+      (should (cl-search "dang" (message-field-value "From")))
+      (should (re-search-forward "From:"))
+      (should-error (re-search-forward "To:"))
+      ;; That this isn't so is probably a bug from 1997.
+      ;; (should-error (re-search-forward "Cc:"))
+      )))
+
 (provide 'message-mode-tests)
 
 ;;; message-mode-tests.el ends here

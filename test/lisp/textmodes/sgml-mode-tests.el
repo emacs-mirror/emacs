@@ -204,5 +204,32 @@ The point is set to the beginning of the buffer."
     (should (= 1 (- (car (syntax-ppss (1- (point-max))))
                     (car (syntax-ppss (point-max))))))))
 
+(ert-deftest sgml-test-brackets ()
+  "Test fontification of apostrophe preceded by paired-bracket character."
+  (let (brackets)
+    (map-char-table
+     (lambda (key value)
+       (setq brackets (cons (list
+			     (if (consp key)
+				 (list (car key) (cdr key))
+			       key)
+			     value)
+			    brackets)))
+     (unicode-property-table-internal 'paired-bracket))
+    (setq brackets (delete-dups (flatten-tree brackets)))
+    (setq brackets (append brackets (list ?$ ?% ?& ?* ?+ ?/)))
+    (with-temp-buffer
+      (while brackets
+	(let ((char (string (pop brackets))))
+	  (insert (concat "<p>" char "'s</p>\n"))))
+      (html-mode)
+      (font-lock-ensure (point-min) (point-max))
+      (goto-char (point-min))
+      (while (not (eobp))
+	(goto-char (next-single-char-property-change (point) 'face))
+	(let ((val (get-text-property (point) 'face)))
+	  (when val
+	    (should-not (eq val 'font-lock-string-face))))))))
+
 (provide 'sgml-mode-tests)
 ;;; sgml-mode-tests.el ends here

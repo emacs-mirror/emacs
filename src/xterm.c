@@ -8178,6 +8178,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      f->output_data.x->has_been_visible = true;
 	      inev.ie.kind = DEICONIFY_EVENT;
+#if defined USE_GTK && defined HAVE_GTK3
+	      /* If GTK3 wants to impose some old size here (Bug#24526),
+		 tell it that the current size is what we want.  */
+	      if (f->was_invisible)
+		{
+		  xg_frame_set_char_size
+		    (f, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+		  f->was_invisible = false;
+		}
+#endif
 	      XSETFRAME (inev.ie.frame_or_window, f);
 	    }
 	  else if (!not_hidden && !FRAME_ICONIFIED_P (f))
@@ -8232,33 +8242,36 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           if (!FRAME_VISIBLE_P (f))
             {
               block_input ();
-              SET_FRAME_VISIBLE (f, 1);
-              SET_FRAME_ICONIFIED (f, false);
-              if (FRAME_X_DOUBLE_BUFFERED_P (f))
+	      /* The following two are commented out to avoid that a
+		 plain invisible frame gets reported as iconified.  That
+		 problem occurred first for Emacs 26 and is described in
+		 https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.  */
+/** 	      SET_FRAME_VISIBLE (f, 1); **/
+/** 	      SET_FRAME_ICONIFIED (f, false); **/
+
+	      if (FRAME_X_DOUBLE_BUFFERED_P (f))
                 font_drop_xrender_surfaces (f);
               f->output_data.x->has_been_visible = true;
               SET_FRAME_GARBAGED (f);
               unblock_input ();
             }
           else if (FRAME_GARBAGED_P (f))
-            {
+	    {
 #ifdef USE_GTK
-              /* Go around the back buffer and manually clear the
-                 window the first time we show it.  This way, we avoid
-                 showing users the sanity-defying horror of whatever
-                 GtkWindow is rendering beneath us.  We've garbaged
-                 the frame, so we'll redraw the whole thing on next
-                 redisplay anyway.  Yuck.  */
-              x_clear_area1 (
-                FRAME_X_DISPLAY (f),
-                FRAME_X_WINDOW (f),
-                event->xexpose.x, event->xexpose.y,
-                event->xexpose.width, event->xexpose.height,
-                0);
+	      /* Go around the back buffer and manually clear the
+		 window the first time we show it.  This way, we avoid
+		 showing users the sanity-defying horror of whatever
+		 GtkWindow is rendering beneath us.  We've garbaged
+		 the frame, so we'll redraw the whole thing on next
+		 redisplay anyway.  Yuck.  */
+	      x_clear_area1 (FRAME_X_DISPLAY (f),
+			     FRAME_X_WINDOW (f),
+			     event->xexpose.x, event->xexpose.y,
+			     event->xexpose.width, event->xexpose.height,
+			     0);
 	      x_clear_under_internal_border (f);
 #endif
-            }
-
+	    }
 
           if (!FRAME_GARBAGED_P (f))
             {
@@ -8351,7 +8364,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                            the frame was deleted.  */
         {
 	  bool visible = FRAME_VISIBLE_P (f);
-          /* While a frame is unmapped, display generation is
+
+	  /* While a frame is unmapped, display generation is
              disabled; you don't want to spend time updating a
              display that won't ever be seen.  */
           SET_FRAME_VISIBLE (f, 0);
@@ -8426,11 +8440,24 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		x_set_z_group (f, Qbelow, Qnil);
 	    }
 
-          SET_FRAME_VISIBLE (f, 1);
-          SET_FRAME_ICONIFIED (f, false);
-          f->output_data.x->has_been_visible = true;
+	  if (not_hidden)
+	    {
+	      SET_FRAME_VISIBLE (f, 1);
+	      SET_FRAME_ICONIFIED (f, false);
+#if defined USE_GTK && defined HAVE_GTK3
+	      /* If GTK3 wants to impose some old size here (Bug#24526),
+		 tell it that the current size is what we want.  */
+	      if (f->was_invisible)
+		{
+		  xg_frame_set_char_size
+		    (f, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+		  f->was_invisible = false;
+		}
+#endif
+	      f->output_data.x->has_been_visible = true;
+	    }
 
-          if (iconified)
+          if (not_hidden && iconified)
             {
               inev.ie.kind = DEICONIFY_EVENT;
               XSETFRAME (inev.ie.frame_or_window, f);
@@ -8808,10 +8835,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case FocusIn:
+#ifndef USE_GTK
       /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
          minimized/iconified windows; thus, for those WMs we won't get
          a MapNotify when unminimizing/deconifying.  Check here if we
-         are deconizing a window (Bug42655). */
+         are deiconizing a window (Bug42655).
+
+	 But don't do that on GTK since it may cause a plain invisible
+	 frame get reported as iconified, compare
+	 https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.
+	 That is fixed above but bites us here again.  */
       f = any;
       if (f && FRAME_ICONIFIED_P (f))
 	{
@@ -8821,6 +8854,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           inev.ie.kind = DEICONIFY_EVENT;
           XSETFRAME (inev.ie.frame_or_window, f);
         }
+#endif /* USE_GTK */
 
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
       goto OTHER;
@@ -9071,8 +9105,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
              to check the pixel dimensions as well.  */
           if (width != FRAME_PIXEL_WIDTH (f)
               || height != FRAME_PIXEL_HEIGHT (f)
-	      || (delayed_size_change
-		  && (width != f->new_width || height != f->new_height)))
+	      || (f->new_size_p
+		  && ((f->new_width >= 0 && width != f->new_width)
+		      || (f->new_height >= 0 && height != f->new_height))))
             {
               change_frame_size (f, width, height, false, true, false);
               x_clear_under_internal_border (f);
@@ -9308,6 +9343,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case VisibilityNotify:
+      f = x_top_window_to_frame (dpyinfo, event->xvisibility.window);
+      if (f && (event->xvisibility.state == VisibilityUnobscured
+		|| event->xvisibility.state == VisibilityPartiallyObscured))
+	SET_FRAME_VISIBLE (f, 1);
+
       goto OTHER;
 
     case MappingNotify:
@@ -9564,11 +9604,12 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
   xgcv.foreground = f->output_data.x->cursor_pixel;
+  xgcv.line_width = 1;
   if (dpyinfo->scratch_cursor_gc)
-    XChangeGC (dpy, dpyinfo->scratch_cursor_gc, GCForeground, &xgcv);
+    XChangeGC (dpy, dpyinfo->scratch_cursor_gc, GCForeground | GCLineWidth, &xgcv);
   else
     dpyinfo->scratch_cursor_gc = XCreateGC (dpy, FRAME_X_DRAWABLE (f),
-					    GCForeground, &xgcv);
+					    GCForeground | GCLineWidth, &xgcv);
   gc = dpyinfo->scratch_cursor_gc;
 
   /* When on R2L character, show cursor at the right edge of the
@@ -11822,12 +11863,14 @@ x_make_frame_visible (struct frame *f)
     poll_suppress_count = old_poll_suppress_count;
 #endif
 
-    if (CONSP (frame_size_history))
-      frame_size_history_plain
-	(f, build_string ("x_make_frame_visible"));
+    if (!FRAME_VISIBLE_P (f))
+      {
+	if (CONSP (frame_size_history))
+	  frame_size_history_plain
+	    (f, build_string ("x_make_frame_visible"));
 
-    if (! FRAME_VISIBLE_P (f))
-      x_wait_for_event (f, MapNotify);
+	x_wait_for_event (f, MapNotify);
+      }
   }
 }
 

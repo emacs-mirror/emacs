@@ -463,8 +463,8 @@ Non-nil arguments are in recursive calls."
                      ((imenu--subalist-p item)
                       (imenu--create-keymap (car item) (cdr item) cmd))
                      (t
-                      `(lambda () (interactive)
-                         ,(if cmd `(,cmd ',item) (list 'quote item)))))))
+                      (lambda () (interactive)
+                        (if cmd (funcall cmd item) item))))))
               alist)))
 
 (defun imenu--in-alist (str alist)

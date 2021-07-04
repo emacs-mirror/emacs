@@ -99,6 +99,7 @@ Cover art by Etienne Suvasa; cover design by Matt Lee.
 
 @end titlepage
 
+@headings double
 
 @summarycontents
 @contents
@@ -794,6 +795,8 @@ Maintaining Large Programs
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
 @end ifnottex
+* Bug Reference::       Highlighting references to bug reports and browsing
+                          them in their issue trackers.
 
 Version Control
 

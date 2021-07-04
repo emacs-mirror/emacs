@@ -285,6 +285,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		      (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
 			  ;; See bug#7135.
 			  (let* (file-name-handler-alist
+                                 (default-directory "/")
 				 (tmp (ignore-errors
 				        (shell-command-to-string
 					 "getconf DARWIN_USER_TEMP_DIR"))))

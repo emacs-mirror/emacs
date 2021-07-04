@@ -1891,10 +1891,11 @@ if test "${with_ns}" != no; then
   # so avoid NS_IMPL_COCOA if macuvs.h is absent.
   # Even a headless Emacs can build macuvs.h, so this should let you bootstrap.
   if test "${opsys}" = darwin && test -f "$srcdir/src/macuvs.h"; then
-     lispdirrel=Contents/Resources/lisp
      NS_IMPL_COCOA=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}/Contents/MacOS
+     ns_applibexecdir=${ns_appdir}/Contents/MacOS/libexec
+     ns_applibdir=${ns_appdir}/Contents/Frameworks
      ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=Cocoa/Emacs.base
      ns_fontfile=macfont.o
@@ -1952,6 +1953,8 @@ fail;
   if test $NS_IMPL_GNUSTEP = yes; then
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
+     ns_applibexecdir=${ns_appdir}/libexec
+     ns_applibdir=${ns_appdir}/Frameworks
      ns_appresdir=${ns_appdir}/Resources
      ns_appsrc=GNUstep/Emacs.base
      ns_fontfile=nsfont.o
@@ -2008,12 +2011,13 @@ if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   # set up packaging dirs
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
+     AC_DEFINE(NS_SELF_CONTAINED, 1, [Build an NS bundled app])
      ns_self_contained=yes
      prefix=${ns_appresdir}
      exec_prefix=${ns_appbindir}
      dnl This one isn't really used, only archlibdir is.
-     libexecdir="\${ns_appbindir}/libexec"
-     archlibdir="\${ns_appbindir}/libexec"
+     libexecdir="\${ns_applibexecdir}"
+     archlibdir="\${ns_applibexecdir}"
      etcdocdir="\${ns_appresdir}/etc"
      etcdir="\${ns_appresdir}/etc"
      dnl FIXME maybe set datarootdir instead.
@@ -2021,7 +2025,8 @@ if test "${HAVE_NS}" = yes; then
      infodir="\${ns_appresdir}/info"
      mandir="\${ns_appresdir}/man"
      lispdir="\${ns_appresdir}/lisp"
-     test "$locallisppathset" = no && locallisppath=""
+     lispdirrel="\${ns_appresdir}/lisp"
+     test "$locallisppathset" = no && locallisppath="\${ns_appresdir}/site-lisp"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
 
@@ -2272,6 +2277,9 @@ doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
 hybrid_malloc=
 system_malloc=yes
+
+dnl This must be before the test of $ac_cv_func_sbrk below.
+AC_CHECK_FUNCS_ONCE([sbrk])
 
 test $with_unexec = yes &&
 case "$opsys" in
@@ -2889,6 +2897,11 @@ fi
 AC_SUBST(SETTINGS_CFLAGS)
 AC_SUBST(SETTINGS_LIBS)
 
+USE_STARTUP_NOTIFICATION=no
+if test "${HAVE_GTK}" = "yes"; then
+    USE_STARTUP_NOTIFICATION=yes
+fi
+AC_SUBST(USE_STARTUP_NOTIFICATION)
 
 dnl SELinux is available for GNU/Linux only.
 HAVE_LIBSELINUX=no
@@ -3769,27 +3782,28 @@ AC_DEFUN([libgccjit_smoke_test], [
       }]])])
 
 AC_DEFUN([libgccjit_not_found], [
-  AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
-Please try installing libgccjit or similar package.
-If you are sure you want Emacs compiled without elisp native compiler, pass
-  --without-native-compilation
-to configure.])])
+  AC_MSG_ERROR([ELisp native compiler was requested, but libgccjit was not found.
+Please try installing libgccjit or a similar package.
+If you are sure you want Emacs be compiled without ELisp native compiler,
+pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_dev_not_found], [
-  AC_MSG_ERROR([elisp native compiler requested but libgccjit header files were
+  AC_MSG_ERROR([ELisp native compiler was requested, but libgccjit header files were
 not found.
-Please try installing libgccjit-dev or similar package.
-If you are sure you want Emacs compiled without elisp native compiler, pass
---without-nativecomp
-to configure.])])
+Please try installing libgccjit-dev or a similar package.
+If you are sure you want Emacs be compiled without ELisp native compiler,
+pass the --without-nativecomp option to configure.])])
 
 AC_DEFUN([libgccjit_broken], [
-  AC_MSG_ERROR([Installed libgccjit has failed passing the smoke test.
-You can verify it yourself compiling:
+  AC_MSG_ERROR([The installed libgccjit failed to compile and run a test program using
+the libgccjit library; see config.log for the details of the failure.
+The test program can be found here:
 <https://gcc.gnu.org/onlinedocs/jit/intro/tutorial01.html>.
-Please report the issue to your distribution if libgccjit was installed through
-that.
-Here instructions on how to compile and install libgccjit from source:
+You can try compiling it yourself to investigate the issues.
+Please report the issue to your distribution if libgccjit was installed
+through that.
+You can find the instructions on how to compile and install libgccjit from
+source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])])
 
 HAVE_NATIVE_COMP=no
@@ -4677,7 +4691,7 @@ AC_CHECK_HEADERS(valgrind/valgrind.h)
 
 AC_CHECK_MEMBERS([struct unipair.unicode], [], [], [[#include <linux/kd.h>]])
 
-AC_CHECK_FUNCS_ONCE([__lsan_ignore_object sbrk])
+AC_CHECK_FUNCS_ONCE([__lsan_ignore_object])
 
 AC_FUNC_FORK
 
@@ -5405,6 +5419,8 @@ AC_SUBST(CFLAGS)
 AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
+AC_SUBST(ns_applibexecdir)
+AC_SUBST(ns_applibdir)
 AC_SUBST(ns_appresdir)
 AC_SUBST(ns_appsrc)
 AC_SUBST(GNU_OBJC_CFLAGS)
@@ -6005,10 +6021,13 @@ dnl the use of force in the 'epaths-force' rule in Makefile.in.
 AC_CONFIG_COMMANDS([src/epaths.h], [
 if test "${opsys}" = "mingw32"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
+elif test "$HAVE_NS" = "yes" && test "$EN_NS_SELF_CONTAINED" = "yes"; then
+  ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-ns-self-contained
 else
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
 fi || AC_MSG_ERROR(['src/epaths.h' could not be made.])
-], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"])
+], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys" HAVE_NS="$HAVE_NS"
+    EN_NS_SELF_CONTAINED="$EN_NS_SELF_CONTAINED"])
 
 dnl NB we have to cheat and use the ac_... version because abs_top_srcdir
 dnl is not yet set, sigh.  Or we could use ../$srcdir/src/.gdbinit,

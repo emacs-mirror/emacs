@@ -615,7 +615,7 @@ must not be within a `c-save-buffer-state', since the user then
 wouldn't be able to undo them.
 
 The return value is the value of the last form in BODY."
-  (declare (debug t) (indent 1))
+  (declare (debug let*) (indent 1))
   (if (fboundp 'with-silent-modifications)
       `(with-silent-modifications (let* ,varlist ,@body))
     `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
@@ -1653,8 +1653,7 @@ with value CHAR in the region [FROM to)."
   ;; determined by and angle bracket; or (ii) is inside a macro whose start
   ;; isn't POINT-MACRO-START doesn't count as a finishing position.
   (declare (debug t))
-  `(let ((here (point))
-	 (pos (scan-lists ,from 1 1)))
+  `(let ((pos (scan-lists ,from 1 1)))
      (while (eq (char-before pos) ?>)
        (setq pos (scan-lists pos 1 1)))
      pos))
@@ -1664,8 +1663,7 @@ with value CHAR in the region [FROM to)."
   ;; determined by an angle bracket; or (ii) is inside a macro whose start
   ;; isn't POINT-MACRO-START doesn't count as a finishing position.
   (declare (debug t))
-  `(let ((here (point))
-	 (pos (scan-lists ,from 1 -1)))
+  `(let ((pos (scan-lists ,from 1 -1)))
      (while (eq (char-before pos) ?<)
        (setq pos (scan-lists pos 1 1))
        (setq pos (scan-lists pos 1 -1)))
@@ -1676,8 +1674,7 @@ with value CHAR in the region [FROM to)."
   ;; determined by and angle bracket; or (ii) is inside a macro whose start
   ;; isn't POINT-MACRO-START doesn't count as a finishing position.
   (declare (debug t))
-  `(let ((here (point))
-	 (pos (scan-lists ,from -1 1)))
+  `(let ((pos (scan-lists ,from -1 1)))
      (while (eq (char-after pos) ?<)
        (setq pos (scan-lists pos -1 1)))
      pos))
@@ -1687,8 +1684,7 @@ with value CHAR in the region [FROM to)."
   ;; determined by and angle bracket; or (ii) is inside a macro whose start
   ;; isn't POINT-MACRO-START doesn't count as a finishing position.
   (declare (debug t))
-  `(let ((here (point))
-	 (pos (scan-lists ,from -1 -1)))
+  `(let ((pos (scan-lists ,from -1 -1)))
      (while (eq (char-after pos) ?>)
        (setq pos (scan-lists pos -1 1))
        (setq pos (scan-lists pos -1 -1)))

@@ -241,7 +241,6 @@ of constants and nonconstant parts.  To make this easier, use the
 @samp{`} syntax (@pxref{Backquote}).  For example:
 
 @example
-@example
 @group
 (defmacro t-becomes-nil (variable)
   `(if (eq ,variable t)
@@ -252,7 +251,6 @@ of constants and nonconstant parts.  To make this easier, use the
 (t-becomes-nil foo)
      @equiv{} (if (eq foo t) (setq foo nil))
 @end group
-@end example
 @end example
 
 @node Problems with Macros

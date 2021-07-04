@@ -2743,7 +2743,8 @@ if this isn't nil."
 `c-recognize-<>-arglists' for details.  That language constant is
 assumed to be set if this isn't nil."
   t    nil
-  c++  '("template")
+  c++  '("template" "const_cast" "dynamic_cast" "reinterpret_cast"
+	 "static_cast")
   idl  '("fixed" "string" "wstring"))
 
 (c-lang-defconst c-<>-sexp-kwds

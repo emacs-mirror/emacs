@@ -231,7 +231,7 @@ admin config, and finally system cached associations."
         (desktop (getenv "XDG_CURRENT_DESKTOP"))
         res)
     (when desktop
-      (setq desktop (format "%s-mimeapps.list" desktop)))
+      (setq desktop (list (format "%s-mimeapps.list" desktop))))
     (dolist (name (cons "mimeapps.list" desktop))
       (push (expand-file-name name (xdg-config-home)) res)
       (push (expand-file-name (format "applications/%s" name) (xdg-data-home))

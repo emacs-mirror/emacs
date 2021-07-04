@@ -201,7 +201,10 @@
          ((zerop (length tok))
           (let ((forward-sexp-function nil))
             (condition-case nil
-                (forward-sexp -1)
+                (let ((p (point)))
+                  (forward-sexp -1)
+                  (when (= p (point))
+                    (setq res ":")))
               (scan-error (setq res ":")))))
          ((member tok '("|" "OF" "..")) (setq res ":-case"))
          ((member tok '(":" "END" ";" "BEGIN" "VAR" "RECORD" "PROCEDURE"))

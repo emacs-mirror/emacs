@@ -109,7 +109,8 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
  7  file caching
  8  connection properties
  9  test commands
-10  traces (huge)."
+10  traces (huge)
+11  call traces (maintainer only)."
   :type 'integer)
 
 (defcustom tramp-debug-to-file nil
@@ -252,6 +253,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%c\" adds additional `tramp-ssh-controlmaster-options'
       options for the first hop.
     - \"%n\" expands to \"2>/dev/null\".
+    - \"%x\" is replaced by the `tramp-scp-strict-file-name-checking'
+      argument if it is supported.
 
     The existence of `tramp-login-args', combined with the
     absence of `tramp-copy-args', is an indication that the
@@ -1388,6 +1391,14 @@ calling HANDLER.")
 (cl-defstruct (tramp-file-name (:type list) :named)
   method user domain host port localname hop)
 
+(put #'tramp-file-name-method 'tramp-suppress-trace t)
+(put #'tramp-file-name-user 'tramp-suppress-trace t)
+(put #'tramp-file-name-domain 'tramp-suppress-trace t)
+(put #'tramp-file-name-host 'tramp-suppress-trace t)
+(put #'tramp-file-name-port 'tramp-suppress-trace t)
+(put #'tramp-file-name-localname 'tramp-suppress-trace t)
+(put #'tramp-file-name-hop 'tramp-suppress-trace t)
+
 (defun tramp-file-name-user-domain (vec)
   "Return user and domain components of VEC."
   (when (or (tramp-file-name-user vec) (tramp-file-name-domain vec))
@@ -1395,6 +1406,8 @@ calling HANDLER.")
 	    (and (tramp-file-name-domain vec)
 		 tramp-prefix-domain-format)
 	    (tramp-file-name-domain vec))))
+
+(put #'tramp-file-name-user-domain 'tramp-suppress-trace t)
 
 (defun tramp-file-name-host-port (vec)
   "Return host and port components of VEC."
@@ -1404,11 +1417,15 @@ calling HANDLER.")
 		 tramp-prefix-port-format)
 	    (tramp-file-name-port vec))))
 
+(put #'tramp-file-name-host-port 'tramp-suppress-trace t)
+
 (defun tramp-file-name-port-or-default (vec)
   "Return port component of VEC.
 If nil, return `tramp-default-port'."
   (or (tramp-file-name-port vec)
       (tramp-get-method-parameter vec 'tramp-default-port)))
+
+(put #'tramp-file-name-port-or-default 'tramp-suppress-trace t)
 
 ;; Comparison of file names is performed by `tramp-equal-remote'.
 (defun tramp-file-name-equal-p (vec1 vec2)
@@ -1455,6 +1472,8 @@ entry does not exist, return nil."
 	   (not (string-match-p tramp-ignored-file-name-regexp name)))
        (string-match-p tramp-file-name-regexp name)
        t))
+
+(put #'tramp-tramp-file-p 'tramp-suppress-trace t)
 
 ;; This function bypasses the file name handler approach.  It is NOT
 ;; recommended to use it in any package if not absolutely necessary.
@@ -1504,6 +1523,8 @@ This is METHOD, if non-nil.  Otherwise, do a lookup in
 	result
       (propertize result 'tramp-default t))))
 
+(put #'tramp-find-method 'tramp-suppress-trace t)
+
 (defun tramp-find-user (method user host)
   "Return the right user string to use depending on METHOD and HOST.
 This is USER, if non-nil.  Otherwise, do a lookup in
@@ -1525,6 +1546,8 @@ This is USER, if non-nil.  Otherwise, do a lookup in
 	result
       (propertize result 'tramp-default t))))
 
+(put #'tramp-find-user 'tramp-suppress-trace t)
+
 (defun tramp-find-host (method user host)
   "Return the right host string to use depending on METHOD and USER.
 This is HOST, if non-nil.  Otherwise, do a lookup in
@@ -1545,6 +1568,8 @@ This is HOST, if non-nil.  Otherwise, do a lookup in
     (if (or (> (length host) 0) (null result))
 	result
       (propertize result 'tramp-default t))))
+
+(put #'tramp-find-host 'tramp-suppress-trace t)
 
 (defun tramp-dissect-file-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of NAME, a remote file name.
@@ -1610,6 +1635,8 @@ default values are used."
 	    (tramp-user-error
 	     v "Method `%s' is not supported for multi-hops." method)))))))
 
+(put #'tramp-dissect-file-name 'tramp-suppress-trace t)
+
 (defun tramp-dissect-hop-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of `hop' part of NAME.
 See `tramp-dissect-file-name' for details."
@@ -1627,6 +1654,8 @@ See `tramp-dissect-file-name' for details."
     ;; Return result.
     v))
 
+(put #'tramp-dissect-hop-name 'tramp-suppress-trace t)
+
 (defun tramp-buffer-name (vec)
   "A name for the connection buffer VEC."
   (let ((method (tramp-file-name-method vec))
@@ -1635,6 +1664,8 @@ See `tramp-dissect-file-name' for details."
     (if (not (zerop (length user-domain)))
 	(format "*tramp/%s %s@%s*" method user-domain host-port)
       (format "*tramp/%s %s*" method host-port))))
+
+(put #'tramp-buffer-name 'tramp-suppress-trace t)
 
 (defun tramp-make-tramp-file-name (&rest args)
   "Construct a Tramp file name from ARGS.
@@ -1803,6 +1834,8 @@ version, the function does nothing."
 	(format "*debug tramp/%s %s@%s*" method user-domain host-port)
       (format "*debug tramp/%s %s*" method host-port))))
 
+(put #'tramp-debug-buffer-name 'tramp-suppress-trace t)
+
 (defconst tramp-debug-outline-regexp
   (concat
    "[[:digit:]]+:[[:digit:]]+:[[:digit:]]+\\.[[:digit:]]+ " ;; Timestamp.
@@ -1827,6 +1860,8 @@ Point must be at the beginning of a header line.
 
 The outline level is equal to the verbosity of the Tramp message."
   (1+ (string-to-number (match-string 2))))
+
+(put #'tramp-debug-outline-level 'tramp-suppress-trace t)
 
 (defun tramp-get-debug-buffer (vec)
   "Get the debug buffer for VEC."
@@ -1853,11 +1888,24 @@ The outline level is equal to the verbosity of the Tramp message."
       (use-local-map special-mode-map))
     (current-buffer)))
 
+(put #'tramp-get-debug-buffer 'tramp-suppress-trace t)
+
 (defun tramp-get-debug-file-name (vec)
-  "Get the debug buffer for VEC."
+  "Get the debug file name for VEC."
   (expand-file-name
    (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
    (tramp-compat-temporary-file-directory)))
+
+(put #'tramp-get-debug-file-name 'tramp-suppress-trace t)
+
+(defun tramp-trace-buffer-name (vec)
+  "A name for the trace buffer for VEC."
+  (tramp-compat-string-replace "debug" "trace" (tramp-debug-buffer-name vec)))
+
+(put #'tramp-trace-buffer-name 'tramp-suppress-trace t)
+
+(defvar tramp-trace-functions nil
+  "A list of non-Tramp functions to be trace with tramp-verbose > 10.")
 
 (defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
@@ -1869,8 +1917,8 @@ ARGUMENTS to actually emit the message (if applicable)."
     (with-current-buffer (tramp-get-debug-buffer vec)
       (goto-char (point-max))
       (let ((point (point)))
-	;; Headline.
 	(when (bobp)
+	  ;; Headline.
 	  (insert
 	   (format
 	    ";; Emacs: %s Tramp: %s -*- mode: outline; coding: utf-8; -*-"
@@ -1883,6 +1931,15 @@ ARGUMENTS to actually emit the message (if applicable)."
 		(locate-library "tramp")
 		(or tramp-repository-branch "")
 		(or tramp-repository-version "")))))
+	  ;; Traces.
+	  (when (>= tramp-verbose 11)
+	    (dolist
+		(elt
+		 (append
+		  (mapcar #'intern (all-completions "tramp-" obarray 'functionp))
+		  tramp-trace-functions))
+	      (unless (get elt 'tramp-suppress-trace)
+		(trace-function-background elt))))
 	  ;; Delete debug file.
 	  (when (and tramp-debug-to-file (tramp-get-debug-file-name vec))
 	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))))
@@ -1991,7 +2048,7 @@ function is meant for debugging purposes."
 
 (put #'tramp-backtrace 'tramp-suppress-trace t)
 
-(defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
+(defun tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.
 VEC-OR-PROC identifies the connection to use, SIGNAL is the
 signal identifier to be raised, remaining arguments passed to
@@ -2574,6 +2631,8 @@ Falls back to normal file name handler if no Tramp file name handler exists."
     ;; might be an older, incompatible version active.  We try to
     ;; overload this.
     (let ((default-directory temporary-file-directory))
+      (when (bound-and-true-p tramp-archive-autoload)
+	(load "tramp-archive" 'noerror 'nomessage))
       (load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
 
@@ -2585,7 +2644,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   "Add Tramp file name handlers to `file-name-handler-alist' during autoload."
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-autoload-file-name-regexp
-		     'tramp-autoload-file-name-handler))
+		     #'tramp-autoload-file-name-handler))
   (put #'tramp-autoload-file-name-handler 'safe-magic t)))
 
 ;;;###autoload (tramp-register-autoload-file-name-handlers)
@@ -2797,7 +2856,7 @@ not in completion mode."
      result1
      (ignore-errors
        (tramp-run-real-handler
-	'file-name-all-completions (list filename directory))))))
+	#'file-name-all-completions (list filename directory))))))
 
 ;; Method, host name and user name completion for a file.
 (defun tramp-completion-handle-file-name-completion
@@ -3218,7 +3277,7 @@ User is always nil."
     (tramp-compat-file-missing (tramp-dissect-file-name directory) directory))
   ;; We must do it file-wise.
   (tramp-run-real-handler
-   'copy-directory
+   #'copy-directory
    (list directory newname keep-date parents copy-contents)))
 
 (defun tramp-handle-directory-file-name (directory)
@@ -3568,6 +3627,11 @@ User is always nil."
 	(and (file-directory-p (file-name-directory filename))
 	     (file-writable-p (file-name-directory filename)))))))
 
+(defcustom tramp-allow-unsafe-temporary-files nil
+  "Whether root-owned auto-save or backup files can be written to \"/tmp\"."
+  :version "28.1"
+  :type 'boolean)
+
 (defun tramp-handle-find-backup-file-name (filename)
   "Like `find-backup-file-name' for Tramp files."
   (with-parsed-tramp-file-name filename nil
@@ -3583,8 +3647,25 @@ User is always nil."
 		       (tramp-make-tramp-file-name v (cdr x))
 		     (cdr x))))
 		tramp-backup-directory-alist)
-	     backup-directory-alist)))
-      (tramp-run-real-handler #'find-backup-file-name (list filename)))))
+	     backup-directory-alist))
+	  result)
+      (prog1 ;; Run plain `find-backup-file-name'.
+	  (setq result
+		(tramp-run-real-handler
+		 #'find-backup-file-name (list filename)))
+        ;; Protect against security hole.
+	(when (and (not tramp-allow-unsafe-temporary-files)
+		   (file-in-directory-p (car result) temporary-file-directory)
+		   (zerop (or (tramp-compat-file-attribute-user-id
+			       (file-attributes filename 'integer))
+			      tramp-unknown-id-integer))
+		   (not (with-tramp-connection-property
+			    (tramp-get-process v) "unsafe-temporary-file"
+			  (yes-or-no-p
+			   (concat
+			    "Backup file on local temporary directory, "
+			    "do you want to continue? ")))))
+	  (tramp-error v 'file-error "Unsafe backup file name"))))))
 
 (defun tramp-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)
@@ -4305,8 +4386,7 @@ of."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (tramp-run-real-handler
-       #'write-region (list start end tmpfile append 'no-message lockname))
+      (write-region start end tmpfile append 'no-message lockname)
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error
@@ -5166,37 +5246,53 @@ Return the local name of the temporary file."
   "Like `make-auto-save-file-name' for Tramp files.
 Returns a file name in `tramp-auto-save-directory' for autosaving
 this file, if that variable is non-nil."
-  (when (stringp tramp-auto-save-directory)
-    (setq tramp-auto-save-directory
-	  (expand-file-name tramp-auto-save-directory)))
-  ;; Create directory.
-  (unless (or (null tramp-auto-save-directory)
-	      (file-exists-p tramp-auto-save-directory))
-    (make-directory tramp-auto-save-directory t))
+  (with-parsed-tramp-file-name buffer-file-name nil
+    (when (stringp tramp-auto-save-directory)
+      (setq tramp-auto-save-directory
+	    (expand-file-name tramp-auto-save-directory)))
+    ;; Create directory.
+    (unless (or (null tramp-auto-save-directory)
+		(file-exists-p tramp-auto-save-directory))
+      (make-directory tramp-auto-save-directory t))
 
-  (let ((system-type
-	 (if (and (stringp tramp-auto-save-directory)
-		  (tramp-tramp-file-p tramp-auto-save-directory))
-	     'not-windows
-	   system-type))
-	(auto-save-file-name-transforms
-	 (if (null tramp-auto-save-directory)
-	     auto-save-file-name-transforms))
-	(buffer-file-name
-	 (if (null tramp-auto-save-directory)
-	     buffer-file-name
-	   (expand-file-name
-	    (tramp-subst-strs-in-string
-	     '(("_" . "|")
-	       ("/" . "_a")
-	       (":" . "_b")
-	       ("|" . "__")
-	       ("[" . "_l")
-	       ("]" . "_r"))
-	     (tramp-compat-file-name-unquote (buffer-file-name)))
-	    tramp-auto-save-directory))))
-    ;; Run plain `make-auto-save-file-name'.
-    (tramp-run-real-handler #'make-auto-save-file-name nil)))
+    (let ((system-type
+	   (if (and (stringp tramp-auto-save-directory)
+		    (tramp-tramp-file-p tramp-auto-save-directory))
+	       'not-windows
+	     system-type))
+	  (auto-save-file-name-transforms
+	   (if (null tramp-auto-save-directory)
+	       auto-save-file-name-transforms))
+	  (filename buffer-file-name)
+	  (buffer-file-name
+	   (if (null tramp-auto-save-directory)
+	       buffer-file-name
+	     (expand-file-name
+	      (tramp-subst-strs-in-string
+	       '(("_" . "|")
+		 ("/" . "_a")
+		 (":" . "_b")
+		 ("|" . "__")
+		 ("[" . "_l")
+		 ("]" . "_r"))
+	       (tramp-compat-file-name-unquote (buffer-file-name)))
+	      tramp-auto-save-directory)))
+	  result)
+      (prog1 ;; Run plain `make-auto-save-file-name'.
+	  (setq result (tramp-run-real-handler #'make-auto-save-file-name nil))
+	;; Protect against security hole.
+	(when (and (not tramp-allow-unsafe-temporary-files)
+		   (file-in-directory-p result temporary-file-directory)
+		   (zerop (or (tramp-compat-file-attribute-user-id
+			       (file-attributes filename 'integer))
+			      tramp-unknown-id-integer))
+		   (not (with-tramp-connection-property
+			    (tramp-get-process v) "unsafe-temporary-file"
+			  (yes-or-no-p
+			   (concat
+			    "Autosave file on local temporary directory, "
+			    "do you want to continue? ")))))
+	  (tramp-error v 'file-error "Unsafe autosave file name"))))))
 
 (defun tramp-subst-strs-in-string (alist string)
   "Replace all occurrences of the string FROM with TO in STRING.
@@ -5406,6 +5502,8 @@ Invokes `password-read' if available, `read-passwd' else."
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers))))
 
+(put #'tramp-read-passwd 'tramp-suppress-trace t)
+
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."
   (let ((method (tramp-file-name-method vec))
@@ -5419,6 +5517,8 @@ Invokes `password-read' if available, `read-passwd' else."
      `(:max 1 ,(and user-domain :user) ,user-domain
        :host ,host-port :port ,method))
     (password-cache-remove (tramp-make-tramp-file-name vec 'noloc 'nohop))))
+
+(put #'tramp-clear-passwd 'tramp-suppress-trace t)
 
 (defun tramp-time-diff (t1 t2)
   "Return the difference between the two times, in seconds.

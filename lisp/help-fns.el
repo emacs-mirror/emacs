@@ -126,29 +126,37 @@ with the current prefix.  The files are chosen according to
   :group 'help
   :version "26.3")
 
+(defun help--symbol-class (s)
+  "Return symbol class characters for symbol S."
+  (when (stringp s)
+    (setq s (intern-soft s)))
+  (concat
+   (when (fboundp s)
+     (concat
+      (cond
+       ((commandp s) "c")
+       ((eq (car-safe (symbol-function s)) 'macro) "m")
+       (t "f"))
+      (and (let ((flist (indirect-function s)))
+             (advice--p (if (eq 'macro (car-safe flist)) (cdr flist) flist)))
+           "!")
+      (and (get s 'byte-obsolete-info) "-")))
+   (when (boundp s)
+     (concat
+      (if (custom-variable-p s) "u" "v")
+      (and (local-variable-if-set-p s) "'")
+      (and (ignore-errors (not (equal (symbol-value s) (default-value s)))) "*")
+      (and (get s 'byte-obsolete-variable) "-")))
+   (and (facep s) "a")
+   (and (fboundp 'cl-find-class) (cl-find-class s) "t")))
+
 (defun help--symbol-completion-table-affixation (completions)
   (mapcar (lambda (c)
             (let* ((s (intern c))
                    (doc (condition-case nil (documentation s) (error nil)))
                    (doc (and doc (substring doc 0 (string-match "\n" doc)))))
               (list c (propertize
-                       (concat (cond ((commandp s)
-                                      "c") ; command
-                                     ((eq (car-safe (symbol-function s)) 'macro)
-                                      "m") ; macro
-                                     ((fboundp s)
-                                      "f") ; function
-                                     ((custom-variable-p s)
-                                      "u") ; user option
-                                     ((boundp s)
-                                      "v") ; variable
-                                     ((facep s)
-                                      "a") ; fAce
-                                     ((and (fboundp 'cl-find-class)
-                                           (cl-find-class s))
-                                      "t")  ; CL type
-                                     (" ")) ; something else
-                               " ")         ; prefix separator
+                       (format "%-4s" (help--symbol-class s))
                        'face 'completions-annotations)
                     (if doc (propertize (format " -- %s" doc)
                                         'face 'completions-annotations)
@@ -174,26 +182,47 @@ with the current prefix.  The files are chosen according to
 Functions on `help-fns-describe-function-functions' can use this
 to get buffer-local values.")
 
+(defun help-fns--describe-function-or-command-prompt (&optional want-command)
+  "Prompt for a function from `describe-function' or `describe-command'.
+If optional argument WANT-COMMAND is non-nil, prompt for an
+interactive command."
+  (let* ((fn (if want-command
+                 (caar command-history)
+               (function-called-at-point)))
+         (prompt (format-prompt (if want-command
+                                    "Describe command"
+                                  "Describe function")
+                                fn))
+         (enable-recursive-minibuffers t)
+         (val (completing-read
+               prompt
+               #'help--symbol-completion-table
+               (lambda (f) (if want-command
+                          (commandp f)
+                        (or (fboundp f) (get f 'function-documentation))))
+               t nil nil
+               (and fn (symbol-name fn)))))
+    (unless (equal val "")
+      (setq fn (intern val)))
+    ;; These error messages are intended to be less technical for the
+    ;; `describe-command' case, as they are directed at users that are
+    ;; not necessarily ELisp programmers.
+    (unless (and fn (symbolp fn))
+      (user-error (if want-command
+                      "You didn't specify a command's symbol"
+                    "You didn't specify a function symbol")))
+    (unless (or (fboundp fn) (get fn 'function-documentation))
+      (user-error (if want-command
+                      "Symbol is not a command: %s"
+                    "Symbol's function definition is void: %s")
+                  fn))
+    (list fn)))
+
 ;;;###autoload
 (defun describe-function (function)
   "Display the full documentation of FUNCTION (a symbol).
 When called from lisp, FUNCTION may also be a function object."
-  (interactive
-   (let* ((fn (function-called-at-point))
-          (enable-recursive-minibuffers t)
-          (val (completing-read
-                (format-prompt "Describe function" fn)
-                #'help--symbol-completion-table
-                (lambda (f) (or (fboundp f) (get f 'function-documentation)))
-                t nil nil
-                (and fn (symbol-name fn)))))
-     (unless (equal val "")
-       (setq fn (intern val)))
-     (unless (and fn (symbolp fn))
-       (user-error "You didn't specify a function symbol"))
-     (unless (or (fboundp fn) (get fn 'function-documentation))
-       (user-error "Symbol's function definition is void: %s" fn))
-     (list fn)))
+  (interactive (help-fns--describe-function-or-command-prompt))
 
   ;; We save describe-function-orig-buffer on the help xref stack, so
   ;; it is restored by the back/forward buttons.  'help-buffer'
@@ -223,9 +252,14 @@ When called from lisp, FUNCTION may also be a function object."
         (describe-function-1 function)
         (with-current-buffer standard-output
           ;; Return the text we displayed.
-          (buffer-string))))
-    ))
+          (buffer-string))))))
 
+;;;###autoload
+(defun describe-command (command)
+  "Display the full documentation of COMMAND (a symbol).
+When called from lisp, COMMAND may also be a function object."
+  (interactive (help-fns--describe-function-or-command-prompt 'is-command))
+  (describe-function command))
 
 ;; Could be this, if we make symbol-file do the work below.
 ;; (defun help-C-file-name (subr-or-var kind)
@@ -242,7 +276,9 @@ If we can't find the file name, nil is returned."
   (let ((docbuf (get-buffer-create " *DOC*"))
 	(name (if (eq 'var kind)
 		  (concat "V" (symbol-name subr-or-var))
-		(concat "F" (subr-name (advice--cd*r subr-or-var))))))
+		(concat "F" (if (symbolp subr-or-var)
+                                (symbol-name subr-or-var)
+                              (subr-name (advice--cd*r subr-or-var)))))))
     (with-current-buffer docbuf
       (goto-char (point-min))
       (if (eobp)
@@ -853,7 +889,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                                       nil t)
 	      (help-xref-button 1 'help-function real-def)))))
 
-      (when file-name
+      (if (not file-name)
+	  (with-current-buffer standard-output
+            (setq help-mode--current-data (list :symbol function)))
 	;; We used to add .el to the file name,
 	;; but that's completely wrong when the user used load-file.
 	(princ (format-message " in `%s'"
@@ -862,6 +900,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                                  (help-fns-short-filename file-name))))
 	;; Make a hyperlink to the library.
 	(with-current-buffer standard-output
+          (setq help-mode--current-data (list :symbol function
+                                              :file file-name))
 	  (save-excursion
 	    (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                 nil t)
@@ -996,12 +1036,12 @@ it is displayed along with the global value."
                 (format-prompt "Describe variable" (and (symbolp v) v))
                 #'help--symbol-completion-table
                 (lambda (vv)
-                  ;; In case the variable only exists in the buffer
-                  ;; the command we switch back to that buffer before
-                  ;; we examine the variable.
-                  (with-current-buffer orig-buffer
-                    (or (get vv 'variable-documentation)
-                        (and (boundp vv) (not (keywordp vv))))))
+                  (or (get vv 'variable-documentation)
+                      (and (not (keywordp vv))
+                           ;; Since the variable may only exist in the
+                           ;; original buffer, we have to look for it
+                           ;; there.
+                           (buffer-local-boundp vv orig-buffer))))
                 t nil nil
                 (if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
@@ -1036,7 +1076,10 @@ it is displayed along with the global value."
                                        "C source code"
                                      (help-fns-short-filename file-name))))
 		           (with-current-buffer standard-output
-		             (save-excursion
+                             (setq help-mode--current-data
+                                   (list :symbol variable
+                                         :file file-name))
+                             (save-excursion
 			       (re-search-backward (substitute-command-keys
                                                     "`\\([^`']+\\)'")
                                                    nil t)
@@ -1045,6 +1088,8 @@ it is displayed along with the global value."
 		           (if valvoid
 			       "It is void as a variable."
                              "Its "))
+	               (with-current-buffer standard-output
+                         (setq help-mode--current-data (list :symbol variable)))
                        (if valvoid
 		           " is void as a variable."
                          (substitute-command-keys "'s ")))))
@@ -1414,7 +1459,10 @@ If FRAME is omitted or nil, use the selected frame."
 		   (concat "\\(" customize-label "\\)") nil t)
 		  (help-xref-button 1 'help-customize-face f)))
 	      (setq file-name (find-lisp-object-file-name f 'defface))
-	      (when file-name
+	      (if (not file-name)
+                  (setq help-mode--current-data (list :symbol f))
+                (setq help-mode--current-data (list :symbol f
+                                                    :file file-name))
 		(princ (substitute-command-keys "Defined in `"))
 		(princ (help-fns-short-filename file-name))
 		(princ (substitute-command-keys "'"))
@@ -1704,7 +1752,9 @@ keymap value."
           (unless used-gentemp
             (princ (format-message "%S is a keymap variable" keymap))
             (if (not file-name)
-                (princ ".\n\n")
+                (progn
+                  (setq help-mode--current-data (list :symbol keymap))
+                  (princ ".\n\n"))
               (princ (format-message
                       " defined in `%s'.\n\n"
                       (if (eq file-name 'C-source)
@@ -1714,6 +1764,8 @@ keymap value."
                 (re-search-backward (substitute-command-keys
                                      "`\\([^`']+\\)'")
                                     nil t)
+                (setq help-mode--current-data (list :symbol keymap
+                                                    :file file-name))
                 (help-xref-button 1 'help-variable-def
                                   keymap file-name))))
           (when (and (not (equal "" doc)) doc)
@@ -1821,7 +1873,8 @@ documentation for the major and minor modes of that buffer."
 	(princ " mode")
 	(let* ((mode major-mode)
 	       (file-name (find-lisp-object-file-name mode nil)))
-	  (when file-name
+	  (if (not file-name)
+              (setq help-mode--current-data (list :symbol mode))
 	    (princ (format-message " defined in `%s'"
                                    (help-fns-short-filename file-name)))
 	    ;; Make a hyperlink to the library.
@@ -1829,6 +1882,8 @@ documentation for the major and minor modes of that buffer."
 	      (save-excursion
 		(re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                     nil t)
+                (setq help-mode--current-data (list :symbol mode
+                                                    :file file-name))
                 (help-xref-button 1 'help-function-def mode file-name)))))
         (let ((fundoc (help-split-fundoc (documentation major-mode) nil 'doc)))
           (with-current-buffer standard-output

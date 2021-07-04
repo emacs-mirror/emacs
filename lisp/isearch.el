@@ -404,7 +404,7 @@ A value of nil means highlight all matches shown on the screen."
 		 (integer :tag "Some"))
   :group 'lazy-highlight)
 
-(defcustom lazy-highlight-buffer-max-at-a-time 20
+(defcustom lazy-highlight-buffer-max-at-a-time 200 ; 20 (bug#48581)
   "Maximum matches to highlight at a time (for `lazy-highlight-buffer').
 Larger values may reduce Isearch's responsiveness to user input;
 smaller values make matches highlight slowly.
@@ -412,7 +412,7 @@ A value of nil means highlight all matches in the buffer."
   :type '(choice (const :tag "All" nil)
 		 (integer :tag "Some"))
   :group 'lazy-highlight
-  :version "27.1")
+  :version "28.1")
 
 (defcustom lazy-highlight-buffer nil
   "Controls the lazy-highlighting of the full buffer.
@@ -2538,7 +2538,7 @@ If search string is empty, just beep."
   "Read a string from the `kill-ring' and append it to the search string."
   (interactive)
   (with-isearch-suspended
-   (let ((string (read-from-kill-ring)))
+   (let ((string (read-from-kill-ring "Yank from kill-ring: ")))
      (if (and isearch-case-fold-search
               (eq 'not-yanks search-upper-case))
          (setq string (downcase string)))
@@ -3506,9 +3506,8 @@ Optional third argument, if t, means if fail just return nil (no error).
     (when pos1
       ;; When using multiple buffers isearch, switch to the new buffer here,
       ;; because `save-excursion' above doesn't allow doing it inside funcall.
-      (if (and multi-isearch-next-buffer-current-function
-	       (buffer-live-p multi-isearch-current-buffer))
-	  (switch-to-buffer multi-isearch-current-buffer))
+      (when multi-isearch-next-buffer-current-function
+        (multi-isearch-switch-buffer))
       (goto-char pos1)
       pos1)))
 

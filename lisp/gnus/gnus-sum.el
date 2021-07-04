@@ -879,8 +879,9 @@ this reverses the sort order.
 
 Ready-made functions include `gnus-article-sort-by-number',
 `gnus-article-sort-by-author', `gnus-article-sort-by-subject',
-`gnus-article-sort-by-date', `gnus-article-sort-by-random'
-and `gnus-article-sort-by-score'.
+`gnus-article-sort-by-date', `gnus-article-sort-by-score',
+`gnus-article-sort-by-rsv', `gnus-article-sort-by-newsgroups',
+and `gnus-article-sort-by-random'.
 
 When threading is turned on, the variable `gnus-thread-sort-functions'
 controls how articles are sorted."
@@ -892,6 +893,7 @@ controls how articles are sorted."
                           (function-item gnus-article-sort-by-date)
                           (function-item gnus-article-sort-by-score)
                           (function-item gnus-article-sort-by-rsv)
+                          (function-item gnus-article-sort-by-newsgroups)
                           (function-item gnus-article-sort-by-random)
                           (function :tag "other"))
                   (boolean :tag "Reverse order"))))
@@ -916,8 +918,8 @@ Ready-made functions include `gnus-thread-sort-by-number',
 `gnus-thread-sort-by-author', `gnus-thread-sort-by-recipient'
 `gnus-thread-sort-by-subject', `gnus-thread-sort-by-date',
 `gnus-thread-sort-by-score', `gnus-thread-sort-by-most-recent-number',
-`gnus-thread-sort-by-most-recent-date', `gnus-thread-sort-by-random',
-and `gnus-thread-sort-by-total-score' (see
+`gnus-thread-sort-by-most-recent-date', `gnus-thread-sort-by-newsgroups',
+`gnus-thread-sort-by-random', and `gnus-thread-sort-by-total-score' (see
 `gnus-thread-score-function').
 
 When threading is turned off, the variable
@@ -938,6 +940,7 @@ subthreads, customize `gnus-subthread-sort-functions'."
                    (function-item gnus-thread-sort-by-rsv)
                    (function-item gnus-thread-sort-by-most-recent-number)
                    (function-item gnus-thread-sort-by-most-recent-date)
+                   (function-item gnus-thread-sort-by-newsgroups)
                    (function-item gnus-thread-sort-by-random)
                    (function-item gnus-thread-sort-by-total-score)
                    (function :tag "other"))
@@ -961,6 +964,7 @@ according to the value of `gnus-thread-sort-functions'."
 		    (function-item gnus-thread-sort-by-score)
 		    (function-item gnus-thread-sort-by-most-recent-number)
 		    (function-item gnus-thread-sort-by-most-recent-date)
+                    (function-item gnus-thread-sort-by-newsgroups)
 		    (function-item gnus-thread-sort-by-random)
 		    (function-item gnus-thread-sort-by-total-score)
 		    (function :tag "other"))
@@ -1976,6 +1980,8 @@ increase the score of each group you read."
   "\C-c\C-s\C-i" gnus-summary-sort-by-score
   "\C-c\C-s\C-o" gnus-summary-sort-by-original
   "\C-c\C-s\C-r" gnus-summary-sort-by-random
+  "\C-c\C-s\C-u" gnus-summary-sort-by-newsgroups
+  "\C-c\C-s\C-x" gnus-summary-sort-by-extra
   "=" gnus-summary-expand-window
   "\C-x\C-s" gnus-summary-reselect-current-group
   "\M-g" gnus-summary-rescan-group
@@ -2774,7 +2780,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Hide marked" gnus-summary-limit-exclude-marks t]
 	 ["Show expunged" gnus-summary-limit-include-expunged t])
 	("Process Mark"
-	 ["Set mark" gnus-summary-mark-as-processable t]
+	 ["Toggle/Set mark" gnus-summary-mark-as-processable t]
 	 ["Remove mark" gnus-summary-unmark-as-processable t]
 	 ["Remove all marks" gnus-summary-unmark-all-processable t]
 	 ["Invert marks" gnus-uu-invert-processable t]
@@ -2831,6 +2837,8 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Sort by lines" gnus-summary-sort-by-lines t]
 	 ["Sort by characters" gnus-summary-sort-by-chars t]
 	 ["Sort by marks" gnus-summary-sort-by-marks t]
+	 ["Sort by newsgroup" gnus-summary-sort-by-newsgroups t]
+	 ["Sort by extra" gnus-summary-sort-by-extra t]
 	 ["Randomize" gnus-summary-sort-by-random t]
 	 ["Original sort" gnus-summary-sort-by-original t])
 	("Help"
@@ -5075,17 +5083,17 @@ using some other form will lead to serious barfage."
   (gnus-article-sort-by-author
    (gnus-thread-header h1)  (gnus-thread-header h2)))
 
+(defsubst gnus-article-sort-extract-extra (name header)
+  (let ((extract
+	 (funcall gnus-extract-address-components
+		  (or (cdr (assq name (mail-header-extra header)))
+		      ""))))
+    (or (car extract) (cadr extract))))
+
 (defsubst gnus-article-sort-by-recipient (h1 h2)
   "Sort articles by recipient."
-  (gnus-string<
-   (let ((extract (funcall
-		   gnus-extract-address-components
-		   (or (cdr (assq 'To (mail-header-extra h1))) ""))))
-     (or (car extract) (cadr extract)))
-   (let ((extract (funcall
-		   gnus-extract-address-components
-		   (or (cdr (assq 'To (mail-header-extra h2))) ""))))
-     (or (car extract) (cadr extract)))))
+  (let ((ex (lambda (h) (gnus-article-sort-extract-extra 'To h))))
+    (gnus-string< (funcall ex h1) (funcall ex h2))))
 
 (defun gnus-thread-sort-by-recipient (h1 h2)
   "Sort threads by root recipient."
@@ -5179,6 +5187,16 @@ Unscored articles will be counted as having a score of zero."
 (defun gnus-thread-sort-by-most-recent-date (h1 h2)
   "Sort threads such that the thread with the most recently dated article comes first."
   (> (gnus-thread-latest-date h1) (gnus-thread-latest-date h2)))
+
+(defsubst gnus-article-sort-by-newsgroups (h1 h2)
+  "Sort articles by newsgroups."
+  (let ((ex (lambda (h) (gnus-article-sort-extract-extra 'Newsgroups h))))
+    (gnus-string< (funcall ex h1) (funcall ex h2))))
+
+(defun gnus-thread-sort-by-newsgroups (h1 h2)
+  "Sort threads by root newsgroups."
+  (gnus-article-sort-by-newsgroups
+   (gnus-thread-header h1) (gnus-thread-header h2)))
 
 ; Since this is called not only to sort the top-level threads, but
 ; also in recursive sorts to order the articles within a thread, each
@@ -8247,7 +8265,7 @@ If NOT-MATCHING, excluding articles that have subjects that match a regexp."
 	(let ((articles (gnus-summary-find-matching
 			 (or header "subject") subject 'all nil nil
 			 not-matching)))
-	  (unless articles
+	  (unless (or articles not-matching)
 	    (error "Found no matches for \"%s\"" subject))
 	  (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8318,7 +8336,7 @@ To and Cc headers are checked.  You need to include them in
 				 (and (memq a to) a))
 			       cc)
 		     (nconc to cc))))
-	     (unless articles
+	     (unless (or articles not-matching)
 	       (error "Found no matches for \"%s\"" recipient))
 	     (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8374,7 +8392,7 @@ in `nnmail-extra-headers'."
 		     (nconc (if (eq to t) nil to)
 			    (if (eq cc t) nil cc)
 			    from))))
-	     (unless articles
+	     (unless (or articles not-matching)
 	       (error "Found no matches for \"%s\"" address))
 	     (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -8465,7 +8483,7 @@ articles that are younger than AGE days."
 	(let ((articles (gnus-summary-find-matching
 			 (cons 'extra header) regexp 'all nil nil
 			 not-matching)))
-	  (unless articles
+	  (unless (or articles not-matching)
 	    (error "Found no matches for \"%s\"" regexp))
 	  (gnus-summary-limit articles))
       (gnus-summary-position-point))))
@@ -10951,10 +10969,14 @@ number of articles marked is returned."
 	  (n (abs n)))
       (while (and
 	      (> n 0)
-	      (if unmark
-		  (gnus-summary-remove-process-mark
-		   (gnus-summary-article-number))
-		(gnus-summary-set-process-mark (gnus-summary-article-number)))
+	      (let ((article (gnus-summary-article-number)))
+		(if unmark
+		    (gnus-summary-remove-process-mark article)
+		  (if gnus-process-mark-toggle
+		      (if (memq article gnus-newsgroup-processable)
+			  (gnus-summary-remove-process-mark article)
+			(gnus-summary-set-process-mark article))
+		    (gnus-summary-set-process-mark article))))
 	      (zerop (gnus-summary-next-subject (if backward -1 1) nil t)))
 	(setq n (1- n)))
       (when (/= 0 n)
@@ -12118,6 +12140,12 @@ Argument REVERSE means reverse order."
   (interactive "P" gnus-summary-mode)
   (gnus-summary-sort 'marks reverse))
 
+(defun gnus-summary-sort-by-newsgroups (&optional reverse)
+  "Sort the summary buffer by newsgroups alphabetically.
+Argument REVERSE means reverse order."
+  (interactive "P" gnus-summary-mode)
+  (gnus-summary-sort 'newsgroups reverse))
+
 (defun gnus-summary-sort-by-original (&optional _reverse)
   "Sort the summary buffer using the default sorting method.
 Argument REVERSE means reverse order."
@@ -12128,6 +12156,24 @@ Argument REVERSE means reverse order."
     (gnus-summary-prepare)
     ;; Hide subthreads if needed.
     (gnus-summary-maybe-hide-threads)))
+
+(defun gnus-summary-sort-by-extra (&optional reverse)
+  "Sort the summary buffer using an extra header.
+Argument REVERSE means reverse order."
+  (interactive "P" gnus-summary-mode)
+  (let* ((extra-header
+	  (gnus-completing-read "Sort by extra header"
+	   (mapcar #'symbol-name gnus-extra-headers)
+	   t nil nil
+	   (symbol-name
+	    (car gnus-extra-headers))))
+	(header (downcase extra-header)))
+    (if (and (fboundp (intern
+		       (format "gnus-thread-sort-by-%s" header)))
+	     (fboundp
+	      (intern (format "gnus-article-sort-by-%s" header))))
+	(gnus-summary-sort header reverse)
+      (error "No sort function defined for header: %s" extra-header))))
 
 (defun gnus-summary-sort (predicate reverse)
   "Sort summary buffer by PREDICATE.  REVERSE means reverse order."

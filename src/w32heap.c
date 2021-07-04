@@ -269,7 +269,7 @@ init_heap (bool use_dynamic_heap)
 	}
 #endif
 
-      if (os_subtype == OS_9X)
+      if (os_subtype == OS_SUBTYPE_9X)
         {
           the_malloc_fn = malloc_after_dump_9x;
           the_realloc_fn = realloc_after_dump_9x;
@@ -312,7 +312,7 @@ init_heap (bool use_dynamic_heap)
 	}
       heap = s_pfn_Rtl_Create_Heap (0, data_region_base, 0, 0, NULL, &params);
 
-      if (os_subtype == OS_9X)
+      if (os_subtype == OS_SUBTYPE_9X)
         {
           fprintf (stderr, "Cannot dump Emacs on Windows 9X; exiting.\n");
           exit (-1);

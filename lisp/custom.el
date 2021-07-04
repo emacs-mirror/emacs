@@ -207,7 +207,22 @@ set to nil, as the value is no longer rogue."
     (put symbol 'custom-requests requests)
     ;; Do the actual initialization.
     (unless custom-dont-initialize
-      (funcall initialize symbol default))
+      (funcall initialize symbol default)
+      ;; If there is a value under saved-value that wasn't saved by the user,
+      ;; reset it: we used that property to stash the value, but we don't need
+      ;; it anymore.
+      ;; This can happen given the following:
+      ;; 1. The user loaded a theme that had a setting for an unbound
+      ;; variable, so we stashed the theme setting under the saved-value
+      ;; property in `custom-theme-recalc-variable'.
+      ;; 2. Then, Emacs evaluated the defcustom for the option
+      ;; (e.g., something required the file where the option is defined).
+      ;; If we don't reset it and the user later sets this variable via
+      ;; Customize, we might end up saving the theme setting in the custom-file.
+      ;; See the test `custom-test-no-saved-value-after-customizing-option'.
+      (let ((theme (caar (get symbol 'theme-value))))
+        (when (and theme (not (eq theme 'user)) (get symbol 'saved-value))
+          (put symbol 'saved-value nil))))
     (when buffer-local
       (make-variable-buffer-local symbol)))
   (run-hooks 'custom-define-hook)
@@ -1513,10 +1528,18 @@ See `custom-enabled-themes' for a list of enabled themes."
 	(let* ((prop   (car s))
 	       (symbol (cadr s))
 	       (val (assq-delete-all theme (get symbol prop))))
-          (custom-push-theme prop symbol theme 'reset)
+          (put symbol prop val)
 	  (cond
 	   ((eq prop 'theme-value)
-	    (custom-theme-recalc-variable symbol))
+            (custom-theme-recalc-variable symbol)
+            ;; We might have to reset the stashed value of the variable, if
+            ;; no other theme is customizing it.  Without this, loading a theme
+            ;; that has a setting for an unbound user option and then disabling
+            ;; it will leave this lingering setting for the option, and if then
+            ;; Emacs evaluates the defcustom the saved-value might be used to
+            ;; set the variable.  (Bug#20766)
+            (unless (get symbol 'theme-value)
+              (put symbol 'saved-value nil)))
 	   ((eq prop 'theme-face)
 	    ;; If the face spec specified by this theme is in the
 	    ;; saved-face property, reset that property.
@@ -1565,8 +1588,16 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
 (defun custom-theme-recalc-variable (variable)
   "Set VARIABLE according to currently enabled custom themes."
   (let ((valspec (custom-variable-theme-value variable)))
-    (if valspec
-	(put variable 'saved-value valspec)
+    ;; We used to save VALSPEC under the saved-value property unconditionally,
+    ;; but that is a recipe for trouble because we might end up saving session
+    ;; customizations if the user loads a theme.  (Bug#21355)
+    ;; It's better to only use the saved-value property to stash the value only
+    ;; if we really need to stash it (i.e., VARIABLE is void).
+    (condition-case nil
+        (default-toplevel-value variable) ; See if it doesn't fail.
+      (void-variable (when valspec
+                       (put variable 'saved-value valspec))))
+    (unless valspec
       (setq valspec (get variable 'standard-value)))
     (if (and valspec
 	     (or (get variable 'force-value)

@@ -190,8 +190,19 @@ This takes effect when first loading the `sgml-mode' library.")
   "Syntax table used in SGML mode.  See also `sgml-specials'.")
 
 (defconst sgml-tag-syntax-table
-  (let ((table (sgml-make-syntax-table sgml-specials)))
-    (dolist (char '(?\( ?\) ?\{ ?\} ?\[ ?\] ?$ ?% ?& ?* ?+ ?/))
+  (let ((table (sgml-make-syntax-table sgml-specials))
+	brackets)
+    (map-char-table
+     (lambda (key value)
+       (setq brackets (cons (list
+			     (if (consp key)
+				 (list (car key) (cdr key))
+			       key)
+			     value)
+			    brackets)))
+     (unicode-property-table-internal 'paired-bracket))
+    (setq brackets (delete-dups (flatten-tree brackets)))
+    (dolist (char (append brackets (list ?$ ?% ?& ?* ?+ ?/)))
       (modify-syntax-entry char "." table))
     (unless (memq ?' sgml-specials)
       ;; Avoid that skipping a tag backwards skips any "'" prefixing it.

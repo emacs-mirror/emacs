@@ -127,6 +127,13 @@ If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
 		 (repeat :tag "Argument List" :value ("") string))
   :version "25.1")
 
+(defcustom vc-git-log-switches nil
+  "String or list of strings specifying switches for Git log under VC."
+  :type '(choice (const :tag "None" nil)
+                 (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string))
+  :version "28.1")
+
 (defcustom vc-git-resolve-conflicts t
   "When non-nil, mark conflicted file as resolved upon saving.
 That is performed after all conflict markers in it have been
@@ -1131,6 +1138,8 @@ This prompts for a branch to merge from."
   :type 'boolean
   :version "26.1")
 
+(autoload 'vc-switches "vc")
+
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
@@ -1162,9 +1171,10 @@ If LIMIT is a revision string, use it as an end-revision."
 		(when shortlog
 		  `("--graph" "--decorate" "--date=short"
                     ,(format "--pretty=tformat:%s"
-			     (car vc-git-root-log-format))
-		    "--abbrev-commit"))
-		(when (numberp limit)
+                             (car vc-git-root-log-format))
+                    "--abbrev-commit"))
+                vc-git-log-switches
+                (when (numberp limit)
                   (list "-n" (format "%s" limit)))
 		(when start-revision
                   (if (and limit (not (numberp limit)))
@@ -1384,8 +1394,6 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
             (string-equal samp (decode-coding-string
                                 samp coding-system-for-read t)))
     (setq coding-system-for-read 'undecided)))
-
-(autoload 'vc-switches "vc")
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer _async)
   "Get a difference report using Git between two revisions of FILES."

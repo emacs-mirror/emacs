@@ -32,6 +32,10 @@ symbols (a.k.a.@: ``identifiers'') and their references.
 A mode for merging changes to program sources made on separate
 branches of development.
 @end ifnottex
+
+@item
+A minor-mode for highlighting bug references and visiting the
+referenced bug reports in their issue tracker.
 @end itemize
 
 If you are maintaining a large Lisp program, then in addition to the
@@ -49,6 +53,8 @@ Lisp Regression Testing}).
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
 @end ifnottex
+* Bug Reference::       Highlighting references to bug reports and browsing
+                          them in their issue trackers.
 @end menu
 
 @node Version Control
@@ -2657,6 +2663,10 @@ generate a tag.
 @item
 In Ruby code, @code{def} or @code{class} or @code{module} at the
 beginning of a line generate a tag.  Constants also generate tags.
+
+@item
+In Rust code, tags anything defined with @code{fn}, @code{enum},
+@code{struct} or @code{macro_rules!}.
 @end itemize
 
   You can also generate tags based on regexp matching (@pxref{Etags
@@ -3049,3 +3059,170 @@ the target should be built.
 @ifnottex
 @include emerge-xtra.texi
 @end ifnottex
+
+
+@node Bug Reference
+@section Bug Reference
+@cindex bug reference
+
+Most projects with a certain amount of users track bug reports in some
+issue tracking software which assigns each report a unique and short
+number or identifier.  Those are used to reference a given bug, e.g.,
+in a source code comment above the code fixing some bug, in
+documentation files, or in discussions on some mailinglist or IRC
+channel.
+
+@findex bug-reference-mode
+@findex bug-reference-prog-mode
+  The minor modes @code{bug-reference-mode} and
+@code{bug-reference-prog-mode} highlight such bug references and make
+it possible to follow them to the corresponding bug report on the
+project's issue tracker.  @code{bug-reference-prog-mode} is a variant
+of @code{bug-reference-mode} which highlights bug references only
+inside source code comments and strings.
+
+@vindex bug-reference-bug-regexp
+@vindex bug-reference-url-format
+  For its working, bug reference mode needs to know the syntax of bug
+references (@code{bug-reference-bug-regexp}), and the URL of the
+tracker where bug reports can be looked up
+(@code{bug-reference-url-format}).  Since those are typically
+different from project to project, it makes sense to specify them in
+@pxref{Directory Variables} or @pxref{File Variables}.
+
+For example, let's assume in our project, we usually write references
+to bug reports as bug#1234, or Bug-1234 and that this bug's page on
+the issue tracker is @url{https://project.org/issues/1234}, then
+these local variables section would do.
+
+@smallexample
+;; Local Variables:
+;; bug-reference-bug-regexp: "\\([Bb]ug[#-]\\)\\([0-9]+\\)"
+;; bug-reference-url-format: "https://project.org/issues/%s"
+;; End:
+@end smallexample
+
+The string captured by the second regexp group in
+@code{bug-reference-bug-regexp} is used to replace the @code{%s}
+template in the @code{bug-reference-url-format}.
+
+Note that @code{bug-reference-url-format} may also be a function in
+order to cater for more complex scenarios, e.g., when the part before
+the actual bug number has to be used to distinguish between issues and
+merge requests where each of them has a different URL.
+
+
+@heading Automatic Setup
+
+@vindex bug-reference-auto-setup-functions
+If @code{bug-reference-mode} is activated,
+@code{bug-reference-mode-hook} has been run and still
+@code{bug-reference-bug-regexp}, and @code{bug-reference-url-format}
+aren't both set, it'll try to setup suitable values for these two
+variables itself by calling the functions in
+@code{bug-reference-auto-setup-functions} one after the other until
+one is able to set the variables.
+
+@vindex bug-reference-setup-from-vc-alist
+@vindex bug-reference-setup-from-mail-alist
+@vindex bug-reference-setup-from-irc-alist
+  Right now, there are three types of setup functions.
+@enumerate
+@item
+Setup for version-controlled files configurable by the variable
+@code{bug-reference-setup-from-vc-alist}.  The default is able to
+setup GNU projects where @url{https://debbugs.gnu.org} is used as
+issue tracker, Github projects where both bugs and pull requests are
+referenced using the @code{#42} notation, and GitLab projects where
+bugs are references with @code{#17}, too, but merge requests use the
+@code{!18} notation.
+
+@item
+Setup for email guessing from mail folder/mbox names, and mail header
+values configurable by the variable
+@code{bug-reference-setup-from-mail-alist}.  The built-in news- and
+mailreader @ref{Gnus} and @ref{Rmail} are supported.
+
+@item
+Setup for IRC channels configurable by the variable
+@code{bug-reference-setup-from-irc-alist}.  The built-in IRC clients
+Rcirc, @xref{Top, Rcirc,, rcirc, The Rcirc Manual}, and ERC,
+@xref{Top, ERC,, erc, The ERC Manual}, are supported.
+@end enumerate
+
+For almost all of those modes, it's enough to simply enable
+@code{bug-reference-mode}, only Rmail requires a slightly different
+setup.
+
+@smallexample
+;; Use VC-based setup if file is under version control.
+(add-hook 'prog-mode-hook #'bug-reference-prog-mode)
+
+;; Gnus (summary & article buffers)
+(add-hook 'gnus-mode-hook #'bug-reference-mode)
+
+;; Rmail
+(add-hook 'rmail-show-message-hook #'bug-reference-mode-force-auto-setup)
+
+;; Rcirc
+(add-hook 'rcirc-mode-hook #'bug-reference-mode)
+
+;; ERC
+(add-hook 'erc-mode-hook #'bug-reference-mode)
+@end smallexample
+
+In the Rmail case, instead of the mode hook, the
+@code{rmail-show-message-hook} has to be used in combination with the
+function @code{bug-reference-mode-force-auto-setup} which activates
+@code{bug-reference-mode} and forces auto-setup.  The reason is that
+with Rmail all messages reside in the same buffer but the setup needs
+to be performed whenever another messages is displayed.
+
+
+@heading Adding support for third-party packages
+
+@vindex bug-reference-auto-setup-functions
+Adding support for bug-reference' auto-setup is usually quite
+straight-forward: write a setup function of zero arguments which
+gathers the required information (e.g., List-Id/To/From/Cc mail header
+values in the case of a MUA), and then calls one of the following
+helper functions:
+@itemize @bullet
+@item
+@code{bug-reference-maybe-setup-from-vc} which does the setup
+according to @code{bug-reference-setup-from-vc-alist},
+
+@item
+@code{bug-reference-maybe-setup-from-mail} which does the setup
+according to @code{bug-reference-setup-from-mail-alist},
+
+@item
+and @code{bug-reference-maybe-setup-from-irc} which does the setup
+according to @code{bug-reference-setup-from-irc-alist}.
+@end itemize
+A setup function should return non-nil if it could setup bug-reference
+mode which is the case if the last thing the function does is calling
+one of the helper functions above.
+
+Finally, the setup function has to be added to
+@code{bug-reference-auto-setup-functions}.
+
+Note that these auto-setup functions should check as a first step if
+they are applicable, e.g., by checking the @code{major-mode} value.
+
+
+@heading Integration with the debbugs package
+
+@findex debbugs-browse-mode
+If your project's issues are tracked on the server
+@url{https://debbugs.gnu.org}, you can browse and reply to reports
+directly in Emacs using the @code{debbugs} package, which can be
+downloaded via the Package Menu (@pxref{Packages}).  This package adds
+the minor mode @code{debbugs-browse-mode}, which can be activated on
+top of @code{bug-reference-mode} and @code{bug-reference-prog-mode} as
+follows:
+
+@smallexample
+(add-hook 'bug-reference-mode-hook 'debbugs-browse-mode)
+(add-hook 'bug-reference-prog-mode-hook 'debbugs-browse-mode)
+@end smallexample

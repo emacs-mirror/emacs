@@ -138,17 +138,24 @@ If this variable is set to t, moving left from the leftmost window in
 a frame will find the rightmost one, and similarly for the other
 directions.  The minibuffer is skipped over in up/down movements if it
 is inactive."
-  :type 'boolean
-  :group 'windmove)
+  :type 'boolean)
 
 (defcustom windmove-create-window nil
   "Whether movement off the edge of the frame creates a new window.
 If this variable is set to t, moving left from the leftmost window in
 a frame will create a new window on the left, and similarly for the other
-directions."
-  :type 'boolean
-  :group 'windmove
-  :version "27.1")
+directions.
+This variable may also be a function to be called in this circumstance
+by `windmove-do-window-select'.  The function should accept then as
+argument the DIRECTION targeted, an interactive ARG and a WINDOW
+corresponding to the currently selected window.  It should also return
+a valid window that `windmove-do-window-select' will select,
+or the symbol `no-select' to ignore that final selection."
+  :type '(choice
+          (const :tag "Don't create new windows" nil)
+          (const :tag "Create new windows" t)
+          (function :tag "Provide a function"))
+  :version "28.1")
 
 ;; If your Emacs sometimes places an empty column between two adjacent
 ;; windows, you may wish to set this delta to 2.
@@ -157,10 +164,17 @@ directions."
 Measured in characters either horizontally or vertically; setting this
 to a value larger than 1 may be useful in getting around window-
 placement bugs in old versions of Emacs."
-  :type 'number
-  :group 'windmove)
+  :type 'number)
 (make-obsolete-variable 'windmove-window-distance-delta
                         "no longer used." "27.1")
+
+(defcustom windmove-allow-all-windows nil
+  "Whether the windmove commands are allowed to target all type of windows.
+If this variable is set to non-nil, all windmove commmands will
+ignore the `no-other-window' parameter applied by `display-buffer-alist'
+or `set-window-parameter'."
+  :type 'boolean
+  :version "28.1")
 
 
 ;; Note:
@@ -342,7 +356,8 @@ WINDOW must be a live window and defaults to the selected one.
 Optional ARG, if negative, means to use the right or bottom edge of
 WINDOW as reference position, instead of `window-point'; if positive,
 use the left or top edge of WINDOW as reference point."
-  (window-in-direction dir window nil arg windmove-wrap-around t))
+  (window-in-direction dir window windmove-allow-all-windows
+                       arg windmove-wrap-around t))
 
 ;; Selects the window that's hopefully at the location returned by
 ;; `windmove-find-other-window', or screams if there's no window there.
@@ -350,19 +365,23 @@ use the left or top edge of WINDOW as reference point."
   "Move to the window at direction DIR as seen from WINDOW.
 DIR, ARG, and WINDOW are handled as by `windmove-find-other-window'.
 If no window is at direction DIR, an error is signaled.
-If `windmove-create-window' is non-nil, try to create a new window
+If `windmove-create-window' is a function, call that function with
+DIR, ARG and WINDOW.  If it is non-nil, try to create a new window
 in direction DIR instead."
   (let ((other-window (windmove-find-other-window dir arg window)))
     (when (and windmove-create-window
                (or (null other-window)
                    (and (window-minibuffer-p other-window)
                         (not (minibuffer-window-active-p other-window)))))
-      (setq other-window (split-window window nil dir)))
+      (setq other-window (if (functionp windmove-create-window)
+                             (funcall windmove-create-window dir arg window)
+                           (split-window window nil dir))))
     (cond ((null other-window)
            (user-error "No window %s from selected window" dir))
           ((and (window-minibuffer-p other-window)
                 (not (minibuffer-window-active-p other-window)))
            (user-error "Minibuffer is inactive"))
+          ((eq other-window 'no-select))
           (t
            (select-window other-window)))))
 
@@ -426,27 +445,72 @@ unless `windmove-create-window' is non-nil and a new window is created."
 ;; I don't think these bindings will work on non-X terminals; you
 ;; probably want to use different bindings in that case.
 
+(defvar windmove-mode-map (make-sparse-keymap)
+  "Map used by `windmove-install-defaults'.")
+
+(define-minor-mode windmove-mode
+  "Global minor mode for default windmove commands."
+  :keymap windmove-mode-map
+  :init-value t
+  :global t)
+
+(defun windmove-install-defaults (prefix modifiers alist &optional uninstall)
+  "Install keys as specified by ALIST.
+Every element of ALIST has the form (FN KEY), where KEY is
+appended to MODIFIERS, adding PREFIX to the beginning, before
+installing the key.  Previous bindings of FN are unbound.
+If UNINSTALL is non-nil, just remove the keys from ALIST."
+  (dolist (bind alist)
+    (dolist (old (where-is-internal (car bind) windmove-mode-map))
+      (define-key windmove-mode-map old nil))
+    (unless uninstall
+      (let ((key (vconcat (if (or (equal prefix [ignore])
+                                  (eq prefix 'none))
+                              nil prefix)
+                          (list (append modifiers (cdr bind))))))
+        (when (eq (key-binding key) #'self-insert-command)
+          (warn "Command %S is shadowing self-insert-key" (car bind)))
+        (let ((old-fn (lookup-key windmove-mode-map key)))
+          (when (functionp old-fn)
+            (warn "Overriding %S with %S" old-fn (car bind))))
+        (define-key windmove-mode-map key (car bind))))))
+
 ;;;###autoload
 (defun windmove-default-keybindings (&optional modifiers)
   "Set up keybindings for `windmove'.
 Keybindings are of the form MODIFIERS-{left,right,up,down},
 where MODIFIERS is either a list of modifiers or a single modifier.
+If MODIFIERS is `none', the keybindings will be directly bound to
+the arrow keys.
 Default value of MODIFIERS is `shift'."
   (interactive)
   (unless modifiers (setq modifiers 'shift))
+  (when (eq modifiers 'none) (setq modifiers nil))
   (unless (listp modifiers) (setq modifiers (list modifiers)))
-  (global-set-key (vector (append modifiers '(left)))  'windmove-left)
-  (global-set-key (vector (append modifiers '(right))) 'windmove-right)
-  (global-set-key (vector (append modifiers '(up)))    'windmove-up)
-  (global-set-key (vector (append modifiers '(down)))  'windmove-down))
+  (windmove-install-defaults nil modifiers
+                             '((windmove-left left)
+                               (windmove-right right)
+                               (windmove-up up)
+                               (windmove-down down))))
 
 
 ;;; Directional window display and selection
 
 (defcustom windmove-display-no-select nil
-  "Whether the window should be selected after displaying the buffer in it."
-  :type 'boolean
-  :group 'windmove
+  "Whether the window should be selected after displaying the buffer in it.
+If `nil', then the new window where the buffer is displayed will be selected.
+If `ignore', then don't select a window: neither the new nor the old window,
+thus allowing the next command to decide what window it selects.
+Other non-nil values will reselect the old window that was selected before.
+
+The value of this variable can be overridden by the prefix arg of the
+windmove-display-* commands that use `windmove-display-in-direction'.
+
+When `switch-to-buffer-obey-display-actions' is non-nil,
+`switch-to-buffer' commands are also supported."
+  :type '(choice (const :tag "Select new window" nil)
+                 (const :tag "Select old window" t)
+                 (const :tag "Don't select a window" ignore))
   :version "27.1")
 
 (defun windmove-display-in-direction (dir &optional arg)
@@ -454,11 +518,17 @@ Default value of MODIFIERS is `shift'."
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
 Create a new window if there is no window in that direction.
-By default, select the window with a displayed buffer.
-If prefix ARG is `C-u', reselect a previously selected window.
-If `windmove-display-no-select' is non-nil, this command doesn't
-select the window with a displayed buffer, and the meaning of
-the prefix argument is reversed.
+
+By default, select the new window with a displayed buffer.
+If `windmove-display-no-select' is `ignore', then allow the next command
+to decide what window it selects.  With other non-nil values of
+`windmove-display-no-select', this function reselects
+a previously selected old window.
+
+If prefix ARG is `C-u', reselect a previously selected old window.
+If `windmove-display-no-select' is non-nil, the meaning of
+the prefix argument is reversed and it selects the new window.
+
 When `switch-to-buffer-obey-display-actions' is non-nil,
 `switch-to-buffer' commands are also supported."
   (let ((no-select (xor (consp arg) windmove-display-no-select)))
@@ -483,42 +553,47 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
                        ((eq dir 'same-window)
                         (selected-window))
                        (t (window-in-direction
-                           dir nil nil
+                           dir nil windmove-allow-all-windows
                            (and arg (prefix-numeric-value arg))
                            windmove-wrap-around 'nomini)))))
          (unless window
            (setq window (split-window nil nil dir) type 'window))
          (cons window type)))
      (lambda (old-window new-window)
-       (when (window-live-p (if no-select old-window new-window))
+       (when (and (not (eq windmove-display-no-select 'ignore))
+                  (window-live-p (if no-select old-window new-window)))
          (select-window (if no-select old-window new-window))))
      (format "[display-%s]" dir))))
 
 ;;;###autoload
 (defun windmove-display-left (&optional arg)
   "Display the next buffer in window to the left of the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'left arg))
 
 ;;;###autoload
 (defun windmove-display-up (&optional arg)
   "Display the next buffer in window above the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'up arg))
 
 ;;;###autoload
 (defun windmove-display-right (&optional arg)
   "Display the next buffer in window to the right of the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'right arg))
 
 ;;;###autoload
 (defun windmove-display-down (&optional arg)
   "Display the next buffer in window below the current one.
-See the logic of the prefix ARG in `windmove-display-in-direction'."
+See the logic of the prefix ARG and `windmove-display-no-select'
+in `windmove-display-in-direction'."
   (interactive "P")
   (windmove-display-in-direction 'down arg))
 
@@ -546,17 +621,21 @@ See the logic of the prefix ARG in `windmove-display-in-direction'."
 Keys are bound to commands that display the next buffer in the specified
 direction.  Keybindings are of the form MODIFIERS-{left,right,up,down},
 where MODIFIERS is either a list of modifiers or a single modifier.
+If MODIFIERS is `none', the keybindings will be directly bound to
+the arrow keys.
 Default value of MODIFIERS is `shift-meta'."
   (interactive)
   (unless modifiers (setq modifiers '(shift meta)))
+  (when (eq modifiers 'none) (setq modifiers nil))
   (unless (listp modifiers) (setq modifiers (list modifiers)))
-  (global-set-key (vector (append modifiers '(left)))  'windmove-display-left)
-  (global-set-key (vector (append modifiers '(right))) 'windmove-display-right)
-  (global-set-key (vector (append modifiers '(up)))    'windmove-display-up)
-  (global-set-key (vector (append modifiers '(down)))  'windmove-display-down)
-  (global-set-key (vector (append modifiers '(?0)))    'windmove-display-same-window)
-  (global-set-key (vector (append modifiers '(?f)))    'windmove-display-new-frame)
-  (global-set-key (vector (append modifiers '(?t)))    'windmove-display-new-tab))
+  (windmove-install-defaults nil modifiers
+                             '((windmove-display-left left)
+                               (windmove-display-right right)
+                               (windmove-display-up up)
+                               (windmove-display-down down)
+                               (windmove-display-same-window ?0)
+                               (windmove-display-new-frame ?f)
+                               (windmove-display-new-tab ?t))))
 
 
 ;;; Directional window deletion
@@ -568,8 +647,8 @@ With `M-0' prefix, delete the selected window and
 select the window at direction DIR.
 When `windmove-wrap-around' is non-nil, takes the window
 from the opposite side of the frame."
-  (let ((other-window (window-in-direction dir nil nil arg
-                                           windmove-wrap-around 'nomini)))
+  (let ((other-window (window-in-direction dir nil windmove-allow-all-windows
+                                           arg windmove-wrap-around 'nomini)))
     (cond ((null other-window)
            (user-error "No window %s from selected window" dir))
           (t
@@ -618,16 +697,22 @@ select the window that was below the current one."
 Keys are bound to commands that delete windows in the specified
 direction.  Keybindings are of the form PREFIX MODIFIERS-{left,right,up,down},
 where PREFIX is a prefix key and MODIFIERS is either a list of modifiers or
-a single modifier.  Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
+a single modifier.
+If PREFIX is `none', no prefix is used. If MODIFIERS is `none', the keybindings
+are directly bound to the arrow keys.
+Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
   (interactive)
   (unless prefix (setq prefix '(?\C-x)))
+  (when (eq prefix 'none) (setq prefix nil))
   (unless (listp prefix) (setq prefix (list prefix)))
   (unless modifiers (setq modifiers '(shift)))
+  (when (eq modifiers 'none) (setq modifiers nil))
   (unless (listp modifiers) (setq modifiers (list modifiers)))
-  (global-set-key (vector prefix (append modifiers '(left)))  'windmove-delete-left)
-  (global-set-key (vector prefix (append modifiers '(right))) 'windmove-delete-right)
-  (global-set-key (vector prefix (append modifiers '(up)))    'windmove-delete-up)
-  (global-set-key (vector prefix (append modifiers '(down)))  'windmove-delete-down))
+  (windmove-install-defaults prefix modifiers
+                             '((windmove-delete-left left)
+                               (windmove-delete-right right)
+                               (windmove-delete-up up)
+                               (windmove-delete-down down))))
 
 
 ;;; Directional window swap states
@@ -636,8 +721,8 @@ a single modifier.  Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
   "Swap the states of the selected window and the window at direction DIR.
 When `windmove-wrap-around' is non-nil, takes the window
 from the opposite side of the frame."
-  (let ((other-window (window-in-direction dir nil nil nil
-                                           windmove-wrap-around 'nomini)))
+  (let ((other-window (window-in-direction dir nil windmove-allow-all-windows
+                                           nil windmove-wrap-around 'nomini)))
     (cond ((or (null other-window) (window-minibuffer-p other-window))
            (user-error "No window %s from selected window" dir))
           (t
@@ -673,14 +758,99 @@ from the opposite side of the frame."
 Keys are bound to commands that swap the states of the selected window
 with the window in the specified direction.  Keybindings are of the form
 MODIFIERS-{left,right,up,down}, where MODIFIERS is either a list of modifiers
-or a single modifier.  Default value of MODIFIERS is `shift-super'."
+or a single modifier.
+If MODIFIERS is `none', the keybindings will be directly bound to the
+arrow keys.
+Default value of MODIFIERS is `shift-super'."
   (interactive)
   (unless modifiers (setq modifiers '(shift super)))
+  (when (eq modifiers 'none) (setq modifiers nil))
   (unless (listp modifiers) (setq modifiers (list modifiers)))
-  (global-set-key (vector (append modifiers '(left)))  'windmove-swap-states-left)
-  (global-set-key (vector (append modifiers '(right))) 'windmove-swap-states-right)
-  (global-set-key (vector (append modifiers '(up)))    'windmove-swap-states-up)
-  (global-set-key (vector (append modifiers '(down)))  'windmove-swap-states-down))
+  (windmove-install-defaults nil modifiers
+                             '((windmove-swap-states-left left)
+                               (windmove-swap-states-right right)
+                               (windmove-swap-states-up up)
+                               (windmove-swap-states-down down))))
+
+
+
+(defconst windmove--default-keybindings-type
+  `(choice (const :tag "Don't bind" nil)
+           (cons :tag "Bind using"
+                 (key-sequence :tag "Prefix")
+                 (set :tag "Modifier"
+                      :greedy t
+                      ;; See `(elisp) Keyboard Events'
+                      (const :tag "Meta" meta)
+                      (const :tag "Control" control)
+                      (const :tag "Shift" shift)
+                      (const :tag "Hyper" hyper)
+                      (const :tag "Super" super)
+                      (const :tag "Alt" alt))))
+  "Customisation type for windmove modifiers.")
+
+(defcustom windmove-default-keybindings nil
+  "Default keybindings for regular windmove commands.
+See `windmove-default-keybindings' for more detail."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-left left)
+            (windmove-right right)
+            (windmove-up up)
+            (windmove-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1")
+
+(defcustom windmove-display-default-keybindings nil
+  "Default keybindings for windmove directional buffer display commands.
+See `windmove-display-default-keybindings' for more detail."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-display-left left)
+            (windmove-display-right right)
+            (windmove-display-up up)
+            (windmove-display-down down)
+            (windmove-display-same-window ?0)
+            (windmove-display-new-frame ?f)
+            (windmove-display-new-tab ?t))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1")
+
+(defcustom windmove-delete-default-keybindings nil
+  "Default keybindings for windmove directional window deletion commands.
+See `windmove-delete-default-keybindings' for more detail."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-delete-left left)
+            (windmove-delete-right right)
+            (windmove-delete-up up)
+            (windmove-delete-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1")
+
+(defcustom windmove-swap-states-default-keybindings nil
+  "Default keybindings for windmove's directional window swap-state commands.
+See `windmove-swap-states-default-keybindings' for more detail."
+  :set (lambda (sym val)
+         (windmove-install-defaults
+          (car val) (cdr val)
+          '((windmove-swap-states-left left)
+            (windmove-swap-states-right right)
+            (windmove-swap-states-up up)
+            (windmove-swap-states-down down))
+          (null val))
+         (set-default sym val))
+  :type windmove--default-keybindings-type
+  :version "28.1")
 
 
 (provide 'windmove)

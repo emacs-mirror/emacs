@@ -202,7 +202,7 @@ $(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
 # regeneration of all these files.
 .PHONY: autoloads-force
 autoloads-force:
-	rm loaddefs.el
+	rm -f $(lisp)/loaddefs.el
 	$(MAKE) autoloads
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
@@ -274,7 +274,7 @@ $(THEFILE)c:
 ifeq ($(HAVE_NATIVE_COMP),yes)
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-l comp -f byte-compile-refresh-preloaded \
-		-f batch-byte-native-compile-for-bootstrap $(THEFILE)
+		-f batch-byte+native-compile $(THEFILE)
 else
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-l bytecomp -f byte-compile-refresh-preloaded \
@@ -295,7 +295,7 @@ endif
 ifeq ($(HAVE_NATIVE_COMP),yes)
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
-	-l comp -f batch-byte-native-compile-for-bootstrap $<
+	-l comp -f batch-byte+native-compile $<
 else
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $<
@@ -467,7 +467,7 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/diary-loaddefs.el
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-.PHONY: bootstrap-clean distclean maintainer-clean extraclean
+.PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
 	find $(lisp) -name '*.elc' $(FIND_DELETE)
@@ -478,12 +478,6 @@ distclean:
 
 maintainer-clean: distclean bootstrap-clean
 	rm -f TAGS
-
-extraclean: bootstrap-clean distclean
-	-for file in $(loaddefs); do rm -f $${file}~; done
-	-rm -f $(lisp)/loaddefs.el~
-	-find $(lisp) -name '*~' $(FIND_DELETE)
-	-find $(lisp) -name '#*' $(FIND_DELETE)
 
 .PHONY: check-declare
 

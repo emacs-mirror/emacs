@@ -5432,6 +5432,30 @@ buffer with overlapping strings."
     (run-python nil nil 'show)
     (should (eq buffer (current-buffer)))))
 
+(ert-deftest python-tests--fill-long-first-line ()
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "def asdf():
+    \"\"\"123 123 123 123 123 123 123 123 123 123 123 123 123 SHOULDBEWRAPPED 123 123 123 123
+
+    \"\"\"
+    a = 1
+")
+      (python-mode)
+      (goto-char (point-min))
+      (forward-line 1)
+      (end-of-line)
+      (fill-paragraph)
+      (buffer-substring-no-properties (point-min) (point-max)))
+    "def asdf():
+    \"\"\"123 123 123 123 123 123 123 123 123 123 123 123 123
+    SHOULDBEWRAPPED 123 123 123 123
+
+    \"\"\"
+    a = 1
+")))
+
 (provide 'python-tests)
 
 ;; Local Variables:

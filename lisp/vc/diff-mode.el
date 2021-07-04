@@ -1767,13 +1767,26 @@ char-offset in TEXT."
 	    (delete-region (point-min) keep))
 	  ;; Remove line-prefix characters, and unneeded lines (unified diffs).
           ;; Also skip lines like "\ No newline at end of file"
-	  (let ((kill-chars (list (if destp ?- ?+) ?\\)))
+	  (let ((kill-chars (list (if destp ?- ?+) ?\\))
+                curr-char last-char)
 	    (goto-char (point-min))
 	    (while (not (eobp))
-	      (if (memq (char-after) kill-chars)
-		  (delete-region (point) (progn (forward-line 1) (point)))
+	      (setq curr-char (char-after))
+	      (if (memq curr-char kill-chars)
+		  (delete-region
+		   ;; Check for "\ No newline at end of file"
+		   (if (and (eq curr-char ?\\)
+			    (not (eq last-char (if destp ?- ?+)))
+			    (save-excursion
+			      (forward-line 1)
+			      (or (eobp) (and (eq last-char ?-)
+					      (eq (char-after) ?+)))))
+		       (max (1- (point)) (point-min))
+		     (point))
+		   (progn (forward-line 1) (point)))
 		(delete-char num-pfx-chars)
-		(forward-line 1)))))
+		(forward-line 1))
+	      (setq last-char curr-char))))
 
 	(let ((text (buffer-substring-no-properties (point-min) (point-max))))
 	  (if char-offset (cons text (- (point) (point-min))) text))))))
@@ -2252,17 +2265,20 @@ Call FUN with two args (BEG and END) for each hunk."
       ;; same hunk.
       (goto-char (next-single-char-property-change
                   (point) 'diff--font-lock-refined nil max)))
-    (diff--iterate-hunks
-     max
-     (lambda (beg end)
-       (unless (get-char-property beg 'diff--font-lock-refined)
-         (diff--refine-hunk beg end)
-         (let ((ol (make-overlay beg end)))
-           (overlay-put ol 'diff--font-lock-refined t)
-           (overlay-put ol 'diff-mode 'fine)
-           (overlay-put ol 'evaporate t)
-           (overlay-put ol 'modification-hooks
-                        '(diff--overlay-auto-delete))))))))
+    ;; Ignore errors that diff cannot be found so that custom font-lock
+    ;; keywords after `diff--font-lock-refined' can still be evaluated.
+    (ignore-error file-missing
+      (diff--iterate-hunks
+       max
+       (lambda (beg end)
+         (unless (get-char-property beg 'diff--font-lock-refined)
+           (diff--refine-hunk beg end)
+           (let ((ol (make-overlay beg end)))
+             (overlay-put ol 'diff--font-lock-refined t)
+             (overlay-put ol 'diff-mode 'fine)
+             (overlay-put ol 'evaporate t)
+             (overlay-put ol 'modification-hooks
+                          '(diff--overlay-auto-delete)))))))))
 
 (defun diff--overlay-auto-delete (ol _after _beg _end &optional _len)
   (delete-overlay ol))

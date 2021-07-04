@@ -305,6 +305,10 @@ Being on a `#include' line pulls in that file.
 If optional IN-OTHER-WINDOW is non-nil, find the file in the other window.
 If optional IGNORE-INCLUDE is non-nil, ignore being on `#include' lines.
 
+If optional EVENT is non-nil (default `last-nonmenu-event', move
+point to the end position of that event before calling the
+various ff-* hooks.
+
 Variables of interest include:
 
  - `ff-case-fold-search'
@@ -351,10 +355,16 @@ Variables of interest include:
  - `ff-file-created-hook'
    List of functions to be called if the other file has been created."
   (interactive (list current-prefix-arg nil last-nonmenu-event))
-  (save-excursion
+  ;; We want to preserve point in the current buffer. But the point of
+  ;; ff-find-the-other-file is to make the the other file buffer
+  ;; current, so we can't use save-excursion here (see bug 48535).
+  (let ((start-buffer (current-buffer))
+        (start-point (point)))
     (posn-set-point (event-end event))
     (let ((ff-ignore-include ignore-include))
-      (ff-find-the-other-file in-other-window))))
+      (ff-find-the-other-file in-other-window))
+    (with-current-buffer start-buffer
+      (goto-char start-point))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support functions

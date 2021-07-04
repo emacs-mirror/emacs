@@ -361,7 +361,7 @@ it does nothing.  It always returns @var{function}.
   These features permit you to write code to be evaluated during
 compilation of a program.
 
-@defspec eval-and-compile body@dots{}
+@defmac eval-and-compile body@dots{}
 This form marks @var{body} to be evaluated both when you compile the
 containing code and when you run it (whether compiled or not).
 
@@ -386,9 +386,9 @@ If functions are defined programmatically (with @code{fset} say), then
 @code{eval-and-compile} can be used to have that done at compile-time
 as well as run-time, so calls to those functions are checked (and
 warnings about ``not known to be defined'' suppressed).
-@end defspec
+@end defmac
 
-@defspec eval-when-compile body@dots{}
+@defmac eval-when-compile body@dots{}
 This form marks @var{body} to be evaluated at compile time but not when
 the compiled program is loaded.  The result of evaluation by the
 compiler becomes a constant which appears in the compiled program.  If
@@ -434,7 +434,7 @@ with other versions of Emacs.
 Lisp idiom @code{(eval-when (compile eval) @dots{})}.  Elsewhere, the
 Common Lisp @samp{#.} reader macro (but not when interpreting) is closer
 to what @code{eval-when-compile} does.
-@end defspec
+@end defmac
 
 @node Compiler Errors
 @section Compiler Errors
@@ -793,3 +793,251 @@ The @code{silly-loop} function is somewhat more complex:
 17  return                ; @r{Return value of the top of stack.}
 @end group
 @end example
+
+@node Native Compilation
+@chapter Compilation of Lisp to Native Code
+@cindex native compilation
+@cindex compilation to native code (Emacs Lisp)
+
+@cindex native code
+  In addition to the byte-compilation, described in @ref{Byte
+Compilation, the previous chapter}, Emacs can also optionally compile
+Lisp function definitions into a true compiled code, known as
+@dfn{native code}.  This feature uses the @file{libgccjit} library,
+which is part of the GCC distribution, and requires that Emacs be
+built with support for using that library.  It also requires to have
+GCC and Binutils (the assembler and linker) available on your system
+for you to be able to native-compile Lisp code.
+
+@vindex native-compile@r{, a Lisp feature}
+  To determine whether the current Emacs process can produce and load
+natively-compiled Lisp code, test whether the @code{native-compile}
+feature is available (@pxref{Named Features}).  Alternatively, call
+@code{native-comp-available-p} (@pxref{Native-Compilation Functions}).
+
+  Unlike byte-compiled code, natively-compiled Lisp code is executed
+directly by the machine's hardware, and therefore runs at full speed
+that the host CPU can provide.  The resulting speedup generally
+depends on what the Lisp code does, but is usually 2.5 to 5 times
+faster than the corresponding byte-compiled code.
+
+  Since native code is generally incompatible between different
+systems, the natively-compiled code is @emph{not} transportable from
+one machine to another, it can only be used on the same machine where
+it was produced or on very similar ones (having the same CPU and
+run-time libraries).  The transportability of natively-compiled code
+is the same as that of shared libraries (@file{.so} or @file{.dll}
+files).
+
+  Libraries of natively-compiled code include crucial dependencies on
+Emacs Lisp primitives (@pxref{What Is a Function}) and their calling
+conventions, and thus Emacs usually won't load natively-compiled code
+produced by earlier or later Emacs versions; native compilation of the
+same Lisp code by a different Emacs version will usually produce a
+natively-compiled library under a unique file name that only that
+version of Emacs will be able to load.  However, the use of unique
+file names allows to have in the same directory several versions of
+the same Lisp library natively-compiled by several different versions
+of Emacs.
+
+@vindex no-native-compile
+  A non-@code{nil} file-local variable binding of
+@code{no-byte-compile} (@pxref{Byte Compilation}) also disables the
+native compilation of that file.  In addition, a similar variable
+@code{no-native-compile} disables just the native compilation of the
+file.  If both @code{no-byte-compile} and @code{no-native-compile} are
+specified, the former takes precedence.
+
+@menu
+* Native-Compilation Functions::  Functions to natively-compile Lisp.
+* Native-Compilation Variables::  Variables controlling native compilation.
+@end menu
+
+@node Native-Compilation Functions
+@section Native-Compilation Functions
+@cindex native-compilation functions
+
+   Native-Compilation is implemented as a side effect of
+byte-compilation (@pxref{Byte Compilation}).  Thus, compiling Lisp
+code natively always produces its byte code as well, and therefore all
+the rules and caveats of preparing Lisp code for byte compilation
+(@pxref{Compilation Functions}) are valid for native-compilation as
+well.
+
+   You can natively-compile either a single function or macro
+definition, or a whole file of Lisp code, with the
+@code{native-compile} function.  Natively-compiling a file will
+produce both the corresponding @file{.elc} file with byte code and the
+@file{.eln} file with native code.
+
+@findex native-comp-limple-mode
+@vindex native-comp-verbose
+  Native compilation might produce warning or error messages; these
+are normally recorded in the buffer called
+@file{*Native-compile-Log*}.  In interactive sessions, it uses the
+special LIMPLE mode (@code{native-comp-limple-mode}), which sets up
+@code{font-lock} as appropriate for this log, and is otherwise the
+same as Fundamental mode.  Logging of messages resulting from
+native-compilation can be controlled by the @code{native-comp-verbose}
+variable (@pxref{Native-Compilation Variables}).
+
+  When Emacs is run non-interactively, messages produced by
+native-compilation are reported by calling @code{message}
+(@pxref{Displaying Messages}), and are usually displayed on the
+standard error stream of the terminal from which Emacs was invoked.
+
+@defun native-compile function-or-file &optional output
+This function compiles @var{function-or-file} into native code.  The
+argument @var{function-or-file} can be a function symbol, a Lisp form,
+or a name (a string) of the file which contains the Emacs Lisp source
+code to compile.  If the optional argument @var{output} is provided,
+it must be a string specifying the name of the file to write the
+compiled code into.  Otherwise, if @var{function-or-file} is a
+function or a Lisp form, this function returns the compiled object,
+and if @var{function-or-file} is a file name, the function returns the
+full absolute name of the file it created for the compiled code.  The
+output file is by default given the @file{.eln} extension.
+
+This function runs the final phase of the native compilation, which
+invokes GCC via @file{libgccjit}, in a separate subprocess, which
+invokes the same Emacs executable as the process that called this
+function.
+@end defun
+
+@defun batch-native-compile
+This function runs native-compilation on files specified on the Emacs
+command line in batch mode.  It must be used only in a batch execution
+of Emacs, as it kills Emacs upon completion of the compilation.  If
+one or more of the files fail to compile, the Emacs process will
+attempt to compile all the other files, and will terminate with a
+non-zero status code.
+@end defun
+
+Native compilation can be run entirely asynchronously, in a subprocess
+of the main Emacs process.  This leaves the main Emacs process free to
+use while the compilation runs in the background.  This is the method
+used by Emacs to natively-compile any Lisp file or byte-compiled Lisp
+file that is loaded into Emacs, when no natively-compiled file for it
+is available.
+
+@defun native-compile-async files &optional recursively load selector
+This function compiles the named @var{files} asynchronously.  The
+argument @var{files} should be a single file name (a string) or a list
+of one or more file and/or directory names.  If directories are
+present in the list, the optional argument @var{recursively} should be
+non-@code{nil} to cause the compilation to recurse into those
+directories.  If @var{load} is non-@code{nil}, Emacs will load each
+file that it succeeded to compile.  The optional argument
+@var{selector} allows control of which of @var{files} will be
+compiled; it can have one of the following values:
+
+@table @asis
+@item @code{nil} or omitted
+Select all the files and directories in @var{files}.
+@item a regular expression string
+Select the files and directories whose names match the regexp.
+@item a function
+A predicate function, which will be called with each file and
+directory in @var{files}, and should return non-@code{nil} if the file
+or the directory should be selected for compilation.
+@end table
+
+On systems with multiple CPU execution units, when @var{files} names
+more than one file, this function will normally start several
+compilation subprocesses in parallel, under the control of
+@code{native-comp-async-jobs-number} (@pxref{Native-Compilation
+Variables}).
+@end defun
+
+  The following function allows Lisp programs to test whether
+native-compilation is available at runtime.
+
+@defun native-comp-available-p
+This function returns non-@code{nil} if the running Emacs process has
+the native-compilation support compiled into it.  On systems that load
+@file{libgccjit} dynamically, it also makes sure that library is
+available and can be loaded.  Lisp programs that need to know up front
+whether native-compilation is available should use this predicate.
+@end defun
+
+@node Native-Compilation Variables
+@section Native-Compilation Variables
+@cindex native-compilation variables
+
+  This section documents the variables that control
+native-compilation.
+
+@defopt native-comp-speed
+This variable specifies the optimization level for native compilation.
+Its value should be a number between @minus{}1 and 3.  Values between
+0 and 3 specify the optimization levels equivalent to the
+corresponding compiler @option{-O0}, @option{-O1}, etc.@: command-line
+options of the compiler.  The value @minus{}1 means disable
+native-compilation; functions and files will be only byte-compiled.
+The default value is 2.
+@end defopt
+
+@defopt native-comp-debug
+This variable specifies the level of debugging information produced by
+native-compilation.  Its value should be a number between zero and 3,
+with the following meaning:
+
+@table @asis
+@item 0
+No debugging output.  This is the default.
+@item 1
+Emit debugging symbols with the native code.  This allows easier
+debugging of the native code with debuggers such as @command{gdb}.
+@item 2
+Like 1, and in addition dump pseudo-C code.
+@item 3
+Like 2, and in addition dump the GCC intermediate passes and
+@file{libgccjit} log file.
+@end table
+@end defopt
+
+@defopt native-comp-verbose
+This variable controls the verbosity of native-compilation by
+suppressing some or all of the log messages emitted by it.  If its
+value is zero, the default, all of the log messages are suppressed.
+Setting it to a value between 1 and 3 will allow logging of the
+messages whose level is above the value.  The values have the
+following interpretations:
+
+@table @asis
+@item 0
+No logging.  This is the default.
+@item 1
+Log the final @acronym{LIMPLE} representation of the code.
+@item 2
+Log the @acronym{LAP}, the final @acronym{LIMPLE}, and some additional
+pass info.
+@item 3
+Maximum verbosity: log everything.
+@end table
+@end defopt
+
+@defopt native-comp-async-jobs-number
+This variable determines the maximum number of native-compilation
+subprocesses that will be started simultaneously.  It should be a
+non-negative number.  The default value is zero, which means use half
+the number of the CPU execution units, or 1 if the CPU has only one
+execution unit.
+@end defopt
+
+@defopt native-comp-async-report-warnings-errors
+If this variable's value is non-@code{nil}, warnings and errors from
+asynchronous native-compilation subprocesses are reported in the main
+Emacs session in a buffer named @file{*Warnings*}.  The default value
+@code{t} means display the resulting buffer.  To log warnings without
+popping up the @file{*Warnings*} buffer, set this variable to
+@code{silent}.
+@end defopt
+
+@defopt native-comp-async-query-on-exit
+If this variable's value is non-nil, Emacs will query upon exiting
+whether to exit and kill any asynchronous native-compilation
+subprocesses that are still running, thus preventing the corresponding
+@file{.eln} files from being written.  If the value is @code{nil}, the
+default, Emacs will kill these subprocesses without querying.
+@end defopt

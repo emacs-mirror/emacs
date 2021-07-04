@@ -1700,7 +1700,7 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
     return;
 
   /* Search eln in the eln-cache directories.  */
-  Lisp_Object eln_path_tail = Vcomp_eln_load_path;
+  Lisp_Object eln_path_tail = Vnative_comp_eln_load_path;
   Lisp_Object src_name =
     Fsubstring (*filename, Qnil, make_fixnum (-1));
   if (NILP (Ffile_exists_p (src_name)))
@@ -1708,7 +1708,8 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
       src_name = concat2 (src_name, build_string (".gz"));
       if (NILP (Ffile_exists_p (src_name)))
 	{
-	  if (!NILP (find_symbol_value (Qcomp_warning_on_missing_source)))
+	  if (!NILP (find_symbol_value (
+		       Qnative_comp_warning_on_missing_source)))
 	    call2 (intern_c_string ("display-warning"),
 		   Qcomp,
 		   CALLN (Fformat,
@@ -1944,7 +1945,17 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	      }
 	    else
 	      {
-		fd = emacs_open (pfn, O_RDONLY, 0);
+                /*  In some systems (like Windows) finding out if a
+                    file exists is cheaper to do than actually opening
+                    it.  Only open the file when we are sure that it
+                    exists.  */
+#ifdef WINDOWSNT
+                if (faccessat (AT_FDCWD, pfn, R_OK, AT_EACCESS))
+                  fd = -1;
+                else
+#endif
+                  fd = emacs_open (pfn, O_RDONLY, 0);
+
 		if (fd < 0)
 		  {
 		    if (! (errno == ENOENT || errno == ENOTDIR))
@@ -3927,8 +3938,7 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
   bool signedp = negative | positive;
   cp += signedp;
 
-  enum { INTOVERFLOW = 1, LEAD_INT = 2, DOT_CHAR = 4, TRAIL_INT = 8,
-	 E_EXP = 16 };
+  enum { INTOVERFLOW = 1, LEAD_INT = 2, TRAIL_INT = 4, E_EXP = 16 };
   int state = 0;
   int leading_digit = digit_to_number (*cp, base);
   uintmax_t n = leading_digit;
@@ -3948,7 +3958,6 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
   char const *after_digits = cp;
   if (*cp == '.')
     {
-      state |= DOT_CHAR;
       cp++;
     }
 
@@ -3997,8 +4006,10 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
 	    cp = ecp;
 	}
 
-      float_syntax = ((state & (DOT_CHAR|TRAIL_INT)) == (DOT_CHAR|TRAIL_INT)
-		      || (state & ~INTOVERFLOW) == (LEAD_INT|E_EXP));
+      /* A float has digits after the dot or an exponent.
+	 This excludes numbers like "1." which are lexed as integers. */
+      float_syntax = ((state & TRAIL_INT)
+		      || ((state & LEAD_INT) && (state & E_EXP)));
     }
 
   if (plen)
@@ -4758,14 +4769,8 @@ load_path_default (void)
     return decode_env_path (0, PATH_DUMPLOADSEARCH, 0);
 
   Lisp_Object lpath = Qnil;
-  const char *normal = PATH_LOADSEARCH;
-  const char *loadpath = NULL;
 
-#ifdef HAVE_NS
-  loadpath = ns_load_path ();
-#endif
-
-  lpath = decode_env_path (0, loadpath ? loadpath : normal, 0);
+  lpath = decode_env_path (0, PATH_LOADSEARCH, 0);
 
   if (!NILP (Vinstallation_directory))
     {

@@ -2985,10 +2985,6 @@ highlighted (instead of the entire text that @var{matcher} matched).
 ("fu\\(bar\\)" . 1)
 @end example
 
-If you use @code{regexp-opt} to produce the regular expression
-@var{matcher}, you can use @code{regexp-opt-depth} (@pxref{Regexp
-Functions}) to calculate the value for @var{subexp}.
-
 @item (@var{matcher} . @var{facespec})
 In this kind of element, @var{facespec} is an expression whose value
 specifies the face to use for highlighting.  In the simplest case,
@@ -3004,7 +3000,8 @@ name.
 However, @var{facespec} can also evaluate to a list of this form:
 
 @example
-(face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{})
+(@var{subexp}
+(face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{}))
 @end example
 
 @noindent

@@ -120,9 +120,9 @@ Face used for temporary highlighting of tags for effect."
 			   (face-background face nil t)
 			 (face-background 'pulse-highlight-start-face)
 			 ))
-  (and face
-       (set-face-extend 'pulse-highlight-face
-                        (face-extend-p face nil t)))
+  (set-face-extend 'pulse-highlight-face
+                   (face-extend-p (or face 'pulse-highlight-start-face)
+                                  nil t))
   (put 'pulse-highlight-face :startface (or face
 					    'pulse-highlight-start-face))
   (setq pulse-momentary-iteration 0))
@@ -153,8 +153,7 @@ Optional argument FACE specifies the face to do the highlighting."
       ;; with a reference face needed for the color.
       (pulse-reset-face face)
       (let* ((start (color-name-to-rgb
-                     (face-background 'pulse-highlight-start-face
-                                      nil 'default)))
+                     (face-background 'pulse-highlight-face nil 'default)))
              (stop (color-name-to-rgb (face-background 'default)))
              (colors (mapcar (apply-partially 'apply 'color-rgb-to-hex)
                              (color-gradient start stop pulse-iterations))))

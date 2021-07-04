@@ -415,7 +415,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 		(when (window-live-p (setq posn-window (posn-window start)))
 		  ;; Add left edge of `posn-window' to `position'.
 		  (setq position (+ (window-pixel-left posn-window) position))
-		  (unless (nth 1 start)
+		  (unless (posn-area start)
 		    ;; Add width of objects on the left of the text area to
 		    ;; `position'.
 		    (when (eq (window-current-scroll-bars posn-window) 'left)
@@ -494,9 +494,11 @@ must be one of the symbols `header', `mode', or `vertical'."
 	       (define-key map [header-line] map)
 	       (define-key map [vertical-line] map)
 	       ;; ... and some maybe even with a right- or bottom-divider
-	       ;; prefix.
+	       ;; or left- or right-margin prefix ...
 	       (define-key map [right-divider] map)
 	       (define-key map [bottom-divider] map)
+	       (define-key map [left-margin] map)
+	       (define-key map [right-margin] map)
 	       map)
 	     t (lambda () (setq track-mouse old-track-mouse)))))))
 
@@ -546,6 +548,18 @@ the frame instead."
         (mouse-drag-line start-event 'header)
       (let ((frame (window-frame window)))
         (when (frame-parameter frame 'drag-with-header-line)
+          (mouse-drag-frame-move start-event))))))
+
+(defun mouse-drag-tab-line (start-event)
+  "Drag frame with tab line in its topmost window.
+START-EVENT is the starting mouse event of the drag action."
+  (interactive "e")
+  (let* ((start (event-start start-event))
+	 (window (posn-window start)))
+    (when (and (window-live-p window)
+               (window-at-side-p window 'top))
+      (let ((frame (window-frame window)))
+        (when (frame-parameter frame 'drag-with-tab-line)
           (mouse-drag-frame-move start-event))))))
 
 (defun mouse-drag-vertical-line (start-event)
@@ -676,6 +690,7 @@ frame with the mouse."
              ;; with a mode-line, header-line or vertical-line prefix ...
              (define-key map [mode-line] map)
              (define-key map [header-line] map)
+             (define-key map [tab-line] map)
              (define-key map [vertical-line] map)
              ;; ... and some maybe even with a right- or bottom-divider
              ;; prefix.
@@ -902,6 +917,7 @@ frame with the mouse."
              ;; with a mode-line, header-line or vertical-line prefix ...
              (define-key map [mode-line] map)
              (define-key map [header-line] map)
+             (define-key map [tab-line] map)
              (define-key map [vertical-line] map)
              ;; ... and some maybe even with a right- or bottom-divider
              ;; prefix.
@@ -2906,6 +2922,7 @@ is copied instead of being cut."
 ;; versions.
 (global-set-key [header-line down-mouse-1] 'mouse-drag-header-line)
 (global-set-key [header-line mouse-1] 'mouse-select-window)
+(global-set-key [tab-line down-mouse-1] 'mouse-drag-tab-line)
 (global-set-key [tab-line mouse-1] 'mouse-select-window)
 ;; (global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
 (global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)

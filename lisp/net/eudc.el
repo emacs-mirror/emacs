@@ -1108,12 +1108,12 @@ queries the server for the existing fields and displays a corresponding form."
                                                  proto-name)))
                    (if (not (fboundp command))
                        (fset command
-                             `(lambda ()
-                                (interactive)
-                                (eudc-set-server ,server (quote ,protocol))
-                                (message "Selected directory server is now %s (%s)"
-                                         ,server
-                                         ,proto-name))))
+                             (lambda ()
+                               (interactive)
+                               (eudc-set-server server protocol)
+                               (message "Selected directory server is now %s (%s)"
+                                        server
+                                        proto-name))))
                    (vector (format "%s (%s)" server proto-name)
                            command
                            :style 'radio
@@ -1129,7 +1129,9 @@ queries the server for the existing fields and displays a corresponding form."
     (cons "Directory Servers"
 	  (easy-menu-create-menu "Directory Servers" (cdr (eudc-menu))))))
 
-;;; Load time initializations :
+;;}}}
+
+;;{{{ Load time initializations
 
 ;; Load the options file
 (if (and (not noninteractive)

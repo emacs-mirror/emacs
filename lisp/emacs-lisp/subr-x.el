@@ -127,7 +127,7 @@ This is like `if-let' but doesn't handle a VARLIST of the form
 \(SYMBOL SOMETHING) specially."
   (declare (indent 2)
            (debug ((&rest [&or symbolp (symbolp form) (form)])
-                   form body)))
+                   body)))
   (if varlist
       `(let* ,(setq varlist (internal--build-bindings varlist))
          (if ,(caar (last varlist))
@@ -146,9 +146,7 @@ This is like `when-let' but doesn't handle a VARLIST of the form
   "Bind variables according to VARLIST and conditionally evaluate BODY.
 Like `when-let*', except if BODY is empty and all the bindings
 are non-nil, then the result is non-nil."
-  (declare (indent 1)
-           (debug ((&rest [&or symbolp (symbolp form) (form)])
-                   body)))
+  (declare (indent 1) (debug if-let*))
   (let (res)
     (if varlist
         `(let* ,(setq varlist (internal--build-bindings varlist))
@@ -174,9 +172,9 @@ As a special case, interprets a SPEC of the form \(SYMBOL SOMETHING)
 like \((SYMBOL SOMETHING)).  This exists for backward compatibility
 with an old syntax that accepted only one binding."
   (declare (indent 2)
-           (debug ([&or (&rest [&or symbolp (symbolp form) (form)])
-                        (symbolp form)]
-                   form body)))
+           (debug ([&or (symbolp form)  ; must be first, Bug#48489
+                        (&rest [&or symbolp (symbolp form) (form)])]
+                   body)))
   (when (and (<= (length spec) 2)
              (not (listp (car spec))))
     ;; Adjust the single binding case
@@ -289,6 +287,18 @@ than this function."
       (let ((result nil)
             (result-length 0)
             (index (if end (1- (length string)) 0)))
+        ;; FIXME: This implementation, which uses encode-coding-char
+        ;; to encode the string one character at a time, is in general
+        ;; incorrect: coding-systems that produce prefix or suffix
+        ;; bytes, such as ISO-2022-based or UTF-8/16 with BOM, will
+        ;; produce those bytes for each character, instead of just
+        ;; once for the entire string.  encode-coding-char attempts to
+        ;; remove those extra bytes at least in some situations, but
+        ;; it cannot do that in all cases.  And in any case, producing
+        ;; what is supposed to be a UTF-16 or ISO-2022-CN encoded
+        ;; string which lacks the BOM bytes at the beginning and the
+        ;; charset designation sequences at the head and tail of the
+        ;; result will definitely surprise the callers in some cases.
         (while (let ((encoded (encode-coding-char
                                (aref string index) coding-system)))
                  (and (<= (+ (length encoded) result-length) length)
@@ -307,6 +317,7 @@ than this function."
      (end (substring string (- (length string) length)))
      (t (substring string 0 length)))))
 
+;;;###autoload
 (defun string-lines (string &optional omit-nulls)
   "Split STRING into a list of lines.
 If OMIT-NULLS, empty lines will be removed from the results."

@@ -1757,6 +1757,13 @@ expression @code{(+ 1 2)} on the @samp{foo} server, and returns
 @code{3}.  (If there is no server with that name, an error is
 signaled.)  Currently, this feature is mainly useful for developers.
 
+  If your operating system’s desktop environment is
+@url{https://www.freedesktop.org/wiki/Specifications/,,freedesktop.org-compatible}
+(which is true of most GNU/Linux and other recent Unix-like GUIs), you
+may use the @samp{Emacs (Client)} menu entry to connect to an Emacs
+server with @command{emacsclient}.  The daemon starts if not
+already running.
+
 @menu
 * TCP Emacs server::     Listening to a TCP socket.
 * Invoking emacsclient:: Connecting to the Emacs server.
@@ -1863,6 +1870,12 @@ and sends a message back to the @command{emacsclient} program, telling
 it to exit.  Programs that use @env{EDITOR} usually wait for the
 editor---in this case @command{emacsclient}---to exit before doing
 something else.
+
+@findex server-edit-abort
+  If you want to abandon the edit instead, use the @w{@kbd{M-x
+server-edit-abort}} command.  This sends a message back to the
+@command{emacsclient} program, telling it to exit with abnormal exit
+status, and doesn't save any buffers.
 
   You can also call @command{emacsclient} with multiple file name
 arguments: @samp{emacsclient @var{file1} @var{file2} ...} tells the
@@ -2576,6 +2589,17 @@ Other Hexl commands let you insert strings (sequences) of binary
 bytes, move by @code{short}s or @code{int}s, etc.; type @kbd{C-h a
 hexl-@key{RET}} for details.
 
+  Hexl mode can also be used for editing text files.  This could come
+in handy if the text file includes unusual characters or uses unusual
+encoding (@pxref{Coding Systems}).  For this purpose, Hexl commands
+that insert bytes can also insert @acronym{ASCII} and
+non-@acronym{ASCII} characters, including multibyte characters.  To
+edit a text file with Hexl, visit the file as usual, and then type
+@w{@kbd{M-x hexl-mode @key{RET}}} to switch to Hexl mode.  You can now
+insert text characters by typing them.  However, inserting multibyte
+characters requires special care, to avoid the danger of creating
+invalid multibyte sequences: you should start typing such characters
+when point is on the first byte of a multibyte sequence in the file.
 
 @node Saving Emacs Sessions
 @section Saving Emacs Sessions

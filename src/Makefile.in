@@ -55,7 +55,7 @@ lwlibdir = ../lwlib
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
 
-## ns-app if HAVE_NS, else empty.
+## ns-app if NS self contained app, else empty.
 OTHER_FILES = @OTHER_FILES@
 
 ## Flags to pass for profiling builds
@@ -342,7 +342,7 @@ DUMPING=@DUMPING@
 CHECK_STRUCTS = @CHECK_STRUCTS@
 HAVE_PDUMPER = @HAVE_PDUMPER@
 
-## ARM Macs require that all code have a valid signature.  Since pump
+## ARM Macs require that all code have a valid signature.  Since pdump
 ## invalidates the signature, we must re-sign to fix it.
 DO_CODESIGN=$(patsubst aarch64-apple-darwin%,yes,@configuration@)
 
@@ -671,7 +671,7 @@ ns-app: emacs$(EXEEXT) $(pdmp)
 	$(MAKE) -C ../nextstep all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
-.PHONY: versionclean extraclean
+.PHONY: versionclean
 
 mostlyclean:
 	rm -f temacs$(EXEEXT) core ./*.core \#* ./*.o
@@ -706,9 +706,6 @@ distclean: bootstrap-clean
 
 maintainer-clean: distclean
 	rm -f TAGS
-extraclean: distclean
-	rm -f ./*~ \#* TAGS config.in
-
 
 ETAGS = ../lib-src/etags${EXEEXT}
 

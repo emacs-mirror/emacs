@@ -416,12 +416,12 @@ just make some new commands available, while others have more
 wide-ranging effects on the Emacs session.  For such information,
 consult the package's help buffer.
 
-  After a package is installed, it is automatically made available by
-Emacs in all subsequent sessions.  This happens at startup, before
-processing the init file but after processing the early init file
-(@pxref{Early Init File}).  As an exception, Emacs does not make
-packages available at startup if invoked with the @samp{-q} or
-@samp{--no-init-file} options (@pxref{Initial Options}).
+  Installed packages are automatically made available by Emacs in all
+subsequent sessions.  This happens at startup, before processing the
+init file but after processing the early init file (@pxref{Early Init
+File}).  As an exception, Emacs does not make packages available at
+startup if invoked with the @samp{-q} or @samp{--no-init-file} options
+(@pxref{Initial Options}).
 
 @vindex package-enable-at-startup
   To keep Emacs from automatically making packages available at
@@ -429,6 +429,17 @@ startup, change the variable @code{package-enable-at-startup} to
 @code{nil}.  You must do this in the early init file, as the variable
 is read before loading the regular init file.  Currently this variable
 cannot be set via Customize.
+
+@findex package-quickstart-refresh
+@vindex package-quickstart
+  If you have many packages installed, you can improve startup times
+by setting the user option @code{package-quickstart} to @code{t}.
+Setting this option will make Emacs precompute many things instead of
+re-computing them on every Emacs startup.  However, if you do this,
+then you have to manually run the command
+@code{package-quickstart-refresh} when the activations need to be
+changed, such as when you change the value of
+@code{package-load-list}.
 
 @findex package-activate-all
   If you have set @code{package-enable-at-startup} to @code{nil}, you

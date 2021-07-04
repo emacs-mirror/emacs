@@ -36,6 +36,7 @@ MKDIR_P = @MKDIR_P@
 ns_appdir = @ns_appdir@
 ## GNUstep: ns_appdir; macOS: ns_appdir/Contents/MacOS
 ns_appbindir = @ns_appbindir@
+ns_applibexecdir = @ns_applibexecdir@
 ## GNUstep/Emacs.base or Cocoa/Emacs.base.
 ns_appsrc = @ns_appsrc@
 ## GNUstep: GNUstep/Emacs.base/Resources/Info-gnustep.plist
@@ -44,7 +45,7 @@ ns_check_file = @ns_appdir@/@ns_check_file@
 
 .PHONY: all
 
-all: ${ns_appdir} ${ns_appbindir}/Emacs ${ns_appbindir}/Emacs.pdmp
+all: ${ns_appdir} ${ns_appbindir}/Emacs ${ns_applibexecdir}/Emacs.pdmp
 
 ${ns_check_file} ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	rm -rf ${ns_appdir}
@@ -63,8 +64,10 @@ ${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}
 	${MKDIR_P} ${ns_appbindir}
 	cp -f ../src/emacs${EXEEXT} $@
 
-${ns_appbindir}/Emacs.pdmp: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}.pdmp
-	${MKDIR_P} ${ns_appbindir}
+# FIXME: Don't install the dump file into the app bundle when
+# self-contained install is disabled.
+${ns_applibexecdir}/Emacs.pdmp: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}.pdmp
+	${MKDIR_P} ${ns_applibexecdir}
 	cp -f ../src/emacs${EXEEXT}.pdmp $@
 
 .PHONY: FORCE
@@ -85,9 +88,8 @@ links: ../src/emacs${EXEEXT}
 	ln -s $(top_srcdir_abs)/info ${ns_appdir}/Contents/Resources
 	${MKDIR_P} ${ns_appbindir}
 	ln -s $(abs_top_builddir)/src/emacs${EXEEXT} ${ns_appbindir}/Emacs
-	ln -s $(abs_top_builddir)/src/emacs${EXEEXT}.pdmp ${ns_appbindir}/Emacs.pdmp
 	ln -s $(abs_top_builddir)/lib-src ${ns_appbindir}/bin
-	ln -s $(abs_top_builddir)/lib-src ${ns_appbindir}/libexec
+	ln -s $(abs_top_builddir)/lib-src ${ns_applibexecdir}
 	${MKDIR_P} ${ns_appdir}/Contents/Resources/etc
 	for f in $(shell cd $(top_srcdir_abs)/etc; ls); do ln -s $(top_srcdir_abs)/etc/$$f ${ns_appdir}/Contents/Resources/etc; done
 	ln -s $(abs_top_builddir)/etc/DOC ${ns_appdir}/Contents/Resources/etc

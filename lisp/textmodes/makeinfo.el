@@ -85,6 +85,7 @@ the proper way to specify those is with the Texinfo commands
 
 ;;; The `makeinfo' function definitions
 
+;;;###autoload
 (defun makeinfo-region (region-beginning region-end)
   "Make Info file from region of current Texinfo file, and switch to it.
 
@@ -222,6 +223,7 @@ nonsensical results."
         (match-string 1)
       "Top")))
 
+;;;###autoload
 (defun makeinfo-buffer ()
   "Make Info file from current buffer.
 
@@ -266,6 +268,7 @@ Use the \\[next-error] command to move to the next error
       (Info-revert-find-node
        makeinfo-output-file-name makeinfo-output-node-name))))
 
+;;;###autoload
 (defun makeinfo-recenter-compilation-buffer (linenum)
   "Redisplay `*compilation*' buffer so most recent output can be seen.
 The last line of the buffer is displayed on
@@ -285,5 +288,9 @@ line LINE of the window, or centered if LINE is nil."
       )))
 
 (provide 'makeinfo)
+
+;; Local Variables:
+;; generated-autoload-file: "texinfo-loaddefs.el"
+;; End:
 
 ;;; makeinfo.el ends here

@@ -135,7 +135,7 @@ The returned value will then be an Elisp expression that first evaluates
 all the parts of PLACE that can be evaluated and then runs E.
 
 \(fn (GETTER SETTER) PLACE &rest BODY)"
-  (declare (indent 2) (debug (sexp form body)))
+  (declare (indent 2) (debug (sexp form def-body)))
   `(gv-get ,place (lambda ,vars ,@body)))
 
 ;; Different ways to declare a generalized variable.

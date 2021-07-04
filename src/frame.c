@@ -619,12 +619,8 @@ frame_size_history_extra (struct frame *f, Lisp_Object parameter,
  *   must be preserved.  The code for setting up window dividers and
  *   that responsible for wrapping the (internal) tool bar use this.
  *
- * 5 means to never call set_window_size_hook.  change_frame_size uses
- *   this.
- *
- * Note that even when set_window_size_hook is not called, individual
- * windows may have to be resized (via `window--sanitize-window-sizes')
- * in order to support minimum size constraints.
+ * 5 means to never call set_window_size_hook.  Usually this means to
+ *   call resize_frame_windows.  change_frame_size uses this.
  *
  * PRETEND is as for change_frame_size.  PARAMETER, if non-nil, is the
  * symbol of the parameter changed (like `menu-bar-lines', `font', ...).
@@ -716,6 +712,9 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 
   if (FRAME_WINDOW_P (f)
       && f->can_set_window_size
+      /* For inhibit == 1 call the window_size_hook only if a native
+	 size changes.  For inhibit == 0 or inhibit == 2 always call
+	 it.  */
       && ((!inhibit_horizontal
 	   && (new_native_width != old_native_width
 	       || inhibit == 0 || inhibit == 2))
@@ -723,29 +722,25 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 	      && (new_native_height != old_native_height
 		  || inhibit == 0 || inhibit == 2))))
     {
-      /* Make sure we respect fullheight and fullwidth.  */
-      if (inhibit_horizontal)
-	new_native_width = old_native_width;
-      else if (inhibit_vertical)
-	new_native_height = old_native_height;
-
-      if (inhibit == 2 && f->new_width > 0 && f->new_height > 0)
+      if (inhibit == 2
+#ifdef USE_MOTIF
+	  && !EQ (parameter, Qmenu_bar_lines)
+#endif
+	  && (f->new_width >= 0 || f->new_height >= 0))
 	/* For implied resizes with inhibit 2 (external menu and tool
 	   bar) pick up any new sizes the display engine has not
 	   processed yet.  Otherwsie, we would request the old sizes
 	   which will make this request appear as a request to set new
-	   sizes and have the WM react accordingly which is not TRT.  */
+	   sizes and have the WM react accordingly which is not TRT.
+
+	   We don't that for the external menu bar on Motif.
+	   Otherwise, switching off the menu bar will shrink the frame
+	   and switching it on will not enlarge it.  */
 	{
-	  /* But don't that for the external menu bar on Motif.
-	     Otherwise, switching off the menu bar will shrink the frame
-	     and switching it on will not enlarge it.  */
-#ifdef USE_MOTIF
-	  if (!EQ (parameter, Qmenu_bar_lines))
-#endif
-	    {
-	      new_native_width = f->new_width;
-	      new_native_height = f->new_height;
-	    }
+	  if (f->new_width >= 0)
+	    new_native_width = f->new_width;
+	  if (f->new_height >= 0)
+	    new_native_height = f->new_height;
 	}
 
       if (CONSP (frame_size_history))
@@ -760,6 +755,17 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 				   new_inner_width, new_inner_height,
 				   min_inner_width, min_inner_height,
 				   inhibit_horizontal, inhibit_vertical);
+
+      if (inhibit == 0 || inhibit == 1)
+	{
+	  f->new_width = new_native_width;
+	  f->new_height = new_native_height;
+	  /* Resetting f->new_size_p is controversial: It might cause
+	     do_pending_window_change drop a previous request and we are
+	     in troubles when the window manager does not honor the
+	     request we issue here.  */
+	  f->new_size_p = false;
+	}
 
       if (FRAME_TERMINAL (f)->set_window_size_hook)
         FRAME_TERMINAL (f)->set_window_size_hook
@@ -965,6 +971,7 @@ make_frame (bool mini_p)
   f->no_accept_focus = false;
   f->z_group = z_group_none;
   f->tooltip = false;
+  f->was_invisible = false;
   f->child_frame_border_width = -1;
   f->last_tab_bar_item = -1;
 #ifndef HAVE_EXT_TOOL_BAR
@@ -975,6 +982,7 @@ make_frame (bool mini_p)
   f->ns_transparent_titlebar = false;
 #endif
 #endif
+  f->select_mini_window_flag = false;
   /* This one should never be zero.  */
   f->change_stamp = 1;
   root_window = make_window ();
@@ -1535,7 +1543,17 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
       tty->top_frame = frame;
     }
 
+  sf->select_mini_window_flag = MINI_WINDOW_P (XWINDOW (sf->selected_window));
+
   selected_frame = frame;
+
+  move_minibuffers_onto_frame (sf, for_deletion);
+
+  if (f->select_mini_window_flag
+      && !NILP (Fminibufferp (XWINDOW (f->minibuffer_window)->contents, Qt)))
+    f->selected_window = f->minibuffer_window;
+  f->select_mini_window_flag = false;
+
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
     last_nonminibuf_frame = XFRAME (selected_frame);
 
@@ -1552,7 +1570,6 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 #endif
     internal_last_event_frame = Qnil;
 
-  move_minibuffers_onto_frame (sf, for_deletion);
   return frame;
 }
 
@@ -1923,52 +1940,6 @@ other_frames (struct frame *f, bool invisible, bool force)
   return false;
 }
 
-/* Make sure that minibuf_window doesn't refer to FRAME's minibuffer
-   window.  Preferably use the selected frame's minibuffer window
-   instead.  If the selected frame doesn't have one, get some other
-   frame's minibuffer window.  SELECT non-zero means select the new
-   minibuffer window.  */
-static void
-check_minibuf_window (Lisp_Object frame, int select)
-{
-  struct frame *f = decode_live_frame (frame);
-
-  XSETFRAME (frame, f);
-
-  if (WINDOWP (minibuf_window) && EQ (f->minibuffer_window, minibuf_window))
-    {
-      Lisp_Object frames, this, window = make_fixnum (0);
-
-      if (!EQ (frame, selected_frame)
-	  && FRAME_HAS_MINIBUF_P (XFRAME (selected_frame)))
-	window = FRAME_MINIBUF_WINDOW (XFRAME (selected_frame));
-      else
-	FOR_EACH_FRAME (frames, this)
-	  {
-	    if (!EQ (this, frame) && FRAME_HAS_MINIBUF_P (XFRAME (this)))
-	      {
-		window = FRAME_MINIBUF_WINDOW (XFRAME (this));
-		break;
-	      }
-	  }
-
-      /* Don't abort if no window was found (Bug#15247).  */
-      if (WINDOWP (window))
-	{
-	  /* Use set_window_buffer instead of Fset_window_buffer (see
-	     discussion of bug#11984, bug#12025, bug#12026).  */
-	  set_window_buffer (window, XWINDOW (minibuf_window)->contents, 0, 0);
-	  minibuf_window = window;
-
-	  /* SELECT non-zero usually means that FRAME's minibuffer
-	     window was selected; select the new one.  */
-	  if (select)
-	    Fselect_window (minibuf_window, Qnil);
-	}
-    }
-}
-
-
 /**
  * delete_frame:
  *
@@ -1983,7 +1954,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   struct frame *sf;
   struct kboard *kb;
   Lisp_Object frames, frame1;
-  int minibuffer_selected, is_tooltip_frame;
+  int is_tooltip_frame;
   bool nochild = !FRAME_PARENT_FRAME (f);
   Lisp_Object minibuffer_child_frame = Qnil;
 
@@ -2091,7 +2062,6 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
   /* At this point, we are committed to deleting the frame.
      There is no more chance for errors to prevent it.  */
-  minibuffer_selected = EQ (minibuf_window, selected_window);
   sf = SELECTED_FRAME ();
   /* Don't let the frame remain selected.  */
   if (f == sf)
@@ -2149,9 +2119,10 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       do_switch_frame (frame1, 0, 1, Qnil);
       sf = SELECTED_FRAME ();
     }
-
-  /* Don't allow minibuf_window to remain on a deleted frame.  */
-  check_minibuf_window (frame, minibuffer_selected);
+  else
+    /* Ensure any minibuffers on FRAME are moved onto the selected
+       frame.  */
+    move_minibuffers_onto_frame (f, true);
 
   /* Don't let echo_area_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, echo_area_window))
@@ -2782,9 +2753,6 @@ displayed in the terminal.  */)
   if (NILP (force) && !other_frames (f, true, false))
     error ("Attempt to make invisible the sole visible or iconified frame");
 
-  /* Don't allow minibuf_window to remain on an invisible frame.  */
-  check_minibuf_window (frame, EQ (minibuf_window, selected_window));
-
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->frame_visible_invisible_hook)
     FRAME_TERMINAL (f)->frame_visible_invisible_hook (f, false);
 
@@ -2826,9 +2794,6 @@ for how to proceed.  */)
 	}
     }
 #endif	/* HAVE_WINDOW_SYSTEM */
-
-  /* Don't allow minibuf_window to remain on an iconified frame.  */
-  check_minibuf_window (frame, EQ (minibuf_window, selected_window));
 
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->iconify_frame_hook)
     FRAME_TERMINAL (f)->iconify_frame_hook (f);
@@ -3289,12 +3254,15 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
   /* It's questionable whether here we should report the value of
      f->new_height (and f->new_width below) but we've done that in the
      past, so let's keep it.  Note that a value of -1 for either of
-     these means that no new size was requested.  */
-  height = (f->new_height >= 0
+     these means that no new size was requested.
+
+     But check f->new_size before to make sure that f->new_height and
+     f->new_width are not ones requested by adjust_frame_size.  */
+  height = ((f->new_size_p && f->new_height >= 0)
 	    ? f->new_height / FRAME_LINE_HEIGHT (f)
 	    : FRAME_LINES (f));
   store_in_alist (&alist, Qheight, make_fixnum (height));
-  width = (f->new_width >= 0
+  width = ((f->new_size_p && f->new_width >= 0)
 	   ? f->new_width / FRAME_COLUMN_WIDTH (f)
 	   : FRAME_COLS(f));
   store_in_alist (&alist, Qwidth, make_fixnum (width));
@@ -5898,7 +5866,18 @@ selected frame.  This is useful when `make-pointer-invisible' is set.  */)
   return decode_any_frame (frame)->pointer_invisible ? Qnil : Qt;
 }
 
+DEFUN ("frame--set-was-invisible", Fframe__set_was_invisible,
+       Sframe__set_was_invisible, 2, 2, 0,
+       doc: /* Set FRAME's was-invisible flag if WAS-INVISIBLE is non-nil.
+This function is for internal use only.  */)
+  (Lisp_Object frame, Lisp_Object was_invisible)
+{
+  struct frame *f = decode_live_frame (frame);
 
+  f->was_invisible = !NILP (was_invisible);
+
+  return f->was_invisible ? Qt : Qnil;
+}
 
 /***********************************************************************
 			Multimonitor data
@@ -6538,6 +6517,7 @@ iconify the top level frame instead.  */);
   defsubr (&Sframe_position);
   defsubr (&Sset_frame_position);
   defsubr (&Sframe_pointer_visible_p);
+  defsubr (&Sframe__set_was_invisible);
   defsubr (&Sframe_window_state_change);
   defsubr (&Sset_frame_window_state_change);
   defsubr (&Sframe_scale_factor);

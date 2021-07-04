@@ -125,14 +125,13 @@
           (unless (member elem seen) (push elem res)))))
     (nreverse res)))
 
-(defun mpc-intersection (l1 l2 &optional selectfun)
+(defun mpc-intersection (l1 l2 selectfun)
   "Return L1 after removing all elements not found in L2.
-If SELECTFUN is non-nil, elements aren't compared directly, but instead
+Elements aren't compared directly, but instead
 they are passed through SELECTFUN before comparison."
-  (when selectfun
-    (setq l1 (mapcar selectfun l1))
-    (setq l2 (mapcar selectfun l2)))
-  (seq-intersection l1 l2))
+  (seq-intersection l1 l2 (lambda (x y)
+                            (equal (funcall selectfun x)
+                                   (funcall selectfun y)))))
 
 (defun mpc-event-set-point (event)
   (condition-case nil (posn-set-point (event-end event))
@@ -1027,10 +1026,14 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                      (let ((dir (file-name-directory (cdr (assq 'file info)))))
                        ;; (debug)
                        (setq pred
-                             (lambda (info)
-                               (and (funcall pred info)
-                                    (equal dir (file-name-directory
-                                                (cdr (assq 'file info)))))))
+                             ;; We want the closure to capture the current
+                             ;; value of `pred' and not a reference to the
+                             ;; variable itself.
+                             (let ((oldpred pred))
+                               (lambda (info)
+                                 (and (funcall oldpred info)
+                                      (equal dir (file-name-directory
+                                                  (cdr (assq 'file info))))))))
                        (if-let* ((covers '(".folder.png" "cover.jpg" "folder.jpg"))
                                  (cover (cl-loop for file in (directory-files (mpc-file-local-copy dir))
                                                  if (member (downcase file) covers)
@@ -1057,9 +1060,13 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                          (when (and (null val) (eq tag 'Title))
                            (setq val (cdr (assq 'file info))))
                          (setq pred
-                               (lambda (info)
-                                 (and (funcall pred info)
-                                      (equal val (cdr (assq ',tag info))))))
+                               ;; We want the closure to capture the current
+                               ;; value of `pred' and not a reference to the
+                               ;; variable itself.
+                               (let ((oldpred pred))
+                                 (lambda (info)
+                                   (and (funcall oldpred info)
+                                        (equal val (cdr (assq tag info)))))))
                          (cond
                           ((not (and (eq tag 'Date) (stringp val))) val)
                           ;; For "date", only keep the year!

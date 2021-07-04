@@ -568,17 +568,17 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
               (cons method mt)
             ;; Keep the ordering; important for methods with :extra qualifiers.
             (mapcar (lambda (x) (if (eq x (car me)) method x)) mt)))
-    (let ((sym (cl--generic-name generic))) ; Actual name (for aliases).
+    (let ((sym (cl--generic-name generic)) ; Actual name (for aliases).
+          ;; FIXME: Try to avoid re-constructing a new function if the old one
+          ;; is still valid (e.g. still empty method cache)?
+          (gfun (cl--generic-make-function generic)))
       (unless (symbol-function sym)
         (defalias sym 'dummy))   ;Record definition into load-history.
       (cl-pushnew `(cl-defmethod . ,(cl--generic-load-hist-format
                                      (cl--generic-name generic)
                                      qualifiers specializers))
                   current-load-list :test #'equal)
-      ;; FIXME: Try to avoid re-constructing a new function if the old one
-      ;; is still valid (e.g. still empty method cache)?
-      (let ((gfun (cl--generic-make-function generic))
-            ;; Prevent `defalias' from recording this as the definition site of
+      (let (;; Prevent `defalias' from recording this as the definition site of
             ;; the generic function.
             current-load-list
             ;; BEWARE!  Don't purify this function definition, since that leads

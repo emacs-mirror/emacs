@@ -78,7 +78,7 @@ Public License.''
 @html
 <!--
 @end html
-@node Top, Preface, (dir), (dir)
+@node Top
 @top The MH-E Manual
 @html
 -->
@@ -197,7 +197,7 @@ History of MH-E
 -->
 @end html
 
-@node Preface, Conventions, Top, Top
+@node Preface
 @unnumbered Preface
 
 @cindex Emacs
@@ -272,7 +272,7 @@ Bill Wohler <@i{wohler at newt.com}>@*
 8 February 1995@*
 24 February 2006
 
-@node Conventions, Getting Started, Preface, Top
+@node Conventions
 @chapter GNU Emacs Terms and Conventions
 
 @cindex Emacs
@@ -513,7 +513,7 @@ you enter something in the minibuffer, but then you change your mind,
 type @kbd{C-g} and you'll be back where you started. If you want to
 exit Emacs entirely, use @kbd{C-x C-c}.
 
-@node Getting Started, Tour Through MH-E, Conventions, Top
+@node Getting Started
 @chapter Getting Started
 
 @cindex MH-E, versions
@@ -658,7 +658,7 @@ after these variables have been set. This hook can be used the change
 the value of these variables if you need to run with different values
 between MH and MH-E.
 
-@node Tour Through MH-E, Using This Manual, Getting Started, Top
+@node Tour Through MH-E
 @chapter Tour Through MH-E
 
 @cindex introduction
@@ -684,7 +684,7 @@ get the big picture, and then you can read the manual as you wish.
 * More About MH-E::
 @end menu
 
-@node Sending Mail Tour, Reading Mail Tour, Tour Through MH-E, Tour Through MH-E
+@node Sending Mail Tour
 @section Sending Mail
 
 @cindex MH-Letter mode
@@ -750,7 +750,7 @@ more complete help with the @kbd{C-h m} (@code{describe-mode})
 command.}, but at this time we'll only use @kbd{C-c C-c} to send your
 message. Type @kbd{C-c C-c} now. That's all there is to it!
 
-@node Reading Mail Tour, Processing Mail Tour, Sending Mail Tour, Tour Through MH-E
+@node Reading Mail Tour
 @section Receiving Mail
 
 @cindex @command{inc}
@@ -823,7 +823,7 @@ This is a test message to get the wheels churning...
 If you typed a long message, you can view subsequent pages with
 @key{SPC} and previous pages with @key{DEL}.
 
-@node Processing Mail Tour, Leaving MH-E, Reading Mail Tour, Tour Through MH-E
+@node Processing Mail Tour
 @section Processing Mail
 
 @cindex processing mail
@@ -949,7 +949,7 @@ available via the prefix characters, type the prefix character
 followed by a @kbd{?}, for example, @kbd{F ?}. More complete help is
 available with the @kbd{C-h m} (@code{describe-mode}) command.
 
-@node Leaving MH-E, More About MH-E, Processing Mail Tour, Tour Through MH-E
+@node Leaving MH-E
 @section Leaving MH-E
 
 @cindex Emacs, quitting
@@ -988,7 +988,7 @@ already exists, so you can use @samp{folders -recurse -fast} in a
 script to copy all of your messages into a single file, or using the
 @samp{-file} argument, a file for each folder.
 
-@node More About MH-E,  , Leaving MH-E, Tour Through MH-E
+@node More About MH-E
 @section More About MH-E
 
 These are the basic commands to get you going, but there are plenty
@@ -1054,7 +1054,7 @@ Place messages in a file (@pxref{Files and Pipes}).
 Remember that you can also use MH commands when you're not running
 MH-E (and when you are!).
 
-@node Using This Manual, Incorporating Mail, Tour Through MH-E, Top
+@node Using This Manual
 @chapter Using This Manual
 
 This chapter begins the meat of the manual which goes into more detail
@@ -1150,7 +1150,7 @@ your initials. (Unless, of course, your initials happen to be @emph{mh}!)
 * Folder Selection::
 @end menu
 
-@node Options, Ranges, Using This Manual, Using This Manual
+@node Options
 @section Options
 
 @cindex Emacs, customizing
@@ -1210,7 +1210,7 @@ function. Try entering @kbd{M-x customize-group @key{RET} mh
 the MH-E customization groups. Another way to view the MH-E
 customization group is to use @kbd{M-x mh-customize @key{RET}}.
 
-@node Ranges, Folder Selection, Options, Using This Manual
+@node Ranges
 @section Ranges
 
 @c Sync with mh-folder-mode docstring.
@@ -1279,7 +1279,7 @@ interpret input such as @samp{200} as @samp{last:200} if the
 default). If you need to scan just the message 200, then use the range
 @samp{200:1} or @samp{200-200}.
 
-@node Folder Selection,  , Ranges, Using This Manual
+@node Folder Selection
 @section Folder Selection
 
 @cindex completion, folders
@@ -1359,7 +1359,7 @@ folder name used is suggested. This is useful if you get mail from
 various people for whom you have an alias, but file them all in the
 same project folder.
 
-@node Incorporating Mail, Reading Mail, Using This Manual, Top
+@node Incorporating Mail
 @chapter Incorporating Your Mail
 
 @cindex @samp{Folder} menu
@@ -1535,7 +1535,7 @@ the message numbers from outside of MH-E.
 @end group
 @end smalllisp
 
-@node Reading Mail, Folders, Incorporating Mail, Top
+@node Reading Mail
 @chapter Reading Your Mail
 
 @cindex @samp{+inbox}
@@ -2003,7 +2003,7 @@ detail in the following sections.
 * Miscellaneous Commands and Options::
 @end menu
 
-@node Viewing, Viewing Attachments, Reading Mail, Reading Mail
+@node Viewing
 @section Viewing Your Mail
 
 @findex mh-header-display
@@ -2276,7 +2276,7 @@ of @code{"@{show-%s@} %d"} yields a mode line of
 -----@{show-+inbox@} 4      (MH-Show)--Bot--------------------------------
 @end smallexample
 
-@node Viewing Attachments, HTML, Viewing, Reading Mail
+@node Viewing Attachments
 @section Viewing Attachments
 
 @cindex attachments
@@ -2516,7 +2516,7 @@ Article Buttons} and
 in the @cite{The Gnus Manual}.
 @end ifnotinfo
 
-@node HTML, Digests, Viewing Attachments, Reading Mail
+@node HTML
 @section HTML
 
 @cindex HTML
@@ -2670,7 +2670,7 @@ buffer, including HTML buffers.
 (global-set-key [S-mouse-2] 'browse-url-at-mouse)
 @end smalllisp
 
-@node Digests, Reading PGP, HTML, Reading Mail
+@node Digests
 @section Digests
 
 @cindex digests
@@ -2714,7 +2714,7 @@ preceded with a @samp{>} so that your reply can't create the
 @samp{To:} field yourself. This is described later (@pxref{Editing
 Drafts}).
 
-@node Reading PGP, Printing, Digests, Reading Mail
+@node Reading PGP
 @section Signed and Encrypted Messages
 
 @cindex GPG
@@ -2848,7 +2848,7 @@ See
 @cite{The PGG Manual}}.
 @end ifhtml
 
-@node Printing, Files and Pipes, Reading PGP, Reading Mail
+@node Printing
 @section Printing Your Mail
 
 @cindex printing
@@ -2933,7 +2933,7 @@ If you do this, do not delete the message until it is printed or else
 the output may be truncated. These options are not used by the
 commands @kbd{P p} or @kbd{P f}.
 
-@node Files and Pipes, Navigating, Printing, Reading Mail
+@node Files and Pipes
 @section Files and Pipes
 
 @cindex files
@@ -2993,7 +2993,7 @@ through @command{uuencode} or @command{shar}. For example, you can
 extract the contents of the current buffer in your home directory by
 typing @kbd{M-x mh-store-buffer @key{RET} ~ @key{RET}}.
 
-@node Navigating, Miscellaneous Commands and Options, Files and Pipes, Reading Mail
+@node Navigating
 @section Navigating
 
 @cindex moving between messages
@@ -3094,7 +3094,7 @@ The hook @code{mh-delete-msg-hook} is called after you mark a message
 for deletion. For example, a past maintainer of MH-E used this once
 when he kept statistics on his mail usage.
 
-@node Miscellaneous Commands and Options,  , Navigating, Reading Mail
+@node Miscellaneous Commands and Options
 @section Miscellaneous Commands and Options
 
 This section contains a few more miscellaneous commands and options.
@@ -3207,7 +3207,7 @@ displayed or @code{mh-rmail} is run, and the MH-E window configuration
 is shown. Otherwise, the MH-E window configuration is saved and the
 original configuration is displayed.
 
-@node Folders, Sending Mail, Reading Mail, Top
+@node Folders
 @chapter Organizing Your Mail with Folders
 
 @cindex @samp{Folder} menu
@@ -3842,7 +3842,7 @@ running dired on my mail directory (@kbd{M-x dired @key{RET} ~/Mail
 @key{RET}}), moving my cursor to @samp{out} and using the command
 @kbd{R} (@code{dired-do-rename}).
 
-@node Sending Mail, Editing Drafts, Folders, Top
+@node Sending Mail
 @chapter Sending Mail
 
 @cindex sending mail
@@ -4002,7 +4002,7 @@ more detail in the following sections.
 * Editing Again::
 @end menu
 
-@node Composing, Replying, Sending Mail, Sending Mail
+@node Composing
 @section Composing
 
 @cindex @file{.emacs}
@@ -4125,7 +4125,7 @@ is that you can write a function to write and send the message for
 you. This function is passed three arguments: the contents of the
 @samp{To:}, @samp{Subject:}, and @samp{Cc:} header fields.
 
-@node Replying, Forwarding, Composing, Sending Mail
+@node Replying
 @section Replying to Mail
 
 @cindex @command{mhl}
@@ -4221,7 +4221,7 @@ buffer by turning off the option @code{mh-reply-show-message-flag}.
 If you wish to customize the header or other parts of the reply draft,
 please see @command{repl}(1) and @code{mh-format}(5).
 
-@node Forwarding, Redistributing, Replying, Sending Mail
+@node Forwarding
 @section Forwarding Mail
 
 @cindex @command{forw}
@@ -4283,7 +4283,7 @@ and creates a subject header field of:
 Subject: Greg DesBrisay: Re: 49er football
 @end smallexample
 
-@node Redistributing, Editing Again, Forwarding, Sending Mail
+@node Redistributing
 @section Redistributing Your Mail
 
 @cindex @command{dist}
@@ -4323,7 +4323,7 @@ a message that has been redistributed before, turn off this option.
 The hook @code{mh-annotate-msg-hook} is run after annotating the
 message and scan line (@pxref{Sending Mail}).
 
-@node Editing Again,  , Redistributing, Sending Mail
+@node Editing Again
 @section Editing Old Drafts and Bounced Messages
 
 @cindex @file{draft}
@@ -4359,7 +4359,7 @@ the message for editing by removing the @i{Mailer-Daemon} envelope and
 unneeded header fields. Fix whatever addressing problem you had, and
 send the message again with @kbd{C-c C-c}.
 
-@node Editing Drafts, Aliases, Sending Mail, Top
+@node Editing Drafts
 @chapter Editing a Draft
 
 @cindex @samp{Letter} menu
@@ -4754,7 +4754,7 @@ detail in the following sections.
 * Killing Draft::
 @end menu
 
-@node Editing Message, Inserting Letter, Editing Drafts, Editing Drafts
+@node Editing Message
 @section Editing the Message
 
 @cindex @samp{Bcc} header field
@@ -4929,7 +4929,7 @@ the first period in the paragraph above, the result would be this:
 @end group
 @end smallexample
 
-@node Inserting Letter, Inserting Messages, Editing Message, Editing Drafts
+@node Inserting Letter
 @section Inserting Letter to Which You're Replying
 
 @cindex inserting messages
@@ -5055,7 +5055,7 @@ For example, if you use the hook function
 @code{trivial-cite}} (which is NOT part of Emacs), set
 @code{mh-yank-behavior} to @samp{Body and Header}.
 
-@node Inserting Messages, Signature, Inserting Letter, Editing Drafts
+@node Inserting Messages
 @section Inserting Messages
 
 @cindex inserting messages
@@ -5081,7 +5081,7 @@ left intact, the message is not indented, and @samp{> } is not
 inserted before each line. This command leaves the mark before the
 letter and point after it.
 
-@node Signature, Picture, Inserting Messages, Editing Drafts
+@node Signature
 @section Inserting Your Signature
 
 @cindex signature
@@ -5136,7 +5136,7 @@ function used to insert the signature with
 The signature can also be inserted using Identities.
 @xref{Identities}.
 
-@node Picture, Adding Attachments, Signature, Editing Drafts
+@node Picture
 @section Inserting Your Picture
 
 @cindex @file{.face}
@@ -5186,7 +5186,7 @@ defined by this option doesn't exist.
 
 @xref{Viewing}, to see how these header fields are displayed in MH-E.
 
-@node Adding Attachments, Sending PGP, Picture, Editing Drafts
+@node Adding Attachments
 @section Adding Attachments
 
 @cindex @command{mhbuild}
@@ -5530,7 +5530,7 @@ prefix argument (as in @kbd{C-u C-c C-e}).
 The hook @code{mh-mh-to-mime-hook} is called after the message has
 been formatted by @kbd{C-c C-e}.
 
-@node Sending PGP, Checking Recipients, Adding Attachments, Editing Drafts
+@node Sending PGP
 @section Signing and Encrypting Messages
 
 @cindex signing messages
@@ -5621,7 +5621,7 @@ all messages I encrypt are encrypted with my public key as well. If
 you keep a copy of all of your outgoing mail with a @samp{Fcc:} header
 field, this setting is vital so that you can read the mail you write!
 
-@node Checking Recipients, Sending Message, Sending PGP, Editing Drafts
+@node Checking Recipients
 @section Checking Recipients
 
 @cindex @file{*MH-E Recipients*}
@@ -5640,7 +5640,7 @@ you can check the actual address(es) in the alias. A new buffer named
 @uref{@value{MH-BOOK-HOME}/senove.html#WhaPro, What now?---and the
 whatnow Program} in the MH book.}.
 
-@node Sending Message, Killing Draft, Checking Recipients, Editing Drafts
+@node Sending Message
 @section Sending a Message
 
 @cindex buffers, @file{*MH-E Mail Delivery*}
@@ -5678,7 +5678,7 @@ in the MH book.} is installed under a different name, use
 The hook @code{mh-annotate-msg-hook} is run after annotating the
 message and scan line (@pxref{Sending Mail}).
 
-@node Killing Draft,  , Sending Message, Editing Drafts
+@node Killing Draft
 @section Killing the Draft
 
 @cindex killing draft
@@ -5692,7 +5692,7 @@ command @kbd{C-c C-q} (@code{mh-fully-kill-draft}) to kill the draft
 buffer and delete the draft message. Use the command @kbd{C-x k}
 (@code{kill-buffer}) if you don't want to delete the draft message.
 
-@node Aliases, Identities, Editing Drafts, Top
+@node Aliases
 @chapter Aliases
 
 @cindex aliases
@@ -6019,7 +6019,7 @@ Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
 
-@node Identities, Speedbar, Aliases, Top
+@node Identities
 @chapter Identities
 
 @cindex identities
@@ -6256,7 +6256,7 @@ example, @samp{:signature}), and the action @samp{'remove} or
 @samp{'add}. If the action is @samp{'add}, an additional argument
 containing the value for the field is given.
 
-@node Speedbar, Menu Bar, Identities, Top
+@node Speedbar
 @chapter The Speedbar
 
 @cindex folder navigation
@@ -6354,7 +6354,7 @@ Selected folder face.
 Selected folder face when folder contains unread messages.
 @end vtable
 
-@node Menu Bar, Tool Bar, Speedbar, Top
+@node Menu Bar
 @chapter The Menu Bar
 
 @cindex @samp{Folder} menu
@@ -6414,7 +6414,7 @@ manual in two ways: all of the menu items are listed alphabetically,
 and you can also browse all of the items under the index entry
 @samp{menu item}.
 
-@node Tool Bar, Searching, Menu Bar, Top
+@node Tool Bar
 @chapter The Tool Bar
 
 @cindex tool bar
@@ -6498,7 +6498,7 @@ variable is set to anything other than @samp{Same As Default Tool Bar}
 and the default tool bar is in a different location, then two tool
 bars will be displayed: the MH-E tool bar and the default tool bar.
 
-@node Searching, Threading, Tool Bar, Top
+@node Searching
 @chapter Searching Through Messages
 
 @cindex @samp{Search} menu
@@ -7037,7 +7037,7 @@ MH-Search buffer. Instead, you simply enter a regular expression in
 the minibuffer. For help in constructing regular expressions, see your
 man page for @command{grep}.
 
-@node Threading, Limits, Searching, Top
+@node Threading
 @chapter Viewing Message Threads
 
 @cindex threading
@@ -7166,7 +7166,7 @@ ensure that the byte-compiled version appears first in the
 installed MH-E yourself, please refer to the installation directions
 in the file @file{README} in the distribution.}.
 
-@node Limits, Sequences, Threading, Top
+@node Limits
 @chapter Limiting Display
 
 @cindex limits
@@ -7274,7 +7274,7 @@ command to limit the display to messages in a range (@pxref{Ranges}).
 Each limit can be undone in turn with the @kbd{/ w} (@code{mh-widen})
 command. Give this command a prefix argument to remove all limits.
 
-@node Sequences, Junk, Limits, Top
+@node Sequences
 @chapter Using Sequences
 
 @cindex @samp{Sequence} menu
@@ -7528,7 +7528,7 @@ command dealing with sequences is @command{mark}@footnote{See the
 section @uref{@value{MH-BOOK-HOME}/mmbwm.html, Make Message Bookmarks
 with mark} in the MH book.}.
 
-@node Junk, Miscellaneous, Sequences, Top
+@node Junk
 @chapter Dealing With Junk Mail
 
 @cindex Marshall Rose
@@ -7966,7 +7966,7 @@ spam/unreadable/.
 spam/unreadable/.
 @end smallexample
 
-@node Miscellaneous, Scan Line Formats, Junk, Top
+@node Miscellaneous
 @chapter Miscellaneous Commands, Variables, and Buffers
 
 This chapter covers the following command and the various MH-E
@@ -8053,7 +8053,7 @@ it is hidden because the first character in the name is a space.
 You'll generally not have any need for this buffer.
 @end table
 
-@node Scan Line Formats, Procmail, Miscellaneous, Top
+@node Scan Line Formats
 @appendix Scan Line Formats
 
 @cindex scan line formats
@@ -8521,7 +8521,7 @@ Finally, add the following to delete and refile messages.
 This is just a bare minimum; it's best to adjust all of the regular
 expressions to ensure that MH-E and highlighting perform well.
 
-@node Procmail, Odds and Ends, Scan Line Formats, Top
+@node Procmail
 @appendix Reading Mailing Lists Effectively
 
 @cindex @command{procmail}
@@ -8680,7 +8680,7 @@ example above, you would tell Gnus about it the first time only with
 @kbd{G m gnucash @key{RET} nnml @key{RET}}. In MH-E, this folder is
 known as @samp{+gnucash}.
 
-@node Odds and Ends, History, Procmail, Top
+@node Odds and Ends
 @appendix Odds and Ends
 
 This appendix covers a few topics that don't fit elsewhere. Here I
@@ -8694,7 +8694,7 @@ I also point out some additional sources of information.
 * Getting MH-E::
 @end menu
 
-@node Bug Reports, Mailing Lists, Odds and Ends, Odds and Ends
+@node Bug Reports
 @appendixsec Bug Reports
 
 @cindex bugs
@@ -8708,7 +8708,7 @@ to do that it shouldn't be a restriction for you. Please include the
 output of @kbd{M-x mh-version} (@pxref{Miscellaneous}) in any bug
 report you send unless you're 110% positive we won't ask for it.
 
-@node Mailing Lists, MH FAQ and Support, Bug Reports, Odds and Ends
+@node Mailing Lists
 @appendixsec MH-E Mailing Lists
 
 @cindex SourceForge
@@ -8721,7 +8721,7 @@ the archives at @uref{https://sourceforge.net/p/mh-e/mailman/,
 SourceForge}. Do not report bugs on these lists; please submit them
 via SourceForge (@pxref{Bug Reports}).
 
-@node MH FAQ and Support, Getting MH-E, Mailing Lists, Odds and Ends
+@node MH FAQ and Support
 @appendixsec MH FAQ and Support
 
 @cindex FAQ
@@ -8740,7 +8740,7 @@ You can find FAQs on MH-E by searching for @i{labels:support} on the
 Tickets} page on SourceForge. If you don't find the answer to your
 question, file a ticket and your question will become a new FAQ!
 
-@node Getting MH-E,  , MH FAQ and Support, Odds and Ends
+@node Getting MH-E
 @appendixsec Getting MH-E
 
 @cindex MH-E, obtaining
@@ -8795,7 +8795,7 @@ also contains doc and contrib packages. The former is the latest
 release of this manual, and the latter contains a few contributed
 packages you might find useful.
 
-@node History, GFDL, Odds and Ends, Top
+@node History
 @appendix History of MH-E
 
 @cindex Bill Wohler
@@ -8826,7 +8826,7 @@ lives today.
 * From Bill Wohler::
 @end menu
 
-@node From Brian Reid, From Jim Larus, History, History
+@node From Brian Reid
 @appendixsec From Brian Reid
 
 @cindex Brian Reid
@@ -8858,7 +8858,7 @@ the ideas as well. Perhaps one day, MH-E will again resemble MHE
 
 Brian Reid, June 1994
 
-@node From Jim Larus, From Stephen Gildea, From Brian Reid, History
+@node From Jim Larus
 @appendixsec From Jim Larus
 
 @cindex Jim Larus
@@ -8904,7 +8904,7 @@ since then.
 
 Jim Larus, June 1994
 
-@node From Stephen Gildea, From Bill Wohler, From Jim Larus, History
+@node From Stephen Gildea
 @appendixsec From Stephen Gildea
 
 @cindex Gildea, Stephen
@@ -8946,7 +8946,7 @@ version 5 was released.
 
 Stephen Gildea, June 1994
 
-@node From Bill Wohler,  , From Stephen Gildea, History
+@node From Bill Wohler
 @appendixsec From Bill Wohler
 
 @cindex Wohler, Bill
@@ -8993,27 +8993,27 @@ new features and several bug fixes.
 
 Bill Wohler, August 2008
 
-@node GFDL, GPL, History, Top
+@node GFDL
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node GPL, Key Index, GFDL, Top
+@node GPL
 @appendix GNU General Public License
 @include gpl.texi
 
-@node Key Index, Command Index, GPL, Top
+@node Key Index
 @unnumbered Key (Character) Index
 @printindex ky
 
-@node Command Index, Option Index, Key Index, Top
+@node Command Index
 @unnumbered Command Index
 @printindex fn
 
-@node Option Index, Concept Index, Command Index, Top
+@node Option Index
 @unnumbered Option (Variable) Index
 @printindex vr
 
-@node Concept Index,  , Option Index, Top
+@node Concept Index
 @unnumbered Concept Index
 @printindex cp
 

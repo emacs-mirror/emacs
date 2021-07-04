@@ -70,7 +70,8 @@
 ;;   process key retrieved by `tramp-get-process' (the main connection
 ;;   process).  Other processes could reuse these properties, avoiding
 ;;   recomputation when a new asynchronous process is created by
-;;   `make-process'.  Examples are "remote-path" or "device" (tramp-adb.el).
+;;   `make-process'.  Examples are "remote-path",
+;;   "unsafe-temporary-file" or "device" (tramp-adb.el).
 
 ;;; Code:
 
@@ -237,8 +238,7 @@ Return VALUE."
 ;;;###tramp-autoload
 (defun tramp-flush-file-properties (key file)
   "Remove all properties of FILE in the cache context of KEY."
-  (let* ((file (tramp-run-real-handler
-		#'directory-file-name (list file)))
+  (let* ((file (tramp-run-real-handler #'directory-file-name (list file)))
 	 (truename (tramp-get-file-property key file "file-truename" nil)))
     ;; Unify localname.  Remove hop from `tramp-file-name' structure.
     (setq file (tramp-compat-file-name-unquote file)
@@ -471,11 +471,11 @@ used to cache connection properties of the local machine."
 	;; don't save either, because all other properties might
 	;; depend on the login name, and we want to give the
 	;; possibility to use another login name later on.  Key
-	;; "started" exists for the "ftp" method only, which must be
+	;; "started" exists for the "ftp" method only, which must not
 	;; be kept persistent.
 	(maphash
 	 (lambda (key value)
-	   (if (and (tramp-file-name-p key) value
+	   (if (and (tramp-file-name-p key) (hash-table-p value)
 		    (not (string-equal
 			  (tramp-file-name-method key) tramp-archive-method))
 		    (not (tramp-file-name-localname key))

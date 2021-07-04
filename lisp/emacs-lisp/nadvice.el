@@ -320,17 +320,17 @@ is also interactive.  There are 3 cases:
 
 ;;;###autoload
 (defun advice--add-function (where ref function props)
-  (when (and (featurep 'nativecomp)
+  (when (and (featurep 'native-compile)
              (subr-primitive-p (gv-deref ref)))
     (let ((subr-name (intern (subr-name (gv-deref ref)))))
       ;; Requiring the native compiler to advice `macroexpand' cause a
-      ;; circular dependency in eager macro expansion.
-      ;; uniquify is advising `rename-buffer' while being loaded in
-      ;; loadup.el.  This would require the whole native compiler
-      ;; machinery but we don't want to include it in the dump.
-      ;; Because these two functions are already handled in
-      ;; `comp-never-optimize-functions' we hack the problem this way
-      ;; for now :/
+      ;; circular dependency in eager macro expansion.  uniquify is
+      ;; advising `rename-buffer' while being loaded in loadup.el.
+      ;; This would require the whole native compiler machinery but we
+      ;; don't want to include it in the dump.  Because these two
+      ;; functions are already handled in
+      ;; `native-comp-never-optimize-functions' we hack the problem
+      ;; this way for now :/
       (unless (memq subr-name '(macroexpand rename-buffer))
         ;; Must require explicitly as during bootstrap we have no
         ;; autoloads.
@@ -503,7 +503,7 @@ arguments.  Note if NAME is nil the advice is anonymous;
 otherwise it is named `SYMBOL@NAME'.
 
 \(fn SYMBOL (WHERE LAMBDA-LIST &optional NAME DEPTH) &rest BODY)"
-  (declare (indent 2) (doc-string 3) (debug (sexp sexp body)))
+  (declare (indent 2) (doc-string 3) (debug (sexp sexp def-body)))
   (or (listp args) (signal 'wrong-type-argument (list 'listp args)))
   (or (<= 2 (length args) 4)
       (signal 'wrong-number-of-arguments (list 2 4 (length args))))

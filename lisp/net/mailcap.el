@@ -1156,6 +1156,29 @@ current buffer after passing its contents to the shell command."
           (mailcap--async-shell method file))
       (funcall method))))
 
+(defun mailcap-view-file (file)
+  "View FILE according to rules given by the mailcap system.
+This normally involves executing some external program to display
+the file.
+
+See \"~/.mailcap\", `mailcap-mime-data' and related files and variables."
+  (interactive "fOpen file with mailcap: ")
+  (setq file (expand-file-name file))
+  (mailcap-parse-mailcaps)
+  (let ((command (mailcap-mime-info
+                  (mailcap-extension-to-mime (file-name-extension file)))))
+    (unless command
+      (error "No viewer for %s" (file-name-extension file)))
+    ;; Remove quotes around the file name - we'll use shell-quote-argument.
+    (while (string-match "['\"]%s['\"]" command)
+      (setq command (replace-match "%s" t t command)))
+    (setq command (replace-regexp-in-string
+		   "%s"
+		   (shell-quote-argument (convert-standard-filename file))
+		   command
+		   nil t))
+    (start-process-shell-command command nil command)))
+
 (provide 'mailcap)
 
 ;;; mailcap.el ends here

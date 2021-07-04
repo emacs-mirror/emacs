@@ -603,15 +603,11 @@ Each element is (INDEX . VALUE)")
   form lexical)
 
 (defvar byte-native-compiling nil
-  "Non nil while native compiling.")
+  "Non-nil while native compiling.")
 (defvar byte-native-qualities nil
   "To spill default qualities from the compiled file.")
-(defvar byte-native-for-bootstrap nil
-  "Non nil while compiling for bootstrap."
-  ;; During bootstrap we produce both the .eln and the .elc together.
-  ;; Because the make target is the later this has to be produced as
-  ;; last to be resilient against build interruptions.
-)
+(defvar byte+native-compile nil
+  "Non-nil while producing at the same time byte and native code.")
 (defvar byte-to-native-lambdas-h nil
   "Hash byte-code -> byte-to-native-lambda.")
 (defvar byte-to-native-top-level-forms nil
@@ -1639,7 +1635,10 @@ URLs."
          ;; Ignore these `substitute-command-keys' substitutions.
          (seq "\\" (or "="
                        (seq "<" (* (not ">")) ">")
-                       (seq "{" (* (not "}")) "}")))))
+                       (seq "{" (* (not "}")) "}")))
+         ;; Ignore the function signature that's stashed at the end of
+         ;; the doc string (in some circumstances).
+         (seq bol "(fn (" (* nonl))))
     ""
     ;; Heuristic: assume these substitutions are of some length N.
     (replace-regexp-in-string
@@ -1758,7 +1757,7 @@ It is too wide if it has any lines longer than the largest of
                overriding-plist-environment)))))
 
 (defmacro displaying-byte-compile-warnings (&rest body)
-  (declare (debug t))
+  (declare (debug (def-body)))
   `(let* ((--displaying-byte-compile-warnings-fn (lambda () ,@body))
 	  (warning-series-started
 	   (and (markerp warning-series)
@@ -2067,74 +2066,73 @@ See also `emacs-lisp-byte-compile-and-load'."
 	  (message "Compiling %s...done" filename))
 	(kill-buffer input-buffer)
 	(with-current-buffer output-buffer
-	  (goto-char (point-max))
-	  (insert "\n")			; aaah, unix.
-	  (cond
-	   ((null target-file) nil)     ;We only wanted the warnings!
-	   ((or byte-native-compiling
-		(and (file-writable-p target-file)
-		     ;; We attempt to create a temporary file in the
-		     ;; target directory, so the target directory must be
-		     ;; writable.
-		     (file-writable-p
-		      (file-name-directory
-		       ;; Need to expand in case TARGET-FILE doesn't
-		       ;; include a directory (Bug#45287).
-		       (expand-file-name target-file)))))
-	    ;; We must disable any code conversion here.
-	    (let* ((coding-system-for-write 'no-conversion)
-		   ;; Write to a tempfile so that if another Emacs
-		   ;; process is trying to load target-file (eg in a
-		   ;; parallel bootstrap), it does not risk getting a
-		   ;; half-finished file.  (Bug#4196)
-		   (tempfile
-		    (make-temp-file (when (file-writable-p target-file)
-                                      (expand-file-name target-file))))
-		   (default-modes (default-file-modes))
-		   (temp-modes (logand default-modes #o600))
-		   (desired-modes (logand default-modes #o666))
-		   (kill-emacs-hook
-		    (cons (lambda () (ignore-errors
-				  (delete-file tempfile)))
-			  kill-emacs-hook)))
-	      (unless (= temp-modes desired-modes)
-		(set-file-modes tempfile desired-modes 'nofollow))
-	      (write-region (point-min) (point-max) tempfile nil 1)
-	      ;; This has the intentional side effect that any
-	      ;; hard-links to target-file continue to
-	      ;; point to the old file (this makes it possible
-	      ;; for installed files to share disk space with
-	      ;; the build tree, without causing problems when
-	      ;; emacs-lisp files in the build tree are
-	      ;; recompiled).  Previously this was accomplished by
-	      ;; deleting target-file before writing it.
-	      (if byte-native-compiling
-                  (if byte-native-for-bootstrap
-                      ;; Defer elc final renaming.
-                      (setf byte-to-native-output-file
-                            (cons tempfile target-file))
-                    (delete-file tempfile))
-                (rename-file tempfile target-file t)))
-	    (or noninteractive
-		byte-native-compiling
-		(message "Wrote %s" target-file)))
-           ((file-writable-p target-file)
-            ;; In case the target directory isn't writable (see e.g. Bug#44631),
-            ;; try writing to the output file directly.  We must disable any
-            ;; code conversion here.
-            (let ((coding-system-for-write 'no-conversion))
-              (with-file-modes (logand (default-file-modes) #o666)
-                (write-region (point-min) (point-max) target-file nil 1)))
-            (or noninteractive (message "Wrote %s" target-file)))
-	   (t
-	    ;; This is just to give a better error message than write-region
-	    (let ((exists (file-exists-p target-file)))
-	      (signal (if exists 'file-error 'file-missing)
-		      (list "Opening output file"
-			    (if exists
-				"Cannot overwrite file"
-			      "Directory not writable or nonexistent")
-			    target-file)))))
+          (when (and target-file
+                     (or (not byte-native-compiling)
+                         (and byte-native-compiling byte+native-compile)))
+	    (goto-char (point-max))
+	    (insert "\n")			; aaah, unix.
+	    (cond
+	     ((and (file-writable-p target-file)
+		   ;; We attempt to create a temporary file in the
+		   ;; target directory, so the target directory must be
+		   ;; writable.
+		   (file-writable-p
+		    (file-name-directory
+		     ;; Need to expand in case TARGET-FILE doesn't
+		     ;; include a directory (Bug#45287).
+		     (expand-file-name target-file))))
+	      ;; We must disable any code conversion here.
+	      (let* ((coding-system-for-write 'no-conversion)
+		     ;; Write to a tempfile so that if another Emacs
+		     ;; process is trying to load target-file (eg in a
+		     ;; parallel bootstrap), it does not risk getting a
+		     ;; half-finished file.  (Bug#4196)
+		     (tempfile
+		      (make-temp-file (when (file-writable-p target-file)
+                                        (expand-file-name target-file))))
+		     (default-modes (default-file-modes))
+		     (temp-modes (logand default-modes #o600))
+		     (desired-modes (logand default-modes #o666))
+		     (kill-emacs-hook
+		      (cons (lambda () (ignore-errors
+				    (delete-file tempfile)))
+			    kill-emacs-hook)))
+	        (unless (= temp-modes desired-modes)
+		  (set-file-modes tempfile desired-modes 'nofollow))
+	        (write-region (point-min) (point-max) tempfile nil 1)
+	        ;; This has the intentional side effect that any
+	        ;; hard-links to target-file continue to
+	        ;; point to the old file (this makes it possible
+	        ;; for installed files to share disk space with
+	        ;; the build tree, without causing problems when
+	        ;; emacs-lisp files in the build tree are
+	        ;; recompiled).  Previously this was accomplished by
+	        ;; deleting target-file before writing it.
+	        (if byte-native-compiling
+                    ;; Defer elc final renaming.
+                    (setf byte-to-native-output-file
+                          (cons tempfile target-file))
+                  (rename-file tempfile target-file t)))
+	      (or noninteractive
+		  byte-native-compiling
+		  (message "Wrote %s" target-file)))
+             ((file-writable-p target-file)
+              ;; In case the target directory isn't writable (see e.g. Bug#44631),
+              ;; try writing to the output file directly.  We must disable any
+              ;; code conversion here.
+              (let ((coding-system-for-write 'no-conversion))
+                (with-file-modes (logand (default-file-modes) #o666)
+                  (write-region (point-min) (point-max) target-file nil 1)))
+              (or noninteractive (message "Wrote %s" target-file)))
+	     (t
+	      ;; This is just to give a better error message than write-region
+	      (let ((exists (file-exists-p target-file)))
+	        (signal (if exists 'file-error 'file-missing)
+		        (list "Opening output file"
+			      (if exists
+				  "Cannot overwrite file"
+			        "Directory not writable or nonexistent")
+			      target-file))))))
 	  (kill-buffer (current-buffer)))
 	(if (and byte-compile-generate-call-tree
 		 (or (eq t byte-compile-generate-call-tree)
@@ -2238,12 +2236,12 @@ With argument ARG, insert value in current buffer after the form."
         (setq byte-compile-noruntime-functions nil)
         (setq byte-compile-new-defuns nil)
         (when byte-native-compiling
-          (defvar comp-speed)
-          (push `(comp-speed . ,comp-speed) byte-native-qualities)
-          (defvar comp-debug)
-          (push `(comp-debug . ,comp-debug) byte-native-qualities)
-          (defvar comp-native-driver-options)
-          (push `(comp-native-driver-options . ,comp-native-driver-options)
+          (defvar native-comp-speed)
+          (push `(native-comp-speed . ,native-comp-speed) byte-native-qualities)
+          (defvar native-comp-debug)
+          (push `(native-comp-debug . ,native-comp-debug) byte-native-qualities)
+          (defvar native-comp-driver-options)
+          (push `(native-comp-driver-options . ,native-comp-driver-options)
                 byte-native-qualities)
           (defvar no-native-compile)
           (push `(no-native-compile . ,no-native-compile)
@@ -5311,7 +5309,8 @@ already up-to-date."
   "Reload any Lisp file that was changed since Emacs was dumped.
 Use with caution."
   (let* ((argv0 (car command-line-args))
-         (emacs-file (or (cdr (nth 2 (pdumper-stats)))
+         (emacs-file (or (and (fboundp 'pdumper-stats)
+                              (cdr (nth 2 (pdumper-stats))))
                          (executable-find argv0))))
     (if (not (and emacs-file (file-exists-p emacs-file)))
         (message "Can't find %s to refresh preloaded Lisp files" argv0)

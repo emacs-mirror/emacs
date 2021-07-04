@@ -563,7 +563,7 @@ esprintf (char *buf, char const *format, ...)
    BUFSIZE_MAX.  */
 ptrdiff_t
 exprintf (char **buf, ptrdiff_t *bufsize,
-	  char const *nonheapbuf, ptrdiff_t bufsize_max,
+	  char *nonheapbuf, ptrdiff_t bufsize_max,
 	  char const *format, ...)
 {
   ptrdiff_t nbytes;
@@ -579,7 +579,7 @@ exprintf (char **buf, ptrdiff_t *bufsize,
 /* Act like exprintf, except take a va_list.  */
 ptrdiff_t
 evxprintf (char **buf, ptrdiff_t *bufsize,
-	   char const *nonheapbuf, ptrdiff_t bufsize_max,
+	   char *nonheapbuf, ptrdiff_t bufsize_max,
 	   char const *format, va_list ap)
 {
   for (;;)

@@ -1261,7 +1261,7 @@ uses @file{@trampfn{mtp,,}} as the default name.
 As the name indicates, the method @option{nextcloud} allows you to
 access OwnCloud or NextCloud hosted files and directories.  Like the
 @option{gdrive} method, your credentials must be populated in your
-@command{Online Accounts} application outside Emacs. The method
+@command{Online Accounts} application outside Emacs.  The method
 supports port numbers.
 
 @item @option{sftp}
@@ -2166,7 +2166,7 @@ commands for those hosts, the property @t{"posix"} should be set to
 
 The default value of this property is @code{t} (not specified in
 @code{tramp-methods}).  If the remote host runs native MS Windows,
-this propery has no effect.
+this property has no effect.
 
 @item @t{"mount-point"}
 
@@ -2842,6 +2842,13 @@ auto-saved files to the same directory as the original file.
 Alternatively, set the user option @code{tramp-auto-save-directory}
 to direct all auto saves to that location.
 
+@vindex tramp-allow-unsafe-temporary-files
+Per default, @value{tramp} asks for confirmation if a
+@samp{root}-owned backup or auto-save remote file has to be written to
+your local temporary directory.  If you want to suppress this
+confirmation question, set user option
+@code{tramp-allow-unsafe-temporary-files} to @code{t}.
+
 
 @node Keeping files encrypted
 @section Protect remote files by encryption
@@ -3309,12 +3316,12 @@ For ad-hoc definitions to be saved automatically in
 
 Ad-hoc proxies can take patterns @code{%h} or @code{%u} like in
 @code{tramp-default-proxies-alist}.  The following file name expands
-to user @code{root} on host @code{remotehost}, starting with an
-@option{ssh} session on host @code{remotehost}:
+to user @samp{root} on host @samp{remotehost}, starting with an
+@option{ssh} session on host @samp{remotehost}:
 @samp{@value{prefix}ssh@value{postfixhop}%h|su@value{postfixhop}remotehost@value{postfix}}.
 
 On the other hand, if a trailing hop does not specify a host name,
-the host name of the previous hop is reused. Therefore, the following
+the host name of the previous hop is reused.  Therefore, the following
 file name is equivalent to the previous example:
 @samp{@value{prefix}ssh@value{postfixhop}remotehost|su@value{postfixhop}@value{postfix}}.
 
@@ -4504,9 +4511,9 @@ Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
 @samp{%%r}, @samp{%%h} and @samp{%%p}.
 
 @vindex tramp-use-ssh-controlmaster-options
-If the @file{~/.ssh/config} is configured appropriately for the above
-behavior, then any changes to @command{ssh} can be suppressed with
-this @code{nil} setting:
+If the @file{~/.ssh/config} file is configured appropriately for the
+above behavior, then any changes to @command{ssh} can be suppressed
+with this @code{nil} setting:
 
 @lisp
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
@@ -4517,6 +4524,10 @@ this @code{nil} setting:
 This should also be set to @code{nil} if you use the
 @option{ProxyCommand} or @option{ProxyJump} options in your
 @command{ssh} configuration.
+
+On MS Windows, @code{tramp-use-ssh-controlmaster-options} is set to
+@code{nil} by default, because the MS Windows and MSYS2
+implementations of @command{OpenSSH} do not support this option properly.
 
 
 @item
@@ -5290,7 +5301,7 @@ attributes cache in its process sentinel with this code:
 @end lisp
 
 Since @value{tramp} traverses subdirectories starting with the
-root-directory, it is most likely sufficient to make the
+root directory, it is most likely sufficient to make the
 @code{default-directory} of the process buffer as the root directory.
 
 
@@ -5336,6 +5347,7 @@ The verbosity levels are
 @*@indent @w{ 8}  connection properties
 @*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
+@*@indent @w{11}  call traces (maintainer only)
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to a @value{tramp} debug buffer.  Such debug buffers are
@@ -5384,21 +5396,8 @@ The debug buffer is written as a file in your
 this option with care, because it could decrease the performance of
 @value{tramp} actions.
 
-To enable stepping through @value{tramp} function call traces, they
-have to be specifically enabled as shown in this code:
-
-@lisp
-@group
-(require 'trace)
-(dolist (elt (all-completions "tramp-" obarray 'functionp))
-  (trace-function-background (intern elt)))
-(untrace-function 'tramp-read-passwd)
-@end group
-@end lisp
-
-The buffer @file{*trace-output*} contains the output from the function
-call traces.  Disable @code{tramp-read-passwd} to stop password
-strings from being written to @file{*trace-output*}.
+If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
+function call traces are written to the buffer @file{*trace-output*}.
 
 
 @node GNU Free Documentation License

@@ -101,6 +101,19 @@
 (declare-function speedbar-delete-subblock "speedbar" (indent))
 (declare-function speedbar-center-buffer-smartly "speedbar" ())
 
+;; FIXME: The declares below are necessary because we don't call `gud-def'
+;; at toplevel, so the compiler doesn't know under which circumstances
+;; they're defined.
+(declare-function gud-until  "gud" (arg))
+(declare-function gud-print  "gud" (arg))
+(declare-function gud-down   "gud" (arg))
+(declare-function gud-up     "gud" (arg))
+(declare-function gud-jump   "gud" (arg))
+(declare-function gud-finish "gud" (arg))
+(declare-function gud-next   "gud" (arg))
+(declare-function gud-stepi  "gud" (arg))
+(declare-function gud-tbreak "gud" (arg))
+
 (defvar tool-bar-map)
 (defvar speedbar-initial-expansion-list-name)
 (defvar speedbar-frame)
@@ -4512,7 +4525,7 @@ overlay arrow in source buffer."
   (let ((frame (gdb-mi--field (gdb-mi--partial-output) 'frame)))
     (when frame
       (setq gdb-selected-frame (gdb-mi--field frame 'func))
-      (setq gdb-selected-file (gdb-mi--field frame 'fullname))
+      (setq gdb-selected-file (file-local-name (gdb-mi--field frame 'fullname)))
       (setq gdb-frame-number (gdb-mi--field frame 'level))
       (setq gdb-frame-address (gdb-mi--field frame 'addr))
       (let ((line (gdb-mi--field frame 'line)))

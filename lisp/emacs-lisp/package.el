@@ -1081,7 +1081,7 @@ This assumes that `pkg-desc' has already been activated with
   "Native compile installed package PKG-DESC asynchronously.
 This assumes that `pkg-desc' has already been activated with
 `package-activate-1'."
-  (when (and (featurep 'nativecomp)
+  (when (and (featurep 'native-compile)
              (native-comp-available-p))
     (let ((warning-minimum-level :error))
       (native-compile-async (package-desc-dir pkg-desc) t))))
@@ -1305,7 +1305,10 @@ is non-nil, don't propagate connection errors (does not apply to
 errors signaled by ERROR-FORM or by BODY).
 
 \(fn URL &key ASYNC FILE ERROR-FORM NOERROR &rest BODY)"
-  (declare (indent defun) (debug t))
+  (declare (indent defun)
+           ;; FIXME: This should be something like
+           ;; `form def-body &rest form', but that doesn't work.
+           (debug (form &rest sexp)))
   (while (keywordp (car body))
     (setq body (cdr (cdr body))))
   `(package--with-response-buffer-1 ,url (lambda () ,@body)
@@ -2265,9 +2268,9 @@ confirmation to install packages."
   "Delete DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled."
-  (when (featurep 'nativecomp)
+  (when (featurep 'native-compile)
     (cl-loop
-     for file in (directory-files-recursively dir ".el\\'")
+     for file in (directory-files-recursively dir "\\.el\\'")
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
   (delete-directory dir t))
 
@@ -3371,7 +3374,8 @@ If optional arg BUTTON is non-nil, describe its associated package."
         (forward-line 1)))))
 
 (defvar package--quick-help-keys
-  '(("install," "delete," "unmark," ("execute" . 1))
+  '((("mark for installation," . 9)
+     ("mark for deletion," . 9) "unmark," ("execute marked actions" . 1))
     ("next," "previous")
     ("Hide-package," "(-toggle-hidden")
     ("g-refresh-contents," "/-filter," "help")))

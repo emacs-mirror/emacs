@@ -156,7 +156,7 @@ only one object ever exists."
   ;; NOTE TO SELF: In next version, make `slot-boundp' support classes
   ;; with class allocated slots or default values.
   (let ((old (oref-default class singleton)))
-    (if (eq old eieio-unbound)
+    (if (eq old eieio--unbound)
 	(oset-default class singleton (cl-call-next-method))
       old)))
 

@@ -2723,7 +2723,6 @@ since only regular expressions have distinguished subexpressions.  */)
     }
 
   newpoint = sub_start + SCHARS (newtext);
-  ptrdiff_t newstart = sub_start == sub_end ? newpoint : sub_start;
 
   /* Replace the old text with the new in the cleanest possible way.  */
   replace_range (sub_start, sub_end, newtext, 1, 0, 1, true);
@@ -2739,11 +2738,11 @@ since only regular expressions have distinguished subexpressions.  */)
   /* The replace_range etc. functions can trigger modification hooks
      (see signal_before_change and signal_after_change).  Try to error
      out if these hooks clobber the match data since clobbering can
-     result in confusing bugs.  Although this sanity check does not
-     catch all possible clobberings, it should catch many of them.  */
-  if (! (search_regs.num_regs == num_regs
-	 && search_regs.start[sub] == newstart
-	 && search_regs.end[sub] == newpoint))
+     result in confusing bugs.  We used to check for changes in
+     search_regs start and end, but that fails if modification hooks
+     remove or add text earlier in the buffer, so just check num_regs
+     now. */
+  if (search_regs.num_regs != num_regs)
     error ("Match data clobbered by buffer modification hooks");
 
   /* Put point back where it was in the text, if possible.  */

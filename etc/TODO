@@ -1763,8 +1763,17 @@ apparently loses under Solaris, at least. [fx has mostly done this.]
 (Obsolete, since gmalloc.c is nowadays only used on MS-DOS.)
 
 ** Rewrite make-docfile to be clean and maintainable
-It might be better to replace it with Lisp, using the byte compiler.
+It might be better to replace with Lisp the part of make-docfile that
+produces the etc/DOC file by scanning *.el files, for example by
+reusing the code in the byte compiler or in autoload.el that already
+scans *.el files.
 https://lists.gnu.org/r/emacs-devel/2012-06/msg00037.html
+https://lists.gnu.org/r/emacs-devel/2021-05/msg00235.html
+
+** Eliminate the etc/DOC file altogether
+As an alternative to the previous item, we could try and eliminate the
+DOC file altogether.  See
+https://lists.gnu.org/r/emacs-devel/2021-05/msg00237.html
 
 ** Add an inferior-comint-minor-mode
 The purpose is to have a mode to capture the common set of operations

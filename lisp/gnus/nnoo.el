@@ -34,6 +34,7 @@
 (defmacro defvoo (var init &optional doc &rest map)
   "The same as `defvar', only takes list of variables to MAP to."
   (declare (indent 2)
+           (doc-string 3)
            (debug (var init &optional doc &rest map)))
   `(prog1
        ,(if doc
@@ -44,6 +45,7 @@
 (defmacro deffoo (func args &rest forms)
   "The same as `defun', only register FUNC."
   (declare (indent 2)
+           (doc-string 3)
            (debug (&define name lambda-list def-body)))
   `(prog1
        (defun ,func ,args ,@forms)

@@ -26,29 +26,38 @@
 (require 'seq)
 
 ;;;###autoload
-(defun read-multiple-choice (prompt choices)
-  "Ask user a multiple choice question.
-PROMPT should be a string that will be displayed as the prompt.
+(defun read-multiple-choice (prompt choices &optional help-string)
+  "Ask user to select an entry from CHOICES, promting with PROMPT.
+This function allows to ask the user a multiple-choice question.
 
-CHOICES is a list of (KEY NAME [DESCRIPTION]).  KEY is a
-character to be entered.  NAME is a short name for the entry to
-be displayed while prompting (if there's room, it might be
-shortened).  DESCRIPTION is an optional longer explanation that
-will be displayed in a help buffer if the user requests more
-help.
+CHOICES should be a list of the form (KEY NAME [DESCRIPTION]).
+KEY is a character the user should type to select the entry.
+NAME is a short name for the entry to be displayed while prompting
+\(if there's no room, it might be shortened).
+DESCRIPTION is an optional longer description of the entry; it will
+be displayed in a help buffer if the user requests more help.  This
+help description has a fixed format in columns.  For greater
+flexibility, instead of passing a DESCRIPTION, the caller can pass
+the optional argument HELP-STRING.  This argument is a string that
+should contain a more detailed description of all of the possible
+choices.  `read-multiple-choice' will display that description in a
+help buffer if the user requests that.
 
 This function translates user input into responses by consulting
 the bindings in `query-replace-map'; see the documentation of
-that variable for more information.  In this case, the useful
-bindings are `recenter', `scroll-up', and `scroll-down'.  If the
-user enters `recenter', `scroll-up', or `scroll-down' responses,
-perform the requested window recentering or scrolling and ask
-again.
+that variable for more information.  The relevant bindings for the
+purposes of this function are `recenter', `scroll-up', `scroll-down',
+and `edit'.
+If the user types the `recenter', `scroll-up', or `scroll-down'
+responses, the function performs the requested window recentering or
+scrolling, and then asks the question again.  If the user enters `edit',
+the function starts a recursive edit.  When the user exit the recursive
+edit, the multiple-choice prompt gains focus again.
 
-When `use-dialog-box' is t (the default), this function can pop
-up a dialog window to collect the user input.  That functionality
-requires `display-popup-menus-p' to return t.  Otherwise, a
-text dialog will be used.
+When `use-dialog-box' is t (the default), and the command using this
+function was invoked via the mouse, this function pops up a GUI dialog
+to collect the user input, but only if Emacs is capable of using GUI
+dialogs.  Otherwise, the function will always use text-mode dialogs.
 
 The return value is the matching entry from the CHOICES list.
 
@@ -133,6 +142,13 @@ Usage example:
                   (ignore-errors (scroll-other-window)) t)
                  ((eq answer 'scroll-other-window-down)
                   (ignore-errors (scroll-other-window-down)) t)
+                 ((eq answer 'edit)
+                  (save-match-data
+                    (save-excursion
+                      (message "%s"
+                               (substitute-command-keys
+                                "Recursive edit; type \\[exit-recursive-edit] to return to help screen"))
+                      (recursive-edit))))
                  (t tchar)))
           (when (eq tchar t)
             (setq wrong-char nil
@@ -141,57 +157,61 @@ Usage example:
           ;; help messages.
           (when (and (not (eq tchar nil))
                      (not (assq tchar choices)))
-	    (setq wrong-char (not (memq tchar '(?? ?\C-h)))
+	    (setq wrong-char (not (memq tchar `(?? ,help-char)))
                   tchar nil)
             (when wrong-char
               (ding))
-            (with-help-window (setq buf (get-buffer-create
-                                         "*Multiple Choice Help*"))
-              (with-current-buffer buf
-                (erase-buffer)
-                (pop-to-buffer buf)
-                (insert prompt "\n\n")
-                (let* ((columns (/ (window-width) 25))
-                       (fill-column 21)
-                       (times 0)
-                       (start (point)))
-                  (dolist (elem choices)
-                    (goto-char start)
-                    (unless (zerop times)
-                      (if (zerop (mod times columns))
-                          ;; Go to the next "line".
-                          (goto-char (setq start (point-max)))
-                        ;; Add padding.
-                        (while (not (eobp))
-                          (end-of-line)
-                          (insert (make-string (max (- (* (mod times columns)
-                                                          (+ fill-column 4))
-                                                       (current-column))
-                                                    0)
-                                               ?\s))
-                          (forward-line 1))))
-                    (setq times (1+ times))
-                    (let ((text
-                           (with-temp-buffer
-                             (insert (format
-                                      "%c: %s\n"
-                                      (car elem)
-                                      (cdr (assq (car elem) altered-names))))
-                             (fill-region (point-min) (point-max))
-                             (when (nth 2 elem)
-                               (let ((start (point)))
-                                 (insert (nth 2 elem))
-                                 (unless (bolp)
-                                   (insert "\n"))
-                                 (fill-region start (point-max))))
-                             (buffer-string))))
+            (setq buf (get-buffer-create "*Multiple Choice Help*"))
+            (if (stringp help-string)
+                (with-help-window buf
+                  (with-current-buffer buf
+                    (insert help-string)))
+              (with-help-window buf
+                (with-current-buffer buf
+                  (erase-buffer)
+                  (pop-to-buffer buf)
+                  (insert prompt "\n\n")
+                  (let* ((columns (/ (window-width) 25))
+                         (fill-column 21)
+                         (times 0)
+                         (start (point)))
+                    (dolist (elem choices)
                       (goto-char start)
-                      (dolist (line (split-string text "\n"))
-                        (end-of-line)
-                        (if (bolp)
-                            (insert line "\n")
-                          (insert line))
-                        (forward-line 1)))))))))))
+                      (unless (zerop times)
+                        (if (zerop (mod times columns))
+                            ;; Go to the next "line".
+                            (goto-char (setq start (point-max)))
+                          ;; Add padding.
+                          (while (not (eobp))
+                            (end-of-line)
+                            (insert (make-string (max (- (* (mod times columns)
+                                                            (+ fill-column 4))
+                                                         (current-column))
+                                                      0)
+                                                 ?\s))
+                            (forward-line 1))))
+                      (setq times (1+ times))
+                      (let ((text
+                             (with-temp-buffer
+                               (insert (format
+                                        "%c: %s\n"
+                                        (car elem)
+                                        (cdr (assq (car elem) altered-names))))
+                               (fill-region (point-min) (point-max))
+                               (when (nth 2 elem)
+                                 (let ((start (point)))
+                                   (insert (nth 2 elem))
+                                   (unless (bolp)
+                                     (insert "\n"))
+                                   (fill-region start (point-max))))
+                               (buffer-string))))
+                        (goto-char start)
+                        (dolist (line (split-string text "\n"))
+                          (end-of-line)
+                          (if (bolp)
+                              (insert line "\n")
+                            (insert line))
+                          (forward-line 1))))))))))))
     (when (buffer-live-p buf)
       (kill-buffer buf))
     (assq tchar choices)))

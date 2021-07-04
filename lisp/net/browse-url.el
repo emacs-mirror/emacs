@@ -47,6 +47,7 @@
 ;; browse-url-xdg-open                freedesktop.org xdg-open
 ;; browse-url-kde                     KDE konqueror (kfm)
 ;; browse-url-elinks                  Elinks      Don't know (tried with 0.12.GIT)
+;; eww-browse-url                     Emacs Web Wowser
 
 ;; Browsers can cache Web pages so it may be necessary to tell them to
 ;; reload the current page if it has changed (e.g., if you have edited
@@ -758,7 +759,7 @@ for use in `interactive'."
 
 ;;;###autoload
 (defun browse-url-of-file (&optional file)
-  "Ask a WWW browser to display FILE.
+  "Use a web browser to display FILE.
 Display the current buffer's file if FILE is nil or if called
 interactively.  Turn the filename into a URL with function
 `browse-url-file-url'.  Pass the URL to a browser using the
@@ -773,6 +774,8 @@ interactively.  Turn the filename into a URL with function
 	  (cond ((not (buffer-modified-p)))
 		(browse-url-save-file (save-buffer))
 		(t (message "%s modified since last save" file))))))
+  (when (file-remote-p file)
+    (setq file (file-local-copy file)))
   (browse-url (browse-url-file-url file))
   (run-hooks 'browse-url-of-file-hook))
 
@@ -793,7 +796,9 @@ Use variable `browse-url-filename-alist' to map filenames to URLs."
 
 ;;;###autoload
 (defun browse-url-of-buffer (&optional buffer)
-  "Ask a WWW browser to display BUFFER.
+  "Use a web browser to display BUFFER.
+See `browse-url' for details.
+
 Display the current buffer if BUFFER is nil.  Display only the
 currently visible part of BUFFER (from a temporary file) if buffer is
 narrowed."
@@ -842,7 +847,8 @@ If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
 
 ;;;###autoload
 (defun browse-url-of-region (min max)
-  "Ask a WWW browser to display the current region."
+  "Use a web browser to display the current region.
+See `browse-url' for details."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -856,13 +862,17 @@ If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
 
 ;;;###autoload
 (defun browse-url (url &rest args)
-  "Ask a WWW browser to load URL.
-Prompt for a URL, defaulting to the URL at or before point.
-Invokes a suitable browser function which does the actual job.
+  "Open URL using a configurable method.
+This will typically (by default) open URL with an external web
+browser, but a wide variety of different methods can be used,
+depending on the URL type.
 
 The variables `browse-url-browser-function',
 `browse-url-handlers', and `browse-url-default-handlers'
 determine which browser function to use.
+
+This command prompts for a URL, defaulting to the URL at or
+before point.
 
 The additional ARGS are passed to the browser function.  See the
 doc strings of the actual functions, starting with
@@ -895,8 +905,8 @@ If ARGS are omitted, the default is to pass
 
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
-  "Ask a WWW browser to load the URL at or before point.
-Variable `browse-url-browser-function' says which browser to use.
+  "Open URL at point using a configurable method.
+See `browse-url' for details.
 Optional prefix argument ARG non-nil inverts the value of the option
 `browse-url-new-window-flag'."
   (interactive "P")
@@ -937,10 +947,11 @@ opposite of the browser kind of `browse-url-browser-function'."
 
 ;;;###autoload
 (defun browse-url-at-mouse (event)
-  "Ask a WWW browser to load a URL clicked with the mouse.
-The URL is the one around or before the position of the mouse click
-but point is not changed.  Variable `browse-url-browser-function'
-says which browser to use."
+  "Use a web browser to load a URL clicked with the mouse.
+See `browse-url' for details.
+
+The URL is the one around or before the position of the mouse
+click but point is not changed."
   (interactive "e")
   (save-excursion
     (mouse-set-point event)
@@ -1113,8 +1124,8 @@ used instead of `browse-url-new-window-flag'."
 					 ",new-window"))
 				   ")"))))))))
     (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-netscape-sentinel process ,url)))))
+			  (lambda (process _change)
+			    (browse-url-netscape-sentinel process url)))))
 
 (function-put 'browse-url-netscape 'browse-url-browser-kind 'external)
 
@@ -1185,8 +1196,8 @@ used instead of `browse-url-new-window-flag'."
 				      ",new-window"))
 				")"))))))
     (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-mozilla-sentinel process ,url)))))
+			  (lambda (process _change)
+			    (browse-url-mozilla-sentinel process url)))))
 
 (function-put 'browse-url-mozilla 'browse-url-browser-kind 'external)
 
@@ -1303,8 +1314,8 @@ used instead of `browse-url-new-window-flag'."
                             '("--existing"))
                           (list url)))))
     (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-galeon-sentinel process ,url)))))
+			  (lambda (process _change)
+			    (browse-url-galeon-sentinel process url)))))
 
 (function-put 'browse-url-galeon 'browse-url-browser-kind 'external)
 
@@ -1351,8 +1362,8 @@ used instead of `browse-url-new-window-flag'."
                             '("--existing"))
                           (list url)))))
     (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-epiphany-sentinel process ,url)))))
+			  (lambda (process _change)
+			    (browse-url-epiphany-sentinel process url)))))
 
 (function-put 'browse-url-epiphany 'browse-url-browser-kind 'external)
 
@@ -1715,8 +1726,8 @@ from `browse-url-elinks-wrapper'."
 	  (elinks-ping-process (start-process "elinks-ping" nil
 					      "elinks" "-remote" "ping()")))
       (set-process-sentinel elinks-ping-process
-			    `(lambda (process change)
-			       (browse-url-elinks-sentinel process ,url))))))
+			    (lambda (process _change)
+			      (browse-url-elinks-sentinel process url))))))
 
 (function-put 'browse-url-elinks 'browse-url-browser-kind 'external)
 
@@ -1782,6 +1793,7 @@ external browser instead of the default one."
         (funcall browse-url-secondary-browser-function url)
       (browse-url url))))
 
+;;;###autoload
 (defun browse-url-button-open-url (url)
   "Open URL using `browse-url'.
 If `current-prefix-arg' is non-nil, use

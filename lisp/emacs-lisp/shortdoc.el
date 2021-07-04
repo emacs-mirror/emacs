@@ -60,8 +60,10 @@ FUNCTIONS is a list of elements on the form:
    :args ARGS
    :eval EXAMPLE-FORM
    :no-eval EXAMPLE-FORM
+   :no-eval* EXAMPLE-FORM
    :no-value EXAMPLE-FORM
    :result RESULT-FORM
+   :result-string RESULT-FORM
    :eg-result RESULT-FORM
    :eg-result-string RESULT-FORM)
 
@@ -221,7 +223,7 @@ There can be any number of :example/:result elements."
   (string-greaterp
    :eval (string-greaterp "foo" "bar"))
   (string-version-lessp
-   :eval (string-lessp "foo32.png" "bar4.png"))
+   :eval (string-version-lessp "pic4.png" "pic32.png"))
   (string-prefix-p
    :eval (string-prefix-p "foo" "foobar"))
   (string-suffix-p
@@ -266,6 +268,9 @@ There can be any number of :example/:result elements."
    :eval (file-name-extension "/tmp/foo.txt"))
   (file-name-sans-extension
    :eval (file-name-sans-extension "/tmp/foo.txt"))
+  (file-name-with-extension
+   :eval (file-name-with-extension "foo.txt" "bin")
+   :eval (file-name-with-extension "foo" "bin"))
   (file-name-base
    :eval (file-name-base "/tmp/foo.txt"))
   (file-relative-name
@@ -613,7 +618,7 @@ There can be any number of :example/:result elements."
   (lax-plist-get
    :eval (lax-plist-get '("a" 1 "b" 2 "c" 3) "b"))
   (lax-plist-put
-   :no-eval (setq plist (plist-put plist "d" 4))
+   :no-eval (setq plist (lax-plist-put plist "d" 4))
    :eq-result '("a" 1 "b" 2 "c" 3 "d" 4))
   (plist-member
    :eval (plist-member '(a 1 b 2 c 3) 'b))
@@ -625,7 +630,7 @@ There can be any number of :example/:result elements."
   (length>
    :eval (length> '(a b c) 1))
   (length=
-   :eval (length> '(a b c) 3))
+   :eval (length= '(a b c) 3))
   (safe-length
    :eval (safe-length '(a b c))))
 
@@ -666,7 +671,7 @@ There can be any number of :example/:result elements."
    :no-eval (re-search-backward "^foo$" nil t)
    :eg-result 43)
   (looking-at-p
-   :no-eval (looking-at "f[0-9]")
+   :no-eval (looking-at-p "f[0-9]")
    :eg-result t)
   "Match Data"
   (match-string
@@ -838,7 +843,7 @@ There can be any number of :example/:result elements."
   (point
    :eval (point))
   (point-min
-   :eval (point-max))
+   :eval (point-min))
   (point-max
    :eval (point-max))
   (line-beginning-position
@@ -885,7 +890,53 @@ There can be any number of :example/:result elements."
   (lock-buffer
    :no-value (lock-buffer "/tmp/foo"))
   (unlock-buffer
-   :no-value (lock-buffer)))
+   :no-value (unlock-buffer)))
+
+(define-short-documentation-group overlay
+  "Predicates"
+  (overlayp
+   :no-eval (overlayp some-overlay)
+   :eg-result t)
+  "Creation and Deletion"
+  (make-overlay
+   :args (beg end &optional buffer)
+   :no-eval (make-overlay 1 10)
+   :eg-result-string "#<overlay from 1 to 10 in *foo*>")
+  (delete-overlay
+   :no-eval (delete-overlay foo)
+   :eg-result t)
+  "Searching Overlays"
+  (overlays-at
+   :no-eval (overlays-at 15)
+   :eg-result-string "(#<overlay from 1 to 10 in *foo*>)")
+  (overlays-in
+   :no-eval (overlays-in 1 30)
+   :eg-result-string "(#<overlay from 1 to 10 in *foo*>)")
+  (next-overlay-change
+   :no-eval (next-overlay-change 1)
+   :eg-result 20)
+  (previous-overlay-change
+   :no-eval (previous-overlay-change 30)
+   :eg-result 20)
+  "Overlay Properties"
+  (overlay-start
+   :no-eval (overlay-start foo)
+   :eg-result 1)
+  (overlay-end
+   :no-eval (overlay-end foo)
+   :eg-result 10)
+  (overlay-put
+   :no-eval (overlay-put foo 'happy t)
+   :eg-result t)
+  (overlay-get
+   :no-eval (overlay-get foo 'happy)
+   :eg-result t)
+  (overlay-buffer
+   :no-eval (overlay-buffer foo))
+  "Moving Overlays"
+  (move-overlay
+   :no-eval (move-overlay foo 5 20)
+   :eg-result-string "#<overlay from 5 to 20 in *foo*>"))
 
 (define-short-documentation-group process
   (make-process
@@ -1056,7 +1107,7 @@ There can be any number of :example/:result elements."
   (logb
    :eval (logb 10.5))
   (ffloor
-   :eval (floor 1.2))
+   :eval (ffloor 1.2))
   (fceiling
    :eval (fceiling 1.2))
   (ftruncate
@@ -1235,11 +1286,11 @@ Example:
   (let ((glist (assq group shortdoc--groups)))
     (unless glist
       (setq glist (list group))
-      (setq shortdoc--groups (append shortdoc--groups (list glist))))
+      (push glist shortdoc--groups))
     (let ((slist (member section glist)))
       (unless slist
         (setq slist (list section))
-        (setq slist (append glist slist)))
+        (nconc glist slist))
       (while (and (cdr slist)
                   (not (stringp (cadr slist))))
         (setq slist (cdr slist)))

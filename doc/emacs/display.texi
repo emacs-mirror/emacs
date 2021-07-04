@@ -1189,8 +1189,8 @@ that has some special meaning for formatting the source code of a
 program.
 
   To activate the fill-column indication display, use the minor modes
-@w{@kbd{M-x display-fill-column-indicator-mode}} and
-@w{@kbd{M-x global-display-fill-column-indicator-mode}}, which enable
+@kbd{M-x display-fill-@-column-indicator-mode} and
+@kbd{M-x global-display-fill-column-indicator-mode}, which enable
 the indicator locally or globally, respectively.
 
 Alternatively, you can set the two buffer-local variables
@@ -1220,8 +1220,8 @@ The value @code{nil} disables the indicator.  When the mode is enabled
 through the functions @code{display-fill-column-indicator-mode} or
 @code{global-display-fill-column-indicator-mode}, they will use the
 character specified by this variable, if it is non-@code{nil};
-otherwise Emacs will use the character @samp{U+2502 VERTICAL LINE},
-falling back to @samp{|} if @code{U+2502} cannot be displayed.
+otherwise Emacs will use the character U+2502 @sc{box drawings light vertical},
+falling back to @samp{|} if U+2502 cannot be displayed.
 
 @item fill-column-indicator
 @vindex fill-column-indicator
@@ -1577,8 +1577,8 @@ characters, as well as many non-@acronym{ASCII} characters.
 @cindex control characters on display
   The @acronym{ASCII} character set contains non-printing @dfn{control
 characters}.  Two of these are displayed specially: the newline
-character (Unicode code point @code{U+000A}) is displayed by starting
-a new line, while the tab character (@code{U+0009}) is displayed as a
+character (Unicode code point U+000A) is displayed by starting
+a new line, while the tab character (U+0009) is displayed as a
 space that extends to the next tab stop column (normally every 8
 columns).  The number of spaces per tab is controlled by the
 buffer-local variable @code{tab-width}, which must have an integer
@@ -1587,17 +1587,17 @@ character in the buffer is displayed has nothing to do with the
 definition of @key{TAB} as a command.
 
   Other @acronym{ASCII} control characters, whose codes are below
-@code{U+0020} (octal 40, decimal 32), are displayed as a caret
+U+0020 (octal 40, decimal 32), are displayed as a caret
 (@samp{^}) followed by the non-control version of the character, with
 the @code{escape-glyph} face.  For instance, the @samp{control-A}
-character, @code{U+0001}, is displayed as @samp{^A}.
+character, U+0001, is displayed as @samp{^A}.
 
 @cindex octal escapes
 @vindex ctl-arrow
-  The raw bytes with codes @code{U+0080} (octal 200) through
-@code{U+009F} (octal 237) are displayed as @dfn{octal escape
+  The raw bytes with codes U+0080 (octal 200) through
+U+009F (octal 237) are displayed as @dfn{octal escape
 sequences}, with the @code{escape-glyph} face.  For instance,
-character code @code{U+0098} (octal 230) is displayed as @samp{\230}.
+character code U+0098 (octal 230) is displayed as @samp{\230}.
 If you change the buffer-local variable @code{ctl-arrow} to
 @code{nil}, the @acronym{ASCII} control characters are also displayed
 as octal escape sequences instead of caret escape sequences.  (You can
@@ -1616,11 +1616,11 @@ can cause problems if they are entered into a buffer without your
 realization, e.g., by yanking; for instance, source code compilers
 typically do not treat non-@acronym{ASCII} spaces as whitespace
 characters.  To deal with this problem, Emacs displays such characters
-specially: it displays @code{U+00A0} (no-break space) and other
+specially: it displays U+00A0 @sc{no-break space} and other
 characters from the Unicode horizontal space class with the
-@code{nobreak-space} face, and it displays @code{U+00AD} (soft
-hyphen), @code{U+2010} (hyphen), and @code{U+2011} (non-breaking
-hyphen) with the @code{nobreak-hyphen} face.  To disable this, change
+@code{nobreak-space} face, and it displays U+00AD @sc{soft
+hyphen}, U+2010 @sc{hyphen}, and U+2011 @sc{non-breaking
+hyphen} with the @code{nobreak-hyphen} face.  To disable this, change
 the variable @code{nobreak-char-display} to @code{nil}.  If you give
 this variable a non-@code{nil} and non-@code{t} value, Emacs instead
 displays such characters as a highlighted backslash followed by a
@@ -1649,10 +1649,10 @@ for details.
 @cindex curved quotes, and terminal capabilities
 @cindex @code{homoglyph} face
 
-Emacs tries to determine if the curved quotes @samp{‘} and @samp{’}
+Emacs tries to determine if the curved quotes @t{‘} and @t{’}
 can be displayed on the current display.  By default, if this seems to
-be so, then Emacs will translate the @acronym{ASCII} quotes (@samp{`}
-and @samp{'}), when they appear in messages and help texts, to these
+be so, then Emacs will translate the @acronym{ASCII} quotes @w{(@samp{`}
+and @samp{'})}, when they appear in messages and help texts, to these
 curved quotes.  You can influence or inhibit this translation by
 customizing the user option @code{text-quoting-style} (@pxref{Keys in
 Documentation,,, elisp, The Emacs Lisp Reference Manual}).
@@ -1661,7 +1661,7 @@ Documentation,,, elisp, The Emacs Lisp Reference Manual}).
 known to look just like @acronym{ASCII} characters, they are shown
 with the @code{homoglyph} face.  Curved quotes that are known not to
 be displayable are shown as their @acronym{ASCII} approximations
-@t{`}, @t{'}, and @t{"} with the @code{homoglyph} face.
+@samp{`}, @samp{'}, and @samp{"} with the @code{homoglyph} face.
 
 @node Cursor Display
 @section Displaying the Cursor
@@ -1829,15 +1829,15 @@ variable @code{visual-line-fringe-indicators}.
 That produces incorrect results when CJK and Latin text are mixed
 together (because CJK characters don't use whitespace to separate
 words).  You can customize the option @code{word-wrap-by-category} to
-allow Emacs to break lines after any character with ``|'' category
+allow Emacs to break lines after any character with @samp{|} category
 (@pxref{Categories,,, elisp, the Emacs Lisp Reference Manual}), which
 provides better support for CJK characters.  Also, if this variable is
 set using Customize, Emacs automatically loads @file{kinsoku.el}.
 When @file{kinsoku.el} is loaded, Emacs respects kinsoku rules when
-breaking lines.  That means characters with the ``>'' category don't
-appear at the beginning of a line (e.g., U+FF0C FULLWIDTH COMMA), and
-characters with the ``<'' category don't appear at the end of a line
-(e.g., U+300A LEFT DOUBLE ANGLE BRACKET).  You can view the category
+breaking lines.  That means characters with the @samp{>} category don't
+appear at the beginning of a line (e.g., U+FF0C @sc{fullwidth comma}), and
+characters with the @samp{<} category don't appear at the end of a line
+(e.g., U+300A @sc{left double angle bracket}).  You can view the category
 set of a character using the commands @code{char-category-set} and
 @code{category-set-mnemonics}, or by typing @kbd{C-u C-x =} with point
 on the character and looking at the ``category'' section in the

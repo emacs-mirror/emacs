@@ -599,11 +599,13 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	;; Citation args.
 	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
 	;;
-	;; Text between `` quotes ''.
-	(cons (concat (regexp-opt '("``" "\"<" "\"`" "<<" "«") t)
-		      "[^'\">{]+"	;a bit pessimistic
-		      (regexp-opt '("''" "\">" "\"'" ">>" "»") t))
-	      'font-lock-string-face)
+        ;; Text between `` quotes ''.
+        (list (concat (regexp-opt '("``" "\"<" "\"`" "<<" "«") t)
+                      "\\(\\(.\\|\n\\)+?\\)"
+                      (regexp-opt `("''" "\">" "\"'" ">>" "»") t))
+              '(1 font-lock-keyword-face)
+              '(2 font-lock-string-face)
+              '(4 font-lock-keyword-face))
 	;;
 	;; Command names, special and general.
 	(cons (concat slash specials-1) 'font-lock-warning-face)
@@ -2130,6 +2132,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 (defvar tex-compile-commands
   `(,@(mapcar (lambda (prefix)
                 `((concat ,prefix tex-command
+                          " " tex-start-options
                           " " (if (< 0 (length tex-start-commands))
                                   (shell-quote-argument tex-start-commands))
                           " %f")

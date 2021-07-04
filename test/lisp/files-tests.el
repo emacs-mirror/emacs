@@ -151,6 +151,19 @@ form.")
         (dolist (subtest (cdr test))
           (should (file-test--do-local-variables-test str subtest)))))))
 
+(ert-deftest files-tests-permanent-local-variables ()
+  (let ((enable-local-variables nil))
+    (with-temp-buffer
+      (insert ";;; test-test.el --- tests  -*- lexical-binding: t; -*-\n\n")
+      (hack-local-variables)
+      (should (eq lexical-binding t))))
+  (let ((enable-local-variables nil)
+        (permanently-enabled-local-variables nil))
+    (with-temp-buffer
+      (insert ";;; test-test.el --- tests  -*- lexical-binding: t; -*-\n\n")
+      (hack-local-variables)
+      (should (eq lexical-binding nil)))))
+
 (defvar files-test-bug-18141-file
   (ert-resource-file "files-bug18141.el.gz")
   "Test file for bug#18141.")
@@ -302,12 +315,15 @@ be $HOME."
                     (file-name-unquote temporary-file-directory))))))
 
 (ert-deftest files-tests-file-name-non-special--subprocess ()
-  "Check that Bug#25949 is fixed."
-  (skip-unless (executable-find "true"))
-  (let ((default-directory (file-name-quote temporary-file-directory)))
-    (should (zerop (process-file "true")))
-    (should (processp (start-file-process "foo" nil "true")))
-    (should (zerop (shell-command "true")))))
+  "Check that Bug#25949 and Bug#48177 are fixed."
+  (skip-unless (and (executable-find "true") (file-exists-p null-device)))
+  (let ((default-directory (file-name-quote temporary-file-directory))
+        (true (file-name-quote (executable-find "true")))
+        (null (file-name-quote null-device)))
+    (should (zerop (process-file true null `((:file ,null) ,null))))
+    (should (processp (start-file-process "foo" nil true)))
+    (should (zerop (shell-command true)))
+    (should (processp (make-process :name "foo" :command `(,true))))))
 
 (defmacro files-tests--with-advice (symbol where function &rest body)
   (declare (indent 3))
@@ -715,9 +731,8 @@ unquoted file names."
           (file (file-name-nondirectory tmpfile))
           (nospecial-file (file-name-nondirectory nospecial)))
       (should-not (string-equal file nospecial-file))
-      (should-not (equal (file-name-all-completions
-                          nospecial-file nospecial-tempdir)
-                         (file-name-all-completions file tmpdir)))
+      (should (equal (file-name-all-completions nospecial-file nospecial-tempdir)
+                     (file-name-all-completions file tmpdir)))
       (should (equal (file-name-all-completions file nospecial-tempdir)
                      (file-name-all-completions file tmpdir)))
       (should (equal (file-name-all-completions nospecial-file tmpdir)
@@ -759,8 +774,8 @@ unquoted file names."
           (file (file-name-nondirectory tmpfile))
           (nospecial-file (file-name-nondirectory nospecial)))
       (should-not (string-equal file nospecial-file))
-      (should-not (equal (file-name-completion nospecial-file nospecial-tempdir)
-                         (file-name-completion file tmpdir)))
+      (should (equal (file-name-completion nospecial-file nospecial-tempdir)
+                     (file-name-completion file tmpdir)))
       (should (equal (file-name-completion file nospecial-tempdir)
                      (file-name-completion file tmpdir)))
       (should (equal (file-name-completion nospecial-file tmpdir)
@@ -1462,6 +1477,24 @@ The door of all subtleties!
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
+
+(ert-deftest files-tests-file-name-with-extension-good ()
+  "Test that `file-name-with-extension' succeeds with reasonable input."
+  (should (string= (file-name-with-extension "Jack" "css") "Jack.css"))
+  (should (string= (file-name-with-extension "Jack" ".css") "Jack.css"))
+  (should (string= (file-name-with-extension "Jack.scss" "css") "Jack.css"))
+  (should (string= (file-name-with-extension "/path/to/Jack.md" "org") "/path/to/Jack.org")))
+
+(ert-deftest files-tests-file-name-with-extension-bad ()
+  "Test that `file-name-with-extension' fails on malformed input."
+  (should-error (file-name-with-extension nil nil))
+  (should-error (file-name-with-extension "Jack" nil))
+  (should-error (file-name-with-extension nil "css"))
+  (should-error (file-name-with-extension "" ""))
+  (should-error (file-name-with-extension "" "css"))
+  (should-error (file-name-with-extension "Jack" ""))
+  (should-error (file-name-with-extension "Jack" "."))
+  (should-error (file-name-with-extension "/is/a/directory/" "css")))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

@@ -862,21 +862,24 @@ Compress the specified files (@code{dired-do-compress}).  If the file
 appears to be a compressed file already, uncompress it instead.  Each
 marked file is compressed into its own archive; this uses the
 @command{gzip} program if it is available, otherwise it uses
-@command{compress}.  On a directory name, this command produces a
-compressed @file{.tar.gz} archive containing all of the directory's
-files, by running the @command{tar} command with output piped to
-@command{gzip}.  To allow decompression of compressed directories,
-typing @kbd{Z} on a @file{.tar.gz} or @file{.tgz} archive file unpacks
-all the files in the archive into a directory whose name is the
-archive name with the extension removed.
+@command{compress}.
+
+On a directory name, this command produces a compressed archive
+depending on the @code{dired-compress-directory-default-suffix} user
+option.  The default is a @file{.tar.gz} archive containing all of the
+directory's files, by running the @command{tar} command with output
+piped to @command{gzip}.  To allow decompression of compressed
+directories, typing @kbd{Z} on a @file{.tar.gz} or @file{.tgz} archive
+file unpacks all the files in the archive into a directory whose name
+is the archive name with the extension removed.
 
 @findex dired-do-compress-to
 @kindex c @r{(Dired)}
 @item c
 Compress the specified files (@code{dired-do-compress-to}) into a
-single archive anywhere on the file system. The compression algorithm
-is determined by the extension of the archive, see
-@code{dired-compress-files-alist}.
+single archive anywhere on the file system.  The default archive is
+controlled by the @code{dired-compress-directory-default-suffix} user
+option.  Also see @code{dired-compress-files-alist}.
 
 @findex epa-dired-do-decrypt
 @kindex :d @r{(Dired)}

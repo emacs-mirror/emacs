@@ -1128,6 +1128,8 @@ selection but before querying is performed.  During
 auto-selected citation string and the variable `attribution' is bound
 to the auto-selected attribution string."
   (run-hooks 'sc-attribs-preselect-hook)
+  (with-suppressed-warnings ((lexical citation attribution))
+    (defvar citation) (defvar attribution))
   (let ((query-p sc-confirm-always-p)
 	attribution citation
 	(attriblist sc-preferred-attribution-list))

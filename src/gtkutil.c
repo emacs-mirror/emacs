@@ -81,8 +81,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   gtk_font_selection_dialog_set_font_name (x, y)
 #endif
 
-#define gdk_window_get_geometry(w, a, b, c, d) \
-  gdk_window_get_geometry (w, a, b, c, d, 0)
 #define gtk_box_new(ori, spacing)                                       \
   ((ori) == GTK_ORIENTATION_HORIZONTAL                                  \
    ? gtk_hbox_new (FALSE, (spacing)) : gtk_vbox_new (FALSE, (spacing)))
@@ -916,16 +914,18 @@ void
 xg_frame_resized (struct frame *f, int width, int height)
 {
   /* Ignore case where size of native rectangle didn't change.  */
-  if (width != FRAME_PIXEL_WIDTH (f) || height != FRAME_PIXEL_HEIGHT (f)
-      || (delayed_size_change
-	  && (width != f->new_width || height != f->new_height)))
+  if (width != FRAME_PIXEL_WIDTH (f)
+      || height != FRAME_PIXEL_HEIGHT (f)
+      || (f->new_size_p
+	  && ((f->new_width >= 0 && width != f->new_width)
+	      || (f->new_height >= 0 && height != f->new_height))))
     {
       if (CONSP (frame_size_history))
 	frame_size_history_extra
 	  (f, build_string ("xg_frame_resized, changed"),
 	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
-	   delayed_size_change ? f->new_width : -1,
-	   delayed_size_change ? f->new_height : -1);
+	   f->new_size_p ? f->new_width : -1,
+	   f->new_size_p ? f->new_height : -1);
 
       FRAME_RIF (f)->clear_under_internal_border (f);
       change_frame_size (f, width, height, false, true, false);
@@ -936,8 +936,8 @@ xg_frame_resized (struct frame *f, int width, int height)
     frame_size_history_extra
       (f, build_string ("xg_frame_resized, unchanged"),
        FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
-       delayed_size_change ? f->new_width : -1,
-       delayed_size_change ? f->new_height : -1);
+       f->new_size_p ? f->new_width : -1,
+       f->new_size_p ? f->new_height : -1);
 
 }
 
@@ -1026,16 +1026,16 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      the frame is mapped again we will (hopefully) get the correct size.  */
   if (FRAME_VISIBLE_P (f) && !was_visible)
     {
-      /* Must call this to flush out events */
-      (void)gtk_events_pending ();
-      gdk_flush ();
-      x_wait_for_event (f, ConfigureNotify);
-
       if (CONSP (frame_size_history))
 	frame_size_history_extra
 	  (f, build_string ("xg_frame_set_char_size, visible"),
 	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
 	   f->new_width, f->new_height);
+
+      /* Must call this to flush out events */
+      (void)gtk_events_pending ();
+      gdk_flush ();
+      x_wait_for_event (f, ConfigureNotify);
 
       if (!NILP (fullscreen))
 	/* Try to restore fullscreen state.  */

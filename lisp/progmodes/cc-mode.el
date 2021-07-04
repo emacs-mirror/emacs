@@ -2979,7 +2979,7 @@ Key bindings:
 ;; bug reporting
 
 (defconst c-mode-help-address
-  "submit@debbugs.gnu.org"
+  "bug-gnu-emacs@gnu.org"
   "Address(es) for CC Mode bug reports.")
 
 (defun c-version ()

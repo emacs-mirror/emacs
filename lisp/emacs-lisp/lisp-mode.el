@@ -682,10 +682,16 @@ font-lock keywords will not be case sensitive."
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
+  ;; Expects outline-regexp is ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|("
+  ;; and point is at the beginning of a matching line.
   (let ((len (- (match-end 0) (match-beginning 0))))
-    (if (looking-at "(\\|;;;###autoload")
-	1000
-      len)))
+    (cond ((looking-at "(\\|;;;###autoload")
+           1000)
+          ((looking-at ";;\\(;+\\) ")
+           (- (match-end 1) (match-beginning 1)))
+          ;; Above should match everything but just in case.
+          (t
+           len))))
 
 (defun lisp-current-defun-name ()
   "Return the name of the defun at point, or nil."
@@ -759,7 +765,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      :help "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'"]))
 
 (define-derived-mode lisp-mode lisp-data-mode "Lisp"
-  "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
+  "Major mode for editing programs in Common Lisp and other similar Lisps.
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.

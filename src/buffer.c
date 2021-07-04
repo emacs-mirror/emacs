@@ -5390,17 +5390,24 @@ init_buffer (void)
 	 recorded by temacs, that cannot be used by the dumped Emacs.
 	 We map new memory for their text here.
 
-	 Implementation note: the buffers we carry from temacs are:
+	 Implementation notes: the buffers we carry from temacs are:
 	 " prin1", "*scratch*", " *Minibuf-0*", "*Messages*", and
 	 " *code-conversion-work*".  They are created by
 	 init_buffer_once and init_window_once (which are not called
-	 in the dumped Emacs), and by the first call to coding.c routines.  */
+	 in the dumped Emacs), and by the first call to coding.c
+	 routines.  Since FOR_EACH_LIVE_BUFFER only walks the buffers
+	 in Vbuffer_alist, any buffer we carry from temacs that is
+	 not in the alist (a.k.a. "magic invisible buffers") should
+	 be handled here explicitly.  */
       FOR_EACH_LIVE_BUFFER (tail, buffer)
         {
 	  struct buffer *b = XBUFFER (buffer);
 	  b->text->beg = NULL;
 	  enlarge_buffer_text (b, 0);
 	}
+      /* The " prin1" buffer is not in Vbuffer_alist.  */
+      XBUFFER (Vprin1_to_string_buffer)->text->beg = NULL;
+      enlarge_buffer_text (XBUFFER (Vprin1_to_string_buffer), 0);
     }
 #endif /* USE_MMAP_FOR_BUFFERS */
 
@@ -5666,15 +5673,18 @@ Linefeed indents to this column in Fundamental mode.  */);
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
 		     Qintegerp,
 		     doc: /* Distance between tab stops (for display of tab characters), in columns.
-NOTE: This controls the display width of a TAB character, and not
-the size of an indentation step.
-This should be an integer greater than zero.  */);
+This controls the width of a TAB character on display.
+The value should be a positive integer.
+Note that this variable doesn't necessarily affect the size of the
+indentation step.  However, if the major mode's indentation facility
+inserts one or more TAB characters, this variable will affect the
+indentation step as well, even if `indent-tabs-mode' is non-nil.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &BVAR (current_buffer, ctl_arrow), Qnil,
-		     doc: /* Non-nil means display control chars with uparrow.
-A value of nil means use backslash and octal digits.
-This variable does not apply to characters whose display is specified
-in the current display table (if there is one).  */);
+		     doc: /* Non-nil means display control chars with uparrow `^'.
+A value of nil means use backslash `\\' and octal digits.
+This variable does not apply to characters whose display is specified in
+the current display table (if there is one; see `standard-display-table').  */);
 
   DEFVAR_PER_BUFFER ("enable-multibyte-characters",
 		     &BVAR (current_buffer, enable_multibyte_characters),

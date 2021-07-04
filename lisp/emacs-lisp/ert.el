@@ -313,12 +313,13 @@ It should only be stopped when ran from inside ert--run-test-internal."
                                  (list :form `(,,fn ,@,args))
                                  (unless (eql ,value ',default-value)
                                    (list :value ,value))
-                                 (let ((-explainer-
-                                        (and (symbolp ',fn-name)
-                                             (get ',fn-name 'ert-explainer))))
-                                   (when -explainer-
-                                     (list :explanation
-                                           (apply -explainer- ,args)))))
+                                 (unless (eql ,value ',default-value)
+                                   (let ((-explainer-
+                                          (and (symbolp ',fn-name)
+                                               (get ',fn-name 'ert-explainer))))
+                                     (when -explainer-
+                                       (list :explanation
+                                             (apply -explainer- ,args))))))
                          value)
                ,value))))))))
 
@@ -1279,11 +1280,28 @@ EXPECTEDP specifies whether the result was expected."
              (ert-test-quit '("quit" "QUIT")))))
     (elt s (if expectedp 0 1))))
 
+(defun ert-reason-for-test-result (result)
+  "Return the reason given for RESULT, as a string.
+
+The reason is the argument given when invoking `ert-fail' or `ert-skip'.
+It is output using `prin1' prefixed by two spaces.
+
+If no reason was given, or for a successful RESULT, return the
+empty string."
+  (let ((reason
+         (and
+          (ert-test-result-with-condition-p result)
+          (cadr (ert-test-result-with-condition-condition result))))
+        (print-escape-newlines t)
+        (print-level 6)
+        (print-length 10))
+    (if reason (format "  %S" reason) "")))
+
 (defun ert--pp-with-indentation-and-newline (object)
   "Pretty-print OBJECT, indenting it to the current column of point.
 Ensures a final newline is inserted."
   (let ((begin (point))
-        (pp-escape-newlines nil)
+        (pp-escape-newlines t)
         (print-escape-control-characters t))
     (pp object (current-buffer))
     (unless (bolp) (insert "\n"))
@@ -1369,18 +1387,24 @@ Returns the stats object."
               (cl-loop for test across (ert--stats-tests stats)
                        for result = (ert-test-most-recent-result test) do
                        (when (not (ert-test-result-expected-p test result))
-                         (message "%9s  %S"
+                         (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
-                                  (ert-test-name test))))
+                                  (ert-test-name test)
+                                  (if (getenv "EMACS_TEST_VERBOSE")
+                                      (ert-reason-for-test-result result)
+                                    ""))))
               (message "%s" ""))
             (unless (zerop skipped)
               (message "%s skipped results:" skipped)
               (cl-loop for test across (ert--stats-tests stats)
                        for result = (ert-test-most-recent-result test) do
                        (when (ert-test-result-type-p result :skipped)
-                         (message "%9s  %S"
+                         (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
-                                  (ert-test-name test))))
+                                  (ert-test-name test)
+                                  (if (getenv "EMACS_TEST_VERBOSE")
+                                      (ert-reason-for-test-result result)
+                                    ""))))
               (message "%s" "")))))
        (test-started
         )
@@ -1528,7 +1552,7 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
     (when badtests
       (message "%d files did not finish:" (length badtests))
       (mapc (lambda (l) (message "  %s" l)) badtests)
-      (if (getenv "EMACS_HYDRA_CI")
+      (if (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
           (with-temp-buffer
             (dolist (f badtests)
               (erase-buffer)
@@ -1544,8 +1568,8 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
       (setq tests (sort tests (lambda (x y) (> (car x) (car y)))))
       (when (< high (length tests)) (setcdr (nthcdr (1- high) tests) nil))
       (message "%s" (mapconcat #'cdr tests "\n")))
-    ;; More details on hydra, where the logs are harder to get to.
-    (when (and (getenv "EMACS_HYDRA_CI")
+    ;; More details on hydra and emba, where the logs are harder to get to.
+    (when (and (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
                (not (zerop (+ nunexpected nskipped))))
       (message "\nDETAILS")
       (message "-------")

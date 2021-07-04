@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH ETAGS 1 "2019-06-24" "GNU Tools" "GNU"
+.TH ETAGS 1 "2021-03-30" "GNU Tools" "GNU"
 .de BP
 .sp
 .ti -.2i
@@ -50,9 +50,9 @@ format understood by
 .BR vi ( 1 )\c
 \&.  Both forms of the program understand
 the syntax of C, Objective C, C++, Java, Fortran, Ada, Cobol, Erlang,
-Forth, Go, HTML, LaTeX, Emacs Lisp/Common Lisp, Lua, Makefile, Pascal, Perl,
-Ruby, PHP, PostScript, Python, Prolog, Scheme and
-most assembler\-like syntaxes.
+Forth, Go, HTML, LaTeX, Emacs Lisp/Common Lisp, Lua, Makefile, Mercury, Pascal,
+Perl, Ruby, Rust, PHP, PostScript, Python, Prolog, Scheme and most
+assembler\-like syntaxes.
 Both forms read the files specified on the command line, and write a tag
 table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 \fBctags\fP) in the current working directory.
@@ -91,6 +91,9 @@ Only \fBctags\fP accepts this option.
 In C and derived languages, create tags for function declarations,
 and create tags for extern variables unless \-\-no\-globals is used.
 In Lisp, create tags for (defvar foo) declarations.
+In Mercury, declarations start a line with "\|\fB:-\fP\|" and are always
+tagged.  In addition, this option tags predicates or functions in first
+rules of clauses, as in Prolog.
 .TP
 .B \-D, \-\-no\-defines
 Do not create tag entries for C preprocessor constant definitions
@@ -125,10 +128,14 @@ final brace of a function or structure definition in C and C++.
 Parse the following files according to the given language.  More than
 one such options may be intermixed with filenames.  Use \fB\-\-help\fP
 to get a list of the available languages and their default filename
-extensions.  The "auto" language can be used to restore automatic
-detection of language based on the file name.  The "none"
-language may be used to disable language parsing altogether; only
-regexp matching is done in this case (see the \fB\-\-regex\fP option).
+extensions.  For example, as Mercury and Objective-C have same
+filename extension \fI.m\fP, a test based on contents tries to detect
+the language.  If this test fails, \fB\-\-language=\fP\fImercury\fP or
+\fB\-\-language=\fP\fIobjc\fP should be used.
+The "auto" language can be used to restore automatic detection of language
+based on the file name.  The "none" language may be used to disable language
+parsing altogether; only regexp matching is done in this case (see the
+\fB\-\-regex\fP option).
 .TP
 .B \-\-members
 Create tag entries for variables that are members of structure-like

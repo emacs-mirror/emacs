@@ -2002,9 +2002,8 @@ ARG is a prefix argument.  If nil, copy the current difference region."
 		    (goto-char reg-to-delete-end)
 		    (insert reg-to-copy)
 
-		    (if (> reg-to-delete-end reg-to-delete-beg)
-			(kill-region reg-to-delete-beg reg-to-delete-end))
-		    ))
+		    (when (> reg-to-delete-end reg-to-delete-beg)
+		      (delete-region reg-to-delete-beg reg-to-delete-end))))
 		(or batch-invocation
 		    (setq
 		     messg
@@ -2105,8 +2104,8 @@ ARG is a prefix argument.  If nil, copy the current difference region."
 	    (goto-char reg-end)
 	    (insert saved-diff)
 
-	    (if (> reg-end reg-beg)
-		(kill-region reg-beg reg-end))
+	    (when (> reg-end reg-beg)
+	      (delete-region reg-beg reg-end))
 
 	    (setq recovered t)
 	    ))

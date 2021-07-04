@@ -2225,7 +2225,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
+   (erc :server \"chat.freenode.net\" :full-name \"J. Random Hacker\")
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
@@ -2260,7 +2260,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc-tls :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
+   (erc-tls :server \"chat.freenode.net\" :full-name \"J. Random Hacker\")
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
@@ -2278,8 +2278,8 @@ Example usage:
 
     (erc-tls :server \"chat.freenode.net\" :port 6697
              :client-certificate
-             '(\"/data/bandali/my-cert.key\"
-               \"/data/bandali/my-cert.crt\"))"
+             '(\"/home/bandali/my-cert.key\"
+               \"/home/bandali/my-cert.crt\"))"
   (interactive (let ((erc-default-port erc-default-port-tls))
 		 (erc-select-read-args)))
   (let ((erc-server-connect-function 'erc-open-tls-stream))

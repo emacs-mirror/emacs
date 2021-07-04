@@ -319,10 +319,10 @@ The default implementation uses `find-program'."
          ;; expanded and not left for the shell command
          ;; to interpret.
          (localdir (file-name-unquote (file-local-name (expand-file-name dir))))
-         (command (format "%s %s %s -type f %s -print0"
+         (command (format "%s -H %s %s -type f %s -print0"
                           find-program
-                          ;; In case DIR is a symlink.
-                          (file-name-as-directory localdir)
+                          (shell-quote-argument
+                           (directory-file-name localdir)) ; Bug#48471
                           (xref--find-ignores-arguments ignores localdir)
                           (if files
                               (concat (shell-quote-argument "(")
@@ -1149,11 +1149,16 @@ current project, it will be killed."
 
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
-  (let (bufs)
+  (let ((conn (file-remote-p (project-root pr)))
+        bufs)
     (dolist (buf (buffer-list))
-      (when (equal pr
-                   (with-current-buffer buf
-                     (project-current)))
+      ;; For now we go with the assumption that a project must reside
+      ;; entirely on one host.  We might relax that in the future.
+      (when (and (equal conn
+                        (file-remote-p (buffer-local-value 'default-directory buf)))
+                 (equal pr
+                        (with-current-buffer buf
+                          (project-current))))
         (push buf bufs)))
     (nreverse bufs)))
 

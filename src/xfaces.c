@@ -353,10 +353,13 @@ static bool menu_face_changed_default;
 
 struct named_merge_point;
 
-static struct face *realize_face (struct face_cache *, Lisp_Object *,
+static struct face *realize_face (struct face_cache *,
+				  Lisp_Object [LFACE_VECTOR_SIZE],
 				  int);
-static struct face *realize_gui_face (struct face_cache *, Lisp_Object *);
-static struct face *realize_tty_face (struct face_cache *, Lisp_Object *);
+static struct face *realize_gui_face (struct face_cache *,
+				      Lisp_Object [LFACE_VECTOR_SIZE]);
+static struct face *realize_tty_face (struct face_cache *,
+				      Lisp_Object [LFACE_VECTOR_SIZE]);
 static bool realize_basic_faces (struct frame *);
 static bool realize_default_face (struct frame *);
 static void realize_named_face (struct frame *, Lisp_Object, int);

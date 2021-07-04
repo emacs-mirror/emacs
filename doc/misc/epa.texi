@@ -42,7 +42,7 @@ modify this GNU manual.''
 
 @contents
 
-@node Top, Overview, (dir), (dir)
+@node Top
 @top EasyPG Assistant user's manual
 
 EasyPG Assistant is an Emacs user interface to GNU Privacy Guard
@@ -60,8 +60,8 @@ called EasyPG Library.
 * Overview::
 * Quick start::
 * Commands::
-* Caching Passphrases::
 * GnuPG version compatibility::
+* Caching Passphrases::
 * Bug Reports::
 * GNU Free Documentation License::  The license for this documentation.
 * Key Index::
@@ -69,7 +69,7 @@ called EasyPG Library.
 * Variable Index::
 @end menu
 
-@node  Overview, Quick start, Top, Top
+@node Overview
 @chapter Overview
 
 EasyPG Assistant provides the following features.
@@ -83,7 +83,7 @@ EasyPG Assistant provides the following features.
 @item Automatic encryption/decryption of *.gpg files.
 @end itemize
 
-@node  Quick start, Commands, Overview, Top
+@node Quick start
 @chapter Quick start
 
 EasyPG Assistant commands are prefixed by @samp{epa-}.  For example,
@@ -94,13 +94,15 @@ EasyPG Assistant commands are prefixed by @samp{epa-}.  For example,
 @item To create a cleartext signature of the region, type @kbd{M-x epa-sign-region}
 
 @item To encrypt a file, type @kbd{M-x epa-encrypt-file}
+
+@item To query a key server for keys, type @kbd{M-x epa-search-keys}
 @end itemize
 
 EasyPG Assistant provides several cryptographic features which can be
 integrated into other Emacs functionalities.  For example, automatic
 encryption/decryption of @file{*.gpg} files.
 
-@node Commands, GnuPG version compatibility, Quick start, Top
+@node Commands
 @chapter Commands
 
 This chapter introduces various commands for typical use cases.
@@ -112,9 +114,10 @@ This chapter introduces various commands for typical use cases.
 * Dired integration::
 * Mail-mode integration::
 * Encrypting/decrypting gpg files::
+* Querying a key server::
 @end menu
 
-@node Key management, Cryptographic operations on regions, Commands, Commands
+@node Key management
 @section Key management
 Probably the first step of using EasyPG Assistant is to browse your
 keyring.  @kbd{M-x epa-list-keys} is corresponding to @samp{gpg
@@ -197,7 +200,7 @@ Delete selected keys.  If @var{allow-secret} is non-@code{nil}, it
 also delete the secret keys.
 @end deffn
 
-@node Cryptographic operations on regions, Cryptographic operations on files, Key management, Commands
+@node Cryptographic operations on regions
 @section Cryptographic operations on regions
 
 @deffn Command epa-decrypt-region start end
@@ -242,7 +245,7 @@ also ask you whether or not to sign the text before encryption and if
 you answered yes, it will let you select the signing keys.
 @end deffn
 
-@node Cryptographic operations on files, Dired integration, Cryptographic operations on regions, Commands
+@node Cryptographic operations on files
 @section Cryptographic operations on files
 
 @deffn Command epa-decrypt-file file &optional output
@@ -263,7 +266,7 @@ select signing keys, and then a signature type.
 Encrypt @var{file}.  It will let you select recipients.
 @end deffn
 
-@node Dired integration, Mail-mode integration, Cryptographic operations on files, Commands
+@node Dired integration
 @section Dired integration
 
 EasyPG Assistant extends Dired Mode for GNU Emacs to allow users to
@@ -302,7 +305,7 @@ Encrypt marked files.
 
 @end table
 
-@node Mail-mode integration, Encrypting/decrypting gpg files, Dired integration, Commands
+@node Mail-mode integration
 @section Mail-mode integration
 
 EasyPG Assistant provides a minor mode @code{epa-mail-mode} to help
@@ -357,7 +360,7 @@ With prefix argument, asks you to select the recipients interactively,
 whether to sign, and which key(s) to sign with.
 @end table
 
-@node Encrypting/decrypting gpg files,  , Mail-mode integration, Commands
+@node Encrypting/decrypting gpg files
 @section Encrypting/decrypting gpg files
 By default, every file whose name ends with @file{.gpg} will be
 treated as encrypted.  That is, when you open such a file, the
@@ -440,7 +443,22 @@ If non-@code{nil}, disable auto-saving when opening an encrypted file.
 The default value is @code{t}.
 @end defvar
 
-@node GnuPG version compatibility, Caching Passphrases, Commands, Top
+@node Querying a key server
+@section Querying a key server
+
+The @code{epa-search-keys} command can be used to query a
+@acronym{GPG} key server.  Emacs will then pop up a buffer that lists
+the matches, and you can then fetch (and add) keys to your personal
+key ring.
+
+In the key search buffer, you can use the @kbd{f} command to mark keys
+for fetching, and then @kbd{x} to fetch the keys (and incorporate them
+into your key ring).
+
+The @code{epa-keyserver} variable says which server to query.
+
+
+@node GnuPG version compatibility
 @chapter GnuPG version compatibility
 
 As of February 2016, there are three active branches of GnuPG: 2.1,
@@ -472,7 +490,7 @@ specifically, with 2.0 (as of 2.0.29), there is no way to avoid the
 graphical prompt.
 @end itemize
 
-@node Caching Passphrases, Bug Reports, GnuPG version compatibility, Top
+@node Caching Passphrases
 @chapter Caching Passphrases
 
 Typing passphrases is a troublesome task if you frequently open and
@@ -512,7 +530,7 @@ To set up elisp passphrase cache, set
 @code{epa-file-cache-passphrase-for-symmetric-encryption}.
 @xref{Encrypting/decrypting gpg files}.
 
-@node Bug Reports, GNU Free Documentation License, Caching Passphrases, Top
+@node Bug Reports
 @chapter Bug Reports
 
 Bugs and problems with EasyPG Assistant are actively worked on by the
@@ -534,19 +552,19 @@ Before reporting the bug, you should set @code{epg-debug} in the
 of the @file{ *epg-debug*} buffer.  Note that the first letter of the
 buffer name is a whitespace.
 
-@node GNU Free Documentation License, Key Index, Bug Reports, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Key Index, Function Index, GNU Free Documentation License, Top
+@node Key Index
 @unnumbered Key Index
 @printindex ky
 
-@node Function Index, Variable Index, Key Index, Top
+@node Function Index
 @unnumbered Function Index
 @printindex fn
 
-@node Variable Index,  , Function Index, Top
+@node Variable Index
 @unnumbered Variable Index
 @printindex vr
 

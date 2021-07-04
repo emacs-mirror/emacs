@@ -137,7 +137,7 @@ subclasses of this base target will override the default value.")
 			       ede-project-with-config-program
 			       ede-project-with-config-c
 			       ede-project-with-config-java)
-  ((config-class :initform ede-generic-config)
+  ((config-class :initform 'ede-generic-config)
    (config-file-basename :initform "EDEConfig.el")
    (buildfile :initform ""
 	      :type string

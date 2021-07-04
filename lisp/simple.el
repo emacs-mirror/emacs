@@ -190,7 +190,7 @@ to navigate in it.")
 It takes two arguments, a buffer position in the error buffer
 and a buffer position in the error locus buffer.
 The buffer for the error locus should already be current.
-nil means use goto-char using the second argument position.")
+nil means use `goto-char' using the second argument position.")
 
 (defsubst next-error-buffer-p (buffer
 			       &optional avoid-current
@@ -389,7 +389,7 @@ Intended to be used in `next-error-found-function'."
 (defcustom next-error-found-function #'ignore
   "Function called when a next locus is found and displayed.
 Function is called with two arguments: a FROM-BUFFER buffer
-from which next-error navigated, and a target buffer TO-BUFFER."
+from which `next-error' navigated, and a target buffer TO-BUFFER."
   :type '(choice (const :tag "No default" ignore)
                  (const :tag "Quit previous window with M-0"
                         next-error-quit-window)
@@ -399,7 +399,7 @@ from which next-error navigated, and a target buffer TO-BUFFER."
 
 (defun next-error-found (&optional from-buffer to-buffer)
   "Function to call when the next locus is found and displayed.
-FROM-BUFFER is a buffer from which next-error navigated,
+FROM-BUFFER is a buffer from which `next-error' navigated,
 and TO-BUFFER is a target buffer."
   (setq next-error-last-buffer (or from-buffer (current-buffer)))
   (when to-buffer
@@ -597,10 +597,12 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
          ;; Don't auto-fill if we have a prefix argument.
          (auto-fill-function (if arg nil auto-fill-function))
          (arg (prefix-numeric-value arg))
+         (procsym (make-symbol "newline-postproc")) ;(bug#46326)
          (postproc
           ;; Do the rest in post-self-insert-hook, because we want to do it
           ;; *before* other functions on that hook.
           (lambda ()
+            (remove-hook 'post-self-insert-hook procsym t)
             ;; Mark the newline(s) `hard'.
             (if use-hard-newlines
                 (set-hard-newline-properties
@@ -619,6 +621,7 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
             ;; starts a page.
             (or was-page-start
                 (move-to-left-margin nil t)))))
+    (fset procsym postproc)
     (if (not interactive)
 	;; FIXME: For non-interactive uses, many calls actually
 	;; just want (insert "\n"), so maybe we should do just
@@ -628,13 +631,13 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
 	  (self-insert-command arg))
       (unwind-protect
 	  (progn
-	    (add-hook 'post-self-insert-hook postproc nil t)
+	    (add-hook 'post-self-insert-hook procsym nil t)
 	    (self-insert-command arg))
 	;; We first used let-binding to protect the hook, but that
 	;; was naive since add-hook affects the symbol-default
 	;; value of the variable, whereas the let-binding might
 	;; protect only the buffer-local value.
-	(remove-hook 'post-self-insert-hook postproc t))))
+	(remove-hook 'post-self-insert-hook procsym t))))
   nil)
 
 (defun set-hard-newline-properties (from to)
@@ -1658,6 +1661,7 @@ in *Help* buffer.  See also the command `describe-char'."
     (define-key m "\t" 'completion-at-point)
     (define-key m "\r" 'read--expression-try-read)
     (define-key m "\n" 'read--expression-try-read)
+    (define-key m "\M-g\M-c" 'read-expression-switch-to-completions)
     (set-keymap-parent m minibuffer-local-map)
     m))
 
@@ -1800,8 +1804,8 @@ moving point."
 
 (defun eval-expression-get-print-arguments (prefix-argument)
   "Get arguments for commands that print an expression result.
-Returns a list (INSERT-VALUE NO-TRUNCATE CHAR-PRINT-LIMIT)
-based on PREFIX-ARG.  This function determines the interpretation
+Returns a list (INSERT-VALUE NO-TRUNCATE CHAR-PRINT-LIMIT) based
+on PREFIX-ARGUMENT.  This function determines the interpretation
 of the prefix argument for `eval-expression' and
 `eval-last-sexp'."
   (let ((num (prefix-numeric-value prefix-argument)))
@@ -1982,7 +1986,8 @@ This function uses the `read-extended-command-predicate' user option."
        (concat (cond
 	        ((eq current-prefix-arg '-) "- ")
 	        ((and (consp current-prefix-arg)
-		      (eq (car current-prefix-arg) 4)) "C-u ")
+		      (eq (car current-prefix-arg) 4))
+		 "C-u ")
 	        ((and (consp current-prefix-arg)
 		      (integerp (car current-prefix-arg)))
 	         (format "%d " (car current-prefix-arg)))
@@ -2002,7 +2007,29 @@ This function uses the `read-extended-command-predicate' user option."
 	     '(metadata
 	       (affixation-function . read-extended-command--affixation)
 	       (category . command))
-           (complete-with-action action obarray string pred)))
+           (let ((pred
+                  (if (memq action '(nil t))
+                      ;; Exclude from completions obsolete commands
+                      ;; lacking a `current-name', or where `when' is
+                      ;; not the current major version.
+                      (lambda (sym)
+                        (let ((obsolete (get sym 'byte-obsolete-info)))
+                          (and (funcall pred sym)
+                               (or (equal string (symbol-name sym))
+                                   (not obsolete)
+                                   (and
+                                    ;; Has a current-name.
+                                    (functionp (car obsolete))
+                                    ;; when >= emacs-major-version
+                                    (condition-case nil
+                                        (>= (car (version-to-list
+                                                  (caddr obsolete)))
+                                            emacs-major-version)
+                                      ;; If the obsoletion version isn't
+                                      ;; valid, include the command.
+                                      (error t)))))))
+                    pred)))
+             (complete-with-action action obarray string pred))))
        (lambda (sym)
          (and (commandp sym)
               (cond ((null read-extended-command-predicate))
@@ -3376,8 +3403,7 @@ is not *inside* the region START...END."
 	      (> (cdr undo-elt) start)))))
 
 (defun undo-adjust-elt (elt deltas)
-  "Return adjustment of undo element ELT by the undo DELTAS
-list."
+  "Return adjustment of undo element ELT by the undo DELTAS list."
   (pcase elt
     ;; POSITION
     ((pred integerp)
@@ -3421,8 +3447,7 @@ list."
 ;; There was no strong reason to prefer one or the other, except that
 ;; the first is more consistent with prior undo in region behavior.
 (defun undo-adjust-beg-end (beg end deltas)
-  "Return cons of adjustments to BEG and END by the undo DELTAS
-list."
+  "Return cons of adjustments to BEG and END by the undo DELTAS list."
   (let ((adj-beg (undo-adjust-pos beg deltas)))
     ;; Note: option 2 above would be like (cons (min ...) adj-end)
     (cons adj-beg
@@ -4192,12 +4217,22 @@ impose the use of a shell (with its need to quote arguments)."
 	    (shell-command-on-region (point) (point) command
 				     output-buffer nil error-buffer)))))))
 
+(defun max-mini-window-lines (&optional frame)
+  "Compute maximum number of lines for echo area in FRAME.
+As defined by `max-mini-window-height'.  FRAME defaults to the
+selected frame.  Result may be a floating-point number,
+i.e. include a fractional number of lines."
+  (cond ((floatp max-mini-window-height) (* (frame-height frame)
+					    max-mini-window-height))
+	((integerp max-mini-window-height) max-mini-window-height)
+	(t 1)))
+
 (defun display-message-or-buffer (message &optional buffer-name action frame)
   "Display MESSAGE in the echo area if possible, otherwise in a pop-up buffer.
 MESSAGE may be either a string or a buffer.
 
 A pop-up buffer is displayed using `display-buffer' if MESSAGE is too long
-for maximum height of the echo area, as defined by `max-mini-window-height'
+for maximum height of the echo area, as defined by `max-mini-window-lines'
 if `resize-mini-windows' is non-nil.
 
 Returns either the string shown in the echo area, or when a pop-up
@@ -4236,14 +4271,7 @@ and are used only if a pop-up buffer is displayed."
 	     (cond ((= lines 0))
 		   ((and (or (<= lines 1)
 			     (<= lines
-				 (if resize-mini-windows
-				     (cond ((floatp max-mini-window-height)
-					    (* (frame-height)
-					       max-mini-window-height))
-					   ((integerp max-mini-window-height)
-					    max-mini-window-height)
-					   (t
-					    1))
+				 (if resize-mini-windows (max-mini-window-lines)
 				   1)))
 			 ;; Don't use the echo area if the output buffer is
 			 ;; already displayed in the selected frame.
@@ -4309,7 +4337,7 @@ current buffer after START.
 
 Optional fifth arg REPLACE, if non-nil, means to insert the
 output in place of text from START to END, putting point and mark
-around it.
+around it.  If REPLACE is the symbol `no-mark', don't set the mark.
 
 Optional sixth arg ERROR-BUFFER, if non-nil, specifies a buffer
 or buffer name to which to direct the command's standard error
@@ -4384,7 +4412,9 @@ characters."
           (let ((swap (and replace (< start end))))
             ;; Don't muck with mark unless REPLACE says we should.
             (goto-char start)
-            (and replace (push-mark (point) 'nomsg))
+            (when (and replace
+                       (not (eq replace 'no-mark)))
+              (push-mark (point) 'nomsg))
             (setq exit-status
                   (call-shell-region start end command replace
                                        (if error-file
@@ -4395,7 +4425,9 @@ characters."
             ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
             ;; 	 (kill-buffer shell-buffer)))
             ;; Don't muck with mark unless REPLACE says we should.
-            (and replace swap (exchange-point-and-mark)))
+            (when (and replace swap
+                       (not (eq replace 'no-mark)))
+              (exchange-point-and-mark)))
         ;; No prefix argument: put the output in a temp buffer,
         ;; replacing its entire contents.
         (let ((buffer (get-buffer-create
@@ -5005,12 +5037,19 @@ ring directly.")
   "The tail of the kill ring whose car is the last thing yanked.")
 
 (defcustom save-interprogram-paste-before-kill nil
-  "Save existing clipboard text into kill ring before replacing it.
-A non-nil value ensures that Emacs kill operations do not
-irrevocably overwrite existing clipboard text by saving it to the
-`kill-ring' prior to the kill.  Such text can subsequently be
-retrieved via \\[yank] \\[yank-pop]."
-  :type 'boolean
+  "Whether to save existing clipboard text into kill ring before replacing it.
+A non-nil value means the clipboard text is saved to the `kill-ring'
+prior to any kill command.  Such text can subsequently be retrieved
+via \\[yank] \\[yank-pop].  This ensures that Emacs kill operations
+do not irrevocably overwrite existing clipboard text.
+
+The value of this variable can also be a number, in which case the
+clipboard data is only saved to the `kill-ring' if it's shorter
+(in characters) than that number.  Any other non-nil value will save
+the clipboard data unconditionally."
+  :type '(choice (const nil)
+                 number
+                 (other :tag "Always" t))
   :group 'killing
   :version "23.2")
 
@@ -5020,6 +5059,16 @@ The comparison is done using `equal-including-properties'."
   :type 'boolean
   :group 'killing
   :version "23.2")
+
+(defcustom kill-transform-function nil
+  "Function to call to transform a string before it's put on the kill ring.
+The function is called with one parameter (the string that's to
+be put on the kill ring).  It should return a string or nil.  If
+the latter, the string is not put on the kill ring."
+  :type '(choice (const :tag "No transform" nil)
+                 function)
+  :group 'killing
+  :version "28.1")
 
 (defun kill-new (string &optional replace)
   "Make STRING the latest kill in the kill ring.
@@ -5036,33 +5085,41 @@ When the yank handler has a non-nil PARAM element, the original STRING
 argument is not used by `insert-for-yank'.  However, since Lisp code
 may access and use elements from the kill ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
-  (unless (and kill-do-not-save-duplicates
-	       ;; Due to text properties such as 'yank-handler that
-	       ;; can alter the contents to yank, comparison using
-	       ;; `equal' is unsafe.
-	       (equal-including-properties string (car kill-ring)))
-    (if (fboundp 'menu-bar-update-yank-menu)
-	(menu-bar-update-yank-menu string (and replace (car kill-ring)))))
-  (when save-interprogram-paste-before-kill
-    (let ((interprogram-paste (and interprogram-paste-function
-                                   (funcall interprogram-paste-function))))
-      (when interprogram-paste
-        (dolist (s (if (listp interprogram-paste)
-                       ;; Use `reverse' to avoid modifying external data.
-                       (reverse interprogram-paste)
-		     (list interprogram-paste)))
-	  (unless (and kill-do-not-save-duplicates
-		       (equal-including-properties s (car kill-ring)))
-	    (push s kill-ring))))))
-  (unless (and kill-do-not-save-duplicates
-	       (equal-including-properties string (car kill-ring)))
-    (if (and replace kill-ring)
-	(setcar kill-ring string)
-      (let ((history-delete-duplicates nil))
-        (add-to-history 'kill-ring string kill-ring-max t))))
-  (setq kill-ring-yank-pointer kill-ring)
-  (if interprogram-cut-function
-      (funcall interprogram-cut-function string)))
+  ;; Allow the user to transform or ignore the string.
+  (when (or (not kill-transform-function)
+            (setq string (funcall kill-transform-function string)))
+    (unless (and kill-do-not-save-duplicates
+	         ;; Due to text properties such as 'yank-handler that
+	         ;; can alter the contents to yank, comparison using
+	         ;; `equal' is unsafe.
+	         (equal-including-properties string (car kill-ring)))
+      (if (fboundp 'menu-bar-update-yank-menu)
+	  (menu-bar-update-yank-menu string (and replace (car kill-ring)))))
+    (when save-interprogram-paste-before-kill
+      (let ((interprogram-paste (and interprogram-paste-function
+                                     (funcall interprogram-paste-function))))
+        (when interprogram-paste
+          (setq interprogram-paste
+                (if (listp interprogram-paste)
+                    ;; Use `reverse' to avoid modifying external data.
+                    (reverse interprogram-paste)
+		  (list interprogram-paste)))
+          (when (or (not (numberp save-interprogram-paste-before-kill))
+                    (< (seq-reduce #'+ (mapcar #'length interprogram-paste) 0)
+                       save-interprogram-paste-before-kill))
+            (dolist (s interprogram-paste)
+	      (unless (and kill-do-not-save-duplicates
+                           (equal-including-properties s (car kill-ring)))
+	        (push s kill-ring)))))))
+    (unless (and kill-do-not-save-duplicates
+	         (equal-including-properties string (car kill-ring)))
+      (if (and replace kill-ring)
+	  (setcar kill-ring string)
+        (let ((history-delete-duplicates nil))
+          (add-to-history 'kill-ring string kill-ring-max t))))
+    (setq kill-ring-yank-pointer kill-ring)
+    (if interprogram-cut-function
+        (funcall interprogram-cut-function string))))
 
 ;; It has been argued that this should work like `self-insert-command'
 ;; which merges insertions in `buffer-undo-list' in groups of 20
@@ -5244,8 +5301,7 @@ region instead.
 This command's old key binding has been given to `kill-ring-save'."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
-  (interactive (list (mark) (point)
-		     (prefix-numeric-value current-prefix-arg)))
+  (interactive (list (mark) (point) 'region))
   (let ((str (if region
                  (funcall region-extract-function nil)
                (filter-buffer-substring beg end))))
@@ -5277,8 +5333,7 @@ This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
-  (interactive (list (mark) (point)
-		     (prefix-numeric-value current-prefix-arg)))
+  (interactive (list (mark) (point) 'region))
   (copy-region-as-kill beg end region)
   ;; This use of called-interactively-p is correct because the code it
   ;; controls just gives the user visual feedback.
@@ -5544,29 +5599,29 @@ Normally set from the UNDO element of a yank-handler; see `insert-for-yank'.")
   "Replace just-yanked stretch of killed text with a different stretch.
 The main use of this command is immediately after a `yank' or a
 `yank-pop'.  At such a time, the region contains a stretch of
-reinserted previously-killed text.  `yank-pop' deletes that text
-and inserts in its place a different stretch of killed text by
-traversing the value of the `kill-ring' variable.
+reinserted (\"pasted\") previously-killed text.  `yank-pop' deletes
+that text and inserts in its place a different stretch of killed text
+by traversing the value of the `kill-ring' variable and selecting
+another kill from there.
 
 With no argument, the previous kill is inserted.
 With argument N, insert the Nth previous kill.
-If N is negative, this is a more recent kill.
+If N is negative, it means to use a more recent kill.
 
-The sequence of kills wraps around, so that after the oldest one
-comes the newest one.
+The sequence of kills wraps around, so if you keep invoking this command
+time after time, and pass the oldest kill, you get the newest one.
+
+You can also invoke this command after a command other than `yank'
+or `yank-pop'.  This is the same as invoking `yank-from-kill-ring',
+including the effect of the prefix argument; see there for the details.
 
 This command honors the `yank-handled-properties' and
 `yank-excluded-properties' variables, and the `yank-handler' text
-property, in the way that `yank' does.
-
-When this command is called not immediately after a `yank' or a
-`yank-pop', then it activates the minibuffer with its completion
-and history filled with previously-killed items from the
-`kill-ring' variable, and reads a string to yank at point.
-See `yank-from-kill-ring' for more details."
+property, in the way that `yank' does."
   (interactive "p")
   (if (not (eq last-command 'yank))
-      (yank-from-kill-ring (read-from-kill-ring) current-prefix-arg)
+      (yank-from-kill-ring (read-from-kill-ring "Yank from kill-ring: ")
+                           current-prefix-arg)
     (setq this-command 'yank)
     (unless arg (setq arg 1))
     (let ((inhibit-read-only t)
@@ -5655,11 +5710,15 @@ With ARG, rotate that many kills forward (or backward, if negative)."
   (current-kill arg))
 
 (defvar read-from-kill-ring-history)
-(defun read-from-kill-ring ()
-  "Read a string from `kill-ring' using completion and minibuffer history."
+(defun read-from-kill-ring (prompt)
+  "Read a `kill-ring' entry using completion and minibuffer history.
+PROMPT is a string to prompt with."
   ;; `current-kill' updates `kill-ring' with a possible interprogram-paste
   (current-kill 0)
   (let* ((history-add-new-input nil)
+         (history-pos (when yank-from-kill-ring-rotate
+                        (- (length kill-ring)
+                           (length kill-ring-yank-pointer))))
          (ellipsis (if (char-displayable-p ?…) "…" "..."))
          ;; Remove keymaps from text properties of copied string,
          ;; because typing RET in the minibuffer might call
@@ -5700,32 +5759,61 @@ With ARG, rotate that many kills forward (or backward, if negative)."
              (define-key map "?" nil)
              map)))
       (completing-read
-       "Yank from kill-ring: "
+       prompt
        (lambda (string pred action)
          (if (eq action 'metadata)
              ;; Keep sorted by recency
              '(metadata (display-sort-function . identity))
            (complete-with-action action completions string pred)))
        nil nil nil
-       'read-from-kill-ring-history))))
+       (if history-pos
+           (cons 'read-from-kill-ring-history
+                 (if (zerop history-pos) history-pos (1+ history-pos)))
+         'read-from-kill-ring-history)))))
+
+(defcustom yank-from-kill-ring-rotate t
+  "Whether using `yank-from-kill-ring' should rotate `kill-ring-yank-pointer'.
+If non-nil, the kill ring is rotated after selecting previously killed text."
+  :type 'boolean
+  :group 'killing
+  :version "28.1")
 
 (defun yank-from-kill-ring (string &optional arg)
-  "Insert the `kill-ring' item selected from the minibuffer history.
-Use minibuffer navigation and search commands to browse the
-previously-killed items from the `kill-ring' variable in the
-minibuffer history before typing RET to insert the selected item,
-or use completion on the elements of `kill-ring'.  You can edit
-the item in the minibuffer before inserting it.
+  "Select a stretch of previously killed text and insert (\"paste\") it.
+This command allows to choose one of the stretches of text killed
+or yanked by previous commands, which are recorded in `kill-ring',
+and reinsert the chosen kill at point.
 
-With \\[universal-argument] as argument, put point at beginning,
-and mark at end, like `yank' does."
-  (interactive (list (read-from-kill-ring) current-prefix-arg))
+This command prompts for a previously-killed text in the minibuffer.
+Use the minibuffer history and search commands, or the minibuffer
+completion commands, to select a previously-killed text.  In
+particular, typing \\<minibuffer-local-completion-map>\\[minibuffer-complete] at the prompt will pop up a buffer showing
+all the previously-killed stretches of text from which you can
+choose the one you want to reinsert.
+Once you select the text you want to reinsert, type \\<minibuffer-local-map>\\[exit-minibuffer] to actually
+insert it and exit the minibuffer.
+You can also edit the selected text in the minibuffer before
+inserting it.
+
+With \\[universal-argument] as argument, this command puts point at
+beginning of the inserted text and mark at the end, like `yank' does.
+
+When called from Lisp, insert STRING like `insert-for-yank' does."
+  (interactive (list (read-from-kill-ring "Yank from kill-ring: ")
+                     current-prefix-arg))
+  (setq yank-window-start (window-start))
   (push-mark)
   (insert-for-yank string)
+  (when yank-from-kill-ring-rotate
+    (let ((pos (seq-position kill-ring string)))
+      (if pos
+          (setq kill-ring-yank-pointer (nthcdr pos kill-ring))
+        (kill-new string))))
   (if (consp arg)
-      ;; Swap point and mark like in `yank'.
+      ;; Swap point and mark like in `yank' and `yank-pop'.
       (goto-char (prog1 (mark t)
                    (set-marker (mark-marker) (point) (current-buffer))))))
+
 
 ;; Some kill commands.
 
@@ -6918,11 +7006,13 @@ The value is a floating-point number."
 	       (or (null rbot) (= rbot 0)))
 	  nil)
 	 ;; If cursor is not in the bottom scroll margin, and the
-	 ;; current line is not too tall, move forward.
+	 ;; current line is not too tall, or if there's a continuation
+	 ;; line below this one, move forward.
 	 ((and (or (null this-height) (<= this-height winh))
 	       vpos
 	       (> vpos 0)
-	       (< py last-line))
+	       (or (< py last-line)
+                   (display--line-is-continued-p)))
 	  nil)
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
@@ -7691,44 +7781,53 @@ are interchanged."
   (interactive "*p")
   (transpose-subr 'forward-word arg))
 
-(defun transpose-sexps (arg)
+(defun transpose-sexps (arg &optional interactive)
   "Like \\[transpose-chars] (`transpose-chars'), but applies to sexps.
 Unlike `transpose-words', point must be between the two sexps and not
 in the middle of a sexp to be transposed.
 With non-zero prefix arg ARG, effect is to take the sexp before point
 and drag it forward past ARG other sexps (backward if ARG is negative).
 If ARG is zero, the sexps ending at or after point and at or after mark
-are interchanged."
-  (interactive "*p")
-  (transpose-subr
-   (lambda (arg)
-     ;; Here we should try to simulate the behavior of
-     ;; (cons (progn (forward-sexp x) (point))
-     ;;       (progn (forward-sexp (- x)) (point)))
-     ;; Except that we don't want to rely on the second forward-sexp
-     ;; putting us back to where we want to be, since forward-sexp-function
-     ;; might do funny things like infix-precedence.
-     (if (if (> arg 0)
-	     (looking-at "\\sw\\|\\s_")
-	   (and (not (bobp))
-		(save-excursion (forward-char -1) (looking-at "\\sw\\|\\s_"))))
-	 ;; Jumping over a symbol.  We might be inside it, mind you.
-	 (progn (funcall (if (> arg 0)
-			     'skip-syntax-backward 'skip-syntax-forward)
-			 "w_")
-		(cons (save-excursion (forward-sexp arg) (point)) (point)))
-       ;; Otherwise, we're between sexps.  Take a step back before jumping
-       ;; to make sure we'll obey the same precedence no matter which direction
-       ;; we're going.
-       (funcall (if (> arg 0) 'skip-syntax-backward 'skip-syntax-forward) " .")
-       (cons (save-excursion (forward-sexp arg) (point))
-	     (progn (while (or (forward-comment (if (> arg 0) 1 -1))
-			       (not (zerop (funcall (if (> arg 0)
-							'skip-syntax-forward
-						      'skip-syntax-backward)
-						    ".")))))
-		    (point)))))
-   arg 'special))
+are interchanged.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "*p\nd")
+  (if interactive
+      (condition-case nil
+          (transpose-sexps arg nil)
+        (scan-error (user-error "Not between two complete sexps")))
+    (transpose-subr
+     (lambda (arg)
+       ;; Here we should try to simulate the behavior of
+       ;; (cons (progn (forward-sexp x) (point))
+       ;;       (progn (forward-sexp (- x)) (point)))
+       ;; Except that we don't want to rely on the second forward-sexp
+       ;; putting us back to where we want to be, since forward-sexp-function
+       ;; might do funny things like infix-precedence.
+       (if (if (> arg 0)
+	       (looking-at "\\sw\\|\\s_")
+	     (and (not (bobp))
+		  (save-excursion
+                    (forward-char -1)
+                    (looking-at "\\sw\\|\\s_"))))
+	   ;; Jumping over a symbol.  We might be inside it, mind you.
+	   (progn (funcall (if (> arg 0)
+			       'skip-syntax-backward 'skip-syntax-forward)
+			   "w_")
+		  (cons (save-excursion (forward-sexp arg) (point)) (point)))
+         ;; Otherwise, we're between sexps.  Take a step back before jumping
+         ;; to make sure we'll obey the same precedence no matter which
+         ;; direction we're going.
+         (funcall (if (> arg 0) 'skip-syntax-backward 'skip-syntax-forward)
+                  " .")
+         (cons (save-excursion (forward-sexp arg) (point))
+	       (progn (while (or (forward-comment (if (> arg 0) 1 -1))
+			         (not (zerop (funcall (if (> arg 0)
+							  'skip-syntax-forward
+						        'skip-syntax-backward)
+						      ".")))))
+		      (point)))))
+     arg 'special)))
 
 (defun transpose-lines (arg)
   "Exchange current line and previous line, leaving point after both.
@@ -8770,6 +8869,8 @@ makes it easier to edit it."
 
 (defvar completion-list-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
+    (define-key map "g" nil) ;; There's nothing to revert from.
     (define-key map [mouse-2] 'choose-completion)
     (define-key map [follow-link] 'mouse-face)
     (define-key map [down-mouse-2] nil)
@@ -8779,8 +8880,10 @@ makes it easier to edit it."
     (define-key map [right] 'next-completion)
     (define-key map [?\t] 'next-completion)
     (define-key map [backtab] 'previous-completion)
-    (define-key map "q" 'quit-window)
     (define-key map "z" 'kill-current-buffer)
+    (define-key map "n" 'next-completion)
+    (define-key map "p" 'previous-completion)
+    (define-key map "\M-g\M-c" 'switch-to-minibuffer)
     map)
   "Local map for completion list buffers.")
 
@@ -8867,18 +8970,17 @@ If EVENT, use EVENT's position to determine the starting position."
           (choice
            (save-excursion
              (goto-char (posn-point (event-start event)))
-             (let (beg end)
+             (let (beg)
                (cond
                 ((and (not (eobp)) (get-text-property (point) 'mouse-face))
-                 (setq end (point) beg (1+ (point))))
+                 (setq beg (1+ (point))))
                 ((and (not (bobp))
                       (get-text-property (1- (point)) 'mouse-face))
-                 (setq end (1- (point)) beg (point)))
+                 (setq beg (point)))
                 (t (error "No completion here")))
                (setq beg (previous-single-property-change beg 'mouse-face))
-               (setq end (or (next-single-property-change end 'mouse-face)
-                             (point-max)))
-               (buffer-substring-no-properties beg end)))))
+               (substring-no-properties
+                (get-text-property beg 'completion--string))))))
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))
@@ -8998,6 +9100,9 @@ Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
 Or click to select one with the mouse.
 
+See the `completions-format' user option to control how this
+buffer is formatted.
+
 \\{completion-list-mode-map}")
 
 (defun completion-list-mode-finish ()
@@ -9070,6 +9175,18 @@ select the completion near point.\n\n"))))))
       ;; FIXME: Perhaps this should be done in `minibuffer-completion-help'.
       (when (bobp)
 	(next-completion 1)))))
+
+(defun read-expression-switch-to-completions ()
+  "Select the completion list window while reading an expression."
+  (interactive)
+  (completion-help-at-point)
+  (switch-to-completions))
+
+(defun switch-to-minibuffer ()
+  "Select the minibuffer window."
+  (interactive)
+  (when (active-minibuffer-window)
+    (select-window (active-minibuffer-window))))
 
 ;;; Support keyboard commands to turn on various modifiers.
 

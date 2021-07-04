@@ -248,7 +248,7 @@ and take the appropriate action."
 Possible values are those symbols supported by the `exp-button-type' argument
 to `speedbar-make-tag-line'."
 	       :allocation :class)
-   (buttonface :initform speedbar-tag-face
+   (buttonface :initform 'speedbar-tag-face
 	       :type (or symbol face)
 	       :documentation
 	       "The face used on the textual part of the button for this class.
@@ -265,15 +265,15 @@ Add one of the child classes to this class to the parent list of a class."
   :abstract t)
 
 (defclass eieio-speedbar-directory-button (eieio-speedbar)
-  ((buttontype :initform angle)
-   (buttonface :initform speedbar-directory-face))
+  ((buttontype :initform 'angle)
+   (buttonface :initform 'speedbar-directory-face))
   "Class providing support for objects which behave like a directory."
   :method-invocation-order :depth-first
   :abstract t)
 
 (defclass eieio-speedbar-file-button (eieio-speedbar)
-  ((buttontype :initform bracket)
-   (buttonface :initform speedbar-file-face))
+  ((buttontype :initform 'bracket)
+   (buttonface :initform 'speedbar-file-face))
   "Class providing support for objects which behave like a file."
   :method-invocation-order :depth-first
   :abstract t)
