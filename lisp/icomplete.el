@@ -859,13 +859,16 @@ matches exist."
                (base-size (prog1 (cdr last)
                             (if last (setcdr last nil))))
                (most-try
-                (if (and base-size (> base-size 0))
+                ;; icomplete-hide-common-prefix logic is used
+                ;; unconditionally when there is single match.
+                (when (or icomplete-hide-common-prefix (not (cdr comps)))
+                  (if (and base-size (> base-size 0))
+                      (completion-try-completion
+                       name candidates predicate (length name) md)
+                    ;; If the `comps' are 0-based, the result should be
+                    ;; the same with `comps'.
                     (completion-try-completion
-                     name candidates predicate (length name) md)
-                  ;; If the `comps' are 0-based, the result should be
-                  ;; the same with `comps'.
-                  (completion-try-completion
-                   name comps nil (length name) md)))
+                     name comps nil (length name) md))))
                (most (if (consp most-try) (car most-try)
                        (if most-try (car comps) "")))
                ;; Compare name and most, so we can determine if name is
