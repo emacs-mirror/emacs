@@ -549,10 +549,6 @@ meanings by enabling CUA Mode (@pxref{CUA Bindings}).  Another
 optional feature which will make Emacs behave like other Windows
 applications is Delete Selection mode (@pxref{Using Region}).
 
-@iftex
-@inforef{Windows Keyboard, , emacs}, for information about additional
-Windows-specific variables in this category.
-@end iftex
 @ifnottex
 @vindex w32-alt-is-meta
 @cindex @code{Alt} key (MS-Windows)
@@ -1175,11 +1171,6 @@ system caret; this facilitates use of screen reader software, and is
 the default when such software is detected when running Emacs.
 When this variable is non-@code{nil}, other variables affecting the
 cursor display have no effect.
-
-@iftex
-@inforef{Windows Misc, , emacs}, for information about additional
-Windows-specific variables in this category.
-@end iftex
 
 @ifnottex
 @vindex w32-grab-focus-on-raise

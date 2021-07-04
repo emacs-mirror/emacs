@@ -78,13 +78,13 @@ The @dfn{bovine} parser is the original @semantic{} parser, and is an
 implementation of an @acronym{LL} parser.  It is good for simple
 languages.  It has many conveniences making grammar writing easy.  The
 conveniences make it less powerful than a Bison-like @acronym{LALR}
-parser.  For more information, @inforef{Top, The Wisent Parser Manual,
+parser.  For more information, @pxref{Top,, Wisent Parser Development,
 wisent}.
 
 Bovine @acronym{LL} grammars are stored in files with a @file{.by}
 extension.  When compiled, the contents is converted into a file of
 the form @file{NAME-by.el}.  This, in turn is byte compiled.
-@inforef{top, Grammar Framework Manual, grammar-fw}.
+@xref{top,, Grammar Framework Manual, grammar-fw}.
 
 @ifnottex
 @insertcopying
@@ -105,7 +105,8 @@ the form @file{NAME-by.el}.  This, in turn is byte compiled.
 In Bison, one and only one nonterminal is designated as the ``start''
 symbol.  In @semantic{}, one or more nonterminals can be designated as
 the ``start'' symbol.  They are declared following the @code{%start}
-keyword separated by spaces.  @inforef{start Decl, ,grammar-fw}.
+keyword separated by spaces.  @xref{start Decl,, Grammar Framework
+Manual, grammar-fw}.
 
 If no @code{%start} keyword is used in a grammar, then the very first
 is used.  Internally the first start nonterminal is targeted by the
@@ -115,7 +116,8 @@ parser harness.
 To find locally defined variables, the local context handler needs to
 parse the body of functional code.  The @code{scopestart} declaration
 specifies the name of a nonterminal used as the goal to parse a local
-context, @inforef{scopestart Decl, ,grammar-fw}.  Internally the
+context, @pxref{scopestart Decl,, Grammar Framework Manual,
+grammar-fw}.  Internally the
 scopestart nonterminal is targeted by the reserved symbol
 @code{bovine-inner-scope}, so it can be found by the parser harness.
 
@@ -124,7 +126,7 @@ scopestart nonterminal is targeted by the reserved symbol
 
 The rules are what allow the compiler to create tags from a language
 file.  Once the setup is done in the prologue, you can start writing
-rules.  @inforef{Grammar Rules, ,grammar-fw}.
+rules.  @xref{Grammar Rules,, Grammar Framework Manual, grammar-fw}.
 
 @example
 @var{result} : @var{components1} @var{optional-semantic-action1})
@@ -146,8 +148,8 @@ A particular @var{result} written into your grammar becomes
 the parser's goal.  It is designated by a @code{%start} statement
 (@pxref{Starting Rules}).  The value returned by the associated
 @var{optional-semantic-action} is the parser's result.  It should be
-a tree of @semantic{} @dfn{tags}, @inforef{Semantic Tags, ,
-semantic-appdev}.
+a tree of @semantic{} @dfn{tags}, @pxref{Semantic Tags,, Semantic
+Application Development, semantic-appdev}.
 
 @var{components} is made up of symbols.  A symbol such as @code{FOO}
 means that a syntactic token of class @code{FOO} must be matched.
@@ -170,8 +172,9 @@ For instance:
 @end example
 
 Means that @code{FOO} is a reserved language keyword, matched as such
-by looking up into a keyword table, @inforef{keyword Decl,
-,grammar-fw}.  This is because @code{"foo"} will be converted to
+by looking up into a keyword table, @pxref{keyword Decl,, Grammar
+Framework Manual, grammar-fw}.  This is because @code{"foo"} will be
+converted to
 @code{FOO} in the lexical analysis stage.  Thus the symbol @code{FOO}
 won't be available any other way.
 
@@ -383,8 +386,8 @@ Is an optional set of labeled values such as @code{:constant-flag t :parent
 Create a tag with @var{name} of respectively the class
 @code{variable}, @code{function}, @code{type}, @code{include},
 @code{package}, and @code{code}.
-See @inforef{Creating Tags, , semantic-appdev} for the lisp
-functions these translate into.
+See @ref{Creating Tags,, Semantic Application Development,
+semantic-appdev}, for the lisp functions these translate into.
 @end table
 
 If the symbol @code{%quotemode backquote} is specified, then use
