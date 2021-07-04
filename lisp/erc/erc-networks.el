@@ -290,6 +290,13 @@
   ("LagNet: Random server" LagNet "irc.lagnet.org.za" 6667)
   ("LagNet: AF, ZA, Cape Town" LagNet "reaper.lagnet.org.za" 6667)
   ("LagNet: AF, ZA, Johannesburg" LagNet "mystery.lagnet.org.za" 6667)
+  ("Libera.Chat: Random server" Libera.Chat "irc.libera.chat" 6667)
+  ("Libera.Chat: Random Europe server" Libera.Chat "irc.eu.libera.chat" 6667)
+  ("Libera.Chat: Random US & Canada server" Libera.Chat "irc.us.libera.chat" 6667)
+  ("Libera.Chat: Random Australia & New Zealand server" Libera.Chat "irc.au.libera.chat" 6667)
+  ("Libera.Chat: Random East Asia server" Libera.Chat "irc.ea.libera.chat" 6667)
+  ("Libera.Chat: IPv4 only server" Libera.Chat "irc.ipv4.libera.chat" 6667)
+  ("Libera.Chat: IPv6 only server" Libera.Chat "irc.ipv6.libera.chat" 6667)
   ("Librenet: Random server" Librenet "irc.librenet.net" 6667)
   ("LinkNet: Random server" LinkNet "irc.link-net.org" ((6667 6669)))
   ("LinuxChix: Random server" LinuxChix "irc.linuxchix.org" 6667)
@@ -594,6 +601,7 @@ PORTS is either a number, a list of numbers, or a list of port ranges."
     (Krono "krono.net")
     (Krushnet "krushnet.org")
     (LagNet "lagnet.org.za")
+    (Libera.Chat "libera.chat")
     (Librenet "librenet.net")
     (LinkNet "link-net.org")
     (LinuxChix "cats\\.meow\\.at\\|linuxchix\\.org")
@@ -833,8 +841,8 @@ As an example:
 ;; think it is worth the effort.
 
 (defvar erc-settings
-  '((pals freenode ("kensanata" "shapr" "anti\\(fuchs\\|gone\\)"))
-    (format-nick-function (freenode "#emacs") erc-format-@nick))
+  '((pals Libera.Chat ("kensanata" "shapr" "anti\\(fuchs\\|gone\\)"))
+    (format-nick-function (Libera.Chat "#emacs") erc-format-@nick))
   "Experimental: Alist of configuration options.
 The format is (VARNAME SCOPE VALUE) where
 VARNAME is a symbol identifying the configuration option,
@@ -863,7 +871,7 @@ VALUE is the options value.")
 		     items nil)))))
     val))
 
-(erc-get 'pals 'freenode)
+(erc-get 'pals 'Libera.Chat)
 
 (provide 'erc-networks)
 
