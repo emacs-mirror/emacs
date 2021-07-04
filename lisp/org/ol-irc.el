@@ -39,9 +39,9 @@
 ;;
 ;; Links within an org buffer might look like this:
 ;;
-;; [[irc:/irc.freenode.net/#emacs/bob][chat with bob in #emacs on freenode]]
-;; [[irc:/irc.freenode.net/#emacs][#emacs on freenode]]
-;; [[irc:/irc.freenode.net/]]
+;; [[irc:/irc.libera.chat/#emacs/bob][chat with bob in #emacs on Libera.Chat]]
+;; [[irc:/irc.libera.chat/#emacs][#emacs on Libera.Chat]]
+;; [[irc:/irc.libera.chat/]]
 ;;
 ;; If, when the resulting link is visited, there is no connection to a
 ;; requested server then one will be created.

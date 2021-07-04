@@ -56,9 +56,9 @@
   :group 'applications)
 
 (defcustom rcirc-server-alist
-  '(("irc.freenode.net" :channels ("#rcirc")
+  '(("irc.libera.chat" :channels ("#rcirc")
      ;; Don't use the TLS port by default, in case gnutls is not available.
-     ;; :port 7000 :encryption tls
+     ;; :port 6697 :encryption tls
      ))
   "An alist of IRC connections to establish when running `rcirc'.
 Each element looks like (SERVER-NAME PARAMETERS).
@@ -249,8 +249,8 @@ The ARGUMENTS for each METHOD symbol are:
   `quakenet': ACCOUNT PASSWORD
 
 Examples:
- ((\"freenode\" nickserv \"bob\" \"p455w0rd\")
-  (\"freenode\" chanserv \"bob\" \"#bobland\" \"passwd99\")
+ ((\"Libera.Chat\" nickserv \"bob\" \"p455w0rd\")
+  (\"Libera.Chat\" chanserv \"bob\" \"#bobland\" \"passwd99\")
   (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
   (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\")
   (\"quakenet.org\" quakenet \"bobby\" \"sekrit\"))"
