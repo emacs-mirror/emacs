@@ -10888,7 +10888,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc :server \"chat.freenode.net\" :full-name \"J. Random Hacker\")
+   (erc :server \"irc.libera.chat\" :full-name \"J. Random Hacker\")
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
@@ -10915,7 +10915,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc-tls :server \"chat.freenode.net\" :full-name \"J. Random Hacker\")
+   (erc-tls :server \"irc.libera.chat\" :full-name \"J. Random Hacker\")
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
@@ -10931,7 +10931,7 @@ authentication by various IRC networks.
 
 Example usage:
 
-    (erc-tls :server \"chat.freenode.net\" :port 6697
+    (erc-tls :server \"irc.libera.chat\" :port 6697
              :client-certificate
              '(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))

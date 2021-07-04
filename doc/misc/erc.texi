@@ -554,7 +554,7 @@ for the values of the other parameters, and @code{client-certificate}
 will be @code{nil}.
 
 @example
-(erc-tls :server "chat.freenode.net" :full-name "J. Random Hacker")
+(erc-tls :server "irc.libera.chat" :full-name "J. Random Hacker")
 @end example
 
 To use a certificate with @code{erc-tls}, specify the optional
@@ -572,21 +572,21 @@ various IRC networks.
 Examples of use:
 
 @example
-(erc-tls :server "chat.freenode.net" :port 6697
+(erc-tls :server "irc.libera.chat" :port 6697
          :client-certificate
          '("/home/bandali/my-cert.key"
            "/home/bandali/my-cert.crt"))
 @end example
 
 @example
-(erc-tls :server "chat.freenode.net" :port 6697
+(erc-tls :server "irc.libera.chat" :port 6697
          :client-certificate
-         `(,(expand-file-name "~/cert-freenode.key")
-           ,(expand-file-name "~/cert-freenode.crt")))
+         `(,(expand-file-name "~/cert-libera.key")
+           ,(expand-file-name "~/cert-libera.crt")))
 @end example
 
 @example
-(erc-tls :server "chat.freenode.net" :port 6697
+(erc-tls :server "irc.libera.chat" :port 6697
          :client-certificate t)
 @end example
 
@@ -595,7 +595,7 @@ line like the following to your authinfo file
 (e.g. @file{~/.authinfo.gpg}):
 
 @example
-machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
+machine irc.libera.chat key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
 @end example
 
 @xref{Help for users,,,auth, Emacs auth-source Library}, for more on the
