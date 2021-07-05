@@ -4355,7 +4355,7 @@ of."
 	   (t (tramp-compat-time-equal-p mt tramp-time-doesnt-exist))))))))
 
 (defun tramp-handle-write-region
-  (start end filename &optional append visit lockname mustbenew)
+  (start end filename &optional append visit _lockname mustbenew)
   "Like `write-region' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
@@ -4386,7 +4386,7 @@ of."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (write-region start end tmpfile append 'no-message lockname)
+      (write-region start end tmpfile append 'no-message)
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error

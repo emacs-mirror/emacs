@@ -279,7 +279,7 @@ arguments to pass to the OPERATION."
        (tramp-fuse-local-file-name filename) mode flag))))
 
 (defun tramp-sshfs-handle-write-region
-  (start end filename &optional append visit lockname mustbenew)
+  (start end filename &optional append visit _lockname mustbenew)
   "Like `write-region' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
@@ -291,7 +291,7 @@ arguments to pass to the OPERATION."
       (tramp-error v 'file-already-exists filename))
 
     (write-region
-     start end (tramp-fuse-local-file-name filename) append 'nomessage lockname)
+     start end (tramp-fuse-local-file-name filename) append 'nomessage)
     (tramp-flush-file-properties v localname)
 
     ;; The end.

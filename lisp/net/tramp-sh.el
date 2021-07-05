@@ -3233,7 +3233,7 @@ implementation will be used."
       tmpfile)))
 
 (defun tramp-sh-handle-write-region
-  (start end filename &optional append visit lockname mustbenew)
+  (start end filename &optional append visit _lockname mustbenew)
   "Like `write-region' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
@@ -3260,7 +3260,7 @@ implementation will be used."
 		  (or (file-directory-p localname)
 		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (write-region start end localname append 'no-message lockname)
+	  (write-region start end localname append 'no-message)
 
 	(let* ((modes (tramp-default-file-modes
 		       filename (and (eq mustbenew 'excl) 'nofollow)))
@@ -3296,7 +3296,7 @@ implementation will be used."
 	  (let ((file-coding-system-alist
 		 (tramp-find-file-name-coding-system-alist filename tmpfile)))
 	    (condition-case err
-		(write-region start end tmpfile append 'no-message lockname)
+		(write-region start end tmpfile append 'no-message)
 	      ((error quit)
 	       (setq tramp-temp-buffer-file-name nil)
 	       (delete-file tmpfile)

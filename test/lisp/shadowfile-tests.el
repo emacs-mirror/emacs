@@ -70,7 +70,7 @@
   "Temporary directory for Tramp tests.")
 
 (setq password-cache-expiry nil
-      shadow-debug (getenv "EMACS_HYDRA_CI")
+      shadow-debug (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
       tramp-verbose 0
       ;; When the remote user id is 0, Tramp refuses unsafe temporary files.
       tramp-allow-unsafe-temporary-files

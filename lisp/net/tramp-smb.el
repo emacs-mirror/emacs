@@ -1573,7 +1573,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
       (error filename))))
 
 (defun tramp-smb-handle-write-region
-  (start end filename &optional append visit lockname mustbenew)
+  (start end filename &optional append visit _lockname mustbenew)
   "Like `write-region' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
@@ -1591,8 +1591,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (tramp-run-real-handler
-       #'write-region (list start end tmpfile append 'no-message lockname))
+      (write-region start end tmpfile append 'no-message)
 
       (with-tramp-progress-reporter
 	  v 3 (format "Moving tmp file %s to %s" tmpfile filename)
