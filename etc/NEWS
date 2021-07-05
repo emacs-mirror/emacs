@@ -1266,6 +1266,9 @@ To revert to the previous behavior,
 
 ** Customize
 
+---
+*** Customize buffers can now be reverted with 'C-x x g'.
+
 *** Most customize commands now hide obsolete user options.
 Obsolete user options are no longer shown in the listings produced by
 the commands 'customize', 'customize-group', 'customize-apropos' and

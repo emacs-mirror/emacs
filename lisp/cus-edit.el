@@ -1665,8 +1665,11 @@ Otherwise use brackets."
 		   'custom-button-pressed
 		 'custom-button-pressed-unraised))))
 
+(defvar custom--invocation-options nil)
+
 (defun custom-buffer-create-internal (options &optional _description)
   (Custom-mode)
+  (setq custom--invocation-options options)
   (let ((init-file (or custom-file user-init-file)))
     ;; Insert verbose help at the top of the custom buffer.
     (when custom-buffer-verbose-help
@@ -5148,10 +5151,18 @@ if that value is non-nil."
 			:label (nth 5 arg)))
 		     custom-commands)
 		    (setq custom-tool-bar-map map))))
+  (setq-local custom--invocation-options nil)
+  (setq-local revert-buffer-function #'custom--revert-buffer)
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
   (custom--initialize-widget-variables)
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t))
+
+(defun custom--revert-buffer (_ignore-auto _noconfirm)
+  (unless custom--invocation-options
+    (error "Insufficient data to revert"))
+  (custom-buffer-create custom--invocation-options
+                        (buffer-name)))
 
 (put 'Custom-mode 'mode-class 'special)
 
