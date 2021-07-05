@@ -959,7 +959,9 @@ GROUP is a string for decoration purposes and XREF is an
                              (prefix
                               (cond
                                ((not line) "  ")
-                               ((equal line prev-line) "")
+                               ((and (equal line prev-line)
+                                     (equal prev-group group))
+                                "")
                                (t (propertize (format line-format line)
                                               'face 'xref-line-number)))))
                         ;; Render multiple matches on the same line, together.
