@@ -2914,6 +2914,9 @@ The former is now declared obsolete.
 
 * Lisp Changes in Emacs 28.1
 
+---
+*** :safe settings in 'defcustom' are now propagated to the loaddefs files.
+
 +++
 ** New function 'syntax-class-to-char'.
 This does almost the opposite of 'string-to-syntax' -- it returns the
