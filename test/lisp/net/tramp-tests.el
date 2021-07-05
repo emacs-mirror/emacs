@@ -5935,7 +5935,9 @@ This requires restrictions of file name syntax."
 	    (file-truename tramp-test-temporary-file-directory))
 	   (tmp-name1 (tramp--test-make-temp-name nil quoted))
 	   (tmp-name2 (tramp--test-make-temp-name 'local quoted))
-	   (files (delq nil files))
+	   (files
+            (delq
+             nil (mapcar (lambda (x) (unless (string-empty-p x) x)) files)))
 	   (process-environment process-environment)
 	   (sorted-files (sort (copy-sequence files) #'string-lessp))
 	   buffer)
@@ -5945,7 +5947,7 @@ This requires restrictions of file name syntax."
 	    (make-directory tmp-name2)
 
 	    (dolist (elt files)
-	      ;(tramp--test-message "%s" elt)
+              ;(tramp--test-message "'%s'" elt)
 	      (let* ((file1 (expand-file-name elt tmp-name1))
 		     (file2 (expand-file-name elt tmp-name2))
 		     (file3 (expand-file-name (concat elt "foo") tmp-name1)))
