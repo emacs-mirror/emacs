@@ -25,10 +25,13 @@
 
 ;; This file provides minor modes for putting clickable overlays on
 ;; references to bugs.  A bug reference is text like "PR foo/29292";
-;; this is mapped to a URL using a user-supplied format.
+;; this is mapped to a URL using a user-supplied format; see
+;; `bug-reference-url-format' and `bug-reference-bug-regexp'. More
+;; extensive documentation is in (info "(emacs) Bug Reference").
 
 ;; Two minor modes are provided.  One works on any text in the buffer;
-;; the other operates only on comments and strings.
+;; the other operates only on comments and strings. By default, the
+;; URL link is followed by invoking C-c RET or mouse-2.
 
 ;;; Code:
 
@@ -126,6 +129,9 @@ The second subexpression should match the bug reference (usually a number)."
   "Open URL corresponding to the bug reference at POS."
   (interactive
    (list (if (integerp last-command-event) (point) last-command-event)))
+  (when (null bug-reference-url-format)
+    (user-error
+     "You must customize some bug-reference variables; see Emacs info node Bug Reference"))
   (if (and (not (integerp pos)) (eventp pos))
       ;; POS is a mouse event; switch to the proper window/buffer
       (let ((posn (event-start pos)))
