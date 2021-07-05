@@ -657,7 +657,7 @@ sys_subshell (void)
 #endif
   pid_t pid;
   struct save_signal saved_handlers[5];
-  char *str = SSDATA (encode_current_directory ());
+  char *str = SSDATA (get_current_directory (true));
 
 #ifdef DOS_NT
   pid = 0;

@@ -61,7 +61,7 @@ use Picture mode, a special major mode for editing such pictures.
 @cindex autotyping
 @cindex automatic typing
   The automatic typing features may be useful when writing text.
-@inforef{Top,The Autotype Manual,autotype}.
+@xref{Top, Autotyping, The Autotype Manual, autotype}.
 @end ifinfo
 
 @menu

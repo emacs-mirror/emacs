@@ -264,7 +264,7 @@ enum
 
 /* Defined in callproc.c.  */
 
-extern Lisp_Object encode_current_directory (void);
+extern Lisp_Object get_current_directory (bool);
 extern void record_kill_process (struct Lisp_Process *, Lisp_Object);
 
 /* Defined in sysdep.c.  */
