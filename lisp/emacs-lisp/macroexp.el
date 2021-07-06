@@ -319,14 +319,16 @@ Assumes the caller has bound `macroexpand-all-environment'."
       (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
                                            pcase--dontcare))
        (macroexp--cons fun
-                       (macroexp--cons (macroexp--all-clauses bindings 1)
-                                       (if (null body)
-                                           (macroexp-unprogn
-                                            (macroexp-warn-and-return
-                                             (format "Empty %s body" fun)
-                                             nil t))
-                                         (macroexp--all-forms body))
-                                       (cdr form))
+                       (macroexp--cons
+                        (macroexp--all-clauses bindings 1)
+                        (if (null body)
+                            (macroexp-unprogn
+                             (macroexp-warn-and-return
+                              (and (byte-compile-warning-enabled-p t)
+                                   (format "Empty %s body" fun))
+                              nil t))
+                          (macroexp--all-forms body))
+                        (cdr form))
                        form))
       (`(,(and fun `(lambda . ,_)) . ,args)
        ;; Embedded lambda in function position.
