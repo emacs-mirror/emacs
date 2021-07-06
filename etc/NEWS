@@ -1620,6 +1620,10 @@ t, which preserves the original behavior.
 If set non-nil, showing an unseen message will set the Rmail buffer's
 modified flag.
 
+---
+*** New faces for heading elements.
+Those are 'shr-h1', 'shr-h2', 'shr-h3', 'shr-h4', 'shr-h5', 'shr-h6'.
+
 ** Apropos
 
 *** New commands 'apropos-next-symbol' and 'apropos-previous-symbol'.
