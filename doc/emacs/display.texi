@@ -1181,8 +1181,8 @@ that has some special meaning for formatting the source code of a
 program.
 
   To activate the fill-column indication display, use the minor modes
-@w{@kbd{M-x display-fill-column-indicator-mode}} and
-@w{@kbd{M-x global-display-fill-column-indicator-mode}}, which enable
+@code{display-fill-column-indicator-mode} and
+@code{global-display-fill-column-indicator-mode}, which enable
 the indicator locally or globally, respectively.
 
 Alternatively, you can set the two buffer-local variables
