@@ -184,11 +184,17 @@ decoded.  If `gui-get-selection' signals an error, return nil."
   (let ((clip-text
          (when select-enable-clipboard
            (let ((text (gui--selection-value-internal 'CLIPBOARD)))
-             (if (string= text "") (setq text nil))
-
-             ;; Check the CLIPBOARD selection for 'newness', is it different
-             ;; from what we remembered them to be last time we did a
-             ;; cut/paste operation.
+             (when (string= text "")
+               (setq text nil))
+             ;; When `select-enable-clipboard' is non-nil,
+             ;; killing/copying text (with, say, `C-w') will push the
+             ;; text to the clipboard (and store it in
+             ;; `gui--last-selected-text-clipboard').  We check
+             ;; whether the text on the clipboard is identical to this
+             ;; text, and if so, we report that the clipboard is
+             ;; empty.  See (bug#27442) for further discussion about
+             ;; this DWIM action, and possible ways to make this check
+             ;; less fragile, if so desired.
              (prog1
                  (unless (equal text gui--last-selected-text-clipboard)
                    text)
