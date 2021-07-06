@@ -6039,7 +6039,28 @@ If nil, don't show those extra buttons."
 	(ignored gnus-ignored-mime-types)
 	(mm-inline-font-lock (gnus-visual-p 'article-highlight 'highlight))
 	(not-attachment t)
-	display text)
+        ;; Arrange a callback from `mm-inline-message' if we're
+        ;; displaying a message/rfc822 part.
+        (mm-inline-message-prepare-function
+         (lambda (charset)
+           (let ((handles
+                  (let (gnus-article-mime-handles
+	                ;; disable prepare hook
+	                gnus-article-prepare-hook
+	                (gnus-newsgroup-charset
+                         ;; mm-uu might set it.
+	                 (unless (eq charset 'gnus-decoded)
+		           (or charset gnus-newsgroup-charset))))
+	            (let ((gnus-original-article-buffer
+                           (mm-handle-buffer handle)))
+	              (run-hooks 'gnus-article-decode-hook))
+	            (gnus-article-prepare-display)
+                    gnus-article-mime-handles)))
+	     (when handles
+	       (setq gnus-article-mime-handles
+		     (mm-merge-handles gnus-article-mime-handles handles))))))
+	display text
+        gnus-displaying-mime)
     (catch 'ignored
       (progn
 	(while ignored
