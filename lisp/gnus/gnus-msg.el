@@ -1597,6 +1597,10 @@ this is a reply."
 		  (if (stringp gnus-gcc-externalize-attachments)
 		      (string-match gnus-gcc-externalize-attachments group)
 		    gnus-gcc-externalize-attachments))
+            ;; If we want to externalize stuff when GCC-ing, then we
+            ;; can't use the cache, because that has all the contents.
+            (when mml-externalize-attachments
+              (setq encoded-cache nil))
 	    (save-excursion
 	      (nnheader-set-temp-buffer " *acc*")
 	      (setq message-options (with-current-buffer cur message-options))
