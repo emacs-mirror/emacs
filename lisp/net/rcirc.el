@@ -2480,6 +2480,17 @@ that, an interactive form can specified."
                      (read-string "Message: ")))
   (rcirc-send-message process chan-or-nick message))
 
+(rcirc-define-command query (nick)
+  "Open a private chat buffer to NICK."
+  (interactive (list (completing-read "Query nick: "
+                                      (with-rcirc-server-buffer
+                                        rcirc-nick-table))))
+  (let ((existing-buffer (rcirc-get-buffer process nick)))
+    (switch-to-buffer (or existing-buffer
+			  (rcirc-get-buffer-create process nick)))
+    (when (not existing-buffer)
+      (rcirc-cmd-whois nick))))
+
 (rcirc-define-command join (channels)
   "Join CHANNELS.
 CHANNELS is a comma- or space-separated string of channel names."
