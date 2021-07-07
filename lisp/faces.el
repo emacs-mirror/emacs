@@ -2915,7 +2915,7 @@ It is used for characters of no fonts too."
 (defface tty-menu-enabled-face
   '((((class color))
      :foreground "yellow" :background "blue" :weight bold)
-    t :weight bold)
+    (t :weight bold))
   "Face for displaying enabled items in TTY menus."
   :group 'basic-faces
   :version "28.1")
@@ -2925,7 +2925,7 @@ It is used for characters of no fonts too."
      :foreground "lightgray" :background "blue")
     (((class color))
      :foreground "white" :background "blue")
-    t :inherit shadow)
+    (t :inherit shadow))
   "Face for displaying disabled items in TTY menus."
   :group 'basic-faces
   :version "28.1")
