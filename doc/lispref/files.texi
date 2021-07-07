@@ -772,6 +772,20 @@ and otherwise ignores the error.
 If this variable is @code{nil}, Emacs does not lock files.
 @end defopt
 
+@defopt lock-file-name-transforms
+By default, Emacs creates the lock files in the same directory as the
+files that are being locked.  This can be changed by customizing this
+variable.  Is has the same syntax as
+@code{auto-save-file-name-transforms} (@pxref{Auto-Saving}).  For
+instance, to make Emacs write all the lock files to @file{/var/tmp/},
+you could say something like:
+
+@lisp
+(setq lock-file-name-transforms
+      '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t)))
+@end lisp
+@end defopt
+
 @defun ask-user-about-lock file other-user
 This function is called when the user tries to modify @var{file}, but it
 is locked by another user named @var{other-user}.  The default

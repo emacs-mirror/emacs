@@ -412,6 +412,21 @@ ignored."
   :initialize 'custom-initialize-delay
   :version "21.1")
 
+(defcustom lock-file-name-transforms nil
+  "Transforms to apply to buffer file name before making a lock file name.
+This has the same syntax as
+`auto-save-file-name-transforms' (which see), but instead of
+applying to auto-save file names, it's applied to lock file names.
+
+By default, a lock file is put into the same directory as the
+file it's locking, and it has the same name, but with \".#\" prepended."
+  :group 'files
+  :type '(repeat (list (regexp :tag "Regexp")
+                       (string :tag "Replacement")
+		       (boolean :tag "Uniquify")))
+  :initialize 'custom-initialize-delay
+  :version "28.1")
+
 (defvar auto-save--timer nil "Timer for `auto-save-visited-mode'.")
 
 (defcustom auto-save-visited-interval 5
@@ -6668,63 +6683,11 @@ See also `auto-save-file-name-p'."
 					     'make-auto-save-file-name)))
 	(if handler
 	    (funcall handler 'make-auto-save-file-name)
-	  (let ((list auto-save-file-name-transforms)
-		(filename buffer-file-name)
-		result uniq)
-	    ;; Apply user-specified translations
-	    ;; to the file name.
-	    (while (and list (not result))
-	      (if (string-match (car (car list)) filename)
-		  (setq result (replace-match (cadr (car list)) t nil
-					      filename)
-			uniq (car (cddr (car list)))))
-	      (setq list (cdr list)))
-	    (if result
-                (setq filename
-                      (cond
-                       ((memq uniq (secure-hash-algorithms))
-                        (concat
-                         (file-name-directory result)
-                         (secure-hash uniq filename)))
-                       (uniq
-                        (concat
-			 (file-name-directory result)
-			 (subst-char-in-string
-			  ?/ ?!
-			  (replace-regexp-in-string
-                           "!" "!!" filename))))
-		       (t result))))
-	    (setq result
-		  (if (and (eq system-type 'ms-dos)
-			   (not (msdos-long-file-names)))
-		      ;; We truncate the file name to DOS 8+3 limits
-		      ;; before doing anything else, because the regexp
-		      ;; passed to string-match below cannot handle
-		      ;; extensions longer than 3 characters, multiple
-		      ;; dots, and other atrocities.
-		      (let ((fn (dos-8+3-filename
-				 (file-name-nondirectory buffer-file-name))))
-			(string-match
-			 "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'"
-			 fn)
-			(concat (file-name-directory buffer-file-name)
-				"#" (match-string 1 fn)
-				"." (match-string 3 fn) "#"))
-		    (concat (file-name-directory filename)
-			    "#"
-			    (file-name-nondirectory filename)
-			    "#")))
-	    ;; Make sure auto-save file names don't contain characters
-	    ;; invalid for the underlying filesystem.
-	    (if (and (memq system-type '(ms-dos windows-nt cygwin))
-		     ;; Don't modify remote filenames
-                     (not (file-remote-p result)))
-		(convert-standard-filename result)
-	      result))))
-
+          (auto-save--transform-file-name buffer-file-name
+                                          auto-save-file-name-transforms
+                                          "#" "#")))
     ;; Deal with buffers that don't have any associated files.  (Mail
     ;; mode tends to create a good number of these.)
-
     (let ((buffer-name (buffer-name))
 	  (limit 0)
 	  file-name)
@@ -6771,6 +6734,74 @@ See also `auto-save-file-name-p'."
 	  (delete-file file-name)
 	(file-error nil))
       file-name)))
+
+(defun auto-save--transform-file-name (filename transforms
+                                                prefix suffix)
+  "Transform FILENAME according to TRANSFORMS.
+See `auto-save-file-name-transforms' for the format of
+TRANSFORMS.  PREFIX is prepended to the non-directory portion of
+the resulting file name, and SUFFIX is appended."
+  (let (result uniq)
+    ;; Apply user-specified translations
+    ;; to the file name.
+    (while (and transforms (not result))
+      (if (string-match (car (car transforms)) filename)
+	  (setq result (replace-match (cadr (car transforms)) t nil
+				      filename)
+		uniq (car (cddr (car transforms)))))
+      (setq transforms (cdr transforms)))
+    (when result
+      (setq filename
+            (cond
+             ((memq uniq (secure-hash-algorithms))
+              (concat
+               (file-name-directory result)
+               (secure-hash uniq filename)))
+             (uniq
+              (concat
+	       (file-name-directory result)
+	       (subst-char-in-string
+		?/ ?!
+		(replace-regexp-in-string
+                 "!" "!!" filename))))
+	     (t result))))
+    (setq result
+	  (if (and (eq system-type 'ms-dos)
+		   (not (msdos-long-file-names)))
+	      ;; We truncate the file name to DOS 8+3 limits
+	      ;; before doing anything else, because the regexp
+	      ;; passed to string-match below cannot handle
+	      ;; extensions longer than 3 characters, multiple
+	      ;; dots, and other atrocities.
+	      (let ((fn (dos-8+3-filename
+			 (file-name-nondirectory buffer-file-name))))
+		(string-match
+		 "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'"
+		 fn)
+		(concat (file-name-directory buffer-file-name)
+			prefix (match-string 1 fn)
+			"." (match-string 3 fn) suffix))
+	    (concat (file-name-directory filename)
+		    prefix
+		    (file-name-nondirectory filename)
+		    suffix)))
+    ;; Make sure auto-save file names don't contain characters
+    ;; invalid for the underlying filesystem.
+    (expand-file-name
+     (if (and (memq system-type '(ms-dos windows-nt cygwin))
+	      ;; Don't modify remote filenames
+              (not (file-remote-p result)))
+	 (convert-standard-filename result)
+       result))))
+
+(defun make-lock-file-name (filename)
+  "Make a lock file name for FILENAME.
+By default, this just prepends \".*\" to the non-directory part
+of FILENAME, but the transforms in `lock-file-name-transforms'
+are done first."
+  (save-match-data
+    (auto-save--transform-file-name
+     filename lock-file-name-transforms ".#" "")))
 
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.

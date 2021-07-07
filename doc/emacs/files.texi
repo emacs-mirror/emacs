@@ -789,7 +789,9 @@ Emacs buffer visiting it has unsaved changes.
 @vindex create-lockfiles
   You can prevent the creation of lock files by setting the variable
 @code{create-lockfiles} to @code{nil}.  @strong{Caution:} by
-doing so you will lose the benefits that this feature provides.
+doing so you will lose the benefits that this feature provides.  You
+can also control where lock files are written by using the
+@code{lock-file-name-transforms} variable.
 
 @cindex collision
   If you begin to modify the buffer while the visited file is locked by

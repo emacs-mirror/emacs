@@ -2170,6 +2170,11 @@ summaries will include the failing condition.
 ** Miscellaneous
 
 +++
+*** New user option 'lock-file-name-transforms'.
+This option allows controlling where lock files are written.  It uses
+the same syntax as 'auto-save-file-name-transforms'.
+
++++
 *** New user option 'kill-transform-function'.
 This can be used to transform (and suppress) strings from entering the
 kill ring.
