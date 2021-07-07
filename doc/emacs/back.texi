@@ -15,21 +15,18 @@
 @sp 1
 
 @quotation
-GNU Emacs is much more than a text editor; over the years, it has
-expanded to become an entire workflow environment, impressing
-programmers with its integrated debugging and project-management
-features.  It is also a multi-lingual word processor, can handle all
-your email and Usenet news needs, display web pages, and even has a
-diary and a calendar for your appointments!
+GNU Emacs is much @strong{more than a text editor}; over the years, it
+has expanded to become @strong{an entire workflow environment},
+impressing programmers with its integrated debugging and
+project-management features.  It is also a multi-lingual word
+processor, can handle all your email and Usenet news needs, display
+web pages, and even has a diary and a calendar for your appointments!
 
-And when you tire of all the work you can accomplish with it, Emacs
-contains games to play.
-
-@strong{Features include:}
+Features include:
 
 @itemize @bullet
 @item
-Special editing modes for @strong{27 programing languages}, including C,
+Special editing modes for @strong{27 programming languages}, including C,
 C@t{++}, Fortran, Java, JavaScript, Lisp, Objective C, Pascal, Perl,
 and Scheme.
 
@@ -48,8 +45,8 @@ The ability to:
 
 @itemize @minus
 @item
-Create @strong{PostScript output} from plain-text files (special editing
-modes for @LaTeX{} and @TeX{} are included).
+Create @strong{PostScript output} from plain-text files (special
+editing modes for @LaTeX{} and @TeX{} are included).
 
 @item
 @strong{Compile} and @strong{debug} from inside Emacs.
@@ -59,7 +56,7 @@ Maintain program @strong{ChangeLogs}.
 
 @item
 Flag, move, and delete files and sub-directories recursively
-(@strong{directory navigation}).
+@strong{(directory navigation).}
 
 @item
 Run @strong{shell commands} from inside Emacs, or even use Emacs itself
@@ -69,23 +66,28 @@ as a shell (Eshell).
 Enjoy the use of extensive @strong{merge} and @strong{diff} functions.
 
 @item
-Take advantage of built-in support for many @strong{version control}
-systems, including Git, Mercurial, Bazaar, Subversion, and CVS.
+Take advantage of built-in support for many @strong{version control
+systems}, including Git, Mercurial, Bazaar, Subversion, and CVS.
 
 @item
 And much more!
 @end itemize
 @end itemize
 
+And when you tire of all the work you can accomplish with it, Emacs
+contains games to play.
+
 Emacs comes with an introductory online tutorial available in many
-languages.  This book picks up where that tutorial ends.  It explains
-the full range of Emacs's power and contains reference material useful
-to expert users.
+languages, and this manual picks up where that tutorial ends.  It
+explains the full range of the power of Emacs, now up to @strong{version
+27.2}, and contains reference material useful to expert users.  It
+also includes appendices with specific material about X and GTK
+resources, and with details for users of macOS and Microsoft Windows.
 
 Appendices are included, with specific material about X and GTK
 resources, and with details for users of Macintosh and Microsoft OS.
 
-@strong{About the Author:}
+@strong{About the original and principal Author:}
 
 Richard M.@: Stallman developed the first Emacs in 1975 and wrote GNU
 Emacs in 1984/85.  He has received the ACM Grace Hopper Award, a
