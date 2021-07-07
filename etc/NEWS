@@ -323,6 +323,7 @@ emulators by using the new input-meta-mode with the special value
 ** New frame parameter 'drag-with-tab-line'.
 This parameter, similar to 'drag-with-header-line', allows moving frames
 by dragging the tab lines of their topmost windows with the mouse.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -1466,6 +1467,9 @@ rare cases) Tramp blocks Emacs, and we need further debug information.
 *** Writing sensitive auto-save or backup files to the local temporary
 directory must be confirmed.  In order to suppress this confirmation,
 set user option 'tramp-allow-unsafe-temporary-files' to t.
+
++++
+*** Tramp supports file locks now.
 
 ** Tempo
 
@@ -2932,7 +2936,7 @@ The former is now declared obsolete.
 * Lisp Changes in Emacs 28.1
 
 ---
-*** :safe settings in 'defcustom' are now propagated to the loaddefs files.
+*** ':safe' settings in 'defcustom' are now propagated to the loaddefs files.
 
 +++
 ** New function 'syntax-class-to-char'.

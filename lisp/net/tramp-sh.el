@@ -962,6 +962,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (file-exists-p . tramp-sh-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-sh-handle-file-local-copy)
+    (file-locked-p . tramp-handle-file-locked-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-sh-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -988,6 +989,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (insert-directory . tramp-sh-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
+    (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-sh-handle-make-directory)
     ;; `make-directory-internal' performed by default handler.
@@ -1009,6 +1011,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (tramp-get-remote-uid . tramp-sh-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sh-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
+    (unlock-file . tramp-handle-unlock-file)
     (vc-registered . tramp-sh-handle-vc-registered)
     (verify-visited-file-modtime . tramp-sh-handle-verify-visited-file-modtime)
     (write-region . tramp-sh-handle-write-region))
@@ -3233,9 +3236,10 @@ implementation will be used."
       tmpfile)))
 
 (defun tramp-sh-handle-write-region
-  (start end filename &optional append visit _lockname mustbenew)
+  (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
-  (setq filename (expand-file-name filename))
+  (setq filename (expand-file-name filename)
+	lockname (file-truename (or lockname filename)))
   (with-parsed-tramp-file-name filename nil
     (when (and mustbenew (file-exists-p filename)
 	       (or (eq mustbenew 'excl)
@@ -3244,12 +3248,22 @@ implementation will be used."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let ((uid (or (tramp-compat-file-attribute-user-id
+    (let ((auto-saving
+	   (string-match-p "^#.+#$" (file-name-nondirectory filename)))
+	  file-locked
+	  (uid (or (tramp-compat-file-attribute-user-id
 		    (file-attributes filename 'integer))
 		   (tramp-get-remote-uid v 'integer)))
 	  (gid (or (tramp-compat-file-attribute-group-id
 		    (file-attributes filename 'integer))
 		   (tramp-get-remote-gid v 'integer))))
+
+      ;; Lock file.
+      (when (and (not auto-saving) (file-remote-p lockname)
+		 (not (eq (file-locked-p lockname) t)))
+	(setq file-locked t)
+	;; `lock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'lock-file lockname))
 
       (if (and (tramp-local-host-p v)
 	       ;; `file-writable-p' calls `file-expand-file-name'.  We
@@ -3465,6 +3479,12 @@ implementation will be used."
 	;; Set the ownership.
         (when need-chown
           (tramp-set-file-uid-gid filename uid gid))
+
+	;; Unlock file.
+	(when (and file-locked (eq (file-locked-p lockname) t))
+	  ;; `unlock-file' exists since Emacs 28.1.
+	  (tramp-compat-funcall 'unlock-file lockname))
+
 	(when (and (null noninteractive)
 		   (or (eq visit t) (null visit) (stringp visit)))
 	  (tramp-message v 0 "Wrote %s" filename))

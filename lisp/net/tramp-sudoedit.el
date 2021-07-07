@@ -88,6 +88,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-exists-p . tramp-sudoedit-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
+    (file-locked-p . tramp-handle-file-locked-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions
      . tramp-sudoedit-handle-file-name-all-completions)
@@ -115,6 +116,7 @@ See `tramp-actions-before-shell' for more info.")
     (insert-directory . tramp-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
+    (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-sudoedit-handle-make-directory)
     (make-directory-internal . ignore)
@@ -136,6 +138,7 @@ See `tramp-actions-before-shell' for more info.")
     (tramp-get-remote-uid . tramp-sudoedit-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sudoedit-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
+    (unlock-file . tramp-handle-unlock-file)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
     (write-region . tramp-sudoedit-handle-write-region))
@@ -713,6 +716,7 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-sudoedit-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
+  (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (let* ((uid (or (tramp-compat-file-attribute-user-id
 		     (file-attributes filename 'integer))
@@ -775,6 +779,9 @@ connection if a previous connection has died for some reason."
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
+
+      ;; Mark process for filelock.
+      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)

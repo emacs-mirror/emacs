@@ -49,6 +49,8 @@
 ;;   an open connection.  Examples: "scripts" keeps shell script
 ;;   definitions already sent to the remote shell, "last-cmd-time" is
 ;;   the time stamp a command has been sent to the remote process.
+;;   "lock-pid" is the timestamp a (network) process is created, it is
+;;   used instead of the pid in file locks.
 ;;
 ;; - The key is nil.  These are temporary properties related to the
 ;;   local machine.  Examples: "parse-passwd" and "parse-group" keep

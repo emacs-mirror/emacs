@@ -96,6 +96,7 @@
     (file-exists-p . tramp-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
+    (file-locked-p . tramp-handle-file-locked-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-fuse-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -122,6 +123,7 @@
     (insert-directory . tramp-handle-insert-directory)
     (insert-file-contents . tramp-sshfs-handle-insert-file-contents)
     (load . tramp-handle-load)
+    (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-fuse-handle-make-directory)
     (make-directory-internal . ignore)
@@ -143,6 +145,7 @@
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
+    (unlock-file . tramp-handle-unlock-file)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
     (write-region . tramp-sshfs-handle-write-region))
@@ -279,9 +282,10 @@ arguments to pass to the OPERATION."
        (tramp-fuse-local-file-name filename) mode flag))))
 
 (defun tramp-sshfs-handle-write-region
-  (start end filename &optional append visit _lockname mustbenew)
+  (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
-  (setq filename (expand-file-name filename))
+  (setq filename (expand-file-name filename)
+	lockname (file-truename (or lockname filename)))
   (with-parsed-tramp-file-name filename nil
     (when (and mustbenew (file-exists-p filename)
 	       (or (eq mustbenew 'excl)
@@ -290,15 +294,32 @@ arguments to pass to the OPERATION."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (write-region
-     start end (tramp-fuse-local-file-name filename) append 'nomessage)
-    (tramp-flush-file-properties v localname)
+    (let ((auto-saving
+	   (string-match-p "^#.+#$" (file-name-nondirectory filename)))
+	  file-locked)
 
-    ;; The end.
-    (when (and (null noninteractive)
-	       (or (eq visit t) (null visit) (stringp visit)))
-      (tramp-message v 0 "Wrote %s" filename))
-    (run-hooks 'tramp-handle-write-region-hook)))
+      ;; Lock file.
+      (when (and (not auto-saving) (file-remote-p lockname)
+		 (not (eq (file-locked-p lockname) t)))
+	(setq file-locked t)
+	;; `lock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'lock-file lockname))
+
+      (let (create-lockfiles)
+	(write-region
+	 start end (tramp-fuse-local-file-name filename) append 'nomessage)
+	(tramp-flush-file-properties v localname))
+
+      ;; Unlock file.
+      (when (and file-locked (eq (file-locked-p lockname) t))
+	;; `unlock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'unlock-file lockname))
+
+      ;; The end.
+      (when (and (null noninteractive)
+		 (or (eq visit t) (null visit) (stringp visit)))
+	(tramp-message v 0 "Wrote %s" filename))
+      (run-hooks 'tramp-handle-write-region-hook))))
 
 
 ;; File name conversions.
@@ -320,6 +341,9 @@ connection if a previous connection has died for some reason."
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
+
+      ;; Mark process for filelock.
+      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)

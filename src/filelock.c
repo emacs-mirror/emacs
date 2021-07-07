@@ -671,6 +671,16 @@ lock_file (Lisp_Object fn)
   if (will_dump_p ())
     return;
 
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  Lisp_Object handler;
+  handler = Ffind_file_name_handler (fn, Qlock_file);
+  if (!NILP (handler))
+    {
+      call2 (handler, Qlock_file, fn);
+      return;
+    }
+
   orig_fn = fn;
   fn = Fexpand_file_name (fn, Qnil);
 #ifdef WINDOWSNT
@@ -724,6 +734,16 @@ unlock_file_body (Lisp_Object fn)
 {
   char *lfname;
   USE_SAFE_ALLOCA;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  Lisp_Object handler;
+  handler = Ffind_file_name_handler (fn, Qunlock_file);
+  if (!NILP (handler))
+    {
+      call2 (handler, Qunlock_file, fn);
+      return Qnil;
+    }
 
   Lisp_Object filename = Fexpand_file_name (fn, Qnil);
   fn = ENCODE_FILE (filename);
@@ -784,6 +804,27 @@ unlock_all_files (void)
     }
 }
 
+DEFUN ("lock-file", Flock_file, Slock_file,
+       0, 1, 0,
+       doc: /* Lock FILE.
+If the option `create-lockfiles' is nil, this does nothing.  */)
+  (Lisp_Object file)
+{
+  CHECK_STRING (file);
+  lock_file (file);
+  return Qnil;
+}
+
+DEFUN ("unlock-file", Funlock_file, Sunlock_file,
+       0, 1, 0,
+       doc: /* Unlock FILE.  */)
+  (Lisp_Object file)
+{
+  CHECK_STRING (file);
+  unlock_file (file);
+  return Qnil;
+}
+
 DEFUN ("lock-buffer", Flock_buffer, Slock_buffer,
        0, 1, 0,
        doc: /* Lock FILE, if current buffer is modified.
@@ -844,6 +885,15 @@ t if it is locked by you, else a string saying which user has locked it.  */)
   lock_info_type locker;
   USE_SAFE_ALLOCA;
 
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  Lisp_Object handler;
+  handler = Ffind_file_name_handler (filename, Qfile_locked_p);
+  if (!NILP (handler))
+    {
+      return call2 (handler, Qfile_locked_p, filename);
+    }
+
   filename = Fexpand_file_name (filename, Qnil);
   Lisp_Object encoded_filename = ENCODE_FILE (filename);
   MAKE_LOCK_NAME (lfname, encoded_filename);
@@ -876,7 +926,13 @@ The name of the (per-buffer) lockfile is constructed by prepending a
 Info node `(emacs)Interlocking'.  */);
   create_lockfiles = true;
 
-  defsubr (&Sunlock_buffer);
+  DEFSYM (Qlock_file, "lock-file");
+  DEFSYM (Qunlock_file, "unlock-file");
+  DEFSYM (Qfile_locked_p, "file-locked-p");
+
+  defsubr (&Slock_file);
+  defsubr (&Sunlock_file);
   defsubr (&Slock_buffer);
+  defsubr (&Sunlock_buffer);
   defsubr (&Sfile_locked_p);
 }

@@ -33,7 +33,7 @@
 ;; remote host, set this environment variable to "/dev/null" or
 ;; whatever is appropriate on your system.
 
-;; For slow remote connections, `tramp-test43-asynchronous-requests'
+;; For slow remote connections, `tramp-test44-asynchronous-requests'
 ;; might be too heavy.  Setting $REMOTE_PARALLEL_PROCESSES to a proper
 ;; value less than 10 could help.
 
@@ -122,6 +122,7 @@
 (setq auth-source-save-behavior nil
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
+      create-lockfiles nil
       tramp-cache-read-persistent-data t ;; For auth-sources.
       tramp-copy-size-limit nil
       tramp-persistency-file-name nil
@@ -2463,6 +2464,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 			  "^\\'")
 			tramp--test-messages))))))))
 
+	    ;; We do not test lockname here.  See `tramp-test39-lock-file'.
+
 	    ;; Do not overwrite if excluded.
 	    (cl-letf (((symbol-function #'y-or-n-p) #'tramp--test-always)
 		      ;; Ange-FTP.
@@ -2833,8 +2836,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	   (delete-directory tmp-name1 nil 'trash)
 	   ;; tramp-rclone.el and tramp-sshfs.el call the local
 	   ;; `delete-directory'.  This raises another error.
-	   :type (if (or (tramp--test-rclone-p) (tramp--test-sshfs-p))
-		     'error 'file-error))
+	   :type (if (tramp--test-fuse-p) 'error 'file-error))
 	  (delete-directory tmp-name1 'recursive 'trash)
 	  (should-not (file-directory-p tmp-name1))
 	  (should
@@ -5741,8 +5743,77 @@ Use direct async.")
 	(ignore-errors (delete-file tmp-name1))
 	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)))))
 
+;; The functions were introduced in Emacs 28.1.
+(ert-deftest tramp-test39-lock-file ()
+  "Check `lock-file', `unlock-file' and `file-locked-p'."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (not (tramp--test-ange-ftp-p)))
+  ;; Since Emacs 28.1.
+  (skip-unless (and (fboundp 'lock-file) (fboundp 'unlock-file)))
+
+  (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
+    (let ((tmp-name (tramp--test-make-temp-name nil quoted))
+	  (remote-file-name-inhibit-cache t)
+	  (create-lockfiles t)
+          (inhibit-message t)
+	  ;; tramp-rclone.el and tramp-sshfs.el cache the mounted files.
+	  (tramp-cleanup-connection-hook
+	   (append
+	    (and (tramp--test-fuse-p) '(tramp-fuse-unmount))
+	    tramp-cleanup-connection-hook))
+	  noninteractive)
+
+      (unwind-protect
+	  (progn
+	    ;; A simple file lock.
+	    (should-not (file-locked-p tmp-name))
+	    (lock-file tmp-name)
+	    (should (eq (file-locked-p tmp-name) t))
+
+	    ;; If it is locked already, nothing changes.
+	    (lock-file tmp-name)
+	    (should (eq (file-locked-p tmp-name) t))
+
+	    ;; A new connection changes process id, and also the
+	    ;; lockname contents.
+	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	    (should (stringp (file-locked-p tmp-name)))
+
+	    ;; Steal the file lock.
+	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?s)))
+	      (lock-file tmp-name))
+	    (should (eq (file-locked-p tmp-name) t))
+
+	    ;; Ignore the file lock.
+	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?p)))
+	      (lock-file tmp-name))
+	    (should (stringp (file-locked-p tmp-name)))
+
+	    ;; Quit the file lock machinery.
+	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?q)))
+	      (should-error (lock-file tmp-name) :type 'file-locked))
+	    (should (stringp (file-locked-p tmp-name)))
+
+	    ;; The same for `write-region'.
+	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?q)))
+	      (should-error (write-region "foo" nil tmp-name) :type 'file-locked)
+	      (should-error
+	       (write-region "foo" nil tmp-name nil nil tmp-name)
+	       :type 'file-locked))
+	    (should (stringp (file-locked-p tmp-name)))
+	    (should-not (file-exists-p tmp-name)))
+
+	;; Cleanup.
+	(ignore-errors (delete-file tmp-name))
+	(unlock-file tmp-name)
+	(should-not (file-locked-p tmp-name))))))
+
 ;; The functions were introduced in Emacs 26.1.
-(ert-deftest tramp-test39-make-nearby-temp-file ()
+(ert-deftest tramp-test40-make-nearby-temp-file ()
   "Check `make-nearby-temp-file' and `temporary-file-directory'."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-ange-ftp-p)))
@@ -5824,6 +5895,10 @@ This does not support globbing characters in file names (yet)."
   ;; Globbing characters are ??, ?* and ?\[.
   (string-match-p
    "ftp$" (file-remote-p tramp-test-temporary-file-directory 'method)))
+
+(defun tramp--test-fuse-p ()
+  "Check, whether an FUSE file system isused."
+  (or (tramp--test-rclone-p) (tramp--test-sshfs-p)))
 
 (defun tramp--test-gdrive-p ()
   "Check, whether the gdrive method is used."
@@ -6115,7 +6190,7 @@ This requires restrictions of file name syntax."
 	(ignore-errors (delete-directory tmp-name2 'recursive))))))
 
 (defun tramp--test-special-characters ()
-  "Perform the test in `tramp-test40-special-characters*'."
+  "Perform the test in `tramp-test41-special-characters*'."
   ;; Newlines, slashes and backslashes in file names are not
   ;; supported.  So we don't test.  And we don't test the tab
   ;; character on Windows or Cygwin, because the backslash is
@@ -6173,7 +6248,7 @@ This requires restrictions of file name syntax."
 	       files (list (mapconcat #'identity files ""))))))
 
 ;; These tests are inspired by Bug#17238.
-(ert-deftest tramp-test40-special-characters ()
+(ert-deftest tramp-test41-special-characters ()
   "Check special characters in file names."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-rsync-p)))
@@ -6181,7 +6256,7 @@ This requires restrictions of file name syntax."
 
   (tramp--test-special-characters))
 
-(ert-deftest tramp-test40-special-characters-with-stat ()
+(ert-deftest tramp-test41-special-characters-with-stat ()
   "Check special characters in file names.
 Use the `stat' command."
   :tags '(:expensive-test)
@@ -6199,7 +6274,7 @@ Use the `stat' command."
 	  tramp-connection-properties)))
     (tramp--test-special-characters)))
 
-(ert-deftest tramp-test40-special-characters-with-perl ()
+(ert-deftest tramp-test41-special-characters-with-perl ()
   "Check special characters in file names.
 Use the `perl' command."
   :tags '(:expensive-test)
@@ -6220,7 +6295,7 @@ Use the `perl' command."
 	  tramp-connection-properties)))
     (tramp--test-special-characters)))
 
-(ert-deftest tramp-test40-special-characters-with-ls ()
+(ert-deftest tramp-test41-special-characters-with-ls ()
   "Check special characters in file names.
 Use the `ls' command."
   :tags '(:expensive-test)
@@ -6241,7 +6316,7 @@ Use the `ls' command."
     (tramp--test-special-characters)))
 
 (defun tramp--test-utf8 ()
-  "Perform the test in `tramp-test41-utf8*'."
+  "Perform the test in `tramp-test42-utf8*'."
   (let* ((utf8 (if (and (eq system-type 'darwin)
 			(memq 'utf-8-hfs (coding-system-list)))
 		   'utf-8-hfs 'utf-8))
@@ -6287,7 +6362,7 @@ Use the `ls' command."
 	     (replace-regexp-in-string "[ \t\n/.?]" "" x)))
 	  language-info-alist)))))))
 
-(ert-deftest tramp-test41-utf8 ()
+(ert-deftest tramp-test42-utf8 ()
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-docker-p)))
@@ -6300,7 +6375,7 @@ Use the `ls' command."
 
   (tramp--test-utf8))
 
-(ert-deftest tramp-test41-utf8-with-stat ()
+(ert-deftest tramp-test42-utf8-with-stat ()
   "Check UTF8 encoding in file names and file contents.
 Use the `stat' command."
   :tags '(:expensive-test)
@@ -6322,7 +6397,7 @@ Use the `stat' command."
 	  tramp-connection-properties)))
     (tramp--test-utf8)))
 
-(ert-deftest tramp-test41-utf8-with-perl ()
+(ert-deftest tramp-test42-utf8-with-perl ()
   "Check UTF8 encoding in file names and file contents.
 Use the `perl' command."
   :tags '(:expensive-test)
@@ -6347,7 +6422,7 @@ Use the `perl' command."
 	  tramp-connection-properties)))
     (tramp--test-utf8)))
 
-(ert-deftest tramp-test41-utf8-with-ls ()
+(ert-deftest tramp-test42-utf8-with-ls ()
   "Check UTF8 encoding in file names and file contents.
 Use the `ls' command."
   :tags '(:expensive-test)
@@ -6371,7 +6446,7 @@ Use the `ls' command."
 	  tramp-connection-properties)))
     (tramp--test-utf8)))
 
-(ert-deftest tramp-test42-file-system-info ()
+(ert-deftest tramp-test43-file-system-info ()
   "Check that `file-system-info' returns proper values."
   (skip-unless (tramp--test-enabled))
   ;; Since Emacs 27.1.
@@ -6388,11 +6463,11 @@ Use the `ls' command."
 		 (numberp (nth 1 fsi))
 		 (numberp (nth 2 fsi))))))
 
-;; `tramp-test43-asynchronous-requests' could be blocked.  So we set a
+;; `tramp-test44-asynchronous-requests' could be blocked.  So we set a
 ;; timeout of 300 seconds, and we send a SIGUSR1 signal after 300
 ;; seconds.  Similar check is performed in the timer function.
 (defconst tramp--test-asynchronous-requests-timeout 300
-  "Timeout for `tramp-test43-asynchronous-requests'.")
+  "Timeout for `tramp-test44-asynchronous-requests'.")
 
 (defmacro tramp--test-with-proper-process-name-and-buffer (proc &rest body)
   "Set \"process-name\" and \"process-buffer\" connection properties.
@@ -6428,7 +6503,7 @@ This is needed in timer functions as well as process filters and sentinels."
 	 (tramp-flush-connection-property v "process-buffer")))))
 
 ;; This test is inspired by Bug#16928.
-(ert-deftest tramp-test43-asynchronous-requests ()
+(ert-deftest tramp-test44-asynchronous-requests ()
   "Check parallel asynchronous requests.
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
@@ -6628,11 +6703,11 @@ process sentinels.  They shall not disturb each other."
         (ignore-errors (cancel-timer timer))
         (ignore-errors (delete-directory tmp-name 'recursive))))))
 
-;; (tramp--test--deftest-direct-async-process tramp-test43-asynchronous-requests
+;; (tramp--test--deftest-direct-async-process tramp-test44-asynchronous-requests
 ;;   "Check parallel direct asynchronous requests." 'unstable)
 
 ;; This test is inspired by Bug#29163.
-(ert-deftest tramp-test44-auto-load ()
+(ert-deftest tramp-test45-auto-load ()
   "Check that Tramp autoloads properly."
   ;; If we use another syntax but `default', Tramp is already loaded
   ;; due to the `tramp-change-syntax' call.
@@ -6657,7 +6732,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test44-delay-load ()
+(ert-deftest tramp-test45-delay-load ()
   "Check that Tramp is loaded lazily, only when needed."
   ;; The autoloaded Tramp objects are different since Emacs 26.1.  We
   ;; cannot test older Emacsen, therefore.
@@ -6690,7 +6765,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code tm)))))))))
 
-(ert-deftest tramp-test44-recursive-load ()
+(ert-deftest tramp-test45-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
   (skip-unless (tramp--test-enabled))
 
@@ -6714,7 +6789,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument code))))))))
 
-(ert-deftest tramp-test44-remote-load-path ()
+(ert-deftest tramp-test45-remote-load-path ()
   "Check that Tramp autoloads its packages with remote `load-path'."
   ;; The autoloaded Tramp objects are different since Emacs 26.1.  We
   ;; cannot test older Emacsen, therefore.
@@ -6743,7 +6818,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test45-unload ()
+(ert-deftest tramp-test46-unload ()
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)
@@ -6826,7 +6901,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Implement `tramp-test31-interrupt-process' for `adb', `sshfs' and
 ;;   for direct async processes.
 ;; * Check, why direct async processes do not work for
-;;   `tramp-test43-asynchronous-requests'.
+;;   `tramp-test44-asynchronous-requests'.
 
 (provide 'tramp-tests)
 

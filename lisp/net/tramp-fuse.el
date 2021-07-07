@@ -164,10 +164,9 @@
     (or (tramp-get-connection-property
          (tramp-get-connection-process vec) "mounted" nil)
         (let* ((default-directory (tramp-compat-temporary-file-directory))
-               (fuse (concat "fuse." (tramp-file-name-method vec)))
-               (mount (shell-command-to-string (format "mount -t %s" fuse))))
-          (tramp-message vec 6 "%s %s" "mount -t" fuse)
-          (tramp-message vec 6 "\n%s" mount)
+               (command (format "mount -t fuse.%s" (tramp-file-name-method vec)))
+	       (mount (shell-command-to-string command)))
+          (tramp-message vec 6 "%s\n%s" command mount)
           (tramp-set-connection-property
            (tramp-get-connection-process vec) "mounted"
            (when (string-match
@@ -175,6 +174,16 @@
                    "^\\(%s\\)\\s-" (regexp-quote (tramp-fuse-mount-spec vec)))
 	          mount)
              (match-string 1 mount)))))))
+
+(defun tramp-fuse-unmount (vec)
+  "Unmount fuse volume determined by VEC."
+  (let ((default-directory (tramp-compat-temporary-file-directory))
+        (command (format "fusermount3 -u %s" (tramp-fuse-mount-point vec))))
+    (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
+    (tramp-flush-connection-property
+     (tramp-get-connection-process vec) "mounted")
+    ;; Give the caches a chance to expire.
+    (sleep-for 1)))
 
 (defun tramp-fuse-local-file-name (filename)
   "Return local mount name of FILENAME."

@@ -247,6 +247,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-exists-p . tramp-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-smb-handle-file-local-copy)
+    (file-locked-p . tramp-handle-file-locked-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-smb-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -273,6 +274,7 @@ See `tramp-actions-before-shell' for more info.")
     (insert-directory . tramp-smb-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
+    (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-smb-handle-make-directory)
     (make-directory-internal . tramp-smb-handle-make-directory-internal)
@@ -294,6 +296,7 @@ See `tramp-actions-before-shell' for more info.")
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
+    (unlock-file . tramp-handle-unlock-file)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
     (write-region . tramp-smb-handle-write-region))
@@ -532,7 +535,7 @@ arguments to pass to the OPERATION."
 		      (tramp-process-actions p v nil tramp-smb-actions-with-tar)
 
 		      (while (process-live-p p)
-			(sit-for 0.1))
+			(sleep-for 0.1))
 		      (tramp-message v 6 "\n%s" (buffer-string))))
 
 		;; Reset the transfer process properties.
@@ -1573,9 +1576,10 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
       (error filename))))
 
 (defun tramp-smb-handle-write-region
-  (start end filename &optional append visit _lockname mustbenew)
+  (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
-  (setq filename (expand-file-name filename))
+  (setq filename (expand-file-name filename)
+	lockname (file-truename (or lockname filename)))
   (with-parsed-tramp-file-name filename nil
     (when (and mustbenew (file-exists-p filename)
 	       (or (eq mustbenew 'excl)
@@ -1584,8 +1588,19 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let ((curbuf (current-buffer))
+    (let ((auto-saving
+	   (string-match-p "^#.+#$" (file-name-nondirectory filename)))
+	  file-locked
+	  (curbuf (current-buffer))
 	  (tmpfile (tramp-compat-make-temp-file filename)))
+
+      ;; Lock file.
+      (when (and (not auto-saving) (file-remote-p lockname)
+		 (not (eq (file-locked-p lockname) t)))
+	(setq file-locked t)
+	;; `lock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'lock-file lockname))
+
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; We say `no-message' here because we don't want the visited file
@@ -1617,6 +1632,11 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	 (or (tramp-compat-file-attribute-modification-time
 	      (file-attributes filename))
 	     (current-time))))
+
+      ;; Unlock file.
+      (when (and file-locked (eq (file-locked-p lockname) t))
+	;; `unlock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'unlock-file lockname))
 
       ;; The end.
       (when (and (null noninteractive)
