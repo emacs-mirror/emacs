@@ -622,7 +622,10 @@ lock_if_free (lock_info_type *clasher, char *lfname)
 static Lisp_Object
 make_lock_file_name (Lisp_Object fn)
 {
-  return call1 (intern ("make-lock-file-name"), Fexpand_file_name (fn, Qnil));
+  Lisp_Object func = intern ("make-lock-file-name");
+  if (NILP (Fboundp (func)))
+    return Qnil;
+  return call1 (func, Fexpand_file_name (fn, Qnil));
 }
 
 /* lock_file locks file FN,
@@ -663,6 +666,8 @@ lock_file (Lisp_Object fn)
     }
 
   Lisp_Object lock_filename = make_lock_file_name (fn);
+  if (NILP (lock_filename))
+    return;
   char *lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   /* See if this file is visited and has changed on disk since it was
@@ -715,6 +720,8 @@ unlock_file_body (Lisp_Object fn)
     }
 
   Lisp_Object lock_filename = make_lock_file_name (fn);
+  if (NILP (lock_filename))
+    return Qnil;
   lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   int err = current_lock_owner (0, lfname);
@@ -859,6 +866,8 @@ t if it is locked by you, else a string saying which user has locked it.  */)
     }
 
   Lisp_Object lock_filename = make_lock_file_name (filename);
+  if (NILP (lock_filename))
+    return Qnil;
   char *lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   owner = current_lock_owner (&locker, lfname);
