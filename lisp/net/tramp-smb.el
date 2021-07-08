@@ -1606,7 +1606,8 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (write-region start end tmpfile append 'no-message)
+      (let (create-lockfiles)
+        (write-region start end tmpfile append 'no-message))
 
       (with-tramp-progress-reporter
 	  v 3 (format "Moving tmp file %s to %s" tmpfile filename)

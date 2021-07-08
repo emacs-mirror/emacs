@@ -3274,7 +3274,9 @@ implementation will be used."
 		  (or (file-directory-p localname)
 		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (write-region start end localname append 'no-message)
+	  (write-region
+           start end localname append 'no-message
+           (and lockname (file-local-name lockname)))
 
 	(let* ((modes (tramp-default-file-modes
 		       filename (and (eq mustbenew 'excl) 'nofollow)))
@@ -3308,7 +3310,8 @@ implementation will be used."
 	  ;; on.  We must ensure that `file-coding-system-alist'
 	  ;; matches `tmpfile'.
 	  (let ((file-coding-system-alist
-		 (tramp-find-file-name-coding-system-alist filename tmpfile)))
+		 (tramp-find-file-name-coding-system-alist filename tmpfile))
+                create-lockfiles)
 	    (condition-case err
 		(write-region start end tmpfile append 'no-message)
 	      ((error quit)

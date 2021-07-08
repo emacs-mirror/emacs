@@ -3818,15 +3818,10 @@ User is always nil."
       ;; Result.
       (cons (expand-file-name filename) (cdr result)))))
 
-(defun tramp-make-lock-name (file)
-  "Implement MAKE_LOCK_NAME of filelock.c."
-  (expand-file-name
-   (concat ".#" (file-name-nondirectory file)) (file-name-directory file)))
-
 (defun tramp-get-lock-file (file)
   "Read lockfile of FILE.
 Return nil when there is no lockfile"
-  (let ((lockname (tramp-make-lock-name file)))
+  (let ((lockname (tramp-compat-make-lock-file-name file)))
     (or (file-symlink-p lockname)
 	(and (file-readable-p lockname)
 	     (with-temp-buffer
@@ -3873,7 +3868,7 @@ Return nil when there is no lockfile"
 		       (match-string 2 contents) (match-string 3 contents)))
 	  (throw 'dont-lock nil)))
 
-      (let ((lockname (tramp-make-lock-name file))
+      (let ((lockname (tramp-compat-make-lock-file-name file))
 	    ;; USER@HOST.PID[:BOOT_TIME]
 	    (contents
 	     (format
@@ -3886,7 +3881,8 @@ Return nil when there is no lockfile"
 
 (defun tramp-handle-unlock-file (file)
   "Like `unlock-file' for Tramp files."
-  (delete-file (tramp-make-lock-name file)))
+  (ignore-errors
+    (delete-file (tramp-compat-make-lock-file-name file))))
 
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."
@@ -4470,7 +4466,8 @@ of."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (write-region start end tmpfile append 'no-message)
+      (let (create-lockfiles)
+        (write-region start end tmpfile append 'no-message))
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error

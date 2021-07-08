@@ -6679,12 +6679,12 @@ Does not consider `auto-save-visited-file-name' as that variable is checked
 before calling this function.
 See also `auto-save-file-name-p'."
   (if buffer-file-name
-      (let ((handler (find-file-name-handler buffer-file-name
-					     'make-auto-save-file-name)))
+      (let ((handler (find-file-name-handler
+                      buffer-file-name 'make-auto-save-file-name)))
 	(if handler
 	    (funcall handler 'make-auto-save-file-name)
-          (auto-save--transform-file-name buffer-file-name
-                                          auto-save-file-name-transforms
+          (files--transform-file-name
+           buffer-file-name auto-save-file-name-transforms
                                           "#" "#")))
     ;; Deal with buffers that don't have any associated files.  (Mail
     ;; mode tends to create a good number of these.)
@@ -6735,73 +6735,73 @@ See also `auto-save-file-name-p'."
 	(file-error nil))
       file-name)))
 
-(defun auto-save--transform-file-name (filename transforms
-                                                prefix suffix)
+(defun files--transform-file-name (filename transforms prefix suffix)
   "Transform FILENAME according to TRANSFORMS.
 See `auto-save-file-name-transforms' for the format of
 TRANSFORMS.  PREFIX is prepended to the non-directory portion of
 the resulting file name, and SUFFIX is appended."
-  (let (result uniq)
-    ;; Apply user-specified translations
-    ;; to the file name.
-    (while (and transforms (not result))
-      (if (string-match (car (car transforms)) filename)
-	  (setq result (replace-match (cadr (car transforms)) t nil
-				      filename)
-		uniq (car (cddr (car transforms)))))
-      (setq transforms (cdr transforms)))
-    (when result
-      (setq filename
-            (cond
-             ((memq uniq (secure-hash-algorithms))
-              (concat
-               (file-name-directory result)
-               (secure-hash uniq filename)))
-             (uniq
-              (concat
-	       (file-name-directory result)
-	       (subst-char-in-string
-		?/ ?!
-		(replace-regexp-in-string
-                 "!" "!!" filename))))
-	     (t result))))
-    (setq result
-	  (if (and (eq system-type 'ms-dos)
-		   (not (msdos-long-file-names)))
-	      ;; We truncate the file name to DOS 8+3 limits
-	      ;; before doing anything else, because the regexp
-	      ;; passed to string-match below cannot handle
-	      ;; extensions longer than 3 characters, multiple
-	      ;; dots, and other atrocities.
-	      (let ((fn (dos-8+3-filename
-			 (file-name-nondirectory buffer-file-name))))
-		(string-match
-		 "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'"
-		 fn)
-		(concat (file-name-directory buffer-file-name)
-			prefix (match-string 1 fn)
-			"." (match-string 3 fn) suffix))
-	    (concat (file-name-directory filename)
-		    prefix
-		    (file-name-nondirectory filename)
-		    suffix)))
-    ;; Make sure auto-save file names don't contain characters
-    ;; invalid for the underlying filesystem.
-    (expand-file-name
-     (if (and (memq system-type '(ms-dos windows-nt cygwin))
-	      ;; Don't modify remote filenames
-              (not (file-remote-p result)))
-	 (convert-standard-filename result)
-       result))))
+  (save-match-data
+    (let (result uniq)
+      ;; Apply user-specified translations to the file name.
+      (while (and transforms (not result))
+        (if (string-match (car (car transforms)) filename)
+	    (setq result (replace-match (cadr (car transforms)) t nil
+				        filename)
+		  uniq (car (cddr (car transforms)))))
+        (setq transforms (cdr transforms)))
+      (when result
+        (setq filename
+              (cond
+               ((memq uniq (secure-hash-algorithms))
+                (concat
+                 (file-name-directory result)
+                 (secure-hash uniq filename)))
+               (uniq
+                (concat
+	         (file-name-directory result)
+	         (subst-char-in-string
+		  ?/ ?!
+		  (replace-regexp-in-string
+                   "!" "!!" filename))))
+	       (t result))))
+      (setq result
+	    (if (and (eq system-type 'ms-dos)
+		     (not (msdos-long-file-names)))
+	        ;; We truncate the file name to DOS 8+3 limits before
+	        ;; doing anything else, because the regexp passed to
+	        ;; string-match below cannot handle extensions longer
+	        ;; than 3 characters, multiple dots, and other
+	        ;; atrocities.
+	        (let ((fn (dos-8+3-filename
+			   (file-name-nondirectory buffer-file-name))))
+		  (string-match
+		   "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'"
+		   fn)
+		  (concat (file-name-directory buffer-file-name)
+			  prefix (match-string 1 fn)
+			  "." (match-string 3 fn) suffix))
+	      (concat (file-name-directory filename)
+		      prefix
+		      (file-name-nondirectory filename)
+		      suffix)))
+      ;; Make sure auto-save file names don't contain characters
+      ;; invalid for the underlying filesystem.
+      (expand-file-name
+       (if (and (memq system-type '(ms-dos windows-nt cygwin))
+	        ;; Don't modify remote filenames
+                (not (file-remote-p result)))
+	   (convert-standard-filename result)
+         result)))))
 
 (defun make-lock-file-name (filename)
   "Make a lock file name for FILENAME.
 By default, this just prepends \".*\" to the non-directory part
 of FILENAME, but the transforms in `lock-file-name-transforms'
 are done first."
-  (save-match-data
-    (auto-save--transform-file-name
-     filename lock-file-name-transforms ".#" "")))
+  (let ((handler (find-file-name-handler filename 'make-lock-file-name)))
+    (if handler
+	(funcall handler 'make-lock-file-name filename)
+      (files--transform-file-name filename lock-file-name-transforms ".#" ""))))
 
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
