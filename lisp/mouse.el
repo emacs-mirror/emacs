@@ -1208,7 +1208,7 @@ overlay property, the value of that property determines what to do.
 for the `follow-link' event, the binding of that event determines
 what to do.
 
-The resulting value determine whether POS is inside a link:
+The resulting value determines whether POS is inside a link:
 
 - If the value is `mouse-face', POS is inside a link if there
 is a non-nil `mouse-face' property at POS.  Return t in this case.
@@ -2881,8 +2881,8 @@ is copied instead of being cut."
           (set-marker (nth 2 state) nil))
         (with-current-buffer (window-buffer window)
           (setq cursor-type (nth 3 state)))))))
-
 
+
 ;;; Bindings for mouse commands.
 
 (global-set-key [down-mouse-1]	'mouse-drag-region)
