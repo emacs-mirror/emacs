@@ -260,6 +260,7 @@ ffap most of the time."
   :type 'boolean
   :group 'ffap)
 
+;;;###autoload
 (defcustom ffap-file-finder 'find-file
   "The command called by `find-file-at-point' to find a file."
   :type 'function

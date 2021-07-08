@@ -2411,12 +2411,6 @@ leak information from the reporting user.
 The semantics are as with 'walk-windows'.
 
 ---
-*** Killing virtual ido buffers interactively will make them go away.
-Previously, killing a virtual ido buffer with 'ido-kill-buffer' didn't
-do anything.  This has now been changed, and killing virtual buffers
-with that command will remove the buffer from recentf.
-
----
 *** New variable 'ffap-file-name-with-spaces'.
 If non-nil, 'find-file-at-point' and friends will try to guess more
 expansively to identify a file name with spaces.
@@ -2489,6 +2483,17 @@ height of lines or width of chars.
 *** New user option 'xwidget-webkit-bookmark-jump-new-session'.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
+
+** ido
+
+---
+*** Switching on 'ido-mode' now also overrides 'ffap-file-finder'.
+
+---
+*** Killing virtual ido buffers interactively will make them go away.
+Previously, killing a virtual ido buffer with 'ido-kill-buffer' didn't
+do anything.  This has now been changed, and killing virtual buffers
+with that command will remove the buffer from recentf.
 
 ** Flymake mode
 

@@ -1521,6 +1521,10 @@ Removes badly formatted data and ignored directories."
   :global t
   (remove-function read-file-name-function #'ido-read-file-name)
   (remove-function read-buffer-function #'ido-read-buffer)
+  (when (boundp 'ffap-file-finder)
+    (remove-function ffap-file-finder #'ido-find-file)
+    (when ido-mode
+      (add-function :override ffap-file-finder #'ido-find-file)))
   (when ido-everywhere
     (if (not ido-mode)
         (ido-mode 'both)
