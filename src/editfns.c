@@ -2137,7 +2137,7 @@ nil.  */)
 	 the file now.  */
       if (SAVE_MODIFF == MODIFF
 	  && STRINGP (BVAR (a, file_truename)))
-	unlock_file (BVAR (a, file_truename));
+	Funlock_file (BVAR (a, file_truename));
     }
 
   return Qt;

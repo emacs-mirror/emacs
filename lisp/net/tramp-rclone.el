@@ -127,6 +127,7 @@
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-fuse-handle-make-directory)
     (make-directory-internal . ignore)
+    ;; `make-lock-file-name' performed by default handler.
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-handle-make-symbolic-link)

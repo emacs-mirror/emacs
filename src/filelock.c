@@ -657,6 +657,8 @@ lock_file (Lisp_Object fn)
   if (will_dump_p ())
     return;
 
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
   Lisp_Object handler;
   handler = Ffind_file_name_handler (fn, Qlock_file);
   if (!NILP (handler))
@@ -705,19 +707,9 @@ lock_file (Lisp_Object fn)
 }
 
 static Lisp_Object
-unlock_file_body (Lisp_Object fn)
+unlock_file (Lisp_Object fn)
 {
   char *lfname;
-
-  /* If the file name has special constructs in it,
-     call the corresponding file name handler.  */
-  Lisp_Object handler;
-  handler = Ffind_file_name_handler (fn, Qunlock_file);
-  if (!NILP (handler))
-    {
-      call2 (handler, Qunlock_file, fn);
-      return Qnil;
-    }
 
   Lisp_Object lock_filename = make_lock_file_name (fn);
   if (NILP (lock_filename))
@@ -740,23 +732,9 @@ unlock_file_handle_error (Lisp_Object err)
   return Qnil;
 }
 
-void
-unlock_file (Lisp_Object fn)
-{
-  internal_condition_case_1 (unlock_file_body,
-			     fn,
-			     list1(Qfile_error),
-			     unlock_file_handle_error);
-}
-
 #else  /* MSDOS */
 void
 lock_file (Lisp_Object fn)
-{
-}
-
-void
-unlock_file (Lisp_Object fn)
 {
 }
 
@@ -773,12 +751,11 @@ unlock_all_files (void)
       b = XBUFFER (buf);
       if (STRINGP (BVAR (b, file_truename))
 	  && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
-	unlock_file (BVAR (b, file_truename));
+	Funlock_file (BVAR (b, file_truename));
     }
 }
 
-DEFUN ("lock-file", Flock_file, Slock_file,
-       0, 1, 0,
+DEFUN ("lock-file", Flock_file, Slock_file, 1, 1, 0,
        doc: /* Lock FILE.
 If the option `create-lockfiles' is nil, this does nothing.  */)
   (Lisp_Object file)
@@ -788,13 +765,28 @@ If the option `create-lockfiles' is nil, this does nothing.  */)
   return Qnil;
 }
 
-DEFUN ("unlock-file", Funlock_file, Sunlock_file,
-       0, 1, 0,
+DEFUN ("unlock-file", Funlock_file, Sunlock_file, 1, 1, 0,
        doc: /* Unlock FILE.  */)
   (Lisp_Object file)
 {
+#ifndef MSDOS
   CHECK_STRING (file);
-  unlock_file (file);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  Lisp_Object handler;
+  handler = Ffind_file_name_handler (file, Qunlock_file);
+  if (!NILP (handler))
+    {
+      call2 (handler, Qunlock_file, file);
+      return Qnil;
+    }
+
+  internal_condition_case_1 (unlock_file,
+			     file,
+			     list1 (Qfile_error),
+			     unlock_file_handle_error);
+#endif	/* MSDOS */
   return Qnil;
 }
 
@@ -829,7 +821,7 @@ error did not occur.  */)
 {
   if (SAVE_MODIFF < MODIFF
       && STRINGP (BVAR (current_buffer, file_truename)))
-    unlock_file (BVAR (current_buffer, file_truename));
+    Funlock_file (BVAR (current_buffer, file_truename));
   return Qnil;
 }
 
@@ -840,7 +832,7 @@ unlock_buffer (struct buffer *buffer)
 {
   if (BUF_SAVE_MODIFF (buffer) < BUF_MODIFF (buffer)
       && STRINGP (BVAR (buffer, file_truename)))
-    unlock_file (BVAR (buffer, file_truename));
+    Funlock_file (BVAR (buffer, file_truename));
 }
 
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,

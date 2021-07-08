@@ -2456,7 +2456,7 @@ Must be handled by the callers."
 	      ;; Emacs 27+ only.
 	      file-system-info
 	      ;; Emacs 28+ only.
-	      file-locked-p lock-file unlock-file
+	      file-locked-p lock-file make-lock-file-name unlock-file
 	      ;; Tramp internal magic file name function.
 	      tramp-set-file-uid-gid))
     (if (file-name-absolute-p (nth 0 args))
@@ -3881,8 +3881,9 @@ Return nil when there is no lockfile"
 
 (defun tramp-handle-unlock-file (file)
   "Like `unlock-file' for Tramp files."
-  (ignore-errors
-    (delete-file (tramp-compat-make-lock-file-name file))))
+  (condition-case err
+      (delete-file (tramp-compat-make-lock-file-name file))
+    (error (userlock--handle-unlock-error err))))
 
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."

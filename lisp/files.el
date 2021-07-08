@@ -6795,7 +6795,7 @@ the resulting file name, and SUFFIX is appended."
 
 (defun make-lock-file-name (filename)
   "Make a lock file name for FILENAME.
-By default, this just prepends \".*\" to the non-directory part
+By default, this just prepends \".#\" to the non-directory part
 of FILENAME, but the transforms in `lock-file-name-transforms'
 are done first."
   (let ((handler (find-file-name-handler filename 'make-lock-file-name)))

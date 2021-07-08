@@ -4544,7 +4544,7 @@ by calling `format-decode', which see.  */)
   if (inserted == 0)
     {
       if (we_locked_file)
-	unlock_file (BVAR (current_buffer, file_truename));
+	Funlock_file (BVAR (current_buffer, file_truename));
       Vdeactivate_mark = old_Vdeactivate_mark;
     }
   else
@@ -4706,8 +4706,8 @@ by calling `format-decode', which see.  */)
       if (NILP (handler))
 	{
 	  if (!NILP (BVAR (current_buffer, file_truename)))
-	    unlock_file (BVAR (current_buffer, file_truename));
-	  unlock_file (filename);
+	    Funlock_file (BVAR (current_buffer, file_truename));
+	  Funlock_file (filename);
 	}
       if (not_regular)
 	xsignal2 (Qfile_error,
@@ -5193,7 +5193,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	{
 	  int open_errno = errno;
 	  if (file_locked)
-	    unlock_file (lockname);
+	    Funlock_file (lockname);
 	  report_file_errno ("Opening output file", filename, open_errno);
 	}
 
@@ -5208,7 +5208,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	{
 	  int lseek_errno = errno;
 	  if (file_locked)
-	    unlock_file (lockname);
+	    Funlock_file (lockname);
 	  report_file_errno ("Lseek error", filename, lseek_errno);
 	}
     }
@@ -5345,7 +5345,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   unbind_to (count, Qnil);
 
   if (file_locked)
-    unlock_file (lockname);
+    Funlock_file (lockname);
 
   /* Do this before reporting IO error
      to avoid a "file has changed on disk" warning on
@@ -5370,14 +5370,14 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       bset_filename (current_buffer, visit_file);
       update_mode_lines = 14;
       if (auto_saving_into_visited_file)
-	unlock_file (lockname);
+	Funlock_file (lockname);
     }
   else if (quietly)
     {
       if (auto_saving_into_visited_file)
 	{
 	  SAVE_MODIFF = MODIFF;
-	  unlock_file (lockname);
+	  Funlock_file (lockname);
 	}
 
       return Qnil;

@@ -230,7 +230,7 @@ to get the latest version of the file, then make the change again."
   (display-warning
    '(unlock-file)
    ;; There is no need to explain that this is an unlock error because
-   ;; ERR is a `file-error' condition, which explains this.
+   ;; ERROR is a `file-error' condition, which explains this.
    (message "%s, ignored" (error-message-string error))
    :warning))
 

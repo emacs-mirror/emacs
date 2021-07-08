@@ -1451,7 +1451,7 @@ state of the current buffer.  Use with care.  */)
           if (!already && !NILP (flag))
 	    lock_file (fn);
           else if (already && NILP (flag))
-	    unlock_file (fn);
+	    Funlock_file (fn);
         }
     }
 

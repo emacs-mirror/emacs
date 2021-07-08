@@ -4622,7 +4622,6 @@ extern void syms_of_sysdep (void);
 
 /* Defined in filelock.c.  */
 extern void lock_file (Lisp_Object);
-extern void unlock_file (Lisp_Object);
 extern void unlock_all_files (void);
 extern void unlock_buffer (struct buffer *);
 extern void syms_of_filelock (void);
