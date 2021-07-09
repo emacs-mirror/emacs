@@ -244,6 +244,8 @@ return a string which is inserted.  It may set `facemenu-end-add-face'."
   (define-key map [fc] (cons "Face" 'facemenu-face-menu)))
 (defalias 'facemenu-menu facemenu-menu)
 
+(define-key global-map [C-down-mouse-2] 'facemenu-menu)
+
 (easy-menu-add-item
  menu-bar-edit-menu nil
  ["Text Properties" facemenu-menu])
