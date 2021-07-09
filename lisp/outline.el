@@ -182,7 +182,6 @@ in the file it applies to.")
                          ;; Only takes effect if point is on a heading.
                          :filter ,(lambda (cmd)
                                     (when (outline-on-heading-p) cmd)))))
-      (define-key map [tab]       tab-binding)
       (define-key map (kbd "TAB") tab-binding)
       (define-key map (kbd "<backtab>") #'outline-cycle-buffer))
     map)
