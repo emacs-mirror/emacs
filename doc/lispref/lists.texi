@@ -1803,7 +1803,7 @@ through a simple example:
 (let-alist colors
   (if (eq .rose 'red)
       .lily))
-=> white
+     @result{} white
 @end lisp
 
 The @var{body} is inspected at compilation time, and only the symbols
@@ -1819,7 +1819,7 @@ Nested association lists is supported:
 (let-alist colors
   (if (eq .rose 'red)
       .lily.belladonna))
-=> yellow
+     @result{} yellow
 @end lisp
 
 Nesting @code{let-alist} inside each other is allowed, but the code in
