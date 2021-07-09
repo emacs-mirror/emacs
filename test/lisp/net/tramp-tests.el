@@ -122,7 +122,6 @@
 (setq auth-source-save-behavior nil
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
-      create-lockfiles nil
       tramp-cache-read-persistent-data t ;; For auth-sources.
       tramp-copy-size-limit nil
       tramp-persistency-file-name nil
@@ -5794,16 +5793,16 @@ Use direct async.")
 	    ;; Quit the file lock machinery.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?q)))
-	      (should-error (lock-file tmp-name) :type 'file-locked))
-	    (should (stringp (file-locked-p tmp-name)))
-
-	    ;; The same for `write-region'.
-	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?q)))
+	      (should-error (lock-file tmp-name) :type 'file-locked)
+	      ;; The same for `write-region'.
 	      (should-error (write-region "foo" nil tmp-name) :type 'file-locked)
 	      (should-error
 	       (write-region "foo" nil tmp-name nil nil tmp-name)
-	       :type 'file-locked))
+               :type 'file-locked)
+	      ;; The same for `set-visited-file-name'.
+              (with-temp-buffer
+	        (should-error
+                 (set-visited-file-name tmp-name) :type 'file-locked)))
 	    (should (stringp (file-locked-p tmp-name)))
 	    (should-not (file-exists-p tmp-name)))
 

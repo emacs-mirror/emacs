@@ -1449,7 +1449,7 @@ state of the current buffer.  Use with care.  */)
         {
           bool already = SAVE_MODIFF < MODIFF;
           if (!already && !NILP (flag))
-	    lock_file (fn);
+	    Flock_file (fn);
           else if (already && NILP (flag))
 	    Funlock_file (fn);
         }

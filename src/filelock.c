@@ -622,10 +622,7 @@ lock_if_free (lock_info_type *clasher, char *lfname)
 static Lisp_Object
 make_lock_file_name (Lisp_Object fn)
 {
-  Lisp_Object func = intern ("make-lock-file-name");
-  if (NILP (Fboundp (func)))
-    return Qnil;
-  return call1 (func, Fexpand_file_name (fn, Qnil));
+  return call1 (Qmake_lock_file_name, Fexpand_file_name (fn, Qnil));
 }
 
 /* lock_file locks file FN,
@@ -646,7 +643,7 @@ make_lock_file_name (Lisp_Object fn)
    This function can signal an error, or return t meaning
    take away the lock, or return nil meaning ignore the lock.  */
 
-void
+static Lisp_Object
 lock_file (Lisp_Object fn)
 {
   lock_info_type lock_info;
@@ -655,7 +652,7 @@ lock_file (Lisp_Object fn)
      Uncompressing wtmp files uses call-process, which does not work
      in an uninitialized Emacs.  */
   if (will_dump_p ())
-    return;
+    return Qnil;
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
@@ -663,13 +660,12 @@ lock_file (Lisp_Object fn)
   handler = Ffind_file_name_handler (fn, Qlock_file);
   if (!NILP (handler))
     {
-      call2 (handler, Qlock_file, fn);
-      return;
+      return call2 (handler, Qlock_file, fn);
     }
 
   Lisp_Object lock_filename = make_lock_file_name (fn);
   if (NILP (lock_filename))
-    return;
+    return Qnil;
   char *lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   /* See if this file is visited and has changed on disk since it was
@@ -678,32 +674,29 @@ lock_file (Lisp_Object fn)
   if (!NILP (subject_buf)
       && NILP (Fverify_visited_file_modtime (subject_buf))
       && !NILP (Ffile_exists_p (lock_filename))
-      && !(create_lockfiles && current_lock_owner (NULL, lfname) == -2))
+      && current_lock_owner (NULL, lfname) != -2)
     call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
-  /* Don't do locking if the user has opted out.  */
-  if (create_lockfiles)
+  /* Try to lock the lock.  FIXME: This ignores errors when
+     lock_if_free returns a positive errno value.  */
+  if (lock_if_free (&lock_info, lfname) < 0)
     {
-      /* Try to lock the lock.  FIXME: This ignores errors when
-	 lock_if_free returns a positive errno value.  */
-      if (lock_if_free (&lock_info, lfname) < 0)
-	{
-	  /* Someone else has the lock.  Consider breaking it.  */
-	  Lisp_Object attack;
-	  char *dot = lock_info.dot;
-	  ptrdiff_t pidlen = lock_info.colon - (dot + 1);
-	  static char const replacement[] = " (pid ";
-	  int replacementlen = sizeof replacement - 1;
-	  memmove (dot + replacementlen, dot + 1, pidlen);
-	  strcpy (dot + replacementlen + pidlen, ")");
-	  memcpy (dot, replacement, replacementlen);
-	  attack = call2 (intern ("ask-user-about-lock"), fn,
-			  build_string (lock_info.user));
-	  /* Take the lock if the user said so.  */
-	  if (!NILP (attack))
-	    lock_file_1 (lfname, 1);
-	}
+      /* Someone else has the lock.  Consider breaking it.  */
+      Lisp_Object attack;
+      char *dot = lock_info.dot;
+      ptrdiff_t pidlen = lock_info.colon - (dot + 1);
+      static char const replacement[] = " (pid ";
+      int replacementlen = sizeof replacement - 1;
+      memmove (dot + replacementlen, dot + 1, pidlen);
+      strcpy (dot + replacementlen + pidlen, ")");
+      memcpy (dot, replacement, replacementlen);
+      attack = call2 (intern ("ask-user-about-lock"), fn,
+		      build_string (lock_info.user));
+      /* Take the lock if the user said so.  */
+      if (!NILP (attack))
+	lock_file_1 (lfname, 1);
     }
+  return Qnil;
 }
 
 static Lisp_Object
@@ -732,12 +725,6 @@ unlock_file_handle_error (Lisp_Object err)
   return Qnil;
 }
 
-#else  /* MSDOS */
-void
-lock_file (Lisp_Object fn)
-{
-}
-
 #endif	/* MSDOS */
 
 void
@@ -760,8 +747,14 @@ DEFUN ("lock-file", Flock_file, Slock_file, 1, 1, 0,
 If the option `create-lockfiles' is nil, this does nothing.  */)
   (Lisp_Object file)
 {
-  CHECK_STRING (file);
-  lock_file (file);
+#ifndef MSDOS
+  /* Don't do locking if the user has opted out.  */
+  if (create_lockfiles)
+    {
+      CHECK_STRING (file);
+      lock_file (file);
+    }
+#endif	/* MSDOS */
   return Qnil;
 }
 
@@ -805,7 +798,7 @@ If the option `create-lockfiles' is nil, this does nothing.  */)
     CHECK_STRING (file);
   if (SAVE_MODIFF < MODIFF
       && !NILP (file))
-    lock_file (file);
+    Flock_file (file);
   return Qnil;
 }
 
@@ -892,6 +885,7 @@ Info node `(emacs)Interlocking'.  */);
   DEFSYM (Qlock_file, "lock-file");
   DEFSYM (Qunlock_file, "unlock-file");
   DEFSYM (Qfile_locked_p, "file-locked-p");
+  DEFSYM (Qmake_lock_file_name, "make-lock-file-name");
 
   defsubr (&Slock_file);
   defsubr (&Sunlock_file);

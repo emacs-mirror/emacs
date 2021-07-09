@@ -732,6 +732,7 @@ guaranteed by the originator of a cluster definition."
   (skip-unless (file-writable-p shadow-test-remote-temporary-file-directory))
 
   (let ((backup-inhibited t)
+        create-lockfiles
         (shadow-info-file shadow-test-info-file)
 	(shadow-todo-file shadow-test-todo-file)
         (shadow-inhibit-message t)
@@ -877,6 +878,7 @@ guaranteed by the originator of a cluster definition."
   (skip-unless (file-writable-p shadow-test-remote-temporary-file-directory))
 
   (let ((backup-inhibited t)
+        create-lockfiles
         (shadow-info-file shadow-test-info-file)
 	(shadow-todo-file shadow-test-todo-file)
         (shadow-inhibit-message t)

@@ -142,7 +142,8 @@ Configuring @value{tramp} for use
 * Remote shell setup::          Remote shell setup hints.
 * FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
-* Auto-save and Backup::        Auto-save and Backup.
+* Auto-save File Lock and Backup::
+                                Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
 * Windows setup hints::         Issues with Cygwin ssh.
 
@@ -691,7 +692,8 @@ may be used in your init file:
 * Remote shell setup::          Remote shell setup hints.
 * FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
-* Auto-save and Backup::        Auto-save and Backup.
+* Auto-save File Lock and Backup::
+                                Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
 * Windows setup hints::         Issues with Cygwin ssh.
 @end menu
@@ -2745,9 +2747,10 @@ Open a remote connection with a more concise command @kbd{C-x C-f
 @end itemize
 
 
-@node Auto-save and Backup
-@section Auto-save and Backup configuration
+@node Auto-save File Lock and Backup
+@section Auto-save, File Lock and Backup configuration
 @cindex auto-save
+@cindex file-lock
 @cindex backup
 
 @vindex backup-directory-alist
@@ -2841,6 +2844,19 @@ auto-saved files to the same directory as the original file.
 @vindex tramp-auto-save-directory
 Alternatively, set the user option @code{tramp-auto-save-directory}
 to direct all auto saves to that location.
+
+@vindex lock-file-name-transforms
+And still more issues to handle.  Since @w{Emacs 28}, file locks use a
+similar user option as auto-save files, called
+@code{lock-file-name-transforms}.  By default this user option is
+@code{nil}, meaning to keep file locks in the same directory as the
+original file.
+
+If you change @code{lock-file-name-transforms} in order to keep file
+locks for remote files somewhere else, you will loose Emacs' feature
+to warn you, if a file is changed in parallel from different Emacs
+sessions, or via different remote connections.  Be careful with such
+settings.
 
 @vindex tramp-allow-unsafe-temporary-files
 Per default, @value{tramp} asks for confirmation if a

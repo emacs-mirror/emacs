@@ -5168,7 +5168,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 
   if (open_and_close_file && !auto_saving)
     {
-      lock_file (lockname);
+      Flock_file (lockname);
       file_locked = 1;
     }
 

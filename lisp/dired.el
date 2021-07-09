@@ -163,7 +163,7 @@ always set this variable to t."
   :type 'boolean
   :group 'dired-mark)
 
-(defcustom dired-trivial-filenames (purecopy "\\`\\.\\.?\\'\\|\\`#")
+(defcustom dired-trivial-filenames (purecopy "\\`\\.\\.?\\'\\|\\`\\.?#")
   "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
 A value of t means move to first file."
@@ -615,6 +615,31 @@ Subexpression 2 must end right before the \\n.")
    (list dired-re-dir
 	 '(".+" (dired-move-to-filename) nil (0 dired-directory-face)))
    ;;
+   ;; Files suffixed with `completion-ignored-extensions'.
+   '(eval .
+     ;; It is quicker to first find just an extension, then go back to the
+     ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
+          (list (concat
+                 "\\(" (regexp-opt completion-ignored-extensions)
+                 "\\|#\\|\\.#.+\\)$")
+	   '(".+" (dired-move-to-filename) nil (0 dired-ignored-face))))
+   ;;
+   ;; Files suffixed with `completion-ignored-extensions'
+   ;; plus a character put in by -F.
+   '(eval .
+     (list (concat "\\(" (regexp-opt completion-ignored-extensions)
+		   "\\|#\\|\\.#.+\\)[*=|]$")
+	   '(".+" (progn
+		    (end-of-line)
+		    ;; If the last character is not part of the filename,
+		    ;; move back to the start of the filename
+		    ;; so it can be fontified.
+		    ;; Otherwise, leave point at the end of the line;
+		    ;; that way, nothing is fontified.
+		    (unless (get-text-property (1- (point)) 'mouse-face)
+		      (dired-move-to-filename)))
+	     nil (0 dired-ignored-face))))
+   ;;
    ;; Broken Symbolic link.
    (list dired-re-sym
          (list (lambda (end)
@@ -658,29 +683,6 @@ Subexpression 2 must end right before the \\n.")
    ;; Sockets, pipes, block devices, char devices.
    (list dired-re-special
 	 '(".+" (dired-move-to-filename) nil (0 'dired-special)))
-   ;;
-   ;; Files suffixed with `completion-ignored-extensions'.
-   '(eval .
-     ;; It is quicker to first find just an extension, then go back to the
-     ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
-     (list (concat "\\(" (regexp-opt completion-ignored-extensions) "\\|#\\)$")
-	   '(".+" (dired-move-to-filename) nil (0 dired-ignored-face))))
-   ;;
-   ;; Files suffixed with `completion-ignored-extensions'
-   ;; plus a character put in by -F.
-   '(eval .
-     (list (concat "\\(" (regexp-opt completion-ignored-extensions)
-		   "\\|#\\)[*=|]$")
-	   '(".+" (progn
-		    (end-of-line)
-		    ;; If the last character is not part of the filename,
-		    ;; move back to the start of the filename
-		    ;; so it can be fontified.
-		    ;; Otherwise, leave point at the end of the line;
-		    ;; that way, nothing is fontified.
-		    (unless (get-text-property (1- (point)) 'mouse-face)
-		      (dired-move-to-filename)))
-	     nil (0 dired-ignored-face))))
    ;;
    ;; Explicitly put the default face on file names ending in a colon to
    ;; avoid fontifying them as directory header.
