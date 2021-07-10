@@ -1493,6 +1493,14 @@ This is a slightly deeper copy than the previous 'copy-sequence'.
 
 ** Package
 
+---
+*** '/ s' ('package-menu-filter-by-status') changes parameter handling.
+The command was documented to take a comma-separated list of statuses
+to filter by, but instead it used the parameter as a regexp.  The
+command has been changed so that it now works as documented, and
+checks statuses not as a regexp, but instead an exact match from the
+comma-separated list.
+
 +++
 *** New command 'package-browse-url' and keystroke 'w'.
 
