@@ -30,8 +30,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(defvar erc-controls-highlight-regexp)
-(defvar erc-controls-remove-regexp)
 (require 'erc)
 
 (defun erc-imenu-setup ()
@@ -243,6 +241,12 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   "ERC inverse face."
   :group 'erc-faces)
 
+(defface erc-spoiler-face
+  '((((background light)) :foreground "DimGray" :background "DimGray")
+    (((background dark)) :foreground "LightGray" :background "LightGray"))
+  "ERC spoiler face."
+  :group 'erc-faces)
+
 (defface erc-underline-face '((t :underline t))
   "ERC underline face."
   :group 'erc-faces)
@@ -345,19 +349,38 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   "ERC face."
   :group 'erc-faces)
 
+;; https://lists.gnu.org/archive/html/emacs-erc/2021-07/msg00005.html
+(defvar erc--controls-additional-colors
+  ["#470000" "#472100" "#474700" "#324700" "#004700" "#00472c"
+   "#004747" "#002747" "#000047" "#2e0047" "#470047" "#47002a"
+   "#740000" "#743a00" "#747400" "#517400" "#007400" "#007449"
+   "#007474" "#004074" "#000074" "#4b0074" "#740074" "#740045"
+   "#b50000" "#b56300" "#b5b500" "#7db500" "#00b500" "#00b571"
+   "#00b5b5" "#0063b5" "#0000b5" "#7500b5" "#b500b5" "#b5006b"
+   "#ff0000" "#ff8c00" "#ffff00" "#b2ff00" "#00ff00" "#00ffa0"
+   "#00ffff" "#008cff" "#0000ff" "#a500ff" "#ff00ff" "#ff0098"
+   "#ff5959" "#ffb459" "#ffff71" "#cfff60" "#6fff6f" "#65ffc9"
+   "#6dffff" "#59b4ff" "#5959ff" "#c459ff" "#ff66ff" "#ff59bc"
+   "#ff9c9c" "#ffd39c" "#ffff9c" "#e2ff9c" "#9cff9c" "#9cffdb"
+   "#9cffff" "#9cd3ff" "#9c9cff" "#dc9cff" "#ff9cff" "#ff94d3"
+   "#000000" "#131313" "#282828" "#363636" "#4d4d4d" "#656565"
+   "#818181" "#9f9f9f" "#bcbcbc" "#e2e2e2" "#ffffff"])
+
 (defun erc-get-bg-color-face (n)
   "Fetches the right face for background color N (0-15)."
   (if (stringp n) (setq n (string-to-number n)))
   (if (not (numberp n))
       (prog1 'default
         (erc-error "erc-get-bg-color-face: n is NaN: %S" n))
-    (when (> n 16)
+    (when (> n 99)
       (erc-log (format "   Wrong color: %s" n))
       (setq n (mod n 16)))
     (cond
      ((and (>= n 0) (< n 16))
       (intern (concat "bg:erc-color-face" (number-to-string n))))
-     (t (erc-log (format "   Wrong color: %s" n)) 'default))))
+     ((< 15 n 99)
+      (list :background (aref erc--controls-additional-colors (- n 16))))
+     (t (erc-log (format "   Wrong color: %s" n)) '(default)))))
 
 (defun erc-get-fg-color-face (n)
   "Fetches the right face for foreground color N (0-15)."
@@ -365,13 +388,15 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   (if (not (numberp n))
       (prog1 'default
         (erc-error "erc-get-fg-color-face: n is NaN: %S" n))
-    (when (> n 16)
+    (when (> n 99)
       (erc-log (format "   Wrong color: %s" n))
       (setq n (mod n 16)))
     (cond
      ((and (>= n 0) (< n 16))
       (intern (concat "fg:erc-color-face" (number-to-string n))))
-     (t (erc-log (format "   Wrong color: %s" n)) 'default))))
+     ((< 15 n 99)
+      (list :foreground (aref erc--controls-additional-colors (- n 16))))
+     (t (erc-log (format "   Wrong color: %s" n)) '(default)))))
 
 ;;;###autoload(autoload 'erc-irccontrols-mode "erc-goodies" nil t)
 (define-erc-module irccontrols nil
@@ -382,6 +407,25 @@ The value `erc-interpret-controls-p' must also be t for this to work."
   ((remove-hook 'erc-insert-modify-hook #'erc-controls-highlight)
    (remove-hook 'erc-send-modify-hook #'erc-controls-highlight)
    (erc--modify-local-map nil "C-c C-c" #'erc-toggle-interpret-controls)))
+
+;; These patterns were moved here to circumvent compiler warnings but
+;; otherwise translated verbatim from their original string-literal
+;; definitions (minus a small bug fix to satisfy newly added tests).
+(defvar erc-controls-remove-regexp
+  (rx (or ?\C-b ?\C-\] ?\C-_ ?\C-v ?\C-g ?\C-o
+          (: ?\C-c (? (any "0-9")) (? (any "0-9"))
+             (? (group ?, (any "0-9") (? (any "0-9")))))))
+  "Regular expression matching control characters to remove.")
+
+;; Before the change to `rx', group 3 used to be a sibling of group 2.
+;; This was assumed to be a bug.  A few minor simplifications were
+;; also performed.  If incorrect, please admonish.
+(defvar erc-controls-highlight-regexp
+  (rx (group (or ?\C-b ?\C-\] ?\C-v ?\C-_ ?\C-g ?\C-o
+                 (: ?\C-c (? (group (** 1 2 (any "0-9")))
+                             (? (group ?, (group (** 1 2 (any "0-9")))))))))
+      (group (* (not (any ?\C-b ?\C-c ?\C-g ?\n ?\C-o ?\C-v ?\C-\] ?\C-_)))))
+  "Regular expression matching control chars to highlight.")
 
 (defun erc-controls-interpret (str)
    "Return a copy of STR after dealing with IRC control characters.
@@ -444,16 +488,6 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
         (setq s (replace-match "" nil nil s)))
       s)))
 
-(defvar erc-controls-remove-regexp
-  "\C-b\\|\C-]\\|\C-_\\|\C-v\\|\C-g\\|\C-o\\|\C-c[0-9]?[0-9]?\\(,[0-9][0-9]?\\)?"
-  "Regular expression which matches control characters to remove.")
-
-(defvar erc-controls-highlight-regexp
-  (concat "\\(\C-b\\|\C-]\\|\C-v\\|\C-_\\|\C-g\\|\C-o\\|"
-          "\C-c\\([0-9][0-9]?\\)?\\(,\\([0-9][0-9]?\\)\\)?\\)"
-          "\\([^\C-b\C-]\C-v\C-_\C-c\C-g\C-o\n]*\\)")
-  "Regular expression which matches control chars and the text to highlight.")
-
 (defun erc-controls-highlight ()
   "Highlight IRC control chars in the buffer.
 This is useful for `erc-insert-modify-hook' and `erc-send-modify-hook'.
@@ -510,6 +544,13 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
   "Prepend properties from IRC control characters between FROM and TO.
 If optional argument STR is provided, apply to STR, otherwise prepend properties
 to a region in the current buffer."
+  (if (and fg bg (equal fg bg))
+      (progn
+        (setq fg 'erc-spoiler-face
+              bg nil)
+        (put-text-property from to 'mouse-face 'erc-inverse-face str))
+    (when fg (setq fg (erc-get-fg-color-face fg)))
+    (when bg (setq bg (erc-get-bg-color-face bg))))
   (font-lock-prepend-text-property
    from
    to
@@ -527,10 +568,10 @@ to a region in the current buffer."
                '(erc-underline-face)
              nil)
            (if fg
-               (list (erc-get-fg-color-face fg))
+               (list fg)
              nil)
            (if bg
-               (list (erc-get-bg-color-face bg))
+               (list bg)
              nil))
    str)
   str)
