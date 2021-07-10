@@ -10,7 +10,7 @@ Terminal=false
 Categories=Development;TextEditor;
 StartupNotify=true
 StartupWMClass=Emacs
-Keywords=Text;Editor;emacsclient;
+Keywords=emacsclient;
 Actions=new-window;new-instance;
 
 [Desktop Action new-window]
