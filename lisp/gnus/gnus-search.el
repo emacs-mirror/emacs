@@ -629,18 +629,16 @@ gnus-*-mark marks, and return an appropriate string."
     mark))
 
 (defun gnus-search-query-expand-key (key)
-  (cond ((test-completion key gnus-search-expandable-keys)
-	 ;; We're done!
-	 key)
-	;; There is more than one possible completion.
-	((consp (cdr (completion-all-completions
-		      key gnus-search-expandable-keys #'stringp 0)))
-	 (signal 'gnus-search-parse-error
-		 (list (format "Ambiguous keyword: %s" key))))
-	;; Return KEY, either completed or untouched.
-	((car-safe (completion-try-completion
-		    key gnus-search-expandable-keys
-		    #'stringp 0)))))
+  (let ((comp (try-completion key gnus-search-expandable-keys)))
+    (if (or (eql comp 't)		; Already a key.
+	    (null comp))		; An unknown key.
+	key
+      (if (string= comp key)
+	  ;; KEY matches multiple possible keys.
+	  (signal 'gnus-search-parse-error
+		  (list (format "Ambiguous keyword: %s" key)))
+	;; We completed to a unique known key.
+	comp))))
 
 (defun gnus-search-query-return-string (&optional delimited trim)
   "Return a string from the current buffer.
