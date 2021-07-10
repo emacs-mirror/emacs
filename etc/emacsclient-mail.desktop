@@ -8,6 +8,7 @@ MimeType=x-scheme-handler/mailto;
 NoDisplay=true
 Terminal=false
 Type=Application
+Keywords=emacsclient;
 Actions=new-window;new-instance;
 
 [Desktop Action new-window]
