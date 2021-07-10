@@ -4428,6 +4428,16 @@ ThXs Xs the contents of the buffer before.
 @end example
 @end defun
 
+
+@defun subst-char-in-string fromchar tochar string &optional inplace
+@cindex replace characters in string
+This function replaces all occurences of the character @var{fromchar}
+with @var{tochar} in @var{string}.  Unless @var{inplace} is non-nil,
+substitution occurs in a copy of @var{string}.  In any case, the
+function returns the resulting string.  Both characters must have the
+same multi-byte length.
+@end defun
+
 @deffn Command translate-region start end table
 This function applies a translation table to the characters in the
 buffer between positions @var{start} and @var{end}.
