@@ -1757,7 +1757,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   if (thread_check_current_buffer (b))
     return Qnil;
 
-  /* Run hooks with the buffer to be killed the current buffer.  */
+  /* Run hooks with the buffer to be killed as the current buffer.  */
   {
     ptrdiff_t count = SPECPDL_INDEX ();
 
