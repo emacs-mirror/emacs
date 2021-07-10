@@ -2433,12 +2433,10 @@ ns_set_frame_alpha (struct frame *f)
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
 
-#ifdef NS_IMPL_COCOA
   {
     EmacsView *view = FRAME_NS_VIEW (f);
-  [[view window] setAlphaValue: alpha];
+    [[view window] setAlphaValue: alpha];
   }
-#endif
 }
 
 
