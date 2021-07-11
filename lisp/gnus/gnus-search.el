@@ -629,12 +629,19 @@ gnus-*-mark marks, and return an appropriate string."
     mark))
 
 (defun gnus-search-query-expand-key (key)
+  "Attempt to expand KEY to a full keyword.
+Use `gnus-search-expandable-keys' as a completion table; return
+KEY directly if it can't be completed.  Raise an error if KEY is
+ambiguous, meaning that it is a prefix of multiple known
+keywords.  This means that it's not possible to enter a custom
+keyword that happens to be a prefix of a known keyword."
   (let ((comp (try-completion key gnus-search-expandable-keys)))
     (if (or (eql comp 't)		; Already a key.
 	    (null comp))		; An unknown key.
 	key
-      (if (string= comp key)
-	  ;; KEY matches multiple possible keys.
+      (if (null (member comp gnus-search-expandable-keys))
+	  ;; KEY is a prefix of multiple known keywords, and could not
+	  ;; be completed to something unique.
 	  (signal 'gnus-search-parse-error
 		  (list (format "Ambiguous keyword: %s" key)))
 	;; We completed to a unique known key.
