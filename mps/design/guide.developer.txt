@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Review checklist
-================
+New developer guide
+===================
 
 :Tag: guide.developer
 :Status: draft documentation
@@ -48,7 +48,7 @@ References
 .. [APT_2018-09-17]
    "Procedure for new developers";
    Alistair Turnbull; Ravenbrook Limited; 2018-09-17;
-   <https://info.ravenbrook.com/mail/2018/09/17/12-36-45/0/>
+   <https://info.ravenbrook.com/mail/2018/09/17/11-16-41/0/>
 
 
 Document History
