@@ -140,16 +140,6 @@ remapped given the currently active keymaps."
   :group 'which-key
   :type 'boolean)
 
-(defvar which-key-key-replacement-alist nil)
-(make-obsolete-variable 'which-key-key-replacement-alist
-                        'which-key-replacement-alist "2016-11-21")
-(defvar which-key-description-replacement-alist nil)
-(make-obsolete-variable 'which-key-description-replacement-alist
-                        'which-key-replacement-alist "2016-11-21")
-(defvar which-key-key-based-description-replacement-alist nil)
-(make-obsolete-variable 'which-key-key-based-description-replacement-alist
-                        'which-key-replacement-alist "2016-11-21")
-
 (defcustom which-key-replacement-alist
   (delq nil
         `(((nil . "which-key-show-next-page-no-cycle") . (nil . "wk next pg"))
@@ -666,9 +656,6 @@ update.")
                   "select-window" "switch-frame" "-state"
                   "which-key"))))
 
-(make-obsolete-variable 'which-key-prefix-name-alist nil "2016-10-05")
-(make-obsolete-variable 'which-key-prefix-title-alist nil "2016-10-05")
-
 (defvar which-key--pages-obj nil)
 (cl-defstruct which-key--pages
   pages
@@ -1007,22 +994,6 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
       (push (cons mode title-mode-alist) which-key--prefix-title-alist))))
 (put 'which-key-add-major-mode-key-based-replacements
      'lisp-indent-function 'defun)
-
-(defalias 'which-key-add-prefix-title 'which-key-add-key-based-replacements)
-(make-obsolete 'which-key-add-prefix-title
-               'which-key-add-key-based-replacements
-               "2016-10-05")
-
-(defalias 'which-key-declare-prefixes 'which-key-add-key-based-replacements)
-(make-obsolete 'which-key-declare-prefixes
-               'which-key-add-key-based-replacements
-               "2016-10-05")
-
-(defalias 'which-key-declare-prefixes-for-mode
-  'which-key-add-major-mode-key-based-replacements)
-(make-obsolete 'which-key-declare-prefixes-for-mode
-               'which-key-add-major-mode-key-based-replacements
-               "2016-10-05")
 
 (defun which-key-define-key-recursively (map key def &optional at-root)
   "Recursively bind KEY in MAP to DEF on every level of MAP except the first.
