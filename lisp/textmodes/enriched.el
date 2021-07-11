@@ -38,7 +38,7 @@
 
 ;;; Code:
 
-(provide 'enriched)
+(require 'facemenu)
 
 ;;;
 ;;; Variables controlling the display
@@ -537,5 +537,7 @@ the range of text to assign text property SYMBOL with value VALUE."
     (if enriched-allow-eval-in-display-props
         (list start end 'display prop)
       (list start end 'display (list 'disable-eval prop)))))
+
+(provide 'enriched)
 
 ;;; enriched.el ends here
