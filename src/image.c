@@ -4991,7 +4991,7 @@ xpm_load_image (struct frame *f,
 
   while (num_colors-- > 0)
     {
-      char *color, *max_color;
+      char *color, *max_color = NULL;
       int key, next_key, max_key = 0;
       Lisp_Object symbol_color = Qnil, color_val;
       Emacs_Color cdef;
@@ -5052,7 +5052,7 @@ xpm_load_image (struct frame *f,
 						   cdef.blue));
 	    }
 	}
-      if (NILP (color_val) && max_key > 0)
+      if (NILP (color_val) && max_color)
 	{
 	  if (xstrcasecmp (max_color, "None") == 0)
 	    color_val = Qt;
