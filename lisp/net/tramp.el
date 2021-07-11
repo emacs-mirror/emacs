@@ -4438,9 +4438,7 @@ of."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let ((auto-saving
-	   (string-match-p "^#.+#$" (file-name-nondirectory filename)))
-	  file-locked
+    (let (file-locked
 	  (tmpfile (tramp-compat-make-temp-file filename))
 	  (modes (tramp-default-file-modes
 		  filename (and (eq mustbenew 'excl) 'nofollow)))
@@ -4452,7 +4450,8 @@ of."
 		   (tramp-get-remote-gid v 'integer))))
 
       ;; Lock file.
-      (when (and (not auto-saving) (file-remote-p lockname)
+      (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
+		 (file-remote-p lockname)
 		 (not (eq (file-locked-p lockname) t)))
 	(setq file-locked t)
 	;; `lock-file' exists since Emacs 28.1.

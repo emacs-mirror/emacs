@@ -3249,9 +3249,7 @@ implementation will be used."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let ((auto-saving
-	   (string-match-p "^#.+#$" (file-name-nondirectory filename)))
-	  file-locked
+    (let (file-locked
 	  (uid (or (tramp-compat-file-attribute-user-id
 		    (file-attributes filename 'integer))
 		   (tramp-get-remote-uid v 'integer)))
@@ -3260,7 +3258,8 @@ implementation will be used."
 		   (tramp-get-remote-gid v 'integer))))
 
       ;; Lock file.
-      (when (and (not auto-saving) (file-remote-p lockname)
+      (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
+		 (file-remote-p lockname)
 		 (not (eq (file-locked-p lockname) t)))
 	(setq file-locked t)
 	;; `lock-file' exists since Emacs 28.1.
@@ -3269,15 +3268,11 @@ implementation will be used."
       (if (and (tramp-local-host-p v)
 	       ;; `file-writable-p' calls `file-expand-file-name'.  We
 	       ;; cannot use `tramp-run-real-handler' therefore.
-	       (let (file-name-handler-alist)
-		 (and
-		  (file-writable-p (file-name-directory localname))
-		  (or (file-directory-p localname)
-		      (file-writable-p localname)))))
+	       (file-writable-p (file-name-directory localname))
+	       (or (file-directory-p localname)
+		   (file-writable-p localname)))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (write-region
-           start end localname append 'no-message
-           (and lockname (file-local-name lockname)))
+	  (write-region start end localname append 'no-message lockname)
 
 	(let* ((modes (tramp-default-file-modes
 		       filename (and (eq mustbenew 'excl) 'nofollow)))
