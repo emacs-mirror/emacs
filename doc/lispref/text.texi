@@ -4432,7 +4432,7 @@ ThXs Xs the contents of the buffer before.
 
 @defun subst-char-in-string fromchar tochar string &optional inplace
 @cindex replace characters in string
-This function replaces all occurences of the character @var{fromchar}
+This function replaces all occurrences of the character @var{fromchar}
 with @var{tochar} in @var{string}.  By default, substitution occurs in
 a copy of @var{string}, but if the optional argument @var{inplace} is
 non-@code{nil}, the function modifies the @var{string} itself.  In any

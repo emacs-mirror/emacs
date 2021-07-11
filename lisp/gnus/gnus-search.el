@@ -448,10 +448,10 @@ auto-completion of contact names and addresses for keys like
 Date values (any key in `gnus-search-date-keys') can be provided
 in any format that `parse-time-string' can parse (note that this
 can produce weird results).  Dates with missing bits will be
-interpreted as the most recent occurence thereof (ie \"march 03\"
-is the most recent March 3rd).  Lastly, relative specifications
-such as 1d (one day ago) are understood.  This also accepts w, m,
-and y.  m is assumed to be 30 days.
+interpreted as the most recent occurrence thereof (i.e. \"march
+03\" is the most recent March 3rd).  Lastly, relative
+specifications such as 1d (one day ago) are understood.  This
+also accepts w, m, and y.  m is assumed to be 30 days.
 
 This function will accept pretty much anything as input.  Its
 only job is to parse the query into a sexp, and pass that on --
@@ -644,8 +644,8 @@ gnus-*-mark marks, and return an appropriate string."
   "Return a string from the current buffer.
 If DELIMITED is non-nil, assume the next character is a delimiter
 character, and return everything between point and the next
-occurence of the delimiter, including the delimiters themselves.
-If TRIM is non-nil, do not return the delimiters. Otherwise,
+occurrence of the delimiter, including the delimiters themselves.
+If TRIM is non-nil, do not return the delimiters.  Otherwise,
 return one word."
   ;; This function cannot handle nested delimiters, as it's not a
   ;; proper parser.  Ie, you cannot parse "to:bob or (from:bob or
