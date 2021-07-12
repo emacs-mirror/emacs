@@ -185,19 +185,6 @@ non-nil value."
                 :value-type (cons (choice string (const nil))
                                   (choice string (const nil)))))
 
-(when (bound-and-true-p which-key-key-replacement-alist)
-  (mapc
-   (lambda (repl)
-     (push (cons (cons (car repl) nil) (cons (cdr repl) nil))
-           which-key-replacement-alist))
-   which-key-key-replacement-alist))
-(when (bound-and-true-p which-key-description-replacement-alist)
-  (mapc
-   (lambda (repl)
-     (push (cons (cons nil (car repl)) (cons nil (cdr repl)))
-           which-key-replacement-alist))
-   which-key-description-replacement-alist))
-
 (defcustom which-key-allow-multiple-replacements nil
   "Allow a key binding to match and be modified by multiple
 elements in `which-key-replacement-alist' if non-nil. When nil,
@@ -843,11 +830,7 @@ function, but it's included here in case someone cannot set that
 variable early enough in their configuration, if they are using a
 starter kit for example."
   (when (string-equal which-key-separator " → ")
-    (setq which-key-separator " : "))
-  (setq which-key-key-replacement-alist
-        (delete '("left" . "←") which-key-key-replacement-alist))
-  (setq which-key-key-replacement-alist
-        (delete '("right" . "→") which-key-key-replacement-alist)))
+    (setq which-key-separator " : ")))
 
 ;;; Default configuration functions for use by users.
 
