@@ -288,6 +288,8 @@ struct super_struct
   char large_unused_buffer[512];
 };
 
+static void signal_errno (emacs_env *, char const *);
+
 /* Return a new user-pointer to a super_struct, with amazing_int set
    to the passed parameter.  */
 static emacs_value
@@ -295,6 +297,8 @@ Fmod_test_userptr_make (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
 			void *data)
 {
   struct super_struct *p = calloc (1, sizeof *p);
+  if (!p)
+    signal_errno (env, "calloc");
   p->amazing_int = env->extract_integer (env, args[0]);
   return env->make_user_ptr (env, free, p);
 }
