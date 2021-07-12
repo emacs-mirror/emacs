@@ -89,7 +89,7 @@ you are criticizing.
 @cindex suggestions
 Please send comments and corrections using @kbd{M-x
 report-emacs-bug}.  If you wish to contribute new code (or send a
-patch to fix a problem), use @kbd{M-x submit-emacs-patch}).
+patch to fix a problem), use @kbd{M-x submit-emacs-patch}.
 
 @node Lisp History
 @section Lisp History
