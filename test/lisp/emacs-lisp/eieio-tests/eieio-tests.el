@@ -574,7 +574,21 @@ METHOD is the method that was attempting to be called."
   (setf (get-slot-3 eitest-t1) 'setf-emu)
   (should (eq (get-slot-3 eitest-t1) 'setf-emu))
   ;; Roll back
-  (setf (get-slot-3 eitest-t1) 'emu))
+  (setf (get-slot-3 eitest-t1) 'emu)
+  (defvar eieio-tests-initform-was-evaluated)
+  (defclass eieio-tests-initform-not-evaluated-when-initarg-is-present ()
+    ((slot-with-initarg-and-initform
+      :initarg :slot-with-initarg-and-initform
+      :initform (setf eieio-tests-initform-was-evaluated t))))
+  (setq eieio-tests-initform-was-evaluated nil)
+  (make-instance
+   'eieio-tests-initform-not-evaluated-when-initarg-is-present)
+  (should eieio-tests-initform-was-evaluated)
+  (setq eieio-tests-initform-was-evaluated nil)
+  (make-instance
+   'eieio-tests-initform-not-evaluated-when-initarg-is-present
+   :slot-with-initarg-and-initform t)
+  (should-not eieio-tests-initform-was-evaluated))
 
 (defvar eitest-t2 nil)
 (ert-deftest eieio-test-26-default-inheritance ()

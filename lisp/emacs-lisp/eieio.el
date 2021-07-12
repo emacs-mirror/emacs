@@ -53,6 +53,7 @@
   (message eieio-version))
 
 (require 'eieio-core)
+(eval-when-compile (require 'subr-x))
 
 
 ;;; Defining a new class
@@ -740,31 +741,37 @@ Called from the constructor routine."
   "Construct the new object THIS based on SLOTS.")
 
 (cl-defmethod initialize-instance ((this eieio-default-superclass)
-				&optional slots)
+				   &optional args)
   "Construct the new object THIS based on SLOTS.
-SLOTS is a tagged list where odd numbered elements are tags, and
+ARGS is a property list where odd numbered elements are tags, and
 even numbered elements are the values to store in the tagged slot.
 If you overload the `initialize-instance', there you will need to
 call `shared-initialize' yourself, or you can call `call-next-method'
 to have this constructor called automatically.  If these steps are
 not taken, then new objects of your class will not have their values
-dynamically set from SLOTS."
-  ;; First, see if any of our defaults are `lambda', and
-  ;; re-evaluate them and apply the value to our slots.
+dynamically set from ARGS."
   (let* ((this-class (eieio--object-class this))
+         (initargs args)
          (slots (eieio--class-slots this-class)))
     (dotimes (i (length slots))
-      ;; For each slot, see if we need to evaluate it.
+      ;; For each slot, see if we need to evaluate its initform.
       (let* ((slot (aref slots i))
+             (slot-name (eieio-slot-descriptor-name slot))
              (initform (cl--slot-descriptor-initform slot)))
-        ;; Those slots whose initform is constant already have the right
-        ;; value set in the default-object.
-        (unless (macroexp-const-p initform)
-          ;; FIXME: We should be able to just do (aset this (+ i <cst>) dflt)!
-          (eieio-oset this (cl--slot-descriptor-name slot)
-                      (eval initform t))))))
-  ;; Shared initialize will parse our slots for us.
-  (shared-initialize this slots))
+        (unless (or (when-let ((initarg
+                                (car (rassq slot-name
+                                            (eieio--class-initarg-tuples
+                                             this-class)))))
+                      (plist-get initargs initarg))
+                    ;; Those slots whose initform is constant already have
+                    ;; the right value set in the default-object.
+                    (macroexp-const-p initform))
+          ;; FIXME: Use `aset' instead of `eieio-oset', relying on that
+          ;; vector returned by `eieio--class-slots'
+          ;; should be congruent with the object itself.
+          (eieio-oset this slot-name (eval initform t))))))
+  ;; Shared initialize will parse our args for us.
+  (shared-initialize this args))
 
 (cl-defgeneric slot-missing (object slot-name _operation &optional _new-value)
   "Method invoked when an attempt to access a slot in OBJECT fails.
