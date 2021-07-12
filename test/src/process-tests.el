@@ -28,6 +28,7 @@
 (require 'puny)
 (require 'subr-x)
 (require 'dns)
+(require 'url-http)
 
 ;; Timeout in seconds; the test fails if the timeout is reached.
 (defvar process-test-sentinel-wait-timeout 2.0)
@@ -915,6 +916,35 @@ Return nil if FILENAME doesn't exist."
       (should (equal 2 (process-exit-status proc)))
       ;; ...and the change description should be "interrupt".
       (should (equal '("interrupt\n") events)))))
+
+(ert-deftest process-async-https-with-delay ()
+  "Bug#49449: asynchronous TLS connection with delayed completion."
+  (skip-unless (and internet-is-working (gnutls-available-p)))
+  (let* ((status nil)
+         (buf (url-http
+                 #s(url "https" nil nil "elpa.gnu.org" nil
+                        "/packages/archive-contents" nil nil t silent t t)
+                 (lambda (s) (setq status s))
+                 '(nil) nil 'tls)))
+    (unwind-protect
+        (progn
+          ;; Busy-wait for 1 s to allow for the TCP connection to complete.
+          (let ((delay 1.0)
+                (t0 (float-time)))
+            (while (< (float-time) (+ t0 delay))))
+          ;; Wait for the entire operation to finish.
+          (let ((limit 4.0)
+                (t0 (float-time)))
+            (while (and (null status)
+                        (< (float-time) (+ t0 limit)))
+              (sit-for 0.1)))
+          (should status)
+          (should-not (assq :error status))
+          (should buf)
+          (should (> (buffer-size buf) 0))
+          )
+      (when buf
+        (kill-buffer buf)))))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here
