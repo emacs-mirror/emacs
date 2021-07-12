@@ -1989,7 +1989,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
       /* Make binding buffer-file-name to nil effective.  */
       && !NILP (BVAR (base_buffer, filename))
       && SAVE_MODIFF >= MODIFF)
-    lock_file (BVAR (base_buffer, file_truename));
+    Flock_file (BVAR (base_buffer, file_truename));
 
   /* If `select-active-regions' is non-nil, save the region text.  */
   /* FIXME: Move this to Elisp (via before-change-functions).  */

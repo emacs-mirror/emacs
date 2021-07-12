@@ -418,16 +418,18 @@ This is only used if `mm-inline-large-images' is set to
   (fundamental-mode)
   (goto-char (point-min)))
 
-(defvar gnus-original-article-buffer)
-(defvar gnus-article-prepare-hook)
-(defvar gnus-displaying-mime)
+(defvar mm-inline-message-prepare-function nil
+  "Function called by `mm-inline-message' to do client specific setup.
+It is called with one parameter -- the charset.")
 
 (defun mm-inline-message (handle)
+  "Insert HANDLE (a message/rfc822 part) into the current buffer.
+This function will call `mm-inline-message-prepare-function'
+after inserting the part."
   (let ((b (point))
 	(bolp (bolp))
 	(charset (mail-content-type-get
-		  (mm-handle-type handle) 'charset))
-	gnus-displaying-mime handles)
+		  (mm-handle-type handle) 'charset)))
     (when (and charset
 	       (stringp charset))
       (setq charset (intern (downcase charset)))
@@ -437,16 +439,8 @@ This is only used if `mm-inline-large-images' is set to
       (save-restriction
 	(narrow-to-region b b)
 	(mm-insert-part handle)
-	(let (gnus-article-mime-handles
-	      ;; disable prepare hook
-	      gnus-article-prepare-hook
-	      (gnus-newsgroup-charset
-	       (unless (eq charset 'gnus-decoded) ;; mm-uu might set it.
-		 (or charset gnus-newsgroup-charset))))
-	  (let ((gnus-original-article-buffer (mm-handle-buffer handle)))
-	    (run-hooks 'gnus-article-decode-hook))
-	  (gnus-article-prepare-display)
-	  (setq handles gnus-article-mime-handles))
+        (when mm-inline-message-prepare-function
+	  (funcall mm-inline-message-prepare-function charset))
 	(goto-char (point-min))
 	(unless bolp
 	  (insert "\n"))
@@ -454,9 +448,6 @@ This is only used if `mm-inline-large-images' is set to
 	(unless (bolp)
 	  (insert "\n"))
 	(insert "----------\n\n")
-	(when handles
-	  (setq gnus-article-mime-handles
-		(mm-merge-handles gnus-article-mime-handles handles)))
 	(mm-handle-set-undisplayer
 	 handle
 	 (let ((beg (point-min-marker))

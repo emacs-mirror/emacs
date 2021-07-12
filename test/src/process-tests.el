@@ -626,6 +626,8 @@ FD_SETSIZE file descriptors (Bug#24325)."
 FD_SETSIZE file descriptors (Bug#24325)."
   (skip-unless (featurep 'make-network-process '(:server t)))
   (skip-unless (featurep 'make-network-process '(:family local)))
+  ;; Avoid hang due to connect/accept handshake on Cygwin (bug#49496).
+  (skip-unless (not (eq system-type 'cygwin)))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--with-temp-directory directory
       (process-tests--with-processes processes

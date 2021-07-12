@@ -949,6 +949,44 @@ unquoted file names."
                              (make-auto-save-file-name)
                            (kill-buffer)))))))
 
+(ert-deftest files-test-auto-save-name-default ()
+  (with-temp-buffer
+    (let ((auto-save-file-name-transforms nil))
+      (setq buffer-file-name "/tmp/foo.txt")
+      (should (equal (make-auto-save-file-name) "/tmp/#foo.txt#")))))
+
+(ert-deftest files-test-auto-save-name-transform ()
+  (with-temp-buffer
+    (setq buffer-file-name "/tmp/foo.txt")
+    (let ((auto-save-file-name-transforms
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" nil))))
+      (should (equal (make-auto-save-file-name) "/var/tmp/#foo.txt#")))))
+
+(ert-deftest files-test-auto-save-name-unique ()
+  (with-temp-buffer
+    (setq buffer-file-name "/tmp/foo.txt")
+    (let ((auto-save-file-name-transforms
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t))))
+      (should (equal (make-auto-save-file-name) "/var/tmp/#!tmp!foo.txt#")))
+    (let ((auto-save-file-name-transforms
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" sha1))))
+      (should (equal (make-auto-save-file-name)
+                     "/var/tmp/#b57c5a04f429a83305859d3350ecdab8315a9037#")))))
+
+(ert-deftest files-test-lock-name-default ()
+  (let ((lock-file-name-transforms nil))
+    (should (equal (make-lock-file-name "/tmp/foo.txt") "/tmp/.#foo.txt"))))
+
+(ert-deftest files-test-lock-name-unique ()
+  (let ((lock-file-name-transforms
+         '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t))))
+    (should (equal (make-lock-file-name "/tmp/foo.txt")
+                   "/var/tmp/.#!tmp!foo.txt")))
+  (let ((lock-file-name-transforms
+         '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" sha1))))
+    (should (equal (make-lock-file-name "/tmp/foo.txt")
+                   "/var/tmp/.#b57c5a04f429a83305859d3350ecdab8315a9037"))))
+
 (ert-deftest files-tests-file-name-non-special-make-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (let ((default-directory nospecial-dir))

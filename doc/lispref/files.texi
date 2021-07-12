@@ -772,6 +772,20 @@ and otherwise ignores the error.
 If this variable is @code{nil}, Emacs does not lock files.
 @end defopt
 
+@defopt lock-file-name-transforms
+By default, Emacs creates the lock files in the same directory as the
+files that are being locked.  This can be changed by customizing this
+variable.  Is has the same syntax as
+@code{auto-save-file-name-transforms} (@pxref{Auto-Saving}).  For
+instance, to make Emacs write all the lock files to @file{/var/tmp/},
+you could say something like:
+
+@lisp
+(setq lock-file-name-transforms
+      '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t)))
+@end lisp
+@end defopt
+
 @defun ask-user-about-lock file other-user
 This function is called when the user tries to modify @var{file}, but it
 is locked by another user named @var{other-user}.  The default
@@ -3273,7 +3287,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-equal-p},
 @code{file-executable-p}, @code{file-exists-p},
 @code{file-in-directory-p},
-@code{file-local-copy},
+@code{file-local-copy}, @code{file-locked-p},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-case-insensitive-p},
@@ -3292,10 +3306,11 @@ first, before handlers for jobs such as remote file access.
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},@*
-@code{load},
+@code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-directory},
 @code{make-directory-internal},
+@code{make-lock-file-name},
 @code{make-nearby-temp-file},
 @code{make-process},
 @code{make-symbolic-link},@*
@@ -3307,6 +3322,7 @@ first, before handlers for jobs such as remote file access.
 @code{substitute-in-file-name},@*
 @code{temporary-file-directory},
 @code{unhandled-file-name-directory},
+@code{unlock-file},
 @code{vc-registered},
 @code{verify-visited-file-modtime},@*
 @code{write-region}.
@@ -3331,7 +3347,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-equal-p},
 @code{file-executable-p}, @code{file-exists-p},
 @code{file-in-directory-p},
-@code{file-local-copy},
+@code{file-local-copy}, @code{file-locked-p},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-case-insensitive-p},
@@ -3350,10 +3366,12 @@ first, before handlers for jobs such as remote file access.
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},
-@code{load},
+@code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-direc@discretionary{}{}{}tory},
 @code{make-direc@discretionary{}{}{}tory-internal},
+@code{make-lock-file-name},
+@code{make-nearby-temp-file},
 @code{make-process},
 @code{make-symbolic-link},
 @code{process-file},
@@ -3362,7 +3380,9 @@ first, before handlers for jobs such as remote file access.
 @code{set-visited-file-modtime}, @code{shell-command},
 @code{start-file-process},
 @code{substitute-in-file-name},
+@code{temporary-file-directory},
 @code{unhandled-file-name-directory},
+@code{unlock-file},
 @code{vc-regis@discretionary{}{}{}tered},
 @code{verify-visited-file-modtime},
 @code{write-region}.

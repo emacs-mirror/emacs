@@ -391,6 +391,14 @@ where SUPPORTS-INDEX-COOKIES can be either t or nil.")
 (defvar-local Info-index-alternatives nil
   "List of possible matches for last `Info-index' command.")
 
+(defvar-local Info--current-index-alternative 0
+  "Current displayed index alternative.")
+
+(defcustom Info-warn-on-index-alternatives-wrap t
+  "Warn when wrapping to the beginning/end when displaying index alternatives."
+  :type 'boolean
+  :version "28.1")
+
 (defvar Info-point-loc nil
   "Point location within a selected node.
 If string, the point is moved to the proper occurrence of the
@@ -3375,39 +3383,56 @@ Give an empty topic name to go to the Index node itself."
 	    (setq exact (cons found exact)
 		  matches (delq found matches)))
           (setq Info-history-list ohist-list)
-	  (setq Info-index-alternatives (nconc exact (nreverse matches)))
+	  (setq Info-index-alternatives (nconc exact (nreverse matches))
+                Info--current-index-alternative 0)
 	  (Info-index-next 0)))))
 
 (defun Info-index-next (num)
-  "Go to the next matching index item from the last \\<Info-mode-map>\\[Info-index] command."
+  "Go to the next matching index item from the last \\<Info-mode-map>\\[Info-index] command.
+If given a numeric prefix, skip that many index items forward (or
+backward).
+
+Also see the `Info-warn-on-index-alternatives-wrap' user option."
   (interactive "p" Info-mode)
-  (or Info-index-alternatives
-      (user-error "No previous `i' command"))
-  (while (< num 0)
-    (setq num (+ num (length Info-index-alternatives))))
-  (while (> num 0)
-    (setq Info-index-alternatives
-	  (nconc (cdr Info-index-alternatives)
-		 (list (car Info-index-alternatives)))
-	  num (1- num)))
-  (Info-goto-node (nth 1 (car Info-index-alternatives)))
-  (if (> (nth 3 (car Info-index-alternatives)) 0)
-      ;; Forward 2 lines less because `Info-find-node-2' initially
-      ;; puts point to the 2nd line.
-      (forward-line (- (nth 3 (car Info-index-alternatives)) 2))
-    (forward-line 3)			; don't search in headers
-    (let ((name (car (car Info-index-alternatives))))
-      (Info-find-index-name name)))
-  (message "Found `%s' in %s.  %s"
-	   (car (car Info-index-alternatives))
-	   (nth 2 (car Info-index-alternatives))
-	   (if (cdr Info-index-alternatives)
-	       (format-message
-		"(%s total; use `%s' for next)"
-		(length Info-index-alternatives)
-		(key-description (where-is-internal
-				  'Info-index-next overriding-local-map t)))
-	     "(Only match)")))
+  (unless Info-index-alternatives
+    (user-error "No previous `i' command"))
+  (let ((index (+ Info--current-index-alternative num))
+        (total (length Info-index-alternatives))
+        (next-key (key-description (where-is-internal
+				    'Info-index-next overriding-local-map t))))
+    (if (and Info-warn-on-index-alternatives-wrap
+             (> total 1)
+             (cond
+              ((< index 0)
+               (setq Info--current-index-alternative (- total 2))
+               (message
+                "No previous matches, use `%s' to continue from end of list"
+                next-key)
+               t)
+              ((>= index total)
+               (setq Info--current-index-alternative -1)
+               (message
+                "No previous matches, use `%s' to continue from start of list"
+                next-key)
+               t)))
+        ()                              ; Do nothing
+      (setq index (mod index total)
+            Info--current-index-alternative index)
+      (let ((entry (nth index Info-index-alternatives)))
+        (Info-goto-node (nth 1 entry))
+        (if (> (nth 3 entry) 0)
+            ;; Forward 2 lines less because `Info-find-node-2' initially
+            ;; puts point to the 2nd line.
+            (forward-line (- (nth 3 entry) 2))
+          (forward-line 3)              ; don't search in headers
+          (Info-find-index-name (car entry)))
+        (message "Found `%s' in %s.  %s"
+	         (car entry)
+	         (nth 2 entry)
+	         (if (> total 1)
+	             (format-message
+                      "(%s total; use `%s' for next)" total next-key)
+	           "(Only match)"))))))
 
 (defun Info-find-index-name (name)
   "Move point to the place within the current node where NAME is defined."

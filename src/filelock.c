@@ -51,7 +51,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include <share.h>
 #include <sys/socket.h>	/* for fcntl */
-#include "w32.h"	/* for dostounix_filename */
 #endif
 
 #ifndef MSDOS
@@ -293,25 +292,6 @@ typedef struct
      so make room for its extra bytes (as opposed to ".NNNN") too.  */
   char user[MAX_LFINFO + 1 + sizeof " (pid )" - sizeof "."];
 } lock_info_type;
-
-/* Write the name of the lock file for FNAME into LOCKNAME.  Length
-   will be that of FNAME plus two more for the leading ".#", plus one
-   for the null.  */
-#define MAKE_LOCK_NAME(lockname, fname) \
-  (lockname = SAFE_ALLOCA (SBYTES (fname) + 2 + 1), \
-   fill_in_lock_file_name (lockname, fname))
-
-static void
-fill_in_lock_file_name (char *lockfile, Lisp_Object fn)
-{
-  char *last_slash = memrchr (SSDATA (fn), '/', SBYTES (fn));
-  char *base = last_slash + 1;
-  ptrdiff_t dirlen = base - SSDATA (fn);
-  memcpy (lockfile, SSDATA (fn), dirlen);
-  lockfile[dirlen] = '.';
-  lockfile[dirlen + 1] = '#';
-  strcpy (lockfile + dirlen + 2, base);
-}
 
 /* For some reason Linux kernels return EPERM on file systems that do
    not support hard or symbolic links.  This symbol documents the quirk.
@@ -639,6 +619,12 @@ lock_if_free (lock_info_type *clasher, char *lfname)
   return err;
 }
 
+static Lisp_Object
+make_lock_file_name (Lisp_Object fn)
+{
+  return call1 (Qmake_lock_file_name, Fexpand_file_name (fn, Qnil));
+}
+
 /* lock_file locks file FN,
    meaning it serves notice on the world that you intend to edit that file.
    This should be done only when about to modify a file-visiting
@@ -657,86 +643,78 @@ lock_if_free (lock_info_type *clasher, char *lfname)
    This function can signal an error, or return t meaning
    take away the lock, or return nil meaning ignore the lock.  */
 
-void
+static Lisp_Object
 lock_file (Lisp_Object fn)
 {
-  Lisp_Object orig_fn, encoded_fn;
-  char *lfname = NULL;
   lock_info_type lock_info;
-  USE_SAFE_ALLOCA;
 
   /* Don't do locking while dumping Emacs.
      Uncompressing wtmp files uses call-process, which does not work
      in an uninitialized Emacs.  */
   if (will_dump_p ())
-    return;
+    return Qnil;
 
-  orig_fn = fn;
-  fn = Fexpand_file_name (fn, Qnil);
-#ifdef WINDOWSNT
-  /* Ensure we have only '/' separators, to avoid problems with
-     looking (inside fill_in_lock_file_name) for backslashes in file
-     names encoded by some DBCS codepage.  */
-  dostounix_filename (SSDATA (fn));
-#endif
-  encoded_fn = ENCODE_FILE (fn);
-  if (create_lockfiles)
-    /* Create the name of the lock-file for file fn */
-    MAKE_LOCK_NAME (lfname, encoded_fn);
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  Lisp_Object handler;
+  handler = Ffind_file_name_handler (fn, Qlock_file);
+  if (!NILP (handler))
+    {
+      return call2 (handler, Qlock_file, fn);
+    }
+
+  Lisp_Object lock_filename = make_lock_file_name (fn);
+  if (NILP (lock_filename))
+    return Qnil;
+  char *lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   /* See if this file is visited and has changed on disk since it was
      visited.  */
-  Lisp_Object subject_buf = get_truename_buffer (orig_fn);
+  Lisp_Object subject_buf = get_truename_buffer (fn);
   if (!NILP (subject_buf)
       && NILP (Fverify_visited_file_modtime (subject_buf))
-      && !NILP (Ffile_exists_p (fn))
-      && !(lfname && current_lock_owner (NULL, lfname) == -2))
+      && !NILP (Ffile_exists_p (lock_filename))
+      && current_lock_owner (NULL, lfname) != -2)
     call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
-  /* Don't do locking if the user has opted out.  */
-  if (lfname)
+  /* Try to lock the lock.  FIXME: This ignores errors when
+     lock_if_free returns a positive errno value.  */
+  if (lock_if_free (&lock_info, lfname) < 0)
     {
-      /* Try to lock the lock.  FIXME: This ignores errors when
-	 lock_if_free returns a positive errno value.  */
-      if (lock_if_free (&lock_info, lfname) < 0)
-	{
-	  /* Someone else has the lock.  Consider breaking it.  */
-	  Lisp_Object attack;
-	  char *dot = lock_info.dot;
-	  ptrdiff_t pidlen = lock_info.colon - (dot + 1);
-	  static char const replacement[] = " (pid ";
-	  int replacementlen = sizeof replacement - 1;
-	  memmove (dot + replacementlen, dot + 1, pidlen);
-	  strcpy (dot + replacementlen + pidlen, ")");
-	  memcpy (dot, replacement, replacementlen);
-	  attack = call2 (intern ("ask-user-about-lock"), fn,
-			  build_string (lock_info.user));
-	  /* Take the lock if the user said so.  */
-	  if (!NILP (attack))
-	    lock_file_1 (lfname, 1);
-	}
-      SAFE_FREE ();
+      /* Someone else has the lock.  Consider breaking it.  */
+      Lisp_Object attack;
+      char *dot = lock_info.dot;
+      ptrdiff_t pidlen = lock_info.colon - (dot + 1);
+      static char const replacement[] = " (pid ";
+      int replacementlen = sizeof replacement - 1;
+      memmove (dot + replacementlen, dot + 1, pidlen);
+      strcpy (dot + replacementlen + pidlen, ")");
+      memcpy (dot, replacement, replacementlen);
+      attack = call2 (intern ("ask-user-about-lock"), fn,
+		      build_string (lock_info.user));
+      /* Take the lock if the user said so.  */
+      if (!NILP (attack))
+	lock_file_1 (lfname, 1);
     }
+  return Qnil;
 }
 
 static Lisp_Object
-unlock_file_body (Lisp_Object fn)
+unlock_file (Lisp_Object fn)
 {
   char *lfname;
-  USE_SAFE_ALLOCA;
 
-  Lisp_Object filename = Fexpand_file_name (fn, Qnil);
-  fn = ENCODE_FILE (filename);
-
-  MAKE_LOCK_NAME (lfname, fn);
+  Lisp_Object lock_filename = make_lock_file_name (fn);
+  if (NILP (lock_filename))
+    return Qnil;
+  lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   int err = current_lock_owner (0, lfname);
   if (err == -2 && unlink (lfname) != 0 && errno != ENOENT)
     err = errno;
   if (0 < err)
-    report_file_errno ("Unlocking file", filename, err);
+    report_file_errno ("Unlocking file", fn, err);
 
-  SAFE_FREE ();
   return Qnil;
 }
 
@@ -745,26 +723,6 @@ unlock_file_handle_error (Lisp_Object err)
 {
   call1 (intern ("userlock--handle-unlock-error"), err);
   return Qnil;
-}
-
-void
-unlock_file (Lisp_Object fn)
-{
-  internal_condition_case_1 (unlock_file_body,
-			     fn,
-			     list1(Qfile_error),
-			     unlock_file_handle_error);
-}
-
-#else  /* MSDOS */
-void
-lock_file (Lisp_Object fn)
-{
-}
-
-void
-unlock_file (Lisp_Object fn)
-{
 }
 
 #endif	/* MSDOS */
@@ -780,10 +738,51 @@ unlock_all_files (void)
       b = XBUFFER (buf);
       if (STRINGP (BVAR (b, file_truename))
 	  && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
-	unlock_file (BVAR (b, file_truename));
+	Funlock_file (BVAR (b, file_truename));
     }
 }
 
+DEFUN ("lock-file", Flock_file, Slock_file, 1, 1, 0,
+       doc: /* Lock FILE.
+If the option `create-lockfiles' is nil, this does nothing.  */)
+  (Lisp_Object file)
+{
+#ifndef MSDOS
+  /* Don't do locking if the user has opted out.  */
+  if (create_lockfiles)
+    {
+      CHECK_STRING (file);
+      lock_file (file);
+    }
+#endif	/* MSDOS */
+  return Qnil;
+}
+
+DEFUN ("unlock-file", Funlock_file, Sunlock_file, 1, 1, 0,
+       doc: /* Unlock FILE.  */)
+  (Lisp_Object file)
+{
+#ifndef MSDOS
+  CHECK_STRING (file);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  Lisp_Object handler;
+  handler = Ffind_file_name_handler (file, Qunlock_file);
+  if (!NILP (handler))
+    {
+      call2 (handler, Qunlock_file, file);
+      return Qnil;
+    }
+
+  internal_condition_case_1 (unlock_file,
+			     file,
+			     list1 (Qfile_error),
+			     unlock_file_handle_error);
+#endif	/* MSDOS */
+  return Qnil;
+}
+
 DEFUN ("lock-buffer", Flock_buffer, Slock_buffer,
        0, 1, 0,
        doc: /* Lock FILE, if current buffer is modified.
@@ -799,7 +798,7 @@ If the option `create-lockfiles' is nil, this does nothing.  */)
     CHECK_STRING (file);
   if (SAVE_MODIFF < MODIFF
       && !NILP (file))
-    lock_file (file);
+    Flock_file (file);
   return Qnil;
 }
 
@@ -815,7 +814,7 @@ error did not occur.  */)
 {
   if (SAVE_MODIFF < MODIFF
       && STRINGP (BVAR (current_buffer, file_truename)))
-    unlock_file (BVAR (current_buffer, file_truename));
+    Funlock_file (BVAR (current_buffer, file_truename));
   return Qnil;
 }
 
@@ -826,7 +825,7 @@ unlock_buffer (struct buffer *buffer)
 {
   if (BUF_SAVE_MODIFF (buffer) < BUF_MODIFF (buffer)
       && STRINGP (BVAR (buffer, file_truename)))
-    unlock_file (BVAR (buffer, file_truename));
+    Funlock_file (BVAR (buffer, file_truename));
 }
 
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,
@@ -839,14 +838,22 @@ t if it is locked by you, else a string saying which user has locked it.  */)
   return Qnil;
 #else
   Lisp_Object ret;
-  char *lfname;
   int owner;
   lock_info_type locker;
-  USE_SAFE_ALLOCA;
 
-  filename = Fexpand_file_name (filename, Qnil);
-  Lisp_Object encoded_filename = ENCODE_FILE (filename);
-  MAKE_LOCK_NAME (lfname, encoded_filename);
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  Lisp_Object handler;
+  handler = Ffind_file_name_handler (filename, Qfile_locked_p);
+  if (!NILP (handler))
+    {
+      return call2 (handler, Qfile_locked_p, filename);
+    }
+
+  Lisp_Object lock_filename = make_lock_file_name (filename);
+  if (NILP (lock_filename))
+    return Qnil;
+  char *lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   owner = current_lock_owner (&locker, lfname);
   switch (owner)
@@ -857,7 +864,6 @@ t if it is locked by you, else a string saying which user has locked it.  */)
     default: report_file_errno ("Testing file lock", filename, owner);
     }
 
-  SAFE_FREE ();
   return ret;
 #endif
 }
@@ -876,7 +882,14 @@ The name of the (per-buffer) lockfile is constructed by prepending a
 Info node `(emacs)Interlocking'.  */);
   create_lockfiles = true;
 
-  defsubr (&Sunlock_buffer);
+  DEFSYM (Qlock_file, "lock-file");
+  DEFSYM (Qunlock_file, "unlock-file");
+  DEFSYM (Qfile_locked_p, "file-locked-p");
+  DEFSYM (Qmake_lock_file_name, "make-lock-file-name");
+
+  defsubr (&Slock_file);
+  defsubr (&Sunlock_file);
   defsubr (&Slock_buffer);
+  defsubr (&Sunlock_buffer);
   defsubr (&Sfile_locked_p);
 }

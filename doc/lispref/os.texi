@@ -2167,6 +2167,11 @@ if @var{time} is @code{t}, then the timer runs whenever the time is a
 multiple of @var{repeat} seconds after the epoch.  This is useful for
 functions like @code{display-time}.
 
+If Emacs didn't get any CPU time when the timer would have run (for
+example if the system was busy running another process or if the
+computer was sleeping or in a suspended state), the timer will run as
+soon as Emacs resumes and is idle.
+
 The function @code{run-at-time} returns a timer value that identifies
 the particular scheduled future action.  You can use this value to call
 @code{cancel-timer} (see below).

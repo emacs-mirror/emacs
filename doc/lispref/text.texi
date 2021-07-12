@@ -4399,7 +4399,8 @@ based on their character codes.
 @cindex replace characters
 This function replaces all occurrences of the character @var{old-char}
 with the character @var{new-char} in the region of the current buffer
-defined by @var{start} and @var{end}.
+defined by @var{start} and @var{end}.  Both characters must have the
+same length of their multibyte form.
 
 @cindex undo avoidance
 If @var{noundo} is non-@code{nil}, then @code{subst-char-in-region} does
@@ -4426,6 +4427,16 @@ ThXs Xs the contents of the buffer before.
 ---------- Buffer: foo ----------
 @end group
 @end example
+@end defun
+
+
+@defun subst-char-in-string fromchar tochar string &optional inplace
+@cindex replace characters in string
+This function replaces all occurrences of the character @var{fromchar}
+with @var{tochar} in @var{string}.  By default, substitution occurs in
+a copy of @var{string}, but if the optional argument @var{inplace} is
+non-@code{nil}, the function modifies the @var{string} itself.  In any
+case, the function returns the resulting string.
 @end defun
 
 @deffn Command translate-region start end table

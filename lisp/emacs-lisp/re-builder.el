@@ -355,11 +355,16 @@ provided in the Commentary section of this library."
       (reb-delete-overlays))
     (setq reb-target-buffer (current-buffer)
           reb-target-window (selected-window))
-    (select-window (or (get-buffer-window reb-buffer)
-		       (progn
-			 (setq reb-window-config (current-window-configuration))
-			 (split-window (selected-window) (- (window-height) 4)))))
-    (switch-to-buffer (get-buffer-create reb-buffer))
+    (select-window
+     (or (get-buffer-window reb-buffer)
+         (let ((dir (if (window-parameter nil 'window-side)
+                        'bottom 'down)))
+           (setq reb-window-config (current-window-configuration))
+           (display-buffer
+            (get-buffer-create reb-buffer)
+            `((display-buffer-in-direction)
+              (direction . ,dir)
+              (dedicated . t))))))
     (font-lock-mode 1)
     (reb-initialize-buffer)))
 

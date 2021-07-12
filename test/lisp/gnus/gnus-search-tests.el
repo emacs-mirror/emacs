@@ -49,7 +49,9 @@
          (default-value 'gnus-search-expandable-keys))
         (pairs
          '(("su" . "subject")
-           ("sin" . "since"))))
+           ("sin" . "since")
+           ("body" . "body")
+           ("list-id" . "list-id"))))
     (dolist (p pairs)
       (should (equal (gnus-search-query-expand-key (car p))
                      (cdr p))))

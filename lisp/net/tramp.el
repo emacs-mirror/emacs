@@ -2455,6 +2455,8 @@ Must be handled by the callers."
 	      file-name-case-insensitive-p
 	      ;; Emacs 27+ only.
 	      file-system-info
+	      ;; Emacs 28+ only.
+	      file-locked-p lock-file make-lock-file-name unlock-file
 	      ;; Tramp internal magic file name function.
 	      tramp-set-file-uid-gid))
     (if (file-name-absolute-p (nth 0 args))
@@ -3816,6 +3818,75 @@ User is always nil."
       ;; Result.
       (cons (expand-file-name filename) (cdr result)))))
 
+(defun tramp-get-lock-file (file)
+  "Read lockfile info of FILE.
+Return nil when there is no lockfile."
+  (when-let ((lockname (tramp-compat-make-lock-file-name file)))
+    (or (file-symlink-p lockname)
+	(and (file-readable-p lockname)
+	     (with-temp-buffer
+	       (insert-file-contents-literally lockname)
+	       (buffer-string))))))
+
+(defun tramp-get-lock-pid (file)
+  "Determine pid for lockfile of FILE."
+  ;; Some Tramp methods do not offer a connection process, but just a
+  ;; network process as a place holder.  Those processes use the
+  ;; "lock-pid" connection property as fake pid, in fact it is the
+  ;; time stamp the process is created.
+  (let ((p (tramp-get-process  (tramp-dissect-file-name file))))
+    (number-to-string
+     (or (process-id p)
+	 (tramp-get-connection-property p "lock-pid" (emacs-pid))))))
+
+(defconst tramp-lock-file-info-regexp
+  ;; USER@HOST.PID[:BOOT_TIME]
+  "\\`\\(.+\\)@\\(.+\\)\\.\\([[:digit:]]+\\)\\(?::\\([[:digit:]]+\\)\\)?\\'"
+  "The format of a lock file.")
+
+(defun tramp-handle-file-locked-p (file)
+  "Like `file-locked-p' for Tramp files."
+  (when-let ((info (tramp-get-lock-file file))
+	     (match (string-match tramp-lock-file-info-regexp info)))
+    (or (and (string-equal (match-string 1 info) (user-login-name))
+	     (string-equal (match-string 2 info) (system-name))
+	     (string-equal (match-string 3 info) (tramp-get-lock-pid file)))
+	(match-string 1 info))))
+
+(defun tramp-handle-lock-file (file)
+  "Like `lock-file' for Tramp files."
+  ;; See if this file is visited and has changed on disk since it
+  ;; was visited.
+  (catch 'dont-lock
+    (unless (eq (file-locked-p file) t) ;; Locked by me.
+      (when-let ((info (tramp-get-lock-file file))
+		 (match (string-match tramp-lock-file-info-regexp info)))
+	(unless (ask-user-about-lock
+		 file (format
+		       "%s@%s (pid %s)" (match-string 1 info)
+		       (match-string 2 info) (match-string 3 info)))
+	  (throw 'dont-lock nil)))
+
+      (when-let ((lockname (tramp-compat-make-lock-file-name file))
+	         ;; USER@HOST.PID[:BOOT_TIME]
+	         (info
+	          (format
+	           "%s@%s.%s" (user-login-name) (system-name)
+	           (tramp-get-lock-pid file))))
+        (let (create-lockfiles signal-hook-function)
+	  (condition-case nil
+	      (make-symbolic-link info lockname 'ok-if-already-exists)
+	    (error
+             (write-region info nil lockname)
+             (set-file-modes lockname #o0644))))))))
+
+(defun tramp-handle-unlock-file (file)
+  "Like `unlock-file' for Tramp files."
+  (when-let ((lockname (tramp-compat-make-lock-file-name file)))
+    (condition-case err
+        (delete-file lockname)
+      (error (userlock--handle-unlock-error err)))))
+
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name file) nil
@@ -4357,7 +4428,8 @@ of."
 (defun tramp-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
-  (setq filename (expand-file-name filename))
+  (setq filename (expand-file-name filename)
+	lockname (file-truename (or lockname filename)))
   (with-parsed-tramp-file-name filename nil
     (when (and mustbenew (file-exists-p filename)
 	       (or (eq mustbenew 'excl)
@@ -4366,7 +4438,8 @@ of."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let ((tmpfile (tramp-compat-make-temp-file filename))
+    (let (file-locked
+	  (tmpfile (tramp-compat-make-temp-file filename))
 	  (modes (tramp-default-file-modes
 		  filename (and (eq mustbenew 'excl) 'nofollow)))
 	  (uid (or (tramp-compat-file-attribute-user-id
@@ -4375,6 +4448,15 @@ of."
 	  (gid (or (tramp-compat-file-attribute-group-id
 		    (file-attributes filename 'integer))
 		   (tramp-get-remote-gid v 'integer))))
+
+      ;; Lock file.
+      (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
+		 (file-remote-p lockname)
+		 (not (eq (file-locked-p lockname) t)))
+	(setq file-locked t)
+	;; `lock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'lock-file lockname))
+
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; The permissions of the temporary file should be set.  If
@@ -4386,7 +4468,8 @@ of."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (write-region start end tmpfile append 'no-message lockname)
+      (let (create-lockfiles)
+        (write-region start end tmpfile append 'no-message))
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error
@@ -4404,13 +4487,18 @@ of."
 	     (current-time))))
 
       ;; Set the ownership.
-      (tramp-set-file-uid-gid filename uid gid))
+      (tramp-set-file-uid-gid filename uid gid)
 
-    ;; The end.
-    (when (and (null noninteractive)
-	       (or (eq visit t) (null visit) (stringp visit)))
-      (tramp-message v 0 "Wrote %s" filename))
-    (run-hooks 'tramp-handle-write-region-hook)))
+      ;; Unlock file.
+      (when (and file-locked (eq (file-locked-p lockname) t))
+	;; `unlock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'unlock-file lockname))
+
+      ;; The end.
+      (when (and (null noninteractive)
+		 (or (eq visit t) (null visit) (stringp visit)))
+	(tramp-message v 0 "Wrote %s" filename))
+      (run-hooks 'tramp-handle-write-region-hook))))
 
 ;; This is used in tramp-sh.el and tramp-sudoedit.el.
 (defconst tramp-stat-marker "/////"

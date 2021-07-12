@@ -353,6 +353,16 @@ A nil value for either argument stands for the current time."
     (lambda (fromstring tostring instring)
       (replace-regexp-in-string (regexp-quote fromstring) tostring instring))))
 
+;; Function `make-lock-file-name' is new in Emacs 28.1.
+(defalias 'tramp-compat-make-lock-file-name
+  (if (fboundp 'make-lock-file-name)
+      #'make-lock-file-name
+    (lambda (filename)
+      (expand-file-name
+       (concat
+        ".#" (file-name-nondirectory filename))
+       (file-name-directory filename)))))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 

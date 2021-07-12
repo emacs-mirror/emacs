@@ -473,6 +473,10 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		= row->glyphs[LEFT_MARGIN_AREA] + left;
 	      row->glyphs[RIGHT_MARGIN_AREA]
 		= row->glyphs[TEXT_AREA] + dim.width - left - right;
+	      /* Leave room for a border glyph.  */
+	      if (!FRAME_WINDOW_P (XFRAME (w->frame))
+		  && !WINDOW_RIGHTMOST_P (w))
+		row->glyphs[RIGHT_MARGIN_AREA] -= 1;
 	      row->glyphs[LAST_AREA]
 		= row->glyphs[LEFT_MARGIN_AREA] + dim.width;
 	    }
@@ -1140,7 +1144,13 @@ prepare_desired_row (struct window *w, struct glyph_row *row, bool mode_line_p)
 	row->glyphs[TEXT_AREA] = row->glyphs[LEFT_MARGIN_AREA] + left;
       if (w->right_margin_cols > 0
 	  && (right != row->glyphs[LAST_AREA] - row->glyphs[RIGHT_MARGIN_AREA]))
-	row->glyphs[RIGHT_MARGIN_AREA] = row->glyphs[LAST_AREA] - right;
+	{
+	  row->glyphs[RIGHT_MARGIN_AREA] = row->glyphs[LAST_AREA] - right;
+	  /* Leave room for a border glyph.  */
+	  if (!FRAME_WINDOW_P (XFRAME (w->frame))
+	      && !WINDOW_RIGHTMOST_P (w))
+	    row->glyphs[RIGHT_MARGIN_AREA] -= 1;
+	}
     }
 }
 
