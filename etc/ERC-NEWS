@@ -48,10 +48,9 @@ hell.  For some, auth-source may provide a workaround in the form of
 nonstandard server passwords.  See the "Connection" node in the manual
 under the subheading "Password".
 
-If you require SASL immediately, please participate in ERC development
-by volunteering to try (and give feedback on) edge features, one of
-which is SASL.  All known external offerings, past and present, are
-valiant efforts whose use is nevertheless discouraged.
+** Rudimentary SASL support has arrived.
+A new module, 'erc-sasl', now ships with ERC 5.5.  See the SASL
+section in the manual for details.
 
 ** Username argument for entry-point commands.
 Commands 'erc' and 'erc-tls' now accept a ':user' keyword argument,

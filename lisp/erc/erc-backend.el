@@ -2334,6 +2334,15 @@ See `erc-display-server-message'." nil
     (erc-display-message parsed 'notice 'active 's671
                          ?n nick ?a securemsg)))
 
+(define-erc-response-handler (900)
+  "Handle a \"RPL_LOGGEDIN\" server command.
+Some servers don't consider this SASL-specific but rather just an
+indication of a server-side state change from logged-out to
+logged-in." nil
+  ;; Whenever ERC starts caring about user accounts, it should record
+  ;; the session as being logged here.
+  (erc-display-message parsed 'notice proc (erc-response.contents parsed)))
+
 (define-erc-response-handler (431 445 446 451 462 463 464 481 483 484 485
                                   491 501 502)
   ;; 431 - No nickname given

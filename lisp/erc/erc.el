@@ -1860,6 +1860,7 @@ removed from the list will be disabled."
     (const :tag "readonly: Make displayed lines read-only" readonly)
     (const :tag "replace: Replace text in messages" replace)
     (const :tag "ring: Enable an input history" ring)
+    (const :tag "sasl: Enable SASL authentication" sasl)
     (const :tag "scrolltobottom: Scroll to the bottom of the buffer"
            scrolltobottom)
     (const :tag "services: Identify to Nickserv (IRC Services) automatically"

@@ -273,6 +273,89 @@ If START or END is negative, it counts from the end."
     auth-source-backend-parser-functions))
 
 
+;;;; SASL
+
+(declare-function sasl-step-data "sasl" (step))
+(declare-function sasl-error "sasl" (datum))
+(declare-function sasl-client-property "sasl" (client property))
+(declare-function sasl-client-set-property "sasl" (client property value))
+(declare-function sasl-mechanism-name "sasl" (mechanism))
+(declare-function sasl-client-name "sasl" (client))
+(declare-function sasl-client-mechanism "sasl" (client))
+(declare-function sasl-read-passphrase "sasl" (prompt))
+(declare-function sasl-unique-id "sasl" nil)
+(declare-function decode-hex-string "hex-util" (string))
+(declare-function rfc2104-hash "rfc2104" (hash block-length hash-length
+                                               key text))
+(declare-function sasl-scram--client-first-message-bare "sasl-scram-rfc"
+                  (client))
+(declare-function cl-mapcar "cl-lib" (cl-func cl-x &rest cl-rest))
+
+(defun erc-compat--29-sasl-scram-construct-gs2-header (client)
+  (let ((authzid (sasl-client-property client 'authenticator-name)))
+    (concat "n," (and authzid "a=") authzid ",")))
+
+(defun erc-compat--29-sasl-scram-client-first-message (client _step)
+  (let ((c-nonce (sasl-unique-id)))
+    (sasl-client-set-property client 'c-nonce c-nonce))
+  (concat (erc-compat--29-sasl-scram-construct-gs2-header client)
+          (sasl-scram--client-first-message-bare client)))
+
+(defun erc-compat--29-sasl-scram--client-final-message
+    (hash-fun block-length hash-length client step)
+  (unless (string-match
+           "^r=\\([^,]+\\),s=\\([^,]+\\),i=\\([0-9]+\\)\\(?:$\\|,\\)"
+           (sasl-step-data step))
+    (sasl-error "Unexpected server response"))
+  (let* ((hmac-fun
+          (lambda (text key)
+            (decode-hex-string
+             (rfc2104-hash hash-fun block-length hash-length key text))))
+         (step-data (sasl-step-data step))
+         (nonce (match-string 1 step-data))
+         (salt-base64 (match-string 2 step-data))
+         (iteration-count (string-to-number (match-string 3 step-data)))
+         (c-nonce (sasl-client-property client 'c-nonce))
+         (cbind-input
+          (if (string-prefix-p c-nonce nonce)
+              (erc-compat--29-sasl-scram-construct-gs2-header client) ; *1
+            (sasl-error "Invalid nonce from server")))
+         (client-final-message-without-proof
+          (concat "c=" (base64-encode-string cbind-input t) "," ; *2
+                  "r=" nonce))
+         (password
+          (sasl-read-passphrase
+           (format "%s passphrase for %s: "
+                   (sasl-mechanism-name (sasl-client-mechanism client))
+                   (sasl-client-name client))))
+         (salt (base64-decode-string salt-base64))
+         (string-xor (lambda (a b)
+                       (apply #'unibyte-string (cl-mapcar #'logxor a b))))
+         (salted-password (let ((digest (concat salt (string 0 0 0 1)))
+                                (xored nil))
+                            (dotimes (_i iteration-count xored)
+                              (setq digest (funcall hmac-fun digest password))
+                              (setq xored (if (null xored)
+                                              digest
+                                            (funcall string-xor xored
+                                                     digest))))))
+         (client-key (funcall hmac-fun "Client Key" salted-password))
+         (stored-key (decode-hex-string (funcall hash-fun client-key)))
+         (auth-message (concat "n=" (sasl-client-name client)
+                               ",r=" c-nonce "," step-data
+                               "," client-final-message-without-proof))
+         (client-signature (funcall hmac-fun
+                                    (encode-coding-string auth-message 'utf-8)
+                                    stored-key))
+         (client-proof (funcall string-xor client-key client-signature))
+         (client-final-message
+          (concat client-final-message-without-proof ","
+                  "p=" (base64-encode-string client-proof t)))) ; *3
+    (sasl-client-set-property client 'auth-message auth-message)
+    (sasl-client-set-property client 'salted-password salted-password)
+    client-final-message))
+
+
 ;;;; Misc 29.1
 
 (defmacro erc-compat--with-memoization (table &rest forms)
