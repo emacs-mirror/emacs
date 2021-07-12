@@ -3221,7 +3221,7 @@ xg_update_menu_item (widget_value *val,
       gtk_label_set_text (wkey, utf8_key);
     }
 
-  if (! old_label || strcmp (utf8_label, old_label) != 0)
+  if (utf8_label && (! old_label || strcmp (utf8_label, old_label) != 0))
     {
       label_changed = true;
       gtk_label_set_text (wlbl, utf8_label);
