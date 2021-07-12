@@ -235,7 +235,7 @@ arguments to pass to the OPERATION."
   (when (and (numberp destination) (zerop destination))
     (error "Implementation does not handle immediate return"))
 
-  (with-parsed-tramp-file-name default-directory nil
+  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
     (let ((command
 	   (format
 	    "cd %s && exec %s"

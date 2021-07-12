@@ -3029,7 +3029,7 @@ implementation will be used."
   (when (and (numberp destination) (zerop destination))
     (error "Implementation does not handle immediate return"))
 
-  (with-parsed-tramp-file-name default-directory nil
+  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
     (let (command env uenv input tmpinput stderr tmpstderr outbuf ret)
       ;; Compute command.
       (setq command (mapconcat #'tramp-shell-quote-argument

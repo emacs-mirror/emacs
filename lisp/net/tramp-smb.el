@@ -1259,7 +1259,7 @@ component is used as the target of the symlink."
   (when (and (numberp destination) (zerop destination))
     (error "Implementation does not handle immediate return"))
 
-  (with-parsed-tramp-file-name default-directory nil
+  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
     (let* ((name (file-name-nondirectory program))
 	   (name1 name)
 	   (i 0)
