@@ -3551,7 +3551,7 @@ which will instruct font-lock not to start or end the scan in the
 middle of the construct.
 @end itemize
 
-  There are three ways to do rehighlighting of multiline constructs:
+  There are several ways to do rehighlighting of multiline constructs:
 
 @itemize
 @item
@@ -3573,15 +3573,18 @@ This works only if @code{jit-lock-contextually} is used, and with the
 same delay before rehighlighting, but like @code{font-lock-multiline},
 it also handles the case where highlighting depends on
 subsequent lines.
-@end itemize
-
-If parsing the syntax of a construct depends on it being parsed in one
+@item
+If parsing the @emph{syntax} of a construct depends on it being parsed in one
 single chunk, you can add the @code{syntax-multiline} text property
 over the construct in question.  The most common use for this is when
-the syntax to use for @samp{FOO} depends on some later text
+the syntax property to apply to @samp{FOO} depend on some later text
 @samp{BAR}: By placing this text property over the whole of
 @samp{FOO...BAR}, you make sure that any change of @samp{BAR} will
-cause the syntax of @samp{FOO} to be recomputed.
+also cause the syntax property of @samp{FOO} to be recomputed.
+Note: For this to work, the mode needs to add
+@code{syntax-propertize-multiline} to
+@code{syntax-propertize-extend-region-functions}.
+@end itemize
 
 @menu
 * Font Lock Multiline::         Marking multiline chunks with a text property.
