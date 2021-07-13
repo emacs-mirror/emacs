@@ -3630,7 +3630,7 @@ User is always nil."
 	     (file-writable-p (file-name-directory filename)))))))
 
 (defcustom tramp-allow-unsafe-temporary-files nil
-  "Whether root-owned auto-save or backup files can be written to \"/tmp\"."
+  "Whether root-owned auto-save, backup or lock files can be written to \"/tmp\"."
   :version "28.1"
   :type 'boolean)
 
@@ -3879,6 +3879,30 @@ Return nil when there is no lockfile."
 	    (error
              (write-region info nil lockname)
              (set-file-modes lockname #o0644))))))))
+
+(defun tramp-handle-make-lock-file-name (file)
+  "Like `make-lock-file-name' for Tramp files."
+  (when (and create-lockfiles
+	     ;; This variable has been introduced with Emacs 28.1.
+	     (not (bound-and-true-p remote-file-name-inhibit-locks)))
+    (with-parsed-tramp-file-name file nil
+      (let ((result
+	     ;; Run plain `make-lock-file-name'.
+	     (tramp-run-real-handler #'make-lock-file-name (list file))))
+	;; Protect against security hole.
+	(when (and (not tramp-allow-unsafe-temporary-files)
+		   (file-in-directory-p result temporary-file-directory)
+		   (zerop (or (tramp-compat-file-attribute-user-id
+			       (file-attributes file 'integer))
+			      tramp-unknown-id-integer))
+		   (not (with-tramp-connection-property
+			    (tramp-get-process v) "unsafe-temporary-file"
+			  (yes-or-no-p
+			   (concat
+			    "Lock file on local temporary directory, "
+			    "do you want to continue? ")))))
+	  (tramp-error v 'file-error "Unsafe lock file name"))
+	result))))
 
 (defun tramp-handle-unlock-file (file)
   "Like `unlock-file' for Tramp files."

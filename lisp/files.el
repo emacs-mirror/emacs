@@ -427,6 +427,12 @@ file it's locking, and it has the same name, but with \".#\" prepended."
   :initialize 'custom-initialize-delay
   :version "28.1")
 
+(defcustom remote-file-name-inhibit-locks nil
+  "Whether to use file locks for remote files."
+  :group 'files
+  :version "28.1"
+  :type 'boolean)
+
 (defvar auto-save--timer nil "Timer for `auto-save-visited-mode'.")
 
 (defcustom auto-save-visited-interval 5

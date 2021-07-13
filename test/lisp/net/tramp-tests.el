@@ -5751,8 +5751,10 @@ Use direct async.")
   (skip-unless (and (fboundp 'lock-file) (fboundp 'unlock-file)))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
-    (let ((tmp-name (tramp--test-make-temp-name nil quoted))
+    (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
+	  (tmp-name2 (tramp--test-make-temp-name nil quoted))
 	  (remote-file-name-inhibit-cache t)
+	  (remote-file-name-inhibit-locks nil)
 	  (create-lockfiles t)
           (inhibit-message t)
 	  ;; tramp-rclone.el and tramp-sshfs.el cache the mounted files.
@@ -5765,51 +5767,73 @@ Use direct async.")
       (unwind-protect
 	  (progn
 	    ;; A simple file lock.
-	    (should-not (file-locked-p tmp-name))
-	    (lock-file tmp-name)
-	    (should (eq (file-locked-p tmp-name) t))
+	    (should-not (file-locked-p tmp-name1))
+	    (lock-file tmp-name1)
+	    (should (eq (file-locked-p tmp-name1) t))
 
 	    ;; If it is locked already, nothing changes.
-	    (lock-file tmp-name)
-	    (should (eq (file-locked-p tmp-name) t))
+	    (lock-file tmp-name1)
+	    (should (eq (file-locked-p tmp-name1) t))
 
 	    ;; A new connection changes process id, and also the
 	    ;; lockname contents.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-	    (should (stringp (file-locked-p tmp-name)))
+	    (should (stringp (file-locked-p tmp-name1)))
+
+	    ;; When `remote-file-name-inhibit-locks' is set, nothing happens.
+	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	    (let ((remote-file-name-inhibit-locks t))
+	      (lock-file tmp-name1)
+	      (should-not (file-locked-p tmp-name1)))
+
+	    ;; When `lock-file-name-transforms' is set, another lock
+	    ;; file is used.
+	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	    (let ((lock-file-name-transforms `((".*" ,tmp-name2))))
+	      (should
+	       (string-equal
+		(make-lock-file-name tmp-name1)
+		(make-lock-file-name tmp-name2)))
+	      (lock-file tmp-name1)
+	      (should (eq (file-locked-p tmp-name1) t))
+	      (unlock-file tmp-name1)
+	      (should-not (file-locked-p tmp-name1)))
 
 	    ;; Steal the file lock.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?s)))
-	      (lock-file tmp-name))
-	    (should (eq (file-locked-p tmp-name) t))
+	      (lock-file tmp-name1))
+	    (should (eq (file-locked-p tmp-name1) t))
 
 	    ;; Ignore the file lock.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?p)))
-	      (lock-file tmp-name))
-	    (should (stringp (file-locked-p tmp-name)))
+	      (lock-file tmp-name1))
+	    (should (stringp (file-locked-p tmp-name1)))
 
 	    ;; Quit the file lock machinery.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?q)))
-	      (should-error (lock-file tmp-name) :type 'file-locked)
+	      (should-error (lock-file tmp-name1) :type 'file-locked)
 	      ;; The same for `write-region'.
-	      (should-error (write-region "foo" nil tmp-name) :type 'file-locked)
 	      (should-error
-	       (write-region "foo" nil tmp-name nil nil tmp-name)
+	       (write-region "foo" nil tmp-name1) :type 'file-locked)
+	      (should-error
+	       (write-region "foo" nil tmp-name1 nil nil tmp-name1)
                :type 'file-locked)
 	      ;; The same for `set-visited-file-name'.
               (with-temp-buffer
 	        (should-error
-                 (set-visited-file-name tmp-name) :type 'file-locked)))
-	    (should (stringp (file-locked-p tmp-name)))
-	    (should-not (file-exists-p tmp-name)))
+                 (set-visited-file-name tmp-name1) :type 'file-locked)))
+	    (should (stringp (file-locked-p tmp-name1)))
+	    (should-not (file-exists-p tmp-name1)))
 
 	;; Cleanup.
-	(ignore-errors (delete-file tmp-name))
-	(unlock-file tmp-name)
-	(should-not (file-locked-p tmp-name))))))
+	(ignore-errors (delete-file tmp-name1))
+	(unlock-file tmp-name1)
+	(unlock-file tmp-name2)
+	(should-not (file-locked-p tmp-name1))
+	(should-not (file-locked-p tmp-name2))))))
 
 ;; The functions were introduced in Emacs 26.1.
 (ert-deftest tramp-test40-make-nearby-temp-file ()

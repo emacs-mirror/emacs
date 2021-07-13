@@ -821,6 +821,11 @@ If you wish, you can replace the @code{ask-user-about-lock} function
 with your own version that makes the decision in another way.
 @end defun
 
+@defopt remote-file-name-inhibit-locks
+You can prevent the creation of remote lock files by setting the
+variable @code{remote-file-name-inhibit-locks} to @code{t}.
+@end defopt
+
 @node Information about Files
 @section Information about Files
 @cindex file, information about

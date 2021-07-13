@@ -836,6 +836,10 @@ warning message and asks for confirmation before saving; answer
 place, one way to compare the buffer to its file is the @kbd{M-x
 diff-buffer-with-file} command.  @xref{Comparing Files}.
 
+@vindex remote-file-name-inhibit-locks
+  You can prevent the creation of remote lock files by setting the
+variable @code{remote-file-name-inhibit-locks} to @code{t}.
+
 @node File Shadowing
 @subsection Shadowing Files
 @cindex shadow files
