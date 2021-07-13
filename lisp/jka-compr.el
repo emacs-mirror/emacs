@@ -415,18 +415,17 @@ There should be no more than seven characters after the final `/'."
                        (fboundp uncompress-function))
                   ;; If we don't have the uncompression program, then use the
                   ;; internal uncompression function (if we have one).
-                  (progn
-                    (insert
-                     (with-temp-buffer
-                       (set-buffer-multibyte nil)
-                       (insert-file-contents-literally file)
-                       (funcall uncompress-function (point-min) (point-max))
-                       (when end
-                         (delete-region end (point-max)))
-                       (when beg
-                         (delete-region (point-min) beg))
-                       (setq size (buffer-size))
-                       (buffer-string)))
+                  (let ((buf (current-buffer)))
+                    (with-temp-buffer
+                      (set-buffer-multibyte nil)
+                      (insert-file-contents-literally file)
+                      (funcall uncompress-function (point-min) (point-max))
+                      (when end
+                        (delete-region end (point-max)))
+                      (when beg
+                        (delete-region (point-min) beg))
+                      (setq size (buffer-size))
+                      (insert-into-buffer buf))
                     (goto-char (point-min)))
                 ;; Use the external uncompression program.
                 (condition-case error-code
