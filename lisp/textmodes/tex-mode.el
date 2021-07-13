@@ -1427,7 +1427,9 @@ on the line for the invalidity you want to see."
 		    (forward-line 1)
 		    (setq num-matches (1+ num-matches))
 		    (insert-buffer-substring buffer start end)
-		    (let (text-beg (text-end (point-marker)))
+		    (let ((text-end (point-marker))
+                          (inhibit-read-only t)
+                          text-beg)
 		      (forward-char (- start end))
 		      (setq text-beg (point-marker))
 		      (insert (format "%3d: " linenum))
@@ -1439,7 +1441,8 @@ on the line for the invalidity you want to see."
 		      (put-text-property text-beg (- text-end 1)
 					 'occur-target tem))))))))
       (with-current-buffer standard-output
-	(let ((no-matches (zerop num-matches)))
+	(let ((no-matches (zerop num-matches))
+              (inhibit-read-only t))
 	  (if no-matches
 	      (insert "None!\n"))
 	  (if (called-interactively-p 'interactive)
