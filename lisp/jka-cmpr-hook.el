@@ -104,6 +104,9 @@ Otherwise, it is nil.")
 (defun jka-compr-info-can-append           (info)  (aref info 7))
 (defun jka-compr-info-strip-extension      (info)  (aref info 8))
 (defun jka-compr-info-file-magic-bytes     (info)  (aref info 9))
+(defun jka-compr-info-uncompress-function  (info)
+  (and (> (length info) 10)
+       (aref info 10)))
 
 
 (defun jka-compr-get-compression-info (filename)
@@ -197,13 +200,15 @@ options through Custom does this automatically."
   ;;[regexp
   ;; compr-message  compr-prog  compr-args
   ;; uncomp-message uncomp-prog uncomp-args
-  ;; can-append strip-extension-flag file-magic-bytes]
+  ;; can-append strip-extension-flag file-magic-bytes
+  ;; uncompress-function]
   (mapcar 'purecopy
   '(["\\.Z\\'"
      "compressing"    "compress"     ("-c")
      ;; gzip is more common than uncompress. It can only read, not write.
      "uncompressing"  "gzip"   ("-c" "-q" "-d")
-     nil t "\037\235"]
+     nil t "\037\235"
+     zlib-decompress-region]
      ;; Formerly, these had an additional arg "-c", but that fails with
      ;; "Version 0.1pl2, 29-Aug-97." (RedHat 5.1 GNU/Linux) and
      ;; "Version 0.9.0b, 9-Sept-98".
@@ -218,11 +223,13 @@ options through Custom does this automatically."
     ["\\.\\(?:tgz\\|svgz\\|sifz\\)\\'"
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     t nil "\037\213"]
+     t nil "\037\213"
+     zlib-decompress-region]
     ["\\.g?z\\'"
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     t t "\037\213"]
+     t t "\037\213"
+     zlib-decompress-region]
     ["\\.lz\\'"
      "Lzip compressing"   "lzip"         ("-c" "-q")
      "Lzip uncompressing" "lzip"         ("-c" "-q" "-d")
