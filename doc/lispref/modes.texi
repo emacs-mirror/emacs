@@ -3575,6 +3575,14 @@ it also handles the case where highlighting depends on
 subsequent lines.
 @end itemize
 
+If parsing the syntax of a construct depends on it being parsed in one
+single chunk, you can add the @code{syntax-multiline} text property
+over the construct in question.  The most common use for this is when
+the syntax to use for @samp{FOO} depends on some later text
+@samp{BAR}: By placing this text property over the whole of
+@samp{FOO...BAR}, you make sure that any change of @samp{BAR} will
+cause the syntax of @samp{FOO} to be recomputed.
+
 @menu
 * Font Lock Multiline::         Marking multiline chunks with a text property.
 * Region to Refontify::         Controlling which region gets refontified
