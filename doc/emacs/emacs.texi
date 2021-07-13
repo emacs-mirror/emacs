@@ -95,7 +95,7 @@ Boston, MA 02110-1301 USA @*
 ISBN 978-0-9831592-8-5
 
 @sp 2
-Cover art by Etienne Suvasa; cover design by Matt Lee.
+Cover art by Etienne Suvasa; cover design by FSF staff.
 
 @end titlepage
 

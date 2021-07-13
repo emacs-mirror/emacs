@@ -15,8 +15,8 @@
 @sp 1
 
 @quotation
-GNU Emacs is much @strong{more than a text editor}; over the years, it
-has expanded to become @strong{an entire workflow environment},
+GNU Emacs is much @strong{more than a text editor;} over the years, it
+has expanded to become @strong{an entire workflow environment,}
 impressing programmers with its integrated debugging and
 project-management features.  It is also a multi-lingual word
 processor, can handle all your email and Usenet news needs, display
@@ -26,7 +26,7 @@ Features include:
 
 @itemize @bullet
 @item
-Special editing modes for @strong{27 programming languages}, including C,
+Special editing modes for @strong{27 programming languages,} including C,
 C@t{++}, Fortran, Java, JavaScript, Lisp, Objective C, Pascal, Perl,
 and Scheme.
 
@@ -36,7 +36,7 @@ and creating Makefiles for GNU/Linux, UNIX, Windows/DOS, and VMS
 systems.
 
 @item
-Support for typing and displaying in @strong{60 non-English languages},
+Support for typing and displaying in @strong{60 non-English languages,}
 including Arabic, Chinese, Czech, Hebrew, Hindi, Japanese, Korean,
 Russian, Vietnamese, and all Western European languages.
 
@@ -52,7 +52,7 @@ editing modes for @LaTeX{} and @TeX{} are included).
 @strong{Compile} and @strong{debug} from inside Emacs.
 
 @item
-Maintain program @strong{ChangeLogs}.
+Maintain program @strong{ChangeLogs.}
 
 @item
 Flag, move, and delete files and sub-directories recursively
@@ -74,26 +74,25 @@ And much more!
 @end itemize
 @end itemize
 
+Emacs comes with an introductory online tutorial available in many
+languages, and this nineteenth edition of the manual picks up where
+that tutorial ends.  It explains the full range of the power of Emacs,
+now up to @strong[version 27.2,} and contains reference material
+useful to expert users.  It also includes appendices with specific
+material about X and GTK resources, and with details for users of
+macOS and Microsoft Windows.
+
 And when you tire of all the work you can accomplish with it, Emacs
 contains games to play.
 
-Emacs comes with an introductory online tutorial available in many
-languages, and this manual picks up where that tutorial ends.  It
-explains the full range of the power of Emacs, now up to @strong{version
-27.2}, and contains reference material useful to expert users.  It
-also includes appendices with specific material about X and GTK
-resources, and with details for users of macOS and Microsoft Windows.
+@strong{About the original and principal author:}
 
-Appendices are included, with specific material about X and GTK
-resources, and with details for users of Macintosh and Microsoft OS.
-
-@strong{About the original and principal Author:}
-
-Richard M.@: Stallman developed the first Emacs in 1975 and wrote GNU
+Richard M.@: Stallman developed the first Emacs in 1976 and wrote GNU
 Emacs in 1984/85.  He has received the ACM Grace Hopper Award, a
 MacArthur Foundation fellowship, the Electronic Frontier Foundation's
-Pioneer award, and the Takeda Award for Social/Economic Betterment, as
-well as several honorary doctorates.
+Pioneer award, the Takeda Award for Social/Economic Betterment, and
+the ACM Software and System Award, as well as several doctorates
+honoris causa.
 @end quotation
 
 @hfil
