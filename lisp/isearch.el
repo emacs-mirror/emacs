@@ -233,6 +233,7 @@ called with the positions of the start and the end of the text
 matched by Isearch and replace commands.  If this function
 returns nil, Isearch and replace commands will continue searching
 without stopping at resp. replacing this match.
+This function is expected to be careful not to clobber the match data.
 
 If you use `add-function' to modify this variable, you can use the
 `isearch-message-prefix' advice property to specify the prefix string
@@ -3529,9 +3530,8 @@ Optional third argument, if t, means if fail just return nil (no error).
 	  ;; Clear RETRY unless the search predicate says
 	  ;; to skip this search hit.
 	  (if (or (not isearch-success)
-		  (save-match-data
-		    (funcall isearch-filter-predicate
-			     (match-beginning 0) (match-end 0))))
+		  (funcall isearch-filter-predicate
+			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)
 	    ;; Advance point on empty matches before retrying
 	    (when (= (match-beginning 0) (match-end 0))
@@ -4049,9 +4049,8 @@ Attempt to do the search exactly the way the pending Isearch would."
 	  ;; to skip this search hit.
 	  (if (or (not success)
 		  (= (match-beginning 0) (match-end 0))
-		  (save-match-data
-		    (funcall isearch-filter-predicate
-			     (match-beginning 0) (match-end 0))))
+		  (funcall isearch-filter-predicate
+			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))
 	success)
     (error nil)))
