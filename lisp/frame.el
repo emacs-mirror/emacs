@@ -1397,7 +1397,7 @@ FRAME defaults to the selected frame."
 (declare-function x-list-fonts "xfaces.c"
                   (pattern &optional face frame maximum width))
 
-(defun set-frame-font (font &optional keep-size frames)
+(defun set-frame-font (font &optional keep-size frames inhibit-customize)
   "Set the default font to FONT.
 When called interactively, prompt for the name of a font, and use
 that font on the selected frame.  When called from Lisp, FONT
@@ -1414,7 +1414,10 @@ If FRAMES is non-nil, it should be a list of frames to act upon,
 or t meaning all existing graphical frames.
 Also, if FRAMES is non-nil, alter the user's Customization settings
 as though the font-related attributes of the `default' face had been
-\"set in this session\", so that the font is applied to future frames."
+\"set in this session\", so that the font is applied to future frames.
+
+If INHIBIT-CUSTOMIZE is non-nil, don't update the user's
+Customization settings."
   (interactive
    (let* ((completion-ignore-case t)
           (default (frame-parameter nil 'font))
@@ -1451,7 +1454,8 @@ as though the font-related attributes of the `default' face had been
 	       f
 	       (list (cons 'height (round height (frame-char-height f)))
 		     (cons 'width  (round width  (frame-char-width f))))))))
-      (when frames
+      (when (and frames
+                 (not inhibit-customize))
 	;; Alter the user's Custom setting of the `default' face, but
 	;; only for font-related attributes.
 	(let ((specs (cadr (assq 'user (get 'default 'theme-face))))
