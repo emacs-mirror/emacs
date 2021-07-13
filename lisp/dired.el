@@ -356,6 +356,11 @@ is anywhere on its Dired line, except the beginning of the line."
   :group 'dired
   :version "28.1")
 
+(defcustom dired-kill-when-opening-new-dired-buffer nil
+  "If non-nil, kill the current buffer when selecting a new directory."
+  :type 'boolean
+  :version "28.1")
+
 
 ;;; Internal variables
 
@@ -2379,7 +2384,7 @@ directory in another window."
 	(progn
 	  (if other-window
 	      (dired-other-window up)
-	    (dired up))
+	    (dired--find-possibly-alternative-file up))
 	  (dired-goto-file dir)))))
 
 (defun dired-get-file-for-visit ()
@@ -2403,7 +2408,16 @@ directory in another window."
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
   (interactive)
-  (dired--find-file #'find-file (dired-get-file-for-visit)))
+  (dired--find-possibly-alternative-file (dired-get-file-for-visit)))
+
+(defun dired--find-possibly-alternative-file (file)
+  "Find FILE, but respect `dired-kill-when-opening-new-dired-buffer'."
+  (if (and dired-kill-when-opening-new-dired-buffer
+           (file-directory-p file))
+      (progn
+        (set-buffer-modified-p nil)
+        (dired--find-file #'find-alternate-file file))
+    (dired--find-file #'find-file file)))
 
 (defun dired--find-file (find-file-function file)
   "Call FIND-FILE-FUNCTION on FILE, but bind some relevant variables."
