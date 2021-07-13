@@ -3529,8 +3529,9 @@ Optional third argument, if t, means if fail just return nil (no error).
 	  ;; Clear RETRY unless the search predicate says
 	  ;; to skip this search hit.
 	  (if (or (not isearch-success)
-		  (funcall isearch-filter-predicate
-			   (match-beginning 0) (match-end 0)))
+		  (save-match-data
+		    (funcall isearch-filter-predicate
+			     (match-beginning 0) (match-end 0))))
 	      (setq retry nil)
 	    ;; Advance point on empty matches before retrying
 	    (when (= (match-beginning 0) (match-end 0))
@@ -4048,8 +4049,9 @@ Attempt to do the search exactly the way the pending Isearch would."
 	  ;; to skip this search hit.
 	  (if (or (not success)
 		  (= (match-beginning 0) (match-end 0))
-		  (funcall isearch-filter-predicate
-			   (match-beginning 0) (match-end 0)))
+		  (save-match-data
+		    (funcall isearch-filter-predicate
+			     (match-beginning 0) (match-end 0))))
 	      (setq retry nil)))
 	success)
     (error nil)))
