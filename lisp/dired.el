@@ -3850,13 +3850,13 @@ object files--just `.o' will mark more than you might think."
                         when (stringp file)
                         sum (file-attribute-size (file-attributes file)))))
     (if (zerop nmarked)
-        (message "No marked files"))
-    (message "%d marked file%s (%s total size)"
-             nmarked
-             (if (= nmarked 1)
-                 ""
-               "s")
-             (funcall byte-count-to-string-function size))))
+        (message "No marked files")
+      (message "%d marked file%s (%s total size)"
+               nmarked
+               (if (= nmarked 1)
+                   ""
+                 "s")
+               (funcall byte-count-to-string-function size)))))
 
 (defun dired-mark-files-containing-regexp (regexp &optional marker-char)
   "Mark all files with contents containing REGEXP for use in later commands.
