@@ -2186,6 +2186,10 @@ summaries will include the failing condition.
 ** Miscellaneous
 
 +++
+*** New utility function 'insert-into-buffer'.
+This is like 'insert-into-buffer', but works in the opposite direction.
+
++++
 *** New user option 'lock-file-name-transforms'.
 This option allows controlling where lock files are written.  It uses
 the same syntax as 'auto-save-file-name-transforms'.

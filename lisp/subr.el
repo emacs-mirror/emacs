@@ -3850,6 +3850,14 @@ Before insertion, process text properties according to
     (insert-buffer-substring buffer start end)
     (remove-yank-excluded-properties opoint (point))))
 
+(defun insert-into-buffer (buffer &optional start end)
+  "Insert the contents of the current buffer into BUFFER.
+If START/END, only insert that region from the current buffer.
+Point in BUFFER will be placed after the inserted text."
+  (let ((current (current-buffer)))
+    (with-current-buffer buffer
+      (insert-buffer-substring current start end))))
+
 (defun yank-handle-font-lock-face-property (face start end)
   "If `font-lock-defaults' is nil, apply FACE as a `face' property.
 START and END denote the start and end of the text to act on.
