@@ -2187,7 +2187,7 @@ summaries will include the failing condition.
 
 +++
 *** New utility function 'insert-into-buffer'.
-This is like 'insert-into-buffer', but works in the opposite direction.
+This is like 'insert-buffer-substring, but works in the opposite direction.
 
 +++
 *** New user option 'lock-file-name-transforms'.
