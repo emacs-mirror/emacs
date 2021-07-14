@@ -1658,6 +1658,10 @@ starting with `not' and followed by regexps."
   "Face used for displaying MML."
   :group 'message-faces)
 
+(defface message-signature-separator '((t :bold t))
+  "Face used for displaying the signature separator."
+  :group 'message-faces)
+
 (defun message-match-to-eoh (_limit)
   (let ((start (point)))
     (rfc822-goto-eoh)
@@ -1751,8 +1755,21 @@ number of levels specified in the faces `message-cited-text-*'."
                 (0 ',cited-text-face))
               keywords))
        (setq level (1+ level)))
-     keywords))
+     keywords)
+   ;; Match signature.  This `field' stuff ensures that hitting `RET'
+   ;; after the signature separator doesn't remove the trailing space.
+   (list
+    '(message--match-signature (0 '( face message-signature-separator
+                                     rear-nonsticky t
+                                     field signature)))))
   "Additional expressions to highlight in Message mode.")
+
+(defun message--match-signature (limit)
+  (save-excursion
+    (and (re-search-forward message-signature-separator limit t)
+         ;; It's the last one in the buffer.
+         (not (save-excursion
+                (re-search-forward message-signature-separator nil t))))))
 
 (defvar message-face-alist
   '((bold . message-bold-region)
