@@ -809,7 +809,9 @@ WILDCARD is not supported."
 (defun tramp-crypt-handle-lock-file (filename)
   "Like `lock-file' for Tramp files."
   (let (tramp-crypt-enabled)
-    (lock-file (tramp-crypt-encrypt-file-name filename))))
+    ;; `lock-file' exists since Emacs 28.1.
+    (tramp-compat-funcall
+     'lock-file (tramp-crypt-encrypt-file-name filename))))
 
 (defun tramp-crypt-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -865,7 +867,9 @@ WILDCARD is not supported."
 (defun tramp-crypt-handle-unlock-file (filename)
   "Like `unlock-file' for Tramp files."
   (let (tramp-crypt-enabled)
-    (unlock-file (tramp-crypt-encrypt-file-name filename))))
+    ;; `unlock-file' exists since Emacs 28.1.
+    (tramp-compat-funcall
+     'unlock-file (tramp-crypt-encrypt-file-name filename))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

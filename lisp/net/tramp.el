@@ -3873,43 +3873,44 @@ Return nil when there is no lockfile."
 	          (format
 	           "%s@%s.%s" (user-login-name) (system-name)
 	           (tramp-get-lock-pid file))))
+
+	;; Protect against security hole.
+	(with-parsed-tramp-file-name file nil
+	  (when (and (not tramp-allow-unsafe-temporary-files)
+		     (file-in-directory-p lockname temporary-file-directory)
+		     (zerop (or (tramp-compat-file-attribute-user-id
+				 (file-attributes file 'integer))
+				tramp-unknown-id-integer))
+		     (not (with-tramp-connection-property
+			      (tramp-get-process v) "unsafe-temporary-file"
+			    (yes-or-no-p
+			     (concat
+			      "Lock file on local temporary directory, "
+			      "do you want to continue? ")))))
+	    (tramp-error v 'file-error "Unsafe lock file name")))
+
+	;; Do the lock.
         (let (create-lockfiles signal-hook-function)
 	  (condition-case nil
 	      (make-symbolic-link info lockname 'ok-if-already-exists)
 	    (error
-             (write-region info nil lockname)
-             (set-file-modes lockname #o0644))))))))
+	     (with-file-modes #o0644
+               (write-region info nil lockname)))))))))
 
 (defun tramp-handle-make-lock-file-name (file)
   "Like `make-lock-file-name' for Tramp files."
-  (when (and create-lockfiles
-	     ;; This variable has been introduced with Emacs 28.1.
-	     (not (bound-and-true-p remote-file-name-inhibit-locks)))
-    (with-parsed-tramp-file-name file nil
-      (let ((result
-	     ;; Run plain `make-lock-file-name'.
-	     (tramp-run-real-handler #'make-lock-file-name (list file))))
-	;; Protect against security hole.
-	(when (and (not tramp-allow-unsafe-temporary-files)
-		   (file-in-directory-p result temporary-file-directory)
-		   (zerop (or (tramp-compat-file-attribute-user-id
-			       (file-attributes file 'integer))
-			      tramp-unknown-id-integer))
-		   (not (with-tramp-connection-property
-			    (tramp-get-process v) "unsafe-temporary-file"
-			  (yes-or-no-p
-			   (concat
-			    "Lock file on local temporary directory, "
-			    "do you want to continue? ")))))
-	  (tramp-error v 'file-error "Unsafe lock file name"))
-	result))))
+  (and create-lockfiles
+       ;; This variable has been introduced with Emacs 28.1.
+       (not (bound-and-true-p remote-file-name-inhibit-locks))
+       (tramp-run-real-handler 'make-lock-file-name (list file))))
 
 (defun tramp-handle-unlock-file (file)
   "Like `unlock-file' for Tramp files."
   (when-let ((lockname (tramp-compat-make-lock-file-name file)))
     (condition-case err
         (delete-file lockname)
-      (error (userlock--handle-unlock-error err)))))
+      ;; `userlock--handle-unlock-error' exists since Emacs 28.1.
+      (error (tramp-compat-funcall 'userlock--handle-unlock-error err)))))
 
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."

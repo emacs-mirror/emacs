@@ -3272,7 +3272,8 @@ implementation will be used."
 	       (or (file-directory-p localname)
 		   (file-writable-p localname)))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (write-region start end localname append 'no-message lockname)
+	  (let ((create-lockfiles (not file-locked)))
+	    (write-region start end localname append 'no-message lockname))
 
 	(let* ((modes (tramp-default-file-modes
 		       filename (and (eq mustbenew 'excl) 'nofollow)))

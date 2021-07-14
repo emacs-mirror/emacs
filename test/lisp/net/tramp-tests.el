@@ -63,6 +63,8 @@
 (declare-function tramp-smb-get-localname "tramp-smb")
 (defvar ange-ftp-make-backup-files)
 (defvar auto-save-file-name-transforms)
+(defvar lock-file-name-transforms)
+(defvar remote-file-name-inhibit-locks)
 (defvar tramp-connection-properties)
 (defvar tramp-copy-size-limit)
 (defvar tramp-display-escape-sequence-regexp)
@@ -122,6 +124,7 @@
 (setq auth-source-save-behavior nil
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
+      tramp-allow-unsafe-temporary-files t
       tramp-cache-read-persistent-data t ;; For auth-sources.
       tramp-copy-size-limit nil
       tramp-persistency-file-name nil
@@ -5481,7 +5484,8 @@ Use direct async.")
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
-	  (tmp-name2 (tramp--test-make-temp-name nil quoted)))
+	  (tmp-name2 (tramp--test-make-temp-name nil quoted))
+	  tramp-allow-unsafe-temporary-files)
 
       (unwind-protect
 	  (progn
@@ -5569,8 +5573,7 @@ Use direct async.")
 
 	    ;; Create temporary file.  This shall check for sensible
 	    ;; files, owned by root.
-	    (let ((tramp-auto-save-directory temporary-file-directory)
-		  tramp-allow-unsafe-temporary-files)
+	    (let ((tramp-auto-save-directory temporary-file-directory))
 	      (write-region "foo" nil tmp-name1)
 	      (when (zerop (or (tramp-compat-file-attribute-user-id
 				(file-attributes tmp-name1))
@@ -5606,6 +5609,7 @@ Use direct async.")
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	  (tmp-name2 (tramp--test-make-temp-name nil quoted))
 	  (ange-ftp-make-backup-files t)
+	  tramp-allow-unsafe-temporary-files
 	  ;; These settings are not used by Tramp, so we ignore them.
 	  version-control delete-old-versions
 	  (kept-old-versions (default-toplevel-value 'kept-old-versions))
@@ -5716,7 +5720,6 @@ Use direct async.")
 	  ;; Create temporary file.  This shall check for sensible
 	  ;; files, owned by root.
 	  (let ((backup-directory-alist `(("." . ,temporary-file-directory)))
-		tramp-allow-unsafe-temporary-files
 		tramp-backup-directory-alist)
 	    (write-region "foo" nil tmp-name1)
 	    (when (zerop (or (tramp-compat-file-attribute-user-id
@@ -5749,13 +5752,18 @@ Use direct async.")
   (skip-unless (not (tramp--test-ange-ftp-p)))
   ;; Since Emacs 28.1.
   (skip-unless (and (fboundp 'lock-file) (fboundp 'unlock-file)))
+  (skip-unless (and (fboundp 'file-locked-p) (fboundp 'make-lock-file-name)))
 
+  ;; `lock-file', `unlock-file', `file-locked-p' and
+  ;; `make-lock-file-name' exists since Emacs 28.1.  We don't want to
+  ;; see compiler warnings for older Emacsen.
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	  (tmp-name2 (tramp--test-make-temp-name nil quoted))
 	  (remote-file-name-inhibit-cache t)
 	  (remote-file-name-inhibit-locks nil)
 	  (create-lockfiles t)
+	  tramp-allow-unsafe-temporary-files
           (inhibit-message t)
 	  ;; tramp-rclone.el and tramp-sshfs.el cache the mounted files.
 	  (tramp-cleanup-connection-hook
@@ -5767,24 +5775,24 @@ Use direct async.")
       (unwind-protect
 	  (progn
 	    ;; A simple file lock.
-	    (should-not (file-locked-p tmp-name1))
-	    (lock-file tmp-name1)
-	    (should (eq (file-locked-p tmp-name1) t))
+	    (should-not (with-no-warnings (file-locked-p tmp-name1)))
+	    (with-no-warnings (lock-file tmp-name1))
+	    (should (eq (with-no-warnings (file-locked-p tmp-name1)) t))
 
 	    ;; If it is locked already, nothing changes.
-	    (lock-file tmp-name1)
-	    (should (eq (file-locked-p tmp-name1) t))
+	    (with-no-warnings (lock-file tmp-name1))
+	    (should (eq (with-no-warnings (file-locked-p tmp-name1)) t))
 
 	    ;; A new connection changes process id, and also the
 	    ;; lockname contents.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-	    (should (stringp (file-locked-p tmp-name1)))
+	    (should (stringp (with-no-warnings (file-locked-p tmp-name1))))
 
 	    ;; When `remote-file-name-inhibit-locks' is set, nothing happens.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (let ((remote-file-name-inhibit-locks t))
-	      (lock-file tmp-name1)
-	      (should-not (file-locked-p tmp-name1)))
+	      (with-no-warnings (lock-file tmp-name1))
+	      (should-not (with-no-warnings (file-locked-p tmp-name1))))
 
 	    ;; When `lock-file-name-transforms' is set, another lock
 	    ;; file is used.
@@ -5792,48 +5800,77 @@ Use direct async.")
 	    (let ((lock-file-name-transforms `((".*" ,tmp-name2))))
 	      (should
 	       (string-equal
-		(make-lock-file-name tmp-name1)
-		(make-lock-file-name tmp-name2)))
-	      (lock-file tmp-name1)
-	      (should (eq (file-locked-p tmp-name1) t))
-	      (unlock-file tmp-name1)
-	      (should-not (file-locked-p tmp-name1)))
+		(with-no-warnings (make-lock-file-name tmp-name1))
+		(with-no-warnings (make-lock-file-name tmp-name2))))
+	      (with-no-warnings (lock-file tmp-name1))
+	      (should (eq (with-no-warnings (file-locked-p tmp-name1)) t))
+	      (with-no-warnings (unlock-file tmp-name1))
+	      (should-not (with-no-warnings (file-locked-p tmp-name1))))
 
 	    ;; Steal the file lock.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?s)))
-	      (lock-file tmp-name1))
-	    (should (eq (file-locked-p tmp-name1) t))
+	      (with-no-warnings (lock-file tmp-name1)))
+	    (should (eq (with-no-warnings (file-locked-p tmp-name1)) t))
 
 	    ;; Ignore the file lock.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?p)))
-	      (lock-file tmp-name1))
-	    (should (stringp (file-locked-p tmp-name1)))
+	      (with-no-warnings (lock-file tmp-name1)))
+	    (should (stringp (with-no-warnings (file-locked-p tmp-name1))))
 
 	    ;; Quit the file lock machinery.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (cl-letf (((symbol-function #'read-char) (lambda (&rest _args) ?q)))
-	      (should-error (lock-file tmp-name1) :type 'file-locked)
+	      (with-no-warnings
+		(should-error
+		 (lock-file tmp-name1)
+		 :type 'file-locked))
 	      ;; The same for `write-region'.
 	      (should-error
-	       (write-region "foo" nil tmp-name1) :type 'file-locked)
+	       (write-region "foo" nil tmp-name1)
+	       :type 'file-locked)
 	      (should-error
 	       (write-region "foo" nil tmp-name1 nil nil tmp-name1)
                :type 'file-locked)
 	      ;; The same for `set-visited-file-name'.
               (with-temp-buffer
 	        (should-error
-                 (set-visited-file-name tmp-name1) :type 'file-locked)))
-	    (should (stringp (file-locked-p tmp-name1)))
+                 (set-visited-file-name tmp-name1)
+		 :type 'file-locked)))
+	    (should (stringp (with-no-warnings (file-locked-p tmp-name1))))
 	    (should-not (file-exists-p tmp-name1)))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name1))
-	(unlock-file tmp-name1)
-	(unlock-file tmp-name2)
-	(should-not (file-locked-p tmp-name1))
-	(should-not (file-locked-p tmp-name2))))))
+	(with-no-warnings (unlock-file tmp-name1))
+	(with-no-warnings (unlock-file tmp-name2))
+	(should-not (with-no-warnings (file-locked-p tmp-name1)))
+	(should-not (with-no-warnings (file-locked-p tmp-name2))))
+
+      (unwind-protect
+	  ;; Create temporary file.  This shall check for sensible
+	  ;; files, owned by root.
+	  (let ((lock-file-name-transforms auto-save-file-name-transforms))
+	    (write-region "foo" nil tmp-name1)
+	    (when (zerop (or (tramp-compat-file-attribute-user-id
+			      (file-attributes tmp-name1))
+			     tramp-unknown-id-integer))
+	      (tramp-cleanup-connection
+	       tramp-test-vec 'keep-debug 'keep-password)
+	      (cl-letf (((symbol-function #'yes-or-no-p) #'ignore))
+		(should-error
+		 (write-region "foo" nil tmp-name1)
+		 :type 'file-error))
+	      (tramp-cleanup-connection
+	       tramp-test-vec 'keep-debug 'keep-password)
+	      (cl-letf (((symbol-function #'yes-or-no-p)
+			 #'tramp--test-always))
+		(write-region "foo" nil tmp-name1))))
+
+	;; Cleanup.
+	(ignore-errors (delete-file tmp-name1))
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)))))
 
 ;; The functions were introduced in Emacs 26.1.
 (ert-deftest tramp-test40-make-nearby-temp-file ()
