@@ -7774,6 +7774,13 @@ tiff_image_p (Lisp_Object object)
 
 # include <tiffio.h>
 
+/* libtiff version 4.3.0 deprecated uint32 typedef.  */
+#if TIFFLIB_VERSION >= 20210416
+# define UINT32 uint32_t
+#else
+# define UINT32 uint32
+#endif
+
 # ifdef WINDOWSNT
 
 /* TIFF library details.  */
@@ -7785,7 +7792,7 @@ DEF_DLL_FN (TIFF *, TIFFClientOpen,
 	     TIFFReadWriteProc, TIFFSeekProc, TIFFCloseProc, TIFFSizeProc,
 	     TIFFMapFileProc, TIFFUnmapFileProc));
 DEF_DLL_FN (int, TIFFGetField, (TIFF *, ttag_t, ...));
-DEF_DLL_FN (int, TIFFReadRGBAImage, (TIFF *, uint32, uint32, uint32 *, int));
+DEF_DLL_FN (int, TIFFReadRGBAImage, (TIFF *, UINT32, UINT32, UINT32 *, int));
 DEF_DLL_FN (void, TIFFClose, (TIFF *));
 DEF_DLL_FN (int, TIFFSetDirectory, (TIFF *, tdir_t));
 
@@ -7977,7 +7984,7 @@ tiff_load (struct frame *f, struct image *img)
   Lisp_Object specified_data;
   TIFF *tiff;
   int width, height, x, y, count;
-  uint32 *buf;
+  UINT32 *buf;
   int rc;
   Emacs_Pix_Container ximg;
   tiff_memory_source memsrc;
@@ -8103,11 +8110,11 @@ tiff_load (struct frame *f, struct image *img)
   /* Process the pixel raster.  Origin is in the lower-left corner.  */
   for (y = 0; y < height; ++y)
     {
-      uint32 *row = buf + y * width;
+      UINT32 *row = buf + y * width;
 
       for (x = 0; x < width; ++x)
 	{
-	  uint32 abgr = row[x];
+	  UINT32 abgr = row[x];
 	  int r = TIFFGetR (abgr) << 8;
 	  int g = TIFFGetG (abgr) << 8;
 	  int b = TIFFGetB (abgr) << 8;
