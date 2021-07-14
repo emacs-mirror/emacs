@@ -4764,7 +4764,9 @@ mark_maybe_pointer (void *p, bool symbol_only)
 	 from Emacs source code, it can occur in some cases.  To fix
 	 this problem, the pdumper code should grok non-initial
 	 addresses, as the non-pdumper code does.  */
-      void *po = (void *) ((uintptr_t) p & (uintptr_t) VALMASK);
+      uintptr_t mask = VALMASK & UINTPTR_MAX;
+      uintptr_t masked_p = (uintptr_t) p & mask;
+      void *po = (void *) masked_p;
       char *cp = p;
       char *cpo = po;
       /* Don't use pdumper_object_p_precise here! It doesn't check the
