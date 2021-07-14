@@ -5842,7 +5842,13 @@ Can be `untabify' -- turn a tab to many spaces, then delete one space;
 (defun backward-delete-char-untabify (arg &optional killp)
   "Delete characters backward, changing tabs into spaces.
 The exact behavior depends on `backward-delete-char-untabify-method'.
+
 Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
+
+If Transient Mark mode is enabled, the mark is active, and ARG is 1,
+delete the text in the region and deactivate the mark instead.
+To disable this, set option ‘delete-active-region’ to nil.
+
 Interactively, ARG is the prefix arg (default 1)
 and KILLP is t if a prefix arg was specified."
   (interactive "*p\nP")
