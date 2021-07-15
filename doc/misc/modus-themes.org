@@ -2,12 +2,12 @@
 #+author: Protesilaos Stavrou
 #+email: info@protesilaos.com
 #+language: en
-#+options: ':t toc:nil author:t email:t
+#+options: ':t toc:nil author:t email:t num:t
 #+startup: content
 
-#+macro: stable-version 1.4.0
-#+macro: release-date 2021-05-25
-#+macro: development-version 1.5.0-dev
+#+macro: stable-version 1.5.0
+#+macro: release-date 2021-07-15
+#+macro: development-version 1.6.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -245,8 +245,11 @@ a theme with either of the following expressions:
 #+end_src
 
 Changes to the available customization options must always be evaluated
-before loading a theme ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization Options]]).  This is how a basic
-setup could look like:
+before loading a theme ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization Options]]).  An exception to this
+norm is when using the various Custom interfaces or with commands like
+{{{kbd(M-x customize-set-variable)}}}, which automatically reload the theme by
+default ([[#h:9001527a-4e2c-43e0-98e8-3ef72d770639][Option for inhibiting theme reload]]).  This is how a basic setup
+could look like:
 
 #+begin_src emacs-lisp
 (require 'modus-themes)
@@ -294,9 +297,9 @@ package configurations in their setup.  We use this as an example:
   :ensure                         ; omit this to use the built-in themes
   :init
   ;; Add all your customizations prior to loading the themes
-  (setq modus-themes-slanted-constructs t
+  (setq modus-themes-italic-constructs t
         modus-themes-bold-constructs nil
-        modus-themes-region 'no-extend)
+        modus-themes-region '(bg-only no-extend))
 
   ;; Load the theme files before enabling a theme (else you get an error).
   (modus-themes-load-themes)
@@ -366,7 +369,7 @@ configure custom faces, where ~load-theme~ is expected, though
 
 The Modus themes are highly configurable, though they should work well
 without any further tweaks.  By default, all customization options are
-set to nil.
+set to nil, unless otherwise noted in this manual.
 
 Remember that all customization options must be evaluated before loading
 a theme ([[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]]).
@@ -375,68 +378,78 @@ Below is a summary of what you will learn in the subsequent sections of
 this manual.
 
 #+begin_src emacs-lisp
-(setq modus-themes-slanted-constructs t
+(setq modus-themes-italic-constructs t
       modus-themes-bold-constructs nil
       modus-themes-no-mixed-fonts nil
       modus-themes-subtle-line-numbers nil
       modus-themes-success-deuteranopia t
+      modus-themes-inhibit-reload t ; only applies to `customize-set-variable' and related
 
       modus-themes-fringes nil ; {nil,'subtle,'intense}
 
-      ;; Options for `modus-themes-lang-checkers': nil,
-      ;; 'straight-underline, 'subtle-foreground,
-      ;; 'subtle-foreground-straight-underline, 'intense-foreground,
-      ;; 'intense-foreground-straight-underline, 'colored-background
+      ;; Options for `modus-themes-lang-checkers' are either nil (the
+      ;; default), or a list of properties that may include any of those
+      ;; symbols: `straight-underline', `text-also', `background',
+      ;; `intense'
       modus-themes-lang-checkers nil
 
-      ;; Options for `modus-themes-mode-line': nil, '3d, 'moody,
-      ;; 'borderless, 'borderless-3d, 'borderless-moody, 'accented,
-      ;; 'accented-3d, 'accented-moody, 'borderless-accented,
-      ;; 'borderless-accented-3d, 'borderless-accented-moody
-      modus-themes-mode-line '3d
+      ;; Options for `modus-themes-mode-line' are either nil, or a list
+      ;; that can combine any of `3d' OR `moody', `borderless',
+      ;; `accented'.  The variable's doc string shows all possible
+      ;; combinations.
+      modus-themes-mode-line '(3d accented)
 
-      ;; Options for `modus-themes-syntax': nil, 'faint,
-      ;; 'yellow-comments, 'green-strings,
-      ;; 'yellow-comments-green-strings, 'alt-syntax,
-      ;; 'alt-syntax-yellow-comments, 'faint-yellow-comments
+      ;; Options for `modus-themes-syntax' are either nil (the default),
+      ;; or a list of properties that may include any of those symbols:
+      ;; `faint', `yellow-comments', `green-strings', `alt-syntax'
       modus-themes-syntax nil
 
-      ;; Options for `modus-themes-hl-line': nil, 'intense-background,
-      ;; 'accented-background, 'underline-neutral,
-      ;; 'underline-accented, 'underline-only-neutral,
-      ;; 'underline-only-accented
-      modus-themes-hl-line 'underline-neutral
+      ;; Options for `modus-themes-hl-line' are either nil (the default),
+      ;; or a list of properties that may include any of those symbols:
+      ;; `accented', `underline', `intense'
+      modus-themes-hl-line '(underline accented)
 
-      modus-themes-paren-match 'subtle-bold ; {nil,'subtle-bold,'intense,'intense-bold}
+      ;; Options for `modus-themes-paren-match' are either nil (the
+      ;; default), or a list of properties that may include any of those
+      ;; symbols: `bold', `intense', `underline'
+      modus-themes-paren-match '(bold intense)
 
-      ;; Options for `modus-themes-links': nil, 'faint,
-      ;; 'neutral-underline, 'faint-neutral-underline, 'no-underline,
-      ;; 'underline-only, 'neutral-underline-only
-      modus-themes-links 'neutral-underline
+      ;; Options for `modus-themes-links' are either nil (the default),
+      ;; or a list of properties that may include any of those symbols:
+      ;; `neutral-underline' OR `no-underline', `faint' OR `no-color',
+      ;; `bold', `italic', `background'
+      modus-themes-links '(neutral-underline background)
 
-      ;; Options for `modus-themes-prompts': nil, 'subtle-accented,
-      ;; 'intense-accented, 'subtle-gray, 'intense-gray
-      modus-themes-prompts 'subtle-gray
+      ;; Options for `modus-themes-prompts' are either nil (the
+      ;; default), or a list of properties that may include any of those
+      ;; symbols: `background', `bold', `gray', `intense', `italic'
+      modus-themes-prompts '(intense bold)
 
       modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
 
       modus-themes-mail-citations nil ; {nil,'faint,'monochrome}
 
-      ;; Options for `modus-themes-region': nil, 'no-extend, 'bg-only,
-      ;; 'bg-only-no-extend, 'accent, 'accent-no-extend
-      modus-themes-region 'bg-only-no-extend
+      ;; Options for `modus-themes-region' are either nil (the default),
+      ;; or a list of properties that may include any of those symbols:
+      ;; `no-extend', `bg-only', `accented'
+      modus-themes-region '(bg-only no-extend)
 
       ;; Options for `modus-themes-diffs': nil, 'desaturated,
       ;; 'bg-only, 'deuteranopia, 'fg-only-deuteranopia
       modus-themes-diffs 'fg-only-deuteranopia
 
       modus-themes-org-blocks 'gray-background ; {nil,'gray-background,'tinted-background}
-      modus-themes-org-habit nil ; {nil,'simplified,'traffic-light}
+
+      modus-themes-org-agenda ; this is an alist: read the manual or its doc string
+      '((header-block . (variable-pitch scale-title))
+        (header-date . (grayscale workaholic bold-today))
+        (scheduled . uniform)
+        (habit . traffic-light-deuteranopia))
 
       modus-themes-headings ; this is an alist: read the manual or its doc string
-      '((1 . line)
-        (2 . rainbow-line-no-bold)
-        (t . no-bold))
+      '((1 . (overline background))
+        (2 . (rainbow overline))
+        (t . (no-bold)))
 
       modus-themes-variable-pitch-ui nil
       modus-themes-variable-pitch-headings t
@@ -445,8 +458,29 @@ this manual.
       modus-themes-scale-2 1.15
       modus-themes-scale-3 1.21
       modus-themes-scale-4 1.27
-      modus-themes-scale-5 1.33)
+      modus-themes-scale-title 1.33)
 #+end_src
+
+** Option for inhibiting theme reload
+:properties:
+:alt_title: Custom reload theme
+:description: Toggle auto-reload of the theme when setting custom variables
+:custom_id: h:9001527a-4e2c-43e0-98e8-3ef72d770639
+:end:
+#+vindex: modus-themes-inhibit-reload
+
+Symbol: ~modus-themes-inhibit-reload~
+
+Possible values:
+
+1. ~nil~ 
+2. ~t~ (default)
+
+By default, customizing a theme-related user option through the Custom
+interfaces or with {{{kbd(M-x customize-set-variable)}}} will not reload the
+currently active Modus theme.
+
+Enable this behaviour by setting this variable to ~nil~.
 
 ** Option for color-coding success state (deuteranopia)
 :properties:
@@ -501,26 +535,36 @@ weight.  This concerns keywords and other important aspects of code
 syntax.  It also affects certain mode line indicators and command-line
 prompts.
 
-** Option for more slanted constructs
+Advanced users may also want to configure the exact attributes of the
+~bold~ face.
+
+[[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
+
+** Option for more italic constructs
 :properties:
-:alt_title: Slanted constructs
-:description: Toggle slanted constructs (italics) in code
+:alt_title: Italic constructs
+:description: Toggle italic font constructs in code
 :custom_id: h:977c900d-0d6d-4dbb-82d9-c2aae69543d6
 :end:
-#+vindex: modus-themes-slanted-constructs
+#+vindex: modus-themes-italic-constructs
 
-Symbol: ~modus-themes-slanted-constructs~
+Symbol: ~modus-themes-italic-constructs~
 
 Possible values:
 
 1. ~nil~ (default)
 2. ~t~
 
-The default is to not use slanted text (italics) unless it is absolutely
-necessary.
+The default is to not use slanted text forms (italics) unless it is
+absolutely necessary.
 
-With a non-nil value (~t~) choose to render more faces in slanted text.
-This typically affects documentation strings and code comments.
+With a non-nil value (~t~) choose to render more faces in italics.  This
+typically affects documentation strings and code comments.
+
+Advanced users may also want to configure the exact attributes of the
+~italic~ face.
+
+[[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
 
 ** Option for syntax highlighting
 :properties:
@@ -532,44 +576,57 @@ This typically affects documentation strings and code comments.
 
 Symbol: ~modus-themes-syntax~
 
-Possible values:
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
 
-1. ~nil~ (default)
-2. ~faint~
-3. ~yellow-comments~
-4. ~green-strings~
-5. ~yellow-comments-green-strings~
-6. ~alt-syntax~
-7. ~alt-syntax-yellow-comments~
-8. ~faint-yellow-comments~
++ ~faint~
++ ~yellow-comments~
++ ~green-strings~
++ ~alt-syntax~
 
-The default style (nil) for code syntax highlighting is a balanced
+The default (a ~nil~ value or an empty list) is to use a balanced
 combination of colors on the cyan-blue-magenta side of the spectrum.
-There is little to no use of greens, yellows, or reds, except when it is
-necessary.
+There is little to no use of greens, yellows, and reds.  Comments are
+gray, strings are blue colored, doc strings are a shade of cyan, while
+color combinations are designed to avoid exaggerations.
 
-Option ~faint~ is like the default in terms of the choice of palette but
-applies desaturated color values.
+The property ~faint~ fades the saturation of all applicable colors, where
+that is possible or appropriate.
 
-Option ~yellow-comments~ adds a yellow tint to comments.  The rest of the
-syntax is the same as the default.
+The property ~yellow-comments~ applies a yellow color to comments.
 
-Option ~green-strings~ replaces the blue/cyan/cold color variants in
-strings with greener alternatives.  The rest of the syntax remains the
-same.
+The property ~green-strings~ applies a green color to strings and a green
+tint to doc strings.
 
-Option ~yellow-comments-green-strings~ combines yellow comments with green
-strings and the rest of the default syntax highlighting style.
+The property ~alt-syntax~ changes the combination of colors beyond strings
+and comments, so that the effective palette is broadened to provide
+greater variety relative to the default.
 
-Option ~alt-syntax~ expands the active spectrum by applying color
-combinations with more contrasting hues between them.  Expect to find
-red and green variants in addition to cyan, blue, magenta.
+Combinations of any of those properties are expressed as a list, like in
+these examples:
 
-Option ~alt-syntax-yellow-comments~ combines ~alt-syntax~ with
-~yellow-comments~.
+#+begin_src emacs-lisp
+(faint)
+(green-strings yellow-comments)
+(alt-syntax green-strings yellow-comments)
+(faint alt-syntax green-strings yellow-comments)
+#+end_src
 
-Option ~faint-yellow-comments~ combines the ~faint~ style with
-~yellow-comments~.
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-syntax '(faint alt-syntax))
+#+end_src
+
+Independent of this variable, users may also control the use of a bold
+weight or italic text: ~modus-themes-bold-constructs~ and
+~modus-themes-italic-constructs~.
+
+[[#h:b25714f6-0fbe-41f6-89b5-6912d304091e][Option for more bold constructs]].
+
+[[#h:977c900d-0d6d-4dbb-82d9-c2aae69543d6][Option for more italic constructs]].
 
 ** Option for no font mixing
 :properties:
@@ -611,43 +668,66 @@ are ~org-variable-pitch~ and ~mixed-pitch~.
 
 Symbol: ~modus-themes-links~
 
-Possible values:
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
 
-1. ~nil~ (default)
-2. ~faint~
-3. ~neutral-underline~
-4. ~faint-neutral-underline~
-5. ~no-underline~
-6. ~underline-only~
-7. ~neutral-underline-only~
++ Underline style:
+  - ~neutral-underline~
+  - ~no-underline~
++ Text coloration:
+  - ~faint~
+  - ~no-color~
++ ~bold~
++ ~italic~
++ ~background~
 
-The default style (nil) for links is to apply an underline and a
-saturated color to the affected text.  The color of the two is the same,
-which makes the link fairly prominent.
+The default (a ~nil~ value or an empty list) is a prominent text color,
+typically blue, with an underline of the same color.
 
-Option ~faint~ follows the same approach as the default, but uses less
-intense colors.
+For the style of the underline, a ~neutral-underline~ property turns the
+color of the line into a subtle gray, while the ~no-underline~ property
+removes the line altogether.  If both of those are set, the latter takes
+precedence.
 
-Option ~neutral-underline~ changes the underline's color to a subtle gray,
-while retaining the default text color.
+For text coloration, a ~faint~ property desaturates the color of the text
+and the underline, unless the underline is affected by the
+aforementioned properties.  While a ~no-color~ property removes the color
+from the text.  If both of those are set, the latter takes precedence.
 
-Option ~faint-neutral-underline~ combines a desaturated text color with a
-subtle gray underline.
+A ~bold~ property applies a heavy typographic weight to the text of the
+link.
 
-Option ~no-underline~ removes link underlines altogether, while retaining
-their original fairly vivid color.
+An ~italic~ property adds a slant to the link's text (italic or oblique
+forms, depending on the typeface).
 
-Option ~underline-only~ applies a prominent underline while making the
-affected text colorless (it uses the same foreground as the theme's
-default).
+A ~background~ property applies a subtle tinted background color.
 
-Option ~neutral-underline-only~ makes the text colorless while using a
-subtle gray underline below it.
+In case both ~no-underline~ and ~no-color~ are set, then a subtle gray
+background is applied to all links.  This can still be combined with the
+~bold~ and ~italic~ properties.
 
-NOTE: The placement of the underline, i.e. its proximity to the affected
-text, is controlled by the built-in ~x-underline-at-descent-line~,
-~x-use-underline-position-properties~, ~underline-minimum-offset~.  Please
-refer to their documentation strings.
+Combinations of any of those properties are expressed as a list,
+like in these examples:
+
+#+begin_src emacs-lisp
+(faint)
+(no-underline faint)
+(no-color no-underline bold)
+(italic bold background no-color no-underline)
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-links '(neutral-underline background))
+#+end_src
+
+The placement of the underline, meaning its proximity to the text, is
+controlled by ~x-use-underline-position-properties~,
+~x-underline-at-descent-line~, ~underline-minimum-offset~.  Please refer to
+their documentation strings.
 
 ** Option for command prompt styles
 :properties:
@@ -659,27 +739,51 @@ refer to their documentation strings.
 
 Symbol: ~modus-themes-prompts~
 
-Possible values:
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
 
-1. ~nil~ (default)
-2. ~subtle-accented~ (~subtle~ exists for backward compatibility)
-3. ~intense-accented~ (~intense~ exists for backward compatibility)
-4. ~subtle-gray~
-5. ~intense-gray~
++ ~background~
++ ~bold~
++ ~gray~
++ ~intense~
++ ~italic~
 
-The default does not use any background for minibuffer and command line
-prompts.  It relies exclusively on an accented foreground color.
+The default (a ~nil~ value or an empty list) means to only use a subtle
+accented foreground color.
 
-Options ~subtle-accented~ and ~intense-accented~ will change both the
-background and the foreground values to use accented color combinations
-that follow the hue of the default styles' foreground (e.g. the default
-minibuffer prompt is cyan text, so these combinations will involved a
-cyan background and an appropriate cyan foreground).  The difference
-between the two is that the latter has a more pronounced/noticeable
-effect than the former.
+The property ~background~ applies a background color to the prompt's text.
+By default, this is a subtle accented value.
 
-Options ~subtle-gray~, ~intense-gray~ are like their accented counterparts,
-except they use grayscale values.
+The property ~intense~ makes the foreground color more prominent.  If the
+~background~ property is also set, it amplifies the value of the
+background as well.
+
+The property ~gray~ changes the prompt's colors to grayscale.  This
+affects the foreground and, if the ~background~ property is also set, the
+background.  Its effect is subtle, unless it is combined with the
+~intense~ property.
+
+The property ~bold~ makes the text use a bold typographic weight.
+Similarly, ~italic~ adds a slant to the font's forms (italic or oblique
+forms, depending on the typeface).
+
+Combinations of any of those properties are expressed as a list, like in
+these examples:
+
+#+begin_src emacs-lisp
+(intense)
+(bold intense)
+(intense bold gray)
+(intense background gray bold)
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-prompts '(background gray))
+#+end_src
 
 ** Option for mode line presentation
 :properties:
@@ -691,83 +795,78 @@ except they use grayscale values.
 
 Symbol: ~modus-themes-mode-line~
 
-Possible values:
+Possible values, which can be expressed as a list of combinations of box
+effect, color, and border visibility:
 
-1. ~nil~ (default)
-2. ~3d~
-3. ~moody~
-4. ~borderless~
-5. ~borderless-3d~
-6. ~borderless-moody~
-7. ~accented~
-8. ~accented-3d~
-9. ~accented-moody~
-10. ~borderless-accented~
-11. ~borderless-accented-3d~
-12. ~borderless-accented-moody~
++ Overall style:
+  - ~3d~
+  - ~moody~
++ ~accented~
++ ~borderless~
 
-The default produces a two-dimensional effect both for the active and
-inactive mode lines.  The differences between the two are limited to
-distinct shades of grayscale values, with the active being more intense
-than the inactive.
+The default (a nil value or an empty list) is a two-dimensional
+rectangle with a border around it.  The active and the inactive
+mode lines use different shades of grayscale values for the
+background, foreground, border.
 
-Option ~3d~ will make the active mode line look like a three-dimensional
-rectangle.  Inactive mode lines remain 2D, though they are slightly
-toned down relative to the default.  This aesthetic is virtually the
-same as what you get when you run Emacs without any customizations
-(=emacs -Q= on the command line).
+The ~3d~ property applies a three-dimensional effect to the
+active mode line.  The inactive mode lines remain two-dimensional
+and are toned down a bit, relative to the default style.
 
-While ~moody~ removes all box effects from the mode lines and applies
-underline and overline properties instead.  It also tones down a bit the
-inactive mode lines.  This is meant to optimize things for use with the
-[[https://github.com/tarsius/moody][moody package]] (hereinafter referred to as "Moody"), though it can work
-fine even without it.
+The ~moody~ property optimizes the mode line for use with the
+library of the same name (hereinafter referred to as 'Moody').
+In practice, it removes the box effect and replaces it with
+underline and overline properties.  It also tones down the
+inactive mode lines.  Despite its intended purpose, this option
+can also be used without the Moody library (please consult the
+themes' manual on this point for more details).  If both ~3d~ and
+~moody~ properties are set, the latter takes precedence.
 
-The ~borderless~ option uses the same colors as the default (nil value),
-but removes the border effect.  This is done by making the box property
-use the same color as the background, effectively blending the two and
-creating some padding.
+The ~borderless~ property removes the color of the borders.  It
+does not actually remove the borders, but only makes their color
+the same as the background, effectively creating some padding.
 
-The ~borderless-3d~ and ~borderless-moody~ approximate the ~3d~ and ~moody~
-options respectively, while removing the borders.  However, to ensure
-that the inactive mode lines remain visible, they apply a slightly more
-prominent background to them than what their counterparts do (same
-inactive background as with the default).
+The ~accented~ property ensures that the active mode line uses a
+colored background instead of the standard shade of gray.
 
-Similarly, ~accented~, ~accented-3d~, and ~accented-moody~ correspond to the
-default (~nil~), ~3d~, and ~moody~ styles respectively, except that the active
-mode line uses a colored background instead of the standard shade of
-gray.
+Combinations of any of those properties are expressed as a list,
+like in these examples:
 
-Same principle for ~borderless-accented~, ~borderless-accented-3d~, and
-~borderless-accented-moody~ which use a colored background for the active
-mode line and have no discernible borders around both the active and
-inactive the mode lines.
+#+begin_src emacs-lisp
+(accented)
+(borderless 3d)
+(moody accented borderless)
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-prompts '(borderless accented))
+#+end_src
 
 Note that Moody does not expose any faces that the themes could style
 directly.  Instead it re-purposes existing ones to render its tabs and
 ribbons.  As such, there may be cases where the contrast ratio falls
 below the 7:1 target that the themes conform with (WCAG AAA).  To hedge
-against this, we configure a fallback foreground for the ~moody~ option,
+against this, we configure a fallback foreground for the ~moody~ property,
 which will come into effect when the background of the mode line changes
 to something less accessible, such as Moody ribbons (read the doc string
 of ~set-face-attribute~, specifically ~:distant-foreground~).  This fallback
 is activated when Emacs determines that the background and foreground of
 the given construct are too close to each other in terms of color
-distance.  In effect, users would need to experiment with the variable
+distance.  In practice, users will need to experiment with the variable
 ~face-near-same-color-threshold~ to trigger the effect.  We find that a
-value of =45000= will suffice, contrary to the default =30000=.  Though for
-the ~accented-moody~ value mentioned above, that should be raised up to
-=70000=.  Do not set it too high, because it has the adverse effect of
-always overriding the default colors (which have been carefully designed
-to be highly accessible).
+value of =45000= shall suffice, contrary to the default =30000=.  Though for
+the combinations that involve the ~accented~ and ~moody~ properties, as
+mentioned above, that should be raised up to =70000=.  Do not set it too
+high, because it has the adverse effect of always overriding the default
+colors (which have been carefully designed to be highly accessible).
 
 Furthermore, because Moody expects an underline and overline instead of
-a box style, it is advised you include this in your setup:
-
-#+begin_src emacs-lisp
-(setq x-underline-at-descent-line t)
-#+end_src
+a box style, it is advised to set ~x-underline-at-descent-line~ to a
+non-nil value.
 
 ** Option for completion framework aesthetics
 :properties:
@@ -877,43 +976,55 @@ names imply.
 
 Symbol: ~modus-themes-lang-checkers~
 
-Possible values:
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
 
-1. ~nil~ (default)
-2. ~subtle-foreground~
-3. ~intense-foreground~
-4. ~straight-underline~
-5. ~subtle-foreground-straight-underline~
-6. ~intense-foreground-straight-underline~
-7. ~colored-background~
++ ~straight-underline~
++ ~text-also~
++ ~background~
++ ~intense~
 
-Nil (the default) applies a color-coded underline to the affected text,
-while it leaves the original foreground in tact.  If the display spec
-where Emacs runs in has support for it (e.g. Emacs GUI), the underline's
-style is that of a wave, otherwise it is a straight line.
+The default (a ~nil~ value or an empty list) applies a color-coded
+underline to the affected text, while it leaves the original foreground
+intact.  If the display spec of Emacs has support for it, the
+underline's style is that of a wave, otherwise it is a straight line.
 
-Options ~subtle-foreground~ and ~intense-foreground~ follow the same
-color-coding pattern and wavy underline of the default, while extending
-it with a corresponding foreground value for the affected text.  The
-difference between the two options is one of degree, as their names
-suggest.
+The property ~straight-underline~ ensures that the underline under the
+affected text is always drawn as a straight line.
 
-Option ~straight-underline~ is like the default but always applies a
-straight line under the affected text.  Same principle for
-~subtle-foreground-straight-underline~ and its counterpart
-~intense-foreground-straight-underline~.
+The property ~text-also~ applies the same color of the underline to the
+affected text.
 
-Option ~colored-background~ uses a straight underline, a tinted
-background, and a suitable foreground.  All are color-coded.  This is
-the most intense combination of face properties.
+The property ~background~ adds a color-coded background.
 
-The present variable affects packages and/or face groups such as those
-of =flyspell=, =flymake=, =flycheck=, ~artbollocks-mode~, and ~writegood-mode~.
+The property ~intense~ amplifies the applicable colors if ~background~
+and/or ~text-only~ are set.  If ~intense~ is set on its own, then it implies
+~text-only~.
+
+To disable fringe indicators for Flymake or Flycheck, refer to variables
+~flymake-fringe-indicator-position~ and ~flycheck-indication-mode~,
+respectively.
+
+Combinations of any of those properties can be expressed in a
+list, as in those examples:
+
+#+begin_src emacs-lisp
+(background)
+(straight-underline intense)
+(background text-also straight-underline)
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-lang-checkers '(text-also background))
+#+end_src
 
 NOTE: The placement of the straight underline, though not the wave
-style, is controlled by the built-in ~x-underline-at-descent-line~,
-~x-use-underline-position-properties~, ~underline-minimum-offset~.  Please
-refer to their documentation strings.
+style, is controlled by the built-in variables ~underline-minimum-offset~,
+~x-underline-at-descent-line~, ~x-use-underline-position-properties~.
 
 ** Option for line highlighting (hl-line-mode)
 :properties:
@@ -925,43 +1036,47 @@ refer to their documentation strings.
 
 Symbol: ~modus-themes-hl-line~
 
-Possible values:
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
 
-1. ~nil~ (default)
-2. ~intense-background~
-3. ~accented-background~
-4. ~underline-neutral~
-5. ~underline-accented~
-6. ~underline-only-neutral~
-7. ~underline-only-accented~
++ ~accented~
++ ~intense~
++ ~underline~
 
-The default is to use a subtle gray background for the current line when
-~hl-line-mode~ is enabled.
+The default (a ~nil~ value or an empty list) is a subtle gray background
+color.
 
-The ~intense-background~ applies a more prominent gray to the background
-of the current line.
+The property ~accented~ changes the background to a colored variant.
 
-With ~accented-background~ the background gets a colored hint and is more
-prominent than the default.
+An ~underline~ property draws a line below the highlighted area.  Its
+color is similar to the background, so gray by default or an accent
+color when ~accented~ is also set.
 
-The ~underline-neutral~ combines the default subtle neutral background
-with a gray underline.
+An ~intense~ property amplifies the colors in use, which may be both the
+background and the underline.
 
-Similarly, the ~underline-accented~ renders the background of the current
-line in a subtle colored background, while it also draws an accented
-underline.
+Combinations of any of those properties are expressed as a list, like in
+these examples:
 
-Option ~underline-only-neutral~ produces a neutral underline, but does not
-use any background.
+#+begin_src emacs-lisp
+(intense)
+(underline intense)
+(accented intense underline)
+#+end_src
 
-While ~underline-only-accented~ also uses just an underline, only this one
-is colored.
+The order in which the properties are set is not significant.
 
-Consider setting the variable ~x-underline-at-descent-line~ to a non-nil
-value for better results with underlines.
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-hl-line '(underline accented))
+#+end_src
+
+Set ~x-underline-at-descent-line~ to a non-nil value for better results
+with underlines.
 
 This style affects several packages that enable ~hl-line-mode~, such as
-=elfeed= and =mu4e=.
+=elfeed=, =notmuch=, and =mu4e=.
 
 ** Option for line numbers (display-line-numbers-mode)
 :properties:
@@ -1002,26 +1117,42 @@ updated to accommodate this aesthetic.
 
 Symbol: ~modus-themes-paren-match~
 
-Possible values:
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
 
-1. ~nil~ (default)
-2. ~subtle-bold~
-3. ~intense~
-4. ~intense-bold~
++ ~bold~
++ ~intense~
++ ~underline~
 
-Nil means to use a subtle tinted background color for the matching
+The default (a ~nil~ value or an empty list) is a subtle background color.
+
+The ~bold~ property adds a bold weight to the characters of the matching
 delimiters.
 
-Option ~intense~ applies a saturated background color.
+The ~intense~ property applies a more prominent background color to the
+delimiters.
 
-Option ~subtle-bold~ is the same as the default, but also makes use of
-bold typographic weight (inherits the ~bold~ face).
+The ~underline~ property draws a straight line under the affected text.
 
-Option ~intense-bold~ is the same as ~intense~, while it also uses a bold
-weight.
+Combinations of any of those properties are expressed as a list, like in
+these examples:
 
-This customization variable affects tools such as the built-in
-~show-paren-mode~ and the =smartparens= package.
+#+begin_src emacs-lisp
+(bold)
+(underline intense)
+(bold intense underline)
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-paren-match '(bold intense))
+#+end_src
+
+This customization variable affects the built-in ~show-paren-mode~ and the
+=smartparens= package.
 
 ** Option for active region
 :properties:
@@ -1033,33 +1164,41 @@ This customization variable affects tools such as the built-in
 
 Symbol: ~modus-themes-region~
 
-Possible values:
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
 
-1. ~nil~ (default)
-2. ~no-extend~
-3. ~bg-only~
-4. ~bg-only-no-extend~
-5. ~accent~
-6. ~accent-no-extend~
++ ~no-extend~
++ ~bg-only~
++ ~accented~
 
-Nil means to only use a prominent gray background with a neutral
-foreground.  The foreground overrides all syntax highlighting.  The
-region extends to the edge of the window.
+The default (a ~nil~ value or an empty list) is a prominent gray
+background that overrides all foreground colors in the area it
+encompasses.  Its reach extends to the edge of the window.
 
-Option ~no-extend~ preserves the default aesthetic but prevents the region
-from extending to the edge of the window.
+The ~no-extend~ property limits the region to the end of the line, so that
+it does not reach the edge of the window.
 
-Option ~bg-only~ applies a faint tinted background that is distinct from
-all others used in the theme, while it does not override any existing
-colors.  It extends to the edge of the window.
+The ~bg-only~ property makes the region's background color more subtle to
+allow the underlying text to retain its foreground colors.
 
-Option ~bg-only-no-extend~ is a combination of the ~bg-only~ and ~no-extend~
-options.
+The ~accented~ property applies a more colorful background to the region.
 
-Option ~accent~ is like the default, though it uses a more colorful
-background, while ~accent-no-extend~ is the same except it draws the
-region only up to the end of each line instead of extending to the edge
-of the window.
+Combinations of any of those properties are expressed as a list, like in
+these examples:
+
+#+begin_src emacs-lisp
+(no-extend)
+(bg-only accented)
+(accented bg-only no-extend)
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-region '(bg-only no-extend))
+#+end_src
 
 ** Option for diff buffer looks
 :properties:
@@ -1148,46 +1287,145 @@ Older versions of the themes provided options ~grayscale~ (or ~greyscale~)
 and ~rainbow~.  Those will continue to work as they are aliases for
 ~gray-background~ and ~tinted-background~, respectively.
 
-** Option for org-habit graph styles
+** Option for Org agenda constructs
 :properties:
-:alt_title: Org agenda habits
-:description: Choose among standard, simplified, or traffic light styles
-:custom_id: h:b7e328c0-3034-4db7-9cdf-d5ba12081ca2
+:alt_title: Org agenda
+:description: Control each element in the presentation of the agenda
+:custom_id: h:68f481bc-5904-4725-a3e6-d7ecfa7c3dbc
 :end:
-#+vindex: modus-themes-org-habit
+#+vindex: modus-themes-org-agenda
 
-Symbol: ~modus-themes-org-habit~
+Symbol: ~modus-themes-org-agenda~
 
-Possible values:
+This is an alist that accepts a =(key . value)= combination.  Some values
+are specified as a list.  Here is a sample, followed by a description of
+all possible combinations:
 
-1. ~nil~ (default)
-2. ~simplified~
-3. ~traffic-light~
+#+begin_src emacs-lisp
+(setq modus-themes-org-agenda
+      '((header-block . (variable-pitch scale-title))
+        (header-date . (grayscale workaholic bold-today))
+        (scheduled . uniform)
+        (habit . traffic-light)))
+#+end_src
 
-The default is meant to conform with the original aesthetic of
-=org-habit=.  It employs all four color codes that correspond to the
-org-habit states---clear, ready, alert, and overdue---while
-distinguishing between their present and future variants.  This results
-in a total of eight colors in use: red, yellow, green, blue, in tinted
-and shaded versions.  They cover the full set of information provided by
-the =org-habit= consistency graph.
+A ~header-block~ key applies to elements that concern the headings which
+demarcate blocks in the structure of the agenda.  By default (a ~nil~
+value) those are rendered in a bold typographic weight, plus a height
+that is slightly taller than the default font size.  Acceptable values
+come in the form of a list that can include either or both of those
+properties:
 
-Option ~simplified~ is like the default except that it removes the
-dichotomy between current and future variants by applying uniform
-color-coded values.  It applies a total of four colors: red, yellow,
-green, blue.  They produce a simplified consistency graph that is more
-legible (or less "busy") than the default.  The intent is to shift focus
-towards the distinction between the four states of a habit task, rather
-than each state's present/future outlook.
+- ~variable-pitch~ to use a proportionately spaced typeface;
+- ~scale-title~ to increase the size to the number assigned to
+  ~modus-themes-scale-title~ ([[#h:6868baa1-beba-45ed-baa5-5fd68322ccb3][Control the scale of headings]]) or ~no-scale~
+  to make the font use the same height as the rest of the buffer.
 
-Option ~traffic-light~ further reduces the available colors to red,
-yellow, and green.  As in ~simplified~, present and future variants appear
-uniformly, but differently from it, the 'clear' state is rendered in a
-green hue, instead of the original blue.  This is meant to capture the
-use-case where a habit task being "too early" is less important than it
-being "too late".  The difference between ready and clear states is
-attenuated by painting both of them using shades of green.  This option
-thus highlights the alert and overdue states.
+In case both ~scale-title~ and ~no-scale~ are in the list, the latter takes
+precedence.
+
+Example usage:
+
+#+begin_src emacs-lisp
+(header-block . nil)
+(header-block . (scale-title))
+(header-block . (no-scale))
+(header-block . (variable-pitch scale-title))
+#+end_src
+
+A ~header-date~ key covers date headings.  Dates use only a foreground
+color by default (a ~nil~ value), with weekdays and weekends having a
+slight difference in hueness.  The current date has an added gray
+background.  This key accepts a list of values that can include any of
+the following properties:
+
+- ~grayscale~ to make weekdays use the main foreground color and
+  weekends a more subtle gray;
+- ~workaholic~ to make weekdays and weekends look the same in
+  terms of color;
+- ~bold-today~ to apply a bold typographic weight to the current
+  date;
+- ~bold-all~ to render all date headings in a bold weight.
+
+For example:
+
+#+begin_src emacs-lisp
+(header-date . nil)
+(header-date . (workaholic))
+(header-date . (grayscale bold-all))
+(header-date . (grayscale workaholic))
+(header-date . (grayscale workaholic bold-today))
+#+end_src
+
+A ~scheduled~ key applies to tasks with a scheduled date.  By default (a
+~nil~ value), those use varying shades of yellow to denote (i) a past or
+current date and (ii) a future date.  Valid values are symbols:
+
+- nil (default);
+- ~uniform~ to make all scheduled dates the same color;
+- ~rainbow~ to use contrasting colors for past, present, future
+  scheduled dates.
+
+For example:
+
+#+begin_src emacs-lisp
+(scheduled . nil)
+(scheduled . uniform)
+(scheduled . rainbow)
+#+end_src
+
+A ~habit~ key applies to the ~org-habit~ graph.  All possible value are
+passed as a symbol.  Those are:
+
+- The default (~nil~) is meant to conform with the original aesthetic of
+  ~org-habit~.  It employs all four color codes that correspond to the
+  org-habit states---clear, ready, alert, and overdue---while
+  distinguishing between their present and future variants.  This
+  results in a total of eight colors in use: red, yellow, green, blue,
+  in tinted and shaded versions.  They cover the full set of information
+  provided by the ~org-habit~ consistency graph.
+- ~simplified~ is like the default except that it removes the dichotomy
+  between current and future variants by applying uniform color-coded
+  values.  It applies a total of four colors: red, yellow, green, blue.
+  They produce a simplified consistency graph that is more legible (or
+  less busy) than the default.  The intent is to shift focus towards the
+  distinction between the four states of a habit task, rather than each
+  state's present/future outlook.
+- ~traffic-light~ further reduces the available colors to red, yellow, and
+  green.  As in ~simplified~, present and future variants appear
+  uniformly, but differently from it, the ~clear~ state is rendered in a
+  green hue, instead of the original blue.  This is meant to capture the
+  use-case where a habit task being too early is less important than it
+  being too late.  The difference between ready and clear states is
+  attenuated by painting both of them using shades of green.  This
+  option thus highlights the alert and overdue states.
+- ~traffic-light-deuteranopia~ is like the ~traffic-light~ except its three
+  colors are red, yellow, and blue to be suitable for users with
+  red-green color deficiency (deuteranopia).
+
+For example:
+
+#+begin_src emacs-lisp
+(habit . nil)
+(habit . simplified)
+(habit . traffic-light)
+#+end_src
+
+Putting it all together, the alist can look like this:
+
+#+begin_src emacs-lisp
+'((header-block . (scale-title variable-pitch))
+  (header-date . (grayscale workaholic bold-today))
+  (scheduled . uniform)
+  (habit . traffic-light))
+
+;; Or else:
+(setq modus-themes-org-agenda
+      '((header-block . (scale-title variable-pitch))
+        (header-date . (grayscale workaholic bold-today))
+        (scheduled . uniform)
+        (habit . traffic-light)))
+#+end_src
 
 ** Option for the headings' overall style
 :properties:
@@ -1197,120 +1435,90 @@ thus highlights the alert and overdue states.
 :end:
 #+vindex: modus-themes-headings
 
-This is defined as an alist and, therefore, uses a different approach
-than other customization options documented in this manual.
-
 Symbol: ~modus-themes-headings~
 
-Possible values, which can be specified for each heading level N
-(examples further below):
+This is an alist that accepts a =(key . list-of-values)= combination.  The
+key is either a number, representing the heading's level or ~t~, which
+pertains to the fallback style.  The list of values covers symbols that
+refer to properties, as described below.  Here is a sample, followed by
+a presentation of all available properties:
 
-+ ~nil~ (~t~ is also available for backward compatibility)
-+ ~no-bold~
-+ ~line~
-+ ~line-no-bold~
+#+begin_src emacs-lisp
+(setq modus-themes-headings
+      '((1 . (background overline))
+        (2 . (overline rainbow))
+        (t . (monochrome))))
+#+end_src
+
+Properties:
+
 + ~rainbow~
-+ ~rainbow-line~
-+ ~rainbow-line-no-bold~
-+ ~highlight~
-+ ~highlight-no-bold~
-+ ~rainbow-highlight~
-+ ~rainbow-highlight-no-bold~
-+ ~section~
-+ ~section-no-bold~
-+ ~rainbow-section~
-+ ~rainbow-section-no-bold~
-+ ~no-color~
-+ ~no-color-no-bold~
++ ~overline~
++ ~background~
++ ~no-bold~
++ ~monochrome~
 
-To control faces per level from 1-8, use something like this:
+By default (a ~nil~ value for this variable), all headings have a bold
+typographic weight and use a desaturated text color.
+
+A ~rainbow~ property makes the text color more saturated.
+
+An ~overline~ property draws a line above the area of the heading.
+
+A ~background~ property adds a subtle tinted color to the background of
+the heading.
+
+A ~no-bold~ property removes the bold weight from the heading's text.
+
+A ~monochrome~ property makes all headings the same base color, which is
+that of the default for the active theme (black/white).  When ~background~
+is also set, ~monochrome~ changes its color to gray.  If both ~monochrome~
+and ~rainbow~ are set, the former takes precedence.
+
+Combinations of any of those properties are expressed as a list, like in
+these examples:
+
+#+begin_src emacs-lisp
+(no-bold)
+(rainbow background)
+(overline monochrome no-bold)
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
 
 #+begin_src emacs-lisp
 (setq modus-themes-headings
-      '((1 . section)
-        (2 . section-no-bold)
-        (3 . rainbow-line)
-        (t . rainbow-line-no-bold)))
+      '((1 . (background overline rainbow))
+        (2 . (background overline))
+        (t . (overline no-bold))))
 #+end_src
 
-The above uses the ~section~ value for heading levels 1, ~section-no-bold~
-for headings 2, ~rainbow-line~ for 3.  All other levels fall back to
-~rainbow-line-no-bold~.
-
-To set a uniform value for all heading levels, use this pattern:
-
-#+begin_src emacs-lisp
-;; A given style for every heading
-(setq modus-themes-headings
-      '((t . section)))
-
-;; Default aesthetic for every heading
-(setq modus-themes-headings nil)
-#+end_src
-
-The default style for headings uses a fairly desaturated foreground
-color in combination with bold typographic weight.  To specify this
-style for a given level N, assuming you wish to have another fallback
-option, just assign the value ~nil~ like this:
+When defining the styles per heading level, it is possible to pass a
+non-nil value (~t~) instead of a list of properties.  This will retain the
+original aesthetic for that level.  For example:
 
 #+begin_src emacs-lisp
 (setq modus-themes-headings
-      '((1 . nil)
-        (2 . line)
-        (3) ; same as nil
-        (t . rainbow-line-no-bold)))
+      '((1 . t)           ; keep the default style
+        (2 . (background overline))
+        (t . (rainbow)))) ; style for all other headings
+
+(setq modus-themes-headings
+      '((1 . (background overline))
+        (2 . (rainbow no-bold))
+        (t . t))) ; default style for all other levels
 #+end_src
 
-A description of all other possible styles beyond the default:
+For Org users, the extent of the heading depends on the variable
+~org-fontify-whole-heading-line~.  This affects the ~overline~ and
+~background~ properties.  Depending on the version of Org, there may be
+others, such as ~org-fontify-done-headline~.
 
-+ ~no-bold~ retains the default text color while removing the bold
-  typographic weight.
+[[#h:075eb022-37a6-41a4-a040-cc189f6bfa1f][Option for scaled headings]].
 
-+ ~line~ is the same as the default plus an overline across the
-  heading's length.
-
-+ ~line-no-bold~ is the same as ~line~ without bold weight.
-
-+ ~rainbow~ uses a more colorful foreground in combination with bold
-  typographic weight.
-
-+ ~rainbow-line~ is the same as ~rainbow~ plus an overline.
-
-+ ~rainbow-line-no-bold~ is the same as ~rainbow-line~ without the bold
-  weight.
-
-+ ~highlight~ retains the default style of a fairly desaturated
-  foreground combined with a bold weight and adds to it a subtle
-  accented background.
-
-+ ~highlight-no-bold~ is the same as ~highlight~ without a bold weight.
-
-+ ~rainbow-highlight~ is the same as ~highlight~ but with a more
-  colorful foreground.
-
-+ ~rainbow-highlight-no-bold~ is the same as ~rainbow-highlight~ without
-  a bold weight.
-
-+ ~section~ retains the default looks and adds to them both an overline
-  and a slightly accented background.  It is, in effect, a combination
-  of the ~line~ and ~highlight~ values.
-
-+ ~section-no-bold~ is the same as ~section~ without a bold weight.
-
-+ ~rainbow-section~ is the same as ~section~ but with a more colorful
-  foreground.
-
-+ ~rainbow-section-no-bold~ is the same as ~rainbow-section~ without a
-  bold weight.
-
-+ ~no-color~ does not apply any color to the heading, meaning that it
-  uses the foreground of the ~default~ face.  It still renders the text
-  with a bold typographic weight.
-
-+ ~no-color-no-bold~ is like ~no-color~ but without the bold weight.
-
-Remember to also inspect relevant variables that Org provides, such as:
-~org-fontify-whole-heading-line~ and ~org-fontify-done-headline~.
+[[#h:97caca76-fa13-456c-aef1-a2aa165ea274][Option for variable-pitch font in headings]].
 
 ** Option for scaled headings
 :properties:
@@ -1366,7 +1574,7 @@ resource for finding a consistent scale:
       modus-themes-scale-2 1.1
       modus-themes-scale-3 1.15
       modus-themes-scale-4 1.2
-      modus-themes-scale-5 1.3)
+      modus-themes-scale-title 1.3)
 #+end_src
 
 As for the application of that scale, the variables that range from
@@ -1376,19 +1584,20 @@ smallest, while the latter is the largest.  "Regular headings" are those
 that have a standard syntax for their scale, such as Org mode's eight
 levels of asterisks or Markdown's six columns.
 
-Whereas ~modus-themes-scale-5~ is applied to special headings that do not
-conform with the aforementioned syntax, yet which are expected to be
-larger than the largest value on that implied scale.  Put concretely,
-Org's =#+title= meta datum is not part of the eight levels of headings in
-an Org file, yet is supposed to signify the primary header.  Similarly,
-the Org Agenda's structure headings are not part of a recognisable scale
-and so they also get ~modus-themes-scale-5~.
+Whereas ~modus-themes-scale-title~ is applied to special headings that do
+not conform with the aforementioned syntax, yet which are expected to be
+larger than the largest value on that implied scale or at least have
+some unique purpose in the buffer.  Put concretely, Org's =#+title= meta
+datum is not part of the eight levels of headings in an Org file, yet is
+supposed to signify the primary header.  Similarly, the Org Agenda's
+structure headings are not part of a recognisable scale and so they also
+get ~modus-themes-scale-title~ ([[#h:68f481bc-5904-4725-a3e6-d7ecfa7c3dbc][Option for Org agenda constructs]]).
 
 Users who wish to maintain scaled headings for the normal syntax while
 preventing special headings from standing out, can assign a value of =1.0=
-to ~modus-themes-scale-5~ to make it the same as body text (or whatever
-value would render it indistinguishable from the desired point of
-reference).
+to ~modus-themes-scale-title~ to make it the same as body text (or
+whatever value would render it indistinguishable from the desired point
+of reference).
 
 Note that in earlier versions of Org, scaling would only increase the
 size of the heading, but not of keywords that were added to it, like
@@ -1727,7 +1936,7 @@ activates ~hl-line-mode~, but we wish to keep it distinct from other
 buffers.  This is where ~face-remap-add-relative~ can be applied and may
 be combined with ~modus-themes-with-colors~ to deliver consistent results.
 
-[[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette (DIY)]].
+[[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]].
 
 In this example we will write a simple interactive function that adjusts
 the background color of the ~region~ face.  This is the sample code:
@@ -2216,6 +2425,11 @@ reading the doc string of ~set-face-attribute~):
 (set-face-attribute 'fixed-pitch nil :family "DejaVu Sans Mono" :height 1.0)
 #+end_src
 
+The next section shows how to make those work in a more elaborate setup
+that is robust to changes between the Modus themes.
+
+[[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
+
 Note the differences in the ~:height~ property.  The ~default~ face must
 specify an absolute value, which is the point size × 10.  So if you want
 to use a font at point size =11=, you set the height to =110=.[fn:: ~:height~
@@ -2229,6 +2443,98 @@ something like the ~text-scale-adjust~ command which only operates on the
 base font size (i.e. the ~default~ face's absolute height).
 
 [[#h:e6c5451f-6763-4be7-8fdb-b4706a422a4c][Note for EWW and Elfeed fonts (SHR fonts)]].
+
+** Configure bold and italic faces (DIY)
+:properties:
+:custom_id: h:2793a224-2109-4f61-a106-721c57c01375
+:end:
+#+cindex: Bold and italic fonts
+
+The Modus themes do not hardcode a ~:weight~ or ~:slant~ attribute in the
+thousands of faces they cover.  Instead, they configure the generic
+faces called ~bold~ and ~italic~ to use the appropriate styles and then
+instruct all relevant faces that require emphasis to inherit from them.
+
+This practically means that users can change the particularities of what
+it means for a construct to be bold/italic, by tweaking the ~bold~ and
+~italic~ faces.  Cases where that can be useful include:
+
++ The default typeface does not have a variant with slanted glyphs
+  (e.g. Fira Mono/Code as of this writing on 2021-07-07), so the user
+  wants to add another family for the italics, such as Hack.
+
++ The typeface of choice provides a multitude of weights and the user
+  prefers the light one by default.  To prevent the bold weight from
+  being too heavy compared to the light one, they opt to make ~bold~ use a
+  semibold weight.
+
++ The typeface distinguishes between oblique and italic forms by
+  providing different font variants (the former are just slanted
+  versions of the upright forms, while the latter have distinguishing
+  features as well).  In this case, the user wants to specify the font
+  that applies to the ~italic~ face.
+
+To achieve those effects, one must first be sure that the fonts they use
+have support for those features.  It then is a matter of following the
+instructions for all face tweaks.
+
+[[#h:defcf4fc-8fa8-4c29-b12e-7119582cc929][Font configurations for Org and others]].
+
+In this example, we set the default font family to Fira Code, while we
+choose to render italics in the Hack typeface (obviously you need to
+pick fonts that work well together):
+
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :family "Fira Code" :height 110)
+(set-face-attribute 'italic nil :family "Hack")
+#+end_src
+
+And here we play with different weights, using Source Code Pro:
+
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :family "Source Code Pro" :height 110 :weight 'light)
+(set-face-attribute 'bold nil :weight 'semibold)
+#+end_src
+
+To reset the font family, one can use this:
+
+#+begin_src emacs-lisp
+(set-face-attribute 'italic nil :family 'unspecified)
+#+end_src
+
+To ensure that the effects persist after switching between the Modus
+themes (such as with {{{kbd(M-x modus-themes-toggle)}}}), the user needs to
+write their configurations to a function and hook it up to the
+~modus-themes-after-load-theme-hook~.  This is necessary because the
+themes set the default styles of faces (otherwise changing themes would
+not be possible).
+
+[[#h:86f6906b-f090-46cc-9816-1fe8aeb38776][A theme-agnostic hook for theme loading]].
+
+This is a minimal setup to preserve font configurations across theme
+load phases.  For a more permanent setup, it is better to employ the
+~custom-set-faces~ function: ~set-face-attribute~ works just fine, though it
+is more convenient for quick previews or for smaller scale operations
+(~custom-set-faces~ follows the format used in the source code of the
+themes).
+
+#+begin_src emacs-lisp
+;; our generic function
+(defun my-modes-themes-bold-italic-faces ()
+  (set-face-attribute 'default nil :family "Source Code Pro" :height 110)
+  (set-face-attribute 'bold nil :weight 'semibold))
+
+;; or use this if you configure a lot of face and attributes and
+;; especially if you plan to use `modus-themes-with-colors', as shown
+;; elsewhere in the manual
+(defun my-modes-themes-bold-italic-faces ()
+  (custom-set-faces
+   '(default ((t :family "Source Code Pro" :height 110)))
+   '(bold ((t :weight semibold)))))
+
+;; and here is the hook
+(add-hook 'modus-themes-after-load-theme-hook #'my-modes-themes-bold-italic-faces)
+#+end_src
 
 ** Custom Org user faces (DIY)
 :properties:
@@ -2263,7 +2569,8 @@ have something like this:
 
 You could then use a variant of the following to inherit from a face
 that uses the styles you want and also to preserve the properties
-applied by the ~org-todo~ face:
+applied by the ~org-todo~ face (in case there is a difference between the
+two):
 
 #+begin_src emacs-lisp
 (setq org-todo-keyword-faces
@@ -2286,9 +2593,14 @@ If you want back the defaults, try specifying just the ~org-todo~ face:
 #+end_src
 
 When you inherit from multiple faces, you need to quote the list as
-shown further above.  The order is important: the last item is applied
-over the previous ones.  If you do not want to blend multiple faces, you
-do not need a quoted list.  A pattern of =keyword . face= will suffice.
+shown further above.  The order is significant: the first entry is
+applied on top of the second, overriding any properties that are
+explicitly set for both of them: any property that is not specified is
+not overridden, so, for example, if ~org-todo~ has a background and a
+foreground, while ~font-lock-type-face~ only has a foreground, the merged
+face will include the background of the former and the foreground of the
+latter.  If you do not want to blend multiple faces, you do not need a
+quoted list.  A pattern of =keyword . face= will suffice.
 
 Both approaches can be used simultaneously, as illustrated in this
 configuration of the priority cookies:
@@ -2470,7 +2782,7 @@ the case for the time being.  We must thus employ the face remapping
 technique that is documented elsewhere in this document to change the
 buffer-local value of the ~default~ face.
 
-[[#h:7a93cb6f-4eca-4d56-a85c-9dcd813d6b0f][Remap face with local value (DIY)]].
+[[#h:7a93cb6f-4eca-4d56-a85c-9dcd813d6b0f][Remap face with local value]].
 
 To remap the buffer's backdrop, we start with a function like this one:
 
@@ -2628,6 +2940,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + counsel-org-capture-string
 + cov
 + cperl-mode
++ css-mode
 + csv-mode
 + ctrlf
 + custom (what you get with {{{kbd(M-x customize)}}})
@@ -2708,6 +3021,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + git-timemachine
 + git-walktree
 + gnus
++ gotest
 + golden-ratio-scroll-screen
 + helm*
 + helm-ls-git
@@ -2751,6 +3065,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + jupyter
 + kaocha-runner
 + keycast
++ ledger-mode
 + line numbers (~display-line-numbers-mode~ and global variant)
 + lsp-mode
 + lsp-ui
@@ -2814,6 +3129,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + prism ([[#h:a94272e0-99da-4149-9e80-11a7e67a2cf2][Note for prism.el]])
 + proced
 + prodigy
++ pulse
 + quick-peek
 + racket-mode
 + rainbow-blocks
@@ -2928,6 +3244,93 @@ supported by the themes.
 
 This section covers information that may be of interest to users of
 individual packages.
+
+** Note on avy hints
+:properties:
+:custom_id: h:2fdce705-6de7-44e6-ab7f-18f59af99e01
+:end:
+
+Hints can appear everywhere, in wildly varying contexts, hence, their
+appearance, by necessity, is a compromise.  However, there are various
+options for making them stand out. First is dimming the surroundings:
+
+#+begin_src emacs-lisp
+(setq avy-background t)
+#+end_src
+
+Dimming works well when you find it difficult to spot hints, any hint.
+Second is limiting the number of faces used by hints:
+
+#+begin_src emacs-lisp
+(setq avy-lead-faces
+      '(avy-lead-face
+        avy-lead-face-1
+        avy-lead-face-1
+        avy-lead-face-1
+        avy-lead-face-1))
+#+end_src
+
+Limiting the number of faces works well with longer hints when you find
+it difficult to identify individual hints, especially with hints
+touching each other.  The first character of the hint will have an
+intense color, the remaining ones the same neutral color.
+
+Third is preferring commands that produce fewer candidates.  Fewer hints
+is less noise: ~avy-goto-char-timer~ is an excellent alternative to
+~avy-goto-char~.
+
+** Note on calendar.el weekday and weekend colors
+:properties:
+:custom_id: h:b2db46fb-32f4-44fd-8e11-d2b261cf51ae
+:end:
+
+By default, the {{{kbd(M-x calendar)}}} interface differentiates weekdays from
+weekends by applying a gray color to the former and a faint red to the
+latter.  The idea for this approach is that the weekend should serve as
+a subtle warning that no work is supposed to be done on that day, per
+the design of traditional calendars.
+
+Users who prefer all days to look the same can configure the variable
+~calendar-weekend-days~ to either use gray of weekdays or the faint red of
+weekends uniformly.
+
+#+begin_src emacs-lisp
+;; All are treated like weekdays (gray color)
+(setq calendar-weekend-days nil)
+
+;; All are treated like weekends (red-faint color)
+(setq calendar-weekend-days (number-sequence 0 6))
+
+;; The default marks the Saturday and Sunday as the weekend
+(setq calendar-weekend-days '(0 6))
+#+end_src
+
+For changes to take effect, the Calendar buffer needs to be generated
+anew.
+
+** Note on underlines in compilation buffers
+:properties:
+:custom_id: h:420f5a33-c7a9-4112-9b04-eaf2cbad96bd
+:end:
+
+Various buffers that produce compilation results or run tests on code
+apply an underline to the file names they reference or to relevant
+messages.  Users may consider this unnecessary or excessive.
+
+To outright disable the effect, use this:
+
+#+begin_src emacs-lisp
+(setq compilation-message-face nil)
+#+end_src
+
+If some element of differentiation is still desired, a good option is to
+render the affected text using the ~italic~ face:
+
+#+begin_src emacs-lisp
+(setq compilation-message-face 'italic)
+#+end_src
+
+[[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
 
 ** Note on inline Latex in Org buffers
 :properties:
@@ -3566,9 +3969,9 @@ In general, an additional source of light other than that of the monitor
 can help reduce eye strain: the eyes are more relaxed when they do not
 have to focus on one point to gather light.
 
-The monitor's display settings must be accounted for.  Gamma ray values,
-in particular, need to be calibrated to neither amplify nor distort the
-perception of black.  Same principle for sharpness, brightness, and
+The monitor's display settings must be accounted for. Gamma values, in
+particular, need to be calibrated to neither amplify nor distort the
+perception of black. Same principle for sharpness, brightness, and
 contrast as determined by the hardware, which all have an effect on how
 text is read on the screen.
 
@@ -3716,8 +4119,9 @@ The Modus themes are a collective effort.  Every bit of work matters.
 + Contributions to code or documentation :: Anders Johansson, Basil
   L.{{{space()}}} Contovounesios, Carlo Zancanaro, Eli Zaretskii, Fritz Grabo,
   Kostadin Ninev, Madhavan Krishnan, Markus Beppler, Matthew Stevenson,
-  Mauro Aranda, Nicolas De Jaeghere, Rudolf Adamkovič, Shreyas Ragavan,
-  Stefan Kangas, Vincent Murphy, Xinglu Chen.
+  Mauro Aranda, Nicolas De Jaeghere, Philip Kaludercic, Rudolf
+  Adamkovič, Shreyas Ragavan, Stefan Kangas, Vincent Murphy, Xinglu
+  Chen.
 
 + Ideas and user feedback :: Aaron Jensen, Adam Spiers, Adrian Manea,
   Alex Griffin, Alex Peitsinis, Alexey Shmalko, Alok Singh, Anders
@@ -3725,19 +4129,20 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Contovounesios, Burgess Chang, Christian Tietze, Christopher Dimech,
   Damien Cassou, Daniel Mendler, Dario Gjorgjevski, David Edmondson,
   Davor Rotim, Divan Santana, Emanuele Michele Alberto Monterosso,
-  Farasha Euker, Gerry Agbobada, Gianluca Recchia, Gustavo Barros,
-  Hörmetjan Yiltiz, Ilja Kocken, Iris Garcia, Jeremy Friesen, John
-  Haman, Joshua O'Connor, Kevin Fleming, Kévin Le Gouguec, Kostadin
-  Ninev, Len Trigg, Manuel Uberti, Mark Burton, Markus Beppler, Mauro
-  Aranda, Michael Goldenberg, Morgan Smith, Murilo Pereira, Nicky van
-  Foreest, Nicolas De Jaeghere, Paul Poloskov, Pete Kazmier, Peter Wu,
-  Philip K., Pierre Téchoueyres, Roman Rudakov, Ryan Phillips, Rudolf
-  Adamkovič, Sam Kleinman, Shreyas Ragavan, Simon Pugnet, Tassilo Horn,
-  Thibaut Verron, Trey Merkley, Togan Muftuoglu, Toon Claes, Uri Sharf,
-  Utkarsh Singh, Vincent Foley.  As well as users: Ben, CsBigDataHub1,
-  Emacs Contrib, Eugene, Fourchaux, Fredrik, Moesasji, Nick, TheBlob42,
-  Trey, bepolymathe, doolio, fleimgruber, iSeeU, jixiuf, okamsn,
-  pRot0ta1p.
+  Farasha Euker, Gautier Ponsinet, Gerry Agbobada, Gianluca Recchia,
+  Gustavo Barros, Hörmetjan Yiltiz, Ilja Kocken, Iris Garcia, Jeremy
+  Friesen, Jerry Zhang, John Haman, Joshua O'Connor, Kevin Fleming,
+  Kévin Le Gouguec, Kostadin Ninev, Len Trigg, Manuel Uberti, Mark
+  Burton, Markus Beppler, Mauro Aranda, Michael Goldenberg, Morgan
+  Smith, Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Paul
+  Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic,
+  Pierre Téchoueyres, Roman Rudakov, Ryan Phillips, Rudolf Adamkovič,
+  Sam Kleinman, Shreyas Ragavan, Simon Pugnet, Tassilo Horn, Thibaut
+  Verron, Thomas Heartman, Trey Merkley, Togan Muftuoglu, Toon Claes,
+  Uri Sharf, Utkarsh Singh, Vincent Foley.  As well as users: Ben,
+  CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux, Fredrik, Moesasji,
+  Nick, TheBlob42, Trey, bepolymathe, doolio, fleimgruber, iSeeU,
+  jixiuf, okamsn, pRot0ta1p.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii, Glenn
   Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core Emacs),
@@ -3747,9 +4152,9 @@ The Modus themes are a collective effort.  Every bit of work matters.
 + Inspiration for certain features :: Bozhidar Batsov (zenburn-theme),
   Fabrice Niessen (leuven-theme).
 
-Special thanks, in no particular order, to Manuel Uberti and Omar
-Antolín Camarena for their long time contributions and insightful
-commentary.
+Special thanks, in no particular order, to Manuel Uberti, Gustavo
+Barros, and Omar Antolín Camarena for their long time contributions and
+insightful commentary.
 
 * Meta
 :properties:
