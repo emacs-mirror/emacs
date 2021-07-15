@@ -2972,8 +2972,9 @@ The former is now declared obsolete.
 
 +++
 *** New function 'split-string-shell-command'.
-This splits a shell string into separate components, respecting single
-and double quotes, as well as backslash quoting.
+This splits a shell command string into separate components,
+respecting quoting with single ('like this') and double ("like this")
+quotes, as well as backslash quoting (like\ this).
 
 ---
 *** ':safe' settings in 'defcustom' are now propagated to the loaddefs files.
