@@ -503,9 +503,13 @@ There can be any number of :example/:result elements."
   (flatten-tree
    :eval (flatten-tree '(1 (2 3) 4)))
   (car
-   :eval (car '(one two three)))
+   :eval (car '(one two three))
+   :eval (car '(one . two))
+   :eval (car nil))
   (cdr
-   :eval (cdr '(one two three)))
+   :eval (cdr '(one two three))
+   :eval (cdr '(one . two))
+   :eval (cdr nil))
   (last
    :eval (last '(one two three)))
   (butlast
