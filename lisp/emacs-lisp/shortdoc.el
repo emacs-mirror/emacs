@@ -162,6 +162,10 @@ There can be any number of :example/:result elements."
    :eval (split-string "foo bar")
    :eval (split-string "|foo|bar|" "|")
    :eval (split-string "|foo|bar|" "|" t))
+  (split-string-and-unquote
+   :eval (split-string-and-unquote "foo \"bar zot\""))
+  (split-string-shell-command
+   :eval (split-string-shell-command "ls /tmp/'foo bar'"))
   (string-lines
    :eval (string-lines "foo\n\nbar")
    :eval (string-lines "foo\n\nbar" t))
