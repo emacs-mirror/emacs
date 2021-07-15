@@ -87,6 +87,11 @@ this happens automatically before saving `save-place-alist' to
 `save-place-file'."
   :type 'boolean)
 
+(defcustom save-place-abbreviate-file-names nil
+  "If non-nil, abbreviate file names before saving them."
+  :type 'boolean
+  :version "28.1")
+
 (defcustom save-place-save-skipped t
   "If non-nil, remember files matching `save-place-skip-check-regexp'.
 
@@ -177,7 +182,10 @@ file:
   "Add current buffer filename and position to `save-place-alist'.
 Put filename and point in a cons box and then cons that onto the
 front of the `save-place-alist', if `save-place-mode' is non-nil.
-Otherwise, just delete that file from the alist."
+Otherwise, just delete that file from the alist.
+
+If `save-place-abbreviate-file-names' is non-nil, abbreviate the
+file names."
   ;; First check to make sure alist has been loaded in from the master
   ;; file.  If not, do so, then feel free to modify the alist.  It
   ;; will be saved again when Emacs is killed.
@@ -195,6 +203,8 @@ Otherwise, just delete that file from the alist."
                (or (not save-place-ignore-files-regexp)
                    (not (string-match save-place-ignore-files-regexp
                                       item))))
+      (when save-place-abbreviate-file-names
+        (setq item (abbreviate-file-name item)))
       (let ((cell (assoc item save-place-alist))
             (position (cond ((eq major-mode 'hexl-mode)
 			     (with-no-warnings
