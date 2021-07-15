@@ -266,7 +266,7 @@ options through Custom does this automatically."
 Each element, which describes a compression technique, is a vector of
 the form [REGEXP COMPRESS-MSG COMPRESS-PROGRAM COMPRESS-ARGS
 UNCOMPRESS-MSG UNCOMPRESS-PROGRAM UNCOMPRESS-ARGS
-APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
+APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS UNCOMPRESS-FUNCTION], where:
 
    regexp                is a regexp that matches filenames that are
                          compressed with this format
@@ -282,7 +282,7 @@ APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
    uncompress-msg        is the message to issue to the user when doing this
                          type of uncompression (nil means no message)
 
-   uncompress-program    is a program that performs this compression
+   uncompress-program    is a program that performs this uncompression
 
    uncompress-args       is a list of args to pass to the uncompress program
 
@@ -294,6 +294,9 @@ APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
 
    file-magic-chars      is a string of characters that you would find
 			 at the beginning of a file compressed in this way.
+
+   uncompress-function   is a function that performs uncompression, if
+                         uncompress-program is not found.
 
 If you set this outside Custom while Auto Compression mode is
 already enabled \(as it is by default), you have to call
@@ -316,9 +319,12 @@ variables.  Setting this through Custom does that automatically."
 			 (repeat :tag "Uncompress Arguments" string)
 			 (boolean :tag "Append")
 			 (boolean :tag "Strip Extension")
-			 (string :tag "Magic Bytes")))
+			 (string :tag "Magic Bytes")
+			 (choice :tag "Uncompress Function"
+				 (symbol)
+				 (const :tag "None" nil))))
   :set 'jka-compr-set
-  :version "24.1"			; removed version extension piece
+  :version "28.1"			; add uncompress-function
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions
