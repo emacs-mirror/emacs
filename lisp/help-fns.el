@@ -752,7 +752,7 @@ FILE is the file where FUNCTION was probably defined."
            (insert-text-button
             (symbol-name group)
             'action (lambda (_)
-                      (shortdoc-display-group group))
+                      (shortdoc-display-group group object))
             'follow-link t
             'help-echo (purecopy "mouse-1, RET: show documentation group")))
          groups)
