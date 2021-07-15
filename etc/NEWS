@@ -2970,6 +2970,11 @@ The former is now declared obsolete.
 
 * Lisp Changes in Emacs 28.1
 
++++
+*** New function 'shell-split-string'.
+This splits a shell string into separate components, respecting single
+and double quotes, as well as backslash quoting.
+
 ---
 *** ':safe' settings in 'defcustom' are now propagated to the loaddefs files.
 
