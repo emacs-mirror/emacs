@@ -1901,7 +1901,7 @@ documentation for the major and minor modes of that buffer."
                   ;; Ignore aliases.
                   (not (symbolp (symbol-function sym)))
                   ;; Ignore everything bound.
-                  (not (where-is-internal sym))
+                  (not (where-is-internal sym nil t))
                   (apply #'derived-mode-p (command-modes sym)))
          (push sym functions))))
     (with-temp-buffer
