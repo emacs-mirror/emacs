@@ -12141,10 +12141,11 @@ terminal device.  See Info node `(elisp)Multiple Terminals'.  */);
   DEFVAR_LISP ("overriding-local-map", Voverriding_local_map,
 	       doc: /* Keymap that replaces (overrides) local keymaps.
 If this variable is non-nil, Emacs looks up key bindings in this
-keymap INSTEAD OF the keymap char property, minor mode maps, and the
-buffer's local map.  Hence, the only active keymaps would be
-`overriding-terminal-local-map', this keymap, and `global-keymap', in
-order of precedence.  */);
+keymap INSTEAD OF `keymap' text properties, `local-map' and `keymap'
+overlay properties, minor mode maps, and the buffer's local map.
+
+Hence, the only active keymaps would be `overriding-terminal-local-map',
+this keymap, and `global-keymap', in order of precedence.  */);
   Voverriding_local_map = Qnil;
 
   DEFVAR_LISP ("overriding-local-map-menu-flag", Voverriding_local_map_menu_flag,
