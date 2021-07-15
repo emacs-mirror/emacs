@@ -46,17 +46,17 @@
                    '(("cd" "ba" "") 1 4 7)))))
 
 (ert-deftest shell-tests-split-string ()
-  (should (equal (shell-split-string "ls /tmp")
+  (should (equal (split-string-shell-command "ls /tmp")
                  '("ls" "/tmp")))
-  (should (equal (shell-split-string "ls '/tmp/foo bar'")
+  (should (equal (split-string-shell-command "ls '/tmp/foo bar'")
                  '("ls" "/tmp/foo bar")))
-  (should (equal (shell-split-string "ls \"/tmp/foo bar\"")
+  (should (equal (split-string-shell-command "ls \"/tmp/foo bar\"")
                  '("ls" "/tmp/foo bar")))
-  (should (equal (shell-split-string "ls /tmp/'foo bar'")
+  (should (equal (split-string-shell-command "ls /tmp/'foo bar'")
                  '("ls" "/tmp/foo bar")))
-  (should (equal (shell-split-string "ls /tmp/'foo\\ bar'")
+  (should (equal (split-string-shell-command "ls /tmp/'foo\\ bar'")
                  '("ls" "/tmp/foo\\ bar")))
-  (should (equal (shell-split-string "ls /tmp/foo\\ bar")
+  (should (equal (split-string-shell-command "ls /tmp/foo\\ bar")
                  '("ls" "/tmp/foo bar"))))
 
 ;;; shell-tests.el ends here

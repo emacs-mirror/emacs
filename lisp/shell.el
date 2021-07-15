@@ -459,7 +459,7 @@ Useful for shells like zsh that has this feature."
           (push (mapconcat #'identity (nreverse arg) "") args)))
       (cons (nreverse args) (nreverse begins)))))
 
-(defun shell-split-string (string)
+(defun split-string-shell-command (string)
   "Split STRING (a shell command) into a list of strings.
 General shell syntax, like single and double quoting, as well as
 backslash quoting, is respected."
