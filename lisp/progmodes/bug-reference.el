@@ -184,6 +184,22 @@ The second subexpression should match the bug reference (usually a number)."
                     "/issues/"
                     (match-string 2))))))
     ;;
+    ;; Codeberg projects.
+    ;;
+    ;; The systematics is exactly as for Github projects.
+    ("[/@]codeberg.org[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
+     "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+     ,(lambda (groups)
+        (let ((ns-project (nth 1 groups)))
+          (lambda ()
+            (concat "https://codeberg.org/"
+                    (or
+                     ;; Explicit user/proj#18 link.
+                     (match-string 1)
+                     ns-project)
+                    "/issues/"
+                    (match-string 2))))))
+    ;;
     ;; GitLab projects.
     ;;
     ;; Here #18 is an issue and !17 is a merge request.  Explicit
@@ -202,7 +218,6 @@ The second subexpression should match the bug reference (usually a number)."
                         "issues/"
                       "merge_requests/")
                     (match-string 2))))))
-
     ;;
     ;; Sourcehut projects.
     ;;
