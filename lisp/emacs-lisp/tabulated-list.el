@@ -36,6 +36,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defgroup tabulated-list nil
   "Tabulated-list customization group."
   :group 'convenience
@@ -645,18 +647,41 @@ this is the vector stored within it."
 
 (defun tabulated-list-sort (&optional n)
   "Sort Tabulated List entries by the column at point.
-With a numeric prefix argument N, sort the Nth column."
+With a numeric prefix argument N, sort the Nth column.
+
+If the numeric prefix is -1, restore order the list was
+originally displayed in."
   (interactive "P")
-  (let ((name (if n
-		  (car (aref tabulated-list-format n))
-		(get-text-property (point)
-				   'tabulated-list-column-name))))
-    (if (nth 2 (assoc name (append tabulated-list-format nil)))
-        (tabulated-list--sort-by-column-name name)
-      (user-error "Cannot sort by %s" name))))
+  (if (equal n -1)
+      ;; Restore original order.
+      (progn
+        (unless tabulated-list--original-order
+          (error "Order is already in original order"))
+        (setq tabulated-list-entries
+              (sort tabulated-list-entries
+                    (lambda (e1 e2)
+                      (< (gethash e1 tabulated-list--original-order)
+                         (gethash e2 tabulated-list--original-order)))))
+        (setq tabulated-list-sort-key nil)
+        (tabulated-list-init-header)
+        (tabulated-list-print t))
+    ;; Sort based on a column name.
+    (let ((name (if n
+		    (car (aref tabulated-list-format n))
+		  (get-text-property (point)
+				     'tabulated-list-column-name))))
+      (if (nth 2 (assoc name (append tabulated-list-format nil)))
+          (tabulated-list--sort-by-column-name name)
+        (user-error "Cannot sort by %s" name)))))
 
 (defun tabulated-list--sort-by-column-name (name)
   (when (and name (derived-mode-p 'tabulated-list-mode))
+    (unless tabulated-list--original-order
+      ;; Store the original order so that we can restore it later.
+      (setq tabulated-list--original-order (make-hash-table))
+      (cl-loop for elem in tabulated-list-entries
+               for i from 0
+               do (setf (gethash elem tabulated-list--original-order) i)))
     ;; Flip the sort order on a second click.
     (if (equal name (car tabulated-list-sort-key))
 	(setcdr tabulated-list-sort-key
@@ -717,6 +742,8 @@ Interactively, N is the prefix numeric argument, and defaults to
 
 ;;; The mode definition:
 
+(defvar tabulated-list--original-order nil)
+
 (define-derived-mode tabulated-list-mode special-mode "Tabulated"
   "Generic major mode for browsing a list of items.
 This mode is usually not used directly; instead, other major
@@ -757,6 +784,7 @@ as the ewoc pretty-printer."
   (setq-local glyphless-char-display
               (tabulated-list-make-glyphless-char-display-table))
   (setq-local text-scale-remap-header-line t)
+  (setq-local tabulated-list--original-order nil)
   ;; Avoid messing up the entries' display just because the first
   ;; column of the first entry happens to begin with a R2L letter.
   (setq bidi-paragraph-direction 'left-to-right)

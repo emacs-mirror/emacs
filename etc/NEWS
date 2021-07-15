@@ -2185,6 +2185,14 @@ summaries will include the failing condition.
 
 ** Miscellaneous
 
+---
+*** 'tabulated-list-mode' can now restore original display order.
+Many commands (like 'C-x C-b') are derived from 'tabulated-list-mode',
+and that mode allow the user to sort on any column.  There was
+previously no easy way to get back to the original displayed order
+after sorting, but giving a -1 numerical prefix to the sorting command
+will now restore the original order.
+
 +++
 *** New utility function 'insert-into-buffer'.
 This is like 'insert-buffer-substring', but works in the opposite
