@@ -1660,7 +1660,8 @@ starting with `not' and followed by regexps."
 
 (defface message-signature-separator '((t :bold t))
   "Face used for displaying the signature separator."
-  :group 'message-faces)
+  :group 'message-faces
+  :version "28.1")
 
 (defun message-match-to-eoh (_limit)
   (let ((start (point)))
