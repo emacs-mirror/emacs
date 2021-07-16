@@ -311,9 +311,10 @@ prompt, and how you can tweak the file size threshold.
 +++
 ** New user option 'query-about-changed-file'.
 If non-nil (the default), users are prompted as before when
-re-visiting a file that has changed externally.  If nil, the user is
-not prompted, but instead the buffer is opened, and the user is given
-an instruction on how to revert the uffer.
+re-visiting a file that has changed externally after it was visited
+the first time.  If nil, the user is not prompted, but instead the
+buffer is opened with its contents before the change, and the user is
+given instructions how to revert the buffer.
 
 +++
 ** Improved support for terminal emulators that encode the Meta flag.

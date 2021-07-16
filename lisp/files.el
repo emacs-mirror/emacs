@@ -2154,12 +2154,13 @@ think it does, because \"free\" is pretty hard to define in practice."
   :type '(choice integer (const :tag "Never issue warning" nil)))
 
 (defcustom query-about-changed-file t
-  "If non-nil, query the user when opening a file that has changed.
-This happens if the file is already visited in a buffer, and the
-file has changed, and the user re-visits the file.
+  "If non-nil, query the user when re-visiting a file that has changed.
+This happens if the file is already visited in a buffer, the
+file was changed externally, and the user re-visits the file.
 
-If nil, the user isn't prompted, but instead given a warning
-after switching to the buffer."
+If nil, don't prompt the user, but instead provide instructions for
+reverting, after switching to the buffer with its contents before
+the external changes."
   :group 'files
   :group 'find-file
   :version "28.1"
