@@ -2153,6 +2153,18 @@ think it does, because \"free\" is pretty hard to define in practice."
   :version "25.1"
   :type '(choice integer (const :tag "Never issue warning" nil)))
 
+(defcustom query-about-changed-file t
+  "If non-nil, query the user when opening a file that has changed.
+This happens if the file is already visited in a buffer, and the
+file has changed, and the user re-visits the file.
+
+If nil, the user isn't prompted, but instead given a warning
+after switching to the buffer."
+  :group 'files
+  :group 'find-file
+  :version "28.1"
+  :type 'boolean)
+
 (declare-function x-popup-dialog "menu.c" (position contents &optional header))
 
 (defun files--ask-user-about-large-file-help-text (op-type size)
@@ -2335,6 +2347,14 @@ the various files."
 			   (message "Reverting file %s..." filename)
 			   (revert-buffer t t)
 			   (message "Reverting file %s...done" filename)))
+                        ((not query-about-changed-file)
+                         (message
+                          (substitute-command-keys
+                           "File %s changed on disk.  \\[revert-buffer] to load new contents%s")
+                          (file-name-nondirectory filename)
+                          (if (buffer-modified-p buf)
+                              " and discard your edits"
+                            "")))
 			((yes-or-no-p
 			  (if (string= (file-name-nondirectory filename)
 				       (buffer-name buf))

@@ -309,6 +309,13 @@ about the different options to visit a file, how you can disable the
 prompt, and how you can tweak the file size threshold.
 
 +++
+** New user option 'query-about-changed-file'.
+If non-nil (the default), users are prompted as before when
+re-visiting a file that has changed externally.  If nil, the user is
+not prompted, but instead the buffer is opened, and the user is given
+an instruction on how to revert the uffer.
+
++++
 ** Improved support for terminal emulators that encode the Meta flag.
 Some terminal emulators set the 8th bit of Meta characters, and then
 encode the resulting character code as if it were non-ASCII character

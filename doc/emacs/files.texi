@@ -227,6 +227,14 @@ File Names}, for information on how to visit a file whose name
 actually contains wildcard characters.  You can disable the wildcard
 feature by customizing @code{find-file-wildcards}.
 
+@vindex query-about-changed-file
+  If you're asking to visit a file that's already in a buffer, but the
+file has changed externally, Emacs will ask you whether you want to
+re-load the file or not.  If you set @code{query-about-changed-file}
+to @code{nil}, Emacs won't query you, but instead just display the
+buffer and issue a message telling you how to revert the buffer from
+the file.
+
 @kindex C-x C-v
 @findex find-alternate-file
   If you visit the wrong file unintentionally by typing its name
