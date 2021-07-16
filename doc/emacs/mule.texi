@@ -174,8 +174,10 @@ characters in the range @code{#x0080..#x00FF}.
 @cindex font of character at point
 @cindex text properties at point
 @cindex face at point
-  With a prefix argument (@kbd{C-u C-x =}), this command displays a
-detailed description of the character in a window:
+@findex describe-char
+  With a prefix argument (@kbd{C-u C-x =}), this command additionally
+calls the command @code{describe-char}, which displays a detailed
+description of the character:
 
 @itemize @bullet
 @item
