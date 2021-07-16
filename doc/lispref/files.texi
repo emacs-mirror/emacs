@@ -826,6 +826,11 @@ You can prevent the creation of remote lock files by setting the
 variable @code{remote-file-name-inhibit-locks} to @code{t}.
 @end defopt
 
+@deffn Command lock-file-mode
+This command, called interactively, toggles the local value of
+@code{create-lockfiles} in the current buffer.
+@end deffn
+
 @node Information about Files
 @section Information about Files
 @cindex file, information about

@@ -412,26 +412,6 @@ ignored."
   :initialize 'custom-initialize-delay
   :version "21.1")
 
-(defcustom lock-file-name-transforms nil
-  "Transforms to apply to buffer file name before making a lock file name.
-This has the same syntax as
-`auto-save-file-name-transforms' (which see), but instead of
-applying to auto-save file names, it's applied to lock file names.
-
-By default, a lock file is put into the same directory as the
-file it's locking, and it has the same name, but with \".#\" prepended."
-  :group 'files
-  :type '(repeat (list (regexp :tag "Regexp")
-                       (string :tag "Replacement")
-		       (boolean :tag "Uniquify")))
-  :version "28.1")
-
-(defcustom remote-file-name-inhibit-locks nil
-  "Whether to use file locks for remote files."
-  :group 'files
-  :version "28.1"
-  :type 'boolean)
-
 (defvar auto-save--timer nil "Timer for `auto-save-visited-mode'.")
 
 (defcustom auto-save-visited-interval 5
@@ -484,6 +464,32 @@ enabled."
 If `silently', don't ask the user before saving."
   :type '(choice (const t) (const nil) (const silently))
   :group 'abbrev)
+
+(defcustom lock-file-name-transforms nil
+  "Transforms to apply to buffer file name before making a lock file name.
+This has the same syntax as
+`auto-save-file-name-transforms' (which see), but instead of
+applying to auto-save file names, it's applied to lock file names.
+
+By default, a lock file is put into the same directory as the
+file it's locking, and it has the same name, but with \".#\" prepended."
+  :group 'files
+  :type '(repeat (list (regexp :tag "Regexp")
+                       (string :tag "Replacement")
+		       (boolean :tag "Uniquify")))
+  :initialize 'custom-initialize-delay
+  :version "28.1")
+
+(defcustom remote-file-name-inhibit-locks nil
+  "Whether to use file locks for remote files."
+  :group 'files
+  :version "28.1"
+  :type 'boolean)
+
+(define-minor-mode lock-file-mode
+  "Toggle file locking in the current buffer (Lock File mode)."
+  :version "28.1"
+  (setq-local create-lockfiles (and lock-file-mode t)))
 
 (defcustom find-file-run-dired t
   "Non-nil means allow `find-file' to visit directories.

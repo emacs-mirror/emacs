@@ -2191,6 +2191,22 @@ Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 If the 'EMACS_TEST_VERBOSE' environment variable is set, failure
 summaries will include the failing condition.
 
+** File Locks
+
++++
+*** New user option 'lock-file-name-transforms'.
+This option allows controlling where lock files are written.  It uses
+the same syntax as 'auto-save-file-name-transforms'.
+
++++
+*** New user option 'remote-file-name-inhibit-locks'.
+When non-nil, this option suppresses lock files for remote files.
+
++++
+*** New minor mode 'lock-file-mode'.
+This command, called interactively, toggles the local value of
+'create-lockfiles' in the current buffer.
+
 ** Miscellaneous
 
 ---
@@ -2208,15 +2224,6 @@ will now restore the original order.
 *** New utility function 'insert-into-buffer'.
 This is like 'insert-buffer-substring', but works in the opposite
 direction.
-
-+++
-*** New user option 'lock-file-name-transforms'.
-This option allows controlling where lock files are written.  It uses
-the same syntax as 'auto-save-file-name-transforms'.
-
-+++
-*** New user option 'remote-file-name-inhibit-locks'.
-When non-nil, this option suppresses lock files for remote files.
 
 +++
 *** New user option 'kill-transform-function'.

@@ -849,6 +849,10 @@ diff-buffer-with-file} command.  @xref{Comparing Files}.
   You can prevent the creation of remote lock files by setting the
 variable @code{remote-file-name-inhibit-locks} to @code{t}.
 
+@cindex lock-file-mode
+  The minor mode @code{lock-file-mode}, called interactively, toggles
+the local value of @code{create-lockfiles} in the current buffer.
+
 @node File Shadowing
 @subsection Shadowing Files
 @cindex shadow files
