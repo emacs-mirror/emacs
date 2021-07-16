@@ -477,7 +477,6 @@ file it's locking, and it has the same name, but with \".#\" prepended."
   :type '(repeat (list (regexp :tag "Regexp")
                        (string :tag "Replacement")
 		       (boolean :tag "Uniquify")))
-  :initialize 'custom-initialize-delay
   :version "28.1")
 
 (defcustom remote-file-name-inhibit-locks nil
