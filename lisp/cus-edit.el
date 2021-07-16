@@ -2824,7 +2824,7 @@ the present value is saved to its :shown-value property instead."
 			  (list (widget-value
 				 (car-safe
 				  (widget-get widget :children)))))
-	    (error "There are unsaved changes")))
+	    (message "Note: There are unsaved changes")))
 	(widget-put widget :documentation-shown nil)
 	(widget-put widget :custom-state 'hidden))
       (custom-redraw widget)
