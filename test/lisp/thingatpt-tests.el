@@ -190,4 +190,37 @@ position to retrieve THING.")
     (goto-char 2)
     (should (eq (symbol-at-point) nil))))
 
+(defun test--number (number pos)
+  (with-temp-buffer
+    (insert (format "%s\n" number))
+    (goto-char (point-min))
+    (forward-char pos)
+    (number-at-point)))
+
+(ert-deftest test-numbers-none ()
+  (should (equal (test--number "foo" 0) nil)))
+
+(ert-deftest test-numbers-decimal ()
+  (should (equal (test--number "42" 0) 42))
+  (should (equal (test--number "42" 1) 42))
+  (should (equal (test--number "42" 2) 42)))
+
+(ert-deftest test-numbers-hex-lisp ()
+  (should (equal (test--number "#x42" 0) 66))
+  (should (equal (test--number "#x42" 1) 66))
+  (should (equal (test--number "#x42" 2) 66))
+  (should (equal (test--number "#xf00" 0) 3840))
+  (should (equal (test--number "#xf00" 1) 3840))
+  (should (equal (test--number "#xf00" 2) 3840))
+  (should (equal (test--number "#xf00" 3) 3840)))
+
+(ert-deftest test-numbers-hex-c ()
+  (should (equal (test--number "0x42" 0) 66))
+  (should (equal (test--number "0x42" 1) 66))
+  (should (equal (test--number "0x42" 2) 66))
+  (should (equal (test--number "0xf00" 0) 3840))
+  (should (equal (test--number "0xf00" 1) 3840))
+  (should (equal (test--number "0xf00" 2) 3840))
+  (should (equal (test--number "0xf00" 3) 3840)))
+
 ;;; thingatpt.el ends here
