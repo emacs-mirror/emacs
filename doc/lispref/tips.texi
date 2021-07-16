@@ -168,11 +168,12 @@ follow the naming conventions for hooks.  @xref{Hooks}.
 
 @item
 @cindex unloading packages, preparing for
-If loading the file adds functions to hooks, define a function
-@code{@var{feature}-unload-function}, where @var{feature} is the name
-of the feature the package provides, and make it undo any such
-changes.  Using @code{unload-feature} to unload the file will run this
-function.  @xref{Unloading}.
+@code{unload-feature} will normally undo normal changes done by
+loading a feature (like adding adds functions to hooks).  However, if
+loading @var{feature} does something more complex, define a function
+@code{@var{feature}-unload-function}, and make it undo any such
+changes.  @code{unload-feature} will run this function.
+@xref{Unloading}.
 
 @item
 It is a bad idea to define aliases for the Emacs primitives.  Normally
