@@ -3665,7 +3665,7 @@ ns_draw_box (NSRect r, CGFloat hthickness, CGFloat vthickness,
 
 
 static void
-ns_draw_relief (NSRect r, int hthickness, int vthickness, char raised_p,
+ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
                char top_p, char bottom_p, char left_p, char right_p,
                struct glyph_string *s)
 /* --------------------------------------------------------------------------
@@ -3676,7 +3676,7 @@ ns_draw_relief (NSRect r, int hthickness, int vthickness, char raised_p,
 {
   static NSColor *baseCol = nil, *lightCol = nil, *darkCol = nil;
   NSColor *newBaseCol = nil;
-  NSRect sr = r;
+  NSRect inner;
 
   NSTRACE ("ns_draw_relief");
 
@@ -3710,33 +3710,50 @@ ns_draw_relief (NSRect r, int hthickness, int vthickness, char raised_p,
       darkCol = [[baseCol shadowWithLevel: 0.3] retain];
     }
 
+  /* Calculate the inner rectangle.  */
+  inner = NSInsetRect (outer, hthickness, vthickness);
+
   [(raised_p ? lightCol : darkCol) set];
 
-  /* TODO: mitering. Using NSBezierPath doesn't work because of color switch.  */
-
-  /* top */
-  sr.size.height = hthickness;
-  if (top_p) NSRectFill (sr);
-
-  /* left */
-  sr.size.height = r.size.height;
-  sr.size.width = vthickness;
-  if (left_p) NSRectFill (sr);
+  if (top_p || left_p)
+    {
+      NSBezierPath *p = [NSBezierPath bezierPath];
+      [p moveToPoint:NSMakePoint (NSMinX (outer), NSMinY (outer))];
+      if (top_p)
+        {
+          [p lineToPoint:NSMakePoint (NSMaxX (outer), NSMinY (outer))];
+          [p lineToPoint:NSMakePoint (NSMaxX (inner), NSMinY (inner))];
+        }
+      [p lineToPoint:NSMakePoint (NSMinX (inner), NSMinY (inner))];
+      if (left_p)
+        {
+          [p lineToPoint:NSMakePoint (NSMinX (inner), NSMaxY (inner))];
+          [p lineToPoint:NSMakePoint (NSMinX (outer), NSMaxY (outer))];
+        }
+      [p closePath];
+      [p fill];
+    }
 
   [(raised_p ? darkCol : lightCol) set];
 
-  /* bottom */
-  sr.size.width = r.size.width;
-  sr.size.height = hthickness;
-  sr.origin.y += r.size.height - hthickness;
-  if (bottom_p) NSRectFill (sr);
-
-  /* right */
-  sr.size.height = r.size.height;
-  sr.origin.y = r.origin.y;
-  sr.size.width = vthickness;
-  sr.origin.x += r.size.width - vthickness;
-  if (right_p) NSRectFill (sr);
+    if (bottom_p || right_p)
+    {
+      NSBezierPath *p = [NSBezierPath bezierPath];
+      [p moveToPoint:NSMakePoint (NSMaxX (outer), NSMaxY (outer))];
+      if (right_p)
+        {
+          [p lineToPoint:NSMakePoint (NSMaxX (outer), NSMinY (outer))];
+          [p lineToPoint:NSMakePoint (NSMaxX (inner), NSMinY (inner))];
+        }
+      [p lineToPoint:NSMakePoint (NSMaxX (inner), NSMaxY (inner))];
+      if (bottom_p)
+        {
+          [p lineToPoint:NSMakePoint (NSMinX (inner), NSMaxY (inner))];
+          [p lineToPoint:NSMakePoint (NSMinX (outer), NSMaxY (outer))];
+        }
+      [p closePath];
+      [p fill];
+    }
 }
 
 
