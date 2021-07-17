@@ -1348,7 +1348,7 @@ command before it's run."
 (defun grep-file-at-point (point)
   "Return the name of the file at POINT a `grep-mode' buffer.
 The returned file name is relative."
-  (when-let ((msg (get-text-property (point) 'compilation-message))
+  (when-let ((msg (get-text-property point 'compilation-message))
              (loc (compilation--message->loc msg)))
     (caar (compilation--loc->file-struct loc))))
 
