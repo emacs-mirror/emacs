@@ -1732,52 +1732,35 @@ ns_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
   block_input ();
 
-  if (FRAME_PARENT_FRAME (f))
-    {
-      /* Convert the parent frame's view rectangle into screen
-         coords.  */
-      EmacsView *parentView = FRAME_NS_VIEW (FRAME_PARENT_FRAME (f));
-      NSRect parentRect = [parentView convertRect:[parentView frame]
-                                           toView:nil];
-      parentRect = [[parentView window] convertRectToScreen:parentRect];
+  /* If there is no parent frame then just convert to screen
+     coordinates, UNLESS we have negative values, in which case I
+     think it's best to position from the bottom and right of the
+     current screen rather than the main screen or whole display.  */
 
-      if (f->size_hint_flags & XNegative)
-        topLeft.x = NSMaxX (parentRect) - NSWidth (windowFrame) + xoff;
-      else
-        topLeft.x = NSMinX (parentRect) + xoff;
+  NSRect parentRect = ns_parent_window_rect (f);
 
-      if (f->size_hint_flags & YNegative)
-        topLeft.y = NSMinY (parentRect) + NSHeight (windowFrame) - yoff;
-      else
-        topLeft.y = NSMaxY (parentRect) - yoff;
-    }
+  if (f->size_hint_flags & XNegative)
+    topLeft.x = NSMaxX (parentRect) - NSWidth (windowFrame) + xoff;
+  else if (FRAME_PARENT_FRAME (f))
+    topLeft.x = NSMinX (parentRect) + xoff;
   else
-    {
-      /* If there is no parent frame then just convert to screen
-         coordinates, UNLESS we have negative values, in which case I
-         think it's best to position from the bottom and right of the
-         current screen rather than the main screen or whole
-         display.  */
-      NSRect screenFrame = [[[view window] screen] frame];
+    topLeft.x = xoff;
 
-      if (f->size_hint_flags & XNegative)
-        topLeft.x = NSMaxX (screenFrame) - NSWidth (windowFrame) + xoff;
-      else
-        topLeft.x = xoff;
-
-      if (f->size_hint_flags & YNegative)
-        topLeft.y = NSMinY (screenFrame) + NSHeight (windowFrame) - yoff;
-      else
-        topLeft.y = NSMaxY ([[[NSScreen screens] objectAtIndex:0] frame]) - yoff;
+  if (f->size_hint_flags & YNegative)
+    topLeft.y = NSMinY (parentRect) + NSHeight (windowFrame) - yoff;
+  else if (FRAME_PARENT_FRAME (f))
+    topLeft.y = NSMaxY (parentRect) - yoff;
+  else
+    topLeft.y = NSMaxY ([[[NSScreen screens] objectAtIndex:0] frame]) - yoff;
 
 #ifdef NS_IMPL_GNUSTEP
-      /* Don't overlap the menu.
+  /* Don't overlap the menu.
 
-         FIXME: Surely there's a better way than just hardcoding 100
-         in here?  */
-      topLeft.x = 100;
+     FIXME: Surely there's a better way than just hardcoding 100 in
+     here?  */
+  if (topLeft.x < 100)
+    topLeft.x = 100;
 #endif
-    }
 
   NSTRACE_POINT ("setFrameTopLeftPoint", topLeft);
   [[view window] setFrameTopLeftPoint:topLeft];
@@ -1800,40 +1783,34 @@ ns_set_window_size (struct frame *f,
 {
   EmacsView *view = FRAME_NS_VIEW (f);
   NSWindow *window = [view window];
-  NSRect wr = [window frame];
-  int orig_height = wr.size.height;
+  NSRect frameRect;
 
   NSTRACE ("ns_set_window_size");
 
   if (view == nil)
     return;
 
-  NSTRACE_RECT ("current", wr);
+  NSTRACE_RECT ("current", [window frame]);
   NSTRACE_MSG ("Width:%d Height:%d", width, height);
   NSTRACE_MSG ("Font %d x %d", FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f));
 
   block_input ();
 
-  wr.size.width = width + f->border_width;
-  wr.size.height = height;
-  if (! [view isFullscreen])
-    wr.size.height += FRAME_NS_TITLEBAR_HEIGHT (f)
-      + FRAME_TOOLBAR_HEIGHT (f);
+  frameRect = [window frameRectForContentRect:NSMakeRect (0, 0, width, height)];
 
-  /* Do not try to constrain to this screen.  We may have multiple
-     screens, and want Emacs to span those.  Constraining to screen
-     prevents that, and that is not nice to the user.  */
- if (f->output_data.ns->zooming)
-   f->output_data.ns->zooming = 0;
- else
-   wr.origin.y += orig_height - wr.size.height;
+  /* Set the origin so the top left of the frame doesn't move.  */
+  frameRect.origin = [window frame].origin;
+  frameRect.origin.y += NSHeight ([view frame]) - height;
 
- /* Usually it seems safe to delay changing the frame size, but when a
-    series of actions are taken with no redisplay between them then we
-    can end up using old values so don't delay here.  */
- change_frame_size (f, width, height, false, NO, false);
+  if (f->output_data.ns->zooming)
+    f->output_data.ns->zooming = 0;
 
-  [window setFrame:wr display:NO];
+  /* Usually it seems safe to delay changing the frame size, but when a
+     series of actions are taken with no redisplay between them then we
+     can end up using old values so don't delay here.  */
+  change_frame_size (f, width, height, false, NO, false);
+
+  [window setFrame:frameRect display:NO];
 
   unblock_input ();
 }
