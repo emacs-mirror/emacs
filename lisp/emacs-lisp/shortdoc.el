@@ -1319,16 +1319,15 @@ Example:
 (define-derived-mode shortdoc-mode special-mode "shortdoc"
   "Mode for shortdoc.")
 
-(defmacro shortdoc--goto-section (arg sym &optional reverse)
-  `(progn
-     (unless (natnump ,arg)
-       (setq ,arg 1))
-     (while (< 0 ,arg)
-       (,(if reverse
-             'text-property-search-backward
-           'text-property-search-forward)
-        ,sym t)
-       (setq ,arg (1- ,arg)))))
+(defun shortdoc--goto-section (arg sym &optional reverse)
+  (unless (natnump arg)
+    (setq arg 1))
+  (while (> arg 0)
+    (funcall
+     (if reverse 'text-property-search-backward
+       'text-property-search-forward)
+     sym nil t t)
+    (setq arg (1- arg))))
 
 (defun shortdoc-next (&optional arg)
   "Move cursor to the next function.
