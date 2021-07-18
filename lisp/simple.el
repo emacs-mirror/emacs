@@ -6682,6 +6682,10 @@ or \"mark.*active\" at the prompt."
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable (default-value 'transient-mark-mode))
 
+(define-minor-mode indent-tabs-mode
+  "Toggle whether indentation can insert TAB characters."
+  :global t :group 'indent :variable indent-tabs-mode)
+
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
 Some commands will do this in order to go to positions outside

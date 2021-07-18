@@ -2223,6 +2223,9 @@ This command, called interactively, toggles the local value of
 ** Miscellaneous
 
 ---
+*** 'indent-tabs-mode' is now a global minor mode instead of just a variable.
+
+---
 *** New user option 'save-place-abbreviate-file-names'.
 
 ---
