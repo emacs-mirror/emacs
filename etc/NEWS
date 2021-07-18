@@ -1599,6 +1599,14 @@ required, but the recommended solution is to use a correctly matching
 regexp instead.
 
 ---
+*** New user option 'compilation-search-all-directories'.
+When doing parallel builds, directories and compilation errors may
+arrive in the "*compilation*" buffer out-of-order.  If this variable is
+non-nil (the default), Emacs will now search backwards in the buffer
+for any directory the file with errors may be in.  If nil, this won't
+be done (and this restores how this previously worked).
+
+---
 *** Messages from ShellCheck are now recognized.
 
 ---
@@ -2356,14 +2364,6 @@ By default, turning on 'global-display-fill-column-indicator-mode'
 doesn't turn on 'display-fill-column-indicator-mode' in special-mode
 buffers.  This can be controlled by customizing the variable
 'global-display-fill-column-indicator-modes'.
-
----
-*** New user option 'compilation-search-all-directories'.
-When doing parallel builds, directories and compilation errors may
-arrive in the "*compilation*" buffer out-of-order.  If this variable is
-non-nil (the default), Emacs will now search backwards in the buffer
-for any directory the file with errors may be in.  If nil, this won't
-be done (and this restores how this previously worked).
 
 +++
 *** New user option 'next-error-message-highlight'.
