@@ -284,9 +284,13 @@ Argument can be a simple name, remote file name, or already a
 
 (defsubst shadow-make-fullname (hup &optional host name)
   "Make a Tramp style fullname out of HUP, a `tramp-file-name' structure.
-Replace HOST, and NAME when non-nil."
+Replace HOST, and NAME when non-nil.  HOST can also be a remote file name."
   (let ((hup (copy-tramp-file-name hup)))
-    (when host (setf (tramp-file-name-host hup) host))
+    (when host
+      (if (file-remote-p host)
+          (setq name (or name (and hup (tramp-file-name-localname hup)))
+                hup (tramp-dissect-file-name (file-remote-p host)))
+        (setf (tramp-file-name-host hup) host)))
     (when name (setf (tramp-file-name-localname hup) name))
     (if (null (tramp-file-name-method hup))
 	(format

@@ -31,9 +31,6 @@
 (require 'compile)
 
 (defconst compile-tests--test-regexps-data
-  ;; The computed column numbers are zero-indexed, so subtract 1 from
-  ;; what's reported in the string.  The end column numbers are for
-  ;; the character after, so it matches what's reported in the string.
   '(;; absoft
     (absoft
      "Error on line 3 of t.f: Execution error unclassifiable statement"
@@ -61,7 +58,7 @@
     (ant "[javac] /src/DataBaseTestCase.java:49: warning: finally clause cannot complete normally"
      13 nil 49 "/src/DataBaseTestCase.java" 1)
     (ant "[jikes]  foo.java:3:5:7:9: blah blah"
-     14 (5 . 10) (3 . 7) "foo.java" 2)
+     14 (5 . 9) (3 . 7) "foo.java" 2)
     (ant "[javac] c:/cygwin/Test.java:12: error: foo: bar"
      9 nil 12 "c:/cygwin/Test.java" 2)
     (ant "[javac] c:\\cygwin\\Test.java:87: error: foo: bar"
@@ -86,10 +83,10 @@
     ;; caml
     (python-tracebacks-and-caml
      "File \"foobar.ml\", lines 5-8, characters 20-155: blah blah"
-     1 (20 . 156) (5 . 8) "foobar.ml")
+     1 (20 . 155) (5 . 8) "foobar.ml")
     (python-tracebacks-and-caml
      "File \"F:\\ocaml\\sorting.ml\", line 65, characters 2-145:\nWarning 26: unused variable equ."
-     1 (2 . 146) 65 "F:\\ocaml\\sorting.ml")
+     1 (2 . 145) 65 "F:\\ocaml\\sorting.ml")
     (python-tracebacks-and-caml
      "File \"/usr/share/gdesklets/display/TargetGauge.py\", line 41, in add_children"
      1 nil 41 "/usr/share/gdesklets/display/TargetGauge.py")
@@ -231,12 +228,12 @@
     (gnu "foo.c:8.23: note: message" 1 23 8 "foo.c")
     (gnu "foo.c:8.23: info: message" 1 23 8 "foo.c")
     (gnu "foo.c:8:23:information: message" 1 23 8 "foo.c")
-    (gnu "foo.c:8.23-45: Informational: message" 1 (23 . 46) (8 . nil) "foo.c")
+    (gnu "foo.c:8.23-45: Informational: message" 1 (23 . 45) (8 . nil) "foo.c")
     (gnu "foo.c:8-23: message" 1 nil (8 . 23) "foo.c")
     ;; The next one is not in the GNU standards AFAICS.
     ;; Here we seem to interpret it as LINE1-LINE2.COL2.
-    (gnu "foo.c:8-45.3: message" 1 (nil . 4) (8 . 45) "foo.c")
-    (gnu "foo.c:8.23-9.1: message" 1 (23 . 2) (8 . 9) "foo.c")
+    (gnu "foo.c:8-45.3: message" 1 (nil . 3) (8 . 45) "foo.c")
+    (gnu "foo.c:8.23-9.1: message" 1 (23 . 1) (8 . 9) "foo.c")
     (gnu "jade:dbcommon.dsl:133:17:E: missing argument for function call"
      1 17 133 "dbcommon.dsl")
     (gnu "G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found."
@@ -472,8 +469,11 @@ can only work with the NUL byte to disambiguate colons.")
           (when file
             (should (equal (caar (compilation--loc->file-struct loc)) file)))
           (when end-col
+            ;; The computed END-COL is exclusive; subtract one to get the
+            ;; number in the error message.
             (should (equal
-                     (car (cadr (nth 2 (compilation--loc->file-struct loc))))
+                     (1- (car (cadr
+                               (nth 2 (compilation--loc->file-struct loc)))))
                      end-col)))
           (should (equal (car (nth 2 (compilation--loc->file-struct loc)))
                          (or end-line line)))

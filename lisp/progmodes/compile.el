@@ -1540,7 +1540,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
                              file line end-line col end-col
                              (or type 2) fmt rule))
 
-            (when (integerp file)
+            (when file
               (let ((this-type (if (consp type)
                                    (compilation-type type)
                                  (or type 2))))

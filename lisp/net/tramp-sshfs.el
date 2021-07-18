@@ -295,12 +295,12 @@ arguments to pass to the OPERATION."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let (file-locked)
+    (let ((file-locked (eq (file-locked-p lockname) t)))
 
       ;; Lock file.
       (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
 		 (file-remote-p lockname)
-		 (not (eq (file-locked-p lockname) t)))
+		 (not file-locked))
 	(setq file-locked t)
 	;; `lock-file' exists since Emacs 28.1.
 	(tramp-compat-funcall 'lock-file lockname))
@@ -311,7 +311,7 @@ arguments to pass to the OPERATION."
 	(tramp-flush-file-properties v localname))
 
       ;; Unlock file.
-      (when (and file-locked (eq (file-locked-p lockname) t))
+      (when file-locked
 	;; `unlock-file' exists since Emacs 28.1.
 	(tramp-compat-funcall 'unlock-file lockname))
 

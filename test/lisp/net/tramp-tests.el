@@ -2466,7 +2466,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 			  "^\\'")
 			tramp--test-messages))))))))
 
-	    ;; We do not test lockname here.  See `tramp-test39-lock-file'.
+	    ;; We do not test lockname here.  See
+	    ;; `tramp-test39-make-lock-file-name'.
 
 	    ;; Do not overwrite if excluded.
 	    (cl-letf (((symbol-function #'y-or-n-p) #'tramp--test-always)
@@ -5746,8 +5747,8 @@ Use direct async.")
 	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)))))
 
 ;; The functions were introduced in Emacs 28.1.
-(ert-deftest tramp-test39-lock-file ()
-  "Check `lock-file', `unlock-file' and `file-locked-p'."
+(ert-deftest tramp-test39-make-lock-file-name ()
+  "Check `make-lock-file-name', `lock-file', `unlock-file' and `file-locked-p'."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-ange-ftp-p)))
   ;; Since Emacs 28.1.
@@ -5780,6 +5781,15 @@ Use direct async.")
 	    (should (eq (with-no-warnings (file-locked-p tmp-name1)) t))
 
 	    ;; If it is locked already, nothing changes.
+	    (with-no-warnings (lock-file tmp-name1))
+	    (should (eq (with-no-warnings (file-locked-p tmp-name1)) t))
+
+            ;; `save-buffer' removes the lock.
+            (with-temp-buffer
+              (set-visited-file-name tmp-name1)
+              (insert "foo")
+              (save-buffer))
+            (should-not (with-no-warnings (file-locked-p tmp-name1)))
 	    (with-no-warnings (lock-file tmp-name1))
 	    (should (eq (with-no-warnings (file-locked-p tmp-name1)) t))
 
@@ -5838,8 +5848,7 @@ Use direct async.")
 	        (should-error
                  (set-visited-file-name tmp-name1)
 		 :type 'file-locked)))
-	    (should (stringp (with-no-warnings (file-locked-p tmp-name1))))
-	    (should-not (file-exists-p tmp-name1)))
+	    (should (stringp (with-no-warnings (file-locked-p tmp-name1)))))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name1))
