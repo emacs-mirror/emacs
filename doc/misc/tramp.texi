@@ -2858,11 +2858,15 @@ to warn you, if a file is changed in parallel from different Emacs
 sessions, or via different remote connections.  Be careful with such
 settings.
 
+@vindex remote-file-name-inhibit-locks
+Setting @code{remote-file-name-inhibit-locks} to non-@code{nil}
+prevents the creation of remote lock files at all.
+
 @vindex tramp-allow-unsafe-temporary-files
 Per default, @value{tramp} asks for confirmation if a
-@samp{root}-owned backup or auto-save remote file has to be written to
-your local temporary directory.  If you want to suppress this
-confirmation question, set user option
+@samp{root}-owned remote backup, auto-save or lock file has to be
+written to your local temporary directory.  If you want to suppress
+this confirmation question, set user option
 @code{tramp-allow-unsafe-temporary-files} to @code{t}.
 
 

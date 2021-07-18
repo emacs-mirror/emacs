@@ -677,14 +677,14 @@ Signal an error if the entire string was not used."
   "Return the number at point, or nil if none is found.
 Decimal numbers like \"14\" or \"-14.5\", as well as hex numbers
 like \"0xBEEF09\" or \"#xBEEF09\", are recognized."
-  (when (thing-at-point-looking-at
-         "\\(-?[0-9]+\\.?[0-9]*\\)\\|\\(0x\\|#x\\)\\([a-zA-Z0-9]+\\)" 500)
-    (if (match-beginning 1)
-        (string-to-number
-         (buffer-substring (match-beginning 1) (match-end 1)))
-      (string-to-number
-       (buffer-substring (match-beginning 3) (match-end 3))
-       16))))
+  (cond
+   ((thing-at-point-looking-at "\\(0x\\|#x\\)\\([a-fA-F0-9]+\\)" 500)
+    (string-to-number
+     (buffer-substring (match-beginning 2) (match-end 2))
+     16))
+   ((thing-at-point-looking-at "-?[0-9]+\\.?[0-9]*" 500)
+    (string-to-number
+     (buffer-substring (match-beginning 0) (match-end 0))))))
 
 (put 'number 'thing-at-point 'number-at-point)
 ;;;###autoload

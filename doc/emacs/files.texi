@@ -227,6 +227,15 @@ File Names}, for information on how to visit a file whose name
 actually contains wildcard characters.  You can disable the wildcard
 feature by customizing @code{find-file-wildcards}.
 
+@vindex query-about-changed-file
+  If you're asking to visit a file that's already visited in a buffer,
+but the file has changed externally, Emacs normally asks you whether
+you want to re-read the file from disk.  But if you set
+@code{query-about-changed-file} to @code{nil}, Emacs won't query you,
+but will instead just display the buffer's contents before the
+changes, and show an echo-area message telling you how to revert the
+buffer from the file.
+
 @kindex C-x C-v
 @findex find-alternate-file
   If you visit the wrong file unintentionally by typing its name
@@ -835,6 +844,14 @@ warning message and asks for confirmation before saving; answer
   If you are notified that simultaneous editing has already taken
 place, one way to compare the buffer to its file is the @kbd{M-x
 diff-buffer-with-file} command.  @xref{Comparing Files}.
+
+@vindex remote-file-name-inhibit-locks
+  You can prevent the creation of remote lock files by setting the
+variable @code{remote-file-name-inhibit-locks} to @code{t}.
+
+@cindex lock-file-mode
+  The minor mode @code{lock-file-mode}, called interactively, toggles
+the local value of @code{create-lockfiles} in the current buffer.
 
 @node File Shadowing
 @subsection Shadowing Files

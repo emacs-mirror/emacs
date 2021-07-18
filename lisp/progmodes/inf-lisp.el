@@ -62,6 +62,7 @@
 
 (require 'comint)
 (require 'lisp-mode)
+(require 'shell)
 
 
 (defgroup inferior-lisp nil
@@ -289,15 +290,20 @@ to continue it."
   "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'.
 If there is a process already running in `*inferior-lisp*', just switch
 to that buffer.
+
 With argument, allows you to edit the command line (default is value
 of `inferior-lisp-program').  Runs the hooks from
 `inferior-lisp-mode-hook' (after the `comint-mode-hook' is run).
+
+If any parts of the command name contains spaces, they should be
+quoted using shell quote syntax.
+
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (interactive (list (if current-prefix-arg
 			 (read-string "Run lisp: " inferior-lisp-program)
 		       inferior-lisp-program)))
   (if (not (comint-check-proc "*inferior-lisp*"))
-      (let ((cmdlist (split-string cmd)))
+      (let ((cmdlist (split-string-shell-command cmd)))
 	(set-buffer (apply (function make-comint)
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))

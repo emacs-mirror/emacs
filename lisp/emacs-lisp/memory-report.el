@@ -44,6 +44,8 @@ by counted more than once."
   (pop-to-buffer "*Memory Report*")
   (special-mode)
   (button-mode 1)
+  (setq-local revert-buffer-function (lambda (_ignore-auto _noconfirm)
+                                       (memory-report)))
   (setq truncate-lines t)
   (message "Gathering data...")
   (let ((reports (append (memory-report--garbage-collect)

@@ -340,7 +340,6 @@ typedef struct regexp
   struct re_pattern_buffer *pat; /* the compiled pattern */
   struct re_registers regs;	/* re registers */
   bool error_signaled;		/* already signaled for this regexp */
-  bool force_explicit_name;	/* do not allow implicit tag name */
   bool ignore_case;		/* ignore case when matching */
   bool multi_line;		/* do a multi-line match on the whole file */
 } regexp;
@@ -6910,7 +6909,6 @@ add_regex (char *regexp_pattern, language *lang)
   struct re_pattern_buffer *patbuf;
   regexp *rp;
   bool
-    force_explicit_name = true, /* do not use implicit tag names */
     ignore_case = false,	/* case is significant */
     multi_line = false,		/* matches are done one line at a time */
     single_line = false;	/* dot does not match newline */
@@ -6949,7 +6947,8 @@ add_regex (char *regexp_pattern, language *lang)
       case 'N':
 	if (modifiers == name)
 	  error ("forcing explicit tag name but no name, ignoring");
-	force_explicit_name = true;
+	/* This option has no effect and is present only for backward
+	   compatibility.  */
 	break;
       case 'i':
 	ignore_case = true;
@@ -7004,7 +7003,6 @@ add_regex (char *regexp_pattern, language *lang)
   p_head->pat = patbuf;
   p_head->name = savestr (name);
   p_head->error_signaled = false;
-  p_head->force_explicit_name = force_explicit_name;
   p_head->ignore_case = ignore_case;
   p_head->multi_line = multi_line;
 }
@@ -7144,20 +7142,15 @@ regex_tag_multiline (void)
 		name = NULL;
 	      else /* make a named tag */
 		name = substitute (buffer, rp->name, &rp->regs);
-	      if (rp->force_explicit_name)
-		{
-		  /* Force explicit tag name, if a name is there. */
-		  pfnote (name, true, buffer + linecharno,
-			  charno - linecharno + 1, lineno, linecharno);
 
-		  if (debug)
-		    fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",
-			     name ? name : "(unnamed)", curfdp->taggedfname,
-			     lineno, buffer + linecharno);
-		}
-	      else
-		make_tag (name, strlen (name), true, buffer + linecharno,
-			  charno - linecharno + 1, lineno, linecharno);
+	      /* Force explicit tag name, if a name is there. */
+	      pfnote (name, true, buffer + linecharno,
+		      charno - linecharno + 1, lineno, linecharno);
+
+	      if (debug)
+		fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",
+			 name ? name : "(unnamed)", curfdp->taggedfname,
+			 lineno, buffer + linecharno);
 	      break;
 	    }
 	}
@@ -7471,18 +7464,14 @@ readline (linebuffer *lbp, FILE *stream)
 		name = NULL;
 	      else /* make a named tag */
 		name = substitute (lbp->buffer, rp->name, &rp->regs);
-	      if (rp->force_explicit_name)
-		{
-		  /* Force explicit tag name, if a name is there. */
-		  pfnote (name, true, lbp->buffer, match, lineno, linecharno);
-		  if (debug)
-		    fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",
-			     name ? name : "(unnamed)", curfdp->taggedfname,
-			     lineno, lbp->buffer);
-		}
-	      else
-		make_tag (name, strlen (name), true,
-			  lbp->buffer, match, lineno, linecharno);
+
+	      /* Force explicit tag name, if a name is there. */
+	      pfnote (name, true, lbp->buffer, match, lineno, linecharno);
+
+	      if (debug)
+		fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",
+			 name ? name : "(unnamed)", curfdp->taggedfname,
+			 lineno, lbp->buffer);
 	      break;
 	    }
 	}

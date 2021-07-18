@@ -462,7 +462,7 @@ DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
 usage: (progn BODY...)  */)
   (Lisp_Object body)
 {
-  Lisp_Object val = Qnil;
+  Lisp_Object CACHEABLE val = Qnil;
 
   while (CONSP (body))
     {
@@ -1429,7 +1429,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 	}
     }
 
-  Lisp_Object result = eval_sub (bodyform);
+  Lisp_Object CACHEABLE result = eval_sub (bodyform);
   handlerlist = oldhandlerlist;
   if (!NILP (success_handler))
     {

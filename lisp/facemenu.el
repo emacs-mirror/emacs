@@ -718,7 +718,13 @@ they are used to set the face information.
 As a special case, if FACE is `default', then the region is left with NO face
 text property.  Otherwise, selecting the default face would not have any
 effect.  See `facemenu-remove-face-function'."
-  (interactive "*xFace: \nr")
+  (interactive (list (progn
+		       (barf-if-buffer-read-only)
+		       (read-face-name "Use face" (face-at-point t)))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-beginning))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-end))))
   (cond
    ((and (eq face 'default)
          (not (eq facemenu-remove-face-function t)))

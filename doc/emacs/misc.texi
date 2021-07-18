@@ -2031,7 +2031,7 @@ evaluation performed is for side-effect rather than result.
 Connect to the Emacs server named @var{server-name}.  (This option is
 not supported on MS-Windows.)  The server name is given by the
 variable @code{server-name} on the Emacs server.  If this option is
-omitted, @command{emacsclient} connects to the first server it finds.
+omitted, @command{emacsclient} connects to the default socket.
 If you set @code{server-name} of the Emacs server to an absolute file
 name, give the same absolute file name as @var{server-name} to this
 option to instruct @command{emacsclient} to connect to that server.

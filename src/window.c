@@ -1723,14 +1723,16 @@ have been if redisplay had finished, do this:
 
 DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 2, 0,
        doc: /* Return position at which display currently ends in WINDOW.
-WINDOW must be a live window and defaults to the selected one.
-This is updated by redisplay, when it runs to completion.
-Simply changing the buffer text or setting `window-start'
-does not update this value.
+This is the position after the final character in WINDOW.
+
+WINDOW must be a live window and defaults to the selected one.  This
+is updated by redisplay, when it runs to completion.  Simply changing
+the buffer text or setting `window-start' does not update this value.
+
 Return nil if there is no recorded value.  (This can happen if the
-last redisplay of WINDOW was preempted, and did not finish.)
-If UPDATE is non-nil, compute the up-to-date position
-if it isn't already recorded.  */)
+last redisplay of WINDOW was preempted, and did not finish.)  If
+UPDATE is non-nil, compute the up-to-date position if it isn't already
+recorded.  */)
   (Lisp_Object window, Lisp_Object update)
 {
   Lisp_Object value;

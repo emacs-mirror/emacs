@@ -598,6 +598,8 @@ XMenuCreate(Display *display, Window parent, register char const *def_env)
    * Create pane, active, and inactive GC's.
    */
   values = (XGCValues *)malloc(sizeof(XGCValues));
+  if (!values)
+    return NULL;
   valuemask = (GCForeground | GCBackground | GCFont | GCLineWidth);
 
   /*

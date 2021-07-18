@@ -184,6 +184,22 @@ The second subexpression should match the bug reference (usually a number)."
                     "/issues/"
                     (match-string 2))))))
     ;;
+    ;; Codeberg projects.
+    ;;
+    ;; The systematics is exactly as for Github projects.
+    ("[/@]codeberg.org[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
+     "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+     ,(lambda (groups)
+        (let ((ns-project (nth 1 groups)))
+          (lambda ()
+            (concat "https://codeberg.org/"
+                    (or
+                     ;; Explicit user/proj#18 link.
+                     (match-string 1)
+                     ns-project)
+                    "/issues/"
+                    (match-string 2))))))
+    ;;
     ;; GitLab projects.
     ;;
     ;; Here #18 is an issue and !17 is a merge request.  Explicit
@@ -201,6 +217,30 @@ The second subexpression should match the bug reference (usually a number)."
                     (if (string= (match-string 3) "#")
                         "issues/"
                       "merge_requests/")
+                    (match-string 2))))))
+    ;;
+    ;; Sourcehut projects.
+    ;;
+    ;; #19 is an issue.  Other project's issues can be referenced as
+    ;; #~user/project#19.
+    ;;
+    ;; Caveat: The code assumes that a project on git.sr.ht or
+    ;; hg.sr.ht has a tracker of the same name on todo.sh.ht.  That's
+    ;; a very common setup but all sr.ht services are loosely coupled,
+    ;; so you can have a repo without tracker, or a repo with a
+    ;; tracker using a different name, etc.  So we can only try to
+    ;; make a good guess.
+    ("[/@]\\(?:git\\|hg\\).sr.ht[/:]\\(~[.A-Za-z0-9_/-]+\\)"
+     "\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+     ,(lambda (groups)
+        (let ((ns-project (nth 1 groups)))
+          (lambda ()
+            (concat "https://todo.sr.ht/"
+                    (or
+                     ;; Explicit user/proj#18 link.
+                     (match-string 1)
+                     ns-project)
+                    "/"
                     (match-string 2)))))))
   "An alist for setting up `bug-reference-mode' based on VC URL.
 

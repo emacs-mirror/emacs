@@ -309,6 +309,14 @@ about the different options to visit a file, how you can disable the
 prompt, and how you can tweak the file size threshold.
 
 +++
+** New user option 'query-about-changed-file'.
+If non-nil (the default), users are prompted as before when
+re-visiting a file that has changed externally after it was visited
+the first time.  If nil, the user is not prompted, but instead the
+buffer is opened with its contents before the change, and the user is
+given instructions how to revert the buffer.
+
++++
 ** Improved support for terminal emulators that encode the Meta flag.
 Some terminal emulators set the 8th bit of Meta characters, and then
 encode the resulting character code as if it were non-ASCII character
@@ -778,6 +786,11 @@ time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
 
++++
+*** New user option 'dired-kill-when-opening-new-dired-buffer'.
+If non-nil, Dired will kill the current buffer when selecting a new
+directory to display.
+
 ---
 *** Behavior change on 'dired-clean-confirm-killing-deleted-buffers'.
 Previously, if 'dired-clean-up-buffers-too' was non-nil, and
@@ -1140,6 +1153,11 @@ any directory names on the 'find' command lines end in a slash.
 This change is for better compatibility with old versions of non-GNU
 'find', such as the one used on macOS.
 
+---
+*** New utility function 'grep-file-at-point'.
+This returns the name of the file at point (if any) in 'grep-mode'
+buffers.
+
 ** Help
 
 +++
@@ -1464,12 +1482,15 @@ buffer to a file under the "/tmp/" directory.  This is useful, if (in
 rare cases) Tramp blocks Emacs, and we need further debug information.
 
 +++
-*** Writing sensitive auto-save or backup files to the local temporary
-directory must be confirmed.  In order to suppress this confirmation,
-set user option 'tramp-allow-unsafe-temporary-files' to t.
+*** Tramp supports lock files now.
+In order to deactivate this, set user option
+'remote-file-name-inhibit-locks' to t.
 
 +++
-*** Tramp supports file locks now.
+*** Writing sensitive auto-save, backup or lock files to the local
+temporary directory must be confirmed.  In order to suppress this
+confirmation, set user option 'tramp-allow-unsafe-temporary-files' to
+t.
 
 ** Tempo
 
@@ -2175,12 +2196,39 @@ Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 If the 'EMACS_TEST_VERBOSE' environment variable is set, failure
 summaries will include the failing condition.
 
-** Miscellaneous
+** File Locks
 
 +++
 *** New user option 'lock-file-name-transforms'.
 This option allows controlling where lock files are written.  It uses
 the same syntax as 'auto-save-file-name-transforms'.
+
++++
+*** New user option 'remote-file-name-inhibit-locks'.
+When non-nil, this option suppresses lock files for remote files.
+
++++
+*** New minor mode 'lock-file-mode'.
+This command, called interactively, toggles the local value of
+'create-lockfiles' in the current buffer.
+
+** Miscellaneous
+
+---
+*** New user option 'save-place-abbreviate-file-names'.
+
+---
+*** 'tabulated-list-mode' can now restore original display order.
+Many commands (like 'C-x C-b') are derived from 'tabulated-list-mode',
+and that mode allow the user to sort on any column.  There was
+previously no easy way to get back to the original displayed order
+after sorting, but giving a -1 numerical prefix to the sorting command
+will now restore the original order.
+
++++
+*** New utility function 'insert-into-buffer'.
+This is like 'insert-buffer-substring', but works in the opposite
+direction.
 
 +++
 *** New user option 'kill-transform-function'.
@@ -2952,6 +3000,12 @@ The former is now declared obsolete.
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+*** New function 'split-string-shell-command'.
+This splits a shell command string into separate components,
+respecting quoting with single ('like this') and double ("like this")
+quotes, as well as backslash quoting (like\ this).
 
 ---
 *** ':safe' settings in 'defcustom' are now propagated to the loaddefs files.
