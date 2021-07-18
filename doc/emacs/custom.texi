@@ -1273,7 +1273,7 @@ safe.
 
   You can also tell Emacs to permanently ignore all the variable/value
 pairs in the file, by typing @kbd{i} at the confirmation prompt --
-these pairs will thereafter ignored in this file and in all other
+these pairs will thereafter be ignored in this file and in all other
 files.
 
 @vindex safe-local-variable-values
