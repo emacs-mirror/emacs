@@ -6622,8 +6622,11 @@ DEFUN ("event-convert-list", Fevent_convert_list, Sevent_convert_list, 1, 1, 0,
 EVENT-DESC should contain one base event type (a character or symbol)
 and zero or more modifier names (control, meta, hyper, super, shift, alt,
 drag, down, double or triple).  The base must be last.
-The return value is an event type (a character or symbol) which
-has the same base event type and all the specified modifiers.  */)
+
+The return value is an event type (a character or symbol) which has
+essentially the same base event type and all the specified modifiers.
+(Some compatibility base types, like symbols that represent a
+character, are not returned verbatim.)  */)
   (Lisp_Object event_desc)
 {
   Lisp_Object base = Qnil;
