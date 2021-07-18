@@ -1519,6 +1519,7 @@ of files from Macintosh, Microsoft, and Unix platforms.
 * Documentation for etags::
 * Disabling backups::
 * Disabling auto-save-mode::
+* Not writing files to the current directory::
 * Going to a line by number::
 * Modifying pull-down menus::
 * Deleting menus and menu options::
@@ -2619,6 +2620,39 @@ such as @file{/tmp}.
 
 To disable or change how @code{auto-save-mode} works,
 @pxref{Auto Save,,, emacs, The GNU Emacs Manual}.
+
+@node Not writing files to the current directory
+@section Making Emacs write all auxiliary files somewhere else
+@cindex Writing all auxiliary files to the same directory
+
+By default, Emacs may create many new files in the directory where
+you're editing a file.  If you're editing the file
+@file{/home/user/foo.txt}, Emacs will create the lock file
+@file{/home/user/.#foo.txt}, the auto-save file
+@file{/home/user/#foo.txt#}, and when you save the file, Emacs will
+create the backup file @file{/home/user/foo.txt~}.  (The first two
+files are deleted when you save the file.)
+
+This may be inconvenient in some setups, so Emacs has mechanisms for
+changing the locations of all these files.
+
+@table @code
+@item auto-save-file-name-transforms (@pxref{Auto-Saving,,,elisp, GNU Emacs Lisp Reference Manual}).
+@item lock-file-name-transforms (@pxref{File Locks,,,elisp, GNU Emacs Lisp Reference Manual}).
+@item backup-directory-alist (@pxref{Making Backups,,,elisp, GNU Emacs Lisp Reference Manual}).
+@end table
+
+For instance, to write all these things to
+@file{~/.emacs.d/aux/}:
+
+@lisp
+(setq lock-file-name-transforms
+      '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t)))
+(setq auto-save-file-name-transforms
+      '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t)))
+(setq backup-directory-alist
+      '((".*" . "~/.emacs.d/aux/")))
+@end lisp
 
 @node Going to a line by number
 @section How can I go to a certain line given its number?

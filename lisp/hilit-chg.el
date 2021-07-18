@@ -492,9 +492,9 @@ This allows you to manually remove highlighting from uninteresting changes."
   ;; otherwise an undone change shows up as changed.  While the properties
   ;; are automatically restored by undo, we must fix up the overlay.
   (save-match-data
-    (let (;;(beg-decr 1)
-          (end-incr 1)
-	  (type 'hilit-chg))
+    (let ((end-incr 1)
+	  (type 'hilit-chg)
+          (property 'hilit-chg))
       (if undo-in-progress
 	  (if (and highlight-changes-mode
 		   highlight-changes-visible-mode)
@@ -515,7 +515,8 @@ This allows you to manually remove highlighting from uninteresting changes."
                 ;;   	(setq beg-decr 0))))
                 ;; (setq beg (max (- beg beg-decr) (point-min)))
                 (setq end (min (+ end end-incr) (point-max)))
-                (setq type 'hilit-chg-delete))
+                (setq type 'hilit-chg-delete
+                      property 'hilit-chg-delete))
             ;; Not a deletion.
             ;; Most of the time the following is not necessary, but
             ;; if the current text was marked as a deletion then
@@ -523,14 +524,15 @@ This allows you to manually remove highlighting from uninteresting changes."
             ;; text where she earlier deleted text, we have to remove the
             ;; deletion marking, and replace it explicitly with a `changed'
             ;; marking, otherwise its highlighting would disappear.
-            (if (eq (get-text-property end 'hilit-chg) 'hilit-chg-delete)
-                (save-restriction
-                  (widen)
-                  (put-text-property end (+ end 1) 'hilit-chg 'hilit-chg)
-                  (if highlight-changes-visible-mode
-                      (hilit-chg-fixup end (+ end 1))))))
+            (when (eq (get-text-property end 'hilit-chg-delete)
+                      'hilit-chg-delete)
+              (save-restriction
+                (widen)
+                (put-text-property end (+ end 1) 'hilit-chg-delete nil)
+                (if highlight-changes-visible-mode
+                    (hilit-chg-fixup end (+ end 1))))))
           (unless no-property-change
-            (put-text-property beg end 'hilit-chg type))
+            (put-text-property beg end property type))
           (if (or highlight-changes-visible-mode no-property-change)
               (hilit-chg-make-ov type beg end)))))))
 

@@ -5232,7 +5232,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #ifdef HAVE_GNUTLS
 		/* Continue TLS negotiation. */
 		if (p->gnutls_initstage == GNUTLS_STAGE_HANDSHAKE_TRIED
-		    && p->is_non_blocking_client)
+		    && p->is_non_blocking_client
+		    /* Don't proceed until we have established a connection. */
+		    && !(fd_callback_info[p->outfd].flags
+			 & NON_BLOCKING_CONNECT_FD))
 		  {
 		    gnutls_try_handshake (p);
 		    p->gnutls_handshakes_tried++;

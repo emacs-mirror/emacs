@@ -927,7 +927,7 @@ delivered."
     (file-notify--test-cleanup)))
 
 (file-notify--deftest-remote file-notify-test03-events
-  "Check file creation/change/removal notifications for remote files.")
+  "Check file creation/change/removal notifications for remote files." t)
 
 (require 'autorevert)
 (setq auto-revert-notify-exclude-dir-regexp "nothing-to-be-excluded"

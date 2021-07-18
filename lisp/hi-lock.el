@@ -111,7 +111,7 @@ highlighting will be applied throughout the buffer."
   :group 'hi-lock)
 
 (defcustom hi-lock-exclude-modes
-  '(rmail-mode mime/viewer-mode gnus-article-mode)
+  '(rmail-mode mime/viewer-mode gnus-article-mode term-mode)
   "List of major modes in which hi-lock will not run.
 For security reasons since font lock patterns can specify function
 calls."

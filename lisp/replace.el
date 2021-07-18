@@ -1089,17 +1089,17 @@ a previously found match."
 	      rend (point-max)))
       (goto-char rstart))
     (let ((count 0)
-	  opoint
 	  (case-fold-search
 	   (if (and case-fold-search search-upper-case)
 	       (isearch-no-upper-case-p regexp t)
 	     case-fold-search)))
       (while (and (< (point) rend)
-		  (progn (setq opoint (point))
-			 (re-search-forward regexp rend t)))
-	(if (= opoint (point))
-	    (forward-char 1)
-	  (setq count (1+ count))))
+		  (re-search-forward regexp rend t))
+        ;; Ensure forward progress on zero-length matches like "^$".
+        (when (and (= (match-beginning 0) (match-end 0))
+                   (not (eobp)))
+          (forward-char 1))
+	(setq count (1+ count)))
       (when interactive (message (ngettext "%d occurrence"
 					   "%d occurrences"
 					   count)

@@ -162,6 +162,10 @@ There can be any number of :example/:result elements."
    :eval (split-string "foo bar")
    :eval (split-string "|foo|bar|" "|")
    :eval (split-string "|foo|bar|" "|" t))
+  (split-string-and-unquote
+   :eval (split-string-and-unquote "foo \"bar zot\""))
+  (split-string-shell-command
+   :eval (split-string-shell-command "ls /tmp/'foo bar'"))
   (string-lines
    :eval (string-lines "foo\n\nbar")
    :eval (string-lines "foo\n\nbar" t))
@@ -499,9 +503,13 @@ There can be any number of :example/:result elements."
   (flatten-tree
    :eval (flatten-tree '(1 (2 3) 4)))
   (car
-   :eval (car '(one two three)))
+   :eval (car '(one two three))
+   :eval (car '(one . two))
+   :eval (car nil))
   (cdr
-   :eval (cdr '(one two three)))
+   :eval (cdr '(one two three))
+   :eval (cdr '(one . two))
+   :eval (cdr nil))
   (last
    :eval (last '(one two three)))
   (butlast
@@ -1137,8 +1145,9 @@ There can be any number of :example/:result elements."
    :eval (sqrt -1)))
 
 ;;;###autoload
-(defun shortdoc-display-group (group)
-  "Pop to a buffer with short documentation summary for functions in GROUP."
+(defun shortdoc-display-group (group &optional function)
+  "Pop to a buffer with short documentation summary for functions in GROUP.
+If FUNCTION is non-nil, place point on the entry for FUNCTION (if any)."
   (interactive (list (completing-read "Show summary for functions in: "
                                       (mapcar #'car shortdoc--groups))))
   (when (stringp group)
@@ -1169,15 +1178,17 @@ There can be any number of :example/:result elements."
          (setq prev t)
          (shortdoc--display-function data))))
      (cdr (assq group shortdoc--groups))))
-  (goto-char (point-min)))
+  (goto-char (point-min))
+  (when function
+    (text-property-search-forward 'shortdoc-function function t)
+    (beginning-of-line)))
 
 (defun shortdoc--display-function (data)
   (let ((function (pop data))
         (start-section (point))
         arglist-start)
     ;; Function calling convention.
-    (insert (propertize "("
-                        'shortdoc-function t))
+    (insert (propertize "(" 'shortdoc-function function))
     (if (plist-get data :no-manual)
         (insert-text-button
          (symbol-name function)
@@ -1308,16 +1319,15 @@ Example:
 (define-derived-mode shortdoc-mode special-mode "shortdoc"
   "Mode for shortdoc.")
 
-(defmacro shortdoc--goto-section (arg sym &optional reverse)
-  `(progn
-     (unless (natnump ,arg)
-       (setq ,arg 1))
-     (while (< 0 ,arg)
-       (,(if reverse
-             'text-property-search-backward
-           'text-property-search-forward)
-        ,sym t)
-       (setq ,arg (1- ,arg)))))
+(defun shortdoc--goto-section (arg sym &optional reverse)
+  (unless (natnump arg)
+    (setq arg 1))
+  (while (> arg 0)
+    (funcall
+     (if reverse 'text-property-search-backward
+       'text-property-search-forward)
+     sym nil t t)
+    (setq arg (1- arg))))
 
 (defun shortdoc-next (&optional arg)
   "Move cursor to the next function.

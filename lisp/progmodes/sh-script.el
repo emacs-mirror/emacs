@@ -2192,6 +2192,8 @@ Point should be before the newline."
 When used interactively, insert the proper starting #!-line,
 and make the visited file executable via `executable-set-magic',
 perhaps querying depending on the value of `executable-query'.
+(If given a prefix (i.e., `C-u') don't insert any starting #!
+line.)
 
 When this function is called noninteractively, INSERT-FLAG (the third
 argument) controls whether to insert a #!-line and think about making
@@ -2215,7 +2217,7 @@ whose value is the shell name (don't quote it)."
                               '("csh" "rc" "sh"))
                       nil nil nil nil sh-shell-file)
 		     (eq executable-query 'function)
-		     t))
+		     (not current-prefix-arg)))
   (if (string-match "\\.exe\\'" shell)
       (setq shell (substring shell 0 (match-beginning 0))))
   (setq sh-shell (sh-canonicalize-shell shell))

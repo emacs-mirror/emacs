@@ -457,6 +457,15 @@ Visit the parent directory of the current directory
 for @file{..} and typing @kbd{f} there.
 @end table
 
+@defopt dired-kill-when-opening-new-dired-buffer
+  When visiting a new sub-directory in Dired, Emacs will (by default)
+open a new buffer to display this new directory, and leave the old
+Dired buffer as is.  If this user option is non-@code{nil}, the old
+Dired buffer will be killed after selecting the new directory.  This
+means that if you're traversing a directory structure in Dired, you
+won't end up with more than a single Dired buffer.
+@end defopt
+
 @node Marks vs Flags
 @section Dired Marks vs.@: Flags
 

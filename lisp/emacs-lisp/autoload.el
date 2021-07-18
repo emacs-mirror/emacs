@@ -250,7 +250,10 @@ expression, in which case we want to handle forms differently."
 	   (custom-autoload ',varname ,file
                             ,(condition-case nil
                                  (null (plist-get props :set))
-                               (error nil))))))
+                               (error nil)))
+           ;; Propagate the :safe property to the loaddefs file.
+           ,@(when-let ((safe (plist-get props :safe)))
+               `((put ',varname 'safe-local-variable ,safe))))))
 
      ((eq car 'defgroup)
       ;; In Emacs this is normally handled separately by cus-dep.el, but for

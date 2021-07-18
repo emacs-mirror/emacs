@@ -471,7 +471,10 @@ should return the formatted tab name to display in the tab line."
     (dolist (fn tab-line-tab-face-functions)
       (setf face (funcall fn tab tabs face buffer-p selected-p)))
     (apply 'propertize
-           (concat (propertize name 'keymap tab-line-tab-map)
+           (concat (propertize name
+                               'keymap tab-line-tab-map
+                               ;; Don't turn mouse-1 into mouse-2 (bug#49247)
+                               'follow-link 'ignore)
                    (or (and (or buffer-p (assq 'buffer tab) (assq 'close tab))
                             tab-line-close-button-show
                             (not (eq tab-line-close-button-show

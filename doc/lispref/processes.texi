@@ -247,6 +247,16 @@ protected by @code{shell-quote-argument};
 @code{combine-and-quote-strings} is @emph{not} intended to protect
 special characters from shell evaluation.
 
+@defun split-string-shell-command string
+This function splits @var{string} into substrings, respecting double
+and single quotes, as well as backslash quoting.
+
+@smallexample
+(split-string-shell-command "ls /tmp/'foo bar'")
+     @result{} ("ls" "/tmp/foo bar")
+@end smallexample
+@end defun
+
 @defun split-string-and-unquote string &optional separators
 This function splits @var{string} into substrings at matches for the
 regular expression @var{separators}, like @code{split-string} does

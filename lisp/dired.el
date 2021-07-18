@@ -163,7 +163,7 @@ always set this variable to t."
   :type 'boolean
   :group 'dired-mark)
 
-(defcustom dired-trivial-filenames (purecopy "\\`\\.\\.?\\'\\|\\`#")
+(defcustom dired-trivial-filenames (purecopy "\\`\\.\\.?\\'\\|\\`\\.?#")
   "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
 A value of t means move to first file."
@@ -354,6 +354,11 @@ is anywhere on its Dired line, except the beginning of the line."
           (const :tag "Exclude file name outside of region" file)
           (const :tag "Include the file at region end line" line))
   :group 'dired
+  :version "28.1")
+
+(defcustom dired-kill-when-opening-new-dired-buffer nil
+  "If non-nil, kill the current buffer when selecting a new directory."
+  :type 'boolean
   :version "28.1")
 
 
@@ -615,6 +620,31 @@ Subexpression 2 must end right before the \\n.")
    (list dired-re-dir
 	 '(".+" (dired-move-to-filename) nil (0 dired-directory-face)))
    ;;
+   ;; Files suffixed with `completion-ignored-extensions'.
+   '(eval .
+     ;; It is quicker to first find just an extension, then go back to the
+     ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
+          (list (concat
+                 "\\(" (regexp-opt completion-ignored-extensions)
+                 "\\|#\\|\\.#.+\\)$")
+	   '(".+" (dired-move-to-filename) nil (0 dired-ignored-face))))
+   ;;
+   ;; Files suffixed with `completion-ignored-extensions'
+   ;; plus a character put in by -F.
+   '(eval .
+     (list (concat "\\(" (regexp-opt completion-ignored-extensions)
+		   "\\|#\\|\\.#.+\\)[*=|]$")
+	   '(".+" (progn
+		    (end-of-line)
+		    ;; If the last character is not part of the filename,
+		    ;; move back to the start of the filename
+		    ;; so it can be fontified.
+		    ;; Otherwise, leave point at the end of the line;
+		    ;; that way, nothing is fontified.
+		    (unless (get-text-property (1- (point)) 'mouse-face)
+		      (dired-move-to-filename)))
+	     nil (0 dired-ignored-face))))
+   ;;
    ;; Broken Symbolic link.
    (list dired-re-sym
          (list (lambda (end)
@@ -658,29 +688,6 @@ Subexpression 2 must end right before the \\n.")
    ;; Sockets, pipes, block devices, char devices.
    (list dired-re-special
 	 '(".+" (dired-move-to-filename) nil (0 'dired-special)))
-   ;;
-   ;; Files suffixed with `completion-ignored-extensions'.
-   '(eval .
-     ;; It is quicker to first find just an extension, then go back to the
-     ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
-     (list (concat "\\(" (regexp-opt completion-ignored-extensions) "\\|#\\)$")
-	   '(".+" (dired-move-to-filename) nil (0 dired-ignored-face))))
-   ;;
-   ;; Files suffixed with `completion-ignored-extensions'
-   ;; plus a character put in by -F.
-   '(eval .
-     (list (concat "\\(" (regexp-opt completion-ignored-extensions)
-		   "\\|#\\)[*=|]$")
-	   '(".+" (progn
-		    (end-of-line)
-		    ;; If the last character is not part of the filename,
-		    ;; move back to the start of the filename
-		    ;; so it can be fontified.
-		    ;; Otherwise, leave point at the end of the line;
-		    ;; that way, nothing is fontified.
-		    (unless (get-text-property (1- (point)) 'mouse-face)
-		      (dired-move-to-filename)))
-	     nil (0 dired-ignored-face))))
    ;;
    ;; Explicitly put the default face on file names ending in a colon to
    ;; avoid fontifying them as directory header.
@@ -2377,7 +2384,7 @@ directory in another window."
 	(progn
 	  (if other-window
 	      (dired-other-window up)
-	    (dired up))
+	    (dired--find-possibly-alternative-file up))
 	  (dired-goto-file dir)))))
 
 (defun dired-get-file-for-visit ()
@@ -2401,7 +2408,16 @@ directory in another window."
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
   (interactive)
-  (dired--find-file #'find-file (dired-get-file-for-visit)))
+  (dired--find-possibly-alternative-file (dired-get-file-for-visit)))
+
+(defun dired--find-possibly-alternative-file (file)
+  "Find FILE, but respect `dired-kill-when-opening-new-dired-buffer'."
+  (if (and dired-kill-when-opening-new-dired-buffer
+           (file-directory-p file))
+      (progn
+        (set-buffer-modified-p nil)
+        (dired--find-file #'find-alternate-file file))
+    (dired--find-file #'find-file file)))
 
 (defun dired--find-file (find-file-function file)
   "Call FIND-FILE-FUNCTION on FILE, but bind some relevant variables."
@@ -3834,13 +3850,13 @@ object files--just `.o' will mark more than you might think."
                         when (stringp file)
                         sum (file-attribute-size (file-attributes file)))))
     (if (zerop nmarked)
-        (message "No marked files"))
-    (message "%d marked file%s (%s total size)"
-             nmarked
-             (if (= nmarked 1)
-                 ""
-               "s")
-             (funcall byte-count-to-string-function size))))
+        (message "No marked files")
+      (message "%d marked file%s (%s total size)"
+               nmarked
+               (if (= nmarked 1)
+                   ""
+                 "s")
+               (funcall byte-count-to-string-function size)))))
 
 (defun dired-mark-files-containing-regexp (regexp &optional marker-char)
   "Mark all files with contents containing REGEXP for use in later commands.

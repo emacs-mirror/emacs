@@ -309,6 +309,14 @@ about the different options to visit a file, how you can disable the
 prompt, and how you can tweak the file size threshold.
 
 +++
+** New user option 'query-about-changed-file'.
+If non-nil (the default), users are prompted as before when
+re-visiting a file that has changed externally after it was visited
+the first time.  If nil, the user is not prompted, but instead the
+buffer is opened with its contents before the change, and the user is
+given instructions how to revert the buffer.
+
++++
 ** Improved support for terminal emulators that encode the Meta flag.
 Some terminal emulators set the 8th bit of Meta characters, and then
 encode the resulting character code as if it were non-ASCII character
@@ -323,6 +331,7 @@ emulators by using the new input-meta-mode with the special value
 ** New frame parameter 'drag-with-tab-line'.
 This parameter, similar to 'drag-with-header-line', allows moving frames
 by dragging the tab lines of their topmost windows with the mouse.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -777,6 +786,11 @@ time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
 
++++
+*** New user option 'dired-kill-when-opening-new-dired-buffer'.
+If non-nil, Dired will kill the current buffer when selecting a new
+directory to display.
+
 ---
 *** Behavior change on 'dired-clean-confirm-killing-deleted-buffers'.
 Previously, if 'dired-clean-up-buffers-too' was non-nil, and
@@ -1139,6 +1153,11 @@ any directory names on the 'find' command lines end in a slash.
 This change is for better compatibility with old versions of non-GNU
 'find', such as the one used on macOS.
 
+---
+*** New utility function 'grep-file-at-point'.
+This returns the name of the file at point (if any) in 'grep-mode'
+buffers.
+
 ** Help
 
 +++
@@ -1184,6 +1203,16 @@ can provide a better overview in a long list of available bindings.
 *** Closing the "*Help*" buffer from the toolbar now buries the buffer.
 In previous Emacs versions, the "*Help*" buffer was killed instead when
 clicking the "X" icon in the tool bar.
+
+** Info
+
+---
+*** New user option 'Info-warn-on-index-alternatives-wrap'.
+This option affects what happens when using the ',' command after
+looking up an entry with 'i' in info buffers.  If non-nil (the
+default), the ',' command will now warn you when proceeding beyond the
+final entry, and tapping ',' once more will then take you to the
+first entry.
 
 +++
 ** New command 'lossage-size'.
@@ -1265,6 +1294,9 @@ To revert to the previous behavior,
 '(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
 
 ** Customize
+
+---
+*** Customize buffers can now be reverted with 'C-x x g'.
 
 *** Most customize commands now hide obsolete user options.
 Obsolete user options are no longer shown in the listings produced by
@@ -1450,9 +1482,15 @@ buffer to a file under the "/tmp/" directory.  This is useful, if (in
 rare cases) Tramp blocks Emacs, and we need further debug information.
 
 +++
-*** Writing sensitive auto-save or backup files to the local temporary
-directory must be confirmed.  In order to suppress this confirmation,
-set user option 'tramp-allow-unsafe-temporary-files' to t.
+*** Tramp supports lock files now.
+In order to deactivate this, set user option
+'remote-file-name-inhibit-locks' to t.
+
++++
+*** Writing sensitive auto-save, backup or lock files to the local
+temporary directory must be confirmed.  In order to suppress this
+confirmation, set user option 'tramp-allow-unsafe-temporary-files' to
+t.
 
 ** Tempo
 
@@ -1475,6 +1513,14 @@ This is a slightly deeper copy than the previous 'copy-sequence'.
 *** The function 'map-contains-key' now supports plists.
 
 ** Package
+
+---
+*** '/ s' ('package-menu-filter-by-status') changes parameter handling.
+The command was documented to take a comma-separated list of statuses
+to filter by, but instead it used the parameter as a regexp.  The
+command has been changed so that it now works as documented, and
+checks statuses not as a regexp, but instead an exact match from the
+comma-separated list.
 
 +++
 *** New command 'package-browse-url' and keystroke 'w'.
@@ -1616,6 +1662,10 @@ t, which preserves the original behavior.
 *** New user option 'rmail-show-message-set-modified'.
 If set non-nil, showing an unseen message will set the Rmail buffer's
 modified flag.
+
+---
+*** New faces for heading elements.
+Those are 'shr-h1', 'shr-h2', 'shr-h3', 'shr-h4', 'shr-h5', 'shr-h6'.
 
 ** Apropos
 
@@ -2146,7 +2196,39 @@ Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 If the 'EMACS_TEST_VERBOSE' environment variable is set, failure
 summaries will include the failing condition.
 
+** File Locks
+
++++
+*** New user option 'lock-file-name-transforms'.
+This option allows controlling where lock files are written.  It uses
+the same syntax as 'auto-save-file-name-transforms'.
+
++++
+*** New user option 'remote-file-name-inhibit-locks'.
+When non-nil, this option suppresses lock files for remote files.
+
++++
+*** New minor mode 'lock-file-mode'.
+This command, called interactively, toggles the local value of
+'create-lockfiles' in the current buffer.
+
 ** Miscellaneous
+
+---
+*** New user option 'save-place-abbreviate-file-names'.
+
+---
+*** 'tabulated-list-mode' can now restore original display order.
+Many commands (like 'C-x C-b') are derived from 'tabulated-list-mode',
+and that mode allow the user to sort on any column.  There was
+previously no easy way to get back to the original displayed order
+after sorting, but giving a -1 numerical prefix to the sorting command
+will now restore the original order.
+
++++
+*** New utility function 'insert-into-buffer'.
+This is like 'insert-buffer-substring', but works in the opposite
+direction.
 
 +++
 *** New user option 'kill-transform-function'.
@@ -2385,12 +2467,6 @@ leak information from the reporting user.
 The semantics are as with 'walk-windows'.
 
 ---
-*** Killing virtual ido buffers interactively will make them go away.
-Previously, killing a virtual ido buffer with 'ido-kill-buffer' didn't
-do anything.  This has now been changed, and killing virtual buffers
-with that command will remove the buffer from recentf.
-
----
 *** New variable 'ffap-file-name-with-spaces'.
 If non-nil, 'find-file-at-point' and friends will try to guess more
 expansively to identify a file name with spaces.
@@ -2463,6 +2539,17 @@ height of lines or width of chars.
 *** New user option 'xwidget-webkit-bookmark-jump-new-session'.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
+
+** ido
+
+---
+*** Switching on 'ido-mode' now also overrides 'ffap-file-finder'.
+
+---
+*** Killing virtual ido buffers interactively will make them go away.
+Previously, killing a virtual ido buffer with 'ido-kill-buffer' didn't
+do anything.  This has now been changed, and killing virtual buffers
+with that command will remove the buffer from recentf.
 
 ** Flymake mode
 
@@ -2913,6 +3000,15 @@ The former is now declared obsolete.
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+*** New function 'split-string-shell-command'.
+This splits a shell command string into separate components,
+respecting quoting with single ('like this') and double ("like this")
+quotes, as well as backslash quoting (like\ this).
+
+---
+*** ':safe' settings in 'defcustom' are now propagated to the loaddefs files.
 
 +++
 ** New function 'syntax-class-to-char'.

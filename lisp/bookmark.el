@@ -467,18 +467,18 @@ See user option `bookmark-fontify'."
   "Remove a bookmark's colorized overlay.
 BM is a bookmark as returned from function `bookmark-get-bookmark'.
 See user option `bookmark-fontify'."
-  (let ((filename (assq 'filename bm))
-        (pos      (assq 'position bm))
+  (let ((filename (cdr (assq 'filename bm)))
+        (pos (cdr (assq 'position bm)))
         overlays found temp)
-    (when filename (setq filename (expand-file-name (cdr filename))))
-    (when pos (setq pos (cdr pos)))
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf
-        (when (equal filename buffer-file-name)
-          (setq overlays (overlays-at pos))
-          (while (and (not found) (setq temp (pop overlays)))
-            (when (eq 'bookmark (overlay-get temp 'category))
-              (delete-overlay (setq found temp)))))))))
+    (when (and pos filename)
+      (setq filename (expand-file-name filename))
+      (dolist (buf (buffer-list))
+        (with-current-buffer buf
+          (when (equal filename buffer-file-name)
+            (setq overlays (overlays-at pos))
+            (while (and (not found) (setq temp (pop overlays)))
+              (when (eq 'bookmark (overlay-get temp 'category))
+                (delete-overlay (setq found temp))))))))))
 
 (defun bookmark-completing-read (prompt &optional default)
   "Prompting with PROMPT, read a bookmark name in completion.

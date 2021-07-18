@@ -69,6 +69,8 @@ XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id
 	/* before the current value of "Entry". */
 	/* Create a new XAssoc and load it with new provided data. */
 	new_entry = (XAssoc *) malloc(sizeof(XAssoc));
+	if (!new_entry)
+	  return; /* This obsolete API has no way to report failure!  */
 	new_entry->display = dpy;
 	new_entry->x_id = x_id;
 	new_entry->data = data;

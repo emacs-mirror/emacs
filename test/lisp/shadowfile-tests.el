@@ -70,7 +70,7 @@
   "Temporary directory for Tramp tests.")
 
 (setq password-cache-expiry nil
-      shadow-debug (getenv "EMACS_HYDRA_CI")
+      shadow-debug (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
       tramp-verbose 0
       ;; When the remote user id is 0, Tramp refuses unsafe temporary files.
       tramp-allow-unsafe-temporary-files
@@ -732,6 +732,7 @@ guaranteed by the originator of a cluster definition."
   (skip-unless (file-writable-p shadow-test-remote-temporary-file-directory))
 
   (let ((backup-inhibited t)
+        create-lockfiles
         (shadow-info-file shadow-test-info-file)
 	(shadow-todo-file shadow-test-todo-file)
         (shadow-inhibit-message t)
@@ -877,6 +878,7 @@ guaranteed by the originator of a cluster definition."
   (skip-unless (file-writable-p shadow-test-remote-temporary-file-directory))
 
   (let ((backup-inhibited t)
+        create-lockfiles
         (shadow-info-file shadow-test-info-file)
 	(shadow-todo-file shadow-test-todo-file)
         (shadow-inhibit-message t)

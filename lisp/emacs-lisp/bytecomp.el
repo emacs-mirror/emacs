@@ -1627,7 +1627,7 @@ the `\\\\=[command]' ones that are assumed to be of length
 `byte-compile--wide-docstring-substitution-len'.  Also ignore
 URLs."
   (string-match
-   (format "^.\\{%s,\\}$" (int-to-string (1+ col)))
+   (format "^.\\{%d,\\}$" (min (1+ col) #xffff)) ; Heed RE_DUP_MAX.
    (replace-regexp-in-string
     (rx (or
          ;; Ignore some URLs.
@@ -1857,8 +1857,7 @@ also be compiled."
                         (file-readable-p source)
 			(not (string-match "\\`\\.#" file))
                         (not (auto-save-file-name-p source))
-                        (not (string-equal dir-locals-file
-                                           (file-name-nondirectory source))))
+                        (not (member source (dir-locals--all-files directory))))
                    (progn (cl-incf
                            (pcase (byte-recompile-file source force arg)
                              ('no-byte-compile skip-count)

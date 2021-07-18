@@ -563,8 +563,9 @@ to invocation.")
 	    (set-visited-file-name merge-buffer-file))))
     (ediff-with-current-buffer ediff-buffer-C
       (setq buffer-offer-save t) ; ask before killing buffer
-      ;; make sure the contents is auto-saved
-      (auto-save-mode 1))
+      (when make-backup-files
+        ;; make sure the contents is auto-saved
+        (auto-save-mode 1)))
     ))
 
 

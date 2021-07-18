@@ -2914,23 +2914,30 @@ It is used for characters of no fonts too."
 
 ;; Faces for TTY menus.
 (defface tty-menu-enabled-face
-  '((t
-     :foreground "yellow" :background "blue" :weight bold))
+  '((((class color))
+     :foreground "yellow" :background "blue" :weight bold)
+    (t :weight bold))
   "Face for displaying enabled items in TTY menus."
-  :group 'basic-faces)
+  :group 'basic-faces
+  :version "28.1")
 
 (defface tty-menu-disabled-face
   '((((class color) (min-colors 16))
      :foreground "lightgray" :background "blue")
-    (t
-     :foreground "white" :background "blue"))
+    (((class color))
+     :foreground "white" :background "blue")
+    (t :inherit shadow))
   "Face for displaying disabled items in TTY menus."
-  :group 'basic-faces)
+  :group 'basic-faces
+  :version "28.1")
 
 (defface tty-menu-selected-face
-  '((t :background "red"))
+  '((((class color))
+      :background "red")
+    (t :inverse-video t))
   "Face for displaying the currently selected item in TTY menus."
-  :group 'basic-faces)
+  :group 'basic-faces
+  :version "28.1")
 
 (defgroup paren-showing-faces nil
   "Faces used to highlight paren matches."

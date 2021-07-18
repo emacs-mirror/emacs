@@ -182,6 +182,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (file-exists-p . tramp-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
+    (file-locked-p . tramp-crypt-handle-file-locked-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-crypt-handle-file-name-all-completions)
     ;; `file-name-as-directory' performed by default handler.
@@ -208,9 +209,11 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (insert-directory . tramp-crypt-handle-insert-directory)
     ;; `insert-file-contents' performed by default handler.
     (load . tramp-handle-load)
+    (lock-file . tramp-crypt-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-crypt-handle-make-directory)
     (make-directory-internal . ignore)
+    (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
@@ -229,6 +232,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     ;; `tramp-get-remote-uid' performed by default handler.
     (tramp-set-file-uid-gid . tramp-crypt-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
+    (unlock-file . tramp-crypt-handle-unlock-file)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
     (write-region . tramp-handle-write-region))
@@ -734,6 +738,11 @@ absolute file names."
   (let (tramp-crypt-enabled)
     (file-executable-p (tramp-crypt-encrypt-file-name filename))))
 
+(defun tramp-crypt-handle-file-locked-p (filename)
+  "Like `file-locked-p' for Tramp files."
+  (let (tramp-crypt-enabled)
+    (file-locked-p (tramp-crypt-encrypt-file-name filename))))
+
 (defun tramp-crypt-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (all-completions
@@ -797,6 +806,13 @@ WILDCARD is not supported."
 	  (delete-region (prop-match-beginning match) (prop-match-end match))
 	  (insert (propertize string 'dired-filename t)))))))
 
+(defun tramp-crypt-handle-lock-file (filename)
+  "Like `lock-file' for Tramp files."
+  (let (tramp-crypt-enabled)
+    ;; `lock-file' exists since Emacs 28.1.
+    (tramp-compat-funcall
+     'lock-file (tramp-crypt-encrypt-file-name filename))))
+
 (defun tramp-crypt-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name dir) nil
@@ -847,6 +863,13 @@ WILDCARD is not supported."
     (let (tramp-crypt-enabled)
       (tramp-set-file-uid-gid
        (tramp-crypt-encrypt-file-name filename) uid gid))))
+
+(defun tramp-crypt-handle-unlock-file (filename)
+  "Like `unlock-file' for Tramp files."
+  (let (tramp-crypt-enabled)
+    ;; `unlock-file' exists since Emacs 28.1.
+    (tramp-compat-funcall
+     'unlock-file (tramp-crypt-encrypt-file-name filename))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

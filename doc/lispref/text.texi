@@ -502,6 +502,15 @@ This is like @code{insert-buffer-substring} except that it does not
 copy any text properties.
 @end defun
 
+@defun insert-into-buffer to-buffer &optional start end
+This is like @code{insert-buffer-substring}, but works in the opposite
+direction: The text is copied from the current buffer into
+@var{to-buffer}.  The block of text is copied to the current point in
+@var{to-buffer}, and point (in that buffer) is advanced to after the
+end of the copied text.  Is @code{start}/@code{end} is @code{nil}, the
+entire text in the current buffer is copied over.
+@end defun
+
   @xref{Sticky Properties}, for other insertion functions that inherit
 text properties from the nearby text in addition to inserting it.
 Whitespace inserted by indentation functions also inherits text
@@ -4399,7 +4408,8 @@ based on their character codes.
 @cindex replace characters
 This function replaces all occurrences of the character @var{old-char}
 with the character @var{new-char} in the region of the current buffer
-defined by @var{start} and @var{end}.
+defined by @var{start} and @var{end}.  Both characters must have the
+same length of their multibyte form.
 
 @cindex undo avoidance
 If @var{noundo} is non-@code{nil}, then @code{subst-char-in-region} does
@@ -4426,6 +4436,16 @@ ThXs Xs the contents of the buffer before.
 ---------- Buffer: foo ----------
 @end group
 @end example
+@end defun
+
+
+@defun subst-char-in-string fromchar tochar string &optional inplace
+@cindex replace characters in string
+This function replaces all occurrences of the character @var{fromchar}
+with @var{tochar} in @var{string}.  By default, substitution occurs in
+a copy of @var{string}, but if the optional argument @var{inplace} is
+non-@code{nil}, the function modifies the @var{string} itself.  In any
+case, the function returns the resulting string.
 @end defun
 
 @deffn Command translate-region start end table

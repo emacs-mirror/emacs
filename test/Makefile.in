@@ -49,6 +49,8 @@ SEPCHAR = @SEPCHAR@
 
 HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
+REPLACE_FREE = @REPLACE_FREE@
+
 -include ${top_builddir}/src/verbose.mk
 
 # Load any GNU ELPA dependencies that are present, for optional tests.
@@ -274,6 +276,9 @@ MODULE_CFLAGS = -I../src -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib \
 test_module = $(test_module_dir)/mod-test${SO}
 src/emacs-module-tests.log src/emacs-module-tests.elc: $(test_module)
 
+FREE_SOURCE_0 =
+FREE_SOURCE_1 = $(srcdir)/../lib/free.c
+
 # In the compilation command, we can't use any object or archive file
 # as source because those are not compiled with -fPIC.  Therefore we
 # use only source files.
@@ -282,7 +287,7 @@ $(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
 	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
 	  -o $@ $< $(LIBGMP) \
 	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp-gnulib.c) \
-	  $(if $(OMIT_GNULIB_MODULE_free-posix),,$(srcdir)/../lib/free.c) \
+	  $(FREE_SOURCE_$(REPLACE_FREE)) \
 	  $(srcdir)/../lib/timespec.c $(srcdir)/../lib/gettime.c
 endif
 

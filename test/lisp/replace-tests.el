@@ -601,4 +601,15 @@ bound to HIGHLIGHT-LOCUS."
          (if (match-string 2) "R" "L")))
       (should (equal (buffer-string) after)))))
 
+(ert-deftest test-count-matches ()
+  (with-temp-buffer
+    (insert "oooooooooo")
+    (goto-char (point-min))
+    (should (= (count-matches "oo") 5))
+    (should (= (count-matches "o+") 1)))
+  (with-temp-buffer
+    (insert "o\n\n\n\no\n\n")
+    (goto-char (point-min))
+    (should (= (count-matches "^$") 4))))
+
 ;;; replace-tests.el ends here

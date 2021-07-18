@@ -272,7 +272,7 @@ not be enclosed in { } or ( )."
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-var-use-regex
-  "[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)"
+  "\\(^\\|[^$]\\)\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)"
   "Regex used to find $(macro) uses in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
@@ -346,7 +346,7 @@ not be enclosed in { } or ( )."
      (3 font-lock-builtin-face prepend t))
 
     ;; Variable references even in targets/strings/comments.
-    (,var 1 font-lock-variable-name-face prepend)
+    (,var 2 font-lock-variable-name-face prepend)
 
     ;; Automatic variable references and single character variable references,
     ;; but not shell variables references.
