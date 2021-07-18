@@ -2225,8 +2225,8 @@ This command, called interactively, toggles the local value of
 +++
 *** New user option 'ignored-local-variable-values'.
 This is the opposite of 'safe-local-variable-values' -- it's an alist
-of local variables (and accompanying values) that are to be ignored
-when reading a local variable section from a file.
+of variable-value pairs that are to be ignored when reading a
+local-variables section of a file.
 
 ---
 *** 'indent-tabs-mode' is now a global minor mode instead of just a variable.

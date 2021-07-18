@@ -3435,7 +3435,7 @@ Major modes can use this to examine user-specified local variables
 in order to initialize other data structure based on them.")
 
 (defcustom safe-local-variable-values nil
-  "List variable-value pairs that are considered safe.
+  "List of variable-value pairs that are considered safe.
 Each element is a cons cell (VAR . VAL), where VAR is a variable
 symbol and VAL is a value that is considered safe.
 
@@ -3445,14 +3445,16 @@ Also see `ignored-local-variable-values'."
   :type 'alist)
 
 (defcustom ignored-local-variable-values nil
-  "List variable-value pairs that will be ignored.
+  "List of variable-value pairs that should always be ignored.
 Each element is a cons cell (VAR . VAL), where VAR is a variable
-symbol and VAL is a value that will be ignored.
+symbol and VAL is its value; if VAR is set to VAL by a file-local
+variables section, that setting should be ignored.
 
 Also see `safe-local-variable-values'."
   :risky t
   :group 'find-file
-  :type 'alist)
+  :type 'alist
+  :version "28.1")
 
 (defcustom safe-local-eval-forms
   ;; This should be here at least as long as Emacs supports write-file-hooks.

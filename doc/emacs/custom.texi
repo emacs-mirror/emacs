@@ -623,7 +623,7 @@ button.
 the theme file and asks if you really want to load it.  Because
 loading a Custom theme can execute arbitrary Lisp code, you should
 only say yes if you know that the theme is safe; in that case, Emacs
-offers to remember in the future that the theme is safe (this is done
+offers to remember in the future that the theme is safe(this is done
 by saving the theme file's SHA-256 hash to the variable
 @code{custom-safe-themes}; if you want to treat all themes as safe,
 change its value to @code{t}).  Themes that come with Emacs (in the
@@ -1271,7 +1271,13 @@ confirmation prompt.  When Emacs encounters these variable/value pairs
 subsequently, in the same file or others, it will assume they are
 safe.
 
+  You can also tell Emacs to permanently ignore all the variable/value
+pairs in the file, by typing @kbd{i} at the confirmation prompt --
+these pairs will thereafter ignored in this file and in all other
+files.
+
 @vindex safe-local-variable-values
+@vindex ignored-local-variable-values
 @cindex risky variable
   Some variables, such as @code{load-path}, are considered
 particularly @dfn{risky}: there is seldom any reason to specify them
@@ -1283,6 +1289,8 @@ can enter @kbd{!} at the prompt.  It applies all the variables, but only
 marks the non-risky ones as safe for the future.  If you really want to
 record safe values for risky variables, do it directly by customizing
 @samp{safe-local-variable-values} (@pxref{Easy Customization}).
+Similarly, if you want to record values of risky variables that should
+be permanently ignored, customize @code{ignored-local-variable-values}.
 
 @vindex enable-local-variables
   The variable @code{enable-local-variables} allows you to change the
