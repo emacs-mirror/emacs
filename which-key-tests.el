@@ -44,6 +44,14 @@
                ("C-b" . "group:mymap")
                ("C-c" . "group:mymap2"))))))
 
+(ert-deftest which-key-test--named-prefix-keymap ()
+  (define-prefix-command 'which-key-test--named-map)
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-a" 'which-key-test--named-map)
+    (should (equal
+             (which-key--get-keymap-bindings map)
+             '(("C-a" . "which-key-test--named-map"))))))
+
 (ert-deftest which-key-test--prefix-declaration ()
   "Test `which-key-declare-prefixes' and
 `which-key-declare-prefixes-for-mode'. See Bug #109."

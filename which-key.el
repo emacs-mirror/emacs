@@ -1743,8 +1743,8 @@ Requires `which-key-compute-remaps' to be non-nil"
                     (binding
                      (cons key-desc
                            (cond
-                            ((keymapp def) "prefix")
                             ((symbolp def) (which-key--compute-binding def))
+                            ((keymapp def) "prefix")
                             ((eq 'lambda (car-safe def)) "lambda")
                             ((eq 'closure (car-safe def)) "closure")
                             ((stringp def) def)
