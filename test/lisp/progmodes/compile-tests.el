@@ -515,4 +515,31 @@ The test data is in `compile-tests--grep-regexp-testcases'."
       (compile--test-error-line testcase))
     (should (eq compilation-num-errors-found 8))))
 
+(ert-deftest compile-test-functions ()
+  "Test rules using functions instead of regexp group numbers."
+  (let* ((file-fun (lambda () '("my-file")))
+         (line-start-fun (lambda () 123))
+         (line-end-fun (lambda () 134))
+         (col-start-fun (lambda () 39))
+         (col-end-fun (lambda () 24))
+         (compilation-error-regexp-alist-alist
+         `((my-rule
+            ,(rx bol "My error message")
+            ,file-fun
+            (,line-start-fun . ,line-end-fun)
+            (,col-start-fun . ,col-end-fun))))
+         (compilation-error-regexp-alist '(my-rule)))
+  (with-temp-buffer
+    (font-lock-mode -1)
+    (let ((compilation-num-errors-found 0)
+          (compilation-num-warnings-found 0)
+          (compilation-num-infos-found 0))
+      (compile--test-error-line
+       '(my-rule
+         "My error message"
+         1 (39 . 24) (123 . 134) "my-file" 2))
+      (should (eq compilation-num-errors-found 1))
+      (should (eq compilation-num-warnings-found 0))
+      (should (eq compilation-num-infos-found 0))))))
+
 ;;; compile-tests.el ends here
