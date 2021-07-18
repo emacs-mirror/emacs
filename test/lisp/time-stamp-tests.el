@@ -904,17 +904,23 @@ the other expected results for hours greater than 99 with non-zero seconds."
        ert-test-list
        (list
         `(ert-deftest ,(intern (concat "formatz-" form-string "-hhmm")) ()
+           ,(concat "Tests time-stamp format " form-string
+                   " with whole hours or minutes.")
            (should (equal (formatz ,form-string (fz-make+zone 0))
                           ,(car hour-mod)))
            (formatz-hours-exact-helper ,form-string ',(cdr hour-mod))
            (should (equal (formatz ,form-string (fz-make+zone 0 30))
                           ,(car mins-mod)))
            (formatz-nonzero-minutes-helper ,form-string ',(cdr mins-mod)))
-        `(ert-deftest ,(intern (concat "formatz-" form-string "-secs")) ()
+        `(ert-deftest ,(intern (concat "formatz-" form-string "-seconds")) ()
+           ,(concat "Tests time-stamp format " form-string
+                   " with offsets that have non-zero seconds.")
            (should (equal (formatz ,form-string (fz-make+zone 0 0 30))
                           ,(car secs-mod)))
            (formatz-nonzero-seconds-helper ,form-string ',(cdr secs-mod)))
-        `(ert-deftest ,(intern (concat "formatz-" form-string "-big")) ()
+        `(ert-deftest ,(intern (concat "formatz-" form-string "-threedigit")) ()
+           ,(concat "Tests time-stamp format " form-string
+                   " with offsets that are 100 hours or greater.")
            (should (equal (formatz ,form-string (fz-make+zone 100))
                           ,(car big-mod)))
            (formatz-hours-big-helper ,form-string ',(cdr big-mod))
@@ -954,6 +960,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
 ;; The legacy exception for %z in time-stamp will need to remain
 ;; through at least 2024 and Emacs 28.
 (ert-deftest formatz-%z-spotcheck ()
+  "Spot-checks internal implementation of time-stamp format %z."
   (should (equal (format-time-offset "%z" (fz-make+zone 0)) "+0000"))
   (should (equal (format-time-offset "%z" (fz-make+zone 0 30)) "+0030"))
   (should (equal (format-time-offset "%z" (fz-make+zone 0 0 30)) "+000030"))
