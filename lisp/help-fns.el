@@ -1078,6 +1078,7 @@ it is displayed along with the global value."
 		           (with-current-buffer standard-output
                              (setq help-mode--current-data
                                    (list :symbol variable
+                                         :type 'variable
                                          :file file-name))
                              (save-excursion
 			       (re-search-backward (substitute-command-keys
@@ -1089,7 +1090,8 @@ it is displayed along with the global value."
 			       "It is void as a variable."
                              "Its "))
 	               (with-current-buffer standard-output
-                         (setq help-mode--current-data (list :symbol variable)))
+                         (setq help-mode--current-data (list :symbol variable
+                                                             :type 'variable)))
                        (if valvoid
 		           " is void as a variable."
                          (substitute-command-keys "'s ")))))
