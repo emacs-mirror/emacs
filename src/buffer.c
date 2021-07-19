@@ -841,7 +841,7 @@ does not run the hooks `kill-buffer-hook',
   b->pt_byte = b->base_buffer->pt_byte;
   b->begv_byte = b->base_buffer->begv_byte;
   b->zv_byte = b->base_buffer->zv_byte;
-  b->inhibit_buffer_hooks = inhibit_buffer_hooks;
+  b->inhibit_buffer_hooks = !NILP (inhibit_buffer_hooks);
 
   b->newline_cache = 0;
   b->width_run_cache = 0;

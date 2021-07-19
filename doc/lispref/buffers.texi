@@ -1200,7 +1200,7 @@ the base for the new buffer.  If, in addition, @var{clone} is
 non-@code{nil}, the initial state is copied from the actual base
 buffer, not from @var{base-buffer}.
 
-@xref{Creating Buffers} for the meaning of @var{inhibit-buffer-hooks}.
+@xref{Creating Buffers}, for the meaning of @var{inhibit-buffer-hooks}.
 @end deffn
 
 @deffn Command clone-indirect-buffer newname display-flag &optional norecord
