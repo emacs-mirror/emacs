@@ -1601,6 +1601,14 @@ Defaults to 'libravatar', with 'unicornify' and 'gravatar' as options.
 
 ** Compilation mode
 
+---
+*** New function 'ansi-color-compilation-filter'.
+This function is meant to be used in 'compilation-filter-hook'.
+
+---
+*** New user option 'ansi-color-for-compilation-mode'.
+This controls what 'ansi-color-compilation-filter' does.
+
 *** Regexp matching of messages is now case-sensitive by default.
 The variable 'compilation-error-case-fold-search' can be set for
 case-insensitive matching of messages when the old behavior is
