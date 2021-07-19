@@ -581,6 +581,11 @@ indentation is done using SMIE or with the old ad-hoc code.
 
 ** Icomplete
 
+---
+*** New user option 'icomplete-matches-format'.
+This allows controlling the current/total number of matches for the
+prompt prefix.
+
 +++
 *** New minor mode 'icomplete-vertical-mode', alias 'fido-vertical-mode'.
 This mode is intended to be used with Icomplete ('M-x icomplete-mode')
