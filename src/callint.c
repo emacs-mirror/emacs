@@ -892,7 +892,10 @@ behave as if the mark were still active.  */);
   Vmark_even_if_inactive = Qt;
 
   DEFVAR_LISP ("mouse-leave-buffer-hook", Vmouse_leave_buffer_hook,
-	       doc: /* Hook to run when about to switch windows with a mouse command.
+	       doc: /* Hook run when the user mouse-clicks in a window.
+It can be run both before and after switching windows, or even when
+when not actually switching windows.
+
 Its purpose is to give temporary modes such as Isearch mode
 a way to turn themselves off when a mouse command switches windows.  */);
   Vmouse_leave_buffer_hook = Qnil;
