@@ -2222,6 +2222,13 @@ This command, called interactively, toggles the local value of
 
 ** Miscellaneous
 
+---
+*** New utility function 'make-separator-line'.
+
+---
+*** New face 'separator-line'.
+This is used by 'make-separator-line'.
+
 +++
 *** New user option 'ignored-local-variable-values'.
 This is the opposite of 'safe-local-variable-values' -- it's an alist

@@ -695,6 +695,27 @@ When called from Lisp code, ARG may be a prefix string to copy."
     (indent-to col 0)
     (goto-char pos)))
 
+(defface separator-line
+  '((((type graphic)) :height 0.1 :inverse-video t)
+    (t :foreground "ForestGreen"))
+  "Face for separator lines."
+  :version "28.1"
+  :group 'text)
+
+(defun make-separator-line (&optional length)
+  "Make a string appropriate for usage as a visual separator line.
+This uses the `separator-line' face.
+
+If LENGTH is nil, use the window width."
+  (if (display-graphic-p)
+      (if length
+          (concat (propertize (make-string length ?\s) 'face 'separator-line)
+                  "\n")
+        (propertize "\n" 'face '(:inherit separator-line :extend t)))
+    (concat (propertize (make-string (or length (1- (window-width))) ?-)
+                        'face 'separator-line)
+            "\n")))
+
 (defun delete-indentation (&optional arg beg end)
   "Join this line to previous and fix up whitespace at join.
 If there is a fill prefix, delete it from the beginning of this

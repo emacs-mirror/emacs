@@ -1573,11 +1573,7 @@ current buffer and the selected frame, respectively."
             (insert doc)
             (delete-region (point)
                            (progn (skip-chars-backward " \t\n") (point)))
-            (insert "\n\n"
-                    (eval-when-compile
-                      (propertize "\n" 'face
-                                  '(:height 0.1 :inverse-video t :extend t)))
-                    "\n")
+            (insert "\n\n" (make-separator-line) "\n")
             (when name
               (insert (symbol-name symbol)
                       " is also a " name "." "\n\n"))))
