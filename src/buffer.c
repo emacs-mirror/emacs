@@ -834,6 +834,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   b->pt_byte = b->base_buffer->pt_byte;
   b->begv_byte = b->base_buffer->begv_byte;
   b->zv_byte = b->base_buffer->zv_byte;
+  b->inhibit_buffer_hooks = b->base_buffer->inhibit_buffer_hooks;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
