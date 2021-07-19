@@ -781,15 +781,22 @@ fetch_buffer_markers (struct buffer *b)
 
 
 DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
-       2, 3,
+       2, 4,
        "bMake indirect buffer (to buffer): \nBName of indirect buffer: ",
        doc: /* Create and return an indirect buffer for buffer BASE-BUFFER, named NAME.
 BASE-BUFFER should be a live buffer, or the name of an existing buffer.
+
 NAME should be a string which is not the name of an existing buffer.
 Optional argument CLONE non-nil means preserve BASE-BUFFER's state,
 such as major and minor modes, in the indirect buffer.
-CLONE nil means the indirect buffer's state is reset to default values.  */)
-  (Lisp_Object base_buffer, Lisp_Object name, Lisp_Object clone)
+
+CLONE nil means the indirect buffer's state is reset to default values.
+
+If optional argument INHIBIT-BUFFER-HOOKS is non-nil, the new buffer
+does not run the hooks `kill-buffer-hook',
+`kill-buffer-query-functions', and `buffer-list-update-hook'.  */)
+  (Lisp_Object base_buffer, Lisp_Object name, Lisp_Object clone,
+   Lisp_Object inhibit_buffer_hooks)
 {
   Lisp_Object buf, tem;
   struct buffer *b;
@@ -834,6 +841,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   b->pt_byte = b->base_buffer->pt_byte;
   b->begv_byte = b->base_buffer->begv_byte;
   b->zv_byte = b->base_buffer->zv_byte;
+  b->inhibit_buffer_hooks = inhibit_buffer_hooks;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;

@@ -1361,4 +1361,29 @@ with parameters from the *Messages* buffer modification."
           (should run-kbqf))
       (remove-hook 'buffer-list-update-hook bluh))))
 
+(ert-deftest buffer-tests-inhibit-buffer-hooks-indirect ()
+  "Indirect buffers do not call `get-buffer-create'."
+  (dolist (inhibit '(nil t))
+    (let ((base (get-buffer-create "foo" inhibit)))
+      (unwind-protect
+          (dotimes (_i 11)
+            (let* (flag*
+                   (flag (lambda () (prog1 t (setq flag* t))))
+                   (indirect (make-indirect-buffer base "foo[indirect]" nil
+                                                   inhibit)))
+              (unwind-protect
+                  (progn
+                    (with-current-buffer indirect
+                      (add-hook 'kill-buffer-query-functions flag nil t))
+                    (kill-buffer indirect)
+                    (if inhibit
+                        (should-not flag*)
+                      (should flag*)))
+                (let (kill-buffer-query-functions)
+                  (when (buffer-live-p indirect)
+                    (kill-buffer indirect))))))
+        (let (kill-buffer-query-functions)
+          (when (buffer-live-p base)
+            (kill-buffer base)))))))
+
 ;;; buffer-tests.el ends here
