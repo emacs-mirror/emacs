@@ -1369,7 +1369,8 @@ with parameters from the *Messages* buffer modification."
           (dotimes (_i 11)
             (let* (flag*
                    (flag (lambda () (prog1 t (setq flag* t))))
-                   (indirect (make-indirect-buffer base "foo[indirect]")))
+                   (indirect (make-indirect-buffer base "foo[indirect]" nil
+                                                   inhibit)))
               (unwind-protect
                   (progn
                     (with-current-buffer indirect
