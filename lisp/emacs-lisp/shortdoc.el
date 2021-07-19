@@ -32,14 +32,6 @@
   "Short documentation."
   :group 'lisp)
 
-(defface shortdoc-separator
-  '((((class color) (background dark))
-     :height 0.1 :background "#505050" :extend t)
-    (((class color) (background light))
-     :height 0.1 :background "#a0a0a0" :extend t)
-    (t :height 0.1 :inverse-video t :extend t))
-  "Face used to separate sections.")
-
 (defface shortdoc-heading
   '((t :inherit variable-pitch :height 1.3 :weight bold))
   "Face used for a heading."
@@ -1174,7 +1166,7 @@ If FUNCTION is non-nil, place point on the entry for FUNCTION (if any)."
         ;; There may be functions not yet defined in the data.
         ((fboundp (car data))
          (when prev
-           (insert (propertize "\n" 'face 'shortdoc-separator)))
+           (insert (make-separator-line)))
          (setq prev t)
          (shortdoc--display-function data))))
      (cdr (assq group shortdoc--groups))))

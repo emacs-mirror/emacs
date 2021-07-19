@@ -696,7 +696,10 @@ When called from Lisp code, ARG may be a prefix string to copy."
     (goto-char pos)))
 
 (defface separator-line
-  '((((type graphic)) :height 0.1 :inverse-video t)
+  '((((type graphic) (background dark))
+     :height 0.1 :background "#505050")
+    (((type graphic) (background light))
+     :height 0.1 :background "#a0a0a0")
     (t :foreground "ForestGreen"))
   "Face for separator lines."
   :version "28.1"
