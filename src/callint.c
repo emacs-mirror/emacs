@@ -894,7 +894,7 @@ behave as if the mark were still active.  */);
   DEFVAR_LISP ("mouse-leave-buffer-hook", Vmouse_leave_buffer_hook,
 	       doc: /* Hook run when the user mouse-clicks in a window.
 It can be run both before and after switching windows, or even when
-when not actually switching windows.
+not actually switching windows.
 
 Its purpose is to give temporary modes such as Isearch mode
 a way to turn themselves off when a mouse command switches windows.  */);
