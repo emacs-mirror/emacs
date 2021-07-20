@@ -1084,12 +1084,12 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
                     for (newlist = Qnil; CONSP (list); list = XCDR (list))
                       {
                         Lisp_Object elt = XCAR (list);
-                        /* Preserve element ELT if it's t,
-                           if it is a function with a `permanent-local-hook' property,
-                           or if it's not a symbol.  */
-                        if (! SYMBOLP (elt)
-                            || EQ (elt, Qt)
-                            || !NILP (Fget (elt, Qpermanent_local_hook)))
+                        /* Preserve element ELT if it's t, or if it is a
+                           function with a `permanent-local-hook'
+                           property. */
+                        if (EQ (elt, Qt)
+                            || (SYMBOLP (elt)
+                                && !NILP (Fget (elt, Qpermanent_local_hook))))
                           newlist = Fcons (elt, newlist);
                       }
                   newlist = Fnreverse (newlist);
