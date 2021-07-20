@@ -128,7 +128,7 @@ Default: ~/.emacs.d/shadow_todo"
 (defvar shadow-system-name (concat "/" (system-name) ":")
   "The identification for local files on this machine.")
 
-(defvar shadow-homedir "~"
+(defvar shadow-homedir "~/"
   "Your home directory on this machine.")
 
 ;;;
@@ -352,15 +352,16 @@ Will return the name bare if it is a local file."
 
 (defun shadow-contract-file-name (file)
   "Simplify FILE.
-Do so by replacing (when possible) home directory with ~, and hostname
-with cluster name that includes it.  Filename should be absolute and
-true."
+Do so by replacing (when possible) home directory with ~/, and
+hostname with cluster name that includes it.  Filename should be
+absolute and true."
   (let* ((hup (shadow-parse-name file))
 	 (homedir (if (shadow-local-file hup)
 		      shadow-homedir
 		    (file-name-as-directory
 		     (file-local-name
-                      (expand-file-name (shadow-make-fullname hup nil "~"))))))
+                      (expand-file-name
+                       (shadow-make-fullname hup nil shadow-homedir))))))
 	 (suffix (shadow-suffix homedir (tramp-file-name-localname hup)))
 	 (cluster (shadow-site-cluster (shadow-make-fullname hup nil ""))))
     (when cluster
@@ -369,7 +370,7 @@ true."
     (shadow-make-fullname
      hup nil
      (if suffix
-         (concat "~/" suffix)
+         (concat shadow-homedir suffix)
        (tramp-file-name-localname hup)))))
 
 (defun shadow-same-site (pattern file)
