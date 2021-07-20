@@ -2328,6 +2328,15 @@ variables.")
   (setq deactivate-mark nil)
   (throw 'exit nil))
 
+(defun minibuffer-quit-recursive-edit ()
+  "Quit the command that requested this recursive edit without error.
+Like `abort-recursive-edit' without aborting keyboard macro
+execution."
+  ;; See Info node `(elisp)Recursive Editing' for an explanation of
+  ;; throwing a function to `exit'.
+  (throw 'exit (lambda ()
+                 (signal 'minibuffer-quit nil))))
+
 (defun self-insert-and-exit ()
   "Terminate minibuffer input."
   (interactive)

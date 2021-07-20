@@ -2879,8 +2879,10 @@ Go to the history element by the absolute history position HIST-POS."
 The same as `command-error-default-function' but display error messages
 at the end of the minibuffer using `minibuffer-message' to not obscure
 the minibuffer contents."
-  (discard-input)
-  (ding)
+  (if (memq 'minibuffer-quit (get (car data) 'error-conditions))
+      (ding t)
+    (discard-input)
+    (ding))
   (let ((string (error-message-string data)))
     ;; If we know from where the error was signaled, show it in
     ;; *Messages*.

@@ -2682,6 +2682,15 @@ also keep the type information of their arguments.  Use the
 ---
 *** New face 'perl-heredoc', used for heredoc elements.
 
++++
+** A function can now be thrown to the 'exit' label in addition to t or nil.
+The command loop will call it with zero arguments before returning.
+
++++
+** New error symbol 'minibuffer-quit'.
+Signaling it has almost the same effect as 'quit' except that it
+doesn't cause keyboard macro termination.
+
 ---
 *** The command 'cperl-set-style' offers the new value "PBP".
 This value customizes Emacs to use the style recommended in Damian

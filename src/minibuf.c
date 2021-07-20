@@ -496,7 +496,7 @@ confirm the aborting of the current minibuffer and all contained ones.  */)
 	}
     }
   else
-    Fthrow (Qexit, Qt);
+    CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"));
   return Qnil;
 }
 
