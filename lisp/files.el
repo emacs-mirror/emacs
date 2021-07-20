@@ -1702,6 +1702,10 @@ rather than FUN itself, to `minibuffer-setup-hook'."
   (list (read-file-name prompt nil default-directory mustmatch)
 	t))
 
+(defun file-name-history--add (file)
+  "Add FILE to `file-name-history'."
+  (add-to-history 'file-name-history (abbreviate-file-name file)))
+
 (defun find-file (filename &optional wildcards)
   "Edit file FILENAME.
 Switch to a buffer visiting file FILENAME,

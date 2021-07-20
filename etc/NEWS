@@ -92,6 +92,10 @@ proper pty support that Emacs needs.
 * Startup Changes in Emacs 28.1
 
 ---
+** File names given on the command line will now be pushed onto
+'file-name-history'.
+
+---
 ** In GTK builds, Emacs now supports startup notification.
 This means that Emacs won't steal keyboard focus upon startup
 (when started via the Desktop) if the user is typing into another
@@ -334,6 +338,10 @@ by dragging the tab lines of their topmost windows with the mouse.
 
 
 * Editing Changes in Emacs 28.1
+
+---
+** Dragging a file to Emacs will now also push the name of the file
+onto 'file-name-history'.
 
 +++
 ** A prefix arg now causes 'delete-other-frames' to only iconify frames.
