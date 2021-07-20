@@ -320,9 +320,31 @@ Used to gray out relevant toolbar icons.")
       (tool-bar-local-item-from-menu
        (car x) (cdr x) map gud-minor-mode-map))))
 
-(defvar gud-repeat-map (make-sparse-keymap)
-  "Keymap to repeat gud stepping instructions `C-x C-a C-n n n'.
+(defvar gud-gdb-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("i" . gud-stepi)
+                                    ("c" . gud-cont)
+                                    ("l" . gud-refresh)
+                                    ("f" . gud-finish)
+                                    ("<" . gud-up)
+                                    (">" . gud-down)))
+      (define-key map key cmd))
+    map)
+  "Keymap to repeat `gud-gdb' stepping instructions `C-x C-a C-n n n'.
 Used in `repeat-mode'.")
+
+(defun gud-set-repeat-map-property (keymap-symbol)
+  "Set the `repeat-map' property of relevant gud commands to KEYMAP-SYMBOL.
+
+KEYMAP-SYMBOL is a symbol corresponding to some
+`<FOO>-repeat-map', a keymap containing gud commands that may be
+repeated when `repeat-mode' is on."
+  (map-keymap-internal (lambda (_ cmd)
+                         (put cmd 'repeat-map keymap-symbol))
+                       (symbol-value keymap-symbol)))
+
 
 (defun gud-file-name (f)
   "Transform a relative file name to an absolute file name.
@@ -814,16 +836,7 @@ the buffer in which this command was invoked."
   (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	 nil    "Run the program.")
 
-  (dolist (cmd '(("n" . gud-next)
-                 ("s" . gud-step)
-                 ("i" . gud-stepi)
-                 ("c" . gud-cont)
-                 ("l" . gud-refresh)
-                 ("f" . gud-finish)
-                 ("<" . gud-up)
-                 (">" . gud-down)))
-    (define-key gud-repeat-map (car cmd) (cdr cmd))
-    (put (cdr cmd) 'repeat-map 'gud-repeat-map))
+  (gud-set-repeat-map-property 'gud-gdb-repeat-map)
 
   (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
             nil 'local)
