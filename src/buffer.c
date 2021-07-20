@@ -4222,7 +4222,11 @@ OVERLAY.  */)
 
 DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 2, 0,
        doc: /* Return a list of the overlays that contain the character at POS.
-If SORTED is non-nil, then sort them by decreasing priority.  */)
+If SORTED is non-nil, then sort them by decreasing priority.
+
+Zero-length overlays that start and stop at POS are not included in
+the return value.  Instead use `overlays-in' if those overlays are of
+interest.  */)
   (Lisp_Object pos, Lisp_Object sorted)
 {
   ptrdiff_t len, noverlays;

@@ -1386,4 +1386,17 @@ with parameters from the *Messages* buffer modification."
           (when (buffer-live-p base)
             (kill-buffer base)))))))
 
+(ert-deftest zero-length-overlays-and-not ()
+  (with-temp-buffer
+    (insert "hello")
+    (let ((long-overlay (make-overlay 2 4))
+          (zero-overlay (make-overlay 3 3)))
+      ;; Exclude.
+      (should (= (length (overlays-at 3)) 1))
+      (should (eq (car (overlays-at 3)) long-overlay))
+      ;; Include.
+      (should (= (length (overlays-in 3 3)) 2))
+      (should (memq long-overlay (overlays-in 3 3)))
+      (should (memq zero-overlay (overlays-in 3 3))))))
+
 ;;; buffer-tests.el ends here
