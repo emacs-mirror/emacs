@@ -970,10 +970,9 @@ See Info node `(elisp) Integer Basics'."
      form)))
 
 (defun byte-optimize-eq (form)
-  (byte-optimize-binary-predicate
-   (pcase (cdr form)
-     ((or `(,x nil) `(nil ,x)) `(not ,x))
-     (_ form))))
+  (pcase (cdr form)
+    ((or `(,x nil) `(nil ,x)) `(not ,x))
+    (_ (byte-optimize-binary-predicate form))))
 
 (defun byte-optimize-member (form)
   ;; Replace `member' or `memql' with `memq' if the first arg is a symbol,
