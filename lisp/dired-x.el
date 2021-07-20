@@ -972,38 +972,22 @@ REGEXP is matched case-sensitively."
 (defun dired-guess-default (files)
   "Return a shell command, or a list of commands, appropriate for FILES.
 See `dired-guess-shell-alist-user'."
-
   (let* ((case-fold-search dired-guess-shell-case-fold-search)
-         ;; Prepend the user's alist to the default alist.
-         (alist (append dired-guess-shell-alist-user
-                        dired-guess-shell-alist-default))
-         (file (car files))
-         (flist (cdr files))
-         elt regexp cmds)
-
-    ;; Find the first match in the alist for first file in FILES.
-    (while alist
-      (setq elt (car alist)
-            regexp (car elt)
-            alist (cdr alist))
-      (if (string-match-p regexp file)
-          (setq cmds (cdr elt)
-                alist nil)))
-
-    ;; If more than one file, see if all of FILES match regular expression.
-    (while (and flist
-                (string-match-p regexp (car flist)))
-      (setq flist (cdr flist)))
-
-    ;; If flist is still non-nil, then do not guess since this means that not
-    ;; all the files in FILES were matched by the regexp.
-    (setq cmds (and (not flist) cmds))
-
-    ;; Return commands or nil if flist is still non-nil.
-    ;; Evaluate the commands in order that any logical testing will be done.
-    (if (cdr cmds)
-	(delete-dups (mapcar (lambda (cmd) (eval cmd `((file . ,file)))) cmds))
-      (eval (car cmds) `((file . ,file))))))		; single command
+         (programs
+          (delete-dups
+           (seq-reduce
+            #'append
+            (mapcar #'cdr
+                    (seq-filter (lambda (elem)
+                                  (seq-some (lambda (file)
+                                              (string-match-p (car elem) file))
+                                            files))
+                                (append dired-guess-shell-alist-user
+                                        dired-guess-shell-alist-default)))
+            nil))))
+    (if (length= programs 1)
+        (car programs)
+      programs)))
 
 (defun dired-guess-shell-command (prompt files)
   "Ask user with PROMPT for a shell command, guessing a default from FILES."
