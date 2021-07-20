@@ -5771,6 +5771,7 @@ Use direct async.")
 	   (append
 	    (and (tramp--test-fuse-p) '(tramp-fuse-unmount))
 	    tramp-cleanup-connection-hook))
+          auto-save-default
 	  noninteractive)
 
       (unwind-protect
