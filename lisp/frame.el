@@ -36,7 +36,11 @@ as its argument.")
 (cl-generic-define-context-rewriter window-system (value)
   ;; If `value' is a `consp', it's probably an old-style specializer,
   ;; so just use it, and anyway `eql' isn't very useful on cons cells.
-  `(window-system ,(if (consp value) value `(eql ,value))))
+  `(window-system ,(if (consp value) value
+                     ;; WARNING: unsure whether this eql expression
+                     ;; is actually an eql specializer.
+                     ;; Bug #47327
+                     `(eql ',value))))
 
 (cl-defmethod frame-creation-function (params &context (window-system nil))
   ;; It's tempting to get rid of tty-create-frame-with-faces and turn it into

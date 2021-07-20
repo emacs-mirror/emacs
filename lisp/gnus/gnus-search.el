@@ -980,7 +980,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 
 ;; Most search engines use implicit ANDs.
 (cl-defmethod gnus-search-transform-expression ((_ gnus-search-engine)
-						(_expr (eql and)))
+						(_expr (eql 'and)))
   nil)
 
 ;; Most search engines use explicit infixed ORs.

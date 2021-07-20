@@ -2062,19 +2062,21 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
 ;;;###autoload
 (defun etags--xref-backend () 'etags)
 
-(cl-defmethod xref-backend-identifier-at-point ((_backend (eql etags)))
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'etags)))
   (find-tag--default))
 
-(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql etags)))
+(cl-defmethod xref-backend-identifier-completion-table ((_backend
+                                                         (eql 'etags)))
   (tags-lazy-completion-table))
 
-(cl-defmethod xref-backend-identifier-completion-ignore-case ((_backend (eql etags)))
+(cl-defmethod xref-backend-identifier-completion-ignore-case ((_backend
+                                                               (eql 'etags)))
   (find-tag--completion-ignore-case))
 
-(cl-defmethod xref-backend-definitions ((_backend (eql etags)) symbol)
+(cl-defmethod xref-backend-definitions ((_backend (eql 'etags)) symbol)
   (etags--xref-find-definitions symbol))
 
-(cl-defmethod xref-backend-apropos ((_backend (eql etags)) pattern)
+(cl-defmethod xref-backend-apropos ((_backend (eql 'etags)) pattern)
   (etags--xref-find-definitions (xref-apropos-regexp pattern) t))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)

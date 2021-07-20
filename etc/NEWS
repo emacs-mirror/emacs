@@ -810,6 +810,11 @@ work as before.
 It is now defined as a generalized variable that can be used with
 'setf' to modify the value stored in a given class slot.
 
+---
+*** 'form' in '(eql form)' specializers in 'cl-defmethod' is now evaluated.
+This corresponds to the behaviour of defmethod in Common Lisp Object System.
+A warning is issued when old style is used.
+
 ** New minor mode 'cl-font-lock-built-in-mode' for 'lisp-mode'.
 The mode provides refined highlighting of built-in functions, types,
 and variables.

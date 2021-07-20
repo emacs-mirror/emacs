@@ -1158,7 +1158,12 @@ These match if the argument is a cons cell whose car is `eql' to VAL."
 (cl-defmethod cl-generic-generalizers ((specializer (head eql)))
   "Support for (eql VAL) specializers.
 These match if the argument is `eql' to VAL."
-  (puthash (cadr specializer) specializer cl--generic-eql-used)
+  (let ((form (cadr specializer)))
+    (puthash (if (or (not (symbolp form)) (macroexp-const-p form))
+                 (eval form t)
+               (message "Quoting obsolete `eql' form: %S" specializer)
+               form)
+             specializer cl--generic-eql-used))
   (list cl--generic-eql-generalizer))
 
 (cl--generic-prefill-dispatchers 0 (eql nil))
@@ -1269,6 +1274,11 @@ Used internally for the (major-mode MODE) context specializers."
 (cl-generic-define-context-rewriter major-mode (mode &rest modes)
   `(major-mode ,(if (consp mode)
                     ;;E.g. could be (eql ...)
+                    ;; WARNING: unsure whether this
+                    ;; “could be (eql ...)” commentary (or code)
+                    ;; should be adjusted
+                    ;; following the (planned) changes to eql specializer.
+                    ;; Bug #47327
                     (progn (cl-assert (null modes)) mode)
                   `(derived-mode ,mode . ,modes))))
 
