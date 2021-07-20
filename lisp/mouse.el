@@ -277,6 +277,124 @@ not it is actually displayed."
            minor-mode-menus)))
 
 
+;; Context menus.
+
+(defcustom context-menu-functions '(context-menu-undo context-menu-region)
+  "List of functions that produce the contents of the context menu."
+  :type 'hook
+  :version "28.1")
+
+(defvar context-menu-overriding-function nil
+  "Function that can override the list produced by `context-menu-functions'.")
+
+(defcustom context-menu-filter-function nil
+  "Function that can filter the list produced by `context-menu-functions'."
+  :type 'function
+  :version "28.1")
+
+(defun context-menu-map ()
+  (let ((menu (make-sparse-keymap "Context Menu")))
+    (if (functionp context-menu-overriding-function)
+        (setq menu (funcall context-menu-overriding-function menu))
+      (run-hook-wrapped 'context-menu-functions
+                        (lambda (fun)
+                          (setq menu (funcall fun menu))
+                          nil)))
+    (setq menu (cons (car menu) (nreverse (cdr menu))))
+    (when (functionp context-menu-filter-function)
+      (setq menu (funcall context-menu-filter-function menu)))
+    menu))
+
+(defun context-menu-undo (menu)
+  (bindings--define-key menu [undo]
+    '(menu-item "Undo" undo
+                :visible (and (not buffer-read-only)
+                              (not (eq t buffer-undo-list))
+                              (if (eq last-command 'undo)
+                                  (listp pending-undo-list)
+                                (consp buffer-undo-list)))
+                :help "Undo last edits"))
+  (bindings--define-key menu [undo-redo]
+    '(menu-item "Redo" undo-redo
+                :visible (and (not buffer-read-only)
+                              (undo--last-change-was-undo-p buffer-undo-list))
+                :help "Redo last undone edits"))
+  menu)
+
+(defun context-menu-region (menu)
+  (bindings--define-key menu [cut]
+    '(menu-item "Cut" kill-region
+                :visible (and mark-active (not buffer-read-only))
+                :help
+                "Cut (kill) text in region between mark and current position"))
+  (bindings--define-key menu [copy]
+    ;; ns-win.el said: Substitute a Copy function that works better
+    ;; under X (for GNUstep).
+    `(menu-item "Copy" ,(if (featurep 'ns)
+                            'ns-copy-including-secondary
+                          'kill-ring-save)
+                :visible mark-active
+                :help "Copy text in region between mark and current position"
+                :keys ,(if (featurep 'ns)
+                           "\\[ns-copy-including-secondary]"
+                         "\\[kill-ring-save]")))
+  (bindings--define-key menu [paste]
+    `(menu-item "Paste" mouse-yank-primary
+                :visible (funcall
+                          ',(lambda ()
+                              (and (or
+                                    (gui-backend-selection-exists-p 'CLIPBOARD)
+                                    (if (featurep 'ns) ; like paste-from-menu
+                                        (cdr yank-menu)
+                                      kill-ring))
+                                   (not buffer-read-only))))
+                :help "Paste (yank) text most recently cut/copied"))
+  (bindings--define-key menu (if (featurep 'ns) [select-paste]
+                               [paste-from-menu])
+    ;; ns-win.el said: Change text to be more consistent with
+    ;; surrounding menu items `paste', etc."
+    `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
+                yank-menu
+                :visible (and (cdr yank-menu) (not buffer-read-only))
+                :help "Choose a string from the kill ring and paste it"))
+  (bindings--define-key menu [clear]
+    '(menu-item "Clear" delete-active-region
+                :visible (and mark-active
+                              (not buffer-read-only))
+                :help
+                "Delete the text in region between mark and current position"))
+  (bindings--define-key menu [mark-whole-buffer]
+    '(menu-item "Select All" mark-whole-buffer
+                :help "Mark the whole buffer for a subsequent cut/copy"))
+  menu)
+
+(defvar context-menu--old-down-mouse-3 nil)
+(defvar context-menu--old-mouse-3 nil)
+
+(define-minor-mode context-menu-mode
+  "Toggle Context Menu mode.
+
+When Context Menu mode is enabled, clicking the mouse button down-mouse-3
+activates the menu whose contents depends on its surrounding context."
+  :global t :group 'mouse
+  (cond
+   (context-menu-mode
+    (setq context-menu--old-mouse-3 (global-key-binding [mouse-3]))
+    (global-unset-key [mouse-3])
+    (setq context-menu--old-down-mouse-3 (global-key-binding [down-mouse-3]))
+    (global-set-key [down-mouse-3]
+                    '(menu-item "Context Menu" ignore
+                                :filter (lambda (_) (context-menu-map)))))
+   (t
+    (if (not context-menu--old-down-mouse-3)
+        (global-unset-key [down-mouse-3])
+      (global-set-key [down-mouse-3] context-menu--old-down-mouse-3)
+      (setq context-menu--old-down-mouse-3 nil))
+    (when context-menu--old-mouse-3
+      (global-set-key [mouse-3] context-menu--old-mouse-3)
+      (setq context-menu--old-mouse-3 nil)))))
+
+
 ;; Commands that operate on windows.
 
 (defun mouse-minibuffer-check (event)
