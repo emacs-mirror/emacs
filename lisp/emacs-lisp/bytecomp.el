@@ -4340,6 +4340,16 @@ Return (TAIL VAR TEST CASES), where:
                          (push value keys)
                          (push (cons (list value) (or body '(t))) cases))
                        t))))
+             ;; Treat (not X) as (eq X nil).
+             (`((,(or 'not 'null) ,(and var (pred symbolp))) . ,body)
+              (and (or (eq var switch-var) (not switch-var))
+                   (progn
+                     (setq switch-var var)
+                     (setq switch-test 'eq)
+                     (unless (memq nil keys)
+                       (push nil keys)
+                       (push (cons (list nil) (or body '(t))) cases))
+                     t)))
              (`((,(and fn (or 'memq 'memql 'member)) ,var ,expr) . ,body)
               (and (symbolp var)
                    (or (eq var switch-var) (not switch-var))
