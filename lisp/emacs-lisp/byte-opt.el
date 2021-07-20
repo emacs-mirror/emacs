@@ -969,6 +969,12 @@ See Info node `(elisp) Integer Basics'."
      ;; Arity errors reported elsewhere.
      form)))
 
+(defun byte-optimize-eq (form)
+  (byte-optimize-binary-predicate
+   (pcase (cdr form)
+     ((or `(,x nil) `(nil ,x)) `(not ,x))
+     (_ form))))
+
 (defun byte-optimize-member (form)
   ;; Replace `member' or `memql' with `memq' if the first arg is a symbol,
   ;; or the second arg is a list of symbols.  Same with fixnums.
@@ -1056,7 +1062,7 @@ See Info node `(elisp) Integer Basics'."
 (put 'min 'byte-optimizer #'byte-optimize-min-max)
 
 (put '=   'byte-optimizer #'byte-optimize-binary-predicate)
-(put 'eq  'byte-optimizer #'byte-optimize-binary-predicate)
+(put 'eq  'byte-optimizer #'byte-optimize-eq)
 (put 'eql   'byte-optimizer #'byte-optimize-equal)
 (put 'equal 'byte-optimizer #'byte-optimize-equal)
 (put 'string= 'byte-optimizer #'byte-optimize-binary-predicate)
