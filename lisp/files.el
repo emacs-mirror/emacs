@@ -6278,10 +6278,6 @@ This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
 that is more recent than the visited file.
 
-Reverting a buffer will try to preserve markers in the buffer,
-but for better results see `revert-buffer-with-fine-grain'.  For
-details see the Info node `(elisp)Reverting'.
-
 This command also implements an interface for special buffers
 that contain text that doesn't come from a file, but reflects
 some other data instead (e.g. Dired buffers, `buffer-list'
@@ -6307,7 +6303,12 @@ This function binds `revert-buffer-in-progress-p' non-nil while it operates.
 This function calls the function that `revert-buffer-function' specifies
 to do the work, with arguments IGNORE-AUTO and NOCONFIRM.
 The default function runs the hooks `before-revert-hook' and
-`after-revert-hook'."
+`after-revert-hook'
+
+Reverting a buffer will try to preserve markers in the buffer,
+but it cannot always preserve all of them.  For better results,
+use `revert-buffer-with-fine-grain', which tries harder to
+preserve markers and overlays, at the price of being slower."
   ;; I admit it's odd to reverse the sense of the prefix argument, but
   ;; there is a lot of code out there that assumes that the first
   ;; argument should be t to avoid consulting the auto-save file, and
