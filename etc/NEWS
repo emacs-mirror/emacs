@@ -3539,6 +3539,14 @@ non-nil value.  Please report any bugs you find while using the native
 image API via 'M-x report-emacs-bug'.
 
 ---
+** Native JSON functions now signal an error if libjansson is unavailable.
+This affects 'json-serialize', 'json-insert', 'json-parse-srtring',
+and 'json-parse-buffer'.  This can happen if Emacs was compiled with
+libjansson, but the DLL cannot be found and/or loaded by Emacs at run
+time.  Previously, Emacs would display a message and return nil in
+these cases.
+
+---
 ** The user option 'make-pointer-invisible' is now honored on macOS.
 
 --
