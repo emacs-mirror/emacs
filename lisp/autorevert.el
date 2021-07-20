@@ -391,6 +391,11 @@ disk changes.
 When a buffer is reverted, a message is generated.  This can be
 suppressed by setting `auto-revert-verbose' to nil.
 
+Reverting may also break markers in the buffer.  To avoid that
+you may set `revert-buffer-insert-file-contents-function' to the
+slower function `revert-buffer-insert-file-contents-delicately'.
+See its description for details.
+
 Use `global-auto-revert-mode' to automatically revert all buffers.
 Use `auto-revert-tail-mode' if you know that the file will only grow
 without being changed in the part that is already in the buffer."
