@@ -126,10 +126,10 @@ will have no effect.")
 
 (defun goto-address-context-menu (menu)
   (when (mouse-posn-property (event-start last-input-event) 'goto-address)
-    (bindings--define-key menu [goto-address-at-click]
-      '(menu-item "Follow link" goto-address-at-click
-                  :help "Follow a link where you click"))
-    (define-key menu [goto-address-separator] menu-bar-separator))
+    (define-key menu [goto-address-separator] menu-bar-separator)
+    (define-key menu [goto-address-at-mouse]
+      '(menu-item "Follow Link" goto-address-at-mouse
+                  :help "Follow a link where you click")))
   menu)
 
 (defcustom goto-address-url-face 'link
@@ -253,8 +253,8 @@ address.  If no e-mail address found, return nil."
 	       (goto-char (match-beginning 0))))
       (match-string-no-properties 0)))
 
-(defun goto-address-at-click (click)
-  "Send to the e-mail address or load the URL at click."
+(defun goto-address-at-mouse (click)
+  "Send to the e-mail address or load the URL at mouse click."
   (interactive "e")
   (goto-address-at-point click))
 
@@ -280,7 +280,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
   (cond
    (goto-address-mode
     (jit-lock-register #'goto-address-fontify-region)
-    (add-hook 'context-menu-functions 'goto-address-context-menu -10 t))
+    (add-hook 'context-menu-functions 'goto-address-context-menu 10 t))
    (t
     (jit-lock-unregister #'goto-address-fontify-region)
     (save-restriction

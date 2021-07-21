@@ -279,13 +279,18 @@ not it is actually displayed."
 
 ;; Context menus.
 
-(defcustom context-menu-functions '(context-menu-undo context-menu-region)
+(defcustom context-menu-functions '(context-menu-undo
+                                    context-menu-region
+                                    context-menu-local
+                                    context-menu-minor)
   "List of functions that produce the contents of the context menu."
   :type 'hook
+  :options '(context-menu-undo
+             context-menu-region
+             context-menu-global
+             context-menu-local
+             context-menu-minor)
   :version "28.1")
-
-(defvar context-menu-overriding-function nil
-  "Function that can override the list produced by `context-menu-functions'.")
 
 (defcustom context-menu-filter-function nil
   "Function that can filter the list produced by `context-menu-functions'."
@@ -293,20 +298,58 @@ not it is actually displayed."
   :version "28.1")
 
 (defun context-menu-map ()
+  "Return composite menu map."
   (let ((menu (make-sparse-keymap "Context Menu")))
-    (if (functionp context-menu-overriding-function)
-        (setq menu (funcall context-menu-overriding-function menu))
-      (run-hook-wrapped 'context-menu-functions
-                        (lambda (fun)
-                          (setq menu (funcall fun menu))
-                          nil)))
-    (setq menu (cons (car menu) (nreverse (cdr menu))))
+    (run-hook-wrapped 'context-menu-functions
+                      (lambda (fun)
+                        (setq menu (funcall fun menu))
+                        nil))
     (when (functionp context-menu-filter-function)
       (setq menu (funcall context-menu-filter-function menu)))
     menu))
 
+(defun context-menu-global (menu)
+  "Global submenus."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-global-1] menu-bar-separator)
+  (dolist (item (lookup-key global-map [menu-bar]))
+    (when (consp item)
+      (define-key-after menu (vector (car item))
+        (if (consp (cdr item))
+            (copy-sequence (cdr item))
+          (cdr item)))))
+  (define-key-after menu [separator-global-2] menu-bar-separator)
+  menu)
+
+(defun context-menu-local (menu)
+  "Major mode submenus."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-local-1] menu-bar-separator)
+  (dolist (item (local-key-binding [menu-bar]))
+    (when (consp item)
+      (define-key-after menu (vector (car item))
+        (if (consp (cdr item))
+            (copy-sequence (cdr item))
+          (cdr item)))))
+  (define-key-after menu [separator-local-2] menu-bar-separator)
+  menu)
+
+(defun context-menu-minor (menu)
+  "Minor mode submenus."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-minor-1] menu-bar-separator)
+  (dolist (item (minor-mode-key-binding [menu-bar]))
+    (when (and (consp item) (symbol-value (car item)))
+      (define-key-after menu (vector (cadr item))
+        (if (consp (cddr item))
+            (copy-sequence (cddr item))
+          (cddr item)))))
+  (define-key-after menu [separator-minor-2] menu-bar-separator)
+  menu)
+
 (defun context-menu-undo (menu)
-  (bindings--define-key menu [undo]
+  (define-key-after menu [separator-undo-1] menu-bar-separator)
+  (define-key-after menu [undo]
     '(menu-item "Undo" undo
                 :visible (and (not buffer-read-only)
                               (not (eq t buffer-undo-list))
@@ -314,20 +357,22 @@ not it is actually displayed."
                                   (listp pending-undo-list)
                                 (consp buffer-undo-list)))
                 :help "Undo last edits"))
-  (bindings--define-key menu [undo-redo]
+  (define-key-after menu [undo-redo]
     '(menu-item "Redo" undo-redo
                 :visible (and (not buffer-read-only)
                               (undo--last-change-was-undo-p buffer-undo-list))
                 :help "Redo last undone edits"))
+  (define-key-after menu [separator-undo-2] menu-bar-separator)
   menu)
 
 (defun context-menu-region (menu)
-  (bindings--define-key menu [cut]
+  (define-key-after menu [separator-region-1] menu-bar-separator)
+  (define-key-after menu [cut]
     '(menu-item "Cut" kill-region
                 :visible (and mark-active (not buffer-read-only))
                 :help
                 "Cut (kill) text in region between mark and current position"))
-  (bindings--define-key menu [copy]
+  (define-key-after menu [copy]
     ;; ns-win.el said: Substitute a Copy function that works better
     ;; under X (for GNUstep).
     `(menu-item "Copy" ,(if (featurep 'ns)
@@ -338,7 +383,7 @@ not it is actually displayed."
                 :keys ,(if (featurep 'ns)
                            "\\[ns-copy-including-secondary]"
                          "\\[kill-ring-save]")))
-  (bindings--define-key menu [paste]
+  (define-key-after menu [paste]
     `(menu-item "Paste" mouse-yank-primary
                 :visible (funcall
                           ',(lambda ()
@@ -349,24 +394,29 @@ not it is actually displayed."
                                       kill-ring))
                                    (not buffer-read-only))))
                 :help "Paste (yank) text most recently cut/copied"))
-  (bindings--define-key menu (if (featurep 'ns) [select-paste]
-                               [paste-from-menu])
+  (define-key-after menu (if (featurep 'ns) [select-paste]
+                           [paste-from-menu])
     ;; ns-win.el said: Change text to be more consistent with
     ;; surrounding menu items `paste', etc."
     `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
                 yank-menu
                 :visible (and (cdr yank-menu) (not buffer-read-only))
                 :help "Choose a string from the kill ring and paste it"))
-  (bindings--define-key menu [clear]
+  (define-key-after menu [clear]
     '(menu-item "Clear" delete-active-region
                 :visible (and mark-active
                               (not buffer-read-only))
                 :help
                 "Delete the text in region between mark and current position"))
-  (bindings--define-key menu [mark-whole-buffer]
+  (define-key-after menu [mark-whole-buffer]
     '(menu-item "Select All" mark-whole-buffer
                 :help "Mark the whole buffer for a subsequent cut/copy"))
+  (define-key-after menu [separator-region-2] menu-bar-separator)
   menu)
+
+(defvar context-menu-entry
+  `(menu-item ,(purecopy "Context Menu") ignore
+              :filter (lambda (_) (context-menu-map))))
 
 (defvar context-menu--old-down-mouse-3 nil)
 (defvar context-menu--old-mouse-3 nil)
@@ -382,9 +432,7 @@ activates the menu whose contents depends on its surrounding context."
     (setq context-menu--old-mouse-3 (global-key-binding [mouse-3]))
     (global-unset-key [mouse-3])
     (setq context-menu--old-down-mouse-3 (global-key-binding [down-mouse-3]))
-    (global-set-key [down-mouse-3]
-                    '(menu-item "Context Menu" ignore
-                                :filter (lambda (_) (context-menu-map)))))
+    (global-set-key [down-mouse-3] context-menu-entry))
    (t
     (if (not context-menu--old-down-mouse-3)
         (global-unset-key [down-mouse-3])
