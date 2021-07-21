@@ -4147,14 +4147,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
    ["Exit" quit-window :help "Stop reading Info"]))
 
 (defun Info-context-menu (menu)
-  (when (mouse-posn-property (event-start last-input-event) 'mouse-face)
-    (define-key menu [Info-separator-link-1] menu-bar-separator)
-    (define-key menu [Info-mouse-follow-nearest-node]
-      '(menu-item "Follow Link" Info-mouse-follow-nearest-node
-                  :help "Follow a link where you click"))
-    (define-key menu [Info-separator-link-2] menu-bar-separator))
-
-  (define-key-after menu [Info-separator-1] menu-bar-separator)
+  (define-key menu [Info-separator-2] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Info")))
     (easy-menu-define nil easy-menu nil
       '("Info"
@@ -4162,10 +4155,15 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
          :help "Go back in history to the last node you were at"]
         ["Forward in History" Info-history-forward :visible Info-history-forward
          :help "Go forward in history"]))
-    (dolist (item (lookup-key easy-menu [menu-bar info]))
+    (dolist (item (reverse (lookup-key easy-menu [menu-bar info])))
       (when (consp item)
-        (define-key-after menu (vector (car item)) (cdr item)))))
-  (define-key-after menu [Info-separator-2] menu-bar-separator)
+        (define-key menu (vector (car item)) (cdr item)))))
+
+  (when (mouse-posn-property (event-start last-input-event) 'mouse-face)
+    (define-key menu [Info-mouse-follow-nearest-node]
+      '(menu-item "Follow Link" Info-mouse-follow-nearest-node
+                  :help "Follow a link where you click")))
+  (define-key menu [Info-separator-1] menu-bar-separator)
 
   menu)
 

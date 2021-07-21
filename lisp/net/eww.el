@@ -1021,6 +1021,36 @@ the like."
         ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
     map))
 
+(defun eww-context-menu (menu)
+  (define-key menu [eww-separator-2] menu-bar-separator)
+  (let ((easy-menu (make-sparse-keymap "Eww")))
+    (easy-menu-define nil easy-menu nil
+      '("Eww"
+        ["Back to previous page" eww-back-url
+	 :visible (not (zerop (length eww-history)))]
+	["Forward to next page" eww-forward-url
+	 :visible (not (zerop eww-history-position))]
+	["Reload" eww-reload t]))
+    (dolist (item (reverse (lookup-key easy-menu [menu-bar eww])))
+      (when (consp item)
+        (define-key menu (vector (car item)) (cdr item)))))
+
+  (when (or (mouse-posn-property (event-start last-input-event) 'shr-url)
+            (mouse-posn-property (event-start last-input-event) 'image-url))
+    (define-key menu [shr-mouse-browse-url-new-window]
+      `(menu-item "Follow URL in new window" ,(if browse-url-new-window-flag
+                                                  'shr-mouse-browse-url
+                                                'shr-mouse-browse-url-new-window)
+                  :help "Browse the URL under the mouse cursor in a new window"))
+    (define-key menu [shr-mouse-browse-url]
+      `(menu-item "Follow URL" ,(if browse-url-new-window-flag
+                                    'shr-mouse-browse-url-new-window
+                                  'shr-mouse-browse-url)
+                  :help "Browse the URL under the mouse cursor")))
+  (define-key menu [eww-separator-1] menu-bar-separator)
+
+  menu)
+
 (defvar eww-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (dolist (tool-bar-item
@@ -1044,6 +1074,7 @@ the like."
   (setq-local eww-data (list :title ""))
   (setq-local browse-url-browser-function #'eww-browse-url)
   (add-hook 'after-change-functions #'eww-process-text-input nil t)
+  (add-hook 'context-menu-functions 'eww-context-menu 5 t)
   (setq-local eww-history nil)
   (setq-local eww-history-position 0)
   (when (boundp 'tool-bar-map)

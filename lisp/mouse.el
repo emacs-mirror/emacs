@@ -283,7 +283,9 @@ not it is actually displayed."
                                     context-menu-region
                                     context-menu-local
                                     context-menu-minor)
-  "List of functions that produce the contents of the context menu."
+  "List of functions that produce the contents of the context menu.
+Each function receives the menu as its argument and should return
+the same menu with changes such as added new menu items."
   :type 'hook
   :options '(context-menu-undo
              context-menu-region
