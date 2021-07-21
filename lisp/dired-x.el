@@ -975,17 +975,20 @@ See `dired-guess-shell-alist-user'."
   (let* ((case-fold-search dired-guess-shell-case-fold-search)
          (programs
           (delete-dups
-           (seq-reduce
-            #'append
-            (mapcar #'cdr
-                    (seq-filter (lambda (elem)
-                                  (seq-every-p
-                                   (lambda (file)
-                                     (string-match-p (car elem) file))
-                                   files))
-                                (append dired-guess-shell-alist-user
-                                        dired-guess-shell-alist-default)))
-            nil))))
+           (mapcar
+            (lambda (command)
+              (eval command `((file . ,(car files)))))
+            (seq-reduce
+             #'append
+             (mapcar #'cdr
+                     (seq-filter (lambda (elem)
+                                   (seq-every-p
+                                    (lambda (file)
+                                      (string-match-p (car elem) file))
+                                    files))
+                                 (append dired-guess-shell-alist-user
+                                         dired-guess-shell-alist-default)))
+             nil)))))
     (if (length= programs 1)
         (car programs)
       programs)))
