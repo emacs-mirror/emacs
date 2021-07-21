@@ -631,6 +631,12 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; The whitespace group is for whitespace.el.
 	     (show-trailing-whitespace editing-basics boolean nil
 				       :safe booleanp)
+             (mode-line-compact
+              mode-line
+              (choice (const :tag "Never (nil)" :value nil)
+                      (const :tag "Only if wider than window (long)" :value long)
+                      (const :tag "Always (t)" :value t))
+              "28.1")
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
 	     (scroll-margin windows integer)
