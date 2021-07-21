@@ -2033,9 +2033,9 @@ signal_quit_p (Lisp_Object signal)
   Lisp_Object list;
 
   return EQ (signal, Qquit)
-    || (Fsymbolp (signal)
+    || (!NILP (Fsymbolp (signal))
 	&& CONSP (list = Fget (signal, Qerror_conditions))
-	&& Fmemq (Qquit, list));
+	&& !NILP (Fmemq (Qquit, list)));
 }
 
 /* Call the debugger if calling it is currently enabled for CONDITIONS.
