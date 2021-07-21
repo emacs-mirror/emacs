@@ -176,10 +176,28 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 ;;; Creation, copying.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(make-obsolete-variable 'face-new-frame-defaults
+ "use `face--new-frame-defaults' or `face-alist' instead." "28.1")
+
+(defun frame-face-alist (&optional frame)
+  "Return an alist of frame-local faces defined on FRAME.
+This alist is a copy of the contents of `frame--face-hash-table'.
+For internal use only."
+  (declare (obsolete frame--face-hash-table "28.1"))
+  (let (faces)
+    (maphash (lambda (face spec)
+               (let ((face-id  (car (gethash face face--new-frame-defaults))))
+                 (push `(,face-id ,face . ,spec) faces)))
+             (frame--face-hash-table frame))
+    (mapcar #'cdr (sort faces (lambda (f1 f2) (< (car f1) (car f2)))))))
 
 (defun face-list ()
   "Return a list of all defined faces."
-  (mapcar #'car face-new-frame-defaults))
+  (let (faces)
+    (maphash (lambda (face spec)
+               (push `(,(car spec) . ,face) faces))
+             face--new-frame-defaults)
+    (mapcar #'cdr (sort faces (lambda (f1 f2) (< (car f1) (car f2)))))))
 
 (defun make-face (face)
   "Define a new face with name FACE, a symbol.
@@ -2115,6 +2133,8 @@ the X resource \"reverseVideo\" is present, handle that."
     (unwind-protect
 	(progn
 	  (x-setup-function-keys frame)
+	  (dolist (face (nreverse (face-list)))
+	    (face-spec-recalc face frame))
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame t)
 	  (face-set-after-frame-default frame parameters)
@@ -2145,7 +2165,7 @@ the X resource \"reverseVideo\" is present, handle that."
 (defun face-set-after-frame-default (frame &optional parameters)
   "Initialize the frame-local faces of FRAME.
 Calculate the face definitions using the face specs, custom theme
-settings, X resources, and `face-new-frame-defaults'.
+settings, X resources, and `face--new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS."
   ;; The `reverse' is so that `default' goes first.
@@ -2154,7 +2174,7 @@ frame parameters in PARAMETERS."
 	(progn
 	  ;; Initialize faces from face spec and custom theme.
 	  (face-spec-recalc face frame)
-	  ;; Apply attributes specified by face-new-frame-defaults
+	  ;; Apply attributes specified by face--new-frame-defaults
 	  (internal-merge-in-global-face face frame))
       ;; Don't let invalid specs prevent frame creation.
       (error nil)))

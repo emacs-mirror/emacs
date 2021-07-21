@@ -926,7 +926,7 @@ See `custom-known-themes' for a list of known themes."
 	  ;; the value to a fake theme, `changed'.  If the theme is
 	  ;; later disabled, we use this to bring back the old value.
 	  ;;
-	  ;; For faces, we just use `face-new-frame-defaults' to
+	  ;; For faces, we just use `face--new-frame-defaults' to
 	  ;; recompute when the theme is disabled.
 	  (when (and (eq prop 'theme-value)
 		     (boundp symbol))
