@@ -241,7 +241,8 @@ This method is obsolete."
 	))
 
     `(progn
-       ,@(mapcar (lambda (w) (macroexp-warn-and-return w `(progn ',w) 'compile-only))
+       ,@(mapcar (lambda (w)
+                   (macroexp-warn-and-return w `(progn ',w) nil 'compile-only))
                  warnings)
        ;; This test must be created right away so we can have self-
        ;; referencing classes.  ei, a class whose slot can contain only
@@ -742,7 +743,7 @@ Called from the constructor routine."
 
 (cl-defmethod initialize-instance ((this eieio-default-superclass)
 				   &optional args)
-  "Construct the new object THIS based on SLOTS.
+  "Construct the new object THIS based on ARGS.
 ARGS is a property list where odd numbered elements are tags, and
 even numbered elements are the values to store in the tagged slot.
 If you overload the `initialize-instance', there you will need to

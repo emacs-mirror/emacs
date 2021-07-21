@@ -135,15 +135,22 @@ Other uses risk returning non-nil value that point to the wrong file."
 
 (defvar macroexp--warned (make-hash-table :test #'equal :weakness 'key))
 
-(defun macroexp--warn-wrap (msg form)
-  (let ((when-compiled (lambda () (byte-compile-warn "%s" msg))))
+(defun macroexp--warn-wrap (msg form category)
+  (let ((when-compiled (lambda ()
+                         (when (byte-compile-warning-enabled-p category)
+                           (byte-compile-warn "%s" msg)))))
     `(progn
        (macroexp--funcall-if-compiled ',when-compiled)
        ,form)))
 
 (define-obsolete-function-alias 'macroexp--warn-and-return
   #'macroexp-warn-and-return "28.1")
-(defun macroexp-warn-and-return (msg form &optional compile-only)
+(defun macroexp-warn-and-return (msg form &optional category compile-only)
+  "Return code equivalent to FORM by labeled with warning MSG.
+CATEGORY is the category of the warning, like the categories that
+can appear in `byte-compile-warnings'.
+COMPILE-ONLY if non-nil indicates that no warning should be emitted if
+the code is executed without being compiled first."
   (cond
    ((null msg) form)
    ((macroexp-compiling-p)
@@ -153,7 +160,7 @@ Other uses risk returning non-nil value that point to the wrong file."
         ;; macroexpand-all gets right back to macroexpanding `form'.
         form
       (puthash form form macroexp--warned)
-      (macroexp--warn-wrap msg form)))
+      (macroexp--warn-wrap msg form category)))
    (t
     (unless compile-only
       (message "%sWarning: %s"
@@ -205,9 +212,7 @@ Other uses risk returning non-nil value that point to the wrong file."
     (if (and (not (eq form new-form))   ;It was a macro call.
              (car-safe form)
              (symbolp (car form))
-             (get (car form) 'byte-obsolete-info)
-             (or (not (fboundp 'byte-compile-warning-enabled-p))
-                 (byte-compile-warning-enabled-p 'obsolete (car form))))
+             (get (car form) 'byte-obsolete-info))
         (let* ((fun (car form))
                (obsolete (get fun 'byte-obsolete-info)))
           (macroexp-warn-and-return
@@ -215,7 +220,7 @@ Other uses risk returning non-nil value that point to the wrong file."
             fun obsolete
             (if (symbolp (symbol-function fun))
                 "alias" "macro"))
-           new-form))
+           new-form 'obsolete))
       new-form)))
 
 (defun macroexp--unfold-lambda (form &optional name)
@@ -325,10 +330,8 @@ Assumes the caller has bound `macroexpand-all-environment'."
          (if (null body)
              (macroexp-unprogn
               (macroexp-warn-and-return
-               (and (or (not (fboundp 'byte-compile-warning-enabled-p))
-                        (byte-compile-warning-enabled-p t))
-                    (format "Empty %s body" fun))
-               nil t))
+               (format "Empty %s body" fun)
+               nil nil 'compile-only))
            (macroexp--all-forms body))
          (cdr form))
         form))
