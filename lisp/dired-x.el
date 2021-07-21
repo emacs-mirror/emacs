@@ -979,9 +979,10 @@ See `dired-guess-shell-alist-user'."
             #'append
             (mapcar #'cdr
                     (seq-filter (lambda (elem)
-                                  (seq-some (lambda (file)
-                                              (string-match-p (car elem) file))
-                                            files))
+                                  (seq-every-p
+                                   (lambda (file)
+                                     (string-match-p (car elem) file))
+                                   files))
                                 (append dired-guess-shell-alist-user
                                         dired-guess-shell-alist-default)))
             nil))))

@@ -58,8 +58,9 @@
            ("\\.jpe?g\\'" "xloadimage"))))
     (should (equal (dired-guess-default '("/tmp/foo.png")) "display"))
     (should (equal (dired-guess-default '("/tmp/foo.gif"))
-                   '("display" "xloadimage" "feh")))))
-
+                   '("display" "xloadimage" "feh")))
+    (should (equal (dired-guess-default '("/tmp/foo.png" "/tmp/foo.txt"))
+                   nil))))
 
 (provide 'dired-x-tests)
 ;; dired-x-tests.el ends here
