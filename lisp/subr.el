@@ -6311,4 +6311,12 @@ of fill.el (for example `fill-region')."
 This is intended for internal use only."
   (internal--fill-string-single-line (apply #'format string objects)))
 
+(defun json-available-p ()
+  "Return non-nil if Emacs is has libjansson support."
+  (and (fboundp 'json-serialize)
+       (condition-case nil
+           (json-serialize t)
+         (:success t)
+         (json-unavailable nil))))
+
 ;;; subr.el ends here

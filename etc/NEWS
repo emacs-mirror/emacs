@@ -2024,6 +2024,27 @@ used instead.  Uses of 'json-encode-list' should be changed to call
 one of 'json-encode', 'json-encode-alist', 'json-encode-plist', or
 'json-encode-array' instead.
 
+** json.c
+
++++
+*** New function 'json-available-p'.
+This predicate returns non-nil if Emacs is built with libjansson
+support, and it is available on the current system.
+
++++
+*** Native JSON functions now signal an error if libjansson is unavailable.
+This affects 'json-serialize', 'json-insert', 'json-parse-srtring',
+and 'json-parse-buffer'.  This can happen if Emacs was compiled with
+libjansson, but the DLL cannot be found and/or loaded by Emacs at run
+time.  Previously, Emacs would display a message and return nil in
+these cases.
+
+*** The JSON functions 'json-serialize', 'json-insert',
+'json-parse-string', and 'json-parse-buffer' now implement some of the
+semantics of RFC 8259 instead of the earlier RFC 4627.  In particular,
+these functions now accept top-level JSON values that are neither
+arrays nor objects.
+
 ** xml.el
 
 *** XML serialization functions now reject invalid characters.
@@ -3473,12 +3494,6 @@ locales.  They are also available as aliases 'ebcdic-cp-*' (e.g.,
 'cp278' for 'ibm278').  There are also new charsets 'ibm2xx' to
 support these coding-systems.
 
-** The JSON functions 'json-serialize', 'json-insert',
-'json-parse-string', and 'json-parse-buffer' now implement some of the
-semantics of RFC 8259 instead of the earlier RFC 4627.  In particular,
-these functions now accept top-level JSON values that are neither
-arrays nor objects.
-
 ---
 ** 'while-no-input-ignore-events' accepts more special events.
 The special events 'dbus-event' and 'file-notify' are now ignored in
@@ -3537,14 +3552,6 @@ This feature is experimental, and needs to be turned on to be used.
 To turn this on, set the variable 'w32-use-native-image-API' to a
 non-nil value.  Please report any bugs you find while using the native
 image API via 'M-x report-emacs-bug'.
-
----
-** Native JSON functions now signal an error if libjansson is unavailable.
-This affects 'json-serialize', 'json-insert', 'json-parse-srtring',
-and 'json-parse-buffer'.  This can happen if Emacs was compiled with
-libjansson, but the DLL cannot be found and/or loaded by Emacs at run
-time.  Previously, Emacs would display a message and return nil in
-these cases.
 
 ---
 ** The user option 'make-pointer-invisible' is now honored on macOS.
