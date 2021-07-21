@@ -3955,7 +3955,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
       if (c == '=')
 	continue;
 
-      if (v1 < 0)
+      if (v1 == 0)
 	return -1;
       value += v1 - 1;
 
