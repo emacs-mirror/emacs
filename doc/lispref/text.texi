@@ -5302,7 +5302,7 @@ represents @code{@{@}}, the empty JSON object; not @code{null},
 values.
 
 @defun json-available-p
-This predicate returns non-@code{nil} is Emacs has been built with
+This predicate returns non-@code{nil} if Emacs has been built with
 @acronym{JSON} support, and the library is available on the current
 system.
 @end defun

@@ -6312,7 +6312,7 @@ This is intended for internal use only."
   (internal--fill-string-single-line (apply #'format string objects)))
 
 (defun json-available-p ()
-  "Return non-nil if Emacs is has libjansson support."
+  "Return non-nil if Emacs has libjansson support."
   (and (fboundp 'json-serialize)
        (condition-case nil
            (json-serialize t)
