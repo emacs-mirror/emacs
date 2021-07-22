@@ -706,8 +706,9 @@ if different)."
                                  "\\)\\'")))
     (dolist (buffer (buffer-list))
       (let ((bufname (buffer-name buffer)))
-	(unless (or (eq (aref bufname 0) ?\s) ;; Don't kill internal buffers
-		    (string-match-p preserve-regexp bufname))
+       (unless (or (null bufname)
+                   (eq (aref bufname 0) ?\s) ;; Don't kill internal buffers
+		   (string-match-p preserve-regexp bufname))
 	  (kill-buffer buffer)))))
   (delete-other-windows)
   (when (and desktop-restore-frames
