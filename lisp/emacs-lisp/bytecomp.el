@@ -1477,6 +1477,30 @@ when printing the error message."
           (push (list f byte-compile-last-position nargs)
                 byte-compile-unresolved-functions)))))
 
+(defun byte-compile-emit-callargs-warn (name actual-args min-args max-args)
+  (byte-compile-set-symbol-position name)
+  (byte-compile-warn
+   "%s called with %d argument%s, but %s %s"
+   name actual-args
+   (if (= 1 actual-args) "" "s")
+   (if (< actual-args min-args)
+       "requires"
+     "accepts only")
+   (byte-compile-arglist-signature-string (cons min-args max-args))))
+
+(defun byte-compile--check-arity-bytecode (form bytecode)
+  "Check that the call in FORM matches that allowed by BYTECODE."
+  (when (and (byte-code-function-p bytecode)
+             (byte-compile-warning-enabled-p 'callargs))
+    (let* ((actual-args (length (cdr form)))
+           (arity (func-arity bytecode))
+           (min-args (car arity))
+           (max-args (and (numberp (cdr arity)) (cdr arity))))
+      (when (or (< actual-args min-args)
+                (and max-args (> actual-args max-args)))
+        (byte-compile-emit-callargs-warn
+         (car form) actual-args min-args max-args)))))
+
 ;; Warn if the form is calling a function with the wrong number of arguments.
 (defun byte-compile-callargs-warn (form)
   (let* ((def (or (byte-compile-fdefinition (car form) nil)
@@ -1491,16 +1515,9 @@ when printing the error message."
 	(setcdr sig nil))
     (if sig
 	(when (or (< ncall (car sig))
-		(and (cdr sig) (> ncall (cdr sig))))
-	  (byte-compile-set-symbol-position (car form))
-	  (byte-compile-warn
-	   "%s called with %d argument%s, but %s %s"
-	   (car form) ncall
-	   (if (= 1 ncall) "" "s")
-	   (if (< ncall (car sig))
-	       "requires"
-	     "accepts only")
-	   (byte-compile-arglist-signature-string sig))))
+		  (and (cdr sig) (> ncall (cdr sig))))
+          (byte-compile-emit-callargs-warn
+           (car form) ncall (car sig) (cdr sig))))
     (byte-compile-format-warn form)
     (byte-compile-function-warn (car form) (length (cdr form)) def)))
 

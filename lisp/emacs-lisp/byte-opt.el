@@ -274,6 +274,7 @@ Earlier variables shadow later ones with the same name.")
       ((pred byte-code-function-p)
        ;; (message "Inlining byte-code for %S!" name)
        ;; The byte-code will be really inlined in byte-compile-unfold-bcf.
+       (byte-compile--check-arity-bytecode form fn)
        `(,fn ,@(cdr form)))
       ((or `(lambda . ,_) `(closure . ,_))
        ;; While byte-compile-unfold-bcf can inline dynbind byte-code into
@@ -300,7 +301,9 @@ Earlier variables shadow later ones with the same name.")
                ;; surrounded the `defsubst'.
                (byte-compile-warnings nil))
            (byte-compile name))
-         `(,(symbol-function name) ,@(cdr form))))
+         (let ((bc (symbol-function name)))
+           (byte-compile--check-arity-bytecode form bc)
+           `(,bc ,@(cdr form)))))
 
       (_ ;; Give up on inlining.
        form))))
