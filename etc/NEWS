@@ -886,6 +886,12 @@ keys, add the following to your init file:
 
 ** Change Logs and VC
 
+*** vc-git now sets the GIT_LITERAL_PATHSPECS environment variable.
+This ensures that Git operations on files containing wildcard
+characters work as they're supposed to.  However, this also affects
+scripts running from Git hooks, and these have to "unset
+GIT_LITERAL_PATHSPECS" to work as before.
+
 *** More VC commands can be used from non-file buffers.
 The relevant commands are those that don't change the VC state.
 The non-file buffers which can use VC commands are those that have
