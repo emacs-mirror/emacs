@@ -3221,7 +3221,7 @@ call is via directory-locals and extra checks should be done."
                 (if case-insensitive-p
                     ;; Filesystem is case-insensitive.
                     (let ((case-fold-search t))
-                      (assoc-default alist 'string-match))
+                      (assoc-default name alist 'string-match))
                   ;; Filesystem is case-sensitive.
                   (or
                    ;; First match case-sensitively.
