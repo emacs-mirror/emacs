@@ -68,3 +68,4 @@ OMIT_GNULIB_MODULE_fchmodat = true
 OMIT_GNULIB_MODULE_lchmod = true
 OMIT_GNULIB_MODULE_futimens = true
 OMIT_GNULIB_MODULE_utimensat = true
+OMIT_GNULIB_MODULE_file-has-acl = true
