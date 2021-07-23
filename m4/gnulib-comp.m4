@@ -89,6 +89,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module fcntl:
   # Code from module fcntl-h:
   # Code from module fdopendir:
+  # Code from module file-has-acl:
   # Code from module filemode:
   # Code from module filename:
   # Code from module filevercmp:
@@ -287,6 +288,7 @@ AC_DEFUN([gl_INIT],
   fi
   gl_DIRENT_MODULE_INDICATOR([fdopendir])
   gl_MODULE_INDICATOR([fdopendir])
+  gl_FILE_HAS_ACL
   gl_FILEMODE
   AC_C_FLEXIBLE_ARRAY_MEMBER
   gl_FUNC_FPENDING
@@ -1045,6 +1047,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fcntl.c
   lib/fcntl.in.h
   lib/fdopendir.c
+  lib/file-has-acl.c
   lib/filemode.c
   lib/filemode.h
   lib/filename.h
