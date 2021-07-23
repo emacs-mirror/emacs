@@ -215,8 +215,8 @@
   calendar-french-special-days-array)
 
 (defun calendar-french-trim-feast (feast)
-  "Remove the article from the feast, e.g. \"du Raisin\" -> \"Raisin\"
-or \"de la Vertu\" -> \"Vertu\""
+  "Remove the article from the FEAST.
+E.g. \"du Raisin\" -> \"Raisin\" or \"de la Vertu\" -> \"Vertu\"."
   (cond
    ((equal (substring feast 0 3) "du ")    (substring feast 3))
    ((equal (substring feast 0 6) "de la ") (substring feast 6))
