@@ -3327,6 +3327,27 @@ file mode specification into symbolic form.
 ** The variable 'force-new-style-backquotes' has been removed.
 This removes the final remaining trace of old-style backquotes.
 
+** Mode Lines
+
++++
+*** New user options to control the line/column numbers in the mode line.
+'mode-line-position-line-format' is the line number format (when
+'line-number-mode' is on), 'mode-line-position-column-format' is
+the column number format (when 'column-number-mode' is on), and
+'mode-line-position-column-line-format' is the combined format (when
+both modes are on).
+
++++
+*** New user option 'mode-line-compact'.
+If non-nil, repeating spaces are compressed into a single space.  If
+'long', this is only done when the mode line is longer than the
+current window width (in characters).
+
++++
+*** 'global-mode-string' constructs should end with a space.
+This was previously not formalized, which led to combinations of modes
+displaying data "smushed together" on the mode line.
+
 ** Changes in handling dynamic modules
 
 *** The module header 'emacs-module.h' now contains type aliases
