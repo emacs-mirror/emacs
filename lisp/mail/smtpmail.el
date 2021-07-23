@@ -135,8 +135,9 @@ Used for the value of `sendmail-coding-system' when
 
 (defcustom smtpmail-queue-mail nil
   "Non-nil means mail is queued; otherwise it is sent immediately.
-If queued, it is stored in the directory `smtpmail-queue-dir'
-and sent with `smtpmail-send-queued-mail'."
+If queued, it is stored in the directory `smtpmail-queue-dir' and
+sent with `smtpmail-send-queued-mail'.  Also see
+`smtpmail-store-queue-variables'."
   :type 'boolean)
 
 (defcustom smtpmail-queue-dir "~/Mail/queued-mail/"
@@ -173,10 +174,21 @@ mean \"try again\"."
   :type 'integer
   :version "27.1")
 
+(defcustom smtpmail-store-queue-variables nil
+  "If non-nil, store SMTP variables when queueing mail.
+These will then be used when sending the queue."
+  :type 'boolean
+  :version "28.1")
+
 ;;; Variables
 
 (defvar smtpmail-address-buffer)
-(defvar smtpmail-recipient-address-list)
+(defvar smtpmail-recipient-address-list nil)
+(defvar smtpmail--stored-queue-variables
+  '(smtpmail-smtp-server
+    smtpmail-stream-type
+    smtpmail-smtp-service
+    smtpmail-smtp-user))
 
 (defvar smtpmail-queue-counter 0)
 
@@ -387,11 +399,17 @@ for `smtpmail-try-auth-method'.")
 		 nil t)
 		(insert-buffer-substring tembuf)
 		(write-file file-data)
-                (write-region
-                 (concat "(setq smtpmail-recipient-address-list '"
-			 (prin1-to-string smtpmail-recipient-address-list)
-			 ")\n")
-                 nil file-elisp nil 'silent)
+                (let ((coding-system-for-write 'utf-8))
+                  (with-temp-buffer
+                    (insert "(setq ")
+                    (dolist (var (cons 'smtpmail-recipient-address-list
+                                       ;; Perhaps store the server etc.
+                                       (and smtpmail-store-queue-variables
+                                            smtpmail--stored-queue-variables)))
+                      (insert (format "     %s %S\n" var (symbol-value var))))
+                    (insert ")\n")
+                    (write-region (point-min) (point-max) file-elisp
+                                  nil 'silent)))
 		(write-region (concat file-data "\n") nil
                               (expand-file-name smtpmail-queue-index-file
                                                 smtpmail-queue-dir)
@@ -411,26 +429,30 @@ for `smtpmail-try-auth-method'.")
     (let (file-data file-elisp
           (qfile (expand-file-name smtpmail-queue-index-file
                                    smtpmail-queue-dir))
+          (stored (cons 'smtpmail-recipient-address-list
+                        smtpmail--stored-queue-variables))
+          smtpmail-recipient-address-list
+          (smtpmail-smtp-server smtpmail-smtp-server)
+          (smtpmail-stream-type smtpmail-stream-type)
+          (smtpmail-smtp-service smtpmail-smtp-service)
+          (smtpmail-smtp-user smtpmail-smtp-user)
 	  result)
       (insert-file-contents qfile)
       (goto-char (point-min))
       (while (not (eobp))
 	(setq file-data (buffer-substring (point) (line-end-position)))
 	(setq file-elisp (concat file-data ".el"))
-        ;; FIXME: Avoid `load' which can execute arbitrary code and is hence
-        ;; a source of security holes.  Better read the file and extract the
-        ;; data "by hand".
-	;;(load file-elisp)
-        (with-temp-buffer
-          (insert-file-contents file-elisp)
-          (goto-char (point-min))
-          (pcase (read (current-buffer))
-            (`(setq smtpmail-recipient-address-list ',v)
-             (skip-chars-forward " \n\t")
-             (unless (eobp) (message "Ignoring trailing text in %S"
-                                     file-elisp))
-             (setq smtpmail-recipient-address-list v))
-            (sexp (error "Unexpected code in %S: %S" file-elisp sexp))))
+        (let ((coding-system-for-read 'utf-8))
+          (with-temp-buffer
+            (insert-file-contents file-elisp)
+            (let ((form (read (current-buffer))))
+              (when (or (not (consp form))
+                        (not (eq (car form) 'setq))
+                        (not (consp (cdr form))))
+                (error "Unexpected code in %S: %S" file-elisp form))
+              (cl-loop for (var val) on (cdr form) by #'cddr
+                       when (memq var stored)
+                       do (set var val)))))
 	;; Insert the message literally: it is already encoded as per
 	;; the MIME headers, and code conversions might guess the
 	;; encoding wrongly.
@@ -445,13 +467,13 @@ for `smtpmail-try-auth-method'.")
                             (message-narrow-to-headers)
                             (mail-envelope-from)))
                      user-mail-address)))
-            (if (not (null smtpmail-recipient-address-list))
-                (when (setq result (smtpmail-via-smtp
-				    smtpmail-recipient-address-list
-				    (current-buffer)))
-		  (error "Sending failed: %s"
-                         (smtpmail--sanitize-error-message result)))
-              (error "Sending failed; no recipients"))))
+            (if (not smtpmail-recipient-address-list)
+                (error "Sending failed; no recipients")
+              (when (setq result (smtpmail-via-smtp
+				  smtpmail-recipient-address-list
+				  (current-buffer)))
+		(error "Sending failed: %s"
+                       (smtpmail--sanitize-error-message result))))))
 	(delete-file file-data)
 	(delete-file file-elisp)
 	(delete-region (point-at-bol) (point-at-bol 2)))
