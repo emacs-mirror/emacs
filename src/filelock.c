@@ -673,7 +673,7 @@ lock_file (Lisp_Object fn)
   Lisp_Object subject_buf = get_truename_buffer (fn);
   if (!NILP (subject_buf)
       && NILP (Fverify_visited_file_modtime (subject_buf))
-      && !NILP (Ffile_exists_p (lock_filename))
+      && !NILP (Ffile_exists_p (fn))
       && current_lock_owner (NULL, lfname) != -2)
     call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
