@@ -2287,11 +2287,14 @@ enabled separately in each buffer.
 
 @defvar global-mode-string
 This variable holds a mode line construct that, by default, appears in
-the mode line just after the @code{which-function-mode} minor mode if set,
-else after @code{mode-line-modes}.  The command @code{display-time} sets
+the mode line just after the @code{which-function-mode} minor mode if
+set, else after @code{mode-line-modes}.  Elements that are added to
+this construct should normally end in a space (to ensure that
+consecutive @code{global-mode-string} elements display properly).  For
+instance, the command @code{display-time} sets
 @code{global-mode-string} to refer to the variable
-@code{display-time-string}, which holds a string containing the time and
-load information.
+@code{display-time-string}, which holds a string containing the time
+and load information.
 
 The @samp{%M} construct substitutes the value of
 @code{global-mode-string}, but that is obsolete, since the variable is

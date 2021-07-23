@@ -205,7 +205,8 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 	  'mouse-face 'mode-line-highlight
 	  'local-map (make-mode-line-mouse-map 'mouse-2
 					       read-mail-command)))
-      ""))
+      "")
+    " ")
   "List of expressions governing display of the time in the mode line.
 For most purposes, you can control the time format using `display-time-format'
 which is a more standard interface.

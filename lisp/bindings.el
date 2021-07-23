@@ -580,7 +580,7 @@ Major modes that edit things other than ordinary files may change this
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 
 (defvar mode-line-misc-info
-  '((global-mode-string ("" global-mode-string " ")))
+  '((global-mode-string ("" global-mode-string)))
   "Mode line construct for miscellaneous information.
 By default, this shows the information specified by `global-mode-string'.")
 (put 'mode-line-misc-info 'risky-local-variable t)
