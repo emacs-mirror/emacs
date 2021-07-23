@@ -300,7 +300,7 @@ specified by `erc-button-alist'."
           (end (match-end (nth 1 entry)))
           (form (nth 2 entry))
           (fun (nth 3 entry))
-          (data (mapcar #'match-string (nthcdr 4 entry))))
+          (data (mapcar #'match-string-no-properties (nthcdr 4 entry))))
       (when (or (eq t form)
                 (eval form t))
         (erc-button-add-button start end fun nil data regexp)))))
