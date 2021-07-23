@@ -119,9 +119,8 @@ page for 'seccomp' system call, for details about Secure Computing
 filters.
 
 ** Setting 'fill-column' to nil is obsolete.
-This undocumented use of 'fill-column' is now obsolete.  If you have
-set this value to nil disable auto filling, instead disable
-'auto-fill-mode' in the relevant mode instead.
+This undocumented use of 'fill-column' is now obsolete.  To disable
+auto filling, turn off 'auto-fill-mode' instead.
 
 For instance, you could add something like the following to your init
 file:
