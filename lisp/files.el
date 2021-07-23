@@ -3200,9 +3200,10 @@ Also applies to `magic-fallback-mode-alist'.")
 This function takes an alist of the same form as
 `auto-mode-alist'.  It then tries to find the appropriate match
 in the alist for the current buffer; setting the mode if
-possible.  Returns non-`nil' if the mode was set, `nil'
-otherwise.  DIR-LOCAL is a boolean which, if true, says that this
-call is via directory-locals and extra checks should be done."
+possible.
+Return non-nil if the mode was set, nil otherwise.
+DIR-LOCAL non-nil means this call is via directory-locals, and
+extra checks should be done."
   (if buffer-file-name
       (let (mode
             (name buffer-file-name)
