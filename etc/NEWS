@@ -1145,8 +1145,9 @@ take the actual screenshot, and defaults to "ImageMagick import".
 
 +++
 *** New user option 'smtpmail-store-queue-variables'.
-If non-nil, SMTP variables will be stored in the queue and then used
-when sending with 'M-x smtpmail-send-queued-mail'.
+If non-nil, SMTP variables will be stored together with the queued
+messages, and will then be used when sending with
+'M-x smtpmail-send-queued-mail'.
 
 +++
 *** Allow direct selection of smtp authentication mechanism.

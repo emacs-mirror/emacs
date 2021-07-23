@@ -342,9 +342,9 @@ internet).
 @vindex smtpmail-store-queue-variables
   Normally the queue will be dispatched with the values of the
 @acronym{SMTP} variables that are in effect when @kbd{M-x
-smtpmail-send-queued-mail} is executed, but if this
+smtpmail-send-queued-mail} is executed, but if
 @code{smtpmail-store-queue-variables} is non-@code{nil}, the values
-for @code{smtpmail-smtp-server} (etc.) will be stored when the mail is
+for @code{smtpmail-smtp-server} (etc.@:) will be stored when the mail is
 queued, and then used when actually sending the mail.  This can be
 useful if you have a complex outgoing mail setup.
 
