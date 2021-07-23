@@ -4782,7 +4782,9 @@ Goes through the list `tramp-inline-compress-commands'."
 	      (with-temp-buffer
 		(tramp-call-process vec "scp" nil t nil "-T")
 		(goto-char (point-min))
-		(unless (search-forward-regexp "unknown option -- T" nil t)
+		(unless
+                    (search-forward-regexp
+                     "\\(illegal\\|unknown\\) option -- T" nil t)
 		  (setq tramp-scp-strict-file-name-checking "-T")))))))
       tramp-scp-strict-file-name-checking)))
 
