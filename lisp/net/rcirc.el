@@ -631,22 +631,6 @@ See `rcirc-connect' for more details on these variables.")
 	(when (string-match server-i server)
           (throw 'pass (car args)))))))
 
-(defun rcirc-get-server-method (server)
-  (catch 'method
-    (dolist (i rcirc-authinfo)
-      (let ((server-i (car i))
-	    (method (cadr i)))
-	(when (string-match server-i server)
-          (throw 'method method))))))
-
-(defun rcirc-get-server-password (server)
-  (catch 'pass
-    (dolist (i rcirc-authinfo)
-      (let ((server-i (car i))
-	    (args (cdddr i)))
-	(when (string-match server-i server)
-          (throw 'pass (car args)))))))
-
 ;;;###autoload
 (defun rcirc-connect (server &optional port nick user-name
                              full-name startup-channels password encryption
