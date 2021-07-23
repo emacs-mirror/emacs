@@ -133,6 +133,8 @@ A nil return value means the function has not determined the fill prefix."
 (defvar fill-indent-according-to-mode nil ;Screws up CC-mode's filling tricks.
   "Whether or not filling should try to use the major mode's indentation.")
 
+(defvar current-fill-column--has-warned nil)
+
 (defun current-fill-column ()
   "Return the fill-column to use for this line.
 The fill-column to use for a buffer is stored in the variable `fill-column',
@@ -158,7 +160,14 @@ number equals or exceeds the local fill-column - right-margin difference."
 			     (< col fill-col)))
 	    (setq here change
 		  here-col col))
-	  (max here-col fill-col)))))
+	  (max here-col fill-col))
+      ;; This warning was added in 28.1.  It should be removed later,
+      ;; and this function changed to never return nil.
+      (unless current-fill-column--has-warned
+        (lwarn '(fill-column) :warning
+               "Setting this variable to nil is obsolete; use `(auto-fill-mode -1)' instead")
+        (setq current-fill-column--has-warned t))
+      most-positive-fixnum)))
 
 (defun canonically-space-region (beg end)
   "Remove extra spaces between words in region.

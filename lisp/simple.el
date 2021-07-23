@@ -8057,7 +8057,7 @@ Returns t if it really did any work."
   (let (fc justify give-up
 	   (fill-prefix fill-prefix))
     (if (or (not (setq justify (current-justification)))
-	    (null (setq fc (current-fill-column)))
+	    (setq fc (current-fill-column))
 	    (and (eq justify 'left)
 		 (<= (current-column) fc))
 	    (and auto-fill-inhibit-regexp
