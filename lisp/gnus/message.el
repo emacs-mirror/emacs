@@ -4922,6 +4922,7 @@ Each line should be no more than 79 characters long."
 (defvar smtpmail-smtp-service)
 (defvar smtpmail-smtp-user)
 (defvar smtpmail-stream-type)
+(defvar smtpmail-store-queue-variables)
 
 (defun message-multi-smtp-send-mail ()
   "Send the current buffer to `message-send-mail-function'.
@@ -4937,7 +4938,8 @@ that instead."
 	(message-send-mail-with-sendmail))
        ((equal (car method) "smtp")
 	(require 'smtpmail)
-	(let* ((smtpmail-smtp-server (nth 1 method))
+	(let* ((smtpmail-store-queue-variables t)
+               (smtpmail-smtp-server (nth 1 method))
 	       (service (nth 2 method))
 	       (port (string-to-number service))
 	       ;; If we're talking to the TLS SMTP port, then force a
