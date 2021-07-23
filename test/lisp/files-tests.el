@@ -1534,5 +1534,10 @@ The door of all subtleties!
   (should-error (file-name-with-extension "Jack" "."))
   (should-error (file-name-with-extension "/is/a/directory/" "css")))
 
+(ert-deftest files-test-dir-locals-auto-mode-alist ()
+  "Test an `auto-mode-alist' entry in `.dir-locals.el'"
+  (find-file (ert-resource-file "whatever.quux"))
+  (should (eq major-mode 'tcl-mode)))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here

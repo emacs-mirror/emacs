@@ -3195,11 +3195,62 @@ If FUNCTION is nil, then it is not called.")
   "Upper limit on `magic-mode-alist' regexp matches.
 Also applies to `magic-fallback-mode-alist'.")
 
+(defun set-auto-mode--apply-alist (alist keep-mode-if-same dir-local)
+  "Helper function for `set-auto-mode'.
+This function takes an alist of the same form as
+`auto-mode-alist'.  It then tries to find the appropriate match
+in the alist for the current buffer; setting the mode if
+possible.  Returns non-`nil' if the mode was set, `nil'
+otherwise.  DIR-LOCAL is a boolean which, if true, says that this
+call is via directory-locals and extra checks should be done."
+  (if buffer-file-name
+      (let (mode
+            (name buffer-file-name)
+            (remote-id (file-remote-p buffer-file-name))
+            (case-insensitive-p (file-name-case-insensitive-p
+                                 buffer-file-name)))
+        ;; Remove backup-suffixes from file name.
+        (setq name (file-name-sans-versions name))
+        ;; Remove remote file name identification.
+        (when (and (stringp remote-id)
+                   (string-match (regexp-quote remote-id) name))
+          (setq name (substring name (match-end 0))))
+        (while name
+          ;; Find first matching alist entry.
+          (setq mode
+                (if case-insensitive-p
+                    ;; Filesystem is case-insensitive.
+                    (let ((case-fold-search t))
+                      (assoc-default alist 'string-match))
+                  ;; Filesystem is case-sensitive.
+                  (or
+                   ;; First match case-sensitively.
+                   (let ((case-fold-search nil))
+                     (assoc-default name alist 'string-match))
+                   ;; Fallback to case-insensitive match.
+                   (and auto-mode-case-fold
+                        (let ((case-fold-search t))
+                          (assoc-default name alist 'string-match))))))
+          (if (and mode
+                   (consp mode)
+                   (cadr mode))
+              (setq mode (car mode)
+                    name (substring name 0 (match-beginning 0)))
+            (setq name nil)))
+        (when (and dir-local mode)
+          (unless (string-suffix-p "-mode" (symbol-name mode))
+            (message "Ignoring invalid mode `%s'" (symbol-name mode))
+            (setq mode nil)))
+        (when mode
+          (set-auto-mode-0 mode keep-mode-if-same)
+          t))))
+
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
 
 To find the right major mode, this function checks for a -*- mode tag
 checks for a `mode:' entry in the Local Variables section of the file,
+checks if there an `auto-mode-alist' entry in `.dir-locals.el',
 checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
 compares the file name against the entries in `auto-mode-alist',
@@ -3256,6 +3307,14 @@ we don't actually set it to the same mode the buffer already has."
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil))))))
+    ;; Check for auto-mode-alist entry in dir-locals.
+    (unless done
+      (with-demoted-errors "Directory-local variables error: %s"
+	;; Note this is a no-op if enable-local-variables is nil.
+        (let* ((mode-alist (cdr (hack-dir-local--get-variables
+                                 (lambda (key) (eq key 'auto-mode-alist))))))
+          (setq done (set-auto-mode--apply-alist mode-alist
+                                                 keep-mode-if-same t)))))
     (and (not done)
 	 (setq mode (hack-local-variables t (not try-locals)))
 	 (not (memq mode modes))	; already tried and failed
@@ -3307,45 +3366,8 @@ we don't actually set it to the same mode the buffer already has."
 	  (set-auto-mode-0 done keep-mode-if-same)))
     ;; Next compare the filename against the entries in auto-mode-alist.
     (unless done
-      (if buffer-file-name
-	  (let ((name buffer-file-name)
-		(remote-id (file-remote-p buffer-file-name))
-		(case-insensitive-p (file-name-case-insensitive-p
-				     buffer-file-name)))
-	    ;; Remove backup-suffixes from file name.
-	    (setq name (file-name-sans-versions name))
-	    ;; Remove remote file name identification.
-	    (when (and (stringp remote-id)
-		       (string-match (regexp-quote remote-id) name))
-	      (setq name (substring name (match-end 0))))
-	    (while name
-	      ;; Find first matching alist entry.
-	      (setq mode
-		    (if case-insensitive-p
-			;; Filesystem is case-insensitive.
-			(let ((case-fold-search t))
-			  (assoc-default name auto-mode-alist
-					 'string-match))
-		      ;; Filesystem is case-sensitive.
-		      (or
-		       ;; First match case-sensitively.
-		       (let ((case-fold-search nil))
-			 (assoc-default name auto-mode-alist
-					'string-match))
-		       ;; Fallback to case-insensitive match.
-		       (and auto-mode-case-fold
-			    (let ((case-fold-search t))
-			      (assoc-default name auto-mode-alist
-					     'string-match))))))
-	      (if (and mode
-		       (consp mode)
-		       (cadr mode))
-		  (setq mode (car mode)
-			name (substring name 0 (match-beginning 0)))
-		(setq name nil))
-	      (when mode
-		(set-auto-mode-0 mode keep-mode-if-same)
-		(setq done t))))))
+      (setq done (set-auto-mode--apply-alist auto-mode-alist
+                                             keep-mode-if-same nil)))
     ;; Next try matching the buffer beginning against magic-fallback-mode-alist.
     (unless done
       (if (setq done (save-excursion
@@ -4166,10 +4188,13 @@ Returns the new list."
 	;; Need a new cons in case we setcdr later.
 	(push (cons variable value) variables)))))
 
-(defun dir-locals-collect-variables (class-variables root variables)
+(defun dir-locals-collect-variables (class-variables root variables
+                                                     &optional predicate)
   "Collect entries from CLASS-VARIABLES into VARIABLES.
 ROOT is the root directory of the project.
-Return the new variables list."
+Return the new variables list.
+If PREDICATE is given, it is used to test a symbol key in the alist
+to see whether it should be considered."
   (let* ((file-name (or (buffer-file-name)
 			;; Handle non-file buffers, too.
 			(expand-file-name default-directory)))
@@ -4188,9 +4213,11 @@ Return the new variables list."
                          (>= (length sub-file-name) (length key))
                          (string-prefix-p key sub-file-name))
                 (setq variables (dir-locals-collect-variables
-                                 (cdr entry) root variables))))
-             ((or (not key)
-                  (derived-mode-p key))
+                                 (cdr entry) root variables predicate))))
+             ((if predicate
+                  (funcall predicate key)
+                (or (not key)
+                    (derived-mode-p key)))
               (let* ((alist (cdr entry))
                      (subdirs (assq 'subdirs alist)))
                 (if (or (not subdirs)
@@ -4487,13 +4514,13 @@ Return the new class name, which is a symbol named DIR."
 
 (defvar hack-dir-local-variables--warned-coding nil)
 
-(defun hack-dir-local-variables ()
+(defun hack-dir-local--get-variables (predicate)
   "Read per-directory local variables for the current buffer.
-Store the directory-local variables in `dir-local-variables-alist'
-and `file-local-variables-alist', without applying them.
-
-This does nothing if either `enable-local-variables' or
-`enable-dir-local-variables' are nil."
+Return a cons of the form (DIR . ALIST), where DIR is the
+directory name (maybe nil) and ALIST is an alist of all variables
+that might apply.  These will be filtered according to the
+buffer's directory, but not according to its mode.
+PREDICATE is passed to `dir-locals-collect-variables'."
   (when (and enable-local-variables
 	     enable-dir-local-variables
 	     (or enable-remote-dir-locals
@@ -4512,21 +4539,33 @@ This does nothing if either `enable-local-variables' or
 	(setq dir-name (nth 0 dir-or-cache))
 	(setq class (nth 1 dir-or-cache))))
       (when class
-	(let ((variables
-	       (dir-locals-collect-variables
-		(dir-locals-get-class-variables class) dir-name nil)))
-	  (when variables
-	    (dolist (elt variables)
-	      (if (eq (car elt) 'coding)
-                  (unless hack-dir-local-variables--warned-coding
-                    (setq hack-dir-local-variables--warned-coding t)
-                    (display-warning 'files
-                                     "Coding cannot be specified by dir-locals"))
-		(unless (memq (car elt) '(eval mode))
-		  (setq dir-local-variables-alist
-			(assq-delete-all (car elt) dir-local-variables-alist)))
-		(push elt dir-local-variables-alist)))
-	    (hack-local-variables-filter variables dir-name)))))))
+        (cons dir-name
+              (dir-locals-collect-variables
+               (dir-locals-get-class-variables class)
+               dir-name nil predicate))))))
+
+(defun hack-dir-local-variables ()
+  "Read per-directory local variables for the current buffer.
+Store the directory-local variables in `dir-local-variables-alist'
+and `file-local-variables-alist', without applying them.
+
+This does nothing if either `enable-local-variables' or
+`enable-dir-local-variables' are nil."
+  (let* ((items (hack-dir-local--get-variables nil))
+         (dir-name (car items))
+         (variables (cdr items)))
+    (when variables
+      (dolist (elt variables)
+        (if (eq (car elt) 'coding)
+            (unless hack-dir-local-variables--warned-coding
+              (setq hack-dir-local-variables--warned-coding t)
+              (display-warning 'files
+                               "Coding cannot be specified by dir-locals"))
+          (unless (memq (car elt) '(eval mode))
+            (setq dir-local-variables-alist
+                  (assq-delete-all (car elt) dir-local-variables-alist)))
+          (push elt dir-local-variables-alist)))
+      (hack-local-variables-filter variables dir-name))))
 
 (defun hack-dir-local-variables-non-file-buffer ()
   "Apply directory-local variables to a non-file buffer.

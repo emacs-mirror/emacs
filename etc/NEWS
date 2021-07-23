@@ -2289,6 +2289,12 @@ This command, called interactively, toggles the local value of
 
 ** Miscellaneous
 
++++
+*** .dir-locals.el now supports setting 'auto-mode-alist'.
+The new 'auto-mode-alist' specification in .dir-local.el files can now
+be used to override the global 'auto-mode-alist' in the current
+directory tree.
+
 ---
 *** New utility function 'make-separator-line'.
 
