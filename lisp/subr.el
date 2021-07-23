@@ -31,7 +31,8 @@
   "Tell the byte-compiler that function FN is defined, in FILE.
 The FILE argument is not used by the byte-compiler, but by the
 `check-declare' package, which checks that FILE contains a
-definition for FN.
+definition for FN.  (FILE can be nil, and that disables this
+check.)
 
 FILE can be either a Lisp file (in which case the \".el\"
 extension is optional), or a C file.  C files are expanded
