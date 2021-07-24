@@ -8127,16 +8127,16 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
                  ;; exists, but the file name may exist in the trash
                  ;; directory even if there is no info file for it.
                  (when (file-exists-p
-                        (expand-file-name files-base trash-files-dir))
+                        (directory-append trash-files-dir files-base))
                    (setq overwrite t
                          files-base (file-name-nondirectory
                                      (make-temp-file
-                                      (expand-file-name
-                                       files-base trash-files-dir)
+                                      (directory-append
+                                       trash-files-dir files-base)
                                       is-directory))))
-		 (setq info-fn (expand-file-name
-				(concat files-base ".trashinfo")
-				trash-info-dir))
+		 (setq info-fn (directory-append
+				trash-info-dir
+                                (concat files-base ".trashinfo")))
                  ;; Re-check the existence (sort of).
 		 (condition-case nil
 		     (write-region nil nil info-fn nil 'quiet info-fn 'excl)
@@ -8145,14 +8145,14 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		    ;; like Emacs-style backup file names.  E.g.:
 		    ;; https://bugs.kde.org/170956
 		    (setq info-fn (make-temp-file
-				   (expand-file-name files-base trash-info-dir)
+				   (directory-append trash-info-dir files-base)
 				   nil ".trashinfo"))
 		    (setq files-base (substring (file-name-nondirectory info-fn)
                                                 0 (- (length ".trashinfo"))))
 		    (write-region nil nil info-fn nil 'quiet info-fn)))
 		 ;; Finally, try to move the file to the trashcan.
 		 (let ((delete-by-moving-to-trash nil)
-		       (new-fn (expand-file-name files-base trash-files-dir)))
+		       (new-fn (directory-append trash-files-dir files-base)))
 		   (rename-file fn new-fn overwrite)))))))))
 
 (defsubst file-attribute-type (attributes)
