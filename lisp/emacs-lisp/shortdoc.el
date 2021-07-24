@@ -276,6 +276,7 @@ There can be any number of :example/:result elements."
   (directory-append
    :eval (directory-append "/tmp/" "foo")
    :eval (directory-append "/tmp" "foo")
+   :eval (directory-append "/tmp" "foo" "bar/" "zot")
    :eval (directory-append "/tmp" "~"))
   (expand-file-name
    :eval (expand-file-name "foo" "/tmp/")

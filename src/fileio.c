@@ -749,48 +749,90 @@ For that reason, you should normally use `make-temp-file' instead.  */)
 				   empty_unibyte_string, Qnil);
 }
 
-DEFUN ("directory-append", Fdirectory_append, Sdirectory_append, 2, 2, 0,
-       doc: /* Return FILE (a string) appended to DIRECTORY (a string).
-DIRECTORY may or may not end with a slash -- the return value from
-this function will be the same.  */)
-  (Lisp_Object directory, Lisp_Object file)
+DEFUN ("directory-append", Fdirectory_append, Sdirectory_append, 1, MANY, 0,
+       doc: /* Append COMPONENTS to DIRECTORY and return the resulting string.
+COMPONENTS must be a list of strings.  DIRECTORY or the non-final
+elements in COMPONENTS may or may not end with a slash -- if they don't
+end with a slash, a slash will be inserted before contatenating.
+usage: (record DIRECTORY &rest COMPONENTS) */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  USE_SAFE_ALLOCA;
-  char *p;
+  ptrdiff_t chars = 0, bytes = 0, multibytes = 0;
+  Lisp_Object *elements = args;
+  Lisp_Object result;
+  ptrdiff_t i;
 
-  CHECK_STRING (file);
-  CHECK_STRING (directory);
-
-  if (SCHARS (file) == 0)
-    xsignal1 (Qfile_error, build_string ("Empty file name"));
-
-  if (SCHARS (directory) == 0)
-    return file;
-
-  /* Make the strings the same multibytedness. */
-  if (STRING_MULTIBYTE (file) != STRING_MULTIBYTE (directory))
+  /* First go through the list to check the types and see whether
+     they're all of the same multibytedness. */
+  for (i = 0; i < nargs; i++)
     {
-      if (STRING_MULTIBYTE (file))
-	directory = make_multibyte_string (SSDATA (directory),
-					   SCHARS (directory),
-					   SCHARS (directory));
+      Lisp_Object arg = args[i];
+      CHECK_STRING (arg);
+      if (SCHARS (arg) == 0)
+	xsignal1 (Qfile_error, build_string ("Empty file name"));
+      /* Multibyte and non-ASCII. */
+      if (STRING_MULTIBYTE (arg) && SCHARS (arg) != SBYTES (arg))
+	multibytes++;
+      /* We're not adding a slash to the final part. */
+      if (i == nargs - 1
+	  || IS_DIRECTORY_SEP (*(SSDATA (arg) + SBYTES (arg) - 1)))
+	{
+	  bytes += SBYTES (arg);
+	  chars += SCHARS (arg);
+	}
       else
-	file = make_multibyte_string (SSDATA (file),
-				      SCHARS (file),
-				      SCHARS (file));
+	{
+	  bytes += SBYTES (arg) + 1;
+	  chars += SCHARS (arg) + 1;
+	}
     }
 
-  /* Allocate enough extra space in case we need to put a slash in
-     there. */
-  p = SAFE_ALLOCA (SBYTES (file) + SBYTES (directory) + 2);
-  ptrdiff_t offset = SBYTES (directory);
-  memcpy (p, SSDATA (directory), offset);
-  if (! IS_DIRECTORY_SEP (p[offset - 1]))
-    p[offset++] = DIRECTORY_SEP;
-  memcpy (p + offset, SSDATA (file), SBYTES (file));
-  p[offset + SBYTES (file)] = 0;
-  Lisp_Object result = build_string (p);
-  SAFE_FREE ();
+  /* Convert if needed. */
+  if (multibytes != 0 && multibytes != nargs)
+    {
+      elements = xmalloc (nargs * sizeof *elements);
+      bytes = 0;
+      for (i = 0; i < nargs; i++)
+	{
+	  Lisp_Object arg = args[i];
+	  if (STRING_MULTIBYTE (arg))
+	    elements[i] = arg;
+	  else
+	    elements[i] = make_multibyte_string (SSDATA (arg), SCHARS (arg),
+						 SCHARS (arg));
+	  arg = elements[i];
+	  /* We have to recompute the number of bytes. */
+	  if (i == nargs - 1
+	      || IS_DIRECTORY_SEP (*(SSDATA (arg) + SBYTES (arg) - 1)))
+	    bytes += SBYTES (arg);
+	  else
+	    bytes += SBYTES (arg) + 1;
+	}
+    }
+
+  /* Allocate an empty string. */
+  if (multibytes == 0)
+    result = make_uninit_string (chars);
+  else
+    result = make_uninit_multibyte_string (chars, bytes);
+  /* Null-terminate the string. */
+  *(SSDATA (result) + SBYTES (result)) = 0;
+
+  /* Copy over the data. */
+  char *p = SSDATA (result);
+  for (i = 0; i < nargs; i++)
+    {
+      Lisp_Object arg = elements[i];
+      memcpy (p, SSDATA (arg), SBYTES (arg));
+      p += SBYTES (arg);
+      /* The last element shouldn't have a slash added at the end. */
+      if (i < nargs -1 && !IS_DIRECTORY_SEP (*(p - 1)))
+	*p++ = DIRECTORY_SEP;
+    }
+
+  if (multibytes != 0 && multibytes != nargs)
+    xfree (elements);
+
   return result;
 }
 

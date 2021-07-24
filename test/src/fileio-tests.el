@@ -162,10 +162,16 @@ Also check that an encoding error can appear in a symlink."
 
 (ert-deftest fileio-tests/directory-append ()
   (should (equal (directory-append "foo" "bar") "foo/bar"))
+  (should (equal (directory-append "foo" "bar") "foo/bar"))
+  (should (equal (directory-append "foo" "bar" "zot") "foo/bar/zot"))
   (should (equal (directory-append "foo/" "bar") "foo/bar"))
   (should (equal (directory-append "foo//" "bar") "foo//bar"))
+  (should (equal (directory-append "foo/" "bar/" "zot") "foo/bar/zot"))
+  (should (equal (directory-append "fóo" "bar") "fóo/bar"))
+  (should (equal (directory-append "foo" "bár") "foo/bár"))
+  (should (equal (directory-append "fóo" "bár") "fóo/bár"))
   (should-error (directory-append "foo" ""))
-  (should (equal (directory-append "" "bar") "bar"))
+  (should-error (directory-append "" "bar"))
   (should-error (directory-append "" "")))
 
 ;;; fileio-tests.el ends here
