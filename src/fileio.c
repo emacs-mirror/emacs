@@ -827,11 +827,11 @@ usage: (record DIRECTORY &rest COMPONENTS) */)
       memcpy (p, SSDATA (arg), SBYTES (arg));
       p += SBYTES (arg);
       /* The last element shouldn't have a slash added at the end. */
-      if (i < nargs -1 && !IS_DIRECTORY_SEP (*(p - 1)))
+      if (i < nargs - 1 && !IS_DIRECTORY_SEP (*(p - 1)))
 	*p++ = DIRECTORY_SEP;
     }
 
-  if (multibytes != 0 && multibytes != nargs)
+  if (elements != args)
     xfree (elements);
 
   return result;
