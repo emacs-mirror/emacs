@@ -589,7 +589,7 @@ bound to HIGHLIGHT-LOCUS."
       (replace-tests-with-highlighted-occurrence highlight-locus
         (occur-mode-display-occurrence)
         (with-current-buffer (marker-buffer
-                              (get-text-property (point) 'occur-target))
+                              (caar (get-text-property (point) 'occur-target)))
           (should (funcall check-overlays has-overlay)))))))
 
 (ert-deftest replace-regexp-bug45973 ()
