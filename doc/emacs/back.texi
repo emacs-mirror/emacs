@@ -93,7 +93,7 @@ Emacs in 1984/85.  He has received the ACM Grace Hopper Award, a
 MacArthur Foundation fellowship, the Electronic Frontier Foundation's
 Pioneer award, the Takeda Award for Social/Economic Betterment, and
 the ACM Software and System Award, as well as several doctorates
-honoris causa.
+@emph{honoris causa.}
 @end quotation
 
 @hfil
