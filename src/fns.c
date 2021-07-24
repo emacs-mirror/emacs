@@ -5769,16 +5769,6 @@ characters.  */ )
   return list3 (make_int (lines), make_int (longest), make_float (mean));
 }
 
-static bool
-string_ascii_p (Lisp_Object string)
-{
-  ptrdiff_t nbytes = SBYTES (string);
-  for (ptrdiff_t i = 0; i < nbytes; i++)
-    if (SREF (string, i) > 127)
-      return false;
-  return true;
-}
-
 DEFUN ("string-search", Fstring_search, Sstring_search, 2, 3, 0,
        doc: /* Search for the string NEEDLE in the string HAYSTACK.
 The return value is the position of the first occurrence of NEEDLE in

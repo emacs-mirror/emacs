@@ -796,7 +796,7 @@ usage: (record DIRECTORY &rest COMPONENTS) */)
 	{
 	  Lisp_Object arg = args[i];
 	  /* Use multibyte or all-ASCII strings as is. */
-	  if (STRING_MULTIBYTE (arg) || SCHARS (arg) == SBYTES (arg))
+	  if (STRING_MULTIBYTE (arg) || string_ascii_p (arg))
 	    elements[i] = arg;
 	  else
 	    elements[i] = make_multibyte_string (SSDATA (arg), SCHARS (arg),

@@ -9476,7 +9476,7 @@ not fully specified.)  */)
 }
 
 /* Whether STRING only contains chars in the 0..127 range.  */
-static bool
+bool
 string_ascii_p (Lisp_Object string)
 {
   ptrdiff_t nbytes = SBYTES (string);
