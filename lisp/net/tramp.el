@@ -701,7 +701,7 @@ The regexp should match at end of buffer."
 ;; Yubikey requires the user physically to touch the device with their
 ;; finger.  We must tell it to the user.
 (defcustom tramp-yubikey-regexp
-  (regexp-quote "Confirm user presence for key .*")
+  "Confirm user presence for key .*"
   "Regular expression matching yubikey confirmation message.
 The regexp should match at end of buffer."
   :version "28.1"
