@@ -273,8 +273,15 @@ There can be any number of :example/:result elements."
    :eval (file-relative-name "/tmp/foo" "/tmp"))
   (make-temp-name
    :eval (make-temp-name "/tmp/foo-"))
+  (directory-append
+   :eval (directory-append "/tmp/" "foo")
+   :eval (directory-append "/tmp" "foo")
+   :eval (directory-append "/tmp" "~"))
   (expand-file-name
-   :eval (expand-file-name "foo" "/tmp/"))
+   :eval (expand-file-name "foo" "/tmp/")
+   :eval (expand-file-name "foo" "/tmp///")
+   :eval (expand-file-name "foo" "/tmp/foo/.././")
+   :eval (expand-file-name "~" "/tmp/"))
   (substitute-in-file-name
    :eval (substitute-in-file-name "$HOME/foo"))
   "Directory Functions"

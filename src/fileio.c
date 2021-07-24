@@ -749,6 +749,51 @@ For that reason, you should normally use `make-temp-file' instead.  */)
 				   empty_unibyte_string, Qnil);
 }
 
+DEFUN ("directory-append", Fdirectory_append, Sdirectory_append, 2, 2, 0,
+       doc: /* Return FILE (a string) appended to DIRECTORY (a string).
+DIRECTORY may or may not end with a slash -- the return value from
+this function will be the same.  */)
+  (Lisp_Object directory, Lisp_Object file)
+{
+  USE_SAFE_ALLOCA;
+  char *p;
+
+  CHECK_STRING (file);
+  CHECK_STRING (directory);
+
+  if (SCHARS (file) == 0)
+    xsignal1 (Qfile_error, build_string ("Empty file name"));
+
+  if (SCHARS (directory) == 0)
+    return file;
+
+  /* Make the strings the same multibytedness. */
+  if (STRING_MULTIBYTE (file) != STRING_MULTIBYTE (directory))
+    {
+      if (STRING_MULTIBYTE (file))
+	directory = make_multibyte_string (SSDATA (directory),
+					   SCHARS (directory),
+					   SCHARS (directory));
+      else
+	file = make_multibyte_string (SSDATA (file),
+				      SCHARS (file),
+				      SCHARS (file));
+    }
+
+  /* Allocate enough extra space in case we need to put a slash in
+     there. */
+  p = SAFE_ALLOCA (SBYTES (file) + SBYTES (directory) + 2);
+  ptrdiff_t offset = SBYTES (directory);
+  memcpy (p, SSDATA (directory), offset);
+  if (! IS_DIRECTORY_SEP (p[offset - 1]))
+    p[offset++] = DIRECTORY_SEP;
+  memcpy (p + offset, SSDATA (file), SBYTES (file));
+  p[offset + SBYTES (file)] = 0;
+  Lisp_Object result = build_string (p);
+  SAFE_FREE ();
+  return result;
+}
+
 /* NAME must be a string.  */
 static bool
 file_name_absolute_no_tilde_p (Lisp_Object name)
@@ -6488,6 +6533,7 @@ This includes interactive calls to `delete-file' and
   defsubr (&Sdirectory_file_name);
   defsubr (&Smake_temp_file_internal);
   defsubr (&Smake_temp_name);
+  defsubr (&Sdirectory_append);
   defsubr (&Sexpand_file_name);
   defsubr (&Ssubstitute_in_file_name);
   defsubr (&Scopy_file);

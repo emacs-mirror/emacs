@@ -3121,6 +3121,10 @@ The former is now declared obsolete.
 * Lisp Changes in Emacs 28.1
 
 +++
+*** New function 'directory-append'.
+This appends a file name to a directory name and returns the result.
+
++++
 *** New function 'split-string-shell-command'.
 This splits a shell command string into separate components,
 respecting quoting with single ('like this') and double ("like this")
