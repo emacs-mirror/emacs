@@ -265,16 +265,12 @@ ns_image_size_in_bytes (void *img)
   image = [[EmacsImage alloc] initByReferencingFile:filename];
 
   image->bmRep = nil;
-#ifdef NS_IMPL_COCOA
-  imgRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
-#else
-  imgRep = [image bestRepresentationForDevice: nil];
-#endif
-  if (imgRep == nil)
+  if (![image isValid])
     {
       [image release];
       return nil;
     }
+  imgRep = [[image representations] firstObject];
 
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
   [image setName:filename];
