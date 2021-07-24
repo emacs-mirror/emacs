@@ -799,8 +799,7 @@ usage: (record DIRECTORY &rest COMPONENTS) */)
 	  if (STRING_MULTIBYTE (arg) || string_ascii_p (arg))
 	    elements[i] = arg;
 	  else
-	    elements[i] = make_multibyte_string (SSDATA (arg), SCHARS (arg),
-						 SCHARS (arg));
+	    elements[i] = Fstring_to_multibyte (arg);
 	  arg = elements[i];
 	  /* We have to recompute the number of bytes. */
 	  if (i == nargs - 1
