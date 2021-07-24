@@ -751,9 +751,10 @@ For that reason, you should normally use `make-temp-file' instead.  */)
 
 DEFUN ("directory-append", Fdirectory_append, Sdirectory_append, 1, MANY, 0,
        doc: /* Append COMPONENTS to DIRECTORY and return the resulting string.
-COMPONENTS must be a list of strings.  DIRECTORY or the non-final
-elements in COMPONENTS may or may not end with a slash -- if they don't
-end with a slash, a slash will be inserted before contatenating.
+COMPONENTS must be strings.
+DIRECTORY or the non-final elements in COMPONENTS may or may not end
+with a slash -- if they don't end with a slash, a slash will be
+inserted before contatenating.
 usage: (record DIRECTORY &rest COMPONENTS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
