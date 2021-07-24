@@ -3238,13 +3238,20 @@ extra checks should be done."
               (setq mode (car mode)
                     name (substring name 0 (match-beginning 0)))
             (setq name nil)))
-        (when (and dir-local mode)
-          (unless (string-suffix-p "-mode" (symbol-name mode))
-            (message "Ignoring invalid mode `%s'" (symbol-name mode))
-            (setq mode nil)))
+        (when (and dir-local mode
+                   (not (set-auto-mode--dir-local-valid-p mode)))
+          (message "Ignoring invalid mode `%s'" mode)
+          (setq mode nil))
         (when mode
           (set-auto-mode-0 mode keep-mode-if-same)
           t))))
+
+(defun set-auto-mode--dir-local-valid-p (mode)
+  "Say whether MODE can be used in a .dir-local.el `auto-mode-alist'."
+  (and (symbolp mode)
+       (string-suffix-p "-mode" (symbol-name mode))
+       (commandp mode)
+       (not (provided-mode-derived-p mode 'special-mode))))
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
