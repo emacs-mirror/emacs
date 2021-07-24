@@ -9535,9 +9535,9 @@ call `normal-erase-is-backspace-mode' (which see) instead."
   :set (lambda (symbol value)
 	 ;; The fboundp is because of a problem with :set when
 	 ;; dumping Emacs.  It doesn't really matter.
-	 (if (fboundp 'normal-erase-is-backspace-mode)
-	     (normal-erase-is-backspace-mode (or value 0))
-	   (set-default symbol value))))
+	 (when (fboundp 'normal-erase-is-backspace-mode)
+	   (normal-erase-is-backspace-mode (or value 0)))
+	 (set-default symbol value)))
 
 (defun normal-erase-is-backspace-setup-frame (&optional frame)
   "Set up `normal-erase-is-backspace-mode' on FRAME, if necessary."
