@@ -3067,6 +3067,39 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
 
    ========================================================================== */
 
+static NSMutableDictionary *fringe_bmp;
+
+static void
+ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
+{
+  NSBezierPath *p = [NSBezierPath bezierPath];
+
+  if (!fringe_bmp)
+    fringe_bmp = [[NSMutableDictionary alloc] initWithCapacity:25];
+
+  [p moveToPoint:NSMakePoint (0, 0)];
+
+  for (int y = 0 ; y < h ; y++)
+    for (int x = 0 ; x < w ; x++)
+      {
+        /* XBM rows are always round numbers of bytes, with any unused
+           bits ignored.  */
+        int byte = y * (w/8 + (w%8 ? 1 : 0)) + x/8;
+        bool bit = bits[byte] & (0x80 >> x%8);
+        if (bit)
+          [p appendBezierPathWithRect:NSMakeRect (x, y, 1, 1)];
+      }
+
+  [fringe_bmp setObject:p forKey:[NSNumber numberWithInt:which]];
+}
+
+
+static void
+ns_destroy_fringe_bitmap (int which)
+{
+  [fringe_bmp removeObjectForKey:[NSNumber numberWithInt:which]];
+}
+
 
 extern int max_used_fringe_bitmap;
 static void
@@ -3094,41 +3127,18 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct face *face = p->face;
-  static EmacsImage **bimgs = NULL;
-  static int nBimgs = 0;
   NSRect clearRect = NSZeroRect;
-  NSRect imageRect = NSZeroRect;
   NSRect rowRect = ns_row_rect (w, row, ANY_AREA);
 
   NSTRACE_WHEN (NSTRACE_GROUP_FRINGE, "ns_draw_fringe_bitmap");
   NSTRACE_MSG ("which:%d cursor:%d overlay:%d width:%d height:%d period:%d",
                p->which, p->cursor_p, p->overlay_p, p->wd, p->h, p->dh);
 
-  /* grow bimgs if needed */
-  if (nBimgs < max_used_fringe_bitmap)
-    {
-      bimgs = xrealloc (bimgs, max_used_fringe_bitmap * sizeof *bimgs);
-      memset (bimgs + nBimgs, 0,
-	      (max_used_fringe_bitmap - nBimgs) * sizeof *bimgs);
-      nBimgs = max_used_fringe_bitmap;
-    }
+  /* Work out the rectangle we will need to clear.  */
+  clearRect = NSMakeRect (p->x, p->y, p->wd, p->h);
 
-  /* Work out the rectangle we will composite into.  */
-  if (p->which)
-    imageRect = NSMakeRect (p->x, p->y, p->wd, p->h);
-
-  /* Work out the rectangle we will need to clear.  Because we're
-     compositing rather than blitting, we need to clear the area under
-     the image regardless of anything else.  */
   if (p->bx >= 0 && !p->overlay_p)
-    {
-      clearRect = NSMakeRect (p->bx, p->by, p->nx, p->ny);
-      clearRect = NSUnionRect (clearRect, imageRect);
-    }
-  else
-    {
-      clearRect = imageRect;
-    }
+    clearRect = NSUnionRect (clearRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
 
   /* Handle partially visible rows.  */
   clearRect = NSIntersectionRect (clearRect, rowRect);
@@ -3144,53 +3154,29 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       NSRectFill (clearRect);
     }
 
-  if (p->which)
+  NSBezierPath *bmp = [fringe_bmp objectForKey:[NSNumber numberWithInt:p->which]];
+  if (bmp)
     {
-      EmacsImage *img = bimgs[p->which - 1];
+      NSAffineTransform *transform = [NSAffineTransform transform];
+      NSColor *bm_color;
 
-      if (!img)
-        {
-          // Note: For "periodic" images, allocate one EmacsImage for
-          // the base image, and use it for all dh:s.
-          unsigned short *bits = p->bits;
-          int full_height = p->h + p->dh;
-          int i;
-          unsigned char *cbits = xmalloc (full_height);
+      /* Because the image is defined at (0, 0) we need to take a copy
+         and then transform that copy to the new origin.  */
+      bmp = [bmp copy];
+      [transform translateXBy:p->x yBy:p->y - p->dh];
+      [bmp transformUsingAffineTransform:transform];
 
-          for (i = 0; i < full_height; i++)
-            cbits[i] = bits[i];
-          img = [[EmacsImage alloc] initFromXBM: cbits width: 8
-                                         height: full_height
-                                             fg: 0 bg: 0
-                                   reverseBytes: NO];
-          bimgs[p->which - 1] = img;
-          xfree (cbits);
-        }
+      if (!p->cursor_p)
+        bm_color = ns_lookup_indexed_color(face->foreground, f);
+      else if (p->overlay_p)
+        bm_color = ns_lookup_indexed_color(face->background, f);
+      else
+        bm_color = f->output_data.ns->cursor_color;
 
+      [bm_color set];
+      [bmp fill];
 
-      {
-        NSColor *bm_color;
-        if (!p->cursor_p)
-          bm_color = ns_lookup_indexed_color(face->foreground, f);
-        else if (p->overlay_p)
-          bm_color = ns_lookup_indexed_color(face->background, f);
-        else
-          bm_color = f->output_data.ns->cursor_color;
-        [img setXBMColor: bm_color];
-      }
-
-      // Note: For periodic images, the full image height is "h + hd".
-      // By using the height h, a suitable part of the image is used.
-      NSRect fromRect = NSMakeRect(0, 0, p->wd, p->h);
-
-      NSTRACE_RECT ("fromRect", fromRect);
-
-      [img drawInRect: imageRect
-             fromRect: fromRect
-            operation: NSCompositingOperationSourceOver
-             fraction: 1.0
-           respectFlipped: YES
-                hints: nil];
+      [bmp release];
     }
   ns_unfocus (f);
 }
@@ -5162,8 +5148,8 @@ static struct redisplay_interface ns_redisplay_interface =
   gui_get_glyph_overhangs,
   gui_fix_overlapping_area,
   ns_draw_fringe_bitmap,
-  0, /* define_fringe_bitmap */ /* FIXME: simplify ns_draw_fringe_bitmap */
-  0, /* destroy_fringe_bitmap */
+  ns_define_fringe_bitmap,
+  ns_destroy_fringe_bitmap,
   ns_compute_glyph_string_overhangs,
   ns_draw_glyph_string,
   ns_define_frame_cursor,
@@ -5348,6 +5334,8 @@ ns_term_init (Lisp_Object display_name)
   dpyinfo->name_list_element = Fcons (display_name, Qnil);
 
   terminal->name = xlispstrdup (display_name);
+
+  gui_init_fringe (terminal->rif);
 
   unblock_input ();
 

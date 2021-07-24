@@ -647,7 +647,6 @@ typedef id instancetype;
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
   NSColor *stippleMask;
-  unsigned long xbm_fg;
 @public
   NSAffineTransform *transform;
   BOOL smoothing;
@@ -657,7 +656,6 @@ typedef id instancetype;
 - (instancetype)initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
                          fg: (unsigned long)fg bg: (unsigned long)bg
                reverseBytes: (BOOL)reverse;
-- (instancetype)setXBMColor: (NSColor *)color;
 - (instancetype)initForXPMWithDepth: (int)depth width: (int)width height: (int)height;
 - (void)setPixmapData;
 - (unsigned long)getPixelAtX: (int)x Y: (int)y;

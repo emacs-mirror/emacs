@@ -377,48 +377,7 @@ ns_image_size_in_bytes (void *img)
         }
   }
 
-  xbm_fg = fg;
   [self addRepresentation: bmRep];
-  return self;
-}
-
-/* Set color for a bitmap image.  */
-- (instancetype)setXBMColor: (NSColor *)color
-{
-  NSSize s = [self size];
-  unsigned char *planes[5];
-  EmacsCGFloat r, g, b, a;
-  NSColor *rgbColor;
-
-  if (bmRep == nil || color == nil)
-    return self;
-
-  if ([color colorSpace] != [NSColorSpace genericRGBColorSpace])
-    rgbColor = [color colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
-  else
-    rgbColor = color;
-
-  [rgbColor getRed: &r green: &g blue: &b alpha: &a];
-
-  [bmRep getBitmapDataPlanes: planes];
-
-  {
-    int i, len = s.width*s.height;
-    int rr = r * 0xff, gg = g * 0xff, bb = b * 0xff;
-    unsigned char fgr = (xbm_fg >> 16) & 0xff;
-    unsigned char fgg = (xbm_fg >> 8) & 0xff;
-    unsigned char fgb = xbm_fg & 0xff;
-
-    for (i = 0; i < len; ++i)
-      if (planes[0][i] == fgr && planes[1][i] == fgg && planes[2][i] == fgb)
-        {
-          planes[0][i] = rr;
-          planes[1][i] = gg;
-          planes[2][i] = bb;
-        }
-    xbm_fg = ((rr << 16) & 0xff0000) + ((gg << 8) & 0xff00) + (bb & 0xff);
-  }
-
   return self;
 }
 
