@@ -2343,7 +2343,7 @@ entirely of directory separators.
 @end example
 @end defun
 
-@defun directory-append filename directory
+@defun directory-append directory filename
 Combine @var{filename} with @var{directory} by optionally putting a
 slash in the middle.
 
