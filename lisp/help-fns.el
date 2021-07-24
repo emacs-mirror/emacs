@@ -1078,7 +1078,9 @@ it is displayed along with the global value."
 		           (with-current-buffer standard-output
                              (setq help-mode--current-data
                                    (list :symbol variable
-                                         :type 'variable
+                                         :type (if (eq file-name 'C-source)
+                                                   'variable
+                                                 'defvar)
                                          :file file-name))
                              (save-excursion
 			       (re-search-backward (substitute-command-keys
