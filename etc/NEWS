@@ -2513,25 +2513,6 @@ point leaves the text.  If nil, the text is not hidden again.  Instead
 'M-x reveal-hide-revealed' can be used to hide all the revealed text.
 
 +++
-*** New user options to control the look of line/column numbers in the mode line.
-'mode-line-position-line-format' is the line number format (when
-'line-number-mode' is on), 'mode-line-position-column-format' is
-the column number format (when 'column-number-mode' is on), and
-'mode-line-position-column-line-format' is the combined format (when
-both modes are on).
-
-+++
-*** New user option 'mode-line-compact'.
-If non-nil, repeating spaces are compressed into a single space.  If
-'long', this is only done when the mode line is longer than the
-current window width (in characters).
-
-+++
-*** 'global-mode-string' constructs should end with a space.
-This was previously not formalized, which led to combinations of modes
-displaying data "smushed together" on the mode line.
-
-+++
 *** New command 'submit-emacs-patch'.
 This works like 'report-emacs-bug', but is more geared towards sending
 patches to the Emacs issue tracker.
