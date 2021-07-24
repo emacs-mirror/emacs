@@ -1601,6 +1601,10 @@ See the new user options 'package-name-column-width',
 
 ** gdb-mi
 
+*** New user option 'gdb-registers-enable-filter'.
+If non-nil, apply a register filter based on
+'gdb-registers-filter-pattern-list'.
+
 +++
 *** gdb-mi can now store and restore window configurations.
 Use 'gdb-save-window-configuration' to save window configuration to a
