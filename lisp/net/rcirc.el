@@ -215,11 +215,8 @@ Uninteresting lines are those whose responses are listed in
 `rcirc-omit-responses'."
   :lighter " Omit"
   (if rcirc-omit-mode
-      (progn
-	(add-to-invisibility-spec '(rcirc-omit . nil))
-	(message "Rcirc-Omit mode enabled"))
-    (remove-from-invisibility-spec '(rcirc-omit . nil))
-    (message "Rcirc-Omit mode disabled"))
+      (add-to-invisibility-spec '(rcirc-omit . nil))
+    (remove-from-invisibility-spec '(rcirc-omit . nil)))
   (dolist (window (get-buffer-window-list (current-buffer)))
     (with-selected-window window
       (recenter (when (> (point) rcirc-prompt-start-marker) -1)))))
