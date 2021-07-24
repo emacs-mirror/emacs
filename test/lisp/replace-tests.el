@@ -465,7 +465,12 @@ Return the last evalled form in BODY."
                    ;; isearch-lazy-highlight-new-loop and sit-for (bug#36328)
                    ((symbol-function 'replace-highlight)
                     (lambda (&rest _args)
-                      (string-match "[A-Z ]" "ForestGreen"))))
+                      (string-match "[A-Z ]" "ForestGreen")))
+                   ;; Override `sit-for' and `ding' so that we don't have
+                   ;; to wait and listen to bells when running the test.
+                   ((symbol-function 'sit-for)
+                    (lambda (&rest _args) (redisplay)))
+                   ((symbol-function 'ding) 'ignore))
            (perform-replace ,from ,to t replace-tests-perform-replace-regexp-flag nil))
          ,@body))))
 
