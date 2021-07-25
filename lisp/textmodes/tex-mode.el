@@ -1426,20 +1426,22 @@ on the line for the invalidity you want to see."
 		    ;; Skip "Mismatches:" header line.
 		    (forward-line 1)
 		    (setq num-matches (1+ num-matches))
-		    (insert-buffer-substring buffer start end)
-		    (let ((text-end (point-marker))
-                          (inhibit-read-only t)
-                          text-beg)
-		      (forward-char (- start end))
-		      (setq text-beg (point-marker))
-		      (insert (format "%3d: " linenum))
-		      (add-text-properties
-		       text-beg (- text-end 1)
-		       '(mouse-face highlight
-				    help-echo
-				    "mouse-2: go to this invalidity"))
-		      (put-text-property text-beg (- text-end 1)
-					 'occur-target tem))))))))
+                    (let ((inhibit-read-only t))
+		      (insert-buffer-substring buffer start end)
+		      (let ((text-end (point-marker))
+                            text-beg)
+		        (forward-char (- start end))
+		        (setq text-beg (point-marker))
+		        (insert (format "%3d: " linenum))
+		        (add-text-properties
+		         text-beg (- text-end 1)
+		         '(mouse-face highlight
+				      help-echo
+				      "mouse-2: go to this invalidity"))
+		        (put-text-property (point) (- text-end 1)
+					   'occur-match t)
+		        (put-text-property text-beg text-end
+					   'occur-target tem)))))))))
       (with-current-buffer standard-output
 	(let ((no-matches (zerop num-matches))
               (inhibit-read-only t))
