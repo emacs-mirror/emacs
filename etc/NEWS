@@ -3109,8 +3109,8 @@ The former is now declared obsolete.
 * Lisp Changes in Emacs 28.1
 
 +++
-*** New function 'directory-append'.
-This appends a file name to a directory name and returns the result.
+*** New function 'file-name-concat'.
+This appends path components to a directory name and returns the result.
 
 +++
 *** New function 'split-string-shell-command'.
