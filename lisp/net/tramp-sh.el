@@ -2681,7 +2681,7 @@ the result will be a local, non-Tramp, file name."
       (tramp-run-real-handler #'expand-file-name (list name dir))
     ;; Unless NAME is absolute, concat DIR and NAME.
     (unless (file-name-absolute-p name)
-      (setq name (concat (file-name-as-directory dir) name)))
+      (setq name (tramp-compat-file-name-concat dir name)))
     ;; If connection is not established yet, run the real handler.
     (if (not (tramp-connectable-p name))
 	(tramp-run-real-handler #'expand-file-name (list name nil))

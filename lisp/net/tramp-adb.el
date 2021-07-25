@@ -327,9 +327,9 @@ arguments to pass to the OPERATION."
 		v (format "%s -d -a -l %s %s"
 			  (tramp-adb-get-ls-command v)
 			  (tramp-shell-quote-argument
-			   (concat (file-name-as-directory localname) "."))
+			   (tramp-compat-file-name-concat localname "."))
 			  (tramp-shell-quote-argument
-			   (concat (file-name-as-directory localname) ".."))))
+			   (tramp-compat-file-name-concat localname ".."))))
 	       (widen)))
 	   (tramp-adb-sh-fix-ls-output)
 	   (let ((result (tramp-do-parse-file-attributes-with-ls

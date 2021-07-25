@@ -363,6 +363,20 @@ A nil value for either argument stands for the current time."
         ".#" (file-name-nondirectory filename))
        (file-name-directory filename)))))
 
+;; Function `file-name-concat' is new in Emacs 28.1.
+(defalias 'tramp-compat-file-name-concat
+  (if (fboundp 'file-name-concat)
+      #'file-name-concat
+    (lambda (directory &rest components)
+      (unless (null directory)
+	(let ((components (delq nil components))
+	      file-name-handler-alist)
+	  (if (null components)
+	      directory
+	    (tramp-compat-file-name-concat
+	     (concat (file-name-as-directory directory) (car components))
+	     (cdr components))))))))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 

@@ -353,7 +353,7 @@ the result will be a local, non-Tramp, file name."
   (when (zerop (length name)) (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (concat (file-name-as-directory dir) name)))
+    (setq name (tramp-compat-file-name-concat dir name)))
   (with-parsed-tramp-file-name name nil
     ;; Tilde expansion if necessary.  We cannot accept "~/", because
     ;; under sudo "~/" is expanded to the local user home directory
