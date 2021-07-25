@@ -749,7 +749,7 @@ For that reason, you should normally use `make-temp-file' instead.  */)
 				   empty_unibyte_string, Qnil);
 }
 
-DEFUN ("directory-append", Fdirectory_append, Sdirectory_append, 1, MANY, 0,
+DEFUN ("file-name-concat", Ffile_name_concat, Sfile_name_concat, 1, MANY, 0,
        doc: /* Append COMPONENTS to DIRECTORY and return the resulting string.
 Elements in COMPONENTS must be a string or nil.
 DIRECTORY or the non-final elements in COMPONENTS may or may not end
@@ -6596,7 +6596,7 @@ This includes interactive calls to `delete-file' and
   defsubr (&Sdirectory_file_name);
   defsubr (&Smake_temp_file_internal);
   defsubr (&Smake_temp_name);
-  defsubr (&Sdirectory_append);
+  defsubr (&Sfile_name_concat);
   defsubr (&Sexpand_file_name);
   defsubr (&Ssubstitute_in_file_name);
   defsubr (&Scopy_file);

@@ -2343,14 +2343,14 @@ entirely of directory separators.
 @end example
 @end defun
 
-@defun directory-append directory &rest components
+@defun file-name-concat directory &rest components
 Concatenate @var{components} to @var{directory}, inserting a slash
 before the components if @var{directory} or the preceding component
 didn't end with a slash.
 
 @example
 @group
-(directory-append "/tmp" "foo")
+(file-name-concat "/tmp" "foo")
      @result{} "/tmp/foo"
 @end group
 @end example

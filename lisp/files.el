@@ -8127,14 +8127,14 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
                  ;; exists, but the file name may exist in the trash
                  ;; directory even if there is no info file for it.
                  (when (file-exists-p
-                        (directory-append trash-files-dir files-base))
+                        (file-name-concat trash-files-dir files-base))
                    (setq overwrite t
                          files-base (file-name-nondirectory
                                      (make-temp-file
-                                      (directory-append
+                                      (file-name-concat
                                        trash-files-dir files-base)
                                       is-directory))))
-		 (setq info-fn (directory-append
+		 (setq info-fn (file-name-concat
 				trash-info-dir
                                 (concat files-base ".trashinfo")))
                  ;; Re-check the existence (sort of).
@@ -8145,14 +8145,14 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		    ;; like Emacs-style backup file names.  E.g.:
 		    ;; https://bugs.kde.org/170956
 		    (setq info-fn (make-temp-file
-				   (directory-append trash-info-dir files-base)
+				   (file-name-concat trash-info-dir files-base)
 				   nil ".trashinfo"))
 		    (setq files-base (substring (file-name-nondirectory info-fn)
                                                 0 (- (length ".trashinfo"))))
 		    (write-region nil nil info-fn nil 'quiet info-fn)))
 		 ;; Finally, try to move the file to the trashcan.
 		 (let ((delete-by-moving-to-trash nil)
-		       (new-fn (directory-append trash-files-dir files-base)))
+		       (new-fn (file-name-concat trash-files-dir files-base)))
 		   (rename-file fn new-fn overwrite)))))))))
 
 (defsubst file-attribute-type (attributes)

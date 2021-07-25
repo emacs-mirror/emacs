@@ -273,11 +273,11 @@ There can be any number of :example/:result elements."
    :eval (file-relative-name "/tmp/foo" "/tmp"))
   (make-temp-name
    :eval (make-temp-name "/tmp/foo-"))
-  (directory-append
-   :eval (directory-append "/tmp/" "foo")
-   :eval (directory-append "/tmp" "foo")
-   :eval (directory-append "/tmp" "foo" "bar/" "zot")
-   :eval (directory-append "/tmp" "~"))
+  (file-name-concat
+   :eval (file-name-concat "/tmp/" "foo")
+   :eval (file-name-concat "/tmp" "foo")
+   :eval (file-name-concat "/tmp" "foo" "bar/" "zot")
+   :eval (file-name-concat "/tmp" "~"))
   (expand-file-name
    :eval (expand-file-name "foo" "/tmp/")
    :eval (expand-file-name "foo" "/tmp///")
