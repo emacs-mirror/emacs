@@ -1426,6 +1426,11 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
   "Handle `revert-buffer' for Occur mode buffers."
   (apply #'occur-1 (append occur-revert-arguments (list (buffer-name)))))
 
+;; Retained for compatibility.
+(defun occur-mode-find-occurrence ()
+  "Return a marker to the first match of the line at point."
+  (occur--targets-start (occur-mode--find-occurrences)))
+
 (defun occur-mode--find-occurrences ()
   ;; The `occur-target' property value is a list of (BEG . END) for each
   ;; match on the line, or (for compatibility) a single marker to the start
