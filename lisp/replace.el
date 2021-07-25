@@ -1398,8 +1398,27 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 	    (recenter line)
 	    (if readonly
 		(message "Buffer `%s' is read only." buf)
-	      (delete-region (line-beginning-position) (line-end-position))
-	      (insert text))
+              ;; Replace the line, but make the change as small as
+              ;; possible by shrink-wrapping.  That way, we avoid
+              ;; disturbing markers unnecessarily.
+              (let* ((beg-pos (line-beginning-position))
+                     (end-pos (line-end-position))
+                     (buf-str (buffer-substring-no-properties beg-pos end-pos))
+                     (common-prefix
+                      (lambda (s1 s2)
+                        (let ((c (compare-strings s1 nil nil s2 nil nil)))
+                          (if (zerop c)
+                              (length s1)
+                            (1- (abs c))))))
+                     (prefix-len (funcall common-prefix buf-str text))
+                     (suffix-len (funcall common-prefix
+                                          (reverse buf-str) (reverse text))))
+                (setq beg-pos (+ beg-pos prefix-len))
+                (setq end-pos (- end-pos suffix-len))
+                (setq text (substring text prefix-len (- suffix-len)))
+                (delete-region beg-pos end-pos)
+                (goto-char beg-pos)
+                (insert text)))
 	    (move-to-column col)))))))
 
 
