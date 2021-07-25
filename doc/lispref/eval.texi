@@ -350,7 +350,8 @@ Here is how you could define @code{indirect-function} in Lisp:
 
 @example
 (defun indirect-function (function)
-  (if (symbolp function)
+  (if (and function
+           (symbolp function))
       (indirect-function (symbol-function function))
     function))
 @end example

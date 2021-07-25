@@ -33,6 +33,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "ftfont.h"
 #include "pdumper.h"
 
+#ifndef FC_LCD_FILTER
+/* Older fontconfig versions don't have FC_LCD_FILTER.  */
+# define FC_LCD_FILTER "lcdfilter"
+#endif
+
+
 /* Xft font driver.  */
 
 /* Structure pointed by (struct face *)->extra  */

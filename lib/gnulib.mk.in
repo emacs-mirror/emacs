@@ -98,6 +98,7 @@
 #  fcntl \
 #  fcntl-h \
 #  fdopendir \
+#  file-has-acl \
 #  filemode \
 #  filename \
 #  filevercmp \
@@ -1787,6 +1788,16 @@ EXTRA_libgnu_a_SOURCES += fdopendir.c
 
 endif
 ## end   gnulib module fdopendir
+
+## begin gnulib module file-has-acl
+ifeq (,$(OMIT_GNULIB_MODULE_file-has-acl))
+
+libgnu_a_SOURCES += file-has-acl.c
+
+EXTRA_DIST += acl-internal.h
+
+endif
+## end   gnulib module file-has-acl
 
 ## begin gnulib module filemode
 ifeq (,$(OMIT_GNULIB_MODULE_filemode))

@@ -69,12 +69,15 @@
       (format "/mock::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
-(setq password-cache-expiry nil
+(setq auth-source-save-behavior nil
+      password-cache-expiry nil
       shadow-debug (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
-      tramp-verbose 0
       ;; When the remote user id is 0, Tramp refuses unsafe temporary files.
       tramp-allow-unsafe-temporary-files
       (or tramp-allow-unsafe-temporary-files noninteractive)
+      tramp-cache-read-persistent-data t ;; For auth-sources.
+      tramp-persistency-file-name nil
+      tramp-verbose 0
       ;; On macOS, `temporary-file-directory' is a symlinked directory.
       temporary-file-directory (file-truename temporary-file-directory)
       shadow-test-remote-temporary-file-directory
@@ -643,7 +646,9 @@ guaranteed by the originator of a cluster definition."
 		 (expand-file-name
 		  "shadowfile-tests"
 		  shadow-test-remote-temporary-file-directory))
-		mocked-input `(,cluster1 ,file1 ,cluster2 ,file2 ,(kbd "RET")))
+		mocked-input
+                `(,cluster1 ,file1 ,cluster2 ,file2
+                  ,primary ,file1 ,(kbd "RET")))
 	  (with-temp-buffer
             (set-visited-file-name file1)
 	    (call-interactively #'shadow-define-literal-group)
@@ -657,7 +662,9 @@ guaranteed by the originator of a cluster definition."
 	  (should (member (format "/%s:%s" cluster1 (file-local-name file1))
                           (car shadow-literal-groups)))
 	  (should (member (format "/%s:%s" cluster2 (file-local-name file2))
-                          (car shadow-literal-groups))))
+                          (car shadow-literal-groups)))
+          ;; Bug#49596.
+	  (should (member (concat primary file1) (car shadow-literal-groups))))
 
       ;; Cleanup.
       (shadow--tests-cleanup))))

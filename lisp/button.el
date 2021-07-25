@@ -61,6 +61,7 @@
     ;; might get converted to ^M when building loaddefs.el
     (define-key map [(control ?m)] 'push-button)
     (define-key map [mouse-2] 'push-button)
+    (define-key map [follow-link] 'mouse-face)
     ;; FIXME: You'd think that for keymaps coming from text-properties on the
     ;; mode-line or header-line, the `mode-line' or `header-line' prefix
     ;; shouldn't be necessary!

@@ -792,12 +792,8 @@ which will run faster and will not set the mark or print anything."
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
-(defvar occur-highlight-regexp t
-  "Regexp matching part of visited source lines to highlight temporarily.
-Highlight entire line if t; don't highlight source lines if nil.")
-
-(defvar occur-highlight-overlay nil
-  "Overlay used to temporarily highlight occur matches.")
+(defvar occur-highlight-overlays nil
+  "Overlays used to temporarily highlight occur matches.")
 
 (defvar occur-collect-regexp-history '("\\1")
   "History of regexp for occur's collect operation")
@@ -1054,6 +1050,130 @@ also print the number."
 			       count))
     count))
 
+(defun kill-matching-lines (regexp &optional rstart rend interactive)
+  "Kill lines containing matches for REGEXP.
+
+When called from Lisp (and usually when called interactively as
+well, see below), applies to the part of the buffer after point.
+The line point is in is killed if and only if it contains a match
+for REGEXP starting after point.
+
+If REGEXP contains upper case characters (excluding those
+preceded by `\\') and `search-upper-case' is non-nil, the
+matching is case-sensitive.
+
+Second and third args RSTART and REND specify the region to
+operate on.  Lines partially contained in this region are killed
+if and only if they contain a match entirely contained in the
+region.
+
+Interactively, in Transient Mark mode when the mark is active,
+operate on the contents of the region.  Otherwise, operate from
+point to the end of (the accessible portion of) the buffer.
+
+If a match is split across lines, all the lines it lies in are
+killed.  They are killed _before_ looking for the next match.
+Hence, a match starting on the same line at which another match
+ended is ignored.
+
+Return the number of killed matching lines.  When called
+interactively, also print the number."
+  (interactive
+   (progn
+     (barf-if-buffer-read-only)
+     (keep-lines-read-args "Kill lines containing match for regexp")))
+  (if rstart
+      (progn
+	(goto-char (min rstart rend))
+	(setq rend (copy-marker (max rstart rend))))
+    (if (and interactive (use-region-p))
+	(setq rstart (region-beginning)
+	      rend (copy-marker (region-end)))
+      (setq rstart (point)
+	    rend (point-max-marker)))
+    (goto-char rstart))
+  (let ((count 0)
+        (case-fold-search
+	 (if (and case-fold-search search-upper-case)
+	     (isearch-no-upper-case-p regexp t)
+	   case-fold-search)))
+    (save-excursion
+      (while (and (< (point) rend)
+		  (re-search-forward regexp rend t))
+        (unless (zerop count)
+          (setq last-command 'kill-region))
+	(kill-region (save-excursion (goto-char (match-beginning 0))
+                                     (forward-line 0)
+                                     (point))
+                     (progn (forward-line 1) (point)))
+        (setq count (1+ count))))
+    (set-marker rend nil)
+    (when interactive (message (ngettext "Killed %d matching line"
+					 "Killed %d matching lines"
+					 count)
+			       count))
+    count))
+
+(defun copy-matching-lines (regexp &optional rstart rend interactive)
+  "Copy lines containing matches for REGEXP to the kill ring.
+
+When called from Lisp (and usually when called interactively as
+well, see below), applies to the part of the buffer after point.
+The line point is in is copied if and only if it contains a match
+for REGEXP starting after point.
+
+If REGEXP contains upper case characters (excluding those
+preceded by `\\') and `search-upper-case' is non-nil, the
+matching is case-sensitive.
+
+Second and third args RSTART and REND specify the region to
+operate on.  Lines partially contained in this region are copied
+if and only if they contain a match entirely contained in the
+region.
+
+Interactively, in Transient Mark mode when the mark is active,
+operate on the contents of the region.  Otherwise, operate from
+point to the end of (the accessible portion of) the buffer.
+
+If a match is split across lines, all the lines it lies in are
+copied.
+
+Return the number of copied matching lines.  When called
+interactively, also print the number."
+  (interactive
+   (keep-lines-read-args "Copy lines containing match for regexp"))
+  (if rstart
+      (progn
+	(goto-char (min rstart rend))
+	(setq rend (copy-marker (max rstart rend))))
+    (if (and interactive (use-region-p))
+	(setq rstart (region-beginning)
+	      rend (copy-marker (region-end)))
+      (setq rstart (point)
+	    rend (point-max-marker)))
+    (goto-char rstart))
+  (let ((count 0)
+        (case-fold-search
+	 (if (and case-fold-search search-upper-case)
+	     (isearch-no-upper-case-p regexp t)
+	   case-fold-search)))
+    (save-excursion
+      (while (and (< (point) rend)
+		  (re-search-forward regexp rend t))
+	(unless (zerop count)
+          (setq last-command 'kill-region))
+	(copy-region-as-kill (save-excursion (goto-char (match-beginning 0))
+                                             (forward-line 0)
+                                             (point))
+                             (progn (forward-line 1) (point)))
+        (setq count (1+ count))))
+    (set-marker rend nil)
+    (when interactive (message (ngettext "Copied %d matching line"
+					 "Copied %d matching lines"
+					 count)
+			       count))
+    count))
+
 (defun how-many (regexp &optional rstart rend interactive)
   "Print and return number of matches for REGEXP following point.
 When called from Lisp and INTERACTIVE is omitted or nil, just return
@@ -1233,18 +1353,27 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
     (occur-mode)
     (message "Switching to Occur mode.")))
 
+(defun occur--targets-start (targets)
+  "First marker of the `occur-target' property value TARGETS."
+  (if (consp targets)
+      (caar targets)
+    ;; Tolerate an `occur-target' value that is a single marker for
+    ;; compatibility.
+    targets))
+
 (defun occur-after-change-function (beg end length)
   (save-excursion
     (goto-char beg)
     (let* ((line-beg (line-beginning-position))
-	   (m (get-text-property line-beg 'occur-target))
+	   (targets (get-text-property line-beg 'occur-target))
+           (m (occur--targets-start targets))
 	   (buf (marker-buffer m))
 	   col)
       (when (and (get-text-property line-beg 'occur-prefix)
 		 (not (get-text-property end 'occur-prefix)))
 	(when (= length 0)
 	  ;; Apply occur-target property to inserted (e.g. yanked) text.
-	  (put-text-property beg end 'occur-target m)
+	  (put-text-property beg end 'occur-target targets)
 	  ;; Did we insert a newline?  Occur Edit mode can't create new
 	  ;; Occur entries; just discard everything after the newline.
 	  (save-excursion
@@ -1269,8 +1398,27 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 	    (recenter line)
 	    (if readonly
 		(message "Buffer `%s' is read only." buf)
-	      (delete-region (line-beginning-position) (line-end-position))
-	      (insert text))
+              ;; Replace the line, but make the change as small as
+              ;; possible by shrink-wrapping.  That way, we avoid
+              ;; disturbing markers unnecessarily.
+              (let* ((beg-pos (line-beginning-position))
+                     (end-pos (line-end-position))
+                     (buf-str (buffer-substring-no-properties beg-pos end-pos))
+                     (common-prefix
+                      (lambda (s1 s2)
+                        (let ((c (compare-strings s1 nil nil s2 nil nil)))
+                          (if (zerop c)
+                              (length s1)
+                            (1- (abs c))))))
+                     (prefix-len (funcall common-prefix buf-str text))
+                     (suffix-len (funcall common-prefix
+                                          (reverse buf-str) (reverse text))))
+                (setq beg-pos (+ beg-pos prefix-len))
+                (setq end-pos (- end-pos suffix-len))
+                (setq text (substring text prefix-len (- suffix-len)))
+                (delete-region beg-pos end-pos)
+                (goto-char beg-pos)
+                (insert text)))
 	    (move-to-column col)))))))
 
 
@@ -1278,35 +1426,38 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
   "Handle `revert-buffer' for Occur mode buffers."
   (apply #'occur-1 (append occur-revert-arguments (list (buffer-name)))))
 
-(defun occur-mode-find-occurrence ()
-  (let ((pos (get-text-property (point) 'occur-target)))
-    (unless pos
+(defun occur-mode--find-occurrences ()
+  ;; The `occur-target' property value is a list of (BEG . END) for each
+  ;; match on the line, or (for compatibility) a single marker to the start
+  ;; of the first match.
+  (let* ((targets (get-text-property (point) 'occur-target))
+         (start (occur--targets-start targets)))
+    (unless targets
       (error "No occurrence on this line"))
-    (unless (buffer-live-p (marker-buffer pos))
+    (unless (buffer-live-p (marker-buffer start))
       (error "Buffer for this occurrence was killed"))
-    pos))
+    targets))
 
 (defalias 'occur-mode-mouse-goto 'occur-mode-goto-occurrence)
 (defun occur-mode-goto-occurrence (&optional event)
   "Go to the occurrence specified by EVENT, a mouse click.
 If not invoked by a mouse click, go to occurrence on the current line."
   (interactive (list last-nonmenu-event))
-  (let ((buffer (when event (current-buffer)))
-        (pos
-         (if (null event)
-             ;; Actually `event-end' works correctly with a nil argument as
-             ;; well, so we could dispense with this test, but let's not
-             ;; rely on this undocumented behavior.
-             (occur-mode-find-occurrence)
-           (with-current-buffer (window-buffer (posn-window (event-end event)))
-             (save-excursion
-               (goto-char (posn-point (event-end event)))
-               (occur-mode-find-occurrence)))))
-        (regexp occur-highlight-regexp))
+  (let* ((buffer (when event (current-buffer)))
+         (targets
+          (if (null event)
+              ;; Actually `event-end' works correctly with a nil argument as
+              ;; well, so we could dispense with this test, but let's not
+              ;; rely on this undocumented behavior.
+              (occur-mode--find-occurrences)
+            (with-current-buffer (window-buffer (posn-window (event-end event)))
+              (save-excursion
+                (goto-char (posn-point (event-end event)))
+                (occur-mode--find-occurrences)))))
+         (pos (occur--targets-start targets)))
     (pop-to-buffer (marker-buffer pos))
     (goto-char pos)
-    (let ((end-mk (save-excursion (re-search-forward regexp nil t))))
-      (occur--highlight-occurrence pos end-mk))
+    (occur--highlight-occurrences targets)
     (when buffer (next-error-found buffer (current-buffer)))
     (run-hooks 'occur-mode-find-occurrence-hook)))
 
@@ -1314,15 +1465,15 @@ If not invoked by a mouse click, go to occurrence on the current line."
   "Go to the occurrence the current line describes, in another window."
   (interactive)
   (let ((buffer (current-buffer))
-        (pos (occur-mode-find-occurrence)))
+        (pos (occur--targets-start (occur-mode--find-occurrences))))
     (switch-to-buffer-other-window (marker-buffer pos))
     (goto-char pos)
     (next-error-found buffer (current-buffer))
     (run-hooks 'occur-mode-find-occurrence-hook)))
 
-;; Stolen from compile.el
 (defun occur-goto-locus-delete-o ()
-  (delete-overlay occur-highlight-overlay)
+  (mapc #'delete-overlay occur-highlight-overlays)
+  (setq occur-highlight-overlays nil)
   ;; Get rid of timer and hook that would try to do this again.
   (if (timerp next-error-highlight-timer)
       (cancel-timer next-error-highlight-timer))
@@ -1330,64 +1481,55 @@ If not invoked by a mouse click, go to occurrence on the current line."
                #'occur-goto-locus-delete-o))
 
 ;; Highlight the current visited occurrence.
-;; Adapted from `compilation-goto-locus'.
-(defun occur--highlight-occurrence (mk end-mk)
-  (let ((highlight-regexp occur-highlight-regexp))
-    (if (timerp next-error-highlight-timer)
-        (cancel-timer next-error-highlight-timer))
-    (unless occur-highlight-overlay
-      (setq occur-highlight-overlay
-	    (make-overlay (point-min) (point-min)))
-      (overlay-put occur-highlight-overlay 'face 'next-error))
-    (with-current-buffer (marker-buffer mk)
-      (save-excursion
-        (if end-mk (goto-char end-mk) (end-of-line))
-        (let ((end (point)))
-	  (if mk (goto-char mk) (beginning-of-line))
-	  (if (and (stringp highlight-regexp)
-		   (re-search-forward highlight-regexp end t))
-	      (progn
-	        (goto-char (match-beginning 0))
-	        (move-overlay occur-highlight-overlay
-			      (match-beginning 0) (match-end 0)
-			      (current-buffer)))
-	    (move-overlay occur-highlight-overlay
-			  (point) end (current-buffer)))
-	  (if (or (eq next-error-highlight t)
-		  (numberp next-error-highlight))
-	      ;; We want highlighting: delete overlay on next input.
-	      (add-hook 'pre-command-hook
-		        #'occur-goto-locus-delete-o)
-	    ;; We don't want highlighting: delete overlay now.
-	    (delete-overlay occur-highlight-overlay))
-	  ;; We want highlighting for a limited time:
-	  ;; set up a timer to delete it.
-	  (when (numberp next-error-highlight)
-	    (setq next-error-highlight-timer
-		  (run-at-time next-error-highlight nil
-			       'occur-goto-locus-delete-o))))))
-    (when (eq next-error-highlight 'fringe-arrow)
-      ;; We want a fringe arrow (instead of highlighting).
-      (setq next-error-overlay-arrow-position
-	    (copy-marker (line-beginning-position))))))
+(defun occur--highlight-occurrences (targets)
+  (let ((start-marker (occur--targets-start targets)))
+    (occur-goto-locus-delete-o)
+    (with-current-buffer (marker-buffer start-marker)
+      (when (or (eq next-error-highlight t)
+	        (numberp next-error-highlight))
+        (setq occur-highlight-overlays
+              (mapcar (lambda (target)
+                        (let ((o (make-overlay (car target) (cdr target))))
+                          (overlay-put o 'face 'next-error)
+                          o))
+                      (if (listp targets)
+                          targets
+                        ;; `occur-target' compatibility: when we only
+                        ;; have a single starting point, highlight the
+                        ;; rest of the line.
+                        (let ((end-pos (save-excursion
+                                         (goto-char start-marker)
+                                         (line-end-position))))
+                          (list (cons start-marker end-pos))))))
+        (add-hook 'pre-command-hook #'occur-goto-locus-delete-o)
+        (when (numberp next-error-highlight)
+          ;; We want highlighting for a limited time:
+          ;; set up a timer to delete it.
+	  (setq next-error-highlight-timer
+	        (run-at-time next-error-highlight nil
+			     'occur-goto-locus-delete-o))))
+
+      (when (eq next-error-highlight 'fringe-arrow)
+        ;; We want a fringe arrow (instead of highlighting).
+        (setq next-error-overlay-arrow-position
+	      (copy-marker (line-beginning-position)))))))
 
 (defun occur-mode-display-occurrence ()
   "Display in another window the occurrence the current line describes."
   (interactive)
-  (let ((buffer (current-buffer))
-        (pos (occur-mode-find-occurrence))
-        (regexp occur-highlight-regexp)
-        (next-error-highlight next-error-highlight-no-select)
-        (display-buffer-overriding-action
-         '(nil (inhibit-same-window . t)))
-	window)
+  (let* ((buffer (current-buffer))
+         (targets (occur-mode--find-occurrences))
+         (pos (occur--targets-start targets))
+         (next-error-highlight next-error-highlight-no-select)
+         (display-buffer-overriding-action
+          '(nil (inhibit-same-window . t)))
+	 window)
     (setq window (display-buffer (marker-buffer pos) t))
     ;; This is the way to set point in the proper window.
     (save-selected-window
       (select-window window)
       (goto-char pos)
-      (let ((end-mk (save-excursion (re-search-forward regexp nil t))))
-        (occur--highlight-occurrence pos end-mk))
+      (occur--highlight-occurrences targets)
       (next-error-found buffer (current-buffer))
       (run-hooks 'occur-mode-find-occurrence-hook))))
 
@@ -1744,7 +1886,6 @@ See also `multi-occur'."
 	    (buffer-undo-list t)
 	    (occur--final-pos nil))
 	(erase-buffer)
-        (setq-local occur-highlight-regexp regexp)
 	(let ((count
 	       (if (stringp nlines)
                    ;; Treat nlines as a regexp to collect.
@@ -1844,7 +1985,7 @@ See also `multi-occur'."
 		       (origpt nil)
 		       (begpt nil)
 		       (endpt nil)
-		       (marker nil)
+                       markers            ; list of (BEG-MARKER . END-MARKER)
 		       (curstring "")
 		       (ret nil)
 	               ;; The following binding is for when case-fold-search
@@ -1870,8 +2011,7 @@ See also `multi-occur'."
 		        (setq endpt (line-end-position)))
 		      ;; Sum line numbers up to the first match line.
 		      (setq curr-line (+ curr-line (count-lines origpt begpt)))
-		      (setq marker (make-marker))
-		      (set-marker marker matchbeg)
+                      (setq markers nil)
 		      (setq curstring (occur-engine-line begpt endpt keep-props))
 		      ;; Highlight the matches
 		      (let ((len (length curstring))
@@ -1893,6 +2033,11 @@ See also `multi-occur'."
 			    (setq orig-line-shown-p t)))
 		        (while (and (< start len)
 				    (string-match regexp curstring start))
+                          (push (cons (set-marker (make-marker)
+                                                  (+ begpt (match-beginning 0)))
+                                      (set-marker (make-marker)
+                                                  (+ begpt (match-end 0))))
+                                markers)
 			  (setq matches (1+ matches))
 			  (add-text-properties
 			   (match-beginning 0) (match-end 0)
@@ -1905,6 +2050,7 @@ See also `multi-occur'."
 			  ;; Avoid infloop (Bug#7593).
 			  (let ((end (match-end 0)))
 			    (setq start (if (= start end) (1+ start) end)))))
+                      (setq markers (nreverse markers))
 		      ;; Generate the string to insert for this match
 		      (let* ((match-prefix
 			      ;; Using 7 digits aligns tabs properly.
@@ -1918,7 +2064,7 @@ See also `multi-occur'."
 				                     ;; (for Occur Edit mode).
 				                     front-sticky t
 						     rear-nonsticky t
-						     occur-target ,marker
+						     occur-target ,markers
 						     follow-link t
 				                     help-echo "mouse-2: go to this occurrence"))))
 			     (match-str
@@ -1926,7 +2072,7 @@ See also `multi-occur'."
 			      ;; because that loses.  And don't put it
 			      ;; on context lines to reduce flicker.
 			      (propertize curstring
-					  'occur-target marker
+					  'occur-target markers
 					  'follow-link t
 					  'help-echo
 					  "mouse-2: go to this occurrence"))
@@ -1945,8 +2091,8 @@ See also `multi-occur'."
                                 ;; get a contiguous highlight.
 			        (propertize (concat match-prefix match-str)
                                             'mouse-face 'highlight))
-			       ;; Add marker at eol, but no mouse props.
-			       (propertize "\n" 'occur-target marker)))
+			       ;; Add markers at eol, but no mouse props.
+			       (propertize "\n" 'occur-target markers)))
 			     (data
 			      (if (= nlines 0)
 				  ;; The simple display style

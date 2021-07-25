@@ -581,6 +581,23 @@ stopped thread is already selected."
   :group 'gdb-buffers
   :version "23.2")
 
+(defcustom gdb-registers-enable-filter nil
+  "If non-nil, enable register name filter in register buffer.
+Use `gdb-registers-filter-pattern-list' to control what register to
+filter."
+  :type 'boolean
+  :group 'gdb-buffers
+  :version "28.1")
+
+(defcustom gdb-registers-filter-pattern-list nil
+  "Patterns for names that are displayed in register buffer.
+Each pattern is a regular expression.  GDB displays registers
+whose name matches any pattern in the list.  Refresh the register
+buffer for the change to take effect."
+  :type 'list
+  :group 'gdb-buffers
+  :version "28.1")
+
 (defvar gdb-debug-log nil
   "List of commands sent to and replies received from GDB.
 Most recent commands are listed first.  This list stores only the last
@@ -4393,6 +4410,26 @@ member."
  'gdb-registers-mode
  'gdb-invalidate-registers)
 
+(defun gdb-header-click-event-handler (function)
+  "Return a function that handles clicking event on gdb header buttons.
+
+This function switches to the window where the header locates and
+executes FUNCTION."
+  (lambda (event)
+    (interactive "e")
+    (save-selected-window
+      ;; Make sure we are in the right buffer.
+      (select-window (posn-window (event-start event)))
+      (funcall function))))
+
+(defun gdb-registers-toggle-filter ()
+  "Toggle register filter."
+  (interactive)
+  (setq gdb-registers-enable-filter
+        (not gdb-registers-enable-filter))
+  ;; Update the register buffer.
+  (gdb-invalidate-registers 'update))
+
 (defun gdb-registers-handler-custom ()
   (when gdb-register-names
     (let ((register-values
@@ -4403,17 +4440,27 @@ member."
                (value (gdb-mi--field register 'value))
                (register-name (nth (string-to-number register-number)
                                    gdb-register-names)))
-          (gdb-table-add-row
-           table
-           (list
-            (propertize register-name
-                        'font-lock-face font-lock-variable-name-face)
-            (if (member register-number gdb-changed-registers)
-                (propertize value 'font-lock-face font-lock-warning-face)
-              value))
-           `(mouse-face highlight
-                        help-echo "mouse-2: edit value"
-                        gdb-register-name ,register-name))))
+          ;; Add register if `gdb-registers-filter-pattern-list' is nil;
+          ;; or any pattern that `gdb-registers-filter-pattern-list'
+          ;; matches.
+          (when (or (null gdb-registers-enable-filter)
+                    ;; Return t if any register name matches a pattern.
+                    (cl-loop for pattern
+                             in gdb-registers-filter-pattern-list
+                             if (string-match pattern register-name)
+                             return t
+                             finally return nil))
+            (gdb-table-add-row
+             table
+             (list
+              (propertize register-name
+                          'font-lock-face font-lock-variable-name-face)
+              (if (member register-number gdb-changed-registers)
+                  (propertize value 'font-lock-face font-lock-warning-face)
+                value))
+             `(mouse-face highlight
+                          help-echo "mouse-2: edit value"
+                          gdb-register-name ,register-name)))))
       (insert (gdb-table-string table " ")))
     (setq mode-name
           (gdb-current-context-mode-name "Registers"))))
@@ -4441,6 +4488,7 @@ member."
                             (gdb-get-buffer-create
                              'gdb-locals-buffer
                              gdb-thread-number) t)))
+    (define-key map "f" #'gdb-registers-toggle-filter)
     map))
 
 (defvar gdb-registers-header
@@ -4450,7 +4498,31 @@ member."
                           mode-line-inactive)
    " "
    (gdb-propertize-header "Registers" gdb-registers-buffer
-			  nil nil mode-line)))
+			  nil nil mode-line)
+   " "
+   '(:eval
+     (format
+      "[filter %s %s]"
+      (propertize
+       (if gdb-registers-enable-filter "[on]" "[off]")
+       'face (if gdb-registers-enable-filter
+                 '(:weight bold :inherit success)
+               'shadow)
+       'help-echo "mouse-1: toggle filter"
+       'mouse-face 'mode-line-highlight
+       'local-map (gdb-make-header-line-mouse-map
+                   'mouse-1 (gdb-header-click-event-handler
+                             #'gdb-registers-toggle-filter)))
+      (propertize
+       "[set]"
+       'face 'mode-line
+       'help-echo "mouse-1: Customize filter patterns"
+       'mouse-face 'mode-line-highlight
+       'local-map (gdb-make-header-line-mouse-map
+                   'mouse-1 (lambda ()
+                              (interactive)
+                              (customize-variable-other-window
+                               'gdb-registers-filter-pattern-list))))))))
 
 (define-derived-mode gdb-registers-mode gdb-parent-mode "Registers"
   "Major mode for gdb registers."

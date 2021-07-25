@@ -4557,11 +4557,13 @@ face_before_or_after_it_pos (struct it *it, bool before_p)
       ptrdiff_t bufpos, charpos;
       int base_face_id;
 
-      /* No face change past the end of the string (for the case
-	 we are padding with spaces).  No face change before the
-	 string start.  */
+      /* No face change past the end of the string (for the case we
+	 are padding with spaces).  No face change before the string
+	 start.  Ignore face changes before the first visible
+	 character on this display line.  */
       if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string)
-	  || (IT_STRING_CHARPOS (*it) == 0 && before_p))
+	  || (IT_STRING_CHARPOS (*it) == 0 && before_p)
+	  || it->current_x <= it->first_visible_x)
 	return it->face_id;
 
       if (!it->bidi_p)
@@ -4580,51 +4582,47 @@ face_before_or_after_it_pos (struct it *it, bool before_p)
 	}
       else
 	{
-	  if (before_p)
+	  /* With bidi iteration, the character before the current in
+	     the visual order cannot be found by simple iteration,
+	     because "reverse" reordering is not supported.  Instead,
+	     we need to start from the string beginning and go all the
+	     way to the current string position, remembering the
+	     visually-previous position.  We need to start from the
+	     string beginning for the character after the current as
+	     well, since the iterator state in IT may have been
+	     pushed, and the bidi cache is no longer coherent with the
+	     string's text.  */
+	  SAVE_IT (it_copy, *it, it_copy_data);
+	  IT_STRING_CHARPOS (it_copy) = 0;
+	  bidi_init_it (0, 0, FRAME_WINDOW_P (it_copy.f), &it_copy.bidi_it);
+
+	  do
 	    {
-	      /* With bidi iteration, the character before the current
-		 in the visual order cannot be found by simple
-		 iteration, because "reverse" reordering is not
-		 supported.  Instead, we need to start from the string
-		 beginning and go all the way to the current string
-		 position, remembering the previous position.  */
-	      /* Ignore face changes before the first visible
-		 character on this display line.  */
-	      if (it->current_x <= it->first_visible_x)
-		return it->face_id;
-	      SAVE_IT (it_copy, *it, it_copy_data);
-	      IT_STRING_CHARPOS (it_copy) = 0;
-	      bidi_init_it (0, 0, FRAME_WINDOW_P (it_copy.f), &it_copy.bidi_it);
-
-	      do
-		{
-		  charpos = IT_STRING_CHARPOS (it_copy);
-		  if (charpos >= SCHARS (it->string))
-		    break;
-		  bidi_move_to_visually_next (&it_copy.bidi_it);
-		}
-	      while (IT_STRING_CHARPOS (it_copy) != IT_STRING_CHARPOS (*it));
-
-	      RESTORE_IT (it, it, it_copy_data);
+	      charpos = it_copy.bidi_it.charpos;
+	      if (charpos >= SCHARS (it->string))
+		break;
+	      bidi_move_to_visually_next (&it_copy.bidi_it);
 	    }
-	  else
+	  while (it_copy.bidi_it.charpos != IT_STRING_CHARPOS (*it));
+
+	  if (!before_p)
 	    {
 	      /* Set charpos to the string position of the character
 		 that comes after IT's current position in the visual
 		 order.  */
 	      int n = (it->what == IT_COMPOSITION ? it->cmp_it.nchars : 1);
-
-	      it_copy = *it;
-	      /* If this is the first display element,
+	      /* If this is the first string character,
 		 bidi_move_to_visually_next will deliver character at
 		 current position without moving, so we need to enlarge N.  */
-	      if (it->bidi_it.first_elt)
+	      if (it_copy.bidi_it.first_elt)
 		n++;
 	      while (n--)
 		bidi_move_to_visually_next (&it_copy.bidi_it);
 
 	      charpos = it_copy.bidi_it.charpos;
 	    }
+
+	  RESTORE_IT (it, it, it_copy_data);
 	}
       eassert (0 <= charpos && charpos <= SCHARS (it->string));
 
@@ -22765,6 +22763,22 @@ get_it_property (struct it *it, Lisp_Object prop)
   return Fget_char_property (position, prop, object);
 }
 
+/* Return the line-prefix/wrap-prefix property, checking both the
+   current IT->OBJECT and the underlying buffer text.  */
+
+static Lisp_Object
+get_line_prefix_it_property (struct it *it, Lisp_Object prop)
+{
+  Lisp_Object prefix = get_it_property (it, prop);
+
+  /* If we are looking at a display or overlay string, check also the
+     underlying buffer text.  */
+  if (NILP (prefix) && it->sp > 0 && STRINGP (it->object))
+    return Fget_char_property (make_fixnum (IT_CHARPOS (*it)), prop,
+			       it->w->contents);
+  return prefix;
+}
+
 /* See if there's a line- or wrap-prefix, and if so, push it on IT.  */
 
 static void
@@ -22774,13 +22788,13 @@ handle_line_prefix (struct it *it)
 
   if (it->continuation_lines_width > 0)
     {
-      prefix = get_it_property (it, Qwrap_prefix);
+      prefix = get_line_prefix_it_property (it, Qwrap_prefix);
       if (NILP (prefix))
 	prefix = Vwrap_prefix;
     }
   else
     {
-      prefix = get_it_property (it, Qline_prefix);
+      prefix = get_line_prefix_it_property (it, Qline_prefix);
       if (NILP (prefix))
 	prefix = Vline_prefix;
     }

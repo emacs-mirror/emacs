@@ -595,10 +595,8 @@ usage: (json-serialize OBJECT &rest ARGS)  */)
       Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
     }
   if (!json_initialized)
-    {
-      message1 ("jansson library not found");
-      return Qnil;
-    }
+    Fsignal (Qjson_unavailable,
+	     list1 (build_unibyte_string ("jansson library not found")));
 #endif
 
   struct json_configuration conf =
@@ -706,10 +704,8 @@ usage: (json-insert OBJECT &rest ARGS)  */)
       Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
     }
   if (!json_initialized)
-    {
-      message1 ("jansson library not found");
-      return Qnil;
-    }
+    Fsignal (Qjson_unavailable,
+	     list1 (build_unibyte_string ("jansson library not found")));
 #endif
 
   struct json_configuration conf =
@@ -965,10 +961,8 @@ usage: (json-parse-string STRING &rest ARGS) */)
       Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
     }
   if (!json_initialized)
-    {
-      message1 ("jansson library not found");
-      return Qnil;
-    }
+    Fsignal (Qjson_unavailable,
+	     list1 (build_unibyte_string ("jansson library not found")));
 #endif
 
   Lisp_Object string = args[0];
@@ -1064,10 +1058,8 @@ usage: (json-parse-buffer &rest args) */)
       Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
     }
   if (!json_initialized)
-    {
-      message1 ("jansson library not found");
-      return Qnil;
-    }
+    Fsignal (Qjson_unavailable,
+	     list1 (build_unibyte_string ("jansson library not found")));
 #endif
 
   struct json_configuration conf =
@@ -1129,6 +1121,7 @@ syms_of_json (void)
   DEFSYM (Qjson_end_of_file, "json-end-of-file");
   DEFSYM (Qjson_trailing_content, "json-trailing-content");
   DEFSYM (Qjson_object_too_deep, "json-object-too-deep");
+  DEFSYM (Qjson_unavailable, "json-unavailable");
   define_error (Qjson_error, "generic JSON error", Qerror);
   define_error (Qjson_out_of_memory,
                 "not enough memory for creating JSON object", Qjson_error);

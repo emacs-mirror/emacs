@@ -1971,6 +1971,17 @@ it never deletes lines that are only partially contained in the region
 (a newline that ends a line counts as part of that line).
 
 If a match is split across lines, this command keeps all those lines.
+
+@findex kill-matching-lines
+@item M-x kill-matching-lines
+Like @code{flush-lines}, but also add the matching lines to the kill
+ring.  The command adds the matching lines to the kill ring as a
+single string, including the newlines that separated the lines.
+
+@findex copy-matching-lines
+@item M-x copy-matching-lines
+Like @code{kill-matching-lines}, but the matching lines are not
+removed from the buffer.
 @end table
 
 @node Search Customizations

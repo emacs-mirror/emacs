@@ -208,9 +208,10 @@ URL-encoded before it's used."
 			     (url-find-proxy-for-url url (url-host url))))
 	(buffer nil)
 	(asynch (url-scheme-get-property (url-type url) 'asynchronous-p)))
-    (if url-using-proxy
-	(setq asynch t
-	      loader #'url-proxy))
+    (when url-using-proxy
+      (setf asynch t
+	    loader #'url-proxy
+            (url-asynchronous url) t))
     (if asynch
 	(let ((url-current-object url))
 	  (setq buffer (funcall loader url callback cbargs)))

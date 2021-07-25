@@ -75,6 +75,7 @@
 ;;; Code:
 
 (defvar comint-last-output-start)
+(defvar compilation-filter-start)
 
 ;; Customization
 
@@ -181,6 +182,24 @@ in shell buffers.  You set this variable by calling one of:
   :group 'ansi-colors
   :version "23.2")
 
+(defcustom ansi-color-for-compilation-mode t
+  "Determines what to do with compilation output.
+If nil, do nothing.
+
+If the symbol `filter', then filter all ANSI graphical control
+sequences.
+
+If anything else (such as t), then translate ANSI graphical
+control sequences into text properties.
+
+In order for this to have any effect, `ansi-color-compilation-filter'
+must be in `compilation-filter-hook'."
+  :type '(choice (const :tag "Do nothing" nil)
+                 (const :tag "Filter" filter)
+                 (other :tag "Translate" t))
+  :group 'ansi-colors
+  :version "28.1")
+
 (defvar ansi-color-apply-face-function #'ansi-color-apply-overlay-face
   "Function for applying an Ansi Color face to text in a buffer.
 This function should accept three arguments: BEG, END, and FACE,
@@ -227,6 +246,19 @@ This is a good function to put in `comint-output-filter-functions'."
 	   (ansi-color-filter-region start-marker end-marker))
 	  (t
 	   (ansi-color-apply-on-region start-marker end-marker)))))
+
+;;;###autoload
+(defun ansi-color-compilation-filter ()
+  "Maybe translate SGR control sequences into text properties.
+This function depends on the `ansi-color-for-compilation-mode'
+variable, and is meant to be used in `compilation-filter-hook'."
+  (let ((inhibit-read-only t))
+    (pcase ansi-color-for-compilation-mode
+      ('nil nil)
+      ('filter
+       (ansi-color-filter-region compilation-filter-start (point)))
+      (_
+       (ansi-color-apply-on-region compilation-filter-start (point))))))
 
 (define-obsolete-function-alias 'ansi-color-unfontify-region
   'font-lock-default-unfontify-region "24.1")

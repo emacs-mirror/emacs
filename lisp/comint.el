@@ -2471,10 +2471,13 @@ This function could be in the list `comint-output-filter-functions'."
 
 ;; Random input hackage
 
-(defun comint-delete-output ()
+(defun comint-delete-output (&optional kill)
   "Delete all output from interpreter since last input.
-Does not delete the prompt."
-  (interactive)
+If KILL (interactively, the prefix), save the killed text in the
+kill ring.
+
+This command does not delete the prompt."
+  (interactive "P")
   (let ((proc (get-buffer-process (current-buffer)))
 	(replacement nil)
 	(inhibit-read-only t))
@@ -2482,6 +2485,8 @@ Does not delete the prompt."
       (let ((pmark (progn (goto-char (process-mark proc))
 			  (forward-line 0)
 			  (point-marker))))
+        (when kill
+	  (copy-region-as-kill comint-last-input-end pmark))
 	(delete-region comint-last-input-end pmark)
 	(goto-char (process-mark proc))
 	(setq replacement (concat "*** output flushed ***\n"

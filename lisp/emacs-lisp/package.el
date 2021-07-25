@@ -2195,8 +2195,24 @@ Downloads and installs required packages as needed."
             ((derived-mode-p 'tar-mode)
              (package-tar-file-info))
             (t
-             (save-excursion
-              (package-buffer-info)))))
+             ;; Package headers should be parsed from decoded text
+             ;; (see Bug#48137) where possible.
+             (if (and (eq buffer-file-coding-system 'no-conversion)
+                      buffer-file-name)
+                 (let* ((package-buffer (current-buffer))
+                        (decoding-system
+                         (car (find-operation-coding-system
+                               'insert-file-contents
+                               (cons buffer-file-name
+                                     package-buffer)))))
+                   (with-temp-buffer
+                     (insert-buffer-substring package-buffer)
+                     (decode-coding-region (point-min) (point-max)
+                                           decoding-system)
+                     (package-buffer-info)))
+
+               (save-excursion
+                 (package-buffer-info))))))
          (name (package-desc-name pkg-desc)))
     ;; Download and install the dependencies.
     (let* ((requires (package-desc-reqs pkg-desc))
@@ -2222,6 +2238,7 @@ directory."
           (setq default-directory file)
           (dired-mode))
       (insert-file-contents-literally file)
+      (set-visited-file-name file)
       (when (string-match "\\.tar\\'" file) (tar-mode)))
     (package-install-from-buffer)))
 

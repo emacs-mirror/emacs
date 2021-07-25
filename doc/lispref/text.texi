@@ -5301,11 +5301,20 @@ represents @code{@{@}}, the empty JSON object; not @code{null},
 @code{false}, or an empty array, all of which are different JSON
 values.
 
+@defun json-available-p
+This predicate returns non-@code{nil} if Emacs has been built with
+@acronym{JSON} support, and the library is available on the current
+system.
+@end defun
+
   If some Lisp object can't be represented in JSON, the serialization
 functions will signal an error of type @code{wrong-type-argument}.
 The parsing functions can also signal the following errors:
 
 @table @code
+@item json-unavailable
+Signaled when the parsing library isn't available.
+
 @item json-end-of-file
 Signaled when encountering a premature end of the input text.
 

@@ -1861,9 +1861,12 @@ from the buffer.
 @item keymap
 @cindex keymap of character (and overlays)
 @kindex keymap @r{(overlay property)}
-If this property is non-@code{nil}, it specifies a keymap for a portion of the
-text.  This keymap is used when the character after point is within the
-overlay, and takes precedence over most other keymaps.  @xref{Active Keymaps}.
+If this property is non-@code{nil}, it specifies a keymap for a
+portion of the text.  This keymap takes precedence over most other
+keymaps (@pxref{Active Keymaps}), and it is used when point is within
+the overlay, where the front-
+and rear-advance properties define whether the boundaries are
+considered as being @emph{within} or not.
 
 @item local-map
 @kindex local-map @r{(overlay property)}

@@ -2026,6 +2026,18 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
   return 0;
 }
 
+/* Say whether SIGNAL is a `quit' symbol (or inherits from it).  */
+bool
+signal_quit_p (Lisp_Object signal)
+{
+  Lisp_Object list;
+
+  return EQ (signal, Qquit)
+    || (!NILP (Fsymbolp (signal))
+	&& CONSP (list = Fget (signal, Qerror_conditions))
+	&& !NILP (Fmemq (Qquit, list)));
+}
+
 /* Call the debugger if calling it is currently enabled for CONDITIONS.
    SIG and DATA describe the signal.  There are two ways to pass them:
     = SIG is the error symbol, and DATA is the rest of the data.
@@ -2044,7 +2056,7 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
       ! input_blocked_p ()
       && NILP (Vinhibit_debugger)
       /* Does user want to enter debugger for this kind of error?  */
-      && (EQ (sig, Qquit)
+      && (signal_quit_p (sig)
 	  ? debug_on_quit
 	  : wants_debugger (Vdebug_on_error, conditions))
       && ! skip_debugger (conditions, combined_data)

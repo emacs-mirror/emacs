@@ -274,6 +274,7 @@ Earlier variables shadow later ones with the same name.")
       ((pred byte-code-function-p)
        ;; (message "Inlining byte-code for %S!" name)
        ;; The byte-code will be really inlined in byte-compile-unfold-bcf.
+       (byte-compile--check-arity-bytecode form fn)
        `(,fn ,@(cdr form)))
       ((or `(lambda . ,_) `(closure . ,_))
        ;; While byte-compile-unfold-bcf can inline dynbind byte-code into
@@ -300,7 +301,9 @@ Earlier variables shadow later ones with the same name.")
                ;; surrounded the `defsubst'.
                (byte-compile-warnings nil))
            (byte-compile name))
-         `(,(symbol-function name) ,@(cdr form))))
+         (let ((bc (symbol-function name)))
+           (byte-compile--check-arity-bytecode form bc)
+           `(,bc ,@(cdr form)))))
 
       (_ ;; Give up on inlining.
        form))))
@@ -414,7 +417,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
              form)))
         (t form)))
       (`(quote . ,v)
-       (if (cdr v)
+       (if (or (not v) (cdr v))
 	   (byte-compile-warn "malformed quote form: `%s'"
 			      (prin1-to-string form)))
        ;; Map (quote nil) to nil to simplify optimizer logic.
@@ -667,8 +670,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 	              (byte-compile-log "  %s\t==>\t%s" old new)
                       (setq form new)
                       (not (eq new old))))))))
-  ;; Normalise (quote nil) to nil, for a single representation of constant nil.
-  (and (not (equal form '(quote nil))) form))
+  form)
 
 (defun byte-optimize-let-form (head form for-effect)
   ;; Recursively enter the optimizer for the bindings and body
@@ -969,6 +971,11 @@ See Info node `(elisp) Integer Basics'."
      ;; Arity errors reported elsewhere.
      form)))
 
+(defun byte-optimize-eq (form)
+  (pcase (cdr form)
+    ((or `(,x nil) `(nil ,x)) `(not ,x))
+    (_ (byte-optimize-binary-predicate form))))
+
 (defun byte-optimize-member (form)
   ;; Replace `member' or `memql' with `memq' if the first arg is a symbol,
   ;; or the second arg is a list of symbols.  Same with fixnums.
@@ -1056,7 +1063,7 @@ See Info node `(elisp) Integer Basics'."
 (put 'min 'byte-optimizer #'byte-optimize-min-max)
 
 (put '=   'byte-optimizer #'byte-optimize-binary-predicate)
-(put 'eq  'byte-optimizer #'byte-optimize-binary-predicate)
+(put 'eq  'byte-optimizer #'byte-optimize-eq)
 (put 'eql   'byte-optimizer #'byte-optimize-equal)
 (put 'equal 'byte-optimizer #'byte-optimize-equal)
 (put 'string= 'byte-optimizer #'byte-optimize-binary-predicate)
@@ -1072,7 +1079,7 @@ See Info node `(elisp) Integer Basics'."
 (defun byte-optimize-quote (form)
   (if (or (consp (nth 1 form))
 	  (and (symbolp (nth 1 form))
-	       (not (macroexp--const-symbol-p form))))
+	       (not (macroexp--const-symbol-p (nth 1 form)))))
       form
     (nth 1 form)))
 

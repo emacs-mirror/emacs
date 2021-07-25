@@ -722,7 +722,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (when (zerop (length name)) (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (concat (file-name-as-directory dir) name)))
+    (setq name (tramp-compat-file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
       (tramp-run-real-handler #'expand-file-name (list name nil))
@@ -1589,14 +1589,14 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let (file-locked
+    (let ((file-locked (eq (file-locked-p lockname) t))
 	  (curbuf (current-buffer))
 	  (tmpfile (tramp-compat-make-temp-file filename)))
 
       ;; Lock file.
       (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
 		 (file-remote-p lockname)
-		 (not (eq (file-locked-p lockname) t)))
+		 (not file-locked))
 	(setq file-locked t)
 	;; `lock-file' exists since Emacs 28.1.
 	(tramp-compat-funcall 'lock-file lockname))
@@ -1635,7 +1635,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	     (current-time))))
 
       ;; Unlock file.
-      (when (and file-locked (eq (file-locked-p lockname) t))
+      (when file-locked
 	;; `unlock-file' exists since Emacs 28.1.
 	(tramp-compat-funcall 'unlock-file lockname))
 

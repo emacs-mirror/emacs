@@ -375,7 +375,7 @@ in the order given by `git status'."
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let* ((rev (vc-working-revision file 'Git))
          (disp-rev (or (vc-git--symbolic-ref file)
-                       (substring rev 0 7)))
+                       (and rev (substring rev 0 7))))
          (def-ml (vc-default-mode-line-string 'Git file))
          (help-echo (get-text-property 0 'help-echo def-ml))
          (face   (get-text-property 0 'face def-ml)))
@@ -1772,6 +1772,7 @@ The difference to vc-do-command is that this function always invokes
         (process-environment
          (append
           `("GIT_DIR"
+            "GIT_LITERAL_PATHSPECS=1"
             ;; Avoid repository locking during background operations
             ;; (bug#21559).
             ,@(when revert-buffer-in-progress-p
@@ -1806,6 +1807,7 @@ The difference to vc-do-command is that this function always invokes
 	(process-environment
 	 (append
 	  `("GIT_DIR"
+            "GIT_LITERAL_PATHSPECS=1"
 	    ;; Avoid repository locking during background operations
 	    ;; (bug#21559).
 	    ,@(when revert-buffer-in-progress-p

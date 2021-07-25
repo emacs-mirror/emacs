@@ -338,6 +338,16 @@ not sent immediately but rather queued in the directory
 @code{smtpmail-send-queued-mail} (typically when you connect to the
 internet).
 
+@item smtpmail-store-queue-variables
+@vindex smtpmail-store-queue-variables
+  Normally the queue will be dispatched with the values of the
+@acronym{SMTP} variables that are in effect when @kbd{M-x
+smtpmail-send-queued-mail} is executed, but if
+@code{smtpmail-store-queue-variables} is non-@code{nil}, the values
+for @code{smtpmail-smtp-server} (etc.@:) will be stored when the mail is
+queued, and then used when actually sending the mail.  This can be
+useful if you have a complex outgoing mail setup.
+
 @item smtpmail-queue-dir
 @vindex smtpmail-queue-dir
   The variable @code{smtpmail-queue-dir} specifies the name of the
