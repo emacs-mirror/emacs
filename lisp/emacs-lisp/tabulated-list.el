@@ -214,6 +214,8 @@ If ADVANCE is non-nil, move forward by one line afterwards."
                             special-mode-map))
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
+    (define-key map (kbd "M-<left>") 'tabulated-list-previous-column)
+    (define-key map (kbd "M-<right>") 'tabulated-list-next-column)
     (define-key map "S" 'tabulated-list-sort)
     (define-key map "}" 'tabulated-list-widen-current-column)
     (define-key map "{" 'tabulated-list-narrow-current-column)
@@ -739,6 +741,28 @@ Interactively, N is the prefix numeric argument, and defaults to
         (when (not (= tabulated-list--current-lnum-width lnum-width))
           (setq-local tabulated-list--current-lnum-width lnum-width)
           (tabulated-list-init-header)))))
+
+(defun tabulated-list-next-column (&optional arg)
+  "Go to the start of the next column after point on the current line.
+If ARG is provided, move that many columns."
+  (interactive "p")
+  (dotimes (_ (or arg 1))
+    (let ((next (or (next-single-property-change
+                     (point) 'tabulated-list-column-name)
+                    (point-max))))
+      (when (<= next (line-end-position))
+        (goto-char next)))))
+
+(defun tabulated-list-previous-column (&optional arg)
+  "Go to the start of the column point is in on the current line.
+If ARG is provided, move that many columns."
+  (interactive "p")
+  (dotimes (_ (or arg 1))
+    (let ((prev (or (previous-single-property-change
+                     (point) 'tabulated-list-column-name)
+                    1)))
+      (unless (< prev (line-beginning-position))
+        (goto-char prev)))))
 
 ;;; The mode definition:
 

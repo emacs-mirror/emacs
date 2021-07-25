@@ -2331,6 +2331,9 @@ previously no easy way to get back to the original displayed order
 after sorting, but giving a -1 numerical prefix to the sorting command
 will now restore the original order.
 
+---
+*** 'M-left' and 'M-right' now move between columns in 'tabulated-list-mode'.
+
 +++
 *** New utility function 'insert-into-buffer'.
 This is like 'insert-buffer-substring', but works in the opposite
