@@ -594,7 +594,7 @@ filter."
 Each pattern is a regular expression.  GDB displays registers
 whose name matches any pattern in the list.  Refresh the register
 buffer for the change to take effect."
-  :type 'list
+  :type '(repeat regexp)
   :group 'gdb-buffers
   :version "28.1")
 
