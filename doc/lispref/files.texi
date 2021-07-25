@@ -2355,7 +2355,9 @@ didn't end with a slash.
 @end group
 @end example
 
-A zero-length directory or component is not allowed.
+A @var{directory} or components that are @code{nil} or the empty
+string are ignored---they are filtered out first and do not affect the
+results in any way.
 
 This is almost the same as using @code{concat}, but @var{dirname} (and
 the non-final components) may or may not end with slash characters,

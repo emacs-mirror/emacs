@@ -175,8 +175,11 @@ Also check that an encoding error can appear in a symlink."
     (aset string 2 255)
     (should (not (multibyte-string-p string)))
     (should (equal (directory-append "fóo" string) "fóo/aa\377aa")))
-  (should-error (directory-append "foo" ""))
-  (should-error (directory-append "" "bar"))
-  (should-error (directory-append "" "")))
+  (should (equal (directory-append "foo") "foo"))
+  (should (equal (directory-append "foo/") "foo/"))
+  (should (equal (directory-append "foo" "") "foo"))
+  (should (equal (directory-append "foo" "" "" "" nil) "foo"))
+  (should (equal (directory-append "" "bar") "bar"))
+  (should (equal (directory-append "" "") "")))
 
 ;;; fileio-tests.el ends here
