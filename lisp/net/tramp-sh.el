@@ -1946,7 +1946,7 @@ file names."
 	  (length (tramp-compat-file-attribute-size
 		   (file-attributes (file-truename filename))))
 	  (attributes (and preserve-extended-attributes
-			   (apply #'file-extended-attributes (list filename))))
+			   (file-extended-attributes filename)))
 	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -2022,7 +2022,7 @@ file names."
 	  ;; errors, because ACL strings could be incompatible.
 	  (when attributes
 	    (ignore-errors
-	      (apply #'set-file-extended-attributes (list newname attributes))))
+	      (set-file-extended-attributes newname attributes)))
 
 	  ;; In case of `rename', we must flush the cache of the source file.
 	  (when (and t1 (eq op 'rename))

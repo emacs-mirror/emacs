@@ -4096,7 +4096,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
 	    (should (file-selinux-context tmp-name1))
-	    (copy-file tmp-name1 tmp-name2)
+	    (copy-file tmp-name1 tmp-name2 nil nil nil 'preserve-permissions)
 	    (should (file-selinux-context tmp-name2))
 	    (should
 	     (equal
