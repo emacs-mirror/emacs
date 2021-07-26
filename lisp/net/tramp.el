@@ -586,8 +586,7 @@ Sometimes the prompt is reported to look like \"login as:\"."
 
 (defcustom tramp-shell-prompt-pattern
   ;; Allow a prompt to start right after a ^M since it indeed would be
-  ;; displayed at the beginning of the line (and Zsh uses it).  This
-  ;; regexp works only for GNU Emacs.
+  ;; displayed at the beginning of the line (and Zsh uses it).
   ;; Allow also [] style prompts.  They can appear only during
   ;; connection initialization; Tramp redefines the prompt afterwards.
   (concat "\\(?:^\\|\r\\)"
@@ -701,7 +700,7 @@ The regexp should match at end of buffer."
 ;; Yubikey requires the user physically to touch the device with their
 ;; finger.  We must tell it to the user.
 (defcustom tramp-yubikey-regexp
-  "Confirm user presence for key .*"
+  "^\r*Confirm user presence for key .*\r*"
   "Regular expression matching yubikey confirmation message.
 The regexp should match at end of buffer."
   :version "28.1"
@@ -1914,7 +1913,7 @@ The outline level is equal to the verbosity of the Tramp message."
 (put #'tramp-trace-buffer-name 'tramp-suppress-trace t)
 
 (defvar tramp-trace-functions nil
-  "A list of non-Tramp functions to be trace with tramp-verbose > 10.")
+  "A list of non-Tramp functions to be traced with tramp-verbose > 10.")
 
 (defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
@@ -4588,6 +4587,9 @@ of."
 ;; prompts from the remote host.  See the variable
 ;; `tramp-actions-before-shell' for usage of these functions.
 
+(defvar tramp-process-action-regexp nil
+  "The regexp used to invoke an action in `tramp-process-one-action'.")
+
 (defun tramp-action-login (_proc vec)
   "Send the login name."
   (let ((user (or (tramp-file-name-user vec)
@@ -4613,7 +4615,7 @@ of."
       (unless (tramp-get-connection-property vec "first-password-request" nil)
 	(tramp-clear-passwd vec))
       (goto-char (point-min))
-      (tramp-check-for-regexp proc tramp-password-prompt-regexp)
+      (tramp-check-for-regexp proc tramp-process-action-regexp)
       (tramp-message vec 3 "Sending %s" (match-string 1))
       ;; We don't call `tramp-send-string' in order to hide the
       ;; password from the debug buffer and the traces.
@@ -4678,16 +4680,21 @@ The terminal type can be configured with `tramp-terminal-type'."
   (tramp-send-string vec tramp-local-end-of-line)
   t)
 
-(defun tramp-action-show-and-confirm-message (_proc vec)
+(defun tramp-action-show-and-confirm-message (proc vec)
   "Show the user a message for confirmation.
-Wait, until the user has entered RET."
-  (save-window-excursion
+Wait, until the connection buffer changes."
+  (with-current-buffer (process-buffer proc)
     (let ((enable-recursive-minibuffers t)
           (stimers (with-timeout-suspend)))
-      (with-current-buffer (tramp-get-connection-buffer vec)
-	(tramp-message vec 6 "\n%s" (buffer-string))
-	(pop-to-buffer (current-buffer)))
-      (read-string "Press ENTER to continue")
+      (tramp-message vec 6 "\n%s" (buffer-string))
+      (goto-char (point-min))
+      (tramp-check-for-regexp proc tramp-process-action-regexp)
+      (tramp-message
+       vec 0 "%s" (replace-regexp-in-string "\r" "" (match-string 1)))
+      ;; Hide message.
+      (narrow-to-region (point-max) (point-max))
+      ;; Wait for new output.
+      (tramp-wait-for-regexp proc 30 ".")
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers)))
   t)
@@ -4729,6 +4736,7 @@ Wait, until the user has entered RET."
   "Wait for output from the shell and perform one action.
 See `tramp-process-actions' for the format of ACTIONS."
   (let ((case-fold-search t)
+	tramp-process-action-regexp
 	found todo item pattern action)
     (while (not found)
       ;; Reread output once all actions have been performed.
@@ -4737,7 +4745,8 @@ See `tramp-process-actions' for the format of ACTIONS."
       (setq todo actions)
       (while todo
 	(setq item (pop todo)
-	      pattern (format "\\(%s\\)\\'" (symbol-value (nth 0 item)))
+	      tramp-process-action-regexp (symbol-value (nth 0 item))
+	      pattern (format "\\(%s\\)\\'" tramp-process-action-regexp)
 	      action (nth 1 item))
 	(tramp-message
 	 vec 5 "Looking for regexp \"%s\" from remote shell" pattern)
