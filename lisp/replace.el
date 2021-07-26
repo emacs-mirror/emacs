@@ -1407,9 +1407,9 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
                      (common-prefix
                       (lambda (s1 s2)
                         (let ((c (compare-strings s1 nil nil s2 nil nil)))
-                          (if (zerop c)
-                              (length s1)
-                            (1- (abs c))))))
+                          (if (numberp c)
+                              (1- (abs c))
+                            (length s1)))))
                      (prefix-len (funcall common-prefix buf-str text))
                      (suffix-len (funcall common-prefix
                                           (reverse buf-str) (reverse text))))
