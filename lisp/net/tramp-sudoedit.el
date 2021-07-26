@@ -817,6 +817,9 @@ in case of error, t otherwise."
 		      (tramp-compat-flatten-tree args))))
 	   ;; We suppress the messages `Waiting for prompts from remote shell'.
 	   (tramp-verbose (if (= tramp-verbose 3) 2 tramp-verbose))
+	   ;; The password shall be cached also in case of "emacs -Q".
+	   ;; See `tramp-process-actions'.
+	   (tramp-cache-read-persistent-data t)
 	   ;; We do not want to save the password.
 	   auth-source-save-behavior)
       (tramp-message vec 6 "%s" (string-join (process-command p) " "))

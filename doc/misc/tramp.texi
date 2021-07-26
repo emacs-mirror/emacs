@@ -4255,16 +4255,9 @@ test, @ref{Cleanup remote connections}.  Alternatively, and often
 better for analysis, reproduce the problem in a clean Emacs session
 started with @command{emacs -Q}.  Then, @value{tramp} does not load
 the persistency file (@pxref{Connection caching}), and it does not use
-passwords from @file{auth-source.el} (@pxref{Password handling}).  If
-you really need a password cache, for example for the
-@option{sudoedit} method, call
-
-@smallexample
-emacs -Q -l tramp \
-  --eval '(setq tramp-cache-read-persistent-data t)' \
-  --eval '(tramp-cleanup-all-connections)'
-@end smallexample
-
+passwords from @file{auth-source.el} (@pxref{Password handling}).  The
+latter does not happen for the @option{sudoedit} method, otherwise it
+would be unusable.
 
 When including @value{tramp}'s messages in the bug report, increase
 the verbosity level to 6 (@pxref{Traces and Profiles, Traces}) in the
