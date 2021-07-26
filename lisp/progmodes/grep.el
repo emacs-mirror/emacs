@@ -389,7 +389,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
                    (and mbeg (next-single-property-change
                               mbeg 'font-lock-face nil end))))
              (when mend
-               (- mend beg))))))
+               (- mend beg 1))))))
      nil nil
      (3 '(face nil display ":")))
     ("^Binary file \\(.+\\) matches" 1 nil nil 0 1))
