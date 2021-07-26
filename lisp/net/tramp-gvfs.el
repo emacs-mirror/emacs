@@ -1633,8 +1633,10 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 ID-FORMAT valid values are `string' and `integer'."
   (if (equal id-format 'string)
       (tramp-file-name-user vec)
-    (when-let
-	((localname (tramp-get-connection-property vec "default-location" nil)))
+    (when-let ((localname
+		(tramp-get-connection-property
+		 (tramp-get-process vec) "share"
+		 (tramp-get-connection-property vec "default-location" nil))))
       (tramp-compat-file-attribute-user-id
        (file-attributes
 	(tramp-make-tramp-file-name vec localname) id-format)))))
@@ -1642,8 +1644,10 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-gvfs-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
-  (when-let
-      ((localname (tramp-get-connection-property vec "default-location" nil)))
+  (when-let ((localname
+	      (tramp-get-connection-property
+	       (tramp-get-process vec) "share"
+	       (tramp-get-connection-property vec "default-location" nil))))
     (tramp-compat-file-attribute-group-id
      (file-attributes
       (tramp-make-tramp-file-name vec localname) id-format))))
@@ -1997,6 +2001,9 @@ a downcased host name only."
 	   (tramp-set-file-property vec "/" "fuse-mountpoint" fuse-mountpoint)
 	   (tramp-set-connection-property
 	    vec "default-location" default-location)
+	   (when share
+	     (tramp-set-connection-property
+	      (tramp-get-process vec) "share" (concat "/" share)))
 	   (throw 'mounted t)))))))
 
 (defun tramp-gvfs-unmount (vec)

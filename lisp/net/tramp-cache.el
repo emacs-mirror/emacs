@@ -72,8 +72,8 @@
 ;;   process key retrieved by `tramp-get-process' (the main connection
 ;;   process).  Other processes could reuse these properties, avoiding
 ;;   recomputation when a new asynchronous process is created by
-;;   `make-process'.  Examples are "remote-path",
-;;   "unsafe-temporary-file" or "device" (tramp-adb.el).
+;;   `make-process'.  Examples are "unsafe-temporary-file",
+;;   "remote-path", "device" (tramp-adb.el) or "share" (tramp-gvfs.el).
 
 ;;; Code:
 
