@@ -130,7 +130,8 @@ longer than `erc-fill-column'."
     ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url-button-open-url 1)
 ;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
     ;; emacs internal
-    ("[`]\\([a-zA-Z][-a-zA-Z_0-9]+\\)[']" 1 t erc-button-describe-symbol 1)
+    ("[`]\\([a-zA-Z][-a-zA-Z_0-9!*<=>+]+\\)[']"
+     1 t erc-button-describe-symbol 1)
     ;; pseudo links
     ("\\bInfo:[\"]\\([^\"]+\\)[\"]" 0 t Info-goto-node 1)
     ("\\b\\(Ward\\|Wiki\\|WardsWiki\\|TheWiki\\):\\([A-Z][a-z]+\\([A-Z][a-z]+\\)+\\)"
@@ -299,7 +300,7 @@ specified by `erc-button-alist'."
           (end (match-end (nth 1 entry)))
           (form (nth 2 entry))
           (fun (nth 3 entry))
-          (data (mapcar #'match-string (nthcdr 4 entry))))
+          (data (mapcar #'match-string-no-properties (nthcdr 4 entry))))
       (when (or (eq t form)
                 (eval form t))
         (erc-button-add-button start end fun nil data regexp)))))

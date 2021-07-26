@@ -20,8 +20,9 @@ the errors in accessing files have the condition @code{file-error}.  If
 we do not say here that a certain error symbol has additional error
 conditions, that means it has none.
 
-  As a special exception, the error symbol @code{quit} does not have the
-condition @code{error}, because quitting is not considered an error.
+  As a special exception, the error symbols @code{quit} and
+@code{minibuffer-quit} don't have the condition @code{error}, because
+quitting is not considered an error.
 
   Most of these error symbols are defined in C (mainly @file{data.c}),
 but some are defined in Lisp.  For example, the file @file{userlock.el}
@@ -39,6 +40,10 @@ The message is @samp{error}.  @xref{Errors}.
 
 @item quit
 The message is @samp{Quit}.  @xref{Quitting}.
+
+@item minibuffer-quit
+The message is @samp{Quit}.  This is a subcategory of @code{quit}.
+@xref{Quitting}.
 
 @item args-out-of-range
 The message is @samp{Args out of range}.  This happens when trying to

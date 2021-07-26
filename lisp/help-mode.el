@@ -738,8 +738,10 @@ See `help-make-xrefs'."
   (interactive nil help-mode)
   (unless (plist-get help-mode--current-data :file)
     (error "Source file for the current help item is not defined"))
-  (help-function-def--button-function (plist-get help-mode--current-data :symbol)
-                                      (plist-get help-mode--current-data :file)))
+  (help-function-def--button-function
+   (plist-get help-mode--current-data :symbol)
+   (plist-get help-mode--current-data :file)
+   (plist-get help-mode--current-data :type)))
 
 (defun help-goto-info ()
   "View the *info* node of the current help item."

@@ -2343,49 +2343,26 @@ entirely of directory separators.
 @end example
 @end defun
 
-  Given a directory name, you can combine it with a relative file name
-using @code{concat}:
+@defun file-name-concat directory &rest components
+Concatenate @var{components} to @var{directory}, inserting a slash
+before the components if @var{directory} or the preceding component
+didn't end with a slash.
 
 @example
-(concat @var{dirname} @var{relfile})
+@group
+(file-name-concat "/tmp" "foo")
+     @result{} "/tmp/foo"
+@end group
 @end example
 
-@noindent
-Be sure to verify that the file name is relative before doing that.
-If you use an absolute file name, the results could be syntactically
-invalid or refer to the wrong file.
+A @var{directory} or components that are @code{nil} or the empty
+string are ignored---they are filtered out first and do not affect the
+results in any way.
 
-  If you want to use a directory file name in making such a
-combination, you must first convert it to a directory name using
-@code{file-name-as-directory}:
-
-@example
-(concat (file-name-as-directory @var{dirfile}) @var{relfile})
-@end example
-
-@noindent
-Don't try concatenating a slash by hand, as in
-
-@example
-;;; @r{Wrong!}
-(concat @var{dirfile} "/" @var{relfile})
-@end example
-
-@noindent
-because this is not portable.  Always use
-@code{file-name-as-directory}.
-
-  To avoid the issues mentioned above, or if the @var{dirname} value
-might be @code{nil} (for example, from an element of @code{load-path}),
-use:
-
-@example
-(expand-file-name @var{relfile} @var{dirname})
-@end example
-
-However, @code{expand-file-name} expands leading @samp{~} in
-@var{relfile}, which may not be what you want.  @xref{File Name
-Expansion}.
+This is almost the same as using @code{concat}, but @var{dirname} (and
+the non-final components) may or may not end with slash characters,
+and this function will not double those characters.
+@end defun
 
   To convert a directory name to its abbreviation, use this
 function:

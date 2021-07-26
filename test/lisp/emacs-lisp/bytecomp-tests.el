@@ -700,6 +700,9 @@ byte-compiled.  Run with dynamic binding."
 (bytecomp--define-warning-file-test "warn-callargs.el"
                             "with 2 arguments, but accepts only 1")
 
+(bytecomp--define-warning-file-test "warn-callargs-defsubst.el"
+                            "with 2 arguments, but accepts only 1")
+
 (bytecomp--define-warning-file-test "warn-defcustom-nogroup.el"
                             "fails to specify containing group")
 

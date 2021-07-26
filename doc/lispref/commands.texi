@@ -3381,6 +3381,12 @@ nil)}.  This is the same thing that quitting does.  (See @code{signal}
 in @ref{Errors}.)
 @end deffn
 
+  To quit without aborting a keyboard macro definition or execution,
+you can signal the @code{minibuffer-quit} condition.  This has almost
+the same effect as the @code{quit} condition except that the error
+handling in the command loop handles it without exiting keyboard macro
+definition or execution.
+
   You can specify a character other than @kbd{C-g} to use for quitting.
 See the function @code{set-input-mode} in @ref{Input Modes}.
 
@@ -3565,12 +3571,14 @@ commands.
 @code{recursive-edit}.  This function contains the command loop; it also
 contains a call to @code{catch} with tag @code{exit}, which makes it
 possible to exit the recursive editing level by throwing to @code{exit}
-(@pxref{Catch and Throw}).  If you throw a value other than @code{t},
-then @code{recursive-edit} returns normally to the function that called
-it.  The command @kbd{C-M-c} (@code{exit-recursive-edit}) does this.
+(@pxref{Catch and Throw}).  If you throw a @code{nil} value, then
+@code{recursive-edit} returns normally to the function that called it.
+The command @kbd{C-M-c} (@code{exit-recursive-edit}) does this.
 Throwing a @code{t} value causes @code{recursive-edit} to quit, so that
 control returns to the command loop one level up.  This is called
 @dfn{aborting}, and is done by @kbd{C-]} (@code{abort-recursive-edit}).
+You can also throw a function value.  In that case,
+@code{recursive-edit} will call it without arguments before returning.
 
   Most applications should not use recursive editing, except as part of
 using the minibuffer.  Usually it is more convenient for the user if you

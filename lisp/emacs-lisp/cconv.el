@@ -259,8 +259,7 @@ Returns a form where all lambdas don't have any free variables."
               (not (intern-soft var))
               (eq ?_ (aref (symbol-name var) 0))
 	      ;; As a special exception, ignore "ignore".
-	      (eq var 'ignored)
-              (not (byte-compile-warning-enabled-p 'unbound var)))
+	      (eq var 'ignored))
        (let ((suggestions (help-uni-confusable-suggestions (symbol-name var))))
          (format "Unused lexical %s `%S'%s"
                  varkind var
@@ -287,7 +286,7 @@ of converted forms."
               (let (and (pred stringp) msg)
                 (cconv--warn-unused-msg arg "argument")))
          (if (assq arg env) (push `(,arg . nil) env)) ;FIXME: Is it needed?
-         (push (lambda (body) (macroexp--warn-wrap msg body)) wrappers))
+         (push (lambda (body) (macroexp--warn-wrap msg body 'lexical)) wrappers))
         (_
          (if (assq arg env) (push `(,arg . nil) env)))))
     (setq funcbody (mapcar (lambda (form)
@@ -408,7 +407,7 @@ places where they originally did not directly appear."
                           `(ignore ,(cconv-convert value env extend)))
                          (msg (cconv--warn-unused-msg var "variable")))
                      (if (null msg) newval
-                       (macroexp--warn-wrap msg newval))))
+                       (macroexp--warn-wrap msg newval 'lexical))))
 
                   ;; Normal default case.
                   (_
@@ -507,7 +506,7 @@ places where they originally did not directly appear."
             (newprotform (cconv-convert protected-form env extend)))
        `(condition-case ,var
             ,(if msg
-                 (macroexp--warn-wrap msg newprotform)
+                 (macroexp--warn-wrap msg newprotform 'lexical)
                newprotform)
           ,@(mapcar
              (lambda (handler)
@@ -599,14 +598,16 @@ FORM is the parent form that binds this var."
     (`((,(and var (guard (eq ?_ (aref (symbol-name var) 0)))) . ,_)
        ,_ ,_ ,_ ,_)
      ;; FIXME: Convert this warning to use `macroexp--warn-wrap'
-     ;; so as to give better position information.
+     ;; so as to give better position information and obey
+     ;; `byte-compile-warnings'.
      (byte-compile-warn
       "%s `%S' not left unused" varkind var))
     ((and (let (or 'let* 'let) (car form))
           `((,var) ;; (or `(,var nil) : Too many false positives: bug#47080
             t nil ,_ ,_))
      ;; FIXME: Convert this warning to use `macroexp--warn-wrap'
-     ;; so as to give better position information.
+     ;; so as to give better position information and obey
+     ;; `byte-compile-warnings'.
      (unless (not (intern-soft var))
        (byte-compile-warn "Variable `%S' left uninitialized" var))))
   (pcase vardata

@@ -92,6 +92,10 @@ proper pty support that Emacs needs.
 * Startup Changes in Emacs 28.1
 
 ---
+** File names given on the command line will now be pushed onto
+'file-name-history'.
+
+---
 ** In GTK builds, Emacs now supports startup notification.
 This means that Emacs won't steal keyboard focus upon startup
 (when started via the Desktop) if the user is typing into another
@@ -113,6 +117,15 @@ can use this functionality to put an Emacs process in a sandbox to
 avoid security issues when executing untrusted code.  See the manual
 page for 'seccomp' system call, for details about Secure Computing
 filters.
+
+** Setting 'fill-column' to nil is obsolete.
+This undocumented use of 'fill-column' is now obsolete.  To disable
+auto filling, turn off 'auto-fill-mode' instead.
+
+For instance, you could add something like the following to your init
+file:
+
+    (add-hook 'foo-mode-hook (lambda () (auto-fill-mode -1))
 
 
 * Changes in Emacs 28.1
@@ -335,6 +348,10 @@ by dragging the tab lines of their topmost windows with the mouse.
 
 * Editing Changes in Emacs 28.1
 
+---
+** Dragging a file to Emacs will now also push the name of the file
+onto 'file-name-history'.
+
 +++
 ** A prefix arg now causes 'delete-other-frames' to only iconify frames.
 
@@ -476,6 +493,11 @@ highlighting on heading lines using standard outline faces.  This
 works well only when there are no conflicts with faces used by the
 major mode.
 
+** New commands 'copy-matching-lines' and 'kill-matching-lines'.
+These commands are similar to the command 'flush-lines',
+but add the matching lines to the kill ring as a single string,
+including the newlines that separate the lines.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
@@ -580,6 +602,11 @@ SMIE is now always enabled and 'ruby-use-smie' only controls whether
 indentation is done using SMIE or with the old ad-hoc code.
 
 ** Icomplete
+
+---
+*** New user option 'icomplete-matches-format'.
+This allows controlling the current/total number of matches for the
+prompt prefix.
 
 +++
 *** New minor mode 'icomplete-vertical-mode', alias 'fido-vertical-mode'.
@@ -868,6 +895,12 @@ keys, add the following to your init file:
 
 ** Change Logs and VC
 
+*** vc-git now sets the GIT_LITERAL_PATHSPECS environment variable.
+This ensures that Git operations on files containing wildcard
+characters work as they're supposed to.  However, this also affects
+scripts running from Git hooks, and these have to "unset
+GIT_LITERAL_PATHSPECS" to work as before.
+
 *** More VC commands can be used from non-file buffers.
 The relevant commands are those that don't change the VC state.
 The non-file buffers which can use VC commands are those that have
@@ -1108,6 +1141,12 @@ command has been added.  It depends on using an external program to
 take the actual screenshot, and defaults to "ImageMagick import".
 
 ** Smtpmail
+
++++
+*** New user option 'smtpmail-store-queue-variables'.
+If non-nil, SMTP variables will be stored together with the queued
+messages, and will then be used when sending with
+'M-x smtpmail-send-queued-mail'.
 
 +++
 *** Allow direct selection of smtp authentication mechanism.
@@ -1421,6 +1460,10 @@ If non-nil, 'shell-mode' handles implicit "cd" commands, changing the
 directory if the command is a directory.  Useful for shells like "zsh"
 that has this feature.
 
++++
+*** 'comint-delete-output' can now save deleted text in the kill-ring.
+Interactively, 'C-u C-c C-o' triggers this new optional behavior.
+
 ** Eshell
 
 ---
@@ -1558,6 +1601,10 @@ See the new user options 'package-name-column-width',
 
 ** gdb-mi
 
+*** New user option 'gdb-registers-enable-filter'.
+If non-nil, apply a register filter based on
+'gdb-registers-filter-pattern-list'.
+
 +++
 *** gdb-mi can now store and restore window configurations.
 Use 'gdb-save-window-configuration' to save window configuration to a
@@ -1591,6 +1638,14 @@ and source file names from GDB.
 Defaults to 'libravatar', with 'unicornify' and 'gravatar' as options.
 
 ** Compilation mode
+
+---
+*** New function 'ansi-color-compilation-filter'.
+This function is meant to be used in 'compilation-filter-hook'.
+
+---
+*** New user option 'ansi-color-for-compilation-mode'.
+This controls what 'ansi-color-compilation-filter' does.
 
 *** Regexp matching of messages is now case-sensitive by default.
 The variable 'compilation-error-case-fold-search' can be set for
@@ -1994,6 +2049,27 @@ used instead.  Uses of 'json-encode-list' should be changed to call
 one of 'json-encode', 'json-encode-alist', 'json-encode-plist', or
 'json-encode-array' instead.
 
+** json.c
+
++++
+*** New function 'json-available-p'.
+This predicate returns non-nil if Emacs is built with libjansson
+support, and it is available on the current system.
+
++++
+*** Native JSON functions now signal an error if libjansson is unavailable.
+This affects 'json-serialize', 'json-insert', 'json-parse-srtring',
+and 'json-parse-buffer'.  This can happen if Emacs was compiled with
+libjansson, but the DLL cannot be found and/or loaded by Emacs at run
+time.  Previously, Emacs would display a message and return nil in
+these cases.
+
+*** The JSON functions 'json-serialize', 'json-insert',
+'json-parse-string', and 'json-parse-buffer' now implement some of the
+semantics of RFC 8259 instead of the earlier RFC 4627.  In particular,
+these functions now accept top-level JSON values that are neither
+arrays nor objects.
+
 ** xml.el
 
 *** XML serialization functions now reject invalid characters.
@@ -2223,6 +2299,19 @@ This command, called interactively, toggles the local value of
 ** Miscellaneous
 
 +++
+*** .dir-locals.el now supports setting 'auto-mode-alist'.
+The new 'auto-mode-alist' specification in .dir-local.el files can now
+be used to override the global 'auto-mode-alist' in the current
+directory tree.
+
+---
+*** New utility function 'make-separator-line'.
+
+---
+*** New face 'separator-line'.
+This is used by 'make-separator-line'.
+
++++
 *** New user option 'ignored-local-variable-values'.
 This is the opposite of 'safe-local-variable-values' -- it's an alist
 of variable-value pairs that are to be ignored when reading a
@@ -2241,6 +2330,9 @@ and that mode allow the user to sort on any column.  There was
 previously no easy way to get back to the original displayed order
 after sorting, but giving a -1 numerical prefix to the sorting command
 will now restore the original order.
+
+---
+*** 'M-left' and 'M-right' now move between columns in 'tabulated-list-mode'.
 
 +++
 *** New utility function 'insert-into-buffer'.
@@ -2426,20 +2518,6 @@ Like 'search-highlight-submatches', this is controlled by the new user option
 If non-nil (the default), revealed text is automatically hidden when
 point leaves the text.  If nil, the text is not hidden again.  Instead
 'M-x reveal-hide-revealed' can be used to hide all the revealed text.
-
-+++
-*** New user options to control the look of line/column numbers in the mode line.
-'mode-line-position-line-format' is the line number format (when
-'line-number-mode' is on), 'mode-line-position-column-format' is
-the column number format (when 'column-number-mode' is on), and
-'mode-line-position-column-line-format' is the combined format (when
-both modes are on).
-
-+++
-*** New user option 'mode-line-compact'.
-If non-nil, repeating spaces are compressed into a single space.  If
-'long', this is only done when the mode line is longer than the
-current window width (in characters).
 
 +++
 *** New command 'submit-emacs-patch'.
@@ -2645,6 +2723,15 @@ also keep the type information of their arguments.  Use the
 ---
 *** New face 'perl-heredoc', used for heredoc elements.
 
++++
+** A function can now be thrown to the 'exit' label in addition to t or nil.
+The command loop will call it with zero arguments before returning.
+
++++
+** New error symbol 'minibuffer-quit'.
+Signaling it has almost the same effect as 'quit' except that it
+doesn't cause keyboard macro termination.
+
 ---
 *** The command 'cperl-set-style' offers the new value "PBP".
 This value customizes Emacs to use the style recommended in Damian
@@ -2731,6 +2818,9 @@ similar to prefix arguments, but are more flexible and discoverable.
 
 * Incompatible Editing Changes in Emacs 28.1
 
+** 'revert-buffer' will now preserve buffer-readedness.
+It previously switched the read-only flag off.
+
 ** 'electric-indent-mode' now also indents inside strings and comments,
 (unless the indentation function doesn't, of course).
 To recover the previous behavior you can use:
@@ -2782,6 +2872,14 @@ This is to keep the same behavior as Eshell.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
+---
+** 'kill-all-local-variables' has changed how it handles non-symbol hooks.
+The function is documented to eliminated all buffer-local bindings
+except variables with a 'permanent-local' property, or hooks that
+have elements with a 'permanent-local-hook' property.  In addition, it
+would also keep lambda expressions in hooks sometimes.  The latter has
+now been changed: The function will now also remove these.
 
 ---
 ** Some floating-point numbers are now handled differently by the Lisp reader.
@@ -3011,6 +3109,10 @@ The former is now declared obsolete.
 * Lisp Changes in Emacs 28.1
 
 +++
+*** New function 'file-name-concat'.
+This appends path components to a directory name and returns the result.
+
++++
 *** New function 'split-string-shell-command'.
 This splits a shell command string into separate components,
 respecting quoting with single ('like this') and double ("like this")
@@ -3238,6 +3340,27 @@ file mode specification into symbolic form.
 ** The variable 'force-new-style-backquotes' has been removed.
 This removes the final remaining trace of old-style backquotes.
 
+** Mode Lines
+
++++
+*** New user options to control the line/column numbers in the mode line.
+'mode-line-position-line-format' is the line number format (when
+'line-number-mode' is on), 'mode-line-position-column-format' is
+the column number format (when 'column-number-mode' is on), and
+'mode-line-position-column-line-format' is the combined format (when
+both modes are on).
+
++++
+*** New user option 'mode-line-compact'.
+If non-nil, repeating spaces are compressed into a single space.  If
+'long', this is only done when the mode line is longer than the
+current window width (in characters).
+
++++
+*** 'global-mode-string' constructs should end with a space.
+This was previously not formalized, which led to combinations of modes
+displaying data "smushed together" on the mode line.
+
 ** Changes in handling dynamic modules
 
 *** The module header 'emacs-module.h' now contains type aliases
@@ -3418,12 +3541,6 @@ locales.  They are also available as aliases 'ebcdic-cp-*' (e.g.,
 'ebcdic-cp-fi' for the Finnish variant 'ibm278'), and 'cp2xx' (e.g.,
 'cp278' for 'ibm278').  There are also new charsets 'ibm2xx' to
 support these coding-systems.
-
-** The JSON functions 'json-serialize', 'json-insert',
-'json-parse-string', and 'json-parse-buffer' now implement some of the
-semantics of RFC 8259 instead of the earlier RFC 4627.  In particular,
-these functions now accept top-level JSON values that are neither
-arrays nor objects.
 
 ---
 ** 'while-no-input-ignore-events' accepts more special events.

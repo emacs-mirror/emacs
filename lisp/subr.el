@@ -31,7 +31,8 @@
   "Tell the byte-compiler that function FN is defined, in FILE.
 The FILE argument is not used by the byte-compiler, but by the
 `check-declare' package, which checks that FILE contains a
-definition for FN.
+definition for FN.  (FILE can be nil, and that disables this
+check.)
 
 FILE can be either a Lisp file (in which case the \".el\"
 extension is optional), or a C file.  C files are expanded
@@ -6310,5 +6311,13 @@ of fill.el (for example `fill-region')."
   "Format a documentation string out of STRING and OBJECTS.
 This is intended for internal use only."
   (internal--fill-string-single-line (apply #'format string objects)))
+
+(defun json-available-p ()
+  "Return non-nil if Emacs has libjansson support."
+  (and (fboundp 'json-serialize)
+       (condition-case nil
+           (json-serialize t)
+         (:success t)
+         (json-unavailable nil))))
 
 ;;; subr.el ends here

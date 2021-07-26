@@ -698,6 +698,15 @@ The regexp should match at end of buffer."
   :version "27.1"
   :type 'regexp)
 
+;; Yubikey requires the user physically to touch the device with their
+;; finger.  We must tell it to the user.
+(defcustom tramp-yubikey-regexp
+  "Confirm user presence for key .*"
+  "Regular expression matching yubikey confirmation message.
+The regexp should match at end of buffer."
+  :version "28.1"
+  :type 'regexp)
+
 (defcustom tramp-operation-not-permitted-regexp
   (concat "\\(" "preserving times.*" "\\|" "set mode" "\\)" ":\\s-*"
 	  (regexp-opt '("Operation not permitted") t))
@@ -3337,7 +3346,7 @@ User is always nil."
   (when (zerop (length name)) (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (concat (file-name-as-directory dir) name)))
+    (setq name (tramp-compat-file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
       (tramp-run-real-handler #'expand-file-name (list name nil))
@@ -4667,6 +4676,20 @@ The terminal type can be configured with `tramp-terminal-type'."
   (with-current-buffer (tramp-get-connection-buffer vec)
     (tramp-message vec 6 "\n%s" (buffer-string)))
   (tramp-send-string vec tramp-local-end-of-line)
+  t)
+
+(defun tramp-action-show-and-confirm-message (_proc vec)
+  "Show the user a message for confirmation.
+Wait, until the user has entered RET."
+  (save-window-excursion
+    (let ((enable-recursive-minibuffers t)
+          (stimers (with-timeout-suspend)))
+      (with-current-buffer (tramp-get-connection-buffer vec)
+	(tramp-message vec 6 "\n%s" (buffer-string))
+	(pop-to-buffer (current-buffer)))
+      (read-string "Press ENTER to continue")
+      ;; Reenable the timers.
+      (with-timeout-unsuspend stimers)))
   t)
 
 (defun tramp-action-process-alive (proc _vec)

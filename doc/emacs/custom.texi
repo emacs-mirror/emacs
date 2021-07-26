@@ -1415,6 +1415,16 @@ meanings as they would have in file local variables.  @code{coding}
 cannot be specified as a directory local variable.  @xref{File
 Variables}.
 
+The special key @code{auto-mode-alist} in a @file{.dir-locals.el} lets
+you set a file's major mode.  It works much like the variable
+@code{auto-mode-alist} (@pxref{Choosing Modes}).  For example, here is
+how you can tell Emacs that @file{.def} source files in this directory
+should be in C mode:
+
+@example
+((auto-mode-alist . (("\\.def\\'" . c-mode))))
+@end example
+
 @findex add-dir-local-variable
 @findex delete-dir-local-variable
 @findex copy-file-locals-to-dir-locals

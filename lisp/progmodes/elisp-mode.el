@@ -1325,8 +1325,7 @@ Reinitialize the face according to the `defface' specification."
 	((eq (car form) 'custom-declare-face)
 	 ;; Reset the face.
 	 (let ((face-symbol (eval (nth 1 form) lexical-binding)))
-	   (setq face-new-frame-defaults
-		 (assq-delete-all face-symbol face-new-frame-defaults))
+	   (remhash face-symbol face--new-frame-defaults)
 	   (put face-symbol 'face-defface-spec nil)
 	   (put face-symbol 'face-override-spec nil))
 	 form)

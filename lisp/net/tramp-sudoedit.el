@@ -237,7 +237,7 @@ absolute file names."
 		       (file-attributes filename)))
 	  (file-modes (tramp-default-file-modes filename))
 	  (attributes (and preserve-extended-attributes
-			   (apply #'file-extended-attributes (list filename))))
+			   (file-extended-attributes filename)))
 	  (sudoedit-operation
 	   (cond
 	    ((and (eq op 'copy) preserve-uid-gid) '("cp" "-f" "-p"))
@@ -293,7 +293,7 @@ absolute file names."
 	;; errors, because ACL strings could be incompatible.
 	(when attributes
 	  (ignore-errors
-	    (apply #'set-file-extended-attributes (list newname attributes))))
+	    (set-file-extended-attributes newname attributes)))
 
 	(when (and t1 (eq op 'rename))
 	  (with-parsed-tramp-file-name filename v1
@@ -353,7 +353,7 @@ the result will be a local, non-Tramp, file name."
   (when (zerop (length name)) (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (concat (file-name-as-directory dir) name)))
+    (setq name (tramp-compat-file-name-concat dir name)))
   (with-parsed-tramp-file-name name nil
     ;; Tilde expansion if necessary.  We cannot accept "~/", because
     ;; under sudo "~/" is expanded to the local user home directory
@@ -726,13 +726,14 @@ ID-FORMAT valid values are `string' and `integer'."
 		     (file-attributes filename 'integer))
 		    (tramp-get-remote-gid v 'integer)))
 	   (flag (and (eq mustbenew 'excl) 'nofollow))
-	   (modes (tramp-default-file-modes filename flag)))
+	   (modes (tramp-default-file-modes filename flag))
+	   (attributes (file-extended-attributes filename)))
       (prog1
 	  (tramp-handle-write-region
 	   start end filename append visit lockname mustbenew)
 
-	;; Set the ownership and modes.  This is not performed in
-	;; `tramp-handle-write-region'.
+	;; Set the ownership, modes and extended attributes.  This is
+	;; not performed in `tramp-handle-write-region'.
 	(unless (and (= (tramp-compat-file-attribute-user-id
 			 (file-attributes filename 'integer))
 			uid)
@@ -740,7 +741,12 @@ ID-FORMAT valid values are `string' and `integer'."
 			 (file-attributes filename 'integer))
 			gid))
           (tramp-set-file-uid-gid filename uid gid))
-	(tramp-compat-set-file-modes filename modes flag)))))
+	(tramp-compat-set-file-modes filename modes flag)
+	;; We ignore possible errors, because ACL strings could be
+	;; incompatible.
+	(when attributes
+	  (ignore-errors
+	    (set-file-extended-attributes filename attributes)))))))
 
 
 ;; Internal functions.

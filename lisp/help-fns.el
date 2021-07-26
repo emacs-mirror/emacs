@@ -1078,6 +1078,9 @@ it is displayed along with the global value."
 		           (with-current-buffer standard-output
                              (setq help-mode--current-data
                                    (list :symbol variable
+                                         :type (if (eq file-name 'C-source)
+                                                   'variable
+                                                 'defvar)
                                          :file file-name))
                              (save-excursion
 			       (re-search-backward (substitute-command-keys
@@ -1089,7 +1092,8 @@ it is displayed along with the global value."
 			       "It is void as a variable."
                              "Its "))
 	               (with-current-buffer standard-output
-                         (setq help-mode--current-data (list :symbol variable)))
+                         (setq help-mode--current-data (list :symbol variable
+                                                             :type 'variable)))
                        (if valvoid
 		           " is void as a variable."
                          (substitute-command-keys "'s ")))))
@@ -1573,11 +1577,7 @@ current buffer and the selected frame, respectively."
             (insert doc)
             (delete-region (point)
                            (progn (skip-chars-backward " \t\n") (point)))
-            (insert "\n\n"
-                    (eval-when-compile
-                      (propertize "\n" 'face
-                                  '(:height 0.1 :inverse-video t :extend t)))
-                    "\n")
+            (insert "\n\n" (make-separator-line) "\n")
             (when name
               (insert (symbol-name symbol)
                       " is also a " name "." "\n\n"))))

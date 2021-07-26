@@ -3955,7 +3955,7 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
       if (c == '=')
 	continue;
 
-      if (v1 < 0)
+      if (v1 == 0)
 	return -1;
       value += v1 - 1;
 
@@ -5767,16 +5767,6 @@ characters.  */ )
     }
 
   return list3 (make_int (lines), make_int (longest), make_float (mean));
-}
-
-static bool
-string_ascii_p (Lisp_Object string)
-{
-  ptrdiff_t nbytes = SBYTES (string);
-  for (ptrdiff_t i = 0; i < nbytes; i++)
-    if (SREF (string, i) > 127)
-      return false;
-  return true;
 }
 
 DEFUN ("string-search", Fstring_search, Sstring_search, 2, 3, 0,

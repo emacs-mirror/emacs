@@ -561,10 +561,14 @@ old one."
     (set-text-properties 0 (length stripped-name) nil stripped-name)
     (if (and (not no-overwrite)
              (bookmark-get-bookmark stripped-name 'noerror))
-        ;; already existing bookmark under that name and
-        ;; no prefix arg means just overwrite old bookmark
-        ;; Use the new (NAME . ALIST) format.
-        (setcdr (bookmark-get-bookmark stripped-name) alist)
+        ;; Already existing bookmark under that name and
+        ;; no prefix arg means just overwrite old bookmark.
+        (let ((bm (bookmark-get-bookmark stripped-name)))
+          ;; First clean up if previously location was fontified.
+          (when bookmark-fontify
+            (bookmark--unfontify bm))
+          ;; Modify using the new (NAME . ALIST) format.
+          (setcdr bm alist))
 
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either

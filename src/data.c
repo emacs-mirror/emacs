@@ -3901,6 +3901,7 @@ syms_of_data (void)
   DEFSYM (Qerror, "error");
   DEFSYM (Quser_error, "user-error");
   DEFSYM (Qquit, "quit");
+  DEFSYM (Qminibuffer_quit, "minibuffer-quit");
   DEFSYM (Qwrong_length_argument, "wrong-length-argument");
   DEFSYM (Qwrong_type_argument, "wrong-type-argument");
   DEFSYM (Qargs_out_of_range, "args-out-of-range");
@@ -3973,6 +3974,7 @@ syms_of_data (void)
   Fput (sym, Qerror_message, build_pure_c_string (msg))
 
   PUT_ERROR (Qquit, Qnil, "Quit");
+  PUT_ERROR (Qminibuffer_quit, pure_cons (Qquit, Qnil), "Quit");
 
   PUT_ERROR (Quser_error, error_tail, "");
   PUT_ERROR (Qwrong_length_argument, error_tail, "Wrong length argument");

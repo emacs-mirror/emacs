@@ -1021,7 +1021,10 @@ pending in the shell buffer and not yet sent.
 @findex comint-delete-output
 Delete the last batch of output from a shell command
 (@code{comint-delete-output}).  This is useful if a shell command spews
-out lots of output that just gets in the way.
+out lots of output that just gets in the way.  With a prefix argument,
+this command saves the deleted text in the @code{kill-ring}
+(@pxref{Kill Ring}), so that you could later yank it (@pxref{Yanking})
+elsewhere.
 
 @item C-c C-s
 @kindex C-c C-s @r{(Shell mode)}

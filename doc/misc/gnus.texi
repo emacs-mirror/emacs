@@ -16288,7 +16288,7 @@ cleaning up the headers.  Functions that can be used include:
 Clear leading white space that ``helpful'' listservs have added to the
 headers to make them look nice.  Aaah.
 
-(Note that this function works on both the header on the body of all
+(Note that this function works on both the header and the body of all
 messages, so it is a potentially dangerous function to use (if a body
 of a message contains something that looks like a header line).  So
 rather than fix the bug, it is of course the right solution to make it

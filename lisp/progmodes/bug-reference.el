@@ -345,6 +345,7 @@ and set it if applicable."
 (defvar gnus-article-buffer)
 (defvar gnus-original-article-buffer)
 (defvar gnus-summary-buffer)
+(defvar bug-reference-mode)
 
 (defun bug-reference--try-setup-gnus-article ()
   (when (and bug-reference-mode ;; Only if enabled in article buffers.

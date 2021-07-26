@@ -97,6 +97,12 @@ Otherwise this should be a list of the completion tables (e.g.,
   :type '(choice (const :tag "All" t)
 		 (repeat function)))
 
+(defcustom icomplete-matches-format "%s/%s "
+  "Format of the current/total number of matches for the prompt prefix."
+  :version "28.1"
+  :type '(choice (const :tag "No prefix" nil)
+                 (string :tag "Prefix format string")))
+
 (defface icomplete-first-match '((t :weight bold))
   "Face used by Icomplete for highlighting first match."
   :version "24.4")
@@ -696,12 +702,12 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
               (overlay-put
                icomplete-overlay 'before-string
                (and icomplete-scroll
-                    (let ((past (length icomplete--scrolled-past)))
-                      (format
-                       "%s/%s "
-                       (1+ past)
-                       (+ past
-                          (safe-length completion-all-sorted-completions))))))
+                    icomplete-matches-format
+                    (let* ((past (length icomplete--scrolled-past))
+                           (current (1+ past))
+                           (total (+ past (safe-length
+                                           completion-all-sorted-completions))))
+                      (format icomplete-matches-format current total))))
               (overlay-put icomplete-overlay 'after-string text))))))))
 
 (defun icomplete--affixate (md prospects)

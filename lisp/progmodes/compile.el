@@ -1248,11 +1248,14 @@ POS and RES.")
                  (setq col (match-string-no-properties col))
                  (string-to-number col))))
     (setq end-col
-          (or (if (functionp end-col) (funcall end-col)
-                (and end-col
-                     (setq end-col (match-string-no-properties end-col))
-                     (- (string-to-number end-col) -1)))
-              (and end-line -1)))
+          (let ((ec (if (functionp end-col)
+                        (funcall end-col)
+                      (and end-col (match-beginning end-col)
+                           (string-to-number
+                            (match-string-no-properties end-col))))))
+            (if ec
+                (1+ ec)     ; Add one to get an exclusive upper bound.
+              (and end-line -1))))
     (if (consp type)            ; not a static type, check what it is.
 	(setq type (or (and (car type) (match-end (car type)) 1)
 		       (and (cdr type) (match-end (cdr type)) 0)
