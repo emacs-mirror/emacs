@@ -1022,7 +1022,7 @@ the like."
     map))
 
 (defun eww-context-menu (menu)
-  (define-key menu [eww-separator-2] menu-bar-separator)
+  (define-key menu [eww-separator] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Eww")))
     (easy-menu-define nil easy-menu nil
       '("Eww"
@@ -1047,7 +1047,6 @@ the like."
                                     'shr-mouse-browse-url-new-window
                                   'shr-mouse-browse-url)
                   :help "Browse the URL under the mouse cursor")))
-  (define-key menu [eww-separator-1] menu-bar-separator)
 
   menu)
 

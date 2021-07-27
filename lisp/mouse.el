@@ -291,7 +291,9 @@ the same menu with changes such as added new menu items."
              context-menu-region
              context-menu-global
              context-menu-local
-             context-menu-minor)
+             context-menu-minor
+             context-menu-vc
+             context-menu-ffap)
   :version "28.1")
 
 (defcustom context-menu-filter-function nil
@@ -313,44 +315,50 @@ the same menu with changes such as added new menu items."
 (defun context-menu-global (menu)
   "Global submenus."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
-  (define-key-after menu [separator-global-1] menu-bar-separator)
+  (define-key-after menu [separator-global] menu-bar-separator)
   (dolist (item (lookup-key global-map [menu-bar]))
     (when (consp item)
       (define-key-after menu (vector (car item))
         (if (consp (cdr item))
             (copy-sequence (cdr item))
           (cdr item)))))
-  (define-key-after menu [separator-global-2] menu-bar-separator)
   menu)
 
 (defun context-menu-local (menu)
   "Major mode submenus."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
-  (define-key-after menu [separator-local-1] menu-bar-separator)
+  (define-key-after menu [separator-local] menu-bar-separator)
   (dolist (item (local-key-binding [menu-bar]))
     (when (consp item)
       (define-key-after menu (vector (car item))
         (if (consp (cdr item))
             (copy-sequence (cdr item))
           (cdr item)))))
-  (define-key-after menu [separator-local-2] menu-bar-separator)
   menu)
 
 (defun context-menu-minor (menu)
   "Minor mode submenus."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
-  (define-key-after menu [separator-minor-1] menu-bar-separator)
-  (dolist (item (minor-mode-key-binding [menu-bar]))
-    (when (and (consp item) (symbol-value (car item)))
-      (define-key-after menu (vector (cadr item))
-        (if (consp (cddr item))
-            (copy-sequence (cddr item))
-          (cddr item)))))
-  (define-key-after menu [separator-minor-2] menu-bar-separator)
+  (define-key-after menu [separator-minor] menu-bar-separator)
+  (dolist (mode (minor-mode-key-binding [menu-bar]))
+    (when (and (consp mode) (symbol-value (car mode)))
+      (dolist (item (cdr mode))
+        (when (consp item)
+          (define-key-after menu (vector (car item))
+            (if (consp (cdr item))
+                (copy-sequence (cdr item))
+              (cdr item)))))))
+  menu)
+
+(defun context-menu-vc (menu)
+  "Version Control menu."
+  (define-key-after menu [separator-vc] menu-bar-separator)
+  (define-key-after menu [vc-menu] vc-menu-entry)
   menu)
 
 (defun context-menu-undo (menu)
-  (define-key-after menu [separator-undo-1] menu-bar-separator)
+  (when (cddr menu)
+    (define-key-after menu [separator-undo] menu-bar-separator))
   (define-key-after menu [undo]
     '(menu-item "Undo" undo
                 :visible (and (not buffer-read-only)
@@ -364,11 +372,11 @@ the same menu with changes such as added new menu items."
                 :visible (and (not buffer-read-only)
                               (undo--last-change-was-undo-p buffer-undo-list))
                 :help "Redo last undone edits"))
-  (define-key-after menu [separator-undo-2] menu-bar-separator)
   menu)
 
 (defun context-menu-region (menu)
-  (define-key-after menu [separator-region-1] menu-bar-separator)
+  (when (cddr menu)
+    (define-key-after menu [separator-region] menu-bar-separator))
   (define-key-after menu [cut]
     '(menu-item "Cut" kill-region
                 :visible (and mark-active (not buffer-read-only))
@@ -413,7 +421,16 @@ the same menu with changes such as added new menu items."
   (define-key-after menu [mark-whole-buffer]
     '(menu-item "Select All" mark-whole-buffer
                 :help "Mark the whole buffer for a subsequent cut/copy"))
-  (define-key-after menu [separator-region-2] menu-bar-separator)
+  menu)
+
+(defun context-menu-ffap (menu)
+  (save-excursion
+    (mouse-set-point last-input-event)
+    (when (ffap-guess-file-name-at-point)
+      (define-key menu [ffap-separator] menu-bar-separator)
+      (define-key menu [ffap-at-mouse]
+        '(menu-item "Find File or URL" ffap-at-mouse
+                    :help "Find file or URL guessed from text around mouse click"))))
   menu)
 
 (defvar context-menu-entry

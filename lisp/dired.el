@@ -2196,7 +2196,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 
 (defun dired-context-menu (menu)
   (when (mouse-posn-property (event-start last-input-event) 'dired-filename)
-    (define-key menu [dired-separator-2] menu-bar-separator)
+    (define-key menu [dired-separator] menu-bar-separator)
     (let ((easy-menu (make-sparse-keymap "Immediate")))
       (easy-menu-define nil easy-menu nil
         '("Immediate"
@@ -2206,8 +2206,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
            :help "Edit file at mouse click in other window"]))
       (dolist (item (reverse (lookup-key easy-menu [menu-bar immediate])))
         (when (consp item)
-          (define-key menu (vector (car item)) (cdr item)))))
-    (define-key menu [dired-separator-1] menu-bar-separator))
+          (define-key menu (vector (car item)) (cdr item))))))
   menu)
 
 

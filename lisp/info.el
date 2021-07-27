@@ -4147,7 +4147,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
    ["Exit" quit-window :help "Stop reading Info"]))
 
 (defun Info-context-menu (menu)
-  (define-key menu [Info-separator-2] menu-bar-separator)
+  (define-key menu [Info-separator] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Info")))
     (easy-menu-define nil easy-menu nil
       '("Info"
@@ -4163,7 +4163,6 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key menu [Info-mouse-follow-nearest-node]
       '(menu-item "Follow Link" Info-mouse-follow-nearest-node
                   :help "Follow a link where you click")))
-  (define-key menu [Info-separator-1] menu-bar-separator)
 
   menu)
 

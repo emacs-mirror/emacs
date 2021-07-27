@@ -126,11 +126,10 @@ will have no effect.")
 
 (defun goto-address-context-menu (menu)
   (when (mouse-posn-property (event-start last-input-event) 'goto-address)
-    (define-key menu [goto-address-separator-2] menu-bar-separator)
+    (define-key menu [goto-address-separator] menu-bar-separator)
     (define-key menu [goto-address-at-mouse]
       '(menu-item "Follow Link" goto-address-at-mouse
-                  :help "Follow a link where you click"))
-    (define-key menu [goto-address-separator-1] menu-bar-separator))
+                  :help "Follow a link where you click")))
   menu)
 
 (defcustom goto-address-url-face 'link
