@@ -503,6 +503,12 @@
                  (:success 'good))
                (1+ x))))
       (funcall f 3))
+
+    ;; Check `not' in cond switch (bug#49746).
+    (mapcar (lambda (x) (cond ((equal x "a") 1)
+                              ((member x '("b" "c")) 2)
+                              ((not x) 3)))
+            '("a" "b" "c" "d" nil))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

@@ -4362,7 +4362,8 @@ Return (TAIL VAR TEST CASES), where:
               (and (or (eq var switch-var) (not switch-var))
                    (progn
                      (setq switch-var var)
-                     (setq switch-test 'eq)
+                     (setq switch-test
+                           (byte-compile--common-test switch-test 'eq))
                      (unless (memq nil keys)
                        (push nil keys)
                        (push (cons (list nil) (or body '(t))) cases))
