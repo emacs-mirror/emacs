@@ -3143,13 +3143,16 @@ PROCESS is the process object for the current connection."
     ;; print message to nick's channels
     (dolist (target channels)
       (rcirc-print process sender "NICK" target new-nick))
-    ;; update private chat buffer, if it exists
-    (let ((chat-buffer (rcirc-get-buffer process old-nick)))
-      (when chat-buffer
-	(with-current-buffer chat-buffer
-	  (rcirc-print process sender "NICK" old-nick new-nick)
-	  (setq rcirc-target new-nick)
-	  (rename-buffer (rcirc-generate-new-buffer-name process new-nick)))))
+    ;; update chat buffer, if it exists
+    (when-let ((chat-buffer (rcirc-get-buffer process old-nick)))
+      (with-current-buffer chat-buffer
+	(rcirc-print process sender "NICK" old-nick new-nick)
+	(setq rcirc-target new-nick)
+	(rename-buffer (rcirc-generate-new-buffer-name process new-nick)))
+      (setf rcirc-buffer-alist
+            (cons (cons new-nick chat-buffer)
+                  (delq (assoc-string old-nick rcirc-buffer-alist t)
+                        rcirc-buffer-alist))))
     ;; remove old nick and add new one
     (with-rcirc-process-buffer process
       (let ((v (gethash old-nick rcirc-nick-table)))
