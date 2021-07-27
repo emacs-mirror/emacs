@@ -2827,9 +2827,6 @@ similar to prefix arguments, but are more flexible and discoverable.
 
 * Incompatible Editing Changes in Emacs 28.1
 
-** 'revert-buffer' will now preserve buffer-readedness.
-It previously switched the read-only flag off.
-
 ** 'electric-indent-mode' now also indents inside strings and comments,
 (unless the indentation function doesn't, of course).
 To recover the previous behavior you can use:
