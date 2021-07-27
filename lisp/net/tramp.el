@@ -4690,7 +4690,7 @@ Wait, until the connection buffer changes."
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
       (tramp-message
-       vec 0 "%s" (replace-regexp-in-string "[\r\n]" "" (match-string 1)))
+       vec 0 "%s" (replace-regexp-in-string "[\r\n]" "" (match-string 0)))
       ;; Hide message.
       (narrow-to-region (point-max) (point-max))
       ;; Wait for new output.
