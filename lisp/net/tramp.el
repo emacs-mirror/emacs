@@ -700,7 +700,7 @@ The regexp should match at end of buffer."
 ;; Yubikey requires the user physically to touch the device with their
 ;; finger.  We must tell it to the user.
 (defcustom tramp-yubikey-regexp
-  "^\r*Confirm user presence for key .*\r*"
+  "^\r*Confirm user presence for key .*[\r\n]*"
   "Regular expression matching yubikey confirmation message.
 The regexp should match at end of buffer."
   :version "28.1"
@@ -4690,7 +4690,7 @@ Wait, until the connection buffer changes."
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
       (tramp-message
-       vec 0 "%s" (replace-regexp-in-string "\r" "" (match-string 1)))
+       vec 0 "%s" (replace-regexp-in-string "[\r\n]" "" (match-string 1)))
       ;; Hide message.
       (narrow-to-region (point-max) (point-max))
       ;; Wait for new output.
