@@ -608,7 +608,7 @@ See `rcirc-connect' for more details on these variables.")
 (defvar-local rcirc-acked-capabilities nil
   "A list of capabilities that the server supports.")
 (defvar-local rcirc-finished-sasl t
-  "Check whether SASL authentication has completed")
+  "Check whether SASL authentication has completed.")
 
 (defun rcirc-get-server-method (server)
   "Return authentication method for SERVER."
@@ -1255,7 +1255,8 @@ Each element looks like (FILENAME . TEXT).")
 This number is independent of the number of lines in the buffer.")
 
 (defun rcirc-mode (process target)
-  "Major mode for IRC channel buffers.
+  "Initialize an IRC buffer for writing with TARGET.
+PROCESS is the process object used for communication.
 
 \\{rcirc-mode-map}"
   ;; FIXME: Use define-derived-mode.
@@ -3526,7 +3527,9 @@ PROCESS is the process object for the current connection."
             "\0" (rcirc-get-server-password rcirc-server)))))
 
 (defun rcirc-handler-900 (process sender args _text)
-  "Respond to a successful authentication response."
+  "Respond to a successful authentication response.
+SENDER is passed on to `rcirc-handler-generic'.  PROCESS is the
+process object for the current connection."
   (rcirc-handler-generic process "900" sender args nil)
   (when (not rcirc-finished-sasl)
     (setq-local rcirc-finished-sasl t)
