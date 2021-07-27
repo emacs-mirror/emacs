@@ -2562,8 +2562,8 @@ With a prefix arg, prompt for new topic."
   (interactive (list (and current-prefix-arg
                           (read-string "List names in channel: "))))
   (if (> (length topic) 0)
-      (rcirc-send-string process "TOPIC" : topic)
-    (rcirc-send-string process "TOPIC")))
+      (rcirc-send-string process "TOPIC" target : topic)
+    (rcirc-send-string process "TOPIC" target)))
 
 (rcirc-define-command whois (nick)
   "Request information from server about NICK."
