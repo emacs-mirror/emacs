@@ -1318,9 +1318,7 @@ PROCESS is the process object used for communication.
   (when target				; skip server buffer
     (let ((buffer (current-buffer)))
       (with-rcirc-process-buffer process
-        (push (cons (set-text-properties 0 (length target) nil target)
-                    buffer)
-              rcirc-buffer-alist)))
+        (push (cons target buffer) rcirc-buffer-alist)))
     (rcirc-update-short-buffer-names))
 
   (add-hook 'completion-at-point-functions
