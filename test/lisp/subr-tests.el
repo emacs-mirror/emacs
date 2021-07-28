@@ -62,6 +62,25 @@
                       (0 font-lock-keyword-face))))))))
 
 
+;;;; List functions.
+
+(ert-deftest subr-test-caaar ()
+  (should (null (caaar '())))
+  (should (null (caaar '(() (2)))))
+  (should (null (caaar '((() (2)) (a b)))))
+  (should-error (caaar '(1 2)) :type 'wrong-type-argument)
+  (should-error (caaar '((1 2))) :type 'wrong-type-argument)
+  (should (=  1 (caaar '(((1 2) (3 4))))))
+  (should (null (caaar '((() (3 4)))))))
+
+(ert-deftest subr-test-caadr ()
+  (should (null (caadr '())))
+  (should (null (caadr '(1))))
+  (should-error (caadr '(1 2)) :type 'wrong-type-argument)
+  (should (= 2 (caadr '(1 (2 3)))))
+  (should (equal '((2) (3)) (caadr '((1) (((2) (3))) (4))))))
+
+
 ;;;; Keymap support.
 
 (ert-deftest subr-test-kbd ()
