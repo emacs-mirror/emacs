@@ -3116,7 +3116,8 @@ The former is now declared obsolete.
 
 +++
 *** New function 'file-name-concat'.
-This appends path components to a directory name and returns the result.
+This appends file name components to a directory name and returns the
+result.
 
 +++
 *** New function 'split-string-shell-command'.
