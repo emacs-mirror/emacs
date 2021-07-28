@@ -286,14 +286,15 @@ not it is actually displayed."
   "List of functions that produce the contents of the context menu.
 Each function receives the menu as its argument and should return
 the same menu with changes such as added new menu items."
-  :type 'hook
-  :options '(context-menu-undo
-             context-menu-region
-             context-menu-global
-             context-menu-local
-             context-menu-minor
-             context-menu-vc
-             context-menu-ffap)
+  :type '(repeat
+          (choice (function-item context-menu-undo)
+                  (function-item context-menu-region)
+                  (function-item context-menu-global)
+                  (function-item context-menu-local)
+                  (function-item context-menu-minor)
+                  (function-item context-menu-vc)
+                  (function-item context-menu-ffap)
+                  (function :tag "Custom function")))
   :version "28.1")
 
 (defcustom context-menu-filter-function nil
@@ -337,7 +338,7 @@ the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-minor (menu)
-  "Minor mode submenus."
+  "Minor modes submenus."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-minor] menu-bar-separator)
   (dolist (mode (minor-mode-key-binding [menu-bar]))
@@ -357,6 +358,7 @@ the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-undo (menu)
+  "Undo menu."
   (when (cddr menu)
     (define-key-after menu [separator-undo] menu-bar-separator))
   (define-key-after menu [undo]
@@ -375,6 +377,7 @@ the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-region (menu)
+  "Region commands menu."
   (when (cddr menu)
     (define-key-after menu [separator-region] menu-bar-separator))
   (define-key-after menu [cut]
@@ -424,6 +427,7 @@ the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-ffap (menu)
+  "File at point menu."
   (save-excursion
     (mouse-set-point last-input-event)
     (when (ffap-guess-file-name-at-point)
