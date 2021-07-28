@@ -1037,7 +1037,7 @@ SKIP is the number of chars to skip on each line, it defaults to 0."
 
 (defvar gud-sdb-lastfile nil)
 
-(defvar sdb-repeat-map
+(defvar gud-sdb-repeat-map
   (let ((map (make-sparse-keymap)))
     (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
                                     ("s" . gud-step)
@@ -1119,7 +1119,7 @@ and source-file directory for your debugger."
   (gud-def gud-cont   "c"    "\C-r"   "Continue with display.")
   (gud-def gud-print  "%e/"  "\C-p"   "Evaluate C expression at point.")
 
-  (gud-set-repeat-map-property 'sdb-repeat-map)
+  (gud-set-repeat-map-property 'gud-sdb-repeat-map)
 
   (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
   (setq paragraph-start comint-prompt-regexp)
@@ -1279,7 +1279,7 @@ whereby $stopformat=1 produces an output format compatible with
 ;; whereby `set $stopformat=1' reportedly produces output compatible
 ;; with `gud-dbx-marker-filter', which we prefer.
 
-(defvar dbx-repeat-map
+(defvar gud-dbx-repeat-map
   (let ((map (make-sparse-keymap)))
     (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
                                     ("s" . gud-step)
@@ -1443,7 +1443,7 @@ and source-file directory for your debugger."
   (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
   (gud-def gud-run    "run"	     nil    "Run the program.")
 
-  (gud-set-repeat-map-property 'dbx-repeat-map)
+  (gud-set-repeat-map-property 'gud-dbx-repeat-map)
 
   (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
   (setq paragraph-start comint-prompt-regexp)
@@ -1456,7 +1456,7 @@ and source-file directory for your debugger."
 ;; History of argument lists passed to xdb.
 (defvar gud-xdb-history nil)
 
-(defvar xdb-repeat-map
+(defvar gud-xdb-repeat-map
   (let ((map (make-sparse-keymap)))
     (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
                                     ("s" . gud-step)
@@ -1536,7 +1536,7 @@ directories if your program contains sources from more than one directory."
   (gud-def gud-finish "bu\\t"      "\C-f" "Finish executing current function.")
   (gud-def gud-print  "p %e"       "\C-p" "Evaluate C expression at point.")
 
-  (gud-set-repeat-map-property 'xdb-repeat-map)
+  (gud-set-repeat-map-property 'gud-xdb-repeat-map)
 
   (setq comint-prompt-regexp  "^>")
   (setq paragraph-start comint-prompt-regexp)
@@ -1548,7 +1548,7 @@ directories if your program contains sources from more than one directory."
 ;; History of argument lists passed to perldb.
 (defvar gud-perldb-history nil)
 
-(defvar perldb-repeat-map
+(defvar gud-perldb-repeat-map
   (let ((map (make-sparse-keymap)))
     (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
                                     ("s" . gud-step)
@@ -1701,7 +1701,7 @@ and source-file directory for your debugger."
   (gud-def gud-print  "p %e"          "\C-p" "Evaluate perl expression at point.")
   (gud-def gud-until  "c %l"          "\C-u" "Continue to current line.")
 
-  (gud-set-repeat-map-property 'perldb-repeat-map)
+  (gud-set-repeat-map-property 'gud-perldb-repeat-map)
 
   (setq comint-prompt-regexp "^  DB<+[0-9]+>+ ")
   (setq paragraph-start comint-prompt-regexp)
@@ -1730,7 +1730,7 @@ and source-file directory for your debugger."
 
 (defvar gud-pdb-marker-regexp-start "^> ")
 
-(defvar pdb-repeat-map
+(defvar gud-pdb-repeat-map
   (let ((map (make-sparse-keymap)))
     (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
                                     ("s" . gud-step)
@@ -1833,7 +1833,7 @@ directory and source-file directory for your debugger."
   (gud-def gud-print  "p %e"         "\C-p" "Evaluate Python expression at point.")
   (gud-def gud-statement "!%e"      "\C-e" "Execute Python statement at point.")
 
-  (gud-set-repeat-map-property 'pdb-repeat-map)
+  (gud-set-repeat-map-property 'gud-pdb-repeat-map)
 
   ;; (setq comint-prompt-regexp "^(.*pdb[+]?) *")
   (setq comint-prompt-regexp "^(Pdb) *")
@@ -1848,7 +1848,7 @@ directory and source-file directory for your debugger."
 
 (defvar gud-guiler-lastfile nil)
 
-(defvar guiler-repeat-map
+(defvar gud-guiler-repeat-map
   (let ((map (make-sparse-keymap)))
     (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
                                     ("s" . gud-step)
@@ -1926,7 +1926,7 @@ and source-file directory for your debugger."
   (gud-def gud-down   ",down"         ">" "Down one stack frame.")
   (gud-def gud-print  "%e"            "\C-p" "Evaluate Guile expression at point.")
 
-  (gud-set-repeat-map-property 'guiler-repeat-map)
+  (gud-set-repeat-map-property 'gud-guiler-repeat-map)
 
   (setq comint-prompt-regexp "^scheme@([^>]+> ")
   (setq paragraph-start comint-prompt-regexp)
@@ -2373,7 +2373,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 ;; Note: Reset to this value every time a prompt is seen
 (defvar gud-jdb-lowest-stack-level 999)
 
-(defvar jdb-repeat-map
+(defvar gud-jdb-repeat-map
   (let ((map (make-sparse-keymap)))
     (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
                                     ("s" . gud-step)
@@ -2596,7 +2596,7 @@ gud, see `gud-mode'."
   (gud-def gud-print  "print %e"  "\C-p" "Print value of expression at point.")
   (gud-def gud-pstar  "dump %e"  nil "Print all object information at point.")
 
-  (gud-set-repeat-map-property 'jdb-repeat-map)
+  (gud-set-repeat-map-property 'gud-jdb-repeat-map)
 
   (setq comint-prompt-regexp "^> \\|^[^ ]+\\[[0-9]+\\] ")
   (setq paragraph-start comint-prompt-regexp)
