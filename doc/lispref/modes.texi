@@ -2251,16 +2251,15 @@ number.
 The format used to display column numbers when
 @code{column-number-mode} (@pxref{Optional Mode Line,,, emacs, The GNU
 Emacs Manual}) is switched on.  @samp{%c} in the format will be
-replaced with the column number, and this is zero-based if
-@code{column-number-indicator-zero-based} is non-@code{nil}, and
-one-based if @code{column-number-indicator-zero-based} is @code{nil}.
+replaced with a zero-based column number, and @samp{%C} will be
+replaced with a one-based column number.
 @end defvar
 
 @defvar mode-line-position-column-line-format
 The format used to display column numbers when both
 @code{line-number-mode} and @code{column-number-mode} are switched on.
-See the previous two variables for the meaning of the @samp{%l} and
-@samp{%c} format specs.
+See the previous two variables for the meaning of the @samp{%l},
+@samp{%c} and @samp{%C} format specs.
 @end defvar
 
 @defvar minor-mode-alist
