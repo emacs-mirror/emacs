@@ -652,8 +652,15 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 	     (byte-optimize-constant-args form)
 	   form))))))
 
-(defun byte-optimize-form (form &optional for-effect)
+(defun byte-optimize-one-form (form &optional for-effect)
   "The source-level pass of the optimizer."
+  ;; Make optimiser aware of lexical arguments.
+  (let ((byte-optimize--lexvars
+         (mapcar (lambda (v) (list (car v) t))
+                 byte-compile--lexical-environment)))
+    (byte-optimize-form form for-effect)))
+
+(defun byte-optimize-form (form &optional for-effect)
   (while
       (progn
         ;; First, optimize all sub-forms of this one.
