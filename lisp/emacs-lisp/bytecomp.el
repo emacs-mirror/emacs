@@ -1857,8 +1857,8 @@ also be compiled."
        (while directories
 	 (setq directory (car directories))
 	 (message "Checking %s..." directory)
-         (dolist (file (directory-files directory))
-           (let ((source (expand-file-name file directory)))
+         (dolist (source (directory-files directory t))
+           (let ((file (file-name-nondirectory source)))
 	     (if (file-directory-p source)
 		 (and (not (member file '("RCS" "CVS")))
 		      (not (eq ?\. (aref file 0)))
