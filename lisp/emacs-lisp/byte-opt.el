@@ -967,24 +967,25 @@ See Info node `(elisp) Integer Basics'."
     (_ (byte-optimize-binary-predicate form))))
 
 (defun byte-optimize-member (form)
-  ;; Replace `member' or `memql' with `memq' if the first arg is a symbol,
-  ;; or the second arg is a list of symbols.  Same with fixnums.
-  (if (= (length (cdr form)) 2)
-      (if (or (byte-optimize--constant-symbol-p (nth 1 form))
-              (byte-optimize--fixnump (nth 1 form))
-              (let ((arg2 (nth 2 form)))
-                (and (macroexp-const-p arg2)
-                     (let ((listval (eval arg2)))
-                       (and (listp listval)
-                            (not (memq nil (mapcar
-                                            (lambda (o)
-                                              (or (symbolp o)
-                                                  (byte-optimize--fixnump o)))
-                                            listval))))))))
-          (cons 'memq (cdr form))
-        form)
-    ;; Arity errors reported elsewhere.
-    form))
+  (cond
+   ((/= (length (cdr form)) 2) form)    ; arity error
+   ((null (nth 2 form))                 ; empty list
+    `(progn ,(nth 1 form) nil))
+   ;; Replace `member' or `memql' with `memq' if the first arg is a symbol
+   ;; or fixnum, or the second arg is a list of symbols or fixnums.
+   ((or (byte-optimize--constant-symbol-p (nth 1 form))
+        (byte-optimize--fixnump (nth 1 form))
+        (let ((arg2 (nth 2 form)))
+          (and (macroexp-const-p arg2)
+               (let ((listval (eval arg2)))
+                 (and (listp listval)
+                      (not (memq nil (mapcar
+                                      (lambda (o)
+                                        (or (symbolp o)
+                                            (byte-optimize--fixnump o)))
+                                      listval))))))))
+    (cons 'memq (cdr form)))
+   (t form)))
 
 (defun byte-optimize-assoc (form)
   ;; Replace 2-argument `assoc' with `assq', `rassoc' with `rassq',
@@ -992,22 +993,35 @@ See Info node `(elisp) Integer Basics'."
   (cond
    ((/= (length form) 3)
     form)
+   ((null (nth 2 form))                 ; empty list
+    `(progn ,(nth 1 form) nil))
    ((or (byte-optimize--constant-symbol-p (nth 1 form))
         (byte-optimize--fixnump (nth 1 form)))
     (cons (if (eq (car form) 'assoc) 'assq 'rassq)
           (cdr form)))
    (t (byte-optimize-constant-args form))))
 
+(defun byte-optimize-assq (form)
+  (cond
+   ((/= (length form) 3)
+    form)
+   ((null (nth 2 form))                 ; empty list
+    `(progn ,(nth 1 form) nil))
+   (t (byte-optimize-constant-args form))))
+
 (defun byte-optimize-memq (form)
-  ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
   (if (= (length (cdr form)) 2)
       (let ((list (nth 2 form)))
-        (if (and (eq (car-safe list) 'quote)
-                 (listp (setq list (cadr list)))
-                 (= (length list) 1))
-            `(and (eq ,(nth 1 form) ',(nth 0 list))
-                  ',list)
-          form))
+        (cond
+         ((null list)                   ; empty list
+          `(progn ,(nth 1 form) nil))
+         ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
+         ((and (eq (car-safe list) 'quote)
+               (listp (setq list (cadr list)))
+               (= (length list) 1))
+          `(and (eq ,(nth 1 form) ',(nth 0 list))
+                ',list))
+         (t form)))
     ;; Arity errors reported elsewhere.
     form))
 
@@ -1044,6 +1058,8 @@ See Info node `(elisp) Integer Basics'."
 (put 'member 'byte-optimizer #'byte-optimize-member)
 (put 'assoc 'byte-optimizer #'byte-optimize-assoc)
 (put 'rassoc 'byte-optimizer #'byte-optimize-assoc)
+(put 'assq 'byte-optimizer #'byte-optimize-assq)
+(put 'rassq 'byte-optimizer #'byte-optimize-assq)
 
 (put '+   'byte-optimizer #'byte-optimize-plus)
 (put '*   'byte-optimizer #'byte-optimize-multiply)
