@@ -4684,17 +4684,15 @@ The terminal type can be configured with `tramp-terminal-type'."
   "Show the user a message for confirmation.
 Wait, until the connection buffer changes."
   (with-current-buffer (process-buffer proc)
-    (let ((enable-recursive-minibuffers t)
-          (stimers (with-timeout-suspend)))
+    (let ((stimers (with-timeout-suspend)))
       (tramp-message vec 6 "\n%s" (buffer-string))
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
-      (tramp-message
-       vec 0 "%s" (replace-regexp-in-string "[\r\n]" "" (match-string 0)))
-      ;; Hide message.
-      (narrow-to-region (point-max) (point-max))
-      ;; Wait for new output.
-      (tramp-wait-for-regexp proc 30 ".")
+      (with-temp-message (replace-regexp-in-string "[\r\n]" "" (match-string 0))
+	;; Hide message in buffer.
+	(narrow-to-region (point-max) (point-max))
+	;; Wait for new output.
+	(tramp-wait-for-regexp proc 30 "."))
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers)))
   t)
