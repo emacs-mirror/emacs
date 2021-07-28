@@ -402,19 +402,24 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
         ((and for-effect
 	      (or byte-compile-delete-errors
 		  (not (symbolp form))
-		  (eq form t)))
+		  (eq form t)
+                  (keywordp form)))
          nil)
         ((symbolp form)
          (let ((lexvar (assq form byte-optimize--lexvars)))
-           (if (cddr lexvar)            ; Value available?
-               (if (assq form byte-optimize--vars-outside-loop)
-                   ;; Cannot substitute; mark for retention to avoid the
-                   ;; variable being eliminated.
-                   (progn
-                     (setcar (cdr lexvar) t)
-                     form)
-                 (caddr lexvar))        ; variable value to use
-             form)))
+           (cond
+            ((not lexvar) form)
+            (for-effect nil)
+            ((cddr lexvar)            ; Value available?
+             (if (assq form byte-optimize--vars-outside-loop)
+                 ;; Cannot substitute; mark for retention to avoid the
+                 ;; variable being eliminated.
+                 (progn
+                   (setcar (cdr lexvar) t)
+                   form)
+               ;; variable value to use
+               (caddr lexvar)))
+            (t form))))
         (t form)))
       (`(quote . ,v)
        (if (or (not v) (cdr v))
