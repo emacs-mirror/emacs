@@ -358,6 +358,13 @@ places where they originally did not directly appear."
                           letsym binder))
 		       (setq value (cadr binder))
 		       (car binder)))
+                (_ (cond
+                    ((not (symbolp var))
+                     (byte-compile-warn "attempt to let-bind nonvariable `%S'"
+                                        var))
+                    ((or (booleanp var) (keywordp var))
+                     (byte-compile-warn "attempt to let-bind constant `%S'"
+                                        var))))
 		(new-val
 		 (pcase (cconv--var-classification binder form)
                    ;; Check if var is a candidate for lambda lifting.
