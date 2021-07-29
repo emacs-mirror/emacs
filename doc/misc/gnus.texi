@@ -2318,10 +2318,10 @@ commands listed in @ref{Browse Foreign Server} at hand.
 @itemx u
 @kindex S t @r{(Group)}
 @kindex u @r{(Group)}
-@findex gnus-group-toggle-subscription
-@c @icon{gnus-group-toggle-subscription}
+@findex gnus-group-toggle-subscription-at-point
+@c @icon{gnus-group-toggle-subscription-at-point}
 Toggle subscription to group under point
-(@code{gnus-group-toggle-subscription}).
+(@code{gnus-group-toggle-subscription-at-point}).
 
 @item S s
 @itemx U
