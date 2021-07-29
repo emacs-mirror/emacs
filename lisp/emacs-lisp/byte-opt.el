@@ -452,10 +452,13 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
            (macroexp-progn (byte-optimize-body exps for-effect))
 	 (byte-optimize-form (car exps) for-effect)))
       (`(prog1 ,exp . ,exps)
-       (if exps
-	   `(prog1 ,(byte-optimize-form exp for-effect)
-	      . ,(byte-optimize-body exps t))
-	 (byte-optimize-form exp for-effect)))
+       (let ((exp-opt (byte-optimize-form exp for-effect)))
+         (if exps
+             (let ((exps-opt (byte-optimize-body exps t)))
+               (if (macroexp-const-p exp-opt)
+                   `(progn ,@exps-opt ,exp-opt)
+	         `(prog1 ,exp-opt ,@exps-opt)))
+	   exp-opt)))
 
       (`(,(or `save-excursion `save-restriction `save-current-buffer) . ,exps)
        ;; Those subrs which have an implicit progn; it's not quite good
@@ -572,7 +575,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
        ;; computed for effect.  We want to avoid the warnings
        ;; that might occur if they were treated that way.
        ;; However, don't actually bother calling `ignore'.
-       `(prog1 nil . ,(mapcar #'byte-optimize-form exps)))
+       `(progn ,@(mapcar #'byte-optimize-form exps) nil))
 
       ;; Needed as long as we run byte-optimize-form after cconv.
       (`(internal-make-closure . ,_)
