@@ -509,6 +509,24 @@
                               ((member x '("b" "c")) 2)
                               ((not x) 3)))
             '("a" "b" "c" "d" nil))
+
+    ;; `let' and `let*' optimisations with body being constant or variable
+    (let* (a
+           (b (progn (setq a (cons 1 a)) 2))
+           (c (1+ b))
+           (d (list a c)))
+      d)
+    (let ((a nil))
+      (let ((b (progn (setq a (cons 1 a)) 2))
+            (c (progn (setq a (cons 3 a))))
+            (d (list a)))
+        d))
+    (let* ((_a 1)
+           (_b 2))
+      'z)
+    (let ((_a 1)
+          (_b 2))
+      'z)
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

@@ -1250,18 +1250,31 @@ See Info node `(elisp) Integer Basics'."
 (put 'let 'byte-optimizer #'byte-optimize-letX)
 (put 'let* 'byte-optimizer #'byte-optimize-letX)
 (defun byte-optimize-letX (form)
-  (cond ((null (nth 1 form))
-	 ;; No bindings
-	 (cons 'progn (cdr (cdr form))))
-	((or (nth 2 form) (nthcdr 3 form))
-	 form)
-	 ;; The body is nil
-	((eq (car form) 'let)
-	 (append '(progn) (mapcar 'car-safe (mapcar 'cdr-safe (nth 1 form)))
-		 '(nil)))
-	(t
-	 (let ((binds (reverse (nth 1 form))))
-	   (list 'let* (reverse (cdr binds)) (nth 1 (car binds)) nil)))))
+  (pcase form
+    ;; No bindings.
+    (`(,_ () . ,body)
+     `(progn . ,body))
+
+    ;; Body is empty or just contains a constant.
+    (`(,head ,bindings . ,(or '() `(,(and const (pred macroexp-const-p)))))
+     (if (eq head 'let)
+         `(progn ,@(mapcar (lambda (binding)
+                             (and (consp binding) (cadr binding)))
+                           bindings)
+                 ,const)
+       `(let* ,(butlast bindings) ,(cadar (last bindings)) ,const)))
+
+    ;; Body is last variable.
+    (`(,head ,bindings ,(and var (pred symbolp) (pred (not keywordp))
+                             (pred (not booleanp))
+                             (guard (eq var (caar (last bindings))))))
+     (if (eq head 'let)
+         `(progn ,@(mapcar (lambda (binding)
+                             (and (consp binding) (cadr binding)))
+                           bindings))
+       `(let* ,(butlast bindings) ,(cadar (last bindings)))))
+
+    (_ form)))
 
 
 (put 'nth 'byte-optimizer #'byte-optimize-nth)
