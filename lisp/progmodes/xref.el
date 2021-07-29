@@ -966,7 +966,8 @@ GROUP is a string for decoration purposes and XREF is an
                                               'face 'xref-line-number)))))
                         ;; Render multiple matches on the same line, together.
                         (when (and (equal prev-group group)
-                                   (not (equal prev-line line)))
+                                   (or (null line)
+                                       (not (equal prev-line line))))
                           (insert "\n"))
                         (xref--insert-propertized
                          (list 'xref-item xref
