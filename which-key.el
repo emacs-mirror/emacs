@@ -655,6 +655,8 @@ update.")
   prefix
   prefix-title)
 
+(defvar which-key--saved-window-configuration nil)
+
 (defun which-key--rotate (list n)
   (let* ((len (length list))
          (n (if (< n 0) (+ len n) n))
@@ -1096,7 +1098,10 @@ total height."
   (when (buffer-live-p which-key--buffer)
     ;; in case which-key buffer was shown in an existing window, `quit-window'
     ;; will re-show the previous buffer, instead of closing the window
-    (quit-windows-on which-key--buffer)))
+    (quit-windows-on which-key--buffer)
+    (when which-key--saved-window-configuration
+      (set-window-configuration which-key--saved-window-configuration)
+      (setq which-key--saved-window-configuration nil))))
 
 (defun which-key--hide-buffer-frame ()
   "Hide which-key buffer when frame popup is used."
@@ -1135,6 +1140,8 @@ call signature in different emacs versions"
 
 (defun which-key--show-buffer-side-window (act-popup-dim)
   "Show which-key buffer when popup type is side-window."
+  (unless which-key--saved-window-configuration
+    (setq which-key--saved-window-configuration (current-window-configuration)))
   (let* ((height (car act-popup-dim))
          (width (cdr act-popup-dim))
          (alist
