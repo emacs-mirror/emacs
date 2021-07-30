@@ -3665,6 +3665,7 @@ User is always nil."
 		 #'find-backup-file-name (list filename)))
         ;; Protect against security hole.
 	(when (and (not tramp-allow-unsafe-temporary-files)
+		   (not backup-inhibited)
 		   (file-in-directory-p (car result) temporary-file-directory)
 		   (zerop (or (tramp-compat-file-attribute-user-id
 			       (file-attributes filename 'integer))
@@ -3885,6 +3886,7 @@ Return nil when there is no lockfile."
 	;; Protect against security hole.
 	(with-parsed-tramp-file-name file nil
 	  (when (and (not tramp-allow-unsafe-temporary-files)
+		     create-lockfiles
 		     (file-in-directory-p lockname temporary-file-directory)
 		     (zerop (or (tramp-compat-file-attribute-user-id
 				 (file-attributes file 'integer))
@@ -5425,6 +5427,7 @@ this file, if that variable is non-nil."
 	  (setq result (tramp-run-real-handler #'make-auto-save-file-name nil))
 	;; Protect against security hole.
 	(when (and (not tramp-allow-unsafe-temporary-files)
+		   auto-save-default
 		   (file-in-directory-p result temporary-file-directory)
 		   (zerop (or (tramp-compat-file-attribute-user-id
 			       (file-attributes filename 'integer))
