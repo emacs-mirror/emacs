@@ -327,6 +327,13 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 (defvar byte-optimize--dynamic-vars nil
   "List of variables declared as dynamic during optimisation.")
 
+(defvar byte-optimize--aliased-vars nil
+  "List of variables which may be aliased by other lexical variables.
+If an entry in `byte-optimize--lexvars' has another variable as its VALUE,
+then that other variable must be in this list.
+This variable thus carries no essential information but is maintained
+for speeding up processing.")
+
 (defun byte-optimize--substitutable-p (expr)
   "Whether EXPR is a constant that can be propagated."
   ;; Only consider numbers, symbols and strings to be values for substitution
@@ -595,7 +602,15 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
                   (value (byte-optimize-form expr nil)))
              (when lexvar
                (setcar (cdr lexvar) t)    ; Mark variable to be kept.
-               (setcdr (cdr lexvar) nil)) ; Inhibit further substitution.
+               (setcdr (cdr lexvar) nil)  ; Inhibit further substitution.
+
+               (when (memq var byte-optimize--aliased-vars)
+                 ;; Cancel aliasing of variables aliased to this one.
+                 (dolist (v byte-optimize--lexvars)
+                   (when (eq (nth 2 v) var)
+                     ;; V is bound to VAR but VAR is now mutated:
+                     ;; cancel aliasing.
+                     (setcdr (cdr v) nil)))))
 
              (push var var-expr-list)
              (push value var-expr-list))
@@ -666,34 +681,142 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
                       (not (eq new old))))))))
   form)
 
+(defun byte-optimize--rename-var-body (var new-var body)
+  "Replace VAR with NEW-VAR in BODY."
+  (mapcar (lambda (form) (byte-optimize--rename-var var new-var form)) body))
+
+(defun byte-optimize--rename-var (var new-var form)
+  "Replace VAR with NEW-VAR in FORM."
+  (pcase form
+    ((pred symbolp) (if (eq form var) new-var form))
+    (`(setq . ,args)
+     (let ((new-args nil))
+       (while args
+         (push (byte-optimize--rename-var var new-var (car args)) new-args)
+         (push (byte-optimize--rename-var var new-var (cadr args)) new-args)
+         (setq args (cddr args)))
+       `(setq . ,(nreverse new-args))))
+    ;; In binding constructs like `let', `let*' and `condition-case' we
+    ;; rename everything for simplicity, even new bindings named VAR.
+    (`(,(and head (or 'let 'let*)) ,bindings . ,body)
+     `(,head
+       ,(mapcar (lambda (b) (byte-optimize--rename-var-body var new-var b))
+                bindings)
+       ,@(byte-optimize--rename-var-body var new-var body)))
+    (`(condition-case ,res-var ,protected-form . ,handlers)
+     `(condition-case ,(byte-optimize--rename-var var new-var res-var)
+          ,(byte-optimize--rename-var var new-var protected-form)
+        ,@(mapcar (lambda (h)
+                    (cons (car h)
+                          (byte-optimize--rename-var-body var new-var (cdr h))))
+                  handlers)))
+    (`(internal-make-closure ,vars ,env . ,rest)
+     `(internal-make-closure
+       ,vars ,(byte-optimize--rename-var-body var new-var env) . ,rest))
+    (`(defvar ,name . ,rest)
+     ;; NAME is not renamed here; we only care about lexical variables.
+     `(defvar ,name . ,(byte-optimize--rename-var-body var new-var rest)))
+
+    (`(cond . ,clauses)
+     `(cond ,@(mapcar (lambda (c)
+                        (byte-optimize--rename-var-body var new-var c))
+                      clauses)))
+
+    (`(function . ,_) form)
+    (`(quote . ,_) form)
+    (`(lambda . ,_) form)
+
+    ;; Function calls and special forms not handled above.
+    (`(,head . ,args)
+     `(,head . ,(byte-optimize--rename-var-body var new-var args)))
+    (_ form)))
+
 (defun byte-optimize-let-form (head form for-effect)
   ;; Recursively enter the optimizer for the bindings and body
   ;; of a let or let*.  This for depth-firstness: forms that
   ;; are more deeply nested are optimized first.
   (if lexical-binding
       (let* ((byte-optimize--lexvars byte-optimize--lexvars)
+             (byte-optimize--aliased-vars byte-optimize--aliased-vars)
              (new-lexvars nil)
-             (let-vars nil))
-        (dolist (binding (car form))
-          (let* ((name (car binding))
-                 (expr (byte-optimize-form (cadr binding) nil))
-                 (value (and (byte-optimize--substitutable-p expr)
-                             (list expr)))
-                 (lexical (not (or (special-variable-p name)
-                                   (memq name byte-compile-bound-variables)
-                                   (memq name byte-optimize--dynamic-vars))))
-                 (lexinfo (and lexical (cons name (cons nil value)))))
-            (push (cons name (cons expr (cdr lexinfo))) let-vars)
-            (when lexinfo
-              (push lexinfo (if (eq head 'let*)
-                                byte-optimize--lexvars
-                              new-lexvars)))))
+             (new-aliased-vars nil)
+             (let-vars nil)
+             (body (cdr form))
+             (bindings (car form)))
+        (while bindings
+          (let* ((binding (car bindings))
+                 (name (car binding))
+                 (expr (byte-optimize-form (cadr binding) nil)))
+            (setq bindings (cdr bindings))
+            (when (and (eq head 'let*)
+                       (memq name byte-optimize--aliased-vars))
+              ;; New variable shadows an aliased variable -- α-rename
+              ;; it in this and all subsequent bindings.
+              (let ((new-name (make-symbol (symbol-name name))))
+                (setq bindings
+                      (mapcar (lambda (b)
+                                (list (byte-optimize--rename-var
+                                       name new-name (car b))
+                                      (byte-optimize--rename-var
+                                       name new-name (cadr b))))
+                              bindings))
+                (setq body (byte-optimize--rename-var-body name new-name body))
+                (setq name new-name)))
+            (let* ((aliased nil)
+                   (value (and
+                           (or (byte-optimize--substitutable-p expr)
+                               ;; Aliasing another lexvar.
+                               (setq aliased
+                                     (and (symbolp expr)
+                                          (assq expr byte-optimize--lexvars))))
+                           (list expr)))
+                   (lexical (not (or (special-variable-p name)
+                                     (memq name byte-compile-bound-variables)
+                                     (memq name byte-optimize--dynamic-vars))))
+                   (lexinfo (and lexical (cons name (cons nil value)))))
+              (push (cons name (cons expr (cdr lexinfo))) let-vars)
+              (when lexinfo
+                (push lexinfo (if (eq head 'let*)
+                                  byte-optimize--lexvars
+                                new-lexvars)))
+              (when aliased
+                (push expr (if (eq head 'let*)
+                               byte-optimize--aliased-vars
+                             new-aliased-vars))))))
+
+        (setq byte-optimize--aliased-vars
+              (append new-aliased-vars byte-optimize--aliased-vars))
+        (when (and (eq head 'let) byte-optimize--aliased-vars)
+          ;; Find new variables that shadow aliased variables.
+          (let ((shadowing-vars nil))
+            (dolist (lexvar new-lexvars)
+              (let ((name (car lexvar)))
+                (when (and (memq name byte-optimize--aliased-vars)
+                           (not (memq name shadowing-vars)))
+                  (push name shadowing-vars))))
+            ;; α-rename them
+            (dolist (name shadowing-vars)
+              (let ((new-name (make-symbol (symbol-name name))))
+                (setq new-lexvars
+                      (mapcar (lambda (lexvar)
+                                (if (eq (car lexvar) name)
+                                    (cons new-name (cdr lexvar))
+                                  lexvar))
+                              new-lexvars))
+                (setq let-vars
+                      (mapcar (lambda (v)
+                                (if (eq (car v) name)
+                                    (cons new-name (cdr v))
+                                  v))
+                              let-vars))
+                (setq body (byte-optimize--rename-var-body
+                            name new-name body))))))
         (setq byte-optimize--lexvars
               (append new-lexvars byte-optimize--lexvars))
         ;; Walk the body expressions, which may mutate some of the records,
         ;; and generate new bindings that exclude unused variables.
         (let* ((byte-optimize--dynamic-vars byte-optimize--dynamic-vars)
-               (opt-body (byte-optimize-body (cdr form) for-effect))
+               (opt-body (byte-optimize-body body for-effect))
                (bindings nil))
           (dolist (var let-vars)
             ;; VAR is (NAME EXPR [KEEP [VALUE]])
