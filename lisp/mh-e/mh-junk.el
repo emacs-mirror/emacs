@@ -118,7 +118,7 @@ message(s) as specified by the option `mh-junk-disposition'."
 (defun mh-junk-allowlist (range)
   "Allowlist RANGE as ham.
 
-This command reclassifies the RANGE as ham if it were incorrectly
+This command reclassifies the RANGE as ham if it has been incorrectly
 classified as spam (see the option `mh-junk-program'). It then
 refiles the message into the \"+inbox\" folder.
 
