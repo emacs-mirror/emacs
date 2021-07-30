@@ -2340,6 +2340,9 @@ This command, called interactively, toggles the local value of
 
 ** Miscellaneous
 
+---
+*** fileloop will now skip missing files instead of signalling an error.
+
 +++
 *** ".dir-locals.el" now supports setting 'auto-mode-alist'.
 The new 'auto-mode-alist' specification in ".dir-locals.el" files can
