@@ -7383,8 +7383,8 @@ The name of the MH sequence for ticked messages (default: @samp{'tick}).
 @item mh-update-sequences-after-mh-show-flag
 On means flush MH sequences to disk after message is shown (default:
 @samp{on}).
-@item mh-whitelist-preserves-sequences-flag
-On means that sequences are preserved when messages are whitelisted
+@item mh-allowlist-preserves-sequences-flag
+On means that sequences are preserved when messages are allowlisted
 (default: @samp{on}).
 @end vtable
 
@@ -7540,17 +7540,17 @@ Marshall Rose once wrote a paper on MH entitled, @cite{How to process
 could be entitled, @cite{How to process 1000 spams a day and still get
 some real work done}.
 
-@cindex blacklisting
+@cindex blocklisting
 @cindex ham
 @cindex viruses
-@cindex whitelisting
+@cindex allowlisting
 @cindex worms
 
 We use the terms @dfn{junk mail} and @dfn{spam} interchangeably for
 any unwanted message which includes spam, @dfn{viruses}, and
 @dfn{worms}. The opposite of spam is @dfn{ham}. The act of classifying
-a sender as one who sends junk mail is called @dfn{blacklisting}; the
-opposite is called @dfn{whitelisting}.
+a sender as one who sends junk mail is called @dfn{blocklisting}; the
+opposite is called @dfn{allowlisting}.
 
 @table @kbd
 @kindex J ?
@@ -7560,14 +7560,14 @@ Display cheat sheet for the commands of the current prefix in
 minibuffer (@code{mh-prefix-help}).
 @c -------------------------
 @kindex J b
-@findex mh-junk-blacklist
+@findex mh-junk-blocklist
 @item J b
-Blacklist range as spam (@code{mh-junk-blacklist}).
+Blocklist range as spam (@code{mh-junk-blocklist}).
 @c -------------------------
-@kindex J w
-@findex mh-junk-whitelist
-@item J w
-Whitelist range as ham (@code{mh-junk-whitelist}).
+@kindex J a
+@findex mh-junk-allowlist
+@item J a
+Allowlist range as ham (@code{mh-junk-allowlist}).
 @c -------------------------
 @item @code{mh-spamassassin-identify-spammers}
 Identify spammers who are repeat offenders.
@@ -7597,31 +7597,31 @@ The following option in the @samp{mh-sequences} customization group is
 also available.
 
 @vtable @code
-@item mh-whitelist-preserves-sequences-flag
-On means that sequences are preserved when messages are whitelisted
+@item mh-allowlist-preserves-sequences-flag
+On means that sequences are preserved when messages are allowlisted
 (default: @samp{on}).
 @end vtable
 
 The following hooks are available.
 
 @vtable @code
-@item mh-blacklist-msg-hook
-Hook run by @kbd{J b} (@code{mh-junk-blacklist}) after marking each
-message for blacklisting (default: @code{nil}).
+@item mh-blocklist-msg-hook
+Hook run by @kbd{J b} (@code{mh-junk-blocklist}) after marking each
+message for blocklisting (default: @code{nil}).
 @c -------------------------
-@item mh-whitelist-msg-hook
-Hook run by @kbd{J w} (@code{mh-junk-whitelist}) after marking each
-message for whitelisting (default @samp{nil}).
+@item mh-allowlist-msg-hook
+Hook run by @kbd{J a} (@code{mh-junk-allowlist}) after marking each
+message for allowlisting (default @samp{nil}).
 @end vtable
 
 The following faces are available.
 
 @vtable @code
-@item mh-folder-blacklisted
-Blacklisted message face.
+@item mh-folder-blocklisted
+Blocklisted message face.
 @c -------------------------
-@item mh-folder-whitelisted
-Whitelisted message face
+@item mh-folder-allowlisted
+Allowlisted message face
 @end vtable
 
 @cindex SpamProbe
@@ -7647,21 +7647,21 @@ example, you have both SpamAssassin and bogofilter installed and you
 want to use bogofilter, then you can set this option to
 @samp{Bogofilter}.
 
-@findex mh-junk-blacklist
+@findex mh-junk-blocklist
 @kindex J b
 @vindex mh-junk-disposition
 
-The command @kbd{J b} (@code{mh-junk-blacklist}) trains the spam
+The command @kbd{J b} (@code{mh-junk-blocklist}) trains the spam
 program in use with the content of the range (@pxref{Ranges}) and then
 handles the message(s) as specified by the option
 @code{mh-junk-disposition}. By default, this option is set to
 @samp{Delete Spam} but you can also specify the name of the folder
 which is useful for building a corpus of spam for training purposes.
 
-@findex mh-junk-whitelist
-@kindex J w
+@findex mh-junk-allowlist
+@kindex J a
 
-In contrast, the command @kbd{J w} (@code{mh-junk-whitelist})
+In contrast, the command @kbd{J a} (@code{mh-junk-allowlist})
 reclassifies a range of messages (@pxref{Ranges}) as ham if it were
 incorrectly classified as spam. It then refiles the message into the
 @file{+inbox} folder.
@@ -7671,12 +7671,12 @@ incorrectly classified as spam. It then refiles the message into the
 @cindex @samp{Previous-Sequence} MH profile component
 @cindex sequence, @samp{cur}
 @cindex sequence, @samp{Previous-Sequence}
-@vindex mh-whitelist-preserves-sequences-flag
+@vindex mh-allowlist-preserves-sequences-flag
 
 If a message is in any sequence (except @samp{Previous-Sequence:} and
-@samp{cur}) when it is whitelisted, then it will still be in those
+@samp{cur}) when it is allowlisted, then it will still be in those
 sequences in the destination folder. If this behavior is not desired,
-then turn off the option @code{mh-whitelist-preserves-sequences-flag}.
+then turn off the option @code{mh-allowlist-preserves-sequences-flag}.
 
 @cindex @file{*MH-E Log*}
 @cindex buffers, @file{*MH-E Log*}
@@ -7756,33 +7756,33 @@ the @samp{+spam} folder for later review. The major weakness of
 rules-based filters is a plethora of false positives so it is
 worthwhile to check.
 
-@findex mh-junk-blacklist
-@findex mh-junk-whitelist
+@findex mh-junk-blocklist
+@findex mh-junk-allowlist
 @kindex J b
-@kindex J w
+@kindex J a
 
 If SpamAssassin classifies a message incorrectly, or is unsure, you can
-use the MH-E commands @kbd{J b} (@code{mh-junk-blacklist}) and
-@kbd{J w} (@code{mh-junk-whitelist}).
+use the MH-E commands @kbd{J b} (@code{mh-junk-blocklist}) and
+@kbd{J a} (@code{mh-junk-allowlist}).
 
 @cindex @command{sa-learn}
 @cindex @file{.spamassassin/user_prefs}
 @cindex files, @file{.spamassassin/user_prefs}
 
-The command @kbd{J b} (@code{mh-junk-blacklist}) adds a
+The command @kbd{J b} (@code{mh-junk-blocklist}) adds a
 @samp{blacklist_from} entry to @file{~/spamassassin/user_prefs},
 deletes the message, and sends the message to the Razor, so that
 others might not see this spam. If the @command{sa-learn} command is
 available, the message is also recategorized as spam.
 
-The command@kbd{J w} (@code{mh-junk-whitelist}) adds a
+The command@kbd{J a} (@code{mh-junk-allowlist}) adds a
 @samp{whitelist_from} rule to @samp{~/.spamassassin/user_prefs}. If
 the @command{sa-learn} command is available, the message is also
 recategorized as ham.
 
 Over time, you'll observe that the same host or domain occurs
 repeatedly in the @samp{blacklist_from} entries, so you might think
-that you could avoid future spam by blacklisting all mail from a
+that you could avoid future spam by blocklisting all mail from a
 particular domain. The utility function
 @code{mh-spamassassin-identify-spammers} helps you do precisely that.
 This function displays a frequency count of the hosts and domains in
@@ -7796,7 +7796,7 @@ blacklist_from *@@*amazingoffersdirect2u.com
 @end smallexample
 
 In versions of SpamAssassin (2.50 and on) that support a Bayesian
-classifier, @kbd{J b} @code{(mh-junk-blacklist}) uses the program
+classifier, @kbd{J b} @code{(mh-junk-blocklist}) uses the program
 @command{sa-learn} to recategorize the message as spam. Neither MH-E,
 nor SpamAssassin, rebuilds the database after adding words, so you
 will need to run @samp{sa-learn --rebuild} periodically. This can be
@@ -7856,14 +7856,14 @@ spam/.
 spam/unsure/.
 @end smallexample
 
-@findex mh-junk-blacklist
-@findex mh-junk-whitelist
+@findex mh-junk-blocklist
+@findex mh-junk-allowlist
 @kindex J b
-@kindex J w
+@kindex J a
 
 If bogofilter classifies a message incorrectly, or is unsure, you can
-use the MH-E commands @kbd{J b} (@code{mh-junk-blacklist}) and @kbd{J
-w} (@code{mh-junk-whitelist}) to update bogofilter's training.
+use the MH-E commands @kbd{J b} (@code{mh-junk-blocklist}) and
+@kbd{J a} (@code{mh-junk-allowlist}) to update bogofilter's training.
 
 The @cite{Bogofilter FAQ} suggests that you run the following
 occasionally to shrink the database:
@@ -7908,14 +7908,14 @@ SCORE=| spamprobe receive
 spam/.
 @end smallexample
 
-@findex mh-junk-blacklist
-@findex mh-junk-whitelist
+@findex mh-junk-blocklist
+@findex mh-junk-allowlist
 @kindex J b
-@kindex J w
+@kindex J a
 
 If SpamProbe classifies a message incorrectly, you can use the MH-E
-commands @kbd{J b} (@code{mh-junk-blacklist}) and @kbd{J w}
-(@code{mh-junk-whitelist}) to update SpamProbe's training.
+commands @kbd{J b} (@code{mh-junk-blocklist}) and @kbd{J a}
+(@code{mh-junk-allowlist}) to update SpamProbe's training.
 
 @subheading Other Things You Can Do
 

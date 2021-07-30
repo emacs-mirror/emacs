@@ -229,7 +229,7 @@ User's mail folder directory.")
 (defvar mh-arrow-marker nil
   "Marker for arrow display in fringe.")
 
-(defvar mh-blacklist nil
+(defvar mh-blocklist nil
   "List of messages to use to train the junk filter.
 This variable can be used by
 `mh-before-commands-processed-hook'.")
@@ -295,7 +295,7 @@ Elements have the form (SEQUENCE . MESSAGES).")
   "Stack of operations that change the folder view.
 These operations include narrowing or threading.")
 
-(defvar mh-whitelist nil
+(defvar mh-allowlist nil
   "List of messages to use to train the junk filter.
 This variable can be used by
 `mh-before-commands-processed-hook'.")
@@ -1687,13 +1687,13 @@ fashion."
 
 ;; Available spam filter interfaces
 (defvar mh-junk-function-alist
-  '((spamassassin mh-spamassassin-blacklist mh-spamassassin-whitelist)
-    (bogofilter mh-bogofilter-blacklist mh-bogofilter-whitelist)
-    (spamprobe mh-spamprobe-blacklist mh-spamprobe-whitelist))
+  '((spamassassin mh-spamassassin-blocklist mh-spamassassin-allowlist)
+    (bogofilter mh-bogofilter-blocklist mh-bogofilter-allowlist)
+    (spamprobe mh-spamprobe-blocklist mh-spamprobe-allowlist))
   "Available choices of spam programs to use.
 
 This is an alist. For each element there are functions that
-blacklist a message as spam and whitelist a message incorrectly
+blocklist a message as spam and allowlist a message incorrectly
 classified as spam.")
 
 (defun mh-junk-choose (symbol value)
@@ -2236,11 +2236,11 @@ commands."
   :group 'mh-sequences
   :package-version '(MH-E . "7.0"))
 
-(defcustom-mh mh-whitelist-preserves-sequences-flag t
-  "Non-nil means that sequences are preserved when messages are whitelisted.
+(defcustom-mh mh-allowlist-preserves-sequences-flag t
+  "Non-nil means that sequences are preserved when messages are allowlisted.
 
 If a message is in any sequence (except \"Previous-Sequence:\"
-and \"cur\") when it is whitelisted, then it will still be in
+and \"cur\") when it is allowlisted, then it will still be in
 those sequences in the destination folder. If this behavior is
 not desired, then turn off this option."
   :type 'boolean
@@ -3195,7 +3195,7 @@ annotated messages with `mh-annotate-list'."
   "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] before performing outstanding refile and delete requests.
 
 Variables that are useful in this hook include `mh-delete-list',
-`mh-refile-list', `mh-blacklist', and `mh-whitelist' which can be
+`mh-refile-list', `mh-blocklist', and `mh-allowlist' which can be
 used to see which changes will be made to the current folder,
 `mh-current-folder'."
   :type 'hook
@@ -3227,8 +3227,8 @@ before sending, add the `ispell-message' function."
   :group 'mh-letter
   :package-version '(MH-E . "6.0"))
 
-(defcustom-mh mh-blacklist-msg-hook nil
-  "Hook run by \\<mh-letter-mode-map>\\[mh-junk-blacklist] after marking each message for blacklisting."
+(defcustom-mh mh-blocklist-msg-hook nil
+  "Hook run by \\<mh-letter-mode-map>\\[mh-junk-blocklist] after marking each message for blocklisting."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show
@@ -3400,8 +3400,8 @@ sequence."
   :group 'mh-sequences
   :package-version '(MH-E . "6.0"))
 
-(defcustom-mh mh-whitelist-msg-hook nil
-  "Hook run by \\<mh-letter-mode-map>\\[mh-junk-whitelist] after marking each message for whitelisting."
+(defcustom-mh mh-allowlist-msg-hook nil
+  "Hook run by \\<mh-letter-mode-map>\\[mh-junk-allowlist] after marking each message for allowlisting."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show
@@ -3627,9 +3627,9 @@ specified colors."
   :group 'mh-folder
   :package-version '(MH-E . "8.0"))
 
-(defface-mh mh-folder-blacklisted
+(defface-mh mh-folder-blocklisted
   (mh-face-data 'mh-folder-msg-number '((t (:inherit mh-folder-msg-number))))
-  "Blacklisted message face."
+  "Blocklisted message face."
   :group 'mh-faces
   :group 'mh-folder
   :package-version '(MH-E . "8.4"))
@@ -3723,9 +3723,9 @@ format `mh-scan-format-nmh' and the regular expression
   :group 'mh-folder
   :package-version '(MH-E . "8.0"))
 
-(defface-mh mh-folder-whitelisted
+(defface-mh mh-folder-allowlisted
   (mh-face-data 'mh-folder-refiled '((t (:inherit mh-folder-refiled))))
-  "Whitelisted message face."
+  "Allowlisted message face."
   :group 'mh-faces
   :group 'mh-folder
   :package-version '(MH-E . "8.4"))

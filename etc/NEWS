@@ -1739,6 +1739,36 @@ modified flag.
 *** New faces for heading elements.
 Those are 'shr-h1', 'shr-h2', 'shr-h3', 'shr-h4', 'shr-h5', 'shr-h6'.
 
+** MH-E mail handler for Emacs
+
+Functions and variables related to handling junk mail have been
+renamed to not associate color with sender quality.
+
++++
+*** New names for mh-junk interactive functions.
+Function 'mh-junk-whitelist' is renamed 'mh-junk-allowlist'.
+Function 'mh-junk-blacklist' is renamed 'mh-junk-blocklist'.
+
++++
+*** New binding for mh-junk-allowlist.
+The key binding for 'mh-junk-allowlist' is changed from 'J w' to 'J a'.
+The old binding is supported but warns that it is obsolete.
+
++++
+*** New names for some hooks.
+'mh-whitelist-msg-hook' is renamed 'mh-allowlist-msg-hook'.
+'mh-blacklist-msg-hook' is renamed 'mh-blocklist-msg-hook'.
+
++++
+*** New names for some variables.
+Variable 'mh-whitelist-preserves-sequences-flag' is renamed
+'mh-allowlist-preserves-sequences-flag'.
+
++++
+*** New names for some faces.
+Face 'mh-folder-blacklisted' is renamed 'mh-folder-blocklisted'.
+Face 'mh-folder-whitelisted' is renamed 'mh-folder-allowlisted'.
+
 ** Apropos
 
 *** New commands 'apropos-next-symbol' and 'apropos-previous-symbol'.
