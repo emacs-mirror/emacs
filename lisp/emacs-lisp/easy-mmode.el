@@ -251,7 +251,9 @@ INIT-VALUE LIGHTER KEYMAP.
                    (setq getter `(default-value ',mode))))
 	(:extra-args (setq extra-args (pop body)))
 	(:set (setq set (list :set (pop body))))
-	(:initialize (setq initialize (list :initialize (pop body))))
+	(:initialize
+         (when-let ((val (pop body)))
+           (setq initialize (list :initialize val))))
 	(:type (setq type (list :type (pop body))))
 	(:keymap (setq keymap (pop body)))
 	(:interactive (setq interactive (pop body)))
