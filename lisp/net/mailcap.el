@@ -1186,7 +1186,6 @@ See \"~/.mailcap\", `mailcap-mime-data' and related files and variables."
     (make-process
      :name "mailcap-view-file"
      :connection-type 'pipe
-     :noquery t
      :buffer nil ; "*Messages*" may be suitable for debugging
      :sentinel (lambda (proc event)
                  (when (and (memq (process-status proc) '(exit signal))
