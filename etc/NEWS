@@ -769,7 +769,7 @@ compilation buffers, recenters the current displayed occurrence/error.
 ---
 *** Occur mode may use a different type for 'occur-target' property values.
 The value was previously always a marker set to the start of the first
-match on the line but can now also be a list of (BEGIN . END) pairs
+match on the line but can now also be a list of '(BEGIN . END)' pairs
 of markers delimiting each match on the line.
 This is a fully compatible change to the internal occur-mode
 implementation, and code creating their own occur-mode buffers will
@@ -904,7 +904,7 @@ keys, add the following to your init file:
 
 ** Change Logs and VC
 
-*** vc-git now sets the GIT_LITERAL_PATHSPECS environment variable.
+*** vc-git now sets the 'GIT_LITERAL_PATHSPECS' environment variable.
 This ensures that Git operations on files containing wildcard
 characters work as they're supposed to.  However, this also affects
 scripts running from Git hooks, and these have to "unset
@@ -1506,6 +1506,9 @@ like cell phones, tablets or cameras.
 *** New connection method "sshfs", which allows accessing remote files
 via a file system mounted with 'sshfs'.
 
+---
+*** Tramp supports authentication via yubikey now.
+
 +++
 *** Trashed remote files are moved to the local trash directory.
 All remote files, which are trashed, are moved to the local trash
@@ -1750,7 +1753,7 @@ Function 'mh-junk-whitelist' is renamed 'mh-junk-allowlist'.
 Function 'mh-junk-blacklist' is renamed 'mh-junk-blocklist'.
 
 +++
-*** New binding for mh-junk-allowlist.
+*** New binding for 'mh-junk-allowlist'.
 The key binding for 'mh-junk-allowlist' is changed from 'J w' to 'J a'.
 The old binding is supported but warns that it is obsolete.
 
@@ -2097,7 +2100,7 @@ support, and it is available on the current system.
 
 +++
 *** Native JSON functions now signal an error if libjansson is unavailable.
-This affects 'json-serialize', 'json-insert', 'json-parse-srtring',
+This affects 'json-serialize', 'json-insert', 'json-parse-string',
 and 'json-parse-buffer'.  This can happen if Emacs was compiled with
 libjansson, but the DLL cannot be found and/or loaded by Emacs at run
 time.  Previously, Emacs would display a message and return nil in
@@ -2338,9 +2341,9 @@ This command, called interactively, toggles the local value of
 ** Miscellaneous
 
 +++
-*** .dir-locals.el now supports setting 'auto-mode-alist'.
-The new 'auto-mode-alist' specification in .dir-local.el files can now
-be used to override the global 'auto-mode-alist' in the current
+*** ".dir-locals.el" now supports setting 'auto-mode-alist'.
+The new 'auto-mode-alist' specification in ".dir-locals.el" files can
+now be used to override the global 'auto-mode-alist' in the current
 directory tree.
 
 ---
@@ -2365,7 +2368,7 @@ local-variables section of a file.
 ---
 *** 'tabulated-list-mode' can now restore original display order.
 Many commands (like 'C-x C-b') are derived from 'tabulated-list-mode',
-and that mode allow the user to sort on any column.  There was
+and that mode allows the user to sort on any column.  There was
 previously no easy way to get back to the original displayed order
 after sorting, but giving a -1 numerical prefix to the sorting command
 will now restore the original order.
@@ -2911,7 +2914,7 @@ This is to keep the same behavior as Eshell.
 
 ---
 ** 'kill-all-local-variables' has changed how it handles non-symbol hooks.
-The function is documented to eliminated all buffer-local bindings
+The function is documented to eliminate all buffer-local bindings
 except variables with a 'permanent-local' property, or hooks that
 have elements with a 'permanent-local-hook' property.  In addition, it
 would also keep lambda expressions in hooks sometimes.  The latter has
