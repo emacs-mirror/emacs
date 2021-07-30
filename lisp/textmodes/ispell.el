@@ -649,11 +649,7 @@ Otherwise returns the library directory name, if that is defined."
 	result libvar status ispell-program-version)
 
     (with-temp-buffer
-      (setq status (ispell-call-process
-		    ispell-program-name nil t nil
-		    (let ((case-fold-search
-			   (memq system-type '(ms-dos windows-nt))))
-		      "-vv")))
+      (setq status (ispell-call-process ispell-program-name nil t nil "-vv"))
       (goto-char (point-min))
       (if interactivep
 	  ;; Report version information of ispell
