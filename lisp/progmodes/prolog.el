@@ -1315,6 +1315,7 @@ With prefix argument ARG, restart the Prolog process if running before."
       (progn
         (process-send-string "prolog" "halt.\n")
         (while (get-process "prolog") (sit-for 0.1))))
+  (prolog-ensure-process)
   (let ((buff (buffer-name)))
     (if (not (string= buff "*prolog*"))
         (prolog-goto-prolog-process-buffer))
@@ -1324,7 +1325,6 @@ With prefix argument ARG, restart the Prolog process if running before."
              prolog-use-sicstus-sd)
         (prolog-enable-sicstus-sd))
     (prolog-mode-variables)
-    (prolog-ensure-process)
     ))
 
 (defun prolog-inferior-guess-flavor (&optional ignored)
@@ -1349,56 +1349,57 @@ With prefix argument ARG, restart the Prolog process if running before."
   "If Prolog process is not running, run it.
 If the optional argument WAIT is non-nil, wait for Prolog prompt specified by
 the variable `prolog-prompt-regexp'."
-  (if (null (prolog-program-name))
-      (error "This Prolog system has defined no interpreter."))
-  (if (comint-check-proc "*prolog*")
-      ()
-    (with-current-buffer (get-buffer-create "*prolog*")
-      (prolog-inferior-mode)
+  (let ((pname (prolog-program-name))
+        (pswitches (prolog-program-switches)))
+    (if (null pname)
+        (error "This Prolog system has defined no interpreter."))
+    (unless (comint-check-proc "*prolog*")
+      (with-current-buffer (get-buffer-create "*prolog*")
+        (prolog-inferior-mode)
 
-      ;; The "INFERIOR=yes" hack is for SWI-Prolog 7.2.3 and earlier,
-      ;; which assumes it is running under Emacs if either INFERIOR=yes or
-      ;; if EMACS is set to a nonempty value.  The EMACS setting is
-      ;; obsolescent, so set INFERIOR.  Newer versions of SWI-Prolog should
-      ;; know about INSIDE_EMACS (which replaced EMACS) and should not need
-      ;; this hack.
-      (let ((process-environment
-	     (if (getenv "INFERIOR")
-		 process-environment
-	       (cons "INFERIOR=yes" process-environment))))
-	(apply 'make-comint-in-buffer "prolog" (current-buffer)
-	       (prolog-program-name) nil (prolog-program-switches)))
+        ;; The "INFERIOR=yes" hack is for SWI-Prolog 7.2.3 and earlier,
+        ;; which assumes it is running under Emacs if either INFERIOR=yes or
+        ;; if EMACS is set to a nonempty value.  The EMACS setting is
+        ;; obsolescent, so set INFERIOR.  Newer versions of SWI-Prolog should
+        ;; know about INSIDE_EMACS (which replaced EMACS) and should not need
+        ;; this hack.
+        (let ((process-environment
+	       (if (getenv "INFERIOR")
+		   process-environment
+	         (cons "INFERIOR=yes" process-environment))))
+	  (apply 'make-comint-in-buffer "prolog" (current-buffer)
+	         pname nil pswitches))
 
-      (unless prolog-system
-        ;; Setup auto-detection.
-        (setq-local
-         prolog-system
-         ;; Force re-detection.
-         (let* ((proc (get-buffer-process (current-buffer)))
-                (pmark (and proc (marker-position (process-mark proc)))))
-           (cond
-            ((null pmark) (1- (point-min)))
-            ;; The use of insert-before-markers in comint.el together with
-            ;; the potential use of comint-truncate-buffer in the output
-            ;; filter, means that it's difficult to reliably keep track of
-            ;; the buffer position where the process's output started.
-            ;; If possible we use a marker at "start - 1", so that
-            ;; insert-before-marker at `start' won't shift it.  And if not,
-            ;; we fall back on using a plain integer.
-            ((> pmark (point-min)) (copy-marker (1- pmark)))
-            (t (1- pmark)))))
-        (add-hook 'comint-output-filter-functions
-                  'prolog-inferior-guess-flavor nil t))
-      (if wait
-          (progn
-            (goto-char (point-max))
-            (while
-                (save-excursion
-                  (not
-                   (re-search-backward
-                    (concat "\\(" (prolog-prompt-regexp) "\\)" "\\=")
-                    nil t)))
-              (sit-for 0.1)))))))
+        (unless prolog-system
+          ;; Setup auto-detection.
+          (setq-local
+           prolog-system
+           ;; Force re-detection.
+           (let* ((proc (get-buffer-process (current-buffer)))
+                  (pmark (and proc (marker-position (process-mark proc)))))
+             (cond
+              ((null pmark) (1- (point-min)))
+              ;; The use of insert-before-markers in comint.el together with
+              ;; the potential use of comint-truncate-buffer in the output
+              ;; filter, means that it's difficult to reliably keep track of
+              ;; the buffer position where the process's output started.
+              ;; If possible we use a marker at "start - 1", so that
+              ;; insert-before-marker at `start' won't shift it.  And if not,
+              ;; we fall back on using a plain integer.
+              ((> pmark (point-min)) (copy-marker (1- pmark)))
+              (t (1- pmark)))))
+          (add-hook 'comint-output-filter-functions
+                    'prolog-inferior-guess-flavor nil t))
+        (if wait
+            (progn
+              (goto-char (point-max))
+              (while
+                  (save-excursion
+                    (not
+                     (re-search-backward
+                      (concat "\\(" (prolog-prompt-regexp) "\\)" "\\=")
+                      nil t)))
+                (sit-for 0.1))))))))
 
 (defun prolog-inferior-buffer (&optional dont-run)
   (or (get-buffer "*prolog*")
