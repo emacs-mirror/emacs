@@ -1758,8 +1758,7 @@ invoking the new action."
     (when so-long--active
       (so-long-revert))
     ;; Invoke the new action.
-    (let ((so-long--calling t)
-          (view-mode-active view-mode))
+    (let ((so-long--calling t))
       (so-long--ensure-enabled)
       ;; ACTION takes precedence if supplied.
       (when action
@@ -1788,10 +1787,7 @@ invoking the new action."
       ;; functions need to modify the buffer.  We use `inhibit-read-only' to
       ;; side-step the issue (and likewise in `so-long-revert').
       (let ((inhibit-read-only t))
-        (run-hooks 'so-long-hook))
-      ;; Restore `view-mode'.
-      (when view-mode-active
-        (view-mode)))))
+        (run-hooks 'so-long-hook)))))
 
 (defun so-long-revert ()
   "Revert the active `so-long-action' and run `so-long-revert-hook'.
