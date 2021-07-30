@@ -310,14 +310,6 @@ Earlier variables shadow later ones with the same name.")
 
 ;;; implementing source-level optimizers
 
-(defconst byte-optimize-enable-variable-constprop t
-  "If non-nil, enable constant propagation through local variables.")
-
-(defconst byte-optimize-warn-eliminated-variable nil
-  "Whether to warn when a variable is optimised away entirely.
-This does usually not indicate a problem and makes the compiler
-very chatty, but can be useful for debugging.")
-
 (defvar byte-optimize--vars-outside-condition nil
   "Alist of variables lexically bound outside conditionally executed code.
 Variables here are sensitive to mutation inside the conditional code,
@@ -691,28 +683,24 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
   ;; Recursively enter the optimizer for the bindings and body
   ;; of a let or let*.  This for depth-firstness: forms that
   ;; are more deeply nested are optimized first.
-  (if (and lexical-binding byte-optimize-enable-variable-constprop)
+  (if lexical-binding
       (let* ((byte-optimize--lexvars byte-optimize--lexvars)
              (new-lexvars nil)
              (let-vars nil))
         (dolist (binding (car form))
-          (let (name expr)
-            (if (atom binding)
-                (setq name binding)
-              (setq name (car binding))
-              (setq expr (byte-optimize-form (cadr binding) nil)))
-            (let* ((value (and (byte-optimize--substitutable-p expr)
-                               (list expr)))
-                   (lexical (not (or (and (symbolp name)
-                                          (special-variable-p name))
-                                     (memq name byte-compile-bound-variables)
-                                     (memq name byte-optimize--dynamic-vars))))
-                   (lexinfo (and lexical (cons name (cons nil value)))))
-              (push (cons name (cons expr (cdr lexinfo))) let-vars)
-              (when lexinfo
-                (push lexinfo (if (eq head 'let*)
-                                  byte-optimize--lexvars
-                                new-lexvars))))))
+          (let* ((name (car binding))
+                 (expr (byte-optimize-form (cadr binding) nil))
+                 (value (and (byte-optimize--substitutable-p expr)
+                             (list expr)))
+                 (lexical (not (or (special-variable-p name)
+                                   (memq name byte-compile-bound-variables)
+                                   (memq name byte-optimize--dynamic-vars))))
+                 (lexinfo (and lexical (cons name (cons nil value)))))
+            (push (cons name (cons expr (cdr lexinfo))) let-vars)
+            (when lexinfo
+              (push lexinfo (if (eq head 'let*)
+                                byte-optimize--lexvars
+                              new-lexvars)))))
         (setq byte-optimize--lexvars
               (append new-lexvars byte-optimize--lexvars))
         ;; Walk the body expressions, which may mutate some of the records,
@@ -722,10 +710,8 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
                (bindings nil))
           (dolist (var let-vars)
             ;; VAR is (NAME EXPR [KEEP [VALUE]])
-            (if (and (nthcdr 3 var) (not (nth 2 var)))
-                ;; Value present and not marked to be kept: eliminate.
-                (when byte-optimize-warn-eliminated-variable
-                  (byte-compile-warn "eliminating local variable %S" (car var)))
+            (when (or (not (nthcdr 3 var)) (nth 2 var))
+              ;; Value not present, or variable marked to be kept.
               (push (list (nth 0 var) (nth 1 var)) bindings)))
           (cons bindings opt-body)))
 
