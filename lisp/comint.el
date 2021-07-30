@@ -2157,9 +2157,9 @@ Make backspaces delete the previous character."
 		 'comint-highlight-prompt))
 	      (setq comint-last-prompt
 		    (cons (copy-marker prompt-start) (point-marker)))
-	      (font-lock-prepend-text-property prompt-start (point)
-					       'font-lock-face
-					       'comint-highlight-prompt)
+	      (font-lock-append-text-property prompt-start (point)
+					      'font-lock-face
+					      'comint-highlight-prompt)
 	      (add-text-properties prompt-start (point)
 	                           `(rear-nonsticky
 	                             ,comint--prompt-rear-nonsticky)))
