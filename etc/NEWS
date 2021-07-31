@@ -479,6 +479,7 @@ Typing 'TAB' on a heading line cycles the current section between
 anywhere in the buffer cycles the whole buffer between "only top-level
 headings", "all headings and subheadings", and "show all" states.
 
++++
 *** New user option 'outline-minor-mode-cycle'.
 This user option customizes 'outline-minor-mode', with the difference
 that 'TAB' and 'S-TAB' on heading lines cycle heading visibility.
