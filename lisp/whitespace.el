@@ -593,7 +593,7 @@ Used when `whitespace-style' includes the value `empty'.")
 
 (defface whitespace-empty
   '((((class mono)) :inverse-video t :weight bold :underline t)
-    (t :background "yellow" :foreground "firebrick"))
+    (t :background "yellow" :foreground "firebrick" :extend t))
   "Face used to visualize empty lines at beginning and/or end of buffer."
   :group 'whitespace)
 
