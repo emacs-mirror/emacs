@@ -716,7 +716,7 @@ claim them."
     "\M-n" gnus-browse-next-group
     "\M-p" gnus-browse-prev-group
     "\r" gnus-browse-select-group
-    "u" gnus-browse-toggle-subscription
+    "u" gnus-browse-toggle-subscription-at-point
     "l" gnus-browse-exit
     "L" gnus-browse-exit
     "q" gnus-browse-exit
@@ -735,7 +735,7 @@ claim them."
     (easy-menu-define
      gnus-browse-menu gnus-browse-mode-map ""
      '("Browse"
-       ["Toggle Subscribe" gnus-browse-toggle-subscription t]
+       ["Toggle Subscribe" gnus-browse-toggle-subscription-at-point t]
        ["Read" gnus-browse-read-group t]
        ["Select" gnus-browse-select-group t]
        ["Describe" gnus-browse-describe-group t]
@@ -881,7 +881,7 @@ All normal editing commands are switched off.
 \\<gnus-browse-mode-map>
 The only things you can do in this buffer is
 
-1) `\\[gnus-browse-toggle-subscription]' to subscribe or unsubscribe to
+1) `\\[gnus-browse-toggle-subscription-at-point]' to subscribe or unsubscribe to
 a group.  The group will be inserted into the group buffer upon exit from
 this buffer.
 
