@@ -601,8 +601,10 @@ This is used to fontify non-scalar variables.
 This allows the user to easier customize whether to use block-based
 navigation or not.
 
+---
 *** 'python-shell-interpreter' now defaults to python3 on systems with python3.
 
+---
 *** 'C-c C-r' can now be used on arbitrary regions.
 The command previously extended the start of the region to the start
 of the line, but will now actually send the marked region, as
@@ -610,6 +612,7 @@ documented.
 
 ** Ruby mode
 
+---
 *** 'ruby-use-smie' is declared obsolete.
 SMIE is now always enabled and 'ruby-use-smie' only controls whether
 indentation is done using SMIE or with the old ad-hoc code.
@@ -630,10 +633,13 @@ Icomplete, completions are rotated and selection kept at the top.
 When used with Fido, completions scroll like a typical dropdown
 widget.
 
+---
 *** Default value of 'icomplete-compute-delay' has been changed to 0.15 s.
 
+---
 *** Default value of 'icomplete-max-delay-chars' has been changed to 2.
 
+---
 *** Reduced blinking while completing the next completions set.
 Icomplete doesn't hide the hint with the previously computed
 completions anymore when compute delay is in effect, or the previous
@@ -655,6 +661,7 @@ disabled entirely.
 
 ** Windmove
 
++++
 *** New user options to customize windmove keybindings.
 These options include 'windmove-default-keybindings',
 'windmove-display-default-keybindings',
@@ -693,6 +700,7 @@ of the next command to be displayed in a new window.
 
 ** Frames
 
++++
 *** The key prefix 'C-x 5 5' displays next command buffer in a new frame.
 It's bound to the command 'other-frame-prefix' that requests the buffer
 of the next command to be displayed in a new frame.
