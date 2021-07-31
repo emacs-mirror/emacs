@@ -787,6 +787,10 @@ faces in other ways.
 *** The new command 'recenter-current-error', bound to 'l' in Occur or
 compilation buffers, recenters the current displayed occurrence/error.
 
+*** Matches in target buffers are now highlighted as in 'compilation-mode'.
+The method of highlighting is specified by the user options
+'next-error-highlight' and 'next-error-highlight-no-select'.
+
 ---
 *** Occur mode may use a different type for 'occur-target' property values.
 The value was previously always a marker set to the start of the first
