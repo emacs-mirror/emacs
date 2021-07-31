@@ -488,12 +488,14 @@ Typing 'TAB' on a heading line cycles the current section between
 heading line cycles the whole buffer between "only top-level
 headings", "all headings and subheadings", and "show all" states.
 
+---
 *** New user option 'outline-minor-mode-highlight'.
 This user option customizes 'outline-minor-mode'.  It puts
 highlighting on heading lines using standard outline faces.  This
 works well only when there are no conflicts with faces used by the
 major mode.
 
++++
 ** New commands 'copy-matching-lines' and 'kill-matching-lines'.
 These commands are similar to the command 'flush-lines',
 but add the matching lines to the kill ring as a single string,
