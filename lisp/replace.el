@@ -2089,8 +2089,10 @@ See also `multi-occur'."
 			        "\n"
 			        (if prefix-face
 				    (propertize
-				     "\n       :" 'font-lock-face prefix-face)
-				  "\n       :")
+				     "\n       :" 'font-lock-face prefix-face
+                                     'occur-target markers)
+                                  (propertize
+				   "\n       :" 'occur-target markers))
                                 ;; Add mouse face in one section to
                                 ;; ensure the prefix and the string
                                 ;; get a contiguous highlight.
