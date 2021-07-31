@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "intervals.h"
 #include "pdumper.h"
+#include "composite.h"
 
 #include "regex-emacs.h"
 
@@ -2725,7 +2726,7 @@ since only regular expressions have distinguished subexpressions.  */)
   newpoint = sub_start + SCHARS (newtext);
 
   /* Replace the old text with the new in the cleanest possible way.  */
-  replace_range (sub_start, sub_end, newtext, 1, 0, 1, true);
+  replace_range (sub_start, sub_end, newtext, 1, 0, 1, true, true);
 
   if (case_action == all_caps)
     Fupcase_region (make_fixnum (search_regs.start[sub]),
@@ -2749,6 +2750,9 @@ since only regular expressions have distinguished subexpressions.  */)
   TEMP_SET_PT (clip_to_bounds (BEGV, opoint + (opoint <= 0 ? ZV : 0), ZV));
   /* Now move point "officially" to the end of the inserted replacement.  */
   move_if_not_intangible (newpoint);
+
+  signal_after_change (sub_start, sub_end - sub_start, SCHARS (newtext));
+  update_compositions (sub_start, newpoint, CHECK_BORDER);
 
   return Qnil;
 }

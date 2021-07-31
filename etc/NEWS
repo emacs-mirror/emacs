@@ -2921,6 +2921,15 @@ This is to keep the same behavior as Eshell.
 * Incompatible Lisp Changes in Emacs 28.1
 
 ---
+** 'replace-match' now runs modification hooks slightly later.
+The function is documented to leave point after the replacement text,
+but this was not always the case if a modification hook inserted text
+in front of the replaced text -- 'replace-match' would instead leave
+point where the end of the inserted text would have been before the
+hook ran.  'replace-match' now always leaves point after the
+replacement text.
+
+---
 ** 'kill-all-local-variables' has changed how it handles non-symbol hooks.
 The function is documented to eliminate all buffer-local bindings
 except variables with a 'permanent-local' property, or hooks that
