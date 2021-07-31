@@ -593,6 +593,11 @@ This is used to fontify non-scalar variables.
 
 ** Python mode
 
+---
+*** New user option 'python-forward-sexp-function'.
+This allows the user to easier customize whether to use block-based
+navigation or not.
+
 *** 'python-shell-interpreter' now defaults to python3 on systems with python3.
 
 *** 'C-c C-r' can now be used on arbitrary regions.
