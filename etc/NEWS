@@ -3096,7 +3096,7 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'erc-announced-server-name', 'erc-default-coding-system',
 'erc-process', 'erc-send-command', 'eshell-report-bug',
 'eval-next-after-load', 'exchange-dot-and-mark', 'ffap-bug',
-'ffap-submit-bug', 'ffap-version', 'file-cache-choose-completion',
+'ffap-submit-bug', 'ffap-version', 'file-cache-mouse-choose-completion',
 'forward-point', 'generic-char-p', 'global-highlight-changes',
 'hi-lock-face-history', 'hi-lock-regexp-history',
 'highlight-changes-active-string', 'highlight-changes-initial-state',
