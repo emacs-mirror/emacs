@@ -952,6 +952,11 @@ This is a good function to put in `comint-output-filter-functions'.
 
 \(fn IGNORED)" nil nil)
 
+(autoload 'ansi-color-compilation-filter "ansi-color" "\
+Maybe translate SGR control sequences into text properties.
+This function depends on the `ansi-color-for-compilation-mode'
+variable, and is meant to be used in `compilation-filter-hook'." nil nil)
+
 (register-definition-prefixes "ansi-color" '("ansi-color-"))
 
 ;;;***
@@ -1548,7 +1553,7 @@ ENTRY is the name of a password-store entry.
 The key used to retrieve the password is the symbol `secret'.
 
 The convention used as the format for a password-store file is
-the following (see https://www.passwordstore.org/#organization):
+the following (see URL `https://www.passwordstore.org/#organization'):
 
 secret
 key1: value1
@@ -1787,6 +1792,10 @@ disk changes.
 
 When a buffer is reverted, a message is generated.  This can be
 suppressed by setting `auto-revert-verbose' to nil.
+
+Reverting can sometimes fail to preserve all the markers in the buffer.
+To avoid that, set `revert-buffer-insert-file-contents-function' to
+the slower function `revert-buffer-insert-file-contents-delicately'.
 
 Use `global-auto-revert-mode' to automatically revert all buffers.
 Use `auto-revert-tail-mode' if you know that the file will only grow
@@ -5215,7 +5224,7 @@ Normally display output in temp buffer, but
 prefix arg means replace the region with it.
 
 `c-macro-preprocessor' specifies the preprocessor to use.
-Tf the user option `c-macro-prompt-flag' is non-nil
+If the user option `c-macro-prompt-flag' is non-nil
 prompt for arguments to the preprocessor (e.g. `-DDEBUG -I ./include'),
 otherwise use `c-macro-cppflags'.
 
@@ -11216,6 +11225,8 @@ Any other value means use the setting of `case-fold-search'.")
 
 (custom-autoload 'tags-case-fold-search "etags" t)
 
+(put 'tags-case-fold-search 'safe-local-variable 'symbolp)
+
 (defvar tags-table-list nil "\
 List of file names of tags tables to search.
 An element that is a directory means the file \"TAGS\" in that directory.
@@ -12269,6 +12280,9 @@ Besides the choice of face, it is the same as `buffer-face-mode'.
 
 ;;;### (autoloads nil "facemenu" "facemenu.el" (0 0 0 0))
 ;;; Generated autoloads from facemenu.el
+ (autoload 'facemenu-menu "facemenu" nil nil 'keymap)
+
+(define-key global-map [C-down-mouse-2] 'facemenu-menu)
 
 (autoload 'list-colors-display "facemenu" "\
 Display names of defined colors, and show what they look like.
@@ -12386,6 +12400,11 @@ reminders, you can set `feedmail-queue-reminder-alist' to nil.
 
 ;;;### (autoloads nil "ffap" "ffap.el" (0 0 0 0))
 ;;; Generated autoloads from ffap.el
+
+(defvar ffap-file-finder 'find-file "\
+The command called by `find-file-at-point' to find a file.")
+
+(custom-autoload 'ffap-file-finder "ffap" t)
 
 (autoload 'ffap-next "ffap" "\
 Search buffer for next file or URL, and run ffap.
@@ -15348,7 +15367,7 @@ List of hook functions run by `grep-process-setup' (see `run-hooks').")
 
 (custom-autoload 'grep-setup-hook "grep" t)
 
-(defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:" "\\(?:[a-zA-Z]:\\)?" "[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches" 1 nil nil 0 1)) "\
+(defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:" "\\(?:[a-zA-Z]:\\)?" "[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg 1)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches" 1 nil nil 0 1)) "\
 Regexp used to match grep hits.
 See `compilation-error-regexp-alist' for format details.")
 
@@ -16169,7 +16188,7 @@ it does not already exist." nil nil)
 Parse and hyperlink documentation cross-references in the given BUFFER.
 
 Find cross-reference information in a buffer and activate such cross
-references for selection with `help-follow'.  Cross-references have
+references for selection with `help-follow-symbol'.  Cross-references have
 the canonical form `...'  and the type of reference may be
 disambiguated by the preceding word(s) used in
 `help-xref-symbol-regexp'.  Faces only get cross-referenced if
@@ -18657,9 +18676,14 @@ Convert old Emacs Devanagari characters to UCS.
 Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'.
 If there is a process already running in `*inferior-lisp*', just switch
 to that buffer.
+
 With argument, allows you to edit the command line (default is value
 of `inferior-lisp-program').  Runs the hooks from
 `inferior-lisp-mode-hook' (after the `comint-mode-hook' is run).
+
+If any parts of the command name contains spaces, they should be
+quoted using shell quote syntax.
+
 \(Type \\[describe-mode] in the process buffer for a list of commands.)
 
 \(fn CMD)" t nil)
@@ -27308,7 +27332,11 @@ If ARG is non-nil, instead prompt for connection parameters.
 (defalias 'irc 'rcirc)
 
 (autoload 'rcirc-connect "rcirc" "\
-
+Connect to SERVER.
+The arguments PORT, NICK, USER-NAME, FULL-NAME, PASSWORD,
+ENCRYPTION, SERVER-ALIAS are interpreted as in
+`rcirc-server-alist'.  STARTUP-CHANNELS is a list of channels
+that are joined after authentication.
 
 \(fn SERVER &optional PORT NICK USER-NAME FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION SERVER-ALIAS)" nil nil)
 
@@ -27341,7 +27369,7 @@ disabled.
 
 \(fn &optional ARG)" t nil)
 
-(register-definition-prefixes "rcirc" '("defun-rcirc-command" "rcirc-" "set-rcirc-" "with-rcirc-"))
+(register-definition-prefixes "rcirc" '("rcirc-" "with-rcirc-"))
 
 ;;;***
 
@@ -27782,8 +27810,8 @@ This means the number of non-shy regexp grouping constructs
 
 (autoload 'remember "remember" "\
 Remember an arbitrary piece of data.
-INITIAL is the text to initially place in the *Remember* buffer,
-or nil to bring up a blank *Remember* buffer.
+INITIAL is the text to initially place in the `remember-buffer',
+or nil to bring up a blank `remember-buffer'.
 
 With a prefix or a visible region, use the region as INITIAL.
 
@@ -27884,7 +27912,7 @@ disabled.
 
 \(fn &optional ARG)" t nil)
 
-(register-definition-prefixes "repeat" '("describe-repeat" "repeat-"))
+(register-definition-prefixes "repeat" '("describe-repeat-maps" "repeat-"))
 
 ;;;***
 
@@ -30312,6 +30340,13 @@ arguments.")
 
 (custom-autoload 'shell-dumb-shell-regexp "shell" t)
 
+(autoload 'split-string-shell-command "shell" "\
+Split STRING (a shell command) into a list of strings.
+General shell syntax, like single and double quoting, as well as
+backslash quoting, is respected.
+
+\(fn STRING)" nil nil)
+
 (autoload 'shell "shell" "\
 Run an inferior shell, with I/O through BUFFER (which defaults to `*shell*').
 Interactively, a prefix arg means to prompt for BUFFER.
@@ -30358,8 +30393,9 @@ Make the shell buffer the current buffer, and return it.
 
 (autoload 'shortdoc-display-group "shortdoc" "\
 Pop to a buffer with short documentation summary for functions in GROUP.
+If FUNCTION is non-nil, place point on the entry for FUNCTION (if any).
 
-\(fn GROUP)" t nil)
+\(fn GROUP &optional FUNCTION)" t nil)
 
 (register-definition-prefixes "shortdoc" '("alist" "buffer" "define-short-documentation-group" "file" "hash-table" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "vector"))
 
@@ -34761,7 +34797,7 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
-(push (purecopy '(tramp 2 5 1)) package--builtin-versions)
+(push (purecopy '(tramp 2 5 2 -1)) package--builtin-versions)
 
 (register-definition-prefixes "trampver" '("tramp-"))
 
@@ -35885,10 +35921,13 @@ instead of just \"key\" as in the example above.
 \(fn QUERY &optional SEMICOLONS KEEP-EMPTY)" nil nil)
 
 (autoload 'url-unhex-string "url-util" "\
-Remove %XX embedded spaces, etc in a URL.
+Decode %XX sequences in a percent-encoded URL.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
 decoding of carriage returns and line feeds in the string, which is normally
 forbidden in URL encoding.
+
+The resulting string in general requires decoding using an
+appropriate coding-system; see `decode-coding-string'.
 
 \(fn STR &optional ALLOW-NEWLINES)" nil nil)
 
