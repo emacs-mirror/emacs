@@ -552,7 +552,7 @@ degrees to find out if polar regions have 24 hours of sun or only night."
 Format used is given by `calendar-time-display-form'."
   (let* ((time (round (* 60 time)))
          (24-hours (/ time 60)))
-    (calendar-dlet*
+    (calendar-dlet
         ((time-zone time-zone)
          (minutes (format "%02d" (% time 60)))
          (12-hours (format "%d" (1+ (% (+ 24-hours 11) 12))))

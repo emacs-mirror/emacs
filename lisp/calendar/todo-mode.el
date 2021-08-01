@@ -191,7 +191,7 @@ The final element is \"*\", indicating an unspecified month.")
 (defconst todo-date-pattern
   (let ((dayname (diary-name-pattern calendar-day-name-array nil t)))
     (concat "\\(?4:\\(?5:" dayname "\\)\\|"
-	    (calendar-dlet*
+	    (calendar-dlet
                 ((dayname)
 		 (monthname (format "\\(?6:%s\\)" (diary-name-pattern
 						   todo-month-name-array
@@ -2431,7 +2431,7 @@ made in the number or names of categories."
 	      ;; changed, rebuild the date string.
 	      (when (memq what '(year month day))
 		(setq ndate
-                      (calendar-dlet*
+                      (calendar-dlet
                           ;; Needed by calendar-date-display-form.
                           ((year year)
                            (monthname monthname)
@@ -4658,7 +4658,7 @@ strings built using the default value of
 (defun todo-convert-legacy-date-time ()
   "Return converted date-time string.
 Helper function for `todo-convert-legacy-files'."
-  (calendar-dlet*
+  (calendar-dlet
       ((year (match-string 1))
        (month (match-string 2))
        (monthname (calendar-month-name (string-to-number month) t))
@@ -6036,7 +6036,7 @@ indicating an unspecified month, day, or year.
 
 When ARG is `day', non-nil arguments MO and YR determine the
 number of the last the day of the month."
-  (calendar-dlet*
+  (calendar-dlet
       (year monthname month day dayname) ;Needed by calendar-date-display-form.
     (when (or (not arg) (eq arg 'year))
       (while (if (natnump year) (< year 1) (not (eq year '*)))

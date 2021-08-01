@@ -2001,10 +2001,10 @@ all symbols are bound before any of the VALUEFORMs are evalled."
        (t `(let* ,(nreverse seqbinds) ,nbody))))))
 
 (defmacro dlet (binders &rest body)
-  "Like `let*' but using dynamic scoping."
+  "Like `let' but using dynamic scoping."
   (declare (indent 1) (debug let))
   ;; (defvar FOO) only affects the current scope, but in order for
-  ;; this not to affect code after the `let*' we need to create a new scope,
+  ;; this not to affect code after the main `let' we need to create a new scope,
   ;; which is what the surrounding `let' is for.
   ;; FIXME: (let () ...) currently doesn't actually create a new scope,
   ;; which is why we use (let (_) ...).
@@ -2012,7 +2012,7 @@ all symbols are bound before any of the VALUEFORMs are evalled."
      ,@(mapcar (lambda (binder)
                  `(defvar ,(if (consp binder) (car binder) binder)))
                binders)
-     (let* ,binders ,@body)))
+     (let ,binders ,@body)))
 
 
 (defmacro with-wrapper-hook (hook args &rest body)
