@@ -1386,8 +1386,8 @@ to directory DIR."
                 (define-key temp-map (vector keychar) cmd)))))
          command)
     (while (not command)
-      (let ((overriding-local-map commands-map)
-            (choice (read-key-sequence (project--keymap-prompt))))
+      (let* ((overriding-local-map commands-map)
+             (choice (read-key-sequence (project--keymap-prompt))))
         (when (setq command (lookup-key commands-map choice))
           (unless (or project-switch-use-entire-map
                       (assq command commands-menu))
