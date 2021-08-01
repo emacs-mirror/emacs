@@ -1245,13 +1245,13 @@ correctly.")
     "Flymake"
     mouse-face mode-line-highlight
     help-echo
-    (lambda (&rest whatever)
-      (concat
-       (format "%s known backends\n" (hash-table-count flymake--backend-state))
-       (format "%s running\n" (length (flymake-running-backends)))
-       (format "%s disabled\n" (length (flymake-disabled-backends)))
-       "mouse-1: Display minor mode menu\n"
-       "mouse-2: Show help for minor mode"))
+    ,(lambda (&rest _)
+       (concat
+        (format "%s known backends\n" (hash-table-count flymake--backend-state))
+        (format "%s running\n" (length (flymake-running-backends)))
+        (format "%s disabled\n" (length (flymake-disabled-backends)))
+        "mouse-1: Display minor mode menu\n"
+        "mouse-2: Show help for minor mode"))
     keymap
     ,(let ((map (make-sparse-keymap)))
        (define-key map [mode-line down-mouse-1]
