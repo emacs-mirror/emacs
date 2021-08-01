@@ -1446,8 +1446,7 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 (defun occur--set-arrow ()
   "Set the overlay arrow at the first line of the occur match at point."
   (save-excursion
-    (let ((start (point))
-          (target (get-text-property (point) 'occur-target))
+    (let ((target (get-text-property (point) 'occur-target))
           ;; Find the start of the occur match, in case it's multi-line.
           (prev (previous-single-property-change (point) 'occur-target)))
       (when (and prev (eq (get-text-property prev 'occur-target) target))
