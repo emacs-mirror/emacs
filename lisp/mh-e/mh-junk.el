@@ -103,9 +103,7 @@ message(s) as specified by the option `mh-junk-disposition'."
     (unless blocklist-func
       (error "Customize `mh-junk-program' appropriately"))
     (mh-iterate-on-range msg range
-      (message "Blocklisting message %d..." msg)
-      (funcall (symbol-function blocklist-func) msg)
-      (message "Blocklisting message %d...done" msg))))
+      (funcall (symbol-function blocklist-func) msg))))
 
 ;;;###mh-autoload
 (defun mh-junk-whitelist (range)
@@ -165,9 +163,7 @@ classified as spam (see the option `mh-junk-program')."
     (unless allowlist-func
       (error "Customize `mh-junk-program' appropriately"))
     (mh-iterate-on-range msg range
-      (message "Allowlisting message %d..." msg)
-      (funcall (symbol-function allowlist-func) msg)
-      (message "Allowlisting message %d...done" msg))))
+      (funcall (symbol-function allowlist-func) msg))))
 
 
 
@@ -256,16 +252,16 @@ information can be used so that you can replace multiple
   (let ((current-folder mh-current-folder)
         (msg-file (mh-msg-filename msg mh-current-folder))
         (sender))
-    (message "Reporting message %d..." msg)
+    (message "Reporting message %d as spam with spamassassin..." msg)
     (mh-truncate-log-buffer)
     ;; Put call-process output in log buffer if we are saving it
     ;; (this happens if mh-junk-background is t).
     (with-current-buffer mh-log-buffer
       (call-process mh-spamassassin-executable msg-file mh-junk-background nil
-                    ;; -R removes from allow-list
+                    ;; -R removes from allowlist
                     "--report" "-R")
     (when mh-sa-learn-executable
-      (message "Recategorizing message %d as spam..." msg)
+      (message "Recategorizing message %d as spam with sa-learn..." msg)
       (mh-truncate-log-buffer)
       (call-process mh-sa-learn-executable msg-file mh-junk-background nil
                     "--spam" "--local" "--no-sync")))
@@ -307,7 +303,7 @@ See `mh-spamassassin-blocklist' for more information."
           (kill-buffer show-buffer))
       (write-file msg-file)
       (when mh-sa-learn-executable
-        (message "Recategorizing message %d as ham..." msg)
+        (message "Recategorizing message %d as ham with sa-learn..." msg)
         (mh-truncate-log-buffer)
         ;; Put call-process output in log buffer if we are saving it
         ;; (this happens if mh-junk-background is t).
@@ -319,9 +315,11 @@ See `mh-spamassassin-blocklist' for more information."
             (car (mh-funcall-if-exists
                   ietf-drums-parse-address (mh-get-header-field "From:"))))
       (kill-buffer nil)
-      (unless (or (null from) (equal from ""))
-        (mh-spamassassin-add-rule "whitelist_from" from))
-      (message "Allowlisting sender of message %d...done" msg))))
+      (if (or (null from) (equal from ""))
+          (message "Allowlisting sender of message %d...%s"
+                   msg "not done (cannot identify sender)")
+        (mh-spamassassin-add-rule "whitelist_from" from)
+        (message "Allowlisting sender of message %d...done" msg)))))
 
 (defun mh-spamassassin-add-rule (rule body)
   "Add a new rule to \"~/.spamassassin/user_prefs\".
@@ -442,13 +440,15 @@ occasionally to shrink the database:
 The \"Bogofilter tuning HOWTO\" describes how you can fine-tune Bogofilter."
   (unless mh-bogofilter-executable
     (error "Unable to find the bogofilter executable"))
+  (message "Blocklisting message %d with bogofilter..." msg)
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
     (mh-truncate-log-buffer)
     ;; Put call-process output in log buffer if we are saving it
     ;; (this happens if mh-junk-background is t).
     (with-current-buffer mh-log-buffer
       (call-process mh-bogofilter-executable msg-file mh-junk-background
-                    nil "-s"))))
+                    nil "-s")
+      (message "Blocklisting message %d with bogofilter...done" msg))))
 
 ;;;###mh-autoload
 (defun mh-bogofilter-allowlist (msg)
@@ -457,13 +457,15 @@ The \"Bogofilter tuning HOWTO\" describes how you can fine-tune Bogofilter."
 See `mh-bogofilter-blocklist' for more information."
   (unless mh-bogofilter-executable
     (error "Unable to find the bogofilter executable"))
+  (message "Allowlisting message %d with bogofilter..." msg)
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
     (mh-truncate-log-buffer)
     ;; Put call-process output in log buffer if we are saving it
     ;; (this happens if mh-junk-background is t).
     (with-current-buffer mh-log-buffer
       (call-process mh-bogofilter-executable msg-file mh-junk-background
-                    nil "-n"))))
+                    nil "-n")
+      (message "Allowlisting message %d with bogofilter...done" msg))))
 
 
 
@@ -500,13 +502,15 @@ MH-E commands \\[mh-junk-blocklist] and \\[mh-junk-allowlist] to
 update SpamProbe's training."
   (unless mh-spamprobe-executable
     (error "Unable to find the spamprobe executable"))
+  (message "Blocklisting message %d with spamprobe..." msg)
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
     (mh-truncate-log-buffer)
     ;; Put call-process output in log buffer if we are saving it
     ;; (this happens if mh-junk-background is t).
     (with-current-buffer mh-log-buffer
       (call-process mh-spamprobe-executable msg-file mh-junk-background
-                    nil "spam"))))
+                    nil "spam")
+      (message "Blocklisting message %d with spamprobe...done" msg))))
 
 ;;;###mh-autoload
 (defun mh-spamprobe-allowlist (msg)
@@ -515,13 +519,15 @@ update SpamProbe's training."
 See `mh-spamprobe-blocklist' for more information."
   (unless mh-spamprobe-executable
     (error "Unable to find the spamprobe executable"))
+  (message "Allowlisting message %d with spamprobe..." msg)
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
     (mh-truncate-log-buffer)
     ;; Put call-process output in log buffer if we are saving it
     ;; (this happens if mh-junk-background is t).
     (with-current-buffer mh-log-buffer
       (call-process mh-spamprobe-executable msg-file mh-junk-background
-                    nil "good"))))
+                    nil "good")
+  (message "Allowlisting message %d with spamprobe...done" msg))))
 
 (provide 'mh-junk)
 
