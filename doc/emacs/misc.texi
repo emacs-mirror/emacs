@@ -163,14 +163,13 @@ List killed groups (@code{gnus-group-list-killed}).
 List zombie groups (@code{gnus-group-list-zombies}).
 
 @kindex u @r{(Gnus Group mode)}
-@findex gnus-group-unsubscribe-current-group
+@findex gnus-group-toggle-subscription
 @cindex subscribe groups
 @cindex unsubscribe groups
 @item u
 Toggle the subscription status of the group
-(@code{gnus-group-unsubscribe-current-group}) on the current line
-(i.e., turn a subscribed group into an unsubscribed group, or vice
-versa).  Invoking this on a killed or zombie group turns it into an
+(@code{gnus-group-toggle-subscription}) on the current line.
+Invoking this on a killed or zombie group turns it into an
 unsubscribed group.
 
 @kindex C-k @r{(Gnus Group mode)}

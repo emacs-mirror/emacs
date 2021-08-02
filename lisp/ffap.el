@@ -1525,24 +1525,40 @@ which may actually result in an URL rather than a filename."
 ;; The solution here is to forcefully activate url-handler-mode, which
 ;; takes care of it for us.
 
+(defun ffap--url-file-handler (operation &rest args)
+  (let ((inhibit-file-name-handlers
+         (cons 'ffap--url-file-handler inhibit-file-name-handlers))
+        (inhibit-file-name-operation operation))
+    (cl-case operation
+      ;; We mainly just want to disable these bits:
+      (substitute-in-file-name (car args))
+      (expand-file-name
+       (if (equal (car args) "http://<remove>")
+           ""
+         (car args)))
+      (otherwise
+       (apply operation args)))))
+
 (defun ffap-read-file-or-url (prompt guess)
   "Read file or URL from minibuffer, with PROMPT and initial GUESS."
-  (or guess (setq guess default-directory))
-  ;; Tricky: guess may have or be a local directory, like "w3/w3.elc"
-  ;; or "w3/" or "../el/ffap.el" or "../../../"
-  (if (ffap-url-p guess)
-      ;; FIXME: We earlier tried to make use of `url-file-handler' so
-      ;; `read-file-name' could also be used for URLs, but it
-      ;; introduced all kinds of subtle breakage such as:
-      ;; - (file-name-directory "http://a") returning "http://a/"
-      ;; - Trying to contact remote hosts with no justification
-      ;; These should be fixed in url-handler-mode before we can try
-      ;; using it here again.
-      (read-string prompt guess nil nil t)
-    (unless (ffap-file-remote-p guess)
-      (setq guess (abbreviate-file-name (expand-file-name guess))))
-    (read-file-name prompt (file-name-directory guess) nil nil
-                    (file-name-nondirectory guess))))
+  (let ((elem (cons ffap-url-regexp #'ffap--url-file-handler)))
+    (unwind-protect
+        (progn
+          (push elem file-name-handler-alist)
+          (if (ffap-url-p guess)
+              (read-file-name prompt "http://<remove>" nil nil guess)
+            (unless guess
+              (setq guess default-directory))
+            (unless (ffap-file-remote-p guess)
+              (setq guess (abbreviate-file-name (expand-file-name guess))))
+            (read-file-name prompt
+                            (file-name-directory guess) nil nil
+                            (file-name-nondirectory guess))))
+      ;; Remove the special handler manually.  We used to just let-bind
+      ;; file-name-handler-alist to preserve its value, but that caused
+      ;; other modifications to be lost (e.g. when Tramp gets loaded
+      ;; during the completing-read call).
+      (setq file-name-handler-alist (delq elem file-name-handler-alist)))))
 
 ;; The rest of this page is just to work with package complete.el.
 ;; This code assumes that you load ffap.el after complete.el.

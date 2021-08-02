@@ -1822,9 +1822,9 @@ matches the user directory ~, then it is replaced with a ~.
 INDEX is not used, but is required by the caller."
   (let* ((tilde (expand-file-name "~/"))
 	 (dd (expand-file-name directory))
-	 (junk (string-prefix-p "~/" dd))
+	 (junk (string-match (regexp-quote tilde) dd))
 	 (displayme (if junk
-			(concat "~/" (substring dd 2 nil))
+			(concat "~/" (substring dd (match-end 0)))
 		      dd))
 	 (p (point)))
     (if (string-match "^~[/\\]?\\'" displayme) (setq displayme tilde))

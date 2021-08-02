@@ -758,7 +758,8 @@ the message being processed."
 		    len mch lo newline)
                ;; If there are multiple lines in FROM,
                ;; discard up to the last newline in it.
-               (while (setq newline (string-match "\n" from))
+               (while (and (stringp from)
+                           (setq newline (string-match "\n" from)))
                  (setq from (substring from (1+ newline))))
 	       (if (or (null from)
 		       (string-match

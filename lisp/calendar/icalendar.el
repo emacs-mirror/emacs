@@ -1783,8 +1783,8 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                  ;;BUT remove today if `diary-float'
                  ;;expression does not hold true for today:
                  (when
-                     (null (calendar-dlet* ((date (calendar-current-date))
-                                            (entry entry-main))
+                     (null (calendar-dlet ((date (calendar-current-date))
+                                           (entry entry-main))
                              (diary-float month dayname n)))
                    (concat
                     "\nEXDATE;VALUE=DATE:"

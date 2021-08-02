@@ -479,6 +479,7 @@ Typing 'TAB' on a heading line cycles the current section between
 anywhere in the buffer cycles the whole buffer between "only top-level
 headings", "all headings and subheadings", and "show all" states.
 
++++
 *** New user option 'outline-minor-mode-cycle'.
 This user option customizes 'outline-minor-mode', with the difference
 that 'TAB' and 'S-TAB' on heading lines cycle heading visibility.
@@ -487,12 +488,14 @@ Typing 'TAB' on a heading line cycles the current section between
 heading line cycles the whole buffer between "only top-level
 headings", "all headings and subheadings", and "show all" states.
 
+---
 *** New user option 'outline-minor-mode-highlight'.
 This user option customizes 'outline-minor-mode'.  It puts
 highlighting on heading lines using standard outline faces.  This
 works well only when there are no conflicts with faces used by the
 major mode.
 
++++
 ** New commands 'copy-matching-lines' and 'kill-matching-lines'.
 These commands are similar to the command 'flush-lines',
 but add the matching lines to the kill ring as a single string,
@@ -545,6 +548,11 @@ in better code.
 ---
 *** New function 'pcase-compile-patterns' to write other macros.
 
+*** Added 'cl-type' pattern.
+The new 'cl-type' pattern compares types using 'cl-typep', which allows
+comparing simple types like '(cl-type integer)', as well as forms like
+'(cl-type (integer 0 10))'.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures
@@ -588,8 +596,15 @@ This is used to fontify non-scalar variables.
 
 ** Python mode
 
+---
+*** New user option 'python-forward-sexp-function'.
+This allows the user to easier customize whether to use block-based
+navigation or not.
+
+---
 *** 'python-shell-interpreter' now defaults to python3 on systems with python3.
 
+---
 *** 'C-c C-r' can now be used on arbitrary regions.
 The command previously extended the start of the region to the start
 of the line, but will now actually send the marked region, as
@@ -597,6 +612,7 @@ documented.
 
 ** Ruby mode
 
+---
 *** 'ruby-use-smie' is declared obsolete.
 SMIE is now always enabled and 'ruby-use-smie' only controls whether
 indentation is done using SMIE or with the old ad-hoc code.
@@ -617,10 +633,13 @@ Icomplete, completions are rotated and selection kept at the top.
 When used with Fido, completions scroll like a typical dropdown
 widget.
 
+---
 *** Default value of 'icomplete-compute-delay' has been changed to 0.15 s.
 
+---
 *** Default value of 'icomplete-max-delay-chars' has been changed to 2.
 
+---
 *** Reduced blinking while completing the next completions set.
 Icomplete doesn't hide the hint with the previously computed
 completions anymore when compute delay is in effect, or the previous
@@ -642,6 +661,7 @@ disabled entirely.
 
 ** Windmove
 
++++
 *** New user options to customize windmove keybindings.
 These options include 'windmove-default-keybindings',
 'windmove-display-default-keybindings',
@@ -680,6 +700,7 @@ of the next command to be displayed in a new window.
 
 ** Frames
 
++++
 *** The key prefix 'C-x 5 5' displays next command buffer in a new frame.
 It's bound to the command 'other-frame-prefix' that requests the buffer
 of the next command to be displayed in a new frame.
@@ -766,10 +787,17 @@ faces in other ways.
 *** The new command 'recenter-current-error', bound to 'l' in Occur or
 compilation buffers, recenters the current displayed occurrence/error.
 
+*** Matches in target buffers are now highlighted as in 'compilation-mode'.
+The method of highlighting is specified by the user options
+'next-error-highlight' and 'next-error-highlight-no-select'.
+
+---
+*** A fringe arrow in the '*Occur*' buffer indicates the selected match.
+
 ---
 *** Occur mode may use a different type for 'occur-target' property values.
 The value was previously always a marker set to the start of the first
-match on the line but can now also be a list of (BEGIN . END) pairs
+match on the line but can now also be a list of '(BEGIN . END)' pairs
 of markers delimiting each match on the line.
 This is a fully compatible change to the internal occur-mode
 implementation, and code creating their own occur-mode buffers will
@@ -904,7 +932,7 @@ keys, add the following to your init file:
 
 ** Change Logs and VC
 
-*** vc-git now sets the GIT_LITERAL_PATHSPECS environment variable.
+*** vc-git now sets the 'GIT_LITERAL_PATHSPECS' environment variable.
 This ensures that Git operations on files containing wildcard
 characters work as they're supposed to.  However, this also affects
 scripts running from Git hooks, and these have to "unset
@@ -1506,6 +1534,9 @@ like cell phones, tablets or cameras.
 *** New connection method "sshfs", which allows accessing remote files
 via a file system mounted with 'sshfs'.
 
+---
+*** Tramp supports authentication via yubikey now.
+
 +++
 *** Trashed remote files are moved to the local trash directory.
 All remote files, which are trashed, are moved to the local trash
@@ -1738,6 +1769,36 @@ modified flag.
 ---
 *** New faces for heading elements.
 Those are 'shr-h1', 'shr-h2', 'shr-h3', 'shr-h4', 'shr-h5', 'shr-h6'.
+
+** MH-E mail handler for Emacs
+
+Functions and variables related to handling junk mail have been
+renamed to not associate color with sender quality.
+
++++
+*** New names for mh-junk interactive functions.
+Function 'mh-junk-whitelist' is renamed 'mh-junk-allowlist'.
+Function 'mh-junk-blacklist' is renamed 'mh-junk-blocklist'.
+
++++
+*** New binding for 'mh-junk-allowlist'.
+The key binding for 'mh-junk-allowlist' is changed from 'J w' to 'J a'.
+The old binding is supported but warns that it is obsolete.
+
++++
+*** New names for some hooks.
+'mh-whitelist-msg-hook' is renamed 'mh-allowlist-msg-hook'.
+'mh-blacklist-msg-hook' is renamed 'mh-blocklist-msg-hook'.
+
++++
+*** New names for some variables.
+Variable 'mh-whitelist-preserves-sequences-flag' is renamed
+'mh-allowlist-preserves-sequences-flag'.
+
++++
+*** New names for some faces.
+Face 'mh-folder-blacklisted' is renamed 'mh-folder-blocklisted'.
+Face 'mh-folder-whitelisted' is renamed 'mh-folder-allowlisted'.
 
 ** Apropos
 
@@ -2067,7 +2128,7 @@ support, and it is available on the current system.
 
 +++
 *** Native JSON functions now signal an error if libjansson is unavailable.
-This affects 'json-serialize', 'json-insert', 'json-parse-srtring',
+This affects 'json-serialize', 'json-insert', 'json-parse-string',
 and 'json-parse-buffer'.  This can happen if Emacs was compiled with
 libjansson, but the DLL cannot be found and/or loaded by Emacs at run
 time.  Previously, Emacs would display a message and return nil in
@@ -2307,10 +2368,13 @@ This command, called interactively, toggles the local value of
 
 ** Miscellaneous
 
+---
+*** fileloop will now skip missing files instead of signalling an error.
+
 +++
-*** .dir-locals.el now supports setting 'auto-mode-alist'.
-The new 'auto-mode-alist' specification in .dir-local.el files can now
-be used to override the global 'auto-mode-alist' in the current
+*** ".dir-locals.el" now supports setting 'auto-mode-alist'.
+The new 'auto-mode-alist' specification in ".dir-locals.el" files can
+now be used to override the global 'auto-mode-alist' in the current
 directory tree.
 
 ---
@@ -2335,7 +2399,7 @@ local-variables section of a file.
 ---
 *** 'tabulated-list-mode' can now restore original display order.
 Many commands (like 'C-x C-b') are derived from 'tabulated-list-mode',
-and that mode allow the user to sort on any column.  There was
+and that mode allows the user to sort on any column.  There was
 previously no easy way to get back to the original displayed order
 after sorting, but giving a -1 numerical prefix to the sorting command
 will now restore the original order.
@@ -2827,9 +2891,6 @@ similar to prefix arguments, but are more flexible and discoverable.
 
 * Incompatible Editing Changes in Emacs 28.1
 
-** 'revert-buffer' will now preserve buffer-readedness.
-It previously switched the read-only flag off.
-
 ** 'electric-indent-mode' now also indents inside strings and comments,
 (unless the indentation function doesn't, of course).
 To recover the previous behavior you can use:
@@ -2883,8 +2944,17 @@ This is to keep the same behavior as Eshell.
 * Incompatible Lisp Changes in Emacs 28.1
 
 ---
+** 'replace-match' now runs modification hooks slightly later.
+The function is documented to leave point after the replacement text,
+but this was not always the case if a modification hook inserted text
+in front of the replaced text -- 'replace-match' would instead leave
+point where the end of the inserted text would have been before the
+hook ran.  'replace-match' now always leaves point after the
+replacement text.
+
+---
 ** 'kill-all-local-variables' has changed how it handles non-symbol hooks.
-The function is documented to eliminated all buffer-local bindings
+The function is documented to eliminate all buffer-local bindings
 except variables with a 'permanent-local' property, or hooks that
 have elements with a 'permanent-local-hook' property.  In addition, it
 would also keep lambda expressions in hooks sometimes.  The latter has
@@ -3029,7 +3099,7 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'erc-announced-server-name', 'erc-default-coding-system',
 'erc-process', 'erc-send-command', 'eshell-report-bug',
 'eval-next-after-load', 'exchange-dot-and-mark', 'ffap-bug',
-'ffap-submit-bug', 'ffap-version', 'file-cache-choose-completion',
+'ffap-submit-bug', 'ffap-version', 'file-cache-mouse-choose-completion',
 'forward-point', 'generic-char-p', 'global-highlight-changes',
 'hi-lock-face-history', 'hi-lock-regexp-history',
 'highlight-changes-active-string', 'highlight-changes-initial-state',
@@ -3119,7 +3189,8 @@ The former is now declared obsolete.
 
 +++
 *** New function 'file-name-concat'.
-This appends path components to a directory name and returns the result.
+This appends file name components to a directory name and returns the
+result.
 
 +++
 *** New function 'split-string-shell-command'.

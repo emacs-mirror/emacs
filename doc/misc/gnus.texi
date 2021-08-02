@@ -2318,19 +2318,18 @@ commands listed in @ref{Browse Foreign Server} at hand.
 @itemx u
 @kindex S t @r{(Group)}
 @kindex u @r{(Group)}
-@findex gnus-group-unsubscribe-current-group
-@c @icon{gnus-group-unsubscribe}
-Toggle subscription to the current group
-(@code{gnus-group-unsubscribe-current-group}).
+@findex gnus-group-toggle-subscription-at-point
+@c @icon{gnus-group-toggle-subscription-at-point}
+Toggle subscription to group under point
+(@code{gnus-group-toggle-subscription-at-point}).
 
 @item S s
 @itemx U
 @kindex S s @r{(Group)}
 @kindex U @r{(Group)}
-@findex gnus-group-unsubscribe-group
-Prompt for a group to subscribe, and then subscribe it.  If it was
-subscribed already, unsubscribe it instead
-(@code{gnus-group-unsubscribe-group}).
+@findex gnus-group-toggle-subscription
+Prompt for group, and toggle its subscription.
+(@code{gnus-group-toggle-subscription}).
 
 @item S k
 @itemx C-k
@@ -3736,10 +3735,10 @@ Enter the current group (@code{gnus-browse-select-group}).
 
 @item u
 @kindex u @r{(Browse)}
-@findex gnus-browse-unsubscribe-current-group
+@findex gnus-browse-toggle-subscription
 @vindex gnus-browse-subscribe-newsgroup-method
-Unsubscribe to the current group, or, as will be the case here,
-subscribe to it (@code{gnus-browse-unsubscribe-current-group}).  You
+Toggle subscription of the current group
+(@code{gnus-browse-toggle-subscription}).  You
 can affect the way the new group is entered into the Group buffer
 using the variable @code{gnus-browse-subscribe-newsgroup-method}.  See
 @pxref{Subscription Methods} for available options.

@@ -35,7 +35,6 @@
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map (make-composed-keymap button-buffer-map
                                                  special-mode-map))
-    (define-key map [mouse-2] 'help-follow-mouse)
     (define-key map "l" 'help-go-back)
     (define-key map "r" 'help-go-forward)
     (define-key map "\C-c\C-b" 'help-go-back)
@@ -43,7 +42,6 @@
     (define-key map [XF86Back] 'help-go-back)
     (define-key map [XF86Forward] 'help-go-forward)
     (define-key map "\C-c\C-c" 'help-follow-symbol)
-    (define-key map "\r" 'help-follow)
     (define-key map "s" 'help-view-source)
     (define-key map "i" 'help-goto-info)
     (define-key map "c" 'help-customize)
@@ -88,20 +86,20 @@
 
 (defvar-local help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.
-Used by `help-follow' and `help-xref-go-back'.
+Used by `help-follow-symbol' and `help-xref-go-back'.
 An element looks like (POSITION FUNCTION ARGS...).
 To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-stack 'permanent-local t)
 
 (defvar-local help-xref-forward-stack nil
   "A stack used to navigate help forwards after using the back button.
-Used by `help-follow' and `help-xref-go-forward'.
+Used by `help-follow-symbol' and `help-xref-go-forward'.
 An element looks like (POSITION FUNCTION ARGS...).
 To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-forward-stack 'permanent-local t)
 
 (defvar-local help-xref-stack-item nil
-  "An item for `help-follow' in this buffer to push onto `help-xref-stack'.
+  "An item for `help-follow-symbok' to push onto `help-xref-stack'.
 The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-item 'permanent-local t)
 
@@ -466,7 +464,7 @@ Each element has the form (NAME TESTFUN DESCFUN) where:
   "Parse and hyperlink documentation cross-references in the given BUFFER.
 
 Find cross-reference information in a buffer and activate such cross
-references for selection with `help-follow'.  Cross-references have
+references for selection with `help-follow-symbol'.  Cross-references have
 the canonical form `...'  and the type of reference may be
 disambiguated by the preceding word(s) used in
 `help-xref-symbol-regexp'.  Faces only get cross-referenced if
@@ -774,6 +772,7 @@ a proper [back] button."
 ;; The doc string is meant to explain what buttons do.
 (defun help-follow-mouse ()
   "Follow the cross-reference that you click on."
+  (declare (obsolete nil "28.1"))
   (interactive)
   (error "No cross-reference here"))
 
@@ -782,6 +781,7 @@ a proper [back] button."
   "Follow cross-reference at point.
 
 For the cross-reference format, see `help-make-xrefs'."
+  (declare (obsolete nil "28.1"))
   (interactive)
   (user-error "No cross-reference here"))
 

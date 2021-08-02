@@ -113,8 +113,8 @@ expression which matches the body text as in the default of
 not correct, the body fragment will not be highlighted with the
 face `mh-folder-body'.")
 
-(defvar mh-scan-blacklisted-msg-regexp "^\\( *[0-9]+\\)B"
-  "This regular expression matches blacklisted (spam) messages.
+(defvar mh-scan-blocklisted-msg-regexp "^\\( *[0-9]+\\)B"
+  "This regular expression matches blocklisted (spam) messages.
 
 It must match from the beginning of the line. Note that the
 default setting of `mh-folder-font-lock-keywords' expects this
@@ -125,9 +125,9 @@ matches the message number as in the default of
 
 This expression includes the leading space within parenthesis
 since it looks better to highlight it as well. The highlighting
-is done with the face `mh-folder-blacklisted'. This regular
+is done with the face `mh-folder-blocklisted'. This regular
 expression should be correct as it is needed by non-fontification
-functions. See also `mh-note-blacklisted'.")
+functions. See also `mh-note-blocklisted'.")
 
 (defvar mh-scan-cur-msg-number-regexp "^\\( *[0-9]+\\+\\).*"
   "This regular expression matches the current message.
@@ -295,21 +295,21 @@ non-fontification functions.")
 This is used to eliminate error messages that are occasionally
 produced by \"inc\".")
 
-(defvar mh-scan-whitelisted-msg-regexp "^\\( *[0-9]+\\)W"
-  "This regular expression matches whitelisted (non-spam) messages.
+(defvar mh-scan-allowlisted-msg-regexp "^\\( *[0-9]+\\)A"
+  "This regular expression matches allowlisted (non-spam) messages.
 
 It must match from the beginning of the line. Note that the
 default setting of `mh-folder-font-lock-keywords' expects this
 expression to contain at least one parenthesized expression which
 matches the message number as in the default of
 
-  \"^\\\\( *[0-9]+\\\\)W\".
+  \"^\\\\( *[0-9]+\\\\)A\".
 
 This expression includes the leading space within parenthesis
 since it looks better to highlight it as well. The highlighting
-is done with the face `mh-folder-whitelisted'. This regular
+is done with the face `mh-folder-allowlisted'. This regular
 expression should be correct as it is needed by non-fontification
-functions. See also `mh-note-whitelisted'.")
+functions. See also `mh-note-allowlisted'.")
 
 
 
@@ -333,8 +333,8 @@ This column will have one of the values: \" \", \"^\", \"D\", \"B\", \"W\", \"+\
   \" \" is the default value,
   \"^\" is the `mh-note-refiled' character,
   \"D\" is the `mh-note-deleted' character,
-  \"B\" is the `mh-note-blacklisted' character,
-  \"W\" is the `mh-note-whitelisted' character, and
+  \"B\" is the `mh-note-blocklisted' character,
+  \"A\" is the `mh-note-allowlisted' character, and
   \"+\" is the `mh-note-cur' character.")
 
 (defvar mh-scan-destination-width 1
@@ -399,9 +399,9 @@ This column will only ever have spaces in it.")
 
 ;; Alphabetical.
 
-(defvar mh-note-blacklisted ?B
-  "Messages that have been blacklisted are marked by this character.
-See also `mh-scan-blacklisted-msg-regexp'.")
+(defvar mh-note-blocklisted ?B
+  "Messages that have been blocklisted are marked by this character.
+See also `mh-scan-blocklisted-msg-regexp'.")
 
 (defvar mh-note-cur ?+
   "The current message (in MH, not in MH-E) is marked by this character.
@@ -436,9 +436,9 @@ See also `mh-scan-refiled-msg-regexp'.")
 Messages in the \"search\" sequence are marked by this character as
 well.")
 
-(defvar mh-note-whitelisted ?W
-  "Messages that have been whitelisted are marked by this character.
-See also `mh-scan-whitelisted-msg-regexp'.")
+(defvar mh-note-allowlisted ?A
+  "Messages that have been allowlisted are marked by this character.
+See also `mh-scan-allowlisted-msg-regexp'.")
 
 
 

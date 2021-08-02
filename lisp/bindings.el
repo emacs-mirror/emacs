@@ -463,7 +463,9 @@ displayed in `mode-line-position', a component of the default
 (defcustom mode-line-position-line-format '(" L%l")
   "Format used to display line numbers in the mode line.
 This is used when `line-number-mode' is switched on.  The \"%l\"
-format spec will be replaced by the line number."
+format spec will be replaced by the line number.
+
+Also see `mode-line-position-column-line-format'."
   :type '(list string)
   :version "28.1"
   :group 'mode-line)
@@ -471,9 +473,10 @@ format spec will be replaced by the line number."
 (defcustom mode-line-position-column-format '(" C%c")
   "Format used to display column numbers in the mode line.
 This is used when `column-number-mode' is switched on.  The
-\"%c\" format spec will be replaced by the column number, which
-is zero-based if `column-number-indicator-zero-based' is non-nil,
-and one-based if `column-number-indicator-zero-based' is nil."
+\"%c\" format spec is replaced by the zero-based column number,
+and \"%C\" is replaced by the one-based column number.
+
+Also see `mode-line-position-column-line-format'."
   :type '(list string)
   :version "28.1"
   :group 'mode-line)

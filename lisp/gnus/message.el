@@ -5357,7 +5357,7 @@ Otherwise, generate and save a value for `canlock-password' first."
    ;; Check "Shoot me".
    (message-check 'shoot
      (if (re-search-forward
-	  "Message-ID.*.i-did-not-set--mail-host-address--so-tickle-me" nil t)
+	  "Message-ID.*.mail-host-address-is-not-set" nil t)
 	 (y-or-n-p "You appear to have a misconfigured system.  Really post? ")
        t))
    ;; Check for Approved.
@@ -6068,8 +6068,7 @@ give as trustworthy answer as possible."
       user-domain)
      ;; Default to this bogus thing.
      (t
-      (concat sysname
-	      ".i-did-not-set--mail-host-address--so-tickle-me")))))
+      (concat sysname ".mail-host-address-is-not-set")))))
 
 (defun message-make-domain ()
   "Return the domain name."

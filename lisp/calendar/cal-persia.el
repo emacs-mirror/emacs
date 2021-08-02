@@ -140,7 +140,7 @@ Gregorian date Sunday, December 31, 1 BC."
                          (or date (calendar-current-date)))))
          (y (calendar-extract-year persian-date))
          (m (calendar-extract-month persian-date)))
-    (calendar-dlet*
+    (calendar-dlet
         ((monthname (aref calendar-persian-month-name-array (1- m)))
          (day (number-to-string (calendar-extract-day persian-date)))
          (year (number-to-string y))

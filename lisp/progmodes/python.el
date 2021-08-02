@@ -54,14 +54,7 @@
 ;; `python-nav-backward-statement',
 ;; `python-nav-beginning-of-statement', `python-nav-end-of-statement',
 ;; `python-nav-beginning-of-block', `python-nav-end-of-block' and
-;; `python-nav-if-name-main' are included but no bound to any key.  At
-;; last but not least the specialized `python-nav-forward-sexp' allows
-;; easy navigation between code blocks.  If you prefer `cc-mode'-like
-;; `forward-sexp' movement, setting `forward-sexp-function' to nil is
-;; enough, You can do that using the `python-mode-hook':
-
-;; (add-hook 'python-mode-hook
-;;           (lambda () (setq forward-sexp-function nil)))
+;; `python-nav-if-name-main' are included but no bound to any key.
 
 ;; Shell interaction: is provided and allows opening Python shells
 ;; inside Emacs and executing any block of code of your current buffer
@@ -5505,6 +5498,13 @@ By default messages are considered errors."
   :type '(alist :key-type (regexp)
                 :value-type (symbol)))
 
+(defcustom python-forward-sexp-function #'python-nav-forward-sexp
+  "Function to use when navigating between expressions."
+  :version "28.1"
+  :type '(choice (const :tag "Python blocks" python-nav-forward-sexp)
+                 (const :tag "CC-mode like" nil)
+                 function))
+
 (defvar-local python--flymake-proc nil)
 
 (defun python--flymake-parse-output (source proc report-fn)
@@ -5602,7 +5602,7 @@ REPORT-FN is Flymake's callback function."
   (setq-local parse-sexp-lookup-properties t)
   (setq-local parse-sexp-ignore-comments t)
 
-  (setq-local forward-sexp-function #'python-nav-forward-sexp)
+  (setq-local forward-sexp-function python-forward-sexp-function)
 
   (setq-local font-lock-defaults
               `(,python-font-lock-keywords

@@ -6364,9 +6364,7 @@ preserve markers and overlays, at the price of being slower."
   ;; interface, but leaving the programmatic interface the same.
   (interactive (list (not current-prefix-arg)))
   (let ((revert-buffer-in-progress-p t)
-        (revert-buffer-preserve-modes preserve-modes)
-        ;; Preserve buffer-readedness.
-        (buffer-read-only buffer-read-only))
+        (revert-buffer-preserve-modes preserve-modes))
     (funcall (or revert-buffer-function #'revert-buffer--default)
              ignore-auto noconfirm)))
 
@@ -6617,7 +6615,8 @@ details on the arguments, see `revert-buffer'."
 		 (coding-system-for-read 'auto-save-coding))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)
-	     (set-buffer-file-coding-system coding-system))
+	     (set-buffer-file-coding-system coding-system)
+             (set-buffer-auto-saved))
 	   (after-find-file nil nil t))
 	  (t (user-error "Recover-file canceled")))))
 

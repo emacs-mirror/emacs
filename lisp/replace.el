@@ -1407,9 +1407,9 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
                      (common-prefix
                       (lambda (s1 s2)
                         (let ((c (compare-strings s1 nil nil s2 nil nil)))
-                          (if (zerop c)
-                              (length s1)
-                            (1- (abs c))))))
+                          (if (numberp c)
+                              (1- (abs c))
+                            (length s1)))))
                      (prefix-len (funcall common-prefix buf-str text))
                      (suffix-len (funcall common-prefix
                                           (reverse buf-str) (reverse text))))
@@ -1443,6 +1443,18 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
       (error "Buffer for this occurrence was killed"))
     targets))
 
+(defun occur--set-arrow ()
+  "Set the overlay arrow at the first line of the occur match at point."
+  (save-excursion
+    (let ((target (get-text-property (point) 'occur-target))
+          ;; Find the start of the occur match, in case it's multi-line.
+          (prev (previous-single-property-change (point) 'occur-target)))
+      (when (and prev (eq (get-text-property prev 'occur-target) target))
+        (goto-char prev))
+      (setq overlay-arrow-position
+            (set-marker (or overlay-arrow-position (make-marker))
+                        (line-beginning-position))))))
+
 (defalias 'occur-mode-mouse-goto 'occur-mode-goto-occurrence)
 (defun occur-mode-goto-occurrence (&optional event)
   "Go to the occurrence specified by EVENT, a mouse click.
@@ -1460,6 +1472,7 @@ If not invoked by a mouse click, go to occurrence on the current line."
                 (goto-char (posn-point (event-end event)))
                 (occur-mode--find-occurrences)))))
          (pos (occur--targets-start targets)))
+    (occur--set-arrow)
     (pop-to-buffer (marker-buffer pos))
     (goto-char pos)
     (occur--highlight-occurrences targets)
@@ -1471,6 +1484,7 @@ If not invoked by a mouse click, go to occurrence on the current line."
   (interactive)
   (let ((buffer (current-buffer))
         (pos (occur--targets-start (occur-mode--find-occurrences))))
+    (occur--set-arrow)
     (switch-to-buffer-other-window (marker-buffer pos))
     (goto-char pos)
     (next-error-found buffer (current-buffer))
@@ -1530,6 +1544,7 @@ If not invoked by a mouse click, go to occurrence on the current line."
           '(nil (inhibit-same-window . t)))
 	 window)
     (setq window (display-buffer (marker-buffer pos) t))
+    (occur--set-arrow)
     ;; This is the way to set point in the proper window.
     (save-selected-window
       (select-window window)
@@ -2089,8 +2104,10 @@ See also `multi-occur'."
 			        "\n"
 			        (if prefix-face
 				    (propertize
-				     "\n       :" 'font-lock-face prefix-face)
-				  "\n       :")
+				     "\n       :" 'font-lock-face prefix-face
+                                     'occur-target markers)
+                                  (propertize
+				   "\n       :" 'occur-target markers))
                                 ;; Add mouse face in one section to
                                 ;; ensure the prefix and the string
                                 ;; get a contiguous highlight.

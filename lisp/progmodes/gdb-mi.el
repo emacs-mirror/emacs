@@ -996,6 +996,8 @@ detailed description of this mode.
   (define-key gud-minor-mode-map [left-margin C-mouse-3]
     'gdb-mouse-jump)
 
+  (gud-set-repeat-map-property 'gud-gdb-repeat-map)
+
   (setq-local gud-gdb-completion-function 'gud-gdbmi-completions)
 
   (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point

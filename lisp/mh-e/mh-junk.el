@@ -32,8 +32,8 @@
 (require 'mh-scan)
 
 ;;;###mh-autoload
-(defun mh-junk-blacklist (range)
-  "Blacklist RANGE as spam.
+(defun mh-junk-blocklist (range)
+  "Blocklist RANGE as spam.
 
 This command trains the spam program in use (see the option
 `mh-junk-program') with the content of RANGE and then handles the
@@ -45,44 +45,44 @@ read in interactive use.
 For more information about using your particular spam fighting
 program, see:
 
-  - `mh-spamassassin-blacklist'
-  - `mh-bogofilter-blacklist'
-  - `mh-spamprobe-blacklist'"
-  (interactive (list (mh-interactive-range "Blacklist")))
-  (mh-iterate-on-range () range (mh-blacklist-a-msg nil))
-  (if (looking-at mh-scan-blacklisted-msg-regexp)
+  - `mh-spamassassin-blocklist'
+  - `mh-bogofilter-blocklist'
+  - `mh-spamprobe-blocklist'"
+  (interactive (list (mh-interactive-range "Blocklist")))
+  (mh-iterate-on-range () range (mh-junk-blocklist-a-msg nil))
+  (if (looking-at mh-scan-blocklisted-msg-regexp)
       (mh-next-msg)))
 
-(defun mh-blacklist-a-msg (message)
-  "Blacklist MESSAGE.
-If MESSAGE is nil then the message at point is blacklisted.
-The hook `mh-blacklist-msg-hook' is called after you mark a message
-for blacklisting."
+(defun mh-junk-blocklist-a-msg (message)
+  "Blocklist MESSAGE.
+If MESSAGE is nil then the message at point is blocklisted.
+The hook `mh-blocklist-msg-hook' is called after you mark a message
+for blocklisting."
   (save-excursion
     (if (numberp message)
         (mh-goto-msg message nil t)
       (beginning-of-line)
       (setq message (mh-get-msg-num t)))
     (cond ((looking-at mh-scan-refiled-msg-regexp)
-           (error "Message %d is refiled; undo refile before blacklisting"
+           (error "Message %d is refiled; undo refile before blocklisting"
                   message))
           ((looking-at mh-scan-deleted-msg-regexp)
-           (error "Message %d is deleted; undo delete before blacklisting"
+           (error "Message %d is deleted; undo delete before blocklisting"
                   message))
-          ((looking-at mh-scan-whitelisted-msg-regexp)
-           (error "Message %d is whitelisted; undo before blacklisting"
+          ((looking-at mh-scan-allowlisted-msg-regexp)
+           (error "Message %d is allowlisted; undo before blocklisting"
                   message))
-          ((looking-at mh-scan-blacklisted-msg-regexp) nil)
+          ((looking-at mh-scan-blocklisted-msg-regexp) nil)
           (t
            (mh-set-folder-modified-p t)
-           (setq mh-blacklist (cons message mh-blacklist))
+           (setq mh-blocklist (cons message mh-blocklist))
            (if (not (memq message mh-seen-list))
                (setq mh-seen-list (cons message mh-seen-list)))
-           (mh-notate nil mh-note-blacklisted mh-cmd-note)
-           (run-hooks 'mh-blacklist-msg-hook)))))
+           (mh-notate nil mh-note-blocklisted mh-cmd-note)
+           (run-hooks 'mh-blocklist-msg-hook)))))
 
 ;;;###mh-autoload
-(defun mh-junk-blacklist-disposition ()
+(defun mh-junk-blocklist-disposition ()
   "Determines the fate of the selected spam."
   (cond ((null mh-junk-disposition) nil)
         ((equal mh-junk-disposition "") "+")
@@ -94,73 +94,80 @@ for blacklisting."
         (t (concat "+" mh-junk-disposition))))
 
 ;;;###mh-autoload
-(defun mh-junk-process-blacklist (range)
-  "Blacklist RANGE as spam.
+(defun mh-junk-process-blocklist (range)
+  "Blocklist RANGE as spam.
 This command trains the spam program in use (see the option
 `mh-junk-program') with the content of RANGE and then handles the
 message(s) as specified by the option `mh-junk-disposition'."
-  (let ((blacklist-func (nth 1 (assoc mh-junk-choice mh-junk-function-alist))))
-    (unless blacklist-func
+  (let ((blocklist-func (nth 1 (assoc mh-junk-choice mh-junk-function-alist))))
+    (unless blocklist-func
       (error "Customize `mh-junk-program' appropriately"))
     (mh-iterate-on-range msg range
-      (message "Blacklisting message %d..." msg)
-      (funcall (symbol-function blacklist-func) msg)
-      (message "Blacklisting message %d...done" msg))))
+      (message "Blocklisting message %d..." msg)
+      (funcall (symbol-function blocklist-func) msg)
+      (message "Blocklisting message %d...done" msg))))
 
 ;;;###mh-autoload
 (defun mh-junk-whitelist (range)
-  "Whitelist RANGE as ham.
+  "Old name for `mh-junk-allowlist'; use \\[mh-junk-allowlist] instead."
+  (declare (obsolete mh-junk-allowlist "28.1"))
+  (interactive (list (mh-interactive-range "Allowlist")))
+  (mh-junk-allowlist range))
 
-This command reclassifies the RANGE as ham if it were incorrectly
+;;;###mh-autoload
+(defun mh-junk-allowlist (range)
+  "Allowlist RANGE as ham.
+
+This command reclassifies the RANGE as ham if it has been incorrectly
 classified as spam (see the option `mh-junk-program'). It then
 refiles the message into the \"+inbox\" folder.
 
 Check the documentation of `mh-interactive-range' to see how
 RANGE is read in interactive use."
-  (interactive (list (mh-interactive-range "Whitelist")))
-  (mh-iterate-on-range () range (mh-junk-whitelist-a-msg nil))
-  (if (looking-at mh-scan-whitelisted-msg-regexp)
+  (interactive (list (mh-interactive-range "Allowlist")))
+  (mh-iterate-on-range () range (mh-junk-allowlist-a-msg nil))
+  (if (looking-at mh-scan-allowlisted-msg-regexp)
       (mh-next-msg)))
 
-(defun mh-junk-whitelist-a-msg (message)
-  "Whitelist MESSAGE.
-If MESSAGE is nil then the message at point is whitelisted. The
-hook `mh-whitelist-msg-hook' is called after you mark a message
-for whitelisting."
+(defun mh-junk-allowlist-a-msg (message)
+  "Allowlist MESSAGE.
+If MESSAGE is nil then the message at point is allowlisted. The
+hook `mh-allowlist-msg-hook' is called after you mark a message
+for allowlisting."
   (save-excursion
     (if (numberp message)
         (mh-goto-msg message nil t)
       (beginning-of-line)
       (setq message (mh-get-msg-num t)))
     (cond ((looking-at mh-scan-refiled-msg-regexp)
-           (error "Message %d is refiled; undo refile before whitelisting"
+           (error "Message %d is refiled; undo refile before allowlisting"
                   message))
           ((looking-at mh-scan-deleted-msg-regexp)
-           (error "Message %d is deleted; undo delete before whitelisting"
+           (error "Message %d is deleted; undo delete before allowlisting"
                   message))
-          ((looking-at mh-scan-blacklisted-msg-regexp)
-           (error "Message %d is blacklisted; undo before whitelisting"
+          ((looking-at mh-scan-blocklisted-msg-regexp)
+           (error "Message %d is blocklisted; undo before allowlisting"
                   message))
-          ((looking-at mh-scan-whitelisted-msg-regexp) nil)
+          ((looking-at mh-scan-allowlisted-msg-regexp) nil)
           (t
            (mh-set-folder-modified-p t)
-           (setq mh-whitelist (cons message mh-whitelist))
-           (mh-notate nil mh-note-whitelisted mh-cmd-note)
-           (run-hooks 'mh-whitelist-msg-hook)))))
+           (setq mh-allowlist (cons message mh-allowlist))
+           (mh-notate nil mh-note-allowlisted mh-cmd-note)
+           (run-hooks 'mh-allowlist-msg-hook)))))
 
 ;;;###mh-autoload
-(defun mh-junk-process-whitelist (range)
-  "Whitelist RANGE as ham.
+(defun mh-junk-process-allowlist (range)
+  "Allowlist RANGE as ham.
 
 This command reclassifies the RANGE as ham if it were incorrectly
 classified as spam (see the option `mh-junk-program')."
-  (let ((whitelist-func (nth 2 (assoc mh-junk-choice mh-junk-function-alist))))
-    (unless whitelist-func
+  (let ((allowlist-func (nth 2 (assoc mh-junk-choice mh-junk-function-alist))))
+    (unless allowlist-func
       (error "Customize `mh-junk-program' appropriately"))
     (mh-iterate-on-range msg range
-      (message "Whitelisting message %d..." msg)
-      (funcall (symbol-function whitelist-func) msg)
-      (message "Whitelisting message %d...done" msg))))
+      (message "Allowlisting message %d..." msg)
+      (funcall (symbol-function allowlist-func) msg)
+      (message "Allowlisting message %d...done" msg))))
 
 
 
@@ -170,8 +177,8 @@ classified as spam (see the option `mh-junk-program')."
 (defvar mh-sa-learn-executable (executable-find "sa-learn"))
 
 ;;;###mh-autoload
-(defun mh-spamassassin-blacklist (msg)
-  "Blacklist MSG with SpamAssassin.
+(defun mh-spamassassin-blocklist (msg)
+  "Blocklist MSG with SpamAssassin.
 
 SpamAssassin is one of the more popular spam filtering programs.
 Get it from your local distribution or from the SpamAssassin web
@@ -219,22 +226,22 @@ rules-based filters is a plethora of false positives so it is
 worthwhile to check.
 
 If SpamAssassin classifies a message incorrectly, or is unsure,
-you can use the MH-E commands \\[mh-junk-blacklist] and
-\\[mh-junk-whitelist].
+you can use the MH-E commands \\[mh-junk-blocklist] and
+\\[mh-junk-allowlist].
 
-The command \\[mh-junk-blacklist] adds a \"blacklist_from\" entry
+The command \\[mh-junk-blocklist] adds a \"blacklist_from\" entry
 to \"~/spamassassin/user_prefs\", deletes the message, and sends
 the message to the Razor, so that others might not see this spam.
 If the \"sa-learn\" command is available, the message is also
 recategorized as spam.
 
-The command \\[mh-junk-whitelist] adds a \"whitelist_from\" rule
+The command \\[mh-junk-allowlist] adds a \"whitelist_from\" rule
 to the \"~/.spamassassin/user_prefs\" file. If the \"sa-learn\"
 command is available, the message is also recategorized as ham.
 
 Over time, you'll observe that the same host or domain occurs
 repeatedly in the \"blacklist_from\" entries, so you might think
-that you could avoid future spam by blacklisting all mail from a
+that you could avoid future spam by blocklisting all mail from a
 particular domain. The utility function
 `mh-spamassassin-identify-spammers' helps you do precisely that.
 This function displays a frequency count of the hosts and domains
@@ -262,7 +269,7 @@ information can be used so that you can replace multiple
       (mh-truncate-log-buffer)
       (call-process mh-sa-learn-executable msg-file mh-junk-background nil
                     "--spam" "--local" "--no-sync")))
-    (message "Blacklisting sender of message %d..." msg)
+    (message "Blocklisting sender of message %d..." msg)
     (with-current-buffer (get-buffer-create mh-temp-buffer)
       (erase-buffer)
       (call-process (expand-file-name mh-scan-prog mh-progs)
@@ -274,18 +281,18 @@ information can be used so that you can replace multiple
           (progn
             (setq sender (match-string 0))
             (mh-spamassassin-add-rule "blacklist_from" sender)
-            (message "Blacklisting sender of message %d...done" msg))
-        (message "Blacklisting sender of message %d...not done (from my address)" msg)))))
+            (message "Blocklisting sender of message %d...done" msg))
+        (message "Blocklisting sender of message %d...not done (from my address)" msg)))))
 
 ;;;###mh-autoload
-(defun mh-spamassassin-whitelist (msg)
-  "Whitelist MSG with SpamAssassin.
+(defun mh-spamassassin-allowlist (msg)
+  "Allowlist MSG with SpamAssassin.
 
-The \\[mh-junk-whitelist] command adds a \"whitelist_from\" rule to
+The \\[mh-junk-allowlist] command adds a \"whitelist_from\" rule to
 the \"~/.spamassassin/user_prefs\" file. If the \"sa-learn\" command
 is available, the message is also recategorized as ham.
 
-See `mh-spamassassin-blacklist' for more information."
+See `mh-spamassassin-blocklist' for more information."
   (unless mh-spamassassin-executable
     (error "Unable to find the spamassassin executable"))
   (let ((msg-file (mh-msg-filename msg mh-current-folder))
@@ -307,14 +314,14 @@ See `mh-spamassassin-blacklist' for more information."
         (with-current-buffer mh-log-buffer
           (call-process mh-sa-learn-executable msg-file mh-junk-background nil
                         "--ham" "--local" "--no-sync")))
-      (message "Whitelisting sender of message %d..." msg)
+      (message "Allowlisting sender of message %d..." msg)
       (setq from
             (car (mh-funcall-if-exists
                   ietf-drums-parse-address (mh-get-header-field "From:"))))
       (kill-buffer nil)
       (unless (or (null from) (equal from ""))
         (mh-spamassassin-add-rule "whitelist_from" from))
-      (message "Whitelisting sender of message %d...done" msg))))
+      (message "Allowlisting sender of message %d...done" msg))))
 
 (defun mh-spamassassin-add-rule (rule body)
   "Add a new rule to \"~/.spamassassin/user_prefs\".
@@ -384,8 +391,8 @@ information can be used so that you can replace multiple
 (defvar mh-bogofilter-executable (executable-find "bogofilter"))
 
 ;;;###mh-autoload
-(defun mh-bogofilter-blacklist (msg)
-  "Blacklist MSG with bogofilter.
+(defun mh-bogofilter-blocklist (msg)
+  "Blocklist MSG with bogofilter.
 
 Bogofilter is a Bayesian spam filtering program. Get it from your
 local distribution or from the bogofilter web site at URL
@@ -422,7 +429,7 @@ To use bogofilter, add the following recipes to \".procmailrc\":
     spam/unsure/.
 
 If bogofilter classifies a message incorrectly, or is unsure, you can
-use the MH-E commands \\[mh-junk-blacklist] and \\[mh-junk-whitelist]
+use the MH-E commands \\[mh-junk-blocklist] and \\[mh-junk-allowlist]
 to update bogofilter's training.
 
 The \"Bogofilter FAQ\" suggests that you run the following
@@ -444,10 +451,10 @@ The \"Bogofilter tuning HOWTO\" describes how you can fine-tune Bogofilter."
                     nil "-s"))))
 
 ;;;###mh-autoload
-(defun mh-bogofilter-whitelist (msg)
-  "Whitelist MSG with bogofilter.
+(defun mh-bogofilter-allowlist (msg)
+  "Allowlist MSG with bogofilter.
 
-See `mh-bogofilter-blacklist' for more information."
+See `mh-bogofilter-blocklist' for more information."
   (unless mh-bogofilter-executable
     (error "Unable to find the bogofilter executable"))
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
@@ -465,8 +472,8 @@ See `mh-bogofilter-blacklist' for more information."
 (defvar mh-spamprobe-executable (executable-find "spamprobe"))
 
 ;;;###mh-autoload
-(defun mh-spamprobe-blacklist (msg)
-  "Blacklist MSG with SpamProbe.
+(defun mh-spamprobe-blocklist (msg)
+  "Blocklist MSG with SpamProbe.
 
 SpamProbe is a Bayesian spam filtering program. Get it from your
 local distribution or from the SpamProbe web site at URL
@@ -489,7 +496,7 @@ To use SpamProbe, add the following recipes to \".procmailrc\":
     spam/.
 
 If SpamProbe classifies a message incorrectly, you can use the
-MH-E commands \\[mh-junk-blacklist] and \\[mh-junk-whitelist] to
+MH-E commands \\[mh-junk-blocklist] and \\[mh-junk-allowlist] to
 update SpamProbe's training."
   (unless mh-spamprobe-executable
     (error "Unable to find the spamprobe executable"))
@@ -502,10 +509,10 @@ update SpamProbe's training."
                     nil "spam"))))
 
 ;;;###mh-autoload
-(defun mh-spamprobe-whitelist (msg)
-  "Whitelist MSG with SpamProbe.
+(defun mh-spamprobe-allowlist (msg)
+  "Allowlist MSG with SpamProbe.
 
-See `mh-spamprobe-blacklist' for more information."
+See `mh-spamprobe-blocklist' for more information."
   (unless mh-spamprobe-executable
     (error "Unable to find the spamprobe executable"))
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))

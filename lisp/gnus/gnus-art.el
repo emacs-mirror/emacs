@@ -6238,8 +6238,9 @@ If nil, don't show those extra buttons."
 	      (gnus-display-mime preferred)
 	    (let ((mail-parse-charset gnus-newsgroup-charset)
 		  (mail-parse-ignored-charsets
-		   (with-current-buffer gnus-summary-buffer
-		     gnus-newsgroup-ignored-charsets)))
+                   (and (buffer-live-p gnus-summary-buffer)
+		        (with-current-buffer gnus-summary-buffer
+		          gnus-newsgroup-ignored-charsets))))
 	      (gnus-bind-mm-vars (mm-display-part preferred))
 	      ;; Do highlighting.
 	      (save-excursion

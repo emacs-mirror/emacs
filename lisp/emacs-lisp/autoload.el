@@ -626,8 +626,8 @@ Don't try to split prefixes that are already longer than that.")
                       (radix-tree-iter-mappings
                        (cdr x) (lambda (s _)
                                  (push (concat prefix s) dropped)))
-                      (message "Not registering prefix \"%s\" from %s.  Affects: %S"
-                               prefix file dropped)
+                      (message "%s:0: Warning: Not registering prefix \"%s\".  Affects: %S"
+                               file prefix dropped)
                       nil))))
               prefixes)))
         `(register-definition-prefixes ,file ',(sort (delq nil strings)

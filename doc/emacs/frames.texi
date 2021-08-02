@@ -480,9 +480,10 @@ frame.  This runs @code{find-file-read-only-other-frame}.
 @xref{Visiting}.
 
 @item C-x 5 5
-A more general prefix command affects the buffer displayed by the next
-command invoked immediately after this prefix command.  It requests
-the buffer of the next command to be displayed in another frame.
+A more general prefix command that affects the buffer displayed by the
+next command invoked immediately after this prefix command
+(@code{other-frame-prefix}).  It requests the buffer of the next
+command to be displayed in another frame.
 @end table
 
   You can control the appearance and behavior of the newly-created

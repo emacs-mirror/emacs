@@ -3087,7 +3087,7 @@ See `read-file-name' for the meaning of the arguments."
                     (minibuffer-maybe-quote-filename dir)))
                  (initial (cons (minibuffer-maybe-quote-filename initial) 0)))))
 
-    (let ((completion-ignore-case read-file-name-completion-ignore-case)
+    (let ((ignore-case read-file-name-completion-ignore-case)
           (minibuffer-completing-file-name t)
           (pred (or predicate 'file-exists-p))
           (add-to-history nil))
@@ -3115,6 +3115,7 @@ See `read-file-name' for the meaning of the arguments."
                                            minibuffer-default))
                             (setq minibuffer-default
                                   (cdr-safe minibuffer-default)))
+                          (setq-local completion-ignore-case ignore-case)
                           ;; On the first request on `M-n' fill
                           ;; `minibuffer-default' with a list of defaults
                           ;; relevant for file-name reading.

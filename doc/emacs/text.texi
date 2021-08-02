@@ -997,6 +997,13 @@ specific file (@pxref{File Variables}).
 major mode's special commands.  (The variable
 @code{outline-minor-mode-prefix} controls the prefix used.)
 
+@vindex outline-minor-mode-cycle
+  If the @code{outline-minor-mode-cycle} user option is
+non-@code{nil}, the @kbd{TAB} and @kbd{S-TAB} keys are enabled on the
+outline heading lines.  @kbd{TAB} cycles hiding, showing the
+sub-heading, and showing all for the current section.  @kbd{S-TAB}
+does the same for the entire buffer.
+
 @menu
 * Outline Format::      What the text of an outline looks like.
 * Outline Motion::      Special commands for moving through outlines.
