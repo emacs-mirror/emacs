@@ -5,7 +5,7 @@
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, lisp
-;; Version: 3.0
+;; Version: 3.1
 ;; Package-Requires: ((emacs "26"))
 
 ;; This file is part of GNU Emacs.
@@ -371,37 +371,51 @@ The default implementation delegates to `map-do'."
             map)
     t))
 
+(defun map--merge (merge type &rest maps)
+  "Merge into a map of TYPE all the key/value pairs in MAPS.
+MERGE is a function that takes the target MAP, a KEY, and a
+VALUE, merges KEY and VALUE into MAP, and returns the result.
+MAP may be of a type other than TYPE."
+  ;; Use a hash table internally if `type' is a list.  This avoids
+  ;; both quadratic lookup behavior and the type ambiguity of nil.
+  (let* ((tolist (memq type '(list alist plist)))
+         (result (map-into (pop maps)
+                            ;; Use same testfn as `map-elt' gv setter.
+                           (cond ((eq type 'plist) '(hash-table :test eq))
+                                 (tolist '(hash-table :test equal))
+                                 (type)))))
+    (dolist (map maps)
+      (map-do (lambda (key value)
+                (setq result (funcall merge result key value)))
+              map))
+    ;; Convert internal representation to desired type.
+    (if tolist (map-into result type) result)))
+
 (defun map-merge (type &rest maps)
   "Merge into a map of TYPE all the key/value pairs in MAPS.
 See `map-into' for all supported values of TYPE."
-  (let ((result (map-into (pop maps) type)))
-    (while maps
-      ;; FIXME: When `type' is `list', we get an O(N^2) behavior.
-      ;; For small tables, this is fine, but for large tables, we
-      ;; should probably use a hash-table internally which we convert
-      ;; to an alist in the end.
-      (map-do (lambda (key value)
-                (setf (map-elt result key) value))
-              (pop maps)))
-    result))
+  (apply #'map--merge
+         (lambda (result key value)
+           (setf (map-elt result key) value)
+           result)
+         type maps))
 
 (defun map-merge-with (type function &rest maps)
   "Merge into a map of TYPE all the key/value pairs in MAPS.
-When two maps contain the same (`eql') key, call FUNCTION on the two
+When two maps contain the same key, call FUNCTION on the two
 values and use the value returned by it.
 Each of MAPS can be an alist, plist, hash-table, or array.
 See `map-into' for all supported values of TYPE."
-  (let ((result (map-into (pop maps) type))
-        (not-found (list nil)))
-    (while maps
-      (map-do (lambda (key value)
-                (cl-callf (lambda (old)
-                            (if (eql old not-found)
-                                value
-                              (funcall function old value)))
-                    (map-elt result key not-found)))
-              (pop maps)))
-    result))
+  (let ((not-found (list nil)))
+    (apply #'map--merge
+           (lambda (result key value)
+             (cl-callf (lambda (old)
+                         (if (eql old not-found)
+                             value
+                           (funcall function old value)))
+                 (map-elt result key not-found))
+             result)
+           type maps)))
 
 (cl-defgeneric map-into (map type)
   "Convert MAP into a map of TYPE.")

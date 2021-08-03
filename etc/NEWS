@@ -1636,6 +1636,14 @@ This is a slightly deeper copy than the previous 'copy-sequence'.
 ---
 *** The function 'map-contains-key' now supports plists.
 
+---
+*** More consistent duplicate key handling in 'map-merge-with'.
+Until now, 'map-merge-with' promised to call its function argument
+whenever multiple maps contained 'eql' keys.  However, this did not
+always coincide with the keys that were actually merged, which could
+be 'equal' instead.  The function argument is now called whenever keys
+are merged, for greater consistency with 'map-merge' and 'map-elt'.
+
 ** Package
 
 ---
