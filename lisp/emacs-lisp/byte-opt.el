@@ -1405,6 +1405,7 @@ See Info node `(elisp) Integer Basics'."
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps current-time
 	 eobp eolp eq equal eventp
+         file-name-concat
 	 fixnump floatp following-char framep
 	 get-largest-window get-lru-window
 	 hash-table-p
