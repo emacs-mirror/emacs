@@ -1161,7 +1161,12 @@ These match if the argument is `eql' to VAL."
   (let ((form (cadr specializer)))
     (puthash (if (or (not (symbolp form)) (macroexp-const-p form))
                  (eval form t)
-               (message "Quoting obsolete `eql' form: %S" specializer)
+               ;; FIXME: Compatibility with Emacs<28.  For now emitting
+               ;; a warning would be annoying for third party packages
+               ;; which can't use the new form without breaking compatibility
+               ;; with older Emacsen, but in the future we should emit
+               ;; a warning.
+               ;; (message "Quoting obsolete `eql' form: %S" specializer)
                form)
              specializer cl--generic-eql-used))
   (list cl--generic-eql-generalizer))
@@ -1274,11 +1279,6 @@ Used internally for the (major-mode MODE) context specializers."
 (cl-generic-define-context-rewriter major-mode (mode &rest modes)
   `(major-mode ,(if (consp mode)
                     ;;E.g. could be (eql ...)
-                    ;; WARNING: unsure whether this
-                    ;; “could be (eql ...)” commentary (or code)
-                    ;; should be adjusted
-                    ;; following the (planned) changes to eql specializer.
-                    ;; Bug #47327
                     (progn (cl-assert (null modes)) mode)
                   `(derived-mode ,mode . ,modes))))
 
