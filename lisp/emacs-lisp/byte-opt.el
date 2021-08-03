@@ -1362,6 +1362,7 @@ See Info node `(elisp) Integer Basics'."
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
 	 make-byte-code make-list make-string make-symbol mark marker-buffer max
+         match-beginning match-end
 	 member memq memql min minibuffer-selected-window minibuffer-window
 	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member
