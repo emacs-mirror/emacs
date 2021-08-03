@@ -1348,6 +1348,7 @@ See Info node `(elisp) Integer Basics'."
 	 elt encode-char exp expt encode-time error-message-string
 	 fboundp fceiling featurep ffloor
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
+         file-name-concat
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
 	 float float-time floor format format-time-string frame-first-window
 	 frame-root-window frame-selected-window
@@ -1405,7 +1406,6 @@ See Info node `(elisp) Integer Basics'."
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps current-time
 	 eobp eolp eq equal eventp
-         file-name-concat
 	 fixnump floatp following-char framep
 	 get-largest-window get-lru-window
 	 hash-table-p
