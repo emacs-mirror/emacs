@@ -123,6 +123,21 @@ left alone when opening a URL in an external browser."
      (save-excursion (insert "type="))
      (ffap-guess-file-name-at-point))))
 
+(ert-deftest ffap-ido-mode ()
+  (require 'ido)
+  (with-temp-buffer
+    (let ((ido-mode t)
+          (read-filename-function read-file-name-function)
+          (read-buffer-function read-buffer-function))
+      (ido-everywhere)
+      (let ((read-file-name-function (lambda (&rest args)
+                                     (expand-file-name
+                                      (nth 4 args)
+                                      (nth 1 args)))))
+        (save-excursion (insert "ffap-tests.el"))
+        (let (kill-buffer-query-functions)
+          (kill-buffer (call-interactively #'find-file-at-point)))))))
+
 (provide 'ffap-tests)
 
 ;;; ffap-tests.el ends here
