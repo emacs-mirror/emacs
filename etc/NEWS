@@ -2854,6 +2854,34 @@ GPG key servers can now be queried for keys with the
 'M-x epa-search-keys' command.  Keys can then be added to your
 personal key ring.
 
+** So Long
+
+---
+*** New 'so-long-predicate' function 'so-long-statistics-excessive-p'
+efficiently detects the presence of a long line anywhere in the buffer
+using 'buffer-line-statistics' (see above).  This is now the default
+predicate (replacing 'so-long-detected-long-line-p').
+
+---
+*** 'so-long-threshold' and 'so-long-max-lines' have been raised to
+10000 bytes and 500 lines respectively, to reduce the likelihood of
+false-positives when 'global-so-long-mode' is enabled.  The latter
+value is now only used by the old predicate, as the new predicate
+knows the longest line in the entire buffer.
+
+---
+*** 'so-long-target-modes' now includes 'fundamental-mode' by default,
+meaning that 'global-so-long-mode' will also process files which were
+not recognised.  (This only has an effect if 'set-auto-mode' chooses
+'fundamental-mode'; buffers which are simply in 'fundamental-mode' by
+default are unaffected.)
+
+---
+*** New user options 'so-long-mode-preserved-minor-modes' and
+'so-long-mode-preserved-variables' allow specified mode and variable
+states to be maintained if 'so-long-mode' replaces the original major
+mode.  By default, these new options support 'view-mode'.
+
 
 * New Modes and Packages in Emacs 28.1
 
