@@ -8143,15 +8143,19 @@ is defined.
 The function should take a single optional argument, which is a flag
 indicating whether it should use soft newlines.")
 
-(defun default-indent-new-line (&optional soft)
+(defun default-indent-new-line (&optional soft force)
   "Break line at point and indent.
 If a comment syntax is defined, call `comment-line-break-function'.
 
 The inserted newline is marked hard if variable `use-hard-newlines' is true,
 unless optional argument SOFT is non-nil."
-  (interactive)
+  (interactive (list nil t))
   (if comment-start
-      (funcall comment-line-break-function soft)
+      ;; Force breaking the line when called interactively.
+      (if force
+          (let ((comment-auto-fill-only-comments nil))
+            (funcall comment-line-break-function soft))
+        (funcall comment-line-break-function soft))
     ;; Insert the newline before removing empty space so that markers
     ;; get preserved better.
     (if soft (insert-and-inherit ?\n) (newline 1))
