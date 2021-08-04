@@ -1366,11 +1366,9 @@ errors signaled by ERROR-FORM or by BODY).
                 (kill-buffer buffer)
                 (goto-char (point-min))))))
       (package--unless-error body
-        (let ((url (expand-file-name file url)))
-          (unless (file-name-absolute-p url)
-            (error "Location %s is not a url nor an absolute file name"
-                   url))
-          (insert-file-contents-literally url)))))
+        (unless (file-name-absolute-p url)
+          (error "Location %s is not a url nor an absolute file name" url))
+        (insert-file-contents-literally (expand-file-name file url)))))
 
 (define-error 'bad-signature "Failed to verify signature")
 
