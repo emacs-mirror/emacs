@@ -2639,6 +2639,11 @@ The semantics are as with 'walk-windows'.
 If non-nil, 'find-file-at-point' and friends will try to guess more
 expansively to identify a file name with spaces.
 
++++
+*** New 'thing-at-point' target: 'existing-filename'.
+This is like 'filename', but is a full path, and is nil if the file
+doesn't exist.
+
 ---
 *** Two new commands for centering in 'doc-view-mode'.
 The new commands 'doc-view-center-page-horizontally' (bound to 'c h')

@@ -315,10 +315,11 @@ word on the same line is acceptable.
 @defun thing-at-point thing &optional no-properties
 Return the @var{thing} around or next to point, as a string.
 
-The argument @var{thing} is a symbol which specifies a kind of syntactic
-entity.  Possibilities include @code{symbol}, @code{list}, @code{sexp},
-@code{defun}, @code{filename}, @code{url}, @code{word}, @code{sentence},
-@code{whitespace}, @code{line}, @code{page}, and others.
+The argument @var{thing} is a symbol which specifies a kind of
+syntactic entity.  Possibilities include @code{symbol}, @code{list},
+@code{sexp}, @code{defun}, @code{filename}, @code{existing-filename},
+@code{url}, @code{word}, @code{sentence}, @code{whitespace},
+@code{line}, @code{page}, and others.
 
 When the optional argument @var{no-properties} is non-@code{nil}, this
 function strips text properties from the return value.
