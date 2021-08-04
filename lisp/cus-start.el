@@ -431,6 +431,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	      "21.1"
               :set minibuffer-prompt-properties--setter)
 	     (minibuffer-auto-raise minibuffer boolean)
+             (read-minibuffer-restore-windows boolean "28.1")
 	     ;; options property set at end
 	     (read-buffer-function minibuffer
 				   (choice (const nil)

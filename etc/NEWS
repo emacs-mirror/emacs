@@ -179,6 +179,9 @@ behavior, which mixed these two, can be approximated by customizing
 nor t.
 
 +++
+** New user option 'read-minibuffer-restore-windows'.
+
++++
 ** New system for displaying documentation for groups of functions.
 This can either be used by saying 'M-x shortdoc-display-group' and
 choosing a group, or clicking a button in the "*Help*" buffers when
