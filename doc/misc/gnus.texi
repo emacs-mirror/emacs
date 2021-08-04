@@ -26860,9 +26860,10 @@ but at the common table.@*
 
 If you want to investigate the person responsible for this outrage,
 you can point your (feh!) web browser to
-@uref{https://quimby.gnus.org/}.  This is also the primary
-distribution point for the new and spiffy versions of Gnus, and is
-known as The Site That Destroys Newsrcs And Drives People Mad.
+@uref{https://quimby.gnus.org/}.  This used to be the primary
+distribution point for the new and spiffy versions of Gnus, and was
+known as The Site That Destroys Newsrcs And Drives People Mad, but
+these days Gnus is developed in the Emacs repository.
 
 During the first extended alpha period of development, the new Gnus was
 called ``(ding) Gnus''.  @dfn{(ding)} is, of course, short for
