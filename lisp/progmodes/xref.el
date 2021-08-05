@@ -657,7 +657,7 @@ quit the *xref* buffer."
   (interactive "P")
   (let* ((buffer (current-buffer))
          (xref (or (xref--item-at-point)
-                   (user-error "No reference at point")))
+                   (user-error "Choose a reference to visit")))
          (xref--current-item xref))
     (xref--show-location (xref-item-location xref) (if quit 'quit t))
     (if (fboundp 'next-error-found)
