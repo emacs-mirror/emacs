@@ -1000,7 +1000,7 @@ String or list of strings specifying switches for Git log under VC.
 ** Gnus
 
 +++
-*** nnimap now supports the oath2.el library.
+*** nnimap now supports the oauth2.el library.
 
 +++
 *** New Summary buffer sort options for extra headers.
