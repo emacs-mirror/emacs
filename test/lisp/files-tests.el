@@ -316,7 +316,9 @@ be $HOME."
 
 (ert-deftest files-tests-file-name-non-special--subprocess ()
   "Check that Bug#25949 and Bug#48177 are fixed."
-  (skip-unless (and (executable-find "true") (file-exists-p null-device)))
+  (skip-unless (and (executable-find "true") (file-exists-p null-device)
+                    ;; These systems cannot set date of the null device.
+                    (not (memq system-type '(windows-nt ms-dos)))))
   (let ((default-directory (file-name-quote temporary-file-directory))
         (true (file-name-quote (executable-find "true")))
         (null (file-name-quote null-device)))
@@ -951,40 +953,51 @@ unquoted file names."
 
 (ert-deftest files-test-auto-save-name-default ()
   (with-temp-buffer
-    (let ((auto-save-file-name-transforms nil))
+    (let ((auto-save-file-name-transforms nil)
+          (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
       (setq buffer-file-name "/tmp/foo.txt")
-      (should (equal (make-auto-save-file-name) "/tmp/#foo.txt#")))))
+      (should (equal (substring (make-auto-save-file-name) name-start)
+                     "/tmp/#foo.txt#")))))
 
 (ert-deftest files-test-auto-save-name-transform ()
   (with-temp-buffer
     (setq buffer-file-name "/tmp/foo.txt")
     (let ((auto-save-file-name-transforms
-           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" nil))))
-      (should (equal (make-auto-save-file-name) "/var/tmp/#foo.txt#")))))
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" nil)))
+          (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+      (should (equal (substring (make-auto-save-file-name) name-start)
+                     "/var/tmp/#foo.txt#")))))
 
 (ert-deftest files-test-auto-save-name-unique ()
   (with-temp-buffer
     (setq buffer-file-name "/tmp/foo.txt")
     (let ((auto-save-file-name-transforms
-           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t))))
-      (should (equal (make-auto-save-file-name) "/var/tmp/#!tmp!foo.txt#")))
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t)))
+          (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+      (should (equal (substring (make-auto-save-file-name) name-start)
+                     "/var/tmp/#!tmp!foo.txt#")))
     (let ((auto-save-file-name-transforms
-           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" sha1))))
-      (should (equal (make-auto-save-file-name)
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" sha1)))
+          (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+      (should (equal (substring (make-auto-save-file-name) name-start)
                      "/var/tmp/#b57c5a04f429a83305859d3350ecdab8315a9037#")))))
 
 (ert-deftest files-test-lock-name-default ()
-  (let ((lock-file-name-transforms nil))
-    (should (equal (make-lock-file-name "/tmp/foo.txt") "/tmp/.#foo.txt"))))
+  (let ((lock-file-name-transforms nil)
+        (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+    (should (equal (substring (make-lock-file-name "/tmp/foo.txt") name-start)
+                   "/tmp/.#foo.txt"))))
 
 (ert-deftest files-test-lock-name-unique ()
   (let ((lock-file-name-transforms
-         '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t))))
-    (should (equal (make-lock-file-name "/tmp/foo.txt")
+         '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t)))
+        (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+    (should (equal (substring (make-lock-file-name "/tmp/foo.txt") name-start)
                    "/var/tmp/.#!tmp!foo.txt")))
   (let ((lock-file-name-transforms
-         '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" sha1))))
-    (should (equal (make-lock-file-name "/tmp/foo.txt")
+         '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" sha1)))
+        (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+    (should (equal (substring (make-lock-file-name "/tmp/foo.txt") name-start)
                    "/var/tmp/.#b57c5a04f429a83305859d3350ecdab8315a9037"))))
 
 (ert-deftest files-tests-file-name-non-special-make-directory ()
