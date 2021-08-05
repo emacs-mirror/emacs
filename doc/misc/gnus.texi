@@ -14516,7 +14516,8 @@ this should be set to @code{anonymous}.  If this variable isn't set,
 the normal login methods will be used.  If you wish to specify a
 specific login method to be used, you can set this variable to either
 @code{login} (the traditional @acronym{IMAP} login method),
-@code{plain} or @code{cram-md5}.
+@code{plain}, @code{cram-md5} or @code{xoath2}.  (The latter method
+requires using the @file{oauth2.el} library.)
 
 @item nnimap-expunge
 When to expunge deleted messages.  If @code{never}, deleted articles

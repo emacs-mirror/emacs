@@ -636,6 +636,14 @@ USER and PASSWORD should be non-nil."
 	   (base64-encode-string (concat "\0" user "\0" password) t))
    235))
 
+(cl-defmethod smtpmail-try-auth-method
+  (process (_mech (eql xoauth2)) user password)
+  (smtpmail-command-or-throw
+   process
+   (concat "AUTH XOAUTH2 "
+           (base64-encode-string
+            (concat "user=" user "\1auth=Bearer " password "\1\1") t))))
+
 (defun smtpmail-response-code (string)
   (when string
     (with-temp-buffer

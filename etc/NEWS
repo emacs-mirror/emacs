@@ -1000,6 +1000,9 @@ String or list of strings specifying switches for Git log under VC.
 ** Gnus
 
 +++
+*** nnimap now supports the oath2.el library.
+
++++
 *** New Summary buffer sort options for extra headers.
 The extra header sort option ('C-c C-s C-x') prompts for a header
 and fails if no sort function has been defined.  Sorting by
@@ -1186,6 +1189,9 @@ command has been added.  It depends on using an external program to
 take the actual screenshot, and defaults to "ImageMagick import".
 
 ** Smtpmail
+
++++
+*** smtpmail now supports using the oauth2.el library.
 
 +++
 *** New user option 'smtpmail-store-queue-variables'.
