@@ -180,6 +180,8 @@ nor t.
 
 +++
 ** New user option 'read-minibuffer-restore-windows'.
+When customized to nil, it uses 'minibuffer-restore-windows' in
+'minibuffer-exit-hook' to remove only the *Completions* window.
 
 +++
 ** New system for displaying documentation for groups of functions.

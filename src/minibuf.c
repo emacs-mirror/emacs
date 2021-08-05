@@ -2535,8 +2535,11 @@ instead. */);
 If this is non-nil (the default), reading input with the minibuffer will
 restore, on exit, the window configurations of the frame where the
 minibuffer was entered from and, if it is different, the frame that owns
-the associated minibuffer window.  If this is nil, no such restorations
-are done.  */);
+the associated minibuffer window.
+
+If this is nil, no such restorations are done.
+But still `minibuffer-restore-windows' in `minibuffer-exit-hook'
+will remove the window with the *Completions* buffer.  */);
   read_minibuffer_restore_windows = true;
 
   defsubr (&Sactive_minibuffer_window);
