@@ -6533,7 +6533,8 @@ see `replace-buffer-contents'."
       ;; See comments in revert-buffer-with-fine-grain for an explanation.
       (defun revert-buffer-with-fine-grain-success-p ()
         success))
-    (set-buffer-modified-p nil))))
+    (set-buffer-modified-p nil)
+    (set-visited-file-modtime))))
 
 (defun revert-buffer-with-fine-grain (&optional ignore-auto noconfirm)
   "Revert buffer preserving markers, overlays, etc.
