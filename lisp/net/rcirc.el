@@ -410,6 +410,11 @@ will be killed."
   :version "28.1"
   :type 'function)
 
+(defcustom rcirc-channel-filter #'identity
+  "Function applied to channels before displaying."
+  :version "28.1"
+  :type 'function)
+
 (defvar-local rcirc-nick nil
   "The nickname used for the current connection.")
 
@@ -2301,11 +2306,12 @@ activity.  Only run if the buffer is not visible and
 (defun rcirc-short-buffer-name (buffer)
   "Return a short name for BUFFER to use in the mode line indicator."
   (with-current-buffer buffer
-    (replace-regexp-in-string
-     "@.*?\\'" ""
-     (or (and rcirc-track-abbrevate-flag
-              rcirc-short-buffer-name)
-         (buffer-name)))))
+    (funcall rcirc-channel-filter
+             (replace-regexp-in-string
+              "@.*?\\'" ""
+              (or (and rcirc-track-abbrevate-flag
+                       rcirc-short-buffer-name)
+                  (buffer-name))))))
 
 (defun rcirc-visible-buffers ()
   "Return a list of the visible buffers that are in `rcirc-mode'."
@@ -3052,11 +3058,11 @@ connection."
       ;; already open buffer (after getting kicked e.g.)
       (setq mode-line-process nil))
 
-    (rcirc-print process sender "JOIN" channel "")
+    (rcirc-print process sender "JOIN" (funcall rcirc-channel-filter channel) "")
 
     ;; print in private chat buffer if it exists
     (when (rcirc-get-buffer (rcirc-buffer-process) sender)
-      (rcirc-print process sender "JOIN" sender channel))))
+      (rcirc-print process sender "JOIN" sender (funcall rcirc-channel-filter channel)))))
 
 ;; PART and KICK are handled the same way
 (defun rcirc-handler-PART-or-KICK (process _response channel _sender nick _args)
@@ -3085,10 +3091,10 @@ PROCESS is the process object for the current connection."
   (let* ((channel (car args))
 	 (reason (cadr args))
 	 (message (concat channel " " reason)))
-    (rcirc-print process sender "PART" channel message)
+    (rcirc-print process sender "PART" (funcall rcirc-channel-filter channel) message)
     ;; print in private chat buffer if it exists
     (when (rcirc-get-buffer (rcirc-buffer-process) sender)
-      (rcirc-print process sender "PART" sender message))
+      (rcirc-print process sender "PART" (funcall rcirc-channel-filter channel) message))
 
     (rcirc-handler-PART-or-KICK process "PART" channel sender sender reason)))
 
@@ -3100,7 +3106,7 @@ PROCESS is the process object for the current connection."
 	 (nick (cadr args))
 	 (reason (nth 2 args))
 	 (message (concat nick " " channel " " reason)))
-    (rcirc-print process sender "KICK" channel message t)
+    (rcirc-print process sender "KICK" (funcall rcirc-channel-filter channel) message t)
     ;; print in private chat buffer if it exists
     (when (rcirc-get-buffer (rcirc-buffer-process) nick)
       (rcirc-print process sender "KICK" nick message))
@@ -3130,7 +3136,7 @@ PROCESS is the process object for the current connection."
   (rcirc-ignore-update-automatic sender)
   (mapc (lambda (channel)
 	  ;; broadcast quit message each channel
-	  (rcirc-print process sender "QUIT" channel (apply 'concat args))
+	  (rcirc-print process sender "QUIT" (funcall rcirc-channel-filter channel) (apply 'concat args))
 	  ;; record nick in quit table if they recently spoke
 	  (rcirc-maybe-remember-nick-quit process sender channel))
 	(rcirc-nick-channels process sender))
@@ -3390,6 +3396,8 @@ process object for the current connection."
   (let ((self (buffer-local-value 'rcirc-nick rcirc-process))
         (target (car args))
         (chan (cadr args)))
+    ;; `rcirc-channel-filter' is not used here because joining
+    ;; requires an unfiltered name.
     (if (string= target self)
         (rcirc-print process sender "INVITE" nil
                      (format "%s invited you to %s"
