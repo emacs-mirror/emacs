@@ -3689,6 +3689,9 @@ Emacs constructs the nondirectory part of the auto-save file name by
 applying that 'secure-hash' to the buffer file name.  This avoids any
 risk of excessively long file names.
 
+** New variable 'etags-xref-prefer-current-file' to change the order
+of definitions returned by the etags Xref backend.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
