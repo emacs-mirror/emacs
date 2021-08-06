@@ -2116,6 +2116,11 @@ This function does not alter the INPUT string."
     map)
   "Keymap for rcirc track minor mode.")
 
+(defcustom rcirc-track-abbrevate-flag t
+  "If non-nil, abbreviate names for `rcirc-track-minor-mode'."
+  :version "28.1"
+  :type 'boolean)
+
 ;;;###autoload
 (define-minor-mode rcirc-track-minor-mode
   "Global minor mode for tracking activity in rcirc buffers."
@@ -2296,7 +2301,11 @@ activity.  Only run if the buffer is not visible and
 (defun rcirc-short-buffer-name (buffer)
   "Return a short name for BUFFER to use in the mode line indicator."
   (with-current-buffer buffer
-    (or rcirc-short-buffer-name (buffer-name))))
+    (replace-regexp-in-string
+     "@.*?\\'" ""
+     (or (and rcirc-track-abbrevate-flag
+              rcirc-short-buffer-name)
+         (buffer-name)))))
 
 (defun rcirc-visible-buffers ()
   "Return a list of the visible buffers that are in `rcirc-mode'."
