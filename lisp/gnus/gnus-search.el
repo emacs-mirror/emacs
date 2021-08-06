@@ -1358,6 +1358,7 @@ Returns a list of [group article score] vectors."
 						server query &optional groups)
   (let ((prefix (or (slot-value engine 'remove-prefix)
                     ""))
+        (groups (mapcar #'gnus-group-short-name groups))
 	artlist article group)
     (goto-char (point-min))
     ;; Prep prefix, we want to at least be removing the root
@@ -1384,7 +1385,6 @@ Returns a list of [group article score] vectors."
                    nil t)
 	          nil t)
 	         nil t))
-          (setq group (gnus-group-full-name group server))
           (setq article (file-name-nondirectory f-name)
                 article
                 ;; TODO: Provide a cleaner way of producing final
@@ -1404,10 +1404,12 @@ Returns a list of [group article score] vectors."
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
     ;; Munge into the list of vectors expected by nnselect.
     (mapcar (pcase-lambda (`(,_ ,article ,group ,score))
-              (vector group article
-                      (if (numberp score)
-			  score
-		        (string-to-number score))))
+              (vector
+               (gnus-group-full-name group server)
+               article
+               (if (numberp score)
+		   score
+		 (string-to-number score))))
             artlist)))
 
 (cl-defmethod gnus-search-indexed-extract ((_engine gnus-search-indexed))
