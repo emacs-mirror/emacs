@@ -127,13 +127,17 @@ left alone when opening a URL in an external browser."
   (require 'ido)
   (with-temp-buffer
     (let ((ido-mode t)
-          (read-filename-function read-file-name-function)
+          (read-file-name-function read-file-name-function)
           (read-buffer-function read-buffer-function))
-      (ido-everywhere)
+      ;; Says ert-deftest:
+      ;; Macros in BODY are expanded when the test is defined, not when it
+      ;; is run.  If a macro (possibly with side effects) is to be tested,
+      ;; it has to be wrapped in `(eval (quote ...))'.
+      (eval (quote (ido-everywhere)))
       (let ((read-file-name-function (lambda (&rest args)
-                                     (expand-file-name
-                                      (nth 4 args)
-                                      (nth 1 args)))))
+                                       (expand-file-name
+                                        (nth 4 args)
+                                        (nth 1 args)))))
         (save-excursion (insert "ffap-tests.el"))
         (let (kill-buffer-query-functions)
           (kill-buffer (call-interactively #'find-file-at-point)))))))
