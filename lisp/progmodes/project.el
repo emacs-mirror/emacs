@@ -885,7 +885,7 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
                     (lambda ()
                       (let ((minibuffer-default default))
                         (minibuffer-default-add-completions)))))
-    (completing-read prompt
+    (completing-read (format "%s: " prompt)
                      collection predicate 'confirm
                      nil
                      hist)))
