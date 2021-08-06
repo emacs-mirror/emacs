@@ -1356,7 +1356,9 @@ This command is intended to be bound to a mouse event."
 The argument has the same meaning as in `apropos'."
   (interactive (list (read-string
                       "Search for pattern (word list or regexp): "
-                      nil 'xref--read-pattern-history)))
+                      nil 'xref--read-pattern-history
+                      (xref-backend-identifier-at-point
+                       (xref-find-backend)))))
   (require 'apropos)
   (let* ((newpat
           (if (and (version< emacs-version "28.0.50")
