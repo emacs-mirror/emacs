@@ -2332,7 +2332,7 @@ variables.")
   "Restore some windows on exit from minibuffer.
 When `read-minibuffer-restore-windows' is nil, then this function
 added to `minibuffer-exit-hook' will remove at least the window
-with the *Completions* buffer."
+that displays the \"*Completions*\" buffer."
   (unless read-minibuffer-restore-windows
     (minibuffer-hide-completions)))
 

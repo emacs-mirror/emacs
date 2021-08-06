@@ -181,7 +181,8 @@ nor t.
 +++
 ** New user option 'read-minibuffer-restore-windows'.
 When customized to nil, it uses 'minibuffer-restore-windows' in
-'minibuffer-exit-hook' to remove only the *Completions* window.
+'minibuffer-exit-hook' to remove only the window showing the
+"*Completions*" buffer.
 
 +++
 ** New system for displaying documentation for groups of functions.
@@ -2074,11 +2075,12 @@ project's root directory, respectively.
 This command lets you interactively remove an entry from the list of projects
 in 'project-list-file'.
 
-*** 'project-find-file' now accepts non-existent file names (to
-facilitate creating a file inside some nested sub-directory easily).
+*** 'project-find-file' now accepts non-existent file names.
+This is to allow easy creation of files inside some nested
+sub-directory.
 
-*** 'project-find-file' doesn't use the string at point as default
-input, now it's only suggested as part of "future history".
+*** 'project-find-file' doesn't use the string at point as default input.
+Now it's only suggested as part of the "future history".
 
 ** xref
 
@@ -3695,8 +3697,10 @@ Emacs constructs the nondirectory part of the auto-save file name by
 applying that 'secure-hash' to the buffer file name.  This avoids any
 risk of excessively long file names.
 
-** New variable 'etags-xref-prefer-current-file' to change the order
-of definitions returned by the etags Xref backend.
+---
+** New user option 'etags-xref-prefer-current-file'.
+When non-nil, matches for identifiers in the file visited by the
+current buffer will be shown first in the "*xref*" buffer.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

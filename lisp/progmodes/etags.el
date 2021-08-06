@@ -2060,7 +2060,7 @@ If you want `xref-find-definitions' to find the tagged files by their
 file name, add `tag-partial-file-name-match-p' to the list value.")
 
 (defcustom etags-xref-prefer-current-file nil
-  "Non-nil to show the matches in the current file first."
+  "Non-nil means show the matches in the current file first."
   :type 'boolean
   :version "28.1")
 
