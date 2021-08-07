@@ -1461,7 +1461,10 @@ See <https://debbugs.gnu.org/36401>."
       (should (equal (parse-colon-path "x:/foo//bar/baz")
                      '("x:/foo/bar/baz/")))
     (should (equal (parse-colon-path "/foo//bar/baz")
-                 '("/foo/bar/baz/")))))
+                   '("/foo/bar/baz/"))))
+
+  (should (equal (parse-colon-path ".:/tmp")
+                 '("./" "/tmp/"))))
 
 (ert-deftest files-test-magic-mode-alist-doctype ()
   "Test that DOCTYPE and variants put files in mhtml-mode."

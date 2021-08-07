@@ -782,7 +782,10 @@ nil (meaning `default-directory') as the associated list element."
     (let ((spath (substitute-env-vars search-path)))
       (mapcar (lambda (f)
                 (if (equal "" f) nil
-                  (let ((dir (expand-file-name (file-name-as-directory f))))
+                  (let ((dir (file-name-as-directory f)))
+                    (when (file-name-absolute-p dir)
+                      ;; Expand "~".
+                      (setq dir (expand-file-name dir)))
                     ;; Previous implementation used `substitute-in-file-name'
                     ;; which collapse multiple "/" in front.  Do the same for
                     ;; backward compatibility.
