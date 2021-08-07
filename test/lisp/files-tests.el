@@ -1462,9 +1462,11 @@ See <https://debbugs.gnu.org/36401>."
                      '("x:/foo/bar/baz/")))
     (should (equal (parse-colon-path "/foo//bar/baz")
                    '("/foo/bar/baz/"))))
-
-  (should (equal (parse-colon-path ".:/tmp")
-                 '("./" "/tmp/"))))
+  (let* ((path (concat "." path-separator "/tmp"))
+         (parsed-path (parse-colon-path path))
+         (name-start (if (memq system-type '(windows-nt ms-dos)) 2)))
+    (should (equal (car parsed-path) "./"))
+    (should (equal (substring (cadr parsed-path) name-start) "/tmp/"))))
 
 (ert-deftest files-test-magic-mode-alist-doctype ()
   "Test that DOCTYPE and variants put files in mhtml-mode."
