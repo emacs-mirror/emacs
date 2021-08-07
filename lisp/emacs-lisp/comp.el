@@ -3936,7 +3936,9 @@ display a message."
                                (concat "emacs-async-comp-"
                                        (file-name-base source-file) "-")
                                nil ".el"))
-                   (expr-strings (mapcar #'prin1-to-string expr))
+                   (expr-strings (let ((print-length nil)
+                                       (print-level nil))
+                                   (mapcar #'prin1-to-string expr)))
                    (_ (progn
                         (with-temp-file temp-file
                           (mapc #'insert expr-strings))
