@@ -178,6 +178,14 @@
 
 (defconst perl-font-lock-keywords-2
   (append
+   '(;; Fontify function, variable and file name references. They have to be
+     ;; handled first because they might conflict with keywords.
+     ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
+     ;; Additionally fontify non-scalar variables.  `perl-non-scalar-variable'
+     ;; will underline them by default.
+     ("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+     ("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
+      (2 'perl-non-scalar-variable)))
    perl-font-lock-keywords-1
    `( ;; Fontify keywords, except those fontified otherwise.
      ,(concat "\\<"
@@ -188,15 +196,6 @@
      ;;
      ;; Fontify declarators and prefixes as types.
      ("\\<\\(has\\|local\\|my\\|our\\|state\\)\\>" . font-lock-keyword-face) ; declarators
-          ;;
-     ;; Fontify function, variable and file name references.
-     ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
-     ;; Additionally fontify non-scalar variables.  `perl-non-scalar-variable'
-     ;; will underline them by default.
-     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-     ("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
-     ("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
-      (2 'perl-non-scalar-variable))
      ("<\\(\\sw+\\)>" 1 font-lock-constant-face)
      ;;
      ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
