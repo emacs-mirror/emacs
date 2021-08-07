@@ -4169,7 +4169,9 @@ activations need to be changed, such as when `package-load-list' is modified."
                 ;; Prefer uncompiled files (and don't accept .so files).
                 (let ((load-suffixes '(".el" ".elc")))
                   (locate-library (package--autoloads-file-name pkg))))
-               (pfile (prin1-to-string file)))
+               (pfile (let ((print-length nil)
+                            (print-level nil))
+                        (prin1-to-string file))))
           (insert "(let ((load-true-file-name " pfile ")\
 (load-file-name " pfile "))\n")
           (insert-file-contents file)
