@@ -3205,7 +3205,7 @@ s   Search for keywords                 M   Like m, but only TODO entries
             (delete-window)
             (org-agenda-get-restriction-and-command prefix-descriptions))
 
-	   ((equal c ?q) (error "Abort"))
+	   ((equal c ?q) (user-error "Abort"))
 	   (t (user-error "Invalid key %c" c))))))))
 
 (defun org-agenda-fit-window-to-buffer ()

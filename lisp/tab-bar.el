@@ -142,8 +142,7 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
           '(("" (:eval (if (and tab-bar-mode
                                 (memq 'tab-bar-format-global
                                       tab-bar-format))
-                           "" global-mode-string))
-             " ")))))
+                           "" global-mode-string)))))))
 
 (defun tab-bar--undefine-keys ()
   "Uninstall key bindings previously bound by `tab-bar--define-keys'."

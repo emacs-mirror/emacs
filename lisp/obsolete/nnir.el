@@ -920,10 +920,10 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
 	    ;; eliminate all ".", "/", "\" from beginning. Always matches.
             (string-match "^[./\\]*\\(.*\\)$" dirnam)
             ;; "/" -> "."
-            (setq group (replace-regexp-in-string
+            (setq group (string-replace
 			 "/" "." (match-string 1 dirnam)))
             ;; Windows "\\" -> "."
-            (setq group (replace-regexp-in-string "\\\\" "." group))
+            (setq group (string-replace "\\" "." group))
 
             (push (vector (gnus-group-full-name group server)
                           (string-to-number artno)
@@ -996,7 +996,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
 	(when (string-match prefix dirnam)
 	  (setq dirnam (replace-match "" t t dirnam)))
 	(push (vector (gnus-group-full-name
-                       (replace-regexp-in-string "/" "." dirnam) server)
+                       (string-replace "/" "." dirnam) server)
 		      (string-to-number artno)
 		      (string-to-number score))
 	      artlist))
@@ -1205,9 +1205,9 @@ construct path: search terms (see the variable
 				  group
 				(if (file-directory-p
 				     (setq group
-					   (replace-regexp-in-string
-					    "\\." "/"
-					    group nil t)))
+					   (string-replace
+					    "." "/"
+					    group)))
 				    group))))))
 		     (unless group
 		       (error "Cannot locate directory for group"))

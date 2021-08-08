@@ -214,8 +214,8 @@ defaults to 6600 and HOST defaults to localhost."
       (with-current-buffer "*MPC-debug*"
         (goto-char (point-max))
         (insert-before-markers          ;So it scrolls.
-         (replace-regexp-in-string "\n" "\n	"
-                                   (apply #'format-message format args))
+         (string-replace "\n" "\n	"
+                         (apply #'format-message format args))
          "\n"))))
 
 (defun mpc--proc-filter (proc string)

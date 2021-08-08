@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
-;; Version: 0.6.0
+;; Version: 0.6.1
 ;; Package-Requires: ((emacs "26.1") (xref "1.0.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -879,23 +879,16 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 (defun project--completing-read-strict (prompt
                                         collection &optional predicate
                                         hist default)
-  ;; Tried both expanding the default before showing the prompt, and
-  ;; removing it when it has no matches.  Neither seems natural
-  ;; enough.  Removal is confusing; early expansion makes the prompt
-  ;; too long.
-  (let* ((new-prompt (if (and default (not (string-equal default "")))
-                         (format "%s (default %s): " prompt default)
-                       (format "%s: " prompt)))
-         (res (completing-read new-prompt
-                               collection predicate t
-                               nil ;; initial-input
-                               hist default)))
-    (when (and (equal res default)
-               (not (test-completion res collection predicate)))
-      (setq res
-            (completing-read (format "%s: " prompt)
-                             collection predicate t res hist nil)))
-    res))
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (setq-local minibuffer-default-add-function
+                    (lambda ()
+                      (let ((minibuffer-default default))
+                        (minibuffer-default-add-completions)))))
+    (completing-read (format "%s: " prompt)
+                     collection predicate 'confirm
+                     nil
+                     hist)))
 
 ;;;###autoload
 (defun project-dired ()

@@ -1290,7 +1290,7 @@ they are added here for the benefit of @ref{Archive file names}.
 
 If you want to use @acronym{GVFS}-based @option{ftp} or @option{smb}
 methods, you must add them to @code{tramp-gvfs-methods}, and you must
-disable the corresponding Tramp package by setting
+disable the corresponding @value{tramp} package by setting
 @code{tramp-ftp-method} or @code{tramp-smb-method} to @code{nil},
 respectively:
 
@@ -2122,9 +2122,9 @@ to construct these lists.
 
 @item @t{"remote-shell"}
 
-This property tells Tramp which remote shell to apply on the remote
-host.  It is used in all connection methods of @file{tramp-sh.el}.
-The default value is @t{"/bin/sh"}.
+This property tells @value{tramp} which remote shell to apply on the
+remote host.  It is used in all connection methods of
+@file{tramp-sh.el}.  The default value is @t{"/bin/sh"}.
 
 @item @t{"remote-shell-login"}
 
@@ -2310,9 +2310,9 @@ trouble with the shell prompt due to set zle options will be avoided.
 For @command{bash}, loading @file{~/.editrc} or @file{~/.inputrc} is
 suppressed.
 
-Similar problems can happen with the local shell Tramp uses to create
-a process.  By default, it uses the command @command{/bin/sh} for
-this, which could also be a link to another shell.  In order to
+Similar problems can happen with the local shell @value{tramp} uses to
+create a process.  By default, it uses the command @command{/bin/sh}
+for this, which could also be a link to another shell.  In order to
 overwrite this, you might apply
 
 @vindex tramp-encoding-shell
@@ -4575,6 +4575,16 @@ Host *
 
 Check the @samp{ssh_config(5)} man page whether these options are
 supported on your proxy host.
+
+
+@item
+Does @value{tramp} support @acronym{SSH} security keys?
+
+Yes.  @command{OpenSSH} has added support for @acronym{FIDO} hardware
+devices via special key types @option{*-sk}.  @value{tramp} supports
+the additional handshaking messages for them.  This requires at least
+@command{OpenSSH} 8.2, and a @acronym{FIDO} @acronym{U2F} compatible
+security key, like yubikey, solokey, or nitrokey.
 
 
 @item

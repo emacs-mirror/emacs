@@ -2373,7 +2373,7 @@ Also prints current score to let user know he has scored."
 	  (dun-mprincl "Incorrect.")))
 
     (let (varname epoint afterq i value)
-      (setq varname (replace-regexp-in-string " " "" (substring line 0 esign)))
+      (setq varname (string-replace " " "" (substring line 0 esign)))
 
       (if (or (= (length varname) 0) (< (- (length line) esign) 2))
 	  (progn

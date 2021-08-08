@@ -432,6 +432,15 @@
     (let ((x 2))
       (list (or (bytecomp-test-identity 'a) (setq x 3)) x))
 
+    (mapcar (lambda (b)
+              (let ((a nil))
+                (+ 0
+                   (progn
+                     (setq a b)
+                     (setq b 1)
+                     a))))
+            '(10))
+
     (let* ((x 1)
            (y (condition-case x
                   (/ 1 0)

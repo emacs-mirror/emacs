@@ -252,10 +252,10 @@
 	      ;; ugly, but cannot get
 	      ;;replace-regexp-in-string work with "\\" as
 	      ;;REP, plus we should also handle "\\;"
-	      (replace-regexp-in-string
-	       "\\\\," ","
-	       (replace-regexp-in-string
-		"\\\\n" "\n" (substring-no-properties value))))))
+	      (string-replace
+	       "\\," ","
+	       (string-replace
+		"\\n" "\n" (substring-no-properties value))))))
 	 (accumulate-args
 	  (mapping)
 	  (cl-destructuring-bind (slot . ical-property) mapping

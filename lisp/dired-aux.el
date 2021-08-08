@@ -508,7 +508,7 @@ has no effect on MS-Windows."
 	 (default
 	   (and (stringp modestr)
 		(string-match "^.\\(...\\)\\(...\\)\\(...\\)$" modestr)
-		(replace-regexp-in-string
+		(string-replace
 		 "-" ""
 		 (format "u=%s,g=%s,o=%s"
 			 (match-string 1 modestr)
@@ -2769,7 +2769,7 @@ of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
       (setq dir (car (car s-alist))
 	    s-alist (cdr s-alist))
       (and (or kill-root (not (string-equal dir dirname)))
-	   (file-in-directory-p dir dirname)
+	   (dired-in-this-tree-p dir dirname)
 	   (dired-goto-subdir dir)
 	   (setq m-alist (nconc (dired-kill-subdir remember-marks) m-alist))))
     m-alist))
@@ -3002,7 +3002,7 @@ Lower levels are unaffected."
       (while rest
 	(setq elt (car rest)
 	      rest (cdr rest))
-	(if (file-in-directory-p (directory-file-name (car elt)) dir)
+	(if (dired-in-this-tree-p (directory-file-name (car elt)) dir)
 	    (setq rest nil
 		  pos (dired-goto-subdir (car elt))))))
     (if pos

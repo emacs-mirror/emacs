@@ -802,7 +802,7 @@ POS defaults to `point'."
           ;; added by troff, and remove it.
           (or (not (eq (string-to-char (substring 1st-part -1)) ?-))
               (string-match-p "-" (substring 1st-part 0 -1))
-              (setq word (replace-regexp-in-string "-" "" word))))
+              (setq word (string-replace "-" "" word))))
 	;; Make sure the section number gets included by the code below.
 	(goto-char (match-end 1)))
       (when (string-match "[-._‐]+$" word)

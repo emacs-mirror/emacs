@@ -436,7 +436,7 @@ provided in the Commentary section of this library."
   (let ((re (with-output-to-string
 	      (print (reb-target-binding reb-regexp)))))
     (setq re (substring re 1 (1- (length re))))
-    (setq re (replace-regexp-in-string "\n" "\\n" re nil t))
+    (setq re (string-replace "\n" "\\n" re))
     (kill-new re)
     (message "Copied regexp `%s' to kill-ring" re)))
 

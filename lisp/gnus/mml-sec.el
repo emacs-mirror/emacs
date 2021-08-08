@@ -1022,7 +1022,7 @@ Returns non-nil if the user has chosen to use SENDER."
 	      (if (eq 'OpenPGP protocol)
 		  (epg-sign-string context (buffer-string) mode)
 		(epg-sign-string context
-				 (replace-regexp-in-string
+				 (string-replace
 				  "\n" "\r\n" (buffer-string))
 				 t))
 	      mml-secure-secret-key-id-list nil)

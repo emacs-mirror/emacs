@@ -998,15 +998,15 @@ TIMESTRING and has the same result as \"9:00\"."
 
 (defun icalendar--convert-string-for-export (string)
   "Escape comma and other critical characters in STRING."
-  (replace-regexp-in-string "," "\\\\," string))
+  (string-replace "," "\\," string))
 
 (defun icalendar--convert-string-for-import (string)
   "Remove escape chars for comma, semicolon etc. from STRING."
-  (replace-regexp-in-string
-   "\\\\n" "\n " (replace-regexp-in-string
-                  "\\\\\"" "\"" (replace-regexp-in-string
-                                 "\\\\;" ";" (replace-regexp-in-string
-                                              "\\\\," "," string)))))
+  (string-replace
+   "\\n" "\n " (string-replace
+                "\\\"" "\"" (string-replace
+                             "\\;" ";" (string-replace
+                                        "\\," "," string)))))
 
 ;; ======================================================================
 ;; Export -- convert emacs-diary to iCalendar

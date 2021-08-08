@@ -1755,7 +1755,7 @@ current contents."
 COMMENT may contain newlines, which are prefixed by \"% \" in the output."
   (insert (format "%% %s\n"
                   (if comment
-                      (replace-regexp-in-string "\n" "\n% " comment)
+                      (string-replace "\n" "\n% " comment)
                     ""))))
 
 (defun cal-tex-banner (comment)

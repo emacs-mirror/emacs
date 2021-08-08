@@ -696,7 +696,7 @@ Each function should return a list of xrefs, or nil; the first
 non-nil result supersedes the xrefs produced by
 `elisp--xref-find-definitions'.")
 
-(cl-defmethod xref-backend-definitions ((_backend (eql elisp)) identifier)
+(cl-defmethod xref-backend-definitions ((_backend (eql 'elisp)) identifier)
   (require 'find-func)
   ;; FIXME: use information in source near point to filter results:
   ;; (dvc-log-edit ...) - exclude 'feature
@@ -875,7 +875,7 @@ non-nil result supersedes the xrefs produced by
 
 (declare-function xref-apropos-regexp "xref" (pattern))
 
-(cl-defmethod xref-backend-apropos ((_backend (eql elisp)) pattern)
+(cl-defmethod xref-backend-apropos ((_backend (eql 'elisp)) pattern)
   (apply #'nconc
          (let ((regexp (xref-apropos-regexp pattern))
                lst)
@@ -893,7 +893,8 @@ non-nil result supersedes the xrefs produced by
                          (facep sym)))
                    'strict))
 
-(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql elisp)))
+(cl-defmethod xref-backend-identifier-completion-table ((_backend
+                                                         (eql 'elisp)))
   elisp--xref-identifier-completion-table)
 
 (cl-defstruct (xref-elisp-location

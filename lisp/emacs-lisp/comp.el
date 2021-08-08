@@ -1171,7 +1171,7 @@ clashes."
 	                   do (aset str j (aref byte 0))
 	                      (aset str (1+ j) (aref byte 1))
 	                   finally return str))
-         (human-readable (replace-regexp-in-string
+         (human-readable (string-replace
                           "-" "_" orig-name))
          (human-readable (replace-regexp-in-string
                           (rx (not (any "0-9a-z_"))) "" human-readable)))
@@ -3936,7 +3936,9 @@ display a message."
                                (concat "emacs-async-comp-"
                                        (file-name-base source-file) "-")
                                nil ".el"))
-                   (expr-strings (mapcar #'prin1-to-string expr))
+                   (expr-strings (let ((print-length nil)
+                                       (print-level nil))
+                                   (mapcar #'prin1-to-string expr)))
                    (_ (progn
                         (with-temp-file temp-file
                           (mapc #'insert expr-strings))

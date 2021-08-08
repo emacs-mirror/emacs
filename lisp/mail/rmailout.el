@@ -678,9 +678,9 @@ than appending to it.  Deletes the message after writing if
 	   (or (mail-fetch-field "Subject")
 	       rmail-default-body-file)))
      (setq default-file
-	   (replace-regexp-in-string ":" "-" default-file))
+	   (string-replace ":" "-" default-file))
      (setq default-file
-	   (replace-regexp-in-string " " "-" default-file))
+	   (string-replace " " "-" default-file))
      (list (setq rmail-default-body-file
 		 (read-file-name
 		  "Output message body to file: "

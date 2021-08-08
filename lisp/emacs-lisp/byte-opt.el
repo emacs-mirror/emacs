@@ -601,15 +601,9 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
                   (lexvar (assq var byte-optimize--lexvars))
                   (value (byte-optimize-form expr nil)))
              (when lexvar
-               ;; Set a new value or inhibit further substitution.
-               (setcdr (cdr lexvar)
-                       (and
-                        ;; Inhibit if bound outside conditional code.
-                        (not (assq var byte-optimize--vars-outside-condition))
-                        ;; The new value must be substitutable.
-                        (byte-optimize--substitutable-p value)
-                        (list value)))
-               (setcar (cdr lexvar) t))   ; Mark variable to be kept.
+               (setcar (cdr lexvar) t)    ; Mark variable to be kept.
+               (setcdr (cdr lexvar) nil)) ; Inhibit further substitution.
+
              (push var var-expr-list)
              (push value var-expr-list))
            (setq args (cddr args)))
@@ -1348,6 +1342,7 @@ See Info node `(elisp) Integer Basics'."
 	 elt encode-char exp expt encode-time error-message-string
 	 fboundp fceiling featurep ffloor
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
+         file-name-concat
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
 	 float float-time floor format format-time-string frame-first-window
 	 frame-root-window frame-selected-window
@@ -1362,6 +1357,7 @@ See Info node `(elisp) Integer Basics'."
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
 	 make-byte-code make-list make-string make-symbol mark marker-buffer max
+         match-beginning match-end
 	 member memq memql min minibuffer-selected-window minibuffer-window
 	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member

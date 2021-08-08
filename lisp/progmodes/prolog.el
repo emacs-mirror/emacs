@@ -2277,7 +2277,7 @@ between them)."
           ;(goto-char beg)
           (if (search-forward-regexp "^[ \t]*\\(%+\\|\\*+\\|/\\*+\\)[ \t]*"
                                      end t)
-              (replace-regexp-in-string "/" " " (buffer-substring beg (point)))
+              (string-replace "/" " " (buffer-substring beg (point)))
             (beginning-of-line)
             (when (search-forward-regexp "^[ \t]+" end t)
               (buffer-substring beg (point)))))))))

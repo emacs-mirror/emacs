@@ -2929,7 +2929,6 @@ ns_destroy_fringe_bitmap (int which)
 }
 
 
-extern int max_used_fringe_bitmap;
 static void
 ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
                       struct draw_fringe_bitmap_params *p)

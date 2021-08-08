@@ -179,6 +179,12 @@ behavior, which mixed these two, can be approximated by customizing
 nor t.
 
 +++
+** New user option 'read-minibuffer-restore-windows'.
+When customized to nil, it uses 'minibuffer-restore-windows' in
+'minibuffer-exit-hook' to remove only the window showing the
+"*Completions*" buffer.
+
++++
 ** New system for displaying documentation for groups of functions.
 This can either be used by saying 'M-x shortdoc-display-group' and
 choosing a group, or clicking a button in the "*Help*" buffers when
@@ -792,7 +798,7 @@ The method of highlighting is specified by the user options
 'next-error-highlight' and 'next-error-highlight-no-select'.
 
 ---
-*** A fringe arrow in the '*Occur*' buffer indicates the selected match.
+*** A fringe arrow in the "*Occur*" buffer indicates the selected match.
 
 ---
 *** Occur mode may use a different type for 'occur-target' property values.
@@ -809,6 +815,11 @@ work as before.
 *** The macro 'oref-default' can now be used with 'setf'.
 It is now defined as a generalized variable that can be used with
 'setf' to modify the value stored in a given class slot.
+
+---
+*** 'form' in '(eql form)' specializers in 'cl-defmethod' is now evaluated.
+This corresponds to the behavior of defmethod in Common Lisp Object System.
+For compatibility, '(eql SYMBOL)' does not evaluate SYMBOL, for now.
 
 ** New minor mode 'cl-font-lock-built-in-mode' for 'lisp-mode'.
 The mode provides refined highlighting of built-in functions, types,
@@ -990,6 +1001,9 @@ tags to be considered as well.
 String or list of strings specifying switches for Git log under VC.
 
 ** Gnus
+
++++
+*** nnimap now supports the oauth2.el library.
 
 +++
 *** New Summary buffer sort options for extra headers.
@@ -1178,6 +1192,9 @@ command has been added.  It depends on using an external program to
 take the actual screenshot, and defaults to "ImageMagick import".
 
 ** Smtpmail
+
++++
+*** smtpmail now supports using the oauth2.el library.
 
 +++
 *** New user option 'smtpmail-store-queue-variables'.
@@ -1534,8 +1551,10 @@ like cell phones, tablets or cameras.
 *** New connection method "sshfs", which allows accessing remote files
 via a file system mounted with 'sshfs'.
 
----
-*** Tramp supports authentication via yubikey now.
++++
+*** Tramp supports SSH authentication via a hardware security key now.
+This requires at least OpenSSH 8.2, and a FIDO U2F compatible
+security key, like yubikey, solokey, or nitrokey.
 
 +++
 *** Trashed remote files are moved to the local trash directory.
@@ -1964,7 +1983,7 @@ to prevent aliasing and other unwanted effects.  The new image
 property ':transform-smoothing' can be set to t to force smoothing
 and nil to disable smoothing.
 
-The default behaviour of smoothing on down-scaling and not smoothing
+The default behavior of smoothing on down-scaling and not smoothing
 on up-scaling remains unchanged.
 
 +++
@@ -2057,6 +2076,13 @@ project's root directory, respectively.
 *** New command 'project-remove-known-project'.
 This command lets you interactively remove an entry from the list of projects
 in 'project-list-file'.
+
+*** 'project-find-file' now accepts non-existent file names.
+This is to allow easy creation of files inside some nested
+sub-directory.
+
+*** 'project-find-file' doesn't use the string at point as default input.
+Now it's only suggested as part of the "future history".
 
 ** xref
 
@@ -2631,6 +2657,11 @@ The semantics are as with 'walk-windows'.
 If non-nil, 'find-file-at-point' and friends will try to guess more
 expansively to identify a file name with spaces.
 
++++
+*** New 'thing-at-point' target: 'existing-filename'.
+This is like 'filename', but is a full path, and is nil if the file
+doesn't exist.
+
 ---
 *** Two new commands for centering in 'doc-view-mode'.
 The new commands 'doc-view-center-page-horizontally' (bound to 'c h')
@@ -2854,6 +2885,34 @@ GPG key servers can now be queried for keys with the
 'M-x epa-search-keys' command.  Keys can then be added to your
 personal key ring.
 
+** So Long
+
+---
+*** New 'so-long-predicate' function 'so-long-statistics-excessive-p'
+efficiently detects the presence of a long line anywhere in the buffer
+using 'buffer-line-statistics' (see above).  This is now the default
+predicate (replacing 'so-long-detected-long-line-p').
+
+---
+*** 'so-long-threshold' and 'so-long-max-lines' have been raised to
+10000 bytes and 500 lines respectively, to reduce the likelihood of
+false-positives when 'global-so-long-mode' is enabled.  The latter
+value is now only used by the old predicate, as the new predicate
+knows the longest line in the entire buffer.
+
+---
+*** 'so-long-target-modes' now includes 'fundamental-mode' by default,
+meaning that 'global-so-long-mode' will also process files which were
+not recognised.  (This only has an effect if 'set-auto-mode' chooses
+'fundamental-mode'; buffers which are simply in 'fundamental-mode' by
+default are unaffected.)
+
+---
+*** New user options 'so-long-mode-preserved-minor-modes' and
+'so-long-mode-preserved-variables' allow specified mode and variable
+states to be maintained if 'so-long-mode' replaces the original major
+mode.  By default, these new options support 'view-mode'.
+
 
 * New Modes and Packages in Emacs 28.1
 
@@ -2924,7 +2983,7 @@ command, which updates the syntax highlighting in the current buffer.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
-special escape syntax in Fortran F90.  To get the old behaviour back,
+special escape syntax in Fortran F90.  To get the old behavior back,
 say something like:
 
     (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
@@ -3639,6 +3698,11 @@ If this symbol is one of the members of 'secure-hash-algorithms',
 Emacs constructs the nondirectory part of the auto-save file name by
 applying that 'secure-hash' to the buffer file name.  This avoids any
 risk of excessively long file names.
+
+---
+** New user option 'etags-xref-prefer-current-file'.
+When non-nil, matches for identifiers in the file visited by the
+current buffer will be shown first in the "*xref*" buffer.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

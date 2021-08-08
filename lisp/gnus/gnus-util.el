@@ -408,7 +408,7 @@ Cache the result as a text property stored in DATE."
 
 (defun gnus-mode-string-quote (string)
   "Quote all \"%\"'s in STRING."
-  (replace-regexp-in-string "%" "%%" string))
+  (string-replace "%" "%%" string))
 
 (defsubst gnus-make-hashtable (&optional size)
   "Make a hash table of SIZE, testing on `equal'."

@@ -1731,7 +1731,7 @@ contains a circular object."
 
 (defsubst edebug-match-body (cursor) (edebug-forms cursor))
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &optional)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&optional)) cursor specs)
   ;; Keep matching until one spec fails.
   (edebug-&optional-wrapper cursor specs #'edebug-&optional-wrapper))
 
@@ -1755,7 +1755,7 @@ contains a circular object."
   "Handle &foo spec operators.
 &foo spec operators operate on all the subsequent SPECS.")
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &rest)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&rest)) cursor specs)
   ;; Repeatedly use specs until failure.
   (let (edebug-best-error
 	edebug-error-point)
@@ -1768,7 +1768,7 @@ contains a circular object."
        (edebug-&optional-wrapper c (or s specs) rh)))))
 
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &or)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&or)) cursor specs)
   ;; Keep matching until one spec succeeds, and return its results.
   ;; If none match, fail.
   ;; This needs to be optimized since most specs spend time here.
@@ -1792,7 +1792,7 @@ contains a circular object."
       (apply #'edebug-no-match cursor "Expected one of" original-specs))
     ))
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &interpose)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&interpose)) cursor specs)
   "Compute the specs for `&interpose SPEC FUN ARGS...'.
 Extracts the head of the data by matching it against SPEC,
 and then matches the rest by calling (FUN HEAD PF ARGS...)
@@ -1817,7 +1817,7 @@ a sequence of elements."
                     (append instrumented-head (edebug-match cursor newspecs)))
                  ,@args))))
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &not)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&not)) cursor specs)
   ;; If any specs match, then fail
   (if (null (catch 'no-match
 	      (let ((edebug-gate nil))
@@ -1829,7 +1829,7 @@ a sequence of elements."
   ;; This means nothing matched, so it is OK.
   nil) ;; So, return nothing
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &key)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&key)) cursor specs)
   ;; Following specs must look like (<name> <spec>) ...
   ;; where <name> is the name of a keyword, and spec is its spec.
   ;; This really doesn't save much over the expanded form and takes time.
@@ -1842,7 +1842,7 @@ a sequence of elements."
                            (car (cdr pair))))
 		 specs))))
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &error)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&error)) cursor specs)
   ;; Signal an error, using the following string in the spec as argument.
   (let ((error-string (car specs))
         (edebug-error-point (edebug-before-offset cursor)))
@@ -1942,7 +1942,7 @@ a sequence of elements."
 (defun edebug-match-function (_cursor)
   (error "Use function-form instead of function in edebug spec"))
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &define)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&define)) cursor specs)
   ;; Match a defining form.
   ;; Normally, &define is interpreted specially other places.
   ;; This should only be called inside of a spec list to match the remainder
@@ -1958,7 +1958,7 @@ a sequence of elements."
     ;; Stop backtracking here (Bug#41988).
     (setq edebug-gate t)))
 
-(cl-defmethod edebug--match-&-spec-op ((_ (eql &name)) cursor specs)
+(cl-defmethod edebug--match-&-spec-op ((_ (eql '&name)) cursor specs)
   "Compute the name for `&name SPEC FUN` spec operator.
 
 The full syntax of that operator is:

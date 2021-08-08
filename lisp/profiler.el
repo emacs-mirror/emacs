@@ -499,7 +499,7 @@ RET: expand or collapse"))
 
 (defun profiler-report-header-line-format (fmt &rest args)
   (let* ((header (apply #'profiler-format fmt args))
-	 (escaped (replace-regexp-in-string "%" "%%" header)))
+	 (escaped (string-replace "%" "%%" header)))
     (concat
      (propertize " "
                  'display '(space :align-to 0)

@@ -785,7 +785,7 @@ It is useful when `(setq nnrss-use-local t)'."
 		   (nnrss-node-just-text node)
 		 node))
 	 (cleaned-text (if text
-			   (replace-regexp-in-string
+			   (string-replace
 			    "\r\n" "\n"
 			    (replace-regexp-in-string
 			     "^[\000-\037\177]+\\|^ +\\| +$" ""

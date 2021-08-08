@@ -5112,7 +5112,6 @@ primitive or interface named NAME."
 
                                (;- task/function/initial et cetera
                                 t
-                                (match-end 0)
                                 (goto-char (match-end 0))
                                 (setq there (point))
                                 (setq err nil)

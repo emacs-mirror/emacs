@@ -596,7 +596,7 @@ USER and PASSWORD should be non-nil."
   (error "Mechanism %S not implemented" mech))
 
 (cl-defmethod smtpmail-try-auth-method
-  (process (_mech (eql cram-md5)) user password)
+  (process (_mech (eql 'cram-md5)) user password)
   (let ((ret (smtpmail-command-or-throw process "AUTH CRAM-MD5")))
     (when (eq (car ret) 334)
       (let* ((challenge (substring (cadr ret) 4))
@@ -618,13 +618,13 @@ USER and PASSWORD should be non-nil."
 	(smtpmail-command-or-throw process encoded)))))
 
 (cl-defmethod smtpmail-try-auth-method
-  (process (_mech (eql login)) user password)
+  (process (_mech (eql 'login)) user password)
   (smtpmail-command-or-throw process "AUTH LOGIN")
   (smtpmail-command-or-throw process (base64-encode-string user t))
   (smtpmail-command-or-throw process (base64-encode-string password t)))
 
 (cl-defmethod smtpmail-try-auth-method
-  (process (_mech (eql plain)) user password)
+  (process (_mech (eql 'plain)) user password)
   ;; We used to send an empty initial request, and wait for an
   ;; empty response, and then send the password, but this
   ;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
@@ -635,6 +635,14 @@ USER and PASSWORD should be non-nil."
    (concat "AUTH PLAIN "
 	   (base64-encode-string (concat "\0" user "\0" password) t))
    235))
+
+(cl-defmethod smtpmail-try-auth-method
+  (process (_mech (eql xoauth2)) user password)
+  (smtpmail-command-or-throw
+   process
+   (concat "AUTH XOAUTH2 "
+           (base64-encode-string
+            (concat "user=" user "\1auth=Bearer " password "\1\1") t))))
 
 (defun smtpmail-response-code (string)
   (when string

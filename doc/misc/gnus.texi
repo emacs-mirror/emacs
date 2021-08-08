@@ -14516,7 +14516,8 @@ this should be set to @code{anonymous}.  If this variable isn't set,
 the normal login methods will be used.  If you wish to specify a
 specific login method to be used, you can set this variable to either
 @code{login} (the traditional @acronym{IMAP} login method),
-@code{plain} or @code{cram-md5}.
+@code{plain}, @code{cram-md5} or @code{xoauth2}.  (The latter method
+requires using the @file{oauth2.el} library.)
 
 @item nnimap-expunge
 When to expunge deleted messages.  If @code{never}, deleted articles
@@ -26860,9 +26861,10 @@ but at the common table.@*
 
 If you want to investigate the person responsible for this outrage,
 you can point your (feh!) web browser to
-@uref{https://quimby.gnus.org/}.  This is also the primary
-distribution point for the new and spiffy versions of Gnus, and is
-known as The Site That Destroys Newsrcs And Drives People Mad.
+@uref{https://quimby.gnus.org/}.  This used to be the primary
+distribution point for the new and spiffy versions of Gnus, and was
+known as The Site That Destroys Newsrcs And Drives People Mad, but
+these days Gnus is developed in the Emacs repository.
 
 During the first extended alpha period of development, the new Gnus was
 called ``(ding) Gnus''.  @dfn{(ding)} is, of course, short for

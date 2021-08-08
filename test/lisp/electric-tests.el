@@ -146,7 +146,7 @@ The buffer's contents should %s:
                     "")
                   char
                   (if (string= fixture expected-string) "stay" "become")
-                  (replace-regexp-in-string "\n" "\\\\n" expected-string)
+                  (string-replace "\n" "\\n" expected-string)
                   expected-point)))
       `(ert-deftest ,(intern (format "electric-pair-%s-at-point-%s-in-%s%s"
                                      name

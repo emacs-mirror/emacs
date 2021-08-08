@@ -180,7 +180,7 @@ items `Turn Off' and `Help'."
                   `(keymap
                     ,(format "%s - %s" indicator
 			     (capitalize
-			      (replace-regexp-in-string
+			      (string-replace
 			       "-" " " (format "%S" minor-mode))))
                     (turn-off menu-item "Turn off minor mode" ,mm-fun)
                     (help menu-item "Help for minor mode"

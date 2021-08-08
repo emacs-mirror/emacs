@@ -4691,10 +4691,11 @@ Wait, until the connection buffer changes."
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
       (with-temp-message (replace-regexp-in-string "[\r\n]" "" (match-string 0))
+	(redisplay 'force)
 	;; Hide message in buffer.
 	(narrow-to-region (point-max) (point-max))
 	;; Wait for new output.
-	(tramp-wait-for-regexp proc 30 "."))
+	(tramp-wait-for-regexp proc 30 tramp-security-key-confirmed-regexp))
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers)))
   t)

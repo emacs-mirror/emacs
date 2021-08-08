@@ -1963,7 +1963,7 @@ commands to be prefixed by \"-interpreter-exec console\".")
 The string is enclosed in double quotes.
 All embedded quotes, newlines, and backslashes are preceded with a backslash."
   (setq string (replace-regexp-in-string "\\([\"\\]\\)" "\\\\\\&" string))
-  (setq string (replace-regexp-in-string "\n" "\\n" string t t))
+  (setq string (string-replace "\n" "\\n" string))
   (concat "\"" string "\""))
 
 (defun gdb-input (command handler-function &optional trigger-name)

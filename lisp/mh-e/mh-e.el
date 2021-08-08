@@ -1718,8 +1718,8 @@ be slow when junking large numbers of messages. If you have
 enough memory or don't junk that many messages at the same time,
 you might try turning on this option.
 
-Note that this option is used as the \"display\" argument in the
-call to `call-process'. Therefore, turning on this option means
+Note that this option is used as the \"destination\" argument in
+the call to `call-process'. Therefore, turning on this option means
 setting its value to \"0\". You can also set its value to t to
 direct the programs' output to the \"*MH-E Log*\" buffer; this
 may be useful for debugging."

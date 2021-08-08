@@ -434,10 +434,10 @@ Open another window."
 (defun thumbs-call-setroot-command (img)
   "Call the setroot program for IMG."
   (run-hooks 'thumbs-before-setroot-hook)
-  (shell-command (replace-regexp-in-string
-		  "\\*"
+  (shell-command (string-replace
+		  "*"
 		  (shell-quote-argument (expand-file-name img))
-		  thumbs-setroot-command nil t))
+		  thumbs-setroot-command))
   (run-hooks 'thumbs-after-setroot-hook))
 
 (defun thumbs-set-image-at-point-to-root-window ()

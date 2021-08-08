@@ -100,7 +100,7 @@ Return a pattern."
   "Regular expression to match a single-quoted literal.")
 
 (defconst rng-c-literal-2-re
-  (replace-regexp-in-string "'" "\"" rng-c-literal-1-re)
+  (string-replace "'" "\"" rng-c-literal-1-re)
   "Regular expression to match a double-quoted literal.")
 
 (defconst rng-c-ncname-re "\\w+")
