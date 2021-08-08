@@ -44,12 +44,19 @@ LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info)
   AccessSet mode;
   Addr base, limit;
   LONG action;
+  DWORD lastError;
   MutatorContextStruct context;
 
   er = info->ExceptionRecord;
 
   if(er->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
     return EXCEPTION_CONTINUE_SEARCH;
+
+  /* This is the first point where we call a Windows API function that
+   * might change the last error. There are also no early returns from
+   * this point onwards.
+   */
+  lastError = GetLastError();
 
   MutatorContextInitFault(&context, info);
 
@@ -96,6 +103,9 @@ LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info)
     /* <code/vmw3.c#assume.not-last> so it can't be our fault. */
     action = EXCEPTION_CONTINUE_SEARCH;
   }
+
+  /* Restore the last error value before returning. */
+  SetLastError(lastError);
 
   return action;
 }
