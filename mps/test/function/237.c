@@ -45,7 +45,7 @@ static void test(void *stack_pointer)
  * trigger the MPS to do garbage collections, and only updating even
  * nodes will ensure that we will end up with pointers to both objects
  * in the nursery generation and in the older generation, increasing
- * the likelyhood of us finding a page with the barrier active.
+ * the likelihood of us finding a page with the barrier active.
  *
  * When we find a page with the read and write barrier active, we
  * store that pointer and set up the test we want to perform. We want
@@ -236,7 +236,7 @@ static void test(void *stack_pointer)
    * GetLastError() will be 5 if it is not preserved (that is what
    * SuspendThread() sets it to on failure). */
   after_trip = GetLastError();
-  asserts(after_trip == CHECK_ERROR_CODE, "Errno was not properly preserved in the exception handler!");
+  asserts(after_trip == CHECK_ERROR_CODE, "Last error was not properly preserved in the exception handler!");
 
   /* Tear down MPS data structures. */
   mps_arena_park(arena);
