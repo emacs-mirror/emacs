@@ -1,6 +1,6 @@
 # .travis.yml -- Travis CI configuration for the MPS
 # $Id$
-# See <http://about.travis-ci.org/docs/user/languages/c/>.
+# See <https://docs.travis-ci.com/user/languages/c/>.
 language: c
 os:
   - linux

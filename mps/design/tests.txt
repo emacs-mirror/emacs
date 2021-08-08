@@ -286,8 +286,8 @@ whenever there is a commit to the `mps GitHub repository`_. See the
 `Ravenbrook/mps`_ project on Travis for a build history.
 
 .. _mps GitHub repository: https://github.com/ravenbrook/mps
-.. _Travis: https://travis-ci.org
-.. _Ravenbrook/mps: https://travis-ci.org/Ravenbrook/mps
+.. _Travis: https://travis-ci.com/
+.. _Ravenbrook/mps: https://travis-ci.com/Ravenbrook/mps
 
 _`.ci.travis.config`: Travis is configured using the .travis.yml file
 at top level of the project.
