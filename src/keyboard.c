@@ -725,6 +725,9 @@ recursive_edit_1 (void)
   if (STRINGP (val))
     xsignal1 (Qerror, val);
 
+  if (FUNCTIONP (val))
+    call0 (val);
+
   return unbind_to (count, Qnil);
 }
 
@@ -921,6 +924,7 @@ static Lisp_Object
 cmd_error (Lisp_Object data)
 {
   Lisp_Object old_level, old_length;
+  Lisp_Object conditions;
   char macroerror[sizeof "After..kbd macro iterations: "
 		  + INT_STRLEN_BOUND (EMACS_INT)];
 
@@ -940,10 +944,15 @@ cmd_error (Lisp_Object data)
   else
     *macroerror = 0;
 
+  conditions = Fget (XCAR (data), Qerror_conditions);
+  if (NILP (Fmemq (Qminibuffer_quit, conditions)))
+    {
+      Vexecuting_kbd_macro = Qnil;
+      executing_kbd_macro = Qnil;
+    }
+
   Vstandard_output = Qt;
   Vstandard_input = Qt;
-  Vexecuting_kbd_macro = Qnil;
-  executing_kbd_macro = Qnil;
   kset_prefix_arg (current_kboard, Qnil);
   kset_last_prefix_arg (current_kboard, Qnil);
   cancel_echoing ();
@@ -976,7 +985,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
 {
   /* The immediate context is not interesting for Quits,
      since they are asynchronous.  */
-  if (EQ (XCAR (data), Qquit))
+  if (signal_quit_p (XCAR (data)))
     Vsignaling_function = Qnil;
 
   Vquit_flag = Qnil;
@@ -998,6 +1007,7 @@ Default value of `command-error-function'.  */)
   (Lisp_Object data, Lisp_Object context, Lisp_Object signal)
 {
   struct frame *sf = SELECTED_FRAME ();
+  Lisp_Object conditions;
 
   CHECK_STRING (context);
 
@@ -1024,17 +1034,27 @@ Default value of `command-error-function'.  */)
     }
   else
     {
+      conditions = Fget (XCAR (data), Qerror_conditions);
+
       clear_message (1, 0);
-      Fdiscard_input ();
       message_log_maybe_newline ();
-      bitch_at_user ();
+
+      if (!NILP (Fmemq (Qminibuffer_quit, conditions)))
+	{
+	  Fding (Qt);
+	}
+      else
+	{
+	  Fdiscard_input ();
+	  bitch_at_user ();
+	}
 
       print_error_message (data, Qt, SSDATA (context), signal);
     }
   return Qnil;
 }
 
-static Lisp_Object command_loop_2 (Lisp_Object);
+static Lisp_Object command_loop_1 (void);
 static Lisp_Object top_level_1 (Lisp_Object);
 
 /* Entry to editor-command-loop.
@@ -1062,7 +1082,7 @@ command_loop (void)
   if (command_loop_level > 0 || minibuf_level > 0)
     {
       Lisp_Object val;
-      val = internal_catch (Qexit, command_loop_2, Qnil);
+      val = internal_catch (Qexit, command_loop_2, Qerror);
       executing_kbd_macro = Qnil;
       return val;
     }
@@ -1070,7 +1090,7 @@ command_loop (void)
     while (1)
       {
 	internal_catch (Qtop_level, top_level_1, Qnil);
-	internal_catch (Qtop_level, command_loop_2, Qnil);
+	internal_catch (Qtop_level, command_loop_2, Qerror);
 	executing_kbd_macro = Qnil;
 
 	/* End of file in -batch run causes exit here.  */
@@ -1083,15 +1103,16 @@ command_loop (void)
    editing loop, and reenter the editing loop.
    When there is an error, cmd_error runs and returns a non-nil
    value to us.  A value of nil means that command_loop_1 itself
-   returned due to end of file (or end of kbd macro).  */
+   returned due to end of file (or end of kbd macro).  HANDLERS is a
+   list of condition names, passed to internal_condition_case.  */
 
-static Lisp_Object
-command_loop_2 (Lisp_Object ignore)
+Lisp_Object
+command_loop_2 (Lisp_Object handlers)
 {
   register Lisp_Object val;
 
   do
-    val = internal_condition_case (command_loop_1, Qerror, cmd_error);
+    val = internal_condition_case (command_loop_1, handlers, cmd_error);
   while (!NILP (val));
 
   return Qnil;
@@ -1234,7 +1255,7 @@ static int read_key_sequence (Lisp_Object *, Lisp_Object,
                               bool, bool, bool, bool);
 static void adjust_point_for_property (ptrdiff_t, bool);
 
-Lisp_Object
+static Lisp_Object
 command_loop_1 (void)
 {
   modiff_count prev_modiff = 0;
@@ -6622,8 +6643,11 @@ DEFUN ("event-convert-list", Fevent_convert_list, Sevent_convert_list, 1, 1, 0,
 EVENT-DESC should contain one base event type (a character or symbol)
 and zero or more modifier names (control, meta, hyper, super, shift, alt,
 drag, down, double or triple).  The base must be last.
-The return value is an event type (a character or symbol) which
-has the same base event type and all the specified modifiers.  */)
+
+The return value is an event type (a character or symbol) which has
+essentially the same base event type and all the specified modifiers.
+(Some compatibility base types, like symbols that represent a
+character, are not returned verbatim.)  */)
   (Lisp_Object event_desc)
 {
   Lisp_Object base = Qnil;
@@ -7610,7 +7634,7 @@ menu_item_eval_property_1 (Lisp_Object arg)
 {
   /* If we got a quit from within the menu computation,
      quit all the way out of it.  This takes care of C-] in the debugger.  */
-  if (CONSP (arg) && EQ (XCAR (arg), Qquit))
+  if (CONSP (arg) && signal_quit_p (XCAR (arg)))
     quit ();
 
   return Qnil;
@@ -9595,17 +9619,23 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 		      (interrupted_kboard,
 		       Fcons (make_lispy_switch_frame (frame),
 			      KVAR (interrupted_kboard, kbd_queue)));
+                   mock_input = 0;
+                 }
+               else
+                 {
+                   if (FIXNUMP (key) && XFIXNUM (key) != -2)
+                     {
+                       /* If interrupted while initializing terminal, we
+                          need to replay the interrupting key.  See
+                          Bug#5095 and Bug#37782.  */
+                       mock_input = 1;
+                       keybuf[0] = key;
+                     }
+                   else
+                     {
+                       mock_input = 0;
+                     }
 		  }
-                if (FIXNUMP (key) && XFIXNUM (key) != -2)
-                  {
-                    /* If interrupted while initializing terminal, we
-                       need to replay the interrupting key.  See
-                       Bug#5095 and Bug#37782.  */
-                    mock_input = 1;
-                    keybuf[0] = key;
-                  }
-                else
-                  mock_input = 0;
 		goto replay_entire_sequence;
 	      }
 	  }
@@ -12141,10 +12171,11 @@ terminal device.  See Info node `(elisp)Multiple Terminals'.  */);
   DEFVAR_LISP ("overriding-local-map", Voverriding_local_map,
 	       doc: /* Keymap that replaces (overrides) local keymaps.
 If this variable is non-nil, Emacs looks up key bindings in this
-keymap INSTEAD OF the keymap char property, minor mode maps, and the
-buffer's local map.  Hence, the only active keymaps would be
-`overriding-terminal-local-map', this keymap, and `global-keymap', in
-order of precedence.  */);
+keymap INSTEAD OF `keymap' text properties, `local-map' and `keymap'
+overlay properties, minor mode maps, and the buffer's local map.
+
+Hence, the only active keymaps would be `overriding-terminal-local-map',
+this keymap, and `global-keymap', in order of precedence.  */);
   Voverriding_local_map = Qnil;
 
   DEFVAR_LISP ("overriding-local-map-menu-flag", Voverriding_local_map_menu_flag,

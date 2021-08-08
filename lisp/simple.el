@@ -695,6 +695,30 @@ When called from Lisp code, ARG may be a prefix string to copy."
     (indent-to col 0)
     (goto-char pos)))
 
+(defface separator-line
+  '((((type graphic) (background dark))
+     :height 0.1 :background "#505050")
+    (((type graphic) (background light))
+     :height 0.1 :background "#a0a0a0")
+    (t :foreground "ForestGreen"))
+  "Face for separator lines."
+  :version "28.1"
+  :group 'text)
+
+(defun make-separator-line (&optional length)
+  "Make a string appropriate for usage as a visual separator line.
+This uses the `separator-line' face.
+
+If LENGTH is nil, use the window width."
+  (if (display-graphic-p)
+      (if length
+          (concat (propertize (make-string length ?\s) 'face 'separator-line)
+                  "\n")
+        (propertize "\n" 'face '(:inherit separator-line :extend t)))
+    (concat (propertize (make-string (or length (1- (window-width))) ?-)
+                        'face 'separator-line)
+            "\n")))
+
 (defun delete-indentation (&optional arg beg end)
   "Join this line to previous and fix up whitespace at join.
 If there is a fill prefix, delete it from the beginning of this
@@ -2855,8 +2879,10 @@ Go to the history element by the absolute history position HIST-POS."
 The same as `command-error-default-function' but display error messages
 at the end of the minibuffer using `minibuffer-message' to not obscure
 the minibuffer contents."
-  (discard-input)
-  (ding)
+  (if (memq 'minibuffer-quit (get (car data) 'error-conditions))
+      (ding t)
+    (discard-input)
+    (ding))
   (let ((string (error-message-string data)))
     ;; If we know from where the error was signaled, show it in
     ;; *Messages*.
@@ -5842,7 +5868,13 @@ Can be `untabify' -- turn a tab to many spaces, then delete one space;
 (defun backward-delete-char-untabify (arg &optional killp)
   "Delete characters backward, changing tabs into spaces.
 The exact behavior depends on `backward-delete-char-untabify-method'.
+
 Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
+
+If Transient Mark mode is enabled, the mark is active, and ARG is 1,
+delete the text in the region and deactivate the mark instead.
+To disable this, set option ‘delete-active-region’ to nil.
+
 Interactively, ARG is the prefix arg (default 1)
 and KILLP is t if a prefix arg was specified."
   (interactive "*p\nP")
@@ -6675,6 +6707,10 @@ or \"mark.*active\" at the prompt."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable (default-value 'transient-mark-mode))
+
+(define-minor-mode indent-tabs-mode
+  "Toggle whether indentation can insert TAB characters."
+  :global t :group 'indent :variable indent-tabs-mode)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -8107,15 +8143,19 @@ is defined.
 The function should take a single optional argument, which is a flag
 indicating whether it should use soft newlines.")
 
-(defun default-indent-new-line (&optional soft)
+(defun default-indent-new-line (&optional soft force)
   "Break line at point and indent.
 If a comment syntax is defined, call `comment-line-break-function'.
 
 The inserted newline is marked hard if variable `use-hard-newlines' is true,
 unless optional argument SOFT is non-nil."
-  (interactive)
+  (interactive (list nil t))
   (if comment-start
-      (funcall comment-line-break-function soft)
+      ;; Force breaking the line when called interactively.
+      (if force
+          (let ((comment-auto-fill-only-comments nil))
+            (funcall comment-line-break-function soft))
+        (funcall comment-line-break-function soft))
     ;; Insert the newline before removing empty space so that markers
     ;; get preserved better.
     (if soft (insert-and-inherit ?\n) (newline 1))
@@ -9499,9 +9539,9 @@ call `normal-erase-is-backspace-mode' (which see) instead."
   :set (lambda (symbol value)
 	 ;; The fboundp is because of a problem with :set when
 	 ;; dumping Emacs.  It doesn't really matter.
-	 (if (fboundp 'normal-erase-is-backspace-mode)
-	     (normal-erase-is-backspace-mode (or value 0))
-	   (set-default symbol value))))
+	 (when (fboundp 'normal-erase-is-backspace-mode)
+	   (normal-erase-is-backspace-mode (or value 0)))
+	 (set-default symbol value)))
 
 (defun normal-erase-is-backspace-setup-frame (&optional frame)
   "Set up `normal-erase-is-backspace-mode' on FRAME, if necessary."

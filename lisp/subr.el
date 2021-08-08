@@ -31,7 +31,8 @@
   "Tell the byte-compiler that function FN is defined, in FILE.
 The FILE argument is not used by the byte-compiler, but by the
 `check-declare' package, which checks that FILE contains a
-definition for FN.
+definition for FN.  (FILE can be nil, and that disables this
+check.)
 
 FILE can be either a Lisp file (in which case the \".el\"
 extension is optional), or a C file.  C files are expanded
@@ -2000,10 +2001,10 @@ all symbols are bound before any of the VALUEFORMs are evalled."
        (t `(let* ,(nreverse seqbinds) ,nbody))))))
 
 (defmacro dlet (binders &rest body)
-  "Like `let*' but using dynamic scoping."
+  "Like `let' but using dynamic scoping."
   (declare (indent 1) (debug let))
   ;; (defvar FOO) only affects the current scope, but in order for
-  ;; this not to affect code after the `let*' we need to create a new scope,
+  ;; this not to affect code after the main `let' we need to create a new scope,
   ;; which is what the surrounding `let' is for.
   ;; FIXME: (let () ...) currently doesn't actually create a new scope,
   ;; which is why we use (let (_) ...).
@@ -2011,7 +2012,7 @@ all symbols are bound before any of the VALUEFORMs are evalled."
      ,@(mapcar (lambda (binder)
                  `(defvar ,(if (consp binder) (car binder) binder)))
                binders)
-     (let* ,binders ,@body)))
+     (let ,binders ,@body)))
 
 
 (defmacro with-wrapper-hook (hook args &rest body)
@@ -3849,6 +3850,14 @@ Before insertion, process text properties according to
   (let ((opoint (point)))
     (insert-buffer-substring buffer start end)
     (remove-yank-excluded-properties opoint (point))))
+
+(defun insert-into-buffer (buffer &optional start end)
+  "Insert the contents of the current buffer into BUFFER.
+If START/END, only insert that region from the current buffer.
+Point in BUFFER will be placed after the inserted text."
+  (let ((current (current-buffer)))
+    (with-current-buffer buffer
+      (insert-buffer-substring current start end))))
 
 (defun yank-handle-font-lock-face-property (face start end)
   "If `font-lock-defaults' is nil, apply FACE as a `face' property.
@@ -6302,5 +6311,13 @@ of fill.el (for example `fill-region')."
   "Format a documentation string out of STRING and OBJECTS.
 This is intended for internal use only."
   (internal--fill-string-single-line (apply #'format string objects)))
+
+(defun json-available-p ()
+  "Return non-nil if Emacs has libjansson support."
+  (and (fboundp 'json-serialize)
+       (condition-case nil
+           (json-serialize t)
+         (:success t)
+         (json-unavailable nil))))
 
 ;;; subr.el ends here

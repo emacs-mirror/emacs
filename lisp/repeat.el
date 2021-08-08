@@ -397,7 +397,7 @@ When Repeat mode is enabled, and the command symbol has the property named
                                    (and (commandp s)
                                         (get s 'repeat-map)
                                         (push (get s 'repeat-map) keymaps))))))
-      (message "Repeat mode is enabled for %d commands and %d keymaps; see `describe-repeat'."
+      (message "Repeat mode is enabled for %d commands and %d keymaps; see `describe-repeat-maps'."
                (length commands)
                (length (delete-dups keymaps))))))
 
@@ -489,10 +489,10 @@ When Repeat mode is enabled, and the command symbol has the property named
                                             repeat-echo-mode-line-string)))
     (force-mode-line-update t)))
 
-(defun describe-repeat ()
-  "Describe repeatable commands and keymaps."
+(defun describe-repeat-maps ()
+  "Describe mappings of commands repeatable by symbol property `repeat-map'."
   (interactive)
-  (help-setup-xref (list #'describe-repeat)
+  (help-setup-xref (list #'describe-repeat-maps)
                    (called-interactively-p 'interactive))
   (let ((keymaps nil))
     (all-completions
@@ -502,7 +502,7 @@ When Repeat mode is enabled, and the command symbol has the property named
                        (push s (alist-get (get s 'repeat-map) keymaps)))))
     (with-help-window (help-buffer)
       (with-current-buffer standard-output
-        (princ "This is a list of repeatable keymaps and commands.\n\n")
+        (princ "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
 
         (dolist (keymap (sort keymaps (lambda (a b) (string-lessp (car a) (car b)))))
           (princ (format-message "`%s' keymap is repeatable by these commands:\n"

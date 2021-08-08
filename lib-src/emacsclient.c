@@ -80,6 +80,9 @@ char *w32_getenv (const char *);
 #include <sys/stat.h>
 #include <unistd.h>
 
+#ifndef WINDOWSNT
+# include <acl.h>
+#endif
 #include <filename.h>
 #include <intprops.h>
 #include <min-max.h>
@@ -89,6 +92,10 @@ char *w32_getenv (const char *);
 /* Work around GCC bug 88251.  */
 #if GNUC_PREREQ (7, 0, 0)
 # pragma GCC diagnostic ignored "-Wformat-truncation=2"
+#endif
+
+#if !defined O_PATH && !defined WINDOWSNT
+# define O_PATH O_SEARCH
 #endif
 
 
@@ -1128,24 +1135,74 @@ process_grouping (void)
 
 #ifdef SOCKETS_IN_FILE_SYSTEM
 
-/* Return the file status of NAME, ordinarily a socket.
-   It should be owned by UID.  Return one of the following:
-  >0 - 'stat' failed with this errno value
-  -1 - isn't owned by us
-   0 - success: none of the above */
+/* A local socket address.  The union avoids the need to cast.  */
+union local_sockaddr
+{
+  struct sockaddr_un un;
+  struct sockaddr sa;
+};
+
+/* Relative to the directory DIRFD, connect the socket file named ADDR
+   to the socket S.  Return 0 if successful, -1 if DIRFD is not
+   AT_FDCWD and DIRFD's permissions would allow a symlink attack, an
+   errno otherwise.  */
 
 static int
-socket_status (const char *name, uid_t uid)
+connect_socket (int dirfd, char const *addr, int s, uid_t uid)
 {
-  struct stat statbfr;
+  int sock_status = 0;
 
-  if (stat (name, &statbfr) != 0)
-    return errno;
+  union local_sockaddr server;
+  if (sizeof server.un.sun_path <= strlen (addr))
+    return ENAMETOOLONG;
+  server.un.sun_family = AF_UNIX;
+  strcpy (server.un.sun_path, addr);
 
-  if (statbfr.st_uid != uid)
-    return -1;
+  /* If -1, WDFD is not set yet.  If nonnegative, WDFD is a file
+     descriptor for the initial working directory.  Otherwise -1 - WDFD is
+     the error number for the initial working directory.  */
+  static int wdfd = -1;
 
-  return 0;
+  if (dirfd != AT_FDCWD)
+    {
+      /* Fail if DIRFD's permissions are bogus.  */
+      struct stat st;
+      if (fstat (dirfd, &st) != 0)
+	return errno;
+      if (st.st_uid != uid || (st.st_mode & (S_IWGRP | S_IWOTH)))
+	return -1;
+
+      if (wdfd == -1)
+	{
+	  /* Save the initial working directory.  */
+	  wdfd = open (".", O_PATH | O_CLOEXEC);
+	  if (wdfd < 0)
+	    wdfd = -1 - errno;
+	}
+      if (wdfd < 0)
+	return -1 - wdfd;
+      if (fchdir (dirfd) != 0)
+	return errno;
+
+      /* Fail if DIRFD has an ACL, which means its permissions are
+	 almost surely bogus.  */
+      int has_acl = file_has_acl (".", &st);
+      if (has_acl)
+	sock_status = has_acl < 0 ? errno : -1;
+    }
+
+  if (!sock_status)
+    sock_status = connect (s, &server.sa, sizeof server.un) == 0 ? 0 : errno;
+
+  /* Fail immediately if we cannot change back to the initial working
+     directory, as that can mess up the rest of execution.  */
+  if (dirfd != AT_FDCWD && fchdir (wdfd) != 0)
+    {
+      message (true, "%s: .: %s\n", progname, strerror (errno));
+      exit (EXIT_FAILURE);
+    }
+
+  return sock_status;
 }
 
 
@@ -1322,32 +1379,49 @@ act_on_signals (HSOCKET emacs_socket)
     }
 }
 
-/* Create in SOCKNAME (of size SOCKNAMESIZE) a name for a local socket.
-   The first TMPDIRLEN bytes of SOCKNAME are already initialized to be
-   the name of a temporary directory.  Use UID and SERVER_NAME to
-   concoct the name.  Return the total length of the name if successful,
-   -1 if it does not fit (and store a truncated name in that case).
-   Fail if TMPDIRLEN is out of range.  */
+enum { socknamesize = sizeof ((struct sockaddr_un *) NULL)->sun_path };
+
+/* Given a local socket S, create in *SOCKNAME a name for a local socket
+   and connect to that socket.  The first TMPDIRLEN bytes of *SOCKNAME are
+   already initialized to be the name of a temporary directory.
+   Use UID and SERVER_NAME to concoct the name.  Return 0 if
+   successful, -1 if the socket's parent directory is not safe, and an
+   errno if there is some other problem.  */
 
 static int
-local_sockname (char *sockname, int socknamesize, int tmpdirlen,
-		uintmax_t uid, char const *server_name)
+local_sockname (int s, char sockname[socknamesize], int tmpdirlen,
+		uid_t uid, char const *server_name)
 {
   /* If ! (0 <= TMPDIRLEN && TMPDIRLEN < SOCKNAMESIZE) the truncated
      temporary directory name is already in SOCKNAME, so nothing more
      need be stored.  */
-  if (0 <= tmpdirlen)
-    {
-      int remaining = socknamesize - tmpdirlen;
-      if (0 < remaining)
-	{
-	  int suffixlen = snprintf (&sockname[tmpdirlen], remaining,
-				    "/emacs%"PRIuMAX"/%s", uid, server_name);
-	  if (0 <= suffixlen && suffixlen < remaining)
-	    return tmpdirlen + suffixlen;
-	}
-    }
-  return -1;
+  if (! (0 <= tmpdirlen && tmpdirlen < socknamesize))
+    return ENAMETOOLONG;
+
+  /* Put the full address name into the buffer, since the caller might
+     need it for diagnostics.  But don't overrun the buffer.  */
+  uintmax_t uidmax = uid;
+  int emacsdirlen;
+  int suffixlen = snprintf (sockname + tmpdirlen, socknamesize - tmpdirlen,
+			    "/emacs%"PRIuMAX"%n/%s", uidmax, &emacsdirlen,
+			    server_name);
+  if (! (0 <= suffixlen && suffixlen < socknamesize - tmpdirlen))
+    return ENAMETOOLONG;
+
+  /* Make sure the address's parent directory is not a symlink and is
+     this user's directory and does not let others write to it; this
+     fends off some symlink attacks.  To avoid races, keep the parent
+     directory open while checking.  */
+  char *emacsdirend = sockname + tmpdirlen + emacsdirlen;
+  *emacsdirend = '\0';
+  int dir = openat (AT_FDCWD, sockname,
+		    O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+  *emacsdirend = '/';
+  if (dir < 0)
+    return errno;
+  int sock_status = connect_socket (dir, server_name, s, uid);
+  close (dir);
+  return sock_status;
 }
 
 /* Create a local socket for SERVER_NAME and connect it to Emacs.  If
@@ -1358,28 +1432,43 @@ local_sockname (char *sockname, int socknamesize, int tmpdirlen,
 static HSOCKET
 set_local_socket (char const *server_name)
 {
-  union {
-    struct sockaddr_un un;
-    struct sockaddr sa;
-  } server = {{ .sun_family = AF_UNIX }};
+  union local_sockaddr server;
+  int sock_status;
   char *sockname = server.un.sun_path;
-  enum { socknamesize = sizeof server.un.sun_path };
   int tmpdirlen = -1;
   int socknamelen = -1;
   uid_t uid = geteuid ();
   bool tmpdir_used = false;
+  int s = cloexec_socket (AF_UNIX, SOCK_STREAM, 0);
+  if (s < 0)
+    {
+      message (true, "%s: can't create socket: %s\n",
+	       progname, strerror (errno));
+      fail ();
+    }
 
   if (strchr (server_name, '/')
       || (ISSLASH ('\\') && strchr (server_name, '\\')))
-    socknamelen = snprintf (sockname, socknamesize, "%s", server_name);
+    {
+      socknamelen = snprintf (sockname, socknamesize, "%s", server_name);
+      sock_status = (0 <= socknamelen && socknamelen < socknamesize
+		     ? connect_socket (AT_FDCWD, sockname, s, 0)
+		     : ENAMETOOLONG);
+    }
   else
     {
       /* socket_name is a file name component.  */
+      sock_status = ENOENT;
       char const *xdg_runtime_dir = egetenv ("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir)
-	socknamelen = snprintf (sockname, socknamesize, "%s/emacs/%s",
-				xdg_runtime_dir, server_name);
-      else
+	{
+	  socknamelen = snprintf (sockname, socknamesize, "%s/emacs/%s",
+				  xdg_runtime_dir, server_name);
+	  sock_status = (0 <= socknamelen && socknamelen < socknamesize
+			 ? connect_socket (AT_FDCWD, sockname, s, 0)
+			 : ENAMETOOLONG);
+	}
+      if (sock_status == ENOENT)
 	{
 	  char const *tmpdir = egetenv ("TMPDIR");
 	  if (tmpdir)
@@ -1398,23 +1487,24 @@ set_local_socket (char const *server_name)
 	      if (tmpdirlen < 0)
 		tmpdirlen = snprintf (sockname, socknamesize, "/tmp");
 	    }
-	  socknamelen = local_sockname (sockname, socknamesize, tmpdirlen,
+	  sock_status = local_sockname (s, sockname, tmpdirlen,
 					uid, server_name);
 	  tmpdir_used = true;
 	}
     }
 
-  if (! (0 <= socknamelen && socknamelen < socknamesize))
+  if (sock_status == 0)
+    return s;
+
+  if (sock_status == ENAMETOOLONG)
     {
       message (true, "%s: socket-name %s... too long\n", progname, sockname);
       fail ();
     }
 
-  /* See if the socket exists, and if it's owned by us. */
-  int sock_status = socket_status (sockname, uid);
-  if (sock_status)
+  if (tmpdir_used)
     {
-      /* Failing that, see if LOGNAME or USER exist and differ from
+      /* See whether LOGNAME or USER exist and differ from
 	 our euid.  If so, look for a socket based on the UID
 	 associated with the name.  This is reminiscent of the logic
 	 that init_editfns uses to set the global Vuser_full_name.  */
@@ -1431,48 +1521,26 @@ set_local_socket (char const *server_name)
 	  if (pw && pw->pw_uid != uid)
 	    {
 	      /* We're running under su, apparently. */
-	      socknamelen = local_sockname (sockname, socknamesize, tmpdirlen,
+	      sock_status = local_sockname (s, sockname, tmpdirlen,
 					    pw->pw_uid, server_name);
-	      if (socknamelen < 0)
+	      if (sock_status == 0)
+		return s;
+	      if (sock_status == ENAMETOOLONG)
 		{
 		  message (true, "%s: socket-name %s... too long\n",
 			   progname, sockname);
 		  exit (EXIT_FAILURE);
 		}
-
-	      sock_status = socket_status (sockname, uid);
 	    }
 	}
     }
 
-  if (sock_status == 0)
-    {
-      HSOCKET s = cloexec_socket (AF_UNIX, SOCK_STREAM, 0);
-      if (s < 0)
-	{
-	  message (true, "%s: socket: %s\n", progname, strerror (errno));
-	  return INVALID_SOCKET;
-	}
-      if (connect (s, &server.sa, sizeof server.un) != 0)
-	{
-	  message (true, "%s: connect: %s\n", progname, strerror (errno));
-	  CLOSE_SOCKET (s);
-	  return INVALID_SOCKET;
-	}
+  close (s);
 
-      struct stat connect_stat;
-      if (fstat (s, &connect_stat) != 0)
-	sock_status = errno;
-      else if (connect_stat.st_uid == uid)
-	return s;
-      else
-	sock_status = -1;
-
-      CLOSE_SOCKET (s);
-    }
-
-  if (sock_status < 0)
-    message (true, "%s: Invalid socket owner\n", progname);
+  if (sock_status == -1)
+    message (true,
+	     "%s: Invalid permissions on parent directory of socket: %s\n",
+	     progname, sockname);
   else if (sock_status == ENOENT)
     {
       if (tmpdir_used)
@@ -1502,7 +1570,7 @@ set_local_socket (char const *server_name)
 	}
     }
   else
-    message (true, "%s: can't stat %s: %s\n",
+    message (true, "%s: can't connect to %s: %s\n",
 	     progname, sockname, strerror (sock_status));
 
   return INVALID_SOCKET;

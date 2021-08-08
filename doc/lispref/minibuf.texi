@@ -469,6 +469,18 @@ If @var{default} is a non-@code{nil} list, the first element of the
 list is used in the prompt.
 @end defun
 
+@defvar read-minibuffer-restore-windows
+If this option is non-@code{nil} (the default), getting input from the
+minibuffer will restore, on exit, the window configurations of the frame
+where the minibuffer was entered from and, if it is different, the frame
+that owns the minibuffer window.  This means that if, for example, a
+user splits a window while getting input from the minibuffer on the same
+frame, that split will be undone when exiting the minibuffer.
+
+If this option is @code{nil}, no such restorations are done.  Hence, the
+window split mentioned above will persist after exiting the minibuffer.
+@end defvar
+
 @node Object from Minibuffer
 @section Reading Lisp Objects with the Minibuffer
 @cindex minibuffer input, reading lisp objects

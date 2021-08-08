@@ -161,9 +161,9 @@ The full `format-spec' formatting syntax is supported."
 
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function #'battery-linux-proc-acpi)
-	 "[%b%p%%,%d°C]")
+	 "[%b%p%%,%d°C] ")
 	(battery-status-function
-	 "[%b%p%%]"))
+	 "[%b%p%%] "))
   "Control string formatting the string to display in the mode line.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control

@@ -297,26 +297,28 @@ or \\[wdired-abort-changes] to abort changes")))
 (defun wdired--before-change-fn (beg end)
   (save-match-data
     (save-excursion
-      ;; Make sure to process entire lines.
-      (goto-char end)
-      (setq end (line-end-position))
-      (goto-char beg)
-      (forward-line 0)
+      (save-restriction
+        (widen)
+        ;; Make sure to process entire lines.
+        (goto-char end)
+        (setq end (line-end-position))
+        (goto-char beg)
+        (forward-line 0)
 
-      (while (< (point) end)
-        (unless (wdired--line-preprocessed-p)
+        (while (< (point) end)
+          (unless (wdired--line-preprocessed-p)
+            (with-silent-modifications
+              (put-text-property (point) (1+ (point)) 'front-sticky t)
+              (wdired--preprocess-files)
+              (when wdired-allow-to-change-permissions
+                (wdired--preprocess-perms))
+              (when (fboundp 'make-symbolic-link)
+                (wdired--preprocess-symlinks))))
+          (forward-line))
+        (when (eobp)
           (with-silent-modifications
-            (put-text-property (point) (1+ (point)) 'front-sticky t)
-            (wdired--preprocess-files)
-            (when wdired-allow-to-change-permissions
-              (wdired--preprocess-perms))
-            (when (fboundp 'make-symbolic-link)
-              (wdired--preprocess-symlinks))))
-        (forward-line))
-      (when (eobp)
-        (with-silent-modifications
-          ;; Is this good enough? Assumes no extra white lines from dired.
-          (put-text-property (1- (point-max)) (point-max) 'read-only t))))))
+            ;; Is this good enough? Assumes no extra white lines from dired.
+            (put-text-property (1- (point-max)) (point-max) 'read-only t)))))))
 
 (defun wdired-isearch-filter-read-only (beg end)
   "Skip matches that have a read-only property."
@@ -700,47 +702,49 @@ Optional arguments are ignored."
 (defun wdired--restore-properties (beg end _len)
   (save-match-data
     (save-excursion
-      (let ((lep (line-end-position))
-            (used-F (dired-check-switches
-                     dired-actual-switches
-                     "F" "classify")))
-        ;; Deleting the space between the link name and the arrow (a
-        ;; noop) also deletes the end-name property, so restore it.
-        (when (and (save-excursion
-                     (re-search-backward dired-permission-flags-regexp nil t)
-                     (looking-at "l"))
-                   (get-text-property (1- (point)) 'dired-filename)
-                   (not (get-text-property (point) 'dired-filename))
-                   (not (get-text-property (point) 'end-name)))
+      (save-restriction
+        (widen)
+        (let ((lep (line-end-position))
+              (used-F (dired-check-switches
+                       dired-actual-switches
+                       "F" "classify")))
+          ;; Deleting the space between the link name and the arrow (a
+          ;; noop) also deletes the end-name property, so restore it.
+          (when (and (save-excursion
+                       (re-search-backward dired-permission-flags-regexp nil t)
+                       (looking-at "l"))
+                     (get-text-property (1- (point)) 'dired-filename)
+                     (not (get-text-property (point) 'dired-filename))
+                     (not (get-text-property (point) 'end-name)))
             (put-text-property (point) (1+ (point)) 'end-name t))
-        (beginning-of-line)
-        (when (re-search-forward
-               directory-listing-before-filename-regexp lep t)
-          (setq beg (point)
-                end (if (or
-                         ;; If the file is a symlink, put the
-                         ;; dired-filename property only on the link
-                         ;; name.  (Using (file-symlink-p
-                         ;; (dired-get-filename)) fails in
-                         ;; wdired-mode, bug#32673.)
-                         (and (re-search-backward
-                               dired-permission-flags-regexp nil t)
-                              (looking-at "l")
-                              ;; macOS and Ultrix adds "@" to the end
-                              ;; of symlinks when using -F.
-                              (if (and used-F
-                                       dired-ls-F-marks-symlinks)
-                                  (re-search-forward "@? -> " lep t)
-                                (search-forward " -> " lep t)))
-                         ;; When dired-listing-switches includes "F"
-                         ;; or "classify", don't treat appended
-                         ;; indicator characters as part of the file
-                         ;; name (bug#34915).
-                         (and used-F
-                              (re-search-forward "[*/@|=>]$" lep t)))
-                        (goto-char (match-beginning 0))
-                      lep))
-          (put-text-property beg end 'dired-filename t))))))
+          (beginning-of-line)
+          (when (re-search-forward
+                 directory-listing-before-filename-regexp lep t)
+            (setq beg (point)
+                  end (if (or
+                           ;; If the file is a symlink, put the
+                           ;; dired-filename property only on the link
+                           ;; name.  (Using (file-symlink-p
+                           ;; (dired-get-filename)) fails in
+                           ;; wdired-mode, bug#32673.)
+                           (and (re-search-backward
+                                 dired-permission-flags-regexp nil t)
+                                (looking-at "l")
+                                ;; macOS and Ultrix adds "@" to the end
+                                ;; of symlinks when using -F.
+                                (if (and used-F
+                                         dired-ls-F-marks-symlinks)
+                                    (re-search-forward "@? -> " lep t)
+                                  (search-forward " -> " lep t)))
+                           ;; When dired-listing-switches includes "F"
+                           ;; or "classify", don't treat appended
+                           ;; indicator characters as part of the file
+                           ;; name (bug#34915).
+                           (and used-F
+                                (re-search-forward "[*/@|=>]$" lep t)))
+                          (goto-char (match-beginning 0))
+                        lep))
+            (put-text-property beg end 'dired-filename t)))))))
 
 (defun wdired-next-line (arg)
   "Move down lines then position at filename or the current column.

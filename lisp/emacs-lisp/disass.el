@@ -95,6 +95,8 @@ redefine OBJECT if it is a symbol."
               (re-search-forward (concat "^.*"
                                          (regexp-quote
                                           (concat "<"
+                                                  (when (eq system-type 'darwin)
+                                                    "_")
                                                   (comp-c-func-name
                                                    (subr-name obj) "F" t)
                                                   ">:"))))

@@ -335,10 +335,13 @@ instead of just \"key\" as in the example above."
 
 ;;;###autoload
 (defun url-unhex-string (str &optional allow-newlines)
-  "Remove %XX embedded spaces, etc in a URL.
+  "Decode %XX sequences in a percent-encoded URL.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
 decoding of carriage returns and line feeds in the string, which is normally
-forbidden in URL encoding."
+forbidden in URL encoding.
+
+The resulting string in general requires decoding using an
+appropriate coding-system; see `decode-coding-string'."
   (setq str (or str ""))
   (let ((tmp "")
 	(case-fold-search t))

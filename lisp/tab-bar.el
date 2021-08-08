@@ -136,14 +136,13 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   ;; Replace default value with a condition that supports displaying
   ;; global-mode-string in the tab bar instead of the mode line.
   (when (and (memq 'tab-bar-format-global tab-bar-format)
-             (member '(global-mode-string ("" global-mode-string " "))
+             (member '(global-mode-string ("" global-mode-string))
                      mode-line-misc-info))
     (setf (alist-get 'global-mode-string mode-line-misc-info)
           '(("" (:eval (if (and tab-bar-mode
                                 (memq 'tab-bar-format-global
                                       tab-bar-format))
-                           "" global-mode-string))
-             " ")))))
+                           "" global-mode-string)))))))
 
 (defun tab-bar--undefine-keys ()
   "Uninstall key bindings previously bound by `tab-bar--define-keys'."
@@ -748,7 +747,7 @@ When `tab-bar-format-global' is added to `tab-bar-format'
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
-  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
+  `((global menu-item ,(string-trim-right (format-mode-line global-mode-string)) ignore)))
 
 (defun tab-bar-format-list (format-list)
   (let ((i 0))

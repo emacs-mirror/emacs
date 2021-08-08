@@ -657,7 +657,7 @@ quit the *xref* buffer."
   (interactive "P")
   (let* ((buffer (current-buffer))
          (xref (or (xref--item-at-point)
-                   (user-error "No reference at point")))
+                   (user-error "Choose a reference to visit")))
          (xref--current-item xref))
     (xref--show-location (xref-item-location xref) (if quit 'quit t))
     (if (fboundp 'next-error-found)
@@ -959,12 +959,15 @@ GROUP is a string for decoration purposes and XREF is an
                              (prefix
                               (cond
                                ((not line) "  ")
-                               ((equal line prev-line) "")
+                               ((and (equal line prev-line)
+                                     (equal prev-group group))
+                                "")
                                (t (propertize (format line-format line)
                                               'face 'xref-line-number)))))
                         ;; Render multiple matches on the same line, together.
                         (when (and (equal prev-group group)
-                                   (not (equal prev-line line)))
+                                   (or (null line)
+                                       (not (equal prev-line line))))
                           (insert "\n"))
                         (xref--insert-propertized
                          (list 'xref-item xref
@@ -1353,7 +1356,9 @@ This command is intended to be bound to a mouse event."
 The argument has the same meaning as in `apropos'."
   (interactive (list (read-string
                       "Search for pattern (word list or regexp): "
-                      nil 'xref--read-pattern-history)))
+                      nil 'xref--read-pattern-history
+                      (xref-backend-identifier-at-point
+                       (xref-find-backend)))))
   (require 'apropos)
   (let* ((newpat
           (if (and (version< emacs-version "28.0.50")

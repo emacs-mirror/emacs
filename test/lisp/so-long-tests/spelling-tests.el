@@ -57,7 +57,7 @@
             (unwind-protect
                 (cl-letf (((symbol-function 'ispell-command-loop)
                            (lambda (_miss _guess word _start _end)
-                             (message "Unrecognized word: %s." word)
+                             (message "Unrecognised word: %s." word)
                              (throw 'mistake t))))
                   (catch 'mistake
                     (find-library "so-long")

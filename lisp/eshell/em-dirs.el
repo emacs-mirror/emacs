@@ -224,7 +224,7 @@ Thus, this does not include the current directory.")
 
   (add-hook 'eshell-exit-hook #'eshell-write-last-dir-ring nil t)
 
-  (add-hook 'kill-emacs-hook #'eshell-save-some-last-dir))
+  (add-hook 'kill-emacs-query-functions #'eshell-save-some-last-dir))
 
 (defun eshell-save-some-last-dir ()
   "Save the list-dir-ring for any open Eshell buffers."
@@ -238,7 +238,8 @@ Thus, this does not include the current directory.")
 			(format-message
 			 "Save last dir ring for Eshell buffer `%s'? "
 			 (buffer-name buf)))))
-	      (eshell-write-last-dir-ring))))))
+	      (eshell-write-last-dir-ring)))))
+  t)
 
 (defun eshell-lone-directory-p (file)
   "Test whether FILE is just a directory name, and not a command name."

@@ -3132,10 +3132,12 @@ one is able to set the variables.
 Setup for version-controlled files configurable by the variable
 @code{bug-reference-setup-from-vc-alist}.  The default is able to
 setup GNU projects where @url{https://debbugs.gnu.org} is used as
-issue tracker, Github projects where both bugs and pull requests are
-referenced using the @code{#42} notation, and GitLab projects where
-bugs are references with @code{#17}, too, but merge requests use the
-@code{!18} notation.
+issue tracker and issues are usually referenced as @code{bug#13} (but
+many different notations are considered, too), Sourcehut projects
+where issues are referenced using the notation @code{#17}, Codeberg
+and Github projects where both bugs and pull requests are referenced
+using the same notation, and GitLab projects where bugs are referenced
+with @code{#17}, too, but merge requests use the @code{!18} notation.
 
 @item
 Setup for email guessing from mail folder/mbox names, and mail header

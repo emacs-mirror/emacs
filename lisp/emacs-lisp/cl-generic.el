@@ -1158,7 +1158,17 @@ These match if the argument is a cons cell whose car is `eql' to VAL."
 (cl-defmethod cl-generic-generalizers ((specializer (head eql)))
   "Support for (eql VAL) specializers.
 These match if the argument is `eql' to VAL."
-  (puthash (cadr specializer) specializer cl--generic-eql-used)
+  (let ((form (cadr specializer)))
+    (puthash (if (or (not (symbolp form)) (macroexp-const-p form))
+                 (eval form t)
+               ;; FIXME: Compatibility with Emacs<28.  For now emitting
+               ;; a warning would be annoying for third party packages
+               ;; which can't use the new form without breaking compatibility
+               ;; with older Emacsen, but in the future we should emit
+               ;; a warning.
+               ;; (message "Quoting obsolete `eql' form: %S" specializer)
+               form)
+             specializer cl--generic-eql-used))
   (list cl--generic-eql-generalizer))
 
 (cl--generic-prefill-dispatchers 0 (eql nil))

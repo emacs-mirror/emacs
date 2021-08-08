@@ -599,6 +599,13 @@ during splitting, which may be slow."
              (eq nnimap-authenticator 'anonymous)
 	     (eq nnimap-authenticator 'login)))
     (nnimap-command "LOGIN %S %S" user password))
+   ((and (nnimap-capability "AUTH=XOAUTH2")
+         (eq nnimap-authenticator 'xoauth2))
+    (nnimap-command  "AUTHENTICATE XOAUTH2 %s"
+                     (base64-encode-string
+                      (format "user=%s\001auth=Bearer %s\001\001"
+                              (nnimap-quote-specials user)
+                              (nnimap-quote-specials password)))))
    ((and (nnimap-capability "AUTH=CRAM-MD5")
 	 (or (null nnimap-authenticator)
 	     (eq nnimap-authenticator 'cram-md5)))

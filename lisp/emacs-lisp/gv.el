@@ -614,5 +614,105 @@ REF must have been previously obtained with `gv-ref'."
 ;;                    (,(nth 1 vars) (v) (funcall ',setter v)))
 ;;        ,@body)))
 
+;;; Generalized variables.
+
+;; Some Emacs-related place types.
+(gv-define-simple-setter buffer-file-name set-visited-file-name t)
+(gv-define-setter buffer-modified-p (flag &optional buf)
+  (macroexp-let2 nil buffer `(or ,buf (current-buffer))
+    `(with-current-buffer ,buffer
+       (set-buffer-modified-p ,flag))))
+(gv-define-simple-setter buffer-name rename-buffer t)
+(gv-define-setter buffer-string (store)
+  `(insert (prog1 ,store (erase-buffer))))
+(gv-define-simple-setter buffer-substring cl--set-buffer-substring)
+(gv-define-simple-setter current-buffer set-buffer)
+(gv-define-simple-setter current-column move-to-column t)
+(gv-define-simple-setter current-global-map use-global-map t)
+(gv-define-setter current-input-mode (store)
+  `(progn (apply #'set-input-mode ,store) ,store))
+(gv-define-simple-setter current-local-map use-local-map t)
+(gv-define-simple-setter current-window-configuration
+                         set-window-configuration t)
+(gv-define-simple-setter default-file-modes set-default-file-modes t)
+(gv-define-simple-setter documentation-property put)
+(gv-define-setter face-background (x f &optional s)
+  `(set-face-background ,f ,x ,s))
+(gv-define-setter face-background-pixmap (x f &optional s)
+  `(set-face-background-pixmap ,f ,x ,s))
+(gv-define-setter face-font (x f &optional s) `(set-face-font ,f ,x ,s))
+(gv-define-setter face-foreground (x f &optional s)
+  `(set-face-foreground ,f ,x ,s))
+(gv-define-setter face-underline-p (x f &optional s)
+  `(set-face-underline ,f ,x ,s))
+(gv-define-simple-setter file-modes set-file-modes t)
+(gv-define-setter frame-height (x &optional frame)
+  `(set-frame-height (or ,frame (selected-frame)) ,x))
+(gv-define-simple-setter frame-parameters modify-frame-parameters t)
+(gv-define-simple-setter frame-visible-p cl--set-frame-visible-p)
+(gv-define-setter frame-width (x &optional frame)
+  `(set-frame-width (or ,frame (selected-frame)) ,x))
+(gv-define-simple-setter getenv setenv t)
+(gv-define-simple-setter get-register set-register)
+(gv-define-simple-setter global-key-binding global-set-key)
+(gv-define-simple-setter local-key-binding local-set-key)
+(gv-define-simple-setter mark set-mark t)
+(gv-define-simple-setter mark-marker set-mark t)
+(gv-define-simple-setter marker-position set-marker t)
+(gv-define-setter mouse-position (store scr)
+  `(set-mouse-position ,scr (car ,store) (cadr ,store)
+                       (cddr ,store)))
+(gv-define-simple-setter point goto-char)
+(gv-define-simple-setter point-marker goto-char t)
+(gv-define-setter point-max (store)
+  `(progn (narrow-to-region (point-min) ,store) ,store))
+(gv-define-setter point-min (store)
+  `(progn (narrow-to-region ,store (point-max)) ,store))
+(gv-define-setter read-mouse-position (store scr)
+  `(set-mouse-position ,scr (car ,store) (cdr ,store)))
+(gv-define-simple-setter screen-height set-screen-height t)
+(gv-define-simple-setter screen-width set-screen-width t)
+(gv-define-simple-setter selected-window select-window)
+(gv-define-simple-setter selected-screen select-screen)
+(gv-define-simple-setter selected-frame select-frame)
+(gv-define-simple-setter standard-case-table set-standard-case-table)
+(gv-define-simple-setter syntax-table set-syntax-table)
+(gv-define-simple-setter visited-file-modtime set-visited-file-modtime t)
+(gv-define-setter window-height (store)
+  `(progn (enlarge-window (- ,store (window-height))) ,store))
+(gv-define-setter window-width (store)
+  `(progn (enlarge-window (- ,store (window-width)) t) ,store))
+(gv-define-simple-setter x-get-secondary-selection x-own-secondary-selection t)
+
+;; More complex setf-methods.
+
+;; This is a hack that allows (setf (eq a 7) B) to mean either
+;; (setq a 7) or (setq a nil) depending on whether B is nil or not.
+;; This is useful when you have control over the PLACE but not over
+;; the VALUE, as is the case in define-minor-mode's :variable.
+;; It turned out that :variable needed more flexibility anyway, so
+;; this doesn't seem too useful now.
+(gv-define-expander eq
+  (lambda (do place val)
+    (gv-letplace (getter setter) place
+      (macroexp-let2 nil val val
+        (funcall do `(eq ,getter ,val)
+                 (lambda (v)
+                   `(cond
+                     (,v ,(funcall setter val))
+                     ((eq ,getter ,val) ,(funcall setter `(not ,val))))))))))
+
+(gv-define-expander substring
+  (lambda (do place from &optional to)
+    (gv-letplace (getter setter) place
+      (macroexp-let2* nil ((start from) (end to))
+        (funcall do `(substring ,getter ,start ,end)
+                 (lambda (v)
+                   (macroexp-let2 nil v v
+                     `(progn
+                        ,(funcall setter `(cl--set-substring
+                                           ,getter ,start ,end ,v))
+                        ,v))))))))
+
 (provide 'gv)
 ;;; gv.el ends here

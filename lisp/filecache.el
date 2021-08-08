@@ -516,6 +516,16 @@ If called interactively, read the directory names one by one."
 	(concat directory "/")
       directory)))
 
+(defun file-cache-cycle (name)
+  "Cycle through the directories that NAME is available in."
+  (let ((file-name (file-cache-file-name name)))
+    (if (string= file-name (minibuffer-contents))
+        (minibuffer-message file-cache-sole-match-message)
+      (delete-minibuffer-contents)
+      (insert file-name)
+      (if file-cache-multiple-directory-message
+          (minibuffer-message file-cache-multiple-directory-message)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minibuffer functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -545,13 +555,7 @@ the name is considered already unique; only the second substitution
     (cond
      ;; If it's the only match, replace the original contents
      ((or arg (eq completion t))
-      (let ((file-name (file-cache-file-name string)))
-        (if (string= file-name (minibuffer-contents))
-            (minibuffer-message file-cache-sole-match-message)
-          (delete-minibuffer-contents)
-          (insert file-name)
-          (if file-cache-multiple-directory-message
-              (minibuffer-message file-cache-multiple-directory-message)))))
+      (file-cache-cycle string))
 
      ;; If it's the longest match, insert it
      ((consp completion)
@@ -564,10 +568,7 @@ the name is considered already unique; only the second substitution
                                file-cache-ignore-case))
             (if (and (eq last-command this-command)
                      (string= file-cache-last-completion newstring))
-                (progn
-                  (delete-minibuffer-contents)
-                  (insert (file-cache-file-name newstring))
-                  (setq file-cache-last-completion nil))
+                (file-cache-cycle newstring)
               (minibuffer-message file-cache-non-unique-message)
               (setq file-cache-last-completion string))
           (setq file-cache-last-completion string)
@@ -579,20 +580,12 @@ the name is considered already unique; only the second substitution
             (if (> (length completion-list) 1)
                 (progn
                   (delete-region (- (point-max) (length string)) (point-max))
-                  (save-excursion (insert newstring))
-                  (forward-char newpoint)
+                  (insert newstring)
                   (with-output-to-temp-buffer file-cache-completions-buffer
                     (display-completion-list completion-list)
                     ;; Add our own setup function to the Completions Buffer
                     (file-cache-completion-setup-function)))
-              (let ((file-name (file-cache-file-name newstring)))
-                (if (string= file-name (minibuffer-contents))
-                    (minibuffer-message file-cache-sole-match-message)
-                  (delete-minibuffer-contents)
-                  (insert file-name)
-                  (if file-cache-multiple-directory-message
-                      (minibuffer-message
-                       file-cache-multiple-directory-message)))))))))
+              (file-cache-cycle newstring))))))
 
      ;; No match
      ((eq completion nil)

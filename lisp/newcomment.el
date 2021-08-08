@@ -840,9 +840,13 @@ Ensure that `comment-normalize-vars' has been called before you use this."
                      (make-string (min comment-padding
                                        (- (match-end 0) (match-end 1)))
                                   ?\s)
-		   (substring comment-padding ;additional right padding
-			      (min (- (match-end 0) (match-end 1))
-				   (length comment-padding))))))
+                   (if (not (string-match-p "\\`\\s-" comment-padding))
+                       ;; If the padding isn't spaces, then don't
+                       ;; shorten the padding.
+                       comment-padding
+		     (substring comment-padding ;additional right padding
+			        (min (- (match-end 0) (match-end 1))
+				     (length comment-padding)))))))
 	  ;; We can only duplicate C if the comment-end has multiple chars
 	  ;; or if comments can be nested, else the comment-end `}' would
 	  ;; be turned into `}}}' where only the first ends the comment
@@ -876,9 +880,13 @@ Ensure that `comment-normalize-vars' has been called before you use this."
     ;; Only separate the left pad because we assume there is no right pad.
     (string-match "\\`\\s-*" str)
     (let ((s (substring str (match-end 0)))
-	  (pad (concat (substring comment-padding
-				  (min (- (match-end 0) (match-beginning 0))
-				       (length comment-padding)))
+	  (pad (concat (if (not (string-match-p "\\`\\s-" comment-padding))
+                           ;; If the padding isn't spaces, then don't
+                           ;; shorten the padding.
+                           comment-padding
+                         (substring comment-padding
+				    (min (- (match-end 0) (match-beginning 0))
+				         (length comment-padding))))
 		       (match-string 0 str)))
 	  (c (aref str (match-end 0)))	;the first non-space char of STR
 	  ;; We can only duplicate C if the comment-end has multiple chars

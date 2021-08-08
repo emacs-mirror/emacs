@@ -173,6 +173,7 @@ and a string describing how the process finished.")
 ;; emacs -batch -l compile-tests.el -f ert-run-tests-batch-and-exit
 
 (defvar compilation-error-regexp-alist-alist
+ (eval-when-compile
   `((absoft
      "^\\(?:[Ee]rror on \\|[Ww]arning on\\( \\)\\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
 of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
@@ -615,7 +616,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
     ;; we do not know what lines will follow.
     (guile-file "^In \\(.+\\..+\\):\n" 1 nil nil 0)
     (guile-line "^ *\\([0-9]+\\): *\\([0-9]+\\)" nil 1 2)
-    )
+    ))
   "Alist of values for `compilation-error-regexp-alist'.")
 
 (defcustom compilation-error-regexp-alist
@@ -1248,11 +1249,14 @@ POS and RES.")
                  (setq col (match-string-no-properties col))
                  (string-to-number col))))
     (setq end-col
-          (or (if (functionp end-col) (funcall end-col)
-                (and end-col
-                     (setq end-col (match-string-no-properties end-col))
-                     (- (string-to-number end-col) -1)))
-              (and end-line -1)))
+          (let ((ec (if (functionp end-col)
+                        (funcall end-col)
+                      (and end-col (match-beginning end-col)
+                           (string-to-number
+                            (match-string-no-properties end-col))))))
+            (if ec
+                (1+ ec)     ; Add one to get an exclusive upper bound.
+              (and end-line -1))))
     (if (consp type)            ; not a static type, check what it is.
 	(setq type (or (and (car type) (match-end (car type)) 1)
 		       (and (cdr type) (match-end (cdr type)) 0)
@@ -1540,7 +1544,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
                              file line end-line col end-col
                              (or type 2) fmt rule))
 
-            (when (integerp file)
+            (when file
               (let ((this-type (if (consp type)
                                    (compilation-type type)
                                  (or type 2))))

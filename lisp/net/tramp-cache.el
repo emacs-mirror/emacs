@@ -49,6 +49,8 @@
 ;;   an open connection.  Examples: "scripts" keeps shell script
 ;;   definitions already sent to the remote shell, "last-cmd-time" is
 ;;   the time stamp a command has been sent to the remote process.
+;;   "lock-pid" is the timestamp a (network) process is created, it is
+;;   used instead of the pid in file locks.
 ;;
 ;; - The key is nil.  These are temporary properties related to the
 ;;   local machine.  Examples: "parse-passwd" and "parse-group" keep
@@ -70,8 +72,8 @@
 ;;   process key retrieved by `tramp-get-process' (the main connection
 ;;   process).  Other processes could reuse these properties, avoiding
 ;;   recomputation when a new asynchronous process is created by
-;;   `make-process'.  Examples are "remote-path",
-;;   "unsafe-temporary-file" or "device" (tramp-adb.el).
+;;   `make-process'.  Examples are "unsafe-temporary-file",
+;;   "remote-path", "device" (tramp-adb.el) or "share" (tramp-gvfs.el).
 
 ;;; Code:
 

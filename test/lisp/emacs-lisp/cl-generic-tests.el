@@ -56,7 +56,11 @@
   (should (equal (cl--generic-1 'a nil) '(a)))
   (should (equal (cl--generic-1 4 nil) '("quatre" 4)))
   (should (equal (cl--generic-1 5 nil) '("cinq" 5)))
-  (should (equal (cl--generic-1 6 nil) '("six" a))))
+  (should (equal (cl--generic-1 6 nil) '("six" a)))
+  (defvar cl--generic-fooval 41)
+  (cl-defmethod cl--generic-1 ((_x (eql (+ cl--generic-fooval 1))) _y)
+    "forty-two")
+  (should (equal (cl--generic-1 42 nil) "forty-two")))
 
 (cl-defstruct cl-generic-struct-parent a b)
 (cl-defstruct (cl-generic-struct-child1 (:include cl-generic-struct-parent)) c)

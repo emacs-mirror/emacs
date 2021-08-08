@@ -348,16 +348,6 @@ typedef id instancetype;
 #endif
 
 
-/* macOS 10.14 and above cannot draw directly "to the glass" and
-   therefore we draw to an offscreen buffer and swap it in when the
-   toolkit wants to draw the frame. GNUstep and macOS 10.7 and below
-   do not support this method, so we revert to drawing directly to the
-   glass.  */
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101400
-#define NS_DRAW_TO_BUFFER 1
-#endif
-
-
 /* ==========================================================================
 
    NSColor, EmacsColor category.
@@ -416,6 +406,25 @@ typedef id instancetype;
 @end
 #endif
 
+/* EmacsWindow  */
+@interface EmacsWindow : NSWindow
+{
+  NSPoint grabOffset;
+}
+
+#ifdef NS_IMPL_GNUSTEP
+- (NSInteger) orderedIndex;
+#endif
+
+- (instancetype)initWithEmacsFrame:(struct frame *)f;
+- (instancetype)initWithEmacsFrame:(struct frame *)f fullscreen:(BOOL)fullscreen screen:(NSScreen *)screen;
+- (void)setParentChildRelationships;
+- (NSInteger)borderWidth;
+- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
+- (void)setAppearance;
+@end
+
+
 /* ==========================================================================
 
    The main Emacs view
@@ -423,7 +432,7 @@ typedef id instancetype;
    ========================================================================== */
 
 @class EmacsToolbar;
-@class EmacsSurface;
+@class EmacsLayer;
 
 #ifdef NS_IMPL_COCOA
 @interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
@@ -439,19 +448,13 @@ typedef id instancetype;
    NSString *workingText;
    BOOL processingCompose;
    int fs_state, fs_before_fs, next_maximized;
-   int bwidth;
    int maximized_width, maximized_height;
-   NSWindow *nonfs_window;
+   EmacsWindow *nonfs_window;
    BOOL fs_is_native;
-#ifdef NS_DRAW_TO_BUFFER
-   EmacsSurface *surface;
-#endif
 @public
    struct frame *emacsframe;
    int scrollbarsNeedingUpdate;
-   EmacsToolbar *toolbar;
    NSRect ns_userRect;
-   BOOL wait_for_tool_bar;
    }
 
 /* AppKit-side interface */
@@ -465,9 +468,7 @@ typedef id instancetype;
 
 /* Emacs-side interface */
 - (instancetype) initFrameFromEmacs: (struct frame *) f;
-- (void) createToolbar: (struct frame *)f;
 - (void) setWindowClosing: (BOOL)closing;
-- (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
 - (void) handleFS;
 - (void) setFSValue: (int)value;
@@ -483,9 +484,9 @@ typedef id instancetype;
 #endif
 - (int)fullscreenState;
 
-#ifdef NS_DRAW_TO_BUFFER
-- (void)focusOnDrawingBuffer;
-- (void)unfocusDrawingBuffer;
+#ifdef NS_IMPL_COCOA
+- (void)lockFocus;
+- (void)unlockFocus;
 #endif
 - (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
 
@@ -497,27 +498,6 @@ typedef id instancetype;
 - (void)windowDidBecomeKey;
 @end
 
-
-/* Small utility used for processing resize events under Cocoa.  */
-@interface EmacsWindow : NSWindow
-{
-  NSPoint grabOffset;
-}
-
-#ifdef NS_IMPL_GNUSTEP
-- (NSInteger) orderedIndex;
-#endif
-
-- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
-- (void)setAppearance;
-@end
-
-
-/* Fullscreen version of the above.  */
-@interface EmacsFSWindow : EmacsWindow
-{
-}
-@end
 
 /* ==========================================================================
 
@@ -647,7 +627,6 @@ typedef id instancetype;
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
   NSColor *stippleMask;
-  unsigned long xbm_fg;
 @public
   NSAffineTransform *transform;
   BOOL smoothing;
@@ -657,7 +636,6 @@ typedef id instancetype;
 - (instancetype)initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
                          fg: (unsigned long)fg bg: (unsigned long)bg
                reverseBytes: (BOOL)reverse;
-- (instancetype)setXBMColor: (NSColor *)color;
 - (instancetype)initForXPMWithDepth: (int)depth width: (int)width height: (int)height;
 - (void)setPixmapData;
 - (unsigned long)getPixelAtX: (int)x Y: (int)y;
@@ -716,23 +694,17 @@ typedef id instancetype;
 + (CGFloat)scrollerWidth;
 @end
 
-#ifdef NS_DRAW_TO_BUFFER
-@interface EmacsSurface : NSObject
+#ifdef NS_IMPL_COCOA
+@interface EmacsLayer : CALayer
 {
   NSMutableArray *cache;
-  NSSize size;
   CGColorSpaceRef colorSpace;
   IOSurfaceRef currentSurface;
-  IOSurfaceRef lastSurface;
   CGContextRef context;
-  CGFloat scale;
 }
-- (id) initWithSize: (NSSize)s ColorSpace: (CGColorSpaceRef)cs Scale: (CGFloat)scale;
-- (void) dealloc;
-- (NSSize) getSize;
+- (id) initWithColorSpace: (CGColorSpaceRef)cs;
+- (void) setColorSpace: (CGColorSpaceRef)cs;
 - (CGContextRef) getContext;
-- (void) releaseContext;
-- (IOSurfaceRef) getSurface;
 @end
 #endif
 

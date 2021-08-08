@@ -278,7 +278,8 @@ annotation.")
 
 (gnus-define-keys (mh-junk-map "J" mh-folder-mode-map)
   "?"           mh-prefix-help
-  "b"           mh-junk-blacklist
+  "a"           mh-junk-allowlist
+  "b"           mh-junk-blocklist
   "w"           mh-junk-whitelist)
 
 (gnus-define-keys (mh-ps-print-map "P" mh-folder-mode-map)
@@ -386,7 +387,7 @@ annotation.")
     (?K "[v]iew, [i]nline, with [e]xternal viewer; \n"
         "[o]utput/save MIME part; save [a]ll parts; \n"
         "[t]oggle buttons; [TAB] next; [SHIFT-TAB] previous")
-    (?J "[b]lacklist, [w]hitelist message"))
+    (?J "[b]locklist, [a]llowlist message"))
   "Key binding cheat sheet.
 See `mh-set-help'.")
 
@@ -405,12 +406,12 @@ See `mh-set-help'.")
    ;; Marked for deletion
    (list (concat mh-scan-deleted-msg-regexp ".*")
          '(0 'mh-folder-deleted))
-   ;; Marked for blacklisting
-   (list (concat mh-scan-blacklisted-msg-regexp ".*")
-         '(0 'mh-folder-blacklisted))
-   ;; Marked for whitelisting
-   (list (concat mh-scan-whitelisted-msg-regexp ".*")
-         '(0 'mh-folder-whitelisted))
+   ;; Marked for blocklisting
+   (list (concat mh-scan-blocklisted-msg-regexp ".*")
+         '(0 'mh-folder-blocklisted))
+   ;; Marked for allowlisting
+   (list (concat mh-scan-allowlisted-msg-regexp ".*")
+         '(0 'mh-folder-allowlisted))
    ;; After subject
    (list mh-scan-body-regexp
          '(1 'mh-folder-body nil t))
@@ -616,8 +617,8 @@ perform the operation on all messages in that region.
    'mh-showing-mode nil                 ; Show message also?
    'mh-refile-list nil                  ; List of folder names in mh-seq-list
    'mh-delete-list nil                  ; List of msgs nums to delete
-   'mh-blacklist nil                    ; List of messages to process as spam
-   'mh-whitelist nil                    ; List of messages to process as ham
+   'mh-blocklist nil                    ; List of messages to process as spam
+   'mh-allowlist nil                    ; List of messages to process as ham
    'mh-seq-list nil                     ; Alist of (seq . msgs) nums
    'mh-seen-list nil                    ; List of displayed messages
    'mh-next-direction 'forward          ; Direction to move to next message
@@ -714,8 +715,8 @@ RANGE is read in interactive use."
 (defun mh-execute-commands ()
   "Perform outstanding operations\\<mh-folder-mode-map>.
 
-If you've marked messages to be refiled, deleted, blacklisted, or
-whitelisted and you want to go ahead and perform these operations
+If you've marked messages to be refiled, deleted, blocklisted, or
+allowlisted and you want to go ahead and perform these operations
 on these messages, use this command. Many MH-E commands that may
 affect the numbering of the messages (such as
 \\[mh-rescan-folder] or \\[mh-pack-folder]) will ask if you want
@@ -1188,16 +1189,16 @@ RANGE is read in interactive use."
            (beginning-of-line)
            (while (not (or (looking-at mh-scan-refiled-msg-regexp)
                            (looking-at mh-scan-deleted-msg-regexp)
-                           (looking-at mh-scan-blacklisted-msg-regexp)
-                           (looking-at mh-scan-whitelisted-msg-regexp)
+                           (looking-at mh-scan-blocklisted-msg-regexp)
+                           (looking-at mh-scan-allowlisted-msg-regexp)
                            (and (eq mh-next-direction 'forward) (bobp))
                            (and (eq mh-next-direction 'backward)
                                 (save-excursion (forward-line) (eobp)))))
              (forward-line (if (eq mh-next-direction 'forward) -1 1)))
            (if (or (looking-at mh-scan-refiled-msg-regexp)
                    (looking-at mh-scan-deleted-msg-regexp)
-                   (looking-at mh-scan-blacklisted-msg-regexp)
-                   (looking-at mh-scan-whitelisted-msg-regexp))
+                   (looking-at mh-scan-blocklisted-msg-regexp)
+                   (looking-at mh-scan-allowlisted-msg-regexp))
                (progn
                  (mh-undo-msg (mh-get-msg-num t))
                  (mh-maybe-show))
@@ -1529,7 +1530,7 @@ is updated."
   (save-excursion
     (when (eq major-mode 'mh-show-mode)
       (set-buffer mh-show-folder-buffer))
-    (or mh-delete-list mh-refile-list mh-blacklist mh-whitelist)))
+    (or mh-delete-list mh-refile-list mh-blocklist mh-allowlist)))
 
 ;;;###mh-autoload
 (defun mh-set-folder-modified-p (flag)
@@ -1555,12 +1556,12 @@ after the commands are processed."
           (folders-changed (list mh-current-folder))
           (seq-map (and
                     (or (and mh-refile-list mh-refile-preserves-sequences-flag)
-                        (and mh-whitelist
-                             mh-whitelist-preserves-sequences-flag))
+                        (and mh-allowlist
+                             mh-allowlist-preserves-sequences-flag))
                     (mh-create-sequence-map mh-seq-list)))
           (dest-map (and mh-refile-list mh-refile-preserves-sequences-flag
                          (make-hash-table)))
-          (white-map (and mh-whitelist mh-whitelist-preserves-sequences-flag
+          (allow-map (and mh-allowlist mh-allowlist-preserves-sequences-flag
                           (make-hash-table))))
       ;; Remove invalid scan lines if we are in an index folder and then remove
       ;; the real messages
@@ -1609,11 +1610,11 @@ after the commands are processed."
              (mh-delete-scan-msgs mh-delete-list)
              (setq mh-delete-list nil)))
 
-      ;; Blacklist messages.
-      (when mh-blacklist
-        (let ((msg-list (mh-coalesce-msg-list mh-blacklist))
-              (dest (mh-junk-blacklist-disposition)))
-          (mh-junk-process-blacklist mh-blacklist)
+      ;; Blocklist messages.
+      (when mh-blocklist
+        (let ((msg-list (mh-coalesce-msg-list mh-blocklist))
+              (dest (mh-junk-blocklist-disposition)))
+          (mh-junk-process-blocklist mh-blocklist)
           ;; TODO I wonder why mh-exec-cmd is used instead of the following:
           ;; (mh-refile-a-msg nil (intern dest))
           ;; (mh-delete-a-msg nil)))
@@ -1622,35 +1623,35 @@ after the commands are processed."
             (apply #'mh-exec-cmd "refile" "-src" folder dest msg-list)
             (push dest folders-changed))
           (setq redraw-needed-flag t)
-          (mh-delete-scan-msgs mh-blacklist)
-          (setq mh-blacklist nil)))
+          (mh-delete-scan-msgs mh-blocklist)
+          (setq mh-blocklist nil)))
 
-      ;; Whitelist messages.
-      (when mh-whitelist
-        (let ((msg-list (mh-coalesce-msg-list mh-whitelist))
+      ;; Allowlist messages.
+      (when mh-allowlist
+        (let ((msg-list (mh-coalesce-msg-list mh-allowlist))
               (last (car (mh-translate-range mh-inbox "last"))))
-          (mh-junk-process-whitelist mh-whitelist)
+          (mh-junk-process-allowlist mh-allowlist)
           (apply #'mh-exec-cmd "refile" "-src" folder mh-inbox msg-list)
           (push mh-inbox folders-changed)
           (setq redraw-needed-flag t)
-          (mh-delete-scan-msgs mh-whitelist)
-          (when mh-whitelist-preserves-sequences-flag
-            (clrhash white-map)
+          (mh-delete-scan-msgs mh-allowlist)
+          (when mh-allowlist-preserves-sequences-flag
+            (clrhash allow-map)
             (cl-loop for i from (1+ (or last 0))
-                     for msg in (sort (copy-sequence mh-whitelist) #'<)
+                     for msg in (sort (copy-sequence mh-allowlist) #'<)
                      do (cl-loop for seq-name in (gethash msg seq-map)
-                                 do (push i (gethash seq-name white-map))))
+                                 do (push i (gethash seq-name allow-map))))
             (maphash
              #'(lambda (seq msgs)
                  ;; Can't be run in background, since the current
                  ;; folder is changed by mark this could lead to a
-                 ;; race condition with the next refile/whitelist.
+                 ;; race condition with the next refile/allowlist.
                  (apply #'mh-exec-cmd "mark"
                         "-sequence" (symbol-name seq) mh-inbox
                         "-add" (mapcar #'(lambda(x) (format "%s" x))
                                        (mh-coalesce-msg-list msgs))))
-             white-map))
-          (setq mh-whitelist nil)))
+             allow-map))
+          (setq mh-allowlist nil)))
 
       ;; Don't need to remove sequences since delete and refile do so.
       ;; Mark cur message
@@ -1961,10 +1962,10 @@ once when he kept statistics on his mail usage."
       (setq message (mh-get-msg-num t)))
     (if (looking-at mh-scan-refiled-msg-regexp)
         (error "Message %d is refiled; undo refile before deleting" message))
-    (if (looking-at mh-scan-blacklisted-msg-regexp)
-        (error "Message %d is blacklisted; undo before deleting" message))
-    (if (looking-at mh-scan-whitelisted-msg-regexp)
-        (error "Message %d is whitelisted; undo before deleting" message))
+    (if (looking-at mh-scan-blocklisted-msg-regexp)
+        (error "Message %d is blocklisted; undo before deleting" message))
+    (if (looking-at mh-scan-allowlisted-msg-regexp)
+        (error "Message %d is allowlisted; undo before deleting" message))
     (if (looking-at mh-scan-deleted-msg-regexp)
         nil
       (mh-set-folder-modified-p t)
@@ -1986,10 +1987,10 @@ be refiled."
       (setq message (mh-get-msg-num t)))
     (cond ((looking-at mh-scan-deleted-msg-regexp)
            (error "Message %d is deleted; undo delete before moving" message))
-          ((looking-at mh-scan-blacklisted-msg-regexp)
-           (error "Message %d is blacklisted; undo before moving" message))
-          ((looking-at mh-scan-whitelisted-msg-regexp)
-           (error "Message %d is whitelisted; undo before moving" message))
+          ((looking-at mh-scan-blocklisted-msg-regexp)
+           (error "Message %d is blocklisted; undo before moving" message))
+          ((looking-at mh-scan-allowlisted-msg-regexp)
+           (error "Message %d is allowlisted; undo before moving" message))
           ((looking-at mh-scan-refiled-msg-regexp)
            (if (y-or-n-p
                 (format "Message %d already refiled; copy to %s as well? "
@@ -2008,7 +2009,7 @@ be refiled."
            (run-hooks 'mh-refile-msg-hook)))))
 
 (defun mh-undo-msg (msg)
-  "Undo the deletion, refile, black- or whitelisting of one MSG.
+  "Undo the deletion, refile, block- or allowlisting of one MSG.
 If MSG is nil then act on the message at point"
   (save-excursion
     (if (numberp msg)
@@ -2017,10 +2018,10 @@ If MSG is nil then act on the message at point"
       (setq msg (mh-get-msg-num t)))
     (cond ((memq msg mh-delete-list)
            (setq mh-delete-list (delq msg mh-delete-list)))
-          ((memq msg mh-blacklist)
-           (setq mh-blacklist (delq msg mh-blacklist)))
-          ((memq msg mh-whitelist)
-           (setq mh-whitelist (delq msg mh-whitelist)))
+          ((memq msg mh-blocklist)
+           (setq mh-blocklist (delq msg mh-blocklist)))
+          ((memq msg mh-allowlist)
+           (setq mh-allowlist (delq msg mh-allowlist)))
           (t
            (dolist (folder-msg-list mh-refile-list)
              (setf (cdr folder-msg-list) (remove msg (cdr folder-msg-list))))

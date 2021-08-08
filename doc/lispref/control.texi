@@ -555,6 +555,16 @@ Two symbols to avoid are @code{t}, which behaves like @code{_}
 Likewise, it makes no sense to bind keyword symbols
 (@pxref{Constant Variables}).
 
+@item (cl-type @var{type})
+Matches if @var{expval} is of type @var{type}, which is a type
+descriptor as accepted by @code{cl-typep} (@pxref{cl-typep,,,cl,Common
+Lisp Extensions}).  Examples:
+
+@lisp
+(cl-type integer)
+(cl-type (integer 0 10))
+@end lisp
+
 @item (pred @var{function})
 Matches if the predicate @var{function} returns non-@code{nil}
 when called on @var{expval}.  The test can be negated with the syntax

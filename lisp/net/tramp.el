@@ -586,8 +586,7 @@ Sometimes the prompt is reported to look like \"login as:\"."
 
 (defcustom tramp-shell-prompt-pattern
   ;; Allow a prompt to start right after a ^M since it indeed would be
-  ;; displayed at the beginning of the line (and Zsh uses it).  This
-  ;; regexp works only for GNU Emacs.
+  ;; displayed at the beginning of the line (and Zsh uses it).
   ;; Allow also [] style prompts.  They can appear only during
   ;; connection initialization; Tramp redefines the prompt afterwards.
   (concat "\\(?:^\\|\r\\)"
@@ -696,6 +695,15 @@ The answer will be provided by `tramp-action-terminal', which see."
   "Regular expression matching plink's anti-spoofing message.
 The regexp should match at end of buffer."
   :version "27.1"
+  :type 'regexp)
+
+;; Yubikey requires the user physically to touch the device with their
+;; finger.  We must tell it to the user.
+(defcustom tramp-yubikey-regexp
+  "^\r*Confirm user presence for key .*[\r\n]*"
+  "Regular expression matching yubikey confirmation message.
+The regexp should match at end of buffer."
+  :version "28.1"
   :type 'regexp)
 
 (defcustom tramp-operation-not-permitted-regexp
@@ -1905,7 +1913,7 @@ The outline level is equal to the verbosity of the Tramp message."
 (put #'tramp-trace-buffer-name 'tramp-suppress-trace t)
 
 (defvar tramp-trace-functions nil
-  "A list of non-Tramp functions to be trace with tramp-verbose > 10.")
+  "A list of non-Tramp functions to be traced with tramp-verbose > 10.")
 
 (defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
@@ -2455,6 +2463,8 @@ Must be handled by the callers."
 	      file-name-case-insensitive-p
 	      ;; Emacs 27+ only.
 	      file-system-info
+	      ;; Emacs 28+ only.
+	      file-locked-p lock-file make-lock-file-name unlock-file
 	      ;; Tramp internal magic file name function.
 	      tramp-set-file-uid-gid))
     (if (file-name-absolute-p (nth 0 args))
@@ -3335,7 +3345,7 @@ User is always nil."
   (when (zerop (length name)) (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (concat (file-name-as-directory dir) name)))
+    (setq name (tramp-compat-file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
       (tramp-run-real-handler #'expand-file-name (list name nil))
@@ -3628,7 +3638,7 @@ User is always nil."
 	     (file-writable-p (file-name-directory filename)))))))
 
 (defcustom tramp-allow-unsafe-temporary-files nil
-  "Whether root-owned auto-save or backup files can be written to \"/tmp\"."
+  "Whether root-owned auto-save, backup or lock files can be written to \"/tmp\"."
   :version "28.1"
   :type 'boolean)
 
@@ -3655,6 +3665,7 @@ User is always nil."
 		 #'find-backup-file-name (list filename)))
         ;; Protect against security hole.
 	(when (and (not tramp-allow-unsafe-temporary-files)
+		   (not backup-inhibited)
 		   (file-in-directory-p (car result) temporary-file-directory)
 		   (zerop (or (tramp-compat-file-attribute-user-id
 			       (file-attributes filename 'integer))
@@ -3815,6 +3826,101 @@ User is always nil."
 
       ;; Result.
       (cons (expand-file-name filename) (cdr result)))))
+
+(defun tramp-get-lock-file (file)
+  "Read lockfile info of FILE.
+Return nil when there is no lockfile."
+  (when-let ((lockname (tramp-compat-make-lock-file-name file)))
+    (or (file-symlink-p lockname)
+	(and (file-readable-p lockname)
+	     (with-temp-buffer
+	       (insert-file-contents-literally lockname)
+	       (buffer-string))))))
+
+(defun tramp-get-lock-pid (file)
+  "Determine pid for lockfile of FILE."
+  ;; Some Tramp methods do not offer a connection process, but just a
+  ;; network process as a place holder.  Those processes use the
+  ;; "lock-pid" connection property as fake pid, in fact it is the
+  ;; time stamp the process is created.
+  (let ((p (tramp-get-process  (tramp-dissect-file-name file))))
+    (number-to-string
+     (or (process-id p)
+	 (tramp-get-connection-property p "lock-pid" (emacs-pid))))))
+
+(defconst tramp-lock-file-info-regexp
+  ;; USER@HOST.PID[:BOOT_TIME]
+  "\\`\\(.+\\)@\\(.+\\)\\.\\([[:digit:]]+\\)\\(?::\\([[:digit:]]+\\)\\)?\\'"
+  "The format of a lock file.")
+
+(defun tramp-handle-file-locked-p (file)
+  "Like `file-locked-p' for Tramp files."
+  (when-let ((info (tramp-get-lock-file file))
+	     (match (string-match tramp-lock-file-info-regexp info)))
+    (or (and (string-equal (match-string 1 info) (user-login-name))
+	     (string-equal (match-string 2 info) (system-name))
+	     (string-equal (match-string 3 info) (tramp-get-lock-pid file)))
+	(match-string 1 info))))
+
+(defun tramp-handle-lock-file (file)
+  "Like `lock-file' for Tramp files."
+  ;; See if this file is visited and has changed on disk since it
+  ;; was visited.
+  (catch 'dont-lock
+    (unless (eq (file-locked-p file) t) ;; Locked by me.
+      (when-let ((info (tramp-get-lock-file file))
+		 (match (string-match tramp-lock-file-info-regexp info)))
+	(unless (ask-user-about-lock
+		 file (format
+		       "%s@%s (pid %s)" (match-string 1 info)
+		       (match-string 2 info) (match-string 3 info)))
+	  (throw 'dont-lock nil)))
+
+      (when-let ((lockname (tramp-compat-make-lock-file-name file))
+	         ;; USER@HOST.PID[:BOOT_TIME]
+	         (info
+	          (format
+	           "%s@%s.%s" (user-login-name) (system-name)
+	           (tramp-get-lock-pid file))))
+
+	;; Protect against security hole.
+	(with-parsed-tramp-file-name file nil
+	  (when (and (not tramp-allow-unsafe-temporary-files)
+		     create-lockfiles
+		     (file-in-directory-p lockname temporary-file-directory)
+		     (zerop (or (tramp-compat-file-attribute-user-id
+				 (file-attributes file 'integer))
+				tramp-unknown-id-integer))
+		     (not (with-tramp-connection-property
+			      (tramp-get-process v) "unsafe-temporary-file"
+			    (yes-or-no-p
+			     (concat
+			      "Lock file on local temporary directory, "
+			      "do you want to continue? ")))))
+	    (tramp-error v 'file-error "Unsafe lock file name")))
+
+	;; Do the lock.
+        (let (create-lockfiles signal-hook-function)
+	  (condition-case nil
+	      (make-symbolic-link info lockname 'ok-if-already-exists)
+	    (error
+	     (with-file-modes #o0644
+               (write-region info nil lockname)))))))))
+
+(defun tramp-handle-make-lock-file-name (file)
+  "Like `make-lock-file-name' for Tramp files."
+  (and create-lockfiles
+       ;; This variable has been introduced with Emacs 28.1.
+       (not (bound-and-true-p remote-file-name-inhibit-locks))
+       (tramp-run-real-handler 'make-lock-file-name (list file))))
+
+(defun tramp-handle-unlock-file (file)
+  "Like `unlock-file' for Tramp files."
+  (when-let ((lockname (tramp-compat-make-lock-file-name file)))
+    (condition-case err
+        (delete-file lockname)
+      ;; `userlock--handle-unlock-error' exists since Emacs 28.1.
+      (error (tramp-compat-funcall 'userlock--handle-unlock-error err)))))
 
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."
@@ -4357,7 +4463,8 @@ of."
 (defun tramp-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
-  (setq filename (expand-file-name filename))
+  (setq filename (expand-file-name filename)
+	lockname (file-truename (or lockname filename)))
   (with-parsed-tramp-file-name filename nil
     (when (and mustbenew (file-exists-p filename)
 	       (or (eq mustbenew 'excl)
@@ -4366,7 +4473,8 @@ of."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let ((tmpfile (tramp-compat-make-temp-file filename))
+    (let ((file-locked (eq (file-locked-p lockname) t))
+	  (tmpfile (tramp-compat-make-temp-file filename))
 	  (modes (tramp-default-file-modes
 		  filename (and (eq mustbenew 'excl) 'nofollow)))
 	  (uid (or (tramp-compat-file-attribute-user-id
@@ -4375,6 +4483,15 @@ of."
 	  (gid (or (tramp-compat-file-attribute-group-id
 		    (file-attributes filename 'integer))
 		   (tramp-get-remote-gid v 'integer))))
+
+      ;; Lock file.
+      (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
+		 (file-remote-p lockname)
+		 (not file-locked))
+	(setq file-locked t)
+	;; `lock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'lock-file lockname))
+
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; The permissions of the temporary file should be set.  If
@@ -4386,7 +4503,8 @@ of."
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
-      (write-region start end tmpfile append 'no-message lockname)
+      (let (create-lockfiles)
+        (write-region start end tmpfile append 'no-message))
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error
@@ -4404,13 +4522,18 @@ of."
 	     (current-time))))
 
       ;; Set the ownership.
-      (tramp-set-file-uid-gid filename uid gid))
+      (tramp-set-file-uid-gid filename uid gid)
 
-    ;; The end.
-    (when (and (null noninteractive)
-	       (or (eq visit t) (null visit) (stringp visit)))
-      (tramp-message v 0 "Wrote %s" filename))
-    (run-hooks 'tramp-handle-write-region-hook)))
+      ;; Unlock file.
+      (when file-locked
+	;; `unlock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'unlock-file lockname))
+
+      ;; The end.
+      (when (and (null noninteractive)
+		 (or (eq visit t) (null visit) (stringp visit)))
+	(tramp-message v 0 "Wrote %s" filename))
+      (run-hooks 'tramp-handle-write-region-hook))))
 
 ;; This is used in tramp-sh.el and tramp-sudoedit.el.
 (defconst tramp-stat-marker "/////"
@@ -4466,6 +4589,9 @@ of."
 ;; prompts from the remote host.  See the variable
 ;; `tramp-actions-before-shell' for usage of these functions.
 
+(defvar tramp-process-action-regexp nil
+  "The regexp used to invoke an action in `tramp-process-one-action'.")
+
 (defun tramp-action-login (_proc vec)
   "Send the login name."
   (let ((user (or (tramp-file-name-user vec)
@@ -4491,7 +4617,7 @@ of."
       (unless (tramp-get-connection-property vec "first-password-request" nil)
 	(tramp-clear-passwd vec))
       (goto-char (point-min))
-      (tramp-check-for-regexp proc tramp-password-prompt-regexp)
+      (tramp-check-for-regexp proc tramp-process-action-regexp)
       (tramp-message vec 3 "Sending %s" (match-string 1))
       ;; We don't call `tramp-send-string' in order to hide the
       ;; password from the debug buffer and the traces.
@@ -4556,6 +4682,23 @@ The terminal type can be configured with `tramp-terminal-type'."
   (tramp-send-string vec tramp-local-end-of-line)
   t)
 
+(defun tramp-action-show-and-confirm-message (proc vec)
+  "Show the user a message for confirmation.
+Wait, until the connection buffer changes."
+  (with-current-buffer (process-buffer proc)
+    (let ((stimers (with-timeout-suspend)))
+      (tramp-message vec 6 "\n%s" (buffer-string))
+      (goto-char (point-min))
+      (tramp-check-for-regexp proc tramp-process-action-regexp)
+      (with-temp-message (replace-regexp-in-string "[\r\n]" "" (match-string 0))
+	;; Hide message in buffer.
+	(narrow-to-region (point-max) (point-max))
+	;; Wait for new output.
+	(tramp-wait-for-regexp proc 30 "."))
+      ;; Reenable the timers.
+      (with-timeout-unsuspend stimers)))
+  t)
+
 (defun tramp-action-process-alive (proc _vec)
   "Check, whether a process has finished."
   (unless (process-live-p proc)
@@ -4593,6 +4736,7 @@ The terminal type can be configured with `tramp-terminal-type'."
   "Wait for output from the shell and perform one action.
 See `tramp-process-actions' for the format of ACTIONS."
   (let ((case-fold-search t)
+	tramp-process-action-regexp
 	found todo item pattern action)
     (while (not found)
       ;; Reread output once all actions have been performed.
@@ -4601,7 +4745,8 @@ See `tramp-process-actions' for the format of ACTIONS."
       (setq todo actions)
       (while todo
 	(setq item (pop todo)
-	      pattern (format "\\(%s\\)\\'" (symbol-value (nth 0 item)))
+	      tramp-process-action-regexp (symbol-value (nth 0 item))
+	      pattern (format "\\(%s\\)\\'" tramp-process-action-regexp)
 	      action (nth 1 item))
 	(tramp-message
 	 vec 5 "Looking for regexp \"%s\" from remote shell" pattern)
@@ -5282,6 +5427,7 @@ this file, if that variable is non-nil."
 	  (setq result (tramp-run-real-handler #'make-auto-save-file-name nil))
 	;; Protect against security hole.
 	(when (and (not tramp-allow-unsafe-temporary-files)
+		   auto-save-default
 		   (file-in-directory-p result temporary-file-directory)
 		   (zerop (or (tramp-compat-file-attribute-user-id
 			       (file-attributes filename 'integer))

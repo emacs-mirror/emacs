@@ -671,6 +671,12 @@ This expects `auto-revert--messages' to be bound by
 (auto-revert--deftest-remote auto-revert-test07-auto-revert-several-buffers
   "Check autorevert for several buffers visiting the same remote file.")
 
+;; Mark all tests as unstable on Cygwin (bug#49665).
+(when (eq system-type 'cygwin)
+  (dolist (test (apropos-internal "^auto-revert" #'ert-test-boundp))
+    (setf (ert-test-tags (ert-get-test test))
+	  (cons :unstable (ert-test-tags (ert-get-test test))))))
+
 (defun auto-revert-test-all (&optional interactive)
   "Run all tests for \\[auto-revert]."
   (interactive "p")

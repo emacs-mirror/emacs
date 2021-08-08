@@ -1177,7 +1177,24 @@ See \"~/.mailcap\", `mailcap-mime-data' and related files and variables."
 		   (shell-quote-argument (convert-standard-filename file))
 		   command
 		   nil t))
-    (start-process-shell-command command nil command)))
+    ;; Handlers such as "gio open" and kde-open5 start viewer in background
+    ;; and exit immediately.  Avoid `start-process' since it assumes
+    ;; :connection-type `pty' and kills children processes with SIGHUP
+    ;; when temporary terminal session is finished (Bug#44824).
+    ;; An alternative is `process-connection-type' let-bound to nil for
+    ;; `start-process-shell-command' call (with no chance to report failure).
+    (make-process
+     :name "mailcap-view-file"
+     :connection-type 'pipe
+     :buffer nil ; "*Messages*" may be suitable for debugging
+     :sentinel (lambda (proc event)
+                 (when (and (memq (process-status proc) '(exit signal))
+                            (/= (process-exit-status proc) 0))
+                   (message
+                    "Command %s: %s."
+                    (mapconcat #'identity (process-command proc) " ")
+                    (substring event 0 -1))))
+     :command (list shell-file-name shell-command-switch command))))
 
 (provide 'mailcap)
 

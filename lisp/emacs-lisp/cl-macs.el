@@ -3623,6 +3623,14 @@ STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
                         "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'cl-macs-load-hook)
 
+;;; Pcase type pattern.
+
+;;;###autoload
+(pcase-defmacro cl-type (type)
+  "Pcase pattern that matches objects of TYPE.
+TYPE is a type descriptor as accepted by `cl-typep', which see."
+  `(pred (pcase--flip cl-typep ',type)))
+
 ;; Local variables:
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:

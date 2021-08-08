@@ -158,8 +158,8 @@ struct frame
      There are four additional elements of nil at the end, to terminate.  */
   Lisp_Object menu_bar_items;
 
-  /* Alist of elements (FACE-NAME . FACE-VECTOR-DATA).  */
-  Lisp_Object face_alist;
+  /* Hash table of FACE-NAME keys and FACE-VECTOR-DATA values.  */
+  Lisp_Object face_hash_table;
 
   /* A vector that records the entire structure of this frame's menu bar.
      For the format of the data, see extensive comments in xmenu.c.
@@ -672,9 +672,9 @@ fset_condemned_scroll_bars (struct frame *f, Lisp_Object val)
   f->condemned_scroll_bars = val;
 }
 INLINE void
-fset_face_alist (struct frame *f, Lisp_Object val)
+fset_face_hash_table (struct frame *f, Lisp_Object val)
 {
-  f->face_alist = val;
+  f->face_hash_table = val;
 }
 #if defined (HAVE_WINDOW_SYSTEM)
 INLINE void

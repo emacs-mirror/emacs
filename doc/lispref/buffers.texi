@@ -1183,7 +1183,7 @@ buffer.
 the base buffer effectively kills the indirect buffer in that it cannot
 ever again be the current buffer.
 
-@deffn Command make-indirect-buffer base-buffer name &optional clone
+@deffn Command make-indirect-buffer base-buffer name &optional clone inhibit-buffer-hooks
 This creates and returns an indirect buffer named @var{name} whose
 base buffer is @var{base-buffer}.  The argument @var{base-buffer} may
 be a live buffer or the name (a string) of an existing buffer.  If
@@ -1199,6 +1199,8 @@ If @var{base-buffer} is an indirect buffer, its base buffer is used as
 the base for the new buffer.  If, in addition, @var{clone} is
 non-@code{nil}, the initial state is copied from the actual base
 buffer, not from @var{base-buffer}.
+
+@xref{Creating Buffers}, for the meaning of @var{inhibit-buffer-hooks}.
 @end deffn
 
 @deffn Command clone-indirect-buffer newname display-flag &optional norecord

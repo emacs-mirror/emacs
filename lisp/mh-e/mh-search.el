@@ -1448,7 +1448,7 @@ being the list of messages originally from that folder."
 (defun mh-index-execute-commands ()
   "Perform the outstanding operations on the actual messages.
 The copies in the searched folder are then deleted, refiled,
-blacklisted and whitelisted to get the desired result. Before
+blocklisted and allowlisted to get the desired result. Before
 processing the messages we make sure that the message is
 identical to the one that the user has marked in the index
 buffer."
@@ -1465,12 +1465,12 @@ buffer."
            (with-current-buffer folder
              (let ((old-refile-list mh-refile-list)
                    (old-delete-list mh-delete-list)
-                   (old-blacklist mh-blacklist)
-                   (old-whitelist mh-whitelist))
+                   (old-blocklist mh-blocklist)
+                   (old-allowlist mh-allowlist))
                (setq mh-refile-list nil
                      mh-delete-list msgs
-                     mh-blacklist nil
-                     mh-whitelist nil)
+                     mh-blocklist nil
+                     mh-allowlist nil)
                (unwind-protect (mh-execute-commands)
                  (setq mh-refile-list
                        (mapcar (lambda (x)
@@ -1482,11 +1482,11 @@ buffer."
                        mh-delete-list
                        (cl-loop for x in old-delete-list
                                 unless (memq x msgs) collect x)
-                       mh-blacklist
-                       (cl-loop for x in old-blacklist
+                       mh-blocklist
+                       (cl-loop for x in old-blocklist
                                 unless (memq x msgs) collect x)
-                       mh-whitelist
-                       (cl-loop for x in old-whitelist
+                       mh-allowlist
+                       (cl-loop for x in old-allowlist
                                 unless (memq x msgs) collect x))
                  (mh-set-folder-modified-p (mh-outstanding-commands-p))
                  (when (mh-outstanding-commands-p)
@@ -1494,8 +1494,8 @@ buffer."
        (mh-index-matching-source-msgs (append (cl-loop for x in mh-refile-list
                                                        append (cdr x))
                                               mh-delete-list
-                                              mh-blacklist
-                                              mh-whitelist)
+                                              mh-blocklist
+                                              mh-allowlist)
                                       t))
       folders)))
 

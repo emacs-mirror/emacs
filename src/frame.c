@@ -1018,6 +1018,10 @@ make_frame (bool mini_p)
   rw->total_lines = FRAME_LINES (f) - (mini_p ? 1 : 0);
   rw->pixel_height = rw->total_lines * FRAME_LINE_HEIGHT (f);
 
+  fset_face_hash_table
+    (f, make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE, DEFAULT_REHASH_SIZE,
+                         DEFAULT_REHASH_THRESHOLD, Qnil, false));
+
   if (mini_p)
     {
       mw->top_line = rw->total_lines;
@@ -1326,7 +1330,7 @@ affects all frames on the same terminal device.  */)
 {
   struct frame *f;
   struct terminal *t = NULL;
-  Lisp_Object frame, tem;
+  Lisp_Object frame;
   struct frame *sf = SELECTED_FRAME ();
 
 #ifdef MSDOS
@@ -1408,14 +1412,16 @@ affects all frames on the same terminal device.  */)
   store_in_alist (&parms, Qminibuffer, Qt);
   Fmodify_frame_parameters (frame, parms);
 
-  /* Make the frame face alist be frame-specific, so that each
+  /* Make the frame face hash be frame-specific, so that each
      frame could change its face definitions independently.  */
-  fset_face_alist (f, Fcopy_alist (sf->face_alist));
-  /* Simple Fcopy_alist isn't enough, because we need the contents of
-     the vectors which are the CDRs of associations in face_alist to
+  fset_face_hash_table (f, Fcopy_hash_table (sf->face_hash_table));
+  /* Simple copy_hash_table isn't enough, because we need the contents of
+     the vectors which are the values in face_hash_table to
      be copied as well.  */
-  for (tem = f->face_alist; CONSP (tem); tem = XCDR (tem))
-    XSETCDR (XCAR (tem), Fcopy_sequence (XCDR (XCAR (tem))));
+  ptrdiff_t idx = 0;
+  struct Lisp_Hash_Table *table = XHASH_TABLE (f->face_hash_table);
+  for (idx = 0; idx < table->count; ++idx)
+    set_hash_value_slot (table, idx, Fcopy_sequence (HASH_VALUE (table, idx)));
 
   f->can_set_window_size = true;
   f->after_make_frame = true;

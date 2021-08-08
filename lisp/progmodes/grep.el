@@ -389,7 +389,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
                    (and mbeg (next-single-property-change
                               mbeg 'font-lock-face nil end))))
              (when mend
-               (- mend beg))))))
+               (- mend beg 1))))))
      nil nil
      (3 '(face nil display ":")))
     ("^Binary file \\(.+\\) matches" 1 nil nil 0 1))
@@ -1344,6 +1344,13 @@ command before it's run."
         ;; since `zgrep' puts filters in the grep output.
         (grep-highlight-matches 'always))
     (rgrep regexp files dir confirm)))
+
+(defun grep-file-at-point (point)
+  "Return the name of the file at POINT a `grep-mode' buffer.
+The returned file name is relative."
+  (when-let ((msg (get-text-property point 'compilation-message))
+             (loc (compilation--message->loc msg)))
+    (caar (compilation--loc->file-struct loc))))
 
 ;;;###autoload
 (defalias 'rzgrep 'zrgrep)

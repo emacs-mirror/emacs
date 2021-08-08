@@ -2391,6 +2391,7 @@ nil default-directory" name)
 				  (command-line-normalize-file-name name)
 				  dir))
 			   (buf (find-file-noselect file)))
+                      (file-name-history--add file)
 		      (setq displayable-buffers (cons buf displayable-buffers))
                       ;; Set the file buffer to the current buffer so
                       ;; that it will be used with "--eval" and

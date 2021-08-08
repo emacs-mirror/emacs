@@ -316,7 +316,9 @@ be $HOME."
 
 (ert-deftest files-tests-file-name-non-special--subprocess ()
   "Check that Bug#25949 and Bug#48177 are fixed."
-  (skip-unless (and (executable-find "true") (file-exists-p null-device)))
+  (skip-unless (and (executable-find "true") (file-exists-p null-device)
+                    ;; These systems cannot set date of the null device.
+                    (not (memq system-type '(windows-nt ms-dos)))))
   (let ((default-directory (file-name-quote temporary-file-directory))
         (true (file-name-quote (executable-find "true")))
         (null (file-name-quote null-device)))
@@ -949,6 +951,55 @@ unquoted file names."
                              (make-auto-save-file-name)
                            (kill-buffer)))))))
 
+(ert-deftest files-test-auto-save-name-default ()
+  (with-temp-buffer
+    (let ((auto-save-file-name-transforms nil)
+          (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+      (setq buffer-file-name "/tmp/foo.txt")
+      (should (equal (substring (make-auto-save-file-name) name-start)
+                     "/tmp/#foo.txt#")))))
+
+(ert-deftest files-test-auto-save-name-transform ()
+  (with-temp-buffer
+    (setq buffer-file-name "/tmp/foo.txt")
+    (let ((auto-save-file-name-transforms
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" nil)))
+          (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+      (should (equal (substring (make-auto-save-file-name) name-start)
+                     "/var/tmp/#foo.txt#")))))
+
+(ert-deftest files-test-auto-save-name-unique ()
+  (with-temp-buffer
+    (setq buffer-file-name "/tmp/foo.txt")
+    (let ((auto-save-file-name-transforms
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t)))
+          (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+      (should (equal (substring (make-auto-save-file-name) name-start)
+                     "/var/tmp/#!tmp!foo.txt#")))
+    (let ((auto-save-file-name-transforms
+           '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" sha1)))
+          (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+      (should (equal (substring (make-auto-save-file-name) name-start)
+                     "/var/tmp/#b57c5a04f429a83305859d3350ecdab8315a9037#")))))
+
+(ert-deftest files-test-lock-name-default ()
+  (let ((lock-file-name-transforms nil)
+        (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+    (should (equal (substring (make-lock-file-name "/tmp/foo.txt") name-start)
+                   "/tmp/.#foo.txt"))))
+
+(ert-deftest files-test-lock-name-unique ()
+  (let ((lock-file-name-transforms
+         '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t)))
+        (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+    (should (equal (substring (make-lock-file-name "/tmp/foo.txt") name-start)
+                   "/var/tmp/.#!tmp!foo.txt")))
+  (let ((lock-file-name-transforms
+         '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" sha1)))
+        (name-start (if (memq system-type '(windows-nt ms-dos)) 2 nil)))
+    (should (equal (substring (make-lock-file-name "/tmp/foo.txt") name-start)
+                   "/var/tmp/.#b57c5a04f429a83305859d3350ecdab8315a9037"))))
+
 (ert-deftest files-tests-file-name-non-special-make-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (let ((default-directory nospecial-dir))
@@ -1410,7 +1461,12 @@ See <https://debbugs.gnu.org/36401>."
       (should (equal (parse-colon-path "x:/foo//bar/baz")
                      '("x:/foo/bar/baz/")))
     (should (equal (parse-colon-path "/foo//bar/baz")
-                 '("/foo/bar/baz/")))))
+                   '("/foo/bar/baz/"))))
+  (let* ((path (concat "." path-separator "/tmp"))
+         (parsed-path (parse-colon-path path))
+         (name-start (if (memq system-type '(windows-nt ms-dos)) 2)))
+    (should (equal (car parsed-path) "./"))
+    (should (equal (substring (cadr parsed-path) name-start) "/tmp/"))))
 
 (ert-deftest files-test-magic-mode-alist-doctype ()
   "Test that DOCTYPE and variants put files in mhtml-mode."
@@ -1495,6 +1551,17 @@ The door of all subtleties!
   (should-error (file-name-with-extension "Jack" ""))
   (should-error (file-name-with-extension "Jack" "."))
   (should-error (file-name-with-extension "/is/a/directory/" "css")))
+
+(ert-deftest files-test-dir-locals-auto-mode-alist ()
+  "Test an `auto-mode-alist' entry in `.dir-locals.el'"
+  (find-file (ert-resource-file "whatever.quux"))
+  (should (eq major-mode 'tcl-mode))
+  (find-file (ert-resource-file "auto-test.zot1"))
+  (should (eq major-mode 'fundamental-mode))
+  (find-file (ert-resource-file "auto-test.zot2"))
+  (should (eq major-mode 'fundamental-mode))
+  (find-file (ert-resource-file "auto-test.zot3"))
+  (should (eq major-mode 'fundamental-mode)))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

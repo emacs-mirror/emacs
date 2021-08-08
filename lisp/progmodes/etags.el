@@ -2059,22 +2059,43 @@ for \\[find-tag] (which see)."
 If you want `xref-find-definitions' to find the tagged files by their
 file name, add `tag-partial-file-name-match-p' to the list value.")
 
+(defcustom etags-xref-prefer-current-file nil
+  "Non-nil means show the matches in the current file first."
+  :type 'boolean
+  :version "28.1")
+
 ;;;###autoload
 (defun etags--xref-backend () 'etags)
 
-(cl-defmethod xref-backend-identifier-at-point ((_backend (eql etags)))
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'etags)))
   (find-tag--default))
 
-(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql etags)))
+(cl-defmethod xref-backend-identifier-completion-table ((_backend
+                                                         (eql 'etags)))
   (tags-lazy-completion-table))
 
-(cl-defmethod xref-backend-identifier-completion-ignore-case ((_backend (eql etags)))
+(cl-defmethod xref-backend-identifier-completion-ignore-case ((_backend
+                                                               (eql 'etags)))
   (find-tag--completion-ignore-case))
 
-(cl-defmethod xref-backend-definitions ((_backend (eql etags)) symbol)
-  (etags--xref-find-definitions symbol))
+(cl-defmethod xref-backend-definitions ((_backend (eql 'etags)) symbol)
+  (let ((file (and buffer-file-name (expand-file-name buffer-file-name)))
+        (definitions (etags--xref-find-definitions symbol))
+        same-file-definitions)
+    (when (and etags-xref-prefer-current-file file)
+      (cl-delete-if
+       (lambda (definition)
+         (when (equal file
+                      (xref-location-group
+                       (xref-item-location definition)))
+           (push definition same-file-definitions)
+           t))
+       definitions)
+      (setq definitions (nconc (nreverse same-file-definitions)
+                               definitions)))
+    definitions))
 
-(cl-defmethod xref-backend-apropos ((_backend (eql etags)) pattern)
+(cl-defmethod xref-backend-apropos ((_backend (eql 'etags)) pattern)
   (etags--xref-find-definitions (xref-apropos-regexp pattern) t))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)

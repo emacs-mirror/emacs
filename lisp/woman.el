@@ -1274,9 +1274,11 @@ cache to be re-read."
        ;; Complete topic more carefully, i.e. use the completion
        ;; rather than the string entered by the user:
        ((setq files (all-completions topic woman-topic-all-completions))
-	(while (/= (length topic) (length (car files)))
+	(while (and files
+                    (/= (length topic) (length (car files))))
 	  (setq files (cdr files)))
-	(setq files (woman-file-name-all-completions (car files)))))
+        (when files
+	  (setq files (woman-file-name-all-completions (car files))))))
       (cond
        ((null files) nil)		; no file found for topic.
        ((null (cdr files)) (car (car files))) ; only 1 file for topic.

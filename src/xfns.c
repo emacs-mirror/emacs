@@ -3361,17 +3361,19 @@ x_icon (struct frame *f, Lisp_Object parms)
     = gui_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   int icon_xval, icon_yval;
 
-  if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
+  bool xgiven = !EQ (icon_x, Qunbound);
+  bool ygiven = !EQ (icon_y, Qunbound);
+  if (xgiven != ygiven)
+    error ("Both left and top icon corners of icon must be specified");
+  if (xgiven)
     {
       icon_xval = check_integer_range (icon_x, INT_MIN, INT_MAX);
       icon_yval = check_integer_range (icon_y, INT_MIN, INT_MAX);
     }
-  else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
-    error ("Both left and top icon corners of icon must be specified");
 
   block_input ();
 
-  if (! EQ (icon_x, Qunbound))
+  if (xgiven)
     x_wm_set_icon_position (f, icon_xval, icon_yval);
 
 #if false /* gui_display_get_arg removes the visibility parameter as a

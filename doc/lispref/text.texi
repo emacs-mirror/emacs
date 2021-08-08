@@ -315,10 +315,11 @@ word on the same line is acceptable.
 @defun thing-at-point thing &optional no-properties
 Return the @var{thing} around or next to point, as a string.
 
-The argument @var{thing} is a symbol which specifies a kind of syntactic
-entity.  Possibilities include @code{symbol}, @code{list}, @code{sexp},
-@code{defun}, @code{filename}, @code{url}, @code{word}, @code{sentence},
-@code{whitespace}, @code{line}, @code{page}, and others.
+The argument @var{thing} is a symbol which specifies a kind of
+syntactic entity.  Possibilities include @code{symbol}, @code{list},
+@code{sexp}, @code{defun}, @code{filename}, @code{existing-filename},
+@code{url}, @code{word}, @code{sentence}, @code{whitespace},
+@code{line}, @code{page}, and others.
 
 When the optional argument @var{no-properties} is non-@code{nil}, this
 function strips text properties from the return value.
@@ -500,6 +501,15 @@ We hold these truth@point{}
 @defun insert-buffer-substring-no-properties from-buffer-or-name &optional start end
 This is like @code{insert-buffer-substring} except that it does not
 copy any text properties.
+@end defun
+
+@defun insert-into-buffer to-buffer &optional start end
+This is like @code{insert-buffer-substring}, but works in the opposite
+direction: The text is copied from the current buffer into
+@var{to-buffer}.  The block of text is copied to the current point in
+@var{to-buffer}, and point (in that buffer) is advanced to after the
+end of the copied text.  Is @code{start}/@code{end} is @code{nil}, the
+entire text in the current buffer is copied over.
 @end defun
 
   @xref{Sticky Properties}, for other insertion functions that inherit
@@ -4399,7 +4409,8 @@ based on their character codes.
 @cindex replace characters
 This function replaces all occurrences of the character @var{old-char}
 with the character @var{new-char} in the region of the current buffer
-defined by @var{start} and @var{end}.
+defined by @var{start} and @var{end}.  Both characters must have the
+same length of their multibyte form.
 
 @cindex undo avoidance
 If @var{noundo} is non-@code{nil}, then @code{subst-char-in-region} does
@@ -4426,6 +4437,16 @@ ThXs Xs the contents of the buffer before.
 ---------- Buffer: foo ----------
 @end group
 @end example
+@end defun
+
+
+@defun subst-char-in-string fromchar tochar string &optional inplace
+@cindex replace characters in string
+This function replaces all occurrences of the character @var{fromchar}
+with @var{tochar} in @var{string}.  By default, substitution occurs in
+a copy of @var{string}, but if the optional argument @var{inplace} is
+non-@code{nil}, the function modifies the @var{string} itself.  In any
+case, the function returns the resulting string.
 @end defun
 
 @deffn Command translate-region start end table
@@ -5281,11 +5302,20 @@ represents @code{@{@}}, the empty JSON object; not @code{null},
 @code{false}, or an empty array, all of which are different JSON
 values.
 
+@defun json-available-p
+This predicate returns non-@code{nil} if Emacs has been built with
+@acronym{JSON} support, and the library is available on the current
+system.
+@end defun
+
   If some Lisp object can't be represented in JSON, the serialization
 functions will signal an error of type @code{wrong-type-argument}.
 The parsing functions can also signal the following errors:
 
 @table @code
+@item json-unavailable
+Signaled when the parsing library isn't available.
+
 @item json-end-of-file
 Signaled when encountering a premature end of the input text.
 

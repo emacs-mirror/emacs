@@ -657,33 +657,33 @@ The port (if any) is omitted.  IP can be a string, as well."
 OP can be one of: unpack', (pack VAL), or (length VAL) where VAL
 is the name of a variable that will hold the value we need to pack.")
 
-(cl-defmethod bindat--type (op (_ (eql byte)))
+(cl-defmethod bindat--type (op (_ (eql 'byte)))
   (bindat--pcase op
     ('unpack `(bindat--unpack-u8))
     (`(length . ,_) `(cl-incf bindat-idx 1))
     (`(pack . ,args) `(bindat--pack-u8 . ,args))))
 
-(cl-defmethod bindat--type (op (_ (eql uint))  n)
+(cl-defmethod bindat--type (op (_ (eql 'uint))  n)
   (if (eq n 8) (bindat--type op 'byte)
     (bindat--pcase op
       ('unpack `(bindat--unpack-uint ,n))
       (`(length . ,_) `(cl-incf bindat-idx (/ ,n 8)))
       (`(pack . ,args) `(bindat--pack-uint ,n . ,args)))))
 
-(cl-defmethod bindat--type (op (_ (eql uintr)) n)
+(cl-defmethod bindat--type (op (_ (eql 'uintr)) n)
   (if (eq n 8) (bindat--type op 'byte)
     (bindat--pcase op
       ('unpack `(bindat--unpack-uintr ,n))
       (`(length . ,_) `(cl-incf bindat-idx (/ ,n 8)))
       (`(pack . ,args) `(bindat--pack-uintr ,n . ,args)))))
 
-(cl-defmethod bindat--type (op (_ (eql str))   len)
+(cl-defmethod bindat--type (op (_ (eql 'str))   len)
   (bindat--pcase op
     ('unpack `(bindat--unpack-str ,len))
     (`(length . ,_) `(cl-incf bindat-idx ,len))
     (`(pack . ,args) `(bindat--pack-str ,len . ,args))))
 
-(cl-defmethod bindat--type (op (_ (eql strz))  &optional len)
+(cl-defmethod bindat--type (op (_ (eql 'strz))  &optional len)
   (bindat--pcase op
     ('unpack `(bindat--unpack-strz ,len))
     (`(length ,val)
@@ -701,25 +701,25 @@ is the name of a variable that will hold the value we need to pack.")
             (bindat--pack-str ,len . ,args)
           (bindat--pack-strz . ,args))))))
 
-(cl-defmethod bindat--type (op (_ (eql bits))  len)
+(cl-defmethod bindat--type (op (_ (eql 'bits))  len)
   (bindat--pcase op
     ('unpack `(bindat--unpack-bits ,len))
     (`(length . ,_) `(cl-incf bindat-idx ,len))
     (`(pack . ,args) `(bindat--pack-bits ,len . ,args))))
 
-(cl-defmethod bindat--type (_op (_ (eql fill))  len)
+(cl-defmethod bindat--type (_op (_ (eql 'fill))  len)
   `(progn (cl-incf bindat-idx ,len) nil))
 
-(cl-defmethod bindat--type (_op (_ (eql align)) len)
+(cl-defmethod bindat--type (_op (_ (eql 'align)) len)
   `(progn (cl-callf bindat--align bindat-idx ,len) nil))
 
-(cl-defmethod bindat--type (op (_ (eql type)) exp)
+(cl-defmethod bindat--type (op (_ (eql 'type)) exp)
   (bindat--pcase op
     ('unpack        `(funcall (bindat--type-ue ,exp)))
     (`(length . ,args) `(funcall (bindat--type-le ,exp) . ,args))
     (`(pack . ,args)   `(funcall (bindat--type-pe ,exp) . ,args))))
 
-(cl-defmethod bindat--type (op (_ (eql vec)) count &rest type)
+(cl-defmethod bindat--type (op (_ (eql 'vec)) count &rest type)
   (unless type (setq type '(byte)))
   (let ((fun (macroexpand-all (bindat--fun type) macroexpand-all-environment)))
     (bindat--pcase op
@@ -743,10 +743,10 @@ is the name of a variable that will hold the value we need to pack.")
        `(dotimes (bindat--i ,count)
 	  (funcall ,fun (elt ,val bindat--i)))))))
 
-(cl-defmethod bindat--type (op (_ (eql unit)) val)
+(cl-defmethod bindat--type (op (_ (eql 'unit)) val)
   (pcase op ('unpack val) (_ nil)))
 
-(cl-defmethod bindat--type (op (_ (eql struct)) &rest args)
+(cl-defmethod bindat--type (op (_ (eql 'struct)) &rest args)
   (apply #'bindat--type op args))
 
 (cl-defmethod bindat--type (op (_ (eql :pack-var)) var &rest fields)

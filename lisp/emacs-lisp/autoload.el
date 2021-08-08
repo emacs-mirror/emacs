@@ -250,7 +250,10 @@ expression, in which case we want to handle forms differently."
 	   (custom-autoload ',varname ,file
                             ,(condition-case nil
                                  (null (plist-get props :set))
-                               (error nil))))))
+                               (error nil)))
+           ;; Propagate the :safe property to the loaddefs file.
+           ,@(when-let ((safe (plist-get props :safe)))
+               `((put ',varname 'safe-local-variable ,safe))))))
 
      ((eq car 'defgroup)
       ;; In Emacs this is normally handled separately by cus-dep.el, but for
@@ -623,8 +626,8 @@ Don't try to split prefixes that are already longer than that.")
                       (radix-tree-iter-mappings
                        (cdr x) (lambda (s _)
                                  (push (concat prefix s) dropped)))
-                      (message "Not registering prefix \"%s\" from %s.  Affects: %S"
-                               prefix file dropped)
+                      (message "%s:0: Warning: Not registering prefix \"%s\".  Affects: %S"
+                               file prefix dropped)
                       nil))))
               prefixes)))
         `(register-definition-prefixes ,file ',(sort (delq nil strings)

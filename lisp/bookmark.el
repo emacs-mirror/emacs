@@ -467,18 +467,18 @@ See user option `bookmark-fontify'."
   "Remove a bookmark's colorized overlay.
 BM is a bookmark as returned from function `bookmark-get-bookmark'.
 See user option `bookmark-fontify'."
-  (let ((filename (assq 'filename bm))
-        (pos      (assq 'position bm))
+  (let ((filename (cdr (assq 'filename bm)))
+        (pos (cdr (assq 'position bm)))
         overlays found temp)
-    (when filename (setq filename (expand-file-name (cdr filename))))
-    (when pos (setq pos (cdr pos)))
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf
-        (when (equal filename buffer-file-name)
-          (setq overlays (overlays-at pos))
-          (while (and (not found) (setq temp (pop overlays)))
-            (when (eq 'bookmark (overlay-get temp 'category))
-              (delete-overlay (setq found temp)))))))))
+    (when (and pos filename)
+      (setq filename (expand-file-name filename))
+      (dolist (buf (buffer-list))
+        (with-current-buffer buf
+          (when (equal filename buffer-file-name)
+            (setq overlays (overlays-at pos))
+            (while (and (not found) (setq temp (pop overlays)))
+              (when (eq 'bookmark (overlay-get temp 'category))
+                (delete-overlay (setq found temp))))))))))
 
 (defun bookmark-completing-read (prompt &optional default)
   "Prompting with PROMPT, read a bookmark name in completion.
@@ -561,10 +561,14 @@ old one."
     (set-text-properties 0 (length stripped-name) nil stripped-name)
     (if (and (not no-overwrite)
              (bookmark-get-bookmark stripped-name 'noerror))
-        ;; already existing bookmark under that name and
-        ;; no prefix arg means just overwrite old bookmark
-        ;; Use the new (NAME . ALIST) format.
-        (setcdr (bookmark-get-bookmark stripped-name) alist)
+        ;; Already existing bookmark under that name and
+        ;; no prefix arg means just overwrite old bookmark.
+        (let ((bm (bookmark-get-bookmark stripped-name)))
+          ;; First clean up if previously location was fontified.
+          (when bookmark-fontify
+            (bookmark--unfontify bm))
+          ;; Modify using the new (NAME . ALIST) format.
+          (setcdr bm alist))
 
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either

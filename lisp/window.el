@@ -8733,6 +8733,13 @@ documentation for additional customization information."
 BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
 nil.  Return the buffer switched to.
 
+This uses the function `display-buffer' as a subroutine to
+display the buffer; see its documentation for additional
+customization information.  By default, if the buffer is already
+displayed (even in the current frame), that window is selected.
+If the buffer isn't displayed in any frame, a new frame is popped
+up and the buffer is displayed there.
+
 If called interactively, read the buffer name using `read-buffer'.
 The variable `confirm-nonexistent-file-or-buffer' determines
 whether to request confirmation before creating a new buffer.
@@ -8744,10 +8751,7 @@ buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
 nil, switch to the buffer returned by `other-buffer'.
 
 Optional second arg NORECORD non-nil means do not put this
-buffer at the front of the list of recently selected ones.
-
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
+buffer at the front of the list of recently selected ones."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (pop-to-buffer buffer-or-name display-buffer--other-frame-action norecord))

@@ -525,25 +525,26 @@ be set in `.emacs' instead."
 
 ;; Summary mode faces.
 
-(defface gnus-summary-selected '((t (:underline t)))
+(defface gnus-summary-selected '((t (:underline t :extend t)))
   "Face used for selected articles."
   :group 'gnus-summary)
 
 (defface gnus-summary-cancelled
   '((((class color))
-     (:foreground "yellow" :background "black")))
+     (:foreground "yellow" :background "black" :extend t))
+    (t (:extend t)))
   "Face used for canceled articles."
   :group 'gnus-summary)
 
 (defface gnus-summary-normal-ticked
   '((((class color)
       (background dark))
-     (:foreground "pink"))
+     (:foreground "pink" :extend t))
     (((class color)
       (background light))
-     (:foreground "firebrick"))
+     (:foreground "firebrick" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest ticked articles."
   :group 'gnus-summary)
 
@@ -560,12 +561,12 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-ancient
   '((((class color)
       (background dark))
-     (:foreground "SkyBlue"))
+     (:foreground "SkyBlue" :extend t))
     (((class color)
       (background light))
-     (:foreground "RoyalBlue"))
+     (:foreground "RoyalBlue" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest ancient articles."
   :group 'gnus-summary)
 
@@ -582,10 +583,10 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-undownloaded
    '((((class color)
        (background light))
-      (:foreground "cyan4" :bold nil))
+      (:foreground "cyan4" :bold nil :extend t))
      (((class color) (background dark))
-      (:foreground "LightGray" :bold nil))
-     (t (:inverse-video t)))
+      (:foreground "LightGray" :bold nil :extend t))
+     (t (:inverse-video t :extend t)))
   "Face used for normal interest uncached articles."
   :group 'gnus-summary)
 
@@ -601,7 +602,7 @@ be set in `.emacs' instead."
 
 (defface gnus-summary-normal-unread
   '((t
-     ()))
+     (:extend t)))
   "Face used for normal interest unread articles."
   :group 'gnus-summary)
 
@@ -618,12 +619,12 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-read
   '((((class color)
       (background dark))
-     (:foreground "PaleGreen"))
+     (:foreground "PaleGreen" :extend t))
     (((class color)
       (background light))
-     (:foreground "DarkGreen"))
+     (:foreground "DarkGreen" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest read articles."
   :group 'gnus-summary)
 

@@ -519,6 +519,7 @@ shell from reading its init file."
     (tramp-yn-prompt-regexp tramp-action-yn)
     (tramp-terminal-prompt-regexp tramp-action-terminal)
     (tramp-antispoof-regexp tramp-action-confirm-message)
+    (tramp-yubikey-regexp tramp-action-show-and-confirm-message)
     (tramp-process-alive-regexp tramp-action-process-alive))
   "List of pattern/action pairs.
 Whenever a pattern matches, the corresponding action is performed.
@@ -536,6 +537,7 @@ corresponding PATTERN matches, the ACTION function is called.")
   '((tramp-password-prompt-regexp tramp-action-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-copy-failed-regexp tramp-action-permission-denied)
+    (tramp-yubikey-regexp tramp-action-show-and-confirm-message)
     (tramp-process-alive-regexp tramp-action-out-of-band))
   "List of pattern/action pairs.
 This list is used for copying/renaming with out-of-band methods.
@@ -962,6 +964,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (file-exists-p . tramp-sh-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-sh-handle-file-local-copy)
+    (file-locked-p . tramp-handle-file-locked-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-sh-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -988,9 +991,11 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (insert-directory . tramp-sh-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
+    (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-sh-handle-make-directory)
     ;; `make-directory-internal' performed by default handler.
+    (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-sh-handle-make-process)
     (make-symbolic-link . tramp-sh-handle-make-symbolic-link)
@@ -1009,6 +1014,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (tramp-get-remote-uid . tramp-sh-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sh-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
+    (unlock-file . tramp-handle-unlock-file)
     (vc-registered . tramp-sh-handle-vc-registered)
     (verify-visited-file-modtime . tramp-sh-handle-verify-visited-file-modtime)
     (write-region . tramp-sh-handle-write-region))
@@ -1940,7 +1946,7 @@ file names."
 	  (length (tramp-compat-file-attribute-size
 		   (file-attributes (file-truename filename))))
 	  (attributes (and preserve-extended-attributes
-			   (apply #'file-extended-attributes (list filename))))
+			   (file-extended-attributes filename)))
 	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -2016,7 +2022,7 @@ file names."
 	  ;; errors, because ACL strings could be incompatible.
 	  (when attributes
 	    (ignore-errors
-	      (apply #'set-file-extended-attributes (list newname attributes))))
+	      (set-file-extended-attributes newname attributes)))
 
 	  ;; In case of `rename', we must flush the cache of the source file.
 	  (when (and t1 (eq op 'rename))
@@ -2675,7 +2681,7 @@ the result will be a local, non-Tramp, file name."
       (tramp-run-real-handler #'expand-file-name (list name dir))
     ;; Unless NAME is absolute, concat DIR and NAME.
     (unless (file-name-absolute-p name)
-      (setq name (concat (file-name-as-directory dir) name)))
+      (setq name (tramp-compat-file-name-concat dir name)))
     ;; If connection is not established yet, run the real handler.
     (if (not (tramp-connectable-p name))
 	(tramp-run-real-handler #'expand-file-name (list name nil))
@@ -3025,7 +3031,7 @@ implementation will be used."
   (when (and (numberp destination) (zerop destination))
     (error "Implementation does not handle immediate return"))
 
-  (with-parsed-tramp-file-name default-directory nil
+  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
     (let (command env uenv input tmpinput stderr tmpstderr outbuf ret)
       ;; Compute command.
       (setq command (mapconcat #'tramp-shell-quote-argument
@@ -3235,7 +3241,8 @@ implementation will be used."
 (defun tramp-sh-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
-  (setq filename (expand-file-name filename))
+  (setq filename (expand-file-name filename)
+	lockname (file-truename (or lockname filename)))
   (with-parsed-tramp-file-name filename nil
     (when (and mustbenew (file-exists-p filename)
 	       (or (eq mustbenew 'excl)
@@ -3244,23 +3251,31 @@ implementation will be used."
 		     (format "File %s exists; overwrite anyway? " filename)))))
       (tramp-error v 'file-already-exists filename))
 
-    (let ((uid (or (tramp-compat-file-attribute-user-id
+    (let ((file-locked (eq (file-locked-p lockname) t))
+	  (uid (or (tramp-compat-file-attribute-user-id
 		    (file-attributes filename 'integer))
 		   (tramp-get-remote-uid v 'integer)))
 	  (gid (or (tramp-compat-file-attribute-group-id
 		    (file-attributes filename 'integer))
 		   (tramp-get-remote-gid v 'integer))))
 
+      ;; Lock file.
+      (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
+		 (file-remote-p lockname)
+		 (not file-locked))
+	(setq file-locked t)
+	;; `lock-file' exists since Emacs 28.1.
+	(tramp-compat-funcall 'lock-file lockname))
+
       (if (and (tramp-local-host-p v)
 	       ;; `file-writable-p' calls `file-expand-file-name'.  We
 	       ;; cannot use `tramp-run-real-handler' therefore.
-	       (let (file-name-handler-alist)
-		 (and
-		  (file-writable-p (file-name-directory localname))
-		  (or (file-directory-p localname)
-		      (file-writable-p localname)))))
+	       (file-writable-p (file-name-directory localname))
+	       (or (file-directory-p localname)
+		   (file-writable-p localname)))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (write-region start end localname append 'no-message lockname)
+	  (let ((create-lockfiles (not file-locked)))
+	    (write-region start end localname append 'no-message lockname))
 
 	(let* ((modes (tramp-default-file-modes
 		       filename (and (eq mustbenew 'excl) 'nofollow)))
@@ -3294,9 +3309,10 @@ implementation will be used."
 	  ;; on.  We must ensure that `file-coding-system-alist'
 	  ;; matches `tmpfile'.
 	  (let ((file-coding-system-alist
-		 (tramp-find-file-name-coding-system-alist filename tmpfile)))
+		 (tramp-find-file-name-coding-system-alist filename tmpfile))
+                create-lockfiles)
 	    (condition-case err
-		(write-region start end tmpfile append 'no-message lockname)
+		(write-region start end tmpfile append 'no-message)
 	      ((error quit)
 	       (setq tramp-temp-buffer-file-name nil)
 	       (delete-file tmpfile)
@@ -3465,6 +3481,12 @@ implementation will be used."
 	;; Set the ownership.
         (when need-chown
           (tramp-set-file-uid-gid filename uid gid))
+
+	;; Unlock file.
+	(when file-locked
+	  ;; `unlock-file' exists since Emacs 28.1.
+	  (tramp-compat-funcall 'unlock-file lockname))
+
 	(when (and (null noninteractive)
 		   (or (eq visit t) (null visit) (stringp visit)))
 	  (tramp-message v 0 "Wrote %s" filename))
@@ -4762,7 +4784,9 @@ Goes through the list `tramp-inline-compress-commands'."
 	      (with-temp-buffer
 		(tramp-call-process vec "scp" nil t nil "-T")
 		(goto-char (point-min))
-		(unless (search-forward-regexp "unknown option -- T" nil t)
+		(unless
+                    (search-forward-regexp
+                     "\\(illegal\\|unknown\\) option -- T" nil t)
 		  (setq tramp-scp-strict-file-name-checking "-T")))))))
       tramp-scp-strict-file-name-checking)))
 

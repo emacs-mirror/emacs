@@ -25,10 +25,13 @@
 
 ;; This file provides minor modes for putting clickable overlays on
 ;; references to bugs.  A bug reference is text like "PR foo/29292";
-;; this is mapped to a URL using a user-supplied format.
+;; this is mapped to a URL using a user-supplied format; see
+;; `bug-reference-url-format' and `bug-reference-bug-regexp'. More
+;; extensive documentation is in (info "(emacs) Bug Reference").
 
 ;; Two minor modes are provided.  One works on any text in the buffer;
-;; the other operates only on comments and strings.
+;; the other operates only on comments and strings. By default, the
+;; URL link is followed by invoking C-c RET or mouse-2.
 
 ;;; Code:
 
@@ -126,6 +129,9 @@ The second subexpression should match the bug reference (usually a number)."
   "Open URL corresponding to the bug reference at POS."
   (interactive
    (list (if (integerp last-command-event) (point) last-command-event)))
+  (when (null bug-reference-url-format)
+    (user-error
+     "You must customize some bug-reference variables; see Emacs info node Bug Reference"))
   (if (and (not (integerp pos)) (eventp pos))
       ;; POS is a mouse event; switch to the proper window/buffer
       (let ((posn (event-start pos)))
@@ -178,6 +184,22 @@ The second subexpression should match the bug reference (usually a number)."
                     "/issues/"
                     (match-string 2))))))
     ;;
+    ;; Codeberg projects.
+    ;;
+    ;; The systematics is exactly as for Github projects.
+    ("[/@]codeberg.org[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
+     "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+     ,(lambda (groups)
+        (let ((ns-project (nth 1 groups)))
+          (lambda ()
+            (concat "https://codeberg.org/"
+                    (or
+                     ;; Explicit user/proj#18 link.
+                     (match-string 1)
+                     ns-project)
+                    "/issues/"
+                    (match-string 2))))))
+    ;;
     ;; GitLab projects.
     ;;
     ;; Here #18 is an issue and !17 is a merge request.  Explicit
@@ -195,6 +217,30 @@ The second subexpression should match the bug reference (usually a number)."
                     (if (string= (match-string 3) "#")
                         "issues/"
                       "merge_requests/")
+                    (match-string 2))))))
+    ;;
+    ;; Sourcehut projects.
+    ;;
+    ;; #19 is an issue.  Other project's issues can be referenced as
+    ;; #~user/project#19.
+    ;;
+    ;; Caveat: The code assumes that a project on git.sr.ht or
+    ;; hg.sr.ht has a tracker of the same name on todo.sh.ht.  That's
+    ;; a very common setup but all sr.ht services are loosely coupled,
+    ;; so you can have a repo without tracker, or a repo with a
+    ;; tracker using a different name, etc.  So we can only try to
+    ;; make a good guess.
+    ("[/@]\\(?:git\\|hg\\).sr.ht[/:]\\(~[.A-Za-z0-9_/-]+\\)"
+     "\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+     ,(lambda (groups)
+        (let ((ns-project (nth 1 groups)))
+          (lambda ()
+            (concat "https://todo.sr.ht/"
+                    (or
+                     ;; Explicit user/proj#18 link.
+                     (match-string 1)
+                     ns-project)
+                    "/"
                     (match-string 2)))))))
   "An alist for setting up `bug-reference-mode' based on VC URL.
 
@@ -299,6 +345,7 @@ and set it if applicable."
 (defvar gnus-article-buffer)
 (defvar gnus-original-article-buffer)
 (defvar gnus-summary-buffer)
+(defvar bug-reference-mode)
 
 (defun bug-reference--try-setup-gnus-article ()
   (when (and bug-reference-mode ;; Only if enabled in article buffers.
@@ -362,7 +409,7 @@ From, and Cc against HEADER-REGEXP in
 (defvar bug-reference-setup-from-irc-alist
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
                                 "erc") 'words))
-     "freenode"
+     "Libera.Chat"
      "\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in IRC modes.
@@ -377,8 +424,8 @@ Each element has the form
 
 CHANNEL-REGEXP is a regexp matched against the current IRC
 channel name (e.g. #emacs).  NETWORK-REGEXP is matched against
-the IRC network name (e.g. freenode).  Both entries are optional.
-If all given entries match, BUG-REGEXP is set as
+the IRC network name (e.g. Libera.Chat).  Both entries are
+optional.  If all given entries match, BUG-REGEXP is set as
 `bug-reference-bug-regexp' and URL-FORMAT is set as
 `bug-reference-url-format'.")
 

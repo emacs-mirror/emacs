@@ -947,11 +947,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   0, /* x_set_sticky */
   0, /* x_set_tool_bar_position */
   0, /* x_set_inhibit_double_buffering */
-#ifdef NS_IMPL_COCOA
   ns_set_undecorated,
-#else
-  0, /* ns_set_undecorated */
-#endif
   ns_set_parent_frame,
   0, /* x_set_skip_taskbar */
   ns_set_no_focus_on_map,

@@ -57,101 +57,131 @@
 (declare-function so-long-tests-assert-active "so-long-tests-helpers")
 (declare-function so-long-tests-assert-reverted "so-long-tests-helpers")
 (declare-function so-long-tests-assert-and-revert "so-long-tests-helpers")
+(declare-function so-long-tests-predicates "so-long-tests-helpers")
 
-;; Enable the automated behavior for all tests.
+;; Enable the automated behaviour for all tests.
 (global-so-long-mode 1)
 
 (ert-deftest so-long-tests-threshold-under ()
   "Under line length threshold."
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1- so-long-threshold) ?x))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode))))
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1- so-long-threshold) ?x))
+      (normal-mode)
+      (should (eq major-mode 'emacs-lisp-mode)))))
 
 (ert-deftest so-long-tests-threshold-at ()
   "At line length threshold."
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1- so-long-threshold) ?x))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode))))
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1- so-long-threshold) ?x))
+      (normal-mode)
+      (should (eq major-mode 'emacs-lisp-mode)))))
 
 (ert-deftest so-long-tests-threshold-over ()
   "Over line length threshold."
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (normal-mode)
-    (so-long-tests-remember)
-    (insert (make-string (1+ so-long-threshold) ?x))
-    (normal-mode)
-    (so-long-tests-assert-and-revert 'so-long-mode)))
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (normal-mode)
+      (so-long-tests-remember)
+      (insert (make-string (1+ so-long-threshold) ?x))
+      (normal-mode)
+      (so-long-tests-assert-and-revert 'so-long-mode))))
 
 (ert-deftest so-long-tests-skip-comments ()
   "Skip leading shebang, whitespace, and comments."
-  ;; Long comment, no newline.
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1+ so-long-threshold) ?\;))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode)))
-  ;; Long comment, with newline.
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1+ so-long-threshold) ?\;))
-    (insert "\n")
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode)))
-  ;; Long comment, with short text following.
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1+ so-long-threshold) ?\;))
-    (insert "\n")
-    (insert (make-string so-long-threshold ?x))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode)))
-  ;; Long comment, with long text following.
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1+ so-long-threshold) ?\;))
-    (insert "\n")
-    (insert (make-string (1+ so-long-threshold) ?x))
-    (normal-mode)
-    (should (eq major-mode 'so-long-mode))))
+  ;; Only for `so-long-detected-long-line-p' -- comments are not
+  ;; treated differently when using `so-long-statistics-excessive-p'.
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    ;; Long comment, no newline.
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1+ so-long-threshold) ?\;))
+      (normal-mode)
+      (should (eq major-mode
+                  (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                         'emacs-lisp-mode)
+                        ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                         'so-long-mode)))))
+    ;; Long comment, with newline.
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1+ so-long-threshold) ?\;))
+      (insert "\n")
+      (normal-mode)
+      (should (eq major-mode
+                  (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                         'emacs-lisp-mode)
+                        ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                         'so-long-mode)))))
+    ;; Long comment, with short text following.
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1+ so-long-threshold) ?\;))
+      (insert "\n")
+      (insert (make-string so-long-threshold ?x))
+      (normal-mode)
+      (should (eq major-mode
+                  (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                         'emacs-lisp-mode)
+                        ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                         'so-long-mode)))))
+    ;; Long comment, with long text following.
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1+ so-long-threshold) ?\;))
+      (insert "\n")
+      (insert (make-string (1+ so-long-threshold) ?x))
+      (normal-mode)
+      (should (eq major-mode 'so-long-mode)))))
 
 (ert-deftest so-long-tests-max-lines ()
   "Give up after `so-long-max-lines'."
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    ;; Insert exactly `so-long-max-lines' non-comment lines, followed
-    ;; by a long line.
-    (dotimes (_ so-long-max-lines)
-      (insert "x\n"))
-    (insert (make-string (1+ so-long-threshold) ?x))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode))
-    ;; If `so-long-max-lines' is nil, don't give up the search.
-    (let ((so-long-max-lines nil))
+  ;; Only for `so-long-detected-long-line-p' -- the whole buffer is
+  ;; 'seen' when using `so-long-statistics-excessive-p'.
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      ;; Insert exactly `so-long-max-lines' non-comment lines, followed
+      ;; by a long line.
+      (dotimes (_ so-long-max-lines)
+        (insert "x\n"))
+      (insert (make-string (1+ so-long-threshold) ?x))
       (normal-mode)
-      (should (eq major-mode 'so-long-mode)))
-    ;; If `so-long-skip-leading-comments' is nil, all lines are
-    ;; counted, and so the shebang line counts, which makes the
-    ;; long line one line further away.
-    (let ((so-long-skip-leading-comments nil)
-          (so-long-max-lines (1+ so-long-max-lines)))
-      (normal-mode)
-      (should (eq major-mode 'emacs-lisp-mode))
-      (let ((so-long-max-lines (1+ so-long-max-lines)))
+      (should (eq major-mode
+                  (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                         'emacs-lisp-mode)
+                        ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                         'so-long-mode))))
+      ;; If `so-long-max-lines' is nil, don't give up the search.
+      (let ((so-long-max-lines nil))
         (normal-mode)
-        (should (eq major-mode 'so-long-mode))))))
+        (should (eq major-mode 'so-long-mode)))
+      ;; If `so-long-skip-leading-comments' is nil, all lines are
+      ;; counted, and so the shebang line counts, which makes the
+      ;; long line one line further away.
+      (let ((so-long-skip-leading-comments nil)
+            (so-long-max-lines (1+ so-long-max-lines)))
+        (normal-mode)
+        (should (eq major-mode
+                    (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                           'emacs-lisp-mode)
+                          ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                           'so-long-mode))))
+        (let ((so-long-max-lines (1+ so-long-max-lines)))
+          (normal-mode)
+          (should (eq major-mode 'so-long-mode)))))))
 
 (ert-deftest so-long-tests-invisible-buffer-function ()
   "Call `so-long-invisible-buffer-function' in invisible buffers."
@@ -180,7 +210,7 @@
       ;; From Emacs 27 the `display-buffer' call is insufficient.
       ;; The various 'window change functions' are now invoked by the
       ;; redisplay, and redisplay does nothing at all in batch mode,
-      ;; so we cannot test under this revised behavior.  Refer to:
+      ;; so we cannot test under this revised behaviour.  Refer to:
       ;; https://lists.gnu.org/r/emacs-devel/2019-10/msg00971.html
       ;; For interactive (non-batch) test runs, calling `redisplay'
       ;; does do the trick; so do that first.
@@ -195,7 +225,9 @@
         ;; Emacs adds the framework necessary to make `redisplay' work
         ;; in batch mode.
         (unless (eq so-long--active t)
-          (run-window-configuration-change-hook))))
+          (with-suppressed-warnings
+              ((obsolete run-window-configuration-change-hook))
+            (run-window-configuration-change-hook)))))
     (so-long-tests-assert-and-revert 'so-long-mode))
   ;; `so-long-invisible-buffer-function' is `nil'.
   (with-temp-buffer
@@ -230,7 +262,9 @@
       (redisplay)
       (when noninteractive
         (unless (eq so-long--active t)
-          (run-window-configuration-change-hook))))
+          (with-suppressed-warnings
+              ((obsolete run-window-configuration-change-hook))
+            (run-window-configuration-change-hook)))))
     (should (eq major-mode 'emacs-lisp-mode))))
 
 (ert-deftest so-long-tests-actions ()
@@ -323,20 +357,76 @@
       (normal-mode)
       (should (eq major-mode 'so-long-mode)))))
 
-(ert-deftest so-long-tests-predicate ()
-  "Custom predicate function."
-  ;; Test the `so-long-predicate' user option.
+(ert-deftest so-long-tests-preserved-variables-and-modes ()
+  "Preserved variables and minor modes when using `so-long-mode'."
+  ;; Test the user options `so-long-mode-preserved-variables' and
+  ;; `so-long-mode-preserved-minor-modes'.  The minor mode `view-mode'
+  ;; is 'preserved' by default (using both options).
   (with-temp-buffer
     (display-buffer (current-buffer))
     (insert "#!emacs\n")
-    ;; Always false.
-    (let ((so-long-predicate #'ignore))
-      (normal-mode)
-      (should (eq major-mode 'emacs-lisp-mode)))
-    ;; Always true.
+    (normal-mode)
+    ;; We enable `view-mode' before triggering `so-long'.
+    (insert (make-string (1+ so-long-threshold) ?x))
+    (view-mode 1)
+    (should (eq view-mode t))
+    (should (eq buffer-read-only t))
+    (so-long-tests-remember)
+    (let ((so-long-action 'so-long-mode)
+          (menu (so-long-menu)))
+      (so-long)
+      (so-long-tests-assert-active 'so-long-mode)
+      (should (eq view-mode t))
+      (should (eq buffer-read-only t))
+      ;; Revert.
+      (funcall (lookup-key menu [so-long-revert]))
+      (so-long-tests-assert-reverted 'so-long-mode)
+      (should (eq view-mode t))
+      (should (eq buffer-read-only t))
+      ;; Disable `view-mode'.  Note that without the preserved
+      ;; variables, the conflict between how `view-mode' and `so-long'
+      ;; each deal with the buffer's original `buffer-read-only' value
+      ;; would lead to a situation whereby the buffer would still be
+      ;; read-only after `view-mode' had been disabled.
+      (view-mode 0)
+      (should (eq view-mode nil))
+      (should (eq buffer-read-only nil))))
+  ;; Without `view-mode'.
+  (with-temp-buffer
+    (display-buffer (current-buffer))
+    (insert "#!emacs\n")
+    (normal-mode)
+    (insert (make-string (1+ so-long-threshold) ?x))
+    (should (eq view-mode nil))
+    (so-long-tests-remember)
+    (let ((so-long-action 'so-long-mode)
+          (menu (so-long-menu)))
+      (so-long)
+      (so-long-tests-assert-active 'so-long-mode)
+      (should (eq view-mode nil))
+      ;; Revert.
+      (funcall (lookup-key menu [so-long-revert]))
+      (so-long-tests-assert-reverted 'so-long-mode)
+      (should (eq view-mode nil)))))
+
+(ert-deftest so-long-tests-predicate ()
+  "Custom predicate function."
+  ;; Test the `so-long-predicate' user option.
+  ;; Always true.  Trigger when we normally wouldn't.
+  (with-temp-buffer
+    (display-buffer (current-buffer))
+    (insert "#!emacs\n")
     (let ((so-long-predicate (lambda () t)))
       (normal-mode)
-      (should (eq major-mode 'so-long-mode)))))
+      (should (eq major-mode 'so-long-mode))))
+  ;; Always false.  Don't trigger when we normally would.
+  (with-temp-buffer
+    (display-buffer (current-buffer))
+    (insert "#!emacs\n")
+    (insert (make-string (1+ so-long-threshold) ?x))
+    (let ((so-long-predicate #'ignore))
+      (normal-mode)
+      (should (eq major-mode 'emacs-lisp-mode)))))
 
 (ert-deftest so-long-tests-file-local-action ()
   "File-local action."
@@ -405,7 +495,10 @@
          (insert ,local-vars)
          (normal-mode)
          ;; Remember the `emacs-lisp-mode' state.  The other cases
-         ;; will validate the 'reverted' state against this.
+         ;; will validate the 'reverted' state against this.  (Note
+         ;; that we haven't displayed the buffer, and therefore only
+         ;; `so-long-invisible-buffer-function' has acted, so we are
+         ;; still remembering the 'before' state.)
          (so-long-tests-remember)
          (should (eq major-mode 'emacs-lisp-mode)))
        ;; Downgrade the action from major mode to minor mode.

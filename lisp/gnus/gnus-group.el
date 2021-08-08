@@ -589,8 +589,8 @@ simple manner."
   "\M-p" gnus-group-prev-unread-group-same-level
   "," gnus-group-best-unread-group
   "." gnus-group-first-unread-group
-  "u" gnus-group-unsubscribe-current-group
-  "U" gnus-group-unsubscribe-group
+  "u" gnus-group-toggle-subscription-at-point
+  "U" gnus-group-toggle-subscription
   "c" gnus-group-catchup-current
   "C" gnus-group-catchup-current-all
   "\M-c" gnus-group-clear-data
@@ -767,8 +767,8 @@ simple manner."
 
 (gnus-define-keys (gnus-group-sub-map "S" gnus-group-mode-map)
   "l" gnus-group-set-current-level
-  "t" gnus-group-unsubscribe-current-group
-  "s" gnus-group-unsubscribe-group
+  "t" gnus-group-toggle-subscription-at-point
+  "s" gnus-group-toggle-subscription
   "k" gnus-group-kill-group
   "y" gnus-group-yank-group
   "w" gnus-group-kill-region
@@ -814,7 +814,7 @@ simple manner."
        ["Check for new articles " gnus-topic-get-new-news-this-topic
 	:included (gnus-topic-mode-p)
 	:help "Check for new messages in current group or topic"]
-       ["Toggle subscription" gnus-group-unsubscribe-current-group
+       ["Toggle subscription" gnus-group-toggle-subscription-at-point
 	(gnus-group-group-name)]
        ["Kill" gnus-group-kill-group :active (gnus-group-group-name)
 	:help "Kill (remove) current group"]
@@ -907,7 +907,7 @@ simple manner."
 	["Execute command" gnus-group-universal-argument
 	 (or gnus-group-marked (gnus-group-group-name))])
        ("Subscribe"
-	["Subscribe to a group..." gnus-group-unsubscribe-group t]
+	["Toggle subscription..." gnus-group-toggle-subscription t]
 	["Kill all newsgroups in region" gnus-group-kill-region
 	 :active mark-active]
 	["Kill all zombie groups" gnus-group-kill-all-zombies
@@ -1042,7 +1042,7 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
     ;; (gnus-group-find-new-groups "???" nil)
     (gnus-group-save-newsrc "save")
     (gnus-group-describe-group "describe")
-    (gnus-group-unsubscribe-current-group "gnus/toggle-subscription")
+    (gnus-group-toggle-subscription-at-point "gnus/toggle-subscription")
     (gnus-group-prev-unread-group "left-arrow")
     (gnus-group-next-unread-group "right-arrow")
     (gnus-group-exit "exit")
@@ -1119,7 +1119,7 @@ The group buffer lists (some of) the groups available.  For instance,
 lists all zombie groups.
 
 Groups that are displayed can be entered with `\\[gnus-group-read-group]'.  To subscribe
-to a group not displayed, type `\\[gnus-group-unsubscribe-group]'.
+to a group not displayed, type `\\[gnus-group-toggle-subscription]'.
 
 For more in-depth information on this mode, read the manual (`\\[gnus-info-find-node]').
 
@@ -3857,61 +3857,90 @@ Uses the process/prefix convention."
 (defun gnus-group-unsubscribe (&optional n)
   "Unsubscribe the current group."
   (interactive "P" gnus-group-mode)
-  (gnus-group-unsubscribe-current-group n 'unsubscribe))
+  (gnus-group-set-subscription-at-point n 'unsubscribe))
 
 (defun gnus-group-subscribe (&optional n)
   "Subscribe the current group."
   (interactive "P" gnus-group-mode)
-  (gnus-group-unsubscribe-current-group n 'subscribe))
+  (gnus-group-set-subscription-at-point n 'subscribe))
 
-(defun gnus-group-unsubscribe-current-group (&optional n do-sub)
+(defsubst gnus-group-unsubscribe-current-group (&optional n do-sub)
+  (if do-sub
+      (gnus-group-set-subscription-at-point n do-sub)
+    (gnus-group-toggle-subscription-at-point n)))
+
+(defsubst gnus-group-unsubscribe-group (group &optional level silent)
+  (if level
+      (gnus-group-set-subscription group level silent)
+    (gnus-group-toggle-subscription group silent)))
+
+(make-obsolete 'gnus-group-unsubscribe-current-group
+  'gnus-group-toggle-subscription-at-point "28.1")
+
+(make-obsolete 'gnus-group-unsubscribe-group
+  'gnus-group-toggle-subscription "28.1")
+
+(defun gnus-group-toggle-subscription-at-point (&optional n)
   "Toggle subscription of the current group.
 If given numerical prefix, toggle the N next groups."
   (interactive "P" gnus-group-mode)
+  (gnus-group-set-subscription-at-point n 'toggle))
+
+(defun gnus-group-set-subscription-at-point (n do-sub)
+  "Set subscription of the current group for next N groups."
   (dolist (group (gnus-group-process-prefix n))
     (gnus-group-remove-mark group)
-    (gnus-group-unsubscribe-group
+    (gnus-group-set-subscription
      group
-     (cond
-      ((eq do-sub 'unsubscribe)
-       gnus-level-default-unsubscribed)
-      ((eq do-sub 'subscribe)
-       gnus-level-default-subscribed)
-      ((<= (gnus-group-group-level) gnus-level-subscribed)
-       gnus-level-default-unsubscribed)
-      (t
-       gnus-level-default-subscribed))
+     (cl-case do-sub
+       (unsubscribe gnus-level-default-unsubscribed)
+       (subscribe gnus-level-default-subscribed)
+       (toggle (if (<= (gnus-group-group-level) gnus-level-subscribed)
+                   gnus-level-default-unsubscribed
+                 gnus-level-default-subscribed))
+       (t (error "Unknown subscription setting %s" do-sub)))
      t)
     (gnus-group-update-group-line))
   (gnus-group-next-group 1))
 
-(defun gnus-group-unsubscribe-group (group &optional level silent)
-  "Toggle subscription to GROUP.
-Killed newsgroups are subscribed.  If SILENT, don't try to update the
-group line."
+(defun gnus-group-toggle-subscription (group &optional silent)
   (interactive (list (gnus-group-completing-read
 		      nil nil (gnus-read-active-file-p)))
 	       gnus-group-mode)
+  (let* ((newsrc (gnus-group-entry group))
+         (level (cond
+                 (newsrc
+                  ;; Toggle subscription flag.
+                  (if (<= (gnus-info-level (nth 1 newsrc))
+	                  gnus-level-subscribed)
+                      (1+ gnus-level-subscribed)
+                    gnus-level-default-subscribed))
+                 ((and (stringp group)
+	               (or (not (gnus-read-active-file-p))
+	                   (gnus-active group)))
+                  ;; Add new newsgroup.
+                  gnus-level-default-subscribed)
+                 (t 'unsubscribe))))
+    (gnus-group-set-subscription group level silent)))
+
+(defun gnus-group-set-subscription (group level &optional silent)
+  "Set subscription of GROUP to LEVEL.
+Killed newsgroups are subscribed.  If SILENT, don't try to update the
+group line."
   (let ((newsrc (gnus-group-entry group)))
     (cond
      ((string-match "\\`[ \t]*\\'" group)
       (error "Empty group name"))
      (newsrc
-      ;; Toggle subscription flag.
-      (gnus-group-change-level
-       newsrc (or level (if (<= (gnus-info-level (nth 1 newsrc))
-				gnus-level-subscribed)
-			    (1+ gnus-level-subscribed)
-			  gnus-level-default-subscribed)))
+      (gnus-group-change-level newsrc level)
       (unless silent
 	(gnus-group-update-group group)))
      ((and (stringp group)
 	   (or (not (gnus-read-active-file-p))
 	       (gnus-active group)))
-      ;; Add new newsgroup.
       (gnus-group-change-level
        group
-       (or level gnus-level-default-subscribed)
+       level
        (or (and (member group gnus-zombie-list)
 		gnus-level-zombie)
 	   gnus-level-killed)

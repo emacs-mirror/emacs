@@ -73,7 +73,7 @@
 	   erc-track-mode)
       (let ((entry (assq (current-buffer) erc-modified-channels-alist)))
 	(if entry
-	    (if (> (length entry) 1)
+	    (if (cdr entry)
 		(cond ((eq 'pal (nth 1 entry))
 		       (string erc-ibuffer-pal-char))
 		      ((eq 'fool (nth 1 entry))

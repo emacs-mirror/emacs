@@ -104,6 +104,9 @@ Otherwise, it is nil.")
 (defun jka-compr-info-can-append           (info)  (aref info 7))
 (defun jka-compr-info-strip-extension      (info)  (aref info 8))
 (defun jka-compr-info-file-magic-bytes     (info)  (aref info 9))
+(defun jka-compr-info-uncompress-function  (info)
+  (and (> (length info) 10)
+       (aref info 10)))
 
 
 (defun jka-compr-get-compression-info (filename)
@@ -197,13 +200,15 @@ options through Custom does this automatically."
   ;;[regexp
   ;; compr-message  compr-prog  compr-args
   ;; uncomp-message uncomp-prog uncomp-args
-  ;; can-append strip-extension-flag file-magic-bytes]
+  ;; can-append strip-extension-flag file-magic-bytes
+  ;; uncompress-function]
   (mapcar 'purecopy
   '(["\\.Z\\'"
      "compressing"    "compress"     ("-c")
      ;; gzip is more common than uncompress. It can only read, not write.
      "uncompressing"  "gzip"   ("-c" "-q" "-d")
-     nil t "\037\235"]
+     nil t "\037\235"
+     zlib-decompress-region]
      ;; Formerly, these had an additional arg "-c", but that fails with
      ;; "Version 0.1pl2, 29-Aug-97." (RedHat 5.1 GNU/Linux) and
      ;; "Version 0.9.0b, 9-Sept-98".
@@ -218,11 +223,13 @@ options through Custom does this automatically."
     ["\\.\\(?:tgz\\|svgz\\|sifz\\)\\'"
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     t nil "\037\213"]
+     t nil "\037\213"
+     zlib-decompress-region]
     ["\\.g?z\\'"
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     t t "\037\213"]
+     t t "\037\213"
+     zlib-decompress-region]
     ["\\.lz\\'"
      "Lzip compressing"   "lzip"         ("-c" "-q")
      "Lzip uncompressing" "lzip"         ("-c" "-q" "-d")
@@ -259,7 +266,7 @@ options through Custom does this automatically."
 Each element, which describes a compression technique, is a vector of
 the form [REGEXP COMPRESS-MSG COMPRESS-PROGRAM COMPRESS-ARGS
 UNCOMPRESS-MSG UNCOMPRESS-PROGRAM UNCOMPRESS-ARGS
-APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
+APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS UNCOMPRESS-FUNCTION], where:
 
    regexp                is a regexp that matches filenames that are
                          compressed with this format
@@ -275,7 +282,7 @@ APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
    uncompress-msg        is the message to issue to the user when doing this
                          type of uncompression (nil means no message)
 
-   uncompress-program    is a program that performs this compression
+   uncompress-program    is a program that performs this uncompression
 
    uncompress-args       is a list of args to pass to the uncompress program
 
@@ -287,6 +294,9 @@ APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
 
    file-magic-chars      is a string of characters that you would find
 			 at the beginning of a file compressed in this way.
+
+   uncompress-function   is a function that performs uncompression, if
+                         uncompress-program is not found.
 
 If you set this outside Custom while Auto Compression mode is
 already enabled \(as it is by default), you have to call
@@ -309,9 +319,12 @@ variables.  Setting this through Custom does that automatically."
 			 (repeat :tag "Uncompress Arguments" string)
 			 (boolean :tag "Append")
 			 (boolean :tag "Strip Extension")
-			 (string :tag "Magic Bytes")))
+			 (string :tag "Magic Bytes")
+			 (choice :tag "Uncompress Function"
+				 (symbol)
+				 (const :tag "None" nil))))
   :set 'jka-compr-set
-  :version "24.1"			; removed version extension piece
+  :version "28.1"			; add uncompress-function
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions

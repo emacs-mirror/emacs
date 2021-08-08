@@ -131,21 +131,30 @@ customize-variable @key{RET} erc-modules @key{RET}}.
 @node Sample Session
 @section Sample Session
 
-This is an example ERC session which shows how to connect to the #emacs
-channel on Freenode.  Another IRC channel on Freenode that may be of
-interest is #erc, which is a channel where ERC users and developers hang
-out.
+This is an example ERC session which shows how to connect to the
+#emacs channel on Libera.Chat.  Another IRC channel on Libera.Chat
+that may be of interest is #erc, which is a channel where ERC users
+and developers hang out.  These channels used to live on the Freenode
+IRC network until June 2021, when they---along with the official IRC
+channels of the GNU Project, the Free Software Foundation, and many
+other free software communities---relocated to the Libera.Chat network
+in the aftermath of changes in governance and policies of Freenode in
+May and June 2021.  GNU and FSF's announcements about this are at
+@uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html},
+@uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html},
+and
+@uref{https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html}.
 
 @itemize @bullet
 
-@item Connect to Freenode
+@item Connect to Libera.Chat
 
-Run @kbd{M-x erc}.  Use ``chat.freenode.net'' as the IRC server,
-``6667'' as the port, and choose a nickname.
+Run @kbd{M-x erc}.  Use ``irc.libera.chat as the IRC server, ``6667''
+as the port, and choose a nickname.
 
 @item Get used to the interface
 
-Switch to the ``chat.freenode.net:6667'' buffer, if you're not already
+Switch to the ``irc.libera.chat:6667'' buffer, if you're not already
 there.  You will see first some messages about checking for ident, and
 then a bunch of other messages that describe the current IRC server.
 
@@ -158,13 +167,13 @@ background.  If the latter, switch to the ``#emacs'' buffer.  You will
 see the channel topic and a list of the people who are currently on the
 channel.
 
-@item Register your nickname with Freenode
+@item Register your nickname with Libera.Chat
 
 If you would like to be able to talk with people privately on the
-Freenode network, you will have to ``register'' your nickname.  To do
-so, switch to the ``chat.freenode.net:6667'' buffer and type ``/msg
-NickServ register <password>'', replacing ``<password>'' with your
-desired password.  It should tell you that the operation was
+Libera.Chat network, you will have to ``register'' your nickname.
+To do so, switch to the ``irc.libera.chat:6667'' buffer and type
+``/msg NickServ register <password>'', replacing ``<password>'' with
+your desired password.  It should tell you that the operation was
 successful.
 
 @item Talk to people in the channel
@@ -518,7 +527,7 @@ That is, if called with the following arguments, @var{server} and
 for the values of the other parameters.
 
 @example
-(erc :server "chat.freenode.net" :full-name "J. Random Hacker")
+(erc :server "irc.libera.chat" :full-name "J. Random Hacker")
 @end example
 @end defun
 
@@ -545,7 +554,7 @@ for the values of the other parameters, and @code{client-certificate}
 will be @code{nil}.
 
 @example
-(erc-tls :server "chat.freenode.net" :full-name "J. Random Hacker")
+(erc-tls :server "irc.libera.chat" :full-name "J. Random Hacker")
 @end example
 
 To use a certificate with @code{erc-tls}, specify the optional
@@ -563,21 +572,21 @@ various IRC networks.
 Examples of use:
 
 @example
-(erc-tls :server "chat.freenode.net" :port 6697
+(erc-tls :server "irc.libera.chat" :port 6697
          :client-certificate
          '("/home/bandali/my-cert.key"
            "/home/bandali/my-cert.crt"))
 @end example
 
 @example
-(erc-tls :server "chat.freenode.net" :port 6697
+(erc-tls :server "irc.libera.chat" :port 6697
          :client-certificate
-         `(,(expand-file-name "~/cert-freenode.key")
-           ,(expand-file-name "~/cert-freenode.crt")))
+         `(,(expand-file-name "~/cert-libera.key")
+           ,(expand-file-name "~/cert-libera.crt")))
 @end example
 
 @example
-(erc-tls :server "chat.freenode.net" :port 6697
+(erc-tls :server "irc.libera.chat" :port 6697
          :client-certificate t)
 @end example
 
@@ -586,7 +595,7 @@ line like the following to your authinfo file
 (e.g. @file{~/.authinfo.gpg}):
 
 @example
-machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
+machine irc.libera.chat key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
 @end example
 
 @xref{Help for users,,,auth, Emacs auth-source Library}, for more on the
@@ -762,11 +771,10 @@ stuff, to the current ERC buffer."
     (erc-send-message
      (concat "@{Uptime@} [" uname-output "]"))))
 
-;; This causes ERC to connect to the Freenode network upon hitting
+;; This causes ERC to connect to the Libera.Chat network upon hitting
 ;; C-c e f.  Replace MYNICK with your IRC nick.
 (global-set-key "\C-cef" (lambda () (interactive)
-                           (erc :server "chat.freenode.net"
-                                :port "6667"
+                           (erc :server "irc.libera.chat" :port "6667"
                                 :nick "MYNICK")))
 
 ;; This causes ERC to connect to the IRC server on your own machine (if
@@ -786,13 +794,15 @@ stuff, to the current ERC buffer."
 
 ;;; Options
 
-;; Join the #emacs and #erc channels whenever connecting to Freenode.
-(setq erc-autojoin-channels-alist '(("freenode.net" "#emacs" "#erc")))
+;; Join the #emacs and #erc channels whenever connecting to
+;; Libera.Chat.
+(setq erc-autojoin-channels-alist
+      '(("Libera.Chat" "#emacs" "#erc")))
 
 ;; Rename server buffers to reflect the current network name instead
-;; of SERVER:PORT (e.g., "freenode" instead of "chat.freenode.net:6667").
-;; This is useful when using a bouncer like ZNC where you have multiple
-;; connections to the same server.
+;; of SERVER:PORT (e.g., "Libera.Chat" instead of
+;; "irc.libera.chat:6667").  This is useful when using a bouncer like
+;; ZNC where you have multiple connections to the same server.
 (setq erc-rename-buffers t)
 
 ;; Interpret mIRC-style color commands in IRC chats
@@ -832,7 +842,7 @@ If non, @code{nil}, this is a list of IRC networks and message types
 to hide, e.g.:
 
 @example
-(setq erc-network-hide-list (("freenode" "JOIN" "PART" "QUIT")
+(setq erc-network-hide-list (("Libera.Chat" "JOIN" "PART" "QUIT")
 ("OFTC" "JOIN" "PART""))
 @end example
 @end defopt
@@ -881,7 +891,7 @@ You can ask questions about using ERC on the Emacs mailing list,
 @uref{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs}.
 
 @item
-You can visit the IRC Freenode channel @samp{#emacs}. Many of the
+You can visit the IRC Libera.Chat channel @samp{#emacs}.  Many of the
 contributors are frequently around and willing to answer your
 questions.
 

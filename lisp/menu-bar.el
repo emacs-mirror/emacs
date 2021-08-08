@@ -570,7 +570,9 @@
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
-  (let ((select-enable-clipboard t))
+  (let ((select-enable-clipboard t)
+        ;; Ensure that we defeat the DWIM login in `gui-selection-value'.
+        (gui--last-selected-text-clipboard nil))
     (yank)))
 
 (defun clipboard-kill-ring-save (beg end &optional region)

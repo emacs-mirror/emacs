@@ -2318,19 +2318,18 @@ commands listed in @ref{Browse Foreign Server} at hand.
 @itemx u
 @kindex S t @r{(Group)}
 @kindex u @r{(Group)}
-@findex gnus-group-unsubscribe-current-group
-@c @icon{gnus-group-unsubscribe}
-Toggle subscription to the current group
-(@code{gnus-group-unsubscribe-current-group}).
+@findex gnus-group-toggle-subscription-at-point
+@c @icon{gnus-group-toggle-subscription-at-point}
+Toggle subscription to group under point
+(@code{gnus-group-toggle-subscription-at-point}).
 
 @item S s
 @itemx U
 @kindex S s @r{(Group)}
 @kindex U @r{(Group)}
-@findex gnus-group-unsubscribe-group
-Prompt for a group to subscribe, and then subscribe it.  If it was
-subscribed already, unsubscribe it instead
-(@code{gnus-group-unsubscribe-group}).
+@findex gnus-group-toggle-subscription
+Prompt for group, and toggle its subscription.
+(@code{gnus-group-toggle-subscription}).
 
 @item S k
 @itemx C-k
@@ -3736,10 +3735,10 @@ Enter the current group (@code{gnus-browse-select-group}).
 
 @item u
 @kindex u @r{(Browse)}
-@findex gnus-browse-unsubscribe-current-group
+@findex gnus-browse-toggle-subscription
 @vindex gnus-browse-subscribe-newsgroup-method
-Unsubscribe to the current group, or, as will be the case here,
-subscribe to it (@code{gnus-browse-unsubscribe-current-group}).  You
+Toggle subscription of the current group
+(@code{gnus-browse-toggle-subscription}).  You
 can affect the way the new group is entered into the Group buffer
 using the variable @code{gnus-browse-subscribe-newsgroup-method}.  See
 @pxref{Subscription Methods} for available options.
@@ -14517,7 +14516,8 @@ this should be set to @code{anonymous}.  If this variable isn't set,
 the normal login methods will be used.  If you wish to specify a
 specific login method to be used, you can set this variable to either
 @code{login} (the traditional @acronym{IMAP} login method),
-@code{plain} or @code{cram-md5}.
+@code{plain}, @code{cram-md5} or @code{xoauth2}.  (The latter method
+requires using the @file{oauth2.el} library.)
 
 @item nnimap-expunge
 When to expunge deleted messages.  If @code{never}, deleted articles
@@ -16288,7 +16288,7 @@ cleaning up the headers.  Functions that can be used include:
 Clear leading white space that ``helpful'' listservs have added to the
 headers to make them look nice.  Aaah.
 
-(Note that this function works on both the header on the body of all
+(Note that this function works on both the header and the body of all
 messages, so it is a potentially dangerous function to use (if a body
 of a message contains something that looks like a header line).  So
 rather than fix the bug, it is of course the right solution to make it
@@ -26861,9 +26861,10 @@ but at the common table.@*
 
 If you want to investigate the person responsible for this outrage,
 you can point your (feh!) web browser to
-@uref{https://quimby.gnus.org/}.  This is also the primary
-distribution point for the new and spiffy versions of Gnus, and is
-known as The Site That Destroys Newsrcs And Drives People Mad.
+@uref{https://quimby.gnus.org/}.  This used to be the primary
+distribution point for the new and spiffy versions of Gnus, and was
+known as The Site That Destroys Newsrcs And Drives People Mad, but
+these days Gnus is developed in the Emacs repository.
 
 During the first extended alpha period of development, the new Gnus was
 called ``(ding) Gnus''.  @dfn{(ding)} is, of course, short for

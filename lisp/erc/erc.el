@@ -247,7 +247,7 @@ A typical value would be \(\"JOIN\" \"PART\" \"QUIT\")."
 
 (defcustom erc-network-hide-list nil
   "A list of IRC networks to hide message types from.
-A typical value would be \((\"freenode\" \"MODE\")
+A typical value would be \((\"Libera.Chat\" \"MODE\")
   \(\"OFTC\" \"JOIN\" \"QUIT\"))."
   :version "25.1"
   :group 'erc-ignore
@@ -1480,7 +1480,7 @@ Defaults to the server buffer."
 
 ;; activation
 
-(defconst erc-default-server "chat.freenode.net"
+(defconst erc-default-server "irc.libera.chat"
   "IRC server to use if it cannot be detected otherwise.")
 
 (defconst erc-default-port 6667
@@ -2225,7 +2225,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc :server \"chat.freenode.net\" :full-name \"J. Random Hacker\")
+   (erc :server \"irc.libera.chat\" :full-name \"J. Random Hacker\")
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
@@ -2260,7 +2260,7 @@ Non-interactively, it takes the keyword arguments
 
 That is, if called with
 
-   (erc-tls :server \"chat.freenode.net\" :full-name \"J. Random Hacker\")
+   (erc-tls :server \"irc.libera.chat\" :full-name \"J. Random Hacker\")
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
@@ -2276,7 +2276,7 @@ authentication by various IRC networks.
 
 Example usage:
 
-    (erc-tls :server \"chat.freenode.net\" :port 6697
+    (erc-tls :server \"irc.libera.chat\" :port 6697
              :client-certificate
              '(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))"
@@ -3447,8 +3447,9 @@ to send.
 
 If only one word is given, display the mode of that target.
 
-A list of valid mode strings for Freenode may be found at
-URL `https://freenode.net/kb/all'."
+A list of valid mode strings for Libera.Chat may be found at
+`https://libera.chat/guides/channelmodes' and
+`https://libera.chat/guides/usermodes'."
   (cond
    ((string-match "^\\s-\\(.*\\)$" line)
     (let ((s (match-string 1 line)))

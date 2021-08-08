@@ -1995,6 +1995,20 @@ Doing so adds those variable/value pairs to
 file.
 @end defopt
 
+@defopt ignored-local-variable-values
+If there are some values of particular local variables that you always
+want to ignore completely, you can use this variable.  Its value has
+the same form as @code{safe-local-variable-values}; a file-local
+variable setting to the value that appears in the list will always be
+ignored when processing the local variables specified by the file.  As
+with that variable, when Emacs queries the user about whether to obey
+file-local variables, the user can choose to ignore their particular
+values permanently, and that will alter this variable and save it to
+the user's custom file.  Variable-value pairs that appear in this
+variable take precedence over the same pairs in
+@code{safe-local-variable-values}.
+@end defopt
+
 @defun safe-local-variable-p sym val
 This function returns non-@code{nil} if it is safe to give @var{sym}
 the value @var{val}, based on the above criteria.

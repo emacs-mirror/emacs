@@ -3586,6 +3586,7 @@ extern Lisp_Object detect_coding_system (const unsigned char *, ptrdiff_t,
 extern void init_coding (void);
 extern void init_coding_once (void);
 extern void syms_of_coding (void);
+extern bool string_ascii_p (Lisp_Object);
 
 /* Defined in character.c.  */
 extern ptrdiff_t chars_in_text (const unsigned char *, ptrdiff_t);
@@ -3716,7 +3717,8 @@ extern void adjust_markers_for_delete (ptrdiff_t, ptrdiff_t,
 				       ptrdiff_t, ptrdiff_t);
 extern void adjust_markers_bytepos (ptrdiff_t, ptrdiff_t,
 				    ptrdiff_t, ptrdiff_t, int);
-extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool, bool, bool);
+extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool,
+			   bool, bool, bool);
 extern void replace_range_2 (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 			     const char *, ptrdiff_t, ptrdiff_t, bool);
 extern void syms_of_insdel (void);
@@ -4116,6 +4118,7 @@ extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Vsignaling_function;
 extern Lisp_Object inhibit_lisp_code;
+extern bool signal_quit_p (Lisp_Object);
 
 /* To run a normal hook, use the appropriate function from the list below.
    The calling convention:
@@ -4417,7 +4420,7 @@ extern bool detect_input_pending_ignore_squeezables (void);
 extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
 extern void cmd_error_internal (Lisp_Object, const char *);
-extern Lisp_Object command_loop_1 (void);
+extern Lisp_Object command_loop_2 (Lisp_Object);
 extern Lisp_Object read_menu_command (void);
 extern Lisp_Object recursive_edit_1 (void);
 extern void record_auto_save (void);
@@ -4621,8 +4624,6 @@ extern int str_collate (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern void syms_of_sysdep (void);
 
 /* Defined in filelock.c.  */
-extern void lock_file (Lisp_Object);
-extern void unlock_file (Lisp_Object);
 extern void unlock_all_files (void);
 extern void unlock_buffer (struct buffer *);
 extern void syms_of_filelock (void);

@@ -908,23 +908,16 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
 (defun project--completing-read-strict (prompt
                                         collection &optional predicate
                                         hist default)
-  ;; Tried both expanding the default before showing the prompt, and
-  ;; removing it when it has no matches.  Neither seems natural
-  ;; enough.  Removal is confusing; early expansion makes the prompt
-  ;; too long.
-  (let* ((new-prompt (if (and default (not (string-equal default "")))
-                         (format "%s (default %s): " prompt default)
-                       (format "%s: " prompt)))
-         (res (completing-read new-prompt
-                               collection predicate t
-                               nil ;; initial-input
-                               hist default)))
-    (when (and (equal res default)
-               (not (test-completion res collection predicate)))
-      (setq res
-            (completing-read (format "%s: " prompt)
-                             collection predicate t res hist nil)))
-    res))
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (setq-local minibuffer-default-add-function
+                    (lambda ()
+                      (let ((minibuffer-default default))
+                        (minibuffer-default-add-completions)))))
+    (completing-read (format "%s: " prompt)
+                     collection predicate 'confirm
+                     nil
+                     hist)))
 
 ;;;###autoload
 (defun project-dired ()
@@ -1415,8 +1408,8 @@ to directory DIR."
                 (define-key temp-map (vector keychar) cmd)))))
          command)
     (while (not command)
-      (let ((overriding-local-map commands-map)
-            (choice (read-key-sequence (project--keymap-prompt))))
+      (let* ((overriding-local-map commands-map)
+             (choice (read-key-sequence (project--keymap-prompt))))
         (when (setq command (lookup-key commands-map choice))
           (unless (or project-switch-use-entire-map
                       (assq command commands-menu))

@@ -184,7 +184,7 @@ The command loop runs this soon after @code{post-command-hook} (q.v.).
 
 @item mouse-leave-buffer-hook
 @vindex mouse-leave-buffer-hook
-Hook run when about to switch windows with a mouse command.
+Hook run when the user mouse-clicks in a window.
 
 @item mouse-position-function
 @xref{Mouse Position}.

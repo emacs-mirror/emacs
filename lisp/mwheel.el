@@ -40,6 +40,8 @@
 (require 'timer)
 
 (defvar mouse-wheel-mode)
+(defvar mouse-wheel--installed-bindings-alist nil
+  "Alist of all installed mouse wheel key bindings.")
 
 ;; Setter function for mouse-button user-options.  Switch Mouse Wheel
 ;; mode off and on again so that the old button is unbound and
@@ -47,8 +49,10 @@
 
 (defun mouse-wheel-change-button (var button)
   (set-default var button)
-  ;; Sync the bindings.
-  (when (bound-and-true-p mouse-wheel-mode) (mouse-wheel-mode 1)))
+  ;; Sync the bindings if they're already setup.
+  (when (and mouse-wheel--installed-bindings-alist
+             (bound-and-true-p mouse-wheel-mode))
+    (mouse-wheel-mode 1)))
 
 (defcustom mouse-wheel-down-event
   (if (or (featurep 'w32-win) (featurep 'ns-win))
@@ -380,9 +384,6 @@ value of ARG, and the command uses it in subsequent scrolls."
                (text-scale-decrease 1)))
       (select-window selected-window))))
 
-(defvar mouse-wheel--installed-bindings-alist nil
-  "Alist of all installed mouse wheel key bindings.")
-
 (defun mouse-wheel--add-binding (key fun)
   "Bind mouse wheel button KEY to function FUN.
 Save it for later removal by `mouse-wheel--remove-bindings'."
@@ -418,30 +419,31 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support (Mouse Wheel mode)."
   :init-value t
-  ;; We'd like to use custom-initialize-set here so the setup is done
-  ;; before dumping, but at the point where the defcustom is evaluated,
-  ;; the corresponding function isn't defined yet, so
-  ;; custom-initialize-set signals an error.
-  :initialize 'custom-initialize-delay
   :global t
   :group 'mouse
   ;; Remove previous bindings, if any.
   (mouse-wheel--remove-bindings)
   ;; Setup bindings as needed.
   (when mouse-wheel-mode
-    (dolist (binding mouse-wheel-scroll-amount)
-      (cond
-       ;; Bindings for changing font size.
-       ((and (consp binding) (eq (cdr binding) 'text-scale))
-        (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
-          (mouse-wheel--add-binding `[,(list (caar binding) event)]
-                                    'mouse-wheel-text-scale)))
-       ;; Bindings for scrolling.
-       (t
-        (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
-                             mouse-wheel-left-event mouse-wheel-right-event))
-          (dolist (key (mouse-wheel--create-scroll-keys binding event))
-            (mouse-wheel--add-binding key 'mwheel-scroll))))))))
+    (mouse-wheel--setup-bindings)))
+
+(defun mouse-wheel--setup-bindings ()
+  (dolist (binding mouse-wheel-scroll-amount)
+    (cond
+     ;; Bindings for changing font size.
+     ((and (consp binding) (eq (cdr binding) 'text-scale))
+      (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
+        (mouse-wheel--add-binding `[,(list (caar binding) event)]
+                                  'mouse-wheel-text-scale)))
+     ;; Bindings for scrolling.
+     (t
+      (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
+                           mouse-wheel-left-event mouse-wheel-right-event))
+        (dolist (key (mouse-wheel--create-scroll-keys binding event))
+          (mouse-wheel--add-binding key 'mwheel-scroll)))))))
+
+(when mouse-wheel-mode
+  (mouse-wheel--setup-bindings))
 
 ;;; Obsolete.
 

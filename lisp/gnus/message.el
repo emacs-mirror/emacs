@@ -1658,6 +1658,11 @@ starting with `not' and followed by regexps."
   "Face used for displaying MML."
   :group 'message-faces)
 
+(defface message-signature-separator '((t :bold t))
+  "Face used for displaying the signature separator."
+  :group 'message-faces
+  :version "28.1")
+
 (defun message-match-to-eoh (_limit)
   (let ((start (point)))
     (rfc822-goto-eoh)
@@ -1751,8 +1756,21 @@ number of levels specified in the faces `message-cited-text-*'."
                 (0 ',cited-text-face))
               keywords))
        (setq level (1+ level)))
-     keywords))
+     keywords)
+   ;; Match signature.  This `field' stuff ensures that hitting `RET'
+   ;; after the signature separator doesn't remove the trailing space.
+   (list
+    '(message--match-signature (0 '( face message-signature-separator
+                                     rear-nonsticky t
+                                     field signature)))))
   "Additional expressions to highlight in Message mode.")
+
+(defun message--match-signature (limit)
+  (save-excursion
+    (and (re-search-forward message-signature-separator limit t)
+         ;; It's the last one in the buffer.
+         (not (save-excursion
+                (re-search-forward message-signature-separator nil t))))))
 
 (defvar message-face-alist
   '((bold . message-bold-region)
@@ -4904,6 +4922,7 @@ Each line should be no more than 79 characters long."
 (defvar smtpmail-smtp-service)
 (defvar smtpmail-smtp-user)
 (defvar smtpmail-stream-type)
+(defvar smtpmail-store-queue-variables)
 
 (defun message-multi-smtp-send-mail ()
   "Send the current buffer to `message-send-mail-function'.
@@ -4919,7 +4938,8 @@ that instead."
 	(message-send-mail-with-sendmail))
        ((equal (car method) "smtp")
 	(require 'smtpmail)
-	(let* ((smtpmail-smtp-server (nth 1 method))
+	(let* ((smtpmail-store-queue-variables t)
+               (smtpmail-smtp-server (nth 1 method))
 	       (service (nth 2 method))
 	       (port (string-to-number service))
 	       ;; If we're talking to the TLS SMTP port, then force a
@@ -5337,7 +5357,7 @@ Otherwise, generate and save a value for `canlock-password' first."
    ;; Check "Shoot me".
    (message-check 'shoot
      (if (re-search-forward
-	  "Message-ID.*.i-did-not-set--mail-host-address--so-tickle-me" nil t)
+	  "Message-ID.*.mail-host-address-is-not-set" nil t)
 	 (y-or-n-p "You appear to have a misconfigured system.  Really post? ")
        t))
    ;; Check for Approved.
@@ -6048,8 +6068,7 @@ give as trustworthy answer as possible."
       user-domain)
      ;; Default to this bogus thing.
      (t
-      (concat sysname
-	      ".i-did-not-set--mail-host-address--so-tickle-me")))))
+      (concat sysname ".mail-host-address-is-not-set")))))
 
 (defun message-make-domain ()
   "Return the domain name."

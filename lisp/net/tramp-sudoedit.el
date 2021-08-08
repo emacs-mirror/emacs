@@ -88,6 +88,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-exists-p . tramp-sudoedit-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
+    (file-locked-p . tramp-handle-file-locked-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions
      . tramp-sudoedit-handle-file-name-all-completions)
@@ -115,9 +116,11 @@ See `tramp-actions-before-shell' for more info.")
     (insert-directory . tramp-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
+    (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-sudoedit-handle-make-directory)
     (make-directory-internal . ignore)
+    (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-sudoedit-handle-make-symbolic-link)
@@ -136,6 +139,7 @@ See `tramp-actions-before-shell' for more info.")
     (tramp-get-remote-uid . tramp-sudoedit-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sudoedit-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
+    (unlock-file . tramp-handle-unlock-file)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
     (write-region . tramp-sudoedit-handle-write-region))
@@ -233,7 +237,7 @@ absolute file names."
 		       (file-attributes filename)))
 	  (file-modes (tramp-default-file-modes filename))
 	  (attributes (and preserve-extended-attributes
-			   (apply #'file-extended-attributes (list filename))))
+			   (file-extended-attributes filename)))
 	  (sudoedit-operation
 	   (cond
 	    ((and (eq op 'copy) preserve-uid-gid) '("cp" "-f" "-p"))
@@ -289,7 +293,7 @@ absolute file names."
 	;; errors, because ACL strings could be incompatible.
 	(when attributes
 	  (ignore-errors
-	    (apply #'set-file-extended-attributes (list newname attributes))))
+	    (set-file-extended-attributes newname attributes)))
 
 	(when (and t1 (eq op 'rename))
 	  (with-parsed-tramp-file-name filename v1
@@ -349,7 +353,7 @@ the result will be a local, non-Tramp, file name."
   (when (zerop (length name)) (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (concat (file-name-as-directory dir) name)))
+    (setq name (tramp-compat-file-name-concat dir name)))
   (with-parsed-tramp-file-name name nil
     ;; Tilde expansion if necessary.  We cannot accept "~/", because
     ;; under sudo "~/" is expanded to the local user home directory
@@ -713,6 +717,7 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-sudoedit-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
+  (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (let* ((uid (or (tramp-compat-file-attribute-user-id
 		     (file-attributes filename 'integer))
@@ -721,13 +726,14 @@ ID-FORMAT valid values are `string' and `integer'."
 		     (file-attributes filename 'integer))
 		    (tramp-get-remote-gid v 'integer)))
 	   (flag (and (eq mustbenew 'excl) 'nofollow))
-	   (modes (tramp-default-file-modes filename flag)))
+	   (modes (tramp-default-file-modes filename flag))
+	   (attributes (file-extended-attributes filename)))
       (prog1
 	  (tramp-handle-write-region
 	   start end filename append visit lockname mustbenew)
 
-	;; Set the ownership and modes.  This is not performed in
-	;; `tramp-handle-write-region'.
+	;; Set the ownership, modes and extended attributes.  This is
+	;; not performed in `tramp-handle-write-region'.
 	(unless (and (= (tramp-compat-file-attribute-user-id
 			 (file-attributes filename 'integer))
 			uid)
@@ -735,7 +741,12 @@ ID-FORMAT valid values are `string' and `integer'."
 			 (file-attributes filename 'integer))
 			gid))
           (tramp-set-file-uid-gid filename uid gid))
-	(tramp-compat-set-file-modes filename modes flag)))))
+	(tramp-compat-set-file-modes filename modes flag)
+	;; We ignore possible errors, because ACL strings could be
+	;; incompatible.
+	(when attributes
+	  (ignore-errors
+	    (set-file-extended-attributes filename attributes)))))))
 
 
 ;; Internal functions.
@@ -776,6 +787,9 @@ connection if a previous connection has died for some reason."
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
 
+      ;; Mark process for filelock.
+      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
+
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)
 
@@ -803,6 +817,9 @@ in case of error, t otherwise."
 		      (tramp-compat-flatten-tree args))))
 	   ;; We suppress the messages `Waiting for prompts from remote shell'.
 	   (tramp-verbose (if (= tramp-verbose 3) 2 tramp-verbose))
+	   ;; The password shall be cached also in case of "emacs -Q".
+	   ;; See `tramp-process-actions'.
+	   (tramp-cache-read-persistent-data t)
 	   ;; We do not want to save the password.
 	   auth-source-save-behavior)
       (tramp-message vec 6 "%s" (string-join (process-command p) " "))

@@ -943,12 +943,7 @@ current buffer."
           (when defn
             (when (> (length info-list) 1)
               (with-current-buffer standard-output
-                (insert "\n\n"
-                        ;; FIXME: Can't use eval-when-compile because purified
-                        ;; strings lose their text properties :-(
-                        (propertize "\n" 'face
-                                    '(:height 0.1 :inverse-video t :extend t))
-                        "\n")))
+                (insert "\n\n" (make-separator-line) "\n")))
 
             (princ brief-desc)
             (when locus

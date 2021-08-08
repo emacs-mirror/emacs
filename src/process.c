@@ -1755,7 +1755,7 @@ usage: (make-process &rest ARGS)  */)
      buffer's current directory, or its unhandled equivalent.  We
      can't just have the child check for an error when it does the
      chdir, since it's in a vfork.  */
-  current_dir = encode_current_directory ();
+  current_dir = get_current_directory (true);
 
   name = Fplist_get (contact, QCname);
   CHECK_STRING (name);
@@ -5232,7 +5232,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #ifdef HAVE_GNUTLS
 		/* Continue TLS negotiation. */
 		if (p->gnutls_initstage == GNUTLS_STAGE_HANDSHAKE_TRIED
-		    && p->is_non_blocking_client)
+		    && p->is_non_blocking_client
+		    /* Don't proceed until we have established a connection. */
+		    && !(fd_callback_info[p->outfd].flags
+			 & NON_BLOCKING_CONNECT_FD))
 		  {
 		    gnutls_try_handshake (p);
 		    p->gnutls_handshakes_tried++;
