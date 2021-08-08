@@ -206,24 +206,24 @@ form.")
   "Test for https://debbugs.gnu.org/21454 ."
   (let ((input-result
          (if (memq system-type '(windows-nt ms-dos))
-             '(("x:/foo/bar//baz/;y:/bar/foo/baz//" nil
-                ("x:/foo/bar/baz/" "y:/bar/foo/baz/"))
+             '(("/foo/bar//baz/;/bar/foo/baz//" nil
+                ("/foo/bar//baz/" "/bar/foo/baz//"))
                ("x:/foo/bar/;y:/bar/qux/;z:/qux/foo" nil
                 ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
                ("x://foo/bar/;y:/bar/qux/;z:/qux/foo/" nil
-                ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
+                ("x://foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
                ("x:/foo/bar/;y:/bar/qux/;z:/qux/foo/" nil
                 ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
                ("x:/foo//bar/;y:/bar/qux/;z:/qux/foo/" nil
-                ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
+                ("x:/foo//bar/" "y:/bar/qux/" "z:/qux/foo/"))
                ("x:/foo//bar/;y:/bar/qux/;z:/qux/foo" nil
-                ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
+                ("x:/foo//bar/" "y:/bar/qux/" "z:/qux/foo/"))
                ("x:/foo/bar" "$FOO/baz/;z:/qux/foo/"
                 ("x:/foo/bar/baz/" "z:/qux/foo/"))
-               ("x://foo/bar/" "$FOO/baz/;z:/qux/foo/"
-                ("x:/foo/bar/baz/" "z:/qux/foo/")))
+               ("//foo/bar/" "$FOO/baz/;/qux/foo/"
+                ("/foo/bar//baz/" "/qux/foo/")))
            '(("/foo/bar//baz/:/bar/foo/baz//" nil
-              ("/foo/bar/baz/" "/bar/foo/baz/"))
+              ("/foo/bar//baz/" "/bar/foo/baz//"))
              ("/foo/bar/:/bar/qux/:/qux/foo" nil
               ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
              ("//foo/bar/:/bar/qux/:/qux/foo/" nil
@@ -231,11 +231,11 @@ form.")
              ("/foo/bar/:/bar/qux/:/qux/foo/" nil
               ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
              ("/foo//bar/:/bar/qux/:/qux/foo/" nil
-              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+              ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
              ("/foo//bar/:/bar/qux/:/qux/foo" nil
-              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+              ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
              ("/foo/bar" "$FOO/baz/:/qux/foo/" ("/foo/bar/baz/" "/qux/foo/"))
-             ("//foo/bar/" "$FOO/baz/:/qux/foo/" ("/foo/bar/baz/" "/qux/foo/")))))
+             ("//foo/bar/" "$FOO/baz/:/qux/foo/" ("/foo/bar//baz/" "/qux/foo/")))))
         (foo-env (getenv "FOO"))
         (bar-env (getenv "BAR")))
     (unwind-protect
@@ -1459,14 +1459,11 @@ See <https://debbugs.gnu.org/36401>."
 (ert-deftest files-colon-path ()
   (if (memq system-type '(windows-nt ms-dos))
       (should (equal (parse-colon-path "x:/foo//bar/baz")
-                     '("x:/foo/bar/baz/")))
+                     '("x:/foo//bar/baz/")))
     (should (equal (parse-colon-path "/foo//bar/baz")
-                   '("/foo/bar/baz/"))))
-  (let* ((path (concat "." path-separator "/tmp"))
-         (parsed-path (parse-colon-path path))
-         (name-start (if (memq system-type '(windows-nt ms-dos)) 2)))
-    (should (equal (car parsed-path) "./"))
-    (should (equal (substring (cadr parsed-path) name-start) "/tmp/"))))
+                   '("/foo//bar/baz/"))))
+  (should (equal (parse-colon-path (concat "." path-separator "/tmp"))
+                 '("./" "/tmp/"))))
 
 (ert-deftest files-test-magic-mode-alist-doctype ()
   "Test that DOCTYPE and variants put files in mhtml-mode."
