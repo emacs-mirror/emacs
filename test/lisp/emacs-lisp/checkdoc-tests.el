@@ -49,27 +49,27 @@
   (with-temp-buffer
     (emacs-lisp-mode)
     ;; this method matches if A is the symbol `smthg' and if b is a list:
-    (insert "(cl-defmethod foo ((a (eql smthg)) (b list)) \"Return A+B.\")")
+    (insert "(cl-defmethod foo ((a (eql 'smthg)) (b list)) \"Return A+B.\")")
     (checkdoc-defun)))
 
 (ert-deftest checkdoc-cl-defmethod-qualified-ok ()
   "Checkdoc should be happy with a `cl-defmethod' using qualifiers."
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "(cl-defmethod test :around ((a (eql smthg))) \"Return A.\")")
+    (insert "(cl-defmethod test :around ((a (eql 'smthg))) \"Return A.\")")
     (checkdoc-defun)))
 
 (ert-deftest checkdoc-cl-defmethod-with-extra-qualifier-ok ()
   "Checkdoc should be happy with a :extra qualified `cl-defmethod'."
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "(cl-defmethod foo :extra \"foo\" ((a (eql smthg))) \"Return A.\")")
+    (insert "(cl-defmethod foo :extra \"foo\" ((a (eql 'smthg))) \"Return A.\")")
     (checkdoc-defun))
 
   (with-temp-buffer
     (emacs-lisp-mode)
     (insert
-     "(cl-defmethod foo :extra \"foo\" :after ((a (eql smthg))) \"Return A.\")")
+     "(cl-defmethod foo :extra \"foo\" :after ((a (eql 'smthg))) \"Return A.\")")
     (checkdoc-defun)))
 
 (ert-deftest checkdoc-cl-defmethod-with-extra-qualifier-and-nil-args-ok ()

@@ -2328,6 +2328,16 @@ variables.")
   (setq deactivate-mark nil)
   (throw 'exit nil))
 
+(defun minibuffer-restore-windows ()
+  "Restore some windows on exit from minibuffer.
+When `read-minibuffer-restore-windows' is nil, then this function
+added to `minibuffer-exit-hook' will remove at least the window
+that displays the \"*Completions*\" buffer."
+  (unless read-minibuffer-restore-windows
+    (minibuffer-hide-completions)))
+
+(add-hook 'minibuffer-exit-hook 'minibuffer-restore-windows)
+
 (defun minibuffer-quit-recursive-edit ()
   "Quit the command that requested this recursive edit without error.
 Like `abort-recursive-edit' without aborting keyboard macro

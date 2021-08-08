@@ -601,15 +601,9 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
                   (lexvar (assq var byte-optimize--lexvars))
                   (value (byte-optimize-form expr nil)))
              (when lexvar
-               ;; Set a new value or inhibit further substitution.
-               (setcdr (cdr lexvar)
-                       (and
-                        ;; Inhibit if bound outside conditional code.
-                        (not (assq var byte-optimize--vars-outside-condition))
-                        ;; The new value must be substitutable.
-                        (byte-optimize--substitutable-p value)
-                        (list value)))
-               (setcar (cdr lexvar) t))   ; Mark variable to be kept.
+               (setcar (cdr lexvar) t)    ; Mark variable to be kept.
+               (setcdr (cdr lexvar) nil)) ; Inhibit further substitution.
+
              (push var var-expr-list)
              (push value var-expr-list))
            (setq args (cddr args)))

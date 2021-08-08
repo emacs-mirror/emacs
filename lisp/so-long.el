@@ -8,7 +8,7 @@
 ;; Keywords: convenience
 ;; Created: 23 Dec 2015
 ;; Package-Requires: ((emacs "24.4"))
-;; Version: 1.1
+;; Version: 1.1.1
 
 ;; This file is part of GNU Emacs.
 
@@ -410,6 +410,7 @@
 
 ;; * Change Log:
 ;;
+;; 1.1.1 - Identical to 1.1, but fixing an incorrect GNU ELPA release.
 ;; 1.1   - Utilise `buffer-line-statistics' in Emacs 28+, with the new
 ;;         `so-long-predicate' function `so-long-statistics-excessive-p'.
 ;;       - Increase `so-long-threshold' from 250 to 10,000.

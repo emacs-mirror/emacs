@@ -15082,11 +15082,12 @@ hscroll_window_tree (Lisp_Object window)
 	      else
 		{
 		  if (hscroll_relative_p)
-		    wanted_x = text_area_width * hscroll_step_rel
-		      	       + h_margin;
+		    wanted_x =
+		      text_area_width * hscroll_step_rel + h_margin + x_offset;
 		  else
-		    wanted_x = hscroll_step_abs * FRAME_COLUMN_WIDTH (it.f)
-		      	       + h_margin;
+		    wanted_x =
+		      hscroll_step_abs * FRAME_COLUMN_WIDTH (it.f)
+		      + h_margin + x_offset;
 		  hscroll
 		    = max (0, it.current_x - wanted_x) / FRAME_COLUMN_WIDTH (it.f);
 		}

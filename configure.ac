@@ -1334,6 +1334,9 @@ if test -n "$BREW"; then
     [`$BREW --prefix texinfo 2>/dev/null`/bin$PATH_SEPARATOR$PATH])
 fi
 
+# Check MacPorts on macOS.
+AC_PATH_PROG(HAVE_MACPORTS, port)
+
 ## Require makeinfo >= 4.13 (last of the 4.x series) to build the manuals.
 : ${MAKEINFO:=makeinfo}
 case `($MAKEINFO --version) 2>/dev/null` in
@@ -3807,7 +3810,8 @@ source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])])
 
 HAVE_NATIVE_COMP=no
-LIBGCCJIT_LIB=
+LIBGCCJIT_LIBS=
+LIBGCCJIT_CFLAGS=
 if test "${with_native_compilation}" != "no"; then
     if test "${HAVE_PDUMPER}" = no; then
        AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
@@ -3827,6 +3831,20 @@ if test "${with_native_compilation}" != "no"; then
       fi
     fi
 
+    # Ensure libgccjit installed by MacPorts can be found.
+    if test -n "$HAVE_MACPORTS"; then
+      # Determine which gcc version has been installed (gcc11, for
+      # instance).
+      PORT_PACKAGE=$(port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
+                          awk '{ print $1; }')
+      MACPORTS_LIBGCCJIT_INCLUDE=$(dirname $(port contents $PORT_PACKAGE | \
+                                           grep libgccjit.h))
+      MACPORTS_LIBGCCJIT_LIB=$(dirname $(port contents $PORT_PACKAGE | \
+                                              grep libgccjit.dylib))
+      CFLAGS="$CFLAGS -I${MACPORTS_LIBGCCJIT_INCLUDE}"
+      LDFLAGS="$LDFLAGS -L${MACPORTS_LIBGCCJIT_LIB}"
+    fi
+
     # Check if libgccjit is available.
     AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, [], [libgccjit_not_found])
     AC_CHECK_HEADERS(libgccjit.h, [], [libgccjit_dev_not_found])
@@ -3841,17 +3859,24 @@ if test "${with_native_compilation}" != "no"; then
       mingw32) ;;
       # OpenBSD doesn't have libdl, all the functions are in libc
       netbsd|openbsd)
-        LIBGCCJIT_LIB="-lgccjit" ;;
+        LIBGCCJIT_LIBS="-lgccjit" ;;
       *)
-        LIBGCCJIT_LIB="-lgccjit -ldl" ;;
+        LIBGCCJIT_LIBS="-lgccjit -ldl" ;;
     esac
     NEED_DYNLIB=yes
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if native compiler is available.])
+
+    # Ensure libgccjit installed by MacPorts can be found.
+    if test -n "$HAVE_MACPORTS"; then
+      LIBGCCJIT_CFLAGS="$LIBGCCJIT_CFLAGS  -I${MACPORTS_LIBGCCJIT_INCLUDE}"
+      LIBGCCJIT_LIBS="-L${MACPORTS_LIBGCCJIT_LIB} $LIBGCCJIT_LIBS"
+    fi
 fi
 AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
   [System extension for native compiled elisp])
 AC_SUBST(HAVE_NATIVE_COMP)
-AC_SUBST(LIBGCCJIT_LIB)
+AC_SUBST(LIBGCCJIT_CFLAGS)
+AC_SUBST(LIBGCCJIT_LIBS)
 
 DYNLIB_OBJ=
 if test "${NEED_DYNLIB}" = yes; then

@@ -689,12 +689,15 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     call1 (Qpush_window_buffer_onto_prev, minibuf_window);
 
   record_unwind_protect_void (minibuffer_unwind);
-  record_unwind_protect (restore_window_configuration,
-			 list3 (Fcurrent_window_configuration (Qnil), Qt, Qt));
+  if (read_minibuffer_restore_windows)
+    record_unwind_protect (restore_window_configuration,
+			   list3 (Fcurrent_window_configuration (Qnil),
+				  Qt, Qt));
 
   /* If the minibuffer window is on a different frame, save that
      frame's configuration too.  */
-  if (!EQ (mini_frame, selected_frame))
+  if (read_minibuffer_restore_windows &&
+      !EQ (mini_frame, selected_frame))
     record_unwind_protect (restore_window_configuration,
 			   list3 (Fcurrent_window_configuration (mini_frame),
 				  Qnil, Qt));
@@ -2526,6 +2529,19 @@ for instance when running a headless Emacs server.  Functions like
 `read-from-minibuffer' (and the like) will signal `inhibited-interaction'
 instead. */);
   inhibit_interaction = 0;
+
+  DEFVAR_BOOL ("read-minibuffer-restore-windows", read_minibuffer_restore_windows,
+	       doc: /* Non-nil means restore window configurations on exit from minibuffer.
+If this is non-nil (the default), reading input with the minibuffer will
+restore, on exit, the window configurations of the frame where the
+minibuffer was entered from and, if it is different, the frame that owns
+the associated minibuffer window.
+
+If this is nil, window configurations are not restored upon exiting
+the minibuffer.  However, if `minibuffer-restore-windows' is present
+in `minibuffer-exit-hook', exiting the minibuffer will remove the window
+showing the *Completions* buffer, if any.  */);
+  read_minibuffer_restore_windows = true;
 
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sset_minibuffer_window);

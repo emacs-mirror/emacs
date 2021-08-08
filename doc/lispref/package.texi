@@ -283,11 +283,14 @@ variable @code{load-file-name} (@pxref{Loading}).  Here is an example:
 @section Creating and Maintaining Package Archives
 @cindex package archive
 
+@cindex GNU ELPA
+@cindex non-GNU ELPA
   Via the Package Menu, users may download packages from @dfn{package
 archives}.  Such archives are specified by the variable
-@code{package-archives}, whose default value contains a single entry:
-the archive hosted by the GNU project at @url{https://elpa.gnu.org}.  This
-section describes how to set up and maintain a package archive.
+@code{package-archives}, whose default value lists the archives
+hosted on @url{https://elpa.gnu.org, GNU ELPA} and
+@url{https://elpa.nongnu.org, non-GNU ELPA}.  This section describes
+how to set up and maintain a package archive.
 
 @cindex base location, package archive
 @defopt package-archives

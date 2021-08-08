@@ -1670,9 +1670,9 @@ See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
        ((or (not ffap-newfile-prompt)
 	    (file-exists-p filename)
 	    (y-or-n-p "File does not exist, create buffer? "))
-	(funcall ffap-file-finder
-		 ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
-		 (expand-file-name filename)))
+	(find-file
+	 ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
+	 (expand-file-name filename)))
        ;; User does not want to find a non-existent file:
        ((signal 'file-missing (list "Opening file buffer"
 				    "No such file or directory"

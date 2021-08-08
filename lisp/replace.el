@@ -1898,6 +1898,7 @@ See also `multi-occur'."
       ;; Make the default-directory of the *Occur* buffer match that of
       ;; the buffer where the occurrences come from
       (setq default-directory source-buffer-default-directory)
+      (setq overlay-arrow-position nil)
       (if (stringp nlines)
 	  (fundamental-mode) ;; This is for collect operation.
 	(occur-mode))
