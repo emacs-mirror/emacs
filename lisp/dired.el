@@ -2872,7 +2872,7 @@ dired-buffers."
        ((null (buffer-name buf))
 	;; Buffer is killed - clean up:
 	(setq dired-buffers (delq elt dired-buffers)))
-       ((file-in-directory-p (car elt) dir)
+       ((dired-in-this-tree-p (car elt) dir)
 	(with-current-buffer buf
           (when (and (or subdirs
                          (assoc dir dired-subdir-alist))
@@ -2947,7 +2947,7 @@ dired-buffers."
   ;;"Is FILE part of the directory tree starting at DIR?"
   (let (case-fold-search)
     (string-match-p (concat "^" (regexp-quote dir)) file)))
-(make-obsolete 'dired-in-this-tree-p 'file-in-directory-p "28.1")
+
 (define-obsolete-function-alias 'dired-in-this-tree
   'dired-in-this-tree-p "27.1")
 
