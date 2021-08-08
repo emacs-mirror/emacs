@@ -659,7 +659,7 @@ representing leap seconds."
             (if second
                 (if second-fraction
                     (let* ((second-fraction-significand
-                            (replace-regexp-in-string "\\." "" second-fraction))
+                            (string-replace "." "" second-fraction))
                            (hertz
                             (expt 10 (length second-fraction-significand)))
                            (ticks (+ (* hertz (string-to-number second))

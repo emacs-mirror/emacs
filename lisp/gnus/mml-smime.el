@@ -404,7 +404,7 @@ Content-Disposition: attachment; filename=smime.p7m
 					   nil t)))))
 	(mm-sec-error 'gnus-info "Corrupted")
 	(throw 'error handle))
-      (setq part (replace-regexp-in-string "\n" "\r\n" part)
+      (setq part (string-replace "\n" "\r\n" part)
 	    context (epg-make-context 'CMS))
       (condition-case error
 	  ;; (setq plain

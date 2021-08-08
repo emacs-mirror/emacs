@@ -800,7 +800,7 @@ When 0, do not auto-reconnect."
 
 (defun rcirc-sentinel (process sentinel)
   "Called when PROCESS receives SENTINEL."
-  (let ((sentinel (replace-regexp-in-string "\n" "" sentinel)))
+  (let ((sentinel (string-replace "\n" "" sentinel)))
     (rcirc-debug process (format "SENTINEL: %S %S\n" process sentinel))
     (with-rcirc-process-buffer process
       (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))

@@ -1644,7 +1644,7 @@ used instead of `browse-url-new-window-flag'."
 	  (insert "\n"))
 	(goto-char (prog1
 		       (point)
-		     (insert (replace-regexp-in-string "\r\n" "\n" body))
+		     (insert (string-replace "\r\n" "\n" body))
 		     (unless (bolp)
 		       (insert "\n"))))))))
 

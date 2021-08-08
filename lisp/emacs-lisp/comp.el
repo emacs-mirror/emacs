@@ -1171,7 +1171,7 @@ clashes."
 	                   do (aset str j (aref byte 0))
 	                      (aset str (1+ j) (aref byte 1))
 	                   finally return str))
-         (human-readable (replace-regexp-in-string
+         (human-readable (string-replace
                           "-" "_" orig-name))
          (human-readable (replace-regexp-in-string
                           (rx (not (any "0-9a-z_"))) "" human-readable)))

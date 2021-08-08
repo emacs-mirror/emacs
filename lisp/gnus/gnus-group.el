@@ -2186,7 +2186,7 @@ handle COLLECTION as a list, hash table, or vector."
 				require-match initial-input
 				(or hist 'gnus-group-history)
 				def)))
-    (replace-regexp-in-string "\n" "" group)))
+    (string-replace "\n" "" group)))
 
 ;;;###autoload
 (defun gnus-fetch-group (group &optional articles)

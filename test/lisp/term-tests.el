@@ -56,7 +56,7 @@
 first line\r
 next line\r\n"))
     (should (equal (term-test-screen-from-input 40 12 str)
-                   (replace-regexp-in-string "\r" "" str)))))
+                   (string-replace "\r" "" str)))))
 
 (ert-deftest term-carriage-return ()
   (skip-unless (not (memq system-type '(windows-nt ms-dos))))

@@ -257,7 +257,7 @@ not be enclosed in { } or ( )."
   "Regex used to highlight makepp rule action lines in font lock mode.")
 
 (defconst makefile-bsdmake-rule-action-regex
-  (replace-regexp-in-string "-@" "-+@" makefile-rule-action-regex)
+  (string-replace "-@" "-+@" makefile-rule-action-regex)
   "Regex used to highlight BSD rule action lines in font lock mode.")
 
 ;; Note that the first and second subexpression is used by font lock.  Note
@@ -358,11 +358,10 @@ not be enclosed in { } or ( )."
     ,@(if keywords
           ;; Fontify conditionals and includes.
           `((,(concat "^\\(?: [ \t]*\\)?"
-	      (replace-regexp-in-string
+	      (string-replace
 	       " " "[ \t]+"
 	       (if (eq (car keywords) t)
-		   (replace-regexp-in-string "-" "[_-]"
-                                             (regexp-opt (cdr keywords) t))
+		   (string-replace "-" "[_-]" (regexp-opt (cdr keywords) t))
 		 (regexp-opt keywords t)))
 	      "\\>[ \t]*\\([^: \t\n#]*\\)")
              (1 font-lock-keyword-face) (2 font-lock-variable-name-face))))

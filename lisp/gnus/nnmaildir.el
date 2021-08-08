@@ -637,13 +637,11 @@ This variable is set by `nnmaildir-request-article'.")
 	  (funcall func (cdr entry)))))))
 
 (defun nnmaildir--system-name ()
-  (replace-regexp-in-string
+  (string-replace
    ":" "\\072"
-   (replace-regexp-in-string
+   (string-replace
     "/" "\\057"
-    (replace-regexp-in-string "\\\\" "\\134" (system-name) nil 'literal)
-    nil 'literal)
-   nil 'literal))
+    (string-replace "\\" "\\134" (system-name)))))
 
 (defun nnmaildir-request-type (_group &optional _article)
   'mail)
@@ -937,9 +935,9 @@ This variable is set by `nnmaildir-request-article'.")
 		  (setq pgname (nnmaildir--pgname nnmaildir--cur-server gname)
 
 			ro (nnmaildir--param pgname 'read-only))
-		  (insert (replace-regexp-in-string
+		  (insert (string-replace
 			   " " "\\ "
-			   (nnmaildir--grp-name group) nil t)
+			   (nnmaildir--grp-name group))
 			  " ")
                   (princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 			 nntp-server-buffer)
@@ -968,7 +966,7 @@ This variable is set by `nnmaildir-request-article'.")
 	  (princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 		 nntp-server-buffer)
 	  (insert " "
-		  (replace-regexp-in-string " " "\\ " gname nil t)
+		  (string-replace " " "\\ " gname)
 		  "\n")))))
   'group)
 
@@ -1098,7 +1096,7 @@ This variable is set by `nnmaildir-request-article'.")
 	(insert " ")
 	(princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 	       nntp-server-buffer)
-	(insert " " (replace-regexp-in-string " " "\\ " gname nil t) "\n")
+	(insert " " (string-replace " " "\\ " gname) "\n")
 	t))))
 
 (defun nnmaildir-request-create-group (gname &optional server _args)
@@ -1262,7 +1260,7 @@ This variable is set by `nnmaildir-request-article'.")
 	      (insert "\t" (nnmaildir--nov-get-beg nov) "\t"
 		      (nnmaildir--art-msgid article) "\t"
 		      (nnmaildir--nov-get-mid nov) "\tXref: nnmaildir "
-		      (replace-regexp-in-string " " "\\ " gname nil t) ":")
+		      (string-replace " " "\\ " gname) ":")
 	      (princ num nntp-server-buffer)
 	      (insert "\t" (nnmaildir--nov-get-end nov) "\n"))))
     (catch 'return

@@ -1193,7 +1193,7 @@ NOSELECT the files are merely found but not selected."
   (interactive)
   (require 'man)
   (let* ((file (dired-get-filename))
-         (manual-program (replace-regexp-in-string "\\*" "%s"
+         (manual-program (string-replace "*" "%s"
                           (dired-guess-shell-command
                            "Man command: " (list file)))))
     (Man-getpage-in-background file)))

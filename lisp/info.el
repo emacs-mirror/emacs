@@ -1732,14 +1732,14 @@ escaped (\\\",\\\\)."
 		(concat
 		 " ("
 		 (if (stringp Info-current-file)
-		     (replace-regexp-in-string
+		     (string-replace
 		      "%" "%%"
 		      (file-name-sans-extension
 		       (file-name-nondirectory Info-current-file)))
 		   (format "*%S*" Info-current-file))
 		 ") "
 		 (if Info-current-node
-		     (propertize (replace-regexp-in-string
+		     (propertize (string-replace
 				  "%" "%%" Info-current-node)
 				 'face 'mode-line-buffer-id
 				 'help-echo

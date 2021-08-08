@@ -479,7 +479,7 @@ and VALUE-END, otherwise a STRING giving the value."
 		      "[^<'&\r\n\t]*"
 		      (xmltok-g complex1 "[&\r\n\t][^<']*") opt
 		      "'"))
-	    (lit2 (cons (replace-regexp-in-string "'" "\"" (car lit1))
+	    (lit2 (cons (string-replace "'" "\"" (car lit1))
 			'(complex2)))
 	    (literal (xmltok-g literal lit1 or lit2))
 	    (name (xmltok+ open (xmltok-g xmlns "xmlns") or ncname close

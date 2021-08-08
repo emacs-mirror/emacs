@@ -508,7 +508,7 @@ has no effect on MS-Windows."
 	 (default
 	   (and (stringp modestr)
 		(string-match "^.\\(...\\)\\(...\\)\\(...\\)$" modestr)
-		(replace-regexp-in-string
+		(string-replace
 		 "-" ""
 		 (format "u=%s,g=%s,o=%s"
 			 (match-string 1 modestr)

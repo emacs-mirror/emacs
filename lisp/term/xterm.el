@@ -1015,10 +1015,9 @@ hitting screen's max DCS length."
                      'terminal-init-screen))
          (bytes (encode-coding-string data 'utf-8-unix))
          (base-64 (if screen
-                      (replace-regexp-in-string
+                      (string-replace
                        "\n" "\e\\\eP"
-                       (base64-encode-string bytes)
-                       :fixedcase :literal)
+                       (base64-encode-string bytes))
                     (base64-encode-string bytes :no-line-break)))
          (length (length base-64)))
     (if (> length xterm-max-cut-length)

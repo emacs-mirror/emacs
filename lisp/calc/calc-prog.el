@@ -802,8 +802,8 @@
     (when match
       (kill-line 1)
       (setq line (concat line (substring curline 0 match))))
-    (setq line (replace-regexp-in-string "SPC" " SPC "
-                  (replace-regexp-in-string " " "" line)))
+    (setq line (string-replace "SPC" " SPC "
+                               (string-replace " " "" line)))
     (insert line "\t\t\t")
     (if (> (current-column) 24)
         (delete-char -1))
@@ -830,7 +830,7 @@
     (when match
       (kill-line 1)
       (setq line (concat line (substring curline 0 match))))
-    (setq line (replace-regexp-in-string " " "" line))
+    (setq line (string-replace " " "" line))
     (insert cmdbeg " " line "\t\t\t")
     (if (> (current-column) 24)
         (delete-char -1))
@@ -857,7 +857,7 @@
       (when match
         (kill-line 1)
         (setq line (concat line (substring curline 0 match))))
-      (setq line (replace-regexp-in-string " " "" line))
+      (setq line (string-replace " " "" line))
       (insert line "\t\t\t")
       (if (> (current-column) 24)
           (delete-char -1))

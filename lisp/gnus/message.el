@@ -8599,7 +8599,7 @@ From headers in the original article."
     (let ((value (message-field-value header)))
       (dolist (string (mail-header-parse-addresses value 'raw))
 	(setq string
-	      (replace-regexp-in-string
+	      (string-replace
 	       "\n" ""
 	       (replace-regexp-in-string "^ +\\| +$" "" string)))
 	(ecomplete-add-item 'mail (car (mail-header-parse-address string))
@@ -8889,7 +8889,7 @@ used to take the screenshot."
 
 (defun message-parse-mailto-url (url)
   "Parse a mailto: url."
-  (setq url (replace-regexp-in-string "\n" " " url))
+  (setq url (string-replace "\n" " " url))
   (when (string-match "mailto:/*\\(.*\\)" url)
     (setq url (substring url (match-beginning 1) nil)))
   (setq url (if (string-match "^\\?" url)
@@ -8931,9 +8931,9 @@ will then start up Emacs ready to compose mail.  For emacsclient use
     (dolist (arg args)
       (unless (equal (car arg) "body")
 	(message-position-on-field (capitalize (car arg)))
-	(insert (replace-regexp-in-string
+	(insert (string-replace
 		 "\r\n" "\n"
-		 (mapconcat #'identity (reverse (cdr arg)) ", ") nil t))))
+		 (mapconcat #'identity (reverse (cdr arg)) ", ")))))
     (when (assoc "body" args)
       (message-goto-body)
       (dolist (body (cdr (assoc "body" args)))

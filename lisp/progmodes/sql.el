@@ -3843,7 +3843,7 @@ to avoid deleting non-prompt output."
 
 (defun sql-remove-tabs-filter (str)
   "Replace tab characters with spaces."
-  (replace-regexp-in-string "\t" " " str nil t))
+  (string-replace "\t" " " str))
 
 (defun sql-toggle-pop-to-buffer-after-send-region (&optional value)
   "Toggle `sql-pop-to-buffer-after-send-region'.
@@ -3864,7 +3864,7 @@ If given the optional parameter VALUE, sets
   "If non-nil, display messages related to the use of redirection.")
 
 (defun sql-str-literal (s)
-  (concat "'" (replace-regexp-in-string "[']" "''" s) "'"))
+  (concat "'" (string-replace "[']" "''" s) "'"))
 
 (defun sql-redirect (sqlbuf command &optional outbuf save-prior)
   "Execute the SQL command and send output to OUTBUF.

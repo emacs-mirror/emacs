@@ -9191,7 +9191,7 @@ specified by the `gnus-refer-thread-limit' variable."
   (interactive "sMessage-ID: " gnus-summary-mode)
   (when (and (stringp message-id)
 	     (not (zerop (length message-id))))
-    (setq message-id (replace-regexp-in-string " " "" message-id))
+    (setq message-id (string-replace " " "" message-id))
     ;; Construct the correct Message-ID if necessary.
     ;; Suggested by tale@pawl.rpi.edu.
     (unless (string-match "^<" message-id)

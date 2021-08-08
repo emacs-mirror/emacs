@@ -1389,7 +1389,7 @@ The return string is always 6 characters wide."
 (defun proced-format-args (args)
   "Format attribute ARGS.
 Replace newline characters by \"^J\" (two characters)."
-  (replace-regexp-in-string "\n" "^J" args))
+  (string-replace "\n" "^J" args))
 
 (defun proced-format (process-alist format)
   "Display PROCESS-ALIST using FORMAT."

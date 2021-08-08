@@ -8288,7 +8288,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 	     ")" (gnus-url-unhex-string (match-string 2 url)))))
    ((string-match "([^)\"]+)[^\"]+" url)
     (setq url
-	  (replace-regexp-in-string
+	  (string-replace
 	   "\"" "" (replace-regexp-in-string "[\n\t ]+" " " url)))
     (gnus-info-find-node url))
    (t (error "Can't parse %s" url))))

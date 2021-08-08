@@ -5201,7 +5201,7 @@ The function `find-backup-file-name' also uses this."
 	    (expand-file-name
 	     (subst-char-in-string
 	      ?/ ?!
-	      (replace-regexp-in-string "!" "!!" file))
+	      (string-replace "!" "!!" file))
 	     backup-directory))
 	(expand-file-name (file-name-nondirectory file)
 			  (file-name-as-directory abs-backup-directory))))))
@@ -6876,7 +6876,7 @@ the resulting file name, and SUFFIX is appended."
 	         (file-name-directory result)
 	         (subst-char-in-string
 		  ?/ ?!
-		  (replace-regexp-in-string
+		  (string-replace
                    "!" "!!" filename))))
 	       (t result))))
       (setq result
@@ -7989,7 +7989,7 @@ based on existing mode bits, as in \"og+rX-w\"."
 	 (default
 	   (and (stringp modestr)
 		(string-match "^.\\(...\\)\\(...\\)\\(...\\)$" modestr)
-		(replace-regexp-in-string
+		(string-replace
 		 "-" ""
 		 (format "u=%s,g=%s,o=%s"
 			 (match-string 1 modestr)

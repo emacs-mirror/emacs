@@ -209,7 +209,7 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
 			 "\\)"))
 		  ;; Now create the new SPLIT
 		  (let ((split-regexp-with-list-ids
-			 (replace-regexp-in-string "@" "[@.]" split-regexp t t))
+			 (string-replace "@" "[@.]" split-regexp))
 			(exclude
 			 ;; Generate RESTRICTs for SPLIT-EXCLUDEs.
 			 (if (listp split-exclude)

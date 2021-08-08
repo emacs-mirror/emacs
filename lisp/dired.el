@@ -1587,8 +1587,8 @@ see `dired-use-ls-dired' for more details.")
       ;; because newlines in dirnames are uncommon, and people may
       ;; have gotten used to seeing unescaped "\" in the headers.
       ;; Note: adjust dired-build-subdir-alist if you change this.
-      (setq dir (replace-regexp-in-string "\\\\" "\\\\" dir nil t)
-            dir (replace-regexp-in-string "\n" "\\n" dir nil t)))
+      (setq dir (string-replace "\\" "\\\\" dir)
+            dir (string-replace "\n" "\\n" dir)))
     ;; If we used --dired and it worked, the lines are already indented.
     ;; Otherwise, indent them.
     (unless (save-excursion
@@ -3167,15 +3167,15 @@ the quoted forms of those characters.
 FULL-NAME specifies the actual file name the listing must have,
 as returned by `dired-get-filename'.  LIMIT is the search limit."
   (let (str)
-    (setq str (replace-regexp-in-string "\^m" "\\^m"  file nil t))
-    (setq str (replace-regexp-in-string "\\\\" "\\\\" str nil t))
+    (setq str (string-replace "\^m" "\\^m"  file))
+    (setq str (string-replace "\\" "\\\\" str))
     (and (dired-switches-escape-p dired-actual-switches)
 	 (string-match-p "[ \t\n]" str)
 	 ;; FIXME: to fix this for embedded control characters etc, we
 	 ;; should escape everything that `ls -b' does.
-	 (setq str (replace-regexp-in-string " " "\\ "  str nil t)
-	       str (replace-regexp-in-string "\t" "\\t" str nil t)
-	       str (replace-regexp-in-string "\n" "\\n" str nil t)))
+	 (setq str (string-replace " " "\\ "  str)
+	       str (string-replace "\t" "\\t" str)
+	       str (string-replace "\n" "\\n" str)))
     (let ((found nil)
 	  ;; filenames are preceded by SPC, this makes the search faster
 	  ;; (e.g. for the filename "-").

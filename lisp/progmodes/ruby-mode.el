@@ -1788,8 +1788,8 @@ If the result is do-end block, it will always be multiline."
             (buffer-substring-no-properties (1+ min) (1- max))))
       (setq content
             (if (equal string-quote "'")
-                (replace-regexp-in-string "\\\\\"" "\"" (replace-regexp-in-string "\\(\\`\\|[^\\]\\)'" "\\1\\\\'" content))
-              (replace-regexp-in-string "\\\\'" "'" (replace-regexp-in-string "\\(\\`\\|[^\\]\\)\"" "\\1\\\\\"" content))))
+                (string-replace "\\\"" "\"" (replace-regexp-in-string "\\(\\`\\|[^\\]\\)'" "\\1\\\\'" content))
+              (string-replace "\\'" "'" (replace-regexp-in-string "\\(\\`\\|[^\\]\\)\"" "\\1\\\\\"" content))))
       (let ((orig-point (point)))
         (delete-region min max)
         (insert

@@ -779,7 +779,7 @@ Currently this means either text/html or application/xhtml+xml."
                                        (propertize "...: " 'face
                                                    'variable-pitch))))
                             (propertize "..." 'face 'variable-pitch)))))))
-	       (replace-regexp-in-string
+	       (string-replace
 		"%" "%%"
 		(format-spec
 		 eww-header-line-format

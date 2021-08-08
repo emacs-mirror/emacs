@@ -213,7 +213,7 @@ wants to replace FROM with TO."
 	    (when query-replace-from-to-separator
 	      ;; Check if the first non-whitespace char is displayable
 	      (if (char-displayable-p
-		   (string-to-char (replace-regexp-in-string
+		   (string-to-char (string-replace
 				    " " "" query-replace-from-to-separator)))
 		  query-replace-from-to-separator
 		" -> ")))
@@ -2101,7 +2101,7 @@ See also `multi-occur'."
 			      ;; Add non-numeric prefix to all non-first lines
 			      ;; of multi-line matches.
                               (concat
-			       (replace-regexp-in-string
+			       (string-replace
 			        "\n"
 			        (if prefix-face
 				    (propertize
@@ -2506,12 +2506,10 @@ a string, it is first passed through `prin1-to-string'
 with the `noescape' argument set.
 
 `match-data' is preserved across the call."
-  (save-match-data
-    (replace-regexp-in-string "\\\\" "\\\\"
-			      (if (stringp replacement)
-				  replacement
-				(prin1-to-string replacement t))
-			      t t)))
+  (string-replace "\\" "\\\\"
+		  (if (stringp replacement)
+		      replacement
+		    (prin1-to-string replacement t))))
 
 (defun replace-loop-through-replacements (data count)
   ;; DATA is a vector containing the following values:
