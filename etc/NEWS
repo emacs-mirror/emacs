@@ -798,7 +798,7 @@ The method of highlighting is specified by the user options
 'next-error-highlight' and 'next-error-highlight-no-select'.
 
 ---
-*** A fringe arrow in the '*Occur*' buffer indicates the selected match.
+*** A fringe arrow in the "*Occur*" buffer indicates the selected match.
 
 ---
 *** Occur mode may use a different type for 'occur-target' property values.
@@ -818,7 +818,7 @@ It is now defined as a generalized variable that can be used with
 
 ---
 *** 'form' in '(eql form)' specializers in 'cl-defmethod' is now evaluated.
-This corresponds to the behaviour of defmethod in Common Lisp Object System.
+This corresponds to the behavior of defmethod in Common Lisp Object System.
 For compatibility, '(eql SYMBOL)' does not evaluate SYMBOL, for now.
 
 ** New minor mode 'cl-font-lock-built-in-mode' for 'lisp-mode'.
@@ -1551,8 +1551,10 @@ like cell phones, tablets or cameras.
 *** New connection method "sshfs", which allows accessing remote files
 via a file system mounted with 'sshfs'.
 
----
-*** Tramp supports authentication via yubikey now.
++++
+*** Tramp supports SSH authentication via a hardware security key now.
+This requires at least OpenSSH 8.2, and a FIDO U2F compatible
+security key, like yubikey, solokey, or nitrokey.
 
 +++
 *** Trashed remote files are moved to the local trash directory.
@@ -1981,7 +1983,7 @@ to prevent aliasing and other unwanted effects.  The new image
 property ':transform-smoothing' can be set to t to force smoothing
 and nil to disable smoothing.
 
-The default behaviour of smoothing on down-scaling and not smoothing
+The default behavior of smoothing on down-scaling and not smoothing
 on up-scaling remains unchanged.
 
 +++
@@ -2981,7 +2983,7 @@ command, which updates the syntax highlighting in the current buffer.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
-special escape syntax in Fortran F90.  To get the old behaviour back,
+special escape syntax in Fortran F90.  To get the old behavior back,
 say something like:
 
     (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
