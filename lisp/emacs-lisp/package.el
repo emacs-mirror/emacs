@@ -1169,7 +1169,7 @@ boundaries."
        :maintainer
        ;; For backward compatibility, use a single string if there's only
        ;; one maintainer (the most common case).
-       (let ((maints (lm-maintainers))) (if (cdr maints) maints (cat maints)))
+       (let ((maints (lm-maintainers))) (if (cdr maints) maints (car maints)))
        :authors (lm-authors)))))
 
 (defun package--read-pkg-desc (kind)
