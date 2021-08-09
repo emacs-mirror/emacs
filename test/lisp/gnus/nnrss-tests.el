@@ -26,4 +26,20 @@
   (should (equal (nnrss-normalize-date "2004-09-17T05:09:49.001+00:00")
                  "Fri, 17 Sep 2004 05:09:49 +0000")))
 
+(defconst test-nnrss-xml
+  '(rss
+    ((version . "2.0")
+     (xmlns:dc . "http://purl.org/dc/elements/1.1/"))
+    (channel
+     ((xmlns:content . "http://purl.org/rss/1.0/modules/content/")))))
+
+(ert-deftest test-nnrss-namespace-top ()
+  (should (equal (nnrss-get-namespace-prefix
+                  test-nnrss-xml "http://purl.org/dc/elements/1.1/")
+                 "dc:")))
+(ert-deftest test-nnrss-namespace-inner ()
+  (should (equal (nnrss-get-namespace-prefix
+                  test-nnrss-xml "http://purl.org/rss/1.0/modules/content/")
+                 "content:")))
+
 ;;; nnrss-tests.el ends here
