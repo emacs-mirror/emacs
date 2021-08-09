@@ -1532,10 +1532,7 @@ which may actually result in an URL rather than a filename."
     (cl-case operation
       ;; We mainly just want to disable these bits:
       (substitute-in-file-name (car args))
-      (expand-file-name
-       (if (equal (car args) "http://<remove>")
-           ""
-         (car args)))
+      (expand-file-name (car args))
       (otherwise
        (apply operation args)))))
 
@@ -1546,7 +1543,7 @@ which may actually result in an URL rather than a filename."
         (progn
           (push elem file-name-handler-alist)
           (if (ffap-url-p guess)
-              (read-file-name prompt "http://<remove>" nil nil guess)
+              (read-file-name prompt guess)
             (unless guess
               (setq guess default-directory))
             (unless (ffap-file-remote-p guess)
