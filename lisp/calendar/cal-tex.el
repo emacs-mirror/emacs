@@ -974,11 +974,11 @@ Uses the 24-hour clock if `cal-tex-24' is non-nil.  Note that the hours
 shown are hard-coded to 8-12, 13-17."
   (with-suppressed-warnings ((lexical date))
     (defvar date))                      ;For `cal-tex-daily-string'.
-  (let ((date thedate)
-        (month (calendar-extract-month date))
-        (day (calendar-extract-day date))
-        ;; (year (calendar-extract-year date))
-        morning afternoon s)
+  (let* ((date thedate)
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         ;; (year (calendar-extract-year date))
+         morning afternoon s)
   (cal-tex-comment "begin cal-tex-week-hours")
   (cal-tex-cmd  "\\ \\\\[-.2cm]")
   (cal-tex-cmd "\\noindent")
@@ -1465,10 +1465,10 @@ hourly sections for the period specified by `cal-tex-daily-start'
 and `cal-tex-daily-end'."
   (with-suppressed-warnings ((lexical date))
     (defvar date))                      ;For `cal-tex-daily-string'.
-  (let ((date thedate)
-        (month-name (cal-tex-month-name (calendar-extract-month date)))
-        (i (1- cal-tex-daily-start))
-        hour)
+  (let* ((date thedate)
+         (month-name (cal-tex-month-name (calendar-extract-month date)))
+         (i (1- cal-tex-daily-start))
+         hour)
     (cal-tex-banner "cal-tex-daily-page")
     (cal-tex-b-makebox "4cm" "l")
     (cal-tex-b-parbox "b" "3.8cm")
