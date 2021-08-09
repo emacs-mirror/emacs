@@ -492,7 +492,7 @@ looks like an email address, \"ftp://\" if it starts with
 	 (and (string-match "\\`[[:alnum:]]+\\'" str)
 	      (eq (char-before (car bounds)) ?<)
 	      (eq (char-after  (cdr bounds)) ?>)
-	      (not (string-match "~" (expand-file-name (concat "~" str))))
+	      (not (string-search "~" (expand-file-name (concat "~" str))))
 	      (setq str (concat "mailto:" str)))
 	 ;; If it looks like news.example.com, treat it as news.
 	 (if (thing-at-point-newsgroup-p str)

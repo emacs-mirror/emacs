@@ -509,7 +509,7 @@ construct the vector entries."
     (vector (gnus-group-full-name group server)
 	    (if (string-match "\\`nnmaildir:" (gnus-group-server server))
 		(nnmaildir-base-name-to-article-number
-		 (substring article 0 (string-match ":" article))
+		 (substring article 0 (string-search ":" article))
 		 group nil)
 	      (string-to-number article))
 	    (string-to-number score)))))

@@ -757,7 +757,7 @@ if the information is exact (t) or approximate (nil)."
              (while (and (setq tail (memq (assq 'toc (cdr tail)) tail))
                          (setq entry (car tail))
                          (>= (nth 5 entry) level))
-               (setq star (string-match "\\*" (nth 6 entry))
+               (setq star (string-search "*" (nth 6 entry))
                      context (nth 2 entry)
                      section-number
                      (reftex-section-number (nth 5 entry) star))

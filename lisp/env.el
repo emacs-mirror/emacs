@@ -44,7 +44,7 @@ If it is also not t, RET does not exit if it does non-null completion."
   (completing-read prompt
 		   (mapcar (lambda (enventry)
                              (let ((str (substring enventry 0
-                                             (string-match "=" enventry))))
+                                             (string-search "=" enventry))))
                                (if (multibyte-string-p str)
                                    (decode-coding-string
                                     str locale-coding-system t)
@@ -184,7 +184,7 @@ a side-effect."
       (setq variable (encode-coding-string variable locale-coding-system)))
   (if (and value (multibyte-string-p value))
       (setq value (encode-coding-string value locale-coding-system)))
-  (if (string-match-p "=" variable)
+  (if (string-search "=" variable)
       (error "Environment variable name `%s' contains `='" variable))
   (if (string-equal "TZ" variable)
       (set-time-zone-rule value))

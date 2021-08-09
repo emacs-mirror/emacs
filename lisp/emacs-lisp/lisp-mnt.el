@@ -458,7 +458,7 @@ each line."
   "Return list of keywords given in file FILE."
   (let ((keywords (lm-keywords file)))
     (if keywords
-	(if (string-match-p "," keywords)
+	(if (string-search "," keywords)
 	    (split-string keywords ",[ \t\n]*" t "[ ]+")
 	  (split-string keywords "[ \t\n]+" t "[ ]+")))))
 

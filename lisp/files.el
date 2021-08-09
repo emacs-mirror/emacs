@@ -6979,7 +6979,7 @@ by `sh' are supported."
 			  (prog1	; copy everything upto next `]'.
 			      (substring wildcard
 					 i
-					 (setq j (string-match
+					 (setq j (string-search
 						  "]" wildcard i)))
 			    (setq i (if j (1- j) (1- len)))))))
 		      ((eq ch ?.)  "\\.")
@@ -7105,7 +7105,7 @@ need to be passed verbatim to shell commands."
       ;; DOS/Windows don't allow `"' in file names.  So if the
       ;; argument has quotes, we can safely assume it is already
       ;; quoted by the caller.
-      (if (or (string-match "[\"]" pattern)
+      (if (or (string-search "\"" pattern)
 	      ;; We quote [&()#$`'] in case their shell is a port of a
 	      ;; Unixy shell.  We quote [,=+] because stock DOS and
 	      ;; Windows shells require that in some cases, such as

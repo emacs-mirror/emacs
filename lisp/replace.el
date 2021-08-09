@@ -310,7 +310,7 @@ the original string if not."
 					 ;; but not after (quote foo).
 					 (and (eq (car-safe (car pos)) 'quote)
 					      (not (= ?\( (aref to 0)))))
-				     (eq (string-match " " to (cdr pos))
+				     (eq (string-search " " to (cdr pos))
 					 (cdr pos)))
 				(1+ (cdr pos))
 			      (cdr pos))))
@@ -633,13 +633,13 @@ Arguments REGEXP, START, END, and REGION-NONCONTIGUOUS-P are passed to
     (if (listp to-strings)
 	(setq replacements to-strings)
       (while (/= (length to-strings) 0)
-	(if (string-match " " to-strings)
+	(if (string-search " " to-strings)
 	    (setq replacements
 		  (append replacements
 			  (list (substring to-strings 0
-					   (string-match " " to-strings))))
+					   (string-search " " to-strings))))
 		  to-strings (substring to-strings
-				       (1+ (string-match " " to-strings))))
+				       (1+ (string-search " " to-strings))))
 	  (setq replacements (append replacements (list to-strings))
 		to-strings ""))))
     (perform-replace regexp replacements t t nil n nil start end nil region-noncontiguous-p)))

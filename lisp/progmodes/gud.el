@@ -3150,7 +3150,7 @@ Obeying it means displaying in another window the specified file and line."
 		  (buffer-substring (region-beginning) (region-end))
 		(apply gud-find-expr-function args))))
     (save-match-data
-      (if (string-match "\n" expr)
+      (if (string-search "\n" expr)
 	  (error "Expression must not include a newline"))
       (with-current-buffer gud-comint-buffer
 	(save-excursion

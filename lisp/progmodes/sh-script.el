@@ -2672,7 +2672,7 @@ t means to return a list of all possible completions of STRING.
 	   (or sh-shell-variables-initialized
 	       (sh-shell-initialize-variables))
 	   (nconc (mapcar (lambda (var)
-                            (substring var 0 (string-match "=" var)))
+                            (substring var 0 (string-search "=" var)))
 			  process-environment)
 		  sh-shell-variables))))
     (complete-with-action code vars string predicate)))

@@ -967,7 +967,7 @@ IDL has currently stepped.")
     ;; Strip those pesky ctrl-m's.
     (add-hook 'comint-output-filter-functions
 	      (lambda (string)
-		(when (string-match "\r" string)
+		(when (string-search "\r" string)
 		  (let ((pmark (process-mark (get-buffer-process
 					      (current-buffer)))))
 		    (save-excursion
@@ -1409,7 +1409,7 @@ Remove everything to the first newline, and all lines with % in front
 of them, with optional follow-on lines starting with two spaces.  This
 works well enough, since any print output typically arrives before
 error messages, etc."
-  (setq output (substring output (string-match "\n" output)))
+  (setq output (substring output (string-search "\n" output)))
   (while (string-match "\\(\n\\|\\`\\)%.*\\(\n  .*\\)*" output)
     (setq output (replace-match "" nil t output)))
   (unless
@@ -1431,12 +1431,12 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 	(unwind-protect
 	    (progn
 	      ;; Ring the bell if necessary
-	      (while (setq p (string-match "\C-G" string))
+	      (while (setq p (string-search "\C-G" string))
 		(ding)
 		(aset string p ?\C-j ))
 	      (if idlwave-shell-hide-output
 		  (save-excursion
-		    (while (setq p (string-match "\C-M" string))
+		    (while (setq p (string-search "\C-M" string))
 		      (aset string p ?\  ))
 		    (set-buffer
 		     (get-buffer-create idlwave-shell-hidden-output-buffer))
@@ -1445,7 +1445,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 		(comint-output-filter proc string))
 	      ;; Watch for magic - need to accumulate the current line
 	      ;; since it may not be sent all at once.
-	      (if (string-match "\n" string)
+	      (if (string-search "\n" string)
 		  (progn
 		    (if idlwave-shell-use-input-mode-magic
 			(idlwave-shell-input-mode-magic

@@ -3270,7 +3270,7 @@ Handles end-of-sublist smartly."
 Clicking this button expands or contracts a directory.  TEXT is the
 button clicked which has either a + or -.  TOKEN is the directory to be
 expanded.  INDENT is the current indentation level."
-  (cond ((string-match "\\+" text)	;we have to expand this dir
+  (cond ((string-search "+" text)	;we have to expand this dir
 	 (setq speedbar-shown-directories
 	       (cons (expand-file-name
 		      (concat (speedbar-line-directory indent) token "/"))
@@ -3283,7 +3283,7 @@ expanded.  INDENT is the current indentation level."
 	     (speedbar-default-directory-list
 	      (concat (speedbar-line-directory indent) token "/")
 	      (1+ indent)))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-reset-scanners)
 	 (let ((oldl speedbar-shown-directories)
 	       (newl nil)
@@ -3317,7 +3317,7 @@ INDENT is the current indentation level and is unused."
 The parameter TEXT and TOKEN are required, where TEXT is the button
 clicked, and TOKEN is the file to expand.  INDENT is the current
 indentation level."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (let* ((fn (expand-file-name (concat (speedbar-line-directory indent)
 					      token)))
 		(lst (speedbar-fetch-dynamic-tags fn)))
@@ -3329,7 +3329,7 @@ indentation level."
 	       (save-excursion
 		 (end-of-line) (forward-char 1)
 		 (funcall (car lst) indent (cdr lst)))))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))
@@ -3358,14 +3358,14 @@ INDENT is the current indentation level."
   "Expand a tag sublist.  Imenu will return sub-lists of specialized tag types.
 Etags does not support this feature.  TEXT will be the button string.
 TOKEN will be the list, and INDENT is the current indentation level."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
 	     (end-of-line) (forward-char 1)
 	     (speedbar-insert-generic-list indent token 'speedbar-tag-expand
 					   'speedbar-tag-find))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))

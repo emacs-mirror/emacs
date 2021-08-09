@@ -1299,7 +1299,7 @@ If LIMIT, first try to limit the search to the N last articles."
   (when (and (nnimap-greeting nnimap-object)
 	     (string-match greeting-match (nnimap-greeting nnimap-object))
 	     (eq type 'append)
-	     (string-match "\000" data))
+	     (string-search "\000" data))
     (let ((choice (gnus-multiple-choice
 		   "Message contains NUL characters.  Delete, continue, abort? "
 		   '((?d "Delete NUL characters")
@@ -1761,7 +1761,7 @@ If LIMIT, first try to limit the search to the N last articles."
     (let ((result nil))
       (dolist (elem (split-string irange ","))
 	(push
-	 (if (string-match ":" elem)
+	 (if (string-search ":" elem)
 	     (let ((numbers (split-string elem ":")))
 	       (cons (string-to-number (car numbers))
 		     (string-to-number (cadr numbers))))

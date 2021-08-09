@@ -612,7 +612,7 @@ should not change this value.")
 		 (setq next prev
 		       prev nil)
 	       (if (or (< index limit)
-		       (<= (+ len (or (string-match "\n" tail)
+		       (<= (+ len (or (string-search "\n" tail)
 				      (length tail)))
 			   rfc2047-encode-max-chars))
 		   (setq prev next
@@ -1111,7 +1111,7 @@ strings are stripped."
   "Decode MIME-encoded STRING and return the result.
 If ADDRESS-MIME is non-nil, strip backslashes which precede characters
 other than `\"' and `\\' in quoted strings."
-  (if (string-match "=\\?" string)
+  (if (string-search "=?" string)
       (with-temp-buffer
 	;; We used to only call mm-enable-multibyte if `m' is non-nil,
 	;; but this can't be the right criterion.  Don't just revert this

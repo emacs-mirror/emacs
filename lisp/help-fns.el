@@ -154,7 +154,7 @@ with the current prefix.  The files are chosen according to
   (mapcar (lambda (c)
             (let* ((s (intern c))
                    (doc (condition-case nil (documentation s) (error nil)))
-                   (doc (and doc (substring doc 0 (string-match "\n" doc)))))
+                   (doc (and doc (substring doc 0 (string-search "\n" doc)))))
               (list c (propertize
                        (format "%-4s" (help--symbol-class s))
                        'face 'completions-annotations)

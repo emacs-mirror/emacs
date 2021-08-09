@@ -604,7 +604,7 @@
 	((equal name "#")
 	 (search-backward "#")
 	 (error "Token `#' is reserved"))
-	((and unquoted (string-match "#" name))
+	((and unquoted (string-search "#" name))
 	 (error "Tokens containing `#' must be quoted"))
 	((not (string-match "[^ ]" name))
 	 (search-backward "\"" nil t)
@@ -1068,7 +1068,7 @@ Redefine the corresponding command."
 	     (insert (setq str (prin1-to-string
 				(cons 'defun (cons cmd (cdr fcmd)))))
 		     "\n")
-	     (or (and (string-match "\"" str) (not q-ok))
+	     (or (and (string-search "\"" str) (not q-ok))
 		 (fill-region pt (point)))
 	     (indent-rigidly pt (point) 2)
 	     (delete-region pt (1+ pt))
@@ -1087,7 +1087,7 @@ Redefine the corresponding command."
 					 (cons 'defun (cons func
 							    (cdr ffunc)))))
 			      "\n")
-		      (or (and (string-match "\"" str) (not q-ok))
+		      (or (and (string-search "\"" str) (not q-ok))
 			  (fill-region pt (point)))
 		      (indent-rigidly pt (point) 2)
 		      (delete-region pt (1+ pt))
@@ -2132,7 +2132,7 @@ Redefine the corresponding command."
 		  (cdr prim))
 		 ((memq exp math-exp-env)
 		  exp)
-		 ((string-match "-" name)
+		 ((string-search "-" name)
 		  exp)
 		 (t
 		  (intern (concat "var-" name))))))

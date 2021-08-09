@@ -305,7 +305,7 @@ defaults to 6600 and HOST defaults to localhost."
 (defun mpc--proc-quote-string (s)
   (if (numberp s) (number-to-string s)
     (setq s (replace-regexp-in-string "[\"\\]" "\\\\\\&" s))
-    (if (string-match " " s) (concat "\"" s "\"") s)))
+    (if (string-search " " s) (concat "\"" s "\"") s)))
 
 (defconst mpc--proc-alist-to-alists-starters '(file directory))
 
@@ -611,7 +611,7 @@ Any call to `mpc-status-refresh' may cause it to be restarted."
 
 (defun mpc-cmd-special-tag-p (tag)
   (or (memq tag '(Playlist Search Directory))
-      (string-match "|" (symbol-name tag))))
+      (string-search "|" (symbol-name tag))))
 
 (defun mpc-cmd-find (tag value)
   "Return a list of all songs whose tag TAG has value VALUE.
@@ -1438,7 +1438,7 @@ when constructing the set of constraints."
   (let (res)
     (dolist (constraint constraints)
       (when (or (eq (car constraint) buffer-tag)
-                (and (string-match "|" (symbol-name buffer-tag))
+                (and (string-search "|" (symbol-name buffer-tag))
                      (member (symbol-name (car constraint))
                              (split-string (symbol-name buffer-tag) "|"))))
         (setq res (cdr constraint))))

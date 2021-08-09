@@ -1139,7 +1139,7 @@ If the current Calc language does not use placeholders, return nil."
 				   0)
 				(setq sym (intern (substring (symbol-name sym)
 							     1))))
-			   (or (string-match "-" (symbol-name sym))
+			   (or (string-search "-" (symbol-name sym))
 			       (setq sym (intern
 					  (concat "calcFunc-"
 						  (symbol-name sym))))))
@@ -1149,7 +1149,7 @@ If the current Calc language does not use placeholders, return nil."
 		 (let ((val (list 'var
 				  (intern (math-remove-dashes
 					   (symbol-name sym)))
-				  (if (string-match "-" (symbol-name sym))
+				  (if (string-search "-" (symbol-name sym))
 				      sym
 				    (intern (concat "var-"
 						    (symbol-name sym)))))))

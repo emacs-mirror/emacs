@@ -87,7 +87,7 @@ See `nnmaildir-flag-mark-mapping'."
 
 (defun nnmaildir--ensure-suffix (filename)
   "Ensure that FILENAME contains the suffix \":2,\"."
-  (if (string-match-p ":2," filename)
+  (if (string-search ":2," filename)
       filename
     (concat filename ":2,")))
 

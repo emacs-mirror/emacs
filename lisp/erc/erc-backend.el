@@ -950,15 +950,15 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
   (unless (string= string "") ;; Ignore empty strings
     (save-match-data
       (let* ((tag-list (when (eq (aref string 0) ?@)
-                         (substring string 1 (string-match " " string))))
+                         (substring string 1 (string-search " " string))))
              (msg (make-erc-response :unparsed string :tags (when tag-list
                                                               (erc-parse-tags
                                                                tag-list))))
              (string (if tag-list
-                         (substring string (+ 1 (string-match " " string)))
+                         (substring string (+ 1 (string-search " " string)))
                        string))
              (posn (if (eq (aref string 0) ?:)
-                       (string-match " " string)
+                       (string-search " " string)
                      0)))
 
         (setf (erc-response.sender msg)
@@ -968,7 +968,7 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
 
         (setf (erc-response.command msg)
               (let* ((bposn (string-match "[^ \n]" string posn))
-                     (eposn (string-match " " string bposn)))
+                     (eposn (string-search " " string bposn)))
                 (setq posn (and eposn
                                 (string-match "[^ \n]" string eposn)))
                 (substring string bposn eposn)))
@@ -976,7 +976,7 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
         (while (and posn
                     (not (eq (aref string posn) ?:)))
           (push (let* ((bposn posn)
-                       (eposn (string-match " " string bposn)))
+                       (eposn (string-search " " string bposn)))
                   (setq posn (and eposn
                                   (string-match "[^ \n]" string eposn)))
                   (substring string bposn eposn))

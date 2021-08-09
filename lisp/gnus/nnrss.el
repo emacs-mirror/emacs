@@ -849,7 +849,7 @@ DATA should be the output of `xml-parse-region'."
 
 (defmacro nnrss-match-macro (base-uri item onsite-list offsite-list)
   `(cond ((or (string-match (concat "^" ,base-uri) ,item)
-	      (not (string-match "://" ,item)))
+	      (not (string-search "://" ,item)))
 	  (setq ,onsite-list (append ,onsite-list (list ,item))))
 	 (t (setq ,offsite-list (append ,offsite-list (list ,item))))))
 

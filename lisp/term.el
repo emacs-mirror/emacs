@@ -3488,9 +3488,9 @@ The top-most line is line 0."
 	((= (aref string 0) ?\032)
 	 ;; gdb (when invoked with -fullname) prints:
 	 ;; \032\032FULLFILENAME:LINENUMBER:CHARPOS:BEG_OR_MIDDLE:PC\n
-	 (let* ((first-colon (string-match ":" string 1))
+	 (let* ((first-colon (string-search ":" string 1))
 		(second-colon
-		 (string-match ":" string (1+ first-colon)))
+		 (string-search ":" string (1+ first-colon)))
 		(filename (substring string 1 first-colon))
 		(fileline (string-to-number
 			   (substring string (1+ first-colon) second-colon))))
@@ -4307,7 +4307,7 @@ well as the newer ports COM10 and higher."
     (when (or (null x) (and (stringp x) (zerop (length x))))
       (error "No serial port selected"))
     (when (not (or (serial-port-is-file-p)
-                   (string-match "\\\\" x)))
+                   (string-search "\\" x)))
       (setq x (concat "\\\\.\\" x)))
     x))
 

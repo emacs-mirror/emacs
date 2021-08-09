@@ -1382,7 +1382,7 @@ With arg, enter name of variable to be watched in the minibuffer."
     (string-match "\\(\\S-+\\)" text)
     (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
            (varnum (car var)))
-      (if (string-match "\\." (car var))
+      (if (string-search "." (car var))
           (message-box "Can only delete a root expression")
         (gdb-var-delete-1 var varnum)))))
 
@@ -1479,14 +1479,14 @@ With arg, enter name of variable to be watched in the minibuffer."
 TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node.
 INDENT is the current indentation depth."
-  (cond ((string-match "\\+" text)        ;expand this node
+  (cond ((string-search "+" text)        ;expand this node
 	 (let* ((var (assoc token gdb-var-list))
 		(expr (nth 1 var)) (children (nth 2 var)))
 	   (if (or (<= (string-to-number children) gdb-max-children)
 		   (y-or-n-p
 		    (format "%s has %s children. Continue? " expr children)))
 	       (gdb-var-list-children token))))
-	((string-match "-" text)	;contract this node
+	((string-search "-" text)	;contract this node
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (car var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
@@ -2416,7 +2416,7 @@ rule from an incomplete data stream.  The parser will stay in this state until
 the end of the current result or async record is reached."
   (when (< gdbmi-bnf-offset (length gud-marker-acc))
     ;; Search the data stream for the end of the current record:
-    (let* ((newline-pos (string-match "\n" gud-marker-acc gdbmi-bnf-offset))
+    (let* ((newline-pos (string-search "\n" gud-marker-acc gdbmi-bnf-offset))
 	   (is-progressive (equal (cdr class-command) 'progressive))
        (is-complete (not (null newline-pos)))
        result-str)

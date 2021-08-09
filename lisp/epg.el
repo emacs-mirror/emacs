@@ -573,7 +573,7 @@ callback data (if any)."
 			     "--status-fd" "1"
 			     "--yes")
 		       (if (and (not (eq (epg-context-protocol context) 'CMS))
-				(string-match ":" (or agent-info "")))
+				(string-search ":" (or agent-info "")))
 			   '("--use-agent"))
 		       (if (and (not (eq (epg-context-protocol context) 'CMS))
 				(epg-context-progress-callback context))

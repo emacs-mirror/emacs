@@ -1938,7 +1938,7 @@ This is a specialization of `soap-decode-type' for
                   (e-name (soap-xs-element-name element))
                   ;; Heuristic: guess if we need to decode using local
                   ;; namespaces.
-                  (use-fq-names (string-match ":" (symbol-name (car node))))
+                  (use-fq-names (string-search ":" (symbol-name (car node))))
                   (children (if e-name
                                 (if use-fq-names
                                     ;; Find relevant children

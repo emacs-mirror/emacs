@@ -616,7 +616,7 @@ while a list of strings is used as a word list."
                              (if (eq doc 'error)
                                  "(documentation error)"
 			       (setq score (+ score (apropos-score-doc doc)))
-			       (substring doc 0 (string-match "\n" doc)))
+			       (substring doc 0 (string-search "\n" doc)))
 			   "(not documented)")))
 		   (and var-predicate
 			(funcall var-predicate symbol)
@@ -625,7 +625,7 @@ while a list of strings is used as a word list."
 			     (progn
 			       (setq score (+ score (apropos-score-doc doc)))
 			       (substring doc 0
-					  (string-match "\n" doc)))))))
+					  (string-search "\n" doc)))))))
 	(setcar (cdr (car p)) score)
 	(setq p (cdr p))))
     (and (let ((apropos-multi-type do-all))
@@ -639,7 +639,7 @@ while a list of strings is used as a word list."
   "Like (documentation-property SYMBOL PROPERTY RAW) but handle errors."
   (condition-case ()
       (let ((doc (documentation-property symbol property raw)))
-	(if doc (substring doc 0 (string-match "\n" doc))
+	(if doc (substring doc 0 (string-search "\n" doc))
 	  "(not documented)"))
     (error "(error retrieving documentation)")))
 
@@ -767,7 +767,7 @@ the output includes key-bindings of commands."
 				  "(alias for undefined function)")
 				 (error
 				  "(can't retrieve function documentation)")))
-		     (substring doc 0 (string-match "\n" doc))
+		     (substring doc 0 (string-search "\n" doc))
 		   "(not documented)"))
 	       (when (boundp symbol)
 		 (apropos-documentation-property

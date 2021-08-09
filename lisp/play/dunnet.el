@@ -2170,7 +2170,7 @@ other words."
   (let (pos ret-list end-pos)
     (setq pos 0)
     (setq ret-list nil)
-    (while (setq end-pos (string-match " " (substring strin pos)))
+    (while (setq end-pos (string-search " " (substring strin pos)))
       (setq end-pos (+ end-pos pos))
       (if (not (= end-pos pos))
 	  (setq ret-list (append ret-list (list
@@ -2269,7 +2269,7 @@ except for the verb."
 	startlist
       (if (string= (substring dirstring 0 1) "/")
 	  (dun-get-path (substring dirstring 1) (append startlist (list "/")))
-	(if (not (setq slash (string-match "/" dirstring)))
+	(if (not (setq slash (string-search "/" dirstring)))
 	    (append startlist (list dirstring))
 	  (dun-get-path (substring dirstring (1+ slash))
 		    (append startlist
@@ -2348,7 +2348,7 @@ Also prints current score to let user know he has scored."
 	  (princ dun-line)
 	  (if (eq (dun-parse2 nil dun-unix-verbs dun-line) -1)
 	      (progn
-		(if (setq esign (string-match "=" dun-line))
+		(if (setq esign (string-search "=" dun-line))
 		    (dun-doassign dun-line esign)
 		  (dun-mprinc (car dun-line-list))
 		  (dun-mprincl ": not found.")))))
@@ -2380,21 +2380,21 @@ Also prints current score to let user know he has scored."
 	    (dun-mprinc line)
 	    (dun-mprincl " : not found."))
 
-	(if (not (setq epoint (string-match ")" line)))
+	(if (not (setq epoint (string-search ")" line)))
 	    (if (string= (substring line (1+ esign) (+ esign 2))
 			 "\"")
 		(progn
 		  (setq afterq (substring line (+ esign 2)))
 		  (setq epoint (+
-				(string-match "\"" afterq)
+				(string-search "\"" afterq)
 				(+ esign 3))))
 
-	      (if (not (setq epoint (string-match " " line)))
+	      (if (not (setq epoint (string-search " " line)))
 		  (setq epoint (length line))))
 	  (setq epoint (1+ epoint))
 	  (while (and
 		  (not (= epoint (length line)))
-		  (setq i (string-match ")" (substring line epoint))))
+		  (setq i (string-search ")" (substring line epoint))))
 	    (setq epoint (+ epoint i 1))))
 	(setq value (substring line (1+ esign) epoint))
 	(dun-eval varname value)))))
@@ -2788,7 +2788,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
   (cond
    ((null (setq args (car args)))
     (dun-mprincl "Usage: cat <ascii-file-name>"))
-   ((string-match-p "/" args)
+   ((string-search "/" args)
     (dun-mprincl "cat: only files in current directory allowed."))
    ((and (> dun-cdroom 0) (string= args "description"))
     (dun-mprincl (car (nth dun-cdroom dun-rooms))))
@@ -3110,7 +3110,7 @@ File not found")))
 	    (setq dun-line (downcase (dun-read-line)))
 	    (if (eq (dun-parse2 nil dun-unix-verbs dun-line) -1)
 		(let (esign)
-		  (if (setq esign (string-match "=" dun-line))
+		  (if (setq esign (string-search "=" dun-line))
 		      (dun-doassign dun-line esign)
 		    (dun-mprinc (car dun-line-list))
 		    (dun-mprincl ": not found.")))))

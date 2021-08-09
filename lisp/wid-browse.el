@@ -218,7 +218,7 @@ Nothing is assumed about value."
 	      (error (prin1-to-string signal)))))
     (when (string-match "\n\\'" pp)
       (setq pp (substring pp 0 (1- (length pp)))))
-    (if (cond ((string-match "\n" pp)
+    (if (cond ((string-search "\n" pp)
 	       nil)
 	      ((> (length pp) (- (window-width) (current-column)))
 	       nil)

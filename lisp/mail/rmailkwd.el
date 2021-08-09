@@ -93,7 +93,7 @@ according to the choice made, and returns a symbol."
   "Set LABEL as present or absent according to STATE in message MSG.
 LABEL may be a symbol or string."
   (or (stringp label) (setq label (symbol-name label)))
-  (if (string-match "," label)
+  (if (string-search "," label)
       (error "More than one label specified"))
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)

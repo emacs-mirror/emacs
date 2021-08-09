@@ -1576,7 +1576,7 @@ As a side effect: sets `forms--the-record-list'."
 	(forms--trans the-record "\n" forms-multi-line))
 
     ;; A final sanity check before updating.
-    (if (string-match-p "\n" the-record)
+    (if (string-search "\n" the-record)
 	(error "Multi-line fields in this record - update refused"))
 
     (with-current-buffer forms--file-buffer

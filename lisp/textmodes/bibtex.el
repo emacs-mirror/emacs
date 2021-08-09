@@ -3962,7 +3962,7 @@ Optional arg COMMA is as in `bibtex-enclosing-field'.  It is t for
 interactive calls."
   (interactive (list nil t))
   (unless field (setq field (car (bibtex-find-text-internal nil nil comma))))
-  (if (string-match "@" field)
+  (if (string-search "@" field)
       (cond ((bibtex-string= field "@string")
              (message "String definition"))
             ((bibtex-string= field "@preamble")

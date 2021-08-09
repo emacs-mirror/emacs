@@ -4337,7 +4337,7 @@ end
   (let ((len   (1- (length str)))
 	(index 0)
 	new start fmt)
-    (while (setq start (string-match "%" str index))
+    (while (setq start (string-search "%" str index))
       (setq fmt   (if (< start len) (aref str (1+ start)) ?\?)
 	    new   (concat new
 			  (substring str index start)

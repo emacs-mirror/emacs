@@ -268,7 +268,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
           (cdr elt)))
    (t
     (let* ((str (car elt))
-           (paren (string-match "(" str))
+           (paren (string-search "(" str))
            (pos 0) (word 0) char)
       (catch 'done                             ; ??? is this slow?
         (while (and (or (not tmm-shortcut-words)   ; no limit on words

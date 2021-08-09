@@ -2072,7 +2072,7 @@ Return the process in which TeX is running."
     (let* ((cmd (eval command t))
 	   (proc (tex-shell-proc))
 	   (buf (process-buffer proc))
-           (star (string-match "\\*" cmd))
+           (star (string-search "*" cmd))
 	   (string
 	    (concat
 	     (if (null file)
@@ -2474,7 +2474,7 @@ Only applies the FSPEC to the args part of FORMAT."
 
 (defun tex-start-tex (command file &optional dir)
   "Start a TeX run, using COMMAND on FILE."
-  (let* ((star (string-match "\\*" command))
+  (let* ((star (string-search "*" command))
          (compile-command
           (if star
 	      (concat (substring command 0 star)
@@ -2773,7 +2773,7 @@ so normally SUFFIX starts with one."
 	  ;; Not found, so split on first period.
 	  (concat (file-name-directory file-name)
 		  (substring file 0
-			     (string-match "\\." file))
+			     (string-search "." file))
 		  suffix)))
     " "))
 

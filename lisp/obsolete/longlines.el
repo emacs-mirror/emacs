@@ -393,11 +393,11 @@ compatibility with `format-alist', and is ignored."
   "Return a copy of STRING with each soft newline replaced by a space.
 Hard newlines are left intact."
   (let* ((str (copy-sequence string))
-         (pos (string-match "\n" str)))
+         (pos (string-search "\n" str)))
     (while pos
       (if (null (get-text-property pos 'hard str))
           (aset str pos ? ))
-      (setq pos (string-match "\n" str (1+ pos))))
+      (setq pos (string-search "\n" str (1+ pos))))
     str))
 
 ;;; Auto wrap

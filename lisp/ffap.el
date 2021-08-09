@@ -1418,7 +1418,7 @@ which may actually result in an URL rather than a filename."
 	 (string (ffap-string-at-point)) ; uses mode alist
 	 (name
 	  (or (condition-case nil
-		  (and (not (string-match "//" string)) ; foo.com://bar
+		  (and (not (string-search "//" string)) ; foo.com://bar
 		       (substitute-in-file-name string))
 		(error nil))
 	      string))

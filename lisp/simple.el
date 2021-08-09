@@ -4272,11 +4272,11 @@ the contents are inserted into the buffer anyway.
 
 Optional arguments ACTION and FRAME are as for `display-buffer',
 and are used only if a pop-up buffer is displayed."
-  (cond ((and (stringp message) (not (string-match "\n" message)))
+  (cond ((and (stringp message) (not (string-search "\n" message)))
 	 ;; Trivial case where we can use the echo area
 	 (message "%s" message))
 	((and (stringp message)
-	      (= (string-match "\n" message) (1- (length message))))
+	      (= (string-search "\n" message) (1- (length message))))
 	 ;; Trivial case where we can just remove single trailing newline
 	 (message "%s" (substring message 0 (1- (length message)))))
 	(t

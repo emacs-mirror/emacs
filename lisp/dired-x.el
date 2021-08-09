@@ -1044,11 +1044,11 @@ results in
           len2 (length file2))
     ;; Find common initial file name components:
     (let (next)
-      (while (and (setq next (string-match "/" file1 index))
+      (while (and (setq next (string-search "/" file1 index))
                   (< (setq next (1+ next)) (min len1 len2))
                   ;; For the comparison, both substrings must end in
                   ;; `/', so NEXT is *one plus* the result of the
-                  ;; string-match.
+                  ;; string-search.
                   ;; E.g., consider the case of linking "/tmp/a/abc"
                   ;; to "/tmp/abc" erroneously giving "/tmp/a" instead
                   ;; of "/tmp/" as common initial component
@@ -1066,7 +1066,7 @@ results in
             (start 0)
             (count 0))
         ;; Count number of slashes we must compensate for ...
-        (while (setq start (string-match "/" tem start))
+        (while (setq start (string-search "/" tem start))
           (setq count (1+ count)
                 start (1+ start)))
         ;; ... and prepend a "../" for each slash found:

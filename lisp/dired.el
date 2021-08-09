@@ -2909,7 +2909,7 @@ dired-buffers."
 		       (if (= (aref pattern (1+ set-start)) ?^)
 			   (+ 3 set-start)
 			 (+ 2 set-start)))
-		      (set-end (string-match-p "]" pattern set-cont))
+		      (set-end (string-search "]" pattern set-cont))
 		      (set (substring pattern set-start (1+ set-end))))
 		 (setq regexp (concat regexp set))
 		 (setq matched-in-pattern (1+ set-end))))

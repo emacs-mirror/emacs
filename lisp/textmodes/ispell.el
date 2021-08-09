@@ -2497,7 +2497,7 @@ if defined."
                    "Customize `ispell-alternate-dictionary' to set yours.")))
 
   (let* ((process-connection-type ispell-use-ptys-p)
-	 (wild-p (string-match "\\*" word))
+	 (wild-p (string-search "*" word))
 	 (look-p (and ispell-look-p	; Only use look for an exact match.
 		      (or ispell-have-new-look (not wild-p))))
 	 (prog (if look-p ispell-look-command ispell-grep-command))
@@ -2560,7 +2560,7 @@ if defined."
 	(continue t)
 	end)
     (while continue
-      (setq end (string-match "\n" output start)) ; get text up to the newline.
+      (setq end (string-search "\n" output start)) ; get text up to the newline.
       ;; If we get out of sync and ispell-filter-continue is asserted when we
       ;; are not continuing, treat the next item as a separate list.  When
       ;; ispell-filter-continue is asserted, ispell-filter *should* always be a
@@ -2732,11 +2732,11 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
       (if (eq type ?#)
 	  (setq count 0)		; no misses for type #
 	(setq count (string-to-number output) ; get number of misses.
-	      output (substring output (1+ (string-match " " output 1)))))
+	      output (substring output (1+ (string-search " " output 1)))))
       (setq offset (string-to-number output))
       (setq output (if (eq type ?#)     ; No miss or guess list.
                        nil
-                     (substring output (1+ (string-match " " output 1)))))
+                     (substring output (1+ (string-search " " output 1)))))
       (while output
 	(let ((end (string-match ", \\|\\($\\)" output))) ; end of miss/guess.
 	  (setq cur-count (1+ cur-count))
@@ -4077,7 +4077,7 @@ Includes LaTeX/Nroff modes and extended character mode."
 		   (ispell-send-string "+\n~tex\n"))
 		  ((string-match "nroff-mode" string)
 		   (ispell-send-string "-\n~nroff\n"))
-		  ((string-match "~" string) ; Set extended character mode.
+		  ((string-search "~" string) ; Set extended character mode.
 		   (ispell-send-string (concat string "\n")))
 		  (t (message "Invalid Ispell Parsing argument!")
 		     (sit-for 2))))))))

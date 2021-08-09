@@ -139,7 +139,7 @@ This will add a speedbar major display mode."
 	t))))
 
 (defun erc-speedbar-expand-server (text server indent)
-  (cond ((string-match "\\+" text)
+  (cond ((string-search "+" text)
 	 (speedbar-change-expand-button-char ?-)
 	 (if (speedbar-with-writable
 	       (save-excursion
@@ -147,7 +147,7 @@ This will add a speedbar major display mode."
 		 (erc-speedbar-channel-buttons nil (1+ indent) server)))
 	     (speedbar-change-expand-button-char ?-)
 	   (speedbar-change-expand-button-char ??)))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops... not sure what to do")))
@@ -184,7 +184,7 @@ This will add a speedbar major display mode."
   "For the line matching TEXT, in CHANNEL, expand or contract a line.
 INDENT is the current indentation level."
   (cond
-   ((string-match "\\+" text)
+   ((string-search "+" text)
     (speedbar-change-expand-button-char ?-)
     (speedbar-with-writable
      (save-excursion
@@ -233,7 +233,7 @@ INDENT is the current indentation level."
 	     (speedbar-with-writable
 	      (dolist (entry names)
 		(erc-speedbar-insert-user entry ?+ (1+ indent))))))))))
-   ((string-match "-" text)
+   ((string-search "-" text)
     (speedbar-change-expand-button-char ?+)
     (speedbar-delete-subblock indent))
    (t (error "Ooops... not sure what to do")))
@@ -284,7 +284,7 @@ The update is only done when the channel is actually expanded already."
 	(erc-speedbar-expand-channel "+" buffer 1)))))
 
 (defun erc-speedbar-expand-user (text token indent)
-  (cond ((string-match "\\+" text)
+  (cond ((string-search "+" text)
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -307,7 +307,7 @@ The update is only done when the channel is actually expanded already."
 		  nil nil nil nil
 		  info nil nil nil
 		  (1+ indent)))))))
-	((string-match "-" text)
+	((string-search "-" text)
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops... not sure what to do")))

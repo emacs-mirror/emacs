@@ -1288,7 +1288,7 @@ Return nil if no change in files."
                     nil t)
                    nil t)))
              ;; We found an uncompression rule.
-             (let ((match (string-match " " command))
+             (let ((match (string-search " " command))
                    (msg (concat "Uncompressing " file)))
                (unless (if match
                            (dired-check-process msg

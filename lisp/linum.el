@@ -219,7 +219,7 @@ Linum mode is a buffer-local minor mode."
   ;; update overlays on deletions, and after newlines are inserted
   (when (or (= beg end)
             (= end (point-max))
-            (string-match-p "\n" (buffer-substring-no-properties beg end)))
+            (string-search "\n" (buffer-substring-no-properties beg end)))
     (linum-update-current)))
 
 (defun linum-after-scroll (win _start)
