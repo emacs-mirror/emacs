@@ -944,9 +944,10 @@ See `xterm--init-frame-title'"
 (defun xterm-set-window-title (&optional terminal)
   "Set the window title of the Xterm TERMINAL.
 The title is constructed from `frame-title-format'."
-  (send-string-to-terminal
-   (format "\e]2;%s\a" (format-mode-line frame-title-format))
-   terminal))
+  (unless (display-graphic-p terminal)
+    (send-string-to-terminal
+     (format "\e]2;%s\a" (format-mode-line frame-title-format))
+     terminal)))
 
 (defun xterm--selection-char (type)
   (pcase type
