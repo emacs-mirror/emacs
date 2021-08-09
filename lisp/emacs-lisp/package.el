@@ -1120,7 +1120,7 @@ is wrapped around any parts requiring it."
 (declare-function lm-header-multiline "lisp-mnt" (header))
 (declare-function lm-homepage "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
-(declare-function lm-maintainer "lisp-mnt" (&optional file))
+(declare-function lm-maintainers "lisp-mnt" (&optional file))
 (declare-function lm-authors "lisp-mnt" (&optional file))
 
 (defun package-buffer-info ()
@@ -1166,7 +1166,10 @@ boundaries."
        :kind 'single
        :url homepage
        :keywords keywords
-       :maintainer (lm-maintainer)
+       :maintainer
+       ;; For backward compatibility, use a single string if there's only
+       ;; one maintainer (the most common case).
+       (let ((maints (lm-maintainers))) (if (cdr maints) maints (cat maints)))
        :authors (lm-authors)))))
 
 (defun package--read-pkg-desc (kind)
