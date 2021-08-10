@@ -6561,6 +6561,37 @@ details on the arguments, see `revert-buffer'."
           (revert-buffer-with-fine-grain-success-p)
         (fmakunbound 'revert-buffer-with-fine-grain-success-p)))))
 
+(defcustom revert-buffer-quick-short-answers nil
+  "How much confirmation to be done by the `revert-buffer-quit' command.
+If non-nil, use `y-or-n-p' instead of `yes-or-no-p'."
+  :version "28.1"
+  :type 'boolean)
+
+(defun revert-buffer-quick (&optional auto-save)
+  "Like `revert-buffer', but asks for less confirmation.
+If the current buffer is visiting a file, and the buffer is not
+modified, no confirmation is required.
+
+This command heeds the `revert-buffer-quick-short-answers' user option.
+
+If AUTO-SAVE (the prefix argument), offer to revert from latest
+auto-save file, if that is more recent than the visited file."
+  (interactive "P")
+  (cond
+   ;; If we've visiting a file, and we have no changes, don't ask for
+   ;; confirmation.
+   ((and buffer-file-name
+         (not (buffer-modified-p)))
+    (revert-buffer (not auto-save) t)
+    (message "Reverted buffer"))
+   ;; Heed `revert-buffer-quick-short-answers'.
+   (revert-buffer-quick-short-answers
+    (let ((use-short-answers t))
+      (revert-buffer (not auto-save))))
+   ;; Call `revert-buffer' normally.
+   (t
+    (revert-buffer (not auto-save)))))
+
 (defun recover-this-file ()
   "Recover the visited file--get contents from its last auto-save file."
   (interactive)

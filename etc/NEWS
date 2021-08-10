@@ -310,7 +310,7 @@ search buffer due to too many matches being highlighted.
 +++
 ** A new keymap for buffer actions has been added.
 The 'C-x x' keymap now holds keystrokes for various buffer-oriented
-commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
+commands.  The new keystrokes are 'C-x x g' ('revert-buffer-quick'),
 'C-x x r' ('rename-buffer'), 'C-x x u' ('rename-uniquely'), 'C-x x n'
 ('clone-buffer'), 'C-x x i' ('insert-buffer'), 'C-x x t'
 ('toggle-truncate-lines') and 'C-x x f' ('font-lock-update').
@@ -2393,6 +2393,16 @@ This command, called interactively, toggles the local value of
 'create-lockfiles' in the current buffer.
 
 ** Miscellaneous
+
++++
+*** New command 'revert-buffer-quick'.
+This is bound to 'C-x x g' and is like `revert-buffer', but prompts
+less.
+
++++
+*** New user option 'revert-buffer-quick-short-answers'.  This
+controls how the new 'revert-buffer-quick' (`C-x x g') command
+prompts.
 
 ---
 *** fileloop will now skip missing files instead of signalling an error.

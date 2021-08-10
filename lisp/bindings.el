@@ -1469,7 +1469,7 @@ if `inhibit-field-text-motion' is non-nil."
 (defvar ctl-x-x-map
   (let ((map (make-sparse-keymap)))
     (define-key map "f" #'font-lock-update)
-    (define-key map "g" #'revert-buffer)
+    (define-key map "g" #'revert-buffer-quick)
     (define-key map "r" #'rename-buffer)
     (define-key map "u" #'rename-uniquely)
     (define-key map "n" #'clone-buffer)
