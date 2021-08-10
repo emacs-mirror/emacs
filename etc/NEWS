@@ -1003,6 +1003,10 @@ String or list of strings specifying switches for Git log under VC.
 ** Gnus
 
 +++
+*** New user option 'gnus-topic-display-predicate'.
+This can be used to inhibit the display of some topics completely.
+
++++
 *** nnimap now supports the oauth2.el library.
 
 +++
