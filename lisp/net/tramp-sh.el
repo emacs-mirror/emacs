@@ -1740,7 +1740,7 @@ ID-FORMAT valid values are `string' and `integer'."
 ;; files.
 (defun tramp-sh-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (unless (string-match-p "/" filename)
+  (unless (tramp-compat-string-search "/" filename)
     (all-completions
      filename
      (with-parsed-tramp-file-name (expand-file-name directory) nil
@@ -2309,7 +2309,8 @@ The method used must be an out-of-band method."
 	      copy-args
 	      (tramp-compat-flatten-tree
 	       (mapcar
-		(lambda (x) (if (string-match-p " " x) (split-string x) x))
+		(lambda (x) (if (tramp-compat-string-search " " x)
+                                (split-string x) x))
 		copy-args))
 	      copy-env (apply #'tramp-expand-args v 'tramp-copy-env spec)
 	      remote-copy-program
@@ -2828,7 +2829,7 @@ implementation will be used."
 		 (env (dolist (elt (cons prompt process-environment) env)
 			(or (member
 			     elt (default-toplevel-value 'process-environment))
-			    (if (string-match-p "=" elt)
+			    (if (tramp-compat-string-search "=" elt)
 				(setq env (append env `(,elt)))
 			      (setq uenv (cons elt uenv))))))
 		 (env (setenv-internal
@@ -3039,7 +3040,7 @@ implementation will be used."
       ;; We use as environment the difference to toplevel `process-environment'.
       (dolist (elt process-environment)
         (or (member elt (default-toplevel-value 'process-environment))
-            (if (string-match-p "=" elt)
+            (if (tramp-compat-string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))
       (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep)

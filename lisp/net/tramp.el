@@ -4130,14 +4130,14 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 		  (generate-new-buffer tramp-temp-buffer-name)))
 	       (env (mapcar
 		     (lambda (elt)
-		       (when (string-match-p "=" elt) elt))
+		       (when (tramp-compat-string-search "=" elt) elt))
 		     tramp-remote-process-environment))
 	       ;; We use as environment the difference to toplevel
 	       ;; `process-environment'.
 	       (env (dolist (elt process-environment env)
 		      (when
 			  (and
-			   (string-match-p "=" elt)
+			   (tramp-compat-string-search "=" elt)
 			   (not
 			    (member
 			     elt (default-toplevel-value 'process-environment))))
