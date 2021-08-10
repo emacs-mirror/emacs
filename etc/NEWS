@@ -2398,6 +2398,10 @@ This command, called interactively, toggles the local value of
 
 ** Miscellaneous
 
+---
+*** 'shell-script-mode' now supports 'outline-minor-mode'.
+The outline headings have lines that start with "##".
+
 +++
 *** New command 'revert-buffer-quick'.
 This is bound to 'C-x x g' and is like `revert-buffer', but prompts
