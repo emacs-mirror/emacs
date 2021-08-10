@@ -2089,10 +2089,13 @@ Calls REPORT-FN (or arranges for it to be called) when the server
 publishes diagnostics.  Between calls to this function, REPORT-FN
 may be called multiple times (respecting the protocol of
 `flymake-backend-functions')."
-  (setq eglot--current-flymake-report-fn report-fn)
-  ;; Report anything unreported
-  (when eglot--unreported-diagnostics
-    (eglot--report-to-flymake (cdr eglot--unreported-diagnostics))))
+  (cond (eglot--managed-mode
+         (setq eglot--current-flymake-report-fn report-fn)
+         ;; Report anything unreported
+         (when eglot--unreported-diagnostics
+           (eglot--report-to-flymake (cdr eglot--unreported-diagnostics))))
+        (t
+         (funcall report-fn nil))))
 
 (defun eglot--report-to-flymake (diags)
   "Internal helper for `eglot-flymake-backend'."
