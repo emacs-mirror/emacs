@@ -954,9 +954,10 @@ Simply ensures that the first element is rss or rdf."
   "Given EL (containing a parsed element) and URI (containing a string
 that gives the URI for which you want to retrieve the namespace
 prefix), return the prefix."
-  (let* ((prefix (car (rassoc uri (dom-attributes
-				   (dom-search
-				    el
+  (let* ((dom (car el))
+         (prefix (car (rassoc uri (dom-attributes
+			           (dom-search
+				    dom
 				    (lambda (node)
 				      (rassoc uri (dom-attributes node))))))))
 	 (nslist (if prefix

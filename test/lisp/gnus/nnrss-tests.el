@@ -27,11 +27,11 @@
                  "Fri, 17 Sep 2004 05:09:49 +0000")))
 
 (defconst test-nnrss-xml
-  '(rss
-    ((version . "2.0")
-     (xmlns:dc . "http://purl.org/dc/elements/1.1/"))
-    (channel
-     ((xmlns:content . "http://purl.org/rss/1.0/modules/content/")))))
+  '((rss
+     ((version . "2.0")
+      (xmlns:dc . "http://purl.org/dc/elements/1.1/"))
+     (channel
+      ((xmlns:content . "http://purl.org/rss/1.0/modules/content/"))))))
 
 (ert-deftest test-nnrss-namespace-top ()
   (should (equal (nnrss-get-namespace-prefix
