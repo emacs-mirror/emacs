@@ -696,11 +696,12 @@ The value depends on `grep-command', `grep-template',
     (when (eq grep-highlight-matches 'auto-detect)
       (setq grep-highlight-matches
 	    (with-temp-buffer
-	      (and (grep-probe grep-program '(nil t nil "--help"))
-		   (progn
-		     (goto-char (point-min))
-		     (search-forward "--color" nil t))
-		   ;; Windows and DOS pipes fail `isatty' detection in Grep.
+              ;; The "grep --help" exit status varies; pay no attention to it.
+              (grep-probe grep-program '(nil t nil "--help"))
+	      (goto-char (point-min))
+	      (and (let ((case-fold-search nil))
+                     (re-search-forward (rx "--color" (not (in "a-z"))) nil t))
+	           ;; Windows and DOS pipes fail `isatty' detection in Grep.
 		   (if (memq system-type '(windows-nt ms-dos))
 		       'always 'auto)))))
 
