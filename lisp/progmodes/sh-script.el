@@ -1532,7 +1532,7 @@ with your script for an edit-interpret-debug cycle."
   (setq-local add-log-current-defun-function #'sh-current-defun-name)
   (add-hook 'completion-at-point-functions
             #'sh-completion-at-point-function nil t)
-  (setq-local outline-regexp "##")
+  (setq-local outline-regexp "###")
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell
