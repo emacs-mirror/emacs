@@ -222,28 +222,32 @@
                      (uid . UID)))
          (method (caddr (assoc 'METHOD (caddr (car (nreverse ical))))))
          (attendee (when attendee-name-or-email
-                     (gnus-icalendar-event--find-attendee ical attendee-name-or-email)))
+                     (gnus-icalendar-event--find-attendee
+                      ical attendee-name-or-email)))
          (attendee-names (gnus-icalendar-event--get-attendee-names ical))
          (role (plist-get (cadr attendee) 'ROLE))
          (participation-type (pcase role
-                              ("REQ-PARTICIPANT" 'required)
-                              ("OPT-PARTICIPANT" 'optional)
-                              (_                 'non-participant)))
+                               ("REQ-PARTICIPANT" 'required)
+                               ("OPT-PARTICIPANT" 'optional)
+                               (_                 'non-participant)))
          (zone-map (icalendar--convert-all-timezones ical))
-         (args (list :method method
-                     :organizer organizer
-                     :start-time (gnus-icalendar-event--decode-datefield event 'DTSTART zone-map)
-                     :end-time (gnus-icalendar-event--decode-datefield event 'DTEND zone-map)
-                     :rsvp (string= (plist-get (cadr attendee) 'RSVP) "TRUE")
-                     :participation-type participation-type
-                     :req-participants (car attendee-names)
-                     :opt-participants (cadr attendee-names)))
-         (event-class (cond
-                       ((string= method "REQUEST") 'gnus-icalendar-event-request)
-                       ((string= method "CANCEL") 'gnus-icalendar-event-cancel)
-                       ((string= method "REPLY") 'gnus-icalendar-event-reply)
-                       (t 'gnus-icalendar-event))))
-
+         (args
+          (list :method method
+                :organizer organizer
+                :start-time (gnus-icalendar-event--decode-datefield
+                             event 'DTSTART zone-map)
+                :end-time (gnus-icalendar-event--decode-datefield
+                           event 'DTEND zone-map)
+                :rsvp (string= (plist-get (cadr attendee) 'RSVP) "TRUE")
+                :participation-type participation-type
+                :req-participants (car attendee-names)
+                :opt-participants (cadr attendee-names)))
+         (event-class
+          (cond
+           ((string= method "REQUEST") 'gnus-icalendar-event-request)
+           ((string= method "CANCEL") 'gnus-icalendar-event-cancel)
+           ((string= method "REPLY") 'gnus-icalendar-event-reply)
+           (t 'gnus-icalendar-event))))
     (cl-labels
 	((map-property
 	  (prop)
@@ -271,7 +275,11 @@
 		for keyword = (intern
 			       (format ":%s" (eieio-slot-descriptor-name slot)))
 		when (plist-member args keyword)
-		append (list keyword (plist-get args keyword)))))))
+		append (list keyword
+                             (if (eq keyword :uid)
+                                 ;; The UID has to be a string.
+                                 (or (plist-get args keyword) "")
+                               (plist-get args keyword))))))))
 
 (defun gnus-icalendar-event-from-buffer (buf &optional attendee-name-or-email)
   "Parse RFC5545 iCalendar in buffer BUF and return an event object.
