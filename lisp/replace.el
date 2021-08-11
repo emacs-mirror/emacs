@@ -2765,9 +2765,7 @@ characters."
 
          ;; If non-nil, it is marker saying where in the buffer to stop.
          (limit nil)
-         ;; Use local binding in add-function below.
-         (isearch-filter-predicate isearch-filter-predicate)
-         (region-bounds nil)
+         (region-filter nil)
 
          ;; Data for the next match.  If a cons, it has the same format as
          ;; (match-data); otherwise it is t if a match is possible at point.
@@ -2791,21 +2789,22 @@ characters."
 
     ;; Unless a single contiguous chunk is selected, operate on multiple chunks.
     (when region-noncontiguous-p
-      (setq region-bounds
-            (mapcar (lambda (position)
-                      (cons (copy-marker (car position))
-                            (copy-marker (cdr position))))
-                    (funcall region-extract-function 'bounds)))
-      (add-function :after-while isearch-filter-predicate
-                    (lambda (start end)
-                      (delq nil (mapcar
-                                 (lambda (bounds)
-                                   (and
-                                    (>= start (car bounds))
-                                    (<= start (cdr bounds))
-                                    (>= end   (car bounds))
-                                    (<= end   (cdr bounds))))
-                                 region-bounds)))))
+      (let ((region-bounds
+             (mapcar (lambda (position)
+                       (cons (copy-marker (car position))
+                             (copy-marker (cdr position))))
+                     (funcall region-extract-function 'bounds))))
+        (setq region-filter
+              (lambda (start end)
+                (delq nil (mapcar
+                           (lambda (bounds)
+                             (and
+                              (>= start (car bounds))
+                              (<= start (cdr bounds))
+                              (>= end   (car bounds))
+                              (<= end   (cdr bounds))))
+                           region-bounds))))
+        (add-function :after-while isearch-filter-predicate region-filter)))
 
     ;; If region is active, in Transient Mark mode, operate on region.
     (if backward
@@ -3238,7 +3237,9 @@ characters."
                 (setq next-replacement-replaced nil
                       search-string-replaced    nil
                       last-was-act-and-show     nil))))))
-      (replace-dehighlight))
+      (replace-dehighlight)
+      (when region-filter
+        (remove-function isearch-filter-predicate region-filter)))
     (or unread-command-events
 	(message (ngettext "Replaced %d occurrence%s"
 			   "Replaced %d occurrences%s"
