@@ -1985,9 +1985,7 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file: \n\
-Finto diary file:
-P")
+  (interactive "fImport iCalendar data from file: \nFInto diary file: \nP")
   ;; clean up the diary file
   (save-current-buffer
     ;; now load and convert from the ical file
