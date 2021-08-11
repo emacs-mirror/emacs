@@ -110,4 +110,52 @@
   (should-error (pcase 1
                   ((cl-type notatype) 'integer))))
 
+(ert-deftest pcase-setq ()
+  (should (equal (let (a b)
+                   (pcase-setq `(,a ,b) nil)
+                   (list a b))
+                 (list nil nil)))
+
+  (should (equal (let (a b)
+                   (pcase-setq `((,a) (,b)) '((1) (2)))
+                   (list a b))
+                 (list 1 2)))
+
+  (should (equal (list 'unset 'unset)
+                 (let ((a 'unset)
+                       (b 'unset))
+                   (pcase-setq `(,a ,b) nil)
+                   (list a b))))
+
+  (should (equal (let (a b)
+                   (pcase-setq `[,a ,b] [1 2])
+                   (list a b))
+                 '(1 2)))
+
+  (should (equal (let (a b)
+                   (pcase-setq a 1 b 2)
+                   (list a b))
+                 '(1 2)))
+
+  (should (= (let (a)
+               (pcase-setq a 1 `(,a) '(2))
+               a)
+             2))
+
+  (should (equal (let (array list-item array-copy)
+                   (pcase-setq (or `(,list-item) array) [1 2 3]
+                               array-copy array
+                               ;; This re-sets `array' to nil.
+                               (or `(,list-item) array) '(4))
+                   (list array array-copy list-item))
+                 '(nil [1 2 3] 4)))
+
+  (let ((a nil))
+    (should-error (pcase-setq a 1 b)
+                  :type '(wrong-number-of-arguments))
+    (should (eq a nil)))
+
+  (should-error (pcase-setq a)
+                :type '(wrong-number-of-arguments)))
+
 ;;; pcase-tests.el ends here.

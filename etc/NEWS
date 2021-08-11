@@ -559,6 +559,10 @@ The new 'cl-type' pattern compares types using 'cl-typep', which allows
 comparing simple types like '(cl-type integer)', as well as forms like
 '(cl-type (integer 0 10))'.
 
+*** New macro 'pcase-setq'
+This macro is the 'setq' equivalent of 'pcase-let', which allows for
+destructuring patterns in a 'setq' form.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures

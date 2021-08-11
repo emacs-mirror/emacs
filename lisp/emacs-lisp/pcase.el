@@ -317,6 +317,44 @@ of the elements of LIST is performed as if by `pcase-let'.
          (pcase-let* ((,(car spec) ,tmpvar))
            ,@body)))))
 
+;;;###autoload
+(defmacro pcase-setq (pat val &rest args)
+  "Assign values to variables by destructuring with `pcase'.
+PATTERNS are normal `pcase' patterns, and VALUES are expression.
+
+Evaluation happens sequentially as in `setq' (not in parallel).
+
+An example: (pcase-setq `((,a) [(,b)]) '((1) [(2)]))
+
+When a PATTERN doesn't match it's VALUE, the pair is silently skipped.
+
+\(fn PATTERNS VALUE PATTERN VALUES ...)"
+  (declare (debug (&rest [pcase-PAT form])))
+  (cond
+   (args
+    (let ((arg-length (length args)))
+      (unless (= 0 (mod arg-length 2))
+        (signal 'wrong-number-of-arguments
+                (list 'pcase-setq (+ 2 arg-length)))))
+    (let ((result))
+      (while args
+        (push `(pcase-setq ,(pop args) ,(pop args))
+              result))
+      `(progn
+         (pcase-setq ,pat ,val)
+         ,@(nreverse result))))
+   ((pcase--trivial-upat-p pat)
+    `(setq ,pat ,val))
+   (t
+    (pcase-compile-patterns
+     val
+     (list (cons pat
+                 (lambda (varvals &rest _)
+                   `(setq ,@(mapcan (lambda (varval)
+                                      (let ((var (car varval))
+                                            (val (cadr varval)))
+                                        (list var val)))
+                                    varvals)))))))))
 
 (defun pcase--trivial-upat-p (upat)
   (and (symbolp upat) (not (memq upat pcase--dontcare-upats))))

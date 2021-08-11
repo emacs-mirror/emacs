@@ -1312,6 +1312,10 @@ element of @var{list}.  The bindings are performed as if by
 up being equivalent to @code{dolist} (@pxref{Iteration}).
 @end defmac
 
+@defmac pcase-setq pattern value@dots{}
+Assign values to variables in a @code{setq} form, destructuring each
+@var{value} according to its respective @var{pattern}.
+@end defmac
 
 @node Iteration
 @section Iteration
