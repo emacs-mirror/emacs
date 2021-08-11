@@ -1065,7 +1065,7 @@ implementation will be used."
 			  p))))
 
 		;; Save exit.
-		(if (string-match-p tramp-temp-buffer-name (buffer-name))
+		(if (string-prefix-p tramp-temp-buffer-name (buffer-name))
 		    (ignore-errors
 		      (set-process-buffer (tramp-get-connection-process v) nil)
 		      (kill-buffer (current-buffer)))

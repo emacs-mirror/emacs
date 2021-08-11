@@ -672,7 +672,7 @@ buffer in your bug report.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
     (mapc
-     (lambda (x) (when (string-match-p "tramp" x) (insert x "\n")))
+     (lambda (x) (when (tramp-compat-string-search "tramp" x) (insert x "\n")))
      (split-string (list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.
