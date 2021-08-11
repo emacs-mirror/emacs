@@ -2533,7 +2533,10 @@ The value of `tex-command' specifies the command to use to run TeX."
           (file-name-as-directory (expand-file-name tex-directory)))
          (tex-out-file (expand-file-name (concat tex-zap-file ".tex")
 					 zap-directory))
-	 (main-file (expand-file-name (tex-main-file)))
+         ;; We may be running from an unsaved buffer, in which case
+         ;; there's no point in guessing for a main file name.
+	 (main-file (and buffer-file-name
+                         (expand-file-name (tex-main-file))))
 	 (ismain (string-equal main-file (buffer-file-name)))
 	 already-output)
     ;; Don't delete temp files if we do the same buffer twice in a row.
@@ -2542,9 +2545,11 @@ The value of `tex-command' specifies the command to use to run TeX."
     (let ((default-directory zap-directory)) ; why?
       ;; We assume the header is fully contained in tex-main-file.
       ;; We use f-f-ns so we get prompted about any changes on disk.
-      (with-current-buffer (find-file-noselect main-file)
-	(setq already-output (tex-region-header tex-out-file
-						(and ismain beg))))
+      (if (not main-file)
+          (setq already-output 0)
+        (with-current-buffer (find-file-noselect main-file)
+	  (setq already-output (tex-region-header tex-out-file
+						  (and ismain beg)))))
       ;; Write out the specified region (but don't repeat anything
       ;; already written in the header).
       (write-region (if ismain
