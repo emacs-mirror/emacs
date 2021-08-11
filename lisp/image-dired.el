@@ -1005,6 +1005,19 @@ Restore any changes to the window configuration made by calling
       (set-window-configuration image-dired-saved-window-configuration)
     (message "No saved window configuration")))
 
+(defun image-dired--line-up-with-method ()
+  "Line up thumbnails according to `image-dired-line-up-method'."
+  (cond ((eq 'dynamic image-dired-line-up-method)
+         (image-dired-line-up-dynamic))
+        ((eq 'fixed image-dired-line-up-method)
+         (image-dired-line-up))
+        ((eq 'interactive image-dired-line-up-method)
+         (image-dired-line-up-interactive))
+        ((eq 'none image-dired-line-up-method)
+         nil)
+        (t
+         (image-dired-line-up-dynamic))))
+
 ;;;###autoload
 (defun image-dired-display-thumbs (&optional arg append do-not-pop)
   "Display thumbnails of all marked files, in `image-dired-thumbnail-buffer'.
@@ -1046,16 +1059,7 @@ thumbnail buffer to be selected."
       (if do-not-pop
           (display-buffer buf)
         (pop-to-buffer buf))
-      (cond ((eq 'dynamic image-dired-line-up-method)
-             (image-dired-line-up-dynamic))
-            ((eq 'fixed image-dired-line-up-method)
-             (image-dired-line-up))
-            ((eq 'interactive image-dired-line-up-method)
-             (image-dired-line-up-interactive))
-            ((eq 'none image-dired-line-up-method)
-             nil)
-            (t
-             (image-dired-line-up-dynamic))))))
+      (image-dired--line-up-with-method))))
 
 ;;;###autoload
 (defun image-dired-show-all-from-dir (dir)
@@ -1185,6 +1189,13 @@ FILE-TAGS is an alist in the following form:
       (lambda (x)
         (cons x tag))
       files))))
+
+(defun image-dired-tag-marked-thumbnails ()
+  "Tag marked thumbnails."
+  (interactive)
+  (when-let ((dired-buf (image-dired-associated-dired-buffer)))
+    (with-current-buffer dired-buf
+      (image-dired-tag-files nil))))
 
 (defun image-dired-tag-thumbnail ()
   "Tag current thumbnail."
@@ -1417,27 +1428,26 @@ dired."
         (message "No image, or image with correct properties, at point.")
     (with-current-buffer dired-buf
         (message "%s" file-name)
-        (if (dired-goto-file file-name)
-            (cond ((eq command 'mark) (dired-mark 1))
-                  ((eq command 'unmark) (dired-unmark 1))
-                  ((eq command 'toggle)
-                   (if (image-dired-dired-file-marked-p)
-                       (dired-unmark 1)
-                     (dired-mark 1)))
-                  ((eq command 'flag) (dired-flag-file-deletion 1))))))))
+        (when (dired-goto-file file-name)
+          (cond ((eq command 'mark) (dired-mark 1))
+                ((eq command 'unmark) (dired-unmark 1))
+                ((eq command 'toggle)
+                 (if (image-dired-dired-file-marked-p)
+                     (dired-unmark 1)
+                   (dired-mark 1)))
+                ((eq command 'flag) (dired-flag-file-deletion 1)))
+          (image-dired-thumb-update-marks))))))
 
 (defun image-dired-mark-thumb-original-file ()
   "Mark original image file in associated dired buffer."
   (interactive)
   (image-dired-modify-mark-on-thumb-original-file 'mark)
-  (image-dired-thumb-update-marks)
   (image-dired-forward-image))
 
 (defun image-dired-unmark-thumb-original-file ()
   "Unmark original image file in associated dired buffer."
   (interactive)
   (image-dired-modify-mark-on-thumb-original-file 'unmark)
-  (image-dired-thumb-update-marks)
   (image-dired-forward-image))
 
 (defun image-dired-flag-thumb-original-file ()
@@ -1449,8 +1459,7 @@ dired."
 (defun image-dired-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated dired buffer."
   (interactive)
-  (image-dired-modify-mark-on-thumb-original-file 'toggle)
-  (image-dired-thumb-update-marks))
+  (image-dired-modify-mark-on-thumb-original-file 'toggle))
 
 (defun image-dired-jump-original-dired-buffer ()
   "Jump to the dired buffer associated with the current image file.
@@ -2335,6 +2344,19 @@ non-nil."
       (with-current-buffer dired-buf
         (when (dired-goto-file file-name)
           (image-dired-dired-file-marked-p))))))
+
+(defun image-dired-delete-marked ()
+  "Delete marked thumbnails and associated images."
+  (interactive)
+  (goto-char (point-min))
+  (let ((dired-buf (image-dired-associated-dired-buffer)))
+    (while (not (eobp))
+      (if (image-dired-thumb-file-marked-p)
+          (image-dired-delete-char)
+        (forward-char)))
+    (image-dired--line-up-with-method)
+    (with-current-buffer dired-buf
+      (dired-do-delete))))
 
 (defun image-dired-thumb-update-marks ()
   "Update the marks in the thumbnail buffer."
