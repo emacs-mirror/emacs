@@ -2396,10 +2396,17 @@ When non-nil, this option suppresses lock files for remote files.
 This command, called interactively, toggles the local value of
 'create-lockfiles' in the current buffer.
 
-** Miscellaneous
+** image-dired
 
 ---
 *** 'image-dired-mouse-toggle-mark' now toggles files in the active region.
+
++++
+*** New user option 'image-dired-thumb-visible-marks'.
+If non-nil (the default), use 'image-dired-thumb-mark' to say what
+images are marked.
+
+** Miscellaneous
 
 ---
 *** 'shell-script-mode' now supports 'outline-minor-mode'.

@@ -460,6 +460,19 @@ This is where you see the cursor."
   :type 'integer
   :group 'image-dired)
 
+(defcustom image-dired-thumb-visible-marks t
+  "Make marks visible in thumbnail buffer.
+If non-nil, apply the `image-dired-thumb-mark' face to marked
+images."
+  :type 'boolean
+  :version "28.1")
+
+(defface image-dired-thumb-mark
+  '((t (:background "orange")))
+  "Background-color for marked images in thumbnail buffer."
+  :group 'image-dired
+  :version "28.1")
+
 (defcustom image-dired-line-up-method 'dynamic
   "Default method for line-up of thumbnails in thumbnail buffer.
 Used by `image-dired-display-thumbs' and other functions that needs
@@ -1417,12 +1430,14 @@ dired."
   "Mark original image file in associated dired buffer."
   (interactive)
   (image-dired-modify-mark-on-thumb-original-file 'mark)
+  (image-dired-thumb-update-marks)
   (image-dired-forward-image))
 
 (defun image-dired-unmark-thumb-original-file ()
   "Unmark original image file in associated dired buffer."
   (interactive)
   (image-dired-modify-mark-on-thumb-original-file 'unmark)
+  (image-dired-thumb-update-marks)
   (image-dired-forward-image))
 
 (defun image-dired-flag-thumb-original-file ()
@@ -1434,7 +1449,8 @@ dired."
 (defun image-dired-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated dired buffer."
   (interactive)
-  (image-dired-modify-mark-on-thumb-original-file 'toggle))
+  (image-dired-modify-mark-on-thumb-original-file 'toggle)
+  (image-dired-thumb-update-marks))
 
 (defun image-dired-jump-original-dired-buffer ()
   "Jump to the dired buffer associated with the current image file.
@@ -2311,6 +2327,33 @@ non-nil."
       (image-dired-track-original-file))
   (image-dired-display-thumb-properties))
 
+(defun image-dired-thumb-file-marked-p ()
+  "Check if file is marked in associated dired buffer."
+  (let ((file-name (image-dired-original-file-name))
+        (dired-buf (image-dired-associated-dired-buffer)))
+    (when (and dired-buf file-name)
+      (with-current-buffer dired-buf
+        (when (dired-goto-file file-name)
+          (image-dired-dired-file-marked-p))))))
+
+(defun image-dired-thumb-update-marks ()
+  "Update the marks in the thumbnail buffer."
+  ;; TODO: only called by image-dired-mouse-toggle-mark but there are
+  ;; certainly other places, where it should be called too.
+  (when image-dired-thumb-visible-marks
+    (with-current-buffer image-dired-thumbnail-buffer
+      (save-excursion
+        (goto-char (point-min))
+        (let ((inhibit-read-only t))
+          (while (not (eobp))
+            (if (image-dired-thumb-file-marked-p)
+                (add-face-text-property
+                 (point) (1+ (point))
+                 'image-dired-thumb-mark)
+              (remove-text-properties (point) (1+ (point))
+                                      '(face image-dired-thumb-mark)))
+            (forward-char)))))))
+
 (defun image-dired-mouse-toggle-mark-1 ()
   "Toggle dired mark for current thumbnail.
 Track this in associated dired buffer if `image-dired-track-movement' is
@@ -2335,7 +2378,8 @@ non-nil."
             (forward-char))))
     (mouse-set-point event)
     (goto-char (posn-point (event-end event)))
-    (image-dired-mouse-toggle-mark-1)))
+    (image-dired-mouse-toggle-mark-1))
+  (image-dired-thumb-update-marks))
 
 (defun image-dired-dired-display-properties ()
   "Display properties for dired file in the echo area."
