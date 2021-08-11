@@ -1543,7 +1543,7 @@ which may actually result in an URL rather than a filename."
         (progn
           (push elem file-name-handler-alist)
           (if (ffap-url-p guess)
-              (read-file-name prompt guess)
+              (read-file-name prompt guess guess)
             (unless guess
               (setq guess default-directory))
             (unless (ffap-file-remote-p guess)
