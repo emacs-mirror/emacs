@@ -2311,16 +2311,31 @@ non-nil."
       (image-dired-track-original-file))
   (image-dired-display-thumb-properties))
 
+(defun image-dired-mouse-toggle-mark-1 ()
+  "Toggle dired mark for current thumbnail.
+Track this in associated dired buffer if `image-dired-track-movement' is
+non-nil."
+  (when image-dired-track-movement
+    (image-dired-track-original-file))
+  (image-dired-toggle-mark-thumb-original-file))
+
 (defun image-dired-mouse-toggle-mark (event)
   "Use mouse EVENT to toggle dired mark for thumbnail.
+Toggle marks of all thumbnails in region, if it's active.
 Track this in associated dired buffer if `image-dired-track-movement' is
 non-nil."
   (interactive "e")
-  (mouse-set-point event)
-  (goto-char (posn-point (event-end event)))
-  (if image-dired-track-movement
-      (image-dired-track-original-file))
-  (image-dired-toggle-mark-thumb-original-file))
+  (if (use-region-p)
+      (let ((end (region-end)))
+        (save-excursion
+          (goto-char (region-beginning))
+          (while (<= (point) end)
+            (when (image-dired-image-at-point-p)
+              (image-dired-mouse-toggle-mark-1))
+            (forward-char))))
+    (mouse-set-point event)
+    (goto-char (posn-point (event-end event)))
+    (image-dired-mouse-toggle-mark-1)))
 
 (defun image-dired-dired-display-properties ()
   "Display properties for dired file in the echo area."

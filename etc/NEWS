@@ -2399,6 +2399,9 @@ This command, called interactively, toggles the local value of
 ** Miscellaneous
 
 ---
+*** 'image-dired-mouse-toggle-mark' now toggles files in the active region.
+
+---
 *** 'shell-script-mode' now supports 'outline-minor-mode'.
 The outline headings have lines that start with "###".
 
