@@ -1273,7 +1273,7 @@ Returns an alist."
                      (concat "\\(" icalendar-import-format-uid "\\)??"))))
 	;; Need the \' regexp in order to detect multi-line items
         (setq s (concat "\\`"
-                        (replace-regexp-in-string "%s" "\\(.*?\\)" s nil t)
+                        (replace-regexp-in-string "%s" "\\([^z-a]*?\\)" s nil t)
                         "\\'"))
         (if (string-match s summary-and-rest)
             (let (cla des loc org sta url uid) ;; sum
