@@ -6562,7 +6562,7 @@ details on the arguments, see `revert-buffer'."
         (fmakunbound 'revert-buffer-with-fine-grain-success-p)))))
 
 (defcustom revert-buffer-quick-short-answers nil
-  "How much confirmation to be done by the `revert-buffer-quit' command.
+  "How much confirmation to be done by the `revert-buffer-quick' command.
 If non-nil, use `y-or-n-p' instead of `yes-or-no-p'."
   :version "28.1"
   :type 'boolean)
@@ -6592,6 +6592,7 @@ auto-save file, if that is more recent than the visited file."
    (t
     (revert-buffer (not auto-save)))))
 
+
 (defun recover-this-file ()
   "Recover the visited file--get contents from its last auto-save file."
   (interactive)
@@ -6767,6 +6768,7 @@ This command is used in the special Dired buffer created by
 	    (message "No files can be recovered from this session now")))
       (kill-buffer buffer))))
 
+
 (defun kill-buffer-ask (buffer)
   "Kill BUFFER if confirmed."
   (when (yes-or-no-p (format "Buffer %s %s.  Kill? "
@@ -8036,6 +8038,7 @@ based on existing mode bits, as in \"og+rX-w\"."
 (define-obsolete-variable-alias 'cache-long-line-scans
   'cache-long-scans "24.4")
 
+
 ;; Trashcan handling.
 (defcustom trash-directory nil
   "Directory for `move-file-to-trash' to move files and directories to.
@@ -8186,6 +8189,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		       (new-fn (file-name-concat trash-files-dir files-base)))
 		   (rename-file fn new-fn overwrite)))))))))
 
+
 (defsubst file-attribute-type (attributes)
   "The type field in ATTRIBUTES returned by `file-attributes'.
 The value is either t for directory, string (name linked to) for

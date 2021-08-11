@@ -99,7 +99,7 @@ To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-forward-stack 'permanent-local t)
 
 (defvar-local help-xref-stack-item nil
-  "An item for `help-follow-symbok' to push onto `help-xref-stack'.
+  "An item for `help-follow-symbol' to push onto `help-xref-stack'.
 The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-item 'permanent-local t)
 
