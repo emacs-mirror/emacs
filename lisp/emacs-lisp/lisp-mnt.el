@@ -357,18 +357,21 @@ Return argument is of the form (\"HOLDER\" \"YEAR1\" ... \"YEARN\")"
 	    summary)))))
 
 (defun lm-crack-address (x)
-  "Split up an email address X into full name and real email address.
-The value is a cons of the form (FULLNAME . ADDRESS)."
-  (cond ((string-match "\\(.+\\) [(<]\\(\\S-+@\\S-+\\)[>)]" x)
-	 (cons (string-trim-right (match-string 1 x))
-	       (match-string 2 x)))
-	((string-match "\\(\\S-+@\\S-+\\) [(<]\\(.*\\)[>)]" x)
-	 (cons (string-trim-right (match-string 2 x))
-	       (match-string 1 x)))
-	((string-match "\\S-+@\\S-+" x)
-	 (cons nil x))
-	(t
-	 (cons x nil))))
+  "Split up email address(es) X into full name and real email address.
+The value is a list of elements of the form (FULLNAME . ADDRESS)."
+  (cond ((string-match
+	  (concat "[,\s\t]*\\(?:"
+	          "\\(.+?\\) +[(<]\\(\\S-+@\\S-+\\)[>)]"
+	          "\\|"
+	          "\\(?2:\\S-+@\\S-+\\) +[(<]\\(?1:[^,]*\\)[>)]"
+	          "\\|"
+	          "\\(?2:\\S-+@\\S-+\\)"
+	          "\\)")
+	  x)
+	 `((,(string-trim-right (match-string 1 x)) . ,(match-string 2 x))
+	   . ,(lm-crack-address (substring x (match-end 0)))))
+	((string-match "\\`[,\s\t]*\\'" x) nil)
+	(t `((,x)))))
 
 (defun lm-authors (&optional file)
   "Return the author list of file FILE, or current buffer if FILE is nil.
@@ -376,7 +379,7 @@ Each element of the list is a cons; the car is the full name,
 the cdr is an email address."
   (lm-with-file file
     (let ((authorlist (lm-header-multiline "author")))
-      (mapcar #'lm-crack-address authorlist))))
+      (mapcan #'lm-crack-address authorlist))))
 
 (defun lm-maintainers (&optional file)
   "Return the maintainer list of file FILE, or current buffer if FILE is nil.
@@ -384,7 +387,7 @@ If the maintainers are unspecified, then return the authors.
 Each element of the list is a cons; the car is the full name,
 the cdr is an email address."
   (lm-with-file file
-    (mapcar #'lm-crack-address
+    (mapcan #'lm-crack-address
             (or (lm-header-multiline "maintainer")
                 (lm-header-multiline "author")))))
 
