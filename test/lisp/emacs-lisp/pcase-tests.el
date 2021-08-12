@@ -110,27 +110,26 @@
   (should-error (pcase 1
                   ((cl-type notatype) 'integer))))
 
-(ert-deftest pcase-setq ()
-  (should (equal (let (a b)
-                   (pcase-setq `(,a ,b) nil)
-                   (list a b))
-                 (list nil nil)))
-
+(ert-deftest pcase-tests-setq ()
   (should (equal (let (a b)
                    (pcase-setq `((,a) (,b)) '((1) (2)))
                    (list a b))
                  (list 1 2)))
 
-  (should (equal (list 'unset 'unset)
+  (should (equal (list nil nil)
                  (let ((a 'unset)
                        (b 'unset))
-                   (pcase-setq `(,a ,b) nil)
+                   (pcase-setq `(head ,a ,b) nil)
                    (list a b))))
 
   (should (equal (let (a b)
                    (pcase-setq `[,a ,b] [1 2])
                    (list a b))
                  '(1 2)))
+
+  (should-error (let (a b)
+                  (pcase-setq `[,a ,b] nil)
+                  (list a b)))
 
   (should (equal (let (a b)
                    (pcase-setq a 1 b 2)

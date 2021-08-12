@@ -326,7 +326,8 @@ Evaluation happens sequentially as in `setq' (not in parallel).
 
 An example: (pcase-setq `((,a) [(,b)]) '((1) [(2)]))
 
-When a PATTERN doesn't match it's VALUE, the pair is silently skipped.
+VAL is presumed to match PAT.  Failure to match may signal an error or go
+undetected, binding variables to arbitrary values, such as nil.
 
 \(fn PATTERNS VALUE PATTERN VALUES ...)"
   (declare (debug (&rest [pcase-PAT form])))
@@ -348,13 +349,14 @@ When a PATTERN doesn't match it's VALUE, the pair is silently skipped.
    (t
     (pcase-compile-patterns
      val
-     (list (cons pat
-                 (lambda (varvals &rest _)
-                   `(setq ,@(mapcan (lambda (varval)
-                                      (let ((var (car varval))
-                                            (val (cadr varval)))
-                                        (list var val)))
-                                    varvals)))))))))
+     `((,pat
+        . ,(lambda (varvals &rest _)
+             `(setq ,@(mapcan (lambda (varval)
+                                (let ((var (car varval))
+                                      (val (cadr varval)))
+                                  (list var val)))
+                              varvals))))
+       (pcase--dontcare . ignore))))))
 
 (defun pcase--trivial-upat-p (upat)
   (and (symbolp upat) (not (memq upat pcase--dontcare-upats))))
