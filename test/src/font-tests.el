@@ -159,6 +159,31 @@ expected font properties from parsing NAME.")
 	(insert "\n"))))
   (goto-char (point-min)))
 
+(ert-deftest font-parse-xlfd-test ()
+  ;; Normal number of segments.
+  (should (equal (font-get
+                  (font-spec :name "-GNU -FreeSans-semibold-italic-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :family)
+                 'FreeSans))
+  (should (equal (font-get
+                  (font-spec :name "-GNU -FreeSans-semibold-italic-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :foundry)
+                 'GNU\ ))
+  ;; Dash in the family name.
+  (should (equal (font-get
+                  (font-spec :name "-Take-mikachan-PS-normal-normal-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :family)
+                 'mikachan-PS))
+  (should (equal (font-get
+                  (font-spec :name "-Take-mikachan-PS-normal-normal-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :weight)
+                 'normal))
+  ;; Synthetic test.
+  (should (equal (font-get
+                  (font-spec :name "-foundry-name-with-lots-of-dashes-normal-normal-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :family)
+                 'name-with-lots-of-dashes)))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
