@@ -902,7 +902,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'python-mode
- :doc-spec `((,(if (Info-find-file "(python3.9)Index" t)
+ :doc-spec `((,(if (Info-find-file "python3.9" t)
                    "(python3.9)Index"
                  "(python)Index"))))
 
