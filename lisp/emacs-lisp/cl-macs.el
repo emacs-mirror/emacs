@@ -3332,14 +3332,16 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                '((array		. arrayp)
                  (atom		. atom)
                  (base-char	. characterp)
+                 (bignum	. bignump)
                  (boolean	. booleanp)
                  (bool-vector	. bool-vector-p)
                  (buffer	. bufferp)
                  (character	. natnump)
                  (char-table	. char-table-p)
+                 (command	. commandp)
                  (hash-table	. hash-table-p)
                  (cons		. consp)
-                 (fixnum	. integerp)
+                 (fixnum	. fixnump)
                  (float		. floatp)
                  (function	. functionp)
                  (integer	. integerp)
@@ -3597,8 +3599,6 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
 (cl-deftype extended-char () '(and character (not base-char)))
 ;; Define fixnum so `cl-typep' recognize it and the type check emitted
 ;; by `cl-the' is effective.
-(cl-deftype fixnum () 'fixnump)
-(cl-deftype bignum () 'bignump)
 
 ;;; Additional functions that we can now define because we've defined
 ;;; `cl-defsubst' and `cl-typep'.
