@@ -4749,7 +4749,45 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
 	  ;; Cleanup.
 	  (ignore-errors (delete-process proc))
-	  (ignore-errors (delete-file tmp-name)))))))
+	  (ignore-errors (delete-file tmp-name))))
+
+      ;; Process connection type.
+      (when (and (tramp--test-sh-p)
+		 ;; `executable-find' has changed the number of
+		 ;; parameters in Emacs 27.1, so we use `apply' for
+		 ;; older Emacsen.
+		 (ignore-errors
+		   (with-no-warnings
+		     (apply #'executable-find '("hexdump" remote)))))
+	(dolist (connection-type '(nil pipe t pty))
+	  (unwind-protect
+	      (with-temp-buffer
+		(setq proc
+		      (with-no-warnings
+			(make-process
+			 :name (format "test7-%s" connection-type)
+			 :buffer (current-buffer)
+			 :connection-type connection-type
+			 :command '("hexdump" "-v" "-e" "/1 \"%02X\n\"")
+			 :file-handler t)))
+		(should (processp proc))
+		(should (equal (process-status proc) 'run))
+		(process-send-string proc "foo\r\n")
+		(process-send-eof proc)
+		;; Read output.
+		(with-timeout (10 (tramp--test-timeout-handler))
+		  (while (< (- (point-max) (point-min))
+			    (length "66\n6F\n6F\n0D\n0A\n"))
+		    (while (accept-process-output proc 0 nil t))))
+		(should
+		 (string-match-p
+		  (if (memq connection-type '(nil pipe))
+		      "66\n6F\n6F\n0D\n0A\n"
+		    "66\n6F\n6F\n0A\n0A\n")
+		  (buffer-string))))
+
+	    ;; Cleanup.
+	    (ignore-errors (delete-process proc))))))))
 
 (tramp--test--deftest-direct-async-process tramp-test30-make-process
   "Check direct async `make-process'.")
