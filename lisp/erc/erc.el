@@ -141,7 +141,6 @@
 (defvar erc-server-current-nick)
 (defvar erc-server-lag)
 (defvar erc-server-last-sent-time)
-(defvar erc-server-parameters)
 (defvar erc-server-process)
 (defvar erc-server-quitting)
 (defvar erc-server-reconnect-count)
@@ -3566,8 +3565,8 @@ The rest of LINE is the message to send."
 (defun erc-cmd-NICK (nick)
   "Change current nickname to NICK."
   (erc-log (format "cmd: NICK: %s (erc-bad-nick: %S)" nick erc-bad-nick))
-  (let ((nicklen (cdr (assoc "NICKLEN" (erc-with-server-buffer
-                                         erc-server-parameters)))))
+  (let ((nicklen (erc-with-server-buffer
+                   (erc--get-isupport-entry 'NICKLEN 'single))))
     (and nicklen (> (length nick) (string-to-number nicklen))
          (erc-display-message
           nil 'notice 'active 'nick-too-long
@@ -4436,9 +4435,8 @@ See also `erc-display-error-notice'."
        (format "Nickname %s is %s, try another." nick reason))
     (setq erc-nick-change-attempt-count (+ erc-nick-change-attempt-count 1))
     (let ((newnick (nth 1 erc-default-nicks))
-          (nicklen (cdr (assoc "NICKLEN"
-                               (erc-with-server-buffer
-                                 erc-server-parameters)))))
+          (nicklen (erc-with-server-buffer
+                     (erc--get-isupport-entry 'NICKLEN 'single))))
       (setq erc-bad-nick t)
       ;; try to use a different nick
       (if erc-default-nicks
@@ -5049,8 +5047,7 @@ See also `erc-channel-begin-receiving-names'."
 (defun erc-parse-prefix ()
   "Return an alist of valid prefix character types and their representations.
 Example: (operator) o => @, (voiced) v => +."
-  (let ((str (or (cdr (assoc "PREFIX" (erc-with-server-buffer
-                                        erc-server-parameters)))
+  (let ((str (or (erc-with-server-buffer (erc--get-isupport-entry 'PREFIX t))
                  ;; provide a sane default
                  "(qaohv)~&@%+"))
         types chars)

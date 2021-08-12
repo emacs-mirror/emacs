@@ -137,7 +137,7 @@ These arguments are sent to this function when called as a hook in
              ;; could possibly check for '("IRCD" . "dancer") in
              ;; `erc-server-parameters' instead of looking for a specific name
              ;; in `erc-server-version'
-             (assoc "CAPAB" erc-server-parameters))
+             (erc--get-isupport-entry 'CAPAB))
     (erc-log "Sending CAPAB IDENTIFY-MSG and IDENTIFY-CTCP")
     (erc-server-send "CAPAB IDENTIFY-MSG")
     (erc-server-send "CAPAB IDENTIFY-CTCP")

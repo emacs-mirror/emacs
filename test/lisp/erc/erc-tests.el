@@ -349,6 +349,99 @@
     (setq erc-lurker-ignore-chars "_-`") ; set of chars, not character alts
     (should (string= "nick" (erc-lurker-maybe-trim "nick-_`")))))
 
+(ert-deftest erc--parse-isupport-value ()
+  (should (equal (erc--parse-isupport-value "a,b") '("a" "b")))
+  (should (equal (erc--parse-isupport-value "a,b,c") '("a" "b" "c")))
+
+  (should (equal (erc--parse-isupport-value "abc") '("abc")))
+  (should (equal (erc--parse-isupport-value "\\x20foo") '(" foo")))
+  (should (equal (erc--parse-isupport-value "foo\\x20") '("foo ")))
+  (should (equal (erc--parse-isupport-value "a\\x20b\\x20c") '("a b c")))
+  (should (equal (erc--parse-isupport-value "a\\x20b\\x20c\\x20") '("a b c ")))
+  (should (equal (erc--parse-isupport-value "\\x20a\\x20b\\x20c") '(" a b c")))
+  (should (equal (erc--parse-isupport-value "a\\x20\\x20c") '("a  c")))
+  (should (equal (erc--parse-isupport-value "\\x20\\x20\\x20") '("   ")))
+  (should (equal (erc--parse-isupport-value "\\x5Co/") '("\\o/")))
+  (should (equal (erc--parse-isupport-value "\\x7F,\\x19") '("\\x7F" "\\x19")))
+  (should (equal (erc--parse-isupport-value "a\\x2Cb,c") '("a,b" "c"))))
+
+(ert-deftest erc--get-isupport-entry ()
+  (let ((erc--isupport-params (make-hash-table))
+        (erc-server-parameters '(("FOO" . "1") ("BAR") ("BAZ" . "A,B,C")))
+        (items (lambda ()
+                 (cl-loop for k being the hash-keys of erc--isupport-params
+                          using (hash-values v) collect (cons k v)))))
+
+    (should-not (erc--get-isupport-entry 'FAKE))
+    (should-not (erc--get-isupport-entry 'FAKE 'single))
+    (should (zerop (hash-table-count erc--isupport-params)))
+
+    (should (equal (erc--get-isupport-entry 'BAR) '(BAR)))
+    (should-not (erc--get-isupport-entry 'BAR 'single))
+    (should (= 1 (hash-table-count erc--isupport-params)))
+
+    (should (equal (erc--get-isupport-entry 'BAZ) '(BAZ "A" "B" "C")))
+    (should (equal (erc--get-isupport-entry 'BAZ 'single) "A"))
+    (should (= 2 (hash-table-count erc--isupport-params)))
+
+    (should (equal (erc--get-isupport-entry 'FOO 'single) "1"))
+    (should (equal (erc--get-isupport-entry 'FOO) '(FOO "1")))
+
+    (should (equal (funcall items)
+                   '((BAR . --empty--) (BAZ "A" "B" "C") (FOO "1"))))))
+
+(ert-deftest erc-server-005 ()
+  (let* ((hooked 0)
+         (verify #'ignore)
+         (hook (lambda (_ _) (funcall verify) (cl-incf hooked)))
+         (erc-server-005-functions (list #'erc-server-005 hook #'ignore))
+         erc-server-parameters
+         erc--isupport-params
+         erc-timer-hook
+         calls
+         args
+         parsed)
+
+    (cl-letf (((symbol-function 'erc-display-message)
+               (lambda (_ _ _ line) (push line calls))))
+
+      (ert-info ("Baseline")
+        (setq args '("tester" "BOT=B" "EXCEPTS" "PREFIX=(ov)@+" "are supp...")
+              parsed (make-erc-response :command-args args :command "005"))
+
+        (setq verify
+              (lambda ()
+                (should (equal erc-server-parameters
+                               '(("PREFIX" . "(ov)@+") ("EXCEPTS")
+                                 ("BOT" . "B"))))
+                (should (zerop (hash-table-count erc--isupport-params)))
+                (should (equal "(ov)@+" (erc--get-isupport-entry 'PREFIX t)))
+                (should (equal '(EXCEPTS) (erc--get-isupport-entry 'EXCEPTS)))
+                (should (equal "B" (erc--get-isupport-entry 'BOT t)))
+                (should (string= (pop calls)
+                                 "BOT=B EXCEPTS PREFIX=(ov)@+ are supp..."))
+                (should (equal args (erc-response.command-args parsed)))))
+
+        (erc-call-hooks nil parsed))
+
+      (ert-info ("Negated, updated")
+        (setq args '("tester" "-EXCEPTS" "-FAKE" "PREFIX=(ohv)@%+" "are su...")
+              parsed (make-erc-response :command-args args :command "005"))
+
+        (setq verify
+              (lambda ()
+                (should (equal erc-server-parameters
+                               '(("PREFIX" . "(ohv)@%+") ("BOT" . "B"))))
+                (should (string= (pop calls)
+                                 "-EXCEPTS -FAKE PREFIX=(ohv)@%+ are su..."))
+                (should (equal "(ohv)@%+" (erc--get-isupport-entry 'PREFIX t)))
+                (should (equal "B" (erc--get-isupport-entry 'BOT t)))
+                (should-not (erc--get-isupport-entry 'EXCEPTS))
+                (should (equal args (erc-response.command-args parsed)))))
+
+        (erc-call-hooks nil parsed))
+      (should (= hooked 2)))))
+
 (ert-deftest erc-ring-previous-command-base-case ()
   (ert-info ("Create ring when nonexistent and do nothing")
     (let (erc-input-ring

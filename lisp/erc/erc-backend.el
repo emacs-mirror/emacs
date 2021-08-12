@@ -185,6 +185,11 @@ SILENCE=10 - supports the SILENCE command, maximum allowed number of entries
 TOPICLEN=160 - maximum allowed topic length
 WALLCHOPS - supports sending messages to all operators in a channel")
 
+(defvar-local erc--isupport-params nil
+  "Hash map of \"ISUPPORT\" params.
+Keys are symbols.  Values are lists of zero or more strings with hex
+escapes removed.")
+
 ;;; Server and connection state
 
 (defvar erc-server-ping-timer-alist nil
@@ -1625,6 +1630,67 @@ Then display the welcome message."
      ?U (nth 3 (erc-response.command-args parsed))
      ?C (nth 4 (erc-response.command-args parsed)))))
 
+(defun erc--parse-isupport-value (value)
+  "Return list of unescaped components from an \"ISUPPORT\" VALUE."
+  ;; https://tools.ietf.org/html/draft-brocklesby-irc-isupport-03#section-2
+  ;;
+  ;; > The server SHOULD send "X", not "X="; this is the normalised form.
+  ;;
+  ;; Note: for now, assume the server will only send non-empty values,
+  ;; possibly with printable ASCII escapes.  Though in practice, the
+  ;; only two escapes we're likely to see are backslash and space,
+  ;; meaning the pattern is too liberal.
+  (let (case-fold-search)
+    (mapcar
+     (lambda (v)
+       (let ((start 0)
+             m
+             c)
+         (while (and (< start (length v))
+                     (string-match "[\\]x[0-9A-F][0-9A-F]" v start))
+           (setq m (substring v (+ 2 (match-beginning 0)) (match-end 0))
+                 c (string-to-number m 16))
+           (if (<= ?\  c ?~)
+               (setq v (concat (substring v 0 (match-beginning 0))
+                               (string c)
+                               (substring v (match-end 0)))
+                     start (- (match-end 0) 3))
+             (setq start (match-end 0))))
+         v))
+     (if (if (>= emacs-major-version 28)
+             (string-search "," value)
+           (string-match-p "," value))
+         (split-string value ",")
+       (list value)))))
+
+;; FIXME move to erc-compat (once we decide how to load it)
+(defalias 'erc--with-memoization
+  (cond
+   ((fboundp 'with-memoization) #'with-memoization) ; 29.1
+   ((fboundp 'cl--generic-with-memoization) #'cl--generic-with-memoization)
+   (t (lambda (_ v) v))))
+
+(defun erc--get-isupport-entry (key &optional single)
+  "Return an item for \"ISUPPORT\" token KEY, a symbol.
+When a lookup fails return nil.  Otherwise return a list whose
+CAR is KEY and whose CDR is zero or more strings.  With SINGLE,
+just return the first value, if any.  The latter is potentially
+ambiguous and only useful for tokens supporting a single
+primitive value."
+  (if-let* ((table (or erc--isupport-params
+                       (erc-with-server-buffer erc--isupport-params)))
+            (value (erc--with-memoization (gethash key table)
+                     (when-let ((v (assoc (symbol-name key)
+                                          erc-server-parameters)))
+                       (if (cdr v)
+                           (erc--parse-isupport-value (cdr v))
+                         '--empty--)))))
+      (pcase value
+        ('--empty-- (unless single (list key)))
+        (`(,head . ,_) (if single head (cons key value))))
+    (when table
+      (remhash key table))))
+
 (define-erc-response-handler (005)
   "Set the variable `erc-server-parameters' and display the received message.
 
@@ -1636,21 +1702,25 @@ certain commands are accepted and more.  See documentation for
 
 A server may send more than one 005 message."
   nil
-  (let ((line (mapconcat #'identity
-                         (setf (erc-response.command-args parsed)
-                               (cdr (erc-response.command-args parsed)))
-                         " ")))
-    (while (erc-response.command-args parsed)
-      (let ((section (pop (erc-response.command-args parsed))))
-        ;; fill erc-server-parameters
-        (when (string-match "^\\([A-Z]+\\)=\\(.*\\)$\\|^\\([A-Z]+\\)$"
+  (unless erc--isupport-params
+    (setq erc--isupport-params (make-hash-table)))
+  (let* ((args (cdr (erc-response.command-args parsed)))
+         (line (string-join args " ")))
+    (while args
+      (let ((section (pop args))
+            key
+            value
+            negated)
+        (when (string-match "^\\([A-Z]+\\)=\\(.*\\)$\\|^\\(-\\)?\\([A-Z]+\\)$"
                             section)
-          (add-to-list 'erc-server-parameters
-                       `(,(or (match-string 1 section)
-                              (match-string 3 section))
-                         .
-                         ,(match-string 2 section))))))
-    (erc-display-message parsed 'notice proc line)))
+          (setq key (or (match-string 1 section) (match-string 4 section))
+                value (match-string 2 section)
+                negated (and (match-string 3 section) '-))
+          (setf (alist-get key erc-server-parameters '- 'remove #'equal)
+                (or value negated))
+          (remhash (intern key) erc--isupport-params))))
+    (erc-display-message parsed 'notice proc line)
+    nil))
 
 (define-erc-response-handler (221)
   "Display the current user modes." nil
