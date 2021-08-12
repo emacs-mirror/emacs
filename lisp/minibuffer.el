@@ -2713,7 +2713,8 @@ you might expect.  For instance, typing `M-x' may change the
 buffer to this mode, then to a different mode, and then back
 again to this mode upon exit.  Code running from
 `minibuffer-inactive-mode-hook' has to be prepared to run
-multiple times per minibuffer invocation.")
+multiple times per minibuffer invocation.  Also see
+`minibuffer-exit-hook'.")
 
 (defvaralias 'minibuffer-mode-map 'minibuffer-local-map)
 
