@@ -174,6 +174,10 @@ This variant works around bugs in `eval-when-compile' in various
 
 
 ;;; Macros.
+(or (fboundp 'cadar) (defsubst cadar (elt) (car (cdar elt))))
+(or (fboundp 'caddr) (defsubst caddr (elt) (car (cddr elt))))
+(or (fboundp 'cdddr) (defsubst cdddr (elt) (cdr (cddr elt))))
+
 (defmacro c--mapcan (fun liszt)
   ;; CC Mode equivalent of `mapcan' which bridges the difference
   ;; between the host [X]Emacsen."
@@ -236,6 +240,7 @@ The current point is used if POINT isn't specified.  POSITION can be
 one of the following symbols:
 
 `bol'   -- beginning of line
+`boll'  -- beginning of logical line (i.e. without preceding escaped NL)
 `eol'   -- end of line
 `eoll'  -- end of logical line (i.e. without escaped NL)
 `bod'   -- beginning of defun
@@ -265,6 +270,15 @@ to it is returned.  This function does not modify the point or the mark."
 	       ,@(if point `((goto-char ,point)))
 	       (beginning-of-line)
 	       (point))))
+
+	 ((eq position 'boll)
+	  `(save-excursion
+	     ,@(if point `((goto-char ,point)))
+	     (while (progn (beginning-of-line)
+			   (when (not (bobp))
+			     (eq (char-before (1- (point))) ?\\)))
+	       (backward-char))
+	     (point)))
 
 	 ((eq position 'eol)
 	  (if (and (cc-bytecomp-fboundp 'line-end-position) (not point))
@@ -1254,6 +1268,9 @@ MODE is either a mode symbol or a list of mode symbols."
   ;; region that has been put with `c-put-char-property'.  PROPERTY is
   ;; assumed to be constant.
   ;;
+  ;; The returned value is the buffer position of the lowest character
+  ;; whose PROPERTY was removed, or nil if there was none.
+  ;;
   ;; Note that this function does not clean up the property from the
   ;; lists of the `rear-nonsticky' properties in the region, if such
   ;; are used.  Thus it should not be used for common properties like
@@ -1262,20 +1279,28 @@ MODE is either a mode symbol or a list of mode symbols."
   ;; This macro does hidden buffer changes.
   (declare (debug t))
   (setq property (eval property))
-  (if c-use-extents
-      ;; XEmacs.
-      `(map-extents (lambda (ext ignored)
-		      (delete-extent ext))
-		    nil ,from ,to nil nil ',property)
-    ;; Emacs.
-    (if (and (fboundp 'syntax-ppss)
-	     (eq `,property 'syntax-table))
-	`(let ((-from- ,from) (-to- ,to))
-	   (setq c-syntax-table-hwm
-		 (min c-syntax-table-hwm
-		      (c-min-property-position -from- -to- ',property)))
-	   (remove-text-properties -from- -to- '(,property nil)))
-      `(remove-text-properties ,from ,to '(,property nil)))))
+  `(let* ((-to- ,to)
+	  (ret (c-min-property-position ,from -to- ',property)))
+     (if (< ret -to-)
+	 (progn
+	   ,(cond
+	     (c-use-extents
+	      ;; XEmacs
+	      `(map-extents (lambda (ext ignored)
+				(delete-extent ext))
+			    nil ret -to- nil nil ',property))
+	     ((and (fboundp 'syntax-ppss)
+		   (eq property 'syntax-table))
+	      ;; Emacs 'syntax-table
+	      `(progn
+		     (setq c-syntax-table-hwm
+			   (min c-syntax-table-hwm ret))
+		     (remove-text-properties ret -to- '(,property nil))))
+	     (t
+	      ;; Emacs other property.
+	      `(remove-text-properties ret -to- '(,property nil))))
+	   ret)
+       nil)))
 
 (defmacro c-clear-syn-tab-properties (from to)
   ;; Remove all occurrences of the `syntax-table' and `c-fl-syn-tab' text

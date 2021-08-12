@@ -781,9 +781,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ;; Invalid single quotes.
       c-font-lock-invalid-single-quotes
 
-      ;; Fontify C++ raw strings.
-      ,@(when (c-major-mode-is 'c++-mode)
-	  '(c-font-lock-raw-strings))
+      ;; Fontify multiline strings.
+      ,@(when (c-lang-const c-ml-string-opener-re)
+	  '(c-font-lock-ml-strings))
 
       ;; Fontify keyword constants.
       ,@(when (c-lang-const c-constant-kwds)
@@ -1737,8 +1737,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      (c-font-lock-declarators limit t in-typedef
 				       (not (c-bs-at-toplevel-p (point)))))))))))
 
-(defun c-font-lock-raw-strings (limit)
-  ;; Fontify C++ raw strings.
+(defun c-font-lock-ml-strings (limit)
+  ;; Fontify multi-line strings.
   ;;
   ;; This function will be called from font-lock for a region bounded by POINT
   ;; and LIMIT, as though it were to identify a keyword for
@@ -1748,52 +1748,75 @@ casts and declarations are fontified.  Used on level 2 and higher."
   (let* ((state (c-semi-pp-to-literal (point)))
 	 (string-start (and (eq (cadr state) 'string)
 			    (car (cddr state))))
-	 (raw-id (and string-start
-		      (c-at-c++-raw-string-opener string-start)
-		      (match-string-no-properties 1)))
-	 (content-start (and raw-id (point))))
+	 (open-delim (and string-start
+			  (save-excursion
+			    (goto-char (1+ string-start))
+			    (c-ml-string-opener-around-point))))
+	 (string-delims (and open-delim
+			     (cons open-delim (c-get-ml-closer open-delim))))
+	 found)
     ;; We go round the next loop twice per raw string, once for each "end".
     (while (< (point) limit)
-      (if raw-id
-	  ;; Search for the raw string end delimiter
-	  (progn
-	    (when (search-forward-regexp (concat ")\\(" (regexp-quote raw-id) "\\)\"")
-					 limit 'limit)
-	      (c-put-font-lock-face content-start (match-beginning 1)
-				    'font-lock-string-face)
-	      (c-remove-font-lock-face (match-beginning 1) (point)))
-	    (setq raw-id nil))
-	;; Search for the start of a raw string.
-	(when (search-forward-regexp
-	       "R\\(\"\\)\\([^ ()\\\n\r\t]\\{0,16\\}\\)(" limit 'limit)
-	  (when
-	      ;; Make sure we're not in a comment or string.
-	      (and
-	       (not (memq (c-get-char-property (match-beginning 0) 'face)
-			  '(font-lock-comment-face font-lock-comment-delimiter-face
-						   font-lock-string-face)))
-	       (or (and (eobp)
-	  		(eq (c-get-char-property (1- (point)) 'face)
-	  		    'font-lock-warning-face))
-	  	   (not (eq (c-get-char-property (point) 'face) 'font-lock-comment-face))
-		   ;; (eq (c-get-char-property (point) 'face) 'font-lock-string-face)
-	  	   (and (equal (c-get-char-property (match-end 2) 'syntax-table) '(1))
-	  		(equal (c-get-char-property (match-beginning 1) 'syntax-table)
-	  		       '(1)))))
-	    (let ((paren-prop (c-get-char-property (1- (point)) 'syntax-table)))
-	      (if paren-prop
-		  (progn
-		    (c-put-font-lock-face (match-beginning 0) (match-end 0)
-					  'font-lock-warning-face)
-		    (when
-			(and
-			 (equal paren-prop '(15))
-			 (not (c-search-forward-char-property 'syntax-table '(15) limit)))
-		      (goto-char limit)))
-		(c-remove-font-lock-face (match-beginning 0) (match-end 2))
-		(setq raw-id (match-string-no-properties 2))
-		(setq content-start (match-end 0)))))))))
-  nil)
+      (cond
+       ;; Point is not in an ml string
+       ((not string-delims)
+	(while (and (setq found (re-search-forward c-ml-string-opener-re
+						   limit 'limit))
+		    (> (match-beginning 0) (point-min))
+		    (memq (c-get-char-property (1- (match-beginning 0)) 'face)
+			  '(font-lock-comment-face font-lock-string-face
+			    font-lock-comment-delimiter-face))))			   
+	(when found
+	  (setq open-delim (cons (match-beginning 1)
+				 (cons (match-end 1) (match-beginning 2)))
+		string-delims (cons open-delim (c-get-ml-closer open-delim)))
+	  (goto-char (caar string-delims))))
+	
+       ;; Point is in the body of an ml string.
+       ((and string-delims
+	     (>= (point) (cadar string-delims))
+	     (or (not (cdr string-delims))
+		 (< (point) (cadr string-delims))))
+	(if (cdr string-delims)
+	    (goto-char (cadr string-delims))
+	  (if (equal (c-get-char-property (1- (cadar string-delims))
+					  'syntax-table)
+		     '(15))		; "Always" the case.
+	      ;; The next search should be successful for an unterminated ml
+	      ;; string inside a macro, but not for any other unterminated
+	      ;; string.
+	      (progn
+		(or (c-search-forward-char-property 'syntax-table '(15) limit)
+		    (goto-char limit))
+		(setq string-delims nil))
+	    (c-benign-error "Missing '(15) syntax-table property at %d"
+			    (1- (cadar string-delims)))
+	    (setq string-delims nil))))
+
+       ;; Point is at or in a closing delimiter
+       ((and string-delims
+	     (cdr string-delims)
+	     (>= (point) (cadr string-delims)))
+	(c-put-font-lock-face (cadr string-delims) (1+ (cadr string-delims))
+			      'font-lock-string-face)
+	(c-remove-font-lock-face (1+ (cadr string-delims))
+				 (caddr string-delims))
+	(goto-char (caddr string-delims))
+	(setq string-delims nil))
+
+       ;; point is at or in an opening delimiter.
+       (t
+	(if (cdr string-delims)
+	    (progn
+	      (c-remove-font-lock-face (caar string-delims)
+				       (1- (cadar string-delims)))
+	      (c-put-font-lock-face (1- (cadar string-delims))
+				    (cadar string-delims)
+				    'font-lock-string-face))
+	  (c-put-font-lock-face (caar string-delims) (cadar string-delims)
+				'font-lock-warning-face))
+	(goto-char (cadar string-delims)))))
+    nil))
 
 (defun c-font-lock-c++-lambda-captures (limit)
   ;; Fontify the lambda capture component of C++ lambda declarations.

@@ -453,9 +453,9 @@ so that all identifiers are recognized as words.")
   ;; The value here may be a list of functions or a single function.
   t 'c-before-change-check-unbalanced-strings
   c++ '(c-extend-region-for-CPP
-	c-before-change-check-raw-strings
-	c-before-change-check-<>-operators
 	c-depropertize-CPP
+	c-before-change-check-ml-strings
+	c-before-change-check-<>-operators
 	c-truncate-bs-cache
 	c-before-change-check-unbalanced-strings
 	c-parse-quotes-before-change)
@@ -467,6 +467,8 @@ so that all identifiers are recognized as words.")
   java '(c-parse-quotes-before-change
 	 c-before-change-check-unbalanced-strings
 	 c-before-change-check-<>-operators)
+  pike '(c-before-change-check-ml-strings
+	 c-before-change-check-unbalanced-strings)
   awk 'c-awk-record-region-clear-NL)
 (c-lang-defvar c-get-state-before-change-functions
 	       (let ((fs (c-lang-const c-get-state-before-change-functions)))
@@ -506,7 +508,7 @@ parameters \(point-min) and \(point-max).")
 	     c-change-expand-fl-region)
   c++ '(c-depropertize-new-text
 	c-after-change-escape-NL-in-string
-	c-after-change-unmark-raw-strings
+	c-after-change-unmark-ml-strings
 	c-parse-quotes-after-change
 	c-after-change-mark-abnormal-strings
 	c-extend-font-lock-region-for-macros
@@ -518,6 +520,11 @@ parameters \(point-min) and \(point-max).")
 	 c-parse-quotes-after-change
 	 c-after-change-mark-abnormal-strings
 	 c-restore-<>-properties
+	 c-change-expand-fl-region)
+  pike '(c-depropertize-new-text
+	 c-after-change-escape-NL-in-string
+	 c-after-change-unmark-ml-strings
+	 c-after-change-mark-abnormal-strings
 	 c-change-expand-fl-region)
   awk '(c-depropertize-new-text
 	c-awk-extend-and-syntax-tablify-region))
@@ -620,6 +627,176 @@ Note that to set up a language to use this, additionally:
       '(?\")))
 (c-lang-defvar c-string-delims (c-lang-const c-string-delims))
 
+
+;; The next section of the code defines multi-line ("ml") strings for each
+;; language.  By default, there are no ml strings in a language.  To configure
+;; them, set each needed lang const in the section.  See further details in
+;; cc-engine.el (search for "Handling of CC Mode multi-line strings.").
+(c-lang-defconst c-ml-string-backslash-escapes
+  ;; N.B. if `c-ml-string-backslash-escapes' is non-nil, you probably need a
+  ;; `c-ml-string-any-closer-re' that scans backslashed characters, etc.
+  "If non-nil, a \\ character escapes the next character in a ml string.
+Otherwise such a \\ will be marked to be handled as any other character."
+  t nil
+  pike t
+  )
+
+(c-lang-defconst c-ml-string-non-punc-skip-chars
+  ;; A `skip-chars-forward' argument which skips over all ml string characters
+  ;; which don't need to be marked with punctuation ('(1)) syntax.
+  t (if (c-lang-const c-ml-string-backslash-escapes)
+	"^\""
+      "^\"\\"))
+(c-lang-defvar c-ml-string-non-punc-skip-chars
+	       (c-lang-const c-ml-string-non-punc-skip-chars))
+
+(c-lang-defconst c-ml-string-opener-re
+  "If non-nil, a regexp that matches a multi-line string opener.
+It may also match context.
+
+Such an opener must be at least 2 characters long, and must
+contain a \" character.  (match-string 1) matches the actual
+delimiter and (match-string 2) matches the actual \".  If a
+delimiter contains several \"s, it is recommended to configure
+the first of them as \"the\" \"."
+  t nil
+  pike "\\(#\\(\"\\)\\)"
+  c++ "\\(R\\(\"\\)[^ ()\\\n\r\t]\\{0,16\\}(\\)")
+(c-lang-defvar c-ml-string-opener-re (c-lang-const c-ml-string-opener-re))
+
+(c-lang-defconst c-ml-string-max-opener-len
+  "If non-nil, the maximum length of a multi-line string opener."
+  t nil
+  pike 2
+  c++ 19)
+(c-lang-defvar c-ml-string-max-opener-len
+	       (c-lang-const c-ml-string-max-opener-len))
+
+(c-lang-defconst c-ml-string-any-closer-re
+  "If non-nil, a regexp that matches any multi-line string closer.
+It may also match context.
+
+A search for this regexp starting at the end of the corresponding
+opener must find the first closer as the first match.
+
+Such a closer must include a \" character.  (match-string 1)
+matches the actual delimiter and and (match-string 2) matches the
+actual \".  If a delimiter contains several \"s, it is
+recommended to regard the last of them as \"the\" \"."
+  t nil
+  pike "\\(?:\\=\\|[^\\\"]\\)\\(?:\\\\.\\)*\\(\\(\"\\)\\)"
+  c++ "\\()[^ ()\\n\r\t]\\{0,16\\}\\(\"\\)\\)")
+;; csharp "\\(?:\\=\\|[^\"]\\)\\(?:\"\"\\)*\\(\\(\"\\)\\)\\(?:[^\"]\\|\\'\\)"
+(c-lang-defvar c-ml-string-any-closer-re
+	       (c-lang-const c-ml-string-any-closer-re))
+
+(c-lang-defconst c-ml-string-max-closer-len
+  "If non-nil, the maximum length of a multi-line string closer.
+This must include the length of any \"context trailer\" following
+the actual closer and any \"context leader\" preceding it.  This
+variable is ignored when `c-ml-string-back-closer-re' is non-nil."
+  t nil
+  c++ 18)
+(c-lang-defvar c-ml-string-max-closer-len
+	       (c-lang-const c-ml-string-max-closer-len))
+
+(c-lang-defconst c-ml-string-max-closer-len-no-leader
+  "If non-nil, the maximum length of a ml string closer without its leader.
+By \"leader\" is meant the context bytes preceding the actual
+multi-line string closer, that part of
+`c-ml-string-any-closer-re''s match preceding (match-beginning 1)."
+  t nil
+  pike 1
+       ;; 2
+       ;; 3
+  c++ 18)
+(c-lang-defvar c-ml-string-max-closer-len-no-leader
+	       (c-lang-const c-ml-string-max-closer-len-no-leader))
+
+(c-lang-defconst c-ml-string-back-closer-re
+  "A regexp to move back out of a putative ml closer point is in.
+
+This variable need only be non-nil for languages with multi-line
+string closers that can contain an indefinite length \"leader\"
+preceding the actual closer.  It was designed for formats where
+an unbounded number of \\s or \"s might precede the closer
+proper, for example in Pike Mode or csharp-mode.
+
+If point is in a putative multi-line string closer, a backward
+regexp search with `c-ml-string-back-closer-re' will leave point
+in a \"safe place\", from where a forward regexp search with
+`c-ml-string-any-closer-re' can test whether the original
+position was inside an actual closer.
+
+When non-nil, this variable should end in \"\\\\\\==\".  Note that
+such a backward search will match a minimal string, so a
+\"context character\" is probably needed at the start of the
+regexp.  The value for csharp-mode would be something like
+\"\\\\(:?\\\\`\\\\|[^\\\"]\\\\)\\\"*\\\\\\==\"."
+  t nil
+  pike "\\(:?\\`\\|[^\\\"]\\)\\(:?\\\\.\\)*\\="
+  ;;pike ;; 2
+  ;;    "\\(:?\\`\\|[^\"]\\)\"*\\="
+  )
+(c-lang-defvar c-ml-string-back-closer-re
+	       (c-lang-const c-ml-string-back-closer-re))
+
+(c-lang-defconst c-make-ml-string-closer-re-function
+  "If non-nil, a function which creates a closer regexp matching an opener.
+
+Such a function is given one argument, a multi-line opener (a
+string), and returns a regexp which will match the corresponding
+closer.  When this regexp matches, (match-string 1) should be the
+actual closing delimiter, and (match-string 2) the \"active\" \"
+it contains.
+
+A forward regexp search for this regexp starting at the end of
+the opener must find the closer as its first match."
+  t (if (c-lang-const c-ml-string-any-closer-re)
+	'c-ml-string-make-closer-re)
+  c++ 'c-c++-make-ml-string-closer-re)
+(c-lang-defvar c-make-ml-string-closer-re-function
+  (c-lang-const c-make-ml-string-closer-re-function))
+
+(c-lang-defconst c-make-ml-string-opener-re-function
+  "If non-nil, a function which creates an opener regexp matching a closer.
+
+Such a function is given one argument, a multi-line closer (a
+string), and returns a regexp which will match the corresponding
+opener.  When this regexp matches, (match-string 1) should be the
+actual opening delimiter, and (match-string 2) the \"active\" \"
+it contains.
+
+A backward regexp search for this regexp starting at the start of
+the closer might not find the opener as its first match, should
+there be copies of the opener contained in the multi-line string."
+  t (if (c-lang-const c-ml-string-opener-re)
+	'c-ml-string-make-opener-re)
+  c++ 'c-c++-make-ml-string-opener-re)
+(c-lang-defvar c-make-ml-string-opener-re-function
+  (c-lang-const c-make-ml-string-opener-re-function))
+
+(c-lang-defconst c-ml-string-cpp-or-opener-re
+  ;; A regexp which matches either a macro or a multi-line string opener.
+  t (concat "\\("
+	    (or (c-lang-const c-anchored-cpp-prefix) "\\`a\\`")
+	    "\\)\\|\\("
+	    (or (c-lang-const c-ml-string-opener-re) "\\`a\\`")
+	    "\\)"))
+(c-lang-defvar c-ml-string-cpp-or-opener-re
+	       (c-lang-const c-ml-string-cpp-or-opener-re))
+
+(c-lang-defconst c-cpp-or-ml-match-offset
+  ;; The offset to be added onto match numbers for a multi-line string in
+  ;; matches for `c-cpp-or-ml-string-opener-re'.
+  t (if (c-lang-const c-anchored-cpp-prefix)
+	(+ 2 (regexp-opt-depth (c-lang-const c-anchored-cpp-prefix)))
+      2))
+(c-lang-defvar c-cpp-or-ml-match-offset
+	       (c-lang-const c-cpp-or-ml-match-offset))
+;; End of ml string section.
+
+
 (c-lang-defconst c-has-quoted-numbers
   "Whether the language has numbers quoted like 4'294'967'295."
   t nil
@@ -860,9 +1037,15 @@ literals."
   "Set if the language supports multiline string literals without escaped
 newlines.  If t, all string literals are multiline.  If a character,
 only literals where the open quote is immediately preceded by that
-literal are multiline."
-  t    nil
-  pike ?#)
+literal are multiline.
+
+Note that from CC Mode 5.36, this character use is obsolete,
+having been superseded by the \"multi-line string\" mechanism.
+If both mechanisms are set for a language, the newer one prevails
+over the old `c-multiline-string-start-char'.  See the variables
+in the page containing `c-ml-string-opener-re' in cc-langs.el for
+further directions."
+  t    nil)
 (c-lang-defvar c-multiline-string-start-char
   (c-lang-const c-multiline-string-start-char))
 

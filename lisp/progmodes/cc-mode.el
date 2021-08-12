@@ -1003,8 +1003,8 @@ Note that the style variables are always made local to the buffer."
       (goto-char (match-beginning 1))
       (setq m-beg (point))
       (c-end-of-macro)
-      (when (c-major-mode-is 'c++-mode)
-	(save-excursion (c-depropertize-raw-strings-in-region m-beg (point))))
+      (when c-ml-string-opener-re
+	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
       (c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
 
     (while (and (< (point) end)
@@ -1014,8 +1014,8 @@ Note that the style variables are always made local to the buffer."
       (setq m-beg (point))
       (c-end-of-macro))
     (when (and ss-found (> (point) end))
-      (when (c-major-mode-is 'c++-mode)
-	(save-excursion (c-depropertize-raw-strings-in-region m-beg (point))))
+      (when c-ml-string-opener-re
+	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
       (c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
 
     (while (and (< (point) c-new-END)
@@ -1023,8 +1023,8 @@ Note that the style variables are always made local to the buffer."
       (goto-char (match-beginning 1))
       (setq m-beg (point))
       (c-end-of-macro)
-      (when (c-major-mode-is 'c++-mode)
-	(save-excursion (c-depropertize-raw-strings-in-region m-beg (point))))
+      (when c-ml-string-opener-re
+	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
       (c-clear-char-property-with-value
        m-beg (point) 'syntax-table '(1)))))
 
@@ -1174,12 +1174,15 @@ Note that the style variables are always made local to the buffer."
 	  )))))
 
 (defun c-unescaped-nls-in-string-p (&optional quote-pos)
-  ;; Return whether unescaped newlines can be inside strings.
+  ;; Return whether unescaped newlines can be inside strings.  If the current
+  ;; language handles multi-line strings, the value of this function is always
+  ;; nil.
   ;;
   ;; QUOTE-POS, if present, is the position of the opening quote of a string.
   ;; Depending on the language, there might be a special character before it
   ;; signifying the validity of such NLs.
   (cond
+   (c-ml-string-opener-re nil)
    ((null c-multiline-string-start-char) nil)
    ((c-characterp c-multiline-string-start-char)
     (and quote-pos
@@ -1323,13 +1326,13 @@ Note that the style variables are always made local to the buffer."
 	(setq pos (c-min-property-position pos c-max-syn-tab-mkr
 					   'c-fl-syn-tab))
 	(when (< pos c-max-syn-tab-mkr)
-	  (goto-char pos))
-	(when (and (save-match-data
-		     (c-search-backward-char-property-with-value-on-char
-		      'c-fl-syn-tab '(15) ?\"
-		      (max (- (point) 500) (point-min))))
-		   (not (equal (c-get-char-property (point) 'syntax-table) '(1))))
-	  (setq pos (1+ pos)))
+	  (goto-char pos)
+	  (when (and (save-match-data
+		       (c-search-backward-char-property-with-value-on-char
+			'c-fl-syn-tab '(15) ?\"
+			(max (- (point) 500) (point-min))))
+		     (not (equal (c-get-char-property (point) 'syntax-table) '(1))))
+	    (setq pos (1+ pos))))
 	(while (< pos c-max-syn-tab-mkr)
 	  (setq pos
 		(c-min-property-position pos c-max-syn-tab-mkr 'c-fl-syn-tab))
@@ -1435,7 +1438,8 @@ Note that the style variables are always made local to the buffer."
     ;; quotes up until the next unescaped EOL.  Also guard against the change
     ;; being the insertion of \ before an EOL, escaping it.
     (cond
-     ((c-characterp c-multiline-string-start-char)
+     ((and (not c-ml-string-opener-re)
+	   (c-characterp c-multiline-string-start-char))
       ;; The text about to be inserted might contain a multiline string
       ;; opener.  Set c-new-END after anything which might be affected.
       ;; Go to the end of the putative multiline string.
@@ -1461,7 +1465,8 @@ Note that the style variables are always made local to the buffer."
 	       (< (point) (point-max))))))
       (setq c-new-END (max (point) c-new-END)))
 
-     (c-multiline-string-start-char
+     ((and (not c-ml-string-opener-re)
+	   c-multiline-string-start-char)
       (setq c-bc-changed-stringiness
 	    (not (eq (eq end-literal-type 'string)
 		     (eq beg-literal-type 'string))))
@@ -1506,7 +1511,7 @@ Note that the style variables are always made local to the buffer."
 	    ;; Opening " at EOB.
 	    (c-clear-syn-tab (1- (point))))
 	(when (and (c-search-backward-char-property 'syntax-table '(15) c-new-BEG)
-		   (memq (char-after) c-string-delims)) ; Ignore an unterminated raw string's (.
+		   (memq (char-after) c-string-delims)) ; Ignore an unterminated ml string's (.
 	  ;; Opening " on last line of text (without EOL).
 	  (c-remove-string-fences)
 	  (setq c-new-BEG (min c-new-BEG (point))))))
@@ -1520,13 +1525,15 @@ Note that the style variables are always made local to the buffer."
 
     (unless
 	(or (and
-	     ;; Don't set c-new-BEG/END if we're in a raw string.
+	     ;; Don't set c-new-BEG/END if we're in an ml string.
 	     (eq beg-literal-type 'string)
-	     (c-at-c++-raw-string-opener (car beg-limits)))
+	     (c-ml-string-opener-at-or-around-point (car beg-limits)))
 	    (and c-multiline-string-start-char
+		 (not c-ml-string-opener-re)
 		 (not (c-characterp c-multiline-string-start-char))))
       (when (and (eq end-literal-type 'string)
-		 (not (eq (char-before (cdr end-limits)) ?\())
+		 (or (memq (char-before (cdr end-limits)) c-string-delims)
+		     (memq (char-before (cdr end-limits)) '(?\n ?\r)))
 		 (memq (char-after (car end-limits)) c-string-delims))
 	(setq c-new-END (max c-new-END (cdr end-limits)))
 	(when (equal (c-get-char-property (car end-limits) 'syntax-table)
@@ -1549,6 +1556,7 @@ Note that the style variables are always made local to the buffer."
   ;; This function is called exclusively as an after-change function via
   ;; `c-before-font-lock-functions'.
   (if (and c-multiline-string-start-char
+	   (not c-ml-string-opener-re)
 	   (not (c-characterp c-multiline-string-start-char)))
       ;; Only the last " might need to be marked.
       (c-save-buffer-state
@@ -1591,6 +1599,7 @@ Note that the style variables are always made local to the buffer."
 	   ((and (null beg-literal-type)
 		 (goto-char beg)
 		 (and (not (bobp))
+		      (not c-ml-string-opener-re)
 		      (eq (char-before) c-multiline-string-start-char))
 		 (memq (char-after) c-string-delims))
 	    (cons (point)
@@ -1615,6 +1624,7 @@ Note that the style variables are always made local to the buffer."
 	     (point))
 	   c-new-END))
 	 s)
+
       (goto-char
        (cond ((null beg-literal-type)
 	      c-new-BEG)
@@ -1638,8 +1648,9 @@ Note that the style variables are always made local to the buffer."
 	     (and (memq (char-before) c-string-delims)
 		  (not (nth 4 s)))))	; Check we're actually out of the
 					; comment. not stuck at EOB
-	(unless (and (c-major-mode-is 'c++-mode)
-		     (c-maybe-re-mark-raw-string))
+	(unless 
+	    (and c-ml-string-opener-re
+		 (c-maybe-re-mark-ml-string))
 	  (if (c-unescaped-nls-in-string-p (1- (point)))
 	      (looking-at "\\(\\\\\\(.\\|\n\\)\\|[^\"]\\)*")
 	    (looking-at (cdr (assq (char-before) c-string-innards-re-alist))))
@@ -1678,21 +1689,15 @@ Note that the style variables are always made local to the buffer."
 	     (progn (goto-char end)
 		    (setq lit-start (c-literal-start)))
 	     (memq (char-after lit-start) c-string-delims)
-	     (or (not (c-major-mode-is 'c++-mode))
+	     (or (not c-ml-string-opener-re)
 		 (progn
 		   (goto-char lit-start)
-		   (and (not (and (eq (char-before) ?R)
-				  (looking-at c-c++-raw-string-opener-1-re)))
-			(not (and (eq (char-after) ?\()
-				  (equal (c-get-char-property
-					  (point) 'syntax-table)
-					 '(15))))))
+		   (not (c-ml-string-opener-at-or-around-point)))
 		 (save-excursion
 		   (c-beginning-of-macro))))
       (goto-char (1+ end))		; After the \
-      ;; Search forward for EOLL
-      (setq lim (re-search-forward "\\(?:\\\\\\(?:.\\|\n\\)\\|[^\\\n\r]\\)*"
-				   nil t))
+      ;; Search forward for EOLL.
+      (setq lim (c-point 'eoll))
       (goto-char (1+ end))
       (when (c-search-forward-char-property-with-value-on-char
 	     'syntax-table '(15) ?\" lim)

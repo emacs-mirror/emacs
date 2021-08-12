@@ -170,6 +170,7 @@
 (cc-bytecomp-defun c-clear-syn-tab)
 (cc-bytecomp-defun c-clear-string-fences)
 (cc-bytecomp-defun c-restore-string-fences)
+(cc-bytecomp-defun c-remove-string-fences)
 
 
 ;; Make declarations for all the `c-lang-defvar' variables in cc-langs.
@@ -3140,21 +3141,21 @@ comment at the start of cc-engine.el for more info."
 		  (setq base far-base
 			s far-s
 			end nil))))
-	  (when
-	      (or
-	       (and (> here base) (null end))
-	       (null (nth 8 s))
-	       (and end (>= here end))
-	       (not
-		(or
-		 (and (nth 3 s)		; string
-		      (not (eq (char-before here) ?\\)))
-		 (and (nth 4 s) (not (nth 7 s)) ; Block comment
-		      (not (memq (char-before here)
-				 c-block-comment-awkward-chars)))
-		 (and (nth 4 s) (nth 7 s) ; Line comment
-		      (not (memq (char-before here) '(?\\ ?\n)))))))
+	  (cond
+	   ((or (and (> here base) (null end))
+		(null (nth 8 s))
+		(and end (>= here end)))
 	    (setq s (parse-partial-sexp base here nil nil s)))
+	   ((or (and (nth 3 s)		; string
+		     (eq (char-before here) ?\\))
+		(and (nth 4 s) (not (nth 7 s)) ; block comment
+		     (memq (char-before here) c-block-comment-awkward-chars))
+		(and (nth 4 s) (nth 7 s) ; line comment
+		     (memq (char-before here) '(?\\ ?\n))))
+	    (setq s
+		  (if (>= here base)
+		      (parse-partial-sexp base here nil nil s)
+		    (parse-partial-sexp (nth 8 s) here)))))
 	  (cond
 	   ((or (nth 3 s)
 		(and (nth 4 s)
@@ -7167,553 +7168,931 @@ comment at the start of cc-engine.el for more info."
 	  (goto-char c-new-END)))))
 
 
-;; Functions to handle C++ raw strings.
+;; Handling of CC Mode multi-line strings.
 ;;
-;; A valid C++ raw string looks like
-;;     R"<id>(<contents>)<id>"
-;; , where <id> is an identifier from 0 to 16 characters long, not containing
-;; spaces, control characters, or left/right paren.  <contents> can include
-;; anything which isn't the terminating )<id>", including new lines, "s,
-;; parentheses, etc.
+;; By a "multi-line string" is meant a string opened by a "decorated"
+;; double-quote mark, and which can continue over several lines without the
+;; need to escape the newlines, terminating at a closer, a possibly
+;; "decorated" double-quote mark.  The string can usually contain double
+;; quotes without them being quoted, whether or not backslashes quote the
+;; following character being a matter of configuration.
 ;;
-;; CC Mode handles C++ raw strings by the use of `syntax-table' text
+;; CC Mode handles multi-line strings by the use of `syntax-table' text
 ;; properties as follows:
 ;;
-;; (i) On a validly terminated raw string, no `syntax-table' text properties
-;;   are applied to the opening and closing delimiters, but any " in the
-;;   contents is given the property value "punctuation" (`(1)') to prevent it
-;;   interacting with the "s in the delimiters.
+;; (i) On a validly terminated ml string, syntax-table text-properties are
+;;   applied as needed to the opener, so that the " character in the opener
+;;   (or (usually) the first of them if there are several) retains its normal
+;;   syntax, and any other characters with obtrusive syntax are given
+;;   "punctuation" '(1) properties.  Similarly, the " character in the closer
+;;   retains its normal syntax, and characters with obtrusive syntax are
+;;   "punctuated out" as before.
 ;;
-;;   The font locking routine `c-font-lock-raw-strings' (in cc-fonts.el)
-;;   recognizes valid raw strings, and fontifies the delimiters (apart from
-;;   the parentheses) with the default face and the parentheses and the
-;;   <contents> with font-lock-string-face.
+;;   The font locking routine `c-font-lock-ml-strings' (in cc-fonts.el)
+;;   recognizes validly terminated ml strings and fontifies (typically) the
+;;   innermost character of each delimiter in font-lock-string-face and the
+;;   rest of those delimiters in the default face.  The contents, of course,
+;;   are in font-lock-string-face.
 ;;
-;; (ii) A valid, but unterminated, raw string opening delimiter gets the
-;;   "punctuation" value (`(1)') of the `syntax-table' text property, and the
-;;   open parenthesis gets the "string fence" value (`(15)').  When such a
-;;   delimiter is found, no attempt is made in any way to "correct" any text
-;;   properties after the delimiter.
+;; (ii) A valid, but unterminated, ml string's opening delimiter gets the
+;;   "punctuation" value (`(1)') of the `syntax-table' text property on its ",
+;;   and the last char of the opener gets the "string fence" value '(15).
+;;   (The latter takes precedence over the former.)  When such a delimiter is
+;;   found, no attempt is made in any way to "correct" any text properties
+;;   after the delimiter.
 ;;
-;;   `c-font-lock-raw-strings' puts c-font-lock-warning-face on the entire
-;;   unmatched opening delimiter (from the R up to the open paren), and allows
-;;   the rest of the buffer to get font-lock-string-face, caused by the
-;;   unmatched "string fence" `syntax-table' text property value.
+;;   `c-font-lock-ml-strings' puts c-font-lock-warning-face on the entire
+;;   unmatched opening delimiter, and allows the tail of the buffer to get
+;;   font-lock-string-face, caused by the unmatched "string fence"
+;;   `syntax-table' text property value.
 ;;
-;; (iii) Inside a macro, a valid raw string is handled as in (i).  An
-;;   unmatched opening delimiter is handled slightly differently.  In addition
-;;   to the "punctuation" and "string fence" properties on the delimiter,
-;;   another "string fence" `syntax-table' property is applied to the last
-;;   possible character of the macro before the terminating linefeed (if there
-;;   is such a character after the "(").  This "last possible" character is
+;; (iii) Inside a macro, a valid ml string is handled as in (i).  An unmatched
+;;   opening delimiter is handled slightly differently.  In addition to the
+;;   "punctuation" and "string fence" properties on the delimiter, another
+;;   "string fence" `syntax-table' property is applied to the last possible
+;;   character of the macro before the terminating linefeed (if there is such
+;;   a character after the delimiter).  This "last possible" character is
 ;;   never a backslash escaping the end of line.  If the character preceding
 ;;   this "last possible" character is itself a backslash, this preceding
-;;   character gets a "punctuation" `syntax-table' value.  If the "(" is
-;;   already at the end of the macro, it gets the "punctuation" value, and no
-;;   "string fence"s are used.
+;;   character gets a "punctuation" `syntax-table' value.  If the last
+;;   character of the closing delimiter is already at the end of the macro, it
+;;   gets the "punctuation" value, and no "string fence"s are used.
 ;;
 ;;   The effect on the fontification of either of these tactics is that the
 ;;   rest of the macro (if any) after the "(" gets font-lock-string-face, but
 ;;   the rest of the file is fontified normally.
 
-;; The values of the function `c-raw-string-pos' at before-change-functions'
-;; BEG and END.
-(defvar c-old-beg-rs nil)
-(defvar c-old-end-rs nil)
-;; Whether a buffer change has disrupted or will disrupt the terminating id of
-;; a raw string.
-(defvar c-raw-string-end-delim-disrupted nil)
+(defun c-ml-string-make-closer-re (_opener)
+  "Return c-ml-string-any-closer-re.
 
-(defun c-raw-string-pos ()
-  ;; Get POINT's relationship to any containing raw string.
-  ;; If point isn't in a raw string, return nil.
-  ;; Otherwise, return the following list:
+This is a suitable language specific value of
+`c-make-ml-string-closer-re-function' for most languages with
+multi-line strings (but not C++, for example)."
+  c-ml-string-any-closer-re)
+
+(defun c-ml-string-make-opener-re (_closer)
+  "Return c-ml-string-opener-re.
+
+This is a suitable language specific value of
+`c-make-ml-string-opener-re-function' for most languages with
+multi-line strings (but not C++, for example)."
+  c-ml-string-opener-re)
+
+(defun c-c++-make-ml-string-closer-re (opener)
+  "Construct a regexp for a C++ raw string closer matching OPENER."
+  (concat "\\()" (regexp-quote (substring opener 2 -1)) "\\(\"\\)\\)"))
+
+(defun c-c++-make-ml-string-opener-re (closer)
+  "Construct a regexp for a C++ raw string opener matching CLOSER."
+  (concat "\\(R\\(\"\\)" (regexp-quote (substring closer 1 -1)) "(\\)"))
+
+;; The positions of various components of mult-line strings surrounding BEG,
+;;  END and (1- BEG) (of before-change-functions) as returned by
+;; `c-ml-string-delims-around-point'.
+(defvar c-old-beg-ml nil)
+(defvar c-old-1-beg-ml nil) ; only non-nil when `c-old-beg-ml' is nil.
+(defvar c-old-end-ml nil)
+;; The values of the function `c-position-wrt-ml-delims' at
+;; before-change-function's BEG and END.
+(defvar c-beg-pos nil)
+(defvar c-end-pos nil)
+;; Whether a buffer change has disrupted or will disrupt the terminator of an
+;; multi-line string.
+(defvar c-ml-string-end-delim-disrupted nil)
+
+(defun c-depropertize-ml-string-delims (string-delims)
+  ;; Remove any syntax-table text properties from the multi-line string
+  ;; delimiters specified by STRING-DELIMS, the output of
+  ;; `c-ml-string-delims-around-point'.
+  (let (found)
+    (if (setq found (c-clear-char-properties (caar string-delims)
+					     (cadar string-delims)
+					     'syntax-table))
+	(c-truncate-lit-pos-cache found))
+    (when (cdr string-delims)
+      (if (setq found (c-clear-char-properties (cadr string-delims)
+					       (caddr string-delims)
+					       'syntax-table))
+	  (c-truncate-lit-pos-cache found)))))
+
+(defun c-get-ml-closer (open-delim)
+  ;; Return the closer, a three element dotted list of the closer's start, its
+  ;; end and the position of the double quote, matching the given multi-line
+  ;; string OPENER, also such a three element dotted list.  Otherwise return
+  ;; nil.  All pertinent syntax-table text properties must be in place.
+  (save-excursion
+    (goto-char (cadr open-delim))
+    (and (not (equal (c-get-char-property (1- (point)) 'syntax-table)
+		     '(15)))
+	 (re-search-forward (funcall c-make-ml-string-closer-re-function
+				     (buffer-substring-no-properties
+				      (car open-delim) (cadr open-delim)))
+			    nil t)
+	 (cons (match-beginning 1)
+	       (cons (match-end 1) (match-beginning 2))))))
+
+(defun c-ml-string-opener-around-point ()
+  ;; If point is inside an ml string opener, return a dotted list of the start
+  ;; and end of that opener, and the position of its double-quote.  That list
+  ;; will not include any "context characters" before or after the opener.  If
+  ;; an opener is found, the match-data will indicate it, with (match-string
+  ;; 1) being the entire delimiter, and (match-string 2) the "main" double
+  ;; quote.  Otherwise the match-data is undefined.
+  (let ((here (point)) found)
+    (goto-char (max (- here (1- c-ml-string-max-opener-len)) (point-min)))
+    (while
+	(and
+	 (setq found
+	       (search-forward-regexp
+		c-ml-string-opener-re
+		(min (+ here (1- c-ml-string-max-opener-len)) (point-max))
+		'bound))
+	 (<= (match-end 1) here)))
+    (prog1
+	(and found
+	     (< (match-beginning 1) here)
+	     (cons (match-beginning 1)
+		   (cons (match-end 1) (match-beginning 2))))
+      (goto-char here))))
+	
+(defun c-ml-string-opener-intersects-region (&optional start finish)
+  ;; If any part of the region [START FINISH] is inside an ml-string opener,
+  ;; return a dotted list of the start, end and double-quote position of that
+  ;; opener.  That list wlll not include any "context characters" before or
+  ;; after the opener.  If an opener is found, the match-data will indicate
+  ;; it, with (match-string 1) being the entire delimiter, and (match-string
+  ;; 2) the "main" double-quote.  Otherwise, the match-data is undefined.
+  ;; Both START and FINISH default to point.  FINISH may not be at an earlier
+  ;; buffer position than START.
+  (let ((here (point)) found)
+    (or finish (setq finish (point)))
+    (or start (setq start (point)))
+    (goto-char (max (- start (1- c-ml-string-max-opener-len)) (point-min)))
+    (while
+	(and
+	 (setq found
+	       (search-forward-regexp
+		c-ml-string-opener-re
+		(min (+ finish (1- c-ml-string-max-opener-len)) (point-max))
+		'bound))
+	 (<= (match-end 1) start)))
+    (prog1
+	(and found
+	     (< (match-beginning 1) finish)
+	     (cons (match-beginning 1)
+		   (cons (match-end 1) (match-beginning 2))))
+      (goto-char here))))
+
+(defun c-ml-string-opener-at-or-around-point (&optional position)
+  ;; If POSITION (default point) is at or inside an ml string opener, return a
+  ;; dotted list of the start and end of that opener, and the position of the
+  ;; double-quote in it.  That list will not include any "context characters"
+  ;; before or after the opener.
+  (let ((here (point))
+	found)
+    (or position (setq position (point)))
+    (goto-char (max (- position (1- c-ml-string-max-opener-len)) (point-min)))
+    (while
+	(and
+	 (setq found
+	       (search-forward-regexp
+		c-ml-string-opener-re
+		(min (+ position c-ml-string-max-opener-len) (point-max))
+		'bound))
+	 (<= (match-end 1) position)))
+    (prog1
+	(and found
+	     (<= (match-beginning 1) position)
+	     (cons (match-beginning 1)
+		   (cons (match-end 1) (match-beginning 2))))
+      (goto-char here))))
+
+(defun c-ml-string-back-to-neutral (opening-point)
+  ;; Given OPENING-POINT, the position of the start of a multiline string
+  ;; opening delimiter, move point back to a neutral position within the ml
+  ;; string.  It is assumed that point is within the innards of or the closing
+  ;; delimiter of string opened by OPEN-DELIM.
+  (let ((opener-end (save-excursion
+		      (goto-char opening-point)
+		      (looking-at c-ml-string-opener-re)
+		      (match-end 1))))
+    (if (not c-ml-string-back-closer-re)
+	(goto-char (max (c-point 'boll) opener-end))
+      (re-search-backward c-ml-string-back-closer-re
+			  (max opener-end
+			       (c-point 'eopl))
+			  'bound))))
+
+(defun c-ml-string-in-end-delim (beg end open-delim)
+  ;; If the region (BEG END) intersects or touches a possible multiline string
+  ;; terminator, return a cons of the position of the start and end of the
+  ;; first such terminator.  The syntax-table text properties must be in a
+  ;; consistent state when using this function.  OPEN-DELIM is the three
+  ;; element dotted list of the start, end, and double quote position of the
+  ;; multiline string opener that BEG is in, or nil if it isn't in one.
+  (save-excursion
+    (goto-char beg)
+    (when open-delim
+      (if (<= beg (cadr open-delim))
+	  (goto-char (cadr open-delim))
+	(c-ml-string-back-to-neutral (car open-delim))))
+    (or (and c-ml-string-back-closer-re
+	     (looking-at c-ml-string-any-closer-re)
+	     (eq (c-in-literal) 'string)
+	     (goto-char (match-end 0)))
+	(progn
+	  (while
+	      (and
+	       (search-forward-regexp
+		c-ml-string-any-closer-re
+		(min (+ end c-ml-string-max-closer-len-no-leader) (point-max))
+		t)
+	       (save-excursion
+		 (goto-char (match-end 1))
+		 (not (c-in-literal)))
+	       (<= (point) beg)
+	       (not (save-excursion
+		      (goto-char (match-beginning 2))
+		      (c-literal-start)))))))
+
+    (unless (or (and (not (eobp))
+		     (<= (point) beg))
+		(> (match-beginning 0) beg)
+		(progn (goto-char (match-beginning 2))
+		       (not (c-literal-start))))
+      (cons (match-beginning 1) (match-end 1)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun c-ml-string-delims-around-point ()
+  ;; Get POINT's relationship to any containing multi-line string or such a
+  ;; multi-line string which point is at the end of.
   ;;
-  ;;   (POS B\" B\( E\) E\")
+  ;; If point isn't thus situated, return nil.
+  ;; Otherwise return the following cons:
   ;;
-  ;; , where POS is the symbol `open-delim' if point is in the opening
-  ;; delimiter, the symbol `close-delim' if it's in the closing delimiter, and
-  ;; nil if it's in the string body.  B\", B\(, E\), E\" are the positions of
-  ;; the opening and closing quotes and parentheses of a correctly terminated
-  ;; raw string.  (N.B.: E\) and E\" are NOT on the "outside" of these
-  ;; characters.)  If the raw string is not terminated, E\) and E\" are set to
+  ;;    (OPENER . CLOSER)
+  ;;
+  ;; , where each of OPENER and CLOSER is a dotted list of the form
+  ;;
+  ;;    (START-DELIM END-DELIM . QUOTE-POSITION)
+  ;;
+  ;; , the bounds of the delimiters and the buffer position of the ?" in the
+  ;; delimiter.  If the ml-string is not validly terminated, CLOSER is instead
   ;; nil.
   ;;
   ;; Note: this function is dependent upon the correct syntax-table text
   ;; properties being set.
-  (let ((state (c-semi-pp-to-literal (point)))
-	open-quote-pos open-paren-pos close-paren-pos close-quote-pos id)
-    (save-excursion
-      (when
-	  (and
-	   (cond
-	    ((null (cadr state))
-	     (or (eq (char-after) ?\")
-		 (search-backward "\"" (max (- (point) 17) (point-min)) t)))
-	    ((and (eq (cadr state) 'string)
-		  (goto-char (nth 2 state))
-		  (cond
-		   ((eq (char-after) ?\"))
-		   ((eq (char-after) ?\()
-		    (let ((here (point)))
-		      (goto-char (max (- (point) 18) (point-min)))
-		      (while
-			  (and
-			   (search-forward-regexp
-			    c-c++-raw-string-opener-re
-			    (1+ here) 'limit)
-			   (< (point) here)))
-		      (and (eq (point) (1+ here))
-			   (match-beginning 1)
-			   (goto-char (1- (match-beginning 1)))))))
-		  (not (bobp)))))
-	   (c-at-c++-raw-string-opener))
-	(setq open-quote-pos (point)
-	      open-paren-pos (match-end 1)
-	      id (match-string-no-properties 1))
-	(goto-char (1+ open-paren-pos))
-	(when (and (not (c-get-char-property open-paren-pos 'syntax-table))
-		   (search-forward (concat ")" id "\"") nil t))
-	  (setq close-paren-pos (match-beginning 0)
-		close-quote-pos (1- (point))))))
-    (and open-quote-pos
-	 (list
-	  (cond
-	   ((<= (point) open-paren-pos)
-	    'open-delim)
-	   ((and close-paren-pos
-		 (> (point) close-paren-pos))
-	    'close-delim)
-	   (t nil))
-	  open-quote-pos open-paren-pos close-paren-pos close-quote-pos))))
-
-(defun c-raw-string-in-end-delim (beg end)
-  ;; If the region (BEG END) intersects a possible raw string terminator,
-  ;; return a cons of the position of the ) and the position of the " in the
-  ;; first one found.
-  (save-excursion
-    (goto-char (max (- beg 17) (point-min)))
-    (while
-	(and
-	 (search-forward-regexp ")\\([^ ()\\\n\r\t]\\{0,16\\}\\)\""
-				(min (+ end 17) (point-max)) t)
-	 (<= (point) beg)))
-    (unless (or (<= (point) beg)
-		(>= (match-beginning 0) end))
-      (cons (match-beginning 0) (match-end 1)))))
-
-(defun c-depropertize-raw-string (id open-quote open-paren bound)
-  ;; Point is immediately after a raw string opening delimiter.  Remove any
-  ;; `syntax-table' text properties associated with the delimiter (if it's
-  ;; unmatched) or the raw string.
-  ;;
-  ;; ID, a string, is the delimiter's identifier.  OPEN-QUOTE and OPEN-PAREN
-  ;; are the buffer positions of the delimiter's components.  BOUND is the
-  ;; bound for searching for a matching closing delimiter; it is usually nil,
-  ;; but if we're inside a macro, it's the end of the macro (i.e. just before
-  ;; the terminating \n).
-  ;;
-  ;; Point is moved to after the (terminated) raw string, or left after the
-  ;; unmatched opening delimiter, as the case may be.  The return value is of
-  ;; no significance.
-  (let ((open-paren-prop (c-get-char-property open-paren 'syntax-table))
-	first)
-    ;; If the delimiter is "unclosed", or sombody's used " in their id, clear
-    ;; the 'syntax-table property from all of them.
-    (setq first (c-clear-char-property-with-value-on-char
-		 open-quote open-paren 'syntax-table '(1) ?\"))
-    (if first (c-truncate-lit-pos-cache first))
+  (let ((here (point))
+	(state (c-semi-pp-to-literal (point)))
+	open-dlist close-dlist ret found opener)
     (cond
-     ((null open-paren-prop)
-      ;; Should be a terminated raw string...
-      (when (search-forward (concat ")" id "\"") nil t)
-	;; Yes, it is.  :-)
-	;; Clear any '(1)s from "s in the identifier.
-	(setq first (c-clear-char-property-with-value-on-char
-		     (1+ (match-beginning 0)) (1- (match-end 0))
-		     'syntax-table '(1) ?\"))
-	(if first (c-truncate-lit-pos-cache first))
-	;; Clear any random `syntax-table' text properties from the contents.
-	(let* ((closing-paren (match-beginning 0))
-	       (first-st
-		(and
-		 (< (1+ open-paren) closing-paren)
-		 (or
-		  (and (c-get-char-property (1+ open-paren) 'syntax-table)
-		       (1+ open-paren))
-		  (and
-		   (setq first
-			 (c-next-single-property-change
-			  (1+ open-paren) 'syntax-table nil closing-paren))
-		   (< first closing-paren)
-		   first)))))
-	  (when first-st
-	    (c-clear-char-properties first-st (match-beginning 0)
-				     'syntax-table)
-	    (c-truncate-lit-pos-cache first-st))
-	  (when (c-get-char-property (1- (match-end 0)) 'syntax-table)
-	    ;; Was previously an unterminated (ordinary) string
-	    (save-excursion
-	      (goto-char (1- (match-end 0)))
-	      (when (c-safe (c-forward-sexp)) ; to '(1) at EOL.
-		(c-clear-char-property (1- (point)) 'syntax-table))
-	      (c-clear-char-property (1- (match-end 0)) 'syntax-table)
-	      (c-truncate-lit-pos-cache (1- (match-end 0))))))))
-     ((or (and (equal open-paren-prop '(15)) (null bound))
-	  (equal open-paren-prop '(1)))
-      ;; An unterminated raw string either not in a macro, or in a macro with
-      ;; the open parenthesis right up against the end of macro
-      (c-clear-char-property open-quote 'syntax-table)
-      (c-truncate-lit-pos-cache open-quote)
-      (c-clear-char-property open-paren 'syntax-table))
-     (t
-      ;; An unterminated string in a macro, with at least one char after the
-      ;; open paren
-      (c-clear-char-property open-quote 'syntax-table)
-      (c-truncate-lit-pos-cache open-quote)
-      (c-clear-char-property open-paren 'syntax-table)
-      (c-clear-char-property-with-value (1+ open-paren) bound 'syntax-table
-					'(15))))))
+     ((or
+       ;; Is HERE between the start of an opener and the "?
+       (and (null (cadr state))
+	    (progn
+	      ;; Search for the start of the opener.
+	      (goto-char (max (- (point) (1- c-ml-string-max-opener-len))
+			      (point-min)))
+	      (setq found nil)
+	      ;; In the next loop, skip over any complete ml strings, or an ml
+	      ;; string opener which is in a macro not containing HERE, or an
+	      ;; apparent "opener" which is in a comment or string.
+	      (while
+		  (and (re-search-forward c-ml-string-opener-re
+					  (+ here (1- c-ml-string-max-opener-len))
+					  t)
+		       (< (match-beginning 1) here)
+		       (or
+			(save-excursion
+			  (goto-char (match-beginning 1))
+			  (or (c-in-literal)
+			      (and (c-beginning-of-macro)
+				   (< (progn (c-end-of-macro) (point))
+				      here))))
+			(and
+			 (setq found (match-beginning 1))
+			 (<= (point) here)
+			 (save-match-data
+			   (re-search-forward
+			    (funcall c-make-ml-string-closer-re-function
+				     (match-string-no-properties 1))
+			    here t))
+			 (<= (point) here))))
+		(setq found nil))
+	      found))
+       ;; Is HERE after the "?
+       (and (eq (cadr state) 'string)
+	    (goto-char (nth 2 state))
+	    (c-ml-string-opener-at-or-around-point)))
+      (setq open-dlist (cons (match-beginning 1)
+			     (cons (match-end 1) (match-beginning 2))))
+      (goto-char (cadr open-dlist))
+      (setq ret
+	    (cons open-dlist
+		  (if (re-search-forward
+		       (funcall c-make-ml-string-closer-re-function
+				(match-string-no-properties 1))
+		       nil t)
+		      (cons (match-beginning 1)
+			    (cons (match-end 1) (match-beginning 2)))
+		    nil)))
+      (goto-char here)
+      ret)
+     ;; Is HERE between the " and the end of the closer?
+     ((and (null (cadr state))
+	   (progn
+	     (if (null c-ml-string-back-closer-re)
+		 (goto-char (max (- here (1- c-ml-string-max-closer-len))
+				 (point-min)))
+	       (goto-char here)
+	       (re-search-backward c-ml-string-back-closer-re nil t))
+	     (re-search-forward c-ml-string-any-closer-re
+				(+ here -1 c-ml-string-max-closer-len-no-leader)
+				t))
+	   (>= (match-end 1) here)
+	   (<= (match-end 2) here)
+	   (setq close-dlist (cons (match-beginning 1)
+				   (cons (match-end 1) (match-beginning 2))))
+	   (goto-char (car close-dlist))
+	   (setq state (c-semi-pp-to-literal (point)))
+	   (eq (cadr state) 'string)
+	   (goto-char (nth 2 state))
+	   (setq opener (c-ml-string-opener-around-point))
+	   (goto-char (cadr opener))
+	   (setq open-dlist (cons (match-beginning 1)
+				  (cons (match-end 1) (match-beginning 2))))
+	   (re-search-forward (funcall c-make-ml-string-closer-re-function
+				       (match-string-no-properties 1))
+			      nil t))
+      (goto-char here)
+      (cons open-dlist close-dlist))
 
-(defun c-depropertize-raw-strings-in-region (start finish)
-  ;; Remove any `syntax-table' text properties associated with C++ raw strings
-  ;; contained in the region (START FINISH).  Point is undefined at entry and
-  ;; exit, and the return value has no significance.
-  (goto-char start)
-  (while (and (< (point) finish)
-	      (re-search-forward
-	       (concat "\\("				     ; 1
-		       c-anchored-cpp-prefix		     ; 2
-		       "\\)\\|\\("			     ; 3
-		       c-c++-raw-string-opener-re	     ; 4
-		       "\\)")
-	       finish t))
-    (when (save-excursion
-	    (goto-char (match-beginning 0)) (not (c-in-literal)))
-      (if (match-beginning 4)		; the id
-	  ;; We've found a raw string
-	  (c-depropertize-raw-string
-	   (match-string-no-properties 4) ; id
-	   (1+ (match-beginning 3))	  ; open quote
-	   (match-end 4)		  ; open paren
-	   nil)				  ; bound
-	;; We've found a CPP construct.  Search for raw strings within it.
-	(goto-char (match-beginning 2)) ; the "#"
-	(c-end-of-macro)
-	(let ((eom (point)))
-	  (goto-char (match-end 2))	; after the "#".
-	  (while (and (< (point) eom)
-		      (c-syntactic-re-search-forward
-		       c-c++-raw-string-opener-re eom t))
-	    (c-depropertize-raw-string
-	     (match-string-no-properties 1) ; id
-	     (1+ (match-beginning 0))	    ; open quote
-	     (match-end 1)		    ; open paren
-	     eom)))))))			    ; bound.
+     (t (goto-char here)
+	nil))))
 
-(defun c-before-change-check-raw-strings (beg end)
-  ;; This function clears `syntax-table' text properties from C++ raw strings
-  ;; whose delimiters are about to change in the region (c-new-BEG c-new-END).
-  ;; BEG and END are the standard arguments supplied to any before-change
-  ;; function.
+(defun c-position-wrt-ml-delims (ml-string-delims)
+  ;; Given ML-STRING-DELIMS, a structure produced by
+  ;; `c-ml-string-delims-around-point' called at point, return one of the
+  ;; following indicating where POINT is with respect to the multi-line
+  ;; string:
+  ;;   o - nil; not in the string.
+  ;;   o - open-delim: in the open-delimiter.
+  ;;   o - close-delim: in the close-delimiter.
+  ;;   o - after-close: just after the close-delimiter
+  ;;   o - string: inside the delimited string.
+  (cond
+   ((null ml-string-delims)
+    nil)
+   ((< (point) (cadar ml-string-delims))
+    'open-delim)
+   ((or (null (cdr ml-string-delims))
+	(<= (point) (cadr ml-string-delims)))
+    'string)
+   ((eq (point) (caddr ml-string-delims))
+    'after-close)
+   (t 'close-delim)))
+
+(defun c-before-change-check-ml-strings (beg end)
+  ;; This function clears `syntax-table' text properties from multi-line
+  ;; strings whose delimiters are about to change in the region (c-new-BEG
+  ;; c-new-END).  BEG and END are the standard arguments supplied to any
+  ;; before-change function.
   ;;
   ;; Point is undefined on both entry and exit, and the return value has no
   ;; significance.
   ;;
   ;; This function is called as a before-change function solely due to its
-  ;; membership of the C++ value of `c-get-state-before-change-functions'.
+  ;; membership of mode-specific value of
+  ;; `c-get-state-before-change-functions'.
   (goto-char end)
-  (setq c-raw-string-end-delim-disrupted nil)
+  (setq c-ml-string-end-delim-disrupted nil)
   ;; We use the following to detect a R"<id>( being swallowed into a string by
   ;; the pending change.
   (setq c-old-END-literality (c-in-literal))
+    (goto-char beg)
+    (setq c-old-beg-ml (c-ml-string-delims-around-point))
+    (setq c-beg-pos (c-position-wrt-ml-delims c-old-beg-ml))
+    (setq c-old-1-beg-ml
+	  (and (not (or c-old-beg-ml (bobp)))
+	       (goto-char (1- beg))
+	       (c-ml-string-delims-around-point)))
+    (goto-char end)
+    (setq c-old-end-ml
+	  (if (or (eq end beg)
+		  (and c-old-beg-ml
+		       (>= end (caar c-old-beg-ml))
+		       (or (null (cdr c-old-beg-ml))
+			   (< end (caddr c-old-beg-ml)))))
+	      c-old-beg-ml
+	    (c-ml-string-delims-around-point)))
+    (setq c-end-pos (c-position-wrt-ml-delims c-old-end-ml))
+
   (c-save-buffer-state
-      ((term-del (c-raw-string-in-end-delim beg end))
+      ((term-del (c-ml-string-in-end-delim beg end (car c-old-beg-ml)))
        Rquote close-quote)
-    (setq c-old-beg-rs (progn (goto-char beg) (c-raw-string-pos))
-	  c-old-end-rs (progn (goto-char end) (c-raw-string-pos)))
     (cond
-     ;; We're not changing, or we're obliterating raw strings.
-     ((and (null c-old-beg-rs) (null c-old-end-rs)))
-     ;; We're changing the putative terminating delimiter of a raw string
+     ;; We're not changing, or we're obliterating ml strings.
+     ((and (null c-beg-pos) (null c-end-pos)))
+     ;; We're changing the putative terminating delimiter of an ml string
      ;; containing BEG.
-     ((and c-old-beg-rs term-del
-	   (or (null (nth 3 c-old-beg-rs))
-	       (<= (car term-del) (nth 3 c-old-beg-rs))))
-      (setq Rquote (1- (cadr c-old-beg-rs))
-	    close-quote (1+ (cdr term-del)))
-      (setq c-raw-string-end-delim-disrupted t)
-      (c-depropertize-raw-strings-in-region Rquote close-quote)
+     ((and c-beg-pos term-del
+	   (or (null (cdr c-old-beg-ml))
+	       (<= (car term-del) (cadr c-old-beg-ml))))
+      (setq Rquote (caar c-old-beg-ml)
+	    close-quote (cdr term-del))
+      (setq c-ml-string-end-delim-disrupted t)
+      (c-depropertize-ml-strings-in-region Rquote close-quote)
       (setq c-new-BEG (min c-new-BEG Rquote)
 	    c-new-END (max c-new-END close-quote)))
      ;; We're breaking an escaped NL in a raw string in a macro.
-     ((and c-old-end-rs
+     ((and c-old-end-ml
 	   (< beg end)
 	   (goto-char end) (eq (char-before) ?\\)
 	   (c-beginning-of-macro))
       (let ((bom (point))
 	    (eom (progn (c-end-of-macro) (point))))
-	(c-depropertize-raw-strings-in-region bom eom)
+	(c-depropertize-ml-strings-in-region bom eom)
 	(setq c-new-BEG (min c-new-BEG bom)
 	      c-new-END (max c-new-END eom))))
      ;; We're changing only the contents of a raw string.
-     ((and (equal (cdr c-old-beg-rs) (cdr c-old-end-rs))
-	   (null (car c-old-beg-rs)) (null (car c-old-end-rs))))
+     ;; Any critical deletion of "s will be handled in
+     ;; `c-after-change-unmark-ml-strings'.
+     ((and (equal c-old-beg-ml c-old-end-ml)
+	   (eq c-beg-pos 'string) (eq c-end-pos 'string)))
      ((or
        ;; We're removing (at least part of) the R" of the starting delim of a
        ;; raw string:
-       (null c-old-beg-rs)
-       (and (eq beg (cadr c-old-beg-rs))
+       (null c-old-beg-ml)
+       (and (eq beg (caar c-old-beg-ml))
 	    (< beg end))
        ;; Or we're removing the ( of the starting delim of a raw string.
-       (and (eq (car c-old-beg-rs) 'open-delim)
-	    (or (null c-old-end-rs)
-		(not (eq (car c-old-end-rs) 'open-delim))
-		(not (equal (cdr c-old-beg-rs) (cdr c-old-end-rs))))))
-      (let ((close (nth 4 (or c-old-end-rs c-old-beg-rs))))
-	(setq Rquote (1- (cadr (or c-old-end-rs c-old-beg-rs)))
-	      close-quote (if close (1+ close) (point-max))))
-      (c-depropertize-raw-strings-in-region Rquote close-quote)
+       (and (eq c-beg-pos 'open-delim)
+	    (or (null c-old-end-ml)
+		(not (eq c-end-pos 'open-delim))
+		(not (equal c-old-beg-ml c-old-end-ml))))
+       ;; Or we're disrupting a starting delim by typing into it, or removing
+       ;; characters from it.
+       (and (eq c-beg-pos 'open-delim)
+	    (eq c-end-pos 'open-delim)
+	    (equal c-old-beg-ml c-old-end-ml)))
+      (let ((close (caddr (or c-old-end-ml c-old-beg-ml))))
+	(setq Rquote (caar (or c-old-end-ml c-old-beg-ml))
+	      close-quote (or close (point-max))))
+      (c-depropertize-ml-strings-in-region Rquote close-quote)
       (setq c-new-BEG (min c-new-BEG Rquote)
-	    c-new-END (max c-new-END close-quote)))
-     ;; We're changing only the text of the identifier of the opening
-     ;; delimiter of a raw string.
-     ((and (eq (car c-old-beg-rs) 'open-delim)
-	   (equal c-old-beg-rs c-old-end-rs))))))
+	    c-new-END (max c-new-END close-quote))))))
 
-(defun c-propertize-raw-string-id (start end)
-  ;; If the raw string identifier between buffer positions START and END
-  ;; contains any double quote characters, put a punctuation syntax-table text
-  ;; property on them.  The return value is of no significance.
-  (save-excursion
-    (goto-char start)
-    (while (and (skip-chars-forward "^\"" end)
-		(< (point) end))
-      (c-put-char-property (point) 'syntax-table '(1))
-      (c-truncate-lit-pos-cache (point))
-      (forward-char))))
-
-(defun c-propertize-raw-string-opener (id open-quote open-paren bound)
-  ;; Point is immediately after a raw string opening delimiter.  Apply any
-  ;; pertinent `syntax-table' text properties to the delimiter and also the
-  ;; raw string, should there be a valid matching closing delimiter.
-  ;;
-  ;; ID, a string, is the delimiter's identifier.  OPEN-QUOTE and OPEN-PAREN
-  ;; are the buffer positions of the delimiter's components.  BOUND is the
-  ;; bound for searching for a matching closing delimiter; it is usually nil,
-  ;; but if we're inside a macro, it's the end of the macro (i.e. the position
-  ;; of the closing newline).
-  ;;
-  ;; Point is moved to after the (terminated) raw string and t is returned, or
-  ;; it is left after the unmatched opening delimiter and nil is returned.
-  (c-propertize-raw-string-id (1+ open-quote) open-paren)
-  (prog1
-      (if (search-forward (concat ")" id "\"") bound t)
-	  (let ((end-string (match-beginning 0))
-		(after-quote (match-end 0)))
-	    (c-propertize-raw-string-id
-	     (1+ (match-beginning 0)) (1- (match-end 0)))
-	    (goto-char open-paren)
-	    (while (progn (skip-syntax-forward "^\"" end-string)
-			  (< (point) end-string))
-	      (c-put-char-property (point) 'syntax-table '(1)) ; punctuation
-	      (c-truncate-lit-pos-cache (point))
-	      (forward-char))
-	    (goto-char after-quote)
-	    t)
-	(c-put-char-property open-quote 'syntax-table '(1)) ; punctuation
-	(c-truncate-lit-pos-cache open-quote)
-	(c-put-char-property open-paren 'syntax-table '(15)) ; generic string
-	(when bound
-	  ;; In a CPP construct, we try to apply a generic-string
-	  ;; `syntax-table' text property to the last possible character in
-	  ;; the string, so that only characters within the macro get
-	  ;; "stringed out".
-	  (goto-char bound)
-	  (if (save-restriction
-		(narrow-to-region (1+ open-paren) (point-max))
-		(re-search-backward
-		 (eval-when-compile
-		   ;; This regular expression matches either an escape pair
-		   ;; (which isn't an escaped NL) (submatch 5) or a
-		   ;; non-escaped character (which isn't itself a backslash)
-		   ;; (submatch 10).  The long preambles to these
-		   ;; (respectively submatches 2-4 and 6-9) ensure that we
-		   ;; have the correct parity for sequences of backslashes,
-		   ;; etc..
-		   (concat "\\("	; 1
-			   "\\(\\`[^\\]?\\|[^\\][^\\]\\)\\(\\\\\\(.\\|\n\\)\\)*" ; 2-4
-			   "\\(\\\\.\\)" ; 5
-			   "\\|"
-			   "\\(\\`\\|[^\\]\\|\\(\\`[^\\]?\\|[^\\][^\\]\\)\\(\\\\\\(.\\|\n\\)\\)+\\)" ; 6-9
-			   "\\([^\\]\\)" ; 10
-			   "\\)"
-			   "\\(\\\\\n\\)*\\=")) ; 11
-		 (1+ open-paren) t))
-	      (if (match-beginning 10)
-		  (progn
-		    (c-put-char-property (match-beginning 10) 'syntax-table '(15))
-		    (c-truncate-lit-pos-cache (match-beginning 10)))
-		(c-put-char-property (match-beginning 5) 'syntax-table '(1))
-		(c-put-char-property (1+ (match-beginning 5)) 'syntax-table '(15))
-		(c-truncate-lit-pos-cache (1+ (match-beginning 5))))
-	    ;; (c-put-char-property open-paren 'syntax-table '(1))
-	    )
-	  (goto-char bound))
-	nil)))
-
-(defun c-after-change-unmark-raw-strings (beg end _old-len)
-  ;; This function removes `syntax-table' text properties from any raw strings
+(defun c-after-change-unmark-ml-strings (beg end old-len)
+  ;; This function removes `syntax-table' text properties from any ml strings
   ;; which have been affected by the current change.  These are those which
-  ;; have been "stringed out" and from newly formed raw strings, or any
-  ;; existing raw string which the new text terminates.  BEG, END, and
-  ;; _OLD-LEN are the standard arguments supplied to any
+  ;; have been "stringed out" and from newly formed ml strings, or any
+  ;; existing ml string which the new text terminates.  BEG, END, and
+  ;; OLD-LEN are the standard arguments supplied to any
   ;; after-change-function.
   ;;
   ;; Point is undefined on both entry and exit, and the return value has no
   ;; significance.
   ;;
   ;; This functions is called as an after-change function by virtue of its
-  ;; membership of the C++ value of `c-before-font-lock-functions'.
+  ;; membership of the mode's value of `c-before-font-lock-functions'.
   ;; (when (< beg end)
-    (c-save-buffer-state (found eoll state id found-beg)
-      ;; Has an inserted " swallowed up a R"(, turning it into "...R"(?
+  ;;
+  ;; Maintainers' note: Be careful with the use of `c-old-beg-ml' and
+  ;; `c-old-end-ml'; since text has been inserted or removed, most of the
+  ;; components in these variables will no longer be valid.  (caar
+  ;; c-old-beg-ml) is normally OK, (cadar c-old-beg-ml) often is, any others
+  ;; will need adjstments.
+  (c-save-buffer-state (found eoll state opener)
+    ;; Has an inserted " swallowed up a R"(, turning it into "...R"(?
+    (goto-char end)
+    (setq eoll (c-point 'eoll))
+    (when (and (null c-old-END-literality)
+	       (search-forward-regexp c-ml-string-opener-re eoll t))
+      (setq state (c-semi-pp-to-literal end))
+      (when (eq (cadr state) 'string)
+	(unwind-protect
+	    ;; Temporarily insert a closing string delimiter....
+	    (progn
+	      (goto-char end)
+	      (cond
+	       ((c-characterp (nth 3 (car state)))
+		(insert (nth 3 (car state))))
+	       ((eq (nth 3 (car state)) t)
+		(insert ?\")
+		(c-put-char-property end 'syntax-table '(15))))
+	      (c-truncate-lit-pos-cache end)
+	      ;; ....ensure c-new-END extends right to the end of the about
+	      ;; to be un-stringed raw string....
+	      (save-excursion
+		(goto-char (1+ (match-end 1))) ; Count inserted " too.
+		(setq c-new-END
+		      (max c-new-END
+			   (if (re-search-forward
+				(funcall c-make-ml-string-closer-re-function
+					 (match-string-no-properties 1))
+				nil t)
+			       (1- (match-end 1)) ; 1- For the inserted ".
+			     eoll))))
+
+	      ;; ...and clear `syntax-table' text propertes from the
+	      ;; following raw strings.
+	      (c-depropertize-ml-strings-in-region (point) (1+ eoll)))
+	  ;; Remove the temporary string delimiter.
+	  (goto-char end)
+	  (delete-char 1)
+	  (c-truncate-lit-pos-cache end))))
+
+    ;; Have we just created a new starting id?
+    (goto-char beg)
+    (setq opener
+	  (if (eq beg end)
+	      (c-ml-string-opener-at-or-around-point end)
+	    (c-ml-string-opener-intersects-region beg end)))
+    (when
+	(and opener (<= (car opener) end)
+	     (setq state (c-semi-pp-to-literal (car opener)))
+	     (not (cadr state)))
+      (setq c-new-BEG (min c-new-BEG (car opener)))
+      (goto-char (cadr opener))
+      (when (re-search-forward
+	     (funcall c-make-ml-string-closer-re-function
+		      (buffer-substring-no-properties
+		       (car opener) (cadr opener)))
+	     nil t)	; No bound
+	(setq c-new-END (max c-new-END (match-end 1))))
+      (goto-char c-new-BEG)
+      (while (c-search-forward-char-property-with-value-on-char
+	      'syntax-table '(15) ?\" c-new-END)
+	(c-remove-string-fences (1- (point))))
+      (c-depropertize-ml-strings-in-region c-new-BEG c-new-END))
+
+    ;; Have we matched up with an existing terminator by typing into or
+    ;; deleting from an opening delimiter? ... or by messing up a raw string's
+    ;; terminator so that it now matches a later terminator?
+    (when
+	(cond
+	 ((or c-ml-string-end-delim-disrupted
+	      (and c-old-beg-ml
+		   (eq c-beg-pos 'open-delim)))
+	  (goto-char (caar c-old-beg-ml)))
+	 ((and (< beg end)
+	       (not c-old-beg-ml)
+	       c-old-1-beg-ml
+	       (save-excursion
+		 (goto-char (1- beg))
+		 (c-ml-string-back-to-neutral (caar c-old-1-beg-ml))
+		 (re-search-forward
+		  (funcall c-make-ml-string-closer-re-function
+			   (buffer-substring-no-properties
+			    (caar c-old-1-beg-ml)
+			    (cadar c-old-1-beg-ml)))
+		  nil 'bound)
+		 (> (point) beg)))
+	  (goto-char (caar c-old-1-beg-ml))
+	  (setq c-new-BEG (min c-new-BEG (point)))
+	  (c-truncate-lit-pos-cache (point))))
+
+      (when (looking-at c-ml-string-opener-re)
+	(goto-char (match-end 1))
+	(when (re-search-forward (funcall c-make-ml-string-closer-re-function
+					  (match-string-no-properties 1))
+				 nil t)	; No bound
+	  ;; If what is to be the new delimiter was previously an unterminated
+	  ;; ordinary string, clear the c-fl-syn-tab properties from this old
+	  ;; string.
+	  (when (c-get-char-property (match-beginning 2) 'c-fl-syn-tab)
+	    (c-remove-string-fences (match-beginning 2)))
+	  (setq c-new-END (point-max))
+	  (c-clear-char-properties (caar (or c-old-beg-ml c-old-1-beg-ml))
+				   c-new-END
+				   'syntax-table)
+	  (c-truncate-lit-pos-cache
+	   (caar (or c-old-beg-ml c-old-1-beg-ml))))))
+
+    ;; Have we disturbed the innards of an ml string, possibly by deleting "s?
+    (when (and
+	   c-old-beg-ml
+	   (eq c-beg-pos 'string)
+	   (eq beg end))
+      (goto-char beg)
+      (c-ml-string-back-to-neutral (caar c-old-beg-ml))
+      (let ((bound (if (cdr c-old-end-ml)
+		       (min (+ (- (caddr c-old-end-ml) old-len)
+			       c-ml-string-max-closer-len-no-leader)
+			    (point-max))
+		     (point-max)))
+	    (new-END-end-ml-string
+	     (if (cdr c-old-end-ml)
+		 (- (caddr c-old-end-ml) old-len)
+	       (point-max))))
+	(when (and
+	       (re-search-forward
+		(funcall c-make-ml-string-closer-re-function
+			 (buffer-substring-no-properties
+			  (caar c-old-beg-ml) (cadar c-old-beg-ml)))
+		bound 'bound)
+	       (< (match-end 1) new-END-end-ml-string))
+	    (setq c-new-END (max new-END-end-ml-string c-new-END))
+	    (c-clear-char-properties (caar c-old-beg-ml) c-new-END
+				     'syntax-table)
+	    (setq c-new-BEG (min (caar c-old-beg-ml) c-new-BEG))
+	    (c-truncate-lit-pos-cache (caar c-old-beg-ml)))))
+
+    ;; Have we terminated an existing raw string by inserting or removing
+    ;; text?
+    (when
+	(and
+	 (< beg end)
+	 (eq c-old-END-literality 'string)
+	 c-old-beg-ml)
+      ;; Have we just made or modified a closing delimiter?
       (goto-char end)
-      (setq eoll (c-point 'eoll))
-      (when (and (null c-old-END-literality)
-		 (search-forward-regexp c-c++-raw-string-opener-re eoll t))
-	(setq state (c-semi-pp-to-literal end))
-	(when (eq (cadr state) 'string)
-	  (unwind-protect
-	      ;; Temporarily insert a closing string delimiter....
-	      (progn
-		(goto-char end)
-		(cond
-		 ((c-characterp (nth 3 (car state)))
-		  (insert (nth 3 (car state))))
-		 ((eq (nth 3 (car state)) t)
-		  (insert ?\")
-		  (c-put-char-property end 'syntax-table '(15))))
-		(c-truncate-lit-pos-cache end)
-		;; ....ensure c-new-END extends right to the end of the about
-		;; to be un-stringed raw string....
-		(save-excursion
-		  (goto-char (match-beginning 1))
-		  (let ((end-bs (c-raw-string-pos)))
-		    (setq c-new-END
-			  (max c-new-END
-			       (if (nth 4 end-bs)
-				   (1+ (nth 4 end-bs))
-				 eoll)))))
-
-		;; ...and clear `syntax-table' text propertes from the
-		;; following raw strings.
-		(c-depropertize-raw-strings-in-region (point) (1+ eoll)))
-	    ;; Remove the temporary string delimiter.
-	    (goto-char end)
-	    (delete-char 1))))
-
-      ;; Have we just created a new starting id?
-      (goto-char (max (- beg 18) (point-min)))
+      (c-ml-string-back-to-neutral (caar c-old-beg-ml))
       (while
 	  (and
 	   (setq found
-		 (search-forward-regexp c-c++-raw-string-opener-re
-				       c-new-END 'bound))
-	   (<= (match-end 0) beg)))
+		 (search-forward-regexp
+		  c-ml-string-any-closer-re
+		  (+ (c-point 'eol end)
+		     (1- c-ml-string-max-closer-len-no-leader))
+		  t))
+	   (< (match-end 1) beg))
+	(goto-char (match-end 1)))
       (when (and found (<= (match-beginning 0) end))
-	(setq c-new-BEG (min c-new-BEG (match-beginning 0)))
-	(c-depropertize-raw-strings-in-region c-new-BEG c-new-END))
-
-      ;; Have we invalidated an opening delimiter by typing into it?
-      (when (and c-old-beg-rs
-		 (eq (car c-old-beg-rs) 'open-delim)
-		 (equal (c-get-char-property (cadr c-old-beg-rs)
-					     'syntax-table)
-			'(1)))
-	(goto-char (1- (cadr c-old-beg-rs)))
-	(unless (looking-at c-c++-raw-string-opener-re)
-	  (c-clear-char-property (1+ (point)) 'syntax-table)
-	  (c-truncate-lit-pos-cache (1+ (point)))
-	  (if (c-search-forward-char-property 'syntax-table '(15)
-					      (c-point 'eol))
-	      (c-clear-char-property (1- (point)) 'syntax-table))))
-
-      ;; Have we matched up with an existing terminator by typing into an
-      ;; opening delimiter? ... or by messing up a raw string's terminator so
-      ;; that it now matches a later terminator?
-      (when
-	  (or c-raw-string-end-delim-disrupted
-	      (and c-old-beg-rs
-		   (eq (car c-old-beg-rs) 'open-delim)))
-	(goto-char (cadr c-old-beg-rs))
-	(when (looking-at c-c++-raw-string-opener-1-re)
-	  (setq id (match-string-no-properties 1))
-	  (when (search-forward (concat ")" id "\"") nil t) ; No bound.
-	    (setq c-new-END (point-max))
-	    (c-clear-char-properties (cadr c-old-beg-rs) c-new-END
-				     'syntax-table)
-	    (c-truncate-lit-pos-cache (cadr c-old-beg-rs)))))
-      ;; Have we terminated an existing raw string by inserting or removing
-      ;; text?
-      (when (eq c-old-END-literality 'string)
-	;; Have we just made or modified a closing delimiter?
-	(goto-char (max (- beg 18) (point-min)))
-	(while
-	    (and
-	     (setq found
-		   (search-forward-regexp ")\\([^ ()\\\n\r\t]\\{0,16\\}\\)\""
-					  (+ end 17) t))
-	     (< (match-end 0) beg)))
-	(when (and found (<= (match-beginning 0) end))
-	  (setq id (match-string-no-properties 1))
-	  (goto-char (match-beginning 0))
+	(let ((opener-re (funcall c-make-ml-string-opener-re-function
+				  (match-string 1))))
 	  (while
 	      (and
-	       (setq found (search-backward (concat "R\"" id "(") nil t))
+	       (setq found (re-search-backward opener-re nil t))
 	       (setq state (c-semi-pp-to-literal (point)))
-	       (memq (nth 3 (car state)) '(t ?\"))))
-	  (when found
-	    (setq c-new-BEG (min (point) c-new-BEG)
-		  c-new-END (point-max))
-	    (c-clear-syn-tab-properties (point) c-new-END)
-	    (c-truncate-lit-pos-cache (point)))))
+	       (memq (nth 3 (car state)) '(t ?\")))))
+	(when found
+	  (setq c-new-BEG (min (point) c-new-BEG)
+		c-new-END (point-max))
+	  (c-clear-syn-tab-properties (point) c-new-END)
+	  (c-truncate-lit-pos-cache (point)))))
 
-      ;; Are there any raw strings in a newly created macro?
-      (when (< beg end)
-	(goto-char beg)
-	(setq found-beg (point))
-	(when (search-forward-regexp c-anchored-cpp-prefix end t)
+    ;; Are there any raw strings in a newly created macro?
+      (goto-char (c-point 'bol beg))
+      (while (and (< (point) (c-point 'eol end))
+		  (re-search-forward c-anchored-cpp-prefix (c-point 'eol end)
+				     'boundt))
+	(when (and (<= beg (match-end 1))
+		   (>= end (match-beginning 1)))
+	  (goto-char (match-beginning 1))
 	  (c-end-of-macro)
-	  (c-depropertize-raw-strings-in-region found-beg (point))))))
+	  (c-depropertize-ml-strings-in-region
+	   (match-beginning 1) (point))))))
 
-(defun c-maybe-re-mark-raw-string ()
+(defun c-maybe-re-mark-ml-string ()
   ;; When this function is called, point is immediately after a " which opens
-  ;; a string.  If this " is the characteristic " of a raw string
-  ;; opener, apply the pertinent `syntax-table' text properties to the
-  ;; entire raw string (when properly terminated) or just the delimiter
-  ;; (otherwise).  In either of these cases, return t, otherwise return nil.
+  ;; a string.  If this " is the characteristic " of a multi-line string
+  ;; opener, apply the pertinent `syntax-table' text properties to the entire
+  ;; ml string (when properly terminated) or just the delimiter (otherwise).
+  ;; In either of these cases, return t, otherwise return nil.  Point is moved
+  ;; to after the terminated raw string, or to the end of the containing
+  ;; macro, or to point-max.
   ;;
-  (let (in-macro macro-end)
+  (let (delim in-macro macro-end)
     (when
 	(and
-	 (eq (char-before (1- (point))) ?R)
-	 (looking-at "\\([^ ()\\\n\r\t]\\{0,16\\}\\)("))
+	 (setq delim (c-ml-string-opener-at-or-around-point (1- (point))))
+	 (save-excursion
+	  (goto-char (car delim))
+	  (not (c-in-literal))))
       (save-excursion
 	(setq in-macro (c-beginning-of-macro))
 	(setq macro-end (when in-macro
 			  (c-end-of-macro)
-			  (point) ;; (min (1+ (point)) (point-max))
+			  (point)
 			  )))
       (when
 	  (not
-	   (c-propertize-raw-string-opener
-	    (match-string-no-properties 1) ; id
-	    (1- (point))		   ; open quote
-	    (match-end 1)		   ; open paren
-	    macro-end))		     ; bound (end of macro) or nil.
+	   (c-propertize-ml-string-opener
+	    delim
+	    macro-end))			; bound (end of macro) or nil.
 	(goto-char (or macro-end (point-max))))
       t)))
+
+(defun c-propertize-ml-string-id (delim)
+  ;; Apply punctuation ('(1)) syntax-table text properties to the opening or
+  ;; closing delimiter given by the three element dotted list DELIM, such that
+  ;; its "total syntactic effect" is that of a single ".
+  (save-excursion
+    (goto-char (car delim))
+    (while (and (skip-chars-forward c-ml-string-non-punc-skip-chars
+				    (cadr delim))
+		(< (point) (cadr delim)))
+      (when (not (eq (point) (cddr delim)))
+	(c-put-char-property (point) 'syntax-table '(1))
+	(c-truncate-lit-pos-cache (point)))
+      (forward-char))))
+
+(defun c-propertize-ml-string-opener (delim bound)
+  ;; DELIM defines the opening delimiter of a multi-line string in the
+  ;; way returned by `c-ml-string-opener-around-point'.  Apply any
+  ;; pertinent `syntax-table' text properties to this opening delimiter and in
+  ;; the case of a terminated ml string, also to the innards of the string and
+  ;; the terminating delimiter.
+  ;;
+  ;; BOUND is the end of the macro we're inside (i.e. the position of the
+  ;; closing newline), if any, otherwise nil.
+  ;;
+  ;; Point is undefined at the function start.  For a terminated ml string,
+  ;; point is left after the terminating delimiter and t is returned.  For an
+  ;; unterminated string, point is left at the end of the macro, if any, or
+  ;; after the unmatched opening delimiter, and nil is returned.
+  (c-propertize-ml-string-id delim)
+  (goto-char (cadr delim))
+  (if (re-search-forward
+       (funcall c-make-ml-string-closer-re-function
+		(buffer-substring-no-properties
+		 (car delim) (cadr delim)))
+       bound t)
+
+      (let ((end-delim
+	     (cons (match-beginning 1)
+		   (cons (match-end 1) (match-beginning 2)))))
+	(c-propertize-ml-string-id end-delim)
+	(goto-char (cadr delim))
+	(while (progn (skip-syntax-forward c-ml-string-non-punc-skip-chars
+					   (car end-delim))
+		      (< (point) (car end-delim)))
+	      (c-put-char-property (point) 'syntax-table '(1)) ; punctuation
+	      (c-truncate-lit-pos-cache (point))
+	      (forward-char))
+	(goto-char (cadr end-delim))
+	t)
+    (c-put-char-property (cddr delim) 'syntax-table '(1))
+    (c-put-char-property (1- (cadr delim)) 'syntax-table '(15))
+    (c-truncate-lit-pos-cache (1- (cddr delim)))
+    (when bound
+      ;; In a CPP construct, we try to apply a generic-string
+      ;; `syntax-table' text property to the last possible character in
+      ;; the string, so that only characters within the macro get
+      ;; "stringed out".
+      (goto-char bound)
+      (if (save-restriction
+	    (narrow-to-region (cadr delim) (point-max))
+	    (re-search-backward
+	     (eval-when-compile
+	       ;; This regular expression matches either an escape pair
+	       ;; (which isn't an escaped NL) (submatch 5) or a
+	       ;; non-escaped character (which isn't itself a backslash)
+	       ;; (submatch 10).  The long preambles to these
+	       ;; (respectively submatches 2-4 and 6-9) ensure that we
+	       ;; have the correct parity for sequences of backslashes,
+	       ;; etc..
+	       (concat "\\("						   ; 1
+		       "\\(\\`[^\\]?\\|[^\\][^\\]\\)\\(\\\\\\(.\\|\n\\)\\)*" ; 2-4
+		       "\\(\\\\.\\)"	; 5
+		       "\\|"
+		       "\\(\\`\\|[^\\]\\|\\(\\`[^\\]?\\|[^\\][^\\]\\)\\(\\\\\\(.\\|\n\\)\\)+\\)" ; 6-9
+		       "\\([^\\]\\)"	; 10
+		       "\\)"
+		       "\\(\\\\\n\\)*\\=")) ; 11
+	     (cadr delim) t))
+	  (if (match-beginning 10)
+	      (progn
+		(c-put-char-property (match-beginning 10) 'syntax-table '(15))
+		(c-truncate-lit-pos-cache (match-beginning 10)))
+	    (c-put-char-property (match-beginning 5) 'syntax-table '(1))
+	    (c-put-char-property (1+ (match-beginning 5)) 'syntax-table '(15))
+	    (c-truncate-lit-pos-cache (match-beginning 5))))
+      (goto-char bound))
+    nil))
+
+(defvar c-neutralize-pos nil)
+  ;; Buffer position of character neutralized by punctuation syntax-table
+  ;; text property ('(1)), or nil if there's no such character.
+(defvar c-neutralized-prop nil)
+  ;; syntax-table text property that was on the character at
+  ;; `c-neutralize-pos' before it was replaced with '(1), or nil if none.
+
+(defun c-depropertize-ml-string (string-delims bound)
+  ;; Remove any `syntax-table' text properties associated with the opening
+  ;; delimiter of a multi-line string (if it's unmatched) or with the entire
+  ;; string.  Exception: A single punctuation ('(1)) property will be left on
+  ;; a string character to make the entire set of multi-line strings
+  ;; syntactically neutral.  This is done using the global variable
+  ;; `c-neutralize-pos', the position of this property (or nil if there is
+  ;; none).
+  ;;
+  ;; STRING-DELIMS, of the form of the output from
+  ;; `c-ml-string-delims-around-point' defines the current ml string.  BOUND
+  ;; is the bound for searching for a matching closing delimiter; it is
+  ;; usually nil, but if we're inside a macro, it's the end of the macro
+  ;; (i.e. just before the terminating \n).
+  ;;
+  ;; Point is undefined on input, and is moved to after the (terminated) raw
+  ;; string, or left after the unmatched opening delimiter, as the case may
+  ;; be.  The return value is of no significance.
+
+  ;; Handle the special case of a closing " previously having been an
+  ;; unterminated ordinary string.
+  (when
+      (and
+       (cdr string-delims)
+       (equal (c-get-char-property (cdddr string-delims) ; pos of closing ".
+				   'syntax-table)
+	      '(15)))
+    (goto-char (cdddr string-delims))
+    (when (c-safe (c-forward-sexp))	; To '(15) at EOL.
+      (c-clear-char-property (1- (point)) 'syntax-table)
+      (c-truncate-lit-pos-cache (1- (point)))))
+    ;; The '(15) in the closing delimiter will be cleared by the following.
+
+  (c-depropertize-ml-string-delims string-delims)
+  (let ((bound1 (if (cdr string-delims)
+		    (caddr string-delims) ; end of closing delimiter.
+		  bound))
+	first s)
+    (if (and
+	 bound1
+	 (setq first (c-clear-char-properties (cadar string-delims) bound1
+					      'syntax-table)))
+	(c-truncate-lit-pos-cache first))
+    (setq s (parse-partial-sexp (or c-neutralize-pos (caar string-delims))
+				(or bound1 (point-max))))
+    (cond
+     ((not (nth 3 s)))			; Nothing changed by this ml-string.
+     ((not c-neutralize-pos)		; "New" unbalanced quote in this ml-s.
+      (setq c-neutralize-pos (nth 8 s))
+      (setq c-neutralized-prop (c-get-char-property c-neutralize-pos
+						    'syntax-table))
+      (c-put-char-property c-neutralize-pos 'syntax-table '(1))
+      (c-truncate-lit-pos-cache c-neutralize-pos))
+     ((eq (nth 3 s) (char-after c-neutralize-pos))
+      ;; New unbalanced quote balances old one.
+      (if c-neutralized-prop
+	  (c-put-char-property c-neutralize-pos 'syntax-table
+			       c-neutralized-prop)
+	(c-clear-char-property c-neutralize-pos 'syntax-table))
+      (c-truncate-lit-pos-cache c-neutralize-pos)
+      (setq c-neutralize-pos nil))
+     ;; New unbalanced quote doesn't balance old one.  Nothing to do.
+     )))
+
+(defun c-depropertize-ml-strings-in-region (start finish)
+  ;; Remove any `syntax-table' text properties associated with multi-line
+  ;; strings contained in the region (START FINISH).  Point is undefined at
+  ;; entry and exit, and the return value has no significance.
+  (setq c-neutralize-pos nil)
+  (goto-char start)
+  (while (and (< (point) finish)
+	      (re-search-forward
+	       c-ml-string-cpp-or-opener-re
+	       finish t))
+    (if (match-beginning (+ c-cpp-or-ml-match-offset 1)) ; opening delimiter
+	;; We've found a raw string
+	(let ((open-delim
+	       (cons (match-beginning (+ c-cpp-or-ml-match-offset 1))
+		     (cons (match-end (+ c-cpp-or-ml-match-offset 1))
+			   (match-beginning (+ c-cpp-or-ml-match-offset 2))))))
+	  (c-depropertize-ml-string
+	   (cons open-delim
+		 (when
+		     (and
+		      (re-search-forward
+		       (funcall c-make-ml-string-closer-re-function
+				(match-string-no-properties
+				 (+ c-cpp-or-ml-match-offset 1)))
+		       (min (+ finish c-ml-string-max-closer-len-no-leader)
+			    (point-max))
+		       t)
+		      (<= (match-end 1) finish))
+		   (cons (match-beginning 1)
+			 (cons (match-end 1) (match-beginning 2)))))
+	   nil))			; bound
+      ;; We've found a CPP construct.  Search for raw strings within it.
+      (goto-char (match-beginning 2))	; the "#"
+      (c-end-of-macro)
+      (let ((eom (point)))
+	(goto-char (match-end 2))	; after the "#".
+	(while (and (< (point) eom)
+		    (c-syntactic-re-search-forward
+		     c-ml-string-opener-re eom t))
+	  (save-excursion
+	    (let ((open-delim (cons (match-beginning 1)
+				    (cons (match-end 1)
+					  (match-beginning 2)))))
+	      (c-depropertize-ml-string
+	       (cons open-delim
+		     (when (re-search-forward
+			    (funcall c-make-ml-string-closer-re-function
+				     (match-string-no-properties 1))
+			    eom t)
+		       (cons (match-beginning 1)
+			     (cons (match-end 1) (match-beginning 2)))))
+	       eom)))))))			; bound.
+  (when c-neutralize-pos
+    (if c-neutralized-prop
+	(c-put-char-property c-neutralize-pos 'syntax-table
+			     c-neutralized-prop)
+      (c-clear-char-property c-neutralize-pos 'syntax-table))
+    (c-truncate-lit-pos-cache c-neutralize-pos)))
 
 
 ;; Handling of small scale constructs like types and names.
