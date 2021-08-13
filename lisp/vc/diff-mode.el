@@ -358,12 +358,14 @@ well."
   "`diff-mode' face used to highlight added lines.")
 
 (defface diff-changed-unspecified
-  '((((class color) (min-colors 88) (background light))
-     :background "grey90")
+  '((default
+     :inherit diff-changed)
+    (((class color) (min-colors 88) (background light))
+     :background "grey90" :extend t)
     (((class color) (min-colors 88) (background dark))
-     :background "grey20")
+     :background "grey20" :extend t)
     (((class color))
-     :foreground "grey"))
+     :foreground "grey" :extend t))
   "`diff-mode' face used to highlight changed lines."
   :version "28.1")
 
