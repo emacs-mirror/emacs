@@ -354,6 +354,11 @@ by dragging the tab lines of their topmost windows with the mouse.
 
 * Editing Changes in Emacs 28.1
 
+** New value 'save-some-buffers-root' of 'save-some-buffers-default-predicate'.
+It allows to ask about saving only files under the project root
+or in subdirectories of the directory that was default during
+command invocation.
+
 ---
 ** Dragging a file to Emacs will now also push the name of the file
 onto 'file-name-history'.

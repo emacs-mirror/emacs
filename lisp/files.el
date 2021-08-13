@@ -5727,8 +5727,22 @@ be saved."
   :group 'auto-save
   ;; FIXME nil should not be a valid option, let alone the default,
   ;; eg so that add-function can be used.
-  :type '(choice (const :tag "Default" nil) function)
+  :type '(choice (const :tag "Default" nil)
+                 (function :tag "Only in subdirs of root"
+                           save-some-buffers-root)
+                 (function :tag "Custom function"))
   :version "26.1")
+
+(defun save-some-buffers-root ()
+  "A predicate to check whether the buffer is under the root directory.
+Can be used as a value of `save-some-buffers-default-predicate'
+to save buffers only under the project root or in subdirectories
+of the directory that was default during command invocation."
+  (let ((root (or (and (featurep 'project) (project-current)
+                       (fboundp 'project-root)
+                       (project-root (project-current)))
+                  default-directory)))
+    (lambda () (file-in-directory-p default-directory root))))
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
@@ -5758,6 +5772,11 @@ change the additional actions you can take on files."
   (interactive "P")
   (unless pred
     (setq pred save-some-buffers-default-predicate))
+  ;; Allow `pred' to be a function that returns a predicate
+  ;; with lexical bindings in its original environment (bug#46374).
+  (let ((pred-fun (and (functionp pred) (funcall pred))))
+    (when (functionp pred-fun)
+      (setq pred pred-fun)))
   (let* ((switched-buffer nil)
          (save-some-buffers--switch-window-callback
           (lambda (buffer)
