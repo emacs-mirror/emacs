@@ -43,6 +43,7 @@
 
 (require 'info)
 (eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup info-lookup nil
   "Major mode sensitive help agent."
@@ -902,9 +903,13 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'python-mode
- :doc-spec `((,(if (Info-find-file "python3.9" t)
-                   "(python3.9)Index"
-                 "(python)Index"))))
+ ;; Debian includes Python info files, but they're version-named
+ ;; instead of having a symlink.
+ :doc-spec `((,(cl-loop for version from 20 downto 7
+                        for name = (format "python3.%d" version)
+                        if (Info-find-file name t)
+                        return (format "(%s)Index" name)
+                        finally return "(python)Index"))))
 
 (info-lookup-maybe-add-help
  :mode 'cperl-mode
