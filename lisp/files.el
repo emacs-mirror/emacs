@@ -3601,7 +3601,7 @@ This hook is called only if there is at least one file-local
 variable to set.")
 
 (defvar permanently-enabled-local-variables '(lexical-binding)
-  "A list of local variables that are always enabled.
+  "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars dir-name)
