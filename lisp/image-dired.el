@@ -2360,20 +2360,18 @@ non-nil."
 
 (defun image-dired-thumb-update-marks ()
   "Update the marks in the thumbnail buffer."
-  ;; TODO: only called by image-dired-mouse-toggle-mark but there are
-  ;; certainly other places, where it should be called too.
   (when image-dired-thumb-visible-marks
     (with-current-buffer image-dired-thumbnail-buffer
-      (save-excursion
+      (save-mark-and-excursion
         (goto-char (point-min))
         (let ((inhibit-read-only t))
           (while (not (eobp))
-            (if (image-dired-thumb-file-marked-p)
-                (add-face-text-property
-                 (point) (1+ (point))
-                 'image-dired-thumb-mark)
-              (remove-text-properties (point) (1+ (point))
-                                      '(face image-dired-thumb-mark)))
+            (with-silent-modifications
+              (if (image-dired-thumb-file-marked-p)
+                  (add-face-text-property (point) (1+ (point))
+                                          'image-dired-thumb-mark)
+                (remove-text-properties (point) (1+ (point))
+                                        '(face image-dired-thumb-mark))))
             (forward-char)))))))
 
 (defun image-dired-mouse-toggle-mark-1 ()
