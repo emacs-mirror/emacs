@@ -2340,6 +2340,10 @@ a list.
 ** Diff
 
 ---
+*** New face 'diff-changed-unspecified'.
+This is used when 'diff-use-changed-face' is non-nil.
+
+---
 *** New 'diff-mode' font locking face 'diff-error'.
 This face is used for error messages from 'diff'.
 

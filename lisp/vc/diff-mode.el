@@ -357,6 +357,16 @@ well."
      :foreground "green" :extend t))
   "`diff-mode' face used to highlight added lines.")
 
+(defface diff-changed-unspecified
+  '((((class color) (min-colors 88) (background light))
+     :background "grey90")
+    (((class color) (min-colors 88) (background dark))
+     :background "grey20")
+    (((class color))
+     :foreground "grey"))
+  "`diff-mode' face used to highlight changed lines."
+  :version "28.1")
+
 (defface diff-changed
   '((t nil))
   "`diff-mode' face used to highlight changed lines."
@@ -436,9 +446,10 @@ well."
 (defvar diff-use-changed-face (and (face-differs-from-default-p 'diff-changed)
 				   (not (face-equal 'diff-changed 'diff-added))
 				   (not (face-equal 'diff-changed 'diff-removed)))
-  "If non-nil, use the face `diff-changed' for changed lines in context diffs.
-Otherwise, use the face `diff-removed' for removed lines,
-and the face `diff-added' for added lines.")
+  "Controls how changed lines are fontified in context diffs.
+If non-nil, use the face `diff-changed-unspecified'.  Otherwise,
+use the face `diff-removed' for removed lines, and the face
+`diff-added' for added lines.")
 
 (defvar diff-font-lock-keywords
   `((,(concat "\\(" diff-hunk-header-re-unified "\\)\\(.*\\)$")
@@ -470,7 +481,7 @@ and the face `diff-added' for added lines.")
 		  diff-indicator-added-face
 		diff-indicator-removed-face)))))
      (2 (if diff-use-changed-face
-	    'diff-changed
+	    'diff-changed-unspecified
 	  ;; Otherwise, use the same method as above.
 	  (save-match-data
 	    (let ((limit (save-excursion (diff-beginning-of-hunk))))
