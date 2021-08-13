@@ -66,7 +66,7 @@ Do not call this mode function yourself.  It is meant for internal use."
   shadow secondary-selection trailing-whitespace
   font-lock-builtin-face font-lock-comment-delimiter-face
   font-lock-comment-face font-lock-constant-face
-  font-lock-doc-face font-lock-function-name-face
+  font-lock-doc-face font-lock-doc-markup-face font-lock-function-name-face
   font-lock-keyword-face font-lock-negation-char-face
   font-lock-preprocessor-face font-lock-regexp-grouping-backslash
   font-lock-regexp-grouping-construct font-lock-string-face
