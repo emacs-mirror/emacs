@@ -2444,6 +2444,15 @@ images are marked.
 ** Miscellaneous
 
 ---
+*** New function 'mail-header-parse-addresses-lax'.
+This takes a comma-separated string and returns a list of mail/name
+pairs.
+
+---
+*** New function 'mail-header-parse-address-lax'.
+Parse a string as a mail address-like string.
+
+---
 *** 'shell-script-mode' now supports 'outline-minor-mode'.
 The outline headings have lines that start with "###".
 
