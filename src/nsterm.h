@@ -358,7 +358,7 @@ typedef id instancetype;
 + (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
                          blue:(CGFloat)blue alpha:(CGFloat)alpha;
 - (NSColor *)colorUsingDefaultColorSpace;
-
+- (unsigned long)unsignedLong;
 @end
 
 
@@ -766,35 +766,6 @@ struct ns_bitmap_record
   int height, width, depth;
 };
 
-/* This maps between emacs color indices and NSColor objects.  */
-struct ns_color_table
-{
-  ptrdiff_t size;
-  ptrdiff_t avail;
-#ifdef __OBJC__
-  NSColor **colors;
-  NSMutableSet *empty_indices;
-#else
-  void **items;
-  void *availIndices;
-#endif
-};
-#define NS_COLOR_CAPACITY 256
-
-#define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
-#define ARGB_TO_ULONG(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
-
-#define ALPHA_FROM_ULONG(color) ((color) >> 24)
-#define RED_FROM_ULONG(color) (((color) >> 16) & 0xff)
-#define GREEN_FROM_ULONG(color) (((color) >> 8) & 0xff)
-#define BLUE_FROM_ULONG(color) ((color) & 0xff)
-
-/* Do not change `* 0x101' in the following lines to `<< 8'.  If
-   changed, image masks in 1-bit depth will not work.  */
-#define RED16_FROM_ULONG(color) (RED_FROM_ULONG(color) * 0x101)
-#define GREEN16_FROM_ULONG(color) (GREEN_FROM_ULONG(color) * 0x101)
-#define BLUE16_FROM_ULONG(color) (BLUE_FROM_ULONG(color) * 0x101)
-
 #ifdef NS_IMPL_GNUSTEP
 /* this extends font backend font */
 struct nsfont_info
@@ -850,7 +821,11 @@ struct ns_display_info
   ptrdiff_t bitmaps_size;
   ptrdiff_t bitmaps_last;
 
-  struct ns_color_table *color_table;
+#ifdef __OBJC__
+  NSMutableArray *color_table;
+#else
+  void *color_table;
+#endif
 
   /* DPI resolution of this screen */
   double resx, resy;

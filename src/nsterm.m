@@ -166,6 +166,29 @@ char const * nstrace_fullscreen_type_name (int fs_type)
   return [self colorUsingColorSpace: [NSColorSpace deviceRGBColorSpace]];
 }
 
++ (NSColor *)colorWithUnsignedLong:(unsigned long)c
+                          hasAlpha:(BOOL)alpha
+{
+  EmacsCGFloat a = (double)((c >> 24) & 0xff) / 255.0;
+  EmacsCGFloat r = (double)((c >> 16) & 0xff) / 255.0;
+  EmacsCGFloat g = (double)((c >> 8) & 0xff) / 255.0;
+  EmacsCGFloat b = (double)(c & 0xff) / 255.0;
+
+  return [NSColor colorForEmacsRed:r green:g blue:b
+                             alpha:(alpha ? a : (EmacsCGFloat)1.0)];
+}
+
+- (unsigned long)unsignedLong
+{
+  EmacsCGFloat r, g, b, a;
+  [self getRed:&r green:&g blue:&b alpha:&a];
+
+  return (((unsigned long) (a * 255)) << 24)
+    | (((unsigned long) (r * 255)) << 16)
+    | (((unsigned long) (g * 255)) << 8)
+    | ((unsigned long) (b * 255));
+}
+
 @end
 
 /* ==========================================================================
@@ -1952,53 +1975,29 @@ ns_fullscreen_hook (struct frame *f)
 NSColor *
 ns_lookup_indexed_color (unsigned long idx, struct frame *f)
 {
-  struct ns_color_table *color_table = FRAME_DISPLAY_INFO (f)->color_table;
-  if (idx < 1 || idx >= color_table->avail)
+  NSMutableArray *color_table = FRAME_DISPLAY_INFO (f)->color_table;
+  if (idx < 1 || idx >= [color_table count])
     return nil;
-  return color_table->colors[idx];
+  return [color_table objectAtIndex:idx];
 }
 
 
 unsigned long
 ns_index_color (NSColor *color, struct frame *f)
 {
-  struct ns_color_table *color_table = FRAME_DISPLAY_INFO (f)->color_table;
-  ptrdiff_t idx;
-  ptrdiff_t i;
+  NSMutableArray *color_table = FRAME_DISPLAY_INFO (f)->color_table;
 
-  if (!color_table->colors)
-    {
-      color_table->size = NS_COLOR_CAPACITY;
-      color_table->avail = 1; /* skip idx=0 as marker */
-      color_table->colors = xmalloc (color_table->size * sizeof (NSColor *));
-      color_table->colors[0] = nil;
-      color_table->empty_indices = [[NSMutableSet alloc] init];
-    }
+  /* An index of 0 appears to be special in some way, so insert a
+     dummy object.  */
+  if ([color_table count] == 0)
+    [color_table addObject:[NSNull null]];
 
   /* Do we already have this color?  */
-  for (i = 1; i < color_table->avail; i++)
-    if (color_table->colors[i] && [color_table->colors[i] isEqual: color])
-      return i;
+  if ([color_table containsObject:color])
+    return [color_table indexOfObject:color];
 
-  if ([color_table->empty_indices count] > 0)
-    {
-      NSNumber *index = [color_table->empty_indices anyObject];
-      [color_table->empty_indices removeObject: index];
-      idx = [index unsignedLongValue];
-    }
-  else
-    {
-      if (color_table->avail == color_table->size)
-	color_table->colors =
-	  xpalloc (color_table->colors, &color_table->size, 1,
-		   min (ULONG_MAX, PTRDIFF_MAX), sizeof *color_table->colors);
-      idx = color_table->avail++;
-    }
-
-  color_table->colors[idx] = color;
-  [color retain];
-  /* fprintf(stderr, "color_table: allocated %d\n",idx); */
-  return idx;
+  [color_table addObject:color];
+  return [color_table count] - 1;
 }
 
 
@@ -2136,13 +2135,7 @@ ns_color_index_to_rgba(int idx, struct frame *f)
   NSColor *col;
   col = ns_lookup_indexed_color (idx, f);
 
-  EmacsCGFloat r, g, b, a;
-  [col getRed: &r green: &g blue: &b alpha: &a];
-
-  return ARGB_TO_ULONG((unsigned long) (a * 255),
-                       (unsigned long) (r * 255),
-                       (unsigned long) (g * 255),
-                       (unsigned long) (b * 255));
+  return [col unsignedLong];
 }
 
 void
@@ -2161,11 +2154,7 @@ ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
   color_def->blue  = b * 65535;
 
   if (setPixel == YES)
-    color_def->pixel
-      = ARGB_TO_ULONG((unsigned long) (a * 255),
-                      (unsigned long) (r * 255),
-                      (unsigned long) (g * 255),
-                      (unsigned long) (b * 255));
+    color_def->pixel = [(NSColor *)col unsignedLong];
 }
 
 bool
@@ -4933,8 +4922,7 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
                 && ![NSCalibratedWhiteColorSpace isEqualToString:
                                                  NSColorSpaceFromDepth (depth)];
     dpyinfo->n_planes = NSBitsPerPixelFromDepth (depth);
-    dpyinfo->color_table = xmalloc (sizeof *dpyinfo->color_table);
-    dpyinfo->color_table->colors = NULL;
+    dpyinfo->color_table = [[NSMutableArray array] retain];
     dpyinfo->root_window = 42; /* A placeholder.  */
     dpyinfo->highlight_frame = dpyinfo->ns_focus_frame = NULL;
     dpyinfo->n_fonts = 0;
@@ -5010,6 +4998,7 @@ static void
 ns_delete_display (struct ns_display_info *dpyinfo)
 {
   /* TODO...  */
+  [dpyinfo->color_table release];
 }
 
 
@@ -5223,10 +5212,7 @@ ns_term_init (Lisp_Object display_name)
             name = XCAR (color);
             c = XFIXNUM (XCDR (color));
             [cl setColor:
-                  [NSColor colorForEmacsRed: RED_FROM_ULONG (c) / 255.0
-                                      green: GREEN_FROM_ULONG (c) / 255.0
-                                       blue: BLUE_FROM_ULONG (c) / 255.0
-                                      alpha: 1.0]
+                  [NSColor colorWithUnsignedLong:c hasAlpha:NO]
                   forKey: [NSString stringWithLispString: name]];
           }
 

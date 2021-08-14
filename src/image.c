@@ -80,14 +80,7 @@ typedef struct x_bitmap_record Bitmap_Record;
 #endif	/* !USE_CAIRO */
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef USE_CAIRO
-#define GET_PIXEL image_pix_context_get_pixel
-#define PUT_PIXEL image_pix_container_put_pixel
-#define NO_PIXMAP 0
-
-#define PIX_MASK_RETAIN	0
-#define PIX_MASK_DRAW	255
-
+#if defined(USE_CAIRO) || defined(HAVE_NS)
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
 #define ARGB_TO_ULONG(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
 #define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
@@ -96,6 +89,15 @@ typedef struct x_bitmap_record Bitmap_Record;
 #define RED16_FROM_ULONG(color)		(RED_FROM_ULONG (color) * 0x101)
 #define GREEN16_FROM_ULONG(color)	(GREEN_FROM_ULONG (color) * 0x101)
 #define BLUE16_FROM_ULONG(color)	(BLUE_FROM_ULONG (color) * 0x101)
+#endif
+
+#ifdef USE_CAIRO
+#define GET_PIXEL image_pix_context_get_pixel
+#define PUT_PIXEL image_pix_container_put_pixel
+#define NO_PIXMAP 0
+
+#define PIX_MASK_RETAIN	0
+#define PIX_MASK_DRAW	255
 
 static unsigned long image_alloc_image_color (struct frame *, struct image *,
 					      Lisp_Object, unsigned long);
