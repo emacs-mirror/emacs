@@ -45,12 +45,28 @@
 
   (should (equal (memory-report-object-size (list 'foo)) 16))
 
+  (should (equal (memory-report-object-size (vector 1 2 3)) 64))
   (should (equal (memory-report-object-size (vector 1 2 3 4)) 80))
 
   (should (equal (memory-report-object-size "") 32))
   (should (equal (memory-report-object-size "a") 33))
   (should (equal (memory-report-object-size (propertize "a" 'face 'foo))
                  81)))
+
+(ert-deftest memory-report-sizes-vectors ()
+  (should (= (memory-report--object-size
+              (make-hash-table :test #'eq)
+              ["long string that should be at least 40 bytes"])
+             108))
+  (let ((string "long string that should be at least 40 bytes"))
+    (should (= (memory-report--object-size
+                (make-hash-table :test #'eq)
+                (vector string))
+               108))
+    (should (= (memory-report--object-size
+                (make-hash-table :test #'eq)
+                (vector string string))
+               124))))
 
 (provide 'memory-report-tests)
 
