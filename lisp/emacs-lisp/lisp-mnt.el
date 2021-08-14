@@ -111,6 +111,8 @@
 
 ;;; Code:
 
+(require 'mail-parse)
+
 ;;; Variables:
 
 (defgroup lisp-mnt nil
@@ -359,19 +361,9 @@ Return argument is of the form (\"HOLDER\" \"YEAR1\" ... \"YEARN\")"
 (defun lm-crack-address (x)
   "Split up email address(es) X into full name and real email address.
 The value is a list of elements of the form (FULLNAME . ADDRESS)."
-  (cond ((string-match
-	  (concat "[,\s\t]*\\(?:"
-	          "\\(.+?\\) +[(<]\\(\\S-+@\\S-+\\)[>)]"
-	          "\\|"
-	          "\\(?2:\\S-+@\\S-+\\) +[(<]\\(?1:[^,]*\\)[>)]"
-	          "\\|"
-	          "\\(?2:\\S-+@\\S-+\\)"
-	          "\\)")
-	  x)
-	 `((,(string-trim-right (match-string 1 x)) . ,(match-string 2 x))
-	   . ,(lm-crack-address (substring x (match-end 0)))))
-	((string-match "\\`[,\s\t]*\\'" x) nil)
-	(t `((,x)))))
+  (mapcar (lambda (elem)
+            (cons (cdr elem) (car elem)))
+          (mail-header-parse-addresses-lax x)))
 
 (defun lm-authors (&optional file)
   "Return the author list of file FILE, or current buffer if FILE is nil.
