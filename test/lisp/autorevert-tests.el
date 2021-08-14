@@ -286,7 +286,7 @@ This expects `auto-revert--messages' to be bound by
   ;; Repeated unpredictable failures, bug#32645.
   ;; Unlikely to be hydra-specific?
 ;  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
-
+  :tags '(:unstable)
   (with-auto-revert-test
    (let ((tmpfile (make-temp-file "auto-revert-test"))
          ;; Try to catch bug#32645.
