@@ -2341,7 +2341,8 @@ a list.
 
 ---
 *** New face 'diff-changed-unspecified'.
-This is used when 'diff-use-changed-face' is non-nil.
+This is used to highlight "changed" lines (those marked with '!') in
+context diffs, when 'diff-use-changed-face' is non-nil.
 
 ---
 *** New 'diff-mode' font locking face 'diff-error'.
