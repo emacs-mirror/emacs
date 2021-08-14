@@ -491,6 +491,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
     (setq-local icomplete--initial-input (icomplete--field-string))
     (setq-local completion-show-inline-help nil)
     (setq icomplete--scrolled-completions nil)
+    (setq completion-lazy-hilit (cl-gensym))
     (use-local-map (make-composed-keymap icomplete-minibuffer-map
     					 (current-local-map)))
     (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)
@@ -797,7 +798,9 @@ Return a list of (COMP PREFIX SUFFIX)."
                (cl-return-from icomplete--render-vertical
                  (concat
                   " \n"
-                  (mapconcat #'identity torender icomplete-separator))))
+                  (mapconcat #'identity
+                             (mapcar #'completion-lazy-hilit torender)
+                             icomplete-separator))))
    for (comp prefix) in triplets
    maximizing (length prefix) into max-prefix-len
    maximizing (length comp) into max-comp-len
@@ -809,7 +812,7 @@ Return a list of (COMP PREFIX SUFFIX)."
     (cl-loop for (comp prefix suffix) in triplets
              concat prefix
              concat (make-string (- max-prefix-len (length prefix)) ? )
-             concat comp
+             concat (completion-lazy-hilit comp)
              concat (make-string (- max-comp-len (length comp)) ? )
              concat suffix
              concat icomplete-separator))))
@@ -959,7 +962,8 @@ matches exist."
                   (if (< prospects-len prospects-max)
                       (push comp prospects)
                     (setq limit t)))
-                (setq prospects (nreverse prospects))
+                (setq prospects
+                      (nreverse (mapcar #'completion-lazy-hilit prospects)))
                 ;; Decorate first of the prospects.
                 (when prospects
                   (let ((first (copy-sequence (pop prospects))))

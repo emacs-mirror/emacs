@@ -3512,6 +3512,54 @@ one large \"hole\" and a clumped-together \"oo\" match) higher
 than the latter (which has two \"holes\" and three
 one-letter-long matches).")
 
+(defvar-local completion-lazy-hilit nil
+  "If non-nil, request completion lazy hilighting.
+
+Completion-presenting frontends may opt to bind this variable to
+a unique non-nil value in the context of completion-producing
+calls (such as `completion-all-sorted-completions').  This hints
+the intervening completion styles that they do not need to
+propertize completion strings with the `face' property.
+
+When doing so, it is the frontend -- not the style -- who becomes
+responsible for `face'-propertizing only the completion strings
+that are meant to be displayed to the user.  This can be done by
+calling the function `completion-lazy-hilit' which returns a
+`face'-propertized string.
+
+The value stored in this variable by the completion frontend
+should be unique to each completion attempt or session that
+utilizes the same completion style in `completion-styles-alist'.
+For frontends using the minibuffer as the locus of completion
+calls and display, setting it to a buffer-local value given by
+`gensym' is appropriate.  For frontends operating entirely in a
+single command, let-binding it to `gensym' is appropriate.
+
+Note that the optimization enabled by variable is only actually
+performed some completions styles.  To others, it is a harmless
+and useless hint.  To author a completion style that takes
+advantage of this, look in the source of
+`completion-pcm--hilit-commonality'.")
+
+(defun completion-lazy-hilit (str)
+  "Return a copy of completion STR that is `face'-propertized.
+See documentation for variable `completion-lazy-hilit' for more
+details."
+  (let* ((str (copy-sequence str))
+         (data (get-text-property 0 'completion-lazy-hilit-data str))
+         (re (and
+              completion-lazy-hilit
+              (eq completion-lazy-hilit (car data)) (cdr data)))
+         (md (and re (string-match re str) (cddr (match-data t))))
+         (me (and md (match-end 0)))
+         (from 0))
+    (while md
+      (add-face-text-property from (pop md) 'completions-common-part nil str)
+      (setq from (pop md)))
+    (unless (or (not me) (= from me))
+      (add-face-text-property from me 'completions-common-part nil str))
+    str))
+
 (defun completion-pcm--hilit-commonality (pattern completions)
   "Show where and how well PATTERN matches COMPLETIONS.
 PATTERN, a list of symbols and strings as seen
@@ -3527,8 +3575,9 @@ between 0 and 1, and with faces `completions-common-part',
            last-md)
       (mapcar
        (lambda (str)
-	 ;; Don't modify the string itself.
-         (setq str (copy-sequence str))
+         (unless completion-lazy-hilit
+           ;; Don't modify the string itself.
+           (setq str (copy-sequence str)))
          (unless (string-match re str)
            (error "Internal error: %s does not match %s" re str))
          (let* ((pos (if point-idx (match-beginning point-idx) (match-end 0)))
@@ -3576,9 +3625,10 @@ between 0 and 1, and with faces `completions-common-part',
                 (update-score-and-face
                  (lambda (a b)
                    "Update score and face given match range (A B)."
-                   (add-face-text-property a b
-                                           'completions-common-part
-                                           nil str)
+                   (unless completion-lazy-hilit
+                     (add-face-text-property a b
+                                             'completions-common-part
+                                             nil str))
                    (setq
                     score-numerator   (+ score-numerator (- b a)))
                    (unless (or (= a last-b)
@@ -3601,7 +3651,10 @@ between 0 and 1, and with faces `completions-common-part',
            ;; for that extra bit of match (bug#42149).
            (unless (= from match-end)
              (funcall update-score-and-face from match-end))
-           (if (> (length str) pos)
+           (put-text-property 0 1 'completion-lazy-hilit-data
+                              (cons completion-lazy-hilit re) str)
+           (if (and (> (length str) pos)
+                    (not completion-lazy-hilit))
                (add-face-text-property
                 pos (1+ pos)
                 'completions-first-difference
