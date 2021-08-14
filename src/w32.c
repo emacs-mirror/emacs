@@ -8758,7 +8758,7 @@ int
 _sys_read_ahead (int fd)
 {
   child_process * cp;
-  int rc;
+  int rc = 0;
 
   if (fd < 0 || fd >= MAXDESC)
     return STATUS_READ_ERROR;
