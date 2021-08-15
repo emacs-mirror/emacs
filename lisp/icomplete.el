@@ -298,18 +298,21 @@ require user confirmation."
         (call-interactively 'kill-line)
       (let* ((all (completion-all-sorted-completions))
              (thing (car all))
+             (cat (icomplete--category))
              (action
-              (pcase (icomplete--category)
-                (`buffer
+              (cl-case cat
+                (buffer
                  (lambda ()
                    (when (yes-or-no-p (concat "Kill buffer " thing "? "))
                      (kill-buffer thing))))
-                (`file
+                ((project-file file)
                  (lambda ()
                    (let* ((dir (file-name-directory (icomplete--field-string)))
                           (path (expand-file-name thing dir)))
                      (when (yes-or-no-p (concat "Delete file " path "? "))
-                       (delete-file path) t)))))))
+                       (delete-file path) t))))
+                (t
+                 (error "Sorry, don't know how to kill things for `%s'" cat)))))
         (when (let (;; Allow `yes-or-no-p' to work and don't let it
                     ;; `icomplete-exhibit' anything.
                     (enable-recursive-minibuffers t)
