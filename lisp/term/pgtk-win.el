@@ -195,28 +195,6 @@ the last file dropped is selected."
 ;; Needed for font listing functions under both backend and normal
 (setq scalable-fonts-allowed t)
 
-;; Set to use font panel instead
-(declare-function pgtk-popup-font-panel "pgtkfns.c" (&optional frame))
-(defalias 'x-select-font 'pgtk-popup-font-panel "Pop up the font panel.
-This function has been overloaded in Nextstep.")
-(defalias 'mouse-set-font 'pgtk-popup-font-panel "Pop up the font panel.
-This function has been overloaded in Nextstep.")
-
-;; pgtkterm.c
-(defvar pgtk-input-font)
-(defvar pgtk-input-fontsize)
-
-(defun pgtk-respond-to-change-font ()
-  "Respond to changeFont: event, expecting `pgtk-input-font' and\n\
-`pgtk-input-fontsize' of new font."
-  (interactive)
-  (modify-frame-parameters (selected-frame)
-                           (list (cons 'fontsize pgtk-input-fontsize)))
-  (modify-frame-parameters (selected-frame)
-                           (list (cons 'font pgtk-input-font)))
-  (set-frame-font pgtk-input-font))
-
-
 ;; Default fontset.  This is mainly here to show how a fontset
 ;; can be set up manually.  Ordinarily, fontsets are auto-created whenever
 ;; a font is chosen by
@@ -225,9 +203,7 @@ This function has been overloaded in Nextstep.")
   ;; "-pgtk-*-*-*-*-*-10-*-*-*-*-*-fontset-standard,latin:Courier,han:Kai"
   (mapconcat 'identity
              '("-*-Monospace-*-*-*-*-10-*-*-*-*-*-fontset-standard"
-               "latin:-*-Courier-*-*-*-*-10-*-*-*-*-*-iso10646-1"
-               "han:-*-Kai-*-*-*-*-10-*-*-*-*-*-iso10646-1"
-               "cyrillic:-*-Trebuchet$MS-*-*-*-*-10-*-*-*-*-*-iso10646-1")
+               "latin:-*-Courier-*-*-*-*-10-*-*-*-*-*-iso10646-1")
              ",")
   "String of fontset spec of the standard fontset.
 This defines a fontset consisting of the Courier and other fonts.
