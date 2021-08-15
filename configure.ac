@@ -2613,11 +2613,6 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${window_sys
        EMACS_CHECK_MODULES([IMAGEMAGICK], [Wand >= 6.3.5 Wand != 6.8.2])
     fi
 
-    if test $HAVE_IMAGEMAGICK != yes; then
-      IMAGEMAGICK_MODULE="MagickWand-6.Q16HDRI >= 6.3.5 MagickWand-6.Q16HDRI != 6.8.2 MagickWand-6.Q16HDRI < 7 MagickCore-6.Q16HDRI >= 6.9.9 MagickCore-6.Q16HDRI < 7"
-      EMACS_CHECK_MODULES([IMAGEMAGICK], [$IMAGEMAGICK_MODULE])
-    fi
-
     if test $HAVE_IMAGEMAGICK = yes; then
       OLD_CFLAGS=$CFLAGS
       OLD_LIBS=$LIBS
