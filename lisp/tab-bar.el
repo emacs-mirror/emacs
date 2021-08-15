@@ -365,6 +365,7 @@ When this is nil, you can create new tabs with \\[tab-new]."
          (force-mode-line-update))
   :group 'tab-bar
   :version "27.1")
+(make-obsolete-variable 'tab-bar-new-button-show 'tab-bar-format "28.1")
 
 (defvar tab-bar-new-button " + "
   "Button for creating a new tab.")
