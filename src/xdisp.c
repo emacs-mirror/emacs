@@ -25434,8 +25434,9 @@ redisplay_mode_lines (Lisp_Object window, bool force)
 }
 
 
-/* Display the mode and/or header line of window W.  Value is the sum
-   number of mode lines, header lines, and tab lines actually displayed.  */
+/* Display the mode line, the header line, and the tab-line of window
+   W.  Value is the sum number of mode lines, header lines, and tab
+   lines actually displayed.  */
 
 static int
 display_mode_lines (struct window *w)
