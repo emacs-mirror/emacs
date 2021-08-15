@@ -58,9 +58,6 @@ typedef struct _XCharStruct
   int descent;
 } XCharStruct;
 
-/* Used in xdisp.c when comparing faces and frame colors.  */
-extern unsigned long ns_color_index_to_rgba(int idx, struct frame *f);
-
 #ifdef __OBJC__
 typedef id Emacs_Pixmap;
 #else

@@ -167,15 +167,13 @@ char const * nstrace_fullscreen_type_name (int fs_type)
 }
 
 + (NSColor *)colorWithUnsignedLong:(unsigned long)c
-                          hasAlpha:(BOOL)alpha
 {
   EmacsCGFloat a = (double)((c >> 24) & 0xff) / 255.0;
   EmacsCGFloat r = (double)((c >> 16) & 0xff) / 255.0;
   EmacsCGFloat g = (double)((c >> 8) & 0xff) / 255.0;
   EmacsCGFloat b = (double)(c & 0xff) / 255.0;
 
-  return [NSColor colorForEmacsRed:r green:g blue:b
-                             alpha:(alpha ? a : (EmacsCGFloat)1.0)];
+  return [NSColor colorForEmacsRed:r green:g blue:b alpha:a];
 }
 
 - (unsigned long)unsignedLong
@@ -1972,35 +1970,6 @@ ns_fullscreen_hook (struct frame *f)
    ========================================================================== */
 
 
-NSColor *
-ns_lookup_indexed_color (unsigned long idx, struct frame *f)
-{
-  NSMutableArray *color_table = FRAME_DISPLAY_INFO (f)->color_table;
-  if (idx < 1 || idx >= [color_table count])
-    return nil;
-  return [color_table objectAtIndex:idx];
-}
-
-
-unsigned long
-ns_index_color (NSColor *color, struct frame *f)
-{
-  NSMutableArray *color_table = FRAME_DISPLAY_INFO (f)->color_table;
-
-  /* An index of 0 appears to be special in some way, so insert a
-     dummy object.  */
-  if ([color_table count] == 0)
-    [color_table addObject:[NSNull null]];
-
-  /* Do we already have this color?  */
-  if ([color_table containsObject:color])
-    return [color_table indexOfObject:color];
-
-  [color_table addObject:color];
-  return [color_table count] - 1;
-}
-
-
 static int
 ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
@@ -2125,25 +2094,11 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
   return 1;
 }
 
-/* Convert an index into the color table into an RGBA value.  Used in
-   xdisp.c:extend_face_to_end_of_line when comparing faces and frame
-   color values.  */
-
-unsigned long
-ns_color_index_to_rgba(int idx, struct frame *f)
-{
-  NSColor *col;
-  col = ns_lookup_indexed_color (idx, f);
-
-  return [col unsignedLong];
-}
-
 void
-ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
+ns_query_color(void *col, Emacs_Color *color_def)
 /* --------------------------------------------------------------------------
-         Get ARGB values out of NSColor col and put them into color_def.
-         If setPixel, set the pixel to a concatenated version.
-         and set color_def pixel to the resulting index.
+         Get ARGB values out of NSColor col and put them into color_def
+         and set color_def pixel to the ARGB color.
    -------------------------------------------------------------------------- */
 {
   EmacsCGFloat r, g, b, a;
@@ -2153,8 +2108,7 @@ ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
   color_def->green = g * 65535;
   color_def->blue  = b * 65535;
 
-  if (setPixel == YES)
-    color_def->pixel = [(NSColor *)col unsignedLong];
+  color_def->pixel = [(NSColor *)col unsignedLong];
 }
 
 bool
@@ -2162,12 +2116,9 @@ ns_defined_color (struct frame *f,
                   const char *name,
                   Emacs_Color *color_def,
                   bool alloc,
-                  bool makeIndex)
+                  bool _makeIndex)
 /* --------------------------------------------------------------------------
          Return true if named color found, and set color_def rgb accordingly.
-         If makeIndex and alloc are nonzero put the color in the color_table,
-         and set color_def pixel to the resulting index.
-         If makeIndex is zero, set color_def pixel to ARGB.
          Return false if not found.
    -------------------------------------------------------------------------- */
 {
@@ -2180,9 +2131,7 @@ ns_defined_color (struct frame *f,
       unblock_input ();
       return 0;
     }
-  if (makeIndex && alloc)
-    color_def->pixel = ns_index_color (col, f);
-  ns_query_color (col, color_def, !makeIndex);
+  ns_query_color (col, color_def);
   unblock_input ();
   return 1;
 }
@@ -2193,7 +2142,7 @@ ns_query_frame_background_color (struct frame *f, Emacs_Color *bgcolor)
      External (hook): Store F's background color into *BGCOLOR
    -------------------------------------------------------------------------- */
 {
-  ns_query_color (FRAME_BACKGROUND_COLOR (f), bgcolor, true);
+  ns_query_color (FRAME_BACKGROUND_COLOR (f), bgcolor);
 }
 
 static void
@@ -2612,8 +2561,8 @@ ns_clear_frame (struct frame *f)
 
   block_input ();
   ns_focus (f, &r, 1);
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND
-			    (FACE_FROM_ID (f, DEFAULT_FACE_ID)), f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+			    (FACE_FROM_ID (f, DEFAULT_FACE_ID))] set];
   NSRectFill (r);
   ns_unfocus (f);
 
@@ -2641,7 +2590,7 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 
   r = NSIntersectionRect (r, [view frame]);
   ns_focus (f, &r, 1);
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
 
   NSRectFill (r);
 
@@ -2744,8 +2693,7 @@ ns_clear_under_internal_border (struct frame *f)
         return;
 
       ns_focus (f, NULL, 1);
-      [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
-
+      [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
       NSRectFill (NSMakeRect (0, margin, width, border));
       NSRectFill (NSMakeRect (0, 0, border, height));
       NSRectFill (NSMakeRect (0, margin, width, border));
@@ -2796,7 +2744,7 @@ ns_after_update_window_line (struct window *w, struct glyph_row *desired_row)
           NSRect r = NSMakeRect (0, y, FRAME_PIXEL_WIDTH (f), height);
           ns_focus (f, &r, 1);
 
-          [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
+          [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
           NSRectFill (NSMakeRect (0, y, width, height));
           NSRectFill (NSMakeRect (FRAME_PIXEL_WIDTH (f) - width,
                                   y, width, height));
@@ -2964,7 +2912,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     {
       NSTRACE_RECT ("clearRect", clearRect);
 
-      [ns_lookup_indexed_color(face->background, f) set];
+      [[NSColor colorWithUnsignedLong:face->background] set];
       NSRectFill (clearRect);
     }
 
@@ -2981,9 +2929,9 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       [bmp transformUsingAffineTransform:transform];
 
       if (!p->cursor_p)
-        bm_color = ns_lookup_indexed_color(face->foreground, f);
+        bm_color = [NSColor colorWithUnsignedLong:face->foreground];
       else if (p->overlay_p)
-        bm_color = ns_lookup_indexed_color(face->background, f);
+        bm_color = [NSColor colorWithUnsignedLong:face->background];
       else
         bm_color = f->output_data.ns->cursor_color;
 
@@ -3134,7 +3082,7 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 
   ns_focus (f, &r, 1);
   if (face)
-    [ns_lookup_indexed_color(face->foreground, f) set];
+    [[NSColor colorWithUnsignedLong:face->foreground] set];
 
   NSRectFill(r);
   ns_unfocus (f);
@@ -3170,29 +3118,29 @@ ns_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     /* A vertical divider, at least three pixels wide: Draw first and
        last pixels differently.  */
     {
-      [ns_lookup_indexed_color(color_first, f) set];
+      [[NSColor colorWithUnsignedLong:color_first] set];
       NSRectFill(NSMakeRect (x0, y0, 1, y1 - y0));
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(NSMakeRect (x0 + 1, y0, x1 - x0 - 2, y1 - y0));
-      [ns_lookup_indexed_color(color_last, f) set];
+      [[NSColor colorWithUnsignedLong:color_last] set];
       NSRectFill(NSMakeRect (x1 - 1, y0, 1, y1 - y0));
     }
   else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
     /* A horizontal divider, at least three pixels high: Draw first and
        last pixels differently.  */
     {
-      [ns_lookup_indexed_color(color_first, f) set];
+      [[NSColor colorWithUnsignedLong:color_first] set];
       NSRectFill(NSMakeRect (x0, y0, x1 - x0, 1));
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(NSMakeRect (x0, y0 + 1, x1 - x0, y1 - y0 - 2));
-      [ns_lookup_indexed_color(color_last, f) set];
+      [[NSColor colorWithUnsignedLong:color_last] set];
       NSRectFill(NSMakeRect (x0, y1 - 1, x1 - x0, 1));
     }
   else
     {
       /* In any other case do not draw the first and last pixels
          differently.  */
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(divider);
     }
 
@@ -3305,7 +3253,7 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
       if (s->face->underline == FACE_UNDER_WAVE)
         {
           if (!face->underline_defaulted_p)
-            [ns_lookup_indexed_color (face->underline_color, s->f) set];
+            [[NSColor colorWithUnsignedLong:face->underline_color] set];
 
           ns_draw_underwave (s, width, x);
         }
@@ -3379,7 +3327,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
           r = NSMakeRect (x, s->ybase + position, width, thickness);
 
           if (!face->underline_defaulted_p)
-            [ns_lookup_indexed_color (face->underline_color, s->f) set];
+            [[NSColor colorWithUnsignedLong:face->underline_color] set];
+
           NSRectFill (r);
         }
     }
@@ -3391,7 +3340,7 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
       r = NSMakeRect (x, s->y, width, 1);
 
       if (!face->overline_color_defaulted_p)
-        [ns_lookup_indexed_color (face->overline_color, s->f) set];
+        [[NSColor colorWithUnsignedLong:face->overline_color] set];
 
       NSRectFill (r);
     }
@@ -3416,7 +3365,7 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
       r = NSMakeRect (x, glyph_y + dy, width, 1);
 
       if (!face->strike_through_color_defaulted_p)
-        [ns_lookup_indexed_color (face->strike_through_color, s->f) set];
+        [[NSColor colorWithUnsignedLong:face->strike_through_color] set];
 
       NSRectFill (r);
     }
@@ -3475,7 +3424,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
 
   if (s->face->use_box_color_for_shadows_p)
     {
-      newBaseCol = ns_lookup_indexed_color (s->face->box_color, s->f);
+      newBaseCol = [NSColor colorWithUnsignedLong:s->face->box_color];
     }
 /*     else if (s->first_glyph->type == IMAGE_GLYPH
 	   && s->img->pixmap
@@ -3485,7 +3434,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
        } */
   else
     {
-      newBaseCol = ns_lookup_indexed_color (s->face->background, s->f);
+      newBaseCol = [NSColor colorWithUnsignedLong:s->face->background];
     }
 
   if (newBaseCol == nil)
@@ -3607,7 +3556,7 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
   if (s->face->box == FACE_SIMPLE_BOX && s->face->box_color)
     {
       ns_draw_box (r, abs (hthickness), abs (vthickness),
-                   ns_lookup_indexed_color (face->box_color, s->f),
+                   [NSColor colorWithUnsignedLong:face->box_color],
                    left_p, right_p);
     }
   else
@@ -3644,7 +3593,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 	    {
 	      if (s->hl != DRAW_CURSOR)
 		[(NS_FACE_BACKGROUND (face) != 0
-		  ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
+		  ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
 		  : FRAME_BACKGROUND_COLOR (s->f)) set];
 	      else
 		[FRAME_CURSOR_COLOR (s->f) set];
@@ -3701,7 +3650,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
      otherwise, since we composite the image under NS (instead of mucking
      with its background color), we must clear just the image area.  */
 
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
 
   if (bg_height > s->slice.height || s->img->hmargin || s->img->vmargin
       || s->img->mask || s->img->pixmap == 0 || s->width != s->background_width)
@@ -3771,11 +3720,11 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   if (s->hl == DRAW_CURSOR)
     {
       [FRAME_CURSOR_COLOR (s->f) set];
-      tdCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
+      tdCol = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)];
     }
   else
     {
-      tdCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+      tdCol = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)];
     }
 
   /* Draw underline, overline, strike-through.  */
@@ -3832,8 +3781,8 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 
       face = s->face;
 
-      bgCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
-      fgCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+      bgCol = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)];
+      fgCol = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)];
 
       if (s->hl == DRAW_CURSOR)
 	{
@@ -4067,8 +4016,7 @@ ns_draw_glyph_string (struct glyph_string *s)
 
 	{
 	  NSColor *col = (NS_FACE_FOREGROUND (s->face) != 0
-			  ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (s->face),
-						     s->f)
+			  ? [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)]
 			  : FRAME_FOREGROUND_COLOR (s->f));
 
 	  /* Draw underline, overline, strike-through. */
@@ -4103,7 +4051,7 @@ ns_draw_glyph_string (struct glyph_string *s)
     {
       NSColor *fg_color;
 
-      fg_color = ns_lookup_indexed_color (NS_FACE_FOREGROUND (s->face), s->f);
+      fg_color = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)];
       ns_draw_text_decoration (s, s->face, fg_color,
 			       s->background_width, s->x);
     }
@@ -4922,7 +4870,6 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
                 && ![NSCalibratedWhiteColorSpace isEqualToString:
                                                  NSColorSpaceFromDepth (depth)];
     dpyinfo->n_planes = NSBitsPerPixelFromDepth (depth);
-    dpyinfo->color_table = [[NSMutableArray array] retain];
     dpyinfo->root_window = 42; /* A placeholder.  */
     dpyinfo->highlight_frame = dpyinfo->ns_focus_frame = NULL;
     dpyinfo->n_fonts = 0;
@@ -4998,7 +4945,6 @@ static void
 ns_delete_display (struct ns_display_info *dpyinfo)
 {
   /* TODO...  */
-  [dpyinfo->color_table release];
 }
 
 
@@ -5211,8 +5157,9 @@ ns_term_init (Lisp_Object display_name)
             color = XCAR (color_map);
             name = XCAR (color);
             c = XFIXNUM (XCDR (color));
+            c |= 0xFF000000;
             [cl setColor:
-                  [NSColor colorWithUnsignedLong:c hasAlpha:NO]
+                  [NSColor colorWithUnsignedLong:c]
                   forKey: [NSString stringWithLispString: name]];
           }
 
@@ -7610,9 +7557,8 @@ not_in_argv (NSString *arg)
   onFirstScreen = [[w screen] isEqual:[[NSScreen screens] objectAtIndex:0]];
   f = emacsframe;
   wr = [w frame];
-  col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-				 (FACE_FROM_ID (f, DEFAULT_FACE_ID)),
-                                 f);
+  col = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+				 (FACE_FROM_ID (f, DEFAULT_FACE_ID))];
 
   if (fs_state != FULLSCREEN_BOTH)
     {
@@ -8360,9 +8306,8 @@ not_in_argv (NSString *arg)
 
       f->border_width = [self borderWidth];
 
-      col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-                                     (FACE_FROM_ID (f, DEFAULT_FACE_ID)),
-                                     f);
+      col = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+                                     (FACE_FROM_ID (f, DEFAULT_FACE_ID))];
       [self setBackgroundColor:col];
       if ([col alphaComponent] != (EmacsCGFloat) 1.0)
         [self setOpaque:NO];

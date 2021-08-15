@@ -357,6 +357,7 @@ typedef id instancetype;
 @interface NSColor (EmacsColor)
 + (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
                          blue:(CGFloat)blue alpha:(CGFloat)alpha;
++ (NSColor *)colorWithUnsignedLong:(unsigned long)c;
 - (NSColor *)colorUsingDefaultColorSpace;
 - (unsigned long)unsignedLong;
 @end
@@ -821,12 +822,6 @@ struct ns_display_info
   ptrdiff_t bitmaps_size;
   ptrdiff_t bitmaps_last;
 
-#ifdef __OBJC__
-  NSMutableArray *color_table;
-#else
-  void *color_table;
-#endif
-
   /* DPI resolution of this screen */
   double resx, resy;
 
@@ -1102,13 +1097,9 @@ ns_defined_color (struct frame *f,
                   const char *name,
                   Emacs_Color *color_def, bool alloc,
                   bool makeIndex);
-extern void
-ns_query_color (void *col, Emacs_Color *color_def, bool setPixel);
 
 #ifdef __OBJC__
 extern int ns_lisp_to_color (Lisp_Object color, NSColor **col);
-extern NSColor *ns_lookup_indexed_color (unsigned long idx, struct frame *f);
-extern unsigned long ns_index_color (NSColor *color, struct frame *f);
 extern const char *ns_get_pending_menu_title (void);
 #endif
 

@@ -1196,7 +1196,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 	{
 	  if (s->hl != DRAW_CURSOR)
 	    [(NS_FACE_BACKGROUND (face) != 0
-	      ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
+	      ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
 	      : FRAME_BACKGROUND_COLOR (s->f)) set];
 	  else
 	    [FRAME_CURSOR_COLOR (s->f) set];
@@ -1216,7 +1216,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     col = FRAME_BACKGROUND_COLOR (s->f);
   else
     col = (NS_FACE_FOREGROUND (face) != 0
-	   ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
+	   ? [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)]
 	   : FRAME_FOREGROUND_COLOR (s->f));
 
   /* render under GNUstep using DPS */

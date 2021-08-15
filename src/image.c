@@ -2626,8 +2626,8 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
     face_id = DEFAULT_FACE_ID;
 
   struct face *face = FACE_FROM_ID (f, face_id);
-  unsigned long foreground = FACE_COLOR_TO_PIXEL (face->foreground, f);
-  unsigned long background = FACE_COLOR_TO_PIXEL (face->background, f);
+  unsigned long foreground = face->foreground;
+  unsigned long background = face->background;
   int font_size = face->font->pixel_size;
   char *font_family = SSDATA (face->lface[LFACE_FAMILY_INDEX]);
 
