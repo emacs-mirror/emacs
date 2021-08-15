@@ -4000,27 +4000,39 @@ that is non-nil."
       ((compose-flex-sort-fn
         (existing-sort-fn) ; wish `cl-flet' had proper indentation...
         (lambda (completions)
-          (let ((pre-sorted
-                 (if existing-sort-fn
-                     (funcall existing-sort-fn completions)
-                   completions)))
-            (cond
-             ((or (not (window-minibuffer-p))
-                  ;; JT@2019-12-23: FIXME: this is still wrong.  What
-                  ;; we need to test here is "some input that actually
-                  ;; leads to flex filtering", not "something after
-                  ;; the minibuffer prompt".  Among other
-                  ;; inconsistencies, the latter is always true for
-                  ;; file searches, meaning the next clauses will be
-                  ;; ignored.
-                  (> (point-max) (minibuffer-prompt-end)))
-              (sort
-               pre-sorted
-               (lambda (c1 c2)
-                 (let ((s1 (get-text-property 0 'completion-score c1))
-                       (s2 (get-text-property 0 'completion-score c2)))
-                   (> (or s1 0) (or s2 0))))))
-             (t pre-sorted))))))
+          (cond
+           (;; Sort by flex score whenever outside the minibuffer or
+            ;; in the minibuffer with some input.  JT@2019-12-23:
+            ;; FIXME: this is still wrong.  What we need to test here
+            ;; is "some input that actually leads to flex filtering",
+            ;; not "something after the minibuffer prompt".  Among
+            ;; other inconsistencies, the latter is always true for
+            ;; file searches, meaning the next clauses in this cond
+            ;; will be ignored.
+            (or (not (window-minibuffer-p))
+                (> (point-max) (minibuffer-prompt-end)))
+            (sort
+             (if existing-sort-fn
+                 (funcall existing-sort-fn completions)
+               completions)
+             (lambda (c1 c2)
+               (let ((s1 (get-text-property 0 'completion-score c1))
+                     (s2 (get-text-property 0 'completion-score c2)))
+                 (> (or s1 0) (or s2 0))))))
+           (;; If no existing sort fn and nothing flexy happening, use
+            ;; the customary sorting strategy.
+            ;;
+            ;; JT@2021-08-15: FIXME: ideally this wouldn't repeat
+            ;; logic in `completion-all-sorted-completions', but that
+            ;; logic has other context that is either expensive to
+            ;; compute or not easy to access here.
+            (not existing-sort-fn)
+            (let ((lalpha (minibuffer--sort-by-length-alpha completions))
+                  (hist (and (minibufferp)
+                             (and (not (eq minibuffer-history-variable t))
+                                  (symbol-value minibuffer-history-variable)))))
+              (if hist (minibuffer--sort-by-position hist lalpha) lalpha)))
+           (t (funcall existing-sort-fn completions))))))
     `(metadata
       (display-sort-function
        . ,(compose-flex-sort-fn

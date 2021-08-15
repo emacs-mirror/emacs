@@ -3444,8 +3444,16 @@ for string constants.
 
 @item font-lock-doc-face
 @vindex font-lock-doc-face
-for documentation strings in the code.  This inherits, by default, from
+for documentation embedded in program code inside specially-formed
+comments or strings.  This face inherits, by default, from
 @code{font-lock-string-face}.
+
+@item font-lock-doc-markup-face
+@vindex font-lock-doc-markup-face
+for mark-up elements in text using @code{font-lock-doc-face}.
+It is typically used for the mark-up constructs in documentation embedded
+in program code, following conventions such as Haddock, Javadoc or Doxygen.
+This face inherits, by default, from @code{font-lock-constant-face}.
 
 @item font-lock-negation-char-face
 @vindex font-lock-negation-char-face

@@ -175,16 +175,14 @@ This is expected to be bound to a mouse event."
       (set symbol keymap)
       (defalias symbol
 	(lambda (event) (:documentation doc) (interactive "@e")
-	   ;; FIXME: XEmacs uses popup-menu which calls the binding
-	   ;; while x-popup-menu only returns the selection.
 	   (x-popup-menu event
-			 (or (and (symbolp symbol)
+			 (or (and (symbolp keymap)
 				  (funcall
-				   (or (plist-get (get symbol 'menu-prop)
+				   (or (plist-get (get keymap 'menu-prop)
 						  :filter)
                                        #'identity)
-				   (symbol-function symbol)))
-			     symbol))))
+				   (symbol-function keymap)))
+			     keymap))))
       ;; These symbols are commands, but not interesting for users
       ;; to `M-x TAB'.
       (function-put symbol 'completion-predicate #'ignore))
@@ -257,7 +255,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
                      ;; anyway, so we'd better not convert it at all (it will
                      ;; be converted on the fly by easy-menu-filter-return).
                      menu-items
-                   (append menu (mapcar 'easy-menu-convert-item menu-items))))
+                   (append menu (mapcar #'easy-menu-convert-item menu-items))))
       (when prop
 	(setq menu (easy-menu-make-symbol menu 'noexp))
 	(put menu 'menu-prop prop))
@@ -667,7 +665,7 @@ In some cases we use that to select between the local and global maps."
 	    (let* ((name (if path (format "%s" (car (reverse path)))))
 		   (newmap (make-sparse-keymap name)))
 	      (define-key (or map (current-local-map))
-		(apply 'vector (mapcar 'easy-menu-intern path))
+		(apply #'vector (mapcar #'easy-menu-intern path))
 		(if name (cons name newmap) newmap))
 	      newmap))))
   (or (keymapp map) (error "Malformed menu in easy-menu: (%s)" map))

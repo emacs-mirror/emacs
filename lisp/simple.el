@@ -2194,6 +2194,8 @@ Also see `suggest-key-bindings'."
           (setq binding candidate))))
     binding))
 
+(defvar execute-extended-command--binding-timer nil)
+
 (defun execute-extended-command (prefixarg &optional command-name typed)
   ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
   ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
@@ -2258,15 +2260,24 @@ invoking, give a prefix argument to `execute-extended-command'."
             (setq binding (execute-extended-command--shorter
                            (symbol-name function) typed))))
         (when binding
-          (with-temp-message
-              (format-message "You can run the command `%s' with %s"
-                              function
-                              (if (stringp binding)
-                                  (concat "M-x " binding " RET")
-                                (key-description binding)))
-            (sit-for (if (numberp suggest-key-bindings)
-                         suggest-key-bindings
-                       2))))))))
+          ;; This is normally not necessary -- the timer should run
+          ;; immediately, but be defensive and ensure that we never
+          ;; have two of these timers in flight.
+          (when execute-extended-command--binding-timer
+            (cancel-timer execute-extended-command--binding-timer))
+          (setq execute-extended-command--binding-timer
+                (run-at-time
+                 0 nil
+                 (lambda ()
+                   (with-temp-message
+                       (format-message "You can run the command `%s' with %s"
+                                       function
+                                       (if (stringp binding)
+                                           (concat "M-x " binding " RET")
+                                         (key-description binding)))
+                     (sit-for (if (numberp suggest-key-bindings)
+                                  suggest-key-bindings
+                                2)))))))))))
 
 (defun execute-extended-command-for-buffer (prefixarg &optional
                                                       command-name typed)

@@ -969,11 +969,11 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 	       (list (match-string 1)))
 	     header-files
              ;; this assumes that there are no spaces in filenames
-	     (when (re-search-backward
-		    "^diff \\(-\\S-+ +\\)*\\(\\S-+\\)\\( +\\(\\S-+\\)\\)?"
-		    nil t)
-	       (list (if old (match-string 2) (match-string 4))
-		     (if old (match-string 4) (match-string 2)))))))))
+             (and (re-search-backward "^diff " nil t)
+                  (looking-at
+		   "^diff \\(-[^ \t\nL]+ +\\)*\\(-L +\\S-+ +\\)*\\(\\S-+\\)\\( +\\(\\S-+\\)\\)?")
+	          (list (if old (match-string 3) (match-string 5))
+		        (if old (match-string 4) (match-string 3)))))))))
 
 (defun diff-find-file-name (&optional old noprompt prefix)
   "Return the file corresponding to the current patch.

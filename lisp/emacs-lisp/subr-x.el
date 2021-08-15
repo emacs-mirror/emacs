@@ -240,6 +240,7 @@ carriage return."
       (substring string 0 (- (length string) (length suffix)))
     string))
 
+;;;###autoload
 (defun string-clean-whitespace (string)
   "Clean up whitespace in STRING.
 All sequences of whitespaces in STRING are collapsed into a

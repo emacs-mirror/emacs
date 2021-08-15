@@ -93,6 +93,14 @@ name to be bound to the rest of SEQUENCE."
   (declare (indent 2) (debug (sexp form body)))
   `(pcase-let ((,(seq--make-pcase-patterns args) ,sequence))
      ,@body))
+
+(defmacro seq-setq (args sequence)
+  "Assign to the variables in ARGS the elements of SEQUENCE.
+
+ARGS can also include the `&rest' marker followed by a variable
+name to be bound to the rest of SEQUENCE."
+  (declare (debug (sexp form)))
+  `(pcase-setq ,(seq--make-pcase-patterns args) ,sequence))
 
 
 ;;; Basic seq functions that have to be implemented by new sequence types

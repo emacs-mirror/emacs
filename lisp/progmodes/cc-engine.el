@@ -7393,29 +7393,51 @@ multi-line strings (but not C++, for example)."
   (save-excursion
     (goto-char beg)
     (when open-delim
+      ;; If BEG is in an opener, move back to a position we know to be "safe".
       (if (<= beg (cadr open-delim))
 	  (goto-char (cadr open-delim))
 	(c-ml-string-back-to-neutral (car open-delim))))
-    (or (and c-ml-string-back-closer-re
-	     (looking-at c-ml-string-any-closer-re)
-	     (eq (c-in-literal) 'string)
-	     (goto-char (match-end 0)))
-	(progn
-	  (while
-	      (and
-	       (search-forward-regexp
-		c-ml-string-any-closer-re
-		(min (+ end c-ml-string-max-closer-len-no-leader) (point-max))
-		t)
-	       (save-excursion
-		 (goto-char (match-end 1))
-		 (not (c-in-literal)))
-	       (<= (point) beg)
-	       (not (save-excursion
-		      (goto-char (match-beginning 2))
-		      (c-literal-start)))))))
 
-    (unless (or (and (not (eobp))
+    (let (saved-match-data)
+      (or
+       ;; If we might be in the middle of "context" bytes at the start of a
+       ;; closer, move to after the closer.
+       (and c-ml-string-back-closer-re
+	    (looking-at c-ml-string-any-closer-re)
+	    (eq (c-in-literal) 'string)
+	    (setq saved-match-data (match-data))
+	    (goto-char (match-end 0)))
+
+       ;; Otherwise, move forward over closers while we haven't yet reached END,
+       ;; until we're after BEG.
+       (progn
+	 (while
+	     (let (found)
+	       (while			; Go over a single real closer.
+		   (and
+		    (search-forward-regexp
+		     c-ml-string-any-closer-re
+		     (min (+ end c-ml-string-max-closer-len-no-leader)
+			  (point-max))
+		     t)
+		    (save-excursion
+		      (goto-char (match-end 1))
+		      (if (c-in-literal) ; a psuedo closer.
+			  t
+			(setq saved-match-data (match-data))
+			(setq found t)
+			nil))))
+	       (and found
+		    (<= (point) beg))
+	       ;; (not (save-excursion
+	       ;;        (goto-char (match-beginning 2))
+	       ;;        (c-literal-start)))
+	       ))))
+      (set-match-data saved-match-data))
+
+    ;; Test whether we've found the sought closing delimiter.
+    (unless (or (null (match-data))
+		(and (not (eobp))
 		     (<= (point) beg))
 		(> (match-beginning 0) beg)
 		(progn (goto-char (match-beginning 2))

@@ -312,6 +312,9 @@ If a number, only buffers greater than this size have fontification messages."
 (defvar font-lock-doc-face		'font-lock-doc-face
   "Face name to use for documentation.")
 
+(defvar font-lock-doc-markup-face       'font-lock-doc-markup-face
+  "Face name to use for documentation mark-up.")
+
 (defvar font-lock-keyword-face		'font-lock-keyword-face
   "Face name to use for keywords.")
 
@@ -2003,7 +2006,16 @@ Sets various variables using `font-lock-defaults' and
 
 (defface font-lock-doc-face
   '((t :inherit font-lock-string-face))
-  "Font Lock mode face used to highlight documentation."
+  "Font Lock mode face used to highlight documentation embedded in program code.
+It is typically used for special documentation comments or strings."
+  :group 'font-lock-faces)
+
+(defface font-lock-doc-markup-face
+  '((t :inherit font-lock-constant-face))
+  "Font Lock mode face used to highlight embedded documentation mark-up.
+It is meant for mark-up elements in text that uses `font-lock-doc-face', such
+as the constructs of Haddock, Javadoc and similar systems."
+  :version "28.1"
   :group 'font-lock-faces)
 
 (defface font-lock-keyword-face
