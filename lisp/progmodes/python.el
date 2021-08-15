@@ -3085,7 +3085,8 @@ t when called interactively."
    (list (read-string "Python command: ") nil t))
   (let ((process (or process (python-shell-get-process-or-error msg))))
     (if (string-match ".\n+." string)   ;Multiline.
-        (let* ((temp-file-name (python-shell--save-temp-file string))
+        (let* ((temp-file-name (with-current-buffer (process-buffer process)
+                                 (python-shell--save-temp-file string)))
                (file-name (or (buffer-file-name) temp-file-name)))
           (python-shell-send-file file-name process temp-file-name t))
       (comint-send-string process string)
