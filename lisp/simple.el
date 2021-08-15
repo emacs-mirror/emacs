@@ -6660,9 +6660,16 @@ is temporarily turned on.  Furthermore, the mark will be deactivated
 by any subsequent point motion key that was not shift-translated, or
 by any action that normally deactivates the mark in Transient Mark mode.
 
+When the value is `permanent', the mark will be deactivated by any
+action which normally does that, but not by motion keys that were
+not shift-translated.
+
 See `this-command-keys-shift-translated' for the meaning of
 shift-translation."
-  :type 'boolean
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "Permanent" permanent)
+                 (other :tag "On" t))
+  :version "28.1"
   :group 'editing-basics)
 
 (defun handle-shift-selection ()
@@ -6680,7 +6687,12 @@ translation.
 Otherwise, if the region has been activated temporarily,
 deactivate it, and restore the variable `transient-mark-mode' to
 its earlier value."
-  (cond ((and shift-select-mode this-command-keys-shift-translated)
+  (cond ((and (eq shift-select-mode 'permanent)
+              this-command-keys-shift-translated)
+         (unless mark-active
+           (push-mark nil nil t)))
+        ((and shift-select-mode
+              this-command-keys-shift-translated)
          (unless (and mark-active
 		      (eq (car-safe transient-mark-mode) 'only))
 	   (setq-local transient-mark-mode

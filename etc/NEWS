@@ -264,6 +264,12 @@ This works in text buffers and over images.  Typing a numeric prefix arg
 The value is saved in the user option 'mouse-wheel-scroll-amount-horizontal'.
 
 ---
+** New choice 'permanent' for 'shift-select-mode'.
+When the mark was activated by shifted motion keys,
+non-shifted motion keys don't deactivate the mark
+after customizing 'shift-select-mode' to 'permanent'.
+
+---
 ** The default value of 'frame-title-format' and 'icon-title-format' has changed.
 These variables are used to display the title bar of visible frames
 and the title bar of an iconified frame.  They now show the name of
