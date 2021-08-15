@@ -17275,8 +17275,11 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
 
   if (!NILP (Vwindow_scroll_functions))
     {
+      ptrdiff_t count = SPECPDL_INDEX ();
+      specbind (Qinhibit_quit, Qt);
       run_hook_with_args_2 (Qwindow_scroll_functions, window,
 			    make_fixnum (CHARPOS (startp)));
+      unbind_to (count, Qnil);
       SET_TEXT_POS_FROM_MARKER (startp, w->start);
       /* In case the hook functions switch buffers.  */
       set_buffer_internal (XBUFFER (w->contents));
@@ -19269,7 +19272,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   w->start_at_line_beg = (CHARPOS (startp) == BEGV
 			  || FETCH_BYTE (BYTEPOS (startp) - 1) == '\n');
 
-  /* Display the mode line, if we must.  */
+  /* Display the mode line, header line, and tab-line, if we must.  */
   if ((update_mode_line
        /* If window not full width, must redo its mode line
 	  if (a) the window to its side is being redone and
@@ -19288,8 +19291,11 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	  || window_wants_header_line (w)
 	  || window_wants_tab_line (w)))
     {
+      ptrdiff_t count1 = SPECPDL_INDEX ();
 
+      specbind (Qinhibit_quit, Qt);
       display_mode_lines (w);
+      unbind_to (count1, Qnil);
 
       /* If mode line height has changed, arrange for a thorough
 	 immediate redisplay using the correct mode line height.  */
@@ -19337,7 +19343,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
  finish_menu_bars:
 
   /* When we reach a frame's selected window, redo the frame's menu
-     bar and the frame's title.  */
+     bar, tool bar, tab-bar, and the frame's title.  */
   if (update_mode_line
       && EQ (FRAME_SELECTED_WINDOW (f), window))
     {
@@ -25428,8 +25434,8 @@ redisplay_mode_lines (Lisp_Object window, bool force)
 }
 
 
-/* Display the mode and/or header line of window W.  Value is the
-   sum number of mode lines and header lines displayed.  */
+/* Display the mode and/or header line of window W.  Value is the sum
+   number of mode lines, header lines, and tab lines actually displayed.  */
 
 static int
 display_mode_lines (struct window *w)
@@ -27009,7 +27015,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	Lisp_Object val = Qnil;
 
 	if (STRINGP (curdir))
-	  val = call1 (intern ("file-remote-p"), curdir);
+	  val = safe_call1 (intern ("file-remote-p"), curdir);
 
 	val = unbind_to (count, val);
 
