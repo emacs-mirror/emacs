@@ -3513,7 +3513,7 @@ than the latter (which has two \"holes\" and three
 one-letter-long matches).")
 
 (defvar-local completion-lazy-hilit nil
-  "If non-nil, request completion lazy hilighting.
+  "If non-nil, request lazy hilighting of completion matches.
 
 Completion-presenting frontends may opt to bind this variable to
 a unique non-nil value in the context of completion-producing
@@ -3522,24 +3522,24 @@ the intervening completion styles that they do not need to
 propertize completion strings with the `face' property.
 
 When doing so, it is the frontend -- not the style -- who becomes
-responsible for `face'-propertizing only the completion strings
-that are meant to be displayed to the user.  This can be done by
-calling the function `completion-lazy-hilit' which returns a
-`face'-propertized string.
+responsible for `face'-propertizing the completion matches meant
+to be displayed to the user, frequently a small subset of all
+completion matches.  This can be done by calling the function
+`completion-lazy-hilit' which returns a `face'-propertized
+string.
 
-The value stored in this variable by the completion frontend
-should be unique to each completion attempt or session that
-utilizes the same completion style in `completion-styles-alist'.
-For frontends using the minibuffer as the locus of completion
-calls and display, setting it to a buffer-local value given by
-`gensym' is appropriate.  For frontends operating entirely in a
-single command, let-binding it to `gensym' is appropriate.
+The value stored in this variable by the completion frontend must
+be unique to each completion attempt/session.  For instance,
+frontends which utilize the minibuffer as the locus of completion
+may set it to a buffer-local value returned by `gensym'.  For
+frontends operating within a recursive command loop, let-binding
+it to `gensym' is appropriate.
 
 Note that the optimization enabled by variable is only actually
 performed some completions styles.  To others, it is a harmless
 and useless hint.  To author a completion style that takes
 advantage of this, look in the source of
-`completion-pcm--hilit-commonality'.")
+`completion-pcm--hilit-commonality' for ideas.")
 
 (defun completion-lazy-hilit (str)
   "Return a copy of completion STR that is `face'-propertized.
@@ -3576,7 +3576,8 @@ between 0 and 1, and with faces `completions-common-part',
       (mapcar
        (lambda (str)
          (unless completion-lazy-hilit
-           ;; Don't modify the string itself.
+           ;; Make a copy of `str' since in this case we're about to
+           ;; `face'-propertize it.
            (setq str (copy-sequence str)))
          (unless (string-match re str)
            (error "Internal error: %s does not match %s" re str))
