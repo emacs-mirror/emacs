@@ -2797,13 +2797,14 @@ need for `pike-font-lock-extra-types'.")
   ;;
   ;; This function might do hidden buffer changes.
   (declare (indent 2))
-  (let (comment-beg region-beg)
+  (let (comment-beg region-beg comment-mid)
     (if (memq (get-text-property (point) 'face)
 	      '(font-lock-comment-face font-lock-comment-delimiter-face))
 	;; Handle the case when the fontified region starts inside a
 	;; comment.
 	(let ((start (c-literal-start)))
-	  (setq region-beg (point))
+	  (setq region-beg (point)
+		comment-mid (point))
 	  (when start
 	    (goto-char start))
 	  (when (looking-at prefix)
@@ -2829,7 +2830,8 @@ need for `pike-font-lock-extra-types'.")
 				(goto-char comment-beg)
 				(c-in-literal)))))
 	      (setq comment-beg nil))
-	    (setq region-beg comment-beg))
+	    (setq region-beg comment-beg
+		  comment-mid comment-beg))
 
       (if (elt (parse-partial-sexp comment-beg (+ comment-beg 2)) 7)
 	  ;; Collect a sequence of doc style line comments.
@@ -2837,15 +2839,16 @@ need for `pike-font-lock-extra-types'.")
 	    (goto-char comment-beg)
 	    (while (and (progn
 			  (c-forward-single-comment)
-			  (c-put-font-lock-face comment-beg (point)
+			  (c-put-font-lock-face comment-mid (point)
 						c-doc-face-name)
 			  (skip-syntax-forward " ")
-			  (setq comment-beg (point))
+			  (setq comment-beg (point)
+				comment-mid (point))
 			  (< (point) limit))
 			(looking-at prefix))))
 	(goto-char comment-beg)
 	(c-forward-single-comment)
-	(c-put-font-lock-face comment-beg (point) c-doc-face-name))
+	(c-put-font-lock-face region-beg (point) c-doc-face-name))
       (if (> (point) limit) (goto-char limit))
       (setq comment-beg nil)
 

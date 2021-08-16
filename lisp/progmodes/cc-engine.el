@@ -12675,7 +12675,7 @@ comment at the start of cc-engine.el for more info."
 		       (save-excursion
 			 (while
 			     (progn
-			       (c-syntactic-skip-backward "^;=}>" closest-lim t)
+			       (c-syntactic-skip-backward "^;=,}>" closest-lim t)
 			       (and (eq (char-before) ?>)
 				    (c-backward-token-2)
 				    (not (looking-at c-haskell-op-re)))))
