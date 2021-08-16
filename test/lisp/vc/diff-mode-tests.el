@@ -475,7 +475,7 @@ baz"))))
     (should (equal (diff-hunk-file-names)
                    '("/tmp/ange-ftp1351895K.el" "/tmp/ange-ftp13518wvE.el"))))
   (with-temp-buffer
-    (insert "diff -c -L /ftp\:slbhao\:/home/albinus/src/tramp/lisp/tramp.el -L /ftp\:slbhao\:/home/albinus/src/emacs/lisp/net/tramp.el /tmp/ange-ftp13518wvE.el /tmp/ange-ftp1351895K.el\n")
+    (insert "diff -c -L /ftp:slbhao:/home/albinus/src/tramp/lisp/tramp.el -L /ftp:slbhao:/home/albinus/src/emacs/lisp/net/tramp.el /tmp/ange-ftp13518wvE.el /tmp/ange-ftp1351895K.el\n")
     (goto-char (point-min))
     (should (equal (diff-hunk-file-names)
                    '("/tmp/ange-ftp1351895K.el" "/tmp/ange-ftp13518wvE.el")))))
