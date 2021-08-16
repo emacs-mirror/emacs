@@ -3251,6 +3251,14 @@ For a list of user commands (/join /part, ...):
 				 (concat " " password)
 			       "")))))
 
+(defun erc--valid-local-channel-p (channel)
+  "Non-nil when channel is server-local on a network that allows them."
+  (and-let* (((eq ?& (aref channel 0)))
+             (chan-types (erc--get-isupport-entry 'CHANTYPES 'single))
+             ((if (>= emacs-major-version 28)
+                  (string-search "&" chan-types)
+                (string-match-p "&" chan-types))))))
+
 (defun erc-cmd-JOIN (channel &optional key)
   "Join the channel given in CHANNEL, optionally with KEY.
 If CHANNEL is specified as \"-invite\", join the channel to which you

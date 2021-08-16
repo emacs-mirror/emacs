@@ -466,6 +466,18 @@
       (should (equal (erc-downcase "Tilde~") "tilde~" ))
       (should (equal (erc-downcase "\\O/") "|o/" )))))
 
+(ert-deftest erc--valid-local-channel-p ()
+  (ert-info ("Local channels not supported")
+    (let ((erc--isupport-params (make-hash-table)))
+      (puthash 'CHANTYPES  '("#") erc--isupport-params)
+      (should-not (erc--valid-local-channel-p "#chan"))
+      (should-not (erc--valid-local-channel-p "&local"))))
+  (ert-info ("Local channels supported")
+    (let ((erc--isupport-params (make-hash-table)))
+      (puthash 'CHANTYPES  '("&#") erc--isupport-params)
+      (should-not (erc--valid-local-channel-p "#chan"))
+      (should (erc--valid-local-channel-p "&local")))))
+
 (ert-deftest erc-ring-previous-command-base-case ()
   (ert-info ("Create ring when nonexistent and do nothing")
     (let (erc-input-ring
