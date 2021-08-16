@@ -969,6 +969,14 @@ update_window_fringes (struct window *w, bool keep_current_p)
   if (w->pseudo_window_p)
     return 0;
 
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  /* This function could be called for redisplaying non-selected
+     windows, in which case point has been temporarily moved to that
+     window's window-point.  So we cannot afford quitting out of here,
+     as point is restored after this function returns.  */
+  specbind (Qinhibit_quit, Qt);
+
   if (!MINI_WINDOW_P (w)
       && (ind = BVAR (XBUFFER (w->contents), indicate_buffer_boundaries), !NILP (ind)))
     {
@@ -1330,6 +1338,8 @@ update_window_fringes (struct window *w, bool keep_current_p)
       row->right_fringe_offset = right_offset;
       row->fringe_bitmap_periodic_p = periodic_p;
     }
+
+  unbind_to (count, Qnil);
 
   return redraw_p && !keep_current_p;
 }
