@@ -1728,7 +1728,8 @@ anything that can be used with the @code{setf} function
 (@pxref{Generalized Variables}).
 @var{place} can also be a cons @code{(@var{get} . @var{set})},
 where @var{get} is an expression that returns the current state,
-and @var{set} is a function of one argument (a state) that sets it.
+and @var{set} is a function of one argument (a state) which should be
+assigned to @var{place}.
 
 @item :after-hook @var{after-hook}
 This defines a single Lisp form which is evaluated after the mode hooks
