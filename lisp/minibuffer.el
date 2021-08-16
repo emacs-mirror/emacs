@@ -3544,7 +3544,7 @@ advantage of this, look in the source of
 (defvar completion--lazy-highlight-cache
   (make-hash-table :weakness 'key))
 
-(defvar completion--score-map (make-hash-table :size (obarray-size obarray)))
+(defvar completion--score-map (make-hash-table :test 'eq))
 
 (defun completion--get-lazy-hilit-re ()
   "Helper for `completion-lazy-hilit'."
