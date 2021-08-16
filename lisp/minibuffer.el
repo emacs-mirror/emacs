@@ -3541,15 +3541,29 @@ and useless hint.  To author a completion style that takes
 advantage of this, look in the source of
 `completion-pcm--hilit-commonality' for ideas.")
 
+(defvar completion--get-lazy-highlight-cache
+  (make-hash-table :weakness 'key))
+
+(defun completion--get-lazy-hilit-re ()
+  "Helper for `completion-lazy-hilit'."
+  (let* ((data (gethash completion-lazy-hilit completion--get-lazy-highlight-cache))
+         (re (car data)))
+    re))
+
+(defun completion--flex-get-completion-score (str)
+  "Get the Flex completion score of STR"
+  (if completion-lazy-hilit
+      (let* ((data (gethash completion-lazy-hilit completion--get-lazy-highlight-cache))
+             (score-ht (and data (cdr data))))
+        (or (gethash str score-ht) 0))
+      (get-text-property 0 'completion-score str)))
+
 (defun completion-lazy-hilit (str)
   "Return a copy of completion STR that is `face'-propertized.
 See documentation for variable `completion-lazy-hilit' for more
 details."
   (let* ((str (copy-sequence str))
-         (data (get-text-property 0 'completion-lazy-hilit-data str))
-         (re (and
-              completion-lazy-hilit
-              (eq completion-lazy-hilit (car data)) (cdr data)))
+         (re (and completion-lazy-hilit (completion--get-lazy-hilit-re)))
          (md (and re (string-match re str) (cddr (match-data t))))
          (me (and md (match-end 0)))
          (from 0))
@@ -3559,6 +3573,8 @@ details."
     (unless (or (not me) (= from me))
       (add-face-text-property from me 'completions-common-part nil str))
     str))
+
+
 
 (defun completion-pcm--hilit-commonality (pattern completions)
   "Show where and how well PATTERN matches COMPLETIONS.
@@ -3572,7 +3588,14 @@ between 0 and 1, and with faces `completions-common-part',
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
            (point-idx (completion-pcm--pattern-point-idx pattern))
            (case-fold-search completion-ignore-case)
+           score-ht
            last-md)
+      (when completion-lazy-hilit
+        (puthash completion-lazy-hilit
+                 (cons re (setq score-ht
+                                (make-hash-table
+                                 :size (length completions))))
+                 completion--get-lazy-highlight-cache))
       (mapcar
        (lambda (str)
          (unless completion-lazy-hilit
@@ -3652,18 +3675,17 @@ between 0 and 1, and with faces `completions-common-part',
            ;; for that extra bit of match (bug#42149).
            (unless (= from match-end)
              (funcall update-score-and-face from match-end))
-           (put-text-property 0 1 'completion-lazy-hilit-data
-                              (cons completion-lazy-hilit re) str)
            (if (and (> (length str) pos)
                     (not completion-lazy-hilit))
                (add-face-text-property
                 pos (1+ pos)
                 'completions-first-difference
                 nil str))
-           (unless (zerop (length str))
-             (put-text-property
-              0 1 'completion-score
-              (/ score-numerator (* end (1+ score-denominator)) 1.0) str)))
+           (let ((score (/ score-numerator (* end (1+ score-denominator)) 1.0)))
+             (unless (zerop (length str))
+               (if completion-lazy-hilit
+                   (puthash str score score-ht)
+                 (put-text-property 0 1 'completion-score score str)))))
          str)
        completions))))
 
@@ -4017,8 +4039,8 @@ that is non-nil."
                  (funcall existing-sort-fn completions)
                completions)
              (lambda (c1 c2)
-               (let ((s1 (get-text-property 0 'completion-score c1))
-                     (s2 (get-text-property 0 'completion-score c2)))
+               (let ((s1 (completion--flex-get-completion-score c1))
+                     (s2 (completion--flex-get-completion-score c2)))
                  (> (or s1 0) (or s2 0))))))
            (;; If no existing sort fn and nothing flexy happening, use
             ;; the customary sorting strategy.
