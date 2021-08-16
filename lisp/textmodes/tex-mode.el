@@ -3342,7 +3342,6 @@ There might be text before point."
     ("\\oplus" . ?⊕)
     ("\\oslash" . ?⊘)
     ("\\otimes" . ?⊗)
-    ("\\par" . ? )
     ("\\parallel" . ?∥)
     ("\\partial" . ?∂)
     ("\\perp" . ?⊥)
