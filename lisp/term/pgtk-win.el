@@ -226,43 +226,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (insert (gui-get-selection 'SECONDARY)))
 
 
-;;;; Color support.
-
-;; Functions for color panel + drag
-(defun pgtk-face-at-pos (pos)
-  (let* ((frame (car pos))
-         (frame-pos (cons (cadr pos) (cddr pos)))
-         (window (window-at (car frame-pos) (cdr frame-pos) frame))
-         (window-pos (coordinates-in-window-p frame-pos window))
-         (buffer (window-buffer window))
-         (edges (window-edges window)))
-    (cond
-     ((not window-pos)
-      nil)
-     ((eq window-pos 'mode-line)
-      'mode-line)
-     ((eq window-pos 'vertical-line)
-      'default)
-     ((consp window-pos)
-      (with-current-buffer buffer
-        (let ((p (car (compute-motion (window-start window)
-                                      (cons (nth 0 edges) (nth 1 edges))
-                                      (window-end window)
-                                      frame-pos
-                                      (- (window-width window) 1)
-                                      nil
-                                      window))))
-          (cond
-           ((eq p (window-point window))
-            'cursor)
-           ((and mark-active (< (region-beginning) p) (< p (region-end)))
-            'region)
-           (t
-	    (let ((faces (get-char-property p 'face window)))
-	      (if (consp faces) (car faces) faces)))))))
-     (t
-      nil))))
-
 (defun pgtk-suspend-error ()
   ;; Don't allow suspending if any of the frames are PGTK frames.
   (if (memq 'pgtk (mapcar 'window-system (frame-list)))
