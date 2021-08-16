@@ -655,13 +655,14 @@ This allows controlling the current/total number of matches for the
 prompt prefix.
 
 +++
-*** New minor mode 'icomplete-vertical-mode', alias 'fido-vertical-mode'.
-This mode is intended to be used with Icomplete ('M-x icomplete-mode')
-or Fido ('M-x fido-mode'), to display the list of completions
-candidates vertically instead of horizontally.  When used with
-Icomplete, completions are rotated and selection kept at the top.
-When used with Fido, completions scroll like a typical dropdown
-widget.
+*** New minor modes 'icomplete-vertical-mode' and 'fido-vertical-mode'
+These modes are modify Icomplete ('M-x icomplete-mode') and Fido ('M-x
+fido-mode'), to display completions candidates vertically instead of
+horizontally.  In Icomplete, completions are rotated and selection
+kept at the top.  In Fido, completions scroll like a typical dropdown
+widget.  Both these new minor modes will first turn on their
+respective non-vertical counterparts first, if they are not on
+already.
 
 ---
 *** Default value of 'icomplete-compute-delay' has been changed to 0.15 s.
