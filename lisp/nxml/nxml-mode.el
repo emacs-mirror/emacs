@@ -572,9 +572,7 @@ Many aspects this mode can be customized using
   (when (seq-find (lambda (elem)
                     (plist-get (nth 2 elem) 'rng-state))
                   (object-intervals string))
-    (remove-text-properties 0 (length string)
-                            '(rng-state nil fontified nil)
-                            string))
+    (remove-text-properties 0 (length string) '(rng-state nil) string))
     string)
 
 (defun nxml-cleanup ()
