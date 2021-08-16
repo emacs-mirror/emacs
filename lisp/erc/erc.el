@@ -6185,7 +6185,7 @@ user input."
                    erc-session-server
                    erc-session-user-full-name))
   (if erc-session-password
-      (erc-server-send (format "PASS %s" erc-session-password))
+      (erc-server-send (concat "PASS :" erc-session-password))
     (message "Logging in without password"))
   (erc-server-send (format "NICK %s" (erc-current-nick)))
   (erc-server-send
