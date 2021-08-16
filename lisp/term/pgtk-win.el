@@ -319,7 +319,11 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defvar pgtk-preedit-overlay nil)
 
-(defun pgtk-preedit-text (e)
+(defun pgtk-preedit-text (event)
+  "An internal function to display preedit text from input method.
+
+EVENT is an event of PGTK_PREEDIT_TEXT_EVENT.
+It contains colors and texts."
   (interactive "e")
   (when pgtk-preedit-overlay
     (delete-overlay pgtk-preedit-overlay))
@@ -328,7 +332,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (let ((ovstr "")
         (idx 0)
         atts ov str color face-name)
-    (dolist (part (nth 1 e))
+    (dolist (part (nth 1 event))
       (setq str (car part))
       (setq face-name (intern (format "pgtk-im-%d" idx)))
       (eval
