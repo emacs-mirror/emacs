@@ -3541,21 +3541,19 @@ and useless hint.  To author a completion style that takes
 advantage of this, look in the source of
 `completion-pcm--hilit-commonality' for ideas.")
 
-(defvar completion--get-lazy-highlight-cache
+(defvar completion--lazy-highlight-cache
   (make-hash-table :weakness 'key))
+
+(defvar completion--score-map (make-hash-table :size (obarray-size obarray)))
 
 (defun completion--get-lazy-hilit-re ()
   "Helper for `completion-lazy-hilit'."
-  (let* ((data (gethash completion-lazy-hilit completion--get-lazy-highlight-cache))
-         (re (car data)))
-    re))
+  (gethash completion-lazy-hilit completion--lazy-highlight-cache))
 
 (defun completion--flex-get-completion-score (str)
   "Get the Flex completion score of STR"
   (if completion-lazy-hilit
-      (let* ((data (gethash completion-lazy-hilit completion--get-lazy-highlight-cache))
-             (score-ht (and data (cdr data))))
-        (or (gethash str score-ht) 0))
+      (gethash str completion--score-map)
       (get-text-property 0 'completion-score str)))
 
 (defun completion-lazy-hilit (str)
@@ -3563,7 +3561,7 @@ advantage of this, look in the source of
 See documentation for variable `completion-lazy-hilit' for more
 details."
   (let* ((str (copy-sequence str))
-         (re (and completion-lazy-hilit (completion--get-lazy-hilit-re)))
+         (re (completion--get-lazy-hilit-re))
          (md (and re (string-match re str) (cddr (match-data t))))
          (me (and md (match-end 0)))
          (from 0))
@@ -3573,8 +3571,6 @@ details."
     (unless (or (not me) (= from me))
       (add-face-text-property from me 'completions-common-part nil str))
     str))
-
-
 
 (defun completion-pcm--hilit-commonality (pattern completions)
   "Show where and how well PATTERN matches COMPLETIONS.
@@ -3588,14 +3584,11 @@ between 0 and 1, and with faces `completions-common-part',
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
            (point-idx (completion-pcm--pattern-point-idx pattern))
            (case-fold-search completion-ignore-case)
-           score-ht
            last-md)
       (when completion-lazy-hilit
         (puthash completion-lazy-hilit
-                 (cons re (setq score-ht
-                                (make-hash-table
-                                 :size (length completions))))
-                 completion--get-lazy-highlight-cache))
+                 re
+                 completion--lazy-highlight-cache))
       (mapcar
        (lambda (str)
          (unless completion-lazy-hilit
@@ -3683,8 +3676,7 @@ between 0 and 1, and with faces `completions-common-part',
                 nil str))
            (let ((score (/ score-numerator (* end (1+ score-denominator)) 1.0)))
              (unless (zerop (length str))
-               (if completion-lazy-hilit
-                   (puthash str score score-ht)
+               (if completion-lazy-hilit (puthash str score completion--score-map)
                  (put-text-property 0 1 'completion-score score str)))))
          str)
        completions))))
