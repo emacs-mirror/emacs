@@ -876,7 +876,7 @@ The car of the list is the current branch."
 	  (push crt dlist)
 	(push crt flist)))
     (when flist
-      (vc-git-command nil 0 (vc-git--literal-pathspecs flist) "update-index" "--add" "--"))
+      (vc-git-command nil 0 flist "update-index" "--add" "--"))
     (when dlist
       (vc-git-command nil 0 (vc-git--literal-pathspecs dlist) "add"))))
 
