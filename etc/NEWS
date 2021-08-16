@@ -2443,6 +2443,12 @@ images are marked.
 
 ** Miscellaneous
 
++++
+*** New function 'replace-regexp-in-region'.
+
++++
+*** New function 'replace-string-in-region'.
+
 ---
 *** New function 'mail-header-parse-addresses-lax'.
 This takes a comma-separated string and returns a list of mail/name

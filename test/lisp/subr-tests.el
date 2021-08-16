@@ -694,5 +694,51 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
     (should-not (buffer-local-boundp 'test-not-boundp buf))
     (should (buffer-local-boundp 'test-global-boundp buf))))
 
+(ert-deftest test-replace-string-in-region ()
+  (with-temp-buffer
+    (insert "foo bar zot foobar")
+    (should (= (replace-string-in-region "foo" "new" (point-min) (point-max))
+               2))
+    (should (equal (buffer-string) "new bar zot newbar")))
+
+  (with-temp-buffer
+    (insert "foo bar zot foobar")
+    (should (= (replace-string-in-region "foo" "new" (point-min) 14)
+               1))
+    (should (equal (buffer-string) "new bar zot foobar")))
+
+  (with-temp-buffer
+    (insert "foo bar zot foobar")
+    (should-error (replace-string-in-region "foo" "new" (point-min) 30)))
+
+  (with-temp-buffer
+    (insert "Foo bar zot foobar")
+    (should (= (replace-string-in-region "Foo" "new" (point-min))
+               1))
+    (should (equal (buffer-string) "new bar zot foobar"))))
+
+(ert-deftest test-replace-regexp-in-region ()
+  (with-temp-buffer
+    (insert "foo bar zot foobar")
+    (should (= (replace-regexp-in-region "fo+" "new" (point-min) (point-max))
+               2))
+    (should (equal (buffer-string) "new bar zot newbar")))
+
+  (with-temp-buffer
+    (insert "foo bar zot foobar")
+    (should (= (replace-regexp-in-region "fo+" "new" (point-min) 14)
+               1))
+    (should (equal (buffer-string) "new bar zot foobar")))
+
+  (with-temp-buffer
+    (insert "foo bar zot foobar")
+    (should-error (replace-regexp-in-region "fo+" "new" (point-min) 30)))
+
+  (with-temp-buffer
+    (insert "Foo bar zot foobar")
+    (should (= (replace-regexp-in-region "Fo+" "new" (point-min))
+               1))
+    (should (equal (buffer-string) "new bar zot foobar"))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

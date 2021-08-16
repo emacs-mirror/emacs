@@ -700,6 +700,8 @@ There can be any number of :example/:result elements."
   (match-substitute-replacement
    :no-eval (match-substitute-replacement "new")
    :eg-result "new")
+  (replace-regexp-in-region
+   :no-value (replace-regexp-in-region "[0-9]+" "Num \\&"))
   "Utilities"
   (regexp-quote
    :eval (regexp-quote "foo.*bar"))
@@ -894,6 +896,10 @@ There can be any number of :example/:result elements."
    :no-value (erase-buffer))
   (insert
    :no-value (insert "This string will be inserted in the buffer\n"))
+  (subst-char-in-region
+   :no-eval "(subst-char-in-region (point-min) (point-max) ?+ ?-)")
+  (replace-string-in-region
+   :no-value (replace-string-in-region "foo" "bar"))
   "Locking"
   (lock-buffer
    :no-value (lock-buffer "/tmp/foo"))

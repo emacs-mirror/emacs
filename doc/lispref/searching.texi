@@ -2540,9 +2540,9 @@ associated with it still exists.
 @cindex replacement after search
 @cindex searching and replacing
 
-  If you want to find all matches for a regexp in part of the buffer,
-and replace them, the best way is to write an explicit loop using
-@code{re-search-forward} and @code{replace-match}, like this:
+  If you want to find all matches for a regexp in part of the buffer
+and replace them, the most flexible way is to write an explicit loop
+using @code{re-search-forward} and @code{replace-match}, like this:
 
 @example
 (while (re-search-forward "foo[ \t]+bar" nil t)
@@ -2553,9 +2553,23 @@ and replace them, the best way is to write an explicit loop using
 @xref{Replacing Match,, Replacing the Text that Matched}, for a
 description of @code{replace-match}.
 
-  However, replacing matches in a string is more complex, especially
-if you want to do it efficiently.  So Emacs provides two functions to do
-this.
+@findex replace-regexp-in-region
+  If it's more convenient, you can also use the
+@code{replace-regexp-in-region}, which does something similar to the
+loop above, but is optionally delimited to a specific region (and
+doesn't change point).  Furthermore, it does the searches
+case-sensitively, and performs the replacements without changing case
+in the replacement.
+
+@example
+(replace-regexp-in-region "foo[ \t]+bar" "foobar")
+@end example
+
+@findex replace-string-in-region
+  There's also @code{replace-string-in-region}, which works along the
+same lines, but searches for literal strings instead.
+
+  Emacs also has special functions for replacing matches in a string.
 
 @defun replace-regexp-in-string regexp rep string &optional fixedcase literal subexp start
 This function copies @var{string} and searches it for matches for
