@@ -299,7 +299,7 @@ the same menu with changes such as added new menu items."
 
 (defcustom context-menu-filter-function nil
   "Function that can filter the list produced by `context-menu-functions'."
-  :type 'function
+  :type '(choice (const nil) function)
   :version "28.1")
 
 (defun context-menu-map ()
