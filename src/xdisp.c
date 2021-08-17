@@ -4472,7 +4472,13 @@ face_at_pos (const struct it *it, enum lface_attribute_index attr_filter)
 static enum prop_handled
 handle_face_prop (struct it *it)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
+  /* Don't allow the user to quit out of face-merging code, in case
+     this is called when redisplaying a non-selected window, with
+     point temporarily moved to window-point.  */
+  specbind (Qinhibit_quit, Qt);
   const int new_face_id = face_at_pos (it, 0);
+  unbind_to (count, Qnil);
 
 
   /* Is this a start of a run of characters with box face?
@@ -22111,10 +22117,17 @@ extend_face_to_end_of_line (struct it *it)
 	   || WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0))
     return;
 
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  /* Don't allow the user to quit out of face-merging code, in case
+     this is called when redisplaying a non-selected window, with
+     point temporarily moved to window-point.  */
+  specbind (Qinhibit_quit, Qt);
   const int extend_face_id = (it->face_id == DEFAULT_FACE_ID
                               || it->s != NULL)
     ? DEFAULT_FACE_ID
     : face_at_pos (it, LFACE_EXTEND_INDEX);
+  unbind_to (count, Qnil);
 
   /* Face extension extends the background and box of IT->extend_face_id
      to the end of the line.  If the background equals the background
