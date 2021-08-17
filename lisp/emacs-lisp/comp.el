@@ -3918,7 +3918,8 @@ display a message."
          do (let* ((expr `((require 'comp)
                            ,(when (boundp 'backtrace-line-length)
                               `(setf backtrace-line-length ,backtrace-line-length))
-                           (setf native-comp-speed ,native-comp-speed
+                           (setf native-compile-target-directory ,native-compile-target-directory
+                                 native-comp-speed ,native-comp-speed
                                  native-comp-debug ,native-comp-debug
                                  native-comp-verbose ,native-comp-verbose
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
