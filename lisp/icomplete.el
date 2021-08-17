@@ -624,6 +624,8 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-n") 'icomplete-forward-completions)
     (define-key map (kbd "C-p") 'icomplete-backward-completions)
+    (define-key map (kbd "<down>") 'icomplete-forward-completions)
+    (define-key map (kbd "<up>") 'icomplete-backward-completions)
     (define-key map (kbd "M-<") 'icomplete-vertical-goto-first)
     (define-key map (kbd "M->") 'icomplete-vertical-goto-last)
     map)
