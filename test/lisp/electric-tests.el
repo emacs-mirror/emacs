@@ -872,7 +872,7 @@ baz\"\""
 
 (defun electric-layout-for-c-style-du-jour (inserted)
   "A function to use in `electric-layout-rules'"
-  (when (memq inserted '(?{ ?}))
+  (when (memq inserted '(?\{ ?\}))
     (save-excursion
       (backward-char 2) (c-point-syntax) (forward-char) ; silly, but needed
       (c-brace-newlines (c-point-syntax)))))
