@@ -149,6 +149,15 @@ invoked with the '--declarations' command-line option.
 ** New command 'font-lock-update', bound to 'C-x x f'.
 This command updates the syntax highlighting in this buffer.
 
++++
+** A new standard face 'font-lock-doc-markup-face'.
+Intended for documentation mark-up syntax and tags inside text that
+uses 'font-lock-doc-face', with which it should harmonise.  It would
+typically be used in structured documentation comments in program
+source code by language-specific modes, for mark-up conventions like
+Haddock, Javadoc or Doxygen.  By default this face inherits from
+'font-lock-constant-face'.
+
 ** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
 
 +++
@@ -255,6 +264,12 @@ This works in text buffers and over images.  Typing a numeric prefix arg
 The value is saved in the user option 'mouse-wheel-scroll-amount-horizontal'.
 
 ---
+** New choice 'permanent' for 'shift-select-mode'.
+When the mark was activated by shifted motion keys,
+non-shifted motion keys don't deactivate the mark
+after customizing 'shift-select-mode' to 'permanent'.
+
+---
 ** The default value of 'frame-title-format' and 'icon-title-format' has changed.
 These variables are used to display the title bar of visible frames
 and the title bar of an iconified frame.  They now show the name of
@@ -310,7 +325,7 @@ search buffer due to too many matches being highlighted.
 +++
 ** A new keymap for buffer actions has been added.
 The 'C-x x' keymap now holds keystrokes for various buffer-oriented
-commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
+commands.  The new keystrokes are 'C-x x g' ('revert-buffer-quick'),
 'C-x x r' ('rename-buffer'), 'C-x x u' ('rename-uniquely'), 'C-x x n'
 ('clone-buffer'), 'C-x x i' ('insert-buffer'), 'C-x x t'
 ('toggle-truncate-lines') and 'C-x x f' ('font-lock-update').
@@ -353,6 +368,11 @@ by dragging the tab lines of their topmost windows with the mouse.
 
 
 * Editing Changes in Emacs 28.1
+
+** New value 'save-some-buffers-root' of 'save-some-buffers-default-predicate'.
+It allows to ask about saving only files under the project root
+or in subdirectories of the directory that was default during
+command invocation.
 
 ---
 ** Dragging a file to Emacs will now also push the name of the file
@@ -559,6 +579,10 @@ The new 'cl-type' pattern compares types using 'cl-typep', which allows
 comparing simple types like '(cl-type integer)', as well as forms like
 '(cl-type (integer 0 10))'.
 
+*** New macro 'pcase-setq'
+This macro is the 'setq' equivalent of 'pcase-let', which allows for
+destructuring patterns in a 'setq' form.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures
@@ -631,13 +655,14 @@ This allows controlling the current/total number of matches for the
 prompt prefix.
 
 +++
-*** New minor mode 'icomplete-vertical-mode', alias 'fido-vertical-mode'.
-This mode is intended to be used with Icomplete ('M-x icomplete-mode')
-or Fido ('M-x fido-mode'), to display the list of completions
-candidates vertically instead of horizontally.  When used with
-Icomplete, completions are rotated and selection kept at the top.
-When used with Fido, completions scroll like a typical dropdown
-widget.
+*** New minor modes 'icomplete-vertical-mode' and 'fido-vertical-mode'
+These modes are modify Icomplete ('M-x icomplete-mode') and Fido ('M-x
+fido-mode'), to display completions candidates vertically instead of
+horizontally.  In Icomplete, completions are rotated and selection
+kept at the top.  In Fido, completions scroll like a typical dropdown
+widget.  Both these new minor modes will first turn on their
+respective non-vertical counterparts first, if they are not on
+already.
 
 ---
 *** Default value of 'icomplete-compute-delay' has been changed to 0.15 s.
@@ -798,7 +823,7 @@ The method of highlighting is specified by the user options
 'next-error-highlight' and 'next-error-highlight-no-select'.
 
 ---
-*** A fringe arrow in the '*Occur*' buffer indicates the selected match.
+*** A fringe arrow in the "*Occur*" buffer indicates the selected match.
 
 ---
 *** Occur mode may use a different type for 'occur-target' property values.
@@ -818,7 +843,7 @@ It is now defined as a generalized variable that can be used with
 
 ---
 *** 'form' in '(eql form)' specializers in 'cl-defmethod' is now evaluated.
-This corresponds to the behaviour of defmethod in Common Lisp Object System.
+This corresponds to the behavior of defmethod in Common Lisp Object System.
 For compatibility, '(eql SYMBOL)' does not evaluate SYMBOL, for now.
 
 ** New minor mode 'cl-font-lock-built-in-mode' for 'lisp-mode'.
@@ -943,12 +968,6 @@ keys, add the following to your init file:
 
 ** Change Logs and VC
 
-*** vc-git now sets the 'GIT_LITERAL_PATHSPECS' environment variable.
-This ensures that Git operations on files containing wildcard
-characters work as they're supposed to.  However, this also affects
-scripts running from Git hooks, and these have to "unset
-GIT_LITERAL_PATHSPECS" to work as before.
-
 *** More VC commands can be used from non-file buffers.
 The relevant commands are those that don't change the VC state.
 The non-file buffers which can use VC commands are those that have
@@ -1001,6 +1020,10 @@ tags to be considered as well.
 String or list of strings specifying switches for Git log under VC.
 
 ** Gnus
+
++++
+*** New user option 'gnus-topic-display-predicate'.
+This can be used to inhibit the display of some topics completely.
 
 +++
 *** nnimap now supports the oauth2.el library.
@@ -1551,8 +1574,10 @@ like cell phones, tablets or cameras.
 *** New connection method "sshfs", which allows accessing remote files
 via a file system mounted with 'sshfs'.
 
----
-*** Tramp supports authentication via yubikey now.
++++
+*** Tramp supports SSH authentication via a hardware security key now.
+This requires at least OpenSSH 8.2, and a FIDO U2F compatible
+security key, like yubikey, solokey, or nitrokey.
 
 +++
 *** Trashed remote files are moved to the local trash directory.
@@ -1611,6 +1636,14 @@ This is a slightly deeper copy than the previous 'copy-sequence'.
 
 ---
 *** The function 'map-contains-key' now supports plists.
+
+---
+*** More consistent duplicate key handling in 'map-merge-with'.
+Until now, 'map-merge-with' promised to call its function argument
+whenever multiple maps contained 'eql' keys.  However, this did not
+always coincide with the keys that were actually merged, which could
+be 'equal' instead.  The function argument is now called whenever keys
+are merged, for greater consistency with 'map-merge' and 'map-elt'.
 
 ** Package
 
@@ -1981,7 +2014,7 @@ to prevent aliasing and other unwanted effects.  The new image
 property ':transform-smoothing' can be set to t to force smoothing
 and nil to disable smoothing.
 
-The default behaviour of smoothing on down-scaling and not smoothing
+The default behavior of smoothing on down-scaling and not smoothing
 on up-scaling remains unchanged.
 
 +++
@@ -2325,6 +2358,11 @@ a list.
 ** Diff
 
 ---
+*** New face 'diff-changed-unspecified'.
+This is used to highlight "changed" lines (those marked with '!') in
+context diffs, when 'diff-use-changed-face' is non-nil.
+
+---
 *** New 'diff-mode' font locking face 'diff-error'.
 This face is used for error messages from 'diff'.
 
@@ -2390,7 +2428,50 @@ When non-nil, this option suppresses lock files for remote files.
 This command, called interactively, toggles the local value of
 'create-lockfiles' in the current buffer.
 
+** image-dired
+
+---
+*** 'image-dired-mouse-toggle-mark' now toggles files in the active region.
+
++++
+*** New user option 'image-dired-thumb-visible-marks'.
+If non-nil (the default), use 'image-dired-thumb-mark' to say what
+images are marked.
+
+*** New command 'image-dired-tag-marked-thumbnails'.
+
+*** New command 'image-dired-delete-marked'.
+
 ** Miscellaneous
+
++++
+*** New function 'replace-regexp-in-region'.
+
++++
+*** New function 'replace-string-in-region'.
+
+---
+*** New function 'mail-header-parse-addresses-lax'.
+This takes a comma-separated string and returns a list of mail/name
+pairs.
+
+---
+*** New function 'mail-header-parse-address-lax'.
+Parse a string as a mail address-like string.
+
+---
+*** 'shell-script-mode' now supports 'outline-minor-mode'.
+The outline headings have lines that start with "###".
+
++++
+*** New command 'revert-buffer-quick'.
+This is bound to 'C-x x g' and is like `revert-buffer', but prompts
+less.
+
++++
+*** New user option 'revert-buffer-quick-short-answers'.  This
+controls how the new 'revert-buffer-quick' (`C-x x g') command
+prompts.
 
 ---
 *** fileloop will now skip missing files instead of signalling an error.
@@ -2981,7 +3062,7 @@ command, which updates the syntax highlighting in the current buffer.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
-special escape syntax in Fortran F90.  To get the old behaviour back,
+special escape syntax in Fortran F90.  To get the old behavior back,
 say something like:
 
     (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
@@ -2999,6 +3080,14 @@ This is to keep the same behavior as Eshell.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
++++
+** 'overlays-in' now handles zero-length overlays slightly differently.
+Previosly, zero-length overlays at the end of the buffer were included
+in the result (if the region queried for stopped at that position).
+The same was not the case if the buffer had been narrowed to exclude
+the real end of the buffer.  This has now been changed, and
+zero-length overlays at `point-max' are always included in the results.
 
 ---
 ** 'replace-match' now runs modification hooks slightly later.

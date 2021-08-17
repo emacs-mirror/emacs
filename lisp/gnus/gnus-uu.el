@@ -1434,7 +1434,7 @@ When called interactively, prompt for REGEXP."
   "View FILE using the gnus-uu methods."
   (let ((action (gnus-uu-get-action file)))
     (gnus-execute-command
-     (if (string-match "%" action)
+     (if (string-search "%" action)
 	 (format action file)
        (concat action " " file))
      (eq gnus-view-pseudos 'not-confirm))))

@@ -854,7 +854,7 @@ If REGEXP is given, lines that match it will be deleted."
       (goto-char (point-max))
       ;; Make sure that each dribble entry is a single line, so that
       ;; the "remove" code above works.
-      (insert (replace-regexp-in-string "\n" "\\\\n" string) "\n")
+      (insert (string-replace "\n" "\\n" string) "\n")
       (bury-buffer gnus-dribble-buffer)
       (with-current-buffer gnus-group-buffer
 	(gnus-group-set-mode-line)))))

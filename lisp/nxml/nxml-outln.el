@@ -633,7 +633,7 @@ non-transparent child section."
 				 tag-qnames))))
 
 (defun nxml-highlighted-qname (qname)
-  (let ((colon (string-match ":" qname)))
+  (let ((colon (string-search ":" qname)))
     (if colon
 	(concat (propertize (substring qname 0 colon)
 			    'face

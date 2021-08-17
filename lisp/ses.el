@@ -3357,7 +3357,7 @@ is non-nil.  Newlines and tabs in the export text are escaped."
 	(push "'" result)
 	(setq item (cadr item)))
       (setq item (ses-prin1 item))
-      (setq item (replace-regexp-in-string "\t" "\\\\t" item))
+      (setq item (string-replace "\t" "\\t" item))
       (push item result)
       (cond
        ((< col maxcol)

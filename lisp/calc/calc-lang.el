@@ -660,7 +660,7 @@
                    (setq math-exp-pos (match-end 0)
                          math-exp-token 'punc
                          math-expr-data "[")
-                   (let ((right (string-match "}" math-exp-str math-exp-pos)))
+                   (let ((right (string-search "}" math-exp-str math-exp-pos)))
                      (and right
                           (setq math-exp-str (copy-sequence math-exp-str))
                           (aset math-exp-str right ?\]))))))))))
@@ -899,7 +899,7 @@
                    (setq math-exp-pos (match-end 0)
                          math-exp-token 'punc
                          math-expr-data "[")
-                   (let ((right (string-match "}" math-exp-str math-exp-pos)))
+                   (let ((right (string-search "}" math-exp-str math-exp-pos)))
                      (and right
                           (setq math-exp-str (copy-sequence math-exp-str))
                           (aset math-exp-str right ?\]))))))))))
@@ -2342,7 +2342,7 @@ order to Calc's."
 	     (math-read-big-emptyp math-rb-h1 (1+ v) h math-rb-v2 nil t)
 	     (if (= (math-read-big-char widest v) ?\()
 		 (progn
-		   (setq line (if (string-match "-" p)
+		   (setq line (if (string-search "-" p)
 				  (intern p)
 				(intern (concat "calcFunc-" p)))
 			 h (1+ widest)
@@ -2362,7 +2362,7 @@ order to Calc's."
 		   (setq p (cons line (nreverse p))))
 	       (setq p (list 'var
 			     (intern (math-remove-dashes p))
-			     (if (string-match "-" p)
+			     (if (string-search "-" p)
 				 (intern p)
 			       (intern (concat "var-" p)))))))
 

@@ -2547,7 +2547,7 @@ If there is no label point is not moved and nil is returned."
 	 (end (idlwave-find-key ":" 1 'nomark eos)))
     (if (and end
              (= (nth 0 (parse-partial-sexp start end)) 0)
-	     (not (string-match "\\?" (buffer-substring start end)))
+	     (not (string-search "?" (buffer-substring start end)))
 	     (not (string-match "^::" (buffer-substring end eos))))
         (progn
           (forward-char)
@@ -7677,9 +7677,9 @@ arg, the class property is cleared out."
 
   (interactive "P")
   (idlwave-routines)
-  (if (string-match "->" (buffer-substring
-			  (max (point-min) (1- (point)))
-			  (min (+ 2 (point)) (point-max))))
+  (if (string-search "->" (buffer-substring
+			   (max (point-min) (1- (point)))
+			   (min (+ 2 (point)) (point-max))))
       ;; Cursor is on an arrow
       (if (get-text-property (point) 'idlwave-class)
 	  ;; arrow has class property

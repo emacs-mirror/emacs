@@ -44,7 +44,7 @@
 		 (case-fold-search t)
 		 (ct (message-fetch-field "Content-Type" t))
 		 (ctl (and ct (mail-header-parse-content-type ct))))
-	    (if (and ctl (not (string-match "/" (car ctl))))
+	    (if (and ctl (not (string-search "/" (car ctl))))
 		(setq ctl nil))
 	    (goto-char (point-max))
 	    (widen)

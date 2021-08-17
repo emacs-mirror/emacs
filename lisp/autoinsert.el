@@ -93,8 +93,8 @@ If this contains a %s, that will be replaced by the matching rule."
   '((("\\.\\([Hh]\\|hh\\|hpp\\|hxx\\|h\\+\\+\\)\\'" . "C / C++ header")
      (replace-regexp-in-string
       "[^A-Z0-9]" "_"
-      (replace-regexp-in-string
-       "\\+" "P"
+      (string-replace
+       "+" "P"
        (upcase (file-name-nondirectory buffer-file-name))))
      "#ifndef " str \n
      "#define " str "\n\n"

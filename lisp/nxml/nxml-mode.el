@@ -540,6 +540,8 @@ Many aspects this mode can be customized using
 	  (nxml-scan-prolog)))))
   (setq-local syntax-ppss-table sgml-tag-syntax-table)
   (setq-local syntax-propertize-function #'nxml-syntax-propertize)
+  (add-function :filter-return (local 'filter-buffer-substring-function)
+                #'nxml--buffer-substring-filter)
   (add-hook 'change-major-mode-hook #'nxml-cleanup nil t)
 
   (when (not (and (buffer-file-name) (file-exists-p (buffer-file-name))))
@@ -563,6 +565,15 @@ Many aspects this mode can be customized using
            . sgml-font-lock-syntactic-face)))
 
   (with-demoted-errors (rng-nxml-mode-init)))
+
+(defun nxml--buffer-substring-filter (string)
+  ;; The `rng-state' property is huge, so don't copy it to the kill ring.
+  ;; This avoids problems when saving the kill ring with savehist.
+  (when (seq-find (lambda (elem)
+                    (plist-get (nth 2 elem) 'rng-state))
+                  (object-intervals string))
+    (remove-text-properties 0 (length string) '(rng-state nil) string))
+    string)
 
 (defun nxml-cleanup ()
   "Clean up after nxml-mode."

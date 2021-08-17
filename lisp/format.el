@@ -1013,6 +1013,12 @@ either strings, or lists of the form (PARAMETER VALUE)."
 				    prop-alist (car old) nil))
 			      close)
 		      old (cdr old)))
+              ;; If the font is on the format (:background "red"),
+              ;; then we have a single face.  We're assuming a list of
+              ;; faces, so transform.
+              (when (and (listp new)
+                         (keywordp (car new)))
+                (setq new (list new)))
 	      (while new
 		(setq open
 		      (append (cdr (format-annotate-atomic-property-change

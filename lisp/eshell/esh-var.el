@@ -381,7 +381,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 (defun eshell-envvar-names (&optional environment)
   "Return a list of currently visible environment variable names."
   (mapcar (lambda (x)
-            (substring x 0 (string-match "=" x)))
+            (substring x 0 (string-search "=" x)))
 	  (or environment process-environment)))
 
 (defun eshell-environment-variables ()

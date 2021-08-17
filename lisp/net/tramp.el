@@ -697,11 +697,19 @@ The regexp should match at end of buffer."
   :version "27.1"
   :type 'regexp)
 
-;; Yubikey requires the user physically to touch the device with their
-;; finger.  We must tell it to the user.
-(defcustom tramp-yubikey-regexp
+;; A security key requires the user physically to touch the device
+;; with their finger.  We must tell it to the user.
+;; Added in OpenSSH 8.2.  I've tested it with yubikey.
+(defcustom tramp-security-key-confirm-regexp
   "^\r*Confirm user presence for key .*[\r\n]*"
-  "Regular expression matching yubikey confirmation message.
+  "Regular expression matching security key confirmation message.
+The regexp should match at end of buffer."
+  :version "28.1"
+  :type 'regexp)
+
+(defcustom tramp-security-key-confirmed-regexp
+  "^\r*User presence confirmed[\r\n]*"
+  "Regular expression matching security key confirmation message.
 The regexp should match at end of buffer."
   :version "28.1"
   :type 'regexp)
@@ -1256,14 +1264,14 @@ this variable to be set as well."
   :type '(choice (const nil) integer))
 
 ;; Logging in to a remote host normally requires obtaining a pty.  But
-;; Emacs on macOS has process-connection-type set to nil by default,
+;; Emacs on macOS has `process-connection-type' set to nil by default,
 ;; so on those systems Tramp doesn't obtain a pty.  Here, we allow
 ;; for an override of the system default.
 (defcustom tramp-process-connection-type t
   "Overrides `process-connection-type' for connections from Tramp.
 Tramp binds `process-connection-type' to the value given here before
 opening a connection to a remote host."
-  :type '(choice (const nil) (const t) (const pty)))
+  :type '(choice (const nil) (const t) (const pipe) (const pty)))
 
 (defcustom tramp-connection-timeout 60
   "Defines the max time to wait for establishing a connection (in seconds).
@@ -1617,7 +1625,8 @@ default values are used."
 	    (setq v (tramp-dissect-hop-name hop)
 		  hop (and hop (tramp-make-tramp-hop-name v))))
 	  (let ((tramp-default-host
-		 (or (and v (not (string-match-p "%h" (tramp-file-name-host v)))
+		 (or (and v (not (tramp-compat-string-search
+				  "%h" (tramp-file-name-host v)))
 			  (tramp-file-name-host v))
 		     tramp-default-host)))
 	    (setq method (tramp-find-method method user host)
@@ -1965,7 +1974,7 @@ ARGUMENTS to actually emit the message (if applicable)."
 	    (if (not btf)
 		(setq fn "")
 	      (and (symbolp btf) (setq fn (symbol-name btf))
-		   (or (not (string-match-p "^tramp" fn))
+		   (or (not (string-prefix-p "tramp" fn))
 		       (get btf 'tramp-suppress-trace))
 		   (setq fn nil))
 	      (setq btn (1+ btn))))
@@ -2217,7 +2226,7 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
   "Report progress of an operation for Tramp."
   (let* ((parameters (cdr reporter))
 	 (message (aref parameters 3)))
-    (when (string-match-p message (or (current-message) ""))
+    (when (tramp-compat-string-search message (or (current-message) ""))
       (tramp-compat-progress-reporter-update reporter value suffix))))
 
 (defmacro with-tramp-progress-reporter (vec level message &rest body)
@@ -2331,7 +2340,7 @@ Example:
       (unless (and (functionp (nth 0 (car v)))
 		   (cond
 		    ;; Windows registry.
-		    ((string-match-p "^HKEY_CURRENT_USER" (nth 1 (car v)))
+		    ((string-prefix-p "HKEY_CURRENT_USER" (nth 1 (car v)))
 		     (and (memq system-type '(cygwin windows-nt))
 			  (zerop
 			   (tramp-call-process
@@ -2990,8 +2999,7 @@ remote host and localname (filename on remote host)."
   "Return all method completions for PARTIAL-METHOD."
   (mapcar
    (lambda (method)
-     (and method
-	  (string-match-p (concat "^" (regexp-quote partial-method)) method)
+     (and method (string-prefix-p partial-method method)
 	  (tramp-completion-make-tramp-file-name method nil nil nil)))
    (mapcar #'car tramp-methods)))
 
@@ -3003,8 +3011,7 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
   (cond
 
    ((and partial-user partial-host)
-    (if	(and host
-	     (string-match-p (concat "^" (regexp-quote partial-host)) host)
+    (if	(and host (string-prefix-p partial-host host)
 	     (string-equal partial-user (or user partial-user)))
 	(setq user partial-user)
       (setq user nil
@@ -3012,16 +3019,12 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
 
    (partial-user
     (setq host nil)
-    (unless
-	(and user
-	     (string-match-p (concat "^" (regexp-quote partial-user)) user))
+    (unless (and user (string-prefix-p partial-user user))
       (setq user nil)))
 
    (partial-host
     (setq user nil)
-    (unless
-	(and host
-	     (string-match-p (concat "^" (regexp-quote partial-host)) host))
+    (unless (and host (string-prefix-p partial-host host))
       (setq host nil)))
 
    (t (setq user nil
@@ -3699,7 +3702,7 @@ User is always nil."
 	 (list filename switches wildcard full-directory-p))
 	;; `ls-lisp' always returns full listings.  We must remove
 	;; superfluous parts.
-	(unless (string-match-p "l" switches)
+	(unless (tramp-compat-string-search "l" switches)
 	  (save-excursion
 	    (goto-char (point-min))
 	    (while (setq start
@@ -4090,7 +4093,10 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	    (command (plist-get args :command))
 	    (coding (plist-get args :coding))
 	    (noquery (plist-get args :noquery))
-	    (connection-type (plist-get args :connection-type))
+	    (connection-type
+	     (if (plist-member args :connection-type)
+		 (plist-get args :connection-type)
+	       tramp-process-connection-type))
 	    (filter (plist-get args :filter))
 	    (sentinel (plist-get args :sentinel))
 	    (stderr (plist-get args :stderr)))
@@ -4106,7 +4112,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 			 (memq (car coding) coding-system-list)
 			 (memq (cdr coding) coding-system-list)))
 	  (signal 'wrong-type-argument (list #'symbolp coding)))
-	(unless (or (null connection-type) (memq connection-type '(pipe pty)))
+	(unless (memq connection-type '(nil pipe t pty))
 	  (signal 'wrong-type-argument (list #'symbolp connection-type)))
 	(unless (or (null filter) (functionp filter))
 	  (signal 'wrong-type-argument (list #'functionp filter)))
@@ -4122,14 +4128,14 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 		  (generate-new-buffer tramp-temp-buffer-name)))
 	       (env (mapcar
 		     (lambda (elt)
-		       (when (string-match-p "=" elt) elt))
+		       (when (tramp-compat-string-search "=" elt) elt))
 		     tramp-remote-process-environment))
 	       ;; We use as environment the difference to toplevel
 	       ;; `process-environment'.
 	       (env (dolist (elt process-environment env)
 		      (when
 			  (and
-			   (string-match-p "=" elt)
+			   (tramp-compat-string-search "=" elt)
 			   (not
 			    (member
 			     elt (default-toplevel-value 'process-environment))))
@@ -4691,10 +4697,11 @@ Wait, until the connection buffer changes."
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
       (with-temp-message (replace-regexp-in-string "[\r\n]" "" (match-string 0))
+	(redisplay 'force)
 	;; Hide message in buffer.
 	(narrow-to-region (point-max) (point-max))
 	;; Wait for new output.
-	(tramp-wait-for-regexp proc 30 "."))
+	(tramp-wait-for-regexp proc 30 tramp-security-key-confirmed-regexp))
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers)))
   t)

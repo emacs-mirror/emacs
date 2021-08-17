@@ -601,6 +601,9 @@ Put them into three windows, selecting the last one."
 
 @node Command Modes
 @subsection Specifying Modes For Commands
+@cindex commands, mode-specific
+@cindex commands, specify as mode-specific
+@cindex mode-specific commands
 
 Many commands in Emacs are general, and not tied to any specific mode.
 For instance, @kbd{M-x kill-region} can be used in pretty much any

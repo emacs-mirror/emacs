@@ -125,7 +125,7 @@ See rmail-digest-methods."
 	  ;; Undo masking of separators inside digestified messages
 	  (goto-char (point-min))
 	  (while (search-forward
-		  (replace-regexp-in-string "\n-" "\n " separator) nil t)
+		  (string-replace "\n-" "\n " separator) nil t)
 	    (replace-match separator))
 	  ;; Return the list of marker pairs
 	  (nreverse result))))))

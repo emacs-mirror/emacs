@@ -78,7 +78,7 @@ is a string, it should be a MIME format string like
                 (string-match image-converter-regexp source))
            (and data-p
                 (symbolp data-p)
-                (string-match "/" (symbol-name data-p))
+                (string-search "/" (symbol-name data-p))
                 (string-match
                  image-converter-regexp
                  (concat "foo." (image-converter--mime-type data-p)))))

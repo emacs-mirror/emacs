@@ -849,7 +849,7 @@ The functions in `pattern-mod' are composed left to right."
 
 (defun formatz-mod-del-colons (string)
   "Returns STRING with any colons removed."
-  (replace-regexp-in-string ":" "" string))
+  (string-replace ":" "" string))
 
 (defun formatz-mod-add-00 (string)
   "Returns STRING with \"00\" appended."

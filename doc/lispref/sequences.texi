@@ -1111,6 +1111,23 @@ The @code{pcase} patterns provide an alternative facility for
 destructuring binding, see @ref{Destructuring with pcase Patterns}.
 @end defmac
 
+@defmac seq-setq var-sequence val-sequence
+@cindex sequence destructuring
+  This macro works similarly to @code{seq-let}, except that values are
+assigned to variables as if by @code{setq} instead of as in a
+@code{let} binding.
+
+@example
+@group
+(let ((a nil)
+      (b nil))
+  (seq-setq (_ a _ b) '(1 2 3 4))
+  (list a b))
+@result{} (2 4)
+@end group
+@end example
+@end defmac
+
 @defun seq-random-elt sequence
   This function returns an element of @var{sequence} taken at random.
 

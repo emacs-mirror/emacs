@@ -519,7 +519,7 @@ shell from reading its init file."
     (tramp-yn-prompt-regexp tramp-action-yn)
     (tramp-terminal-prompt-regexp tramp-action-terminal)
     (tramp-antispoof-regexp tramp-action-confirm-message)
-    (tramp-yubikey-regexp tramp-action-show-and-confirm-message)
+    (tramp-security-key-confirm-regexp tramp-action-show-and-confirm-message)
     (tramp-process-alive-regexp tramp-action-process-alive))
   "List of pattern/action pairs.
 Whenever a pattern matches, the corresponding action is performed.
@@ -537,7 +537,7 @@ corresponding PATTERN matches, the ACTION function is called.")
   '((tramp-password-prompt-regexp tramp-action-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-copy-failed-regexp tramp-action-permission-denied)
-    (tramp-yubikey-regexp tramp-action-show-and-confirm-message)
+    (tramp-security-key-confirm-regexp tramp-action-show-and-confirm-message)
     (tramp-process-alive-regexp tramp-action-out-of-band))
   "List of pattern/action pairs.
 This list is used for copying/renaming with out-of-band methods.
@@ -1740,7 +1740,7 @@ ID-FORMAT valid values are `string' and `integer'."
 ;; files.
 (defun tramp-sh-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (unless (string-match-p "/" filename)
+  (unless (tramp-compat-string-search "/" filename)
     (all-completions
      filename
      (with-parsed-tramp-file-name (expand-file-name directory) nil
@@ -2309,7 +2309,8 @@ The method used must be an out-of-band method."
 	      copy-args
 	      (tramp-compat-flatten-tree
 	       (mapcar
-		(lambda (x) (if (string-match-p " " x) (split-string x) x))
+		(lambda (x) (if (tramp-compat-string-search " " x)
+                                (split-string x) x))
 		copy-args))
 	      copy-env (apply #'tramp-expand-args v 'tramp-copy-env spec)
 	      remote-copy-program
@@ -2602,8 +2603,8 @@ The method used must be an out-of-band method."
 	(save-restriction
 	  (narrow-to-region beg-marker end-marker)
 	  ;; Some busyboxes are reluctant to discard colors.
-	  (unless
-	      (string-match-p "color" (tramp-get-connection-property v "ls" ""))
+	  (unless (tramp-compat-string-search
+		   "color" (tramp-get-connection-property v "ls" ""))
 	    (goto-char (point-min))
 	    (while (re-search-forward tramp-display-escape-sequence-regexp nil t)
 	      (replace-match "")))
@@ -2751,7 +2752,10 @@ implementation will be used."
 	      (command (plist-get args :command))
 	      (coding (plist-get args :coding))
 	      (noquery (plist-get args :noquery))
-	      (connection-type (plist-get args :connection-type))
+	      (connection-type
+	       (if (plist-member args :connection-type)
+		   (plist-get args :connection-type)
+		 tramp-process-connection-type))
 	      (filter (plist-get args :filter))
 	      (sentinel (plist-get args :sentinel))
 	      (stderr (plist-get args :stderr)))
@@ -2767,7 +2771,7 @@ implementation will be used."
 			   (memq (car coding) coding-system-list)
 			   (memq (cdr coding) coding-system-list)))
 	    (signal 'wrong-type-argument (list #'symbolp coding)))
-	  (unless (or (null connection-type) (memq connection-type '(pipe pty)))
+	  (unless (memq connection-type '(nil pipe t pty))
 	    (signal 'wrong-type-argument (list #'symbolp connection-type)))
 	  (unless (or (null filter) (functionp filter))
 	    (signal 'wrong-type-argument (list #'functionp filter)))
@@ -2828,7 +2832,7 @@ implementation will be used."
 		 (env (dolist (elt (cons prompt process-environment) env)
 			(or (member
 			     elt (default-toplevel-value 'process-environment))
-			    (if (string-match-p "=" elt)
+			    (if (tramp-compat-string-search "=" elt)
 				(setq env (append env `(,elt)))
 			      (setq uenv (cons elt uenv))))))
 		 (env (setenv-internal
@@ -2915,6 +2919,9 @@ implementation will be used."
 			    (setq p (tramp-get-connection-process v))
 			    (process-put p 'remote-pid pid)
 			    (tramp-set-connection-property p "remote-pid" pid))
+			  ;; Disable carriage return to newline translation.
+			  (when (memq connection-type '(nil pipe))
+			    (tramp-send-command v "stty -icrnl"))
 			  ;; `tramp-maybe-open-connection' and
 			  ;; `tramp-send-command-and-read' could have
 			  ;; trashed the connection buffer.  Remove this.
@@ -2957,7 +2964,7 @@ implementation will be used."
 			p)))
 
 		;; Save exit.
-		(if (string-match-p tramp-temp-buffer-name (buffer-name))
+		(if (string-prefix-p tramp-temp-buffer-name (buffer-name))
 		    (ignore-errors
 		      (set-process-buffer p nil)
 		      (kill-buffer (current-buffer)))
@@ -3039,7 +3046,7 @@ implementation will be used."
       ;; We use as environment the difference to toplevel `process-environment'.
       (dolist (elt process-environment)
         (or (member elt (default-toplevel-value 'process-environment))
-            (if (string-match-p "=" elt)
+            (if (tramp-compat-string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))
       (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep)
@@ -4308,7 +4315,7 @@ process to set up.  VEC specifies the connection."
       ;; Use MULE to select the right EOL convention for communicating
       ;; with the process.
       (let ((cs (or (and (memq 'utf-8-hfs (coding-system-list))
-			 (string-match-p "^Darwin" uname)
+			 (string-prefix-p "Darwin" uname)
 			 (cons 'utf-8-hfs 'utf-8-hfs))
 		    (and (memq 'utf-8 (coding-system-list))
 			 (string-match-p "utf-?8" (tramp-get-remote-locale vec))
@@ -4321,7 +4328,7 @@ process to set up.  VEC specifies the connection."
 	      cs-encode (or (cdr cs) 'undecided)
 	      cs-encode
 	      (coding-system-change-eol-conversion
-	       cs-encode (if (string-match-p "^Darwin" uname) 'mac 'unix)))
+	       cs-encode (if (string-prefix-p "Darwin" uname) 'mac 'unix)))
 	(tramp-send-command vec "(echo foo ; echo bar)" t)
 	(goto-char (point-min))
 	(when (search-forward "\r" nil t)
@@ -4371,7 +4378,7 @@ process to set up.  VEC specifies the connection."
     ;; IRIX64 bash expands "!" even when in single quotes.  This
     ;; destroys our shell functions, we must disable it.  See
     ;; <https://stackoverflow.com/questions/3291692/irix-bash-shell-expands-expression-in-single-quotes-yet-shouldnt>.
-    (when (string-match-p "^IRIX64" uname)
+    (when (string-prefix-p "IRIX64" uname)
       (tramp-send-command vec "set +H" t))
 
     ;; Disable tab expansion.
@@ -4627,12 +4634,12 @@ means standard output and thus the current buffer), or nil (which
 means discard it)."
   (tramp-call-process
    nil tramp-encoding-shell
-   (when (and input (not (string-match-p "%s" cmd))) input)
+   (when (and input (not (tramp-compat-string-search "%s" cmd))) input)
    (if (eq output t) t nil)
    nil
    tramp-encoding-command-switch
    (concat
-    (if (string-match-p "%s" cmd) (format cmd input) cmd)
+    (if (tramp-compat-string-search "%s" cmd) (format cmd input) cmd)
     (if (stringp output) (concat " >" output) ""))))
 
 (defconst tramp-inline-compress-commands
@@ -5222,7 +5229,7 @@ Return ATTR."
 	(when (stringp (car attr))
           (aset (nth 8 attr) 0 ?l)))
       ;; Convert directory indication bit.
-      (when (string-match-p "^d" (nth 8 attr))
+      (when (string-prefix-p "d" (nth 8 attr))
 	(setcar attr t))
       ;; Convert symlink from `tramp-do-file-attributes-with-stat'.
       ;; Decode also multibyte string.
@@ -5802,12 +5809,13 @@ function cell is returned to be applied on a buffer."
 	   (with-tramp-connection-property (tramp-get-process vec) prop
 	     (tramp-find-inline-encoding vec)
 	     (tramp-get-connection-property (tramp-get-process vec) prop nil)))
-	  (prop1 (if (string-match-p "encoding" prop)
+	  (prop1 (if (tramp-compat-string-search "encoding" prop)
 		     "inline-compress" "inline-decompress"))
 	  compress)
       ;; The connection property might have been cached.  So we must
       ;; send the script to the remote side - maybe.
-      (when (and coding (symbolp coding) (string-match-p "remote" prop))
+      (when (and coding (symbolp coding)
+		 (tramp-compat-string-search "remote" prop))
 	(let ((name (symbol-name coding)))
 	  (while (string-match "-" name)
 	    (setq name (replace-match "_" nil t name)))
@@ -5819,7 +5827,7 @@ function cell is returned to be applied on a buffer."
 	;; Return the value.
 	(cond
 	 ((and compress (symbolp coding))
-	  (if (string-match-p "decompress" prop1)
+	  (if (tramp-compat-string-search "decompress" prop1)
 	      `(lambda (beg end)
 		 (,coding beg end)
 		 (let ((coding-system-for-write 'binary)
@@ -5838,16 +5846,16 @@ function cell is returned to be applied on a buffer."
 	       (,coding (point-min) (point-max)))))
 	 ((symbolp coding)
 	  coding)
-	 ((and compress (string-match-p "decoding" prop))
+	 ((and compress (tramp-compat-string-search "decoding" prop))
 	  (format
 	   ;; Windows shells need the program file name after
 	   ;; the pipe symbol be quoted if they use forward
 	   ;; slashes as directory separators.
 	   (cond
-	    ((and (string-match-p "local" prop)
+	    ((and (tramp-compat-string-search "local" prop)
 		  (eq system-type 'windows-nt))
 	       "(%s | \"%s\")")
-	    ((string-match-p "local" prop) "(%s | %s)")
+	    ((tramp-compat-string-search "local" prop) "(%s | %s)")
 	    (t "(%s | %s >%%s)"))
 	   coding compress))
 	 (compress
@@ -5855,14 +5863,14 @@ function cell is returned to be applied on a buffer."
 	   ;; Windows shells need the program file name after
 	   ;; the pipe symbol be quoted if they use forward
 	   ;; slashes as directory separators.
-	   (if (and (string-match-p "local" prop)
+	   (if (and (tramp-compat-string-search "local" prop)
 		    (eq system-type 'windows-nt))
 	       "(%s <%%s | \"%s\")"
 	     "(%s <%%s | %s)")
 	   compress coding))
-	 ((string-match-p "decoding" prop)
+	 ((tramp-compat-string-search "decoding" prop)
 	  (cond
-	   ((string-match-p "local" prop) (format "%s" coding))
+	   ((tramp-compat-string-search "local" prop) (format "%s" coding))
 	   (t (format "%s >%%s" coding))))
 	 (t
 	  (format "%s <%%s" coding)))))))

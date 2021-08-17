@@ -406,7 +406,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 If EXPR is nil, return nil."
   (if expr
       (let ((cexpr (math-compose-expr expr 0)))
-        (replace-regexp-in-string
+        (string-replace
          " / " "/"
          (if (stringp cexpr)
              cexpr

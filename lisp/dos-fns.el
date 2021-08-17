@@ -86,7 +86,7 @@ sure to obey the 8.3 limitations."
 	    ;; close to the beginning, change that to a period.  This
 	    ;; is so we could salvage more characters of the original
 	    ;; name by pushing them into the extension.
-	    (if (and (not (string-match "\\." string))
+	    (if (and (not (string-search "." string))
 		     (> (length string) 8)
 		     ;; We don't gain anything if we put the period closer
 		     ;; than 5 chars from the beginning (5 + 3 = 8).
@@ -100,21 +100,21 @@ sure to obey the 8.3 limitations."
 	    ;; If we don't have a period in the first 8 chars, insert one.
 	    ;; This enables having 3 more characters from the original
 	    ;; name in the extension.
-	    (if (> (or (string-match "\\." string) (length string))
+	    (if (> (or (string-search "." string) (length string))
 		   8)
 		(setq string
 		      (concat (substring string 0 8)
 			      "."
 			      (substring string 8))))
-	    (setq firstdot (or (string-match "\\." string)
+	    (setq firstdot (or (string-search "." string)
 			       (1- (length string))))
 	    ;; Truncate to 3 chars after the first period.
 	    (if (> (length string) (+ firstdot 4))
 		(setq string (substring string 0 (+ firstdot 4))))
 	    ;; Change all periods except the first one into underscores.
 	    ;; (DOS doesn't allow more than one period.)
-	    (while (string-match "\\." string (1+ firstdot))
-	      (setq i (string-match "\\." string (1+ firstdot)))
+	    (while (string-search "." string (1+ firstdot))
+	      (setq i (string-search "." string (1+ firstdot)))
 	      (aset string i ?_))
 	    ;; If the last character of the original filename was `~' or `#',
 	    ;; make sure the munged name ends with it also.  This is so that
@@ -160,7 +160,7 @@ sure to obey the 8.3 limitations."
 	       (strlen (length string))
 	       (lastchar (aref string (1- strlen)))
 	       firstdot)
-	  (setq firstdot (string-match "\\." string))
+	  (setq firstdot (string-search "." string))
 	  (cond
 	   (firstdot
 	    ;; Truncate the extension to 3 characters.

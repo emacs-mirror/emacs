@@ -102,7 +102,15 @@
 
 ;;;###autoload
 (define-minor-mode url-handler-mode
-  "Toggle using `url' library for URL filenames (URL Handler mode)."
+  "Handle URLs as if they were file names throughout Emacs.
+After switching on this minor mode, Emacs file primitives handle
+URLs.  For instance:
+
+  (file-exists-p \"https://www.gnu.org/\")
+  => t
+
+and `C-x C-f https://www.gnu.org/ RET' will give you the HTML at
+that URL in a buffer."
   :global t :group 'url
   ;; Remove old entry, if any.
   (setq file-name-handler-alist

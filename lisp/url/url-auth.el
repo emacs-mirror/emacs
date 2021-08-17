@@ -102,10 +102,10 @@ instead of the filename inheritance method."
      (byserv
       (setq retval (cdr-safe (assoc file byserv)))
       (if (and (not retval)
-	       (string-match "/" file))
+	       (string-search "/" file))
  	  (while (and byserv (not retval))
 	    (setq data (car (car byserv)))
-	    (if (or (not (string-match "/" data)) ; It's a realm - take it!
+	    (if (or (not (string-search "/" data)) ; It's a realm - take it!
 		    (and
 		     (>= (length file) (length data))
 		     (string= data (substring file 0 (length data)))))
@@ -251,12 +251,12 @@ a match."
    (assoc dirkey keylist)
    ;; No exact match found.  Continue to look for partial match if
    ;; dirkey is not a realm.
-   (and (string-match "/" dirkey)
+   (and (string-search "/" dirkey)
         (let (match)
           (while (and (null match) keylist)
             (if (or
                  ;; Any realm candidate matches.  Why?
-                 (not (string-match "/" (caar keylist)))
+                 (not (string-search "/" (caar keylist)))
                  ;; Parent directory matches.
                  (string-prefix-p (caar keylist) dirkey))
                 (setq match (car keylist))

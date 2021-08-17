@@ -449,8 +449,8 @@ If no such character is found, move to beginning of line."
 	       (progn
 		 (beginning-of-line)
 		 (skip-chars-backward
-		  (concat "^" (replace-regexp-in-string
-			       "\\\\" "\\\\" picture-tab-chars nil t))
+		  (concat "^" (string-replace
+			       "\\" "\\\\" picture-tab-chars))
 		  (point-min))
 		 (not (bobp))))
 	  (move-to-column target))

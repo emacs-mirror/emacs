@@ -559,7 +559,7 @@ doubt, use whitespace."
 			   (or fkey key) " "))))
 	(if prefix
 	    (setq desc (concat (edmacro-sanitize-for-string prefix) desc)))
-	(unless (string-match " " desc)
+	(unless (string-search " " desc)
 	  (let ((times 1) (pos bind-len))
 	    (while (not (cl-mismatch rest-mac rest-mac
 				     :start1 0 :end1 bind-len

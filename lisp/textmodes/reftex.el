@@ -813,7 +813,7 @@ This enforces rescanning the buffer on next use."
             (setq wordlist (nthcdr 4 entry)))
 
         (if (and (stringp fmt)
-                 (string-match "@" fmt))
+                 (string-search "@" fmt))
             ;; Special syntax for specifying a label format
             (setq fmt (split-string fmt "@+"))
           (setq fmt (list "\\label{%s}" fmt)))

@@ -718,7 +718,7 @@ While entering the regexp, completion on knows citation keys is possible.
         (insert string))
 
       ;; Reposition cursor?
-      (when (string-match "\\?" string)
+      (when (string-search "?" string)
         (search-backward "?")
         (delete-char 1))
 

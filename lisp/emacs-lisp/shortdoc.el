@@ -700,6 +700,8 @@ There can be any number of :example/:result elements."
   (match-substitute-replacement
    :no-eval (match-substitute-replacement "new")
    :eg-result "new")
+  (replace-regexp-in-region
+   :no-value (replace-regexp-in-region "[0-9]+" "Num \\&"))
   "Utilities"
   (regexp-quote
    :eval (regexp-quote "foo.*bar"))
@@ -894,6 +896,10 @@ There can be any number of :example/:result elements."
    :no-value (erase-buffer))
   (insert
    :no-value (insert "This string will be inserted in the buffer\n"))
+  (subst-char-in-region
+   :no-eval "(subst-char-in-region (point-min) (point-max) ?+ ?-)")
+  (replace-string-in-region
+   :no-value (replace-string-in-region "foo" "bar"))
   "Locking"
   (lock-buffer
    :no-value (lock-buffer "/tmp/foo"))
@@ -1317,7 +1323,8 @@ Example:
   "Keymap for `shortdoc-mode'.")
 
 (define-derived-mode shortdoc-mode special-mode "shortdoc"
-  "Mode for shortdoc.")
+  "Mode for shortdoc."
+  :interactive nil)
 
 (defun shortdoc--goto-section (arg sym &optional reverse)
   (unless (natnump arg)
@@ -1332,26 +1339,26 @@ Example:
 (defun shortdoc-next (&optional arg)
   "Move cursor to the next function.
 With ARG, do it that many times."
-  (interactive "p")
+  (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-function))
 
 (defun shortdoc-previous (&optional arg)
   "Move cursor to the previous function.
 With ARG, do it that many times."
-  (interactive "p")
+  (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-function t)
   (backward-char 1))
 
 (defun shortdoc-next-section (&optional arg)
   "Move cursor to the next section.
 With ARG, do it that many times."
-  (interactive "p")
+  (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-section))
 
 (defun shortdoc-previous-section (&optional arg)
   "Move cursor to the previous section.
 With ARG, do it that many times."
-  (interactive "p")
+  (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-section t)
   (forward-line -2))
 

@@ -4546,7 +4546,7 @@ its priority has changed, and `same' otherwise."
   (let ((bufname (buffer-name)))
     (string-match "\"\\([^\"]+\\)\"" bufname)
     (let* ((filename-str (substring bufname (match-beginning 1) (match-end 1)))
-	   (filename-base (replace-regexp-in-string ", " "-" filename-str))
+	   (filename-base (string-replace ", " "-" filename-str))
 	   (top-priorities (string-match "top priorities" bufname))
 	   (diary-items (string-match "diary items" bufname))
 	   (regexp-items (string-match "regexp items" bufname)))

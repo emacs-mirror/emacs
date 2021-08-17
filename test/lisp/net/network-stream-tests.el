@@ -128,7 +128,7 @@
     (when prev
       (setq string (concat prev string))
       (process-put proc 'previous-string nil)))
-  (if (and (not (string-match "\n" string))
+  (if (and (not (string-search "\n" string))
            (> (length string) 0))
       (process-put proc 'previous-string string))
   (let ((command (split-string string)))

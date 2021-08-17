@@ -467,7 +467,7 @@ in the branch repository (or whose status not be determined)."
           ;; Erase the status text that matched.
           (delete-region (match-beginning 0) (match-end 0))
           (setq status
-                (intern (replace-regexp-in-string " " "" statusword)))))
+                (intern (string-replace " " "" statusword)))))
       (when status
         (goto-char (point-min))
         (skip-chars-forward " \n\t") ;Throw away spaces.

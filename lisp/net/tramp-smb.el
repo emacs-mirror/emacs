@@ -849,7 +849,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
 	    ;; Check result.
 	    (when entry
-	      (list (and (string-match-p "d" (nth 1 entry))
+	      (list (and (tramp-compat-string-search "d" (nth 1 entry))
 			 t)              ;0 file type
 		    -1	                 ;1 link count
 		    uid	                 ;2 uid
@@ -982,7 +982,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(mapcar
 	 (lambda (x)
 	   (list
-	    (if (string-match-p "d" (nth 1 x))
+	    (if (tramp-compat-string-search "d" (nth 1 x))
 		(file-name-as-directory (nth 0 x))
 	      (nth 0 x))))
 	 (tramp-smb-get-file-entries directory)))))))
@@ -1021,7 +1021,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-smb-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
   (if (file-exists-p filename)
-      (string-match-p
+      (tramp-compat-string-search
        "w"
        (or (tramp-compat-file-attribute-modes (file-attributes filename)) ""))
     (let ((dir (file-name-directory filename)))
@@ -1076,9 +1076,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     ;; Check for matching entries.
 		     (mapcar
 		      (lambda (x)
-			(when (string-match-p
-			       (format "^%s" base) (nth 0 x))
-			  x))
+			(when (string-match-p (format "^%s" base) (nth 0 x)) x))
 		      entries)
 		   ;; We just need the only and only entry FILENAME.
 		   (list (assoc base entries)))))
@@ -1088,14 +1086,14 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		(sort
 		 entries
 		 (lambda (x y)
-		   (if (string-match-p "t" switches)
+		   (if (tramp-compat-string-search "t" switches)
 		       ;; Sort by date.
 		       (time-less-p (nth 3 y) (nth 3 x))
 		     ;; Sort by name.
 		     (string-lessp (nth 0 x) (nth 0 y))))))
 
 	  ;; Handle "-F" switch.
-	  (when (string-match-p "F" switches)
+	  (when (tramp-compat-string-search "F" switches)
 	    (mapc
 	     (lambda (x)
 	       (unless (zerop (length (car x)))
@@ -1124,7 +1122,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			   (expand-file-name
 			    (nth 0 x) (file-name-directory filename))
 			   'string)))))
-		 (when (string-match-p "l" switches)
+		 (when (tramp-compat-string-search "l" switches)
 		   (insert
 		    (format
 		     "%10s %3d %-8s %-8s %8s %s "
@@ -1153,7 +1151,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		   (put-text-property start (point) 'dired-filename t))
 
 		 ;; Insert symlink.
-		 (when (and (string-match-p "l" switches)
+		 (when (and (tramp-compat-string-search "l" switches)
 			    (stringp (tramp-compat-file-attribute-type attr)))
 		   (insert " -> " (tramp-compat-file-attribute-type attr))))
 
@@ -1551,7 +1549,7 @@ component is used as the target of the symlink."
 
 	;; Save exit.
 	(with-current-buffer (tramp-get-connection-buffer v)
-	  (if (string-match-p tramp-temp-buffer-name (buffer-name))
+	  (if (tramp-compat-string-search tramp-temp-buffer-name (buffer-name))
 	      (progn
 		(set-process-buffer (tramp-get-connection-process v) nil)
 		(kill-buffer (current-buffer)))
@@ -1857,10 +1855,12 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 	     mode (or (match-string 1 line) "")
 	     mode (format
 		    "%s%s"
-		    (if (string-match-p "D" mode) "d" "-")
+		    (if (tramp-compat-string-search "D" mode) "d" "-")
 		    (mapconcat
 		     (lambda (_x) "") "    "
-		     (concat "r" (if (string-match-p "R" mode) "-" "w") "x")))
+		     (format
+		      "r%sx"
+		      (if (tramp-compat-string-search "R" mode) "-" "w"))))
 	     line (substring line 0 -6))
 	  (cl-return))
 

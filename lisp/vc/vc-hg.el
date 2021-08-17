@@ -851,8 +851,8 @@ if we don't understand a construct, we signal
                         (push "\\[" parts))
                        (t
                         (let ((x (substring glob i j)))
-                          (setf x (replace-regexp-in-string
-                                   "\\\\" "\\\\" x t t))
+                          (setf x (string-replace
+                                   "\\" "\\\\" x))
                           (setf i (1+ j))
                           (cond ((eq (aref x 0) ?!)
                                  (setf (aref x 0) ?^))

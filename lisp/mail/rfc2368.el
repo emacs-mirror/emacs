@@ -91,7 +91,7 @@ Note: make sure MAILTO-URL has been \"unhtmlized\" (e.g., &amp; -> &), before
 calling this function."
   (let ((case-fold-search t)
 	prequery query headers-alist)
-    (setq mailto-url (replace-regexp-in-string "\n" " " mailto-url))
+    (setq mailto-url (string-replace "\n" " " mailto-url))
     (if (string-match rfc2368-mailto-regexp mailto-url)
 	(progn
 	  (setq prequery

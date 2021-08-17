@@ -1732,14 +1732,14 @@ escaped (\\\",\\\\)."
 		(concat
 		 " ("
 		 (if (stringp Info-current-file)
-		     (replace-regexp-in-string
+		     (string-replace
 		      "%" "%%"
 		      (file-name-sans-extension
 		       (file-name-nondirectory Info-current-file)))
 		   (format "*%S*" Info-current-file))
 		 ") "
 		 (if Info-current-node
-		     (propertize (replace-regexp-in-string
+		     (propertize (string-replace
 				  "%" "%%" Info-current-node)
 				 'face 'mode-line-buffer-id
 				 'help-echo
@@ -2483,7 +2483,7 @@ Table of contents is created from the tree structure of menus."
 			      (match-string-no-properties 1)))
 		 (section "Top")
 		 menu-items)
-	    (when (and upnode (string-match "(" upnode)) (setq upnode nil))
+	    (when (and upnode (string-search "(" upnode)) (setq upnode nil))
             (when (and (not (Info-index-node nodename file))
                        (re-search-forward "^\\* Menu:" bound t))
               (forward-line 1)
@@ -2616,7 +2616,7 @@ new buffer."
 
   (let (target i (str (concat "\\*note " (regexp-quote footnotename)))
 	       (case-fold-search t))
-    (while (setq i (string-match " " str i))
+    (while (setq i (string-search " " str i))
       (setq str (concat (substring str 0 i) "[ \t\n]+" (substring str (1+ i))))
       (setq i (+ i 6)))
     (save-excursion
@@ -2933,7 +2933,7 @@ last sub-node, if any; otherwise go \"up\" to the parent node."
   (let ((prevnode (Info-extract-pointer "prev[ious]*" t))
 	(upnode (Info-extract-pointer "up" t))
 	(case-fold-search t))
-    (cond ((and upnode (string-match "(" upnode))
+    (cond ((and upnode (string-search "(" upnode))
 	   (user-error "First node in file"))
 	  ((and upnode (or (null prevnode)
 			   ;; Use string-equal, not equal,
@@ -3778,7 +3778,7 @@ Build a menu of the possible matches."
      "The following packages match the keyword ‘" nodename "’:\n\n")
     (insert "* Menu:\n\n")
     (let ((keywords
-	   (mapcar #'intern (if (string-match-p "," nodename)
+	   (mapcar #'intern (if (string-search "," nodename)
 			       (split-string nodename ",[ \t\n]*" t)
 			     (list nodename))))
 	  hits desc)
@@ -5244,7 +5244,7 @@ The INDENT level is ignored."
 TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node (NAME . FILE).
 INDENT is the current indentation depth."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (if (speedbar-with-writable
 	      (save-excursion
@@ -5252,7 +5252,7 @@ INDENT is the current indentation depth."
 		(Info-speedbar-hierarchy-buttons nil (1+ indent) token)))
 	     (speedbar-change-expand-button-char ?-)
 	   (speedbar-change-expand-button-char ??)))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops... not sure what to do")))

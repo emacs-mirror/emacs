@@ -3597,7 +3597,7 @@ If S is non-nil, it will be used as the quit reason."
 If S is non-nil, it will be used as the quit reason."
   (or s
       (if (fboundp 'yow)
-          (replace-regexp-in-string "\n" "" (yow))
+          (string-replace "\n" "" (yow))
         (erc-quit/part-reason-default))))
 
 (make-obsolete 'erc-quit-reason-zippy "it will be removed." "24.4")
@@ -3624,7 +3624,7 @@ If S is non-nil, it will be used as the part reason."
 If S is non-nil, it will be used as the quit reason."
   (or s
       (if (fboundp 'yow)
-          (replace-regexp-in-string "\n" "" (yow))
+          (string-replace "\n" "" (yow))
         (erc-quit/part-reason-default))))
 
 (make-obsolete 'erc-part-reason-zippy "it will be removed." "24.4")
@@ -5587,7 +5587,7 @@ This returns non-nil only if we actually send anything."
       (when (and (erc-input-sendp state)
 		 erc-send-this)
 	(let ((string (erc-input-string state)))
-          (if (or (string-match "\n" string)
+          (if (or (string-search "\n" string)
                   (not (string-match erc-command-regexp string)))
               (mapc
                (lambda (line)
@@ -6528,7 +6528,7 @@ if `erc-away' is non-nil."
                                   (fill-region (point-min) (point-max))
                                   (buffer-string))))
                  (setq header-line-format
-                       (replace-regexp-in-string
+                       (string-replace
                         "%"
                         "%%"
                         (if face
@@ -6804,7 +6804,7 @@ functions."
               nick user host channel
               (if (not (string= reason ""))
                   (format ": %s"
-                          (replace-regexp-in-string "%" "%%" reason))
+                          (string-replace "%" "%%" reason))
                 "")))))
 
 

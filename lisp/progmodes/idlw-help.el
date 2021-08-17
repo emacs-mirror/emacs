@@ -495,7 +495,7 @@ It collects and prints the diagnostics messages."
        ((and (memq cw '(function-keyword procedure-keyword))
 	     (stringp this-word)
 	     (string-match "\\S-" this-word)
-	     (not (string-match "!" this-word)))
+	     (not (string-search "!" this-word)))
 	(cond ((or (= (char-before beg) ?/)
 		   (save-excursion (goto-char end)
 				   (looking-at "[ \t]*=")))

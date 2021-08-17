@@ -346,7 +346,7 @@ It is also called if Tooltip mode is on, for text-only displays."
              (not cursor-in-echo-area))  ;Don't overwrite a prompt.
     (cond
      ((stringp help)
-      (setq help (replace-regexp-in-string "\n" ", " help))
+      (setq help (string-replace "\n" ", " help))
       (unless (or tooltip-previous-message
 		  (equal-including-properties help (current-message))
 		  (and (stringp tooltip-help-message)

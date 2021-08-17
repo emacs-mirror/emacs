@@ -555,7 +555,7 @@ SELF or the instance name \"self\" if SELF is nil."
 	     (rx-to-string
 	      `(seq string-start ,(or self "self") "."))
 	     name)
-	(not (string-match "\\." (substring name 5)))))))
+	(not (string-search "." (substring name 5)))))))
 
 (defun semantic-python-docstring-p (tag)
   "Return non-nil, when TAG is a Python documentation string."

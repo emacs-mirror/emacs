@@ -1100,7 +1100,7 @@ reversed."
       (setq viper-keep-reading-filename nil
 	    val (read-file-name (concat prompt str) nil default-directory))
       (setq val (expand-file-name val))
-      (if (and (string-match " " val)
+      (if (and (string-search " " val)
 	       (ex-cmd-accepts-multiple-files-p ex-token))
 	  (setq val (concat "\"" val "\"")))
       (setq str  (concat str (if (equal val "") "" " ")
@@ -2300,10 +2300,10 @@ Type `mak ' (including the space) to run make with no args."
 (defun ex-print-display-lines (lines)
   (cond
    ;; String doesn't contain a newline.
-   ((not (string-match "\n" lines))
+   ((not (string-search "\n" lines))
     (message "%s" lines))
    ;; String contains only one newline at the end.  Strip it off.
-   ((= (string-match "\n" lines) (1- (length lines)))
+   ((= (string-search "\n" lines) (1- (length lines)))
     (message "%s" (substring lines 0 -1)))
    ;; String spans more than one line.  Use a temporary buffer.
    (t

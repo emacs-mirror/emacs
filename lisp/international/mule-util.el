@@ -333,13 +333,20 @@ QUALITY can be:
   `approximate', in which case we may cut some corners to avoid
     excessive work.
   `exact', in which case we may end up re-(en/de)coding a large
-    part of the file/buffer, this can be expensive and slow.
+    part of the file/buffer, this can be expensive and slow.  (It
+    is an error to request the `exact' method when the buffer's
+    EOL format is not yet decided.)
   nil, in which case we may return nil rather than an approximation."
   (unless coding-system (setq coding-system buffer-file-coding-system))
   (let ((eol (coding-system-eol-type coding-system))
         (type (coding-system-type coding-system))
         (base (coding-system-base coding-system))
         (pm (save-restriction (widen) (point-min))))
+    ;; Handle EOL edge cases.
+    (unless (numberp eol)
+      (if (eq quality 'exact)
+          (error "Unknown EOL format in coding system: %s" coding-system)
+        (setq eol 0)))
     (and (eq type 'utf-8)
          ;; Any post-read/pre-write conversions mean it's not really UTF-8.
          (not (null (coding-system-get coding-system :post-read-conversion)))
@@ -409,14 +416,24 @@ QUALITY can be:
   `approximate', in which case we may cut some corners to avoid
     excessive work.
   `exact', in which case we may end up re-(en/de)coding a large
-    part of the file/buffer, this can be expensive and slow.
+    part of the file/buffer, this can be expensive and slow.  (It
+    is an error to request the `exact' method when the buffer's
+    EOL format is not yet decided.)
   nil, in which case we may return nil rather than an approximation."
   (unless coding-system (setq coding-system buffer-file-coding-system))
   (let* ((eol (coding-system-eol-type coding-system))
-         (lineno (if (= eol 1) (1- (line-number-at-pos position)) 0))
          (type (coding-system-type coding-system))
          (base (coding-system-base coding-system))
-         (point-min 1))                 ;Clarify what the `1' means.
+         (point-min 1)                  ;Clarify what the `1' means.
+         lineno)
+    ;; Handle EOL edge cases.
+    (unless (numberp eol)
+      (if (eq quality 'exact)
+          (error "Unknown EOL format in coding system: %s" coding-system)
+        (setq eol 0)))
+    (setq lineno (if (= eol 1)
+                     (1- (line-number-at-pos position))
+                   0))
     (and (eq type 'utf-8)
          ;; Any post-read/pre-write conversions mean it's not really UTF-8.
          (not (null (coding-system-get coding-system :post-read-conversion)))

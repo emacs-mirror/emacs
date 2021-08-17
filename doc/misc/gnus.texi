@@ -4145,6 +4145,25 @@ The default is 2.
 The @code{gnus-topic-display-empty-topics} says whether to display even
 topics that have no unread articles in them.  The default is @code{t}.
 
+@vindex gnus-topic-display-predicate
+If @code{gnus-topic-display-predicate} is non-@code{nil}, it should be
+a function that says whether the topic is to be displayed or not.
+The function will be called with one parameter (the name of the topic)
+and should return non-@code{nil} is the topic is to be displayed.
+
+For instance, if you don't even want to be reminded that work exists
+outside of office hours, you can gather all the work-related groups
+into a topic called @samp{"Work"}, and then say something like the
+following:
+
+@lisp
+(setq gnus-topic-display-predicate
+      (lambda (name)
+        (or (not (equal name "Work"))
+            (< 090000
+               (string-to-number (format-time-string "%H%M%S"))
+               170000))))
+@end lisp
 
 @node Topic Sorting
 @subsection Topic Sorting

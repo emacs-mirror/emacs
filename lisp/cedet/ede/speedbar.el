@@ -276,7 +276,7 @@ INDENT is the current indentation level."
 Etags does not support this feature.  TEXT will be the button
 string.  TOKEN will be the list, and INDENT is the current indentation
 level."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -284,7 +284,7 @@ level."
 	     (speedbar-insert-generic-list indent token
 					   'ede-tag-expand
 					   'ede-tag-find))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))

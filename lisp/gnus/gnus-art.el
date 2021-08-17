@@ -2519,7 +2519,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
 	      format (and ctl (mail-content-type-get ctl 'format)))
 	(when cte
 	  (setq cte (mail-header-strip-cte cte)))
-	(if (and ctl (not (string-match "/" (car ctl))))
+	(if (and ctl (not (string-search "/" (car ctl))))
 	    (setq ctl nil))
 	(goto-char (point-max)))
       (forward-line 1)
@@ -8288,7 +8288,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 	     ")" (gnus-url-unhex-string (match-string 2 url)))))
    ((string-match "([^)\"]+)[^\"]+" url)
     (setq url
-	  (replace-regexp-in-string
+	  (string-replace
 	   "\"" "" (replace-regexp-in-string "[\n\t ]+" " " url)))
     (gnus-info-find-node url))
    (t (error "Can't parse %s" url))))

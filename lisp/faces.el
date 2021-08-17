@@ -3062,7 +3062,7 @@ also the same size as FACE on FRAME, or fail."
       (let ((fonts (x-list-fonts pattern face frame 1)))
 	(or fonts
 	    (if face
-		(if (string-match-p "\\*" pattern)
+		(if (string-search "*" pattern)
 		    (if (null (face-font face))
 			(error "No matching fonts are the same height as the frame default font")
 		      (error "No matching fonts are the same height as face `%s'" face))

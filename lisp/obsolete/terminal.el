@@ -1222,7 +1222,7 @@ of the terminal-emulator"
   (cond ((string-match "\\`[-a-zA-Z0-9+=_.@/:]+\\'"
 		       string)
 	 string)
-	((not (string-match "[$]" string))
+	((not (string-search "$" string))
 	 ;; "[\"\\]" are special to sh and the lisp reader in the same way
 	 (prin1-to-string string))
 	(t

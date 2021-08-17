@@ -1917,7 +1917,8 @@ This function returns a list of the overlays that overlap the region
 contains one or more characters in the region; empty overlays
 (@pxref{Managing Overlays, empty overlay}) overlap if they are at
 @var{beg}, strictly between @var{beg} and @var{end}, or at @var{end}
-when @var{end} denotes the position at the end of the buffer.
+when @var{end} denotes the position at the end of the accessible part
+of the buffer.
 @end defun
 
 @defun next-overlay-change pos

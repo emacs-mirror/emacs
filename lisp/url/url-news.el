@@ -106,7 +106,7 @@
 	 (article (url-unhex-string (url-filename url))))
     (url-news-open-host host port (url-user url) (url-password url))
     (cond
-     ((string-match "@" article)	; Its a specific article
+     ((string-search "@" article)	; Its a specific article
       (setq buf (url-news-fetch-message-id host article)))
      ((string= article "")		; List all newsgroups
       (gnus))

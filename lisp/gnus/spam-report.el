@@ -159,7 +159,7 @@ submitted at once.  Internal variable.")
 	 rpt-host
 	 (concat
 	  "/"
-	  (replace-regexp-in-string
+	  (string-replace
 	   "/" ":"
 	   (replace-regexp-in-string
 	    "^.*article.gmane.org/" ""
@@ -224,7 +224,7 @@ the function specified by `spam-report-url-ping-function'."
 
 (defcustom spam-report-user-mail-address
   (and (stringp user-mail-address)
-       (replace-regexp-in-string "@" "<at>" user-mail-address))
+       (string-replace "@" "<at>" user-mail-address))
   "Mail address of this user used for spam reports to Gmane.
 This is initialized based on `user-mail-address'."
   :type '(choice string

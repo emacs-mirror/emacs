@@ -754,7 +754,7 @@ with parameters from the *Messages* buffer modification."
       (should-length 2 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max)))
       (narrow-to-region 1 50)
-      (should-length 0 (overlays-in 1 (point-max)))
+      (should-length 1 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max))))))
 
 
@@ -1398,5 +1398,26 @@ with parameters from the *Messages* buffer modification."
       (should (= (length (overlays-in 3 3)) 2))
       (should (memq long-overlay (overlays-in 3 3)))
       (should (memq zero-overlay (overlays-in 3 3))))))
+
+(ert-deftest test-remove-overlays ()
+  (with-temp-buffer
+    (insert "foo")
+    (make-overlay (point) (point))
+    (should (= (length (overlays-in (point-min) (point-max))) 1))
+    (remove-overlays)
+    (should (= (length (overlays-in (point-min) (point-max))) 0)))
+
+  (with-temp-buffer
+    (insert "foo")
+    (goto-char 2)
+    (make-overlay (point) (point))
+    ;; We only count zero-length overlays at the end of the buffer.
+    (should (= (length (overlays-in 1 2)) 0))
+    (narrow-to-region 1 2)
+    ;; We've now narrowed, so the zero-length overlay is at the end of
+    ;; the (accessible part of the) buffer.
+    (should (= (length (overlays-in 1 2)) 1))
+    (remove-overlays)
+    (should (= (length (overlays-in (point-min) (point-max))) 0))))
 
 ;;; buffer-tests.el ends here

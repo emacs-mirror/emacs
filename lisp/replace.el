@@ -213,7 +213,7 @@ wants to replace FROM with TO."
 	    (when query-replace-from-to-separator
 	      ;; Check if the first non-whitespace char is displayable
 	      (if (char-displayable-p
-		   (string-to-char (replace-regexp-in-string
+		   (string-to-char (string-replace
 				    " " "" query-replace-from-to-separator)))
 		  query-replace-from-to-separator
 		" -> ")))
@@ -310,7 +310,7 @@ the original string if not."
 					 ;; but not after (quote foo).
 					 (and (eq (car-safe (car pos)) 'quote)
 					      (not (= ?\( (aref to 0)))))
-				     (eq (string-match " " to (cdr pos))
+				     (eq (string-search " " to (cdr pos))
 					 (cdr pos)))
 				(1+ (cdr pos))
 			      (cdr pos))))
@@ -633,13 +633,13 @@ Arguments REGEXP, START, END, and REGION-NONCONTIGUOUS-P are passed to
     (if (listp to-strings)
 	(setq replacements to-strings)
       (while (/= (length to-strings) 0)
-	(if (string-match " " to-strings)
+	(if (string-search " " to-strings)
 	    (setq replacements
 		  (append replacements
 			  (list (substring to-strings 0
-					   (string-match " " to-strings))))
+					   (string-search " " to-strings))))
 		  to-strings (substring to-strings
-				       (1+ (string-match " " to-strings))))
+				       (1+ (string-search " " to-strings))))
 	  (setq replacements (append replacements (list to-strings))
 		to-strings ""))))
     (perform-replace regexp replacements t t nil n nil start end nil region-noncontiguous-p)))
@@ -2101,7 +2101,7 @@ See also `multi-occur'."
 			      ;; Add non-numeric prefix to all non-first lines
 			      ;; of multi-line matches.
                               (concat
-			       (replace-regexp-in-string
+			       (string-replace
 			        "\n"
 			        (if prefix-face
 				    (propertize
@@ -2506,12 +2506,10 @@ a string, it is first passed through `prin1-to-string'
 with the `noescape' argument set.
 
 `match-data' is preserved across the call."
-  (save-match-data
-    (replace-regexp-in-string "\\\\" "\\\\"
-			      (if (stringp replacement)
-				  replacement
-				(prin1-to-string replacement t))
-			      t t)))
+  (string-replace "\\" "\\\\"
+		  (if (stringp replacement)
+		      replacement
+		    (prin1-to-string replacement t))))
 
 (defun replace-loop-through-replacements (data count)
   ;; DATA is a vector containing the following values:
@@ -2767,9 +2765,7 @@ characters."
 
          ;; If non-nil, it is marker saying where in the buffer to stop.
          (limit nil)
-         ;; Use local binding in add-function below.
-         (isearch-filter-predicate isearch-filter-predicate)
-         (region-bounds nil)
+         (region-filter nil)
 
          ;; Data for the next match.  If a cons, it has the same format as
          ;; (match-data); otherwise it is t if a match is possible at point.
@@ -2793,21 +2789,22 @@ characters."
 
     ;; Unless a single contiguous chunk is selected, operate on multiple chunks.
     (when region-noncontiguous-p
-      (setq region-bounds
-            (mapcar (lambda (position)
-                      (cons (copy-marker (car position))
-                            (copy-marker (cdr position))))
-                    (funcall region-extract-function 'bounds)))
-      (add-function :after-while isearch-filter-predicate
-                    (lambda (start end)
-                      (delq nil (mapcar
-                                 (lambda (bounds)
-                                   (and
-                                    (>= start (car bounds))
-                                    (<= start (cdr bounds))
-                                    (>= end   (car bounds))
-                                    (<= end   (cdr bounds))))
-                                 region-bounds)))))
+      (let ((region-bounds
+             (mapcar (lambda (position)
+                       (cons (copy-marker (car position))
+                             (copy-marker (cdr position))))
+                     (funcall region-extract-function 'bounds))))
+        (setq region-filter
+              (lambda (start end)
+                (delq nil (mapcar
+                           (lambda (bounds)
+                             (and
+                              (>= start (car bounds))
+                              (<= start (cdr bounds))
+                              (>= end   (car bounds))
+                              (<= end   (cdr bounds))))
+                           region-bounds))))
+        (add-function :after-while isearch-filter-predicate region-filter)))
 
     ;; If region is active, in Transient Mark mode, operate on region.
     (if backward
@@ -3240,7 +3237,9 @@ characters."
                 (setq next-replacement-replaced nil
                       search-string-replaced    nil
                       last-was-act-and-show     nil))))))
-      (replace-dehighlight))
+      (replace-dehighlight)
+      (when region-filter
+        (remove-function isearch-filter-predicate region-filter)))
     (or unread-command-events
 	(message (ngettext "Replaced %d occurrence%s"
 			   "Replaced %d occurrences%s"

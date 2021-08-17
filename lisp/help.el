@@ -1912,7 +1912,7 @@ the same names as used in the original source code, when possible."
                            (let ((name (symbol-name arg)))
                              (if (eq (aref name 0) ?&)
                                  (memq arg '(&rest &optional))
-                               (not (string-match "\\." name)))))
+                               (not (string-search "." name)))))
                 (setq valid nil)))
             (when valid arglist)))
         (let* ((arity (func-arity def))

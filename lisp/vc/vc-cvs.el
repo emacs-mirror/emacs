@@ -1173,7 +1173,7 @@ is non-nil."
            (mtime (file-attribute-modification-time (file-attributes file)))
            (parsed-time (progn (require 'parse-time)
                                (parse-time-string (concat time " +0000")))))
-      (cond ((and (not (string-match "\\+" time))
+      (cond ((and (not (string-search "+" time))
                   (decoded-time-second parsed-time)
                   ;; Compare just the seconds part of the file time,
                   ;; since CVS file time stamp resolution is just 1 second.

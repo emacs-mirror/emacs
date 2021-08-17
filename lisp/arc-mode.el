@@ -1707,7 +1707,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		(= (get-byte p) ?\C-z)
 		(> (get-byte (1+ p)) 0))
       (let* ((namefld (buffer-substring (+ p 2) (+ p 2 13)))
-	     (fnlen   (or (string-match "\0" namefld) 13))
+	     (fnlen   (or (string-search "\0" namefld) 13))
 	     (efnname (decode-coding-string (substring namefld 0 fnlen)
 					    archive-file-name-coding-system))
              (csize   (archive-l-e (+ p 15) 4))
@@ -2089,7 +2089,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (dirtype (get-byte (+ p 4)))
 	     (lfnlen  (if (= dirtype 2) (get-byte (+ p 56)) 0))
 	     (ldirlen (if (= dirtype 2) (get-byte (+ p 57)) 0))
-	     (fnlen   (or (string-match "\0" namefld) 13))
+	     (fnlen   (or (string-search "\0" namefld) 13))
 	     (efnname (let ((str
 			     (concat
 			      (if (> ldirlen 0)

@@ -863,7 +863,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 				       nil t))))
 	(mm-sec-error 'gnus-info "Corrupted")
 	(throw 'error handle))
-      (setq part (replace-regexp-in-string "\n" "\r\n" part)
+      (setq part (string-replace "\n" "\r\n" part)
 	    signature (mm-get-part signature)
 	    context (epg-make-context))
       (condition-case error

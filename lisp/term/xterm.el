@@ -944,9 +944,10 @@ See `xterm--init-frame-title'"
 (defun xterm-set-window-title (&optional terminal)
   "Set the window title of the Xterm TERMINAL.
 The title is constructed from `frame-title-format'."
-  (send-string-to-terminal
-   (format "\e]2;%s\a" (format-mode-line frame-title-format))
-   terminal))
+  (unless (display-graphic-p terminal)
+    (send-string-to-terminal
+     (format "\e]2;%s\a" (format-mode-line frame-title-format))
+     terminal)))
 
 (defun xterm--selection-char (type)
   (pcase type
@@ -1015,10 +1016,9 @@ hitting screen's max DCS length."
                      'terminal-init-screen))
          (bytes (encode-coding-string data 'utf-8-unix))
          (base-64 (if screen
-                      (replace-regexp-in-string
+                      (string-replace
                        "\n" "\e\\\eP"
-                       (base64-encode-string bytes)
-                       :fixedcase :literal)
+                       (base64-encode-string bytes))
                     (base64-encode-string bytes :no-line-break)))
          (length (length base-64)))
     (if (> length xterm-max-cut-length)

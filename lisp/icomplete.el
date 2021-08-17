@@ -298,18 +298,21 @@ require user confirmation."
         (call-interactively 'kill-line)
       (let* ((all (completion-all-sorted-completions))
              (thing (car all))
+             (cat (icomplete--category))
              (action
-              (pcase (icomplete--category)
-                (`buffer
+              (cl-case cat
+                (buffer
                  (lambda ()
                    (when (yes-or-no-p (concat "Kill buffer " thing "? "))
                      (kill-buffer thing))))
-                (`file
+                ((project-file file)
                  (lambda ()
                    (let* ((dir (file-name-directory (icomplete--field-string)))
                           (path (expand-file-name thing dir)))
                      (when (yes-or-no-p (concat "Delete file " path "? "))
-                       (delete-file path) t)))))))
+                       (delete-file path) t))))
+                (t
+                 (error "Sorry, don't know how to kill things for `%s'" cat)))))
         (when (let (;; Allow `yes-or-no-p' to work and don't let it
                     ;; `icomplete-exhibit' anything.
                     (enable-recursive-minibuffers t)
@@ -623,6 +626,8 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 (define-minor-mode icomplete-vertical-mode
   "Toggle vertical candidate display in `icomplete-mode' or `fido-mode'.
 
+If none of these modes are on, turn on `icomplete-mode'.
+
 As many completion candidates as possible are displayed, depending on
 the value of `max-mini-window-height', and the way the mini-window is
 resized depends on `resize-mini-windows'."
@@ -630,10 +635,21 @@ resized depends on `resize-mini-windows'."
   (remove-hook 'icomplete-minibuffer-setup-hook
                #'icomplete--vertical-minibuffer-setup)
   (when icomplete-vertical-mode
+    (unless icomplete-mode
+      (icomplete-mode 1))
     (add-hook 'icomplete-minibuffer-setup-hook
               #'icomplete--vertical-minibuffer-setup)))
 
-(defalias 'fido-vertical-mode 'icomplete-vertical-mode)
+;;;###autoload
+(define-minor-mode fido-vertical-mode
+  "Toggle vertical candidate display in `fido-mode'.
+When turning on, if non-vertical `fido-mode' is off, turn it on.
+If it's on, just add the vertical display."
+  :global t
+  (icomplete-vertical-mode -1)
+  (when fido-vertical-mode
+    (unless fido-mode (fido-mode 1))
+    (icomplete-vertical-mode 1)))
 
 
 

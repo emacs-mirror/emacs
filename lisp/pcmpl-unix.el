@@ -214,7 +214,7 @@ Includes files as well as host names followed by a colon."
 			   (list string)
 			 (completion-table-subvert (pcomplete-all-entries)
                                                    "" "/ssh:")))
-                      ((string-match "/" string) ; Local file name.
+                      ((string-search "/" string) ; Local file name.
                        (pcomplete-all-entries))
                       (t                ;Host name or local file name.
                        (append (all-completions string (pcomplete-all-entries))

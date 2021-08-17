@@ -2166,7 +2166,7 @@ See `set-language-info-alist' for use in programs."
 	    (let ((str (eval (get-language-info language-name 'sample-text))))
 	      (if (stringp str)
 		  (insert "Sample text:\n  "
-			  (replace-regexp-in-string "\n" "\n  " str)
+			  (string-replace "\n" "\n  " str)
 			  "\n\n")))
 	  (error nil))
 	(let ((input-method (get-language-info language-name 'input-method))

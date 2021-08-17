@@ -785,7 +785,7 @@ It is useful when `(setq nnrss-use-local t)'."
 		   (nnrss-node-just-text node)
 		 node))
 	 (cleaned-text (if text
-			   (replace-regexp-in-string
+			   (string-replace
 			    "\r\n" "\n"
 			    (replace-regexp-in-string
 			     "^[\000-\037\177]+\\|^ +\\| +$" ""
@@ -849,7 +849,7 @@ DATA should be the output of `xml-parse-region'."
 
 (defmacro nnrss-match-macro (base-uri item onsite-list offsite-list)
   `(cond ((or (string-match (concat "^" ,base-uri) ,item)
-	      (not (string-match "://" ,item)))
+	      (not (string-search "://" ,item)))
 	  (setq ,onsite-list (append ,onsite-list (list ,item))))
 	 (t (setq ,offsite-list (append ,offsite-list (list ,item))))))
 
@@ -954,9 +954,10 @@ Simply ensures that the first element is rss or rdf."
   "Given EL (containing a parsed element) and URI (containing a string
 that gives the URI for which you want to retrieve the namespace
 prefix), return the prefix."
-  (let* ((prefix (car (rassoc uri (dom-attributes
-				   (dom-search
-				    el
+  (let* ((dom (car el))
+         (prefix (car (rassoc uri (dom-attributes
+			           (dom-search
+				    dom
 				    (lambda (node)
 				      (rassoc uri (dom-attributes node))))))))
 	 (nslist (if prefix
