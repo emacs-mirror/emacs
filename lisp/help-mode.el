@@ -142,8 +142,8 @@ The format is (FUNCTION ARGS...).")
 
 (defvar help-mode-syntax-table
   (let ((table (make-syntax-table emacs-lisp-mode-syntax-table)))
-    ;; treat single quotes as parens so that forward-sexp does not
-    ;; break when quoted string contains punctuation
+    ;; Treat single quotes as parens so that forward-sexp does not
+    ;; break when a quoted string contains punctuation.
     (modify-syntax-entry ?‘ "(’  " table)
     (modify-syntax-entry ?’ ")‘  " table)
     table)
