@@ -1096,7 +1096,7 @@ FILE-TAGS is an alist in the following form:
 	       (end-of-line)
 	       (insert (format ";%s" tag))))
 	 (goto-char (point-max))
-	 (insert (format "\n%s;%s" file tag))))
+	 (insert (format "%s;%s\n" file tag))))
      (save-buffer))))
 
 (defun image-dired-remove-tag (files tag)
@@ -1123,11 +1123,7 @@ FILE-TAGS is an alist in the following form:
 	   (setq end (point))
 	   (beginning-of-line)
 	   (when (not (search-forward ";" end t))
-	     (kill-line 1)
-	     ;; If on empty line at end of buffer
-	     (and (eobp)
-		  (looking-at "^$")
-		  (delete-char -1)))))))
+	     (kill-line 1))))))
    (save-buffer)))
 
 (defun image-dired-list-tags (file)
@@ -2185,7 +2181,7 @@ FILE-COMMENTS is an alist on the following form:
 	     (insert (format "comment:%s;" comment)))
 	 ;; File does not exist in database - add it.
 	 (goto-char (point-max))
-	 (insert (format "\n%s;comment:%s" file comment))))
+	 (insert (format "%s;comment:%s\n" file comment))))
      (save-buffer))))
 
 (defun image-dired-update-property (prop value)
