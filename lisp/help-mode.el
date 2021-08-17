@@ -70,6 +70,35 @@
     ["Customize" help-customize
      :help "Customize variable or face"]))
 
+(defun help-mode-context-menu (menu)
+  (define-key menu [help-mode-separator] menu-bar-separator)
+  (let ((easy-menu (make-sparse-keymap "Help-Mode")))
+    (easy-menu-define nil easy-menu nil
+      '("Help-Mode"
+        ["Previous Topic" help-go-back
+         :help "Go back to previous topic in this help buffer"
+         :active help-xref-stack]
+        ["Next Topic" help-go-forward
+         :help "Go back to next topic in this help buffer"
+         :active help-xref-forward-stack]))
+    (dolist (item (reverse (lookup-key easy-menu [menu-bar help-mode])))
+      (when (consp item)
+        (define-key menu (vector (car item)) (cdr item)))))
+
+  (when (and
+         ;; First check if `help-fns--list-local-commands'
+         ;; used `where-is-internal' to call this function
+         ;; with wrong `last-input-event'.
+         (eq (current-buffer) (window-buffer (posn-window (event-start last-input-event))))
+         (mouse-posn-property (event-start last-input-event) 'mouse-face))
+    (define-key menu [help-mode-push-button]
+      '(menu-item "Follow Link" (lambda (event)
+                                  (interactive "e")
+                                  (push-button event))
+                  :help "Follow the link at click")))
+
+  menu)
+
 (defvar help-mode-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item "close" 'quit-window 'quit map
@@ -340,6 +369,7 @@ Commands:
 \\{help-mode-map}"
   (setq-local revert-buffer-function
               #'help-mode-revert-buffer)
+  (add-hook 'context-menu-functions 'help-mode-context-menu 5 t)
   (setq-local tool-bar-map
               help-mode-tool-bar-map)
   (setq-local help-mode--current-data nil)

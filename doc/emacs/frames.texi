@@ -366,20 +366,15 @@ This menu is for changing the default face within the window's buffer.
 @xref{Text Scale}.
 @end table
 
+@cindex context menu
+@findex context-menu-mode
+@vindex context-menu-functions
+@kindex Down-mouse-3
   Some graphical applications use @kbd{mouse-3} for a mode-specific
-menu.  If you prefer @kbd{mouse-3} in Emacs to bring up such a menu
-instead of running the @code{mouse-save-then-kill} command, rebind
-@kbd{mouse-3} by adding the following line to your init file
-(@pxref{Init Rebinding}):
-
-@smallexample
-(global-set-key [mouse-3]
-  '(menu-item "Menu Bar" ignore
-    :filter (lambda (_)
-              (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
-                  (mouse-menu-bar-map)
-                (mouse-menu-major-mode-map)))))
-@end smallexample
+menu.  If you prefer @kbd{mouse-3} in Emacs to bring up such a context
+menu instead of running the @code{mouse-save-then-kill} command,
+enable @code{context-menu-mode} and customize the variable
+@code{context-menu-functions}.
 
 @node Mode Line Mouse
 @section Mode Line Mouse Commands
@@ -1218,7 +1213,9 @@ the use of menu bars at startup, customize the variable
 terminals, where this makes one additional line available for text.
 If the menu bar is off, you can still pop up a menu of its contents
 with @kbd{C-mouse-3} on a display which supports pop-up menus.
-@xref{Menu Mouse Clicks}.
+Or you can enable @code{context-menu-mode} and customize the variable
+@code{context-menu-functions} to pop up a context menu with
+@kbd{mouse-3}.  @xref{Menu Mouse Clicks}.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
 menu bar.  @xref{X Resources}, for how to customize the menu bar
