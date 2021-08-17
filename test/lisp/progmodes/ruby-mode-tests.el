@@ -875,6 +875,28 @@ VALUES-PLIST is a list with alternating index and value elements."
       (ruby-mode-set-encoding)
       (should (string= "# coding: iso-8859-15\nⓇ" (buffer-string))))))
 
+(ert-deftest ruby-imenu-with-private-modifier ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "class Blub
+       |  def hi
+       |    'Hi!'
+       |  end
+       |
+       |  def bye
+       |    'Bye!'
+       |  end
+       |
+       |  private def hiding
+       |    'You can't see me'
+       |  end
+       |end")
+    (should (equal (mapcar #'car (ruby-imenu-create-index))
+                   '("Blub"
+                     "Blub#hi"
+                     "Blub#bye"
+                     "Blub#hiding")))))
+
 (ert-deftest ruby--indent/converted-from-manual-test ()
   :tags '(:expensive-test)
   ;; Converted from manual test.
