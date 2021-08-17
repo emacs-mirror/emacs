@@ -2388,8 +2388,6 @@ but you won't see it.
 WARNING: Do not set this variable directly!  Instead, use the
 function `erc-toggle-debug-irc-protocol' to toggle its value.")
 
-(declare-function erc-network-name "erc-networks" ())
-
 (defun erc-log-irc-protocol (string &optional outbound)
   "Append STRING to the buffer *erc-protocol*.
 
@@ -2403,9 +2401,7 @@ contain CRLF endings.  Peer is identified by the most precise label
 available at run time, starting with the network name, followed by the
 announced host name, and falling back to the dialed <server>:<port>."
   (when erc-debug-irc-protocol
-    (let ((esid (or (and (fboundp 'erc-network)
-                         (erc-network)
-                         (erc-network-name))
+    (let ((esid (or (and (erc-network) (erc-network-name))
                     erc-server-announced-name
                     (format "%s:%s" erc-session-server erc-session-port)))
           (ts (when erc-debug-irc-protocol-time-format
@@ -2808,7 +2804,7 @@ returns non-nil."
   (let* ((command (erc-response.command parsed))
          (sender (car (erc-parse-user (erc-response.sender parsed))))
          (channel (car (erc-response.command-args parsed)))
-         (network (or (and (fboundp 'erc-network-name) (erc-network-name))
+         (network (or (and (erc-network) (erc-network-name))
 		      (erc-shorten-server-name
 		       (or erc-server-announced-name
 			   erc-session-server))))
@@ -6528,10 +6524,7 @@ This should be a string with substitution variables recognized by
 
 (defun erc-format-network ()
   "Return the name of the network we are currently on."
-  (let ((network (and (fboundp 'erc-network-name) (erc-network-name))))
-    (if (and network (symbolp network))
-        (symbol-name network)
-      "")))
+  (erc-network-name))
 
 (defun erc-format-target-and/or-network ()
   "Return the network or the current target and network combined.
@@ -7085,5 +7078,6 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
 ;; IMPORTANT: This require must appear _after_ the above (provide 'erc) to
 ;; avoid a recursive require error when byte-compiling the entire package.
 (require 'erc-goodies)
+(require 'erc-networks)
 
 ;;; erc.el ends here
