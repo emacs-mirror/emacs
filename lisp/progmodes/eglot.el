@@ -129,7 +129,10 @@ chosen (interactively or automatically)."
                              nil t nil nil (car (car available)))
                             available #'equal)))
                      ((cdr (car available)))
-                     (t (funcall err)))))
+                     (t
+                      ;; Don't error when used interactively, let the
+                      ;; Eglot prompt the user for alternative (github#719)
+                      nil))))
             (t
              (cl-loop for (p . args) in listified
                       for probe = (eglot--executable-find p t)
