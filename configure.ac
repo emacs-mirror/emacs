@@ -3822,12 +3822,13 @@ if test "${with_native_compilation}" != "no"; then
 
     # Ensure libgccjit installed by Homebrew can be found.
     if test -n "$BREW"; then
-      BREW_LIBGCCJIT_PREFIX=`$BREW --prefix --installed libgccjit 2>/dev/null`
-      if test "$BREW_LIBGCCJIT_PREFIX"; then
-        brew_libdir=`find ${BREW_LIBGCCJIT_PREFIX}/ -name \*.so \
-                     | sed -e '1!d;s|/[[^/]]*\.so$||'`
-        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_PREFIX}/include"
-        LDFLAGS="$LDFLAGS -L${brew_libdir} -I${BREW_LIBGCCJIT_PREFIX}/include"
+      if test -n "`$BREW --prefix --installed libgccjit 2>/dev/null`"; then
+        BREW_LIBGCCJIT_INCLUDE=$(dirname $($BREW ls -v libgccjit | \
+                                              grep libgccjit.h))
+        BREW_LIBGCCJIT_LIB=$(dirname $($BREW ls -v libgccjit| \
+                                          grep libgccjit.so\$))
+        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_INCLUDE}"
+        LDFLAGS="$LDFLAGS -L${BREW_LIBGCCJIT_LIB}"
       fi
     fi
 
