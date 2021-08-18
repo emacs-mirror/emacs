@@ -1111,11 +1111,12 @@ FILE-TAGS is an alist in the following form:
 	 (error "Files must be a string or a list of strings!")))
      (dolist (file files)
        (goto-char (point-min))
-       (when (search-forward-regexp (format "^%s" file) nil t)
+       (when (search-forward-regexp (format "^%s;" file) nil t)
 	 (end-of-line)
 	 (setq end (point))
 	 (beginning-of-line)
-	 (when (search-forward-regexp (format "\\(;%s\\)" tag) end t)
+	 (when (search-forward-regexp
+                (format "\\(;%s\\)\\($\\|;\\)" tag) end t)
 	   (delete-region (match-beginning 1) (match-end 1))
 	   ;; Check if file should still be in the database. If
 	   ;; it has no tags or comments, it will be removed.
