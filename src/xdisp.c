@@ -13759,10 +13759,7 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
 
   frame_to_window_pixel_xy (w, &x, &y);
   ts = get_tab_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx, &close_p);
-  if (ts == -1
-      /* If the button is released on a tab other than the one where
-	 it was pressed, don't generate the tab-bar button click event.  */
-      || (ts != 0 && !down_p))
+  if (ts == -1)
     return Qnil;
 
   /* If item is disabled, do nothing.  */

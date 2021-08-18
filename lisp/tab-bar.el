@@ -285,6 +285,16 @@ on a console which has no window system but does have a mouse."
 
     (popup-menu menu event)))
 
+(defun tab-bar-mouse-move-tab (event)
+  (interactive "e")
+  (let* ((caption (car (posn-string (event-start event))))
+         (item (and caption (get-text-property 0 'menu-item caption)))
+         (from (tab--key-to-number (nth 0 item)))
+         (caption (car (posn-string (event-end event))))
+         (item (and caption (get-text-property 0 'menu-item caption)))
+         (to (tab--key-to-number (nth 0 item))))
+    (tab-bar-move-tab-to to from)))
+
 (defun toggle-tab-bar-mode-from-frame (&optional arg)
   "Toggle tab bar on or off, based on the status of the current frame.
 Used in the Show/Hide menu, to have the toggle reflect the current frame.
@@ -311,6 +321,7 @@ new frame when the global `tab-bar-mode' is enabled, by using
 (defvar tab-bar-map
   (let ((map (make-sparse-keymap)))
     (define-key map [down-mouse-1] 'tab-bar-mouse-select-tab)
+    (define-key map [drag-mouse-1] 'tab-bar-mouse-move-tab)
     (define-key map [mouse-1] 'ignore)
     (define-key map [down-mouse-2] 'tab-bar-mouse-close-tab)
     (define-key map [mouse-2] 'ignore)
@@ -894,11 +905,13 @@ ARG counts from 1.  Negative ARG counts tabs from the end of the tab bar."
     (let ((key (event-basic-type last-command-event)))
       (setq arg (if (and (characterp key) (>= key ?1) (<= key ?9))
                     (- key ?0)
-                  1))))
+                  0))))
 
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (tab-bar--current-tab-index tabs))
-         (to-index (if (< arg 0) (+ (length tabs) (1+ arg)) arg))
+         (to-index (cond ((< arg 0) (+ (length tabs) (1+ arg)))
+                         ((zerop arg) (1+ from-index))
+                         (t arg)))
          (to-index (1- (max 1 (min to-index (length tabs))))))
 
     (unless (eq from-index to-index)
