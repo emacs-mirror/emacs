@@ -9215,7 +9215,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                 window = window_from_coordinates (f, x, y, 0, true, true);
                 tab_bar_p = EQ (window, f->tab_bar_window);
 
-                if (tab_bar_p && event->xbutton.button < 4)
+                if (tab_bar_p)
 		  tab_bar_key = handle_tab_bar_click
 		    (f, x, y, event->xbutton.type == ButtonPress,
 		     x_x_to_emacs_modifiers (dpyinfo, event->xbutton.state));

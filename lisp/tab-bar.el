@@ -327,6 +327,20 @@ new frame when the global `tab-bar-mode' is enabled, by using
     (define-key map [mouse-2] 'ignore)
     (define-key map [down-mouse-3] 'tab-bar-mouse-context-menu)
 
+    (define-key map [mouse-4]     'tab-previous)
+    (define-key map [mouse-5]     'tab-next)
+    (define-key map [wheel-up]    'tab-previous)
+    (define-key map [wheel-down]  'tab-next)
+    (define-key map [wheel-left]  'tab-previous)
+    (define-key map [wheel-right] 'tab-next)
+
+    (define-key map [S-mouse-4]     'tab-bar-move-tab-backward)
+    (define-key map [S-mouse-5]     'tab-bar-move-tab)
+    (define-key map [S-wheel-up]    'tab-bar-move-tab-backward)
+    (define-key map [S-wheel-down]  'tab-bar-move-tab)
+    (define-key map [S-wheel-left]  'tab-bar-move-tab-backward)
+    (define-key map [S-wheel-right] 'tab-bar-move-tab)
+
     map)
   "Keymap for the commands used on the tab bar.")
 
@@ -1054,6 +1068,12 @@ where argument addressing is absolute."
          (from-index (or (tab-bar--current-tab-index tabs) 0))
          (to-index (mod (+ from-index arg) (length tabs))))
     (tab-bar-move-tab-to (1+ to-index) (1+ from-index))))
+
+(defun tab-bar-move-tab-backward (&optional arg)
+  "Move the current tab ARG positions to the left.
+Like `tab-bar-move-tab', but moves in the opposite direction."
+  (interactive "p")
+  (tab-bar-move-tab (- (or arg 1))))
 
 (defun tab-bar-move-tab-to-frame (arg &optional from-frame from-index to-frame to-index)
   "Move tab from FROM-INDEX position to new position at TO-INDEX.
@@ -2118,11 +2138,8 @@ Used in `repeat-mode'.")
 
 (defvar tab-bar-move-repeat-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "m" 'tab-move)
-    (define-key map "M" (lambda ()
-                          (interactive)
-                          (setq repeat-map 'tab-bar-move-repeat-map)
-                          (tab-move -1)))
+    (define-key map "m" 'tab-bar-move-tab)
+    (define-key map "M" 'tab-bar-move-tab-backward)
     map)
   "Keymap to repeat tab move key sequences `C-x t m m M'.
 Used in `repeat-mode'.")
