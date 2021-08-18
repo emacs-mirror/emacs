@@ -652,6 +652,8 @@ Each item has the form (ORIGINAL-FILE TARGET-FILE).")
   "Maximum number of concurrent jobs permitted for generating images.
 Increase at own risk.")
 
+(defvar image-dired-tag-history nil "Variable holding the tag history.")
+
 (defun image-dired-pngnq-thumb (spec)
   "Quantize thumbnail described by format SPEC with pngnq(1)."
   (let ((process
@@ -1147,7 +1149,9 @@ FILE-TAGS is an alist in the following form:
 (defun image-dired-tag-files (arg)
   "Tag marked file(s) in dired.  With prefix ARG, tag file at point."
   (interactive "P")
-  (let ((tag (read-string "Tags to add (separate tags with a semicolon): "))
+  (let ((tag (completing-read
+              "Tags to add (separate tags with a semicolon): "
+              image-dired-tag-history nil nil nil 'image-dired-tag-history))
         files)
     (if arg
         (setq files (list (dired-get-filename)))
@@ -1161,7 +1165,9 @@ FILE-TAGS is an alist in the following form:
 (defun image-dired-tag-thumbnail ()
   "Tag current or marked thumbnails."
   (interactive)
-  (let ((tag (read-string "Tags to add (separate tags with a semicolon): ")))
+  (let ((tag (completing-read
+              "Tags to add (separate tags with a semicolon): "
+              image-dired-tag-history nil nil nil 'image-dired-tag-history)))
     (image-dired--with-marked
      (image-dired-write-tags
       (list (cons (image-dired-original-file-name) tag)))
@@ -1173,7 +1179,8 @@ FILE-TAGS is an alist in the following form:
   "Remove tag for selected file(s).
 With prefix argument ARG, remove tag from file at point."
   (interactive "P")
-  (let ((tag (read-string "Tag to remove: "))
+  (let ((tag (completing-read "Tag to remove: " image-dired-tag-history
+                              nil nil nil 'image-dired-tag-history))
         files)
     (if arg
         (setq files (list (dired-get-filename)))
@@ -1183,7 +1190,8 @@ With prefix argument ARG, remove tag from file at point."
 (defun image-dired-tag-thumbnail-remove ()
   "Remove tag from current or marked thumbnails."
   (interactive)
-  (let ((tag (read-string "Tag to remove: ")))
+  (let ((tag (completing-read "Tag to remove: " image-dired-tag-history
+                              nil nil nil 'image-dired-tag-history)))
     (image-dired--with-marked
      (image-dired-remove-tag (image-dired-original-file-name) tag)
      (image-dired-update-property
