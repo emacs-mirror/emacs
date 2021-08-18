@@ -5788,8 +5788,15 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 #ifdef HAVE_WINDOW_SYSTEM
       else
 	{
+	  ptrdiff_t count = SPECPDL_INDEX ();
+
 	  it->what = IT_IMAGE;
+	  /* Don't allow quitting from lookup_image, for when we are
+	     displaying a non-selected window, and the buffer's point
+	     was temporarily moved to the window-point.  */
+	  specbind (Qinhibit_quit, Qt);
 	  it->image_id = lookup_image (it->f, value, it->face_id);
+	  unbind_to (count, Qnil);
 	  it->position = start_pos;
 	  it->object = NILP (object) ? it->w->contents : object;
 	  it->method = GET_FROM_IMAGE;
