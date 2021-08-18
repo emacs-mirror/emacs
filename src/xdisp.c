@@ -4601,6 +4601,7 @@ face_before_or_after_it_pos (struct it *it, bool before_p)
 	  SAVE_IT (it_copy, *it, it_copy_data);
 	  IT_STRING_CHARPOS (it_copy) = 0;
 	  bidi_init_it (0, 0, FRAME_WINDOW_P (it_copy.f), &it_copy.bidi_it);
+	  it_copy.bidi_it.scan_dir = 0;
 
 	  do
 	    {
