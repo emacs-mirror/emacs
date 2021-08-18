@@ -134,6 +134,15 @@ file:
 It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.
 
+---
+** 'auto-composition-mode' can now be selectively disabled on some TTYs.
+Some text-mode terminals produce display glitches trying to compose
+characters.  The 'auto-composition-mode' can now have a string value
+that names a terminal type; if the value returned by the 'tty-type'
+function compares equal with that string, automatic composition will
+be disabled in windows shown on that terminal.  The Linux terminal
+sets this up by default.
+
 +++
 ** Etags now supports the Mercury programming language.
 See https://mercurylang.org.

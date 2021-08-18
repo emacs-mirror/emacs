@@ -2059,8 +2059,8 @@ The default value is the function `compose-chars-after'.  */);
 	       doc: /* Non-nil if Auto-Composition mode is enabled.
 Use the command `auto-composition-mode' to change this variable.
 
-If this variable is a string, `auto-composition-mode' will be disabled
-in buffers that have a terminal type that equals this string.*/);
+If this variable is a string, `auto-composition-mode' will be disabled in
+buffers displayed on a terminal whose type compares equal to this string.  */);
   Vauto_composition_mode = Qt;
 
   DEFVAR_LISP ("auto-composition-function", Vauto_composition_function,
