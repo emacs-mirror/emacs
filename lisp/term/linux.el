@@ -13,7 +13,7 @@
   (tty-no-underline)
 
   ;; Compositions confuse cursor movement.
-  (global-auto-composition-mode -1)
+  (setq-default auto-composition-mode "linux")
 
   (ignore-errors (when gpm-mouse-mode (require 't-mouse) (gpm-mouse-enable)))
 

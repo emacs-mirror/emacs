@@ -961,6 +961,23 @@ char_composable_p (int c)
 		       && (XFIXNUM (val) <= UNICODE_CATEGORY_Zs))))));
 }
 
+static inline bool
+inhibit_auto_composition (void)
+{
+  if (NILP (Vauto_composition_mode))
+    return true;
+
+  if (STRINGP (Vauto_composition_mode))
+    {
+      char *name = tty_type_name (Qnil);
+
+      if (name && ! strcmp (SSDATA (Vauto_composition_mode), name))
+	return true;
+    }
+
+  return false;
+}
+
 /* Update cmp_it->stop_pos to the next position after CHARPOS (and
    BYTEPOS) where character composition may happen.  If BYTEPOS is
    negative, compute it.  ENDPOS is a limit of searching.  If it is
@@ -1015,7 +1032,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
       cmp_it->ch = -1;
     }
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-      || NILP (Vauto_composition_mode))
+      || inhibit_auto_composition ())
     return;
   if (bytepos < 0)
     {
@@ -1741,7 +1758,7 @@ composition_adjust_point (ptrdiff_t last_pt, ptrdiff_t new_pt)
     }
 
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-      || NILP (Vauto_composition_mode))
+      || inhibit_auto_composition ())
     return new_pt;
 
   /* Next check the automatic composition.  */
@@ -1941,7 +1958,7 @@ See `find-composition' for more details.  */)
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
       if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
-	  && ! NILP (Vauto_composition_mode)
+	  && ! inhibit_auto_composition ()
 	  && find_automatic_composition (from, to, (ptrdiff_t) -1,
 					 &start, &end, &gstring, string))
 	return list3 (make_fixnum (start), make_fixnum (end), gstring);
@@ -2040,7 +2057,10 @@ The default value is the function `compose-chars-after'.  */);
 
   DEFVAR_LISP ("auto-composition-mode", Vauto_composition_mode,
 	       doc: /* Non-nil if Auto-Composition mode is enabled.
-Use the command `auto-composition-mode' to change this variable. */);
+Use the command `auto-composition-mode' to change this variable.
+
+If this variable is a string, `auto-composition-mode' will be disabled
+in buffers that have a terminal type that equals this string.*/);
   Vauto_composition_mode = Qt;
 
   DEFVAR_LISP ("auto-composition-function", Vauto_composition_function,
