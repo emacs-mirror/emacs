@@ -1729,12 +1729,14 @@ Such as the current syntax table and the applied syntax properties."
     (if buf
         (with-current-buffer buf
           (save-excursion
-            (goto-char (point-min))
-            (forward-line (1- line))
-            (xref--collect-matches-1 regexp file line
-                                     (line-beginning-position)
-                                     (line-end-position)
-                                     syntax-needed)))
+            (save-restriction
+              (widen)
+              (goto-char (point-min))
+              (forward-line (1- line))
+              (xref--collect-matches-1 regexp file line
+                                       (line-beginning-position)
+                                       (line-end-position)
+                                       syntax-needed))))
       ;; Using the temporary buffer is both a performance and a buffer
       ;; management optimization.
       (with-current-buffer tmp-buffer
