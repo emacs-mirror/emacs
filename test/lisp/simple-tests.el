@@ -969,7 +969,7 @@ See Bug#21722."
     (should (= (length (delq nil (undo-make-selective-list 4 9))) 1))
     ;; FIXME this is the off-by-one error case.
     ;;(should (= (length (delq nil (undo-make-selective-list 5 9))) 0))
-    (should (= (length (delq nil (undo-make-selective-list 6 9))) 0)))
+    (should (= (length (delq nil (undo-make-selective-list 6 9))) 0))))
 
 (provide 'simple-test)
 ;;; simple-test.el ends here
