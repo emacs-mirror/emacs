@@ -797,6 +797,22 @@ Queued items live in `image-dired-queue'."
                (list (list original-file thumbnail-file))))
   (run-at-time 0 nil #'image-dired-thumb-queue-run))
 
+(defmacro image-dired--with-marked (&rest body)
+  "Eval BODY with point on each marked thumbnail.
+If no marked file could be found, execute BODY on the current
+thumbnail."
+  `(with-current-buffer image-dired-thumbnail-buffer
+     (let (found)
+       (save-mark-and-excursion
+         (goto-char (point-min))
+         (while (not (eobp))
+           (when (image-dired-thumb-file-marked-p)
+             (setq found t)
+             ,@body)
+           (forward-char)))
+       (unless found
+         ,@body))))
+
 ;;;###autoload
 (defun image-dired-dired-toggle-marked-thumbs (&optional arg)
   "Toggle thumbnails in front of file names in the dired buffer.
@@ -1145,20 +1161,15 @@ FILE-TAGS is an alist in the following form:
         (cons x tag))
       files))))
 
-(defun image-dired-tag-marked-thumbnails ()
-  "Tag marked thumbnails."
-  (interactive)
-  (when-let ((dired-buf (image-dired-associated-dired-buffer)))
-    (with-current-buffer dired-buf
-      (image-dired-tag-files nil))))
-
 (defun image-dired-tag-thumbnail ()
-  "Tag current thumbnail."
+  "Tag current or marked thumbnails."
   (interactive)
   (let ((tag (read-string "Tags to add (separate tags with a semicolon): ")))
-    (image-dired-write-tags (list (cons (image-dired-original-file-name) tag))))
-  (image-dired-update-property
-   'tags (image-dired-list-tags (image-dired-original-file-name))))
+    (image-dired--with-marked
+     (image-dired-write-tags
+      (list (cons (image-dired-original-file-name) tag)))
+     (image-dired-update-property
+      'tags (image-dired-list-tags (image-dired-original-file-name))))))
 
 ;;;###autoload
 (defun image-dired-delete-tag (arg)
@@ -1173,12 +1184,13 @@ With prefix argument ARG, remove tag from file at point."
     (image-dired-remove-tag files tag)))
 
 (defun image-dired-tag-thumbnail-remove ()
-  "Remove tag from thumbnail."
+  "Remove tag from current or marked thumbnails."
   (interactive)
   (let ((tag (read-string "Tag to remove: ")))
-    (image-dired-remove-tag (image-dired-original-file-name) tag))
-  (image-dired-update-property
-   'tags (image-dired-list-tags (image-dired-original-file-name))))
+    (image-dired--with-marked
+     (image-dired-remove-tag (image-dired-original-file-name) tag)
+     (image-dired-update-property
+      'tags (image-dired-list-tags (image-dired-original-file-name))))))
 
 (defun image-dired-original-file-name ()
   "Get original file name for thumbnail or display image at point."
@@ -1518,8 +1530,10 @@ You probably want to use this together with
       '("Image-Dired"
         ["Quit" quit-window]
         ["Delete thumbnail from buffer" image-dired-delete-char]
-        ["Remove tag from thumbnail" image-dired-tag-thumbnail-remove]
-        ["Tag thumbnail" image-dired-tag-thumbnail]
+        ["Delete marked images" image-dired-delete-marked]
+        ["Remove tag from current or marked thumbnails"
+         image-dired-tag-thumbnail-remove]
+        ["Tag current or marked thumbnails" image-dired-tag-thumbnail]
         ["Comment thumbnail" image-dired-comment-thumbnail]
         ["Refresh thumb" image-dired-refresh-thumb]
         ["Dynamic line up" image-dired-line-up-dynamic]
@@ -2301,15 +2315,12 @@ non-nil."
 (defun image-dired-delete-marked ()
   "Delete marked thumbnails and associated images."
   (interactive)
-  (goto-char (point-min))
-  (let ((dired-buf (image-dired-associated-dired-buffer)))
-    (while (not (eobp))
-      (if (image-dired-thumb-file-marked-p)
-          (image-dired-delete-char)
-        (forward-char)))
-    (image-dired--line-up-with-method)
-    (with-current-buffer dired-buf
-      (dired-do-delete))))
+  (image-dired--with-marked
+   (image-dired-delete-char)
+   (backward-char))
+  (image-dired--line-up-with-method)
+  (with-current-buffer (image-dired-associated-dired-buffer)
+    (dired-do-delete)))
 
 (defun image-dired-thumb-update-marks ()
   "Update the marks in the thumbnail buffer."

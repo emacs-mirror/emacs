@@ -2447,8 +2447,7 @@ This command, called interactively, toggles the local value of
 If non-nil (the default), use 'image-dired-thumb-mark' to say what
 images are marked.
 
-*** New command 'image-dired-tag-marked-thumbnails'.
-
+---
 *** New command 'image-dired-delete-marked'.
 
 ** Miscellaneous
