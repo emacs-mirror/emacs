@@ -407,6 +407,15 @@ Note that `which-key-idle-delay' should be set before turning on
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-preserve-window-configuration nil
+  "If non-nil, save window configuration before which-key buffer is shown
+and restore it after which-key buffer is hidden. It prevents which-key from
+changing window position of visible buffers.
+Only takken into account when popup type is side-window."
+  :group
+  'which-key
+  :type 'boolean)
+
 (defvar which-key-C-h-map
   (let ((map (make-sparse-keymap)))
     (dolist (bind `(("\C-a" . which-key-abort)
@@ -1099,7 +1108,8 @@ total height."
     ;; in case which-key buffer was shown in an existing window, `quit-window'
     ;; will re-show the previous buffer, instead of closing the window
     (quit-windows-on which-key--buffer)
-    (when which-key--saved-window-configuration
+    (when (and which-key-preserve-window-configuration
+               which-key--saved-window-configuration)
       (set-window-configuration which-key--saved-window-configuration)
       (setq which-key--saved-window-configuration nil))))
 
@@ -1140,7 +1150,8 @@ call signature in different emacs versions"
 
 (defun which-key--show-buffer-side-window (act-popup-dim)
   "Show which-key buffer when popup type is side-window."
-  (unless which-key--saved-window-configuration
+  (when (and which-key-preserve-window-configuration
+             (not which-key--saved-window-configuration))
     (setq which-key--saved-window-configuration (current-window-configuration)))
   (let* ((height (car act-popup-dim))
          (width (cdr act-popup-dim))
