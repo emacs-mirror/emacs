@@ -304,7 +304,7 @@ the same menu with changes such as added new menu items."
 
 (defun context-menu-map ()
   "Return composite menu map."
-  (let ((menu (make-sparse-keymap "Context Menu")))
+  (let ((menu (make-sparse-keymap)))
     (run-hook-wrapped 'context-menu-functions
                       (lambda (fun)
                         (setq menu (funcall fun menu))
@@ -341,7 +341,7 @@ the same menu with changes such as added new menu items."
   "Minor modes submenus."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-minor] menu-bar-separator)
-  (dolist (mode (minor-mode-key-binding [menu-bar]))
+  (dolist (mode (reverse (minor-mode-key-binding [menu-bar])))
     (when (and (consp mode) (symbol-value (car mode)))
       (map-keymap (lambda (key binding)
                     (when (consp binding)
