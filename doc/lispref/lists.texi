@@ -1557,10 +1557,12 @@ of property lists and association lists.
 @defun assoc key alist &optional testfn
 This function returns the first association for @var{key} in
 @var{alist}, comparing @var{key} against the alist elements using
-@var{testfn} if it is non-@code{nil} and @code{equal} otherwise
-(@pxref{Equality Predicates}).  It returns @code{nil} if no
-association in @var{alist} has a @sc{car} equal to @var{key}.  For
-example:
+@var{testfn} if it is a function, and @code{equal} otherwise
+(@pxref{Equality Predicates}).  If @var{testfn} is a function, it is
+called with two arguments: the @sc{car} of an element from @var{alist}
+and @var{key}.  The function returns @code{nil} if no
+association in @var{alist} has a @sc{car} equal to @var{key}, as
+tested by @var{testfn}.  For example:
 
 @smallexample
 (setq trees '((pine . cones) (oak . acorns) (maple . seeds)))
