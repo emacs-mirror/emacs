@@ -4721,8 +4721,8 @@ This function is called by `prev-buffer'."
 	       window new-buffer (nth 1 entry) (nth 2 entry))
 	      (throw 'found t)))))
 
-      (when skipped
-        ;; Show first skipped buffer.
+      (when (and skipped (not (functionp switch-to-prev-buffer-skip)))
+        ;; Show first skipped buffer, unless skip was a function.
 	(setq new-buffer skipped)
 	(set-window-buffer-start-and-point window new-buffer)))
 
@@ -4831,6 +4831,7 @@ This function is called by `next-buffer'."
       ;; nreverse here!)
       (dolist (entry (reverse (window-prev-buffers window)))
 	(when (and (not (eq new-buffer (car entry)))
+                   (not (eq old-buffer (car entry)))
                    (setq new-buffer (car entry))
 		   (or (buffer-live-p new-buffer)
 		       (not (setq killed-buffers
@@ -4842,8 +4843,8 @@ This function is called by `next-buffer'."
 	     window new-buffer (nth 1 entry) (nth 2 entry))
 	    (throw 'found t))))
 
-      (when skipped
-        ;; Show first skipped buffer.
+      (when (and skipped (not (functionp switch-to-prev-buffer-skip)))
+        ;; Show first skipped buffer, unless skip was a function.
 	(setq new-buffer skipped)
 	(set-window-buffer-start-and-point window new-buffer)))
 
