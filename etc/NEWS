@@ -748,6 +748,10 @@ of the next command to be displayed in a new frame.
 
 ** Tab Bars
 
+*** The tab bar now supports more mouse commands.
+Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
+with items that operate on the clicked tab.
+
 *** The key prefix 'C-x t t' displays next command buffer in a new tab.
 It's bound to the command 'other-tab-prefix' that requests the buffer
 of the next command to be displayed in a new tab.
