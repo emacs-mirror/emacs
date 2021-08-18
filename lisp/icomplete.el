@@ -111,6 +111,9 @@ Otherwise this should be a list of the completion tables (e.g.,
   "Face used by `icomplete-vertical-mode' for the selected candidate."
   :version "24.4")
 
+(defface icomplete-section '((t :inherit shadow :slant italic))
+  "Face used by `icomplete-vertical-mode' for the section title.")
+
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-height 2
   ;; We used to compute how many lines 100 characters would take in
@@ -635,8 +638,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   "Setup the minibuffer for vertical display of completion candidates."
   (use-local-map (make-composed-keymap icomplete-vertical-mode-minibuffer-map
                                        (current-local-map)))
-  (setq-local icomplete-separator "\n"
-              icomplete-hide-common-prefix nil
+  (setq-local icomplete-hide-common-prefix nil
               ;; Ask `icomplete-completions' to return enough completions candidates.
               icomplete-prospects-height 25
               redisplay-adhoc-scroll-in-resize-mini-windows nil))
@@ -745,14 +747,21 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
                       (format icomplete-matches-format current total))))
               (overlay-put icomplete-overlay 'after-string text))))))))
 
-(defun icomplete--affixate (md prospects)
-  "Affixate PROSPECTS given completion metadata MD.
-Return a list of (COMP PREFIX SUFFIX)."
-  (let ((aff-fun (or (completion-metadata-get md 'affixation-function)
-                     (plist-get completion-extra-properties :affixation-function)))
-        (ann-fun (or (completion-metadata-get md 'annotation-function)
-                     (plist-get completion-extra-properties :annotation-function))))
-    (cond (aff-fun
+(defun icomplete--augment (md prospects)
+  "Augment completion strings in PROSPECTS with completion metadata MD.
+Return a list of strings (COMP PREFIX SUFFIX SECTION).  PREFIX
+and SUFFIX, if non-nil are obtained from `affixation-function' or
+`annotation-function' metadata.  SECTION is obtained from
+`group-function'.  Consecutive `equal' sections are avoided.
+COMP is the element in PROSPECTS or a transformation also given
+by `group-function''s second \"transformation\" protocol."
+  (let* ((aff-fun (or (completion-metadata-get md 'affixation-function)
+                      (plist-get completion-extra-properties :affixation-function)))
+         (ann-fun (or (completion-metadata-get md 'annotation-function)
+                      (plist-get completion-extra-properties :annotation-function)))
+         (grp-fun (completion-metadata-get md 'group-function))
+         (annotated
+          (cond (aff-fun
            (funcall aff-fun prospects))
           (ann-fun
            (mapcar
@@ -766,9 +775,24 @@ Return a list of (COMP PREFIX SUFFIX)."
                           suffix
                         (propertize suffix 'face 'completions-annotations)))))
             prospects))
-          (prospects))))
+          (t (mapcar #'list prospects)))))
+    (if grp-fun
+        (cl-loop with section = nil
+                 for (c prefix suffix) in annotated
+                 for selectedp = (get-text-property 0 'icomplete-selected c)
+                 for tr = (propertize (or (funcall grp-fun c t) c)
+                                      'icomplete-selected selectedp)
+                 if (not (equal section (setq section (funcall grp-fun c nil))))
+                 collect (list tr prefix suffix section)
+                 else collect (list tr prefix suffix ))
+      annotated)))
 
-(cl-defun icomplete--render-vertical (comps md &aux scroll-above scroll-below)
+(cl-defun icomplete--render-vertical
+    (comps md &aux scroll-above scroll-below
+           (total-space ; number of mini-window lines available
+            (1- (min
+                 icomplete-prospects-height
+                 (truncate (max-mini-window-lines) 1)))))
   ;; Welcome to loopapalooza!
   ;;
   ;; First, be mindful of `icomplete-scroll' and manual scrolls.  If
@@ -776,11 +800,11 @@ Return a list of (COMP PREFIX SUFFIX)."
   ;; are:
   ;;
   ;; - both nil, there is no manual scroll;
-  ;; - both non-nil, there is a healthy manual scroll the doesn't need
+  ;; - both non-nil, there is a healthy manual scroll that doesn't need
   ;;   to be readjusted (user just moved around the minibuffer, for
   ;;   example)l
   ;; - non-nil and nil, respectively, a refiltering took place and we
-  ;;   need attempt to readjust them to the new filtered `comps'.
+  ;;   may need to readjust them to the new filtered `comps'.
   (when (and icomplete-scroll
              icomplete--scrolled-completions
              (null icomplete--scrolled-past))
@@ -802,52 +826,67 @@ Return a list of (COMP PREFIX SUFFIX)."
   ;; positions.
   (cl-loop with preds = icomplete--scrolled-past
            with succs = (cdr comps)
-           with max-lines = (1- (min
-                                 icomplete-prospects-height
-                                 (truncate (max-mini-window-lines) 1)))
-           with max-above = (- max-lines
-                               1
-                               (cl-loop for (_ . r) on comps
-                                        repeat (truncate max-lines 2)
-                                        while (listp r)
-                                        count 1))
-           repeat max-lines
+           with space-above = (- total-space
+                                 1
+                                 (cl-loop for (_ . r) on comps
+                                          repeat (truncate total-space 2)
+                                          while (listp r)
+                                          count 1))
+           repeat total-space
            for neighbour = nil
-           if (and preds (> max-above 0)) do
+           if (and preds (> space-above 0)) do
            (push (setq neighbour (pop preds)) scroll-above)
-           (cl-decf max-above)
+           (cl-decf space-above)
            else if (consp succs) collect
            (setq neighbour (pop succs)) into scroll-below-aux
            while neighbour
            finally (setq scroll-below scroll-below-aux))
-  ;; Now figure out spacing and layout
-  ;;
-  (cl-loop
-   with selected = (substring (car comps))
-   initially (add-face-text-property 0 (length selected)
-                                     'icomplete-selected-match 'append selected)
-   with torender = (nconc scroll-above (list selected) scroll-below)
-   with triplets = (icomplete--affixate md torender)
-   initially (when (eq triplets torender)
-               (cl-return-from icomplete--render-vertical
-                 (concat
-                  " \n"
-                  (mapconcat #'identity torender icomplete-separator))))
-   for (comp prefix) in triplets
-   maximizing (length prefix) into max-prefix-len
-   maximizing (length comp) into max-comp-len
-   finally return
-   ;; Finally, render
-   ;;
-   (concat
-    " \n"
-    (cl-loop for (comp prefix suffix) in triplets
-             concat prefix
-             concat (make-string (- max-prefix-len (length prefix)) ? )
-             concat comp
-             concat (make-string (- max-comp-len (length comp)) ? )
-             concat suffix
-             concat icomplete-separator))))
+  ;; Halfway there...
+  (let* ((selected (propertize (car comps) 'icomplete-selected t))
+         (chosen (append scroll-above (list selected) scroll-below))
+         (tuples (icomplete--augment md chosen))
+         max-prefix-len max-comp-len lines nsections)
+    (add-face-text-property 0 (length selected)
+                            'icomplete-selected-match 'append selected)
+    ;; Figure out parameters for horizontal spacing
+    (cl-loop
+     for (comp prefix) in tuples
+     maximizing (length prefix) into max-prefix-len-aux
+     maximizing (length comp) into max-comp-len-aux
+     finally (setq max-prefix-len max-prefix-len-aux
+                   max-comp-len max-comp-len-aux))
+    ;; Serialize completions and section titles into a list
+    ;; of lines to render
+    (cl-loop
+     for (comp prefix suffix section) in tuples
+     when section
+     collect (propertize section 'face 'icomplete-section) into lines-aux
+     and count 1 into nsections-aux
+     when (get-text-property 0 'icomplete-selected comp)
+     do (add-face-text-property 0 (length comp)
+                                'icomplete-selected-match 'append comp)
+     collect (concat prefix
+                     (make-string (- max-prefix-len (length prefix)) ? )
+                     comp
+                     (make-string (- max-comp-len (length comp)) ? )
+                     suffix)
+     into lines-aux
+     finally (setq lines lines-aux
+                   nsections nsections-aux))
+    ;; Kick out some lines from the beginning due to extra sections.
+    ;; This hopes to keep the selected entry more or less in the
+    ;; middle of the dropdown-like widget when `icomplete-scroll' is
+    ;; t.  Funky, but at least I didn't use `cl-loop'
+    (setq lines
+          (nthcdr
+           (cond ((<= (length lines) total-space) 0)
+                 ((> (length scroll-above) (length scroll-below)) nsections)
+                 (t (min (ceiling nsections 2) (length scroll-above))))
+           lines))
+    ;; At long last, render final string return value.  This may still
+    ;; kick out lines at the end.
+    (concat " \n"
+            (cl-loop for l in lines repeat total-space concat l concat "\n"))))
 
 ;;;_ > icomplete-completions (name candidates predicate require-match)
 (defun icomplete-completions (name candidates predicate require-match)
