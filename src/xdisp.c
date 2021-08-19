@@ -11771,7 +11771,7 @@ display_echo_area (struct window *w)
   /* If there is no message, we must call display_echo_area_1
      nevertheless because it resizes the window.  But we will have to
      reset the echo_area_buffer in question to nil at the end because
-     with_echo_area_buffer will sets it to an empty buffer.  */
+     with_echo_area_buffer will set it to an empty buffer.  */
   bool i = display_last_displayed_message_p;
   /* According to the C99, C11 and C++11 standards, the integral value
      of a "bool" is always 0 or 1, so this array access is safe here,
@@ -14898,7 +14898,15 @@ hscroll_window_tree (Lisp_Object window)
 
       if (WINDOWP (w->contents))
 	hscrolled_p |= hscroll_window_tree (w->contents);
-      else if (w->cursor.vpos >= 0)
+      else if (w->cursor.vpos >= 0
+	       /* Don't allow hscroll in mini-windows that display
+		  echo-area messages.  This is because desired_matrix
+		  of such windows was prepared while momentarily
+		  switched to an echo-area buffer, which is different
+		  from w->contents, and wew simply cannot hscroll such
+		  windows safely.  */
+	       && !(w == XWINDOW (echo_area_window)
+		    && !NILP (echo_area_buffer[0])))
 	{
 	  int h_margin;
 	  int text_area_width;
