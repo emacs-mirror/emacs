@@ -468,7 +468,7 @@ AC_ARG_WITH([ns],[AS_HELP_STRING([--with-ns],
 [use Nextstep (macOS Cocoa or GNUstep) windowing system.
 On by default on macOS.])],[],[with_ns=maybe])
 OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI in a Cygwin build])
-OPTION_DEFAULT_OFF([pgtk], [use pure GTK build without reliance on X libs (Wayland support) - Experimental])
+OPTION_DEFAULT_OFF([pgtk], [use pure GTK build without reliance on X libs (Wayland support) (requires cairo) - Experimental])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -2614,11 +2614,6 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${window_sys
        ## 6.3.5 is the earliest version known to work; see Bug#17339.
        ## 6.8.2 makes Emacs crash; see Bug#13867.
        EMACS_CHECK_MODULES([IMAGEMAGICK], [Wand >= 6.3.5 Wand != 6.8.2])
-    fi
-
-    if test $HAVE_IMAGEMAGICK != yes; then
-      IMAGEMAGICK_MODULE="MagickWand-6.Q16HDRI >= 6.3.5 MagickWand-6.Q16HDRI != 6.8.2 MagickWand-6.Q16HDRI < 7 MagickCore-6.Q16HDRI >= 6.9.9 MagickCore-6.Q16HDRI < 7"
-      EMACS_CHECK_MODULES([IMAGEMAGICK], [$IMAGEMAGICK_MODULE])
     fi
 
     if test $HAVE_IMAGEMAGICK = yes; then
