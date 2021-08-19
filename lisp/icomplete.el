@@ -112,7 +112,8 @@ Otherwise this should be a list of the completion tables (e.g.,
   :version "28.1")
 
 (defface icomplete-section '((t :inherit shadow :slant italic))
-  "Face used by `icomplete-vertical-mode' for the section title.")
+  "Face used by `icomplete-vertical-mode' for the section title."
+  :version "28.1")
 
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-height 2
@@ -750,7 +751,7 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
 (defun icomplete--augment (md prospects)
   "Augment completion strings in PROSPECTS with completion metadata MD.
 Return a list of strings (COMP PREFIX SUFFIX SECTION).  PREFIX
-and SUFFIX, if non-nil are obtained from `affixation-function' or
+and SUFFIX, if non-nil, are obtained from `affixation-function' or
 `annotation-function' metadata.  SECTION is obtained from
 `group-function'.  Consecutive `equal' sections are avoided.
 COMP is the element in PROSPECTS or a transformation also given
