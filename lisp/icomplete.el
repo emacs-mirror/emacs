@@ -109,7 +109,7 @@ Otherwise this should be a list of the completion tables (e.g.,
 
 (defface icomplete-selected-match '((t :inherit highlight))
   "Face used by `icomplete-vertical-mode' for the selected candidate."
-  :version "24.4")
+  :version "28.1")
 
 (defface icomplete-section '((t :inherit shadow :slant italic))
   "Face used by `icomplete-vertical-mode' for the section title.")
