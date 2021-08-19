@@ -337,9 +337,9 @@ For instance:
   (setq ibuffer-saved-filter-groups
         \\='((\"Home\"
            (\"Modified\" (predicate buffer-modified-p (current-buffer)))
-           (\"Helm\" (name . \"\*helm.+\"))
-           (\"Dev\" (or (filename . \".+\.css$\")
-                      (filename . \".+\.html?$\")
+           (\"Helm\" (name . \"\\\\*helm.+\"))
+           (\"Dev\" (or (filename . \".+\\\\.css\\\\'\")
+                      (filename . \".+\\\\.html?\\\\'\")
                       (mode . android-mode)
                       (mode . clojure-mode))))))
 
