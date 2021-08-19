@@ -14903,7 +14903,7 @@ hscroll_window_tree (Lisp_Object window)
 		  echo-area messages.  This is because desired_matrix
 		  of such windows was prepared while momentarily
 		  switched to an echo-area buffer, which is different
-		  from w->contents, and wew simply cannot hscroll such
+		  from w->contents, and we simply cannot hscroll such
 		  windows safely.  */
 	       && !(w == XWINDOW (echo_area_window)
 		    && !NILP (echo_area_buffer[0])))
