@@ -2296,7 +2296,7 @@ and NOWAIT."
       ;; If the dir name contains a space, some ftp servers will
       ;; refuse to list it.  We instead change directory to the
       ;; directory in question and ls ".".
-      (when (string-match " " cmd1)
+      (when (string-search " " cmd1)
 	;; Keep the result.  In case of failure, we will (see below)
 	;; short-circuit CMD and return this result directly.
 	(setq result (ange-ftp-cd host user (nth 1 cmd) 'noerror))
@@ -2881,13 +2881,13 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
       (or
        ;; No dots in dir names in vms.
        (and (eq host-type 'vms)
-	    (string-match "\\." efile))
+	    (string-search "." efile))
        ;; No subdirs in mts of cms.
        (and (memq host-type '(mts cms))
 	    (not (string-equal "/" (nth 2 parsed))))
        ;; No dots in pseudo-dir names in bs2000.
        (and (eq host-type 'bs2000)
-	    (string-match "\\." efile))))))
+	    (string-search "." efile))))))
 
 (defun ange-ftp-file-entry-p (name)
   "Given NAME, return whether there is a file entry for it."

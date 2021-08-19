@@ -2238,7 +2238,7 @@ and ends on the last Sunday of October at 2 a.m."
 		  (if (eq (car-safe str2) 'error)
 		      str2
 		    (append '(calcFunc-lambda) (cdr str1) (list str2)))))
-	    (if (string-match "#" str)
+	    (if (string-search "#" str)
 		(let ((calc-hashes-used 0))
 		  (and (setq str (math-read-expr str))
 		       (if (eq (car-safe str) 'error)

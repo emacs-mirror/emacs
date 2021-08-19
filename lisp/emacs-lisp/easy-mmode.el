@@ -178,9 +178,9 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		named variable, or a generalized variable.
 		PLACE can also be of the form (GET . SET), where GET is
 		an expression that returns the current state, and SET is
-		a function that takes one argument, the new state, and
-		sets it.  If you specify a :variable, this function does
-		not define a MODE variable (nor any of the terms used
+		a function that takes one argument, the new state, which should
+                be assigned to PLACE.  If you specify a :variable, this function
+                does not define a MODE variable (nor any of the terms used
 		in :variable).
 :after-hook     A single lisp form which is evaluated after the mode hooks
                 have been run.  It should not be quoted.

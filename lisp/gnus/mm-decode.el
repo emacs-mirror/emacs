@@ -649,7 +649,7 @@ MIME-Version header before proceeding."
 	      (setq description (mail-decode-encoded-word-string
 				 description)))))
       (if (or (not ctl)
-	      (not (string-match "/" (car ctl))))
+	      (not (string-search "/" (car ctl))))
 	  (mm-dissect-singlepart
 	   (list mm-dissect-default-type)
 	   (and cte (intern (downcase (mail-header-strip-cte cte))))

@@ -1323,7 +1323,7 @@ For the \"inline\" alternatives, also see the variable
 	    ((stringp self)
 	     (insert "Gcc: "
 		     (encode-coding-string
-		      (if (string-match " " self)
+		      (if (string-search " " self)
 			  (concat "\"" self "\"")
 			self)
 		      (gnus-group-name-charset (gnus-inews-group-method self)
@@ -1681,7 +1681,7 @@ this is a reply."
 	       (gnus-group-find-parameter group 'gcc-self t)))
 	 (gcc-self-get (lambda (gcc-self-val group)
 			 (if (stringp gcc-self-val)
-			     (if (string-match " " gcc-self-val)
+			     (if (string-search " " gcc-self-val)
 				 (concat "\"" gcc-self-val "\"")
 			       gcc-self-val)
 			   ;; In nndoc groups, we use the parent group name
@@ -1689,7 +1689,7 @@ this is a reply."
 			   (let ((group (or (gnus-group-find-parameter
 					     gnus-newsgroup-name 'parent-group)
 					    group)))
-			     (if (string-match " " group)
+			     (if (string-search " " group)
 				 (concat "\"" group "\"")
 			       group)))))
 	 result
@@ -1752,11 +1752,11 @@ this is a reply."
 		  (gnus-delete-line)))
 	    ;; Use the list of groups.
 	    (while (setq name (pop groups))
-	      (let ((str (if (string-match ":" name)
+	      (let ((str (if (string-search ":" name)
 			     name
 			   (gnus-group-prefixed-name
 			    name gnus-message-archive-method))))
-		(insert (if (string-match " " str)
+		(insert (if (string-search " " str)
 			    (concat "\"" str "\"")
 			  str)))
 	      (when groups

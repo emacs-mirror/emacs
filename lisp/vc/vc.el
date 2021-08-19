@@ -486,11 +486,19 @@
 ;;   from ignored files.
 ;;   When called from Lisp code, if DIRECTORY is non-nil, the
 ;;   repository to use will be deduced by DIRECTORY.
+;;   The default behavior is to add or remove a line from the file
+;;   returned by the `find-ignore-file' function.
 ;;
 ;; - ignore-completion-table (directory)
 ;;
 ;;   Return the completion table for files ignored by the current
 ;;   version control system, e.g., the entries in `.gitignore' and
+;;   `.bzrignore'.  The default behavior is to read the contents of
+;;   the file returned by the `find-ignore-file' function.
+;;
+;; - find-ignore-file
+;;
+;;   Return the ignore file that controls FILE, e.g. `.gitignore' or
 ;;   `.bzrignore'.
 ;;
 ;; - previous-revision (file rev)
@@ -2048,7 +2056,7 @@ saving the buffer."
       ;; relative file names work.
       (let ((default-directory rootdir))
 	(vc-diff-internal
-	 t (list backend (list rootdir) working-revision) nil nil
+	 t (list backend (list (expand-file-name rootdir)) working-revision) nil nil
 	 (called-interactively-p 'interactive))))))
 
 ;;;###autoload
@@ -2595,8 +2603,8 @@ with its diffs (if the underlying VCS supports that)."
       (setq backend (vc-responsible-backend rootdir))
       (unless backend
         (error "Directory is not version controlled")))
-    (setq default-directory rootdir)
-    (vc-print-log-internal backend (list rootdir) revision revision limit
+    (setq default-directory (expand-file-name rootdir))
+    (vc-print-log-internal backend (list default-directory) revision revision limit
                            (when with-diff 'with-diff))))
 
 ;;;###autoload

@@ -948,7 +948,7 @@ Manual}).  For customizations, see the Custom group @code{time-stamp}.
 then change your mind, you can @dfn{revert} the changes and go back to
 the saved version of the file.  To do this, type @kbd{C-x x g}.  Since
 reverting unintentionally could lose a lot of work, Emacs asks for
-confirmation first.
+confirmation first if the buffer is modified.
 
   The @code{revert-buffer} command tries to position point in such a
 way that, if the file was edited only slightly, you will be at
@@ -990,6 +990,17 @@ regular expressions, @code{find-file} and @code{revert-buffer} will
 revert it automatically if it has changed---provided the buffer itself
 is not modified.  (If you have edited the text, it would be wrong to
 discard your changes.)
+
+@vindex revert-buffer-quick-short-answers
+@findex revert-buffer-quick
+  The @kbd{C-x x g} keystroke is bound to the
+@code{revert-buffer-quick} command.  This is like the
+@code{revert-buffer} command, but prompts less.  Unlike
+@code{revert-buffer}, it will not prompt if the current buffer visits
+a file, and the buffer is not modified.  It also respects the
+@code{revert-buffer-quick-short-answers} user option.  If this option
+is non-@code{nil}, use a shorter @kbd{y/n} query instead of a longer
+@kbd{yes/no} query.
 
   You can also tell Emacs to revert buffers automatically when their
 visited files change on disk; @pxref{Auto Revert}.

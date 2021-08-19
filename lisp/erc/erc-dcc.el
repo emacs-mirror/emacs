@@ -187,7 +187,7 @@ compared with `erc-nick-equal-p' which is IRC case-insensitive."
                             (plist-get elt prop)))
             ;; if the property exists and is equal, we continue, else, try the
             ;; next element of the list
-            (or (and (eq prop :nick) (string-match "!" val)
+            (or (and (eq prop :nick) (string-search "!" val)
                      test (string-equal test val))
                 (and (eq prop :nick)
                      test val

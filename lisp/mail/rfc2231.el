@@ -61,12 +61,12 @@ must never cause a Lisp error."
 	 ;; make it parsable.  Let's try...
 	 (error
 	  (let (mod)
-	    (when (and (string-match "\\\\\"" string)
+	    (when (and (string-search "\\\"" string)
 		       (not (string-match "\\`\"\\|[^\\]\"" string)))
 	      (setq string (string-replace "\\\"" "\"" string)
 		    mod t))
-	    (when (and (string-match "\\\\(" string)
-		       (string-match "\\\\)" string)
+	    (when (and (string-search "\\(" string)
+		       (string-search "\\)" string)
 		       (not (string-match "\\`(\\|[^\\][()]" string)))
 	      (setq string (replace-regexp-in-string
 			    "\\\\\\([()]\\)" "\\1" string)

@@ -801,7 +801,7 @@ POS defaults to `point'."
           ;; doesn't include a hyphen, we consider the hyphen to be
           ;; added by troff, and remove it.
           (or (not (eq (string-to-char (substring 1st-part -1)) ?-))
-              (string-match-p "-" (substring 1st-part 0 -1))
+              (string-search "-" (substring 1st-part 0 -1))
               (setq word (string-replace "-" "" word))))
 	;; Make sure the section number gets included by the code below.
 	(goto-char (match-end 1)))

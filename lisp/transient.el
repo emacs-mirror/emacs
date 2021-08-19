@@ -3073,7 +3073,7 @@ Optional support for popup buttons is also implemented here."
               ;; the definition, then we want to drop the space that
               ;; is reinserted above.  False-positives are possible
               ;; for silly bindings like "-C-c C-c".
-              (unless (string-match-p " " key)
+              (unless (string-search " " key)
                 (setq pre (string-replace " " "" pre))
                 (setq suf (string-replace " " "" suf)))
               (concat (propertize pre 'face 'default)

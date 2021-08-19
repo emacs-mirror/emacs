@@ -71,6 +71,14 @@ See Info node `(gnus)Formatting Variables'."
   "If non-nil, display the topic lines even of topics that have no unread articles."
   :type 'boolean)
 
+(defcustom gnus-topic-display-predicate nil
+  "If non-nil, this should be a function to control the display of the topic.
+The function is called with one parameter -- the topic name, and
+should return non-nil if the topic is to be displayed."
+  :version "28.1"
+  :type '(choice (const :tag "Display all topics" nil)
+                 function))
+
 ;; Internal variables.
 
 (defvar gnus-topic-active-topology nil)
@@ -487,18 +495,16 @@ If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
 If SILENT, don't insert anything.  Return the number of unread
 articles in the topic and its subtopics."
   (let* ((type (pop topicl))
+         (name (car type))
 	 (entries-level (if gnus-group-listed-groups
 			    gnus-level-killed
 			  list-level))
 	 (all (or predicate gnus-group-listed-groups
 		  (cdr (assq 'visible
-			     (gnus-topic-hierarchical-parameters
-			      (car type))))))
+			     (gnus-topic-hierarchical-parameters name)))))
 	 (lowest (if gnus-group-listed-groups 0 lowest))
-	 (entries (gnus-topic-find-groups
-		   (car type) entries-level all lowest))
-	 (all-groups (gnus-topic-find-groups
-		      (car type) entries-level all lowest t))
+	 (entries (gnus-topic-find-groups name entries-level all lowest))
+	 (all-groups (gnus-topic-find-groups name entries-level all lowest t))
 	 (visiblep (and (eq (nth 1 type) 'visible) (not silent)))
 	 (gnus-group-indentation
 	  (make-string (* gnus-topic-indent-level level) ? ))
@@ -508,80 +514,84 @@ articles in the topic and its subtopics."
 	 (point-max (point-max))
 	 (unread 0)
 	 info entry end active tick)
-    ;; Insert any sub-topics.
-    (while topicl
-      (cl-incf unread
-	    (gnus-topic-prepare-topic
-	     (pop topicl) (1+ level) list-level predicate
-	     (not visiblep) lowest regexp)))
-    (setq end (point))
-    (goto-char beg)
-    ;; Insert all the groups that belong in this topic.
-    (while (setq entry (pop entries))
-      (when (if (stringp entry)
-		(gnus-group-prepare-logic
-		 entry
-		 (and
-		  (or (not gnus-group-listed-groups)
-		      (if (< list-level gnus-level-zombie) nil
-			(let ((entry-level
-			       (if (member entry gnus-zombie-list)
-				   gnus-level-zombie gnus-level-killed)))
-			  (and (<= entry-level list-level)
-			       (>= entry-level lowest)))))
-		  (cond
-		   ((stringp regexp)
-		    (string-match regexp entry))
-		   ((functionp regexp)
-		    (funcall regexp entry))
-		   ((null regexp) t)
-		   (t nil))))
-	      (setq info (nth 1 entry))
-	      (gnus-group-prepare-logic
-	       (gnus-info-group info)
-	       (and (or (not gnus-group-listed-groups)
-			(let ((entry-level (gnus-info-level info)))
-			  (and (<= entry-level list-level)
-			       (>= entry-level lowest))))
-		    (or (not (functionp predicate))
-			(funcall predicate info))
-		    (or (not (stringp regexp))
-			(string-match regexp (gnus-info-group info))))))
-	(when visiblep
-	  (if (stringp entry)
-	      ;; Dead groups.
-	      (gnus-group-insert-group-line
-	       entry (if (member entry gnus-zombie-list)
-			 gnus-level-zombie gnus-level-killed)
-	       nil (- (1+ (cdr (setq active (gnus-active entry))))
-		      (car active))
-	       nil)
-	    ;; Living groups.
-	    (when (setq info (nth 1 entry))
-	      (gnus-group-insert-group-line
-	       (gnus-info-group info)
-	       (gnus-info-level info) (gnus-info-marks info)
-	       (car entry) (gnus-info-method info)))))
-	(when (and (listp entry)
-		   (numberp (car entry)))
-	  (cl-incf unread (car entry)))
-	(when (listp entry)
-	  (setq tick t))))
-    (goto-char beg)
-    ;; Insert the topic line.
-    (when (and (not silent)
-	       (or gnus-topic-display-empty-topics ;We want empty topics
-		   (not (zerop unread))	;Non-empty
-		   tick			;Ticked articles
-		   (/= point-max (point-max)))) ;Inactive groups
-      (gnus-topic-insert-topic-line
-       (car type) visiblep
-       (not (eq (nth 2 type) 'hidden))
-       level all-entries unread all-groups))
-    (gnus-topic-update-unreads (car type) unread)
-    (gnus-group--setup-tool-bar-update beg end)
-    (goto-char end)
-    unread))
+    (if (and gnus-topic-display-predicate
+             (not (funcall gnus-topic-display-predicate name)))
+        ;; We're filtering out this topic.
+        0
+      ;; Insert any sub-topics.
+      (while topicl
+        (cl-incf unread
+	         (gnus-topic-prepare-topic
+	          (pop topicl) (1+ level) list-level predicate
+	          (not visiblep) lowest regexp)))
+      (setq end (point))
+      (goto-char beg)
+      ;; Insert all the groups that belong in this topic.
+      (while (setq entry (pop entries))
+        (when (if (stringp entry)
+		  (gnus-group-prepare-logic
+		   entry
+		   (and
+		    (or (not gnus-group-listed-groups)
+		        (if (< list-level gnus-level-zombie) nil
+			  (let ((entry-level
+			         (if (member entry gnus-zombie-list)
+				     gnus-level-zombie gnus-level-killed)))
+			    (and (<= entry-level list-level)
+			         (>= entry-level lowest)))))
+		    (cond
+		     ((stringp regexp)
+		      (string-match regexp entry))
+		     ((functionp regexp)
+		      (funcall regexp entry))
+		     ((null regexp) t)
+		     (t nil))))
+	        (setq info (nth 1 entry))
+	        (gnus-group-prepare-logic
+	         (gnus-info-group info)
+	         (and (or (not gnus-group-listed-groups)
+			  (let ((entry-level (gnus-info-level info)))
+			    (and (<= entry-level list-level)
+			         (>= entry-level lowest))))
+		      (or (not (functionp predicate))
+			  (funcall predicate info))
+		      (or (not (stringp regexp))
+			  (string-match regexp (gnus-info-group info))))))
+	  (when visiblep
+	    (if (stringp entry)
+	        ;; Dead groups.
+	        (gnus-group-insert-group-line
+	         entry (if (member entry gnus-zombie-list)
+			   gnus-level-zombie gnus-level-killed)
+	         nil (- (1+ (cdr (setq active (gnus-active entry))))
+		        (car active))
+	         nil)
+	      ;; Living groups.
+	      (when (setq info (nth 1 entry))
+	        (gnus-group-insert-group-line
+	         (gnus-info-group info)
+	         (gnus-info-level info) (gnus-info-marks info)
+	         (car entry) (gnus-info-method info)))))
+	  (when (and (listp entry)
+		     (numberp (car entry)))
+	    (cl-incf unread (car entry)))
+	  (when (listp entry)
+	    (setq tick t))))
+      (goto-char beg)
+      ;; Insert the topic line.
+      (when (and (not silent)
+	         (or gnus-topic-display-empty-topics ;We want empty topics
+		     (not (zerop unread))            ;Non-empty
+		     tick                            ;Ticked articles
+		     (/= point-max (point-max))))    ;Inactive groups
+        (gnus-topic-insert-topic-line
+         name visiblep
+         (not (eq (nth 2 type) 'hidden))
+         level all-entries unread all-groups))
+      (gnus-topic-update-unreads name unread)
+      (gnus-group--setup-tool-bar-update beg end)
+      (goto-char end)
+      unread)))
 
 (defun gnus-topic-remove-topic (&optional insert total-remove _hide in-level)
   "Remove the current topic."

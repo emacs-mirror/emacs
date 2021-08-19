@@ -3601,7 +3601,7 @@ This hook is called only if there is at least one file-local
 variable to set.")
 
 (defvar permanently-enabled-local-variables '(lexical-binding)
-  "A list of local variables that are always enabled.
+  "A list of file-local variables that are always enabled.
 This overrides any `enable-local-variables' setting.")
 
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars dir-name)
@@ -5727,8 +5727,22 @@ be saved."
   :group 'auto-save
   ;; FIXME nil should not be a valid option, let alone the default,
   ;; eg so that add-function can be used.
-  :type '(choice (const :tag "Default" nil) function)
+  :type '(choice (const :tag "Default" nil)
+                 (function :tag "Only in subdirs of root"
+                           save-some-buffers-root)
+                 (function :tag "Custom function"))
   :version "26.1")
+
+(defun save-some-buffers-root ()
+  "A predicate to check whether the buffer is under the root directory.
+Can be used as a value of `save-some-buffers-default-predicate'
+to save buffers only under the project root or in subdirectories
+of the directory that was default during command invocation."
+  (let ((root (or (and (featurep 'project) (project-current)
+                       (fboundp 'project-root)
+                       (project-root (project-current)))
+                  default-directory)))
+    (lambda () (file-in-directory-p default-directory root))))
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
@@ -5758,6 +5772,11 @@ change the additional actions you can take on files."
   (interactive "P")
   (unless pred
     (setq pred save-some-buffers-default-predicate))
+  ;; Allow `pred' to be a function that returns a predicate
+  ;; with lexical bindings in its original environment (bug#46374).
+  (let ((pred-fun (and (functionp pred) (funcall pred))))
+    (when (functionp pred-fun)
+      (setq pred pred-fun)))
   (let* ((switched-buffer nil)
          (save-some-buffers--switch-window-callback
           (lambda (buffer)
@@ -6561,6 +6580,38 @@ details on the arguments, see `revert-buffer'."
           (revert-buffer-with-fine-grain-success-p)
         (fmakunbound 'revert-buffer-with-fine-grain-success-p)))))
 
+(defcustom revert-buffer-quick-short-answers nil
+  "How much confirmation to be done by the `revert-buffer-quick' command.
+If non-nil, use `y-or-n-p' instead of `yes-or-no-p'."
+  :version "28.1"
+  :type 'boolean)
+
+(defun revert-buffer-quick (&optional auto-save)
+  "Like `revert-buffer', but asks for less confirmation.
+If the current buffer is visiting a file, and the buffer is not
+modified, no confirmation is required.
+
+This command heeds the `revert-buffer-quick-short-answers' user option.
+
+If AUTO-SAVE (the prefix argument), offer to revert from latest
+auto-save file, if that is more recent than the visited file."
+  (interactive "P")
+  (cond
+   ;; If we've visiting a file, and we have no changes, don't ask for
+   ;; confirmation.
+   ((and buffer-file-name
+         (not (buffer-modified-p)))
+    (revert-buffer (not auto-save) t)
+    (message "Reverted buffer"))
+   ;; Heed `revert-buffer-quick-short-answers'.
+   (revert-buffer-quick-short-answers
+    (let ((use-short-answers t))
+      (revert-buffer (not auto-save))))
+   ;; Call `revert-buffer' normally.
+   (t
+    (revert-buffer (not auto-save)))))
+
+
 (defun recover-this-file ()
   "Recover the visited file--get contents from its last auto-save file."
   (interactive)
@@ -6736,6 +6787,7 @@ This command is used in the special Dired buffer created by
 	    (message "No files can be recovered from this session now")))
       (kill-buffer buffer))))
 
+
 (defun kill-buffer-ask (buffer)
   "Kill BUFFER if confirmed."
   (when (yes-or-no-p (format "Buffer %s %s.  Kill? "
@@ -6979,7 +7031,7 @@ by `sh' are supported."
 			  (prog1	; copy everything upto next `]'.
 			      (substring wildcard
 					 i
-					 (setq j (string-match
+					 (setq j (string-search
 						  "]" wildcard i)))
 			    (setq i (if j (1- j) (1- len)))))))
 		      ((eq ch ?.)  "\\.")
@@ -7105,7 +7157,7 @@ need to be passed verbatim to shell commands."
       ;; DOS/Windows don't allow `"' in file names.  So if the
       ;; argument has quotes, we can safely assume it is already
       ;; quoted by the caller.
-      (if (or (string-match "[\"]" pattern)
+      (if (or (string-search "\"" pattern)
 	      ;; We quote [&()#$`'] in case their shell is a port of a
 	      ;; Unixy shell.  We quote [,=+] because stock DOS and
 	      ;; Windows shells require that in some cases, such as
@@ -8005,6 +8057,7 @@ based on existing mode bits, as in \"og+rX-w\"."
 (define-obsolete-variable-alias 'cache-long-line-scans
   'cache-long-scans "24.4")
 
+
 ;; Trashcan handling.
 (defcustom trash-directory nil
   "Directory for `move-file-to-trash' to move files and directories to.
@@ -8155,6 +8208,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		       (new-fn (file-name-concat trash-files-dir files-base)))
 		   (rename-file fn new-fn overwrite)))))))))
 
+
 (defsubst file-attribute-type (attributes)
   "The type field in ATTRIBUTES returned by `file-attributes'.
 The value is either t for directory, string (name linked to) for

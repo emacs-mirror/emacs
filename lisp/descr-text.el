@@ -50,7 +50,7 @@
     (when (string-match-p "\n\\'" pp)
       (setq pp (substring pp 0 (1- (length pp)))))
 
-    (if (and (not (string-match-p "\n" pp))
+    (if (and (not (string-search "\n" pp))
     	     (<= (length pp) (- (window-width) (current-column))))
 	(insert pp)
       (insert-text-button

@@ -1415,9 +1415,9 @@ If an argument is specified, don't set the search direction."
   ;; if using regexp, eliminate upper case forms (\B \W \S.)
   (if tpu-regexp-p
       (let ((pat (copy-sequence string)) (case-fold-search nil) (pos 0))
-	(while (setq pos (string-match "\\\\\\\\" pat)) (aset pat (+ 1 pos) ?.))
-	(while (setq pos (string-match "\\\\B" pat)) (aset pat (+ 1 pos) ?.))
-	(while (setq pos (string-match "\\\\W" pat)) (aset pat (+ 1 pos) ?.))
+	(while (setq pos (string-search "\\\\" pat)) (aset pat (+ 1 pos) ?.))
+	(while (setq pos (string-search "\\B" pat)) (aset pat (+ 1 pos) ?.))
+	(while (setq pos (string-search "\\W" pat)) (aset pat (+ 1 pos) ?.))
 	(while (setq pos (string-match "\\\\S." pat))
 	  (aset pat (+ 1 pos) ?.) (aset pat (+ 2 pos) ?.))
 	(string-equal pat (downcase pat)))

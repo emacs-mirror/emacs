@@ -2995,7 +2995,7 @@ overlays_in (EMACS_INT beg, EMACS_INT end, bool extend,
   ptrdiff_t next = ZV;
   ptrdiff_t prev = BEGV;
   bool inhibit_storing = 0;
-  bool end_is_Z = end == Z;
+  bool end_is_Z = end == ZV;
 
   for (struct Lisp_Overlay *tail = current_buffer->overlays_before;
        tail; tail = tail->next)
@@ -4268,9 +4268,10 @@ DEFUN ("overlays-in", Foverlays_in, Soverlays_in, 2, 2, 0,
        doc: /* Return a list of the overlays that overlap the region BEG ... END.
 Overlap means that at least one character is contained within the overlay
 and also contained within the specified region.
+
 Empty overlays are included in the result if they are located at BEG,
 between BEG and END, or at END provided END denotes the position at the
-end of the buffer.  */)
+end of the accessible part of the buffer.  */)
   (Lisp_Object beg, Lisp_Object end)
 {
   ptrdiff_t len, noverlays;

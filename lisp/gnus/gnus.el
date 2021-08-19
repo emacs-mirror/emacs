@@ -3526,7 +3526,7 @@ You should probably use `gnus-find-method-for-group' instead."
 
 (defun gnus-group-native-p (group)
   "Say whether the group is native or not."
-  (not (string-match ":" group)))
+  (not (string-search ":" group)))
 
 (defun gnus-group-secondary-p (group)
   "Say whether the group is secondary or not."
@@ -3742,13 +3742,13 @@ just the host name."
     ;; Separate foreign select method from group name and collapse.
     ;; If method contains a server, collapse to non-domain server name,
     ;; otherwise collapse to select method.
-    (let* ((colon (string-match ":" group))
+    (let* ((colon (string-search ":" group))
 	   (server (and colon (substring group 0 colon)))
-	   (plus (and server (string-match "\\+" server))))
+	   (plus (and server (string-search "+" server))))
       (when server
 	(if plus
 	    (setq foreign (substring server (+ 1 plus)
-				     (string-match "\\." server))
+				     (string-search "." server))
 		  group (substring group (+ 1 colon)))
 	  (setq foreign server
 		group (substring group (+ 1 colon))))

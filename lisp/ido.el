@@ -1770,7 +1770,7 @@ is enabled then some keybindings are changed in the keymap."
 	      (let ((l (length dirname)))
 		(if (and max-width (> max-width 0) (> l max-width))
 		    (let* ((s (substring dirname (- max-width)))
-			   (i (string-match "/" s)))
+			   (i (string-search "/" s)))
 		      (concat "..." (if i (substring s i) s)))
 		  dirname)))))
    (t prompt)))
@@ -2516,7 +2516,7 @@ If cursor is not at the end of the user input, move to end of input."
       ;; Do nothing
       )
      ((and (memq ido-cur-item '(file dir))
-	   (string-match "[$]" ido-text))
+	   (string-search "$" ido-text))
       (let ((evar (substitute-in-file-name (concat ido-current-directory ido-text))))
 	(if (not (file-exists-p (file-name-directory evar)))
 	    (message "Expansion generates non-existing directory name")
@@ -3089,7 +3089,7 @@ If repeated, insert text from buffer instead."
 	  (setq ido-text-init word
 		ido-try-merged-list nil
 		ido-exit 'chdir))
-	 ((string-match "/" word)
+	 ((string-search "/" word)
 	  (setq ido-text-init (concat ido-current-directory word)
 		ido-try-merged-list nil
 		ido-exit 'chdir))
@@ -4559,7 +4559,7 @@ For details of keybindings, see `ido-find-file'."
 	    (setq try-single-dir-match t))))
 
 	 ((and (string-equal (substring contents -2 -1) "/")
-	       (not (string-match "[$]" contents)))
+	       (not (string-search "$" contents)))
 	  (ido-set-current-directory
 	   (cond
 	    ((= (length contents) 2)
@@ -4656,7 +4656,7 @@ For details of keybindings, see `ido-find-file'."
 	       (memq ido-cur-item '(file dir))
 	       (not (ido-is-root-directory))
 	       (> (length contents) 1)
-	       (not (string-match "[$]" contents))
+	       (not (string-search "$" contents))
 	       (not ido-directory-nonreadable)
 	       (not ido-directory-too-big))
 	  (ido-trace "merge?")

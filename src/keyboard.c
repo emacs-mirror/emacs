@@ -924,6 +924,7 @@ static Lisp_Object
 cmd_error (Lisp_Object data)
 {
   Lisp_Object old_level, old_length;
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object conditions;
   char macroerror[sizeof "After..kbd macro iterations: "
 		  + INT_STRLEN_BOUND (EMACS_INT)];
@@ -951,8 +952,8 @@ cmd_error (Lisp_Object data)
       executing_kbd_macro = Qnil;
     }
 
-  Vstandard_output = Qt;
-  Vstandard_input = Qt;
+  specbind (Qstandard_output, Qt);
+  specbind (Qstandard_input, Qt);
   kset_prefix_arg (current_kboard, Qnil);
   kset_last_prefix_arg (current_kboard, Qnil);
   cancel_echoing ();
@@ -969,6 +970,7 @@ cmd_error (Lisp_Object data)
   Vquit_flag = Qnil;
   Vinhibit_quit = Qnil;
 
+  unbind_to (count, Qnil);
   return make_fixnum (0);
 }
 

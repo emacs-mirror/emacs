@@ -1025,7 +1025,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	 (calc-pop-stack 1))))
   (if (string-match "\\[.+\\]" range)
       (setq range (substring range 1 -1)))
-  (if (and (not (string-match ":" range))
+  (if (and (not (string-search ":" range))
 	   (or (string-match "," range)
 	       (string-match " " range)))
       (aset range (match-beginning 0) ?\:))

@@ -2483,7 +2483,7 @@ Table of contents is created from the tree structure of menus."
 			      (match-string-no-properties 1)))
 		 (section "Top")
 		 menu-items)
-	    (when (and upnode (string-match "(" upnode)) (setq upnode nil))
+	    (when (and upnode (string-search "(" upnode)) (setq upnode nil))
             (when (and (not (Info-index-node nodename file))
                        (re-search-forward "^\\* Menu:" bound t))
               (forward-line 1)
@@ -2616,7 +2616,7 @@ new buffer."
 
   (let (target i (str (concat "\\*note " (regexp-quote footnotename)))
 	       (case-fold-search t))
-    (while (setq i (string-match " " str i))
+    (while (setq i (string-search " " str i))
       (setq str (concat (substring str 0 i) "[ \t\n]+" (substring str (1+ i))))
       (setq i (+ i 6)))
     (save-excursion
@@ -2933,7 +2933,7 @@ last sub-node, if any; otherwise go \"up\" to the parent node."
   (let ((prevnode (Info-extract-pointer "prev[ious]*" t))
 	(upnode (Info-extract-pointer "up" t))
 	(case-fold-search t))
-    (cond ((and upnode (string-match "(" upnode))
+    (cond ((and upnode (string-search "(" upnode))
 	   (user-error "First node in file"))
 	  ((and upnode (or (null prevnode)
 			   ;; Use string-equal, not equal,
@@ -3778,7 +3778,7 @@ Build a menu of the possible matches."
      "The following packages match the keyword ‘" nodename "’:\n\n")
     (insert "* Menu:\n\n")
     (let ((keywords
-	   (mapcar #'intern (if (string-match-p "," nodename)
+	   (mapcar #'intern (if (string-search "," nodename)
 			       (split-string nodename ",[ \t\n]*" t)
 			     (list nodename))))
 	  hits desc)
@@ -4117,9 +4117,9 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     :help "Search for another occurrence of regular expression"]
    "---"
    ("History"
-    ["Back in history" Info-history-back :active Info-history
+    ["Back in History" Info-history-back :active Info-history
      :help "Go back in history to the last node you were at"]
-    ["Forward in history" Info-history-forward :active Info-history-forward
+    ["Forward in History" Info-history-forward :active Info-history-forward
      :help "Go forward in history"]
     ["Show History" Info-history :active Info-history-list
      :help "Go to menu of visited nodes"])
@@ -4146,6 +4146,25 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
    "---"
    ["Exit" quit-window :help "Stop reading Info"]))
 
+(defun Info-context-menu (menu)
+  (define-key menu [Info-separator] menu-bar-separator)
+  (let ((easy-menu (make-sparse-keymap "Info")))
+    (easy-menu-define nil easy-menu nil
+      '("Info"
+        ["Back in History" Info-history-back :visible Info-history
+         :help "Go back in history to the last node you were at"]
+        ["Forward in History" Info-history-forward :visible Info-history-forward
+         :help "Go forward in history"]))
+    (dolist (item (reverse (lookup-key easy-menu [menu-bar info])))
+      (when (consp item)
+        (define-key menu (vector (car item)) (cdr item)))))
+
+  (when (mouse-posn-property (event-start last-input-event) 'mouse-face)
+    (define-key menu [Info-mouse-follow-nearest-node]
+      '(menu-item "Follow Link" Info-mouse-follow-nearest-node
+                  :help "Follow a link where you click")))
+
+  menu)
 
 (defvar info-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -4446,6 +4465,7 @@ Advanced commands:
   (add-hook 'clone-buffer-hook 'Info-clone-buffer nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'Info-isearch-start nil t)
+  (add-hook 'context-menu-functions 'Info-context-menu 5 t)
   (when Info-standalone
     (add-hook 'quit-window-hook 'save-buffers-kill-emacs nil t))
   (setq-local isearch-search-fun-function #'Info-isearch-search)
@@ -5244,7 +5264,7 @@ The INDENT level is ignored."
 TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node (NAME . FILE).
 INDENT is the current indentation depth."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (if (speedbar-with-writable
 	      (save-excursion
@@ -5252,7 +5272,7 @@ INDENT is the current indentation depth."
 		(Info-speedbar-hierarchy-buttons nil (1+ indent) token)))
 	     (speedbar-change-expand-button-char ?-)
 	   (speedbar-change-expand-button-char ??)))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops... not sure what to do")))

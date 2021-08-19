@@ -1553,6 +1553,11 @@ image.  You comment a file from the thumbnail buffer by typing
 @kbd{c}.  You will be prompted for a comment.  Type @kbd{C-t c} to add
 a comment from Dired (@code{image-dired-dired-comment-files}).
 
+@vindex image-dired-thumb-visible-marks
+  Files that are marked in Dired will also be marked in Image-Dired if
+@code{image-dired-thumb-visible-marks} is non-@code{nil} (which is the
+default).
+
   Image-Dired also provides simple image manipulation.  In the
 thumbnail buffer, type @kbd{L} to rotate the original image 90 degrees
 anti clockwise, and @kbd{R} to rotate it 90 degrees clockwise.  This

@@ -1120,7 +1120,7 @@ is wrapped around any parts requiring it."
 (declare-function lm-header-multiline "lisp-mnt" (header))
 (declare-function lm-homepage "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
-(declare-function lm-maintainer "lisp-mnt" (&optional file))
+(declare-function lm-maintainers "lisp-mnt" (&optional file))
 (declare-function lm-authors "lisp-mnt" (&optional file))
 
 (defun package-buffer-info ()
@@ -1166,7 +1166,10 @@ boundaries."
        :kind 'single
        :url homepage
        :keywords keywords
-       :maintainer (lm-maintainer)
+       :maintainer
+       ;; For backward compatibility, use a single string if there's only
+       ;; one maintainer (the most common case).
+       (let ((maints (lm-maintainers))) (if (cdr maints) maints (car maints)))
        :authors (lm-authors)))))
 
 (defun package--read-pkg-desc (kind)
@@ -4152,6 +4155,10 @@ activations need to be changed, such as when `package-load-list' is modified."
         (package-activated-list ())
         ;; Make sure we can load this file without load-source-file-function.
         (coding-system-for-write 'emacs-internal)
+        ;; Ensure that `pp' and `prin1-to-string' calls further down
+        ;; aren't truncated.
+        (print-length nil)
+        (print-level nil)
         (Info-directory-list '("")))
     (dolist (elt package-alist)
       (condition-case err
@@ -4169,9 +4176,7 @@ activations need to be changed, such as when `package-load-list' is modified."
                 ;; Prefer uncompiled files (and don't accept .so files).
                 (let ((load-suffixes '(".el" ".elc")))
                   (locate-library (package--autoloads-file-name pkg))))
-               (pfile (let ((print-length nil)
-                            (print-level nil))
-                        (prin1-to-string file))))
+               (pfile (prin1-to-string file)))
           (insert "(let ((load-true-file-name " pfile ")\
 (load-file-name " pfile "))\n")
           (insert-file-contents file)

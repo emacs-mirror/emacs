@@ -2169,6 +2169,14 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
 
 #endif /* !DOS_NT */
 
+char *
+tty_type_name (Lisp_Object terminal)
+{
+  struct terminal *t = decode_tty_terminal (terminal);
+
+  return t? t->display_info.tty->type: NULL;
+}
+
 DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that TERMINAL uses.
 Returns nil if TERMINAL is not on a tty device.
@@ -2177,10 +2185,9 @@ TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = decode_tty_terminal (terminal);
+  char *name = tty_type_name (terminal);
 
-  return (t && t->display_info.tty->type
-	  ? build_string (t->display_info.tty->type) : Qnil);
+  return (name? build_string (name) : Qnil);
 }
 
 DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,

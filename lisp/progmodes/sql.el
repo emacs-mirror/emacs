@@ -1573,7 +1573,7 @@ statement.  The format of variable should be a valid
 	    face)))
 
   (defun sql-regexp-abbrev (keyword)
-    (let ((brk   (string-match "[~]" keyword))
+    (let ((brk   (string-search "~" keyword))
           (len   (length keyword))
           (sep   "\\(?:")
           re i)

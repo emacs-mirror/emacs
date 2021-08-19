@@ -1075,7 +1075,7 @@ For instance, \"foo.png\" will result in \"image/png\"."
       (dolist (data mailcap--computed-mime-data)
         (dolist (info (cdr data))
           (setq type (cdr (assq 'type (cdr info))))
-          (unless (string-match-p "\\*" type)
+          (unless (string-search "*" type)
             (push type res))))
       (nreverse res)))))
 

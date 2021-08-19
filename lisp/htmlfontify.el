@@ -1902,7 +1902,7 @@ tree depth, as determined from FILE (a filename).
 START is the offset at which to start looking for the / character in FILE."
   ;;(message "hfy-relstub");;DBUG
   (let ((c ""))
-    (while (setq start (string-match "/" file start))
+    (while (setq start (string-search "/" file start))
       (setq start (1+ start)) (setq c (concat c "../")))
     c))
 

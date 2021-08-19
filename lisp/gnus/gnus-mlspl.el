@@ -169,7 +169,7 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
        (when (not (null params))
          (let ((split-spec (assoc 'split-spec params)) group-clean)
            ;; Remove backend from group name
-           (setq group-clean (string-match ":" group))
+           (setq group-clean (string-search ":" group))
 	    (setq group-clean
 		  (if group-clean
 		      (substring group (1+ group-clean))

@@ -43,6 +43,24 @@
                                 display-line-numbers-mode
                                 prettify-symbols-mode))
 
+(defun prog-context-menu (menu)
+  (when (featurep 'xref)
+    (define-key-after menu [prog-separator] menu-bar-separator
+      'mark-whole-buffer)
+    (define-key-after menu [xref-find-def]
+      '(menu-item "Find Definition" xref-find-definitions-at-mouse
+                  :visible (save-excursion
+                             (mouse-set-point last-input-event)
+                             (xref-backend-identifier-at-point (xref-find-backend)))
+                  :help "Find definition of function or variable")
+      'prog-separator)
+    (define-key-after menu [xref-pop]
+      '(menu-item "Back Definition" xref-pop-marker-stack
+                  :visible (not (xref-marker-stack-empty-p))
+                  :help "Back to the position of the last search")
+      'xref-find-def))
+  menu)
+
 (defvar prog-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\C-\M-q] 'prog-indent-sexp)
@@ -249,6 +267,7 @@ support it."
   "Major mode for editing programming language source code."
   (setq-local require-final-newline mode-require-final-newline)
   (setq-local parse-sexp-ignore-comments t)
+  (add-hook 'context-menu-functions 'prog-context-menu 10 t)
   ;; Any programming language is always written left to right.
   (setq bidi-paragraph-direction 'left-to-right))
 

@@ -249,7 +249,8 @@ the default otherwise."
 (defun icomplete-forward-completions ()
   "Step forward completions by one entry.
 Second entry becomes the first and can be selected with
-`icomplete-force-complete-and-exit'."
+`icomplete-force-complete-and-exit'.
+Return non-nil iff something was stepped."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
@@ -266,21 +267,35 @@ Second entry becomes the first and can be selected with
 (defun icomplete-backward-completions ()
   "Step backward completions by one entry.
 Last entry becomes the first and can be selected with
-`icomplete-force-complete-and-exit'."
+`icomplete-force-complete-and-exit'.
+Return non-nil iff something was stepped."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
          (comps (completion-all-sorted-completions beg end))
-	 last-but-one)
-    (cond ((and icomplete-scroll icomplete--scrolled-past)
-           (push (pop icomplete--scrolled-past) comps)
-           (setq icomplete--scrolled-completions comps))
-          ((and (not icomplete-scroll)
-                (consp (cdr (setq last-but-one (last comps 2)))))
-           ;; At least two elements in comps
-           (push (car (cdr last-but-one)) comps)
-           (setcdr last-but-one (cdr (cdr last-but-one)))))
-    (completion--cache-all-sorted-completions beg end comps)))
+         last-but-one)
+    (prog1
+        (cond ((and icomplete-scroll icomplete--scrolled-past)
+               (push (pop icomplete--scrolled-past) comps)
+               (setq icomplete--scrolled-completions comps))
+              ((and (not icomplete-scroll)
+                    (consp (cdr (setq last-but-one (last comps 2)))))
+               ;; At least two elements in comps
+               (push (car (cdr last-but-one)) comps)
+               (setcdr last-but-one (cdr (cdr last-but-one)))))
+      (completion--cache-all-sorted-completions beg end comps))))
+
+(defun icomplete-vertical-goto-first ()
+  "Go to first completions entry when `icomplete-scroll' is non-nil."
+  (interactive)
+  (unless icomplete-scroll (error "Only works with `icomplete-scroll'"))
+  (while (icomplete-backward-completions)))
+
+(defun icomplete-vertical-goto-last ()
+  "Go to last completions entry when `icomplete-scroll' is non-nil."
+  (interactive)
+  (unless icomplete-scroll (error "Only works with `icomplete-scroll'"))
+  (while (icomplete-forward-completions)))
 
 ;;;_* Helpers for `fido-mode' (or `ido-mode' emulation)
 
@@ -298,18 +313,21 @@ require user confirmation."
         (call-interactively 'kill-line)
       (let* ((all (completion-all-sorted-completions))
              (thing (car all))
+             (cat (icomplete--category))
              (action
-              (pcase (icomplete--category)
-                (`buffer
+              (cl-case cat
+                (buffer
                  (lambda ()
                    (when (yes-or-no-p (concat "Kill buffer " thing "? "))
                      (kill-buffer thing))))
-                (`file
+                ((project-file file)
                  (lambda ()
                    (let* ((dir (file-name-directory (icomplete--field-string)))
                           (path (expand-file-name thing dir)))
                      (when (yes-or-no-p (concat "Delete file " path "? "))
-                       (delete-file path) t)))))))
+                       (delete-file path) t))))
+                (t
+                 (error "Sorry, don't know how to kill things for `%s'" cat)))))
         (when (let (;; Allow `yes-or-no-p' to work and don't let it
                     ;; `icomplete-exhibit' anything.
                     (enable-recursive-minibuffers t)
@@ -606,6 +624,10 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-n") 'icomplete-forward-completions)
     (define-key map (kbd "C-p") 'icomplete-backward-completions)
+    (define-key map (kbd "<down>") 'icomplete-forward-completions)
+    (define-key map (kbd "<up>") 'icomplete-backward-completions)
+    (define-key map (kbd "M-<") 'icomplete-vertical-goto-first)
+    (define-key map (kbd "M->") 'icomplete-vertical-goto-last)
     map)
   "Keymap used by `icomplete-vertical-mode' in the minibuffer.")
 
@@ -623,6 +645,8 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 (define-minor-mode icomplete-vertical-mode
   "Toggle vertical candidate display in `icomplete-mode' or `fido-mode'.
 
+If none of these modes are on, turn on `icomplete-mode'.
+
 As many completion candidates as possible are displayed, depending on
 the value of `max-mini-window-height', and the way the mini-window is
 resized depends on `resize-mini-windows'."
@@ -630,10 +654,21 @@ resized depends on `resize-mini-windows'."
   (remove-hook 'icomplete-minibuffer-setup-hook
                #'icomplete--vertical-minibuffer-setup)
   (when icomplete-vertical-mode
+    (unless icomplete-mode
+      (icomplete-mode 1))
     (add-hook 'icomplete-minibuffer-setup-hook
               #'icomplete--vertical-minibuffer-setup)))
 
-(defalias 'fido-vertical-mode 'icomplete-vertical-mode)
+;;;###autoload
+(define-minor-mode fido-vertical-mode
+  "Toggle vertical candidate display in `fido-mode'.
+When turning on, if non-vertical `fido-mode' is off, turn it on.
+If it's on, just add the vertical display."
+  :global t
+  (icomplete-vertical-mode -1)
+  (when fido-vertical-mode
+    (unless fido-mode (fido-mode 1))
+    (icomplete-vertical-mode 1)))
 
 
 

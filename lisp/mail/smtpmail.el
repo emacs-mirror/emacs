@@ -516,7 +516,7 @@ for `smtpmail-try-auth-method'.")
 
 (defun smtpmail-maybe-append-domain (recipient)
   (if (or (not smtpmail-sendto-domain)
-	  (string-match "@" recipient))
+	  (string-search "@" recipient))
       recipient
     (concat recipient "@" smtpmail-sendto-domain)))
 
@@ -700,7 +700,7 @@ Returns an error if the server cannot be contacted."
        (let ((parts (split-string user-mail-address "@")))
 	 (and (= (length parts) 2)
 	      ;; There's a dot in the domain name.
-	      (string-match "\\." (cadr parts))
+	      (string-search "." (cadr parts))
 	      user-mail-address))))
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer

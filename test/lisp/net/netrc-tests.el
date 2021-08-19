@@ -48,6 +48,13 @@
     (should (equal (netrc-credentials "ftp.example.org")
                    '("jrh" "*baz*")))))
 
+(ert-deftest test-netrc-credentials ()
+  (let ((netrc-file (ert-resource-file "netrc-folding")))
+    (should
+     (equal (netrc-parse netrc-file)
+            '((("machine" . "XM") ("login" . "XL") ("password" . "XP"))
+              (("machine" . "YM")) (("login" . "YL")) (("password" . "YP")))))))
+
 (provide 'netrc-tests)
 
 ;;; netrc-tests.el ends here

@@ -1153,22 +1153,27 @@ These match if the argument is a cons cell whose car is `eql' to VAL."
 
 (cl-generic-define-generalizer cl--generic-eql-generalizer
   100 (lambda (name &rest _) `(gethash ,name cl--generic-eql-used))
-  (lambda (tag &rest _) (if (eq (car-safe tag) 'eql) (list tag))))
+  (lambda (tag &rest _) (if (eq (car-safe tag) 'eql) (cdr tag))))
 
 (cl-defmethod cl-generic-generalizers ((specializer (head eql)))
   "Support for (eql VAL) specializers.
 These match if the argument is `eql' to VAL."
-  (let ((form (cadr specializer)))
-    (puthash (if (or (not (symbolp form)) (macroexp-const-p form))
-                 (eval form t)
-               ;; FIXME: Compatibility with Emacs<28.  For now emitting
-               ;; a warning would be annoying for third party packages
-               ;; which can't use the new form without breaking compatibility
-               ;; with older Emacsen, but in the future we should emit
-               ;; a warning.
-               ;; (message "Quoting obsolete `eql' form: %S" specializer)
-               form)
-             specializer cl--generic-eql-used))
+  (let* ((form (cadr specializer))
+         (val (if (or (not (symbolp form)) (macroexp-const-p form))
+                  (eval form t)
+                ;; FIXME: Compatibility with Emacs<28.  For now emitting
+                ;; a warning would be annoying for third party packages
+                ;; which can't use the new form without breaking compatibility
+                ;; with older Emacsen, but in the future we should emit
+                ;; a warning.
+                ;; (message "Quoting obsolete `eql' form: %S" specializer)
+                form))
+         (specializers (cdr (gethash val cl--generic-eql-used))))
+    ;; The `specializers-function' needs to return all the (eql EXP) that
+    ;; were used for the same VALue (bug#49866).
+    ;; So we keep this info in `cl--generic-eql-used'.
+    (cl-pushnew specializer specializers :test #'equal)
+    (puthash val `(eql . ,specializers) cl--generic-eql-used))
   (list cl--generic-eql-generalizer))
 
 (cl--generic-prefill-dispatchers 0 (eql nil))

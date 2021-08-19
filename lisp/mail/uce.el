@@ -246,10 +246,10 @@ You might need to set `uce-mail-reader' before using this."
       (if reply-to
 	  (setq to (format "%s, %s" to (mail-strip-quoted-names reply-to))))
       (let (first-at-sign end-of-hostname sender-host)
-	(setq first-at-sign (string-match "@" to)
+	(setq first-at-sign (string-search "@" to)
 	      end-of-hostname (string-match "[ ,>]" to first-at-sign)
 	      sender-host (substring to first-at-sign end-of-hostname))
-	(if (string-match "\\." sender-host)
+	(if (string-search "." sender-host)
 	    (setq to (format "%s, postmaster%s, abuse%s"
 			     to sender-host sender-host))))
       (setq mail-send-actions nil)
@@ -291,7 +291,7 @@ You might need to set `uce-mail-reader' before using this."
       (search-forward " ")
       (forward-char -1)
       ;; And add its postmaster to the list of addresses.
-      (if (string-match "\\." (buffer-substring temp (point)))
+      (if (string-search "." (buffer-substring temp (point)))
 	  (setq to (format "%s, postmaster@%s"
 			   to (buffer-substring temp (point)))))
       ;; Also look at the message-id, it helps *very* often.
@@ -302,7 +302,7 @@ You might need to set `uce-mail-reader' before using this."
 	     (setq temp (point))
 	     (search-forward ">")
 	     (forward-char -1)
-	     (if (string-match "\\." (buffer-substring temp (point)))
+	     (if (string-search "." (buffer-substring temp (point)))
 		 (setq to (format "%s, postmaster@%s"
 				  to (buffer-substring temp (point)))))))
       (when (eq uce-mail-reader 'gnus)

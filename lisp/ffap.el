@@ -1418,7 +1418,7 @@ which may actually result in an URL rather than a filename."
 	 (string (ffap-string-at-point)) ; uses mode alist
 	 (name
 	  (or (condition-case nil
-		  (and (not (string-match "//" string)) ; foo.com://bar
+		  (and (not (string-search "//" string)) ; foo.com://bar
 		       (substitute-in-file-name string))
 		(error nil))
 	      string))
@@ -1532,10 +1532,7 @@ which may actually result in an URL rather than a filename."
     (cl-case operation
       ;; We mainly just want to disable these bits:
       (substitute-in-file-name (car args))
-      (expand-file-name
-       (if (equal (car args) "http://<remove>")
-           ""
-         (car args)))
+      (expand-file-name (car args))
       (otherwise
        (apply operation args)))))
 
@@ -1546,7 +1543,7 @@ which may actually result in an URL rather than a filename."
         (progn
           (push elem file-name-handler-alist)
           (if (ffap-url-p guess)
-              (read-file-name prompt "http://<remove>" nil nil guess)
+              (read-file-name prompt guess guess)
             (unless guess
               (setq guess default-directory))
             (unless (ffap-file-remote-p guess)

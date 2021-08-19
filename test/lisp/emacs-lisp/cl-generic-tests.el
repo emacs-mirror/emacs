@@ -60,7 +60,10 @@
   (defvar cl--generic-fooval 41)
   (cl-defmethod cl--generic-1 ((_x (eql (+ cl--generic-fooval 1))) _y)
     "forty-two")
-  (should (equal (cl--generic-1 42 nil) "forty-two")))
+  (cl-defmethod cl--generic-1 (_x (_y (eql 42)))
+    "FORTY-TWO")
+  (should (equal (cl--generic-1 42 nil) "forty-two"))
+  (should (equal (cl--generic-1 nil 42) "FORTY-TWO")))
 
 (cl-defstruct cl-generic-struct-parent a b)
 (cl-defstruct (cl-generic-struct-child1 (:include cl-generic-struct-parent)) c)

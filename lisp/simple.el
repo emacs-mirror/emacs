@@ -2194,6 +2194,8 @@ Also see `suggest-key-bindings'."
           (setq binding candidate))))
     binding))
 
+(defvar execute-extended-command--binding-timer nil)
+
 (defun execute-extended-command (prefixarg &optional command-name typed)
   ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
   ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
@@ -2258,15 +2260,24 @@ invoking, give a prefix argument to `execute-extended-command'."
             (setq binding (execute-extended-command--shorter
                            (symbol-name function) typed))))
         (when binding
-          (with-temp-message
-              (format-message "You can run the command `%s' with %s"
-                              function
-                              (if (stringp binding)
-                                  (concat "M-x " binding " RET")
-                                (key-description binding)))
-            (sit-for (if (numberp suggest-key-bindings)
-                         suggest-key-bindings
-                       2))))))))
+          ;; This is normally not necessary -- the timer should run
+          ;; immediately, but be defensive and ensure that we never
+          ;; have two of these timers in flight.
+          (when execute-extended-command--binding-timer
+            (cancel-timer execute-extended-command--binding-timer))
+          (setq execute-extended-command--binding-timer
+                (run-at-time
+                 0 nil
+                 (lambda ()
+                   (with-temp-message
+                       (format-message "You can run the command `%s' with %s"
+                                       function
+                                       (if (stringp binding)
+                                           (concat "M-x " binding " RET")
+                                         (key-description binding)))
+                     (sit-for (if (numberp suggest-key-bindings)
+                                  suggest-key-bindings
+                                2)))))))))))
 
 (defun execute-extended-command-for-buffer (prefixarg &optional
                                                       command-name typed)
@@ -4272,11 +4283,11 @@ the contents are inserted into the buffer anyway.
 
 Optional arguments ACTION and FRAME are as for `display-buffer',
 and are used only if a pop-up buffer is displayed."
-  (cond ((and (stringp message) (not (string-match "\n" message)))
+  (cond ((and (stringp message) (not (string-search "\n" message)))
 	 ;; Trivial case where we can use the echo area
 	 (message "%s" message))
 	((and (stringp message)
-	      (= (string-match "\n" message) (1- (length message))))
+	      (= (string-search "\n" message) (1- (length message))))
 	 ;; Trivial case where we can just remove single trailing newline
 	 (message "%s" (substring message 0 (1- (length message)))))
 	(t
@@ -6649,9 +6660,16 @@ is temporarily turned on.  Furthermore, the mark will be deactivated
 by any subsequent point motion key that was not shift-translated, or
 by any action that normally deactivates the mark in Transient Mark mode.
 
+When the value is `permanent', the mark will be deactivated by any
+action which normally does that, but not by motion keys that were
+not shift-translated.
+
 See `this-command-keys-shift-translated' for the meaning of
 shift-translation."
-  :type 'boolean
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "Permanent" permanent)
+                 (other :tag "On" t))
+  :version "28.1"
   :group 'editing-basics)
 
 (defun handle-shift-selection ()
@@ -6669,7 +6687,12 @@ translation.
 Otherwise, if the region has been activated temporarily,
 deactivate it, and restore the variable `transient-mark-mode' to
 its earlier value."
-  (cond ((and shift-select-mode this-command-keys-shift-translated)
+  (cond ((and (eq shift-select-mode 'permanent)
+              this-command-keys-shift-translated)
+         (unless mark-active
+           (push-mark nil nil t)))
+        ((and shift-select-mode
+              this-command-keys-shift-translated)
          (unless (and mark-active
 		      (eq (car-safe transient-mark-mode) 'only))
 	   (setq-local transient-mark-mode

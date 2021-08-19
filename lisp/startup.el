@@ -549,7 +549,11 @@ It is the default value of the variable `top-level'."
       ;; When $HOME is set to '/nonexistent' means we are running the
       ;; testsuite, add a temporary folder in front to produce there
       ;; new compilations.
-      (when (equal (getenv "HOME") "/nonexistent")
+      (when (and (equal (getenv "HOME") "/nonexistent")
+                 ;; We may be running in a chroot environment where we
+                 ;; can't write anything.
+                 (file-writable-p (expand-file-name
+                                   (or temporary-file-directory ""))))
         (let ((tmp-dir (make-temp-file "emacs-testsuite-" t)))
           (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
           (push tmp-dir native-comp-eln-load-path))))

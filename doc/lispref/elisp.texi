@@ -788,6 +788,7 @@ Defining Commands
 * Interactive Codes::       The standard letter-codes for reading arguments
                               in various ways.
 * Interactive Examples::    Examples of how to read interactive arguments.
+* Command Modes::           Specifying that commands are for a specific mode.
 * Generic Commands::        Select among command alternatives.
 
 

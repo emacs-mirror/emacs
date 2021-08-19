@@ -636,7 +636,7 @@ see `frameset-filter-alist'."
       (not (frameset-switch-to-gui-p parameters))
       (let* ((prefix:p (symbol-name (car current)))
 	     (p (intern (substring prefix:p
-				   (1+ (string-match-p ":" prefix:p)))))
+				   (1+ (string-search ":" prefix:p)))))
 	     (val (cdr current))
 	     (found (assq p filtered)))
 	(if (not found)

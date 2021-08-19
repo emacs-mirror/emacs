@@ -547,7 +547,7 @@ the sources handy."
 
              ;; skip nodes with "%" as probably `format' strings such as in
              ;; info-look.el
-             (unless (string-match "%" node)
+             (unless (string-search "%" node)
 
                ;; "(emacs)" is the default manual for docstring hyperlinks,
                ;; per `help-make-xrefs'

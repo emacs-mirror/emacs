@@ -2973,6 +2973,15 @@ URLs.
 For more information, view the package commentary by typing @kbd{C-h P
 browse-url @key{RET}}.
 
+@findex url-handler-mode
+  Emacs also has a minor mode that has some support for handling
+@acronym{URL}s as if they were files.  @code{url-handler-mode} is a
+global minor mode that affects most of the Emacs commands and
+primitives that deal with file names.  After switching on this mode,
+you can say, for instance, @kbd{C-x C-f https://www.gnu.org/ RET} to
+see the @acronym{HTML} for that web page, and you can then edit it and
+save it to a local file, for instance.
+
 @node Goto Address mode
 @subsection Activating URLs
 @findex goto-address-mode

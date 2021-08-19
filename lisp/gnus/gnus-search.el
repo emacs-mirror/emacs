@@ -1392,7 +1392,7 @@ Returns a list of [group article score] vectors."
                 (if (string-match-p "\\`[[:digit:]]+\\'" article)
 		    (string-to-number article)
 		  (nnmaildir-base-name-to-article-number
-		   (substring article 0 (string-match ":" article))
+		   (substring article 0 (string-search ":" article))
 		   group (string-remove-prefix "nnmaildir:" server))))
           (when (and (numberp article)
                      (or (null groups)
@@ -2136,7 +2136,7 @@ article came from is also searched."
 		  ;; If the value contains spaces, make sure it's
 		  ;; quoted.
 		  (when (and (memql status '(exact finished))
-			     (or (string-match-p " " str)
+			     (or (string-search " " str)
 				 in-string))
 		    (unless (looking-at-p "\\s\"")
 		      (insert "\""))

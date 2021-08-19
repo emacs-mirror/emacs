@@ -4652,6 +4652,7 @@ extern AVOID fatal (const char *msgid, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
 /* Defined in terminal.c.  */
 extern void syms_of_terminal (void);
+extern char * tty_type_name (Lisp_Object);
 
 /* Defined in font.c.  */
 extern void syms_of_font (void);

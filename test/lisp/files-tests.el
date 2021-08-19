@@ -610,7 +610,7 @@ unquoted file names."
 (ert-deftest files-tests-file-name-non-special-dired-compress-handler ()
   ;; `dired-compress-file' can get confused by filenames with ":" in
   ;; them, which causes this to fail on `windows-nt' systems.
-  (when (string-match-p ":" (expand-file-name temporary-file-directory))
+  (when (string-search ":" (expand-file-name temporary-file-directory))
     (ert-skip "FIXME: `dired-compress-file' unreliable when filenames contain `:'."))
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (let ((compressed (dired-compress-file nospecial)))

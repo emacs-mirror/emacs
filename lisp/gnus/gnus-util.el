@@ -154,7 +154,7 @@ is slower."
 	(and (string-match "(.+)" from)
 	     (setq name (substring from (1+ (match-beginning 0))
 				   (1- (match-end 0)))))
-	(and (string-match "()" from)
+	(and (string-search "()" from)
 	     (setq name address))
 	;; XOVER might not support folded From headers.
 	(and (string-match "(.*" from)
@@ -265,7 +265,7 @@ If END is non-nil, use the end of the span instead."
 (defun gnus-newsgroup-directory-form (newsgroup)
   "Make hierarchical directory name from NEWSGROUP name."
   (let* ((newsgroup (gnus-newsgroup-savable-name newsgroup))
-	 (idx (string-match ":" newsgroup)))
+	 (idx (string-search ":" newsgroup)))
     (concat
      (if idx (substring newsgroup 0 idx))
      (if idx "/")

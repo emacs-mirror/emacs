@@ -2194,6 +2194,21 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ["Delete Image Tag..." image-dired-delete-tag
      :help "Delete image tag from current or marked files"]))
 
+(defun dired-context-menu (menu)
+  (when (mouse-posn-property (event-start last-input-event) 'dired-filename)
+    (define-key menu [dired-separator] menu-bar-separator)
+    (let ((easy-menu (make-sparse-keymap "Immediate")))
+      (easy-menu-define nil easy-menu nil
+        '("Immediate"
+          ["Find This File" dired-mouse-find-file
+           :help "Edit file at mouse click"]
+          ["Find in Other Window" dired-mouse-find-file-other-window
+           :help "Edit file at mouse click in other window"]))
+      (dolist (item (reverse (lookup-key easy-menu [menu-bar immediate])))
+        (when (consp item)
+          (define-key menu (vector (car item)) (cdr item))))))
+  menu)
+
 
 ;;; Dired mode
 
@@ -2293,6 +2308,7 @@ Keybindings:
                 (append dired-dnd-protocol-alist dnd-protocol-alist)))
   (add-hook 'file-name-at-point-functions #'dired-file-name-at-point nil t)
   (add-hook 'isearch-mode-hook #'dired-isearch-filenames-setup nil t)
+  (add-hook 'context-menu-functions 'dired-context-menu 5 t)
   (run-mode-hooks 'dired-mode-hook))
 
 
@@ -2909,7 +2925,7 @@ dired-buffers."
 		       (if (= (aref pattern (1+ set-start)) ?^)
 			   (+ 3 set-start)
 			 (+ 2 set-start)))
-		      (set-end (string-match-p "]" pattern set-cont))
+		      (set-end (string-search "]" pattern set-cont))
 		      (set (substring pattern set-start (1+ set-end))))
 		 (setq regexp (concat regexp set))
 		 (setq matched-in-pattern (1+ set-end))))

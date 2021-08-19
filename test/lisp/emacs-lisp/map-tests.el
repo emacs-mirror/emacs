@@ -446,16 +446,24 @@ Evaluate BODY for each created map."
 
 (ert-deftest test-map-merge ()
   "Test `map-merge'."
-  (should (equal (map-merge 'list '(a 1) '((b . 2) (c . 3))
-                            #s(hash-table data (c 4)))
-                 '((c . 4) (b . 2) (a . 1)))))
+  (should (equal (sort (map-merge 'list '(a 1) '((b . 2) (c . 3))
+                                  #s(hash-table data (c 4)))
+                       (lambda (x y) (string< (car x) (car y))))
+                 '((a . 1) (b . 2) (c . 4))))
+  (should (equal (map-merge 'list () '(:a 1)) '((:a . 1))))
+  (should (equal (map-merge 'alist () '(:a 1)) '((:a . 1))))
+  (should (equal (map-merge 'plist () '(:a 1)) '(:a 1))))
 
 (ert-deftest test-map-merge-with ()
-  (should (equal (map-merge-with 'list #'+
-                                 '((1 . 2))
-                                 '((1 . 3) (2 . 4))
-                                 '((1 . 1) (2 . 5) (3 . 0)))
-                 '((3 . 0) (2 . 9) (1 . 6)))))
+  (should (equal (sort (map-merge-with 'list #'+
+                                       '((1 . 2))
+                                       '((1 . 3) (2 . 4))
+                                       '((1 . 1) (2 . 5) (3 . 0)))
+                       #'car-less-than-car)
+                 '((1 . 6) (2 . 9) (3 . 0))))
+  (should (equal (map-merge-with 'list #'+ () '(:a 1)) '((:a . 1))))
+  (should (equal (map-merge-with 'alist #'+ () '(:a 1)) '((:a . 1))))
+  (should (equal (map-merge-with 'plist #'+ () '(:a 1)) '(:a 1))))
 
 (ert-deftest test-map-merge-empty ()
   "Test merging of empty maps."

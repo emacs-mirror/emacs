@@ -351,7 +351,17 @@ A nil value for either argument stands for the current time."
   (if (fboundp 'string-replace)
       #'string-replace
     (lambda (fromstring tostring instring)
-      (replace-regexp-in-string (regexp-quote fromstring) tostring instring))))
+      (let ((case-fold-search nil))
+        (replace-regexp-in-string
+         (regexp-quote fromstring) tostring instring t t)))))
+
+;; Function `string-search' is new in Emacs 28.1.
+(defalias 'tramp-compat-string-search
+  (if (fboundp 'string-search)
+      #'string-search
+    (lambda (needle haystack &optional start-pos)
+      (let ((case-fold-search nil))
+        (string-match-p (regexp-quote needle) haystack start-pos)))))
 
 ;; Function `make-lock-file-name' is new in Emacs 28.1.
 (defalias 'tramp-compat-make-lock-file-name

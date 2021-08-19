@@ -5340,7 +5340,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 	   (followup-to (message-fetch-field "followup-to"))
 	   to)
        (when (and newsgroups
-		  (string-match "," newsgroups)
+		  (string-search "," newsgroups)
 		  (not followup-to)
 		  (not
 		   (zerop
@@ -5371,11 +5371,11 @@ Otherwise, generate and save a value for `canlock-password' first."
 	    (message-id (message-fetch-field "message-id" t)))
        (or (not message-id)
 	   ;; Is there an @ in the ID?
-	   (and (string-match "@" message-id)
+	   (and (string-search "@" message-id)
 		;; Is there a dot in the ID?
 		(string-match "@[^.]*\\." message-id)
 		;; Does the ID end with a dot?
-		(not (string-match "\\.>" message-id)))
+		(not (string-search ".>" message-id)))
 	   (y-or-n-p
 	    (format "The Message-ID looks strange: \"%s\".  Really post? "
 		    message-id)))))
@@ -5497,8 +5497,8 @@ Otherwise, generate and save a value for `canlock-password' first."
 		   "@[^\\.]*\\."
 		   (setq ad (nth 1 (mail-extract-address-components
 				    from))))) ;larsi@ifi
-	     (string-match "\\.\\." ad)	;larsi@ifi..uio
-	     (string-match "@\\." ad)	;larsi@.ifi.uio
+	     (string-search ".." ad)	;larsi@ifi..uio
+	     (string-search "@." ad)	;larsi@.ifi.uio
 	     (string-match "\\.$" ad)	;larsi@ifi.uio.
 	     (not (string-match "^[^@]+@[^@]+$" ad)) ;larsi.ifi.uio
 	     (string-match "(.*).*(.*)" from)) ;(lars) (lars)
@@ -5523,7 +5523,7 @@ Otherwise, generate and save a value for `canlock-password' first."
        (cond
 	((not reply-to)
 	 t)
-	((string-match "," reply-to)
+	((string-search "," reply-to)
 	 (y-or-n-p
 	  (format "Multiple Reply-To addresses: \"%s\". Really post? "
 		  reply-to)))
@@ -5531,8 +5531,8 @@ Otherwise, generate and save a value for `canlock-password' first."
 		   "@[^\\.]*\\."
 		   (setq ad (nth 1 (mail-extract-address-components
 				    reply-to))))) ;larsi@ifi
-	     (string-match "\\.\\." ad)	;larsi@ifi..uio
-	     (string-match "@\\." ad)	;larsi@.ifi.uio
+	     (string-search ".." ad)	;larsi@ifi..uio
+	     (string-search "@." ad)	;larsi@.ifi.uio
 	     (string-match "\\.$" ad)	;larsi@ifi.uio.
 	     (not (string-match "^[^@]+@[^@]+$" ad)) ;larsi.ifi.uio
 	     (string-match "(.*).*(.*)" reply-to)) ;(lars) (lars)
@@ -5806,7 +5806,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 			     (mail-header-subject message-reply-headers))
 			    (message-strip-subject-re psubject))))
 		 (and psupersedes
-		      (string-match "_-_@" psupersedes)))
+		      (string-search "_-_@" psupersedes)))
 		"_-_" ""))
 	  "@" (message-make-fqdn) ">"))
 
@@ -6022,7 +6022,7 @@ give as trustworthy answer as possible."
   "Return the pertinent part of `user-mail-address'."
   (when (and user-mail-address
 	     (string-match "@.*\\." user-mail-address))
-    (if (string-match " " user-mail-address)
+    (if (string-search " " user-mail-address)
 	(nth 1 (mail-extract-address-components user-mail-address))
       user-mail-address)))
 
@@ -6053,7 +6053,7 @@ give as trustworthy answer as possible."
       message-user-fqdn)
      ;; A system name without any dots is unlikely to be a good fully
      ;; qualified domain name.
-     ((and (string-match "[.]" sysname)
+     ((and (string-search "." sysname)
 	   (not (string-match message-bogus-system-names sysname)))
       ;; `system-name' returned the right result.
       sysname)
@@ -7053,7 +7053,7 @@ article, it has the value of
 
 " mft "
 
-which directs your response to " (if (string-match "," mft)
+which directs your response to " (if (string-search "," mft)
 				     "the specified addresses"
 				   "that address only") ".
 
@@ -7357,7 +7357,7 @@ want to get rid of this query permanently."))
 You should normally obey the Followup-To: header.
 
 	`Followup-To: " followup-to "'
-directs your response to " (if (string-match "," followup-to)
+directs your response to " (if (string-search "," followup-to)
 			       "the specified newsgroups"
 			     "that newsgroup only") ".
 

@@ -8250,6 +8250,39 @@ decode_coding_object (struct coding_system *coding,
 }
 
 
+/* Encode the text in the range FROM/FROM_BYTE and TO/TO_BYTE in
+   SRC_OBJECT into DST_OBJECT by coding context CODING.
+
+   SRC_OBJECT is a buffer, a string, or Qnil.
+
+   If it is a buffer, the text is at point of the buffer.  FROM and TO
+   are positions in the buffer.
+
+   If it is a string, the text is at the beginning of the string.
+   FROM and TO are indices into the string.
+
+   If it is nil, the text is at coding->source.  FROM and TO are
+   indices into coding->source.
+
+   DST_OBJECT is a buffer, Qt, or Qnil.
+
+   If it is a buffer, the encoded text is inserted at point of the
+   buffer.  If the buffer is the same as SRC_OBJECT, the source text
+   is replaced with the encoded text.
+
+   If it is Qt, a string is made from the encoded text, and set in
+   CODING->dst_object.  However, if CODING->raw_destination is non-zero,
+   the encoded text is instead returned in CODING->destination as a C string,
+   and the caller is responsible for freeing CODING->destination.  This
+   feature is meant to be used when the caller doesn't need the result as
+   a Lisp string, and wants to avoid unnecessary consing of large strings.
+
+   If it is Qnil, the encoded text is stored at CODING->destination.
+   The caller must allocate CODING->dst_bytes bytes at
+   CODING->destination by xmalloc.  If the encoded text is longer than
+   CODING->dst_bytes, CODING->destination is reallocated by xrealloc
+   (and CODING->dst_bytes is enlarged accordingly).  */
+
 void
 encode_coding_object (struct coding_system *coding,
 		      Lisp_Object src_object,
@@ -8275,11 +8308,14 @@ encode_coding_object (struct coding_system *coding,
 
   attrs = CODING_ID_ATTRS (coding->id);
 
-  if (EQ (src_object, dst_object))
+  bool same_buffer = false;
+  if (EQ (src_object, dst_object) && BUFFERP (src_object))
     {
       struct Lisp_Marker *tail;
 
-      for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+      same_buffer = true;
+
+      for (tail = BUF_MARKERS (XBUFFER (src_object)); tail; tail = tail->next)
 	{
 	  tail->need_adjustment
 	    = tail->charpos == (tail->insertion_type ? from : to);
@@ -8298,7 +8334,7 @@ encode_coding_object (struct coding_system *coding,
       else
 	insert_1_both ((char *) coding->source + from, chars, bytes, 0, 0, 0);
 
-      if (EQ (src_object, dst_object))
+      if (same_buffer)
 	{
 	  set_buffer_internal (XBUFFER (src_object));
 	  saved_pt = PT, saved_pt_byte = PT_BYTE;
@@ -8329,7 +8365,7 @@ encode_coding_object (struct coding_system *coding,
     {
       code_conversion_save (0, 0);
       set_buffer_internal (XBUFFER (src_object));
-      if (EQ (src_object, dst_object))
+      if (same_buffer)
 	{
 	  saved_pt = PT, saved_pt_byte = PT_BYTE;
 	  coding->src_object = del_range_1 (from, to, 1, 1);

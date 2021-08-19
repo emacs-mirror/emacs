@@ -418,7 +418,7 @@ As a special case, if PATHS is nil then replace it by calling
   (if (memq system-type '(windows-nt ms-dos))
       (cond ((null paths)
 	     (mapcar #'woman-Cyg-to-Win (woman-parse-man.conf)))
-	    ((string-match-p ";" paths)
+	    ((string-search ";" paths)
 	     ;; Assume DOS-style path-list...
 	     (mapcan			; splice list into list
 	      (lambda (x)
@@ -1939,12 +1939,12 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 		   (setq symbol (car p)) ; 1. name
 		   (if (functionp symbol) ; 2. command doc
 		       (if (setq doc (documentation symbol t))
-			   (substring doc 0 (string-match "\n" doc))
+			   (substring doc 0 (string-search "\n" doc))
 			 "(not documented)"))
 		   (if (custom-variable-p symbol)	; 3. variable doc
 		       (if (setq doc (documentation-property
 				      symbol 'variable-documentation t))
-			   (substring doc 0 (string-match "\n" doc))))))
+			   (substring doc 0 (string-search "\n" doc))))))
 	(setq p (cdr p))))
     ;; Output the result:
     (and (apropos-print t nil)
@@ -1955,7 +1955,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 (defun WoMan-getpage-in-background (topic)
   "Use TOPIC to start WoMan from `Man-follow-manual-reference'."
   ;; topic is a string, generally of the form "section topic"
-  (let ((s (string-match " " topic)))
+  (let ((s (string-search " " topic)))
     (if s (setq topic (substring topic (1+ s))))
     (woman topic)))
 
@@ -3840,7 +3840,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 		((eolp)			; extend line
 		 ;; Insert character INCLUDING TEXT PROPERTIES:
 		 ;; (insert (substring overlap i (1+ i)))
-		 (let ((eol (string-match "\n" overlap i)))
+		 (let ((eol (string-search "\n" overlap i)))
 		   (insert (substring overlap i eol))
 		   (setq i (or eol imax)))
 		 )

@@ -70,6 +70,35 @@
     ["Customize" help-customize
      :help "Customize variable or face"]))
 
+(defun help-mode-context-menu (menu)
+  (define-key menu [help-mode-separator] menu-bar-separator)
+  (let ((easy-menu (make-sparse-keymap "Help-Mode")))
+    (easy-menu-define nil easy-menu nil
+      '("Help-Mode"
+        ["Previous Topic" help-go-back
+         :help "Go back to previous topic in this help buffer"
+         :active help-xref-stack]
+        ["Next Topic" help-go-forward
+         :help "Go back to next topic in this help buffer"
+         :active help-xref-forward-stack]))
+    (dolist (item (reverse (lookup-key easy-menu [menu-bar help-mode])))
+      (when (consp item)
+        (define-key menu (vector (car item)) (cdr item)))))
+
+  (when (and
+         ;; First check if `help-fns--list-local-commands'
+         ;; used `where-is-internal' to call this function
+         ;; with wrong `last-input-event'.
+         (eq (current-buffer) (window-buffer (posn-window (event-start last-input-event))))
+         (mouse-posn-property (event-start last-input-event) 'mouse-face))
+    (define-key menu [help-mode-push-button]
+      '(menu-item "Follow Link" (lambda (event)
+                                  (interactive "e")
+                                  (push-button event))
+                  :help "Follow the link at click")))
+
+  menu)
+
 (defvar help-mode-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item "close" 'quit-window 'quit map
@@ -99,7 +128,7 @@ To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-forward-stack 'permanent-local t)
 
 (defvar-local help-xref-stack-item nil
-  "An item for `help-follow-symbok' to push onto `help-xref-stack'.
+  "An item for `help-follow-symbol' to push onto `help-xref-stack'.
 The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-item 'permanent-local t)
 
@@ -110,6 +139,15 @@ The format is (FUNCTION ARGS...).")
 
 (setq-default help-xref-stack nil help-xref-stack-item nil)
 (setq-default help-xref-forward-stack nil help-xref-forward-stack-item nil)
+
+(defvar help-mode-syntax-table
+  (let ((table (make-syntax-table emacs-lisp-mode-syntax-table)))
+    ;; Treat single quotes as parens so that forward-sexp does not
+    ;; break when a quoted string contains punctuation.
+    (modify-syntax-entry ?‘ "(’  " table)
+    (modify-syntax-entry ?’ ")‘  " table)
+    table)
+  "Syntax table used in `help-mode'.")
 
 (defcustom help-mode-hook nil
   "Hook run by `help-mode'."
@@ -340,6 +378,7 @@ Commands:
 \\{help-mode-map}"
   (setq-local revert-buffer-function
               #'help-mode-revert-buffer)
+  (add-hook 'context-menu-functions 'help-mode-context-menu 5 t)
   (setq-local tool-bar-map
               help-mode-tool-bar-map)
   (setq-local help-mode--current-data nil)
@@ -490,7 +529,7 @@ that."
         (let ((stab (syntax-table))
               (case-fold-search t)
               (inhibit-read-only t))
-          (set-syntax-table emacs-lisp-mode-syntax-table)
+          (set-syntax-table help-mode-syntax-table)
           ;; The following should probably be abstracted out.
           (unwind-protect
               (progn
@@ -643,7 +682,7 @@ See `help-make-xrefs'."
 (defun help-xref-on-pp (from to)
   "Add xrefs for symbols in `pp's output between FROM and TO."
   (if (> (- to from) 5000) nil
-    (with-syntax-table emacs-lisp-mode-syntax-table
+    (with-syntax-table help-mode-syntax-table
       (save-excursion
 	(save-restriction
 	  (narrow-to-region from to)

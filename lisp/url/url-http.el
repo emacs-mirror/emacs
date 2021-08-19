@@ -1494,17 +1494,18 @@ The return value of this function is the retrieval buffer."
   ;; Sometimes we get a zero-length data chunk after the process has
   ;; been changed to 'free', which means it has no buffer associated
   ;; with it.  Do nothing if there is no buffer, or 0 length data.
-  (and (process-buffer proc)
-       (/= (length data) 0)
-       (with-current-buffer (process-buffer proc)
-	 (url-http-debug "Calling after change function `%s' for `%S'" url-http-after-change-function proc)
-	 (funcall url-http-after-change-function
-		  (point-max)
-		  (progn
-		    (goto-char (point-max))
-		    (insert data)
-		    (point-max))
-		  (length data)))))
+  (let ((b (process-buffer proc)))
+    (when (and (buffer-live-p b) (not (zerop (length data))))
+      (with-current-buffer b
+        (url-http-debug "Calling after change function `%s' for `%S'"
+                        url-http-after-change-function proc)
+        (funcall url-http-after-change-function
+                 (point-max)
+                 (progn
+                   (goto-char (point-max))
+                   (insert data)
+                   (point-max))
+                 (length data))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; file-name-handler stuff from here on out
