@@ -258,14 +258,14 @@ Return non-nil iff something was stepped."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
-         (comps (completion-all-sorted-completions beg end))
-         (last (last comps)))
+         (comps (completion-all-sorted-completions beg end)))
     (when (consp (cdr comps))
       (cond (icomplete-scroll
              (push (pop comps) icomplete--scrolled-past)
              (setq icomplete--scrolled-completions comps))
             (t
-             (setcdr (last comps) (cons (pop comps) (cdr last)))))
+             (let ((last (last comps)))
+               (setcdr (last comps) (cons (pop comps) (cdr last))))))
       (completion--cache-all-sorted-completions beg end comps))))
 
 (defun icomplete-backward-completions ()
