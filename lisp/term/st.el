@@ -13,9 +13,7 @@
 
 (defcustom xterm-st-extra-capabilities '( modifyOtherKeys getSelection
                                           setSelection)
-  "Extra capabilities supported under \"stterm\".
-Some features of screen depend on the terminal emulator in which
-it runs, which can change when the screen session is moved to another tty."
+  "Extra capabilities supported under \"stterm\"."
   :version "28.1"
   :type xterm--extra-capabilities-type
   :group 'xterm)
