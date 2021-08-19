@@ -877,7 +877,8 @@ beginning of the line."
            ;; it gets reset to that window's point from time to time).
            (let ((win (get-buffer-window (current-buffer))))
              (and win (set-window-point win (point))))
-           (xref--show-location (xref-item-location xref) t))
+           (let ((xref--current-item xref))
+             (xref--show-location (xref-item-location xref) t)))
           (t
            (error "No %s xref" (if backward "previous" "next"))))))
 
