@@ -2056,7 +2056,7 @@ saving the buffer."
       ;; relative file names work.
       (let ((default-directory rootdir))
 	(vc-diff-internal
-	 t (list backend (list rootdir) working-revision) nil nil
+	 t (list backend (list (expand-file-name rootdir)) working-revision) nil nil
 	 (called-interactively-p 'interactive))))))
 
 ;;;###autoload
