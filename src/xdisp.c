@@ -35445,7 +35445,7 @@ and `scroll-right' overrides this variable's effect.  */);
   Vhscroll_step = make_fixnum (0);
 
   DEFVAR_BOOL ("message-truncate-lines", message_truncate_lines,
-    doc: /* If non-nil, messages are truncated instead of resizing the echo area.
+    doc: /* If non-nil, messages are truncated when displaying the echo area.
 Bind this around calls to `message' to let it take effect.  */);
   message_truncate_lines = false;
 

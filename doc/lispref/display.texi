@@ -646,9 +646,9 @@ If the value is zero, then command input is not echoed.
 
 @defvar message-truncate-lines
 Normally, displaying a long message resizes the echo area to display
-the entire message.  But if the variable @code{message-truncate-lines}
-is non-@code{nil}, the echo area does not resize, and the message is
-truncated to fit it.
+the entire message, wrapping long line as needed.  But if the variable
+@code{message-truncate-lines} is non-@code{nil}, long lines of
+echo-area message are instead truncated to fit the mini-window width.
 @end defvar
 
   The variable @code{max-mini-window-height}, which specifies the
