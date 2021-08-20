@@ -440,8 +440,28 @@ the same menu with changes such as added new menu items."
   `(menu-item ,(purecopy "Context Menu") ignore
               :filter (lambda (_) (context-menu-map))))
 
-(defvar context-menu--old-down-mouse-3 nil)
-(defvar context-menu--old-mouse-3 nil)
+(defvar context-menu--saved-bindings nil
+  "Alist of bindings to restore when `context-menu-mode' is disabled.")
+
+(defun context-menu--bind-mouse (click-sym down-sym)
+  "Enable `context-menu-mode' mouse bindings.
+CLICK-SYM and DOWN-SYM are the mouse click and down key symbols to use."
+  (let ((click (vector click-sym))
+        (down (vector down-sym)))
+    (push (cons click-sym (global-key-binding click))
+          context-menu--saved-bindings)
+    (global-unset-key click)
+    (push (cons down-sym (global-key-binding down))
+          context-menu--saved-bindings)
+    (global-set-key down context-menu-entry)))
+
+(defun context-menu--reset-bindings ()
+  "Restore saved `context-menu-mode' bindings."
+  (pcase-dolist (`(sym . binding) context-menu--saved-bindings)
+    (let ((key (vector sym)))
+      (if binding
+          (global-set-key key binding)
+        (global-unset-key key)))))
 
 (define-minor-mode context-menu-mode
   "Toggle Context Menu mode.
@@ -449,20 +469,13 @@ the same menu with changes such as added new menu items."
 When Context Menu mode is enabled, clicking the mouse button down-mouse-3
 activates the menu whose contents depends on its surrounding context."
   :global t :group 'mouse
-  (cond
-   (context-menu-mode
-    (setq context-menu--old-mouse-3 (global-key-binding [mouse-3]))
-    (global-unset-key [mouse-3])
-    (setq context-menu--old-down-mouse-3 (global-key-binding [down-mouse-3]))
-    (global-set-key [down-mouse-3] context-menu-entry))
-   (t
-    (if (not context-menu--old-down-mouse-3)
-        (global-unset-key [down-mouse-3])
-      (global-set-key [down-mouse-3] context-menu--old-down-mouse-3)
-      (setq context-menu--old-down-mouse-3 nil))
-    (when context-menu--old-mouse-3
-      (global-set-key [mouse-3] context-menu--old-mouse-3)
-      (setq context-menu--old-mouse-3 nil)))))
+  (if context-menu-mode
+      (progn
+        (setq context-menu--saved-bindings nil)
+        (context-menu--bind-mouse 'mouse-3 'down-mouse-3)
+        (when (featurep 'ns)
+          (context-menu--bind-mouse 'C-mouse-1 'C-down-mouse-1)))
+    (context-menu--restore-bindings)))
 
 
 ;; Commands that operate on windows.
