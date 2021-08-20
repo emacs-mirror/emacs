@@ -455,9 +455,9 @@ CLICK-SYM and DOWN-SYM are the mouse click and down key symbols to use."
           context-menu--saved-bindings)
     (global-set-key down context-menu-entry)))
 
-(defun context-menu--reset-bindings ()
+(defun context-menu--restore-bindings ()
   "Restore saved `context-menu-mode' bindings."
-  (pcase-dolist (`(sym . binding) context-menu--saved-bindings)
+  (pcase-dolist (`(,sym . ,binding) context-menu--saved-bindings)
     (let ((key (vector sym)))
       (if binding
           (global-set-key key binding)
