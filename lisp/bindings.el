@@ -1434,6 +1434,17 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "[" 'backward-page)
 (define-key ctl-x-map "]" 'forward-page)
+
+(defvar page-navigation-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "]") #'forward-page)
+    (define-key map (kbd "[") #'backward-page)
+    map)
+  "Keymap to repeat page navigation key sequences.  Used in `repeat-mode'.")
+
+(put 'forward-page 'repeat-map 'page-navigation-repeat-map)
+(put 'backward-page 'repeat-map 'page-navigation-repeat-map)
+
 (define-key ctl-x-map "\C-p" 'mark-page)
 (define-key ctl-x-map "l" 'count-lines-page)
 (define-key ctl-x-map "np" 'narrow-to-page)
