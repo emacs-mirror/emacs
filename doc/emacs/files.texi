@@ -1728,12 +1728,16 @@ exists.
   @kbd{M-x copy-file} copies the contents of the file @var{old} to the
 file @var{new}.
 
+@vindex copy-directory-create-symlink
 @findex copy-directory
   @kbd{M-x copy-directory} copies directories, similar to the
 @command{cp -r} shell command.  If @var{new} is a directory name, it
 creates a copy of the @var{old} directory and puts it in @var{new}.
 Otherwise it copies all the contents of @var{old} into a new directory
-named @var{new}.
+named @var{new}.  If @code{copy-directory-create-symlink} is
+non-@code{nil} and @var{old} is a symbolic link, this command will
+copy the symbolic link.  If @code{nil}, this command will follow the
+link and copy the contents instead.  (This is the default.)
 
 @cindex renaming files
 @findex rename-file

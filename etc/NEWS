@@ -2461,6 +2461,11 @@ images are marked.
 ** Miscellaneous
 
 +++
+*** New user option 'copy-directory-create-symlink'.
+If non-nil, will make `copy-directory' (when used on a symbolic
+link) copy the link instead of following the link.
+
++++
 *** New function 'replace-regexp-in-region'.
 
 +++
