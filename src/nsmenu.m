@@ -959,7 +959,7 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 
   pmenu = [[EmacsMenu alloc] initWithTitle:
-                               [NSString stringWithLispString: title]];
+                   NILP (title) ? @"" : [NSString stringWithLispString: title]];
   [pmenu fillWithWidgetValue: first_wv->contents];
   free_menubar_widget_value_tree (first_wv);
   unbind_to (specpdl_count, Qnil);
