@@ -52,13 +52,21 @@
                            (mouse-set-point last-input-event)
                            (xref-backend-identifier-at-point
                             (xref-find-backend)))
-                :help "Find definition of function or variable")
+                :help "Find definition of identifier")
     'prog-separator)
+  (define-key-after menu [xref-find-ref]
+    '(menu-item "Find References" xref-find-references-at-mouse
+                :visible (save-excursion
+                           (mouse-set-point last-input-event)
+                           (xref-backend-identifier-at-point
+                            (xref-find-backend)))
+                :help "Find references to identifier")
+    'xref-find-def)
   (define-key-after menu [xref-pop]
     '(menu-item "Back Definition" xref-pop-marker-stack
                 :visible (not (xref-marker-stack-empty-p))
                 :help "Back to the position of the last search")
-    'xref-find-def)
+    'xref-find-ref)
   menu)
 
 (defvar prog-mode-map

@@ -1355,6 +1355,20 @@ This command is intended to be bound to a mouse event."
         (xref-find-definitions identifier)
       (user-error "No identifier here"))))
 
+;;;###autoload
+(defun xref-find-references-at-mouse (event)
+  "Find references to the identifier at or around mouse click.
+This command is intended to be bound to a mouse event."
+  (interactive "e")
+  (let ((identifier
+         (save-excursion
+           (mouse-set-point event)
+           (xref-backend-identifier-at-point (xref-find-backend)))))
+    (if identifier
+        (let ((xref-prompt-for-identifier nil))
+          (xref-find-references identifier))
+      (user-error "No identifier here"))))
+
 (declare-function apropos-parse-pattern "apropos" (pattern))
 
 ;;;###autoload
