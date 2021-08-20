@@ -420,7 +420,11 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 (advice-add 'conf-mode :around
             (lambda (orig-fun)
               "Redirect to one of the submodes when called directly."
-              (funcall (if delay-mode-hooks orig-fun (conf--guess-mode)))))
+              ;; The file may have "mode: conf" in the local variable
+              ;; block, in which case we'll be called recursively
+              ;; infinitely.  Inhibit that.
+              (let ((enable-local-variables nil))
+                (funcall (if delay-mode-hooks orig-fun (conf--guess-mode))))))
 
 
 
