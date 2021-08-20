@@ -1016,10 +1016,14 @@ says which mode to use."
 (advice-add 'tex-mode :around #'tex--redirect-to-submode)
 (defun tex--redirect-to-submode (orig-fun)
   "Redirect to one of the submodes when called directly."
-  (funcall (if delay-mode-hooks
-               ;; We're called from one of the children already.
-               orig-fun
-             (tex--guess-mode))))
+  ;; The file may have "mode: tex" in the local variable
+  ;; block, in which case we'll be called recursively
+  ;; infinitely.  Inhibit that.
+  (let ((enable-local-variables nil))
+    (funcall (if delay-mode-hooks
+                 ;; We're called from one of the children already.
+                 orig-fun
+               (tex--guess-mode)))))
 
 ;; The following three autoloaded aliases appear to conflict with
 ;; AUCTeX.  However, even though AUCTeX uses the mixed case variants
