@@ -503,6 +503,13 @@ all hard links between the file you save and other file names.
 
 Some modes give this variable a non-@code{nil} buffer-local value
 in particular buffers.
+
+@vindex file-preserve-symlinks-on-save
+If this option is non-@code{nil} and you're visiting files via a
+symbolic link, Emacs break the symbolic link and write the buffer to a
+file with the same name as the symbolic link.  To instead write to the
+file the symbolic link points to (and thereby preserving the link),
+set @code{file-preserve-symlinks-on-save} to @code{t}.
 @end defopt
 
 @defopt require-final-newline

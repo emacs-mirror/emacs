@@ -5446,6 +5446,14 @@ symbolic link and copy the contents instead."
   :version "28.1"
   :group 'files)
 
+(defcustom file-preserve-symlinks-on-save nil
+  "If non-nil, saving a buffer visited via a symlink won't overwrite the symlink.
+This is only relevant if `file-precious-flag' is non-nil -- if
+this is nil, Emacs will preserve the symlinks anyway."
+  :type 'boolean
+  :version "28.1"
+  :group 'files)
+
 (defvar-local save-buffer-coding-system nil
   "If non-nil, use this coding system for saving the buffer.
 More precisely, use this coding system in place of the
@@ -5648,7 +5656,14 @@ Before and after saving the buffer, this function runs
 				     buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
-	    (rename-file tempname buffer-file-name t))
+	    (rename-file tempname
+                         (if (and file-preserve-symlinks-on-save
+                                  (file-symlink-p buffer-file-name))
+                             ;; Write to the file that the symlink
+                             ;; points to.
+                             (file-chase-links buffer-file-name)
+                           buffer-file-name)
+                         t))
 	;; If file not writable, see if we can make it writable
 	;; temporarily while we write it.
 	;; But no need to do so if we have just backed it up
