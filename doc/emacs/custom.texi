@@ -1721,6 +1721,17 @@ previous ones, but they are specifically for file name completion.
 They do not bind @key{SPC}.
 @end itemize
 
+By default, @key{TAB}, @key{SPC} and @key{?} do completion in
+@code{minibuffer-local-completion-map}.  If you commonly complete over
+collections that have elements that have space or question marks in
+them, it may be convenient to disable completion on those keys by
+putting this in your init file:
+
+@lisp
+(define-key minibuffer-local-completion-map " " 'self-insert-command)
+(define-key minibuffer-local-completion-map "?" 'self-insert-command)
+@end lisp
+
 @node Rebinding
 @subsection Changing Key Bindings Interactively
 @cindex key rebinding, this session
