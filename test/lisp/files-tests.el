@@ -1560,5 +1560,219 @@ The door of all subtleties!
   (find-file (ert-resource-file "auto-test.zot3"))
   (should (eq major-mode 'fundamental-mode)))
 
+(defun files-tests--save-some-buffers (pred def-pred-bind exp-1 exp-2)
+  "Helper function to test `save-some-buffers'.
+
+This function creates two visiting-file buffers, BUF-1, BUF-2 in
+ different directories at the same level, i.e., none of them is a
+ subdir of the other; then, it modifies both buffers; finally, it calls
+ `save-some-buffers' from BUF-1 with first arg t, second arg PRED
+ and `save-some-buffers-default-predicate' let-bound to
+ DEF-PRED-BIND.
+
+EXP-1 and EXP-2 are the expected values of calling `buffer-modified-p'
+on BUF-1 and BUF-2 after the `save-some-buffers' call.
+
+The test is repeated with `save-some-buffers-default-predicate'
+let-bound to PRED and passing nil as second arg of
+`save-some-buffers'."
+  (let* ((dir (make-temp-file "testdir" 'dir))
+         (file-1 (expand-file-name "subdir-1/file.foo" dir))
+         (file-2 (expand-file-name "subdir-2/file.bar" dir))
+         (inhibit-message t)
+         buf-1 buf-2)
+    (unwind-protect
+        (progn
+          (make-empty-file file-1 'parens)
+          (make-empty-file file-2 'parens)
+          (setq buf-1 (find-file file-1)
+                buf-2 (find-file file-2))
+          (dolist (buf (list buf-1 buf-2))
+            (with-current-buffer buf (insert "foobar\n")))
+          ;; Run the test.
+          (with-current-buffer buf-1
+            (let ((save-some-buffers-default-predicate def-pred-bind))
+              (save-some-buffers t pred))
+            (should (eq exp-1 (buffer-modified-p buf-1)))
+            (should (eq exp-2 (buffer-modified-p buf-2))))
+          ;; Set both buffers as modified to run another test.
+          (dolist (buf (list buf-1 buf-2))
+            (with-current-buffer buf (set-buffer-modified-p t)))
+          ;; The result of this test must be identical as the previous one.
+          (with-current-buffer buf-1
+            (let ((save-some-buffers-default-predicate (or pred def-pred-bind)))
+              (save-some-buffers t nil))
+            (should (eq exp-1 (buffer-modified-p buf-1)))
+            (should (eq exp-2 (buffer-modified-p buf-2)))))
+      ;; Clean up.
+      (dolist (buf (list buf-1 buf-2))
+        (with-current-buffer buf
+          (set-buffer-modified-p nil)
+          (kill-buffer buf)))
+      (delete-directory dir 'recursive))))
+
+(ert-deftest files-tests-save-some-buffers ()
+  "Test `save-some-buffers'.
+Test the 3 cases for the second argument PRED, i.e., nil, t or
+predicate.
+The value of `save-some-buffers-default-predicate' is ignored unless
+PRED is nil."
+  (let* ((foo-file-p (lambda () (string-suffix-p ".foo" buffer-file-name)))
+         (bar-file-p (lambda () (string-suffix-p ".bar" buffer-file-name)))
+         (args-results `((nil         nil                      nil nil)
+                         (nil         ,foo-file-p              nil t)
+                         (nil         ,bar-file-p              t nil)
+                         (,foo-file-p nil                      nil t)
+                         (,bar-file-p nil                      t nil)
+
+                         (buffer-modified-p nil                nil nil)
+                         (t           nil                      nil nil)
+                         (t           ,foo-file-p              nil nil)
+
+                         (,foo-file-p save-some-buffers-root   nil t)
+                         (nil         save-some-buffers-root   nil t)
+                         (,bar-file-p save-some-buffers-root   t   nil)
+                         (t           save-some-buffers-root   nil nil))))
+    (pcase-dolist (`(,pred ,def-pred-bind ,exp-1 ,exp-2) args-results)
+      (files-tests--save-some-buffers pred def-pred-bind exp-1 exp-2))))
+
+(defmacro files-tests--with-buffer-offer-save (buffers-offer fn-test fn-binders args-results)
+  "Helper macro to test `save-some-buffers' and `save-buffers-kill-emacs'.
+
+This macro creates several non-visiting-file buffers in different
+ directories at the same level, i.e., none of them is a subdir of the
+ other; then, it modifies the buffers and sets their `buffer-offer-save'
+ as specified by BUFFERS-OFFER, a list of elements
+ (BUFFER OFFER-SAVE).  Finally, it calls FN-TEST from the first
+ buffer.
+
+FN-TEST is the function to test: either `save-some-buffers' or
+`save-buffers-kill-emacs'.  This function is called with
+`save-some-buffers-default-predicate' let-bound to a value
+specified inside ARGS-RESULTS.
+
+FN-BINDERS is a list of elements (FUNCTION . BINDING), where FUNCTION
+is a function symbol that this macro temporary binds to BINDING during
+the FN-TEST call.
+
+ARGS-RESULTS is a list of elements (FN-ARGS CALLERS-DIR EXPECTED), where
+ FN-ARGS are the arguments for FN-TEST;
+ CALLERS-DIR specifies the value to let-bind
+`save-some-buffers-default-predicate';
+ EXPECTED is the expected result of the test."
+  (declare (debug (form symbol form form)))
+  (let ((dir (gensym "dir"))
+        (buffers (gensym "buffers")))
+    `(let* ((,dir (make-temp-file "testdir" 'dir))
+            (inhibit-message t)
+            (use-dialog-box nil)
+            ,buffers)
+       (pcase-dolist (`(,bufsym ,offer-save) ,buffers-offer)
+         (let* ((buf (generate-new-buffer (symbol-name bufsym)))
+                (subdir (expand-file-name
+                         (format "subdir-%s" (buffer-name buf))
+                         ,dir)))
+           (make-directory subdir 'parens)
+           (push buf ,buffers)
+           (with-current-buffer buf
+             (cd subdir)
+             (setq buffer-offer-save offer-save)
+             (insert "foobar\n"))))
+       (setq ,buffers (nreverse ,buffers))
+       (let ((nb-saved-buffers 0))
+         (unwind-protect
+             (pcase-dolist (`(,fn-test-args ,callers-dir ,expected)
+                            ,args-results)
+               (setq nb-saved-buffers 0)
+               (with-current-buffer (car ,buffers)
+                 (cl-letf
+                     (,@(mapcar (lambda (pair) `((symbol-function ,(car pair)) ,(cdr pair)))
+                                fn-binders)
+                      (save-some-buffers-default-predicate callers-dir))
+                   (apply #',fn-test fn-test-args)
+                   (should (equal nb-saved-buffers expected)))))
+           ;; Clean up.
+           (dolist (buf ,buffers)
+             (with-current-buffer buf
+               (set-buffer-modified-p nil)
+               (kill-buffer buf)))
+           (delete-directory ,dir 'recursive))))))
+
+(defmacro files-tests-with-all-permutations (permutation list &rest body)
+  "Execute BODY forms for all permutations of LIST.
+Execute the forms with the symbol PERMUTATION bound to the current
+permutation."
+  (declare (indent 2) (debug (symbol form body)))
+  (let ((vec (gensym "vec")))
+    `(let ((,vec (vconcat ,list)))
+       (cl-labels ((swap (,vec i j)
+                         (let ((tmp (aref ,vec j)))
+                           (aset ,vec j (aref ,vec i))
+                           (aset ,vec i tmp)))
+                   (permute (,vec l r)
+                            (if (= l r)
+                                (let ((,permutation (append ,vec nil)))
+                                  ,@body)
+                              (cl-loop for idx from l below (1+ r) do
+                                       (swap ,vec idx l)
+                                       (permute ,vec (1+ l) r)
+                                       (swap ,vec idx l)))))
+         (permute ,vec 0 (1- (length ,vec)))))))
+
+(ert-deftest files-tests-buffer-offer-save ()
+  "Test `save-some-buffers' for non-visiting buffers.
+Check the behavior of `save-some-buffers' for non-visiting-file
+buffers under several values of `buffer-offer-save'.
+The value of `save-some-buffers-default-predicate' is ignored unless
+PRED is nil."
+  (let* ((buffers-offer-init '((buf-1 t) (buf-2 always) (buf-3 nil)))
+         (nb-might-save
+          (length
+           (cl-remove-if (lambda (l) (null (cadr l))) buffers-offer-init)))
+         (nb-always-save
+          (length
+           (cl-remove-if-not (lambda (l) (eq 'always (cadr l))) buffers-offer-init))))
+    (files-tests-with-all-permutations
+        buffers-offer
+        buffers-offer-init
+      (dolist (pred `(nil t save-some-buffers-root))
+        (dolist (callers-dir `(nil save-some-buffers-root))
+          (let* ((head-offer (cadar buffers-offer))
+                 (res (cond ((null pred)
+                             (if (null callers-dir) nb-always-save (or (and head-offer 1) 0)))
+                            (t
+                             ;; Save any buffer with `buffer-offer-save' non-nil.
+                             (if (eq pred t) nb-might-save
+                               ;; Restrict to caller's dir.
+                               (or (and head-offer 1) 0)))))
+                 (args-res `(((nil ,pred) ,callers-dir ,res))))
+            (files-tests--with-buffer-offer-save
+             buffers-offer
+             save-some-buffers
+             ;; Increase counter and answer 'n' when prompted to save a buffer.
+             (('read-event . (lambda () (cl-incf nb-saved-buffers) ?n)))
+             args-res)))))))
+
+(ert-deftest files-tests-save-buffers-kill-emacs--asks-to-save-buffers ()
+  "Test that `save-buffers-kill-emacs' asks to save buffers as expected.
+Prompt users for any modified buffer with `buffer-offer-save' non-nil."
+  (let* ((buffers-offer-init '((buf-1 t) (buf-2 always) (buf-3 nil)))
+         (nb-might-save
+          (length
+           (cl-remove-if (lambda (l) (null (cadr l))) buffers-offer-init))))
+    (files-tests-with-all-permutations
+        buffers-offer
+        buffers-offer-init
+      (files-tests--with-buffer-offer-save
+       buffers-offer
+       save-buffers-kill-emacs
+       ;; Increase counter and answer 'n' when prompted to save a buffer.
+       (('read-event . (lambda () (cl-incf nb-saved-buffers) ?n))
+        ('kill-emacs . #'ignore)) ; Do not kill Emacs.
+       `((nil nil ,nb-might-save)
+         ;; `save-some-buffers-default-predicate' (i.e. the 2nd element) is ignored.
+         (nil save-some-buffers-root ,nb-might-save))))))
+
+
 (provide 'files-tests)
 ;;; files-tests.el ends here
