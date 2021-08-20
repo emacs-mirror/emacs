@@ -1437,8 +1437,8 @@ if `inhibit-field-text-motion' is non-nil."
 
 (defvar page-navigation-repeat-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "]") #'forward-page)
-    (define-key map (kbd "[") #'backward-page)
+    (define-key map "]" #'forward-page)
+    (define-key map "[" #'backward-page)
     map)
   "Keymap to repeat page navigation key sequences.  Used in `repeat-mode'.")
 
