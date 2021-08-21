@@ -9394,7 +9394,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   if (self)
     {
       cache = [[NSMutableArray arrayWithCapacity:CACHE_MAX_SIZE] retain];
-      colorSpace = cs;
+      [self setColorSpace:cs];
     }
   else
     {
@@ -9409,7 +9409,10 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 {
   /* We don't need to clear the cache because the new colorspace will
      be used next time we create a new context.  */
-  colorSpace = cs;
+  if (cs)
+    colorSpace = cs;
+  else
+    colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 }
 
 
@@ -9505,6 +9508,12 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
                 (id)kIOSurfacePixelFormat:[NSNumber numberWithUnsignedInt:'BGRA']});
         }
 
+      if (!surface)
+        {
+          NSLog (@"Failed to create IOSurface for frame %@", [self delegate]);
+          return nil;
+        }
+
       IOReturn lockStatus = IOSurfaceLock (surface, 0, nil);
       if (lockStatus != kIOReturnSuccess)
         NSLog (@"Failed to lock surface: %x", lockStatus);
@@ -9521,6 +9530,15 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
                                        colorSpace,
                                        (kCGImageAlphaPremultipliedFirst
                                         | kCGBitmapByteOrder32Host));
+
+      if (!context)
+        {
+          NSLog (@"Failed to create context for frame %@", [self delegate]);
+          IOSurfaceUnlock (currentSurface, 0, nil);
+          CFRelease (currentSurface);
+          currentSurface = nil;
+          return nil;
+        }
 
       CGContextTranslateCTM(context, 0, IOSurfaceGetHeight (currentSurface));
       CGContextScaleCTM(context, scale, -scale);
