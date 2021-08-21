@@ -1749,7 +1749,7 @@ PRED is nil."
              buffers-offer
              save-some-buffers
              ;; Increase counter and answer 'n' when prompted to save a buffer.
-             (('read-event . (lambda () (cl-incf nb-saved-buffers) ?n)))
+             (('read-event . (lambda (&rest _) (cl-incf nb-saved-buffers) ?n)))
              args-res)))))))
 
 (ert-deftest files-tests-save-buffers-kill-emacs--asks-to-save-buffers ()
@@ -1766,7 +1766,7 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
        buffers-offer
        save-buffers-kill-emacs
        ;; Increase counter and answer 'n' when prompted to save a buffer.
-       (('read-event . (lambda () (cl-incf nb-saved-buffers) ?n))
+       (('read-event . (lambda (&rest _) (cl-incf nb-saved-buffers) ?n))
         ('kill-emacs . #'ignore)) ; Do not kill Emacs.
        `((nil nil ,nb-might-save)
          ;; `save-some-buffers-default-predicate' (i.e. the 2nd element) is ignored.
