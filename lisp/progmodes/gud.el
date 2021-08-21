@@ -1679,9 +1679,14 @@ into one that invokes an Emacs-enabled debugging session.
 
 ;;;###autoload
 (defun perldb (command-line)
-  "Run perldb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger."
+  "Debug a perl program with gud.
+Interactively, this will prompt you for a command line.
+
+Noninteractively, COMMAND-LINE should be on the form
+\"perl -d perl-file.pl\".
+
+The directory containing the perl program becomes the initial
+working directory and source-file directory for your debugger."
   (interactive
    (list (gud-query-cmdline 'perldb
 			    (concat (or (buffer-file-name) "-e 0") " "))))
