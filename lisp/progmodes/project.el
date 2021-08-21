@@ -53,7 +53,7 @@
 ;;
 ;; `project-buffers' can be overridden if the project has some unusual
 ;; shape (e.g. it contains files residing outside of its root, or some
-;; files inside the root must not be considered a part of it). It
+;; files inside the root must not be considered a part of it).  It
 ;; should be consistent with `project-files'.
 ;;
 ;; This list can change in future versions.
