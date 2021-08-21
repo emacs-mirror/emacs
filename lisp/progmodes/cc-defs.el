@@ -234,6 +234,14 @@ On XEmacs and older Emacsen, this refontifies that region immediately."
       `(font-lock-flush ,beg ,end)
     `(font-lock-fontify-region ,beg ,end)))
 
+(defmacro c-benign-error (format &rest args)
+  ;; Formats an error message for the echo area and dings, i.e. like
+  ;; `error' but doesn't abort.
+  (declare (debug t))
+  `(progn
+     (message ,format ,@args)
+     (ding)))
+
 (defmacro c-point (position &optional point)
   "Return the value of certain commonly referenced POSITIONs relative to POINT.
 The current point is used if POINT isn't specified.  POSITION can be
@@ -1043,14 +1051,6 @@ be after it."
   '(if c-vsemi-status-unknown-p-fn (funcall c-vsemi-status-unknown-p-fn)))
 
 
-(defmacro c-benign-error (format &rest args)
-  ;; Formats an error message for the echo area and dings, i.e. like
-  ;; `error' but doesn't abort.
-  (declare (debug t))
-  `(progn
-     (message ,format ,@args)
-     (ding)))
-
 (defmacro c-with-syntax-table (table &rest code)
   ;; Temporarily switches to the specified syntax table in a failsafe
   ;; way to execute code.
