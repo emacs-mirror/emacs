@@ -8816,8 +8816,8 @@ hands several times since then. Jim Larus wanted to do something
 similar for GNU Emacs, and ended up completely rewriting it that same
 year. In 1989, Stephen Gildea picked it up and added many
 improvements. Bill Wohler then took over in 2000 and moved its
-development to @uref{https://sourceforge.net/, SourceForge} where it
-lives today.
+development to @uref{https://sourceforge.net/, SourceForge}.
+Since 2016, MH-E development occurs within the Emacs repository.
 
 @menu
 * From Brian Reid::

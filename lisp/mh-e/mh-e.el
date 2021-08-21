@@ -33,7 +33,7 @@
 ;; recommended.
 
 ;; MH (Message Handler) is a powerful mail reader. See
-;; http://rand-mh.sourceforge.net/.
+;; https://rand-mh.sourceforge.io/.
 
 ;; N.B. MH must have been compiled with the MHE compiler flag or several
 ;; features necessary for MH-E will be missing from MH commands, specifically
@@ -82,7 +82,8 @@
 ;; Rewritten for GNU Emacs, James Larus, 1985.
 ;; Modified by Stephen Gildea, 1988.
 ;; Maintenance picked up by Bill Wohler and the
-;; SourceForge Crew <http://mh-e.sourceforge.net/>, 2001.
+;;   SourceForge Crew <https://mh-e.sourceforge.io/>, 2001.
+;; Since 2016, MH-E development occurs within the Emacs repository.
 
 ;;; Code:
 
