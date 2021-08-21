@@ -44,6 +44,7 @@
                                 prettify-symbols-mode))
 
 (defun prog-context-menu (menu)
+  (require 'xref)
   (define-key-after menu [prog-separator] menu-bar-separator
     'mark-whole-buffer)
   (define-key-after menu [xref-find-def]
