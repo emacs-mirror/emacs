@@ -600,12 +600,19 @@ SELECT is `quit', also quit the *xref* window."
                   (xref--show-pos-in-buf marker buf))))))
     (user-error (message (error-message-string err)))))
 
+(defun xref--set-arrow ()
+  "Set the overlay arrow at the line at point."
+  (setq overlay-arrow-position
+        (set-marker (or overlay-arrow-position (make-marker))
+                    (line-beginning-position))))
+
 (defun xref-show-location-at-point ()
   "Display the source of xref at point in the appropriate window, if any."
   (interactive)
   (let* ((xref (xref--item-at-point))
          (xref--current-item xref))
     (when xref
+      (xref--set-arrow)
       (xref--show-location (xref-item-location xref)))))
 
 (defun xref-next-line-no-show ()
@@ -663,6 +670,7 @@ quit the *xref* buffer."
          (xref (or (xref--item-at-point)
                    (user-error "Choose a reference to visit")))
          (xref--current-item xref))
+    (xref--set-arrow)
     (xref--show-location (xref-item-location xref) (if quit 'quit t))
     (if (fboundp 'next-error-found)
         (next-error-found buffer (current-buffer))
@@ -881,6 +889,7 @@ beginning of the line."
            ;; it gets reset to that window's point from time to time).
            (let ((win (get-buffer-window (current-buffer))))
              (and win (set-window-point win (point))))
+           (xref--set-arrow)
            (let ((xref--current-item xref))
              (xref--show-location (xref-item-location xref) t)))
           (t
@@ -1026,6 +1035,7 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
   (let ((inhibit-read-only t)
         (buffer-undo-list t))
     (erase-buffer)
+    (setq overlay-arrow-position nil)
     (xref--insert-xrefs xref-alist)
     (add-hook 'post-command-hook 'xref--apply-truncation nil t)
     (goto-char (point-min))
