@@ -1723,7 +1723,7 @@ They do not bind @key{SPC}.
 
 By default, @key{TAB}, @key{SPC} and @key{?} do completion in
 @code{minibuffer-local-completion-map}.  If you commonly complete over
-collections that have elements that have space or question marks in
+collections that have elements with space or question mark characters in
 them, it may be convenient to disable completion on those keys by
 putting this in your init file:
 
