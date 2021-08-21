@@ -3108,6 +3108,12 @@ This is to keep the same behavior as Eshell.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+---
+** 'parse-partial-sexp' now signals an error it TO is smaller than FROM.
+Previously this would lead to the function interpreting FROM as TO and
+vice versa, which would be confusing when passing in OLDSTATE, which
+refers to the old state at FROM.
+
 +++
 ** 'overlays-in' now handles zero-length overlays slightly differently.
 Previosly, zero-length overlays at the end of the buffer were included
