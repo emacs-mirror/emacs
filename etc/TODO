@@ -1538,7 +1538,7 @@ cannot represent in Unicode.
 
 *** Performance
 
-**** Make the implementation of markers more eifficient
+**** Make the implementation of markers more efficient
 Markers are implemented as a non-sorted singly linked list of markers.
 This makes them scale badly when thousands of markers are created in a
 buffer for some purpose, because some low-level primitives in Emacs
