@@ -2240,8 +2240,8 @@ invoking, give a prefix argument to `execute-extended-command'."
     ;; flight.
     (when execute-extended-command--binding-timer
       (cancel-timer execute-extended-command--binding-timer))
-    ;; If this command displayed something in the echo area; then
-    ;; postpone display our suggestion message a bit.
+    ;; If this command displayed something in the echo area, then
+    ;; postpone the display of our suggestion message a bit.
     (when (and suggest-key-bindings
                (or binding
                    (and extended-command-suggest-shorter typed)))
