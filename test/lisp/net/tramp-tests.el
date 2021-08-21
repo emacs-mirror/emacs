@@ -6358,6 +6358,7 @@ This requires restrictions of file name syntax."
 ;; These tests are inspired by Bug#17238.
 (ert-deftest tramp-test41-special-characters ()
   "Check special characters in file names."
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 245s
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
@@ -6368,6 +6369,7 @@ This requires restrictions of file name syntax."
   "Check special characters in file names.
 Use the `stat' command."
   :tags '(:expensive-test)
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 287s
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
@@ -6386,6 +6388,7 @@ Use the `stat' command."
   "Check special characters in file names.
 Use the `perl' command."
   :tags '(:expensive-test)
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 266s
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
@@ -6407,6 +6410,7 @@ Use the `perl' command."
   "Check special characters in file names.
 Use the `ls' command."
   :tags '(:expensive-test)
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 287s
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
@@ -6472,6 +6476,7 @@ Use the `ls' command."
 
 (ert-deftest tramp-test42-utf8 ()
   "Check UTF8 encoding in file names and file contents."
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 620s
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
@@ -6487,6 +6492,7 @@ Use the `ls' command."
   "Check UTF8 encoding in file names and file contents.
 Use the `stat' command."
   :tags '(:expensive-test)
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 595s
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
@@ -6509,6 +6515,7 @@ Use the `stat' command."
   "Check UTF8 encoding in file names and file contents.
 Use the `perl' command."
   :tags '(:expensive-test)
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 620s
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
@@ -6534,6 +6541,7 @@ Use the `perl' command."
   "Check UTF8 encoding in file names and file contents.
 Use the `ls' command."
   :tags '(:expensive-test)
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 690s
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
