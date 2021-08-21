@@ -3595,8 +3595,8 @@ Sixth arg COMMENTSTOP non-nil means stop after the start of a comment.
   else
     target = TYPE_MINIMUM (EMACS_INT);	/* We won't reach this depth.  */
 
-  if (XFIXNUM (to) < XFIXNUM (from))
-    error ("End position should be larger than start position.");
+  if (fix_position (to) < fix_position (from))
+    error ("End position is smaller than start position");
 
   validate_region (&from, &to);
   internalize_parse_state (oldstate, &state);
