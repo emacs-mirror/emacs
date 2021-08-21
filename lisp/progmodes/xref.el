@@ -1309,7 +1309,9 @@ prompt for it.
 If sufficient information is available to determine a unique
 definition for IDENTIFIER, display it in the selected window.
 Otherwise, display the list of the possible definitions in a
-buffer where the user can select from the list."
+buffer where the user can select from the list.
+
+Use \\[xref-pop-marker-stack] to return back to where you invoked this command."
   (interactive (list (xref--read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier nil))
 
