@@ -2462,8 +2462,8 @@ images are marked.
 
 +++
 *** New user option 'file-preserve-symlinks-on-save'.
-This controls what Emacs does when saving buffers visited via a
-symbolic link, and 'file-precious-flag' is non-nil.
+This controls what Emacs does when saving buffers that visit files via
+symbolic links, and 'file-precious-flag' is non-nil.
 
 +++
 *** New user option 'copy-directory-create-symlink'.

@@ -742,6 +742,17 @@ always supposed to end in newlines.  Such major modes set the variable
 setting the latter variable, you can control how these modes handle
 final newlines.
 
+@vindex file-preserve-symlinks-on-save
+If this option is non-@code{nil} and you're visiting a file via a
+symbolic link, Emacs will break the symbolic link upon saving the
+buffer, and will write the buffer to a file with the same name as the
+symbolic link, if the value of @code{file-precious-flag} is
+non-@code{nil} (@pxref{Saving Buffers, file-precious-flag,, elisp, The
+Emacs Lisp Reference Manual}).  If you want Emacs to save the buffer
+to the file the symbolic link points to (thereby preserving the link)
+in these cases, customize the variable
+@code{file-preserve-symlinks-on-save} to @code{t}.
+
 @vindex write-region-inhibit-fsync
   Normally, when a program writes a file, the operating system briefly
 caches the file's data in main memory before committing the data to
