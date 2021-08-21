@@ -2468,7 +2468,8 @@ symbolic links, and 'file-precious-flag' is non-nil.
 +++
 *** New user option 'copy-directory-create-symlink'.
 If non-nil, will make `copy-directory' (when used on a symbolic
-link) copy the link instead of following the link.
+link) copy the link instead of following the link.  The default is
+nil, so the default behavior is unchanged.
 
 +++
 *** New function 'replace-regexp-in-region'.
