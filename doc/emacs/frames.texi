@@ -370,11 +370,18 @@ This menu is for changing the default face within the window's buffer.
 @findex context-menu-mode
 @vindex context-menu-functions
 @kindex Down-mouse-3
-  Some graphical applications use @kbd{mouse-3} for a mode-specific
-menu.  If you prefer @kbd{mouse-3} in Emacs to bring up such a context
-menu instead of running the @code{mouse-save-then-kill} command,
-enable @code{context-menu-mode} and customize the variable
-@code{context-menu-functions}.
+  Many GUI applications use @kbd{mouse-3} to display @dfn{context
+menus}: menus that provide access to various pertinent settings and
+actions for the location and context of the mouse click.  If you
+prefer this in Emacs over the default function of @kbd{mouse-3}, which
+is bound to the @code{mouse-save-then-kill} command (@pxref{Mouse
+Commands}), you can enable the minor mode @code{context-menu-mode}.
+Then Emacs will show context menus when you click @kbd{mouse-3}.  The
+exact contents of these context menus depends on the current major
+mode and the buffer contents around the place where you click the
+mouse.  To customize the contents of the context menu, you can use the
+variable @code{context-menu-functions} (@pxref{Major Mode
+Conventions,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Mode Line Mouse
 @section Mode Line Mouse Commands

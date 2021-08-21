@@ -471,6 +471,22 @@ Each face that the mode defines should, if possible, inherit from an
 existing Emacs face.  @xref{Basic Faces}, and @ref{Faces for Font Lock}.
 
 @item
+Consider adding a mode-specific menu to the menu bar.  This should
+preferably include the most important menu-specific settings and
+commands that will allow users discovering the main features quickly
+and efficiently.
+
+@item
+@cindex context menus, for a major mode
+@vindex context-menu-functions
+Consider adding mode-specific context menus for the mode, to be used
+if and when users activate the @code{context-menu-mode} (@pxref{Menu
+Mouse Clicks,,, emacs, The Emacs Manual}).  To this end, define a
+mode-specific function which builds one or more menus depending on the
+location of the @kbd{mouse-3} click in the buffer, and then add that
+function to the buffer-local value of @code{context-menu-functions}.
+
+@item
 The mode should specify how Imenu should find the definitions or
 sections of a buffer, by setting up a buffer-local value for the
 variable @code{imenu-generic-expression}, for the two variables
