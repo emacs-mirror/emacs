@@ -1563,12 +1563,12 @@ The door of all subtleties!
 (defun files-tests--save-some-buffers (pred def-pred-bind exp-1 exp-2)
   "Helper function to test `save-some-buffers'.
 
-This function creates two visiting-file buffers, BUF-1, BUF-2 in
- different directories at the same level, i.e., none of them is a
- subdir of the other; then, it modifies both buffers; finally, it calls
- `save-some-buffers' from BUF-1 with first arg t, second arg PRED
- and `save-some-buffers-default-predicate' let-bound to
- DEF-PRED-BIND.
+This function creates two file-visiting buffers, BUF-1, BUF-2 in
+different directories at the same level, i.e., none of them is a
+subdir of the other; then it modifies both buffers; finally, it
+calls `save-some-buffers' from BUF-1 with first arg t, second
+arg PRED and `save-some-buffers-default-predicate' let-bound to
+DEF-PRED-BIND.
 
 EXP-1 and EXP-2 are the expected values of calling `buffer-modified-p'
 on BUF-1 and BUF-2 after the `save-some-buffers' call.
@@ -1613,7 +1613,7 @@ let-bound to PRED and passing nil as second arg of
 
 (ert-deftest files-tests-save-some-buffers ()
   "Test `save-some-buffers'.
-Test the 3 cases for the second argument PRED, i.e., nil, t or
+Test the 3 cases for the second argument PRED, i.e., nil, t, or
 predicate.
 The value of `save-some-buffers-default-predicate' is ignored unless
 PRED is nil."
@@ -1639,12 +1639,11 @@ PRED is nil."
 (defmacro files-tests--with-buffer-offer-save (buffers-offer fn-test fn-binders args-results)
   "Helper macro to test `save-some-buffers' and `save-buffers-kill-emacs'.
 
-This macro creates several non-visiting-file buffers in different
- directories at the same level, i.e., none of them is a subdir of the
- other; then, it modifies the buffers and sets their `buffer-offer-save'
- as specified by BUFFERS-OFFER, a list of elements
- (BUFFER OFFER-SAVE).  Finally, it calls FN-TEST from the first
- buffer.
+This macro creates several non-file-visiting buffers in different
+directories at the same level, i.e., none of them is a subdir of the
+other.  Then it modifies the buffers and sets their `buffer-offer-save'
+as specified by BUFFERS-OFFER, a list of elements (BUFFER OFFER-SAVE).
+Finally, it calls FN-TEST from the first buffer.
 
 FN-TEST is the function to test: either `save-some-buffers' or
 `save-buffers-kill-emacs'.  This function is called with
@@ -1656,9 +1655,9 @@ is a function symbol that this macro temporary binds to BINDING during
 the FN-TEST call.
 
 ARGS-RESULTS is a list of elements (FN-ARGS CALLERS-DIR EXPECTED), where
- FN-ARGS are the arguments for FN-TEST;
- CALLERS-DIR specifies the value to let-bind
-`save-some-buffers-default-predicate';
+FN-ARGS are the arguments for FN-TEST;
+CALLERS-DIR specifies the value to let-bind
+\`save-some-buffers-default-predicate';
  EXPECTED is the expected result of the test."
   (declare (debug (form symbol form form)))
   (let ((dir (gensym "dir"))
@@ -1720,8 +1719,8 @@ permutation."
          (permute ,vec 0 (1- (length ,vec)))))))
 
 (ert-deftest files-tests-buffer-offer-save ()
-  "Test `save-some-buffers' for non-visiting buffers.
-Check the behavior of `save-some-buffers' for non-visiting-file
+  "Test `save-some-buffers' for non-file-visiting buffers.
+Check the behavior of `save-some-buffers' for non-file-visiting
 buffers under several values of `buffer-offer-save'.
 The value of `save-some-buffers-default-predicate' is ignored unless
 PRED is nil."
