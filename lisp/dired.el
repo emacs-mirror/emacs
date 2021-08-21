@@ -4495,11 +4495,18 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;###autoload
 (defun dired-jump (&optional other-window file-name)
   "Jump to Dired buffer corresponding to current buffer.
-If in a file, Dired the current directory and move to file's line.
+If in a buffer visiting a file, Dired the current directory and
+move to that file's line.
+
+If the current buffer isn't visiting a file, jump to the
+`default-directory' Dired buffer.
+
 If in Dired already, pop up a level and goto old directory's line.
 In case the proper Dired file line cannot be found, refresh the dired
 buffer and try again.
+
 When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
+
 When FILE-NAME is non-nil, jump to its line in Dired.
 Interactively with prefix argument, read FILE-NAME."
   (interactive
