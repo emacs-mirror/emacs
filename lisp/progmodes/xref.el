@@ -290,7 +290,11 @@ find a search tool; by default, this uses \"find | grep\" in the
 current project's main and external roots."
   (mapcan
    (lambda (dir)
-     (xref-references-in-directory identifier dir))
+     (message "Searching %s..." dir)
+     (redisplay)
+     (prog1
+         (xref-references-in-directory identifier dir)
+       (message "Searching %s... done" dir)))
    (let ((pr (project-current t)))
      (cons
       (xref--project-root pr)
