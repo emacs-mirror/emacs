@@ -887,6 +887,8 @@ z z z}.  The first @kbd{C-x z} repeats the command once, and each
 subsequent @kbd{z} repeats it once again.
 
 @findex repeat-mode
+@vindex repeat-exit-key
+@vindex repeat-exit-timeout
   Also you can activate @code{repeat-mode} that temporarily enables a
 transient mode with short keys after a limited number of commands.
 Currently supported shorter key sequences are @kbd{C-x u u} instead of
@@ -897,6 +899,7 @@ navigate @code{next-error} matches, and @kbd{C-x ] ] [ [} to navigate
 through pages.  Any other key exits transient mode and then is
 executed normally.  The user option @code{repeat-exit-key} defines an
 additional key to exit this transient mode.  Also it's possible to
-break the repetition chain automatically after idle time by
-customizing the user option @code{repeat-exit-timeout} to a number of
-seconds.
+break the repetition chain automatically after some idle time by
+customizing the user option @code{repeat-exit-timeout} to specify the
+idle time in seconds after which this transient mode will be turned
+off.
