@@ -233,7 +233,7 @@ LOCATION is an `xref-location'."
   ((summary :type string :initarg :summary
             :reader xref-item-summary)
    (location :initarg :location
-             :type xref-file-location
+             :type xref-location
              :reader xref-item-location)
    (length :initarg :length :reader xref-match-length))
   :comment "A match xref item describes a search result.")
