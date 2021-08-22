@@ -714,6 +714,13 @@ The regexp should match at end of buffer."
   :version "28.1"
   :type 'regexp)
 
+(defcustom tramp-security-key-timeout-regexp
+  "^\r*sign_and_send_pubkey: signing failed for .*[\r\n]*"
+  "Regular expression matching security key timeout message.
+The regexp should match at end of buffer."
+  :version "28.1"
+  :type 'regexp)
+
 (defcustom tramp-operation-not-permitted-regexp
   (concat "\\(" "preserving times.*" "\\|" "set mode" "\\)" ":\\s-*"
 	  (regexp-opt '("Operation not permitted") t))
@@ -4692,16 +4699,21 @@ The terminal type can be configured with `tramp-terminal-type'."
   "Show the user a message for confirmation.
 Wait, until the connection buffer changes."
   (with-current-buffer (process-buffer proc)
-    (let ((stimers (with-timeout-suspend)))
+    (let ((stimers (with-timeout-suspend))
+	  (cursor-in-echo-area t)
+	  set-message-function clear-message-function)
       (tramp-message vec 6 "\n%s" (buffer-string))
-      (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
       (with-temp-message (replace-regexp-in-string "[\r\n]" "" (match-string 0))
-	(redisplay 'force)
 	;; Hide message in buffer.
 	(narrow-to-region (point-max) (point-max))
 	;; Wait for new output.
-	(tramp-wait-for-regexp proc 30 tramp-security-key-confirmed-regexp))
+	(while (not (ignore-error 'file-error
+		      (tramp-wait-for-regexp
+		       proc 0.1 tramp-security-key-confirmed-regexp)))
+	  (when (tramp-check-for-regexp proc tramp-security-key-timeout-regexp)
+	    (throw 'tramp-action 'timeout))
+	  (redisplay 'force)))
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers)))
   t)
