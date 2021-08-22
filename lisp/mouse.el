@@ -304,7 +304,7 @@ the same menu with changes such as added new menu items."
 
 (defun context-menu-map ()
   "Return composite menu map."
-  (let ((menu (make-sparse-keymap)))
+  (let ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
     (run-hook-wrapped 'context-menu-functions
                       (lambda (fun)
                         (setq menu (funcall fun menu))

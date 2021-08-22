@@ -1284,6 +1284,14 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
       /* Search for a string appearing directly as an element of the keymap.
 	 That string is the title of the menu.  */
       prompt = Fkeymap_prompt (keymap);
+
+#if defined (USE_GTK) || defined (HAVE_NS)
+      if (STRINGP (prompt)
+	  && SCHARS (prompt) > 0
+	  && !NILP (Fget_text_property (make_fixnum (0), Qhide, prompt)))
+	title = Qnil;
+      else
+#endif
       if (!NILP (prompt))
 	title = prompt;
 
