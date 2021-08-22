@@ -1033,6 +1033,8 @@ update_frame_tool_bar (struct frame *f)
       ptrdiff_t img_id;
       struct image *img;
       Lisp_Object image;
+      Lisp_Object labelObj;
+      const char *labelText;
       Lisp_Object helpObj;
       const char *helpText;
 
@@ -1059,6 +1061,8 @@ update_frame_tool_bar (struct frame *f)
         {
           idx = -1;
         }
+      labelObj = TOOLPROP (TOOL_BAR_ITEM_LABEL);
+      labelText = NILP (labelObj) ? "" : SSDATA (labelObj);
       helpObj = TOOLPROP (TOOL_BAR_ITEM_HELP);
       if (NILP (helpObj))
         helpObj = TOOLPROP (TOOL_BAR_ITEM_CAPTION);
@@ -1084,6 +1088,7 @@ update_frame_tool_bar (struct frame *f)
       [toolbar addDisplayItemWithImage: img->pixmap
                                    idx: k++
                                    tag: i
+                             labelText: labelText
                               helpText: helpText
                                enabled: enabled_p];
 #undef TOOLPROP
@@ -1188,6 +1193,7 @@ update_frame_tool_bar (struct frame *f)
 - (void) addDisplayItemWithImage: (EmacsImage *)img
                              idx: (int)idx
                              tag: (int)tag
+                       labelText: (const char *)label
                         helpText: (const char *)help
                          enabled: (BOOL)enabled
 {
@@ -1205,6 +1211,7 @@ update_frame_tool_bar (struct frame *f)
       item = [[[NSToolbarItem alloc] initWithItemIdentifier: identifier]
                autorelease];
       [item setImage: img];
+      [item setLabel: [NSString stringWithUTF8String: label]];
       [item setToolTip: [NSString stringWithUTF8String: help]];
       [item setTarget: emacsView];
       [item setAction: @selector (toolbarClicked:)];
