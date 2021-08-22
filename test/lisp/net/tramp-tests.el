@@ -2866,7 +2866,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 		       (file-name-nondirectory tmp-name1) tmp-name2))
 	   (tmp-name4 (expand-file-name "foo" tmp-name1))
 	   (tmp-name5 (expand-file-name "foo" tmp-name2))
-	   (tmp-name6 (expand-file-name "foo" tmp-name3)))
+	   (tmp-name6 (expand-file-name "foo" tmp-name3))
+	   (tmp-name7 (tramp--test-make-temp-name nil quoted)))
 
       ;; Copy complete directory.
       (unwind-protect
@@ -2922,7 +2923,32 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	;; Cleanup.
 	(ignore-errors
 	  (delete-directory tmp-name1 'recursive)
-	  (delete-directory tmp-name2 'recursive))))))
+	  (delete-directory tmp-name2 'recursive)))
+
+      ;; Copy symlink to directory.  Implemented since Emacs 28.1.
+      (when (and (tramp--test-emacs28-p) (tramp--test-sh-p))
+	(dolist (copy-directory-create-symlink '(nil t))
+	  (unwind-protect
+	      (progn
+		;; Copy empty directory.
+		(make-directory tmp-name1)
+		(write-region "foo" nil tmp-name4)
+		(make-symbolic-link tmp-name1 tmp-name7)
+		(should (file-directory-p tmp-name1))
+		(should (file-exists-p tmp-name4))
+		(should (file-symlink-p tmp-name7))
+		(copy-directory tmp-name7 tmp-name2)
+		(if copy-directory-create-symlink
+		    (should
+		     (string-equal
+		      (file-symlink-p tmp-name2) (file-symlink-p tmp-name7)))
+		  (should (file-directory-p tmp-name2))))
+
+	    ;; Cleanup.
+	    (ignore-errors
+	      (delete-directory tmp-name1 'recursive)
+	      (delete-directory tmp-name2 'recursive)
+	      (delete-directory tmp-name7 'recursive))))))))
 
 (ert-deftest tramp-test16-directory-files ()
   "Check `directory-files'."
