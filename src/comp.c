@@ -4490,6 +4490,15 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  comp.speed < 0 ? 0
 				  : (comp.speed > 3 ? 3 : comp.speed));
+
+  /* On MacOS set a unique dylib ID.  */
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
+  && defined (DARWIN_OS)
+  gcc_jit_context_add_driver_option (comp.ctxt, "-install_name");
+  gcc_jit_context_add_driver_option (
+         comp.ctxt, SSDATA (Ffile_name_nondirectory (filename)));
+#endif
+
   comp.d_default_idx =
     CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-default, Vcomp_ctxt));
   comp.d_impure_idx =
