@@ -5033,7 +5033,7 @@ FILENAME has the format of a directory.
 See also `file-name-sans-extension'."
   (let ((extn (string-trim-left extension "[.]")))
     (cond ((string-empty-p filename)
-           (error "Empty filename: %s" filename))
+           (error "Empty filename"))
           ((string-empty-p extn)
            (error "Malformed extension: %s" extension))
           ((directory-name-p filename)
