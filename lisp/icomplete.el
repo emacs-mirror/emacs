@@ -760,7 +760,8 @@ by `group-function''s second \"transformation\" protocol."
                       (plist-get completion-extra-properties :affixation-function)))
          (ann-fun (or (completion-metadata-get md 'annotation-function)
                       (plist-get completion-extra-properties :annotation-function)))
-         (grp-fun (completion-metadata-get md 'group-function))
+         (grp-fun (and completions-group
+                       (completion-metadata-get md 'group-function)))
          (annotated
           (cond (aff-fun
            (funcall aff-fun prospects))
