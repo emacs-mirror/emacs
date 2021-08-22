@@ -3840,7 +3840,10 @@ The new variable 'xwidget-webkit-download-dir' says where to download to.
 'xwidget-webkit-clone-and-split-below',
 'xwidget-webkit-clone-and-split-right'.
 
+---
 *** New variable 'xwidget-webkit-enable-plugins'.
+If non-nil, enable plugins in xwidget.  (This is only available on
+macOS.)
 
 +++
 ** On macOS, Emacs can now load dynamic modules with a ".dylib" suffix.

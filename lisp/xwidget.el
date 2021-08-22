@@ -302,9 +302,11 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
 
 (defvar bookmark-make-record-function)
 (when (memq window-system '(mac ns))
-  (defvar xwidget-webkit-enable-plugins nil
+  (defcustom xwidget-webkit-enable-plugins nil
     "Enable plugins for xwidget webkit.
-If non-nil, plugins are enabled.  Otherwise, disabled."))
+If non-nil, plugins are enabled.  Otherwise, disabled."
+    :type 'boolean
+    :version "28.1"))
 
 (define-derived-mode xwidget-webkit-mode
   special-mode "xwidget-webkit" "Xwidget webkit view mode."
