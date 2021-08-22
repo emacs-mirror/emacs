@@ -116,9 +116,9 @@ or one if there's just one execution unit."
   :version "28.1")
 
 (defcustom native-comp-async-cu-done-functions nil
-  "List of functions to call after asynchronously compiling one compilation unit.
-Called with one argument FILE, the filename used as input to
-compilation."
+  "List of functions to call when asynchronous compilation of a file is done.
+Each function is called with one argument FILE, the filename whose
+compilation has completed."
   :type 'hook
   :version "28.1")
 
