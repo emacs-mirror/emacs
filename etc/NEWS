@@ -3833,12 +3833,14 @@ If Emacs was built with xwidget support, you can access the embedded
 webkit browser with 'M-x xwidget-webkit-browse-url'.  Viewing two
 instances of xwidget webkit is not supported.
 
+---
 *** Downloading files from xwidget-webkit is now supported.
 The new variable 'xwidget-webkit-download-dir' says where to download to.
 
-*** New functions for xwidget-webkit mode
-'xwidget-webkit-clone-and-split-below',
-'xwidget-webkit-clone-and-split-right'.
+---
+*** New command 'xwidget-webkit-clone-and-split-below'.
+*** New command 'xwidget-webkit-clone-and-split-right'.
+These are used in 'xwidget-webkit-mode'.
 
 ---
 *** New variable 'xwidget-webkit-enable-plugins'.
