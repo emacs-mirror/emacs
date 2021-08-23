@@ -3624,32 +3624,39 @@ displaying data "smushed together" on the mode line.
 
 ** Changes in handling dynamic modules
 
++++
 *** The module header 'emacs-module.h' now contains type aliases
 'emacs_function' and 'emacs_finalizer' for module functions and
 finalizers, respectively.
 
++++
 *** Module functions can now be made interactive.
 Use 'make_interactive' to give a module function an interactive
 specification.
 
++++
 *** Module functions can now install an optional finalizer that is
 called when the function object is garbage-collected.  Use
 'set_function_finalizer' to set the finalizer and
 'get_function_finalizer' to retrieve it.
 
++++
 *** Modules can now open a channel to an existing pipe process using
 the new module function 'open_channel'.  Modules can use this
 functionality to asynchronously send data back to Emacs.
 
++++
 *** A new module API 'make_unibyte_string' is provided.
 It can be used to create Lisp strings with arbitrary byte sequences
 (a.k.a. "raw bytes").
 
++++
 ** 'file-modes', 'set-file-modes', and 'set-file-times' now have an
 optional argument specifying whether to follow symbolic links.
 
-** 'parse-time-string' can now parse ISO 8601 format strings,
-such as "2020-01-15T16:12:21-08:00".
++++
+** 'parse-time-string' can now parse ISO 8601 format strings.
+These are on the format "2020-01-15T16:12:21-08:00".
 
 ---
 ** The new function 'decoded-time-period' has been added.
