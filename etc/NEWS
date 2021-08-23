@@ -683,6 +683,14 @@ widget.  Both these new minor modes will first turn on their
 non-vertical counterparts first, if they are not on already.
 
 ---
+*** New minor mode 'icomplete-in-buffer-mode'
+This minor mode replaces and obsoletes the broken functionality of the
+'icomplete-in-buffer' variable.  It makes Icomplete interface be
+useful not only when completing minibuffer prompts, but also strings
+and identifiers in a regular buffer, via the regular
+'completion-at-point' interface.
+
+---
 *** Default value of 'icomplete-compute-delay' has been changed to 0.15 s.
 
 ---
