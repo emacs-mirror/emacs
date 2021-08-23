@@ -398,6 +398,7 @@ When this mode is enabled, clicking 'down-mouse-3' anywhere in the buffer
 pops up a menu whose contents depends on surrounding context near the
 mouse click.  You can change the order of the default sub-menus in the
 context menu by customizing the user option 'context-menu-functions'.
+You can also invoke the context menu by pressing 'S-<F10>'.
 
 +++
 *** The "Edit => Clear" menu item now obeys a rectangular region.
@@ -3844,6 +3845,12 @@ to match the behaviour.)
 ** New user option 'etags-xref-prefer-current-file'.
 When non-nil, matches for identifiers in the file visited by the
 current buffer will be shown first in the "*xref*" buffer.
+
+---
+** New variable 'inhibit-mouse-event-check'.
+If bound to non-nil, a command with '(interactive "e")'
+doesn't signal an error when no mouse event is produced
+while using the keyboard.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

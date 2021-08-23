@@ -469,6 +469,15 @@ When Context Menu mode is enabled, clicking the mouse button down-mouse-3
 activates the menu whose contents depends on its surrounding context."
   :global t :group 'mouse)
 
+(defun context-menu-open ()
+  "Start key navigation of the context menu.
+This is the keyboard interface to \\[context-menu-map]."
+  (interactive)
+  (let ((inhibit-mouse-event-check t))
+    (popup-menu (context-menu-map) (point))))
+
+(global-set-key [S-f10] 'context-menu-open)
+
 
 ;; Commands that operate on windows.
 

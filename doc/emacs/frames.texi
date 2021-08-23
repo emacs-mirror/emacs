@@ -370,6 +370,7 @@ This menu is for changing the default face within the window's buffer.
 @findex context-menu-mode
 @vindex context-menu-functions
 @kindex Down-mouse-3
+@kindex S-F10
   Many GUI applications use @kbd{mouse-3} to display @dfn{context
 menus}: menus that provide access to various pertinent settings and
 actions for the location and context of the mouse click.  If you
@@ -382,6 +383,7 @@ mode and the buffer contents around the place where you click the
 mouse.  To customize the contents of the context menu, you can use the
 variable @code{context-menu-functions} (@pxref{Major Mode
 Conventions,,, elisp, The Emacs Lisp Reference Manual}).
+You can also invoke the context menu by pressing @kbd{S-@key{F10}}.
 
 @node Mode Line Mouse
 @section Mode Line Mouse Commands
