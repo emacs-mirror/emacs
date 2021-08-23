@@ -177,6 +177,19 @@ The temporary file is not created."
     (make-temp-name "tramp-test")
     (if local temporary-file-directory tramp-test-temporary-file-directory))))
 
+;; Method "smb" supports `make-symbolic-link' only if the remote host
+;; has CIFS capabilities.  tramp-adb.el, tramp-gvfs.el, tramp-rclone.el
+;; and tramp-sshfs.el do not support symbolic links at all.
+(defmacro tramp--test-ignore-make-symbolic-link-error (&rest body)
+  "Run BODY, ignoring \"make-symbolic-link not supported\" file error."
+  (declare (indent defun) (debug (body)))
+  `(condition-case err
+       (progn ,@body)
+     (file-error
+      (unless (string-equal (error-message-string err)
+			    "make-symbolic-link not supported")
+	(signal (car err) (cdr err))))))
+
 ;; Don't print messages in nested `tramp--test-instrument-test-case' calls.
 (defvar tramp--test-instrument-test-case-p nil
   "Whether `tramp--test-instrument-test-case' run.
@@ -2926,11 +2939,11 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	  (delete-directory tmp-name2 'recursive)))
 
       ;; Copy symlink to directory.  Implemented since Emacs 28.1.
-      (when (and (tramp--test-emacs28-p) (tramp--test-sh-p))
+      (when (boundp 'copy-directory-create-symlink)
 	(dolist (copy-directory-create-symlink '(nil t))
 	  (unwind-protect
-	      (progn
-		;; Copy empty directory.
+	      (tramp--test-ignore-make-symbolic-link-error
+		;; Copy to file name.
 		(make-directory tmp-name1)
 		(write-region "foo" nil tmp-name4)
 		(make-symbolic-link tmp-name1 tmp-name7)
@@ -2942,7 +2955,23 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 		    (should
 		     (string-equal
 		      (file-symlink-p tmp-name2) (file-symlink-p tmp-name7)))
-		  (should (file-directory-p tmp-name2))))
+		  (should (file-directory-p tmp-name2)))
+		;; Copy to directory name.
+		(delete-directory tmp-name2 'recursive)
+		(make-directory tmp-name2)
+		(should (file-directory-p tmp-name2))
+		(copy-directory tmp-name7 (file-name-as-directory tmp-name2))
+		(if copy-directory-create-symlink
+		    (should
+		     (string-equal
+		      (file-symlink-p
+		       (expand-file-name
+			(file-name-nondirectory tmp-name7) tmp-name2))
+		      (file-symlink-p tmp-name7)))
+		  (should
+		   (file-directory-p
+		    (expand-file-name
+		     (file-name-nondirectory tmp-name7) tmp-name2)))))
 
 	    ;; Cleanup.
 	    (ignore-errors
@@ -3291,19 +3320,6 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	;; Cleanup.
 	(ignore-errors (kill-buffer buffer))
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
-
-;; Method "smb" supports `make-symbolic-link' only if the remote host
-;; has CIFS capabilities.  tramp-adb.el, tramp-gvfs.el, tramp-rclone.el
-;; and tramp-sshfs.el do not support symbolic links at all.
-(defmacro tramp--test-ignore-make-symbolic-link-error (&rest body)
-  "Run BODY, ignoring \"make-symbolic-link not supported\" file error."
-  (declare (indent defun) (debug (body)))
-  `(condition-case err
-       (progn ,@body)
-     (file-error
-      (unless (string-equal (error-message-string err)
-			    "make-symbolic-link not supported")
-	(signal (car err) (cdr err))))))
 
 (ert-deftest tramp-test18-file-attributes ()
   "Check `file-attributes'.

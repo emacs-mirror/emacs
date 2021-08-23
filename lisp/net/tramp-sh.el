@@ -1857,16 +1857,21 @@ ID-FORMAT valid values are `string' and `integer'."
   (dirname newname &optional keep-date parents copy-contents)
   "Like `copy-directory' for Tramp files."
   (let ((t1 (tramp-tramp-file-p dirname))
-	(t2 (tramp-tramp-file-p newname)))
+	(t2 (tramp-tramp-file-p newname))
+	target)
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
       (unless (file-exists-p dirname)
 	(tramp-compat-file-missing v dirname))
 
       ;; `copy-directory-create-symlink' exists since Emacs 28.1.
       (if (and (bound-and-true-p copy-directory-create-symlink)
-	       (file-symlink-p dirname)
+	       (setq target (file-symlink-p dirname))
 	       (tramp-equal-remote dirname newname))
-	  (make-symbolic-link (file-symlink-p dirname) newname)
+	  (make-symbolic-link
+	   target
+	   (if (directory-name-p newname)
+	       (concat newname (file-name-nondirectory dirname)) newname)
+	   t)
 
 	(if (and (not copy-contents)
 		 (tramp-get-method-parameter v 'tramp-copy-recursive)
