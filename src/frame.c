@@ -1837,8 +1837,8 @@ prev_frame (Lisp_Object frame, Lisp_Object minibuf)
 
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
        doc: /* Return the next frame in the frame list after FRAME.
-Only frames on the same terminal as FRAME are included.  If omitted,
-FRAME defaults to the selected frame.
+Only frames on the same terminal as FRAME are included in the list
+of candidate frames.  If omitted, FRAME defaults to the selected frame.
 
 If MINIFRAME is nil (the default), include all frames except
 minibuffer-only frames.
@@ -1846,12 +1846,11 @@ minibuffer-only frames.
 If MINIFRAME is a window, include only its own frame and any frame now
 using that window as the minibuffer.
 
-If MINIFRAME is `visible', only include visible frames.
+If MINIFRAME is `visible', include only visible frames.
 
-If MINIFRAME is 0, only include visible and iconified frames.
+If MINIFRAME is 0, include only visible and iconified frames.
 
-If MINIFRAME is any other value than these values, include all
-frames.  */)
+If MINIFRAME is any other value, include all frames.  */)
   (Lisp_Object frame, Lisp_Object miniframe)
 {
   if (NILP (frame))
