@@ -231,7 +231,7 @@ issued by CPerl mode."
       (goto-char (point-min))
       (funcall cperl-test-mode)
       (cperl-find-pods-heres)
-      (should (string-match "End of here-document [‘']HERE[’']"
+      (should (string-match "End of here-document [‘'`]HERE[’']"
                             collected-messages))))
   (ert-with-message-capture collected-messages
     (with-temp-buffer
@@ -242,7 +242,7 @@ issued by CPerl mode."
       (goto-char (point-min))
       (funcall cperl-test-mode)
       (cperl-find-pods-heres)
-      (should (string-match "End of here-document [‘']THERE[’']"
+      (should (string-match "End of here-document [‘'`]THERE[’']"
                             collected-messages)))))
 
 (defvar perl-continued-statement-offset)
