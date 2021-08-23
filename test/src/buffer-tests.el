@@ -1420,4 +1420,67 @@ with parameters from the *Messages* buffer modification."
     (remove-overlays)
     (should (= (length (overlays-in (point-min) (point-max))) 0))))
 
+(ert-deftest test-kill-buffer-auto-save-default ()
+  (let ((file (make-temp-file "ert"))
+        auto-save)
+    (should (file-exists-p file))
+    ;; Always answer yes.
+    (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
+      (unwind-protect
+          (progn
+            (find-file file)
+            (auto-save-mode t)
+            (insert "foo\n")
+            (should buffer-auto-save-file-name)
+            (setq auto-save buffer-auto-save-file-name)
+            (do-auto-save)
+            (should (file-exists-p auto-save))
+            (kill-buffer (current-buffer))
+            (should (file-exists-p auto-save)))
+        (ignore-errors (delete-file file))
+        (when auto-save
+          (ignore-errors (delete-file auto-save)))))))
+
+(ert-deftest test-kill-buffer-auto-save-delete ()
+  (let ((file (make-temp-file "ert"))
+        auto-save)
+    (should (file-exists-p file))
+    (setq kill-buffer-delete-auto-save-files t)
+    ;; Always answer yes.
+    (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
+      (unwind-protect
+          (progn
+            (find-file file)
+            (auto-save-mode t)
+            (insert "foo\n")
+            (should buffer-auto-save-file-name)
+            (setq auto-save buffer-auto-save-file-name)
+            (do-auto-save)
+            (should (file-exists-p auto-save))
+            ;; This should delete the auto-save file.
+            (kill-buffer (current-buffer))
+            (should-not (file-exists-p auto-save)))
+        (ignore-errors (delete-file file))
+        (when auto-save
+          (ignore-errors (delete-file auto-save)))))
+    ;; Answer no to deletion.
+    (cl-letf (((symbol-function #'yes-or-no-p)
+               (lambda (prompt)
+                 (not (string-search "Delete auto-save file" prompt)))))
+      (unwind-protect
+          (progn
+            (find-file file)
+            (auto-save-mode t)
+            (insert "foo\n")
+            (should buffer-auto-save-file-name)
+            (setq auto-save buffer-auto-save-file-name)
+            (do-auto-save)
+            (should (file-exists-p auto-save))
+            ;; This should not delete the auto-save file.
+            (kill-buffer (current-buffer))
+            (should (file-exists-p auto-save)))
+        (ignore-errors (delete-file file))
+        (when auto-save
+          (ignore-errors (delete-file auto-save)))))))
+
 ;;; buffer-tests.el ends here

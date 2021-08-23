@@ -171,6 +171,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	       (const :tag "Right to Left" right-to-left)
 	       (const :tag "Dynamic, according to paragraph text" nil))
 	      "24.1")
+             (delete-auto-save-files auto-save boolean)
+             (kill-buffer-delete-auto-save-files auto-save boolean "28.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c

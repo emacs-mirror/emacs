@@ -3824,11 +3824,21 @@ whenever the protected form terminates without error, with the
 specified variable bound to the the value of the protected form.
 
 +++
-** 'The 'uniquify' argument in 'auto-save-file-name-transforms' can be a symbol.
+** The 'uniquify' argument in 'auto-save-file-name-transforms' can be a symbol.
 If this symbol is one of the members of 'secure-hash-algorithms',
 Emacs constructs the nondirectory part of the auto-save file name by
 applying that 'secure-hash' to the buffer file name.  This avoids any
 risk of excessively long file names.
+
++++
+** New user option 'kill-buffer-delete-auto-save-files'.
+If non-nil, killing a buffer that has an auto-save file will prompt
+the user for whether that buffer should be deleted.  (Note that
+'delete-auto-save-files', if non-nil, was previously documented to
+result in deletion of auto-save files when killing a buffer without
+unsaved changes, but this has apparently not worked for several
+decades, so the documented semantics of this variable has been changed
+to match the behaviour.)
 
 ---
 ** New user option 'etags-xref-prefer-current-file'.

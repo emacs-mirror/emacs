@@ -1768,6 +1768,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   /* Run hooks with the buffer to be killed as the current buffer.  */
   {
     ptrdiff_t count = SPECPDL_INDEX ();
+    bool modified;
 
     record_unwind_protect_excursion ();
     set_buffer_internal (b);
@@ -1782,14 +1783,28 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	  return unbind_to (count, Qnil);
       }
 
+    /* Is this a modified buffer that's visiting a file? */
+    modified = !NILP (BVAR (b, filename))
+      && BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
+
     /* Query if the buffer is still modified.  */
-    if (INTERACTIVE && !NILP (BVAR (b, filename))
-	&& BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
+    if (INTERACTIVE && modified)
       {
 	AUTO_STRING (format, "Buffer %s modified; kill anyway? ");
 	tem = do_yes_or_no_p (CALLN (Fformat, format, BVAR (b, name)));
 	if (NILP (tem))
 	  return unbind_to (count, Qnil);
+      }
+
+    /* Delete the autosave file, if requested. */
+    if (modified
+	&& kill_buffer_delete_auto_save_files
+	&& delete_auto_save_files
+	&& !NILP (Frecent_auto_save_p ()))
+      {
+	tem = do_yes_or_no_p (build_string ("Delete auto-save file? "));
+	if (!NILP (tem))
+	  call0 (intern ("delete-auto-save-file-if-necessary"));
       }
 
     /* If the hooks have killed the buffer, exit now.  */
@@ -1887,24 +1902,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   /* If replace_buffer_in_windows didn't do its job fix that now.  */
   replace_buffer_in_windows_safely (buffer);
   Vinhibit_quit = tem;
-
-  /* Delete any auto-save file, if we saved it in this session.
-     But not if the buffer is modified.  */
-  if (STRINGP (BVAR (b, auto_save_file_name))
-      && BUF_AUTOSAVE_MODIFF (b) != 0
-      && BUF_SAVE_MODIFF (b) < BUF_AUTOSAVE_MODIFF (b)
-      && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
-      && NILP (Fsymbol_value (intern ("auto-save-visited-file-name"))))
-    {
-      Lisp_Object delete;
-      delete = Fsymbol_value (intern ("delete-auto-save-files"));
-      if (! NILP (delete))
-	internal_delete_file (BVAR (b, auto_save_file_name));
-    }
-
-  /* Deleting an auto-save file could have killed our buffer.  */
-  if (!BUFFER_LIVE_P (b))
-    return Qt;
 
   if (b->base_buffer)
     {
@@ -6365,6 +6362,18 @@ Functions run by this hook should avoid calling `select-window' with a
 nil NORECORD argument since it may lead to infinite recursion.  */);
   Vbuffer_list_update_hook = Qnil;
   DEFSYM (Qbuffer_list_update_hook, "buffer-list-update-hook");
+
+  DEFVAR_BOOL ("kill-buffer-delete-auto-save-files",
+	       kill_buffer_delete_auto_save_files,
+	       doc: /* If non-nil, offer to delete any autosave file when killing a buffer.
+
+If `delete-auto-save-files' is nil, any autosave deletion is inhibited.  */);
+  kill_buffer_delete_auto_save_files = 0;
+
+  DEFVAR_BOOL ("delete-auto-save-files", delete_auto_save_files,
+	       doc: /* Non-nil means delete auto-save file when a buffer is saved.
+This is the default.  If nil, auto-save file deletion is inhibited.  */);
+  delete_auto_save_files = 1;
 
   defsubr (&Sbuffer_live_p);
   defsubr (&Sbuffer_list);
