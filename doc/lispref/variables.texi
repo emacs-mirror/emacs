@@ -194,7 +194,7 @@ default scoping rule in Emacs Lisp is called @dfn{dynamic scoping},
 which simply states that the current binding at any given point in the
 execution of a program is the most recently-created binding for that
 variable that still exists.  For details about dynamic scoping, and an
-alternative scoping rule called @dfn{lexical scoping}, @xref{Variable
+alternative scoping rule called @dfn{lexical scoping}, @pxref{Variable
 Scoping}.
 
   The special forms @code{let} and @code{let*} exist to create local
@@ -286,6 +286,8 @@ being run once:
 @end lisp
 @end defspec
 
+@cindex dynamic binding, temporarily
+@cindex dynamic let-binding
 @defspec dlet (bindings@dots{}) forms@dots{}
 This special form is like @code{let}, but it binds all variables
 dynamically.  This is rarely useful---you usually want to bind normal
@@ -294,10 +296,10 @@ defined with @code{defvar}) dynamically, and this is what @code{let}
 does.
 
 @code{dlet} can be useful when interfacing with old code that assumes
-that certain variables are dynamically bound, but it's impractical to
-@code{defvar} these variables.  @code{dlet} will temporarily make the
-bound variables special, execute the forms, and then make the
-variables non-special again.
+that certain variables are dynamically bound (@pxref{Dynamic
+Binding}), but it's impractical to @code{defvar} these variables.
+@code{dlet} will temporarily make the bound variables special, execute
+the forms, and then make the variables non-special again.
 @end defspec
 
   Here is a complete list of the other facilities that create local
