@@ -286,6 +286,20 @@ being run once:
 @end lisp
 @end defspec
 
+@defspec dlet (bindings@dots{}) forms@dots{}
+This special form is like @code{let}, but it binds all variables
+dynamically.  This is rarely useful---you usually want to bind normal
+variables lexically, and special variables (i.e., variables that are
+defined with @code{defvar}) dynamically, and this is what @code{let}
+does.
+
+@code{dlet} can be useful when interfacing with old code that assumes
+that certain variables are dynamically bound, but it's impractical to
+@code{defvar} these variables.  @code{dlet} will temporarily make the
+bound variables special, execute the forms, and then make the
+variables non-special again.
+@end defspec
+
   Here is a complete list of the other facilities that create local
 bindings:
 
