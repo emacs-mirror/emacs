@@ -3736,10 +3736,11 @@ file can affect code in another.  For details, see the manual section
 *** 'byte-recompile-directory' can now compile symlinked ".el" files.
 This is achieved by giving a non-nil FOLLOW-SYMLINKS parameter.
 
+---
 *** The byte-compiler now warns about too wide documentation strings.
 By default, it will warn if a documentation string is wider than the
-largest of 80 characters or 'fill-column'.  This is controlled by the
-new user option 'byte-compile-docstring-max-column'.
+largest of 'byte-compile-docstring-max-column' or 'fill-column'
+characters.
 
 +++
 *** 'byte-compile-file' optional argument LOAD is now obsolete.
@@ -3788,6 +3789,7 @@ presented to users or passed on to other applications.
 ** 'start-process-shell-command' and 'start-file-process-shell-command'
 do not support the old calling conventions any longer.
 
+---
 ** Functions operating on local file names now check that the file names
 don't contain any NUL bytes.  This avoids subtle bugs caused by
 silently using only the part of the file name until the first NUL byte.
