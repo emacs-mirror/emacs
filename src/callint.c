@@ -901,10 +901,11 @@ a way to turn themselves off when a mouse command switches windows.  */);
   Vmouse_leave_buffer_hook = Qnil;
 
   DEFVAR_BOOL ("inhibit-mouse-event-check", inhibit_mouse_event_check,
-    doc: /* Non-nil means the interactive spec "e" doesn't check for events.
-In this case `(interactive "e")' doesn't signal an error when no mouse event
-is produced while using the keyboard.  Then `event-start', `event-end',
-`event-click-count' can create a new event.  */);
+    doc: /* Whether the interactive spec "e" requires a mouse gesture event.
+If non-nil, `(interactive "e")' doesn't signal an error when the command
+was invoked by an input event that is not a mouse gesture: a click, a drag,
+etc.  To create the event data when the input was some other event,
+use `event-start', `event-end', and `event-click-count'.  */);
   inhibit_mouse_event_check = false;
 
   defsubr (&Sinteractive);
