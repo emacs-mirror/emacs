@@ -2692,20 +2692,21 @@ frame and defaults to the selected frame.  It never returns a frame
 whose @code{no-other-frame} parameter (@pxref{Frame Interaction
 Parameters}) is non-@code{nil}.
 
-The second argument, @var{minibuf}, says which frames to consider:
+The second argument, @var{minibuf}, says which frames to include when
+considering what the next frame should be:
 
 @table @asis
 @item @code{nil}
-Exclude minibuffer-only frames.
+Include all frames except minibuffer-only frames.
 @item @code{visible}
-Consider all visible frames.
+Include only visible frames.
 @item 0
-Consider all visible or iconified frames.
+Include only visible or iconified frames.
 @item a window
-Consider only the frames using that particular window as their
+Include only the frames using that particular window as their
 minibuffer.
 @item anything else
-Consider all frames.
+Include all frames.
 @end table
 @end defun
 
