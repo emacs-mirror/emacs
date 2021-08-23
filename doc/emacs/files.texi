@@ -1196,7 +1196,7 @@ any auto-save file to go with the new visited name.
 file.  If @code{kill-buffer-delete-auto-save-files} is non-@code{nil},
 killing a buffer that has an auto-save file will make Emacs prompt the
 user for whether the auto-save file should be deleted.  (This is
-inhibited is @code{delete-auto-save-files} is @code{nil}.)
+inhibited if @code{delete-auto-save-files} is @code{nil}.)
 
 @node Auto Save Control
 @subsection Controlling Auto-Saving
