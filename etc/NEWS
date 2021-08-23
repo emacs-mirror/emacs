@@ -3656,7 +3656,7 @@ optional argument specifying whether to follow symbolic links.
 
 +++
 ** 'parse-time-string' can now parse ISO 8601 format strings.
-These are on the format "2020-01-15T16:12:21-08:00".
+These have the format like "2020-01-15T16:12:21-08:00".
 
 ---
 ** The new function 'decoded-time-period' has been added.
