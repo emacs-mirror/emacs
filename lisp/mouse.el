@@ -289,6 +289,7 @@ the same menu with changes such as added new menu items."
   :type '(repeat
           (choice (function-item context-menu-undo)
                   (function-item context-menu-region)
+                  (function-item context-menu-toolbar)
                   (function-item context-menu-global)
                   (function-item context-menu-local)
                   (function-item context-menu-minor)
@@ -312,6 +313,17 @@ the same menu with changes such as added new menu items."
     (when (functionp context-menu-filter-function)
       (setq menu (funcall context-menu-filter-function menu)))
     menu))
+
+(defun context-menu-toolbar (menu)
+  "Tool bar menu items."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-toolbar] menu-bar-separator)
+  (map-keymap (lambda (key binding)
+                (when (consp binding)
+                  (define-key-after menu (vector key)
+                    (copy-sequence binding))))
+              (lookup-key global-map [tool-bar]))
+  menu)
 
 (defun context-menu-global (menu)
   "Global submenus."
@@ -396,7 +408,7 @@ the same menu with changes such as added new menu items."
                            "\\[ns-copy-including-secondary]"
                          "\\[kill-ring-save]")))
   (define-key-after menu [paste]
-    `(menu-item "Paste" mouse-yank-primary
+    `(menu-item "Paste" mouse-yank-at-click
                 :visible (funcall
                           ',(lambda ()
                               (and (or
