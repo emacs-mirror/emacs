@@ -3315,6 +3315,11 @@ This function tells Font Lock mode to run the Lisp function
 current buffer.  It calls @var{function} before calling the default
 fontification functions, and gives it two arguments, @var{start} and
 @var{end}, which specify the region to be fontified or refontified.
+If @var{function} performs fontifications, it can return a list of the
+form @w{@code{(jit-lock-bounds @var{beg} . @var{end})}}, to indicate
+the bounds of the region it actually fontified; JIT font-lock will use
+this information to optimize subsequent redisplay cycles and regions
+of buffer text it will pass to future calls to @var{function}.
 
 The optional argument @var{contextual}, if non-@code{nil}, forces Font
 Lock mode to always refontify a syntactically relevant part of the
