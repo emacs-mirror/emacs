@@ -1741,7 +1741,9 @@ or as help on variables `cperl-tips', `cperl-problems',
               '((cperl-load-font-lock-keywords
                  cperl-load-font-lock-keywords-1
                  cperl-load-font-lock-keywords-2)
-                nil nil ((?_ . "w"))))
+                nil nil ((?_ . "w")) nil
+                (font-lock-syntactic-face-function
+                 . cperl-font-lock-syntactic-face-function)))
   ;; Reset syntaxification cache.
   (setq-local cperl-syntax-state nil)
   (when cperl-use-syntax-table-text-property
@@ -3147,26 +3149,29 @@ Returns true if comment is found.  In POD will not move the point."
     (while (re-search-forward "^\\s(" e 'to-end)
       (put-text-property (1- (point)) (point) 'syntax-table cperl-st-punct))))
 
-(defun cperl-commentify (bb e string &optional noface)
-  (if cperl-use-syntax-table-text-property
-      (if (eq noface 'n)		; Only immediate
-	  nil
-	;; We suppose that e is _after_ the end of construction, as after eol.
-	(setq string (if string cperl-st-sfence cperl-st-cfence))
-	(if (> bb (- e 2))
+(defun cperl-commentify (begin end string)
+  "Marks text from BEGIN to END as generic string or comment.
+Marks as generic string if STRING, as generic comment otherwise.
+A single character is marked as punctuation and directly
+fontified.  Does nothing if BEGIN and END are equal.  If
+`cperl-use-syntax-text-property' is nil, just fontifies."
+  (if (and cperl-use-syntax-table-text-property
+           (> end begin))
+      (progn
+        (setq string (if string cperl-st-sfence cperl-st-cfence))
+        (if (> begin (- end 2))
 	    ;; one-char string/comment?!
-	    (cperl-modify-syntax-type bb cperl-st-punct)
-	  (cperl-modify-syntax-type bb string)
-	  (cperl-modify-syntax-type (1- e) string))
-	(if (and (eq string cperl-st-sfence) (> (- e 2) bb))
-	    (put-text-property (1+ bb) (1- e)
+	    (cperl-modify-syntax-type begin cperl-st-punct)
+          (cperl-modify-syntax-type begin string)
+          (cperl-modify-syntax-type (1- end) string))
+        (if (and (eq string cperl-st-sfence) (> (- end 2) begin))
+	    (put-text-property (1+ begin) (1- end)
 			       'syntax-table cperl-string-syntax-table))
-	(cperl-protect-defun-start bb e))
+        (cperl-protect-defun-start begin end))
     ;; Fontify
-    (or noface
-	(not cperl-pod-here-fontify)
-	(put-text-property bb e 'face (if string 'font-lock-string-face
-					'font-lock-comment-face)))))
+    (when cperl-pod-here-fontify
+      (put-text-property begin end 'face (if string 'font-lock-string-face
+				           'font-lock-comment-face)))))
 
 (defvar cperl-starters '(( ?\( . ?\) )
 			 ( ?\[ . ?\] )
@@ -3510,19 +3515,191 @@ Should be called with the point before leading colon of an attribute."
     (goto-char endbracket)		; just in case something misbehaves???
     t))
 
+(defvar cperl-here-doc-functions
+  (regexp-opt '("print" "printf" "say"  ; print $handle <<EOF
+                "system" "exec"         ; system $progname <<EOF
+                "sort")                 ; sort $subname <<EOF
+              'symbols)                 ; avoid false positives
+  "After these keywords `$var <<bareword' is a here-document.
+After any other tokens it is treated as the variable `$var',
+left-shifted by the return value of the function `bareword'.")
+
+(defun cperl-is-here-doc-p (start)
+  "Find out whether a \"<<\" construct starting at START is a here-document.
+The point is expected to be after the end of the delimiter.
+Quoted delimiters after \"<<\" are unambiguously starting
+here-documents and are not handled here.  This function does not
+move point but changes match data."
+  ;; not a here-doc | here-doc
+  ;; $foo << b;     | $f .= <<B;
+  ;; ($f+1) << b;   | a($f) . <<B;
+  ;; foo 1, <<B;    | $x{a} <<b;
+  ;; Limitations:
+  ;; foo <<bar is statically undecidable. It could be either
+  ;; foo() << bar # left shifting the return value or
+  ;; foo(<<bar)   # passing a here-doc to foo().
+  ;; We treat it as here-document and kindly ask programmers to
+  ;; disambiguate by adding parens.
+  (null
+   (or (looking-at "[ \t]*(") ; << function_call()
+       (looking-at ">>")      ; <<>> operator
+       (save-excursion ; 1 << func_name, or $foo << 10
+	 (condition-case nil
+	     (progn
+	       (goto-char start)
+	       (forward-sexp -1) ;; examine the part before "<<"
+	       (save-match-data
+		 (cond
+		  ((looking-at "[0-9$({]")
+		   (forward-sexp 1)
+		   (and
+		    (looking-at "[ \t]*<<")
+		    (condition-case nil
+			;; print $foo <<EOF
+			(progn
+			  (forward-sexp -2)
+			  (not
+			   (looking-at cperl-here-doc-functions)))
+		      (error t)))))))
+	   (error nil)))))) ; func(<<EOF)
+
+(defun cperl-process-here-doc (min max end overshoot stop-point
+                                   end-of-here-doc err-l
+                                   indented-here-doc-p
+                                   matched-pos todo-pos
+                                   delim-begin delim-end)
+  "Process a here-document's delimiters and body.
+The parameters MIN, MAX, END, OVERSHOOT, STOP-POINT, ERR-L are
+used for recursive calls to `cperl-find-pods-here' to handle the
+rest of the line which contains the delimiter.  MATCHED-POS and
+TODO-POS are initial values for this function's result.
+END-OF-HERE-DOC is the end of a previous here-doc in the same
+line, or nil if this is the first.  DELIM-BEGIN and DELIM-END are
+the positions where the here-document's delimiter has been found.
+This is part of `cperl-find-pods-heres' (below)."
+  (let* ((my-cperl-delimiters-face font-lock-constant-face)
+         (delimiter (buffer-substring-no-properties delim-begin delim-end))
+         (qtag (regexp-quote delimiter))
+         (use-syntax-state (and cperl-syntax-state
+			        (>= min (car cperl-syntax-state))))
+         (state-point (if use-syntax-state
+			  (car cperl-syntax-state)
+		        (point-min)))
+         (state (if use-syntax-state
+		    (cdr cperl-syntax-state)))
+         here-doc-start here-doc-end defs-eol
+         warning-message)
+    (when cperl-pod-here-fontify
+      ;; Highlight the starting delimiter
+      (cperl-postpone-fontification delim-begin delim-end
+                                    'face my-cperl-delimiters-face)
+      (cperl-put-do-not-fontify delim-begin delim-end t))
+    (forward-line)
+    (setq here-doc-start (point) ; first char of (first) here-doc
+          defs-eol (1- here-doc-start)) ; end of definitions line
+    (if end-of-here-doc
+        ;; skip to the end of the previous here-doc
+	(goto-char end-of-here-doc)
+      ;; otherwise treat the first (or only) here-doc: Check for
+      ;; special cases if the line containing the delimiter(s)
+      ;; ends in a regular comment or a solitary ?#
+      (let* ((eol-state (save-excursion (syntax-ppss defs-eol))))
+        (when (nth 4 eol-state) ; EOL is in a comment
+          (if (= (1- defs-eol) (nth 8 eol-state))
+              ;; line ends with a naked comment starter.
+              ;; We let it start the here-doc.
+              (progn
+                (put-text-property (1- defs-eol) defs-eol
+                                   'font-lock-face
+                                   'font-lock-comment-face)
+                (put-text-property (1- defs-eol) defs-eol
+                                   'syntax-type 'here-doc)
+                (put-text-property (1- defs-eol) defs-eol
+                                   'syntax-type 'here-doc)
+                (put-text-property (1- defs-eol) defs-eol
+                                   'syntax-table
+                                   (string-to-syntax "< c"))
+                )
+            ;; line ends with a "regular" comment: make
+            ;; the last character of the comment closing
+            ;; it so that we can use the line feed to
+            ;; start the here-doc
+            (put-text-property (1- defs-eol) defs-eol
+                               'syntax-table
+                               (string-to-syntax ">"))))))
+    (setq here-doc-start (point)) ; now points to current here-doc
+    ;; Find the terminating delimiter.
+    ;; We do not search to max, since we may be called from
+    ;; some hook of fontification, and max is random
+    (or (re-search-forward
+	 (concat "^" (when indented-here-doc-p "[ \t]*")
+		 qtag "$")
+	 stop-point 'toend)
+	(progn		; Pretend we matched at the end
+	  (goto-char (point-max))
+	  (re-search-forward "\\'")
+	  (setq warning-message
+                (format "End of here-document `%s' not found." delimiter))
+	  (or (car err-l) (setcar err-l here-doc-start))))
+    (when cperl-pod-here-fontify
+      ;; Highlight the ending delimiter
+      (cperl-postpone-fontification
+       (match-beginning 0) (match-end 0)
+       'face my-cperl-delimiters-face)
+      (cperl-put-do-not-fontify here-doc-start (match-end 0) t))
+    (setq here-doc-end (cperl-1+ (match-end 0))) ; eol after delim
+    (put-text-property here-doc-start (match-beginning 0)
+		       'syntax-type 'here-doc)
+    (put-text-property (match-beginning 0) here-doc-end
+		       'syntax-type 'here-doc-delim)
+    (put-text-property here-doc-start here-doc-end 'here-doc-group t)
+    ;; This makes insertion at the start of HERE-DOC update
+    ;; the whole construct:
+    (put-text-property here-doc-start (cperl-1+ here-doc-start) 'front-sticky '(syntax-type))
+    (cperl-commentify (match-beginning 0) (1- here-doc-end) nil)
+    (when (> (match-beginning 0) here-doc-start)
+      ;; here-document has non-zero length
+      (cperl-modify-syntax-type (1- here-doc-start) (string-to-syntax "< c"))
+      (cperl-modify-syntax-type (1- (match-beginning 0))
+                                (string-to-syntax "> c")))
+    (cperl-put-do-not-fontify here-doc-start (match-end 0) t)
+    ;; Cache the syntax info...
+    (setq cperl-syntax-state (cons state-point state))
+    ;; ... and process the rest of the line...
+    (setq overshoot
+	  (elt		; non-inter ignore-max
+	   (cperl-find-pods-heres todo-pos defs-eol
+                                  t end t here-doc-end)
+           1))
+    (if (and overshoot (> overshoot (point)))
+	(goto-char overshoot)
+      (setq overshoot here-doc-end))
+    (list (if (> here-doc-end max) matched-pos nil)
+          overshoot
+          warning-message)))
+
 ;; Debugging this may require (setq max-specpdl-size 2000)...
 (defun cperl-find-pods-heres (&optional min max non-inter end ignore-max end-of-here-doc)
   "Scans the buffer for hard-to-parse Perl constructions.
-If `cperl-pod-here-fontify' is not-nil after evaluation, will fontify
-the sections using `cperl-pod-head-face', `cperl-pod-face',
-`cperl-here-face'."
+If `cperl-pod-here-fontify' is not-nil after evaluation, will
+fontify the sections using `cperl-pod-head-face',
+`cperl-pod-face', `cperl-here-face'.  The optional parameters are
+for internal use: Scans from MIN to MAX, or the whole buffer if
+these are nil.  If NON-INTER, does't write progress messages.  If
+IGNORE-MAX, scans to end of buffer.  If END, we are after a
+\"__END__\" or \"__DATA__\" token and ignore unbalanced
+constructs.  END-OF-HERE-DOC points to the end of a here-document
+which has already been processed.  Returns a two-element list of
+the position where an error occurred (if any) and the
+\"overshoot\", which is used for recursive calls in starting
+lines of here-documents."
   (interactive)
   (or min (setq min (point-min)
 		cperl-syntax-state nil
 		cperl-syntax-done-to min))
   (or max (setq max (point-max)))
-  (let* ((cperl-pod-here-fontify (eval cperl-pod-here-fontify)) go tmpend
-	 face head-face here-face b e bb tag qtag b1 e1 argument i c tail tb
+  (let* (go tmpend
+	 face head-face b e bb tag qtag b1 e1 argument i c tail tb
 	 is-REx is-x-REx REx-subgr-start REx-subgr-end was-subgr i2 hairy-RE
 	 (case-fold-search nil) (inhibit-read-only t) (buffer-undo-list t)
 	 (modified (buffer-modified-p)) overshoot is-o-REx name
@@ -3619,20 +3796,20 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	    (and cperl-pod-here-fontify
 		 ;; We had evals here, do not know why...
 		 (setq face cperl-pod-face
-		       head-face cperl-pod-head-face
-		       here-face cperl-here-face))
-	    (remove-text-properties min max
-				    '(syntax-type t in-pod t syntax-table t
-						  attrib-group t
-						  REx-interpolated t
-						  cperl-postpone t
-						  syntax-subtype t
-						  rear-nonsticky t
-						  front-sticky t
-						  here-doc-group t
-						  first-format-line t
-						  REx-part2 t
-						  indentable t))
+		       head-face cperl-pod-head-face))
+            (unless end-of-here-doc
+	      (remove-text-properties min max
+				      '(syntax-type t in-pod t syntax-table t
+						    attrib-group t
+						    REx-interpolated t
+						    cperl-postpone t
+						    syntax-subtype t
+						    rear-nonsticky t
+						    front-sticky t
+						    here-doc-group t
+						    first-format-line t
+						    REx-part2 t
+						    indentable t)))
 	    ;; Need to remove face as well...
 	    (goto-char min)
 	    (while (and
@@ -3751,120 +3928,36 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	       ;; but multiline quote on the same line as <<HERE confuses us...
                ;; ;; One extra () before this:
 	       ;;"<<"
-	       ;;  "\\("			; 1 + 1
+	       ;;  "<<\\(~?\\)"		 ; HERE-DOC, indented-p = capture 2
 	       ;;  ;; First variant "BLAH" or just ``.
 	       ;;     "[ \t]*"			; Yes, whitespace is allowed!
-	       ;;     "\\([\"'`]\\)"	; 2 + 1
-	       ;;     "\\([^\"'`\n]*\\)"	; 3 + 1
-	       ;;     "\\3"
+	       ;;     "\\([\"'`]\\)"	; 3 + 1
+	       ;;     "\\([^\"'`\n]*\\)"	; 4 + 1
+	       ;;     "\\4"
 	       ;;  "\\|"
 	       ;;  ;; Second variant: Identifier or \ID or empty
-	       ;;    "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)?\\)" ; 4 + 1, 5 + 1
+	       ;;    "\\\\?\\(\\([a-zA-Z_][a-zA-Z_0-9]*\\)?\\)" ; 5 + 1, 6 + 1
 	       ;;    ;; Do not have <<= or << 30 or <<30 or << $blah.
 	       ;;    ;; "\\([^= \t0-9$@%&]\\|[ \t]+[^ \t\n0-9$@%&]\\)" ; 6 + 1
-	       ;;    "\\(\\)"		; To preserve count of pars :-( 6 + 1
 	       ;;  "\\)"
-	       ((match-beginning 3)	; 2 + 1: found "<<", detect its type
-		(setq b (point)
-		      tb (match-beginning 0)
-		      c (and		; not HERE-DOC
-			 (match-beginning 6)
-			 (save-match-data
-			   (or (looking-at "[ \t]*(") ; << function_call()
-			       (looking-at ">>")      ; <<>> operator
-			       (save-excursion ; 1 << func_name, or $foo << 10
-				 (condition-case nil
-				     (progn
-				       (goto-char tb)
-	       ;;; XXX What to do: foo <<bar ???
-	       ;;; XXX Need to support print {a} <<B ???
-				       (forward-sexp -1)
-				       (save-match-data
-					; $foo << b; $f .= <<B;
-					; ($f+1) << b; a($f) . <<B;
-					; foo 1, <<B; $x{a} <<b;
-					 (cond
-					  ((looking-at "[0-9$({]")
-					   (forward-sexp 1)
-					   (and
-					    (looking-at "[ \t]*<<")
-					    (condition-case nil
-						;; print $foo <<EOF
-						(progn
-						  (forward-sexp -2)
-						  (not
-						   (looking-at "\\(printf?\\|say\\|system\\|exec\\|sort\\)\\>")))
-						(error t)))))))
-				   (error nil))) ; func(<<EOF)
-			       (and (not (match-beginning 7)) ; Empty
-				    (looking-at
-				     "[ \t]*[=0-9$@%&(]"))))))
-		(if c			; Not here-doc
-		    nil			; Skip it.
-		  (setq c (match-end 3)) ; 2 + 1
-		  (if (match-beginning 6) ;6 + 1
-		      (setq b1 (match-beginning 6) ; 5 + 1
-			    e1 (match-end 6)) ; 5 + 1
-		    (setq b1 (match-beginning 5) ; 4 + 1
-			  e1 (match-end 5))) ; 4 + 1
-		  (setq tag (buffer-substring b1 e1)
-			qtag (regexp-quote tag))
-		  (cond (cperl-pod-here-fontify
-			 ;; Highlight the starting delimiter
-			 (cperl-postpone-fontification
-			  b1 e1 'face my-cperl-delimiters-face)
-			 (cperl-put-do-not-fontify b1 e1 t)))
-		  (forward-line)
-		  (setq i (point))
-		  (if end-of-here-doc
-		      (goto-char end-of-here-doc))
-		  (setq b (point))
-		  ;; We do not search to max, since we may be called from
-		  ;; some hook of fontification, and max is random
-		  (or (and (re-search-forward
-			    (concat "^" (when (equal (match-string 2) "~") "[ \t]*")
-				    qtag "$")
-			    stop-point 'toend)
-			   ;;;(eq (following-char) ?\n) ; XXXX WHY???
-			   )
-		    (progn		; Pretend we matched at the end
-		      (goto-char (point-max))
-		      (re-search-forward "\\'")
-		      (setq warning-message
-                            (format "End of here-document `%s' not found." tag))
-		      (or (car err-l) (setcar err-l b))))
-		  (if cperl-pod-here-fontify
-		      (progn
-			;; Highlight the ending delimiter
-			(cperl-postpone-fontification
-			 (match-beginning 0) (match-end 0)
-			 'face my-cperl-delimiters-face)
-			(cperl-put-do-not-fontify b (match-end 0) t)
-			;; Highlight the HERE-DOC
-			(cperl-postpone-fontification b (match-beginning 0)
-						      'face here-face)))
-		  (setq e1 (cperl-1+ (match-end 0)))
-		  (put-text-property b (match-beginning 0)
-				     'syntax-type 'here-doc)
-		  (put-text-property (match-beginning 0) e1
-				     'syntax-type 'here-doc-delim)
-		  (put-text-property b e1 'here-doc-group t)
-		  ;; This makes insertion at the start of HERE-DOC update
-		  ;; the whole construct:
-		  (put-text-property b (cperl-1+ b) 'front-sticky '(syntax-type))
-		  (cperl-commentify b e1 nil)
-		  (cperl-put-do-not-fontify b (match-end 0) t)
-		  ;; Cache the syntax info...
-		  (setq cperl-syntax-state (cons state-point state))
-		  ;; ... and process the rest of the line...
-		  (setq overshoot
-			(elt		; non-inter ignore-max
-			 (cperl-find-pods-heres c i t end t e1) 1))
-		  (if (and overshoot (> overshoot (point)))
-		      (goto-char overshoot)
-		    (setq overshoot e1))
-		  (if (> e1 max)
-		      (setq tmpend tb))))
+               ((match-beginning 3)     ; 2 + 1: found "<<", detect its type
+                (let* ((matched-pos (match-beginning 0))
+                       (quoted-delim-p (if (match-beginning 6) nil t))
+                       (delim-capture (if quoted-delim-p 5 6)))
+                  (when (cperl-is-here-doc-p matched-pos)
+                    (let ((here-doc-results
+                           (cperl-process-here-doc
+                            min max end overshoot stop-point ; for recursion
+                            end-of-here-doc err-l            ; for recursion
+                            (equal (match-string 2) "~")     ; indented here-doc?
+                            matched-pos                      ; for recovery (?)
+                            (match-end 3)                    ; todo from here
+                            (match-beginning delim-capture)  ; starting delimiter
+                            (match-end delim-capture))))     ;   boundaries
+                      (setq tmpend (nth 0 here-doc-results)
+                            overshoot (nth 1 here-doc-results))
+                      (and (nth 2 here-doc-results)
+                           (setq warning-message (nth 2 here-doc-results)))))))
 	       ;; format
 	       ((match-beginning 8)
 		;; 1+6=7 extra () before this:
@@ -5457,6 +5550,18 @@ comment, or POD."
 (defun cperl-load-font-lock-keywords-2 ()
   (or cperl-faces-init (cperl-init-faces))
   cperl-font-lock-keywords-2)
+
+(defun cperl-font-lock-syntactic-face-function (state)
+  "Apply faces according to their syntax type.  In CPerl mode, this
+is used for here-documents which have been marked as c-style
+comments.  For everything else, delegate to the default
+function."
+  (cond
+   ;; A c-style comment is a HERE-document.  Fontify if requested.
+   ((and (eq 2 (nth 7 state))
+         cperl-pod-here-fontify)
+    cperl-here-face)
+   (t (funcall (default-value 'font-lock-syntactic-face-function) state))))
 
 (defun cperl-init-faces ()
   (condition-case errs
