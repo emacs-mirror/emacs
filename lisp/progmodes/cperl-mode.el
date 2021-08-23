@@ -3150,11 +3150,11 @@ Returns true if comment is found.  In POD will not move the point."
       (put-text-property (1- (point)) (point) 'syntax-table cperl-st-punct))))
 
 (defun cperl-commentify (begin end string)
-  "Marks text from BEGIN to END as generic string or comment.
-Marks as generic string if STRING, as generic comment otherwise.
+  "Mark text from BEGIN to END as generic string or comment.
+Mark as generic string if STRING, as generic comment otherwise.
 A single character is marked as punctuation and directly
-fontified.  Does nothing if BEGIN and END are equal.  If
-`cperl-use-syntax-text-property' is nil, just fontifies."
+fontified.  Do nothing if BEGIN and END are equal.  If
+`cperl-use-syntax-text-property' is nil, just fontify."
   (if (and cperl-use-syntax-table-text-property
            (> end begin))
       (progn
@@ -3520,8 +3520,8 @@ Should be called with the point before leading colon of an attribute."
                 "system" "exec"         ; system $progname <<EOF
                 "sort")                 ; sort $subname <<EOF
               'symbols)                 ; avoid false positives
-  "After these keywords `$var <<bareword' is a here-document.
-After any other tokens it is treated as the variable `$var',
+  "List of keywords after which `$var <<bareword' is a here-document.
+After any other token `$var <<bareword' is treated as the variable `$var'
 left-shifted by the return value of the function `bareword'.")
 
 (defun cperl-is-here-doc-p (start)
@@ -3529,13 +3529,13 @@ left-shifted by the return value of the function `bareword'.")
 The point is expected to be after the end of the delimiter.
 Quoted delimiters after \"<<\" are unambiguously starting
 here-documents and are not handled here.  This function does not
-move point but changes match data."
+move point but does change match data."
   ;; not a here-doc | here-doc
   ;; $foo << b;     | $f .= <<B;
   ;; ($f+1) << b;   | a($f) . <<B;
   ;; foo 1, <<B;    | $x{a} <<b;
   ;; Limitations:
-  ;; foo <<bar is statically undecidable. It could be either
+  ;; foo <<bar is statically undecidable.  It could be either
   ;; foo() << bar # left shifting the return value or
   ;; foo(<<bar)   # passing a here-doc to foo().
   ;; We treat it as here-document and kindly ask programmers to
@@ -3680,19 +3680,19 @@ This is part of `cperl-find-pods-heres' (below)."
 
 ;; Debugging this may require (setq max-specpdl-size 2000)...
 (defun cperl-find-pods-heres (&optional min max non-inter end ignore-max end-of-here-doc)
-  "Scans the buffer for hard-to-parse Perl constructions.
-If `cperl-pod-here-fontify' is not-nil after evaluation, will
+  "Scan the buffer for hard-to-parse Perl constructions.
+If `cperl-pod-here-fontify' is non-nil after evaluation,
 fontify the sections using `cperl-pod-head-face',
 `cperl-pod-face', `cperl-here-face'.  The optional parameters are
-for internal use: Scans from MIN to MAX, or the whole buffer if
-these are nil.  If NON-INTER, does't write progress messages.  If
-IGNORE-MAX, scans to end of buffer.  If END, we are after a
-\"__END__\" or \"__DATA__\" token and ignore unbalanced
+for internal use: scan from MIN to MAX, or the whole buffer if
+these are nil.  If NON-INTER, don't write progress messages.  If
+IGNORE-MAX, scan to end of buffer.  If END, we are after a
+\"__END__\" or \"__DATA__\" token, so ignore unbalanced
 constructs.  END-OF-HERE-DOC points to the end of a here-document
-which has already been processed.  Returns a two-element list of
-the position where an error occurred (if any) and the
-\"overshoot\", which is used for recursive calls in starting
-lines of here-documents."
+which has already been processed.
+Value is a two-element list of the position where an error
+occurred (if any) and the \"overshoot\", which is used for
+recursive calls in starting lines of here-documents."
   (interactive)
   (or min (setq min (point-min)
 		cperl-syntax-state nil
