@@ -4101,9 +4101,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	    (coding (plist-get args :coding))
 	    (noquery (plist-get args :noquery))
 	    (connection-type
-	     (if (plist-member args :connection-type)
-		 (plist-get args :connection-type)
-	       tramp-process-connection-type))
+	     (or (plist-get args :connection-type) process-connection-type))
 	    (filter (plist-get args :filter))
 	    (sentinel (plist-get args :sentinel))
 	    (stderr (plist-get args :stderr)))
@@ -4119,7 +4117,9 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 			 (memq (car coding) coding-system-list)
 			 (memq (cdr coding) coding-system-list)))
 	  (signal 'wrong-type-argument (list #'symbolp coding)))
-	(unless (memq connection-type '(nil pipe t pty))
+	(when (eq connection-type t)
+	  (setq connection-type 'pty))
+	(unless (memq connection-type '(nil pipe pty))
 	  (signal 'wrong-type-argument (list #'symbolp connection-type)))
 	(unless (or (null filter) (functionp filter))
 	  (signal 'wrong-type-argument (list #'functionp filter)))
@@ -4702,13 +4702,15 @@ Wait, until the connection buffer changes."
     (let ((stimers (with-timeout-suspend))
 	  (cursor-in-echo-area t)
 	  set-message-function clear-message-function)
+      ;; Silence byte compiler.
+      (ignore set-message-function clear-message-function)
       (tramp-message vec 6 "\n%s" (buffer-string))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
       (with-temp-message (replace-regexp-in-string "[\r\n]" "" (match-string 0))
 	;; Hide message in buffer.
 	(narrow-to-region (point-max) (point-max))
 	;; Wait for new output.
-	(while (not (ignore-error 'file-error
+	(while (not (tramp-compat-ignore-error 'file-error
 		      (tramp-wait-for-regexp
 		       proc 0.1 tramp-security-key-confirmed-regexp)))
 	  (when (tramp-check-for-regexp proc tramp-security-key-timeout-regexp)

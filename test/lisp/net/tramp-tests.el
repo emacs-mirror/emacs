@@ -4577,16 +4577,50 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
+      ;; Process connection type.
+      (when (and (tramp--test-sh-p)
+		 ;; `executable-find' has changed the number of
+		 ;; parameters in Emacs 27.1, so we use `apply' for
+		 ;; older Emacsen.
+		 (ignore-errors
+		   (with-no-warnings
+		     (apply #'executable-find '("hexdump" remote)))))
+	(dolist (process-connection-type '(nil pipe t pty))
+	  (unwind-protect
+	      (with-temp-buffer
+		(setq proc
+		      (start-file-process
+		       (format "test4-%s" process-connection-type)
+		       (current-buffer) "hexdump" "-v" "-e" "/1 \"%02X\n\""))
+		(should (processp proc))
+		(should (equal (process-status proc) 'run))
+		(process-send-string proc "foo\r\n")
+		(process-send-eof proc)
+		;; Read output.
+		(with-timeout (10 (tramp--test-timeout-handler))
+		  (while (< (- (point-max) (point-min))
+			    (length "66\n6F\n6F\n0D\n0A\n"))
+		    (while (accept-process-output proc 0 nil t))))
+		(should
+		 (string-match-p
+		  (if (memq process-connection-type '(nil pipe))
+		      "66\n6F\n6F\n0D\n0A\n"
+		    "66\n6F\n6F\n0A\n0A\n")
+		  (buffer-string))))
+
+	    ;; Cleanup.
+	    (ignore-errors (delete-process proc)))))
+
       ;; PTY.
       (unwind-protect
 	  (with-temp-buffer
 	    ;; It works only for tramp-sh.el, and not direct async processes.
 	    (if (or (not (tramp--test-sh-p)) (tramp-direct-async-process-p))
 		(should-error
-		 (start-file-process "test4" (current-buffer) nil)
+		 (start-file-process "test5" (current-buffer) nil)
 		 :type 'wrong-type-argument)
 
-	      (setq proc (start-file-process "test4" (current-buffer) nil))
+	      (setq proc (start-file-process "test5" (current-buffer) nil))
 	      (should (processp proc))
 	      (should (equal (process-status proc) 'run))
 	      ;; On MS Windows, `process-tty-name' returns nil.
@@ -4802,34 +4836,41 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		   (with-no-warnings
 		     (apply #'executable-find '("hexdump" remote)))))
 	(dolist (connection-type '(nil pipe t pty))
-	  (unwind-protect
-	      (with-temp-buffer
-		(setq proc
-		      (with-no-warnings
-			(make-process
-			 :name (format "test7-%s" connection-type)
-			 :buffer (current-buffer)
-			 :connection-type connection-type
-			 :command '("hexdump" "-v" "-e" "/1 \"%02X\n\"")
-			 :file-handler t)))
-		(should (processp proc))
-		(should (equal (process-status proc) 'run))
-		(process-send-string proc "foo\r\n")
-		(process-send-eof proc)
-		;; Read output.
-		(with-timeout (10 (tramp--test-timeout-handler))
-		  (while (< (- (point-max) (point-min))
-			    (length "66\n6F\n6F\n0D\n0A\n"))
-		    (while (accept-process-output proc 0 nil t))))
-		(should
-		 (string-match-p
-		  (if (memq connection-type '(nil pipe))
-		      "66\n6F\n6F\n0D\n0A\n"
-		    "66\n6F\n6F\n0A\n0A\n")
-		  (buffer-string))))
+	  ;; `process-connection-type' is taken when
+	  ;; `:connection-type' is nil.
+	  (dolist (process-connection-type
+		   (unless connection-type '(nil pipe t pty)))
+	    (unwind-protect
+		(with-temp-buffer
+		  (setq proc
+			(with-no-warnings
+			  (make-process
+			   :name
+			   (format "test7-%s-%s"
+				   connection-type process-connection-type)
+			   :buffer (current-buffer)
+			   :connection-type connection-type
+			   :command '("hexdump" "-v" "-e" "/1 \"%02X\n\"")
+			   :file-handler t)))
+		  (should (processp proc))
+		  (should (equal (process-status proc) 'run))
+		  (process-send-string proc "foo\r\n")
+		  (process-send-eof proc)
+		  ;; Read output.
+		  (with-timeout (10 (tramp--test-timeout-handler))
+		    (while (< (- (point-max) (point-min))
+			      (length "66\n6F\n6F\n0D\n0A\n"))
+		      (while (accept-process-output proc 0 nil t))))
+		  (should
+		   (string-match-p
+		    (if (memq (or connection-type process-connection-type)
+			      '(nil pipe))
+			"66\n6F\n6F\n0D\n0A\n"
+		      "66\n6F\n6F\n0A\n0A\n")
+		    (buffer-string))))
 
-	    ;; Cleanup.
-	    (ignore-errors (delete-process proc))))))))
+	      ;; Cleanup.
+	      (ignore-errors (delete-process proc)))))))))
 
 (tramp--test--deftest-direct-async-process tramp-test30-make-process
   "Check direct async `make-process'.")
