@@ -657,19 +657,18 @@ If it's on, just add the vertical display."
 (define-minor-mode icomplete-in-buffer-mode
   "If non-nil, use Icomplete for `completion-in-region'."
   :global t :group 'icomplete
-  (remove-hook 'completion-in-region-mode-hook #'icomplete--in-region-setup)
-  (remove-function completion-in-region-function #'icomplete--in-region)
+  (remove-hook 'completion-in-region-mode-hook #'icomplete--in-buffer-setup)
+  (remove-function completion-in-region-function #'icomplete--in-buffer)
   (when icomplete-in-buffer-mode
-    (add-function :override completion-in-region-function #'icomplete--in-region)
-    (add-hook 'completion-in-region-mode-hook #'icomplete--in-region-setup)))
+    (add-function :override completion-in-region-function #'icomplete--in-buffer)
+    (add-hook 'completion-in-region-mode-hook #'icomplete--in-buffer-setup)))
 
-(defun icomplete--in-region (start end collection &optional predicate)
+(defun icomplete--in-buffer (start end collection &optional predicate)
   "An Icomplete overrride for `completion-in-region-function'."
   (let ((minibuffer-completion-table collection)
         (minibuffer-completion-predicate predicate)
         (completion-in-region-mode-map
          (let ((map (make-sparse-keymap)))
-           (define-key map (kbd "C-M-i") 'icomplete-in-region-complete)
            (define-key map (kbd "RET") 'icomplete-in-region-complete)
            (define-key map (kbd "cm") 'icomplete-in-region-complete)
            (define-key map (kbd "C-s") 'icomplete-forward-completions)
@@ -692,6 +691,8 @@ If it's on, just add the vertical display."
               ,(current-buffer))
             completion-all-sorted-completions nil)
       (completion-in-region-mode 1))))
+
+(defvar icomplete--in-buffer-exit-message nil)
 
 (defun icomplete-in-region-complete ()
   "Insert currently selected completion into the buffer."
@@ -740,36 +741,39 @@ Alist of (VAR . SAVED-VALUE")
   (cl-loop for (sym . value) in icomplete--saved-vars
            do (set sym value)))
 
-(defun icomplete--in-region-setup ()
+(defun icomplete--in-buffer-setup ()
   "Setup or teardown Icomplete-specific stuff.
 Suitable for `completion-in-region-mode-hook'"
   (cond ((and completion-in-region-mode icomplete-in-buffer-mode)
          (icomplete--setup-vars)
-         (add-hook 'post-command-hook #'icomplete--in-region-update nil t))
+         (add-hook 'post-command-hook #'icomplete--in-buffer-update nil t))
         (t
          (icomplete--restore-vars)
-         (remove-hook 'post-command-hook #'icomplete--in-region-update t))))
+         (remove-hook 'post-command-hook #'icomplete--in-buffer-update t)
+         (message nil))))
 
-(defun icomplete--in-region-update ()
+(defun icomplete--in-buffer-update ()
   "Post command hook while in Icomplete's `completion-in-region-mode'."
   ;; Use this to debug:
-  ;; (condition-case-unless-debug err
-  ;;     ...
-  ;;     ;; Let the debugger run
-  ;;   ((debug error) (signal (car err) (cdr err))))
-  (let* ((str (icomplete--field-string))
-         (text
-          (icomplete-completions
-           str
-           (icomplete--completion-table)
-           (icomplete--completion-predicate)
-           nil))
-         (summary (icomplete--matches-summary))
-         (prompt (concat summary (format "Complete `%s' in region:" str)))
-         (message-log-max nil))
-    (message (string-trim (concat
-                           (propertize prompt 'face 'minibuffer-prompt)
-                           text)))))
+  (condition-case err
+      (when completion-in-region-mode
+        (let* ((str (icomplete--field-string))
+               (text
+                (icomplete-completions
+                 str
+                 (icomplete--completion-table)
+                 (icomplete--completion-predicate)
+                 nil))
+               (summary (icomplete--matches-summary))
+               (prompt (concat summary (format "Complete `%s' in region:" str)))
+               (message-log-max nil))
+          (message "%s"
+                   (string-trim (concat
+                                 (propertize prompt 'face 'minibuffer-prompt)
+                                 text)))))
+    ;; Let the debugger run
+    ((debug error) (signal (car err) (cdr err))))
+  )
 
 
 
