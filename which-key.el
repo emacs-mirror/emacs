@@ -1799,7 +1799,7 @@ non-nil, then bindings are collected recursively for all prefixes."
   (let* ((unformatted
           (cond ((keymapp keymap)
                  (which-key--get-keymap-bindings
-                  keymap prefix filter recursive))
+                  keymap nil prefix filter recursive))
                 (keymap
                  (error "%s is not a keymap" keymap))
                 (t
