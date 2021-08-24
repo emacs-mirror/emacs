@@ -27,6 +27,7 @@
 
 (require 'mh-e)
 
+(autoload 'mail-header-parse-address "mail-parse")
 (autoload 'message-fetch-field "message")
 
 (defvar mh-show-xface-function
@@ -190,11 +191,7 @@ The directories are searched for in the order they appear in the list.")
     (let* ((from-field (ignore-errors (car (message-tokenize-header
                                             (mh-get-header-field "from:")))))
            (from (car (ignore-errors
-                        ;; Don't use mh-funcall-if-exists because
-                        ;; ietf-drums-parse-address might exist at run-time but
-                        ;; not at compile-time.
-                        (when (fboundp 'ietf-drums-parse-address)
-                          (ietf-drums-parse-address from-field)))))
+                        (mail-header-parse-address from-field))))
            (host (and from
                       (string-match "\\([^+]*\\)\\(\\+.*\\)?@\\(.*\\)" from)
                       (downcase (match-string 3 from))))
