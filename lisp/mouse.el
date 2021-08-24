@@ -468,6 +468,7 @@ the same menu with changes such as added new menu items."
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-3] nil)
     (define-key map [down-mouse-3] context-menu-entry)
+    (define-key map [menu] #'context-menu-open)
     (when (featurep 'ns)
       (define-key map [C-mouse-1] nil)
       (define-key map [C-down-mouse-1] context-menu-entry))
