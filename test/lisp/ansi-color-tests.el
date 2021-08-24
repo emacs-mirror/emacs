@@ -25,17 +25,54 @@
 ;;; Code:
 
 (require 'ansi-color)
+(eval-when-compile (require 'cl-lib))
 
-(defvar test-strings '(("\e[33mHello World\e[0m" . "Hello World")
-                       ("\e[1m\e[3m\e[5mbold italics blink\e[0m" . "bold italics blink")))
+(defvar yellow (aref ansi-color-names-vector 3))
+(defvar bright-yellow (aref ansi-bright-color-names-vector 3))
+
+(defvar test-strings
+  `(("\e[33mHello World\e[0m" "Hello World"
+     (foreground-color . ,yellow))
+    ("\e[43mHello World\e[0m" "Hello World"
+     (background-color . ,yellow))
+    ("\e[93mHello World\e[0m" "Hello World"
+     (foreground-color . ,bright-yellow))
+    ("\e[103mHello World\e[0m" "Hello World"
+     (background-color . ,bright-yellow))
+    ("\e[1;33mHello World\e[0m" "Hello World"
+     (bold (foreground-color . ,yellow))
+     (bold (foreground-color . ,bright-yellow)))
+    ("\e[33;1mHello World\e[0m" "Hello World"
+     (bold (foreground-color . ,yellow))
+     (bold (foreground-color . ,bright-yellow)))
+    ("\e[1m\e[33mHello World\e[0m" "Hello World"
+     (bold (foreground-color . ,yellow))
+     (bold (foreground-color . ,bright-yellow)))
+    ("\e[33m\e[1mHello World\e[0m" "Hello World"
+     (bold (foreground-color . ,yellow))
+     (bold (foreground-color . ,bright-yellow)))
+    ("\e[1m\e[3m\e[5mbold italics blink\e[0m" "bold italics blink"
+     (bold italic success))))
 
 (ert-deftest ansi-color-apply-on-region-test ()
-    (dolist (pair test-strings)
-      (with-temp-buffer
-        (insert (car pair))
+  (pcase-dolist (`(,input ,text ,face) test-strings)
+    (with-temp-buffer
+      (insert input)
+      (ansi-color-apply-on-region (point-min) (point-max))
+      (should (equal (buffer-string) text))
+      (should (equal (get-char-property (point-min) 'face) face))
+      (should (not (equal (overlays-at (point-min)) nil))))))
+
+(ert-deftest ansi-color-apply-on-region-bold-is-bright-test ()
+  (pcase-dolist (`(,input ,text ,face ,bright-face) test-strings)
+    (with-temp-buffer
+      (let ((ansi-color-bold-is-bright t))
+        (insert input)
         (ansi-color-apply-on-region (point-min) (point-max))
-        (should (equal (buffer-string) (cdr pair)))
-        (should (not (equal (overlays-at (point-min)) nil))))))
+        (should (equal (buffer-string) text))
+        (should (equal (get-char-property (point-min) 'face)
+                       (or bright-face face)))
+        (should (not (equal (overlays-at (point-min)) nil)))))))
 
 (ert-deftest ansi-color-apply-on-region-preserving-test ()
     (dolist (pair test-strings)
