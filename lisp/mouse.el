@@ -293,6 +293,7 @@ the same menu with changes such as added new menu items."
                   (function-item context-menu-global)
                   (function-item context-menu-local)
                   (function-item context-menu-minor)
+                  (function-item context-menu-buffers)
                   (function-item context-menu-vc)
                   (function-item context-menu-ffap)
                   (function :tag "Custom function")))
@@ -360,6 +361,17 @@ the same menu with changes such as added new menu items."
                       (define-key-after menu (vector key)
                         (copy-sequence binding))))
                   (cdr mode))))
+  menu)
+
+(defun context-menu-buffers (menu)
+  "Submenus with buffers."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-buffers] menu-bar-separator)
+  (map-keymap (lambda (key binding)
+                (when (consp binding)
+                  (define-key-after menu (vector key)
+                    (copy-sequence binding))))
+              (mouse-buffer-menu-keymap))
   menu)
 
 (defun context-menu-vc (menu)
