@@ -2370,6 +2370,13 @@ based on the current window size.  In previous versions of Emacs, this
 was always done (and that could lead to odd displays when resizing the
 window after starting).  This variable defaults to nil.
 
+---
+*** 'term-mode' now supports "bright" color codes.
+"Bright" ANSI color codes are now displayed using the color values
+defined in 'term-color-bright-*'.  In addition, bold text with regular
+ANSI colors can be displayed as "bright" if 'ansi-color-bold-is-bright'
+is non-nil.
+
 ** Widget
 
 +++
