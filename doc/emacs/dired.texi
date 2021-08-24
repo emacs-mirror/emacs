@@ -823,7 +823,9 @@ link.
 Change the mode (also called @dfn{permission bits}) of the specified
 files (@code{dired-do-chmod}).  @var{modespec} can be in octal or
 symbolic notation, like arguments handled by the @command{chmod}
-program.
+program.  This command does not follow symbolic links, so it reports
+an error if you try to change the mode of a symbolic link on a
+platform where such modes are immutable.
 
 @findex dired-do-chgrp
 @kindex G @r{(Dired)}

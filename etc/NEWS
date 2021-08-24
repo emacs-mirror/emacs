@@ -909,6 +909,12 @@ time zones will use a form like "+0100" instead of "CET".
 If non-nil, Dired will kill the current buffer when selecting a new
 directory to display.
 
++++
+*** Behavior change on 'dired-do-chmod'.
+As a security precaution, Dired's M command no longer follows symbolic
+links.  Instead, it changes the symbolic link's own mode; this always
+fails on platforms where such modes are immutable.
+
 ---
 *** Behavior change on 'dired-clean-confirm-killing-deleted-buffers'.
 Previously, if 'dired-clean-up-buffers-too' was non-nil, and
