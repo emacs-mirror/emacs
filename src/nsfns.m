@@ -1343,6 +1343,11 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   f->output_data.ns->in_animation = NO;
 
+#ifdef NS_IMPL_COCOA
+  /* If the app has previously been disabled, start it up again.  */
+  [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+#endif
+
   [[EmacsView alloc] initFrameFromEmacs: f];
 
   ns_icon (f, parms);

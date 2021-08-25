@@ -5014,6 +5014,12 @@ ns_delete_terminal (struct terminal *terminal)
 
   block_input ();
 
+#ifdef NS_IMPL_COCOA
+  /* Rather than try to clean up the NS environment we can just
+     disable the app and leave it waiting for any new frames.  */
+  [NSApp setActivationPolicy:NSApplicationActivationPolicyProhibited];
+#endif
+
   image_destroy_all_bitmaps (dpyinfo);
   ns_delete_display (dpyinfo);
   unblock_input ();
