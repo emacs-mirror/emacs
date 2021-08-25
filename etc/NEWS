@@ -2432,6 +2432,12 @@ that makes it a valid button.
 *** New variable 'thing-at-point-provider-alist'.
 This allows mode-specific alterations to how 'thing-at-point' works.
 
+---
+*** thingatpt now respects fields.
+'thing-at-point' (and all functions that use it, like
+'symbol-at-point') will narrow to the current field (if any) before
+trying to identify the thing at point.
+
 ** Enriched mode
 
 ---
