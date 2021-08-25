@@ -3845,6 +3845,11 @@ locales.  They are also available as aliases 'ebcdic-cp-*' (e.g.,
 support these coding-systems.
 
 ---
+** New function 'get-locale-names'.
+This utility function returns a list of locale names on the current
+system.
+
+---
 ** 'while-no-input-ignore-events' accepts more special events.
 The special events 'dbus-event' and 'file-notify' are now ignored in
 'while-no-input' when added to this variable.
