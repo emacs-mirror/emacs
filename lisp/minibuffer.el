@@ -3529,7 +3529,8 @@ string in COMPLETIONS.  Return a deep copy of COMPLETIONS where
 each string is propertized with `completion-score', a number
 between 0 and 1, and with faces `completions-common-part',
 `completions-first-difference' in the relevant segments."
-  (when completions
+  (cond
+   ((and completions (cl-loop for e in pattern thereis (stringp e)))
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
            (point-idx (completion-pcm--pattern-point-idx pattern))
            (case-fold-search completion-ignore-case)
@@ -3620,7 +3621,8 @@ between 0 and 1, and with faces `completions-common-part',
               0 1 'completion-score
               (/ score-numerator (* end (1+ score-denominator)) 1.0) str)))
          str)
-       completions))))
+       completions)))
+   (t completions)))
 
 (defun completion-pcm--find-all-completions (string table pred point
                                                     &optional filter)
