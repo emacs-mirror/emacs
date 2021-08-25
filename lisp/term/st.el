@@ -11,8 +11,7 @@
 
 (require 'term/xterm)
 
-(defcustom xterm-st-extra-capabilities '( modifyOtherKeys getSelection
-                                          setSelection)
+(defcustom xterm-st-extra-capabilities '(modifyOtherKeys)
   "Extra capabilities supported under \"stterm\"."
   :version "28.1"
   :type xterm--extra-capabilities-type
