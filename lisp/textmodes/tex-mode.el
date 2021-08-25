@@ -1014,15 +1014,17 @@ says which mode to use."
   (tex-common-initialization))
 
 (advice-add 'tex-mode :around #'tex--redirect-to-submode)
+(defvar tex-mode--recursing nil)
 (defun tex--redirect-to-submode (orig-fun)
   "Redirect to one of the submodes when called directly."
   ;; The file may have "mode: tex" in the local variable
   ;; block, in which case we'll be called recursively
   ;; infinitely.  Inhibit that.
-  (let ((enable-local-variables nil))
-    (funcall (if delay-mode-hooks
+  (let ((tex-mode--recursing tex-mode--recursing))
+    (funcall (if (or delay-mode-hooks tex-mode--recursing)
                  ;; We're called from one of the children already.
                  orig-fun
+               (setq tex-mode--recursing t)
                (tex--guess-mode)))))
 
 ;; The following three autoloaded aliases appear to conflict with
