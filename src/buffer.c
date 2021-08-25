@@ -1798,11 +1798,15 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
     /* Delete the autosave file, if requested. */
     if (modified
-	&& STRINGP (BVAR (b, auto_save_file_name))
-	&& !NILP (Ffile_exists_p (BVAR (b, auto_save_file_name)))
 	&& kill_buffer_delete_auto_save_files
 	&& delete_auto_save_files
-	&& !NILP (Frecent_auto_save_p ()))
+	&& !NILP (Frecent_auto_save_p ())
+	&& STRINGP (BVAR (b, auto_save_file_name))
+	&& !NILP (Ffile_exists_p (BVAR (b, auto_save_file_name)))
+	/* If `auto-save-visited-mode' is on, then we're auto-saving
+	   to the visited file -- don't delete it.. */
+	&& NILP (Fstring_equal (BVAR (b, auto_save_file_name),
+				BVAR (b, filename))))
       {
 	tem = do_yes_or_no_p (build_string ("Delete auto-save file? "));
 	if (!NILP (tem))
