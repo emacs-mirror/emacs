@@ -1255,8 +1255,8 @@ update_frame_tool_bar (struct frame *f)
   NSTRACE ("[EmacsToolbar addDisplayItemWithImage: ...]");
 
   /* 1) come up w/identifier */
-  NSString *identifier
-    = [NSString stringWithFormat: @"%lu", (unsigned long)[img hash]];
+  NSString *identifier = [NSString stringWithFormat: @"%lu%@",
+                                   (unsigned long)[img hash], label];
   [activeIdentifiers addObject: identifier];
 
   /* 2) create / reuse item */
