@@ -481,6 +481,8 @@ changing `tabulated-list-sort-key'."
               (forward-line 1)
               (delete-region old (point))))))
       (setq entries (cdr entries)))
+    (when update
+      (delete-region (point) (point-max)))
     (set-buffer-modified-p nil)
     ;; If REMEMBER-POS was specified, move to the "old" location.
     (if saved-pt
