@@ -350,7 +350,20 @@ Return the pasted text as a string."
     (define-key map "\e[5;3~" [M-prior])
     (define-key map "\e[6;3~" [M-next])
 
-    (define-key map "\e[29~" [print])
+    ;; This escape sequence has a controversial story.
+    ;; It was initially mapped to [print] (initial commit by Karl Heuer),
+    ;; but we can't find any justification for it.
+    ;; Xterm uses this escape sequence for both `F16' and `Menu' keys,
+    ;; and the reason for it is that in the VT220 keyboard the key
+    ;; placed logically at position where `F16' would be (and sending
+    ;; the escape sequence that naturally belongs to `F16') was
+    ;; labeled `Menu'.  [ The story gets even more interesting if you
+    ;; want to dig deeper, e.g. some terminals would send that same
+    ;; escape sequence in response to `S-F4' (because they (ab)used
+    ;; the escape sequence of `F<n+12>' for `S-F<n>').  ]
+    ;; The current binding was chosen because current keyboards almost never
+    ;; have an `F16' key, whereas many do have a `Menu' key.
+    (define-key map "\e[29~" [menu])
 
     (define-key map "\eOj" [kp-multiply])
     (define-key map "\eOk" [kp-add])
