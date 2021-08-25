@@ -1780,6 +1780,7 @@ clickable and will use `browse-url' to open the URLs in question."
                                          category browse-url
                                          browse-url-data ,(match-string 0)))))))
 
+;;;###autoload
 (defun browse-url-button-open (&optional external mouse-event)
   "Follow the link under point using `browse-url'.
 If EXTERNAL (the prefix if used interactively), open with the

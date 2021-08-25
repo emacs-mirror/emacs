@@ -3887,6 +3887,91 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
           ;; don't advance, so ensure forward progress.
 	  (forward-line 1)))
       (nreverse results))))
+
+
+;;; OSC escape sequences (Operating System Commands)
+;;============================================================================
+;; Adding `comint-osc-process-output' to `comint-output-filter-functions'
+;; enables the interpretation of OSC escape sequences.  By default, only
+;; OSC 8, for hyperlinks, is acted upon.  Adding more entries to
+;; `comint-osc-handlers' allows a customized treatment of further sequences.
+
+(defvar-local comint-osc-handlers '(("8" . comint-osc-hyperlink-handler))
+  "Alist of handlers for OSC escape sequences.
+See `comint-osc-process-output' for details.")
+
+(defvar-local comint-osc--marker nil)
+
+(defun comint-osc-process-output (_)
+  "Interpret OSC escape sequences in comint output.
+This function is intended to be added to
+`comint-output-filter-functions' in order to interpret escape
+sequences of the forms
+
+    ESC ] command ; text BEL
+    ESC ] command ; text ESC \\
+
+Specifically, every occurrence of such escape sequences is
+removed from the buffer.  Then, if `command' is a key of the
+`comint-osc-handlers' alist, the corresponding value, which
+should be a function, is called with `command' and `text' as
+arguments, with point where the escape sequence was located."
+  (let ((bound (process-mark (get-buffer-process (current-buffer)))))
+    (save-excursion
+      (goto-char (or comint-osc--marker
+                     (and (markerp comint-last-output-start)
+			  (eq (marker-buffer comint-last-output-start)
+			      (current-buffer))
+			  comint-last-output-start)
+                     (point-min)))
+      (when (eq (char-before) ?\e) (backward-char))
+      (while (re-search-forward "\e]" bound t)
+        (let ((pos0 (match-beginning 0))
+              (code (and (re-search-forward "\\=\\([0-9A-Za-z]*\\);" bound t)
+                         (match-string 1)))
+              (pos1 (point)))
+          (if (re-search-forward "\a\\|\e\\\\" bound t)
+              (let ((text (buffer-substring-no-properties
+                           pos1 (match-beginning 0))))
+                (setq comint-osc--marker nil)
+                (delete-region pos0 (point))
+                (when-let ((fun (cdr (assoc-string code comint-osc-handlers))))
+                  (funcall fun code text)))
+            (put-text-property pos0 bound 'invisible t)
+            (setq comint-osc--marker (copy-marker pos0))))))))
+
+;; Hyperlink handling (OSC 8)
+
+(defvar comint-osc-hyperlink-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\r" 'browse-url-button-open)
+    (define-key map [mouse-2] 'browse-url-button-open)
+    (define-key map [follow-link] 'mouse-face)
+    map)
+  "Keymap used by OSC 8 hyperlink buttons.")
+
+(define-button-type 'comint-osc-hyperlink
+  'keymap comint-osc-hyperlink-map
+  'help-echo (lambda (_ buffer pos)
+               (when-let ((url (get-text-property pos 'browse-url-data buffer)))
+                 (format "mouse-2, C-c RET: Open %s" url))))
+
+(defvar-local comint-osc-hyperlink--state nil)
+
+(defun comint-osc-hyperlink-handler (_ text)
+  "Create a hyperlink from an OSC 8 escape sequence.
+This function is intended to be included as an entry of
+`comint-osc-handlers'."
+  (when comint-osc-hyperlink--state
+    (let ((start (car comint-osc-hyperlink--state))
+          (url (cdr comint-osc-hyperlink--state)))
+      (make-text-button start (point)
+                        'type 'comint-osc-hyperlink
+                        'browse-url-data url)))
+  (setq comint-osc-hyperlink--state
+        (and (string-match ";\\(.+\\)" text)
+             (cons (point-marker) (match-string-no-properties 1 text)))))
+
 
 ;;; Converting process modes to use comint mode
 ;;============================================================================

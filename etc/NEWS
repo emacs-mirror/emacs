@@ -1561,10 +1561,6 @@ If non-nil, 'shell-mode' handles implicit "cd" commands, changing the
 directory if the command is a directory.  Useful for shells like "zsh"
 that has this feature.
 
-+++
-*** 'comint-delete-output' can now save deleted text in the kill-ring.
-Interactively, 'C-u C-c C-o' triggers this new optional behavior.
-
 ** Eshell
 
 ---
@@ -3025,6 +3021,21 @@ default are unaffected.)
 'so-long-mode-preserved-variables' allow specified mode and variable
 states to be maintained if 'so-long-mode' replaces the original major
 mode.  By default, these new options support 'view-mode'.
+
+** Comint
+
++++
+*** Support for OSC escape sequences.
+Adding the new 'comint-osc-process-output' to
+'comint-output-filter-functions' enables the interpretation of OSC
+("Operating System Command") escape sequences in comint buffers.  By
+default, only OSC 8, for hyperlinks, is acted upon.  Adding more
+entries to `comint-osc-handlers' allows a customized treatment of
+further escape sequences.
+
++++
+*** 'comint-delete-output' can now save deleted text in the kill-ring.
+Interactively, 'C-u C-c C-o' triggers this new optional behavior.
 
 
 * New Modes and Packages in Emacs 28.1

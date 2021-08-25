@@ -1113,6 +1113,19 @@ subshell:
 @end example
 @end table
 
+By default, Shell mode handles common @acronym{ANSI} escape codes (for
+instance, for changing the color of text).  Emacs also optionally
+supports some extend escape codes, like some of the @acronym{OSC}
+(Operating System Codes) if you put the following in your init file:
+
+@lisp
+(add-hook 'comint-output-filter-functions 'comint-osc-process-output)
+@end lisp
+
+With this enabled, the output from, for instance, @code{ls
+--hyperlink} will be made into clickable buttons in the Shell mode
+buffer.
+
 @cindex Comint mode
 @cindex mode, Comint
   Shell mode is a derivative of Comint mode, a general-purpose mode for
