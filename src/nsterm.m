@@ -453,14 +453,6 @@ ev_modifiers_helper (unsigned int flags, unsigned int left_mask,
     }
 
 
-/* These flags will be OR'd or XOR'd with the NSWindow's styleMask
-   property depending on what we're doing.  */
-#define FRAME_DECORATED_FLAGS (NSWindowStyleMaskTitled              \
-                               | NSWindowStyleMaskResizable         \
-                               | NSWindowStyleMaskMiniaturizable    \
-                               | NSWindowStyleMaskClosable)
-#define FRAME_UNDECORATED_FLAGS NSWindowStyleMaskBorderless
-
 /* TODO: Get rid of need for these forward declarations.  */
 static void ns_condemn_scroll_bars (struct frame *f);
 static void ns_judge_scroll_bars (struct frame *f);
@@ -8238,10 +8230,17 @@ not_in_argv (NSString *arg)
   if (fullscreen)
     styleMask = NSWindowStyleMaskBorderless;
   else if (FRAME_UNDECORATED (f))
-    styleMask = FRAME_UNDECORATED_FLAGS;
+    {
+      styleMask = NSWindowStyleMaskBorderless;
+#ifdef NS_IMPL_COCOA
+      styleMask |= NSWindowStyleMaskResizable;
+#endif
+    }
   else
-    styleMask = FRAME_DECORATED_FLAGS;
-
+    styleMask = NSWindowStyleMaskTitled
+      | NSWindowStyleMaskResizable
+      | NSWindowStyleMaskMiniaturizable
+      | NSWindowStyleMaskClosable;
 
   self = [super initWithContentRect:
                   NSMakeRect (0, 0,
