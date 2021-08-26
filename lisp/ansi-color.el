@@ -150,48 +150,6 @@ foreground and background colors, respectively."
   :version "24.4" ; default colors copied from `xterm-standard-colors'
   :group 'ansi-colors)
 
-(defcustom ansi-bright-color-names-vector
-  ["gray30" "red2" "green2" "yellow2" "blue1" "magenta2" "cyan2" "white"]
-  "Colors used for SGR control sequences determining a \"bright\" color.
-This vector holds the colors used for SGR control sequences parameters
-90 to 97 (bright foreground colors) and 100 to 107 (brightbackground
-colors).
-
-Parameter   Color
-  90  100   bright black
-  91  101   bright red
-  92  102   bright green
-  93  103   bright yellow
-  94  104   bright blue
-  95  105   bright magenta
-  96  106   bright cyan
-  97  107   bright white
-
-This vector is used by `ansi-color-make-color-map' to create a color
-map.  This color map is stored in the variable `ansi-color-map'.
-
-Each element may also be a cons cell where the car and cdr specify the
-foreground and background colors, respectively."
-  :type '(vector (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color)))
-  :set 'ansi-color-map-update
-  :initialize 'custom-initialize-default
-  :version "28.1"
-  :group 'ansi-colors)
-
-(defcustom ansi-color-bold-is-bright nil
-  "If set to non-nil, combining ANSI bold and a color produces the bright
-version of that color."
-  :type 'boolean
-  :version "28.1"
-  :group 'ansi-colors)
-
 (defconst ansi-color-control-seq-regexp
   ;; See ECMA 48, section 5.4 "Control Sequences".
   "\e\\[[\x30-\x3F]*[\x20-\x2F]*[\x40-\x7E]"
@@ -346,14 +304,9 @@ This function can be added to `comint-preoutput-filter-functions'."
 
 (defun ansi-color--find-face (codes)
   "Return the face corresponding to CODES."
-  ;; Sort the codes in ascending order to guarantee that "bold" comes before
-  ;; any of the colors.  This ensures that `ansi-color-bold-is-bright' is
-  ;; applied correctly.
-  (let (faces bright (codes (sort (copy-sequence codes) #'<)))
+  (let (faces)
     (while codes
-      (let ((face (ansi-color-get-face-1 (pop codes) bright)))
-        (when (and ansi-color-bold-is-bright (eq face 'bold))
-          (setq bright t))
+      (let ((face (ansi-color-get-face-1 (pop codes))))
 	;; In the (default underline) face, say, the value of the
 	;; "underline" attribute of the `default' face wins.
 	(unless (eq face 'default)
@@ -617,11 +570,11 @@ ESCAPE-SEQUENCE is an escape sequence parsed by
 
 For each new code, the following happens: if it is 1-7, add it to
 the list of codes; if it is 21-25 or 27, delete appropriate
-parameters from the list of codes; if it is 30-37 (or 90-97) resp. 39,
-the foreground color code is replaced or added resp. deleted; if it
-is 40-47 (or 100-107) resp. 49, the background color code is replaced
-or added resp. deleted; any other code is discarded together with the
-old codes.  Finally, the so changed list of codes is returned."
+parameters from the list of codes; if it is 30-37 resp. 39, the
+foreground color code is replaced or added resp. deleted; if it
+is 40-47 resp. 49, the background color code is replaced or added
+resp. deleted; any other code is discarded together with the old
+codes.	Finally, the so changed list of codes is returned."
   (let ((new-codes (ansi-color-parse-sequence escape-sequence)))
     (while new-codes
       (let* ((new (pop new-codes))
@@ -638,7 +591,7 @@ old codes.  Finally, the so changed list of codes is returned."
 					(22 (remq 1 codes))
 					(25 (remq 6 codes))
 					(_ codes)))))
-		((or 3 4 9 10) (let ((r (mod new 10)))
+		((or 3 4) (let ((r (mod new 10)))
 			    (unless (= r 8)
 			      (let (beg)
 				(while (and codes (/= q (/ (car codes) 10)))
@@ -650,19 +603,6 @@ old codes.  Finally, the so changed list of codes is returned."
 		(_ nil)))))
     codes))
 
-(defun ansi-color--fill-color-map (map map-index property vector get-color)
-  "Fill a range of color values from VECTOR and store in MAP.
-
-Start filling MAP from MAP-INDEX, and make faces for PROPERTY (`foreground'
-or `background'). GET-COLOR is a function taking an element of VECTOR and
-returning the color value to use."
-  (mapc
-   (lambda (e)
-     (aset map map-index
-           (ansi-color-make-face property (funcall get-color e)))
-     (setq map-index (1+ map-index)) )
-   vector))
-
 (defun ansi-color-make-color-map ()
   "Creates a vector of face definitions and returns it.
 
@@ -671,7 +611,7 @@ The index into the vector is an ANSI code.  See the documentation of
 
 The face definitions are based upon the variables
 `ansi-color-faces-vector' and `ansi-color-names-vector'."
-  (let ((map (make-vector 110 nil))
+  (let ((map (make-vector 50 nil))
         (index 0))
     ;; miscellaneous attributes
     (mapc
@@ -680,21 +620,23 @@ The face definitions are based upon the variables
        (setq index (1+ index)) )
      ansi-color-faces-vector)
     ;; foreground attributes
-    (ansi-color--fill-color-map
-     map 30 'foreground ansi-color-names-vector
-     (lambda (e) (if (consp e) (car e) e)))
+    (setq index 30)
+    (mapc
+     (lambda (e)
+       (aset map index
+             (ansi-color-make-face 'foreground
+                         (if (consp e) (car e) e)))
+       (setq index (1+ index)) )
+     ansi-color-names-vector)
     ;; background attributes
-    (ansi-color--fill-color-map
-     map 40 'background ansi-color-names-vector
-     (lambda (e) (if (consp e) (cdr e) e)))
-    ;; bright foreground attributes
-    (ansi-color--fill-color-map
-     map 90 'foreground ansi-bright-color-names-vector
-     (lambda (e) (if (consp e) (car e) e)))
-    ;; bright background attributes
-    (ansi-color--fill-color-map
-     map 100 'background ansi-bright-color-names-vector
-     (lambda (e) (if (consp e) (cdr e) e)))
+    (setq index 40)
+    (mapc
+     (lambda (e)
+       (aset map index
+             (ansi-color-make-face 'background
+                         (if (consp e) (cdr e) e)))
+       (setq index (1+ index)) )
+     ansi-color-names-vector)
     map))
 
 (defvar ansi-color-map (ansi-color-make-color-map)
@@ -718,13 +660,9 @@ property of `ansi-color-faces-vector' and `ansi-color-names-vector'."
   (set-default symbol value)
   (setq ansi-color-map (ansi-color-make-color-map)))
 
-(defun ansi-color-get-face-1 (ansi-code &optional bright)
+(defun ansi-color-get-face-1 (ansi-code)
   "Get face definition from `ansi-color-map'.
-ANSI-CODE is used as an index into the vector.  BRIGHT, if non-nil,
-requests \"bright\" ANSI colors, even if ANSI-CODE is a normal-intensity
-color."
-  (when (and bright (<= 30 ansi-code 49))
-    (setq ansi-code (+ ansi-code 60)))
+ANSI-CODE is used as an index into the vector."
   (condition-case nil
       (aref ansi-color-map ansi-code)
     (args-out-of-range nil)))

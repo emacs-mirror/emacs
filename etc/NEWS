@@ -375,13 +375,6 @@ emulators by using the new input-meta-mode with the special value
 This parameter, similar to 'drag-with-header-line', allows moving frames
 by dragging the tab lines of their topmost windows with the mouse.
 
----
-** 'ansi-color' now supports "bright" color codes.
-"Bright" ANSI color codes are now displayed when applying ANSI color
-filters using the color values defined in 'ansi-bright-color-names-vector'.
-In addition, bold text with regular ANSI colors can be displayed as
-"bright" if 'ansi-color-bold-is-bright' is non-nil.
-
 
 * Editing Changes in Emacs 28.1
 
