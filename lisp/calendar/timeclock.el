@@ -35,14 +35,14 @@
 ;; working day), and `timeclock-when-to-leave' to calculate when you're free.
 
 ;; You'll probably want to bind the timeclock commands to some handy
-;; keystrokes.  At the moment, C-x t is unused:
+;; keystrokes.  Assuming C-c t is unbound, you might use:
 ;;
-;;   (define-key ctl-x-map "ti" 'timeclock-in)
-;;   (define-key ctl-x-map "to" 'timeclock-out)
-;;   (define-key ctl-x-map "tc" 'timeclock-change)
-;;   (define-key ctl-x-map "tr" 'timeclock-reread-log)
-;;   (define-key ctl-x-map "tu" 'timeclock-update-mode-line)
-;;   (define-key ctl-x-map "tw" 'timeclock-when-to-leave-string)
+;;   (define-key (kbd "C-c t i") 'timeclock-in)
+;;   (define-key (kbd "C-c t o") 'timeclock-out)
+;;   (define-key (kbd "C-c t c") 'timeclock-change)
+;;   (define-key (kbd "C-c t r") 'timeclock-reread-log)
+;;   (define-key (kbd "C-c t u") 'timeclock-update-mode-line)
+;;   (define-key (kbd "C-c t w") 'timeclock-when-to-leave-string)
 
 ;; If you want Emacs to display the amount of time "left" to your
 ;; workday in the mode-line, you can either set the value of
