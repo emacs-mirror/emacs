@@ -245,7 +245,7 @@ included in the completions."
 (defun vc-git--literal-pathspec (pathspec)
   "Prepend :(literal) path magic to PATHSPEC."
   ;; Good example of PATHSPEC that needs this: "test[56].xx".
-  (and pathspec (concat ":(literal)" pathspec)))
+  (and pathspec (concat ":(literal)" (file-local-name pathspec))))
 
 (defun vc-git--literal-pathspecs (pathspecs)
   "Prepend :(literal) path magic to PATHSPECS."
