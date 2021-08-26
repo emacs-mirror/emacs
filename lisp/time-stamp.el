@@ -162,9 +162,9 @@ than one of `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
 or `time-stamp-format'.
 
 These variables are best changed with file-local variables.
-If you change `time-stamp-line-limit', `time-stamp-start',
+If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', or `time-stamp-pattern' in your init file, you
-will be incompatible with other people's files.")
+would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-line-limit 'safe-local-variable 'integerp)
 
 (defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
@@ -175,9 +175,9 @@ than one of `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
 or `time-stamp-format'.
 
 These variables are best changed with file-local variables.
-If you change `time-stamp-line-limit', `time-stamp-start',
+If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', or `time-stamp-pattern' in your init file, you
-will be incompatible with other people's files.")
+would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-start 'safe-local-variable 'stringp)
 
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
@@ -197,9 +197,9 @@ to not change the number of lines in the buffer.  `time-stamp-inserts-lines'
 controls this behavior.
 
 These variables are best changed with file-local variables.
-If you change `time-stamp-line-limit', `time-stamp-start',
+If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', `time-stamp-pattern', or `time-stamp-inserts-lines' in
-your init file, you will be incompatible with other people's files.")
+your init file, you would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-end 'safe-local-variable 'stringp)
 
 
@@ -214,8 +214,8 @@ unexpected changes in the buffer if used carelessly, but it is useful
 for generating repeated time stamps.
 
 These variables are best changed with file-local variables.
-If you change `time-stamp-end' or `time-stamp-inserts-lines' in
-your init file, you will be incompatible with other people's files.")
+If you were to change `time-stamp-end' or `time-stamp-inserts-lines' in
+your init file, you would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable 'symbolp)
 
 
@@ -224,8 +224,8 @@ your init file, you will be incompatible with other people's files.")
 The same time stamp will be written in each case.
 
 `time-stamp-count' is best changed with a file-local variable.
-If you change it in your init file, you will be incompatible with
-other people's files.")
+If you were to change it in your init file, you would be incompatible
+with other people's files.")
 ;;;###autoload(put 'time-stamp-count 'safe-local-variable 'integerp)
 
 
@@ -254,9 +254,9 @@ This part may be omitted to use the normal pattern.
 The pattern does not need to match the entire line of the time stamp.
 
 These variables are best changed with file-local variables.
-If you change `time-stamp-pattern', `time-stamp-line-limit',
+If you were to change `time-stamp-pattern', `time-stamp-line-limit',
 `time-stamp-start', or `time-stamp-end' in your init file, you
-will be incompatible with other people's files.
+would be incompatible with other people's files.
 
 See also `time-stamp-count' and `time-stamp-inserts-lines'.
 
@@ -303,8 +303,7 @@ To enable automatic time-stamping for only a specific file, add
 this line to a local variables list near the end of the file:
     eval: (add-hook \\='before-save-hook \\='time-stamp nil t)
 
-If the first 8 lines of the file do not have a time-stamp template,
-this function does nothing.
+If the file has no time-stamp template, this function does nothing.
 
 You can set `time-stamp-pattern' in a files's local variables list
 to customize the information in the time stamp and where it is written.
