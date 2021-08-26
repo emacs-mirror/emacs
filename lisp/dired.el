@@ -137,10 +137,9 @@ For more details, see Info node `(emacs)ls in Lisp'."
                  (const :tag "Do not use --dired" nil)
                  (other :tag "Always use --dired" t)))
 
-(defcustom dired-chmod-program "chmod"
-  "Name of chmod command (usually `chmod')."
-  :group 'dired
-  :type 'file)
+(defvar dired-chmod-program "chmod"
+  "Name of chmod command (usually `chmod').")
+(make-obsolete-variable 'dired-chmod-program nil "28.1")
 
 (defcustom dired-touch-program "touch"
   "Name of touch command (usually `touch')."
