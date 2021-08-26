@@ -812,50 +812,42 @@ Buffer local variable.")
 (defface term-color-bright-black
   '((t :foreground "gray30" :background "gray30"))
   "Face used to render bright black color code."
-  :group 'term
-  :version "28.1")
+  :group 'term)
 
 (defface term-color-bright-red
   '((t :foreground "red2" :background "red2"))
   "Face used to render bright red color code."
-  :group 'term
-  :version "28.1")
+  :group 'term)
 
 (defface term-color-bright-green
   '((t :foreground "green2" :background "green2"))
   "Face used to render bright green color code."
-  :group 'term
-  :version "28.1")
+  :group 'term)
 
 (defface term-color-bright-yellow
   '((t :foreground "yellow2" :background "yellow2"))
   "Face used to render bright yellow color code."
-  :group 'term
-  :version "28.1")
+  :group 'term)
 
 (defface term-color-bright-blue
   '((t :foreground "blue1" :background "blue1"))
   "Face used to render bright blue color code."
-  :group 'term
-  :version "28.1")
+  :group 'term)
 
 (defface term-color-bright-magenta
   '((t :foreground "magenta2" :background "magenta2"))
   "Face used to render bright magenta color code."
-  :group 'term
-  :version "28.1")
+  :group 'term)
 
 (defface term-color-bright-cyan
   '((t :foreground "cyan2" :background "cyan2"))
   "Face used to render bright cyan color code."
-  :group 'term
-  :version "28.1")
+  :group 'term)
 
 (defface term-color-bright-white
   '((t :foreground "white" :background "white"))
   "Face used to render bright white color code."
-  :group 'term
-  :version "28.1")
+  :group 'term)
 
 (defcustom term-buffer-maximum-size 8192
   "The maximum size in lines for term buffers.
