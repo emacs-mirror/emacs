@@ -242,14 +242,14 @@ included in the completions."
 ;;;###autoload         (load "vc-git" nil t)
 ;;;###autoload         (vc-git-registered file))))
 
-(defun vc-git--literal-pathspec (pathspec)
-  "Prepend :(literal) path magic to PATHSPEC."
-  ;; Good example of PATHSPEC that needs this: "test[56].xx".
-  (and pathspec (concat ":(literal)" (file-local-name pathspec))))
+(defun vc-git--literal-pathspec (file)
+  "Prepend :(literal) path magic to FILE."
+  ;; Good example of file name that needs this: "test[56].xx".
+  (and file (concat ":(literal)" (file-local-name file))))
 
-(defun vc-git--literal-pathspecs (pathspecs)
-  "Prepend :(literal) path magic to PATHSPECS."
-  (mapcar #'vc-git--literal-pathspec pathspecs))
+(defun vc-git--literal-pathspecs (files)
+  "Prepend :(literal) path magic to FILES."
+  (mapcar #'vc-git--literal-pathspec files))
 
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
