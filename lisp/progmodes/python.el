@@ -2022,7 +2022,12 @@ position, else returns nil."
   (cond ((executable-find "python3") "python3")
         ((executable-find "python") "python")
         (t "python3"))
-  "Default Python interpreter for shell."
+  "Default Python interpreter for shell.
+
+Some Python interpreters also require changes to
+`python-shell-interpreter-args'.  In particular, setting
+`python-shell-interpreter' to \"ipython3\" requires setting
+`python-shell-interpreter-args' to \"--simple-prompt\"."
   :version "28.1"
   :type 'string
   :group 'python)
