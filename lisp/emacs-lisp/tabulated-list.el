@@ -271,12 +271,15 @@ Populated by `tabulated-list-init-header'.")
 (defun tabulated-list-init-header ()
   "Set up header line for the Tabulated List buffer."
   ;; FIXME: Should share code with tabulated-list-print-col!
-  (let ((x (max tabulated-list-padding 0))
-	(button-props `(help-echo "Click to sort by column"
-			          mouse-face header-line-highlight
-			          keymap ,tabulated-list-sort-button-map))
-        (len (length tabulated-list-format))
-	(cols nil))
+  (let* ((x (max tabulated-list-padding 0))
+	 (button-props `(help-echo "Click to sort by column"
+			           mouse-face header-line-highlight
+			           keymap ,tabulated-list-sort-button-map))
+         (len (length tabulated-list-format))
+         ;; Pre-compute width for available-space compution.
+         (hcols (mapcar #'car tabulated-list-format))
+         (tabulated-list--near-rows (list hcols hcols))
+	 (cols nil))
     (if display-line-numbers
         (setq x (+ x (tabulated-list-line-number-width))))
     (push (propertize " " 'display `(space :align-to ,x)) cols)
@@ -290,9 +293,17 @@ Populated by `tabulated-list-init-header'.")
 	     (props (nthcdr 3 col))
 	     (pad-right (or (plist-get props :pad-right) 1))
              (right-align (plist-get props :right-align))
-             (next-x (+ x pad-right width)))
-        (when (and (>= lablen 3) (> lablen width) not-last-col)
-          (setq label (truncate-string-to-width label (- lablen 1) nil nil t)))
+             (next-x (+ x pad-right width))
+             (available-space
+              (and not-last-col
+                   (if right-align
+                       width
+                     (tabulated-list--available-space width n)))))
+        (when (and (>= lablen 3)
+                   not-last-col
+                   (> lablen available-space))
+          (setq label (truncate-string-to-width label available-space
+                                                nil nil t)))
 	(push
 	 (cond
 	  ;; An unsortable column
@@ -514,6 +525,17 @@ of column descriptors."
      beg (point)
      `(tabulated-list-id ,id tabulated-list-entry ,cols))))
 
+(defun tabulated-list--available-space (width n)
+  (let* ((next-col-format (aref tabulated-list-format (1+ n)))
+         (next-col-right-align (plist-get (nthcdr 3 next-col-format)
+                                          :right-align))
+         (next-col-width (nth 1 next-col-format)))
+    (if next-col-right-align
+        (- (+ width next-col-width)
+           (min next-col-width
+                (tabulated-list--col-local-max-widths (1+ n))))
+      width)))
+
 (defun tabulated-list-print-col (n col-desc x)
   "Insert a specified Tabulated List entry at point.
 N is the column number, COL-DESC is a column descriptor (see
@@ -530,20 +552,10 @@ Return the column number after insertion."
 	 (help-echo (concat (car format) ": " label))
 	 (opoint (point))
 	 (not-last-col (< (1+ n) (length tabulated-list-format)))
-	  available-space)
-    (when not-last-col
-      (let* ((next-col-format (aref tabulated-list-format (1+ n)))
-             (next-col-right-align (plist-get (nthcdr 3 next-col-format)
-                                              :right-align))
-             (next-col-width (nth 1 next-col-format)))
-        (setq available-space
-              (if (and (not right-align)
-                       next-col-right-align)
-                  (-
-                   (+ width next-col-width)
-                   (min next-col-width
-                        (tabulated-list--col-local-max-widths (1+ n))))
-                width))))
+	 (available-space (and not-last-col
+                               (if right-align
+                                   width
+                                 (tabulated-list--available-space width n)))))
     ;; Truncate labels if necessary (except last column).
     ;; Don't truncate to `width' if the next column is align-right
     ;; and has some space left, truncate to `available-space' instead.
