@@ -1555,7 +1555,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
   (vc-git-command nil 0 (vc-git--literal-pathspecs file) "rm" "-f" "--"))
 
 (defun vc-git-rename-file (old new)
-  (vc-git-command nil 0 (vc-git--literal-pathspecs (list old new)) "mv" "-f" "--"))
+  (vc-git-command nil 0 (list old new) "mv" "-f" "--"))
 
 (defun vc-git-mark-resolved (files)
   (vc-git-command nil 0 (vc-git--literal-pathspecs files) "add"))
