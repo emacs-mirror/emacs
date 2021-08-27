@@ -125,7 +125,8 @@ You can <%s>uit; don't modify this file."
   (with-demoted-errors "Unchanged content check: %S"
     ;; Even tho we receive `filename', we know that `filename' refers to the current
     ;; buffer's file.
-    (cl-assert (equal filename (expand-file-name buffer-file-truename)))
+    (cl-assert (equal (expand-file-name filename)
+                      (expand-file-name buffer-file-truename)))
     ;; Note: rather than read the file and compare to the buffer, we could save
     ;; the buffer and compare to the file, but for encrypted data this
     ;; wouldn't work well (and would risk exposing the data).
