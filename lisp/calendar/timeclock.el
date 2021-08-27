@@ -88,6 +88,8 @@
   "The length of a work period in seconds."
   :type 'integer)
 
+(defvar timeclock--previous-workday nil)
+
 (defcustom timeclock-relative t
   "Whether to make reported time relative to `timeclock-workday'.
 For example, if the length of a normal workday is eight hours, and you
@@ -269,7 +271,10 @@ will be updated whenever the time display is updated.  Otherwise,
 the timeclock will use its own sixty second timer to do its
 updating.  With prefix ARG, turn mode line display on if and only
 if ARG is positive.  Returns the new status of timeclock mode line
-display (non-nil means on)."
+display (non-nil means on).
+
+If using a customized `timeclock-workday' value, this should be
+set before switching this mode on."
   :global t
   ;; cf display-time-mode.
   (setq timeclock-mode-string "")
@@ -1058,7 +1063,9 @@ discrepancy, today's discrepancy, and the time worked today."
 	 (first t) (accum 0) (elapsed 0)
 	 event beg last-date
 	 last-date-limited last-date-seconds)
-    (unless timeclock-discrepancy
+    (when (or (not timeclock-discrepancy)
+              ;; The length of the workday has changed, so recompute.
+              (not (equal timeclock-workday timeclock--previous-workday)))
       (when (file-readable-p timeclock-file)
 	(setq timeclock-project-list nil
 	      timeclock-last-project nil
@@ -1114,7 +1121,8 @@ discrepancy, today's discrepancy, and the time worked today."
 		      last-date-seconds
 		    timeclock-workday))
 	    (forward-line))
-	  (setq timeclock-discrepancy accum))))
+	  (setq timeclock-discrepancy accum
+                timeclock--previous-workday timeclock-workday))))
     (unless timeclock-last-event-workday
       (setq timeclock-last-event-workday timeclock-workday))
     (setq accum (or timeclock-discrepancy 0)
