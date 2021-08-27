@@ -307,10 +307,15 @@ the same menu with changes such as added new menu items."
 (defun context-menu-map ()
   "Return composite menu map."
   (let ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
-    (run-hook-wrapped 'context-menu-functions
-                      (lambda (fun)
-                        (setq menu (funcall fun menu))
-                        nil))
+    (let ((fun (mouse-posn-property (event-start last-input-event)
+                                    'context-menu-function)))
+      (if (functionp fun)
+          (setq menu (funcall fun menu))
+        (run-hook-wrapped 'context-menu-functions
+                          (lambda (fun)
+                            (setq menu (funcall fun menu))
+                            nil))))
+    ;; TODO: remove double separators
     (when (functionp context-menu-filter-function)
       (setq menu (funcall context-menu-filter-function menu)))
     menu))

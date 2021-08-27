@@ -2875,8 +2875,7 @@ like 'flymake-mode-line-error-counter',
 When Flyspell mode highlights a word as misspelled, you can click on
 it to display a menu of possible corrections and actions.  You can now
 easily bind this menu to 'down-mouse-3' (usually the right mouse button)
-instead of 'mouse-2' (the default) by customizing the new user option
-'flyspell-use-mouse-3-for-menu'.
+instead of 'mouse-2' (the default) by enabling 'context-menu-mode'.
 
 ---
 *** The current dictionary is now displayed in the minor mode lighter.
