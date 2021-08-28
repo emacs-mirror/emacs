@@ -3128,6 +3128,12 @@ directory instead of the default directory.
 ** 'project-shell' and 'shell' now use 'pop-to-buffer-same-window'.
 This is to keep the same behavior as Eshell.
 
+** The escape sequence '\e[29~' in Xterm is now mapped to 'menu'.
+Xterm sends this sequence for both 'F16' and 'Menu' keys
+It used to be mapped to 'print' but we couldn't find a terminal
+that uses this sequence for any kind of 'Print' key.
+This makes the Menu key (see https://en.wikipedia.org/wiki/Menu_key)
+work for `context-menu-mode` in Xterm.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
