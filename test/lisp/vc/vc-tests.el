@@ -588,8 +588,6 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             (should (not (file-exists-p tmp-name)))
             (should (file-exists-p new-name))
 
-            ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
-            ;; locking: RCS SCCS
             (should (equal (vc-state new-name) 'added))))
 
       ;; Save exit.
