@@ -35,6 +35,17 @@
     (should (equal
              (buffer-substring-no-properties (point-min) (point-max))
              "relative-path/to/configure --prefix=$prefix\\
-			   --with-x"))))
+			   --with-x")))
+  (with-temp-buffer
+    (insert "${path_to_root}/configure --prefix=$prefix\\
+             --with-x")
+    (shell-script-mode)
+    (goto-char (point-min))
+    (forward-line 1)
+    (indent-for-tab-command)
+    (should (equal
+             (buffer-substring-no-properties (point-min) (point-max))
+             "${path_to_root}/configure --prefix=$prefix\\
+			  --with-x"))))
 
 ;;; sh-script-tests.el ends here
