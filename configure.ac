@@ -1335,7 +1335,9 @@ if test -n "$BREW"; then
 fi
 
 # Check MacPorts on macOS.
-AC_PATH_PROG(HAVE_MACPORTS, port)
+if test $opsys = darwin; then
+  AC_PATH_PROG(HAVE_MACPORTS, port)
+fi
 
 ## Require makeinfo >= 4.13 (last of the 4.x series) to build the manuals.
 : ${MAKEINFO:=makeinfo}
