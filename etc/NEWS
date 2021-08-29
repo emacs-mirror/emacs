@@ -3034,9 +3034,10 @@ mode.  By default, these new options support 'view-mode'.
 Adding the new 'comint-osc-process-output' to
 'comint-output-filter-functions' enables the interpretation of OSC
 ("Operating System Command") escape sequences in comint buffers.  By
-default, only OSC 8, for hyperlinks, is acted upon.  Adding more
-entries to `comint-osc-handlers' allows a customized treatment of
-further escape sequences.
+default, only OSC 8, for hyperlinks, and OSC 7, for directory
+tracking, are acted upon.  Adding more entries to
+`comint-osc-handlers' allows a customized treatment of further escape
+sequences.
 
 +++
 *** 'comint-delete-output' can now save deleted text in the kill-ring.

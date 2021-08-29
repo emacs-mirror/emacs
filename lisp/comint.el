@@ -3896,7 +3896,8 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;; OSC 8, for hyperlinks, is acted upon.  Adding more entries to
 ;; `comint-osc-handlers' allows a customized treatment of further sequences.
 
-(defvar-local comint-osc-handlers '(("8" . comint-osc-hyperlink-handler))
+(defvar-local comint-osc-handlers '(("7" . comint-osc-directory-tracker)
+                                    ("8" . comint-osc-hyperlink-handler))
   "Alist of handlers for OSC escape sequences.
 See `comint-osc-process-output' for details.")
 
@@ -3918,12 +3919,8 @@ should be a function, is called with `command' and `text' as
 arguments, with point where the escape sequence was located."
   (let ((bound (process-mark (get-buffer-process (current-buffer)))))
     (save-excursion
-      (goto-char (or comint-osc--marker
-                     (and (markerp comint-last-output-start)
-			  (eq (marker-buffer comint-last-output-start)
-			      (current-buffer))
-			  comint-last-output-start)
-                     (point-min)))
+      ;; Start one char before last output to catch a possibly stray ESC
+      (goto-char (or comint-osc--marker (1- comint-last-output-start)))
       (when (eq (char-before) ?\e) (backward-char))
       (while (re-search-forward "\e]" bound t)
         (let ((pos0 (match-beginning 0))
@@ -3939,6 +3936,30 @@ arguments, with point where the escape sequence was located."
                   (funcall fun code text)))
             (put-text-property pos0 bound 'invisible t)
             (setq comint-osc--marker (copy-marker pos0))))))))
+
+;; Current directory tracking (OSC 7)
+
+(declare-function url-host "url-parse.el")
+(declare-function url-type "url-parse.el")
+(declare-function url-filename "url-parse.el")
+(defun comint-osc-directory-tracker (_ text)
+  "Update `default-directory' from OSC 7 escape sequences.
+
+This function is intended to be included as an entry of
+`comint-osc-handlers'.  You should moreover arrange for your
+shell to print the appropriate escape sequence at each prompt,
+say with the following command:
+
+    printf \"\\e]7;file://%s%s\\e\\\\\" \"$HOSTNAME\" \"$PWD\"
+
+This functionality serves as an alternative to `dirtrack-mode'
+and `shell-dirtrack-mode'."
+  (let ((url (url-generic-parse-url text)))
+    (when (and (string= (url-type url) "file")
+               (or (null (url-host url))
+                   (string= (url-host url) (system-name))))
+      (ignore-errors
+        (cd-absolute (url-unhex-string (url-filename url)))))))
 
 ;; Hyperlink handling (OSC 8)
 
