@@ -2366,14 +2366,19 @@ function @code{setq} to set the variable @code{fill-column}
 (@pxref{Filling}) to 60.
 
   You can set any Lisp variable with @code{setq}, but with certain
-variables @code{setq} won't do what you probably want in the
-init file.  Some variables automatically become buffer-local
-when set with @code{setq}; what you want in the init file is to set
-the default value, using @code{setq-default}.  Some customizable minor
-mode variables do special things to enable the mode when you set them
-with Customize, but ordinary @code{setq} won't do that; to enable the
-mode in your init file, call the minor mode command.  The
-following section has examples of both of these methods.
+variables @code{setq} won't do what you probably want in the init
+file.  Some variables automatically become buffer-local when set with
+@code{setq}; what you want in the init file is to set the default
+value, using @code{setq-default}.  (The following section has examples
+of both of these methods.)
+
+Some customizable minor mode variables do special things to enable the
+mode when you set them with Customize, but ordinary @code{setq} won't
+do that; to enable the mode in your init file, call the minor mode
+command.  Finally, a few customizable user options are initialized in
+complex ways, and these have to be set either via the customize
+interface (@pxref{Customization}) or by using @code{set-variable}
+(@pxref{Examining}).
 
   The second argument to @code{setq} is an expression for the new
 value of the variable.  This can be a constant, a variable, or a
@@ -2519,6 +2524,14 @@ Turn on Auto Fill mode automatically in Text mode and related modes
 
 @example
 (add-hook 'text-mode-hook 'auto-fill-mode)
+@end example
+
+@item
+Change the coding system used when using the clipboard
+(@pxref{Communication Coding}).
+
+@example
+(set-variable 'selection-coding-system 'utf-8)
 @end example
 
 @item
