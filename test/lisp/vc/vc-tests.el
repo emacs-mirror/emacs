@@ -100,7 +100,7 @@
 ;; - log-edit-mode ()
 ;; - check-headers ()
 ;; - delete-file (file)
-;; - rename-file (old new)
+;; - rename-file (old new)                                      DONE
 ;; - find-file-hook ()
 ;; - extra-menu ()
 ;; - extra-dir-menu ()
@@ -547,6 +547,56 @@ This checks also `vc-backend' and `vc-responsible-backend'."
         (if tempdir (delete-directory tempdir t))
         (run-hooks 'vc-test--cleanup-hook)))))
 
+(defun vc-test--rename-file (backend)
+  "Check the rename-file action."
+
+  (let ((vc-handled-backends `(,backend))
+        (default-directory
+          (file-name-as-directory
+           (expand-file-name
+            (make-temp-name "vc-test") temporary-file-directory)))
+        (process-environment process-environment)
+        tempdir
+        vc-test--cleanup-hook)
+    (when (eq backend 'Bzr)
+      (setq tempdir (make-temp-file "vc-test--rename-file" t)
+            process-environment (cons (format "BZR_HOME=%s" tempdir)
+                                      process-environment)))
+
+    (unwind-protect
+        (progn
+          ;; Cleanup.
+          (add-hook
+           'vc-test--cleanup-hook
+           `(lambda () (delete-directory ,default-directory 'recursive)))
+
+          ;; Create empty repository.
+          (make-directory default-directory)
+          (vc-test--create-repo-function backend)
+
+          (let ((tmp-name (expand-file-name "foo" default-directory))
+                (new-name (expand-file-name "bar" default-directory)))
+            ;; Write a new file.
+            (write-region "foo" nil tmp-name nil 'nomessage)
+
+            ;; Register it.  Renaming can fail otherwise.
+            (vc-register
+             (list backend (list (file-name-nondirectory tmp-name))))
+
+            (vc-rename-file tmp-name new-name)
+
+            (should (not (file-exists-p tmp-name)))
+            (should (file-exists-p new-name))
+
+            ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
+            ;; locking: RCS SCCS
+            (should (equal (vc-state new-name) 'added))))
+
+      ;; Save exit.
+      (ignore-errors
+        (if tempdir (delete-directory tempdir t))
+        (run-hooks 'vc-test--cleanup-hook)))))
+
 ;; Create the test cases.
 
 (defun vc-test--rcs-enabled ()
@@ -648,7 +698,20 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 	     (ert-get-test
 	      ',(intern
 		 (format "vc-test-%s01-register" backend-string))))))
-	  (vc-test--checkout-model ',backend))))))
+	  (vc-test--checkout-model ',backend))
+
+        (ert-deftest
+            ,(intern (format "vc-test-%s05-rename-file" backend-string)) ()
+          ,(format "Check `vc-rename-file' for the %s backend."
+                   backend-string)
+          (skip-unless
+           (ert-test-passed-p
+            (ert-test-most-recent-result
+             (ert-get-test
+              ',(intern
+                 (format "vc-test-%s01-register" backend-string))))))
+          (vc-test--rename-file ',backend))
+        ))))
 
 (provide 'vc-tests)
 ;;; vc-tests.el ends here
