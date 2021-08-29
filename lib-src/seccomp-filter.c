@@ -131,9 +131,12 @@ export_filter (const char *file,
                int (*function) (const scmp_filter_ctx, int),
                const char *name)
 {
-  int fd = TEMP_FAILURE_RETRY (
-    open (file, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY | O_CLOEXEC,
-          0644));
+  int fd;
+  do
+    fd = open (file,
+               O_WRONLY | O_CREAT | O_TRUNC | O_BINARY | O_CLOEXEC,
+               0644);
+  while (fd < 0 && errno == EINTR);
   if (fd < 0)
     fail (errno, "open %s", file);
   int status = function (ctx, fd);
