@@ -1489,6 +1489,13 @@ deleting.
 +++
 **** The spec element 'function-form' is obsolete, use 'form' instead.
 
+---
+*** rfc2368.el is now obsolete.
+Use rfc6068.el instead.  The main difference is that
+'rfc2368-parse-mailto-url' and 'rfc2368-unhexify-string' assumed that
+the strings were all-ASCII, while 'rfc6068-parse-mailto-url' and
+'rfc2068-unhexify-string' parse UTF-8 strings.
+
 +++
 *** New function 'def-edebug-elem-spec' to define Edebug spec elements.
 These used to be defined with 'def-edebug-spec' thus conflating the
