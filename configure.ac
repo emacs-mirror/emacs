@@ -3795,7 +3795,7 @@ AC_DEFUN([libgccjit_dev_not_found], [
 not found.
 Please try installing libgccjit-dev or a similar package.
 If you are sure you want Emacs be compiled without ELisp native compiler,
-pass the --without-nativecomp option to configure.])])
+pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_broken], [
   AC_MSG_ERROR([The installed libgccjit failed to compile and run a test program using
@@ -3814,10 +3814,10 @@ LIBGCCJIT_LIBS=
 LIBGCCJIT_CFLAGS=
 if test "${with_native_compilation}" != "no"; then
     if test "${HAVE_PDUMPER}" = no; then
-       AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
+       AC_MSG_ERROR(['--with-native-compilation' requires '--with-dumping=pdumper'])
     fi
     if test "${HAVE_ZLIB}" = no; then
-       AC_MSG_ERROR(['--with-nativecomp' requires zlib])
+       AC_MSG_ERROR(['--with-native-compilation' requires zlib])
     fi
 
     # Ensure libgccjit installed by Homebrew can be found.

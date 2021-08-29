@@ -291,7 +291,7 @@ build-native-bootstrap-speed0:
 #   script:
 #     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
 #     - ./autogen.sh autoconf
-#     - ./configure --with-nativecomp
+#     - ./configure --with-native-compilation
 #     - make bootstrap NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
 #   timeout: 8 hours
 
@@ -300,7 +300,7 @@ build-native-bootstrap-speed0:
 #   script:
 #     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
 #     - ./autogen.sh autoconf
-#     - ./configure --with-nativecomp
+#     - ./configure --with-native-compilation
 #     - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
 #   timeout: 8 hours
 
@@ -309,7 +309,7 @@ build-native-bootstrap-speed0:
 #   script:
 #     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
 #     - ./autogen.sh autoconf
-#     - ./configure --with-nativecomp
+#     - ./configure --with-native-compilation
 #     - make bootstrap
 #   timeout: 8 hours
 
