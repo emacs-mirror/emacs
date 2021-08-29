@@ -588,7 +588,10 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             (should (not (file-exists-p tmp-name)))
             (should (file-exists-p new-name))
 
-            (should (equal (vc-state new-name) 'added))))
+            (should (equal (vc-state new-name)
+                           (if (eq backend 'RCS)
+                               'up-to-date
+                             'added)))))
 
       ;; Save exit.
       (ignore-errors
