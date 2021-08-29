@@ -682,11 +682,11 @@ associated `flymake-category' return DEFAULT."
 ;; third-party compatibility.
 (define-obsolete-function-alias 'flymake-display-warning 'message-box "26.1")
 
-(defvar-local flymake--backend-state nil
-  "Buffer-local hash table of a Flymake backend's state.
+(defvar-local flymake--state nil
+  "State of a buffer's multiple Flymake backends.
 The keys to this hash table are functions as found in
 `flymake-diagnostic-functions'.  The values are structures
-of the type `flymake--backend-state', with these slots:
+of the type `flymake--state', with these slots:
 
 `running', a symbol to keep track of a backend's replies via its
 REPORT-FN argument.  A backend is running if this key is
@@ -703,7 +703,7 @@ since it last was contacted.
 exceptional situation reported by the backend, nil if the
 backend is operating normally.")
 
-(cl-defstruct (flymake--backend-state
+(cl-defstruct (flymake--state
                (:constructor flymake--make-backend-state))
   running reported-p disabled diags)
 
@@ -713,9 +713,9 @@ backend is operating normally.")
   (let ((b (make-symbol "b")))
     `(let* ((,b ,backend)
             (,state-var
-             (or (gethash ,b flymake--backend-state)
+             (or (gethash ,b flymake--state)
                  (puthash ,b (flymake--make-backend-state)
-                          flymake--backend-state))))
+                          flymake--state))))
        ,@body)))
 
 (defun flymake-is-running ()
@@ -740,23 +740,23 @@ calling convention described in
 to handle a report even if TOKEN was not expected.  REGION is
 a (BEG . END) pair of buffer positions indicating that this
 report applies to that region."
-  (let* ((state (gethash backend flymake--backend-state))
+  (let* ((state (gethash backend flymake--state))
          first-report)
     (unless state
-      (error "Can't find state for %s in `flymake--backend-state'" backend))
-    (setf first-report (not (flymake--backend-state-reported-p state)))
-    (setf (flymake--backend-state-reported-p state) t)
+      (error "Can't find state for %s in `flymake--state'" backend))
+    (setf first-report (not (flymake--state-reported-p state)))
+    (setf (flymake--state-reported-p state) t)
     (let (expected-token
           new-diags)
       (cond
        ((null state)
         (flymake-error
          "Unexpected report from unknown backend %s" backend))
-       ((flymake--backend-state-disabled state)
+       ((flymake--state-disabled state)
         (flymake-error
          "Unexpected report from disabled backend %s" backend))
        ((progn
-          (setq expected-token (flymake--backend-state-running state))
+          (setq expected-token (flymake--state-running state))
           (null expected-token))
         ;; should never happen
         (flymake-error "Unexpected report from stopped backend %s" backend))
@@ -782,7 +782,7 @@ report applies to that region."
           ;; the associated overlay.
           (cond
            (region
-            (cl-loop for diag in (flymake--backend-state-diags state)
+            (cl-loop for diag in (flymake--state-diags state)
                      for ov = (flymake--diag-overlay diag)
                      if (or (not (overlay-buffer ov))
                             (flymake--intersects-p
@@ -790,20 +790,20 @@ report applies to that region."
                              (car region) (cdr region)))
                      do (delete-overlay ov)
                      else collect diag into surviving
-                     finally (setf (flymake--backend-state-diags state)
+                     finally (setf (flymake--state-diags state)
                                    surviving)))
            (first-report
-            (dolist (diag (flymake--backend-state-diags state))
+            (dolist (diag (flymake--state-diags state))
               (delete-overlay (flymake--diag-overlay diag)))
-            (setf (flymake--backend-state-diags state) nil)))
+            (setf (flymake--state-diags state) nil)))
           ;; Now make new ones
           (mapc (lambda (diag)
                   (let ((overlay (flymake--highlight-line diag)))
                     (setf (flymake--diag-backend diag) backend
                           (flymake--diag-overlay diag) overlay)))
                 new-diags)
-          (setf (flymake--backend-state-diags state)
-                (append new-diags (flymake--backend-state-diags state)))
+          (setf (flymake--state-diags state)
+                (append new-diags (flymake--state-diags state)))
           (when flymake-check-start-time
             (flymake-log :debug "backend %s reported %d diagnostics in %.2f second(s)"
                          backend
@@ -830,12 +830,12 @@ different runs of the same backend."
 (defun flymake--collect (fn &optional message-prefix)
   "Collect Flymake backends matching FN.
 If MESSAGE-PREFIX, echo a message using that prefix."
-  (unless flymake--backend-state
+  (unless flymake--state
     (user-error "Flymake is not initialized"))
   (let (retval)
     (maphash (lambda (backend state)
                (when (funcall fn state) (push backend retval)))
-             flymake--backend-state)
+             flymake--state)
     (when message-prefix
       (message "%s%s"
                message-prefix
@@ -846,21 +846,21 @@ If MESSAGE-PREFIX, echo a message using that prefix."
 (defun flymake-running-backends ()
   "Compute running Flymake backends in current buffer."
   (interactive)
-  (flymake--collect #'flymake--backend-state-running
+  (flymake--collect #'flymake--state-running
                     (and (called-interactively-p 'interactive)
                          "Running backends: ")))
 
 (defun flymake-disabled-backends ()
   "Compute disabled Flymake backends in current buffer."
   (interactive)
-  (flymake--collect #'flymake--backend-state-disabled
+  (flymake--collect #'flymake--state-disabled
                     (and (called-interactively-p 'interactive)
                          "Disabled backends: ")))
 
 (defun flymake-reporting-backends ()
   "Compute reporting Flymake backends in current buffer."
   (interactive)
-  (flymake--collect #'flymake--backend-state-reported-p
+  (flymake--collect #'flymake--state-reported-p
                     (and (called-interactively-p 'interactive)
                          "Reporting backends: ")))
 
@@ -869,9 +869,9 @@ If MESSAGE-PREFIX, echo a message using that prefix."
 If it is running also stop it."
   (flymake-log :warning "Disabling backend %s because %s" backend explanation)
   (flymake--with-backend-state backend state
-    (setf (flymake--backend-state-running state) nil
-          (flymake--backend-state-disabled state) explanation
-          (flymake--backend-state-reported-p state) t)))
+    (setf (flymake--state-running state) nil
+          (flymake--state-disabled state) explanation
+          (flymake--state-reported-p state) t)))
 
 (defun flymake--run-backend (backend &optional args)
   "Run the backend BACKEND, re-enabling if necessary.
@@ -880,9 +880,9 @@ with a report function."
   (flymake-log :debug "Running backend %s" backend)
   (let ((run-token (cl-gensym "backend-token")))
     (flymake--with-backend-state backend state
-      (setf (flymake--backend-state-running state) run-token
-            (flymake--backend-state-disabled state) nil
-            (flymake--backend-state-reported-p state) nil))
+      (setf (flymake--state-running state) run-token
+            (flymake--state-disabled state) nil
+            (flymake--state-reported-p state) nil))
     ;; FIXME: Should use `condition-case-unless-debug' here, but don't
     ;; for two reasons: (1) that won't let me catch errors from inside
     ;; `ert-deftest' where `debug-on-error' appears to be always
@@ -964,7 +964,7 @@ Interactively, with a prefix arg, FORCE is t."
                   (cond
                    ((and (not force)
                          (flymake--with-backend-state backend state
-                           (flymake--backend-state-disabled state)))
+                           (flymake--state-disabled state)))
                     (flymake-log :debug "Backend %s is disabled, not starting"
                                  backend))
                    (t
@@ -1019,10 +1019,10 @@ special *Flymake log* buffer."  :group 'flymake :lighter
 
     ;; If Flymake happened to be already already ON, we must cleanup
     ;; existing diagnostic overlays, lest we forget them by blindly
-    ;; reinitializing `flymake--backend-state' in the next line.
+    ;; reinitializing `flymake--state' in the next line.
     ;; See https://github.com/joaotavora/eglot/issues/223.
     (mapc #'delete-overlay (flymake--overlays))
-    (setq flymake--backend-state (make-hash-table))
+    (setq flymake--state (make-hash-table))
     (setq flymake--recent-changes nil)
 
     (when flymake-start-on-flymake-mode (flymake-start t)))
@@ -1247,7 +1247,7 @@ correctly.")
     help-echo
     ,(lambda (&rest _)
        (concat
-        (format "%s known backends\n" (hash-table-count flymake--backend-state))
+        (format "%s known backends\n" (hash-table-count flymake--state))
         (format "%s running\n" (length (flymake-running-backends)))
         (format "%s disabled\n" (length (flymake-disabled-backends)))
         "mouse-1: Display minor mode menu\n"
@@ -1268,7 +1268,7 @@ correctly.")
   "Helper for `flymake-mode-line-exception'."
   (pcase-let* ((running) (reported)
                (`(,ind ,face ,explain)
-                (cond ((zerop (hash-table-count flymake--backend-state))
+                (cond ((zerop (hash-table-count flymake--state))
                        '("?" nil "No known backends"))
                       ((cl-set-difference
                         (setq running (flymake-running-backends))
@@ -1302,11 +1302,11 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
                                              'compilation-error)))
     (maphash (lambda
                (_b state)
-               (dolist (d (flymake--backend-state-diags state))
+               (dolist (d (flymake--state-diags state))
                  (when (= (flymake--severity type)
                           (flymake--severity (flymake--diag-type d)))
                    (cl-incf count))))
-             flymake--backend-state)
+             flymake--state)
     (when (or (cl-plusp count)
               (cond ((eq flymake-suppress-zero-counters t)
                      nil)
