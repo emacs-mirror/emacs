@@ -2616,7 +2616,7 @@ is returned.  Thus, for instance, if charset \"ISO8859-2\",
    ;; On Windows we have a built-in method to get the names.
    ((and (fboundp 'w32-get-locale-info)
          (fboundp 'w32-get-valid-locale-ids))
-    (mapcar #'w32-get-locale-info (w32-get-valid-locale-ids)))
+    (delete-dups (mapcar #'w32-get-locale-info (w32-get-valid-locale-ids))))
    ;; Unix-ey hosts should have a command to output locales currently
    ;; defined by the OS.
    ((executable-find "locale")
