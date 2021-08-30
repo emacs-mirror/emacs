@@ -158,66 +158,61 @@ point in the distant past, and is still broken in perl-mode. "
   "Test whether a construct containing \"<<\" followed by a
   bareword is properly identified for a here-document if
   appropriate."
-  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((here-docs
          '("$text .= <<DELIM;"          ; mutator concatenating a here-doc
            "func($arg) . <<DELIM;"      ; concatenating a return value
            "func 1, <<DELIM;"           ; a function taking two arguments
-           "print {a} <<DELIM;"         ; printing to a file handle
+           ))
+        ;; There forms are currently mishandled in `perl-mode' :-(
+        (here-docs-cperl
+         '("print {a} <<DELIM;"         ; printing to a file handle
            "system $prog <<DELIM;"      ; lie about the program's name
-           )
-         )
-        (undecidable
+           ))
+        (_undecidable
          '("foo <<bar")                 ; could be either "foo() <<bar"
                                         ; or "foo(<<bar)"
-         )
-        )
-    (dolist (code here-docs)
+         ))
+    (dolist (code (append here-docs (if (eq cperl-test-mode #'cperl-mode)
+                                        here-docs-cperl)))
       (with-temp-buffer
-        (insert code)
+        (insert code "\n\nDELIM\n")
         (funcall cperl-test-mode)
         (goto-char (point-min))
-        (search-forward "<<DELIM")
-        ;; point is now after delimiter, as in `cperl-find-pods-heres'
-        (should (cperl-is-here-doc-p (match-beginning 0)))
-        )
-      )
-    )
-  )
+        (forward-line 1)
+        ;; We should now be within a here-doc.
+        (let ((ppss (syntax-ppss)))
+          (should (and (nth 8 ppss) (nth 4 ppss))))
+        ))))
 
 (ert-deftest cperl-test-identify-no-heredoc ()
   "Test whether a construct containing \"<<\" which is not a
   here-document is properly rejected."
-  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let (
         (not-here-docs
-         '("while (<<>>) { ...; }"      ; double angle bracket operator
+         '("while (<<>>) {"             ; double angle bracket operator
            "expr <<func();"             ; left shift by a return value
            "$var <<func;"               ; left shift by a return value
            "($var+1) <<func;"           ; same for an expression
            "$hash{key} <<func;"         ; same for a hash element
            "or $var <<func;"            ; same for an expression
            "sorted $by <<func"          ; _not_ a call to sort
-           )
-         )
-        (undecidable
+           ))
+        (_undecidable
          '("foo <<bar"                  ; could be either "foo() <<bar"
                                         ; or "foo(<<bar)"
            "$foo = <<;")                ; empty delim forbidden since 5.28
-         )
-        )
+         ))
     (dolist (code not-here-docs)
       (with-temp-buffer
-        (insert code)
+        (insert code "\n\n")
+        (message "inserting: %S" code)
         (funcall cperl-test-mode)
         (goto-char (point-min))
-        (re-search-forward "<<\\(func\\)?")
-        ;; point is now after delimiter, as in `cperl-find-pods-heres'
-        (should-not (cperl-is-here-doc-p (match-beginning 0)))
-        )
-      )
-    )
-  )
+        (forward-line 1)
+        ;; Point is not within a here-doc (nor string nor comment).
+        (let ((ppss (syntax-ppss)))
+          (should-not (nth 8 ppss)))
+        ))))
 
 (ert-deftest cperl-test-here-doc-missing-end ()
   "Verify that a missing here-document terminator gives a message.
