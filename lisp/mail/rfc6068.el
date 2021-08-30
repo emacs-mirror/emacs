@@ -22,17 +22,24 @@
 ;;; Commentary:
 ;;; Code:
 
-(defun rfc6068-unhexify-string (string)
-  "Unhexify STRING -- e.g. `hello%20there' -> `hello there'."
-  (decode-coding-string
-   (with-temp-buffer
-     (set-buffer-multibyte nil)
-     (insert string)
-     (goto-char (point-min))
-     (while (re-search-forward "%\\([[:xdigit:]]\\{2\\}\\)" nil t)
-       (replace-match (string (string-to-number (match-string 1) 16)) t t))
-     (buffer-string))
-   'utf-8))
+(defun rfc6068-unhexify-string (string &optional inhibit-decode)
+  "Unhexify STRING -- e.g. `hello%20there' -> `hello there'.
+STRING is assumed to be a percentage-encoded utf-8 string.
+
+If INHIBIT-DECODE is non-nil, return the resulting raw byte
+string instead of decoding as utf-8."
+  (let ((string
+         (with-temp-buffer
+           (set-buffer-multibyte nil)
+           (insert string)
+           (goto-char (point-min))
+           (while (re-search-forward "%\\([[:xdigit:]]\\{2\\}\\)" nil t)
+             (replace-match (string (string-to-number (match-string 1) 16))
+                            t t))
+           (buffer-string))))
+    (if inhibit-decode
+        string
+      (decode-coding-string string 'utf-8))))
 
 (defun rfc6068-parse-mailto-url (mailto-url)
   "Parse MAILTO-URL, and return an alist of header-name, header-value pairs.
