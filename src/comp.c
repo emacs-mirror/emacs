@@ -499,13 +499,6 @@ static f_reloc_t freloc;
 
 #define NUM_CAST_TYPES 15
 
-enum cast_kind_of_type
-  {
-    kind_unsigned,
-    kind_signed,
-    kind_pointer
-  };
-
 typedef struct {
   EMACS_INT len;
   gcc_jit_rvalue *r_val;
@@ -571,14 +564,9 @@ typedef struct {
      be used for the scope.  */
   gcc_jit_type *cast_union_type;
   gcc_jit_function *cast_functions_from_to[NUM_CAST_TYPES][NUM_CAST_TYPES];
-  /*  We add one to make space for the last member which is the "biggest_type"
-      member.  */
-  gcc_jit_type *cast_types[NUM_CAST_TYPES + 1];
-  size_t cast_type_sizes[NUM_CAST_TYPES + 1];
-  enum cast_kind_of_type cast_type_kind[NUM_CAST_TYPES + 1];
-  const char *cast_type_names[NUM_CAST_TYPES + 1];
-  gcc_jit_field *cast_union_fields[NUM_CAST_TYPES + 1];
-  size_t cast_union_field_biggest_type;
+  gcc_jit_function *cast_ptr_to_int;
+  gcc_jit_function *cast_int_to_ptr;
+  gcc_jit_type *cast_types[NUM_CAST_TYPES];
   gcc_jit_function *func; /* Current function being compiled.  */
   bool func_has_non_local; /* From comp-func has-non-local slot.  */
   EMACS_INT func_speed; /* From comp-func speed slot.  */
@@ -1112,13 +1100,6 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 
   int old_index = type_to_cast_index (old_type);
   int new_index = type_to_cast_index (new_type);
-
-  if (comp.cast_type_sizes[old_index] < comp.cast_type_sizes[new_index]
-      && comp.cast_type_kind[new_index] == kind_signed)
-    xsignal3 (Qnative_ice,
-              build_string ("FIXME: sign extension not implemented"),
-              build_string (comp.cast_type_names[old_index]),
-              build_string (comp.cast_type_names[new_index]));
 
   /* Lookup the appropriate cast function in the cast matrix.  */
   return gcc_jit_context_new_call (comp.ctxt,
@@ -3111,30 +3092,17 @@ define_thread_state_struct (void)
     gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.thread_state_s));
 }
 
-struct cast_type
-{
-  gcc_jit_type *type;
-  const char *name;
-  size_t bytes_size;
-  enum cast_kind_of_type kind;
-};
-
 static gcc_jit_function *
-define_cast_from_to (struct cast_type from, int from_index, struct cast_type to,
-                    int to_index)
+define_type_punning (const char *name,
+		     gcc_jit_type *from, gcc_jit_field *from_field,
+		     gcc_jit_type *to, gcc_jit_field *to_field)
 {
-  /*  FIXME: sign extension not implemented.  */
-  if (comp.cast_type_sizes[from_index] < comp.cast_type_sizes[to_index]
-      && comp.cast_type_kind[to_index] == kind_signed)
-    return NULL;
-
-  char *name = format_string ("cast_from_%s_to_%s", from.name, to.name);
   gcc_jit_param *param = gcc_jit_context_new_param (comp.ctxt, NULL,
-                                                    from.type, "arg");
+                                                    from, "arg");
   gcc_jit_function *result = gcc_jit_context_new_function (comp.ctxt,
                                NULL,
                                GCC_JIT_FUNCTION_INTERNAL,
-                               to.type,
+                               to,
                                name,
                                1,
                                &param,
@@ -3148,26 +3116,63 @@ define_cast_from_to (struct cast_type from, int from_index, struct cast_type to,
                                   comp.cast_union_type,
                                   "union_cast");
 
-  /*  Zero the union first.  */
   gcc_jit_block_add_assignment (entry_block, NULL,
                                 gcc_jit_lvalue_access_field (tmp_union, NULL,
-                                  comp.cast_union_fields[NUM_CAST_TYPES]),
-                                  gcc_jit_context_new_rvalue_from_int (
-				    comp.ctxt,
-				    comp.cast_types[NUM_CAST_TYPES],
-                                    0));
-
-  gcc_jit_block_add_assignment (entry_block, NULL,
-                                gcc_jit_lvalue_access_field (tmp_union, NULL,
-                                  comp.cast_union_fields[from_index]),
+							     from_field),
                                 gcc_jit_param_as_rvalue (param));
 
   gcc_jit_block_end_with_return (entry_block,
                                  NULL,
                                  gcc_jit_rvalue_access_field (
                                    gcc_jit_lvalue_as_rvalue (tmp_union),
-                                   NULL,
-                                   comp.cast_union_fields[to_index]));
+                                   NULL, to_field));
+
+  return result;
+}
+
+struct cast_type
+{
+  gcc_jit_type *type;
+  const char *name;
+  bool is_ptr;
+};
+
+static gcc_jit_function *
+define_cast_from_to (struct cast_type from, struct cast_type to)
+{
+  char *name = format_string ("cast_from_%s_to_%s", from.name, to.name);
+  gcc_jit_param *param = gcc_jit_context_new_param (comp.ctxt, NULL,
+						    from.type, "arg");
+  gcc_jit_function *result
+    = gcc_jit_context_new_function (comp.ctxt,
+				    NULL,
+				    GCC_JIT_FUNCTION_INTERNAL,
+				    to.type, name,
+				    1, &param, 0);
+  DECL_BLOCK (entry_block, result);
+
+  gcc_jit_rvalue *tmp = gcc_jit_param_as_rvalue (param);
+  if (from.is_ptr != to.is_ptr)
+    {
+      if (from.is_ptr)
+	{
+	  tmp = gcc_jit_context_new_cast (comp.ctxt, NULL,
+					  tmp, comp.void_ptr_type);
+	  tmp = gcc_jit_context_new_call (comp.ctxt, NULL,
+					  comp.cast_ptr_to_int, 1, &tmp);
+	}
+      else
+	{
+	  tmp = gcc_jit_context_new_cast (comp.ctxt, NULL,
+					  tmp, comp.uintptr_type);
+	  tmp = gcc_jit_context_new_call (comp.ctxt, NULL,
+					  comp.cast_int_to_ptr, 1, &tmp);
+	}
+    }
+
+  tmp = gcc_jit_context_new_cast (comp.ctxt, NULL, tmp, to.type);
+
+  gcc_jit_block_end_with_return (entry_block, NULL, tmp);
 
   return result;
 }
@@ -3176,69 +3181,58 @@ static void
 define_cast_functions (void)
 {
   struct cast_type cast_types[NUM_CAST_TYPES]
-    = { { comp.bool_type, "bool", sizeof (bool), kind_unsigned },
-        { comp.char_ptr_type, "char_ptr", sizeof (char *), kind_pointer },
-        { comp.int_type, "int", sizeof (int), kind_signed },
-        { comp.lisp_cons_ptr_type, "cons_ptr", sizeof (struct Lisp_Cons *),
-          kind_pointer },
-        { comp.lisp_obj_ptr_type, "lisp_obj_ptr", sizeof (Lisp_Object *),
-          kind_pointer },
-        { comp.lisp_word_tag_type, "lisp_word_tag", sizeof (Lisp_Word_tag),
-          kind_unsigned },
-        { comp.lisp_word_type, "lisp_word", sizeof (Lisp_Word),
-          LISP_WORDS_ARE_POINTERS ? kind_pointer : kind_signed },
-        { comp.long_long_type, "long_long", sizeof (long long), kind_signed },
-        { comp.long_type, "long", sizeof (long), kind_signed },
-        { comp.ptrdiff_type, "ptrdiff", sizeof (ptrdiff_t), kind_signed },
-        { comp.uintptr_type, "uintptr", sizeof (uintptr_t), kind_unsigned },
-        { comp.unsigned_long_long_type, "unsigned_long_long",
-          sizeof (unsigned long long), kind_unsigned },
-        { comp.unsigned_long_type, "unsigned_long", sizeof (unsigned long),
-          kind_unsigned },
-        { comp.unsigned_type, "unsigned", sizeof (unsigned), kind_unsigned },
-        { comp.void_ptr_type, "void_ptr", sizeof (void*), kind_pointer } };
+    = { { comp.bool_type, "bool", false },
+        { comp.char_ptr_type, "char_ptr", true },
+        { comp.int_type, "int", false },
+        { comp.lisp_cons_ptr_type, "lisp_cons_ptr", true },
+        { comp.lisp_obj_ptr_type, "lisp_obj_ptr", true },
+        { comp.lisp_word_tag_type, "lisp_word_tag", false },
+        { comp.lisp_word_type, "lisp_word", LISP_WORDS_ARE_POINTERS },
+        { comp.long_long_type, "long_long", false },
+        { comp.long_type, "long", false },
+        { comp.ptrdiff_type, "ptrdiff", false },
+        { comp.uintptr_type, "uintptr", false },
+        { comp.unsigned_long_long_type, "unsigned_long_long", false },
+        { comp.unsigned_long_type, "unsigned_long", false },
+        { comp.unsigned_type, "unsigned", false },
+        { comp.void_ptr_type, "void_ptr", true } };
+  gcc_jit_field *cast_union_fields[2];
 
-  /* Find the biggest size.  It should be unsigned long long, but to be
-     sure we find it programmatically.  */
-  size_t biggest_size = 0;
+  /* Define the union used for type punning.  */
+  cast_union_fields[0] = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.void_ptr_type,
+						    "void_ptr");
+  cast_union_fields[1] = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.uintptr_type,
+						    "uintptr");
+
+  comp.cast_union_type
+    = gcc_jit_context_new_union_type (comp.ctxt,
+				      NULL,
+				      "cast_union",
+				      2, cast_union_fields);
+
+  comp.cast_ptr_to_int = define_type_punning ("cast_pointer_to_uintptr_t",
+					      comp.void_ptr_type,
+					      cast_union_fields[0],
+					      comp.uintptr_type,
+					      cast_union_fields[1]);
+  comp.cast_int_to_ptr = define_type_punning ("cast_uintptr_t_to_pointer",
+					      comp.uintptr_type,
+					      cast_union_fields[1],
+					      comp.void_ptr_type,
+					      cast_union_fields[0]);
+
   for (int i = 0; i < NUM_CAST_TYPES; ++i)
-    biggest_size = max (biggest_size, cast_types[i].bytes_size);
-
-  /* Define the union used for casting.  */
-  for (int i = 0; i < NUM_CAST_TYPES; ++i)
-    {
-      comp.cast_types[i] = cast_types[i].type;
-      comp.cast_union_fields[i] = gcc_jit_context_new_field (comp.ctxt,
-                                    NULL,
-                                    cast_types[i].type,
-                                    cast_types[i].name);
-      comp.cast_type_names[i] = cast_types[i].name;
-      comp.cast_type_sizes[i] = cast_types[i].bytes_size;
-      comp.cast_type_kind[i] = cast_types[i].kind;
-    }
-
-  gcc_jit_type *biggest_type = gcc_jit_context_get_int_type (comp.ctxt,
-                                                             biggest_size,
-                                                             false);
-  comp.cast_types[NUM_CAST_TYPES] = biggest_type;
-  comp.cast_union_fields[NUM_CAST_TYPES] =
-    gcc_jit_context_new_field (comp.ctxt, NULL, biggest_type, "biggest_type");
-  comp.cast_type_names[NUM_CAST_TYPES] = "biggest_type";
-  comp.cast_type_sizes[NUM_CAST_TYPES] = biggest_size;
-  comp.cast_type_kind[NUM_CAST_TYPES] = kind_unsigned;
-
-  comp.cast_union_type =
-    gcc_jit_context_new_union_type (comp.ctxt,
-				    NULL,
-				    "cast_union",
-				    NUM_CAST_TYPES + 1,
-				    comp.cast_union_fields);
+    comp.cast_types[i] = cast_types[i].type;
 
   /* Define the cast functions using a matrix.  */
   for (int i = 0; i < NUM_CAST_TYPES; ++i)
     for (int j = 0; j < NUM_CAST_TYPES; ++j)
         comp.cast_functions_from_to[i][j] =
-          define_cast_from_to (cast_types[i], i, cast_types[j], j);
+          define_cast_from_to (cast_types[i], cast_types[j]);
 }
 
 static void
