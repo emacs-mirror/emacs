@@ -1039,7 +1039,11 @@ did."
 
 Invoke this command before you want to start Hunspell for the first time
 with a particular combination of dictionaries.  The first dictionary
-in the list must have an affix file where Hunspell affix files are kept."
+in the list must have an affix file where Hunspell affix files are kept.
+
+If you invoke this from Lisp, make sure to precede it with
+a call to `ispell-set-spellchecker-params', as `ispell-change-dictionary'
+calls it only when invoked interactively."
   (interactive "sMulti-dictionary combination: ")
   ;; Make sure the first dictionary in the list is known to us.
   (let ((first-dict (car (split-string dict "," t))))
