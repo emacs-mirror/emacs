@@ -205,7 +205,6 @@ point in the distant past, and is still broken in perl-mode. "
     (dolist (code not-here-docs)
       (with-temp-buffer
         (insert code "\n\n")
-        (message "inserting: %S" code)
         (funcall cperl-test-mode)
         (goto-char (point-min))
         (forward-line 1)
@@ -243,13 +242,15 @@ issued by CPerl mode."
 (defvar perl-continued-statement-offset)
 (defvar perl-indent-level)
 
+(defconst cperl--tests-heredoc-face
+  (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
+    'font-lock-string-face))
+
 (ert-deftest cperl-test-heredocs ()
   "Test that HERE-docs are fontified with the appropriate face."
   (require 'perl-mode)
   (let ((file (ert-resource-file "here-docs.pl"))
         (cperl-continued-statement-offset perl-continued-statement-offset)
-        (target-font (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
-                       'font-lock-string-face))
         (case-fold-search nil))
     (with-temp-buffer
       (insert-file-contents file)
@@ -262,7 +263,7 @@ issued by CPerl mode."
           (while (search-forward "look-here" nil t)
             (should (equal
                      (get-text-property (match-beginning 0) 'face)
-                     target-font))
+                     cperl--tests-heredoc-face))
             (beginning-of-line)
             (should (null (looking-at "[ \t]")))
             (forward-line 1)))
@@ -428,7 +429,6 @@ under timeout control."
 (ert-deftest cperl-test-bug-14343 ()
   "Verify that inserting text into a HERE-doc string with Elisp
 does not break fontification."
-  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (with-temp-buffer
     (insert "my $string = <<HERE;\n")
     (insert "One line of text.\n")
@@ -439,13 +439,13 @@ does not break fontification."
     (goto-char (point-min))
     (search-forward "One line")
     (should (equal (get-text-property (point) 'face)
-                   'font-lock-string-face))
+                   cperl--tests-heredoc-face))
     (beginning-of-line)
     (insert "Another line if text.\n")
     (font-lock-ensure)
     (forward-line -1)
     (should (equal (get-text-property (point) 'face)
-                   'font-lock-string-face))
+                   cperl--tests-heredoc-face))
     ))
 
 
