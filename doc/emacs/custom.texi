@@ -2377,8 +2377,8 @@ mode when you set them with Customize, but ordinary @code{setq} won't
 do that; to enable the mode in your init file, call the minor mode
 command.  Finally, a few customizable user options are initialized in
 complex ways, and these have to be set either via the customize
-interface (@pxref{Customization}) or by using @code{set-variable}
-(@pxref{Examining}).
+interface (@pxref{Customization}) or by using
+@code{customize-set-variable} (@pxref{Examining}).
 
   The second argument to @code{setq} is an expression for the new
 value of the variable.  This can be a constant, a variable, or a
@@ -2531,7 +2531,7 @@ Change the coding system used when using the clipboard
 (@pxref{Communication Coding}).
 
 @example
-(set-variable 'selection-coding-system 'utf-8)
+(customize-set-variable 'selection-coding-system 'utf-8)
 @end example
 
 @item
