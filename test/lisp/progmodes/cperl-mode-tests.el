@@ -245,6 +245,9 @@ issued by CPerl mode."
 (defconst cperl--tests-heredoc-face
   (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
     'font-lock-string-face))
+(defconst cperl--tests-heredoc-delim-face
+  (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
+    'font-lock-constant-face))
 
 (ert-deftest cperl-test-heredocs ()
   "Test that HERE-docs are fontified with the appropriate face."
@@ -430,10 +433,10 @@ under timeout control."
   "Verify that inserting text into a HERE-doc string with Elisp
 does not break fontification."
   (with-temp-buffer
-    (insert "my $string = <<HERE;\n")
-    (insert "One line of text.\n")
-    (insert "Last line of this string.\n")
-    (insert "HERE\n")
+    (insert "my $string = <<HERE;\n"
+            "One line of text.\n"
+            "Last line of this string.\n"
+            "HERE\n")
     (funcall cperl-test-mode)
     (font-lock-ensure)
     (goto-char (point-min))
@@ -446,8 +449,51 @@ does not break fontification."
     (forward-line -1)
     (should (equal (get-text-property (point) 'face)
                    cperl--tests-heredoc-face))
-    ))
-
+    (search-forward "HERE")
+    (beginning-of-line)
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face)))
+  ;; insert into an empty here-document
+  (with-temp-buffer
+    (insert "print <<HERE;\n"
+            "HERE\n")
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (forward-line)
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face))
+    ;; Insert a newline into the empty here-document
+    (goto-char (point-min))
+    (forward-line)
+    (insert "\n")
+    (search-forward "HERE")
+    (beginning-of-line)
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face))
+    ;; Insert text at the beginning of the here-doc
+    (goto-char (point-min))
+    (forward-line)
+    (insert "text")
+    (font-lock-ensure)
+    (search-backward "text")
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-face))
+    (search-forward "HERE")
+    (beginning-of-line)
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face))
+    ;; Insert a new line immediately before the delimiter
+    ;; (That's where the point is anyway)
+    (insert "A new line\n")
+    (font-lock-ensure)
+    ;; The delimiter is still the delimiter
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face))
+    (forward-line -1)
+    ;; The new line has been "added" to the here-document
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-face))))
 
 (ert-deftest cperl-test-bug-16368 ()
   "Verify that `cperl-forward-group-in-re' doesn't hide errors."

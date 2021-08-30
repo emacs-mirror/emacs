@@ -3338,8 +3338,10 @@ Works before syntax recognition is done."
 ;;		Each non-literal part is marked `syntax-type' ==> `pod'
 ;;		Each literal part is marked `syntax-type' ==> `in-pod'
 ;;	b) HEREs:
+;;              The point before start is marked `here-doc-start'
 ;;		Start-to-end is marked `here-doc-group' ==> t
 ;;		The body is marked `syntax-type' ==> `here-doc'
+;;                and is also marked as style 2 comment
 ;;		The delimiter is marked `syntax-type' ==> `here-doc-delim'
 ;;	c) FORMATs:
 ;;		First line (to =) marked `first-format-line' ==> t
@@ -3356,8 +3358,36 @@ Works before syntax recognition is done."
 ;; (value: 0 in //o, 1 if "interpolated variable" is whole-REx, t otherwise).
 
 (defun cperl-unwind-to-safe (before &optional end)
-  ;; if BEFORE, go to the previous start-of-line on each step of unwinding
-  (let ((pos (point)))
+  "Move point back to a safe place, back up one extra line if BEFORE.
+A place is \"safe\" if it is not within POD, a here-document, a
+format, a quote-like expression, a subroutine attribute list or a
+multiline declaration.  These places all have special syntactical
+rules and need to be parsed as a whole.  If END, return the
+position of the end of the unsafe construct."
+  (let ((pos (point))
+        (state (syntax-ppss)))
+    ;; Check edge cases for here-documents first
+    (when before                        ; we need a safe start for parsing
+      (cond
+       ((or (equal (get-text-property (cperl-1- (point)) 'syntax-type)
+                   'here-doc-start)
+            (equal (syntax-after (cperl-1- (point)))
+                   (string-to-syntax "> c")))
+        ;; point is either immediately after the start of a here-doc
+        ;; (which may consist of nothing but one newline) or
+        ;; immediately after the now-outdated end marker of the
+        ;; here-doc. In both cases we need to back up to the line
+        ;; where the here-doc delimiters are defined.
+        (forward-char -1)
+        (cperl-backward-to-noncomment (point-min))
+        (beginning-of-line))
+       ((eq 2 (nth 7 state))
+        ;; point is somewhere in a here-document.  Back up to the line
+        ;; where the here-doc delimiters are defined.
+        (goto-char (nth 8 state))      ; beginning of this here-doc
+        (cperl-backward-to-noncomment  ; skip back over more
+         (point-min))                  ;     here-documents (if any)
+        (beginning-of-line))))         ; skip back over here-doc starters
     (while (and pos (progn
 		      (beginning-of-line)
 		      (get-text-property (setq pos (point)) 'syntax-type)))
@@ -3657,6 +3687,8 @@ This is part of `cperl-find-pods-heres' (below)."
     ;; the whole construct:
     (put-text-property here-doc-start (cperl-1+ here-doc-start) 'front-sticky '(syntax-type))
     (cperl-commentify (match-beginning 0) (1- here-doc-end) nil)
+    (put-text-property (1- here-doc-start) here-doc-start
+                       'syntax-type 'here-doc-start)
     (when (> (match-beginning 0) here-doc-start)
       ;; here-document has non-zero length
       (cperl-modify-syntax-type (1- here-doc-start) (string-to-syntax "< c"))
@@ -3698,6 +3730,7 @@ recursive calls in starting lines of here-documents."
 		cperl-syntax-state nil
 		cperl-syntax-done-to min))
   (or max (setq max (point-max)))
+  (font-lock-flush min max)
   (let* (go tmpend
 	 face head-face b e bb tag qtag b1 e1 argument i c tail tb
 	 is-REx is-x-REx REx-subgr-start REx-subgr-end was-subgr i2 hairy-RE
