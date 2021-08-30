@@ -3878,7 +3878,7 @@ risk of excessively long file names.
 +++
 ** New user option 'kill-buffer-delete-auto-save-files'.
 If non-nil, killing a buffer that has an auto-save file will prompt
-the user for whether that buffer should be deleted.  (Note that
+the user for whether that file should be deleted.  (Note that
 'delete-auto-save-files', if non-nil, was previously documented to
 result in deletion of auto-save files when killing a buffer without
 unsaved changes, but this has apparently not worked for several
