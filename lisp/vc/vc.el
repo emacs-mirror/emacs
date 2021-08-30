@@ -2055,9 +2055,9 @@ saving the buffer."
       ;; here, this way the *vc-diff* buffer is setup correctly, so
       ;; relative file names work.
       (let ((default-directory rootdir))
-	(vc-diff-internal
-	 t (list backend (list (expand-file-name rootdir)) working-revision) nil nil
-	 (called-interactively-p 'interactive))))))
+        (vc-diff-internal
+         t (list backend (list rootdir) working-revision) nil nil
+         (called-interactively-p 'interactive))))))
 
 ;;;###autoload
 (defun vc-root-dir ()
@@ -2603,8 +2603,8 @@ with its diffs (if the underlying VCS supports that)."
       (setq backend (vc-responsible-backend rootdir))
       (unless backend
         (error "Directory is not version controlled")))
-    (setq default-directory (expand-file-name rootdir))
-    (vc-print-log-internal backend (list default-directory) revision revision limit
+    (setq default-directory rootdir)
+    (vc-print-log-internal backend (list rootdir) revision revision limit
                            (when with-diff 'with-diff))))
 
 ;;;###autoload

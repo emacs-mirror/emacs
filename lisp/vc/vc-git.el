@@ -245,7 +245,11 @@ included in the completions."
 (defun vc-git--literal-pathspec (file)
   "Prepend :(literal) path magic to FILE."
   ;; Good example of file name that needs this: "test[56].xx".
-  (and file (concat ":(literal)" (file-local-name file))))
+  (let ((lname (file-local-name file)))
+    ;; Expand abbreviated file names.
+    (when (file-name-absolute-p lname)
+      (setq lname (expand-file-name lname)))
+    (and file (concat ":(literal)" lname))))
 
 (defun vc-git--literal-pathspecs (files)
   "Prepend :(literal) path magic to FILES."
