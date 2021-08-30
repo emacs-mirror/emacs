@@ -1330,6 +1330,12 @@ You can do this by putting
 @noindent
 in your init file.
 
+@findex w32-set-console-codepage
+  Setting @code{keyboard-coding-system} has no effect on MS-Windows,
+except on old Windows 9X systems, in which case the encoding must
+match the current codepage of the MS-Windows console, which can be
+changed by calling @code{w32-set-console-codepage}.
+
   There is a similarity between using a coding system translation for
 keyboard input, and using an input method: both define sequences of
 keyboard input that translate into single characters.  However, input

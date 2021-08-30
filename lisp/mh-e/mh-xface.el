@@ -27,6 +27,7 @@
 
 (require 'mh-e)
 
+(autoload 'mail-header-parse-address "mail-parse")
 (autoload 'message-fetch-field "message")
 
 (defvar mh-show-xface-function
@@ -190,11 +191,7 @@ The directories are searched for in the order they appear in the list.")
     (let* ((from-field (ignore-errors (car (message-tokenize-header
                                             (mh-get-header-field "from:")))))
            (from (car (ignore-errors
-                        ;; Don't use mh-funcall-if-exists because
-                        ;; ietf-drums-parse-address might exist at run-time but
-                        ;; not at compile-time.
-                        (when (fboundp 'ietf-drums-parse-address)
-                          (ietf-drums-parse-address from-field)))))
+                        (mail-header-parse-address from-field))))
            (host (and from
                       (string-match "\\([^+]*\\)\\(\\+.*\\)?@\\(.*\\)" from)
                       (downcase (match-string 3 from))))
@@ -391,10 +388,12 @@ filenames.  In addition, replaces * with %2a. See URL
 (defun mh-x-image-url-sane-p (url)
   "Check if URL is something sensible."
   (let ((len (length url)))
-    (cond ((< len 5) nil)
-          ((not (equal (substring url 0 5) "http:")) nil)
-          ((> len 100) nil)
-          (t t))))
+    (cond ((> len 100) nil)
+          ((and (>= len 5)
+                (equal (substring url 0 5) "http:") t))
+          ((and (>= len 6)
+                (equal (substring url 0 6) "https:") t))
+          (t nil))))
 
 (defun mh-x-image-display (image marker)
   "Display IMAGE at MARKER."

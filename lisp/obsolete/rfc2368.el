@@ -4,6 +4,7 @@
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: mail
+;; Obsolete-since: 28.1
 
 ;; This file is part of GNU Emacs.
 

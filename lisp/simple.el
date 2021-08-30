@@ -2070,7 +2070,7 @@ This function uses the `read-extended-command-predicate' user option."
   "Say whether SYMBOL has been marked as a mode-specific command in BUFFER."
   ;; Check the modes.
   (let ((modes (command-modes symbol)))
-    ;; Common case: Just a single mode.
+    ;; Common fast case: Just a single mode.
     (if (null (cdr modes))
         (or (provided-mode-derived-p
              (buffer-local-value 'major-mode buffer) (car modes))
@@ -2078,13 +2078,7 @@ This function uses the `read-extended-command-predicate' user option."
                   (buffer-local-value 'local-minor-modes buffer))
             (memq (car modes) global-minor-modes))
       ;; Uncommon case: Multiple modes.
-      (apply #'provided-mode-derived-p
-             (buffer-local-value 'major-mode buffer)
-             modes)
-      (seq-intersection modes
-                        (buffer-local-value 'local-minor-modes buffer)
-                        #'eq)
-      (seq-intersection modes global-minor-modes #'eq))))
+      (command-completion-with-modes-p modes buffer))))
 
 (defun command-completion-default-include-p (symbol buffer)
   "Say whether SYMBOL should be offered as a completion.
@@ -2219,7 +2213,9 @@ invoking, give a prefix argument to `execute-extended-command'."
   (let* ((function (and (stringp command-name) (intern-soft command-name)))
          (binding (and suggest-key-bindings
 		       (not executing-kbd-macro)
-		       (where-is-internal function overriding-local-map t))))
+		       (where-is-internal function overriding-local-map t)))
+         (delay-before-suggest 0)
+         (find-shorter nil))
     (unless (commandp function)
       (error "`%s' is not a valid command name" command-name))
     ;; Some features, such as novice.el, rely on this-command-keys
@@ -2234,50 +2230,52 @@ invoking, give a prefix argument to `execute-extended-command'."
     (setq real-this-command function)
     (let ((prefix-arg prefixarg))
       (command-execute function 'record))
-    ;; If enabled, show which key runs this command.
-    ;; But first wait, and skip the message if there is input.
-    (let* ((waited
-            ;; If this command displayed something in the echo area;
-            ;; wait a few seconds, then display our suggestion message.
-            ;; FIXME: Wait *after* running post-command-hook!
-            ;; FIXME: If execute-extended-command--shorter were
-            ;; faster, we could compute the result here first too.
-            (when (and suggest-key-bindings
-                       (or binding
-                           (and extended-command-suggest-shorter typed)))
-              (sit-for (cond
-                        ((zerop (length (current-message))) 0)
-                        ((numberp suggest-key-bindings) suggest-key-bindings)
-                        (t 2))))))
-      (when (and waited (not (consp unread-command-events)))
-        (unless (or (not extended-command-suggest-shorter)
-                    binding executing-kbd-macro (not (symbolp function))
-                    (<= (length (symbol-name function)) 2))
-          ;; There's no binding for CMD.  Let's try and find the shortest
-          ;; string to use in M-x.
-          ;; FIXME: Can be slow.  Cache it maybe?
-          (while-no-input
-            (setq binding (execute-extended-command--shorter
-                           (symbol-name function) typed))))
-        (when binding
-          ;; This is normally not necessary -- the timer should run
-          ;; immediately, but be defensive and ensure that we never
-          ;; have two of these timers in flight.
-          (when execute-extended-command--binding-timer
-            (cancel-timer execute-extended-command--binding-timer))
-          (setq execute-extended-command--binding-timer
-                (run-at-time
-                 0 nil
-                 (lambda ()
-                   (with-temp-message
-                       (format-message "You can run the command `%s' with %s"
-                                       function
-                                       (if (stringp binding)
-                                           (concat "M-x " binding " RET")
-                                         (key-description binding)))
-                     (sit-for (if (numberp suggest-key-bindings)
-                                  suggest-key-bindings
-                                2)))))))))))
+    ;; Ensure that we never have two of the suggest-binding timers in
+    ;; flight.
+    (when execute-extended-command--binding-timer
+      (cancel-timer execute-extended-command--binding-timer))
+    ;; If this command displayed something in the echo area, then
+    ;; postpone the display of our suggestion message a bit.
+    (when (and suggest-key-bindings
+               (or binding
+                   (and extended-command-suggest-shorter typed)))
+      (setq delay-before-suggest
+            (cond
+             ((zerop (length (current-message))) 0)
+             ((numberp suggest-key-bindings) suggest-key-bindings)
+             (t 2)))
+      (when (and extended-command-suggest-shorter
+                 (not binding)
+                 (not executing-kbd-macro)
+                 (symbolp function)
+                 (> (length (symbol-name function)) 2))
+        ;; There's no binding for CMD.  Let's try and find the shortest
+        ;; string to use in M-x.
+        (setq find-shorter t))
+      (when (or binding find-shorter)
+        (setq execute-extended-command--binding-timer
+              (run-at-time
+               delay-before-suggest nil
+               (lambda ()
+                 ;; If the user has typed any other commands in the
+                 ;; meantime, then don't display anything.
+                 (when (eq function real-last-command)
+                   ;; Find shorter string.
+                   (when find-shorter
+                     (while-no-input
+                       ;; FIXME: Can be slow.  Cache it maybe?
+                       (setq binding (execute-extended-command--shorter
+                                      (symbol-name function) typed))))
+                   (when binding
+                     (with-temp-message
+                         (format-message "You can run the command `%s' with %s"
+                                         function
+                                         (if (stringp binding)
+                                             (concat "M-x " binding " RET")
+                                           (key-description binding)))
+                       (sit-for (if (numberp suggest-key-bindings)
+                                    suggest-key-bindings
+                                  2))))))))))))
 
 (defun execute-extended-command-for-buffer (prefixarg &optional
                                                       command-name typed)

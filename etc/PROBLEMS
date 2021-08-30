@@ -2660,6 +2660,16 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 Libxpm is available for macOS as part of the XQuartz project.
 
+** Synthetic fonts on macOS
+
+Synthetic bold looks thinner if the background is darker than the
+foreground and font smoothing is turned on.  In such cases, you can
+turn off synthetic bold for particular fonts and use overstriking
+instead by customizing the variable 'face-ignored-fonts'.  For
+instance, if the problem is with the Monaco font, you could put
+something like the following in your init file:
+
+(push "\\`-[^-]*-monaco-bold-" face-ignored-fonts)
 
 * Build-time problems
 

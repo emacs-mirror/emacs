@@ -1336,7 +1336,9 @@ if test -n "$BREW"; then
 fi
 
 # Check MacPorts on macOS.
-AC_PATH_PROG(HAVE_MACPORTS, port)
+if test $opsys = darwin; then
+  AC_PATH_PROG(HAVE_MACPORTS, port)
+fi
 
 ## Require makeinfo >= 4.13 (last of the 4.x series) to build the manuals.
 : ${MAKEINFO:=makeinfo}
@@ -3865,7 +3867,7 @@ AC_DEFUN([libgccjit_dev_not_found], [
 not found.
 Please try installing libgccjit-dev or a similar package.
 If you are sure you want Emacs be compiled without ELisp native compiler,
-pass the --without-nativecomp option to configure.])])
+pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_broken], [
   AC_MSG_ERROR([The installed libgccjit failed to compile and run a test program using
@@ -3884,20 +3886,21 @@ LIBGCCJIT_LIBS=
 LIBGCCJIT_CFLAGS=
 if test "${with_native_compilation}" != "no"; then
     if test "${HAVE_PDUMPER}" = no; then
-       AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
+       AC_MSG_ERROR(['--with-native-compilation' requires '--with-dumping=pdumper'])
     fi
     if test "${HAVE_ZLIB}" = no; then
-       AC_MSG_ERROR(['--with-nativecomp' requires zlib])
+       AC_MSG_ERROR(['--with-native-compilation' requires zlib])
     fi
 
     # Ensure libgccjit installed by Homebrew can be found.
     if test -n "$BREW"; then
-      BREW_LIBGCCJIT_PREFIX=`$BREW --prefix --installed libgccjit 2>/dev/null`
-      if test "$BREW_LIBGCCJIT_PREFIX"; then
-        brew_libdir=`find ${BREW_LIBGCCJIT_PREFIX}/ -name \*.so \
-                     | sed -e '1!d;s|/[[^/]]*\.so$||'`
-        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_PREFIX}/include"
-        LDFLAGS="$LDFLAGS -L${brew_libdir} -I${BREW_LIBGCCJIT_PREFIX}/include"
+      if test -n "`$BREW --prefix --installed libgccjit 2>/dev/null`"; then
+        BREW_LIBGCCJIT_INCLUDE=$(dirname $($BREW ls -v libgccjit | \
+                                              grep libgccjit.h))
+        BREW_LIBGCCJIT_LIB=$(dirname $($BREW ls -v libgccjit| \
+                                          grep libgccjit.so\$))
+        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_INCLUDE}"
+        LDFLAGS="$LDFLAGS -L${BREW_LIBGCCJIT_LIB}"
       fi
     fi
 

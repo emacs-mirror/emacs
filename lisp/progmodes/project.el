@@ -51,6 +51,11 @@
 ;; files and its relations to external directories.  `project-files'
 ;; should be consistent with `project-ignores'.
 ;;
+;; `project-buffers' can be overridden if the project has some unusual
+;; shape (e.g. it contains files residing outside of its root, or some
+;; files inside the root must not be considered a part of it).  It
+;; should be consistent with `project-files'.
+;;
 ;; This list can change in future versions.
 ;;
 ;; VC project:
@@ -333,6 +338,16 @@ Also quote LOCAL-FILES if `default-directory' is quoted."
       (mapcar (lambda (file)
                 (concat remote-id file))
               local-files))))
+
+(cl-defgeneric project-buffers (project)
+  "Return the list of all live buffers that belong to PROJECT."
+  (let ((root (expand-file-name (file-name-as-directory (project-root project))))
+        bufs)
+    (dolist (buf (buffer-list))
+      (when (string-prefix-p root (expand-file-name
+                                   (buffer-local-value 'default-directory buf)))
+        (push buf bufs)))
+    (nreverse bufs)))
 
 (defgroup project-vc nil
   "Project implementation based on the VC package."
@@ -627,6 +642,23 @@ DIRS must contain directory names."
     (let ((enable-local-variables :all))
       (hack-dir-local-variables-non-file-buffer))
     (symbol-value var)))
+
+(cl-defmethod project-buffers ((project (head vc)))
+  (let* ((root (expand-file-name (file-name-as-directory (project-root project))))
+         (modules (unless (or (project--vc-merge-submodules-p root)
+                              (project--submodule-p root))
+                    (mapcar
+                     (lambda (m) (format "%s%s/" root m))
+                     (project--git-submodules))))
+         dd
+         bufs)
+    (dolist (buf (buffer-list))
+      (setq dd (expand-file-name (buffer-local-value 'default-directory buf)))
+      (when (and (string-prefix-p root dd)
+                 (not (cl-find-if (lambda (module) (string-prefix-p module dd))
+                                  modules)))
+        (push buf bufs)))
+    (nreverse bufs)))
 
 
 ;;; Project commands
@@ -1014,13 +1046,11 @@ If non-nil, it overrides `compilation-buffer-name-function' for
          (current-buffer (current-buffer))
          (other-buffer (other-buffer current-buffer))
          (other-name (buffer-name other-buffer))
+         (buffers (project-buffers pr))
          (predicate
           (lambda (buffer)
             ;; BUFFER is an entry (BUF-NAME . BUF-OBJ) of Vbuffer_alist.
-            (and (cdr buffer)
-                 (equal pr
-                        (with-current-buffer (cdr buffer)
-                          (project-current)))))))
+            (memq (cdr buffer) buffers))))
     (read-buffer
      "Switch to buffer: "
      (when (funcall predicate (cons other-name other-buffer))
@@ -1160,7 +1190,7 @@ of CONDITIONS."
 What buffers should or should not be killed is described
 in `project-kill-buffer-conditions'."
   (let (bufs)
-    (dolist (buf (project--buffer-list pr))
+    (dolist (buf (project-buffers pr))
       (when (project--kill-buffer-check buf project-kill-buffer-conditions)
         (push buf bufs)))
     bufs))

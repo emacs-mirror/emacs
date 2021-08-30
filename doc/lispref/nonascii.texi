@@ -1988,7 +1988,9 @@ for decoding keyboard input from @var{terminal}.  If
 @var{coding-system} is @code{nil}, that means not to decode keyboard
 input.  If @var{terminal} is a frame, it means that frame's terminal;
 if it is @code{nil}, that means the currently selected frame's
-terminal.  @xref{Multiple Terminals}.
+terminal.  @xref{Multiple Terminals}.  Note that on modern MS-Windows
+systems Emacs always uses Unicode input when decoding keyboard input,
+so the encoding set by this command has no effect on Windows.
 @end deffn
 
 @defun terminal-coding-system &optional terminal

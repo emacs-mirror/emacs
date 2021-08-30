@@ -2951,7 +2951,8 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
             fmts formats)
       ;; For each directory, try each format string.
       (while (and fmts (null buffer))
-        (setq name (expand-file-name (format (car fmts) filename) thisdir)
+        (setq name (file-truename
+                    (file-name-concat thisdir (format (car fmts) filename)))
               buffer (and (file-exists-p name)
                           (find-file-noselect name))
               fmts (cdr fmts)))
@@ -2973,7 +2974,8 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
         (setq thisdir (car dirs)
               fmts formats)
         (while (and fmts (null buffer))
-          (setq name (expand-file-name (format (car fmts) filename) thisdir)
+          (setq name (file-truename
+                      (file-name-concat thisdir (format (car fmts) filename)))
                 buffer (and (file-exists-p name)
                             (find-file-noselect name))
                 fmts (cdr fmts)))
@@ -3016,7 +3018,8 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
               (ding) (sit-for 2))
              ((and (file-directory-p name)
                    (not (file-exists-p
-                         (setq name (expand-file-name filename name)))))
+                         (setq name (file-truename
+                                     (file-name-concat name filename))))))
               (message "No `%s' in directory %s" filename origname)
               (ding) (sit-for 2))
              (t

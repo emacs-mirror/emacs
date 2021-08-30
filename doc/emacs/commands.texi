@@ -121,7 +121,7 @@ C-k} is two key sequences, not one.
   By default, the prefix keys in Emacs are @kbd{C-c}, @kbd{C-h},
 @kbd{C-x}, @kbd{C-x @key{RET}}, @kbd{C-x @@}, @kbd{C-x a}, @kbd{C-x
 n}, @kbd{C-x r}, @kbd{C-x t}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5},
-@kbd{C-x 6}, @key{ESC}, @kbd{M-g}, and @kbd{M-o}.  (@key{F1} and
+@kbd{C-x 6}, @key{ESC}, and @kbd{M-g}.  (@key{F1} and
 @key{F2} are aliases for @kbd{C-h} and @kbd{C-x 6}.)  This list is not
 cast in stone; if you customize Emacs, you can make new prefix keys.
 You could even eliminate some of the standard ones, though this is not

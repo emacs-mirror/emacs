@@ -116,9 +116,9 @@ or one if there's just one execution unit."
   :version "28.1")
 
 (defcustom native-comp-async-cu-done-functions nil
-  "List of functions to call after asynchronously compiling one compilation unit.
-Called with one argument FILE, the filename used as input to
-compilation."
+  "List of functions to call when asynchronous compilation of a file is done.
+Each function is called with one argument FILE, the filename whose
+compilation has completed."
   :type 'hook
   :version "28.1")
 
@@ -3918,7 +3918,8 @@ display a message."
          do (let* ((expr `((require 'comp)
                            ,(when (boundp 'backtrace-line-length)
                               `(setf backtrace-line-length ,backtrace-line-length))
-                           (setf native-compile-target-directory ,native-compile-target-directory
+                           (setf comp-file-preloaded-p ,comp-file-preloaded-p
+                                 native-compile-target-directory ,native-compile-target-directory
                                  native-comp-speed ,native-comp-speed
                                  native-comp-debug ,native-comp-debug
                                  native-comp-verbose ,native-comp-verbose

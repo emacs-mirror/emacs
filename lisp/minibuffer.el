@@ -1496,7 +1496,8 @@ Remove completion BASE prefix string from history elements."
                                            base-size md
                                            minibuffer-completion-table
                                            minibuffer-completion-predicate))
-             (sort-fun (completion-metadata-get all-md 'cycle-sort-function)))
+             (sort-fun (completion-metadata-get all-md 'cycle-sort-function))
+             (group-fun (completion-metadata-get all-md 'group-function)))
         (when last
           (setcdr last nil)
 
@@ -1506,17 +1507,25 @@ Remove completion BASE prefix string from history elements."
           (setq all (delete-dups all))
           (setq last (last all))
 
-          (if sort-fun
-              (setq all (funcall sort-fun all))
-            ;; Sort first by length and alphabetically.
+          (cond
+           (sort-fun (setq all (funcall sort-fun all)))
+           ((and completions-group group-fun)
+            ;; TODO: experiment with re-grouping here.  Might be slow
+            ;; if the group-fun (given by the table and out of our
+            ;; control) is slow and/or allocates too much.
+            )
+           (t
+            ;; If the table doesn't stipulate a sorting function or a
+            ;; group function, sort first by length and
+            ;; alphabetically.
             (setq all (minibuffer--sort-by-length-alpha all))
-            ;; Sort by history position, put the default, if it
+            ;; Then sort by history position, and put the default, if it
             ;; exists, on top.
             (when (minibufferp)
               (setq all (minibuffer--sort-by-position
                          (minibuffer--sort-preprocess-history
                           (substring string 0 base-size))
-                         all))))
+                         all)))))
 
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
@@ -3520,7 +3529,8 @@ string in COMPLETIONS.  Return a deep copy of COMPLETIONS where
 each string is propertized with `completion-score', a number
 between 0 and 1, and with faces `completions-common-part',
 `completions-first-difference' in the relevant segments."
-  (when completions
+  (cond
+   ((and completions (cl-loop for e in pattern thereis (stringp e)))
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
            (point-idx (completion-pcm--pattern-point-idx pattern))
            (case-fold-search completion-ignore-case)
@@ -3611,7 +3621,8 @@ between 0 and 1, and with faces `completions-common-part',
               0 1 'completion-score
               (/ score-numerator (* end (1+ score-denominator)) 1.0) str)))
          str)
-       completions))))
+       completions)))
+   (t completions)))
 
 (defun completion-pcm--find-all-completions (string table pred point
                                                     &optional filter)
@@ -3943,51 +3954,38 @@ that is non-nil."
 (put 'flex 'completion--adjust-metadata 'completion--flex-adjust-metadata)
 
 (defun completion--flex-adjust-metadata (metadata)
-  (cl-flet
-      ((compose-flex-sort-fn
-        (existing-sort-fn) ; wish `cl-flet' had proper indentation...
-        (lambda (completions)
-          (cond
-           (;; Sort by flex score whenever outside the minibuffer or
-            ;; in the minibuffer with some input.  JT@2019-12-23:
-            ;; FIXME: this is still wrong.  What we need to test here
-            ;; is "some input that actually leads to flex filtering",
-            ;; not "something after the minibuffer prompt".  Among
-            ;; other inconsistencies, the latter is always true for
-            ;; file searches, meaning the next clauses in this cond
-            ;; will be ignored.
-            (or (not (window-minibuffer-p))
-                (> (point-max) (minibuffer-prompt-end)))
+  "If `flex' is actually doing filtering, adjust sorting."
+  (let ((flex-is-filtering-p
+         ;; JT@2019-12-23: FIXME: this is kinda wrong.  What we need
+         ;; to test here is "some input that actually leads/led to
+         ;; flex filtering", not "something after the minibuffer
+         ;; prompt".  E.g. The latter is always true for file
+         ;; searches, meaning we'll be doing extra work when we
+         ;; needn't.
+         (or (not (window-minibuffer-p))
+             (> (point-max) (minibuffer-prompt-end))))
+        (existing-dsf
+         (completion-metadata-get metadata 'display-sort-function))
+        (existing-csf
+         (completion-metadata-get metadata 'cycle-sort-function)))
+    (cl-flet
+        ((compose-flex-sort-fn
+          (existing-sort-fn) ; wish `cl-flet' had proper indentation...
+          (lambda (completions)
             (sort
-             (if existing-sort-fn
-                 (funcall existing-sort-fn completions)
-               completions)
+             (funcall existing-sort-fn completions)
              (lambda (c1 c2)
                (let ((s1 (get-text-property 0 'completion-score c1))
                      (s2 (get-text-property 0 'completion-score c2)))
-                 (> (or s1 0) (or s2 0))))))
-           (;; If no existing sort fn and nothing flexy happening, use
-            ;; the customary sorting strategy.
-            ;;
-            ;; JT@2021-08-15: FIXME: ideally this wouldn't repeat
-            ;; logic in `completion-all-sorted-completions', but that
-            ;; logic has other context that is either expensive to
-            ;; compute or not easy to access here.
-            (not existing-sort-fn)
-            (let ((lalpha (minibuffer--sort-by-length-alpha completions))
-                  (hist (and (minibufferp)
-                             (and (not (eq minibuffer-history-variable t))
-                                  (symbol-value minibuffer-history-variable)))))
-              (if hist (minibuffer--sort-by-position hist lalpha) lalpha)))
-           (t (funcall existing-sort-fn completions))))))
-    `(metadata
-      (display-sort-function
-       . ,(compose-flex-sort-fn
-           (completion-metadata-get metadata 'display-sort-function)))
-      (cycle-sort-function
-       . ,(compose-flex-sort-fn
-           (completion-metadata-get metadata 'cycle-sort-function)))
-      ,@(cdr metadata))))
+                 (> (or s1 0) (or s2 0))))))))
+      `(metadata
+        ,@(and flex-is-filtering-p
+               `((display-sort-function
+                  . ,(compose-flex-sort-fn (or existing-dsf #'identity)))))
+        ,@(and flex-is-filtering-p
+               `((cycle-sort-function
+                  . ,(compose-flex-sort-fn (or existing-csf #'identity)))))
+        ,@(cdr metadata)))))
 
 (defun completion-flex--make-flex-pattern (pattern)
   "Convert PCM-style PATTERN into PCM-style flex pattern.

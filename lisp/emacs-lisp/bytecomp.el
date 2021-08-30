@@ -322,8 +322,9 @@ Elements of the list may be:
   make-local  calls to make-variable-buffer-local that may be incorrect.
   mapcar      mapcar called for effect.
   constants   let-binding of, or assignment to, constants/nonvariables.
-  docstrings  docstrings that are too wide (longer than 80 characters,
-              or `fill-column', whichever is bigger)
+  docstrings  docstrings that are too wide (longer than
+              `byte-compile-docstring-max-column' or
+              `fill-column' characters, whichever is bigger).
   suspicious  constructs that usually don't do what the coder wanted.
 
 If the list begins with `not', then the remaining elements specify warnings to

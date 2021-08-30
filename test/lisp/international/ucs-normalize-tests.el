@@ -233,6 +233,7 @@ implementations:
 
 (ert-deftest ucs-normalize-part1 ()
   :tags '(:expensive-test)
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 1800s
   ;; This takes a long time, so make sure we're compiled.
   (dolist (fun '(ucs-normalize-tests--part1-rule2
                  ucs-normalize-tests--rule1-failing-for-partX

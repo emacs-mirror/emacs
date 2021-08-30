@@ -119,7 +119,6 @@ Each element has the form (WHERE BYTECODE STACK) where:
                        (or doc "No documentation")))))
                "\n")))
       (setq flist (advice--cdr flist)))
-    (if docstring (setq docstring (concat docstring "\n")))
     (unless docfun (setq docfun flist))
     (let* ((origdoc (unless (eq function docfun) ;Avoid inf-loops.
                       (documentation docfun t)))
@@ -131,7 +130,12 @@ Each element has the form (WHERE BYTECODE STACK) where:
                         (if (stringp arglist) t
                           (help--make-usage-docstring function arglist)))
                     (setq origdoc (cdr usage)) (car usage)))
-      (help-add-fundoc-usage (concat docstring origdoc) usage))))
+      (help-add-fundoc-usage (concat origdoc
+                                     (if (string-suffix-p "\n" origdoc)
+                                         "\n"
+                                       "\n\n")
+                                     docstring)
+                             usage))))
 
 (defun advice-eval-interactive-spec (spec)
   "Evaluate the interactive spec SPEC."

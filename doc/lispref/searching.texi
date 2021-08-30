@@ -1649,6 +1649,24 @@ extra actual argument values not matched by any other parameter in
 Since the definition is global, it is recommended to give @var{name} a
 package prefix to avoid name clashes with definitions elsewhere, as is
 usual when naming non-local variables and functions.
+
+Forms defined this way only perform simple template substitution.
+For arbitrary computations, use them together with with the @code{rx}
+forms @code{eval}, @code{regexp} or @code{literal}.  Example:
+
+@example
+@group
+(defun n-tuple-rx (n element)
+  `(seq "<"
+        (group-n 1 ,element)
+        ,@@(mapcar (lambda (i) `(seq ?, (group-n ,i ,element)))
+                  (number-sequence 2 n))
+        ">"))
+(rx-define n-tuple (n element) (eval (n-tuple-rx n 'element)))
+(rx (n-tuple 3 (+ (in "0-9"))))
+  @result{} "<\\(?1:[0-9]+\\),\\(?2:[0-9]+\\),\\(?3:[0-9]+\\)>"
+@end group
+@end example
 @end defmac
 
 @defmac rx-let (bindings@dots{}) body@dots{}

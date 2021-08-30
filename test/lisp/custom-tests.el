@@ -96,6 +96,7 @@ Ensure the directory is recursively deleted after the fact."
 
 (ert-deftest custom-tests-require-theme ()
   "Test `require-theme'."
+  (require 'warnings)
   (custom-tests--with-temp-dir
     (let* ((default-directory temporary-file-directory)
            (custom-theme-load-path (list default-directory))

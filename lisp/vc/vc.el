@@ -3072,20 +3072,6 @@ log entries should be gathered."
   (vc-call-backend (vc-responsible-backend default-directory)
                    'update-changelog args))
 
-;; functions that operate on RCS revision numbers.  This code should
-;; also be moved into the backends.  It stays for now, however, since
-;; it is used in code below.
-(defun vc-branch-p (rev)
-  "Return t if REV is a branch revision."
-  (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
-
-;;;###autoload
-(defun vc-branch-part (rev)
-  "Return the branch part of a revision number REV."
-  (let ((index (string-match "\\.[0-9]+\\'" rev)))
-    (when index
-      (substring rev 0 index))))
-
 (defun vc-default-responsible-p (_backend _file)
   "Indicate whether BACKEND is responsible for FILE.
 The default is to return nil always."

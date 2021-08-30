@@ -1718,7 +1718,10 @@ to use a pty, or nil to use the default specified through
 :stderr STDERR -- STDERR is either a buffer or a pipe process attached
 to the standard error of subprocess.  Specifying this implies
 `:connection-type' is set to `pipe'.  If STDERR is nil, standard error
-is mixed with standard output and sent to BUFFER or FILTER.
+is mixed with standard output and sent to BUFFER or FILTER.  (Note
+that specifying :stderr will create a new, separate (but associated)
+process, with its own filter and sentinel.  See
+Info node `(elisp) Asynchronous Processes' for more details.)
 
 :file-handler FILE-HANDLER -- If FILE-HANDLER is non-nil, then look
 for a file name handler for the current buffer's `default-directory'

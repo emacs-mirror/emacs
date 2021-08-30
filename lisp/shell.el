@@ -1199,7 +1199,7 @@ Returns t if successful."
     (if data
 	(prog2 (unless (window-minibuffer-p)
 		 (message "Completing command name..."))
-	    (apply #'completion-in-region data)))))
+            (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))))
 
 (defun shell-command-completion ()
   "Return the completion data for the command at point, if any."
@@ -1314,7 +1314,7 @@ Returns non-nil if successful."
     (if data
 	(prog2 (unless (window-minibuffer-p)
 		 (message "Completing variable name..."))
-	    (apply #'completion-in-region data)))))
+	    (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))))
 
 
 (defun shell-environment-variable-completion ()

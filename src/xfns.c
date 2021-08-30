@@ -7836,7 +7836,6 @@ syms_of_xfns (void)
   DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qmono, "mono");
   DEFSYM (Qassq_delete_all, "assq-delete-all");
-  DEFSYM (Qhide, "hide");
   DEFSYM (Qresize_mode, "resize-mode");
 
 #ifdef USE_CAIRO
