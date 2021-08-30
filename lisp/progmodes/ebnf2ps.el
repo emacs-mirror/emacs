@@ -2244,8 +2244,14 @@ the PostScript image in a file with that name.  If FILENAME is a
 number, prompt the user for the name of the file to save in."
   (interactive (list (ps-print-preprint current-prefix-arg)))
   (ebnf-log-header "(ebnf-print-buffer %S)" filename)
-  (ebnf-print-region (point-min) (point-max) filename))
-
+  (cl-letf (((symbol-function 'ps-output-string)
+             ;; Make non-ASCII work (sort of).
+             (lambda (string)
+               (ps-output t (and string
+                                 (encode-coding-string
+                                  (decode-coding-string string 'utf-8)
+                                  'iso-8859-1))))))
+    (ebnf-print-region (point-min) (point-max) filename)))
 
 ;;;###autoload
 (defun ebnf-print-region (from to &optional filename)
