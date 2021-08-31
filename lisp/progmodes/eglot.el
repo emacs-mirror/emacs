@@ -295,6 +295,10 @@ let the buffer grow forever."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
+(defvar eglot-withhold-process-id nil
+  "If non-nil, Eglot will not send the Emacs process id to the language server.
+This can be useful when using docker to run a language server.")
+
 ;; Customizable via `completion-category-overrides'.
 (when (assoc 'flex completion-styles-alist)
   (add-to-list 'completion-category-defaults '(eglot (styles flex basic))))
@@ -1110,7 +1114,8 @@ This docstring appeases checkdoc, that's all."
                       server
                       :initialize
                       (list :processId
-                            (unless (or (file-remote-p default-directory)
+                            (unless (or eglot-withhold-process-id
+                                        (file-remote-p default-directory)
                                         (eq (jsonrpc-process-type server)
                                             'network))
                               (emacs-pid))
