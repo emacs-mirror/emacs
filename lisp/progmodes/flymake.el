@@ -291,7 +291,7 @@ generated it."
                    (macroexp-file-name)
                  (and (not load-file-name)
                       (bound-and-true-p byte-compile-current-file))))
-         (sublog (if file
+         (sublog (if (stringp file)
                      (intern
                       (file-name-nondirectory
                        (file-name-sans-extension file))))))
