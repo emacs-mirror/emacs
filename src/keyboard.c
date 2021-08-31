@@ -4234,7 +4234,7 @@ decode_timer (Lisp_Object timer, struct timespec *result)
 {
   Lisp_Object *vec;
 
-  if (! (VECTORP (timer) && ASIZE (timer) == 9))
+  if (! (VECTORP (timer) && ASIZE (timer) == 10))
     return false;
   vec = XVECTOR (timer)->contents;
   if (! NILP (vec[0]))

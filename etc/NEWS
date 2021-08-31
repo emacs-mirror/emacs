@@ -3146,6 +3146,17 @@ work for `context-menu-mode` in Xterm.
 * Incompatible Lisp Changes in Emacs 28.1
 
 ---
+** 'run-at-time' now tries harder to implement the t TIME parameter.
+If TIME is t, the timer runs at an integral multiple of REPEAT.
+(I.e., if given a REPEAT of 60, it'll run at 08:11:00, 08:12:00,
+08:13:00.)  However, when a machine goes to sleep (or otherwise didn't
+get a time slot to run when the timer was scheduled), the timer would
+then fire every 60 seconds after the time the timer was fired.  This
+has now changed, and the timer code now recomputes the integral
+multiple every time it runs, which means that if the laptop wakes at
+08:16:43, it'll fire at that time, but then at 08:17:00, 08:18:00...
+
+---
 ** 'parse-partial-sexp' now signals an error if TO is smaller than FROM.
 Previously this would lead to the function interpreting FROM as TO and
 vice versa, which would be confusing when passing in OLDSTATE, which
