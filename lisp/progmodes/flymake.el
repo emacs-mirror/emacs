@@ -319,7 +319,13 @@ generated it."
 TYPE is a diagnostic symbol and TEXT is string describing the
 problem detected in this region.  DATA is any object that the
 caller wishes to attach to the created diagnostic for later
-retrieval.
+retrieval with `flymake-diagnostic-data'.
+
+BEG and END may each be either buffer positions (number or
+markers) or a cons (LINE . COL).  When using the second form the
+numbers will be converted to buffer positions (using
+`flymake-diag-region') as soon as the diagnostic is appended to
+an actual buffer.
 
 OVERLAY-PROPERTIES is an alist of properties attached to the
 created diagnostic, overriding the default properties and any
@@ -345,15 +351,18 @@ diagnostics at BEG."
      ,(format "Get Flymake diagnostic DIAG's %s." (symbol-name thing))
      (,internal diag)))
 
-(flymake--diag-accessor flymake-diagnostic-buffer flymake--diag-buffer buffer)
 (flymake--diag-accessor flymake-diagnostic-text flymake--diag-text text)
 (flymake--diag-accessor flymake-diagnostic-type flymake--diag-type type)
 (flymake--diag-accessor flymake-diagnostic-backend flymake--diag-backend backend)
 (flymake--diag-accessor flymake-diagnostic-data flymake--diag-data backend)
 
+(defun flymake-diagnostic-buffer (diag)
+  "Get Flymake diagnostic DIAG's buffer."
+  (flymake--diag-buffer diag))
+
 (defun flymake-diagnostic-beg (diag)
   "Get Flymake diagnostic DIAG's start position.
-This position only be queried after DIAG has been reported to Flymake."
+May only be queried after DIAG has been reported to Flymake."
   (let ((overlay (flymake--diag-overlay diag)))
     (unless overlay
       (error "DIAG %s not reported to Flymake yet" diag))
@@ -361,7 +370,7 @@ This position only be queried after DIAG has been reported to Flymake."
 
 (defun flymake-diagnostic-end (diag)
   "Get Flymake diagnostic DIAG's end position.
-This position only be queried after DIAG has been reported to Flymake."
+May only be queried after DIAG has been reported to Flymake."
   (let ((overlay (flymake--diag-overlay diag)))
     (unless overlay
       (error "DIAG %s not reported to Flymake yet" diag))
@@ -627,7 +636,7 @@ associated `flymake-category' return DEFAULT."
 
 (defun flymake--highlight-line (diagnostic)
   "Highlight buffer with info in DIAGNOSTIC."
-  (let ((type (or (flymake--diag-type diagnostic)
+  (let ((type (or (flymake-diagnostic-type diagnostic)
                   :error))
         (ov (make-overlay
              (flymake--diag-beg diagnostic)
@@ -665,7 +674,7 @@ associated `flymake-category' return DEFAULT."
         (lambda (window _ov pos)
           (with-selected-window window
             (mapconcat
-             #'flymake--diag-text
+             #'flymake-diagnostic-text
              (flymake-diagnostics pos)
              "\n"))))
       (default-maybe 'severity (warning-numeric-level :error))
@@ -730,9 +739,14 @@ backend is operating normally.")
       (and (>= start1 start0) (<  start1 end0))
       (and (>  end1 start0)   (<= end1 end0))))
 
-(cl-defun flymake--handle-report (backend token report-action
-                                          &key explanation force region
-                                          &allow-other-keys)
+(cl-defun flymake--handle-report
+    (backend token report-action
+             &key explanation force region
+             &allow-other-keys
+             &aux
+             (state (or (gethash backend flymake--state)
+                        (error "Can't find state for %s in `flymake--state'" backend)))
+             expected-token)
   "Handle reports from BACKEND identified by TOKEN.
 BACKEND, REPORT-ACTION and EXPLANATION, and FORCE conform to the
 calling convention described in
@@ -740,81 +754,86 @@ calling convention described in
 to handle a report even if TOKEN was not expected.  REGION is
 a (BEG . END) pair of buffer positions indicating that this
 report applies to that region."
-  (let* ((state (gethash backend flymake--state))
-         first-report)
-    (unless state
-      (error "Can't find state for %s in `flymake--state'" backend))
-    (setf first-report (not (flymake--state-reported-p state)))
-    (setf (flymake--state-reported-p state) t)
-    (let (expected-token
+  (unless state
+    (error "Can't find state for %s in `flymake--state'" backend))
+  (cond
+   ((null state)
+    (flymake-error
+     "Unexpected report from unknown backend %s" backend))
+   ((flymake--state-disabled state)
+    (flymake-error
+     "Unexpected report from disabled backend %s" backend))
+   ((progn
+      (setq expected-token (flymake--state-running state))
+      (null expected-token))
+    ;; should never happen
+    (flymake-error "Unexpected report from stopped backend %s" backend))
+   ((not (or (eq expected-token token)
+             force))
+    (flymake-error "Obsolete report from backend %s with explanation %s"
+                   backend explanation))
+   ((eq :panic report-action)
+    (flymake--disable-backend backend explanation))
+   ((not (listp report-action))
+    (flymake--disable-backend backend
+                              (format "Unknown action %S" report-action))
+    (flymake-error "Expected report, but got unknown key %s" report-action))
+   (t
+    (flymake--publish-diagnostics report-action
+                                  :backend backend
+                                  :state state
+                                  :region region)))
+  (setf (flymake--state-reported-p state) t))
+
+(cl-defun flymake--publish-diagnostics (diags &key backend state region
+                                                &aux new-diags other-diags)
+  "Helper for `flymake--handle-report'.
+Publish DIAGS "
+  (cl-loop for d in diags
+           if (eq (flymake--diag-buffer d) (current-buffer))
+           do (push d new-diags)
+           else
+           do (push d other-diags))
+  (save-restriction
+    (widen)
+    ;; Before adding to backend's diagnostic list, decide if
+    ;; some or all must be deleted.  When deleting, also delete
+    ;; the associated overlay.
+    (cond
+     (region
+      (cl-loop for diag in (flymake--state-diags state)
+               for ov = (flymake--diag-overlay diag)
+               if (or (not (overlay-buffer ov))
+                      (flymake--intersects-p
+                       (overlay-start ov) (overlay-end ov)
+                       (car region) (cdr region)))
+               do (delete-overlay ov)
+               else collect diag into surviving
+               finally (setf (flymake--state-diags state)
+                             surviving)))
+     ((not (flymake--state-reported-p state))
+      (dolist (diag (flymake--state-diags state))
+        (delete-overlay (flymake--diag-overlay diag)))
+      (setf (flymake--state-diags state) nil)))
+    ;; Now make new overlays
+    (mapc (lambda (diag)
+            (let ((overlay (flymake--highlight-line diag)))
+              (setf (flymake--diag-backend diag) backend
+                    (flymake--diag-overlay diag) overlay)))
           new-diags)
-      (cond
-       ((null state)
-        (flymake-error
-         "Unexpected report from unknown backend %s" backend))
-       ((flymake--state-disabled state)
-        (flymake-error
-         "Unexpected report from disabled backend %s" backend))
-       ((progn
-          (setq expected-token (flymake--state-running state))
-          (null expected-token))
-        ;; should never happen
-        (flymake-error "Unexpected report from stopped backend %s" backend))
-       ((not (or (eq expected-token token)
-                 force))
-        (flymake-error "Obsolete report from backend %s with explanation %s"
-                       backend explanation))
-       ((eq :panic report-action)
-        (flymake--disable-backend backend explanation))
-       ((not (listp report-action))
-        (flymake--disable-backend backend
-                                  (format "Unknown action %S" report-action))
-        (flymake-error "Expected report, but got unknown key %s" report-action))
-       (t
-        (setq new-diags
-              (cl-remove-if-not
-               (lambda (diag) (eq (flymake--diag-buffer diag) (current-buffer)))
-               report-action))
-        (save-restriction
-          (widen)
-          ;; Before adding to backend's diagnostic list, decide if
-          ;; some or all must be deleted.  When deleting, also delete
-          ;; the associated overlay.
-          (cond
-           (region
-            (cl-loop for diag in (flymake--state-diags state)
-                     for ov = (flymake--diag-overlay diag)
-                     if (or (not (overlay-buffer ov))
-                            (flymake--intersects-p
-                             (overlay-start ov) (overlay-end ov)
-                             (car region) (cdr region)))
-                     do (delete-overlay ov)
-                     else collect diag into surviving
-                     finally (setf (flymake--state-diags state)
-                                   surviving)))
-           (first-report
-            (dolist (diag (flymake--state-diags state))
-              (delete-overlay (flymake--diag-overlay diag)))
-            (setf (flymake--state-diags state) nil)))
-          ;; Now make new ones
-          (mapc (lambda (diag)
-                  (let ((overlay (flymake--highlight-line diag)))
-                    (setf (flymake--diag-backend diag) backend
-                          (flymake--diag-overlay diag) overlay)))
-                new-diags)
-          (setf (flymake--state-diags state)
-                (append new-diags (flymake--state-diags state)))
-          (when flymake-check-start-time
-            (flymake-log :debug "backend %s reported %d diagnostics in %.2f second(s)"
-                         backend
-                         (length new-diags)
-			 (float-time
-			  (time-since flymake-check-start-time))))
-          (when (and (get-buffer (flymake--diagnostics-buffer-name))
-                     (get-buffer-window (flymake--diagnostics-buffer-name))
-                     (null (cl-set-difference (flymake-running-backends)
-                                              (flymake-reporting-backends))))
-            (flymake-show-diagnostics-buffer))))))))
+    (setf (flymake--state-diags state)
+          (append new-diags (flymake--state-diags state)))
+    (when flymake-check-start-time
+      (flymake-log :debug "backend %s reported %d diagnostics in %.2f second(s)"
+                   backend
+                   (length new-diags)
+                   (float-time
+                    (time-since flymake-check-start-time))))
+    (when (and (get-buffer (flymake--diagnostics-buffer-name))
+               (get-buffer-window (flymake--diagnostics-buffer-name))
+               (null (cl-set-difference (flymake-running-backends)
+                                        (flymake-reporting-backends))))
+      (flymake-show-diagnostics-buffer))))
 
 (defun flymake-make-report-fn (backend &optional token)
   "Make a suitable anonymous report function for BACKEND.
@@ -1137,7 +1156,7 @@ default) no filter is applied."
                                            (not filter)
                                            (cl-find
                                             (flymake--severity
-                                             (flymake--diag-type diag))
+                                             (flymake-diagnostic-type diag))
                                             filter :key #'flymake--severity)))))
                                  :compare (if (cl-plusp n) #'< #'>)
                                  :key #'overlay-start))
@@ -1304,7 +1323,7 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
                (_b state)
                (dolist (d (flymake--state-diags state))
                  (when (= (flymake--severity type)
-                          (flymake--severity (flymake--diag-type d)))
+                          (flymake--severity (flymake-diagnostic-type d)))
                    (cl-incf count))))
              flymake--state)
     (when (or (cl-plusp count)
@@ -1352,11 +1371,11 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
   (let* ((id (or (tabulated-list-get-id pos)
                  (user-error "Nothing at point")))
          (diag (plist-get id :diagnostic)))
-    (with-current-buffer (flymake--diag-buffer diag)
+    (with-current-buffer (flymake-diagnostic-buffer diag)
       (with-selected-window
           (display-buffer (current-buffer) other-window)
-        (goto-char (flymake--diag-beg diag))
-        (pulse-momentary-highlight-region (flymake-diagnostic-beg diag)
+        (goto-char (flymake-diagnostic-beg diag))
+        (pulse-momentary-highlight-region (point)
                                           (flymake-diagnostic-end diag)
                                           'highlight))
       (current-buffer))))
@@ -1381,11 +1400,11 @@ POS can be a buffer position or a button"
                (cl-sort (flymake-diagnostics) #'< :key #'flymake-diagnostic-beg)
                for (line . col) =
                (save-excursion
-                 (goto-char (flymake--diag-beg diag))
+                 (goto-char (flymake-diagnostic-beg diag))
                  (cons (line-number-at-pos)
                        (- (point)
                           (line-beginning-position))))
-               for type = (flymake--diag-type diag)
+               for type = (flymake-diagnostic-type diag)
                collect
                (list (list :diagnostic diag
                            :line line
@@ -1399,7 +1418,7 @@ POS can be a buffer position or a button"
                                              type 'flymake-type-name type))
                                     'face (flymake--lookup-type-property
                                            type 'mode-line-face 'flymake-error))
-                       (,(format "%s" (flymake--diag-text diag))
+                       (,(format "%s" (flymake-diagnostic-text diag))
                         mouse-face highlight
                         help-echo "mouse-2: visit this diagnostic"
                         face nil
