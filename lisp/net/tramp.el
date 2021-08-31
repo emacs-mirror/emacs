@@ -5590,6 +5590,9 @@ verbosity of 6."
 	       (string-prefix-p comm process-name)
 	       (throw 'result t)))))))
 
+;; When calling "emacs -Q", `auth-source-search' won't be called.  If
+;; you want to debug exactly this case, call "emacs -Q --eval '(setq
+;; tramp-cache-read-persistent-data t)'" instead.
 (defun tramp-read-passwd (proc &optional prompt)
   "Read a password from user (compat function).
 Consults the auth-source package.
