@@ -2410,9 +2410,20 @@ project's root directory, respectively.
 This specifies the file in which to save the list of known projects.
 
 +++
-*** New command 'project-forget-project'.
-This command lets you interactively remove an entry from the list of projects
+*** New command 'project-remember-projects-under'.
+This command can automatically locate and index projects in a
+directory and optionally also it's subdirectories, storing them in
+'project-list-file'.
+
++++
+*** New commands 'project-forget-project' and 'project-forget-projects-under'
+These command lets you interactively remove entries from the list of projects
 in 'project-list-file'.
+
++++
+*** New command 'project-forget-zombie-projects'
+This command detects indexed projects that have since been deleted,
+and removes them from the list of known projects in 'project-list-file'
 
 ---
 *** 'project-find-file' now accepts non-existent file names.
