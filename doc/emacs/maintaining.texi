@@ -2218,9 +2218,14 @@ the special XREF mode:
 
 @table @kbd
 @item @key{RET}
-@itemx mouse-2
+@itemx mouse-1
 Display the reference on the current line (@code{xref-goto-xref}).
 With prefix argument, also bury the @file{*xref*} buffer.
+
+@item mouse-2
+The same as @code{mouse-1}, but make the window displaying the
+@file{*xref*} buffer the selected window
+(@code{xref-select-and-goto-xref}).
 
 @item n
 @itemx .
