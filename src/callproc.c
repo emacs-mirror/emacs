@@ -232,6 +232,8 @@ directory where the process is run (see below).  If you want to make the
 input come from an Emacs buffer, use `call-process-region' instead.
 
 Third argument DESTINATION specifies how to handle program's output.
+(\"Output\" here means both standard output and standard error
+output.)
 If DESTINATION is a buffer, or t that stands for the current buffer,
  it means insert output in that buffer before point.
 If DESTINATION is nil, it means discard output; 0 means discard
