@@ -604,7 +604,9 @@ backend implementation of `project-external-roots'.")
                  (replace-match "./" t t entry 1)
                (concat "./" entry)))
             (t entry)))
-         (vc-call-backend backend 'ignore-completion-table root))))
+         (condition-case nil
+             (vc-call-backend backend 'ignore-completion-table root)
+           (vc-not-supported () nil)))))
      (project--value-in-dir 'project-vc-ignores root)
      (mapcar
       (lambda (dir)
