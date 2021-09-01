@@ -3397,12 +3397,14 @@ and all digits are kept, regardless of Calc's current precision."
   (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg))
 
+;;;###autoload
 (defun calc-grab-sum-down (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its columns."
   (interactive "r\nP")
   (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg 'calcFunc-reduced))
 
+;;;###autoload
 (defun calc-grab-sum-across (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its rows."
   (interactive "r\nP")
