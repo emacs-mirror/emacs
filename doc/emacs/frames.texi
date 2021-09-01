@@ -452,7 +452,14 @@ buffer to select:
 @item C-x 5 2
 @kindex C-x 5 2
 @findex make-frame-command
-Create a new frame (@code{make-frame-command}).
+Create a new frame using the default frame parameters
+(@code{make-frame-command}).
+
+@item C-x 5 c
+@kindex C-x 5 c
+@findex clone-frame
+Create a new frame using the parameters of the current frame
+(@code{clone-frame}).
 
 @item C-x 5 b @var{bufname} @key{RET}
 Select buffer @var{bufname} in another frame.  This runs

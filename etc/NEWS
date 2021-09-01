@@ -343,6 +343,11 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer-quick'),
 ** Commands 'set-frame-width' and 'set-frame-height' can now get their
 input using the minibuffer.
 
++++
+** New command 'clone-frame' (bound to 'C-x 5 c').
+This is like 'C-x 5 2', but uses the frame parameters of the current
+frame instead of 'default-frame-alist'.
+
 ---
 ** New help window when Emacs prompts before opening a large file.
 Commands like 'find-file' or 'visit-tags-table' ask to visit a file
