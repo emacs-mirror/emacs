@@ -3423,6 +3423,11 @@ The former is now declared obsolete.
 * Lisp Changes in Emacs 28.1
 
 +++
+*** New macro 'with-existing-directory'.
+This macro binds 'default-directory' to some other existing directory
+if 'default-directory' doesn't exist, and then executes the body forms.
+
++++
 *** New function 'file-name-concat'.
 This appends file name components to a directory name and returns the
 result.

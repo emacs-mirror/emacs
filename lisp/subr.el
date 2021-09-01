@@ -4593,6 +4593,19 @@ MODES is as for `set-default-file-modes'."
              ,@body)
          (set-default-file-modes ,umask)))))
 
+(defmacro with-existing-directory (&rest body)
+  "Execute BODY with `default-directory' bound to an existing directory.
+If `default-directory' is already an existing directory, it's not changed."
+  (declare (indent 0) (debug t))
+  `(let ((default-directory (seq-find (lambda (dir)
+                                        (and dir
+                                             (file-exists-p dir)))
+                                      (list default-directory
+                                            (expand-file-name "~/")
+                                            (getenv "TMPDIR")
+                                            "/tmp/")
+                                      "/")))
+     ,@body))
 
 ;;; Matching and match data.
 

@@ -740,5 +740,13 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
                1))
     (should (equal (buffer-string) "new bar zot foobar"))))
 
+(ert-deftest test-with-existing-directory ()
+  (let ((dir (make-temp-name "/tmp/not-exist-")))
+    (let ((default-directory dir))
+      (should-not (file-exists-p default-directory)))
+    (with-existing-directory
+      (should-not (equal dir default-directory))
+      (should (file-exists-p default-directory)))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
