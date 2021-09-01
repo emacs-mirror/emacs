@@ -1386,7 +1386,10 @@ Doubles as an indicator of snippet support."
       (font-lock-ensure)
       (string-trim (filter-buffer-substring (point-min) (point-max))))))
 
-(defcustom eglot-ignored-server-capabilites (list)
+(define-obsolete-variable-alias 'eglot-ignored-server-capabilites
+  'eglot-ignored-server-capabilities "1.8")
+
+(defcustom eglot-ignored-server-capabilities (list)
   "LSP server capabilities that Eglot could use, but won't.
 You could add, for instance, the symbol
 `:documentHighlightProvider' to prevent automatic highlighting
