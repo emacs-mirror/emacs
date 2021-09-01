@@ -1009,25 +1009,28 @@ Default value of `command-error-function'.  */)
   (Lisp_Object data, Lisp_Object context, Lisp_Object signal)
 {
   struct frame *sf = SELECTED_FRAME ();
-  Lisp_Object conditions;
+  Lisp_Object conditions = Fget (XCAR (data), Qerror_conditions);
+  int is_minibuffer_quit = !NILP (Fmemq (Qminibuffer_quit, conditions));
 
   CHECK_STRING (context);
 
   /* If the window system or terminal frame hasn't been initialized
-     yet, or we're not interactive, write the message to stderr and exit.  */
-  if (!sf->glyphs_initialized_p
-	   /* The initial frame is a special non-displaying frame. It
-	      will be current in daemon mode when there are no frames
-	      to display, and in non-daemon mode before the real frame
-	      has finished initializing.  If an error is thrown in the
-	      latter case while creating the frame, then the frame
-	      will never be displayed, so the safest thing to do is
-	      write to stderr and quit.  In daemon mode, there are
-	      many other potential errors that do not prevent frames
-	      from being created, so continuing as normal is better in
-	      that case.  */
-	   || (!IS_DAEMON && FRAME_INITIAL_P (sf))
-	   || noninteractive)
+     yet, or we're not interactive, write the message to stderr and exit.
+     Don't do this for the minibuffer-quit condition.  */
+  if (!is_minibuffer_quit
+      && (!sf->glyphs_initialized_p
+	  /* The initial frame is a special non-displaying frame. It
+	     will be current in daemon mode when there are no frames
+	     to display, and in non-daemon mode before the real frame
+	     has finished initializing.  If an error is thrown in the
+	     latter case while creating the frame, then the frame
+	     will never be displayed, so the safest thing to do is
+	     write to stderr and quit.  In daemon mode, there are
+	     many other potential errors that do not prevent frames
+	     from being created, so continuing as normal is better in
+	     that case.  */
+	  || (!IS_DAEMON && FRAME_INITIAL_P (sf))
+	  || noninteractive))
     {
       print_error_message (data, Qexternal_debugging_output,
 			   SSDATA (context), signal);
@@ -1036,12 +1039,10 @@ Default value of `command-error-function'.  */)
     }
   else
     {
-      conditions = Fget (XCAR (data), Qerror_conditions);
-
       clear_message (1, 0);
       message_log_maybe_newline ();
 
-      if (!NILP (Fmemq (Qminibuffer_quit, conditions)))
+      if (is_minibuffer_quit)
 	{
 	  Fding (Qt);
 	}
