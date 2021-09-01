@@ -131,9 +131,27 @@ patterns.
 * Customizable variables::
 @end menu
 
-@node Syntax check statuses
-@section Syntax check statuses
-@cindex Syntax check statuses
+@node Listing diagnostics
+@section Listing diagnostics
+@cindex Listing diagnostics
+
+Sometimes it is useful to have a detailed overview of the diagnostics
+in your files.  The command @code{flymake-show-diagnostics-buffer}
+displays a structured listing of diagnostics in the current buffer.
+The listing is displayed in a separate buffer and is continuously
+updated as you edit source code, adding or removing lines as you make
+or correct mistakes.
+
+Each line of this listing includes the type of the diagnostic, its
+line and column in the file as well as the diagnostic message.  You
+may sort the listing by each of these columns.
+
+@code{flymake-show-project-diagnostics} does something similar but for
+the whole project (@pxref{Projects,,, emacs, The Emacs Editor}).
+
+@node Mode-line synatx-check status
+@section Mode-line synatx-check status
+@cindex Mode-line synatx-check status
 
 When enabled, Flymake displays its status in the mode line, which
 provides a visual summary of diagnostic collection.  It may also hint
@@ -540,6 +558,7 @@ reports targeting other parts of the buffer remain valid.
 
 @menu
 * Flymake utility functions::
+* Foreign and list-only diagnostics::
 * An annotated example backend::
 @end menu
 
@@ -551,20 +570,26 @@ reports targeting other parts of the buffer remain valid.
 Before delivering them to Flymake, backends create diagnostic objects
 by calling the function @code{flymake-make-diagnostic}.
 
-@deffn Function flymake-make-diagnostic buffer beg end type text
-Make a Flymake diagnostic for @var{buffer}'s region from @var{beg} to
-@var{end}.  @var{type} is a diagnostic symbol (@pxref{Flymake error
-types}), and @var{text} is a description of the problem detected in
-this region.  Currently, it is unspecified behavior to make
-diagnostics for buffers other than the buffer that the Flymake backend
-is responsible for.
+@deffn Function flymake-make-diagnostic locus beg end type text &optional data
+Make a Flymake diagnostic for the region of text in @var{locus}'s
+delimited by @var{beg} and @var{end}.  @var{type} is a diagnostic
+symbol (@pxref{Flymake error types}), and @var{text} is a description
+of the problem detected in this region.  Most commonly @var{locus} is
+the buffer object designating for the current buffer being
+syntax-checked.  However, it may be a string nameing a file relative
+to the current working directory.  @xref{Foreign and list-only
+diagnostics} for when this may be useful.  Depending on the type of
+@var{locus}, @var{beg} and @var{end} are both either buffer positions
+or conses (@var{line} . @var{col}) which specify the line and column
+of the diagnostic's start and end positions, respectively.
 @end deffn
 
 @cindex access diagnostic object
 These objects' properties can be accessed with the functions
 @code{flymake-diagnostic-backend}, @code{flymake-diagnostic-buffer},
 @code{flymake-diagnostic-text}, @code{flymake-diagnostic-beg},
-@code{flymake-diagnostic-end} and @code{flymake-diagnostic-type}.
+@code{flymake-diagnostic-end}, @code{flymake-diagnostic-type} and
+@code{flymake-diagnostic-data}.
 
 Additionally, the function @code{flymake-diagnostics} will collect
 such objects in the region you specify.
@@ -603,6 +628,59 @@ Log, at level @var{level}, the message @var{msg} formatted with
 (@pxref{Warning Basics,,, elisp, The Emacs Lisp reference Manual}), which is
 used to display the warning in Flymake's log buffer.
 @end deffn
+
+@node Foreign and list-only diagnostics
+@subsection Foreign and list-only diagnostics
+@cindex create diagnostic object for other buffer
+
+It is possible for a given backend's implementation to use
+@code{flymake-make-diagnostic} to create diagnostics for buffers or
+files other than the ``source'' buffer where Flymake was enabled.  For
+instance, this is useful when a given backend has access to
+information about the health of neighboring files that are not yet
+visited or whose diagnostics depend on the current buffer's state.
+There are two alternative ways to go about doing this:
+
+@enumerate
+
+@item
+@cindex foreign diagnostics
+@cindex domestic diagnostics
+If the information about neighboring diagnostics is obtained
+regularly, like when each syntax-checking iteration of a @code{.c}
+file also reports a number of associated problems in an neighboring
+@code{.h} file, it is better to create so-called ``foreign''
+diagnostics.  This is done by passing a file name to
+@code{flymake-make-diagnostic} (@pxref{Flymake utility functions}).
+Then, the resulting object is simply reported along with the other
+``domestic'' diagnostics for the source buffer (@pxref{Backend
+functions}).  If the neighboring file is visited as a buffer and
+Flymake is active there, a number of supplemental annotations will
+appear and automatically update whenever as the ``source'' buffer is
+syntax-checked.
+
+@item
+@cindex list-only diagnostics
+If information about neighboring diagnostics is obtained infrequently,
+like when running a time-consuming and sporadic check of a large
+project, it is easier for the backend to modify the global variable
+@code{flymake-list-only-diagnostics}.  Flymake will look up this
+variable when asked to compile project-wide lists of diagnostics.  The
+backend should add one or more alist entries that look like
+(@var{file-name} . @var{diags}).  @var{file-name} is the absolute name
+of the neighboring file presumed not to be visited in Emacs already,
+as that would mean that that buffer contains more up-to-date
+information on its diagnostics.  @var{diags} is a list of diagnostic
+objects.  If the neighboring file @var{file-name} is visited as a
+buffer and Flymake is activated there, this does @emph{not} produce
+annotations for @var{diags}, as Flymake assumes that the Flymake
+activation in the new buffer will take care of that.  To avoid
+confusion, that action also deletes the corresponding entries for
+@var{file-name} in @code{flymake-list-only-diagnostics}.  If the
+buffer is killed, it is up to the backend to re-add an alist entry to
+the variable again with ``fresher'' information gathered from the last
+syntax check.
+@end enumerate
 
 @node An annotated example backend
 @subsection An annotated example backend

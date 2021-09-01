@@ -4,9 +4,9 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
-;; Version: 1.1.1
+;; Version: 1.2.1
 ;; Keywords: c languages tools
-;; Package-Requires: ((emacs "26.1") (eldoc "1.1.0"))
+;; Package-Requires: ((emacs "26.1") (eldoc "1.1.0") (project "0.7.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
@@ -121,6 +121,7 @@
 (require 'mwheel)
 ;; when-let*, if-let*, hash-table-keys, hash-table-values:
 (eval-when-compile (require 'subr-x))
+(require 'project)
 
 (defgroup flymake nil
   "Universal on-the-fly syntax checker."
@@ -305,41 +306,51 @@ generated it."
 
 (cl-defstruct (flymake--diag
                (:constructor flymake--diag-make))
-  buffer beg end type text backend data overlay-properties overlay)
+  locus beg end type text backend data overlay-properties overlay
+  ;; FIXME: See usage of these two in `flymake--highlight-line'.
+  ;; Ideally they wouldn't be needed.
+  orig-beg orig-end)
 
 ;;;###autoload
-(defun flymake-make-diagnostic (buffer
+(defun flymake-make-diagnostic (locus
                                 beg
                                 end
                                 type
                                 text
                                 &optional data
                                 overlay-properties)
-  "Make a Flymake diagnostic for BUFFER's region from BEG to END.
+  "Make a Flymake diagnostic for LOCUS's region from BEG to END.
+LOCUS is a buffer object or a string designating a file name.
+
 TYPE is a diagnostic symbol and TEXT is string describing the
 problem detected in this region.  DATA is any object that the
 caller wishes to attach to the created diagnostic for later
 retrieval with `flymake-diagnostic-data'.
 
-BEG and END may each be either buffer positions (number or
-markers) or a cons (LINE . COL).  When using the second form the
-numbers will be converted to buffer positions (using
-`flymake-diag-region') as soon as the diagnostic is appended to
-an actual buffer.
+If LOCUS is a buffer BEG and END should be buffer positions
+inside it.  If LOCUS designates a file, BEG and END should be a
+cons (LINE . COL) indicating a file position.  In this second
+case, END may be ommited in which case the region is computed
+using `flymake-diag-region' if the diagnostic is appended to an
+actual buffer.
 
 OVERLAY-PROPERTIES is an alist of properties attached to the
 created diagnostic, overriding the default properties and any
-properties of `flymake-overlay-control' of the diagnostic's
-type."
-  (flymake--diag-make :buffer buffer :beg beg :end end
+properties listed in the `flymake-overlay-control' property of
+the diagnostic's type symbol."
+  (when (stringp locus)
+    (setq locus (expand-file-name locus)))
+  (flymake--diag-make :locus locus :beg beg :end end
                       :type type :text text :data data
-                      :overlay-properties overlay-properties))
+                      :overlay-properties overlay-properties
+                      :orig-beg beg
+                      :orig-end end))
 
 ;;;###autoload
 (defun flymake-diagnostics (&optional beg end)
   "Get Flymake diagnostics in region determined by BEG and END.
 
-If neither BEG or END is supplied, use the whole buffer,
+If neither BEG or END is supplied, use whole accessible buffer,
 otherwise if BEG is non-nil and END is nil, consider only
 diagnostics at BEG."
   (mapcar (lambda (ov) (overlay-get ov 'flymake-diagnostic))
@@ -354,27 +365,10 @@ diagnostics at BEG."
 (flymake--diag-accessor flymake-diagnostic-text flymake--diag-text text)
 (flymake--diag-accessor flymake-diagnostic-type flymake--diag-type type)
 (flymake--diag-accessor flymake-diagnostic-backend flymake--diag-backend backend)
-(flymake--diag-accessor flymake-diagnostic-data flymake--diag-data backend)
-
-(defun flymake-diagnostic-buffer (diag)
-  "Get Flymake diagnostic DIAG's buffer."
-  (flymake--diag-buffer diag))
-
-(defun flymake-diagnostic-beg (diag)
-  "Get Flymake diagnostic DIAG's start position.
-May only be queried after DIAG has been reported to Flymake."
-  (let ((overlay (flymake--diag-overlay diag)))
-    (unless overlay
-      (error "DIAG %s not reported to Flymake yet" diag))
-    (overlay-start overlay)))
-
-(defun flymake-diagnostic-end (diag)
-  "Get Flymake diagnostic DIAG's end position.
-May only be queried after DIAG has been reported to Flymake."
-  (let ((overlay (flymake--diag-overlay diag)))
-    (unless overlay
-      (error "DIAG %s not reported to Flymake yet" diag))
-    (overlay-end overlay)))
+(flymake--diag-accessor flymake-diagnostic-data flymake--diag-data data)
+(flymake--diag-accessor flymake-diagnostic-beg flymake--diag-beg beg)
+(flymake--diag-accessor flymake-diagnostic-end flymake--diag-end end)
+(flymake--diag-accessor flymake-diagnostic-buffer flymake--diag-locus locus)
 
 (cl-defun flymake--overlays (&key beg end filter compare key)
   "Get flymake-related overlays.
@@ -634,13 +628,74 @@ associated `flymake-category' return DEFAULT."
                                bitmap
                              (list bitmap)))))))
 
-(defun flymake--highlight-line (diagnostic)
-  "Highlight buffer with info in DIAGNOSTIC."
-  (let ((type (or (flymake-diagnostic-type diagnostic)
-                  :error))
-        (ov (make-overlay
-             (flymake--diag-beg diagnostic)
-             (flymake--diag-end diagnostic))))
+(defun flymake--equal-diagnostic-p (a b)
+  "Tell if A and B are equivalent `flymake--diag' objects."
+  (or (eq a b)
+      (cl-loop for comp in '(flymake--diag-end
+                             flymake--diag-beg
+                             flymake-diagnostic-type
+                             flymake-diagnostic-backend
+                             flymake-diagnostic-text)
+               always (equal (funcall comp a) (funcall comp b)))))
+
+(cl-defun flymake--highlight-line (diagnostic &optional foreign)
+  "Attempt to overlay DIAGNOSTIC in current buffer.
+
+FOREIGN says if DIAGNOSTIC is \"foreign\" to the current buffer,
+i.e. managed by another buffer where `flymake-mode' is also
+active.
+
+This function mayskip overlay creation if a diagnostic which is
+the same as DIAGNOSTIC is already highlighted
+(in the sense of `flymake--equal-diagnostic-p').  In that case
+the action to take depends on FOREIGN.  If nil the existing
+overlay is deleted, else no overlay is created.
+
+Return nil or the overlay created."
+  (let* ((type (or (flymake-diagnostic-type diagnostic)
+                   :error))
+         (beg (flymake--diag-beg diagnostic))
+         (end (flymake--diag-end diagnostic))
+         (convert (lambda (cell)
+                    (flymake-diag-region (current-buffer)
+                                         (car cell)
+                                         (cdr cell))))
+         ov)
+    ;; Convert (LINE . COL) forms of `flymake--diag-beg' and
+    ;; `flymake--diag-end'.  Record the converted positions.
+    ;;
+    (cond ((and (consp beg) (not (null end)))
+           (setq beg (car (funcall convert beg)))
+           (when (consp end)
+             (setq end (car (funcall convert end)))))
+          ((consp beg)
+           (cl-destructuring-bind (a . b) (funcall convert beg)
+             (setq beg a end b))))
+    (setf (flymake--diag-beg diagnostic) beg
+          (flymake--diag-end diagnostic) end)
+    ;; Try to fix the remedy the situation if there is the same
+    ;; diagnostic is already registered in the same place, which only
+    ;; happens for clashes between domestic and foreign diagnostics
+    (cl-loop for e in (flymake-diagnostics beg end)
+             when (flymake--equal-diagnostic-p e diagnostic)
+             ;; FIXME.  This is an imperfect heuristic.  Ideally, we'd
+             ;; want to delete no overlays and keep annotating the
+             ;; superseded foreign in an overlay but hide it from most
+             ;; `flymake-diagnostics' calls.  If the target buffer is
+             ;; killed we can keep the "latent" state of the foreign
+             ;; diagnostic (with filename and updated line/col info).
+             ;; If it is revisited the foreign diagnostic can be
+             ;; revived again.
+             do (if foreign
+                    (cl-return-from flymake--highlight-line nil)
+                  (setf (flymake--diag-beg e)
+                        (flymake--diag-orig-beg e)
+                        (flymake--diag-end e)
+                        (flymake--diag-orig-end e))
+                  (delete-overlay (flymake--diag-overlay e))))
+    (setq ov (make-overlay end beg))
+    (setf (flymake--diag-beg diagnostic) (overlay-start ov)
+          (flymake--diag-end diagnostic) (overlay-end ov))
     ;; First set `category' in the overlay
     ;;
     (overlay-put ov 'category
@@ -685,6 +740,7 @@ associated `flymake-category' return DEFAULT."
     ;;
     (overlay-put ov 'evaporate t)
     (overlay-put ov 'flymake-diagnostic diagnostic)
+    (setf (flymake--diag-overlay diagnostic) ov)
     ov))
 
 ;; Nothing in Flymake uses this at all any more, so this is just for
@@ -710,11 +766,16 @@ since it last was contacted.
 
 `disabled', a string with the explanation for a previous
 exceptional situation reported by the backend, nil if the
-backend is operating normally.")
+backend is operating normally.
+
+`foreign-diags', a hash table of buffers/files to
+collections of diagnostics outside the buffer where this
+`flymake--state' pertains.")
 
 (cl-defstruct (flymake--state
                (:constructor flymake--make-backend-state))
-  running reported-p disabled diags)
+  running reported-p disabled diags (foreign-diags
+                                     (make-hash-table)))
 
 (defmacro flymake--with-backend-state (backend state-var &rest body)
   "Bind BACKEND's STATE-VAR to its state, run BODY."
@@ -782,25 +843,41 @@ report applies to that region."
     (flymake--publish-diagnostics report-action
                                   :backend backend
                                   :state state
-                                  :region region)))
-  (setf (flymake--state-reported-p state) t))
+                                  :region region)
+    (when flymake-check-start-time
+      (flymake-log :debug "backend %s reported %d diagnostics in %.2f second(s)"
+                   backend
+                   (length report-action)
+                   (float-time
+                    (time-since flymake-check-start-time))))))
+  (setf (flymake--state-reported-p state) t)
+  (flymake--update-diagnostics-listings (current-buffer)))
 
-(cl-defun flymake--publish-diagnostics (diags &key backend state region
-                                                &aux new-diags other-diags)
+(defun flymake--clear-foreign-diags (state)
+  (maphash (lambda (_buffer diags)
+             (cl-loop for d in diags
+                      when (flymake--diag-overlay d)
+                      do (delete-overlay it)))
+           (flymake--state-foreign-diags state))
+  (clrhash (flymake--state-foreign-diags state)))
+
+(defvar-local flymake-mode nil)
+
+(cl-defun flymake--publish-diagnostics (diags &key backend state region)
   "Helper for `flymake--handle-report'.
-Publish DIAGS "
-  (cl-loop for d in diags
-           if (eq (flymake--diag-buffer d) (current-buffer))
-           do (push d new-diags)
-           else
-           do (push d other-diags))
+Publish DIAGS, which contain diagnostics for the current buffer
+and other buffers."
+  (dolist (d diags) (setf (flymake--diag-backend d) backend))
   (save-restriction
     (widen)
-    ;; Before adding to backend's diagnostic list, decide if
-    ;; some or all must be deleted.  When deleting, also delete
-    ;; the associated overlay.
+    ;; First, clean up.  Remove diagnostics from bookeeping lists and
+    ;; their overlays from buffers.
+    ;;
     (cond
-     (region
+     (;; If there is a `region' arg, only affect the diagnostics whose
+      ;; overlays are in a certain region.  Discard "foreign"
+      ;; diagnostics.
+      region
       (cl-loop for diag in (flymake--state-diags state)
                for ov = (flymake--diag-overlay diag)
                if (or (not (overlay-buffer ov))
@@ -811,29 +888,39 @@ Publish DIAGS "
                else collect diag into surviving
                finally (setf (flymake--state-diags state)
                              surviving)))
-     ((not (flymake--state-reported-p state))
-      (dolist (diag (flymake--state-diags state))
-        (delete-overlay (flymake--diag-overlay diag)))
-      (setf (flymake--state-diags state) nil)))
-    ;; Now make new overlays
-    (mapc (lambda (diag)
-            (let ((overlay (flymake--highlight-line diag)))
-              (setf (flymake--diag-backend diag) backend
-                    (flymake--diag-overlay diag) overlay)))
-          new-diags)
-    (setf (flymake--state-diags state)
-          (append new-diags (flymake--state-diags state)))
-    (when flymake-check-start-time
-      (flymake-log :debug "backend %s reported %d diagnostics in %.2f second(s)"
-                   backend
-                   (length new-diags)
-                   (float-time
-                    (time-since flymake-check-start-time))))
-    (when (and (get-buffer (flymake--diagnostics-buffer-name))
-               (get-buffer-window (flymake--diagnostics-buffer-name))
-               (null (cl-set-difference (flymake-running-backends)
-                                        (flymake-reporting-backends))))
-      (flymake-show-diagnostics-buffer))))
+     (;; Else, if this is the first report, zero all lists and delete
+      ;; all associated overlays.
+      (not (flymake--state-reported-p state))
+      (cl-loop for diag in (flymake--state-diags state)
+               for ov = (flymake--diag-overlay diag)
+               when ov do (delete-overlay ov))
+      (setf (flymake--state-diags state) nil)
+      ;; Also clear all overlays for `foreign-diags' in all other
+      ;; buffers.
+      (flymake--clear-foreign-diags state))
+     (;; If this is not the first report, do no cleanup.
+       t))
+
+    ;; Now place new overlays for all diagnostics: "domestic"
+    ;; diagnostics are for the current buffer; "foreign" may be for a
+    ;; some other live buffer or for a file name that hasn't a buffer
+    ;; yet.  If a foreign diagnostic is for a buffer, convert to a
+    ;; file name, protecting it against that buffer's killing.
+    ;;
+    (cl-loop
+     for d in diags
+     for locus = (flymake--diag-locus d)
+     do (cond ((eq locus (current-buffer))
+               (push d (flymake--state-diags state))
+               (flymake--highlight-line d))
+              (t
+               (when (or (buffer-live-p locus)
+                         (setq locus (find-buffer-visiting locus)))
+                 (with-current-buffer locus
+                   (when flymake-mode (flymake--highlight-line d 'foreign))
+                   (setf (flymake--diag-locus d) (buffer-file-name))))
+               (push d (gethash (flymake--diag-locus d)
+                                (flymake--state-foreign-diags state))))))))
 
 (defun flymake-make-report-fn (backend &optional token)
   "Make a suitable anonymous report function for BACKEND.
@@ -1044,7 +1131,39 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (setq flymake--state (make-hash-table))
     (setq flymake--recent-changes nil)
 
-    (when flymake-start-on-flymake-mode (flymake-start t)))
+    (when flymake-start-on-flymake-mode (flymake-start t))
+
+    ;; Other diagnostic sources may already target this buffer's file
+    ;; before we turned on: these sources may be of two types...
+    (let ((source (current-buffer))
+          (bfn buffer-file-name))
+      ;; 1. For `flymake-list-only-diagnostics': here, we do nothing.
+      ;; FIXME: We could remove the corresponding entry from that
+      ;; variable, as we assume that new diagnostics will come in soon
+      ;; via the brand new `flymake-mode' setup.  For simplicity's
+      ;; sake, we have opted to leave the backend for now.
+      nil
+      ;; 2. other buffers where a backend has created "foreign"
+      ;; diagnostics and pointed them here.  We must highlight them in
+      ;; this buffer, i.e. create overlays for them.  Those other
+      ;; buffers and backends are still responsible for them, i.e. the
+      ;; current buffer does not "own" these foreign diags.
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer
+          (when (and flymake-mode flymake--state)
+            (maphash (lambda (_backend state)
+                       (maphash (lambda (locus diags)
+                                  (when (or (eq locus source)
+                                            (and (stringp locus)
+                                                 (string= bfn (expand-file-name
+                                                               locus))))
+                                    (with-current-buffer source
+                                      (mapc (lambda (diag)
+                                              (flymake--highlight-line diag
+                                                                       'foreign))
+                                            diags))))
+                                (flymake--state-foreign-diags state)))
+                     flymake--state))))))
 
    ;; Turning the mode OFF.
    (t
@@ -1054,11 +1173,16 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     ;;+(remove-hook 'find-file-hook (function flymake-find-file-hook) t)
     (remove-hook 'eldoc-documentation-functions 'flymake-eldoc-function t)
 
-    (mapc #'delete-overlay (flymake--overlays))
-
     (when flymake-timer
       (cancel-timer flymake-timer)
-      (setq flymake-timer nil)))))
+      (setq flymake-timer nil))
+    (mapc #'delete-overlay (flymake--overlays))
+    (when flymake--state
+      (maphash (lambda (_backend state)
+                 (flymake--clear-foreign-diags state))
+               flymake--state)))
+   ;; turning Flymake on or off has consequences for listings
+   (flymake--update-diagnostics-listings (current-buffer))))
 
 (defun flymake--schedule-timer-maybe ()
   "(Re)schedule an idle timer for checking the buffer.
@@ -1110,9 +1234,9 @@ START and STOP and LEN are as in `after-change-functions'."
     (flymake-start t)))
 
 (defun flymake-kill-buffer-hook ()
-  (when flymake-timer
-    (cancel-timer flymake-timer)
-    (setq flymake-timer nil)))
+  ;; Explicitly set flymake off, because that does a lot of useful
+  ;; cleanup.
+  (flymake-mode -1))
 
 (defun flymake-find-file-hook ()
   (unless (or flymake-mode
@@ -1319,13 +1443,10 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
         (face (flymake--lookup-type-property type
                                              'mode-line-face
                                              'compilation-error)))
-    (maphash (lambda
-               (_b state)
-               (dolist (d (flymake--state-diags state))
-                 (when (= (flymake--severity type)
-                          (flymake--severity (flymake-diagnostic-type d)))
-                   (cl-incf count))))
-             flymake--state)
+    (dolist (d (flymake-diagnostics))
+      (when (= (flymake--severity type)
+               (flymake--severity (flymake-diagnostic-type d)))
+        (cl-incf count)))
     (when (or (cl-plusp count)
               (cond ((eq flymake-suppress-zero-counters t)
                      nil)
@@ -1355,7 +1476,7 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
                   (flymake-goto-next-error 1 (list type) t))))
             map))))))
 
-;;; Diagnostics buffer
+;;; Per-buffer diagnostic listing
 
 (defvar-local flymake--diagnostics-buffer-source nil)
 
@@ -1370,14 +1491,30 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
   (interactive (list (point) t))
   (let* ((id (or (tabulated-list-get-id pos)
                  (user-error "Nothing at point")))
-         (diag (plist-get id :diagnostic)))
-    (with-current-buffer (flymake-diagnostic-buffer diag)
+         (diag (plist-get id :diagnostic))
+         (locus (flymake--diag-locus diag))
+         (beg (flymake--diag-beg diag))
+         (end (flymake--diag-end diag))
+         (visit (lambda (b e)
+                  (goto-char b)
+                  (pulse-momentary-highlight-region (point)
+                                                    (or e (line-end-position))
+                                                    'highlight))))
+    (with-current-buffer (cond ((bufferp locus) locus)
+                               (t (find-file-noselect locus)))
       (with-selected-window
           (display-buffer (current-buffer) other-window)
-        (goto-char (flymake-diagnostic-beg diag))
-        (pulse-momentary-highlight-region (point)
-                                          (flymake-diagnostic-end diag)
-                                          'highlight))
+        (cond (;; an annotated diagnostic (most common case), or a
+               ;; non-annotated buffer diag
+               (number-or-marker-p beg)
+               (funcall visit beg end))
+              (;; a non-annotated file diag (TODO: could use `end'
+               ;; here, too)
+               (pcase-let ((`(,bbeg . ,bend)
+                            (flymake-diag-region (current-buffer)
+                                                 (car beg)
+                                                 (cdr beg))))
+                 (funcall visit bbeg bend)))))
       (current-buffer))))
 
 (defun flymake-goto-diagnostic (pos)
@@ -1387,75 +1524,115 @@ POS can be a buffer position or a button"
   (pop-to-buffer
    (flymake-show-diagnostic (if (button-type pos) (button-start pos) pos))))
 
+(defun flymake--tabulated-entries-1 (diags project-root)
+  "Helper for `flymake--diagnostic-buffer-entries'.
+PROJECT-ROOT indicates that each entry should be preceded by the
+filename of the diagnostic relative to that directory."
+  (cl-loop
+   for diag in diags
+   for locus = (flymake-diagnostic-buffer diag)
+   for file = (if (bufferp locus)
+                  (buffer-file-name locus)
+                locus)
+   for overlay = (flymake--diag-overlay diag)
+   for (line . col) =
+   (cond (;; has live overlay, use overlay for position
+          (and overlay (overlay-buffer overlay))
+          (with-current-buffer (overlay-buffer overlay)
+            (save-excursion
+              (goto-char (overlay-start overlay))
+              (cons (line-number-at-pos)
+                    (- (point)
+                       (line-beginning-position))))))
+         (;; diagnostic not annotated, maybe foreign, check for cons
+          (consp (flymake--diag-beg diag))
+          (flymake--diag-beg diag))
+         (;; may still be a valid foreign diagnostic
+          (consp (flymake--diag-orig-beg diag))
+          (flymake--diag-orig-beg diag))
+         (;; somehow dead annotated diagnostic, ignore/give up
+          t nil))
+   for type = (flymake-diagnostic-type diag)
+   for backend = (flymake-diagnostic-backend diag)
+   for bname = (or (ignore-errors (symbol-name backend))
+                   "(anonymous function)")
+   for data-vec = `[,(format "%s" line)
+                    ,(format "%s" col)
+                    ,(propertize (format "%s"
+                                         (flymake--lookup-type-property
+                                          type 'flymake-type-name type))
+                                 'face (flymake--lookup-type-property
+                                        type 'mode-line-face 'flymake-error))
+                    ,(propertize
+                      (if bname
+                          (replace-regexp-in-string "\\(.\\)[^-]+\\(-\\|$\\)"
+                                                    "\\1\\2" bname)
+                        "(anon)")
+                      'help-echo (format "From `%s' backend" backend))
+                    (,(format "%s" (flymake-diagnostic-text diag))
+                     mouse-face highlight
+                     help-echo "mouse-2: visit this diagnostic"
+                     face nil
+                     action flymake-goto-diagnostic
+                     mouse-action flymake-goto-diagnostic)]
+   when (and line col) collect
+   (list (list :diagnostic diag
+               :line line
+               :severity (flymake--lookup-type-property
+                          type
+                          'severity (warning-numeric-level :error)))
+         (if project-root
+             (vconcat `[(,(file-name-nondirectory file)
+                         help-echo ,(file-relative-name file project-root)
+                         face nil
+                         mouse-face highlight
+                         action flymake-goto-diagnostic
+                         mouse-action flymake-goto-diagnostic )]
+                      data-vec)
+           data-vec))))
+
 (defun flymake--diagnostics-buffer-entries ()
+  "Get tabulated list entries for current tabulated list buffer.
+Expects `flymake--diagnostics-buffer-entries' to be bound to a
+buffer."
   ;; Do nothing if 'flymake--diagnostics-buffer-source' has not yet
   ;; been set to a valid buffer.  This could happen when this function
   ;; is called too early.  For example 'global-display-line-numbers-mode'
   ;; calls us from its mode hook, when the diagnostic buffer has just
   ;; been created by 'flymake-show-diagnostics-buffer', but is not yet
-  ;; set up properly.
+  ;; set up properly (Bug#40529).
   (when (bufferp flymake--diagnostics-buffer-source)
     (with-current-buffer flymake--diagnostics-buffer-source
-      (cl-loop for diag in
-               (cl-sort (flymake-diagnostics) #'< :key #'flymake-diagnostic-beg)
-               for (line . col) =
-               (save-excursion
-                 (goto-char (flymake-diagnostic-beg diag))
-                 (cons (line-number-at-pos)
-                       (- (point)
-                          (line-beginning-position))))
-               for type = (flymake-diagnostic-type diag)
-               for backend = (flymake-diagnostic-backend diag)
-               for bname = (or (ignore-errors (symbol-name backend))
-                               "(anonymous function)")
-               collect
-               (list (list :diagnostic diag
-                           :line line
-                           :severity (flymake--lookup-type-property
-                                      type
-                                      'severity (warning-numeric-level :error)))
-                     `[,(format "%s" line)
-                       ,(format "%s" col)
-                       ,(propertize (format "%s"
-                                            (flymake--lookup-type-property
-                                             type 'flymake-type-name type))
-                                    'face (flymake--lookup-type-property
-                                           type 'mode-line-face 'flymake-error))
-                       ,(propertize
-                         (if bname
-                             (replace-regexp-in-string "\\(.\\)[^-]+\\(-\\|$\\)"
-                                                       "\\1\\2" bname)
-                           "(anon)")
-                         'help-echo (format "From `%s' backend" backend))
-                       (,(format "%s" (flymake-diagnostic-text diag))
-                        mouse-face highlight
-                        help-echo "mouse-2: visit this diagnostic"
-                        face nil
-                        action flymake-goto-diagnostic
-                        mouse-action flymake-goto-diagnostic)])))))
+      (when flymake-mode
+        (flymake--tabulated-entries-1 (flymake-diagnostics) nil)))))
+
+(defvar flymake--diagnostics-base-tabulated-list-format
+  `[("Line" 5 ,(lambda (l1 l2)
+                 (< (plist-get (car l1) :line)
+                    (plist-get (car l2) :line)))
+     :right-align t)
+    ("Col" 3 nil :right-align t)
+    ("Type" 8 ,(lambda (l1 l2)
+                 (< (plist-get (car l1) :severity)
+                    (plist-get (car l2) :severity))))
+    ("Backend" 8 t)
+    ("Message" 0 t)])
 
 (define-derived-mode flymake-diagnostics-buffer-mode tabulated-list-mode
   "Flymake diagnostics"
   "A mode for listing Flymake diagnostics."
-  (setq tabulated-list-format
-        `[("Line" 5 ,(lambda (l1 l2)
-                       (< (plist-get (car l1) :line)
-                          (plist-get (car l2) :line)))
-           :right-align t)
-          ("Col" 3 nil :right-align t)
-          ("Type" 8 ,(lambda (l1 l2)
-                       (< (plist-get (car l1) :severity)
-                          (plist-get (car l2) :severity))))
-          ("Backend" 8 t)
-          ("Message" 0 t)])
+  (setq tabulated-list-format flymake--diagnostics-base-tabulated-list-format)
   (setq tabulated-list-entries
         'flymake--diagnostics-buffer-entries)
   (tabulated-list-init-header))
 
 (defun flymake--diagnostics-buffer-name ()
-  (format "*Flymake diagnostics for %s*" (current-buffer)))
+  (format "*Flymake diagnostics for `%s'*" (current-buffer)))
 
-(defun flymake-show-diagnostics-buffer ()
+(define-obsolete-function-alias 'flymake-show-diagnostics-buffer
+  'flymake-show-buffer-diagnostics "1.2.1")
+
+(defun flymake-show-buffer-diagnostics ()
   "Show a list of Flymake diagnostics for current buffer."
   (interactive)
   (let* ((name (flymake--diagnostics-buffer-name))
@@ -1466,8 +1643,117 @@ POS can be a buffer position or a button"
                        (current-buffer)))))
     (with-current-buffer target
       (setq flymake--diagnostics-buffer-source source)
-      (revert-buffer)
-      (display-buffer (current-buffer)))))
+      (display-buffer (current-buffer))
+      (revert-buffer))))
+
+
+;;; Per-project diagnostic listing
+;;;
+
+(defvar flymake-list-only-diagnostics nil
+  "Diagnostics list meant for listing, not highlighting.
+This variable holds an alist ((FILE-NAME . DIAGS) ...) where
+FILE-NAME is a string holding an absolute file name and DIAGS is
+a list of diagnostic objects created with with
+`flymake-make-diagnostic'.  These diagnostics are never annotated
+as overlays in actual buffers: they merely serve as temporary
+stand-ins for more accurate diagnostics that are produced once
+the file they refer to is visited and `flymake-mode' is turned on
+in the resulting buffer.
+
+Flymake backends that somehow gain sporadic information about
+diagnostics in neighbouring files may freely modify this variable
+at any time.  If the information about those neighbouring files
+is acquired repeatedly and reliably, it may be more sensible to
+report them as \"foreign\" diagnostics instead.
+
+Commands such as `flymake-show-project-diagnostics' will include
+some of its contents in its diagnostic listing.")
+
+(defvar-local flymake--project-diagnostic-list-project nil)
+
+(define-derived-mode flymake-project-diagnostics-mode tabulated-list-mode
+  "Flymake diagnostics"
+  "A mode for listing Flymake diagnostics."
+  (setq tabulated-list-format
+        (vconcat [("File" 25 t)]
+                 flymake--diagnostics-base-tabulated-list-format))
+  (setq tabulated-list-entries
+        'flymake--project-diagnostics-entries)
+  (tabulated-list-init-header))
+
+(cl-defun flymake--project-diagnostics (&optional (project (project-current)))
+  "Get all known diagnostics for PROJECT."
+  (let* ((root (project-root project))
+         (visited (cl-remove-if-not #'buffer-file-name (project-buffers project)))
+         have-own-diags
+         buffer-annotated-diags
+         relevant-foreign-diags
+         list-only-diags)
+    (setq buffer-annotated-diags
+          (cl-loop for buf in visited
+                   for diags = (with-current-buffer buf
+                                 (flymake-diagnostics))
+                   when diags do (push buf have-own-diags)
+                   append (cl-sort diags #'< :key #'flymake-diagnostic-beg)))
+    (cl-loop
+     for buf in visited
+     do (with-current-buffer buf
+          (when (and flymake-mode flymake--state)
+            (maphash
+             (lambda (_backend state)
+               (maphash
+                (lambda (foreign-locus diags)
+                  (unless (cl-find-if
+                           (lambda (b)
+                             (or (eq b foreign-locus)
+                                 (and (stringp foreign-locus)
+                                      (equal (buffer-file-name b)
+                                             (expand-file-name foreign-locus)))))
+                           have-own-diags)
+                    (setq relevant-foreign-diags
+                          (append relevant-foreign-diags
+                                  diags))))
+                (flymake--state-foreign-diags state)))
+             flymake--state))))
+    (setq list-only-diags
+          (cl-loop for (file-name . diags) in flymake-list-only-diagnostics
+                   if (string-prefix-p (expand-file-name root) file-name)
+                   append diags))
+    (append buffer-annotated-diags relevant-foreign-diags list-only-diags)))
+
+(defun flymake--project-diagnostics-entries ()
+  (let ((p (project-current)))
+    (flymake--tabulated-entries-1 (flymake--project-diagnostics p)
+                                  (project-root p))))
+
+(defun flymake--project-diagnostics-buffer (root)
+  (get-buffer-create (format "*Flymake diagnostics for `%s'*" root)))
+
+(defun flymake-show-project-diagnostics ()
+  "Show a list of Flymake diagnostics for the current project."
+  (interactive)
+  (let* ((prj (project-current))
+         (root (project-root prj))
+         (buffer (flymake--project-diagnostics-buffer root)))
+    (with-current-buffer buffer
+      (flymake-project-diagnostics-mode)
+      (setq-local flymake--project-diagnostic-list-project prj)
+      (display-buffer (current-buffer))
+      (revert-buffer))))
+
+(defun flymake--update-diagnostics-listings (buffer)
+  "Update diagnostics listings somehow relevant to BUFFER"
+  (dolist (probe (buffer-list))
+    (with-current-buffer probe
+      (when (or (and (eq major-mode 'flymake-project-diagnostics-mode)
+                     flymake--project-diagnostic-list-project
+                     (buffer-file-name buffer)
+                     (memq buffer
+                      (project-buffers flymake--project-diagnostic-list-project)))
+                (and (eq major-mode 'flymake-diagnostics-buffer-mode)
+                     (eq flymake--diagnostics-buffer-source buffer)))
+        (revert-buffer)))))
 
 (provide 'flymake)
 

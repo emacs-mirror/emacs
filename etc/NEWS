@@ -2523,6 +2523,14 @@ images are marked.
 ** Flymake mode
 
 +++
+*** New command 'flymake-show-project-diagnostics'
+This lists all diagnostics for buffers in the currently active project
+in a buffer similar to the one obtained by the
+'flymake-show-buffer-diagnostics', which lists for only one buffer.
+For backends supporting it, 'flymake-show-project-diagnostics' may
+also list diagnostics for files that have not yet been visited.
+
++++
 *** New user options to customize Flymake's mode-line.
 The new user option 'flymake-mode-line-format' is a mix of strings and
 symbols like 'flymake-mode-line-title', 'flymake-mode-line-exception'
