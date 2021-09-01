@@ -798,7 +798,10 @@ also select the new frame."
   (interactive "i\nP")
   (if use-default-parameters
       (make-frame-command)
-    (let* ((default-frame-alist (frame-parameters frame))
+    (let* ((default-frame-alist (seq-filter
+                                 (lambda (elem)
+                                   (not (eq (car elem) 'name)))
+                                 (frame-parameters frame)))
            (new-frame (make-frame)))
       (unless (display-graphic-p)
         (select-frame new-frame))
