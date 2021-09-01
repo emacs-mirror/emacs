@@ -9188,8 +9188,7 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
       /* If the function returned something invalid,
 	 barf--don't ignore it.  */
       if (! (NILP (next) || VECTORP (next) || STRINGP (next)))
-	error ("Function %s returns invalid key sequence",
-	       SSDATA (SYMBOL_NAME (tem)));
+	signal_error ("Function returns invalid key sequence", tem);
     }
   return next;
 }
