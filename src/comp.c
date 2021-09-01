@@ -71,6 +71,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_context_new_binary_op
 #undef gcc_jit_context_new_call
 #undef gcc_jit_context_new_call_through_ptr
+#undef gcc_jit_context_new_cast
 #undef gcc_jit_context_new_comparison
 #undef gcc_jit_context_new_field
 #undef gcc_jit_context_new_function
@@ -176,6 +177,9 @@ DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_call,
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_call_through_ptr,
             (gcc_jit_context *ctxt, gcc_jit_location *loc,
              gcc_jit_rvalue *fn_ptr, int numargs, gcc_jit_rvalue **args));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_cast,
+            (gcc_jit_context *ctxt, gcc_jit_location *loc,
+             gcc_jit_rvalue *rvalue, gcc_jit_type *type));
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_comparison,
             (gcc_jit_context *ctxt, gcc_jit_location *loc,
              enum gcc_jit_comparison op, gcc_jit_rvalue *a, gcc_jit_rvalue *b));
@@ -288,6 +292,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_new_binary_op);
   LOAD_DLL_FN (library, gcc_jit_context_new_call);
   LOAD_DLL_FN (library, gcc_jit_context_new_call_through_ptr);
+  LOAD_DLL_FN (library, gcc_jit_context_new_cast);
   LOAD_DLL_FN (library, gcc_jit_context_new_comparison);
   LOAD_DLL_FN (library, gcc_jit_context_new_field);
   LOAD_DLL_FN (library, gcc_jit_context_new_function);
@@ -358,6 +363,7 @@ init_gccjit_functions (void)
 #define gcc_jit_context_new_binary_op fn_gcc_jit_context_new_binary_op
 #define gcc_jit_context_new_call fn_gcc_jit_context_new_call
 #define gcc_jit_context_new_call_through_ptr fn_gcc_jit_context_new_call_through_ptr
+#define gcc_jit_context_new_cast fn_gcc_jit_context_new_cast
 #define gcc_jit_context_new_comparison fn_gcc_jit_context_new_comparison
 #define gcc_jit_context_new_field fn_gcc_jit_context_new_field
 #define gcc_jit_context_new_function fn_gcc_jit_context_new_function
