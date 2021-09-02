@@ -5419,7 +5419,8 @@ this file, if that variable is non-nil."
     ;; Create directory.
     (unless (or (null tramp-auto-save-directory)
 		(file-exists-p tramp-auto-save-directory))
-      (make-directory tramp-auto-save-directory t))
+      (make-directory tramp-auto-save-directory t)
+      (set-file-modes tramp-auto-save-directory #o0700))
 
     (let ((system-type
 	   (if (and (stringp tramp-auto-save-directory)
