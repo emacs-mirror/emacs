@@ -1406,11 +1406,6 @@ affects all frames on the same terminal device.  */)
 		  (t->display_info.tty->name
 		   ? build_string (t->display_info.tty->name)
 		   : Qnil));
-  /* On terminal frames the `minibuffer' frame parameter is always
-     virtually t.  Avoid that a different value in parms causes
-     complaints, see Bug#24758.  */
-  store_in_alist (&parms, Qminibuffer, Qt);
-  Fmodify_frame_parameters (frame, parms);
 
   /* Make the frame face hash be frame-specific, so that each
      frame could change its face definitions independently.  */
@@ -1422,6 +1417,12 @@ affects all frames on the same terminal device.  */)
   struct Lisp_Hash_Table *table = XHASH_TABLE (f->face_hash_table);
   for (idx = 0; idx < table->count; ++idx)
     set_hash_value_slot (table, idx, Fcopy_sequence (HASH_VALUE (table, idx)));
+
+  /* On terminal frames the `minibuffer' frame parameter is always
+     virtually t.  Avoid that a different value in parms causes
+     complaints, see Bug#24758.  */
+  store_in_alist (&parms, Qminibuffer, Qt);
+  Fmodify_frame_parameters (frame, parms);
 
   f->can_set_window_size = true;
   f->after_make_frame = true;
