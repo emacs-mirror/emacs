@@ -662,6 +662,22 @@ overrides that argument.")
                   (delq 'no-conversion (copy-sequence codings))))
       codings))
 
+(defun select-safe-coding-system--format-list (list)
+  (let ((spec "  %-20s %6s %10s %s\n"))
+    (insert (format spec "Coding System" "Pos" "Code Point" ""))
+    (cl-loop for (coding . pairs) in list
+             do (cl-loop for pair in pairs
+                         ;; If there's a lot, only do the first three.
+                         for i from 1 upto 3
+                         do (insert
+                             (format spec
+                                     (if (= i 1) coding "")
+                                     (car pair) (cdr pair)
+                                     (if (and (= i 3) (> (length pairs) 3))
+                                         "..."
+                                       ""))))))
+  (insert "\n"))
+
 (defun select-safe-coding-system-interactively (from to codings unsafe
 						&optional rejected default)
   "Select interactively a coding system for the region FROM ... TO.
@@ -722,19 +738,12 @@ DEFAULT is the coding system to use by default in the query."
 				 (concat from "\"")))
 	       (format-message " text\nin the buffer `%s'" bufname))
 	     ":\n")
-	    (let ((pos (point))
-		  (fill-prefix "  "))
-	      (dolist (x (append rejected unsafe))
-		(princ "  ") (princ x))
-	      (insert "\n")
-	      (fill-region-as-paragraph pos (point)))
+            (select-safe-coding-system--format-list unsafe)
 	    (when rejected
 	      (insert "These safely encode the text in the buffer,
 but are not recommended for encoding text in this context,
 e.g., for sending an email message.\n ")
-	      (dolist (x rejected)
-		(princ " ") (princ x))
-	      (insert "\n"))
+              (select-safe-coding-system--format-list rejected))
 	    (when unsafe
 	      (insert (if rejected "The other coding systems"
 			"However, each of them")
