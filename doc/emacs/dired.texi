@@ -852,7 +852,7 @@ different systems put @command{chown} in different places).
 @cindex changing file time (in Dired)
 @item T @var{timestamp} @key{RET}
 Touch the specified files (@code{dired-do-touch}).  This means
-updating their modification times to the present time.  This is like
+updating their modification times to @var{timestamp}.  This is like
 the shell command @code{touch}.
 
 @findex dired-do-print
