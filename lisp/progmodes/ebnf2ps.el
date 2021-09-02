@@ -2248,9 +2248,7 @@ number, prompt the user for the name of the file to save in."
              ;; Make non-ASCII work (sort of).
              (lambda (string)
                (ps-output t (and string
-                                 (encode-coding-string
-                                  (decode-coding-string string 'utf-8)
-                                  'iso-8859-1))))))
+                                 (encode-coding-string string 'iso-8859-1))))))
     (ebnf-print-region (point-min) (point-max) filename)))
 
 ;;;###autoload
