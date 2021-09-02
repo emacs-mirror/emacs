@@ -1307,6 +1307,8 @@ the root directory.  */)
 	      newdir = SSDATA (hdir);
 	      newdirlim = newdir + SBYTES (hdir);
 	    }
+	  else if (!multibyte && STRING_MULTIBYTE (tem))
+	    multibyte = 1;
 #ifdef DOS_NT
 	  collapse_newdir = false;
 #endif
