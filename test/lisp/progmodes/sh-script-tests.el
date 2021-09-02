@@ -37,4 +37,15 @@
              "relative-path/to/configure --prefix=$prefix\\
 			   --with-x"))))
 
+(ert-deftest test-basic-sh-indentation ()
+  (with-temp-buffer
+    (insert "myecho () {\necho foo\n}\n")
+    (shell-script-mode)
+    (indent-region (point-min) (point-max))
+    (should (equal (buffer-string)
+  "myecho () {
+    echo foo
+}
+"))))
+
 ;;; sh-script-tests.el ends here
