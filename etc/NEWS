@@ -3092,6 +3092,11 @@ similar to prefix arguments, but are more flexible and discoverable.
 
 * Incompatible Editing Changes in Emacs 28.1
 
+---
+** 'toggle-truncate-lines' now disables 'visual-line-mode'.
+This is for symmetry with 'visual-line-mode', which disables
+'truncate-lines'.
+
 ** 'electric-indent-mode' now also indents inside strings and comments,
 (unless the indentation function doesn't, of course).
 To recover the previous behavior you can use:
