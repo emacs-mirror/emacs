@@ -5667,7 +5667,7 @@ gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
-# timer_getoverrun needs the same libarary as timer_settime
+# timer_getoverrun needs the same library as timer_settime
 OLD_LIBS=$LIBS
 LIBS="$LIB_TIMER_TIME $LIBS"
 AC_CHECK_FUNCS(timer_getoverrun)

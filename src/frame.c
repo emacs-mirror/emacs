@@ -729,7 +729,7 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 	  && (f->new_width >= 0 || f->new_height >= 0))
 	/* For implied resizes with inhibit 2 (external menu and tool
 	   bar) pick up any new sizes the display engine has not
-	   processed yet.  Otherwsie, we would request the old sizes
+	   processed yet.  Otherwise, we would request the old sizes
 	   which will make this request appear as a request to set new
 	   sizes and have the WM react accordingly which is not TRT.
 

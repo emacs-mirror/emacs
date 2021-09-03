@@ -3181,7 +3181,7 @@ refers to the old state at FROM.
 
 +++
 ** 'overlays-in' now handles zero-length overlays slightly differently.
-Previosly, zero-length overlays at the end of the buffer were included
+Previously, zero-length overlays at the end of the buffer were included
 in the result (if the region queried for stopped at that position).
 The same was not the case if the buffer had been narrowed to exclude
 the real end of the buffer.  This has now been changed, and

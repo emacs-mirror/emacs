@@ -1174,7 +1174,7 @@ string_make_multibyte (Lisp_Object string)
 
 
 /* Convert STRING (if unibyte) to a multibyte string without changing
-   the number of characters.  Characters 0200 trough 0237 are
+   the number of characters.  Characters 0200 through 0237 are
    converted to eight-bit characters. */
 
 Lisp_Object

@@ -113,7 +113,7 @@ page-dashes         Change double dashes in page field to single dash
 whitespace          Delete whitespace at the beginning and end of fields.
 inherit-booktitle   If entry contains a crossref field and the booktitle
                       field is empty, set the booktitle field to the content
-                      of the title field of the crossreferenced entry.
+                      of the title field of the cross-referenced entry.
 realign             Realign entries, so that field texts and perhaps equal
                       signs (depending on the value of
                       `bibtex-align-at-equal-sign') begin in the same column.
@@ -1228,9 +1228,9 @@ See `bibtex-generate-autokey' for details."
   :type 'integer)
 
 (defcustom bibtex-autokey-use-crossref t
-  "If non-nil use fields from crossreferenced entry if necessary.
+  "If non-nil use fields from cross-referenced entry if necessary.
 If this variable is non-nil and some field has no entry, but a
-valid crossref entry, the field from the crossreferenced entry is used.
+valid crossref entry, the field from the cross-referenced entry is used.
 See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type 'boolean)
@@ -2975,7 +2975,7 @@ The year part:
     `bibtex-autokey-year-length' digits (useful values are 2 and 4).
  2. If both the year and date fields are absent, but the entry has a
     valid crossref field and `bibtex-autokey-use-crossref' is
-    non-nil, use the date or year field of the crossreferenced entry
+    non-nil, use the date or year field of the cross-referenced entry
     instead.
 
 The title part

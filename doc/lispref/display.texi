@@ -5970,7 +5970,7 @@ To @var{svg} add an embedded (raster) image placed at
 @code{:base-uri} specifies a (possibly non-existing) file name of the
 svg image to be created, thus all the embedded files are searched
 relatively to the @code{:base-uri} filename's directory.  If
-@code{:base-uri} is ommited, then filename from where svg image is
+@code{:base-uri} is omitted, then filename from where svg image is
 loaded is used.  Using @code{:base-uri} improves the performance of
 embedding large images, comparing to @code{svg-embed}, because all the
 work is done directly by librsvg.

@@ -1452,7 +1452,7 @@ Elisp eldoc behaviour.  Consider variable docstrings and function
 signatures only, in this order.  If none applies, returns nil.
 Changes to `eldoc-documentation-functions' and
 `eldoc-documentation-strategy' are _not_ reflected here.  As such
-it is preferrable to use ElDoc's interfaces directly.")
+it is preferable to use ElDoc's interfaces directly.")
 
 (make-obsolete 'elisp-eldoc-documentation-function
                "use ElDoc's interfaces instead." "28.1")

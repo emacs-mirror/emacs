@@ -4700,7 +4700,7 @@ Usage:
     `vhdl-project-alist'.
 
 
-  SPECIAL MENUES:
+  SPECIAL MENUS:
     As an alternative to the speedbar, an index menu can be added (set
     option `vhdl-index-menu' to non-nil) or made accessible as a mouse menu
     (e.g. add \"(global-set-key [S-down-mouse-3] \\='imenu)\" to your start-up

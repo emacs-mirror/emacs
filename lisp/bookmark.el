@@ -27,7 +27,7 @@
 ;; associates a string with a location in a certain file.  Thus, you
 ;; can navigate your way to that location by providing the string.
 ;;
-;; Type `M-x customize-group RET boomark RET' for user options.
+;; Type `M-x customize-group RET bookmark RET' for user options.
 
 
 ;;; Code:
