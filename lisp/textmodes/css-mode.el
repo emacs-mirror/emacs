@@ -301,14 +301,38 @@
     ("grid-template-columns" "none" track-list auto-track-list)
     ("grid-template-rows" "none" track-list auto-track-list)
 
+    ;; CSS Box Alignment Module Level 3
+    ;; (https://www.w3.org/TR/css-align-3/#alignment-values)
+    ("align-content" "center" "start" "end" "flex-start" "flex-end"
+     "normal" "first" "last" "baseline" "space-between" "space-around"
+     "space-evenly" "stretch" "safe" "unsafe")
+    ("align-items" "normal" "stretch" "center" "start" "end"
+     "flex-start" "flex-end" "baseline" "first" "last" "baseline"
+     "safe" "unsafe")
+    ("align-self" "auto" "normal" "center" "start" "end"
+     "self-start" "self-end" "flex-start" "flex-end"
+     "baseline" "first" "last" "stretch" "safe" "unsafe")
+    ("justify-content" "center" "start" "end" "flex-start" "flex-end"
+     "left" "right" "normal" "space-between" "space-around"
+     "space-evenly"  "stretch" "safe" "unsafe")
+    ("justify-items" "auto" "normal" "stretch" "center" "start" "end"
+     "flex-start" "flex-end" "self-start" "self-end" "left" "right"
+     "baseline" "first" "last" "legacy" "safe" "unsafe")
+    ("justify-self" "auto" "normal" "stretch" "center" "start" "end"
+     "flex-start" "flex-end" "self-start" "self-end" "left" "right"
+     "baseline" "first" "last" "safe" "unsafe")
+    ("place-content" "center" "start" "end" "left" "right" "flex-start"
+     "flex-end" "baseline" "first" "last" "space-evenly" "space-around"
+     "space-between")
+    ("place-items" "auto" "normal" "center" "start" "end"
+     "self-start" "self-end" "flex-start" "flex-end"
+     "left" "right" "baseline" "first" "last" "stretch")
+    ("place-self" "auto" "center" "start" "end" "self-start" "self-end"
+     "flex-start" "flex-end" "normal" "left" "right" "baseline"
+     "first" "last" "stretch")
+
     ;; CSS Flexible Box Layout Module Level 1
     ;; (https://www.w3.org/TR/css-flexbox-1/#property-index)
-    ("align-content" "flex-start" "flex-end" "center" "space-between"
-     "space-around" "stretch")
-    ("align-items" "flex-start" "flex-end" "center" "baseline"
-     "stretch")
-    ("align-self" "auto" "flex-start" "flex-end" "center" "baseline"
-     "stretch")
     ("flex" "none" flex-grow flex-shrink flex-basis)
     ("flex-basis" "auto" "content" width)
     ("flex-direction" "row" "row-reverse" "column" "column-reverse")
@@ -316,8 +340,6 @@
     ("flex-grow" number)
     ("flex-shrink" number)
     ("flex-wrap" "nowrap" "wrap" "wrap-reverse")
-    ("justify-content" "flex-start" "flex-end" "center"
-     "space-between" "space-around")
     ("order" integer)
 
     ;; CSS Fonts Module Level 3
