@@ -323,8 +323,8 @@
     ("place-items" align-items justify-items)
     ("place-self" justify-self align-self)
 
-    ;; CSS Flexible Box Layout Module Level 1
-    ;; (https://www.w3.org/TR/css-flexbox-1/#property-index)
+    ;; CSS Flexible Box Layout Module Level 2
+    ;; (https://www.w3.org/TR/css-flexbox-2/#property-index)
     ("flex" "none" flex-grow flex-shrink flex-basis)
     ("flex-basis" "auto" "content" width)
     ("flex-direction" "row" "row-reverse" "column" "column-reverse")
