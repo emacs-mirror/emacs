@@ -8311,7 +8311,7 @@ non-nil."
            (if (and truncate-lines visual-line-mode)
                (progn
                  (visual-line-mode -1)
-                 (message " and `visual-line-mode' disabled"))
+                 (format-message " and `visual-line-mode' disabled"))
              "")))
 
 (defun toggle-word-wrap (&optional arg)
