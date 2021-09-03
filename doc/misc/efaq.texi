@@ -415,27 +415,16 @@ archive the @code{gnu.*} groups.
 @cindex How to submit a bug report
 @cindex Reporting bugs
 
-The correct way to report Emacs bugs is to use the command
-@kbd{M-x report-emacs-bug}.  It sets up a mail buffer with the
-essential information and the correct e-mail address,
-@email{bug-gnu-emacs@@gnu.org}.
-Anything sent there also appears in the
-newsgroup @uref{news:gnu.emacs.bug}, but please use e-mail instead of
-news to submit the bug report.  This ensures a reliable return address
-so you can be contacted for further details.
+Please see the Emacs manual for information on how to report bugs.
+@xref{Checklist, , Checklist for Bug Reports, emacs, The GNU Emacs Manual}.
 
-Be sure to read the ``Bugs'' section of the Emacs manual before reporting
-a bug!  The manual describes in detail how to submit a useful bug
-report (@pxref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}).
-(@xref{Emacs manual}, if you don't know how to read the manual.)
-
-RMS says:
+It is better to report bugs as described there than to ask on the help
+mailing list.  RMS says:
 
 @quotation
 Sending bug reports to
 @url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
-the help-gnu-emacs mailing list}
-(which has the effect of posting on @uref{news:gnu.emacs.help}) is
+the help-gnu-emacs mailing list} is
 undesirable because it takes the time of an unnecessarily large group
 of people, most of whom are just users and have no idea how to fix
 these problem.
@@ -445,12 +434,12 @@ more likely to know what to do and have expressed a wish to receive
 more messages about Emacs than the others.
 @end quotation
 
-RMS says it is sometimes fine to post to @uref{news:gnu.emacs.help}:
+RMS says it is sometimes fine to post to the help list:
 
 @quotation
 If you have reported a bug and you don't hear about a possible fix,
 then after a suitable delay (such as a week) it is okay to post on
-@code{gnu.emacs.help} asking if anyone can help you.
+the help list asking if anyone can help you.
 @end quotation
 
 If you are unsure whether you have found a bug, consider the following
