@@ -85,41 +85,50 @@ Each element has the form (WHERE BYTECODE STACK) where:
       (if (eq bytecode (cadr elem)) (setq where (car elem))))
     where))
 
+(defun advice--make-single-doc (flist function macrop)
+  (let ((where (advice--where flist)))
+    (concat
+     (format "This %s has %s advice: "
+             (if macrop "macro" "function")
+             where)
+     (let ((fun (advice--car flist)))
+       (if (symbolp fun) (format-message "`%S'." fun)
+         (let* ((name (cdr (assq 'name (advice--props flist))))
+                (doc (documentation fun t))
+                (usage (help-split-fundoc doc function)))
+           (if usage (setq doc (cdr usage)))
+           (if name
+               (if doc
+                   (format "%s\n%s" name doc)
+                 (format "%s" name))
+             (or doc "No documentation")))))
+     "\n")))
+
 (defun advice--make-docstring (function)
   "Build the raw docstring for FUNCTION, presumably advised."
   (let* ((flist (indirect-function function))
          (docfun nil)
          (macrop (eq 'macro (car-safe flist)))
          (docstring nil))
-    (if macrop (setq flist (cdr flist)))
-    (while (advice--p flist)
-      (let ((doc (aref flist 4))
-            (where (advice--where flist)))
+    (when macrop
+      (setq flist (cdr flist)))
+    (if (and (autoloadp flist)
+             (get function 'advice--pending))
+        (setq docstring
+              (advice--make-single-doc (get function 'advice--pending)
+                                       function macrop))
+      (while (advice--p flist)
         ;; Hack attack!  For advices installed before calling
         ;; Snarf-documentation, the integer offset into the DOC file will not
         ;; be installed in the "core unadvised function" but in the advice
         ;; object instead!  So here we try to undo the damage.
-        (if (integerp doc) (setq docfun flist))
-        (setq docstring
-              (concat
-               docstring
-               (format "This %s has %s advice: "
-                       (if macrop "macro" "function")
-                       where)
-               (let ((fun (advice--car flist)))
-                 (if (symbolp fun) (format-message "`%S'." fun)
-                   (let* ((name (cdr (assq 'name (advice--props flist))))
-                          (doc (documentation fun t))
-                          (usage (help-split-fundoc doc function)))
-                     (if usage (setq doc (cdr usage)))
-                     (if name
-                         (if doc
-                             (format "%s\n%s" name doc)
-                           (format "%s" name))
-                       (or doc "No documentation")))))
-               "\n")))
-      (setq flist (advice--cdr flist)))
-    (unless docfun (setq docfun flist))
+        (when (integerp (aref flist 4))
+          (setq docfun flist))
+        (setq docstring (concat docstring (advice--make-single-doc
+                                           flist function macrop))
+              flist (advice--cdr flist))))
+    (unless docfun
+      (setq docfun flist))
     (let* ((origdoc (unless (eq function docfun) ;Avoid inf-loops.
                       (documentation docfun t)))
            (usage (help-split-fundoc origdoc function)))
