@@ -278,8 +278,8 @@
     ;; (https://www.w3.org/TR/css-contain-1/#property-index)
     ("contain" "none" "strict" "content" "size" "layout" "paint")
 
-    ;; CSS Grid Layout Module Level 1
-    ;; (https://www.w3.org/TR/css-grid-1/#property-index)
+    ;; CSS Grid Layout Module Level 2
+    ;; (https://www.w3.org/TR/css-grid-2/#property-index)
     ("grid" grid-template grid-template-rows "auto-flow" "dense"
      grid-auto-columns grid-auto-rows grid-template-columns)
     ("grid-area" grid-line)
@@ -298,8 +298,8 @@
     ("grid-template" "none" grid-template-rows grid-template-columns
      line-names string track-size line-names explicit-track-list)
     ("grid-template-areas" "none" string)
-    ("grid-template-columns" "none" track-list auto-track-list)
-    ("grid-template-rows" "none" track-list auto-track-list)
+    ("grid-template-columns" "none" track-list auto-track-list "subgrid")
+    ("grid-template-rows" "none" track-list auto-track-list "subgrid")
 
     ;; CSS Box Alignment Module Level 3
     ;; (https://www.w3.org/TR/css-align-3/#property-index)
