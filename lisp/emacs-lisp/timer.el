@@ -57,7 +57,10 @@
 
 (defun timerp (object)
   "Return t if OBJECT is a timer."
-  (and (vectorp object) (= (length object) 10)))
+  (and (vectorp object)
+       ;; Timers are now ten elements, but old .elc code may have
+       ;; shorter versions of `timer-create'.
+       (<= 9 (length object) 10)))
 
 (defsubst timer--check (timer)
   (or (timerp timer) (signal 'wrong-type-argument (list #'timerp timer))))
@@ -293,7 +296,8 @@ This function is called, by name, directly by the C code."
                                                  repeats)))))
               ;; If we want integral multiples, we have to recompute
               ;; the repetition.
-              (when (and (timer--integral-multiple timer)
+              (when (and (> (length timer) 9) ; Backwards compatible.
+                         (timer--integral-multiple timer)
                          (not (timer--idle-delay timer)))
                 (setf (timer--time timer)
                       (timer-next-integral-multiple-of-time
