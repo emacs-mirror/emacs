@@ -3152,6 +3152,13 @@ It used to be mapped to 'print' but we couldn't find a terminal
 that uses this sequence for any kind of 'Print' key.
 This makes the Menu key (see https://en.wikipedia.org/wiki/Menu_key)
 work for `context-menu-mode` in Xterm.
+
+---
+** New user option 'xterm-store-paste-on-kill-ring'.
+If non-nil (the default), Emacs pushes pasted text onto the kill ring
+(if using an xterm-like terminal that supports bracketed paste).
+Setting this to nil inhibits that.
+
 
 * Incompatible Lisp Changes in Emacs 28.1
 
