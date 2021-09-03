@@ -1404,6 +1404,9 @@ POS can be a buffer position or a button"
                        (- (point)
                           (line-beginning-position))))
                for type = (flymake-diagnostic-type diag)
+               for backend = (flymake-diagnostic-backend diag)
+               for bname = (or (ignore-errors (symbol-name backend))
+                               "(anonymous function)")
                collect
                (list (list :diagnostic diag
                            :line line
@@ -1417,6 +1420,12 @@ POS can be a buffer position or a button"
                                              type 'flymake-type-name type))
                                     'face (flymake--lookup-type-property
                                            type 'mode-line-face 'flymake-error))
+                       ,(propertize
+                         (if bname
+                             (replace-regexp-in-string "\\(.\\)[^-]+\\(-\\|$\\)"
+                                                       "\\1\\2" bname)
+                           "(anon)")
+                         'help-echo (format "From `%s' backend" backend))
                        (,(format "%s" (flymake-diagnostic-text diag))
                         mouse-face highlight
                         help-echo "mouse-2: visit this diagnostic"
@@ -1436,6 +1445,7 @@ POS can be a buffer position or a button"
           ("Type" 8 ,(lambda (l1 l2)
                        (< (plist-get (car l1) :severity)
                           (plist-get (car l2) :severity))))
+          ("Backend" 8 t)
           ("Message" 0 t)])
   (setq tabulated-list-entries
         'flymake--diagnostics-buffer-entries)
