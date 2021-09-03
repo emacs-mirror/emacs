@@ -589,7 +589,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             (should (file-exists-p new-name))
 
             (should (equal (vc-state new-name)
-                           (if (eq backend 'RCS)
+                           (if (memq backend '(RCS SCCS))
                                'up-to-date
                              'added)))))
 
@@ -711,6 +711,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
              (ert-get-test
               ',(intern
                  (format "vc-test-%s01-register" backend-string))))))
+          ;; CVS calls vc-delete-file, which insists on prompting
+          ;; "Really want to delete ...?"
+          (skip-unless (not (eq 'CVS ',backend)))
           (vc-test--rename-file ',backend))
         ))))
 
