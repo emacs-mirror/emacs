@@ -3081,6 +3081,45 @@ there for compatibility with CEDET.")
       (delete-trailing-whitespace))
     temp-file-name))
 
+(defconst python-shell-eval-setup-code
+  "\
+def __PYTHON_EL_eval(source, filename):
+    import ast, sys
+    if sys.version_info[0] == 2:
+        from __builtin__ import compile, eval, globals
+    else:
+        from builtins import compile, eval, globals
+    sys.stdout.write('\\n')
+    try:
+        p, e = ast.parse(source, filename), None
+    except SyntaxError:
+        t, v, tb = sys.exc_info()
+        sys.excepthook(t, v, tb.tb_next)
+        return
+    if p.body and isinstance(p.body[-1], ast.Expr):
+        e = p.body.pop()
+    try:
+        g = globals()
+        exec(compile(p, filename, 'exec'), g, g)
+        if e:
+            return eval(compile(ast.Expression(e.value), filename, 'eval'), g, g)
+    except Exception:
+        t, v, tb = sys.exc_info()
+        sys.excepthook(t, v, tb.tb_next)"
+  "Code used to evaluate statements in inferior Python processes.")
+
+(defalias 'python-shell--encode-string
+  (let ((fun (if (and (fboundp 'json-serialize)
+                      (>= emacs-major-version 28))
+                 'json-serialize
+               (require 'json)
+               'json-encode-string)))
+    (lambda (text)
+      (if (stringp text)
+          (funcall fun text)
+        (signal 'wrong-type-argument (list 'stringp text)))))
+  "Encode TEXT as a valid Python string.")
+
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
 When optional argument MSG is non-nil, forces display of a
@@ -3088,16 +3127,12 @@ user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive
    (list (read-string "Python command: ") nil t))
-  (let ((process (or process (python-shell-get-process-or-error msg))))
-    (if (string-match ".\n+." string)   ;Multiline.
-        (let* ((temp-file-name (with-current-buffer (process-buffer process)
-                                 (python-shell--save-temp-file string)))
-               (file-name (or (buffer-file-name) temp-file-name)))
-          (python-shell-send-file file-name process temp-file-name t))
-      (comint-send-string process string)
-      (when (or (not (string-match "\n\\'" string))
-                (string-match "\n[ \t].*\n?\\'" string))
-        (comint-send-string process "\n")))))
+  (comint-send-string
+   (or process (python-shell-get-process-or-error msg))
+   (format "exec(%s);__PYTHON_EL_eval(%s, %s)\n"
+           (python-shell--encode-string python-shell-eval-setup-code)
+           (python-shell--encode-string string)
+           (python-shell--encode-string (or (buffer-file-name) "<string>")))))
 
 (defvar python-shell-output-filter-in-progress nil)
 (defvar python-shell-output-filter-buffer nil)
@@ -3139,7 +3174,8 @@ Return the output."
         (inhibit-quit t))
     (or
      (with-local-quit
-       (python-shell-send-string string process)
+       (comint-send-string
+        process (format "exec(%s)\n" (python-shell--encode-string string)))
        (while python-shell-output-filter-in-progress
          ;; `python-shell-output-filter' takes care of setting
          ;; `python-shell-output-filter-in-progress' to NIL after it
@@ -3362,7 +3398,8 @@ t when called interactively."
          (temp-file-name (when temp-file-name
                            (file-local-name (expand-file-name
                                              temp-file-name)))))
-    (python-shell-send-string
+    (comint-send-string
+     process
      (format
       (concat
        "import codecs, os;"
@@ -3372,8 +3409,7 @@ t when called interactively."
        (when (and delete temp-file-name)
          (format "os.remove('''%s''');" temp-file-name))
        "exec(compile(__code, '''%s''', 'exec'));")
-      (or temp-file-name file-name) encoding encoding file-name)
-     process)))
+      (or temp-file-name file-name) encoding encoding file-name))))
 
 (defun python-shell-switch-to-shell (&optional msg)
   "Switch to inferior Python process buffer.
