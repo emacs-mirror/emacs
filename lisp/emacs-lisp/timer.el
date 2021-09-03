@@ -34,7 +34,7 @@
 (cl-defstruct (timer
                (:constructor nil)
                (:copier nil)
-               (:constructor timer-create ())
+               (:constructor timer--create ())
                (:type vector)
                (:conc-name timer--))
   ;; nil if the timer is active (waiting to be triggered),
@@ -54,6 +54,12 @@
   ;; then have to recompute this (because the machine may have gone to
   ;; sleep, etc).
   integral-multiple)
+
+(defun timer-create ()
+  ;; BEWARE: This is not an eta-redex, because `timer--create' is inlinable
+  ;; whereas `timer-create' should not be because we don't want to
+  ;; hardcode the shape of timers in other .elc files.
+  (timer--create))
 
 (defun timerp (object)
   "Return t if OBJECT is a timer."
