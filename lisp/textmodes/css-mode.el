@@ -274,9 +274,10 @@
     ("color" color)
     ("opacity" alphavalue)
 
-    ;; CSS Containment Module Level 1
-    ;; (https://www.w3.org/TR/css-contain-1/#property-index)
-    ("contain" "none" "strict" "content" "size" "layout" "paint")
+    ;; CSS Containment Module Level 2
+    ;; (https://www.w3.org/TR/css-contain-2/#property-index)
+    ("contain" "none" "strict" "content" "size" "layout" "style" "paint")
+    ("content-visibility" "visible" "auto" "hidden")
 
     ;; CSS Grid Layout Module Level 2
     ;; (https://www.w3.org/TR/css-grid-2/#property-index)
