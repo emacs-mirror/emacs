@@ -57,7 +57,7 @@
   "Identifiers for pseudo-classes.")
 
 (defconst css-pseudo-element-ids
-  '("after" "before" "first-letter" "first-line")
+  '("after" "before" "first-letter" "first-line" "selection")
   "Identifiers for pseudo-elements.")
 
 (defconst css-at-ids
