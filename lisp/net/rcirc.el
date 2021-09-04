@@ -1056,7 +1056,7 @@ With no argument or nil as argument, use the current buffer."
   (let ((buffer (or buffer (and (buffer-live-p rcirc-server-buffer)
 				rcirc-server-buffer))))
     (if buffer
-        (with-current-buffer buffer rcirc-process)
+        (buffer-local-value 'rcirc-process buffer)
       rcirc-process)))
 
 (defun rcirc-server-name (process)
@@ -1744,8 +1744,9 @@ Returns nil if the information is not recorded.
 PROCESS is the process object for the current connection."
   (let ((chanbuf (rcirc-get-buffer process target)))
     (when chanbuf
-      (cdr (assoc-string nick (with-current-buffer chanbuf
-				rcirc-recent-quit-alist))))))
+      (cdr (assoc-string nick (buffer-local-value
+                               'rcirc-recent-quit-alist
+                               chanbuf))))))
 
 (defun rcirc-last-line (process nick target)
   "Return the line from the last activity from NICK in TARGET.
@@ -2183,7 +2184,7 @@ This function does not alter the INPUT string."
   "Bury all RCIRC buffers."
   (interactive)
   (dolist (buf (buffer-list))
-    (when (eq 'rcirc-mode (with-current-buffer buf major-mode))
+    (when (eq 'rcirc-mode (buffer-local-value 'major-mode buf))
       (bury-buffer buf)         ; buffers not shown
       (quit-windows-on buf))))  ; buffers shown in a window
 
@@ -2228,8 +2229,8 @@ activity.  Only run if the buffer is not visible and
 	      (sort (if (memq (current-buffer) rcirc-activity) rcirc-activity
                       (cons (current-buffer) rcirc-activity))
 		    (lambda (b1 b2)
-		      (let ((t1 (with-current-buffer b1 rcirc-last-post-time))
-			    (t2 (with-current-buffer b2 rcirc-last-post-time)))
+		      (let ((t1 (buffer-local-value 'rcirc-last-post-time b1))
+			    (t2 (buffer-local-value 'rcirc-last-post-time b2)))
 			(time-less-p t2 t1)))))
 	(cl-pushnew type rcirc-activity-types)
 	(unless (and (equal rcirc-activity old-activity)
