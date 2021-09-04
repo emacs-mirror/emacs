@@ -152,6 +152,9 @@ truncation; a @samp{\} on the rightmost column indicates a line that
 wraps.  (The display table can specify alternate characters to use
 for this; @pxref{Display Tables}).
 
+   Since wrapping and truncation of text contradict each other, Emacs
+turns off line truncation when wrapping is requested, and vice versa.
+
 @defopt truncate-lines
 If this buffer-local variable is non-@code{nil}, lines that extend
 beyond the right edge of the window are truncated; otherwise, they are

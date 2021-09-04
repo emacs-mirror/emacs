@@ -35136,7 +35136,10 @@ not span the full frame width.
 
 A value of nil means to respect the value of `truncate-lines'.
 
-If `word-wrap' is enabled, you might want to reduce this.  */);
+If `word-wrap' is enabled, you might want to reduce the value of this.
+
+Don't set this to a non-nil value when `visual-line-mode' is
+turned on, as it could produce confusing results.  */);
   Vtruncate_partial_width_windows = make_fixnum (50);
 
   DEFVAR_BOOL("word-wrap-by-category", word_wrap_by_category, doc: /*

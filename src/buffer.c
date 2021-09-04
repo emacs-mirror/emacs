@@ -5805,7 +5805,10 @@ Note that this is overridden by the variable
 `truncate-partial-width-windows' if that variable is non-nil
 and this buffer is not full-frame width.
 
-Minibuffers set this variable to nil.  */);
+Minibuffers set this variable to nil.
+
+Don't set this to a non-nil value when `visual-line-mode' is
+turned on, as it could produce confusing results.   */);
 
   DEFVAR_PER_BUFFER ("word-wrap", &BVAR (current_buffer, word_wrap), Qnil,
 		     doc: /* Non-nil means to use word-wrapping for continuation lines.
