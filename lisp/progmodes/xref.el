@@ -898,10 +898,10 @@ beginning of the line."
 (defvar xref--button-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] #'xref-goto-xref)
-    (define-key map [mouse-2] #'xref-select-and-goto-xref)
+    (define-key map [mouse-2] #'xref-select-and-show-xref)
     map))
 
-(defun xref-select-and-goto-xref (event)
+(defun xref-select-and-show-xref (event)
   "Move point to the button and show the xref definition.
 The window showing the xref buffer will be selected."
   (interactive "e")
@@ -910,8 +910,9 @@ The window showing the xref buffer will be selected."
   (or (get-text-property (point) 'xref-item)
       (xref--search-property 'xref-item))
   (xref-show-location-at-point))
+
 (define-obsolete-function-alias
-  'xref--mouse-2 #'xref-select-and-goto-xref "28.1")
+  'xref--mouse-2 #'xref-select-and-show-xref "28.1")
 
 (defcustom xref-truncation-width 400
   "The column to visually \"truncate\" each Xref buffer line to."

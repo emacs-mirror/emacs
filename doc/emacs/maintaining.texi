@@ -2229,7 +2229,7 @@ With prefix argument, also bury the @file{*xref*} buffer.
 @item mouse-2
 The same as @code{mouse-1}, but make the window displaying the
 @file{*xref*} buffer the selected window
-(@code{xref-select-and-goto-xref}).
+(@code{xref-select-and-show-xref}).
 
 @item n
 @itemx .
