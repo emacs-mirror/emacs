@@ -45,12 +45,12 @@ The MPS is currently supported for deployment on:
 - Windows Vista or later, on IA-32 and x86-64, using Microsoft Visual
   C/C++;
 
-- Linux 2.6 or later, on IA-32 using GCC and on x86-64 using GCC or
-  Clang/LLVM;
+- Linux 2.6 or later, on IA-32 using GCC and on x86-64 or ARM64 using
+  GCC or Clang/LLVM;
 
 - FreeBSD 7 or later, on IA-32 and x86-64, using GCC or Clang/LLVM;
 
-- macOS 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
+- macOS 10.4 or later, on x86-64 or ARM64, using Clang/LLVM.
 
 The MPS is highly portable and has run on many other processors and
 operating systems in the past (see :ref:`guide-build`). Most of the
