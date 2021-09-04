@@ -3449,7 +3449,7 @@ The former is now declared obsolete.
 
 +++
 *** Doc strings can now link to customization groups.
-Text like "customization group 'whitespace'" will be made into a
+Text like "customization group `whitespace'" will be made into a
 button.  When clicked, it'll take the user to a Custom buffer
 displaying that customization group.
 
