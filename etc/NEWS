@@ -3443,6 +3443,12 @@ The former is now declared obsolete.
 * Lisp Changes in Emacs 28.1
 
 +++
+*** Doc strings can now link to customization groups.
+Text like "customization group 'whitespace'" will be made into a
+button.  When clicked, it'll take the user to a Custom buffer
+displaying that customization group.
+
++++
 *** New macro 'with-existing-directory'.
 This macro binds 'default-directory' to some other existing directory
 if 'default-directory' doesn't exist, and then executes the body forms.
