@@ -2923,7 +2923,14 @@ Keeps argument list for future Ispell invocations for no async support."
 	     ;; But first wait to see if some more output is going to arrive.
 	     ;; Otherwise we get cool errors like "Can't open ".
 	     (sleep-for 1)
-	     (ispell-accept-output 3)
+             ;; Only call `ispell-accept-output' if the Ispell process
+             ;; is alive, to avoid showing an unhelpful error message
+             ;; about a missing process, instead of the error which
+             ;; reports why the Ispell process died.
+	     (when (if ispell-async-processp
+                         (process-live-p ispell-process)
+                       ispell-process)
+               (ispell-accept-output 3))
 	     (error "%s" (mapconcat #'identity ispell-filter "\n"))))
       (setq ispell-filter nil)		; Discard version ID line
       (let ((extended-char-mode (ispell-get-extended-character-mode)))
