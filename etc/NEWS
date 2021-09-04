@@ -2814,6 +2814,14 @@ never be narrower than 19 characters.
 'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
 horizontal movements now stop at the edge of the board.
 
++++
+*** New diary sexp 'diary-offset'.
+It offsets another diary sexp by a number of days.  This is useful
+when for example your organization has a committee meeting two days
+after every monthly meeting which takes place on the third Thursday,
+or if you would like to attend a virtual meeting scheduled in a
+different timezone causing a difference in the date.
+
 ** xterm-mouse mode
 
 ---

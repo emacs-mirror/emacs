@@ -1442,6 +1442,13 @@ RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=21
 SUMMARY:ff birthday (%d years old)")
 
 
+  (icalendar-tests--test-export
+   nil
+   nil
+   "%%(diary-offset '(diary-float t 3 4) 1) asdf"
+   nil)
+
+
   ;; FIXME!
 
   ;; export 2004-10-28 monthly, weekly entries
