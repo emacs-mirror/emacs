@@ -997,6 +997,11 @@ keys, add the following to your init file:
 
 ** Change Logs and VC
 
++++
+*** 'vc-revert-show-diff' now has a third possible value: 'kill'.
+If this variable is 'kill', then the diff buffer will be killed after
+the 'vc-revert' action instead of buried.
+
 *** More VC commands can be used from non-file buffers.
 The relevant commands are those that don't change the VC state.
 The non-file buffers which can use VC commands are those that have
