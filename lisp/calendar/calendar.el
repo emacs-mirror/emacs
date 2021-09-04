@@ -1308,7 +1308,9 @@ This function is suitable for execution in an init file."
   ;; Avoid loading cal-x unless it will be used.
   (if (and (memq calendar-setup '(one-frame two-frames calendar-only))
            (display-multi-frame-p))
-      (calendar-frame-setup calendar-setup arg)
+      ;; Calendar does its own frame setup.
+      (let ((pop-up-frames nil))
+        (calendar-frame-setup calendar-setup arg))
     (calendar-basic-setup arg)))
 
 (defun calendar-basic-setup (&optional arg nodisplay)
