@@ -615,7 +615,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
     (when (eq backend 'Bzr)
       (setq tempdir (make-temp-file "vc-test--version-diff" t)
             process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                      process-environment)))
+                                      (cons
+                                       "EMAIL=john@doe.ee"
+                                       process-environment))))
 
     (unwind-protect
         (progn
