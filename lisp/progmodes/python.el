@@ -3127,12 +3127,18 @@ user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive
    (list (read-string "Python command: ") nil t))
-  (comint-send-string
-   (or process (python-shell-get-process-or-error msg))
-   (format "exec(%s);__PYTHON_EL_eval(%s, %s)\n"
-           (python-shell--encode-string python-shell-eval-setup-code)
-           (python-shell--encode-string string)
-           (python-shell--encode-string (or (buffer-file-name) "<string>")))))
+  (let ((process (or process (python-shell-get-process-or-error msg)))
+        (code (format "exec(%s);__PYTHON_EL_eval(%s, %s)\n"
+                      (python-shell--encode-string python-shell-eval-setup-code)
+                      (python-shell--encode-string string)
+                      (python-shell--encode-string (or (buffer-file-name)
+                                                       "<string>")))))
+    (if (<= (string-bytes code) 4096)
+        (comint-send-string process code)
+      (let* ((temp-file-name (with-current-buffer (process-buffer process)
+                               (python-shell--save-temp-file string)))
+             (file-name (or (buffer-file-name) temp-file-name)))
+        (python-shell-send-file file-name process temp-file-name t)))))
 
 (defvar python-shell-output-filter-in-progress nil)
 (defvar python-shell-output-filter-buffer nil)
@@ -3372,6 +3378,18 @@ t when called interactively."
        nil ;; noop
        msg))))
 
+
+(defconst python-shell-eval-file-setup-code
+  "\
+def __PYTHON_EL_eval_file(filename, tempname, encoding, delete):
+    import codecs, os
+    with codecs.open(tempname or filename, encoding=encoding) as file:
+        source = file.read().encode(encoding)
+    if delete and tempname:
+        os.remove(tempname)
+    return __PYTHON_EL_eval(source, filename)"
+  "Code used to evaluate files in inferior Python processes.")
+
 (defun python-shell-send-file (file-name &optional process temp-file-name
                                          delete msg)
   "Send FILE-NAME to inferior Python PROCESS.
@@ -3401,15 +3419,13 @@ t when called interactively."
     (comint-send-string
      process
      (format
-      (concat
-       "import codecs, os;"
-       "__pyfile = codecs.open('''%s''', encoding='''%s''');"
-       "__code = __pyfile.read().encode('''%s''');"
-       "__pyfile.close();"
-       (when (and delete temp-file-name)
-         (format "os.remove('''%s''');" temp-file-name))
-       "exec(compile(__code, '''%s''', 'exec'));")
-      (or temp-file-name file-name) encoding encoding file-name))))
+      "exec(%s);exec(%s);__PYTHON_EL_eval_file(%s, %s, %s, %s)\n"
+      (python-shell--encode-string python-shell-eval-setup-code)
+      (python-shell--encode-string python-shell-eval-file-setup-code)
+      (python-shell--encode-string file-name)
+      (python-shell--encode-string (or temp-file-name ""))
+      (python-shell--encode-string (symbol-name encoding))
+      (if delete "True" "False")))))
 
 (defun python-shell-switch-to-shell (&optional msg)
   "Switch to inferior Python process buffer.
