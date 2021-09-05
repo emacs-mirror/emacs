@@ -2152,12 +2152,23 @@ sub-directory.
 *** 'project-find-file' doesn't use the string at point as default input.
 Now it's only suggested as part of the "future history".
 
-** xref
+** Xref
 
 ---
 *** Prefix arg of 'xref-goto-xref' quits the "*xref*" buffer.
 So typing 'C-u RET' in the "*xref*" buffer quits its window
 before navigating to the selected location.
+
++++
+*** New user options to automatically show the first Xref match.
+The new option 'xref-auto-jump-to-first-definition' controls the
+behavior of 'xref-find-definitions' and related commands: if it's t or
+'show', the first match is automatically displayed; if it's 'move',
+point in the *xref* buffer is automatically moved to the first match
+without displaying it.
+The new option 'xref-auto-jump-to-first-xref' changes the behavior of
+all Xref commands in the same way as 'xref-auto-jump-to-first-definition'
+affects the "find-definitions" commands.
 
 *** New user options 'xref-search-program' and 'xref-search-program-alist'.
 So far 'grep' and 'ripgrep' are supported.  'ripgrep' seems to offer better
@@ -2193,6 +2204,11 @@ Use 'C-u RET' instead.  The 'TAB' binding in "*xref*" buffers is still
 supported, but we plan on removing it in a future version; at that
 time, the command 'xref-quit-and-goto-xref' will no longer have a key
 binding in 'xref--xref-buffer-mode-map'.
+
+---
+*** New user option 'etags-xref-prefer-current-file'.
+When non-nil, 'M-.' matches for identifiers in the file visited by the
+current buffer will be shown first in the "*xref*" buffer.
 
 ** json.el
 
@@ -3936,11 +3952,6 @@ result in deletion of auto-save files when killing a buffer without
 unsaved changes, but this has apparently not worked for several
 decades, so the documented semantics of this variable has been changed
 to match the behaviour.)
-
----
-** New user option 'etags-xref-prefer-current-file'.
-When non-nil, matches for identifiers in the file visited by the
-current buffer will be shown first in the "*xref*" buffer.
 
 ---
 ** New variable 'inhibit-mouse-event-check'.
