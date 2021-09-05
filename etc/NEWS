@@ -555,9 +555,11 @@ including the newlines that separate the lines.
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
 ** Completion List Mode
-New key bindings have been added: 'n' and 'p' to navigate completions,
-and 'M-g M-c' to switch to the minibuffer, and you can also switch back
-to the completion list buffer with 'M-g M-c'.
+
+*** New key bindings have been added to 'completion-list-mode': 'n'
+and 'p' now navigate completions, and 'M-g M-c' switches to the
+minibuffer, and you can also switch back to the completion list buffer
+with 'M-g M-c'.
 
 ** Benchmark
 *** New function 'benchmark-call' to measure the execution time of a function.
