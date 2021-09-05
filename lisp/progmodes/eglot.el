@@ -2363,7 +2363,9 @@ is not active."
           ((null action)                                 ; try-completion
            (try-completion probe (funcall proxies)))
           ((eq action t)                                 ; all-completions
-           (cl-remove-if-not
+           (all-completions
+            ""
+            (funcall proxies)
             (lambda (proxy)
               (let* ((item (get-text-property 0 'eglot--lsp-item proxy))
                      (filterText (plist-get item :filterText)))
