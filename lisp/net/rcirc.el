@@ -2470,7 +2470,7 @@ that, an interactive form can specified."
          (unless (if (listp ,argument)
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))
-           (user-error "Malformed input (%s): %S" ',command ',argument))
+           (user-error "Malformed input (%s): %S" ',command ,argument))
          (let ((process (or process (rcirc-buffer-process)))
 	       (target (or target rcirc-target)))
            (ignore target process)
