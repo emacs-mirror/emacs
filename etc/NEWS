@@ -2831,11 +2831,6 @@ The width now depends of the width of the window, but will never be
 wider than the length of the longest buffer name, except that it will
 never be narrower than 19 characters.
 
----
-*** Movement commands in 'gomoku-mode' are fixed.
-'gomoku-move-sw' and 'gomoku-move-ne' now work correctly, and
-horizontal movements now stop at the edge of the board.
-
 +++
 *** New diary sexp 'diary-offset'.
 It offsets another diary sexp by a number of days.  This is useful
