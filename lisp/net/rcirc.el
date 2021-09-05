@@ -606,6 +606,7 @@ See `rcirc-connect' for more details on these variables.")
     "message-ids"                       ;https://ircv3.net/specs/extensions/message-ids
     "invite-notify"                     ;https://ircv3.net/specs/extensions/invite-notify
     "sasl"                              ;https://ircv3.net/specs/extensions/sasl-3.1
+    "multi-prefix"                      ;https://ircv3.net/specs/extensions/multi-prefix
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
@@ -2011,7 +2012,8 @@ PROCESS is the process object for the current connection."
   "Return the nick from USER.  Remove any non-nick junk."
   (save-match-data
     (if (string-match (concat "^[" rcirc-nick-prefix-chars
-			      "]?\\([^! ]+\\)!?") (or user ""))
+			      "]*\\([^! ]+\\)!?")
+                      (or user ""))
 	(match-string 1 user)
       user)))
 
