@@ -5186,7 +5186,7 @@ w32_read_socket (struct terminal *terminal,
 	  {
             /* If we decide we want to generate an event to be seen
                by the rest of Emacs, we put it here.  */
-	    Lisp_Object tab_bar_key = Qnil;
+	    Lisp_Object tab_bar_arg = Qnil;
 	    bool tab_bar_p = 0;
 	    bool tool_bar_p = 0;
 	    int button = 0;
@@ -5209,12 +5209,12 @@ w32_read_socket (struct terminal *terminal,
 
                     if (EQ (window, f->tab_bar_window))
                       {
-                        tab_bar_key = w32_handle_tab_bar_click (f, &inev);
+                        tab_bar_arg = w32_handle_tab_bar_click (f, &inev);
                         tab_bar_p = 1;
                       }
                   }
 
-                if ((tab_bar_p && NILP (tab_bar_key))
+                if ((tab_bar_p && NILP (tab_bar_arg))
 		    || (dpyinfo->w32_focus_frame
 			&& f != dpyinfo->w32_focus_frame
 			/* This does not help when the click happens in
@@ -5222,8 +5222,8 @@ w32_read_socket (struct terminal *terminal,
 			&& !frame_ancestor_p (f, dpyinfo->w32_focus_frame)))
 		  inev.kind = NO_EVENT;
 
-		  if (!NILP (tab_bar_key))
-		    inev.arg = tab_bar_key;
+		  if (!NILP (tab_bar_arg))
+		    inev.arg = tab_bar_arg;
 
                 /* Is this in the tool-bar?  */
                 if (WINDOWP (f->tool_bar_window)

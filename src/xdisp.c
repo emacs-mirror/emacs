@@ -13891,7 +13891,7 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
 
 /* Find the tab-bar item at X coordinate and return its information.  */
 static Lisp_Object
-tty_get_tab_bar_item (struct frame *f, int x, int *idx, ptrdiff_t *end)
+tty_get_tab_bar_item (struct frame *f, int x, int *prop_idx, bool *close_p)
 {
   ptrdiff_t clen = 0;
 
@@ -13904,8 +13904,11 @@ tty_get_tab_bar_item (struct frame *f, int x, int *idx, ptrdiff_t *end)
       clen += SCHARS (caption);
       if (x < clen)
 	{
-	  *idx = i;
-	  *end = clen;
+	  *prop_idx = i;
+	  *close_p = !NILP (Fget_text_property (make_fixnum (SCHARS (caption)
+							     - (clen - x)),
+						Qclose_tab,
+						caption));
 	  return caption;
 	}
     }
@@ -13928,8 +13931,8 @@ tty_handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
 
   /* Find the tab-bar item where the X,Y coordinates belong.  */
   int prop_idx;
-  ptrdiff_t clen;
-  Lisp_Object caption = tty_get_tab_bar_item (f, x, &prop_idx, &clen);
+  bool close_p;
+  Lisp_Object caption = tty_get_tab_bar_item (f, x, &prop_idx, &close_p);
 
   if (NILP (caption))
     return Qnil;
@@ -13941,24 +13944,21 @@ tty_handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
   if (down_p)
     f->last_tab_bar_item = prop_idx;
   else
-    {
-      f->last_tab_bar_item = -1;
-    }
+    f->last_tab_bar_item = -1;
 
-  /* Generate a TAB_BAR_EVENT event.  */
-  Lisp_Object key = AREF (f->tab_bar_items,
-			  prop_idx * TAB_BAR_ITEM_NSLOTS
-			  + TAB_BAR_ITEM_KEY);
-  /* Kludge alert: we assume the last two characters of a tab
-     label are " x", and treat clicks on those 2 characters as a
-     Close Tab command.  */
-  eassert (STRINGP (caption));
-  int lastc = SSDATA (caption)[SCHARS (caption) - 1];
-  bool close_p = false;
-  if ((x == clen - 1 || (clen > 1 && x == clen - 2)) && lastc == 'x')
-    close_p = true;
+  caption = Fcopy_sequence (caption);
 
-  return list3 (Qtab_bar, key, close_p ? Qt : Qnil);
+  AUTO_LIST2 (props, Qmenu_item,
+	      list3 (AREF (f->tab_bar_items, prop_idx * TAB_BAR_ITEM_NSLOTS
+			   + TAB_BAR_ITEM_KEY),
+		     AREF (f->tab_bar_items, prop_idx * TAB_BAR_ITEM_NSLOTS
+			   + TAB_BAR_ITEM_BINDING),
+		     close_p ? Qt : Qnil));
+
+  Fadd_text_properties (make_fixnum (0), make_fixnum (SCHARS (caption)),
+			props, caption);
+
+  return Fcons (Qtab_bar, Fcons (caption, make_fixnum (0)));
 }
 
 
@@ -33524,7 +33524,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	  && y < FRAME_MENU_BAR_LINES (f) + FRAME_TAB_BAR_LINES (f)))
     {
       int prop_idx;
-      ptrdiff_t ignore;
+      bool ignore;
       Lisp_Object caption = tty_get_tab_bar_item (f, x, &prop_idx, &ignore);
 
       if (!NILP (caption))

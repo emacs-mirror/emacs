@@ -221,61 +221,53 @@ a list of frames to update."
       (tab-bar--define-keys)
     (tab-bar--undefine-keys)))
 
-(defun tab--key-to-number (key)
-  (unless (or (null key) (eq key 'current-tab))
-    (string-to-number
-     (string-replace "tab-" "" (format "%S" key)))))
+(defun tab-bar--key-to-number (key)
+  (let ((key-name (format "%S" key)))
+    (when (string-prefix-p "tab-" key-name)
+      (string-to-number (string-replace "tab-" "" key-name)))))
 
-(defun tab-bar-handle-mouse (event)
-  "Text-mode emulation of switching tabs on the tab bar.
-This command is used when you click the mouse in the tab bar
-on a console which has no window system but does have a mouse."
-  (interactive "e")
-  (let* ((x-position (car (posn-x-y (event-start event))))
-         (keymap (lookup-key (cons 'keymap (nreverse (current-active-maps))) [tab-bar]))
-         (column 0))
-    (when x-position
-      (unless (catch 'done
-                (map-keymap
-                 (lambda (key binding)
-                   (when (eq (car-safe binding) 'menu-item)
-                     (when (> (+ column (length (nth 1 binding))) x-position)
-                       (if (get-text-property
-                            (- x-position column) 'close-tab (nth 1 binding))
-                           (tab-bar-close-tab (tab--key-to-number key))
-                         (if (nth 2 binding)
-                             (call-interactively (nth 2 binding))
-                           (tab-bar-select-tab (tab--key-to-number key))))
-                       (throw 'done t))
-                     (setq column (+ column (length (nth 1 binding))))))
-                 keymap))
-        ;; Clicking anywhere outside existing tabs will add a new tab
-        (tab-bar-new-tab)))))
+(defun tab-bar--event-to-item (posn)
+  (if (posn-window posn)
+      (let ((caption (car (posn-string posn))))
+        (when caption
+          (get-text-property 0 'menu-item caption)))
+    ;; Text-mode emulation of switching tabs on the tab bar.
+    ;; This code is used when you click the mouse in the tab bar
+    ;; on a console which has no window system but does have a mouse.
+    (let* ((x-position (car (posn-x-y posn)))
+           (keymap (lookup-key (cons 'keymap (nreverse (current-active-maps))) [tab-bar]))
+           (column 0))
+      (when x-position
+        (catch 'done
+          (map-keymap
+           (lambda (key binding)
+             (when (eq (car-safe binding) 'menu-item)
+               (when (> (+ column (length (nth 1 binding))) x-position)
+                 (throw 'done (list
+                               key (nth 2 binding)
+                               (get-text-property
+                                (- x-position column) 'close-tab (nth 1 binding)))))
+               (setq column (+ column (length (nth 1 binding))))))
+           keymap))))))
 
 (defun tab-bar-mouse-select-tab (event)
   (interactive "e")
-  (if (posn-window (event-start event))
-      (let* ((caption (car (posn-string (event-start event))))
-             (item (and caption (get-text-property 0 'menu-item caption))))
-        (if (nth 2 item)
-            (tab-bar-close-tab (tab--key-to-number (nth 0 item)))
-          (if (functionp (nth 1 item))
-              (call-interactively (nth 1 item))
-            (tab-bar-select-tab (tab--key-to-number (nth 0 item))))))
-    ;; TTY
-    (tab-bar-handle-mouse event)))
+  (let ((item (tab-bar--event-to-item (event-start event))))
+    (if (nth 2 item)
+        (tab-bar-close-tab (tab-bar--key-to-number (nth 0 item)))
+      (if (functionp (nth 1 item))
+          (call-interactively (nth 1 item))
+        (tab-bar-select-tab (tab-bar--key-to-number (nth 0 item)))))))
 
 (defun tab-bar-mouse-close-tab (event)
   (interactive "e")
-  (let* ((caption (car (posn-string (event-start event))))
-         (item (and caption (get-text-property 0 'menu-item caption))))
-    (tab-bar-close-tab (tab--key-to-number (nth 0 item)))))
+  (let ((item (tab-bar--event-to-item (event-start event))))
+    (tab-bar-close-tab (tab-bar--key-to-number (nth 0 item)))))
 
 (defun tab-bar-mouse-context-menu (event)
   (interactive "e")
-  (let* ((caption (car (posn-string (event-start event))))
-         (item (and caption (get-text-property 0 'menu-item caption)))
-         (tab-number (tab--key-to-number (nth 0 item)))
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item)))
          (menu (make-sparse-keymap "Context Menu")))
 
     (define-key-after menu [close]
@@ -287,12 +279,12 @@ on a console which has no window system but does have a mouse."
 
 (defun tab-bar-mouse-move-tab (event)
   (interactive "e")
-  (let* ((caption (car (posn-string (event-start event))))
-         (item (and caption (get-text-property 0 'menu-item caption)))
-         (from (tab--key-to-number (nth 0 item)))
-         (caption (car (posn-string (event-end event))))
-         (item (and caption (get-text-property 0 'menu-item caption)))
-         (to (tab--key-to-number (nth 0 item))))
+  (let ((from (tab-bar--key-to-number
+               (nth 0 (tab-bar--event-to-item
+                       (event-start event)))))
+        (to (tab-bar--key-to-number
+             (nth 0 (tab-bar--event-to-item
+                     (event-end event))))))
     (tab-bar-move-tab-to to from)))
 
 (defun toggle-tab-bar-mode-from-frame (&optional arg)
