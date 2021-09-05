@@ -615,10 +615,10 @@ This checks also `vc-backend' and `vc-responsible-backend'."
     (when (eq backend 'Bzr)
       (setq tempdir (make-temp-file "vc-test--version-diff" t)
             process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                      (cons
-                                       "EMAIL=john@doe.ee"
-                                       process-environment))))
-
+                                      process-environment)))
+    (when (memq backend '(Bzr Git))
+      (setq process-environment (cons "EMAIL=john@doe.ee"
+                                      process-environment)))
     (unwind-protect
         (progn
           ;; Cleanup.
@@ -797,9 +797,6 @@ This checks also `vc-backend' and `vc-responsible-backend'."
              (ert-get-test
               ',(intern
                  (format "vc-test-%s01-register" backend-string))))))
-          ;; FIXME git (2.18.1) commit fails with status 128 - why?
-          (skip-unless (not (and (eq 'Git ',backend)
-                                 (getenv "EMACS_HYDRA_CI"))))
           (vc-test--version-diff ',backend))
         ))))
 
