@@ -2156,15 +2156,19 @@ by typing @kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer
 showing the corresponding definition.  If the value of the variable
 @code{xref-auto-jump-to-first-definition} is @code{move}, the first
 candidate is automatically selected, and if it's @code{t} or
-@code{show}, the first candidate is automatically shown.
+@code{show}, the first candidate is automatically shown.  The default
+value is @code{nil}, which just shows the candidates in the
+@file{*xref*} buffer, but doesn't select any of them.
 
 @vindex xref-auto-jump-to-first-xref
   If the value of the variable @code{xref-auto-jump-to-first-xref} is
-@code{t}, @emph{all} Xref commands automatically jump to the first result.
-If the value is @code{show}, the first result is shown, but the window
-showing the @file{*xref*} buffer is left selected.  If the value is
-@code{move}, the first result is selected in the @file{*xref*} buffer,
-but is not shown.
+@code{t}, @emph{all} Xref commands automatically jump to the first
+result.  If the value is @code{show}, the first result is shown, but
+the window showing the @file{*xref*} buffer is left selected.  If the
+value is @code{move}, the first result is selected in the
+@file{*xref*} buffer, but is not shown.  The default value is
+@code{nil}, which just shows the results in the @file{*xref*} buffer,
+but doesn't select any of them.
 
   When entering the identifier argument to @kbd{M-.}, the usual
 minibuffer completion commands can be used (@pxref{Completion}), with
