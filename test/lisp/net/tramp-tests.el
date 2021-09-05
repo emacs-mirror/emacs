@@ -4579,6 +4579,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
       ;; Process connection type.
       (when (and (tramp--test-sh-p)
+		 (not (tramp-direct-async-process-p))
 		 ;; `executable-find' has changed the number of
 		 ;; parameters in Emacs 27.1, so we use `apply' for
 		 ;; older Emacsen.
@@ -4635,8 +4636,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Define ert test `TEST-direct-async' for direct async processes.
 If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (declare (indent 1))
-  ;; `make-process' supports file name handlers since Emacs 27.
-  (when (let ((file-name-handler-alist '(("" . #'tramp--test-always))))
+  ;; `make-process' supports file name handlers since Emacs 27.  We
+  ;; cannot use `tramp--test-always' during compilation of the macro.
+  (when (let ((file-name-handler-alist '(("" . (lambda (&rest _) t)))))
 	  (ignore-errors (make-process :file-handler t)))
     `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
        ,docstring
@@ -4829,6 +4831,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
       ;; Process connection type.
       (when (and (tramp--test-sh-p)
+		 (not (tramp-direct-async-process-p))
 		 ;; `executable-find' has changed the number of
 		 ;; parameters in Emacs 27.1, so we use `apply' for
 		 ;; older Emacsen.
