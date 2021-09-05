@@ -2123,7 +2123,7 @@ This function does not alter the INPUT string."
   "Keymap for rcirc track minor mode.")
 
 (defcustom rcirc-track-abbrevate-flag t
-  "If non-nil, abbreviate names for `rcirc-track-minor-mode'."
+  "Non-nil means `rcirc-track-minor-mode' should abbreviate names."
   :version "28.1"
   :type 'boolean)
 
