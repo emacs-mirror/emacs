@@ -640,7 +640,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (with-current-buffer buff
                 (progn
                   ;; Optionally checkout file.
-                  (when (or (eq backend 'RCS) (eq backend 'CVS))
+                  (when (memq backend '(RCS CVS SCCS))
                     (vc-checkout tmp-name))
 
                   ;; Checkin file.
@@ -649,7 +649,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                   (log-edit-done))))
 
             ;; Modify file content.
-            (when (or (eq backend 'RCS) (eq backend 'CVS))
+            (when (memq backend '(RCS CVS SCCS))
               (vc-checkout tmp-name))
             (write-region "updatedtext" nil tmp-name nil 'nomessage)
 
