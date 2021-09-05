@@ -421,9 +421,10 @@ elements is negated: these commands will NOT prompt."
 `show' means to show the first result's location, but keep the
 focus on the Xref buffer's window.
 `move' means to only move point to the first result."
-  :type '(choice (const t :tag "Jump")
-                 (const show :tag "Show")
-                 (const move :tag "Move point only"))
+  :type '(choice (const :tag "Jump" t)
+                 (const :tag "Show" show)
+                 (const :tag "Move point only" move)
+                 (const :tag "No auto-jump" nil))
   :version "28.1"
   :package-version '(xref . "1.2.0"))
 
@@ -432,9 +433,10 @@ focus on the Xref buffer's window.
 `show' means to show the first result's location, but keep the
 focus on the Xref buffer's window.
 `move' means to only move point to the first result."
-  :type '(choice (const t :tag "Jump")
-                 (const show :tag "Show")
-                 (const move :tag "Move point only"))
+  :type '(choice (const :tag "Jump" t)
+                 (const :tag "Show" show)
+                 (const :tag "Move point only" move)
+                 (const :tag "No auto-jump" nil))
   :version "28.1"
   :package-version '(xref . "1.2.0"))
 
@@ -1628,7 +1630,7 @@ The template should have the following fields:
   "The program to use for regexp search inside files.
 
 This must reference a corresponding entry in `xref-search-program-alist'."
-  :type `(choice
+  :type '(choice
           (const :tag "Use Grep" grep)
           (const :tag "Use ripgrep" ripgrep)
           (symbol :tag "User defined"))
