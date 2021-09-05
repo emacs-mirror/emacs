@@ -3469,7 +3469,7 @@ is the process object for the current connection."
     (let ((subcmd (cadr args)))
       (dolist (cap (cddr args))
         (cond ((string= subcmd "ACK")
-               (push cap rcirc-acked-capabilities)
+               (push (intern (downcase cap)) rcirc-acked-capabilities)
                (setq rcirc-requested-capabilities
                      (delete cap rcirc-requested-capabilities)))
               ((string= subcmd "NAK")
