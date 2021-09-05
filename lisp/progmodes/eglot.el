@@ -2371,8 +2371,7 @@ is not active."
                      (filterText (plist-get item :filterText)))
                 (and (or (null pred) (funcall pred proxy))
                      (string-prefix-p
-                      probe (or filterText proxy) completion-ignore-case))))
-            (funcall proxies)))))
+                      probe (or filterText proxy) completion-ignore-case))))))))
        :annotation-function
        (lambda (proxy)
          (eglot--dbind ((CompletionItem) detail kind)
