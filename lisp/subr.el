@@ -2872,9 +2872,23 @@ This function is used by the `interactive' code letter `n'."
 
 (defvar read-char-choice-use-read-key nil
   "Prefer `read-key' when reading a character by `read-char-choice'.
-Otherwise, use the minibuffer.")
+Otherwise, use the minibuffer.
+
+When using the minibuffer, the user is less constrained, and can
+use the normal commands available in the minibuffer, and can, for
+instance, switch to another buffer, do things there, and then
+switch back again to the minibuffer before entering the
+character.  This is not possible when using `read-key', but using
+`read-key' may be less confusing to some users.")
 
 (defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
+  "Read and return one of CHARS, prompting for PROMPT.
+Any input that is not one of CHARS is ignored.
+
+By default, the minibuffer is used to read the key
+non-modally (see `read-char-from-minibuffer').  If
+`read-char-choice-use-read-key' is non-nil, the modal `read-key'
+function is used instead (see `read-char-choice-with-read-key')."
   (if (not read-char-choice-use-read-key)
       (read-char-from-minibuffer prompt chars)
     (read-char-choice-with-read-key prompt chars inhibit-keyboard-quit)))
@@ -3174,7 +3188,14 @@ Also discard all previous input in the minibuffer."
 
 (defvar y-or-n-p-use-read-key nil
   "Prefer `read-key' when answering a \"y or n\" question by `y-or-n-p'.
-Otherwise, use the minibuffer.")
+Otherwise, use the minibuffer.
+
+When using the minibuffer, the user is less constrained, and can
+use the normal commands available in the minibuffer, and can, for
+instance, switch to another buffer, do things there, and then
+switch back again to the minibuffer before entering the
+character.  This is not possible when using `read-key', but using
+`read-key' may be less confusing to some users.")
 
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
@@ -3203,7 +3224,12 @@ responses, perform the requested window recentering or scrolling
 and ask again.
 
 Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil and `use-dialog-box' is non-nil."
+is nil and `use-dialog-box' is non-nil.
+
+By default, this function uses the minibuffer to read the key.
+If `y-or-n-p-use-read-key' is non-nil, `read-key' is used
+instead (which means that the user can't change buffers (and the
+like) while `y-or-n-p' is running)."
   (let ((answer 'recenter)
 	(padded (lambda (prompt &optional dialog)
 		  (let ((l (length prompt)))
