@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
-;; Version: 1.2.0
+;; Version: 1.2.1
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -1042,13 +1042,16 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
            (assoc-default 'fetched-xrefs alist)
            (funcall fetcher)))
          (xref-alist (xref--analyze xrefs))
-         (dd default-directory))
+         (dd default-directory)
+         buf)
     (with-current-buffer (get-buffer-create xref-buffer-name)
       (setq default-directory dd)
       (xref--xref-buffer-mode)
       (xref--show-common-initialize xref-alist fetcher alist)
       (pop-to-buffer (current-buffer))
-      (current-buffer))))
+      (setq buf (current-buffer)))
+    (xref--auto-jump-first buf (assoc-default 'auto-jump alist))
+    buf))
 
 (defun xref--project-root (project)
   (if (fboundp 'project-root)
