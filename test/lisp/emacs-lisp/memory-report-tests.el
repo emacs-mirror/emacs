@@ -19,7 +19,6 @@
 
 (require 'ert)
 (require 'memory-report)
-(require 'cl-macs)
 
 (defun setup-memory-report-tests ()
   ;; Set the sizes on things based on a 64-bit architecture.  (We're
