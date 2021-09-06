@@ -647,69 +647,46 @@ that are joined after authentication."
     (message "Connecting to %s..." (or server-alias server))
     (let* ((inhibit-eol-conversion)
            (port-number (if port
-			    (if (stringp port)
-				(string-to-number port)
-			      port)
-			  rcirc-default-port))
-	   (nick (or nick rcirc-default-nick))
-	   (user-name (or user-name rcirc-default-user-name))
-	   (full-name (or full-name rcirc-default-full-name))
-	   (startup-channels startup-channels)
-           (use-sasl (eq (rcirc-get-server-method server) 'sasl))
+                            (if (stringp port)
+                                (string-to-number port)
+                              port)
+                          rcirc-default-port))
+           (nick (or nick rcirc-default-nick))
+           (user-name (or user-name rcirc-default-user-name))
+           (full-name (or full-name rcirc-default-full-name))
+           (startup-channels startup-channels)
+
            (process (open-network-stream
                      (or server-alias server) nil server port-number
-                     :type (or encryption 'plain))))
+                     :type (or encryption 'plain)
+                     :nowait t)))
       ;; set up process
       (set-process-coding-system process 'raw-text 'raw-text)
-      (switch-to-buffer (rcirc-generate-new-buffer-name process nil))
-      (set-process-buffer process (current-buffer))
-      (unless (eq major-mode 'rcirc-mode)
-        (rcirc-mode process nil))
-      (set-process-sentinel process 'rcirc-sentinel)
-      (set-process-filter process 'rcirc-filter)
+      (with-current-buffer (get-buffer-create (rcirc-generate-new-buffer-name process nil))
+        (set-process-buffer process (current-buffer))
+        (unless (eq major-mode 'rcirc-mode)
+          (rcirc-mode process nil))
+        (set-process-sentinel process #'rcirc-sentinel)
+        (set-process-filter process #'rcirc-filter)
 
-      (setq rcirc-connection-info
-	    (list server port nick user-name full-name startup-channels
-		  password encryption server-alias))
-      (setq rcirc-process process)
-      (setq rcirc-server server)
-      (setq rcirc-server-name (or server-alias server)) ; Update when we get 001 response.
-      (setq rcirc-nick-table (make-hash-table :test 'equal))
-      (setq rcirc-nick nick)
-      (setq rcirc-startup-channels startup-channels)
-      (setq rcirc-last-server-message-time (current-time))
+        (setq rcirc-connection-info
+              (list server port nick user-name full-name startup-channels
+                    password encryption server-alias))
+        (setq rcirc-process process)
+        (setq rcirc-server server)
+        (setq rcirc-server-name (or server-alias server)) ; Update when we get 001 response.
+        (setq rcirc-nick-table (make-hash-table :test 'equal))
+        (setq rcirc-nick nick)
+        (setq rcirc-startup-channels startup-channels)
+        (setq rcirc-last-server-message-time (current-time))
 
-      (setq rcirc-connecting t)
+        (setq mode-line-process ":connecting")
+        (setq rcirc-connecting t)
 
-      (add-hook 'auto-save-hook 'rcirc-log-write)
-      (when use-sasl
-        (rcirc-send-string process "CAP REQ sasl"))
+        (add-hook 'auto-save-hook #'rcirc-log-write)
 
-      (when use-sasl
-        (setq-local rcirc-finished-sasl nil))
-      ;; identify
-      (dolist (cap rcirc-implemented-capabilities)
-        (rcirc-send-string process "CAP" "REQ" : cap)
-        (push cap rcirc-requested-capabilities))
-      (unless (zerop (length password))
-        (rcirc-send-string process "PASS" password))
-      (rcirc-send-string process "NICK" nick)
-      (rcirc-send-string process "USER" user-name "0" "*" : full-name)
-      ;; Setup sasl, and initiate authentication.
-      (when (and rcirc-auto-authenticate-flag
-                 use-sasl)
-        (rcirc-send-string process "AUTHENTICATE" "PLAIN"))
-
-      ;; setup ping timer if necessary
-      (unless rcirc-keepalive-timer
-	(setq rcirc-keepalive-timer
-	      (run-at-time 0 (/ rcirc-timeout-seconds 2) 'rcirc-keepalive)))
-
-      (message "Connecting to %s...done" (or server-alias server))
-      (setq mode-line-process nil)
-
-      ;; return process object
-      process)))
+        ;; return process object
+        process))))
 
 (defmacro with-rcirc-process-buffer (process &rest body)
   "Evaluate BODY in the buffer of PROCESS."
@@ -806,23 +783,57 @@ When 0, do not auto-reconnect."
   (let ((sentinel (replace-regexp-in-string "\n" "" sentinel)))
     (rcirc-debug process (format "SENTINEL: %S %S\n" process sentinel))
     (with-rcirc-process-buffer process
-      (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
-	(with-current-buffer (or buffer (current-buffer))
-	  (rcirc-print process "rcirc.el" "ERROR" rcirc-target
-		       (format "%s: %s (%S)"
-			       (process-name process)
-			       sentinel
-			       (process-status process))
-                       (not rcirc-target))
-	  (rcirc-disconnect-buffer)))
-      (when (and (string= sentinel "deleted")
-                 (< 0 rcirc-reconnect-delay))
-        (let ((now (current-time)))
-          (when (or (null rcirc-last-connect-time)
-		    (time-less-p rcirc-reconnect-delay
-				 (time-subtract now rcirc-last-connect-time)))
-            (setq rcirc-last-connect-time now)
-            (rcirc-cmd-reconnect nil))))
+      (if (string= sentinel "open")
+          (let* ((server (nth 0 rcirc-connection-info))
+                 (user-name (nth 3 rcirc-connection-info))
+                 (full-name (nth 4 rcirc-connection-info))
+                 (password (nth 6 rcirc-connection-info))
+                 (server-alias (nth 8 rcirc-connection-info))
+                 (use-sasl (eq (rcirc-get-server-method server) 'sasl)))
+
+            ;; prepare SASL authentication
+            (when use-sasl
+              (rcirc-send-string process "CAP REQ sasl")
+              (setq-local rcirc-finished-sasl nil))
+
+            ;; identify
+            (dolist (cap rcirc-implemented-capabilities)
+              (rcirc-send-string process "CAP" "REQ" : cap)
+              (push cap rcirc-requested-capabilities))
+            (unless (zerop (length password))
+              (rcirc-send-string process "PASS" password))
+            (rcirc-send-string process "NICK" rcirc-nick)
+            (rcirc-send-string process "USER" user-name "0" "*" : full-name)
+
+            ;; Setup sasl, and initiate authentication.
+            (when (and rcirc-auto-authenticate-flag
+                       use-sasl)
+              (rcirc-send-string process "AUTHENTICATE" "PLAIN"))
+
+            ;; setup ping timer if necessary
+            (unless rcirc-keepalive-timer
+              (setq rcirc-keepalive-timer
+                    (run-at-time 0 (/ rcirc-timeout-seconds 2) #'rcirc-keepalive)))
+
+            (message "Connecting to %s...done" (or server-alias server))
+            (setq mode-line-process nil))
+        (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
+	  (with-current-buffer (or buffer (current-buffer))
+	    (rcirc-print process "rcirc.el" "ERROR" rcirc-target
+		         (format "%s: %s (%S)"
+			         (process-name process)
+			         sentinel
+			         (process-status process))
+                         (not rcirc-target))
+	    (rcirc-disconnect-buffer)))
+        (when (and (string= sentinel "deleted")
+                   (< 0 rcirc-reconnect-delay))
+          (let ((now (current-time)))
+            (when (or (null rcirc-last-connect-time)
+		      (time-less-p rcirc-reconnect-delay
+				   (time-subtract now rcirc-last-connect-time)))
+              (setq rcirc-last-connect-time now)
+              (rcirc-cmd-reconnect nil)))))
       (run-hook-with-args 'rcirc-sentinel-functions process sentinel))))
 
 (defun rcirc-disconnect-buffer (&optional buffer)
