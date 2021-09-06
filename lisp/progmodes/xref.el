@@ -432,7 +432,10 @@ focus on the Xref buffer's window.
   "If t, xref commands always jump to the first result.
 `show' means to show the first result's location, but keep the
 focus on the Xref buffer's window.
-`move' means to only move point to the first result."
+`move' means to only move point to the first result.
+
+Please be careful changing this value if you are using Emacs 27
+or earlier: it can break dired-do-find-regexp-and-replace."
   :type '(choice (const :tag "Jump" t)
                  (const :tag "Show" show)
                  (const :tag "Move point only" move)
