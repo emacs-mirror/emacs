@@ -118,7 +118,9 @@ If nil, only list groups that have unread articles."
 
 (defcustom gnus-group-default-list-level gnus-level-subscribed
   "Default listing level.
-Ignored if `gnus-group-use-permanent-levels' is non-nil."
+When `gnus-group-use-permanent-levels' is non-nil, this level is
+used as the starting level until the user sets a different level,
+and is ignored afterwards."
   :group 'gnus-group-listing
   :type '(choice (integer :tag "Level")
                  (function :tag "Function returning level")))
