@@ -2243,6 +2243,7 @@ Display the reference on the current line (@code{xref-goto-xref}).
 With prefix argument, also bury the @file{*xref*} buffer.
 
 @item mouse-2
+@findex xref-select-and-show-xref
 The same as @code{mouse-1}, but make the window displaying the
 @file{*xref*} buffer the selected window
 (@code{xref-select-and-show-xref}).
@@ -2284,8 +2285,8 @@ the match with @var{replacement}.  @xref{Identifier Search}.
 Refresh the contents of the @file{*xref*} buffer
 (@code{xref-revert-buffer}.
 
-@findex xref-quit
 @item q
+@findex xref-quit
 Quit the window showing the @file{*xref*} buffer (@code{xref-quit}).
 @end table
 
