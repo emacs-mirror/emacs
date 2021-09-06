@@ -260,7 +260,9 @@ See `tab-bar-mode' for more information."
     (tab-bar-mode arg)))
 
 (defun toggle-frame-tab-bar (&optional frame)
-  "Toggle tab bar of FRAME.
+  "Toggle tab bar of the selected frame.
+When calling from Lisp, use the optional argument FRAME to toggle
+the tab bar on that frame.
 This is useful when you want to enable the tab bar individually
 on each new frame when the global `tab-bar-mode' is disabled,
 or when you want to disable the tab bar individually on each
@@ -1074,7 +1076,8 @@ to the tab argument will be applied after all functions are called."
   "Add a new tab at the absolute position TO-INDEX.
 TO-INDEX counts from 1.  If no TO-INDEX is specified, then add
 a new tab at the position specified by `tab-bar-new-tab-to'.
-Negative TO-INDEX counts tabs from the end of the tab bar.
+Negative TO-INDEX counts tabs from the end of the tab bar,
+and -1 means the new tab will become the last one.
 Argument addressing is absolute in contrast to `tab-bar-new-tab'
 where argument addressing is relative.
 After the tab is created, the hooks in
