@@ -3286,6 +3286,10 @@ It is written as '(:success BODY...)' where BODY is executed
 whenever the protected form terminates without error, with the
 specified variable bound to the the value of the protected form.
 
+** New function 'benchmark-call' to measure the execution time of a function.
+Additionally, the number of repetitions can be expressed as a minimal duration
+in seconds.
+
 +++
 ** A function can now be thrown to the 'exit' label in addition to t or nil.
 The command loop will call it with zero arguments before returning.
