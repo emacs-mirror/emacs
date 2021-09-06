@@ -1795,18 +1795,21 @@ If FRAME is nil, that stands for the selected frame."
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
 
-(defun defined-colors-with-face-attributes (&optional frame)
+(defun defined-colors-with-face-attributes (&optional frame foreground)
   "Return a list of colors supported for a particular frame.
 See `defined-colors' for arguments and return value. In contrast
 to `defined-colors' the elements of the returned list are color
 strings with text properties, that make the color names render
-with the color they represent as background color."
+with the color they represent as background color (if FOREGROUND
+is nil; otherwise use the foreground color)."
   (mapcar
    (lambda (color-name)
-     (let ((foreground (readable-foreground-color color-name))
-	   (color      (copy-sequence color-name)))
-       (propertize color 'face (list :foreground foreground
-				     :background color))))
+     (let ((color (copy-sequence color-name)))
+       (propertize color 'face
+		   (if foreground
+		       (list :foreground color)
+		     (list :foreground (readable-foreground-color color-name)
+                           :background color)))))
    (defined-colors frame)))
 
 (defun readable-foreground-color (color)
@@ -1915,7 +1918,8 @@ If omitted or nil, that stands for the selected frame's display."
       (x-display-grayscale-p display)
     (> (tty-color-gray-shades display) 2)))
 
-(defun read-color (&optional prompt convert-to-RGB allow-empty-name msg)
+(defun read-color (&optional prompt convert-to-RGB allow-empty-name msg
+			     foreground)
   "Read a color name or RGB triplet.
 Completion is available for color names, but not for RGB triplets.
 
@@ -1942,13 +1946,18 @@ If optional arg ALLOW-EMPTY-NAME is non-nil, the user is allowed
 to enter an empty color name (the empty string).
 
 Interactively, or with optional arg MSG non-nil, print the
-resulting color name in the echo area."
+resulting color name in the echo area.
+
+Interactively, displays a list of colored completions.  If optional
+argument FOREGROUND is non-nil, shows them as foregrounds, otherwise
+as backgrounds."
   (interactive "i\np\ni\np")    ; Always convert to RGB interactively.
   (let* ((completion-ignore-case t)
 	 (colors (append '("foreground at point" "background at point")
 			 (if allow-empty-name '(""))
                          (if (display-color-p)
-                             (defined-colors-with-face-attributes)
+                             (defined-colors-with-face-attributes
+                               nil foreground)
                            (defined-colors))))
 	 (color (completing-read
 		 (or prompt "Color (name or #RGB triplet): ")

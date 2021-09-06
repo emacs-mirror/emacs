@@ -14650,7 +14650,9 @@ Let's re-use @kbd{C-c =} as a convenient keybinding:
 
 Now we can try out @code{count-words-defun}: install both
 @code{count-words-in-defun} and @code{count-words-defun}, and set the
-keybinding, and then place the cursor within the following definition:
+keybinding.  Then copy the following to an Emacs Lisp buffer (like,
+for instance, @file{*scratch*}), place the cursor within the
+definition, and use the @kbd{C-c =} command.
 
 @smallexample
 @group

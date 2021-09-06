@@ -118,7 +118,9 @@ If nil, only list groups that have unread articles."
 
 (defcustom gnus-group-default-list-level gnus-level-subscribed
   "Default listing level.
-Ignored if `gnus-group-use-permanent-levels' is non-nil."
+When `gnus-group-use-permanent-levels' is non-nil, this level is
+used as the starting level until the user sets a different level,
+and is ignored afterwards."
   :group 'gnus-group-listing
   :type '(choice (integer :tag "Level")
                  (function :tag "Function returning level")))
@@ -1176,11 +1178,11 @@ The following commands are available:
 (defun gnus-group-default-level (&optional level number-or-nil)
   (cond
    (gnus-group-use-permanent-levels
-    (or (setq gnus-group-use-permanent-levels
-	      (or level (if (numberp gnus-group-use-permanent-levels)
-			    gnus-group-use-permanent-levels
-			  (or (gnus-group-default-list-level)
-			      gnus-level-subscribed))))
+    (or level
+        (if (numberp gnus-group-use-permanent-levels)
+	    gnus-group-use-permanent-levels
+	  (or (gnus-group-default-list-level)
+	      gnus-level-subscribed))
 	(gnus-group-default-list-level) gnus-level-subscribed))
    (number-or-nil
     level)
@@ -1228,20 +1230,23 @@ The following commands are available:
   (let ((charset (gnus-group-name-charset nil string)))
     (gnus-group-name-decode string charset)))
 
-(defun gnus-group-list-groups (&optional level unread lowest)
+(defun gnus-group-list-groups (&optional level unread lowest update-level)
   "List newsgroups with level LEVEL or lower that have unread articles.
 Default is all subscribed groups.
 If argument UNREAD is non-nil, groups with no unread articles are also
 listed.
 
-Also see the `gnus-group-use-permanent-levels' variable."
+Also see the `gnus-group-use-permanent-levels' variable.  If this
+variable is non-nil, and UPDATE-LEVEL is non-nil (which is the
+case interactively), the level will be updated by this command."
   (interactive
    (list (if current-prefix-arg
 	     (prefix-numeric-value current-prefix-arg)
 	   (or
 	    (gnus-group-default-level nil t)
 	    (gnus-group-default-list-level)
-	    gnus-level-subscribed)))
+	    gnus-level-subscribed))
+         nil nil t)
    gnus-group-mode)
   (unless level
     (setq level (car gnus-group-list-mode)
@@ -1288,7 +1293,9 @@ Also see the `gnus-group-use-permanent-levels' variable."
 	      (goto-char (point-max))
 	      (forward-line -1)))))))
     ;; Adjust cursor point.
-    (gnus-group-position-point)))
+    (gnus-group-position-point)
+    (when (and update-level gnus-group-use-permanent-levels)
+      (setq gnus-group-use-permanent-levels level))))
 
 (defun gnus-group-list-level (level &optional all)
   "List groups on LEVEL.
@@ -4205,8 +4212,9 @@ otherwise all levels below ARG will be scanned too."
 
     (gnus-check-reasonable-setup)
     (gnus-run-hooks 'gnus-after-getting-new-news-hook)
-    (gnus-group-list-groups (and (numberp arg)
-				 (max (car gnus-group-list-mode) arg)))))
+    (gnus-group-list-groups (and (numberp arg) arg))
+    (when gnus-group-use-permanent-levels
+      (setq gnus-group-use-permanent-levels (gnus-group-default-level arg)))))
 
 (defun gnus-group-get-new-news-this-group (&optional n dont-scan)
   "Check for newly arrived news in the current group (and the N-1 next groups).

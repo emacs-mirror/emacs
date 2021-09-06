@@ -153,95 +153,144 @@ The second subexpression should match the bug reference (usually a number)."
                     (push (match-string i url) groups))
                   (funcall bug-url-fmt (nreverse groups))))))
 
-(defvar bug-reference-setup-from-vc-alist
-  `(;;
-    ;; GNU projects on savannah.
-    ;;
-    ;; Not all of them use debbugs but that doesn't really matter
-    ;; because the auto-setup is only performed if
-    ;; `bug-reference-url-format' and `bug-reference-bug-regexp'
-    ;; aren't set already.
-    ("git\\.\\(?:sv\\|savannah\\)\\.gnu\\.org:"
-     "\\<\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\>"
-     ,(lambda (_) "https://debbugs.gnu.org/%s"))
-    ;;
-    ;; GitHub projects.
-    ;;
-    ;; Here #17 may refer to either an issue or a pull request but
-    ;; visiting the issue/17 web page will automatically redirect to
-    ;; the pull/17 page if 17 is a PR.  Explicit user/project#17 links
-    ;; to possibly different projects are also supported.
-    ("[/@]github.com[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
-     "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
-     ,(lambda (groups)
-        (let ((ns-project (nth 1 groups)))
-          (lambda ()
-            (concat "https://github.com/"
-                    (or
-                     ;; Explicit user/proj#18 link.
-                     (match-string 1)
-                     ns-project)
-                    "/issues/"
-                    (match-string 2))))))
-    ;;
-    ;; Codeberg projects.
-    ;;
-    ;; The systematics is exactly as for Github projects.
-    ("[/@]codeberg.org[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
-     "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
-     ,(lambda (groups)
-        (let ((ns-project (nth 1 groups)))
-          (lambda ()
-            (concat "https://codeberg.org/"
-                    (or
-                     ;; Explicit user/proj#18 link.
-                     (match-string 1)
-                     ns-project)
-                    "/issues/"
-                    (match-string 2))))))
-    ;;
-    ;; GitLab projects.
-    ;;
-    ;; Here #18 is an issue and !17 is a merge request.  Explicit
-    ;; namespace/project#18 or namespace/project!17 references to
-    ;; possibly different projects are also supported.
-    ("[/@]gitlab.com[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
-     "\\(?1:[.A-Za-z0-9_/-]+\\)?\\(?3:[#!]\\)\\(?2:[0-9]+\\)\\>"
-     ,(lambda (groups)
-        (let ((ns-project (nth 1 groups)))
-          (lambda ()
-            (concat "https://gitlab.com/"
-                    (or (match-string 1)
-                        ns-project)
-                    "/-/"
-                    (if (string= (match-string 3) "#")
-                        "issues/"
-                      "merge_requests/")
-                    (match-string 2))))))
-    ;;
-    ;; Sourcehut projects.
-    ;;
-    ;; #19 is an issue.  Other project's issues can be referenced as
-    ;; #~user/project#19.
-    ;;
-    ;; Caveat: The code assumes that a project on git.sr.ht or
-    ;; hg.sr.ht has a tracker of the same name on todo.sh.ht.  That's
-    ;; a very common setup but all sr.ht services are loosely coupled,
-    ;; so you can have a repo without tracker, or a repo with a
-    ;; tracker using a different name, etc.  So we can only try to
-    ;; make a good guess.
-    ("[/@]\\(?:git\\|hg\\).sr.ht[/:]\\(~[.A-Za-z0-9_/-]+\\)"
-     "\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
-     ,(lambda (groups)
-        (let ((ns-project (nth 1 groups)))
-          (lambda ()
-            (concat "https://todo.sr.ht/"
-                    (or
-                     ;; Explicit user/proj#18 link.
-                     (match-string 1)
-                     ns-project)
-                    "/"
-                    (match-string 2)))))))
+(defvar bug-reference-gitea-instances '("gitea.com"
+                                        "codeberg.org")
+  "List of Gitea forge instances.
+When the value is changed after bug-reference has already been
+loaded, and performed an auto-setup, evaluate
+`(bug-reference--setup-from-vc-alist t)' for rebuilding the value
+of `bug-reference--setup-from-vc-alist'.")
+
+(defvar bug-reference-gitlab-instances '("gitlab.com"
+                                         "salsa.debian.org"
+                                         "framagit.org")
+  "List of GitLab forge instances.
+When the value is changed after bug-reference has already been
+loaded, and performed an auto-setup, evaluate
+`(bug-reference--setup-from-vc-alist t)' for rebuilding the value
+of `bug-reference--setup-from-vc-alist'.")
+
+(defvar bug-reference-sourcehut-instances '("sr.ht")
+  "List of SourceHut forge instances.
+When the value is changed after bug-reference has already been
+loaded, and performed an auto-setup, evaluate
+`(bug-reference--setup-from-vc-alist t)' for rebuilding the value
+of `bug-reference--setup-from-vc-alist'.")
+
+(defvar bug-reference--setup-from-vc-alist nil
+  "An alist for setting up ‘bug-reference-mode’ based on VC URL.
+This is like `bug-reference-setup-from-vc-alist' but generated
+for the known free software forges from the variables
+`bug-reference-gitea-instances',
+`bug-reference-gitlab-instances', and
+`bug-reference-sourcehut-instances'.")
+
+(defun bug-reference--setup-from-vc-alist (&optional rebuild)
+  (if (and bug-reference--setup-from-vc-alist
+           (null rebuild))
+      bug-reference--setup-from-vc-alist
+    (setq bug-reference--setup-from-vc-alist
+          `(;;
+            ;; GNU projects on savannah.
+            ;;
+            ;; Not all of them use debbugs but that doesn't really
+            ;; matter because the auto-setup is only performed if
+            ;; `bug-reference-url-format' and
+            ;; `bug-reference-bug-regexp' aren't set already.
+            ("git\\.\\(?:sv\\|savannah\\)\\.gnu\\.org:"
+             "\\<\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\>"
+             ,(lambda (_) "https://debbugs.gnu.org/%s"))
+            ;;
+            ;; GitHub projects.
+            ;;
+            ;; Here #17 may refer to either an issue or a pull request
+            ;; but visiting the issue/17 web page will automatically
+            ;; redirect to the pull/17 page if 17 is a PR.  Explicit
+            ;; user/project#17 links to possibly different projects
+            ;; are also supported.
+            ("[/@]github.com[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
+             "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+             ,(lambda (groups)
+                (let ((ns-project (nth 1 groups)))
+                  (lambda ()
+                    (concat "https://github.com/"
+                            (or
+                             ;; Explicit user/proj#18 link.
+                             (match-string 1)
+                             ns-project)
+                            "/issues/"
+                            (match-string 2))))))
+            ;;
+            ;; Gitea instances.
+            ;;
+            ;; The systematics is exactly as for Github projects.
+            (,(concat "[/@]"
+                      (regexp-opt bug-reference-gitea-instances t)
+                      "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+             "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+             ,(lambda (groups)
+                (let ((host (nth 1 groups))
+                      (ns-project (nth 2 groups)))
+                  (lambda ()
+                    (concat "https://" host "/"
+                            (or
+                             ;; Explicit user/proj#18 link.
+                             (match-string 1)
+                             ns-project)
+                            "/issues/"
+                            (match-string 2))))))
+            ;;
+            ;; GitLab instances.
+            ;;
+            ;; Here #18 is an issue and !17 is a merge request.
+            ;; Explicit namespace/project#18 or namespace/project!17
+            ;; references to possibly different projects are also
+            ;; supported.
+            (,(concat "[/@]"
+                      (regexp-opt bug-reference-gitlab-instances t)
+                      "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+             "\\(?1:[.A-Za-z0-9_/-]+\\)?\\(?3:[#!]\\)\\(?2:[0-9]+\\)\\>"
+             ,(lambda (groups)
+                (let ((host (nth 1 groups))
+                      (ns-project (nth 2 groups)))
+                  (lambda ()
+                    (concat "https://" host "/"
+                            (or (match-string 1)
+                                ns-project)
+                            "/-/"
+                            (if (string= (match-string 3) "#")
+                                "issues/"
+                              "merge_requests/")
+                            (match-string 2))))))
+            ;;
+            ;; Sourcehut instances.
+            ;;
+            ;; #19 is an issue.  Other project's issues can be
+            ;; #referenced as ~user/project#19.
+            ;;
+            ;; Caveat: The code assumes that a project on git.sr.ht or
+            ;; hg.sr.ht has a tracker of the same name on todo.sh.ht.
+            ;; That's a very common setup but all sr.ht services are
+            ;; loosely coupled, so you can have a repo without
+            ;; tracker, or a repo with a tracker using a different
+            ;; name, etc.  So we can only try to make a good guess.
+            (,(concat "[/@]\\(?:git\\|hg\\)."
+                      (regexp-opt bug-reference-sourcehut-instances t)
+                      "[/:]\\(~[.A-Za-z0-9_/-]+\\)")
+             "\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+             ,(lambda (groups)
+                (let ((host (nth 1 groups))
+                      (ns-project (nth 2 groups)))
+                  (lambda ()
+                    (concat "https://todo." host "/"
+                            (or
+                             ;; Explicit user/proj#18 link.
+                             (match-string 1)
+                             ns-project)
+                            "/"
+                            (match-string 2))))))))))
+
+(defvar bug-reference-setup-from-vc-alist nil
   "An alist for setting up `bug-reference-mode' based on VC URL.
 
 Each element has the form (URL-REGEXP BUG-REGEXP URL-FORMAT-FN).
@@ -256,7 +305,8 @@ URL-REGEXP against the VCS URL and returns the value to be set as
 (defun bug-reference-try-setup-from-vc ()
   "Try setting up `bug-reference-mode' based on VC information.
 Test each configuration in `bug-reference-setup-from-vc-alist'
-and apply it if applicable."
+and `bug-reference--setup-from-vc-alist' and apply it if
+applicable."
   (let ((file-or-dir (or buffer-file-name
                          ;; Catches modes such as vc-dir and Magit.
                          default-directory)))
@@ -269,7 +319,9 @@ and apply it if applicable."
                     (vc-call-backend backend 'repository-url)))))
         (when url
           (catch 'found
-            (dolist (config bug-reference-setup-from-vc-alist)
+            (dolist (config (append
+                             bug-reference-setup-from-vc-alist
+                             (bug-reference--setup-from-vc-alist)))
               (when (apply #'bug-reference-maybe-setup-from-vc
                            url config)
                 (throw 'found t)))))))))

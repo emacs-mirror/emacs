@@ -1256,6 +1256,8 @@ correctly.")
     ,(let ((map (make-sparse-keymap)))
        (define-key map [mode-line down-mouse-1]
          flymake-menu)
+       (define-key map [mode-line down-mouse-3]
+         flymake-menu)
        (define-key map [mode-line mouse-2]
          (lambda ()
            (interactive)

@@ -62,6 +62,25 @@
                       (0 font-lock-keyword-face))))))))
 
 
+;;;; List functions.
+
+(ert-deftest subr-test-caaar ()
+  (should (null (caaar '())))
+  (should (null (caaar '(() (2)))))
+  (should (null (caaar '((() (2)) (a b)))))
+  (should-error (caaar '(1 2)) :type 'wrong-type-argument)
+  (should-error (caaar '((1 2))) :type 'wrong-type-argument)
+  (should (=  1 (caaar '(((1 2) (3 4))))))
+  (should (null (caaar '((() (3 4)))))))
+
+(ert-deftest subr-test-caadr ()
+  (should (null (caadr '())))
+  (should (null (caadr '(1))))
+  (should-error (caadr '(1 2)) :type 'wrong-type-argument)
+  (should (= 2 (caadr '(1 (2 3)))))
+  (should (equal '((2) (3)) (caadr '((1) (((2) (3))) (4))))))
+
+
 ;;;; Keymap support.
 
 (ert-deftest subr-test-kbd ()
@@ -739,6 +758,14 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
     (should (= (replace-regexp-in-region "Fo+" "new" (point-min))
                1))
     (should (equal (buffer-string) "new bar zot foobar"))))
+
+(ert-deftest test-with-existing-directory ()
+  (let ((dir (make-temp-name "/tmp/not-exist-")))
+    (let ((default-directory dir))
+      (should-not (file-exists-p default-directory)))
+    (with-existing-directory
+      (should-not (equal dir default-directory))
+      (should (file-exists-p default-directory)))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

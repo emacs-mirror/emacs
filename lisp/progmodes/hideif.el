@@ -682,7 +682,7 @@ that form should be displayed.")
 (defconst hif-valid-token-list (mapcar 'cdr hif-token-alist))
 
 (defconst hif-token-regexp
-  ;; The ordering of regexp grouping is crutial to `hif-strtok'
+  ;; The ordering of regexp grouping is crucial to `hif-strtok'
   (concat
    ;; hex/binary:
    "\\([+-]?0[xXbB]\\([[:xdigit:]']+\\)?\\.?\\([[:xdigit:]']+\\)?\\([pP]\\([+-]?[0-9]+\\)\\)?"

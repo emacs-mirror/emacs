@@ -3962,22 +3962,22 @@ In the simplest case, @var{name} and each of the @var{slots}
 are symbols.  For example,
 
 @example
-(cl-defstruct person name age sex)
+(cl-defstruct person first-name age sex)
 @end example
 
 @noindent
-defines a struct type called @code{person} that contains three
-slots.  Given a @code{person} object @var{p}, you can access those
-slots by calling @code{(person-name @var{p})}, @code{(person-age @var{p})},
-and @code{(person-sex @var{p})}.  You can also change these slots by
-using @code{setf} on any of these place forms, for example:
+defines a struct type called @code{person} that contains three slots.
+Given a @code{person} object @var{p}, you can access those slots by
+calling @code{(person-first-name @var{p})}, @code{(person-age
+@var{p})}, and @code{(person-sex @var{p})}.  You can also change these
+slots by using @code{setf} on any of these place forms, for example:
 
 @example
 (cl-incf (person-age birthday-boy))
 @end example
 
 You can create a new @code{person} by calling @code{make-person},
-which takes keyword arguments @code{:name}, @code{:age}, and
+which takes keyword arguments @code{:first-name}, @code{:age}, and
 @code{:sex} to specify the initial values of these slots in the
 new object.  (Omitting any of these arguments leaves the corresponding
 slot ``undefined'', according to the Common Lisp standard; in Emacs
@@ -3989,7 +3989,7 @@ object of the same type whose slots are @code{eq} to those of @var{p}.
 Given any Lisp object @var{x}, @code{(person-p @var{x})} returns
 true if @var{x} is a @code{person}, and false otherwise.
 
-Accessors like @code{person-name} normally check their arguments
+Accessors like @code{person-first-name} normally check their arguments
 (effectively using @code{person-p}) and signal an error if the
 argument is the wrong type.  This check is affected by
 @code{(optimize (safety @dots{}))} declarations.  Safety level 1,
@@ -4002,13 +4002,13 @@ always print a descriptive error message for incorrect inputs.
 @xref{Declarations}.
 
 @example
-(setq dave (make-person :name "Dave" :sex 'male))
+(setq dave (make-person :first-name "Dave" :sex 'male))
      @result{} [cl-struct-person "Dave" nil male]
 (setq other (copy-person dave))
      @result{} [cl-struct-person "Dave" nil male]
 (eq dave other)
      @result{} nil
-(eq (person-name dave) (person-name other))
+(eq (person-first-name dave) (person-first-name other))
      @result{} t
 (person-p dave)
      @result{} t
@@ -4021,7 +4021,7 @@ always print a descriptive error message for incorrect inputs.
 @end example
 
 In general, @var{name} is either a name symbol or a list of a name
-symbol followed by any number of @dfn{struct options}; each @var{slot}
+symbol followed by any number of @dfn{structure options}; each @var{slot}
 is either a slot symbol or a list of the form @samp{(@var{slot-name}
 @var{default-value} @var{slot-options}@dots{})}.  The @var{default-value}
 is a Lisp form that is evaluated any time an instance of the
@@ -4029,7 +4029,7 @@ structure type is created without specifying that slot's value.
 
 @example
 (cl-defstruct person
-     (name nil :read-only t)
+     (first-name nil :read-only t)
      age
      (sex 'unknown))
 @end example
@@ -4062,7 +4062,7 @@ enclosed in lists.)
 (cl-defstruct (person (:constructor create-person)
                       (:type list)
                       :named)
-     name age sex)
+     first-name age sex)
 @end example
 
 The following structure options are recognized.
@@ -4108,12 +4108,12 @@ option.
     (person
      (:constructor nil)   ; no default constructor
      (:constructor new-person
-                   (name sex &optional (age 0)))
-     (:constructor new-hound (&key (name "Rover")
+                   (first-name sex &optional (age 0)))
+     (:constructor new-hound (&key (first-name "Rover")
                                    (dog-years 0)
                               &aux (age (* 7 dog-years))
                                    (sex 'canine))))
-    name age sex)
+    first-name age sex)
 @end example
 
 The first constructor here takes its arguments positionally rather
@@ -4165,16 +4165,16 @@ slot descriptors for slots in the included structure, possibly with
 modified default values.  Borrowing an example from Steele:
 
 @example
-(cl-defstruct person name (age 0) sex)
+(cl-defstruct person first-name (age 0) sex)
         @result{} person
 (cl-defstruct (astronaut (:include person (age 45)))
      helmet-size
      (favorite-beverage 'tang))
         @result{} astronaut
 
-(setq joe (make-person :name "Joe"))
+(setq joe (make-person :first-name "Joe"))
      @result{} [cl-struct-person "Joe" 0 nil]
-(setq buzz (make-astronaut :name "Buzz"))
+(setq buzz (make-astronaut :first-name "Buzz"))
      @result{} [cl-struct-astronaut "Buzz" 45 nil nil tang]
 
 (list (person-p joe) (person-p buzz))
@@ -4182,17 +4182,17 @@ modified default values.  Borrowing an example from Steele:
 (list (astronaut-p joe) (astronaut-p buzz))
      @result{} (nil t)
 
-(person-name buzz)
+(person-first-name buzz)
      @result{} "Buzz"
-(astronaut-name joe)
-     @result{} error: "astronaut-name accessing a non-astronaut"
+(astronaut-first-name joe)
+     @result{} error: "astronaut-first-name accessing a non-astronaut"
 @end example
 
 Thus, if @code{astronaut} is a specialization of @code{person},
 then every @code{astronaut} is also a @code{person} (but not the
 other way around).  Every @code{astronaut} includes all the slots
 of a @code{person}, plus extra slots that are specific to
-astronauts.  Operations that work on people (like @code{person-name})
+astronauts.  Operations that work on people (like @code{person-first-name})
 work on astronauts just like other people.
 
 @item :noinline
@@ -4230,10 +4230,10 @@ records, which are always tagged.  Therefore, @code{:named} is only
 useful in conjunction with @code{:type}.
 
 @example
-(cl-defstruct (person1) name age sex)
-(cl-defstruct (person2 (:type list) :named) name age sex)
-(cl-defstruct (person3 (:type list)) name age sex)
-(cl-defstruct (person4 (:type vector)) name age sex)
+(cl-defstruct (person1) first-name age sex)
+(cl-defstruct (person2 (:type list) :named) first-name age sex)
+(cl-defstruct (person3 (:type list)) first-name age sex)
+(cl-defstruct (person4 (:type vector)) first-name age sex)
 
 (setq p1 (make-person1))
      @result{} #s(person1 nil nil nil)
@@ -4254,10 +4254,10 @@ useful in conjunction with @code{:type}.
 
 Since unnamed structures don't have tags, @code{cl-defstruct} is not
 able to make a useful predicate for recognizing them.  Also,
-accessors like @code{person3-name} will be generated but they
-will not be able to do any type checking.  The @code{person3-name}
+accessors like @code{person3-first-name} will be generated but they
+will not be able to do any type checking.  The @code{person3-first-name}
 function, for example, will simply be a synonym for @code{car} in
-this case.  By contrast, @code{person2-name} is able to verify
+this case.  By contrast, @code{person2-first-name} is able to verify
 that its argument is indeed a @code{person2} object before
 proceeding.
 

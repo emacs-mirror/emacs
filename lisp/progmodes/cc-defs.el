@@ -234,6 +234,14 @@ On XEmacs and older Emacsen, this refontifies that region immediately."
       `(font-lock-flush ,beg ,end)
     `(font-lock-fontify-region ,beg ,end)))
 
+(defmacro c-benign-error (format &rest args)
+  ;; Formats an error message for the echo area and dings, i.e. like
+  ;; `error' but doesn't abort.
+  (declare (debug t))
+  `(progn
+     (message ,format ,@args)
+     (ding)))
+
 (defmacro c-point (position &optional point)
   "Return the value of certain commonly referenced POSITIONs relative to POINT.
 The current point is used if POINT isn't specified.  POSITION can be
@@ -660,19 +668,27 @@ even when the buffer is read-only, and without interference from
 various buffer change hooks."
   (declare (indent 0) (debug t))
   `(let (-tnt-chng-keep
-	 -tnt-chng-state)
+	 -tnt-chng-state
+	 (old-undo-list buffer-undo-list))
      (unwind-protect
 	 ;; Insert an undo boundary for use with `undo-more'.  We
 	 ;; don't use `undo-boundary' since it doesn't insert one
 	 ;; unconditionally.
-	 (setq buffer-undo-list (cons nil buffer-undo-list)
-	       -tnt-chng-state (c-tnt-chng-record-state)
+	 (setq buffer-undo-list
+	       (if (eq old-undo-list t)
+		   nil
+		 (cons nil buffer-undo-list))
+	       old-undo-list (if (eq old-undo-list t)
+				 t
+			       buffer-undo-list)
+	       -tnt-chng-state (c-tnt-chng-record-state
+				old-undo-list)
 	       -tnt-chng-keep (progn ,@body))
        (c-tnt-chng-cleanup -tnt-chng-keep -tnt-chng-state))))
 
-(defun c-tnt-chng-record-state ()
+(defun c-tnt-chng-record-state (old-undo-list)
   ;; Used internally in `c-tentative-buffer-changes'.
-  (vector buffer-undo-list		; 0
+  (vector old-undo-list			; 0
 	  (current-buffer)		; 1
 	  ;; No need to use markers for the point and mark; if the
 	  ;; undo got out of synch we're hosed anyway.
@@ -690,18 +706,26 @@ various buffer change hooks."
 	(setq buffer-undo-list (cdr saved-undo-list))
 
       (if keep
-	  ;; Find and remove the undo boundary.
-	  (let ((p buffer-undo-list))
-	    (while (not (eq (cdr p) saved-undo-list))
-	      (setq p (cdr p)))
-	    (setcdr p (cdr saved-undo-list)))
+	  (if (eq saved-undo-list t)
+	      (progn
+		(c-benign-error
+		 "Can't save additional undo list in c-tnt-chng-cleanup")
+		(setq buffer-undo-list t))
+	    ;; Find and remove the undo boundary.
+	    (let ((p buffer-undo-list))
+	      (while (not (eq (cdr p) saved-undo-list))
+		(setq p (cdr p)))
+	      (setcdr p (cdr saved-undo-list))))
 
-	;; `primitive-undo' will remove the boundary.
-	(setq saved-undo-list (cdr saved-undo-list))
-	(let ((undo-in-progress t))
-	  (while (not (eq (setq buffer-undo-list
-				(primitive-undo 1 buffer-undo-list))
-			  saved-undo-list))))
+	(let ((undo-in-progress t)
+	      (end-undo-list (if (eq saved-undo-list t)
+				 nil
+			       ;; `primitive-undo' will remove the boundary.
+			       (cdr saved-undo-list))))
+	  (while (not (eq buffer-undo-list end-undo-list))
+	    (setq buffer-undo-list (primitive-undo 1 buffer-undo-list))))
+	(if (eq saved-undo-list t)
+	    (setq buffer-undo-list t))
 
 	(when (buffer-live-p (elt saved-state 1))
 	  (set-buffer (elt saved-state 1))
@@ -1027,14 +1051,6 @@ be after it."
   '(if c-vsemi-status-unknown-p-fn (funcall c-vsemi-status-unknown-p-fn)))
 
 
-(defmacro c-benign-error (format &rest args)
-  ;; Formats an error message for the echo area and dings, i.e. like
-  ;; `error' but doesn't abort.
-  (declare (debug t))
-  `(progn
-     (message ,format ,@args)
-     (ding)))
-
 (defmacro c-with-syntax-table (table &rest code)
   ;; Temporarily switches to the specified syntax table in a failsafe
   ;; way to execute code.

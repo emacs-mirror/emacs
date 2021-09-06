@@ -2014,6 +2014,17 @@ string to use when highlighting the day in the calendar."
     (and (>= diff 0) (zerop (% diff n))
          (cons mark (format entry cycle (diary-ordinal-suffix cycle))))))
 
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
+(defun diary-offset (sexp days)
+  "Offsetted diary entry.  Offsets SEXP by DAYS days.
+Entry applies if the date is DAYS days after another diary-sexp SEXP."
+  (with-no-warnings (defvar date))
+  (unless (integerp days)
+    (user-error "Days must be an integer"))
+  (let ((date (calendar-gregorian-from-absolute
+	       (- (calendar-absolute-from-gregorian date) days))))
+    (eval sexp)))
+
 (defun diary-day-of-year ()
   "Day of year and number of days remaining in the year of date diary entry."
   (with-no-warnings (defvar date))

@@ -7422,7 +7422,7 @@ multi-line strings (but not C++, for example)."
 		     t)
 		    (save-excursion
 		      (goto-char (match-end 1))
-		      (if (c-in-literal) ; a psuedo closer.
+		      (if (c-in-literal) ; a pseudo closer.
 			  t
 			(setq saved-match-data (match-data))
 			(setq found t)
@@ -12288,12 +12288,15 @@ comment at the start of cc-engine.el for more info."
 	  pos2 in-paren parens-before-brace
 	  paren-state paren-pos)
 
-      (setq res (c-backward-token-2 1 t lim))
+      (setq res
+	    (or (progn (c-backward-syntactic-ws)
+		       (c-back-over-compound-identifier))
+		(c-backward-token-2 1 t lim)))
       ;; Checks to do only on the first sexp before the brace.
       ;; Have we a C++ initialization, without an "="?
       (if (and (c-major-mode-is 'c++-mode)
 	       (cond
-		((and (or (not (eq res 0))
+		((and (or (not (memq res '(t 0)))
 			  (eq (char-after) ?,))
 		      (setq paren-state (c-parse-state))
 		      (setq paren-pos (c-pull-open-brace paren-state))
@@ -12317,7 +12320,7 @@ comment at the start of cc-engine.el for more info."
 		(t nil))
 	       (save-excursion
 		 (cond
-		  ((or (not (eq res 0))
+		  ((or (not (memq res '(t 0)))
 		       (eq (char-after) ?,))
 		   (and (setq paren-state (c-parse-state))
 			(setq paren-pos (c-pull-open-brace paren-state))

@@ -1775,7 +1775,7 @@ Does not preserve point."
                      (goto-char p)
                      nil))))
         (while
-            (progn (skip-syntax-backward "w_'")
+            (progn (skip-syntax-backward ".w_'")
                    (or (not (zerop (skip-syntax-backward "\\")))
                        (when (eq ?\\ (char-before (1- (point))))
                          (let ((p (point)))

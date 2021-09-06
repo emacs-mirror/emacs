@@ -755,6 +755,14 @@ anchor}.  The Info file name defaults to @samp{emacs}.  For example,
 See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.
 @end smallexample
 
+To link to a customization group, write the single-quoted name of the
+group, preceded by @samp{customization group} (the first character in
+each word is case-insensitive).  For example,
+
+@smallexample
+See the customization group `whitespace' for details.
+@end smallexample
+
 Finally, to create a hyperlink to URLs, write the single-quoted URL,
 preceded by @samp{URL}.  For example,
 

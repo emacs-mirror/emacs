@@ -862,8 +862,13 @@ expressions that were read, evaluated, and printed from buffers
 (including the minibuffer) by the standard Emacs commands which do
 this.  (Note that this does @emph{not} include evaluation in
 @file{*ielm*} buffers, nor evaluation using @kbd{C-j}, @kbd{C-x C-e},
-and similar evaluation commands in @code{lisp-interaction-mode}.)  The
-elements are ordered most recent first.
+and similar evaluation commands in @code{lisp-interaction-mode}.)
+
+This variable is obsolete, and will be removed in a future version,
+since it constantly enlarges the memory footprint of the Emacs
+process.  For that reason, we recommend against using it.
+
+The elements of @code{values} are ordered most recent first.
 
 @example
 @group
@@ -880,8 +885,8 @@ values
 @end group
 @end example
 
-This variable is useful for referring back to values of forms recently
-evaluated.  It is generally a bad idea to print the value of
+This variable could be useful for referring back to values of forms
+recently evaluated.  It is generally a bad idea to print the value of
 @code{values} itself, since this may be very long.  Instead, examine
 particular elements, like this:
 

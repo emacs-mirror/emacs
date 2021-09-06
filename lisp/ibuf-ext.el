@@ -332,6 +332,17 @@ where NAME is a unique but arbitrary name and FILTER-GROUP-LIST
 is a list of filter groups with the same structure as
 allowed for `ibuffer-filter-groups'.
 
+For instance:
+
+  (setq ibuffer-saved-filter-groups
+        \\='((\"Home\"
+           (\"Modified\" (predicate buffer-modified-p (current-buffer)))
+           (\"Helm\" (name . \"\\\\*helm.+\"))
+           (\"Dev\" (or (filename . \".+\\\\.css\\\\'\")
+                      (filename . \".+\\\\.html?\\\\'\")
+                      (mode . android-mode)
+                      (mode . clojure-mode))))))
+
 See also the functions `ibuffer-save-filter-groups' and
 `ibuffer-switch-to-saved-filter-groups' for saving and switching
 between sets of filter groups, and the variable

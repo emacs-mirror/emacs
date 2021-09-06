@@ -1039,7 +1039,11 @@ did."
 
 Invoke this command before you want to start Hunspell for the first time
 with a particular combination of dictionaries.  The first dictionary
-in the list must have an affix file where Hunspell affix files are kept."
+in the list must have an affix file where Hunspell affix files are kept.
+
+If you invoke this from Lisp, make sure to precede it with
+a call to `ispell-set-spellchecker-params', as `ispell-change-dictionary'
+calls it only when invoked interactively."
   (interactive "sMulti-dictionary combination: ")
   ;; Make sure the first dictionary in the list is known to us.
   (let ((first-dict (car (split-string dict "," t))))
@@ -2919,7 +2923,14 @@ Keeps argument list for future Ispell invocations for no async support."
 	     ;; But first wait to see if some more output is going to arrive.
 	     ;; Otherwise we get cool errors like "Can't open ".
 	     (sleep-for 1)
-	     (ispell-accept-output 3)
+             ;; Only call `ispell-accept-output' if the Ispell process
+             ;; is alive, to avoid showing an unhelpful error message
+             ;; about a missing process, instead of the error which
+             ;; reports why the Ispell process died.
+	     (when (if ispell-async-processp
+                         (process-live-p ispell-process)
+                       ispell-process)
+               (ispell-accept-output 3))
 	     (error "%s" (mapconcat #'identity ispell-filter "\n"))))
       (setq ispell-filter nil)		; Discard version ID line
       (let ((extended-char-mode (ispell-get-extended-character-mode)))
@@ -3632,8 +3643,7 @@ sequence inside of a word.
 Standard ispell choices are then available."
   ;; FIXME: completion-at-point-function.
   (interactive "P")
-  (let ((cursor-location (point))
-	(case-fold-search-val case-fold-search)
+  (let ((case-fold-search-val case-fold-search)
 	(word (ispell-get-word nil "\\*")) ; force "previous-word" processing.
 	start end possibilities replacement)
     (setq start (car (cdr word))
@@ -3670,18 +3680,12 @@ Standard ispell choices are then available."
 	     (ispell-add-per-file-word-list word))
 	    (replacement		; REPLACEMENT WORD
 	     (delete-region start end)
-	     (setq word (if (atom replacement) replacement (car replacement))
-		   cursor-location (+ (- (length word) (- end start))
-				      cursor-location))
-	     (insert word)
-	     (if (not (atom replacement)) ; recheck spelling of replacement.
-		 (progn
-		   (goto-char cursor-location)
-		   (ispell-word nil t)))))
+	     (insert (if (atom replacement) replacement (car replacement)))
+	     (unless (atom replacement) ; recheck spelling of replacement.
+	       (ispell-word nil t))))
 	   (if (get-buffer ispell-choices-buffer)
 	       (kill-buffer ispell-choices-buffer))))
-    (ispell-pdict-save ispell-silently-savep)
-    (goto-char cursor-location)))
+    (ispell-pdict-save ispell-silently-savep)))
 
 
 ;;;###autoload

@@ -400,7 +400,8 @@ keyboard input to go into icons."
   ;; skip dedicated and unsplittable frames
   (ediff-destroy-control-frame control-buffer)
   (let ((window-min-height 1)
-	split-window-function wind-width-or-height
+        (window-combination-resize t)
+	split-window-function
 	three-way-comparison
 	wind-A-start wind-B-start wind-A wind-B wind-C)
     (with-current-buffer control-buffer
@@ -419,22 +420,12 @@ keyboard input to go into icons."
 	(select-window (next-window nil 'ignore-minibuf)))
     (delete-other-windows)
     (set-window-dedicated-p (selected-window) nil)
-    (split-window-vertically)
-    (ediff-select-lowest-window)
-    (ediff-setup-control-buffer control-buffer)
 
     ;; go to the upper window and split it betw A, B, and possibly C
     (other-window 1)
     (switch-to-buffer buf-A)
     (setq wind-A (selected-window))
-    (if three-way-comparison
-	(setq wind-width-or-height
-	      (/ (if (eq split-window-function #'split-window-vertically)
-		     (window-height wind-A)
-		   (window-width wind-A))
-		 3)))
-
-    (funcall split-window-function wind-width-or-height)
+    (funcall split-window-function)
 
     (if (eq (selected-window) wind-A)
 	(other-window 1))
@@ -443,7 +434,7 @@ keyboard input to go into icons."
 
     (if three-way-comparison
 	(progn
-	  (funcall split-window-function) ; equally
+	  (funcall split-window-function)
 	  (if (eq (selected-window) wind-B)
 	      (other-window 1))
 	  (switch-to-buffer buf-C)
@@ -461,7 +452,9 @@ keyboard input to go into icons."
 	  (set-window-start wind-A wind-A-start)
 	  (set-window-start wind-B wind-B-start)))
 
-    (ediff-select-lowest-window)
+    (select-window (display-buffer-in-direction
+                    control-buffer
+                    '((direction . bottom))))
     (ediff-setup-control-buffer control-buffer)
     ))
 
@@ -746,6 +739,7 @@ keyboard input to go into icons."
 			     (and (not (frame-live-p frame-A))
 				  (or ctl-frame-exists-p
 				      (eq frame-B (selected-frame))))))
+         (window-combination-resize t)
 	 wind-A-start wind-B-start
 	 designated-minibuffer-frame)
 
@@ -758,7 +752,7 @@ keyboard input to go into icons."
 			   'B ediff-narrow-bounds))))
 
     (if use-same-frame
-	(let (wind-width-or-height) ; this affects 3way setups only
+        (progn
 	  (if (and (eq frame-A frame-B) (frame-live-p frame-A))
 	      (select-frame frame-A)
 	    ;; avoid dedicated and non-splittable windows
@@ -767,15 +761,7 @@ keyboard input to go into icons."
 	  (switch-to-buffer buf-A)
 	  (setq wind-A (selected-window))
 
-	  (if three-way-comparison
-	      (setq wind-width-or-height
-		    (/
-		     (if (eq split-window-function #'split-window-vertically)
-			 (window-height wind-A)
-		       (window-width wind-A))
-		     3)))
-
-	  (funcall split-window-function wind-width-or-height)
+          (funcall split-window-function)
 	  (if (eq (selected-window) wind-A)
 	      (other-window 1))
 	  (switch-to-buffer buf-B)

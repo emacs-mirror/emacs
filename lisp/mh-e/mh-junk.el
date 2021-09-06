@@ -31,6 +31,8 @@
 (require 'mh-e)
 (require 'mh-scan)
 
+(autoload 'mail-header-parse-address "mail-parse")
+
 ;;;###mh-autoload
 (defun mh-junk-blocklist (range)
   "Blocklist RANGE as spam.
@@ -312,8 +314,7 @@ See `mh-spamassassin-blocklist' for more information."
                         "--ham" "--local" "--no-sync")))
       (message "Allowlisting sender of message %d..." msg)
       (setq from
-            (car (mh-funcall-if-exists
-                  ietf-drums-parse-address (mh-get-header-field "From:"))))
+            (car (mail-header-parse-address (mh-get-header-field "From:"))))
       (kill-buffer nil)
       (if (or (null from) (equal from ""))
           (message "Allowlisting sender of message %d...%s"

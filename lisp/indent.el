@@ -81,7 +81,7 @@ This variable has no effect unless `tab-always-indent' is `complete'."
           (const :tag "Unless looking at a word" 'word)
           (const :tag "Unless at a word or parenthesis" 'word-or-paren)
           (const :tag "Unless at a word, parenthesis, or punctuation." 'word-or-paren-or-punct))
-  :version "27.1")
+  :version "28.1")
 
 (defvar indent-line-ignored-functions '(indent-relative
                                         indent-relative-maybe

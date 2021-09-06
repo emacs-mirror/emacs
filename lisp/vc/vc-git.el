@@ -242,14 +242,18 @@ included in the completions."
 ;;;###autoload         (load "vc-git" nil t)
 ;;;###autoload         (vc-git-registered file))))
 
-(defun vc-git--literal-pathspec (pathspec)
-  "Prepend :(literal) path magic to PATHSPEC."
-  ;; Good example of PATHSPEC that needs this: "test[56].xx".
-  (and pathspec (concat ":(literal)" pathspec)))
+(defun vc-git--literal-pathspec (file)
+  "Prepend :(literal) path magic to FILE."
+  ;; Good example of file name that needs this: "test[56].xx".
+  (let ((lname (file-local-name file)))
+    ;; Expand abbreviated file names.
+    (when (file-name-absolute-p lname)
+      (setq lname (expand-file-name lname)))
+    (and file (concat ":(literal)" lname))))
 
-(defun vc-git--literal-pathspecs (pathspecs)
-  "Prepend :(literal) path magic to PATHSPECS."
-  (mapcar #'vc-git--literal-pathspec pathspecs))
+(defun vc-git--literal-pathspecs (files)
+  "Prepend :(literal) path magic to FILES."
+  (mapcar #'vc-git--literal-pathspec files))
 
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
@@ -1552,10 +1556,10 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     (or (vc-git-symbolic-commit next-rev) next-rev)))
 
 (defun vc-git-delete-file (file)
-  (vc-git-command nil 0 (vc-git--literal-pathspecs file) "rm" "-f" "--"))
+  (vc-git-command nil 0 (vc-git--literal-pathspec file) "rm" "-f" "--"))
 
 (defun vc-git-rename-file (old new)
-  (vc-git-command nil 0 (vc-git--literal-pathspecs (list old new)) "mv" "-f" "--"))
+  (vc-git-command nil 0 (list old new) "mv" "-f" "--"))
 
 (defun vc-git-mark-resolved (files)
   (vc-git-command nil 0 (vc-git--literal-pathspecs files) "add"))

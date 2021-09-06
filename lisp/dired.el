@@ -137,10 +137,9 @@ For more details, see Info node `(emacs)ls in Lisp'."
                  (const :tag "Do not use --dired" nil)
                  (other :tag "Always use --dired" t)))
 
-(defcustom dired-chmod-program "chmod"
-  "Name of chmod command (usually `chmod')."
-  :group 'dired
-  :type 'file)
+(defvar dired-chmod-program "chmod"
+  "Name of chmod command (usually `chmod').")
+(make-obsolete-variable 'dired-chmod-program nil "28.1")
 
 (defcustom dired-touch-program "touch"
   "Name of touch command (usually `touch')."
@@ -2194,6 +2193,21 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ["Delete Image Tag..." image-dired-delete-tag
      :help "Delete image tag from current or marked files"]))
 
+(defun dired-context-menu (menu)
+  (when (mouse-posn-property (event-start last-input-event) 'dired-filename)
+    (define-key menu [dired-separator] menu-bar-separator)
+    (let ((easy-menu (make-sparse-keymap "Immediate")))
+      (easy-menu-define nil easy-menu nil
+        '("Immediate"
+          ["Find This File" dired-mouse-find-file
+           :help "Edit file at mouse click"]
+          ["Find in Other Window" dired-mouse-find-file-other-window
+           :help "Edit file at mouse click in other window"]))
+      (dolist (item (reverse (lookup-key easy-menu [menu-bar immediate])))
+        (when (consp item)
+          (define-key menu (vector (car item)) (cdr item))))))
+  menu)
+
 
 ;;; Dired mode
 
@@ -2293,6 +2307,7 @@ Keybindings:
                 (append dired-dnd-protocol-alist dnd-protocol-alist)))
   (add-hook 'file-name-at-point-functions #'dired-file-name-at-point nil t)
   (add-hook 'isearch-mode-hook #'dired-isearch-filenames-setup nil t)
+  (add-hook 'context-menu-functions 'dired-context-menu 5 t)
   (run-mode-hooks 'dired-mode-hook))
 
 
@@ -4479,11 +4494,17 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;###autoload
 (defun dired-jump (&optional other-window file-name)
   "Jump to Dired buffer corresponding to current buffer.
-If in a file, Dired the current directory and move to file's line.
+If in a buffer visiting a file, Dired that file's directory and
+move to that file's line in the directory listing.
+
+If the current buffer isn't visiting a file, Dired `default-directory'.
+
 If in Dired already, pop up a level and goto old directory's line.
 In case the proper Dired file line cannot be found, refresh the dired
 buffer and try again.
+
 When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
+
 When FILE-NAME is non-nil, jump to its line in Dired.
 Interactively with prefix argument, read FILE-NAME."
   (interactive

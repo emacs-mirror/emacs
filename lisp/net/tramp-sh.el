@@ -1857,41 +1857,53 @@ ID-FORMAT valid values are `string' and `integer'."
   (dirname newname &optional keep-date parents copy-contents)
   "Like `copy-directory' for Tramp files."
   (let ((t1 (tramp-tramp-file-p dirname))
-	(t2 (tramp-tramp-file-p newname)))
+	(t2 (tramp-tramp-file-p newname))
+	target)
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
       (unless (file-exists-p dirname)
 	(tramp-compat-file-missing v dirname))
-      (if (and (not copy-contents)
-	       (tramp-get-method-parameter v 'tramp-copy-recursive)
-	       ;; When DIRNAME and NEWNAME are remote, they must have
-	       ;; the same method.
-	       (or (null t1) (null t2)
-		   (string-equal
-		    (tramp-file-name-method (tramp-dissect-file-name dirname))
-		    (tramp-file-name-method
-		     (tramp-dissect-file-name newname)))))
-	  ;; scp or rsync DTRT.
-	  (progn
-	    (when (and (file-directory-p newname)
-		       (not (directory-name-p newname)))
-	      (tramp-error v 'file-already-exists newname))
-	    (setq dirname (directory-file-name (expand-file-name dirname))
-		  newname (directory-file-name (expand-file-name newname)))
-	    (when (and (file-directory-p newname)
-		       (not (string-equal (file-name-nondirectory dirname)
-					  (file-name-nondirectory newname))))
-	      (setq newname
-		    (expand-file-name
-		     (file-name-nondirectory dirname) newname)))
-	    (unless (file-directory-p (file-name-directory newname))
-		(make-directory (file-name-directory newname) parents))
-	    (tramp-do-copy-or-rename-file-out-of-band
-	     'copy dirname newname 'ok-if-already-exists keep-date))
 
-	;; We must do it file-wise.
-	(tramp-run-real-handler
-	 #'copy-directory
-	 (list dirname newname keep-date parents copy-contents)))
+      ;; `copy-directory-create-symlink' exists since Emacs 28.1.
+      (if (and (bound-and-true-p copy-directory-create-symlink)
+	       (setq target (file-symlink-p dirname))
+	       (tramp-equal-remote dirname newname))
+	  (make-symbolic-link
+	   target
+	   (if (directory-name-p newname)
+	       (concat newname (file-name-nondirectory dirname)) newname)
+	   t)
+
+	(if (and (not copy-contents)
+		 (tramp-get-method-parameter v 'tramp-copy-recursive)
+		 ;; When DIRNAME and NEWNAME are remote, they must
+		 ;; have the same method.
+		 (or (null t1) (null t2)
+		     (string-equal
+		      (tramp-file-name-method (tramp-dissect-file-name dirname))
+		      (tramp-file-name-method
+		       (tramp-dissect-file-name newname)))))
+	    ;; scp or rsync DTRT.
+	    (progn
+	      (when (and (file-directory-p newname)
+			 (not (directory-name-p newname)))
+		(tramp-error v 'file-already-exists newname))
+	      (setq dirname (directory-file-name (expand-file-name dirname))
+		    newname (directory-file-name (expand-file-name newname)))
+	      (when (and (file-directory-p newname)
+			 (not (string-equal (file-name-nondirectory dirname)
+					    (file-name-nondirectory newname))))
+		(setq newname
+		      (expand-file-name
+		       (file-name-nondirectory dirname) newname)))
+	      (unless (file-directory-p (file-name-directory newname))
+		(make-directory (file-name-directory newname) parents))
+	      (tramp-do-copy-or-rename-file-out-of-band
+	       'copy dirname newname 'ok-if-already-exists keep-date))
+
+	  ;; We must do it file-wise.
+	  (tramp-run-real-handler
+	   #'copy-directory
+	   (list dirname newname keep-date parents copy-contents))))
 
       ;; When newname did exist, we have wrong cached values.
       (when t2
@@ -2753,9 +2765,7 @@ implementation will be used."
 	      (coding (plist-get args :coding))
 	      (noquery (plist-get args :noquery))
 	      (connection-type
-	       (if (plist-member args :connection-type)
-		   (plist-get args :connection-type)
-		 tramp-process-connection-type))
+	       (or (plist-get args :connection-type) process-connection-type))
 	      (filter (plist-get args :filter))
 	      (sentinel (plist-get args :sentinel))
 	      (stderr (plist-get args :stderr)))
@@ -2771,7 +2781,9 @@ implementation will be used."
 			   (memq (car coding) coding-system-list)
 			   (memq (cdr coding) coding-system-list)))
 	    (signal 'wrong-type-argument (list #'symbolp coding)))
-	  (unless (memq connection-type '(nil pipe t pty))
+	  (when (eq connection-type t)
+	    (setq connection-type 'pty))
+	  (unless (memq connection-type '(nil pipe pty))
 	    (signal 'wrong-type-argument (list #'symbolp connection-type)))
 	  (unless (or (null filter) (functionp filter))
 	    (signal 'wrong-type-argument (list #'functionp filter)))

@@ -42,15 +42,6 @@
   "Finding files."
   :group 'files)
 
-
-(defcustom delete-auto-save-files t
-  "Non-nil means delete auto-save file when a buffer is saved or killed.
-
-Note that the auto-save file will not be deleted if the buffer is killed
-when it has unsaved changes."
-  :type 'boolean
-  :group 'auto-save)
-
 (defcustom directory-abbrev-alist
   nil
   "Alist of abbreviations for file directories.
@@ -257,7 +248,7 @@ This feature is advisory: for example, if the directory in which the
 file is being saved is not writable, Emacs may ignore a non-nil value
 of `file-precious-flag' and write directly into the file.
 
-See also: `break-hardlink-on-save'."
+See also: `break-hardlink-on-save' and `file-preserve-symlinks-on-save'."
   :type 'boolean
   :group 'backup)
 
@@ -2360,7 +2351,7 @@ the various files."
                         ((not query-about-changed-file)
                          (message
                           (substitute-command-keys
-                           "File %s changed on disk.  \\[revert-buffer] to load new contents%s")
+                           "File %s changed on disk.  \\[revert-buffer-quick] to load new contents%s")
                           (file-name-nondirectory filename)
                           (if (buffer-modified-p buf)
                               " and discard your edits"
@@ -5033,7 +5024,7 @@ FILENAME has the format of a directory.
 See also `file-name-sans-extension'."
   (let ((extn (string-trim-left extension "[.]")))
     (cond ((string-empty-p filename)
-           (error "Empty filename: %s" filename))
+           (error "Empty filename"))
           ((string-empty-p extn)
            (error "Malformed extension: %s" extension))
           ((directory-name-p filename)
@@ -5437,6 +5428,23 @@ Used only by `save-buffer'."
   :type 'hook
   :group 'files)
 
+(defcustom copy-directory-create-symlink nil
+  "This option influences the handling of symbolic links in `copy-directory'.
+If non-nil, `copy-directory' will create a symbolic link if the
+source directory is a symbolic link.  If nil, it'll follow the
+symbolic link and copy the contents instead."
+  :type 'boolean
+  :version "28.1"
+  :group 'files)
+
+(defcustom file-preserve-symlinks-on-save nil
+  "If non-nil, saving a buffer visited via a symlink won't overwrite the symlink.
+This is only relevant if `file-precious-flag' is non-nil -- if
+this is nil, Emacs will preserve the symlinks anyway."
+  :type 'boolean
+  :version "28.1"
+  :group 'files)
+
 (defvar-local save-buffer-coding-system nil
   "If non-nil, use this coding system for saving the buffer.
 More precisely, use this coding system in place of the
@@ -5639,7 +5647,14 @@ Before and after saving the buffer, this function runs
 				     buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
-	    (rename-file tempname buffer-file-name t))
+	    (rename-file tempname
+                         (if (and file-preserve-symlinks-on-save
+                                  (file-symlink-p buffer-file-name))
+                             ;; Write to the file that the symlink
+                             ;; points to.
+                             (file-chase-links buffer-file-name)
+                           buffer-file-name)
+                         t))
 	;; If file not writable, see if we can make it writable
 	;; temporarily while we write it.
 	;; But no need to do so if we have just backed it up
@@ -6165,6 +6180,9 @@ Noninteractively, the PARENTS argument says whether to create
 parent directories if they don't exist.  Interactively, this
 happens by default.
 
+If DIRECTORY is a symlink and `copy-directory-create-symlink' is
+non-nil, create a symlink with the same target as DIRECTORY.
+
 If NEWNAME is a directory name, copy DIRECTORY as a subdirectory
 there.  However, if called from Lisp with a non-nil optional
 argument COPY-CONTENTS, copy the contents of DIRECTORY directly
@@ -6193,42 +6211,53 @@ into NEWNAME instead."
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname (expand-file-name newname))
 
-      (cond ((not (directory-name-p newname))
-	     ;; If NEWNAME is not a directory name, create it;
-	     ;; that is where we will copy the files of DIRECTORY.
-	     (make-directory newname parents))
-	    ;; NEWNAME is a directory name.  If COPY-CONTENTS is non-nil,
-	    ;; create NEWNAME if it is not already a directory;
-	    ;; otherwise, create NEWNAME/[DIRECTORY-BASENAME].
-	    ((if copy-contents
-		 (or parents (not (file-directory-p newname)))
-	       (setq newname (concat newname
-				     (file-name-nondirectory directory))))
-	     (make-directory (directory-file-name newname) parents))
-	    (t (setq follow t)))
+      ;; If DIRECTORY is a symlink, create a symlink with the same target.
+      (if (and (file-symlink-p directory)
+               copy-directory-create-symlink)
+          (let ((target (car (file-attributes directory))))
+	    (if (directory-name-p newname)
+		(make-symbolic-link target
+				    (concat newname
+					    (file-name-nondirectory directory))
+				    t)
+	      (make-symbolic-link target newname t)))
+        ;; Else proceed to copy as a regular directory
+        (cond ((not (directory-name-p newname))
+	       ;; If NEWNAME is not a directory name, create it;
+	       ;; that is where we will copy the files of DIRECTORY.
+	       (make-directory newname parents))
+	      ;; NEWNAME is a directory name.  If COPY-CONTENTS is non-nil,
+	      ;; create NEWNAME if it is not already a directory;
+	      ;; otherwise, create NEWNAME/[DIRECTORY-BASENAME].
+	      ((if copy-contents
+		   (or parents (not (file-directory-p newname)))
+	         (setq newname (concat newname
+				       (file-name-nondirectory directory))))
+	       (make-directory (directory-file-name newname) parents))
+	      (t (setq follow t)))
 
-      ;; Copy recursively.
-      (dolist (file
-	       ;; We do not want to copy "." and "..".
-	       (directory-files directory 'full
-				directory-files-no-dot-files-regexp))
-	(let ((target (concat (file-name-as-directory newname)
-			      (file-name-nondirectory file)))
-	      (filetype (car (file-attributes file))))
-	  (cond
-	   ((eq filetype t)       ; Directory but not a symlink.
-	    (copy-directory file target keep-time parents t))
-	   ((stringp filetype)    ; Symbolic link
-	    (make-symbolic-link filetype target t))
-	   ((copy-file file target t keep-time)))))
+        ;; Copy recursively.
+        (dolist (file
+	         ;; We do not want to copy "." and "..".
+	         (directory-files directory 'full
+				  directory-files-no-dot-files-regexp))
+	  (let ((target (concat (file-name-as-directory newname)
+			        (file-name-nondirectory file)))
+	        (filetype (car (file-attributes file))))
+	    (cond
+	     ((eq filetype t)           ; Directory but not a symlink.
+	      (copy-directory file target keep-time parents t))
+	     ((stringp filetype)        ; Symbolic link
+	      (make-symbolic-link filetype target t))
+	     ((copy-file file target t keep-time)))))
 
-      ;; Set directory attributes.
-      (let ((modes (file-modes directory))
-	    (times (and keep-time (file-attribute-modification-time
-				   (file-attributes directory))))
-	    (follow-flag (unless follow 'nofollow)))
-	(if modes (set-file-modes newname modes follow-flag))
-	(if times (set-file-times newname times follow-flag))))))
+        ;; Set directory attributes.
+        (let ((modes (file-modes directory))
+	      (times (and keep-time (file-attribute-modification-time
+				     (file-attributes directory))))
+	      (follow-flag (unless follow 'nofollow)))
+	  (if modes (set-file-modes newname modes follow-flag))
+	  (if times (set-file-times newname times follow-flag)))))))
 
 
 ;; At time of writing, only info uses this.

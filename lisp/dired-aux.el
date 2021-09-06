@@ -1137,12 +1137,12 @@ present.  A FMT of \"\" will suppress the messaging."
     ("\\.tar\\.gz\\'" "" "gzip -dc %i | tar -xf -")
     ("\\.tar\\.xz\\'" "" "xz -dc %i | tar -xf -")
     ("\\.tgz\\'" "" "gzip -dc %i | tar -xf -")
-    ("\\.gz\\'" "" "gunzip")
+    ("\\.gz\\'" "" "gzip -d")
     ("\\.lz\\'" "" "lzip -d")
     ("\\.Z\\'" "" "uncompress")
     ;; For .z, try gunzip.  It might be an old gzip file,
     ;; or it might be from compact? pack? (which?) but gunzip handles both.
-    ("\\.z\\'" "" "gunzip")
+    ("\\.z\\'" "" "gzip -d")
     ("\\.dz\\'" "" "dictunzip")
     ("\\.tbz\\'" ".tar" "bunzip2")
     ("\\.bz2\\'" "" "bunzip2")
@@ -3245,10 +3245,13 @@ REGEXP should use constructs supported by your local `grep' command."
      (list (nth 0 common) (nth 1 common))))
   (require 'xref)
   (defvar xref-show-xrefs-function)
+  (defvar xref-auto-jump-to-first-xref)
   (with-current-buffer
       (let ((xref-show-xrefs-function
              ;; Some future-proofing (bug#44905).
-             (custom--standard-value 'xref-show-xrefs-function)))
+             (custom--standard-value 'xref-show-xrefs-function))
+            ;; Disable auto-jumping, it will mess up replacement logic.
+            xref-auto-jump-to-first-xref)
         (dired-do-find-regexp from))
     (xref-query-replace-in-results from to)))
 

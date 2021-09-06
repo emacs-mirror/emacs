@@ -38,6 +38,7 @@
 (require 'sendmail)
 
 (autoload 'easy-menu-add "easymenu")
+(autoload 'mail-header-parse-address "mail-parse")
 (autoload 'mml-insert-tag "mml")
 
 
@@ -452,7 +453,7 @@ See also `mh-send'."
              ;; Header field exists and we have a value
              (let (address mailbox (alias (mh-alias-expand value)))
                (and alias
-                    (setq address (ietf-drums-parse-address alias))
+                    (setq address (mail-header-parse-address alias))
                     (setq mailbox (car address)))
                ;; XXX - Need to parse all addresses out of field
                (if (and

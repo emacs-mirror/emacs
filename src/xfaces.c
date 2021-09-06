@@ -5092,8 +5092,8 @@ gui_supports_face_attributes_p (struct frame *f,
 {
   Lisp_Object *def_attrs = def_face->lface;
 
-  /* Check that other specified attributes are different that the default
-     face.  */
+  /* Check that other specified attributes are different from the
+     default face.  */
   if ((!UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
        && face_attr_equal_p (attrs[LFACE_UNDERLINE_INDEX],
 			     def_attrs[LFACE_UNDERLINE_INDEX]))

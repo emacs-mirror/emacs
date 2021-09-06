@@ -35,14 +35,14 @@
 ;; working day), and `timeclock-when-to-leave' to calculate when you're free.
 
 ;; You'll probably want to bind the timeclock commands to some handy
-;; keystrokes.  At the moment, C-x t is unused:
+;; keystrokes.  Assuming C-c t is unbound, you might use:
 ;;
-;;   (define-key ctl-x-map "ti" 'timeclock-in)
-;;   (define-key ctl-x-map "to" 'timeclock-out)
-;;   (define-key ctl-x-map "tc" 'timeclock-change)
-;;   (define-key ctl-x-map "tr" 'timeclock-reread-log)
-;;   (define-key ctl-x-map "tu" 'timeclock-update-mode-line)
-;;   (define-key ctl-x-map "tw" 'timeclock-when-to-leave-string)
+;;   (define-key (kbd "C-c t i") 'timeclock-in)
+;;   (define-key (kbd "C-c t o") 'timeclock-out)
+;;   (define-key (kbd "C-c t c") 'timeclock-change)
+;;   (define-key (kbd "C-c t r") 'timeclock-reread-log)
+;;   (define-key (kbd "C-c t u") 'timeclock-update-mode-line)
+;;   (define-key (kbd "C-c t w") 'timeclock-when-to-leave-string)
 
 ;; If you want Emacs to display the amount of time "left" to your
 ;; workday in the mode-line, you can either set the value of
@@ -87,6 +87,8 @@
 (defcustom timeclock-workday (* 8 60 60)
   "The length of a work period in seconds."
   :type 'integer)
+
+(defvar timeclock--previous-workday nil)
 
 (defcustom timeclock-relative t
   "Whether to make reported time relative to `timeclock-workday'.
@@ -269,7 +271,10 @@ will be updated whenever the time display is updated.  Otherwise,
 the timeclock will use its own sixty second timer to do its
 updating.  With prefix ARG, turn mode line display on if and only
 if ARG is positive.  Returns the new status of timeclock mode line
-display (non-nil means on)."
+display (non-nil means on).
+
+If using a customized `timeclock-workday' value, this should be
+set before switching this mode on."
   :global t
   ;; cf display-time-mode.
   (setq timeclock-mode-string "")
@@ -1058,7 +1063,9 @@ discrepancy, today's discrepancy, and the time worked today."
 	 (first t) (accum 0) (elapsed 0)
 	 event beg last-date
 	 last-date-limited last-date-seconds)
-    (unless timeclock-discrepancy
+    (when (or (not timeclock-discrepancy)
+              ;; The length of the workday has changed, so recompute.
+              (not (equal timeclock-workday timeclock--previous-workday)))
       (when (file-readable-p timeclock-file)
 	(setq timeclock-project-list nil
 	      timeclock-last-project nil
@@ -1114,7 +1121,8 @@ discrepancy, today's discrepancy, and the time worked today."
 		      last-date-seconds
 		    timeclock-workday))
 	    (forward-line))
-	  (setq timeclock-discrepancy accum))))
+	  (setq timeclock-discrepancy accum
+                timeclock--previous-workday timeclock-workday))))
     (unless timeclock-last-event-workday
       (setq timeclock-last-event-workday timeclock-workday))
     (setq accum (or timeclock-discrepancy 0)

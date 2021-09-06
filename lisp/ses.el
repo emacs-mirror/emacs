@@ -1677,7 +1677,7 @@ if the range was altered."
 		 (funcall field (ses-sym-rowcol min))))
 	  ;; This range has changed size.
 	  (setq ses-relocate-return 'range))
-      `(ses-range ,min ,max ,@(cl-cdddr range)))))
+      `(ses-range ,min ,max ,@(cdddr range)))))
 
 (defun ses-relocate-all (minrow mincol rowincr colincr)
   "Alter all cell values, symbols, formulas, and reference-lists to relocate

@@ -52,6 +52,14 @@
     (should (string-match-p "file1\\.txt\\'" (xref-location-group (nth 0 locs))))
     (should (string-match-p "file2\\.txt\\'" (xref-location-group (nth 1 locs))))))
 
+(ert-deftest xref-matches-in-directory-filters-with-ignores ()
+  (let ((locs (xref-matches-in-directory "bar" "*" xref-tests--data-dir
+                                         '("./file1.*"))))
+    (should (= 1 (length locs)))
+    (should (string-match-p "file2\\.txt\\'" (xref-location-group
+                                              (xref-item-location
+                                               (nth 0 locs)))))))
+
 (ert-deftest xref-matches-in-directory-finds-two-matches-on-the-same-line ()
   (let ((locs (xref-tests--locations-in-data-dir "foo")))
     (should (= 2 (length locs)))

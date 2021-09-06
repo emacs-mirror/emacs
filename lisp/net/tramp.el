@@ -714,6 +714,13 @@ The regexp should match at end of buffer."
   :version "28.1"
   :type 'regexp)
 
+(defcustom tramp-security-key-timeout-regexp
+  "^\r*sign_and_send_pubkey: signing failed for .*[\r\n]*"
+  "Regular expression matching security key timeout message.
+The regexp should match at end of buffer."
+  :version "28.1"
+  :type 'regexp)
+
 (defcustom tramp-operation-not-permitted-regexp
   (concat "\\(" "preserving times.*" "\\|" "set mode" "\\)" ":\\s-*"
 	  (regexp-opt '("Operation not permitted") t))
@@ -4094,9 +4101,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	    (coding (plist-get args :coding))
 	    (noquery (plist-get args :noquery))
 	    (connection-type
-	     (if (plist-member args :connection-type)
-		 (plist-get args :connection-type)
-	       tramp-process-connection-type))
+	     (or (plist-get args :connection-type) process-connection-type))
 	    (filter (plist-get args :filter))
 	    (sentinel (plist-get args :sentinel))
 	    (stderr (plist-get args :stderr)))
@@ -4112,7 +4117,9 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 			 (memq (car coding) coding-system-list)
 			 (memq (cdr coding) coding-system-list)))
 	  (signal 'wrong-type-argument (list #'symbolp coding)))
-	(unless (memq connection-type '(nil pipe t pty))
+	(when (eq connection-type t)
+	  (setq connection-type 'pty))
+	(unless (memq connection-type '(nil pipe pty))
 	  (signal 'wrong-type-argument (list #'symbolp connection-type)))
 	(unless (or (null filter) (functionp filter))
 	  (signal 'wrong-type-argument (list #'functionp filter)))
@@ -4692,16 +4699,23 @@ The terminal type can be configured with `tramp-terminal-type'."
   "Show the user a message for confirmation.
 Wait, until the connection buffer changes."
   (with-current-buffer (process-buffer proc)
-    (let ((stimers (with-timeout-suspend)))
+    (let ((stimers (with-timeout-suspend))
+	  (cursor-in-echo-area t)
+	  set-message-function clear-message-function)
+      ;; Silence byte compiler.
+      (ignore set-message-function clear-message-function)
       (tramp-message vec 6 "\n%s" (buffer-string))
-      (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
       (with-temp-message (replace-regexp-in-string "[\r\n]" "" (match-string 0))
-	(redisplay 'force)
 	;; Hide message in buffer.
 	(narrow-to-region (point-max) (point-max))
 	;; Wait for new output.
-	(tramp-wait-for-regexp proc 30 tramp-security-key-confirmed-regexp))
+	(while (not (tramp-compat-ignore-error 'file-error
+		      (tramp-wait-for-regexp
+		       proc 0.1 tramp-security-key-confirmed-regexp)))
+	  (when (tramp-check-for-regexp proc tramp-security-key-timeout-regexp)
+	    (throw 'tramp-action 'timeout))
+	  (redisplay 'force)))
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers)))
   t)
@@ -5405,7 +5419,8 @@ this file, if that variable is non-nil."
     ;; Create directory.
     (unless (or (null tramp-auto-save-directory)
 		(file-exists-p tramp-auto-save-directory))
-      (make-directory tramp-auto-save-directory t))
+      (make-directory tramp-auto-save-directory t)
+      (set-file-modes tramp-auto-save-directory #o0700))
 
     (let ((system-type
 	   (if (and (stringp tramp-auto-save-directory)
@@ -5576,6 +5591,9 @@ verbosity of 6."
 	       (string-prefix-p comm process-name)
 	       (throw 'result t)))))))
 
+;; When calling "emacs -Q", `auth-source-search' won't be called.  If
+;; you want to debug exactly this case, call "emacs -Q --eval '(setq
+;; tramp-cache-read-persistent-data t)'" instead.
 (defun tramp-read-passwd (proc &optional prompt)
   "Read a password from user (compat function).
 Consults the auth-source package.

@@ -1699,14 +1699,15 @@ result is inserted.
 @cindex Sv
 @cindex Re
 Responses to messages have subjects that start with @samp{Re: }.  This
-is @emph{not} an abbreviation of the English word ``response'', but is
-Latin, and means ``in response to''.  Some illiterate nincompoops have
-failed to grasp this fact, and have ``internationalized'' their software
-to use abominations like @samp{Aw: } (``antwort'') or @samp{Sv: }
-(``svar'') instead, which is meaningless and evil.  However, you may
-have to deal with users that use these evil tools, in which case you may
-set this variable to a regexp that matches these prefixes.  Myself, I
-just throw away non-compliant mail.
+is @emph{not} an abbreviation of the English word ``response'', but it
+comes from the Latin ``res'', and means ``in the matter of''.  Some
+illiterate nincompoops have failed to grasp this fact, and have
+``internationalized'' their software to use abominations like
+@samp{Aw: } (``antwort'') or @samp{Sv: } (``svar'') instead, which is
+meaningless and evil.  However, you may have to deal with users that
+use these evil tools, in which case you may set this variable to a
+regexp that matches these prefixes.  Myself, I just throw away
+non-compliant mail.
 
 Here's an example of a value to deal with these headers when
 responding to a message:

@@ -1731,22 +1731,24 @@ escaped (\\\",\\\\)."
 	       (list
 		(concat
 		 " ("
-		 (if (stringp Info-current-file)
-		     (string-replace
-		      "%" "%%"
-		      (file-name-sans-extension
-		       (file-name-nondirectory Info-current-file)))
-		   (format "*%S*" Info-current-file))
-		 ") "
-		 (if Info-current-node
-		     (propertize (string-replace
-				  "%" "%%" Info-current-node)
-				 'face 'mode-line-buffer-id
-				 'help-echo
-				 "mouse-1: scroll forward, mouse-3: scroll back"
-				 'mouse-face 'mode-line-highlight
-				 'local-map Info-mode-line-node-keymap)
-		   ""))))))
+                 (propertize
+		  (if (stringp Info-current-file)
+                      (string-replace
+		       "%" "%%"
+		       (file-name-sans-extension
+		        (file-name-nondirectory Info-current-file)))
+		    (format "*%S*" Info-current-file))
+                  'help-echo "Info file name")
+		 ") ")
+		(if Info-current-node
+		    (propertize (string-replace
+				 "%" "%%" Info-current-node)
+				'face 'mode-line-buffer-id
+				'help-echo
+				"mouse-1: scroll forward, mouse-3: scroll back"
+				'mouse-face 'mode-line-highlight
+				'local-map Info-mode-line-node-keymap)
+		  "")))))
 
 ;; Go to an Info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
@@ -4117,9 +4119,9 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     :help "Search for another occurrence of regular expression"]
    "---"
    ("History"
-    ["Back in history" Info-history-back :active Info-history
+    ["Back in History" Info-history-back :active Info-history
      :help "Go back in history to the last node you were at"]
-    ["Forward in history" Info-history-forward :active Info-history-forward
+    ["Forward in History" Info-history-forward :active Info-history-forward
      :help "Go forward in history"]
     ["Show History" Info-history :active Info-history-list
      :help "Go to menu of visited nodes"])
@@ -4146,6 +4148,25 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
    "---"
    ["Exit" quit-window :help "Stop reading Info"]))
 
+(defun Info-context-menu (menu)
+  (define-key menu [Info-separator] menu-bar-separator)
+  (let ((easy-menu (make-sparse-keymap "Info")))
+    (easy-menu-define nil easy-menu nil
+      '("Info"
+        ["Back in History" Info-history-back :visible Info-history
+         :help "Go back in history to the last node you were at"]
+        ["Forward in History" Info-history-forward :visible Info-history-forward
+         :help "Go forward in history"]))
+    (dolist (item (reverse (lookup-key easy-menu [menu-bar info])))
+      (when (consp item)
+        (define-key menu (vector (car item)) (cdr item)))))
+
+  (when (mouse-posn-property (event-start last-input-event) 'mouse-face)
+    (define-key menu [Info-mouse-follow-nearest-node]
+      '(menu-item "Follow Link" Info-mouse-follow-nearest-node
+                  :help "Follow a link where you click")))
+
+  menu)
 
 (defvar info-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -4446,6 +4467,7 @@ Advanced commands:
   (add-hook 'clone-buffer-hook 'Info-clone-buffer nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'Info-isearch-start nil t)
+  (add-hook 'context-menu-functions 'Info-context-menu 5 t)
   (when Info-standalone
     (add-hook 'quit-window-hook 'save-buffers-kill-emacs nil t))
   (setq-local isearch-search-fun-function #'Info-isearch-search)

@@ -3745,19 +3745,20 @@ tty, or not.  This is controlled by the variable
 @value{tramp} is based on running shells on the remote host, which
 require a pseudo tty.  Therefore, it declares the variable
 @code{tramp-process-connection-type}, which carries this information
-for remote processes.  Per default, its value is @code{t}.  The name
-of the remote pseudo tty is returned by the function
-@code{process-tty-name}.
+for remote processes.  Per default, its value is @code{t}, and there's
+no need to change it.  The name of the remote pseudo tty is returned
+by the function @code{process-tty-name}.
 
 If a remote process, started by @code{start-file-process}, shouldn't
-use a pseudo tty, this is emulated by let-binding this variable to
-@code{nil} or @code{pipe}.  There is still a pseudo tty for the
-started process, but some terminal properties are changed, like
-suppressing translation of carriage return characters into newline.
+use a pseudo tty, this can be indicated by setting
+@code{process-connection-type} to @code{nil} or @code{pipe}.  There is
+still a pseudo tty for the started process, but some terminal
+properties are changed, like suppressing translation of carriage
+return characters into newline.
 
 The function @code{make-process} allows an explicit setting by the
 @code{:connection-type} keyword.  If this keyword is not used, the
-value of @code{tramp-process-connection-type} is applied instead.
+value of @code{process-connection-type} is applied instead.
 
 
 @anchor{Improving performance of asynchronous remote processes}

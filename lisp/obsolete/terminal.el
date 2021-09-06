@@ -112,10 +112,9 @@ performance."
     nil
   (let ((map (make-sparse-keymap)))
     (define-key map [t] #'undefined)
-    (let ((s "0"))
-      (while (<= (aref s 0) ?9)
-	(define-key map s #'digit-argument)
-	(aset s 0 (1+ (aref s 0)))))
+    (dotimes (i 10)
+      (let ((s (make-string 1 (+ ?0 i))))
+	(define-key map s #'digit-argument)))
     (define-key map "b" #'switch-to-buffer)
     (define-key map "o" #'other-window)
     (define-key map "e" #'te-set-escape-char)

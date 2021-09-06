@@ -2408,7 +2408,7 @@ prefix with another element in PAIRS."
 	    (when (and (listp x) (listp (cadr x)))
 	      (setcdr x (if (> (length (cdr x)) 1)
 			    (rcirc-make-trees (cdr x))
-			  (setcdr x (list (cl-cdadr x)))))))
+                          (setcdr x (list (cdadr x)))))))
 	  alist)))
 
 ;;; /commands these are called with 3 args: PROCESS, TARGET, which is
@@ -3234,7 +3234,7 @@ RFC1459."
     (with-current-buffer buffer
       (let ((setter (nth 2 args))
 	    (time (current-time-string
-		   (string-to-number (cl-cadddr args)))))
+                   (string-to-number (cadddr args)))))
 	(rcirc-print process sender "TOPIC" (cadr args)
 		     (format "%s (%s on %s)" rcirc-topic setter time))))))
 
@@ -3344,7 +3344,7 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	    (server (car i))
 	    (nick (nth 2 i))
 	    (method (cadr i))
-	    (args (cl-cdddr i)))
+            (args (cdddr i)))
 	(when (and (string-match server rcirc-server))
           (if (and (memq method '(nickserv chanserv bitlbee))
                    (string-match nick rcirc-nick))

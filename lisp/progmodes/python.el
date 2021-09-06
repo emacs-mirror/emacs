@@ -2022,7 +2022,12 @@ position, else returns nil."
   (cond ((executable-find "python3") "python3")
         ((executable-find "python") "python")
         (t "python3"))
-  "Default Python interpreter for shell."
+  "Default Python interpreter for shell.
+
+Some Python interpreters also require changes to
+`python-shell-interpreter-args'.  In particular, setting
+`python-shell-interpreter' to \"ipython3\" requires setting
+`python-shell-interpreter-args' to \"--simple-prompt\"."
   :version "28.1"
   :type 'string
   :group 'python)
@@ -3076,6 +3081,45 @@ there for compatibility with CEDET.")
       (delete-trailing-whitespace))
     temp-file-name))
 
+(defconst python-shell-eval-setup-code
+  "\
+def __PYTHON_EL_eval(source, filename):
+    import ast, sys
+    if sys.version_info[0] == 2:
+        from __builtin__ import compile, eval, globals
+    else:
+        from builtins import compile, eval, globals
+    sys.stdout.write('\\n')
+    try:
+        p, e = ast.parse(source, filename), None
+    except SyntaxError:
+        t, v, tb = sys.exc_info()
+        sys.excepthook(t, v, tb.tb_next)
+        return
+    if p.body and isinstance(p.body[-1], ast.Expr):
+        e = p.body.pop()
+    try:
+        g = globals()
+        exec(compile(p, filename, 'exec'), g, g)
+        if e:
+            return eval(compile(ast.Expression(e.value), filename, 'eval'), g, g)
+    except Exception:
+        t, v, tb = sys.exc_info()
+        sys.excepthook(t, v, tb.tb_next)"
+  "Code used to evaluate statements in inferior Python processes.")
+
+(defalias 'python-shell--encode-string
+  (let ((fun (if (and (fboundp 'json-serialize)
+                      (>= emacs-major-version 28))
+                 'json-serialize
+               (require 'json)
+               'json-encode-string)))
+    (lambda (text)
+      (if (stringp text)
+          (funcall fun text)
+        (signal 'wrong-type-argument (list 'stringp text)))))
+  "Encode TEXT as a valid Python string.")
+
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
 When optional argument MSG is non-nil, forces display of a
@@ -3083,16 +3127,18 @@ user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive
    (list (read-string "Python command: ") nil t))
-  (let ((process (or process (python-shell-get-process-or-error msg))))
-    (if (string-match ".\n+." string)   ;Multiline.
-        (let* ((temp-file-name (with-current-buffer (process-buffer process)
-                                 (python-shell--save-temp-file string)))
-               (file-name (or (buffer-file-name) temp-file-name)))
-          (python-shell-send-file file-name process temp-file-name t))
-      (comint-send-string process string)
-      (when (or (not (string-match "\n\\'" string))
-                (string-match "\n[ \t].*\n?\\'" string))
-        (comint-send-string process "\n")))))
+  (let ((process (or process (python-shell-get-process-or-error msg)))
+        (code (format "exec(%s);__PYTHON_EL_eval(%s, %s)\n"
+                      (python-shell--encode-string python-shell-eval-setup-code)
+                      (python-shell--encode-string string)
+                      (python-shell--encode-string (or (buffer-file-name)
+                                                       "<string>")))))
+    (if (<= (string-bytes code) 4096)
+        (comint-send-string process code)
+      (let* ((temp-file-name (with-current-buffer (process-buffer process)
+                               (python-shell--save-temp-file string)))
+             (file-name (or (buffer-file-name) temp-file-name)))
+        (python-shell-send-file file-name process temp-file-name t)))))
 
 (defvar python-shell-output-filter-in-progress nil)
 (defvar python-shell-output-filter-buffer nil)
@@ -3134,7 +3180,8 @@ Return the output."
         (inhibit-quit t))
     (or
      (with-local-quit
-       (python-shell-send-string string process)
+       (comint-send-string
+        process (format "exec(%s)\n" (python-shell--encode-string string)))
        (while python-shell-output-filter-in-progress
          ;; `python-shell-output-filter' takes care of setting
          ;; `python-shell-output-filter-in-progress' to NIL after it
@@ -3331,6 +3378,18 @@ t when called interactively."
        nil ;; noop
        msg))))
 
+
+(defconst python-shell-eval-file-setup-code
+  "\
+def __PYTHON_EL_eval_file(filename, tempname, encoding, delete):
+    import codecs, os
+    with codecs.open(tempname or filename, encoding=encoding) as file:
+        source = file.read().encode(encoding)
+    if delete and tempname:
+        os.remove(tempname)
+    return __PYTHON_EL_eval(source, filename)"
+  "Code used to evaluate files in inferior Python processes.")
+
 (defun python-shell-send-file (file-name &optional process temp-file-name
                                          delete msg)
   "Send FILE-NAME to inferior Python PROCESS.
@@ -3357,18 +3416,16 @@ t when called interactively."
          (temp-file-name (when temp-file-name
                            (file-local-name (expand-file-name
                                              temp-file-name)))))
-    (python-shell-send-string
+    (comint-send-string
+     process
      (format
-      (concat
-       "import codecs, os;"
-       "__pyfile = codecs.open('''%s''', encoding='''%s''');"
-       "__code = __pyfile.read().encode('''%s''');"
-       "__pyfile.close();"
-       (when (and delete temp-file-name)
-         (format "os.remove('''%s''');" temp-file-name))
-       "exec(compile(__code, '''%s''', 'exec'));")
-      (or temp-file-name file-name) encoding encoding file-name)
-     process)))
+      "exec(%s);exec(%s);__PYTHON_EL_eval_file(%s, %s, %s, %s)\n"
+      (python-shell--encode-string python-shell-eval-setup-code)
+      (python-shell--encode-string python-shell-eval-file-setup-code)
+      (python-shell--encode-string file-name)
+      (python-shell--encode-string (or temp-file-name ""))
+      (python-shell--encode-string (symbol-name encoding))
+      (if delete "True" "False")))))
 
 (defun python-shell-switch-to-shell (&optional msg)
   "Switch to inferior Python process buffer.

@@ -24,9 +24,9 @@
 
 ;;; Code:
 
+(require 'vc-rcs)
 (eval-when-compile (require 'vc))
 
-(declare-function vc-branch-p "vc" (rev))
 (declare-function vc-checkout "vc" (file &optional rev))
 (declare-function vc-expand-dirs "vc" (file-or-dir-list backend))
 (declare-function vc-read-revision "vc"
@@ -451,17 +451,17 @@ REV is the revision to check out."
      ((string= first-revision "")
       (setq status (vc-cvs-merge-news file)))
      (t
-      (if (not (vc-branch-p first-revision))
+      (if (not (vc-rcs-branch-p first-revision))
          (setq second-revision
                (vc-read-revision
                 "Second revision: "
                 (list file) 'CVS nil
-                (concat (vc-branch-part first-revision) ".")))
+                (concat (vc-rcs-branch-part first-revision) ".")))
        ;; We want to merge an entire branch.  Set revisions
        ;; accordingly, so that vc-cvs-merge understands us.
        (setq second-revision first-revision)
        ;; first-revision must be the starting point of the branch
-       (setq first-revision (vc-branch-part first-revision)))
+       (setq first-revision (vc-rcs-branch-part first-revision)))
       (setq status (vc-cvs-merge file first-revision second-revision))))
     status))
 
@@ -542,14 +542,12 @@ Will fail unless you have administrative privileges on the repo."
 ;;; History functions
 ;;;
 
-(declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
 ;; Follows vc-cvs-command, which uses vc-do-command from vc-dispatcher.
 (declare-function vc-exec-after "vc-dispatcher" (code))
 
 (defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 Remaining arguments are ignored."
-  (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.
   (vc-cvs-command
    buffer

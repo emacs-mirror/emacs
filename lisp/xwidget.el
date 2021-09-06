@@ -95,9 +95,7 @@ NEW-SESSION specifies whether to create a new xwidget-webkit session.
 Interactively, URL defaults to the string looking like a url around point."
   (interactive (progn
                  (require 'browse-url)
-                 (browse-url-interactive-arg "xwidget-webkit URL: "
-                                             ;;(xwidget-webkit-current-url)
-                                             )))
+                 (browse-url-interactive-arg "xwidget-webkit URL: ")))
   (or (featurep 'xwidget-internal)
       (user-error "Your Emacs was not compiled with xwidgets support"))
   (when (stringp url)
@@ -112,7 +110,7 @@ Interactively, URL defaults to the string looking like a url around point."
   "Clone current URL into a new widget place in new window below.
 Get the URL of current session, then browse to the URL
 in `split-window-below' with a new xwidget webkit session."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (let ((url (xwidget-webkit-current-url)))
     (with-selected-window (split-window-below)
       (xwidget-webkit-new-session url))))
@@ -121,7 +119,7 @@ in `split-window-below' with a new xwidget webkit session."
   "Clone current URL into a new widget place in new window right.
 Get the URL of current session, then browse to the URL
 in `split-window-right' with a new xwidget webkit session."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (let ((url (xwidget-webkit-current-url)))
     (with-selected-window (split-window-right)
       (xwidget-webkit-new-session url))))
@@ -168,12 +166,12 @@ in `split-window-right' with a new xwidget webkit session."
 
 (defun xwidget-webkit-zoom-in ()
   "Increase webkit view zoom factor."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-zoom (xwidget-webkit-current-session) 0.1))
 
 (defun xwidget-webkit-zoom-out ()
   "Decrease webkit view zoom factor."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-zoom (xwidget-webkit-current-session) -0.1))
 
 (defun xwidget-webkit-scroll-up (&optional arg)
@@ -181,7 +179,7 @@ in `split-window-right' with a new xwidget webkit session."
 Stop if bottom of page is reached.
 Interactively, ARG is the prefix numeric argument.
 Negative ARG scrolls down."
-  (interactive "P")
+  (interactive "P" xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    (xwidget-webkit-current-session)
    (format "window.scrollBy(0, %d);"
@@ -192,7 +190,7 @@ Negative ARG scrolls down."
 Stop if top of page is reached.
 Interactively, ARG is the prefix numeric argument.
 Negative ARG scrolls up."
-  (interactive "P")
+  (interactive "P" xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    (xwidget-webkit-current-session)
    (format "window.scrollBy(0, -%d);"
@@ -203,7 +201,7 @@ Negative ARG scrolls up."
 The height of line is calculated with `window-font-height'.
 Stop if the bottom edge of the page is reached.
 If N is omitted or nil, scroll up by one line."
-  (interactive "p")
+  (interactive "p" xwidget-webkit-mode)
   (xwidget-webkit-scroll-up (* n (window-font-height))))
 
 (defun xwidget-webkit-scroll-down-line (&optional n)
@@ -211,14 +209,14 @@ If N is omitted or nil, scroll up by one line."
 The height of line is calculated with `window-font-height'.
 Stop if the top edge of the page is reached.
 If N is omitted or nil, scroll down by one line."
-  (interactive "p")
+  (interactive "p" xwidget-webkit-mode)
   (xwidget-webkit-scroll-down (* n (window-font-height))))
 
 (defun xwidget-webkit-scroll-forward (&optional n)
   "Scroll webkit horizontally by N chars.
 The width of char is calculated with `window-font-width'.
 If N is omitted or nil, scroll forwards by one char."
-  (interactive "p")
+  (interactive "p" xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    (xwidget-webkit-current-session)
    (format "window.scrollBy(%d, 0);"
@@ -228,7 +226,7 @@ If N is omitted or nil, scroll forwards by one char."
   "Scroll webkit back by N chars.
 The width of char is calculated with `window-font-width'.
 If N is omitted or nil, scroll backwards by one char."
-  (interactive "p")
+  (interactive "p" xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    (xwidget-webkit-current-session)
    (format "window.scrollBy(-%d, 0);"
@@ -236,14 +234,14 @@ If N is omitted or nil, scroll backwards by one char."
 
 (defun xwidget-webkit-scroll-top ()
   "Scroll webkit to the very top."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    (xwidget-webkit-current-session)
    "window.scrollTo(pageXOffset, 0);"))
 
 (defun xwidget-webkit-scroll-bottom ()
   "Scroll webkit to the very bottom."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    (xwidget-webkit-current-session)
    "window.scrollTo(pageXOffset, window.document.body.scrollHeight);"))
@@ -261,7 +259,7 @@ If N is omitted or nil, scroll backwards by one char."
 
 (defun xwidget-event-handler ()
   "Receive xwidget event."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-log "stuff happened to xwidget %S" last-input-event)
   (let*
       ((xwidget-event-type (nth 1 last-input-event))
@@ -302,12 +300,14 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
 
 (defvar bookmark-make-record-function)
 (when (memq window-system '(mac ns))
-  (defvar xwidget-webkit-enable-plugins nil
+  (defcustom xwidget-webkit-enable-plugins nil
     "Enable plugins for xwidget webkit.
-If non-nil, plugins are enabled.  Otherwise, disabled."))
+If non-nil, plugins are enabled.  Otherwise, disabled."
+    :type 'boolean
+    :version "28.1"))
 
-(define-derived-mode xwidget-webkit-mode
-  special-mode "xwidget-webkit" "Xwidget webkit view mode."
+(define-derived-mode xwidget-webkit-mode special-mode "xwidget-webkit"
+  "Xwidget webkit view mode."
   (setq buffer-read-only t)
   (setq-local bookmark-make-record-function
               #'xwidget-webkit-bookmark-make-record)
@@ -420,7 +420,7 @@ function findactiveelement(doc){
 (defun xwidget-webkit-insert-string ()
   "Insert string into the active field in the current webkit widget."
   ;; Read out the string in the field first and provide for edit.
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   ;; As the prompt differs on JavaScript execution results,
   ;; the function must handle the prompt itself.
   (let ((xww (xwidget-webkit-current-session)))
@@ -456,7 +456,7 @@ XW is the xwidget identifier, TEXT is retrieved from the webkit."
 
 (defun xwidget-webkit-end-edit-textarea ()
   "End editing of a webkit text area."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (goto-char (point-min))
   (while (search-forward "\n" nil t)
     (replace-match "\\n" nil t))
@@ -472,7 +472,8 @@ XW is the xwidget identifier, TEXT is retrieved from the webkit."
 The ELEMENT-SELECTOR must be a valid CSS selector.  For example,
 use this to display an anchor."
   (interactive (list (xwidget-webkit-current-session)
-                     (read-string "Element selector: ")))
+                     (read-string "Element selector: "))
+               xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    xw
    (format "
@@ -488,7 +489,8 @@ use this to display an anchor."
   "Make webkit xwidget XW show a named element ELEMENT-NAME.
 For example, use this to display an anchor."
   (interactive (list (xwidget-webkit-current-session)
-                     (read-string "Element name: ")))
+                     (read-string "Element name: "))
+               xwidget-webkit-mode)
   ;; TODO: This needs to be interfaced into browse-url somehow.  The
   ;; tricky part is that we need to do this in two steps: A: load the
   ;; base url, wait for load signal to arrive B: navigate to the
@@ -508,7 +510,8 @@ For example, use this to display an anchor."
   "Make webkit xwidget XW show an id-element ELEMENT-ID.
 For example, use this to display an anchor."
   (interactive (list (xwidget-webkit-current-session)
-                     (read-string "Element id: ")))
+                     (read-string "Element id: "))
+               xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    xw
    (format "
@@ -524,7 +527,8 @@ For example, use this to display an anchor."
    "Make webkit xwidget XW show a name or element id ELEMENT-ID.
 For example, use this to display an anchor."
   (interactive (list (xwidget-webkit-current-session)
-                     (read-string "Name or element id: ")))
+                     (read-string "Name or element id: "))
+               xwidget-webkit-mode)
   (xwidget-webkit-execute-script
    xw
    (format "
@@ -539,12 +543,12 @@ For example, use this to display an anchor."
 
 (defun xwidget-webkit-adjust-size-to-content ()
   "Adjust webkit to content size."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-adjust-size-to-content (xwidget-webkit-current-session)))
 
 (defun xwidget-webkit-adjust-size-dispatch ()
   "Adjust size according to mode."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-adjust-size-to-window (xwidget-webkit-current-session))
   ;; The recenter is intended to correct a visual glitch.
   ;; It errors out if the buffer isn't visible, but then we don't get
@@ -573,12 +577,12 @@ For example, use this to display an anchor."
 (defun xwidget-webkit-adjust-size (w h)
   "Manually set webkit size to width W, height H."
   ;; TODO shouldn't be tied to the webkit xwidget
-  (interactive "nWidth:\nnHeight:\n")
+  (interactive "nWidth:\nnHeight:\n" xwidget-webkit-mode)
   (xwidget-resize (xwidget-webkit-current-session) w h))
 
 (defun xwidget-webkit-fit-width ()
   "Adjust width of webkit to window width."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-adjust-size (- (nth 2 (window-inside-pixel-edges))
                                  (car (window-inside-pixel-edges)))
                               1000))
@@ -630,22 +634,22 @@ For example, use this to display an anchor."
 
 (defun xwidget-webkit-back ()
   "Go back to previous URL in xwidget webkit buffer."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-goto-history (xwidget-webkit-current-session) -1))
 
 (defun xwidget-webkit-forward ()
   "Go forward in history."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-goto-history (xwidget-webkit-current-session) 1))
 
 (defun xwidget-webkit-reload ()
   "Reload current URL."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-goto-history (xwidget-webkit-current-session) 0))
 
 (defun xwidget-webkit-current-url ()
   "Display the current xwidget webkit URL and place it on the `kill-ring'."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (let ((url (xwidget-webkit-uri (xwidget-webkit-current-session))))
     (message "URL: %s" (kill-new (or url "")))))
 
@@ -659,7 +663,7 @@ For example, use this to display an anchor."
 
 (defun xwidget-webkit-copy-selection-as-kill ()
   "Get the webkit selection and put it on the `kill-ring'."
-  (interactive)
+  (interactive nil xwidget-webkit-mode)
   (xwidget-webkit-get-selection #'kill-new))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
