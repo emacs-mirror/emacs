@@ -139,6 +139,7 @@
 ;;; Code:
 
 (require 'calc-macs)
+(require 'rect)
 
 ;; Declare functions which are defined elsewhere.
 (declare-function calc-set-language "calc-lang" (lang &optional option no-refresh))
@@ -3388,7 +3389,9 @@ and all digits are kept, regardless of Calc's current precision."
   "Parse the region as a vector of numbers and push it on the Calculator stack."
   (interactive "r\nP")
   (require 'calc-ext)
-  (calc-do-grab-region top bot arg))
+  (if rectangle-mark-mode
+      (calc-do-grab-rectangle top bot arg)
+    (calc-do-grab-region top bot arg)))
 
 ;;;###autoload
 (defun calc-grab-rectangle (top bot arg)
