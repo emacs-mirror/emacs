@@ -266,16 +266,15 @@ the debugger will not be entered."
 				    (window-frame debugger-previous-window)))
 		          `((previous-window . ,debugger-previous-window))))))
 	        (setq debugger-window (selected-window))
-	        (if (eq debugger-previous-window debugger-window)
-		    (when debugger-jumping-flag
-		      ;; Try to restore previous height of debugger
-		      ;; window.
-		      (condition-case nil
-			  (window-resize
-			   debugger-window
-			   (- debugger-previous-window-height
-			      (window-total-height debugger-window)))
-		        (error nil)))
+		(when debugger-jumping-flag
+		  ;; Try to restore previous height of debugger
+		  ;; window.
+		  (condition-case nil
+		      (window-resize
+		       debugger-window
+		       (- debugger-previous-window-height
+			  (window-total-height debugger-window)))
+		    (error nil))
 		  (setq debugger-previous-window debugger-window))
 	        (message "")
 	        (let ((standard-output nil)
