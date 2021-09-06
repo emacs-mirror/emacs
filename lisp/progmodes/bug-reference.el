@@ -74,7 +74,20 @@ so that it is considered safe, see `enable-local-variables'.")
 (defcustom bug-reference-bug-regexp
   "\\([Bb]ug ?#?\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z+-]+/\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
   "Regular expression matching bug references.
-The second subexpression should match the bug reference (usually a number)."
+The second subexpression should match the bug reference (usually
+a number).
+
+The complete expression's matches will be highlighted unless
+there is a 99th subexpression.  In that case, only the matches of
+that will be highlighted.  For example, this can be used to
+define that bug references at the beginning of a line must not be
+matched by using a regexp like
+
+  \"[^\\n]\\\\(?99:\\\\([Bb]ug ?\\\\)\\\\(#[0-9]+\\\\)\\\\)\"
+
+If there wasn't this explicitly numbered group 99, the
+non-newline character before the actual bug reference would be
+highlighted, too."
   :type 'regexp
   :version "24.3")			; previously defconst
 
@@ -113,7 +126,13 @@ The second subexpression should match the bug reference (usually a number)."
 	(when (or (not bug-reference-prog-mode)
 		  ;; This tests for both comment and string syntax.
 		  (nth 8 (syntax-ppss)))
-	  (let ((overlay (make-overlay (match-beginning 0) (match-end 0)
+          ;; We highlight the 99th subexpression if that exists,
+          ;; otherwise the complete match.  See the docstring of
+          ;; `bug-reference-bug-regexp'.
+	  (let ((overlay (make-overlay (or (match-beginning 99)
+                                           (match-beginning 0))
+                                       (or (match-end 99)
+                                           (match-end 0))
 				       nil t nil)))
 	    (overlay-put overlay 'category 'bug-reference)
 	    ;; Don't put a link if format is undefined
@@ -564,10 +583,8 @@ guesswork is based on these variables:
                  bug-reference-url-format)
       (with-demoted-errors
           "Error during bug-reference auto-setup: %S"
-        (catch 'setup
-          (dolist (f bug-reference-auto-setup-functions)
-            (when (funcall f)
-              (throw 'setup t))))))))
+        (run-hook-with-args-until-success
+         'bug-reference-auto-setup-functions)))))
 
 ;;;###autoload
 (define-minor-mode bug-reference-mode
