@@ -646,13 +646,6 @@ box if the point is on an image larger than SIZE pixels in any
 dimension.
 
 +++
-*** New user option 'lazy-highlight-no-delay-length'.
-Lazy highlighting of matches in Isearch now starts immediately if the
-search string is at least this long.  'lazy-highlight-initial-delay'
-still applies for shorter search strings, which avoids flicker in the
-search buffer due to too many matches being highlighted.
-
-+++
 *** The user can now customize how "default" values are prompted for.
 The new utility function 'format-prompt' has been added which uses the
 new 'minibuffer-default-prompt-format' user option to format "default"
@@ -967,7 +960,7 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
-** Isearch
+** Isearch and Replace
 
 +++
 *** Interactive regular expression search now uses faces for sub-groups.
@@ -981,6 +974,11 @@ This is controlled by the 'search-highlight-submatches' user option.
 This feature is available only on terminals that have enough colors to
 distinguish between sub-expression highlighting.
 
++++
+*** Interactive regular expression replace now uses faces for sub-groups.
+Like 'search-highlight-submatches', this is controlled by the new user option
+'query-replace-highlight-submatches'.
+
 *** New user option 'isearch-wrap-pause' defines how to wrap the search.
 There are choices to disable wrapping completely and to wrap immediately.
 When wrapping immediately, it consistently handles the numeric arguments
@@ -993,17 +991,19 @@ When this option is set, direction changes in Isearch move to another
 search match, if there is one, instead of moving point to the other
 end of the current match.
 
-+++
-*** Interactive regular expression replace now uses faces for sub-groups.
-Like 'search-highlight-submatches', this is controlled by the new user option
-'query-replace-highlight-submatches'.
-
 *** New key 'M-s M-.' starts isearch with the thing found at point.
 This key is bound to the new command 'isearch-forward-thing-at-point'.
 The new user option 'isearch-forward-thing-at-point' defines
 a list of symbols to try to get the "thing" at point.  By default,
 the first element of the list is 'region' that tries to yank
 the currently active region to the search string.
+
++++
+*** New user option 'lazy-highlight-no-delay-length'.
+Lazy highlighting of matches in Isearch now starts immediately if the
+search string is at least this long.  'lazy-highlight-initial-delay'
+still applies for shorter search strings, which avoids flicker in the
+search buffer due to too many matches being highlighted.
 
 ** Dired
 
