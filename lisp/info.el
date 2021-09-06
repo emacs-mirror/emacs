@@ -1731,22 +1731,24 @@ escaped (\\\",\\\\)."
 	       (list
 		(concat
 		 " ("
-		 (if (stringp Info-current-file)
-		     (string-replace
-		      "%" "%%"
-		      (file-name-sans-extension
-		       (file-name-nondirectory Info-current-file)))
-		   (format "*%S*" Info-current-file))
-		 ") "
-		 (if Info-current-node
-		     (propertize (string-replace
-				  "%" "%%" Info-current-node)
-				 'face 'mode-line-buffer-id
-				 'help-echo
-				 "mouse-1: scroll forward, mouse-3: scroll back"
-				 'mouse-face 'mode-line-highlight
-				 'local-map Info-mode-line-node-keymap)
-		   ""))))))
+                 (propertize
+		  (if (stringp Info-current-file)
+                      (string-replace
+		       "%" "%%"
+		       (file-name-sans-extension
+		        (file-name-nondirectory Info-current-file)))
+		    (format "*%S*" Info-current-file))
+                  'help-echo "Info file name")
+		 ") ")
+		(if Info-current-node
+		    (propertize (string-replace
+				 "%" "%%" Info-current-node)
+				'face 'mode-line-buffer-id
+				'help-echo
+				"mouse-1: scroll forward, mouse-3: scroll back"
+				'mouse-face 'mode-line-highlight
+				'local-map Info-mode-line-node-keymap)
+		  "")))))
 
 ;; Go to an Info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
