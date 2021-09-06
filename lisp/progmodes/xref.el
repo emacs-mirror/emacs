@@ -1553,18 +1553,18 @@ IGNORES is a list of glob patterns for files to ignore."
        ;; do that reliably enough, without creating false negatives?
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
-                                     (directory-file-name
-                                      (file-name-unquote
-                                       (file-local-name (expand-file-name dir))))
+                                     "."
                                      ignores))
-       (def default-directory)
+       (local-dir (directory-file-name
+                   (file-name-unquote
+                    (file-local-name (expand-file-name dir)))))
        (buf (get-buffer-create " *xref-grep*"))
        (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
        (status nil)
        (hits nil))
     (with-current-buffer buf
       (erase-buffer)
-      (setq default-directory def)
+      (setq default-directory dir)
       (setq status
             (process-file-shell-command command nil t))
       (goto-char (point-min))
@@ -1577,7 +1577,7 @@ IGNORES is a list of glob patterns for files to ignore."
         (user-error "Search failed with status %d: %s" status (buffer-string)))
       (while (re-search-forward grep-re nil t)
         (push (list (string-to-number (match-string line-group))
-                    (match-string file-group)
+                    (concat local-dir (substring (match-string file-group) 1))
                     (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
     (xref--convert-hits (nreverse hits) regexp)))
@@ -1746,6 +1746,11 @@ directory, used as the root of the ignore globs."
   (cl-assert (not (string-match-p "\\`~" dir)))
   (if (not ignores)
       ""
+    ;; TODO: All in-tree callers are passing in just "." or "./".
+    ;; We can simplify.
+    ;; And, if we ever end up deleting xref-matches-in-directory, move
+    ;; this function to the project package.
+    (setq dir (file-name-as-directory dir))
     (concat
      (shell-quote-argument "(")
      " -path "

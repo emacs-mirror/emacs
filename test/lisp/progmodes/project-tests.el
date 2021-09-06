@@ -107,4 +107,19 @@ directory name (Bug#48471)."
                      collect (file-relative-name file dir))))
       (should (equal relative-files '("some-file"))))))
 
+(ert-deftest project-ignores-bug-50240 ()
+  "Check that `project-files' does not ignore all files.
+When `project-ignores' includes a name matching project dir."
+  (skip-unless (executable-find find-program))
+  (project-tests--with-temporary-directory dir
+    (make-empty-file (expand-file-name "some-file" dir))
+    (let* ((project (make-project-tests--trivial
+                     :root (file-name-as-directory dir)
+                     :ignores (list (file-name-nondirectory
+                                     (directory-file-name dir)))))
+           (files (project-files project)))
+      (should (equal files
+                     (list
+                      (expand-file-name "some-file" dir)))))))
+
 ;;; project-tests.el ends here

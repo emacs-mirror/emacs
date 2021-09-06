@@ -302,11 +302,10 @@ to find the list of ignores for each directory."
          ;; expanded and not left for the shell command
          ;; to interpret.
          (localdir (file-name-unquote (file-local-name (expand-file-name dir))))
-         (command (format "%s -H %s %s -type f %s -print0"
+         (dfn (directory-file-name localdir))
+         (command (format "%s -H . %s -type f %s -print0"
                           find-program
-                          (shell-quote-argument
-                           (directory-file-name localdir)) ; Bug#48471
-                          (xref--find-ignores-arguments ignores localdir)
+                          (xref--find-ignores-arguments ignores "./")
                           (if files
                               (concat (shell-quote-argument "(")
                                       " " find-name-arg " "
@@ -324,8 +323,9 @@ to find the list of ignores for each directory."
                        (unless (zerop status)
                          (error "File listing failed: %s" (buffer-string))))))))
     (project--remote-file-names
-     (sort (split-string output "\0" t)
-           #'string<))))
+     (mapcar (lambda (s) (concat dfn (substring s 1)))
+             (sort (split-string output "\0" t)
+                   #'string<)))))
 
 (defun project--remote-file-names (local-files)
   "Return LOCAL-FILES as if they were on the system of `default-directory'.
