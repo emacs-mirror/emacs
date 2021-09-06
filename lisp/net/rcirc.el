@@ -607,6 +607,7 @@ See `rcirc-connect' for more details on these variables.")
     "invite-notify"                     ;https://ircv3.net/specs/extensions/invite-notify
     "sasl"                              ;https://ircv3.net/specs/extensions/sasl-3.1
     "multi-prefix"                      ;https://ircv3.net/specs/extensions/multi-prefix
+    "standard-replies"                  ;https://ircv3.net/specs/extensions/standard-replies
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
@@ -1639,6 +1640,9 @@ extracted."
     ("ACTION"  . "[%N %m]")
     ("COMMAND" . "%m")
     ("ERROR"   . "%fw!!! %m")
+    ("FAIL"   . "(%fwFAIL%f-) %m")
+    ("WARN"   . "(%fwWARN%f-) %m")
+    ("NOTE"   . "(%fwNOTE%f-) %m")
     (t         . "%fp*** %fs%n %r %m"))
   "An alist of formats used for printing responses.
 The format is looked up using the response-type as a key;
@@ -3564,6 +3568,27 @@ process object for the current connection."
     (setq-local rcirc-finished-sasl t)
     (rcirc-send-string process "CAP" "END"))
   (rcirc-join-channels-post-auth process))
+
+(defun rcirc-handler-FAIL (process _sender args _text)
+  "Display a FAIL message, as indicated by ARGS.
+PROCESS is the process object for the current connection."
+  (rcirc-print process nil "FAIL" nil
+               (mapconcat #'identity args " ")
+               t))
+
+(defun rcirc-handler-WARN (process _sender args _text)
+  "Display a WARN message, as indicated by ARGS.
+PROCESS is the process object for the current connection."
+  (rcirc-print process nil "WARN" nil
+               (mapconcat #'identity args " ")
+               t))
+
+(defun rcirc-handler-NOTE (process _sender args _text)
+  "Display a NOTE message, as indicated by ARGS.
+PROCESS is the process object for the current connection."
+  (rcirc-print process nil "NOTE" nil
+               (mapconcat #'identity args " ")
+               t))
 
 
 (defgroup rcirc-faces nil
