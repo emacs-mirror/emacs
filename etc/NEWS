@@ -245,7 +245,7 @@ symbolic links, and 'file-precious-flag' is non-nil.
 
 +++
 ** New user option 'copy-directory-create-symlink'.
-If non-nil, will make `copy-directory' (when used on a symbolic
+If non-nil, will make 'copy-directory' (when used on a symbolic
 link) copy the link instead of following the link.  The default is
 nil, so the default behavior is unchanged.
 
@@ -336,7 +336,7 @@ window after deleting the currently selected one.
 
 +++
 *** New argument NO-OTHER for some window functions.
-'get-lru-window', ‘get-mru-window’ and 'get-largest-window' now accept a
+'get-lru-window', 'get-mru-window' and 'get-largest-window' now accept a
 new optional argument NO-OTHER which, if non-nil, avoids returning a
 window whose 'no-other-window' parameter is non-nil.
 
@@ -717,7 +717,7 @@ buffers.  This can be controlled by customizing the variable
 
 +++
 *** 'nobreak-char-display' now also affects all non-ASCII space characters.
-Previously, this was limited only to NO-BREAK-SPACE and hyphen
+Previously, this was limited only to 'NO-BREAK SPACE' and hyphen
 characters.  Now it also covers the rest of the non-ASCII Unicode
 space characters.
 
@@ -892,12 +892,12 @@ trying to be non-destructive.
 
 +++
 ** New command 'revert-buffer-quick'.
-This is bound to 'C-x x g' and is like `revert-buffer', but prompts
+This is bound to 'C-x x g' and is like 'revert-buffer', but prompts
 less.
 
 +++
 ** New user option 'revert-buffer-quick-short-answers'.
-This controls how the new 'revert-buffer-quick' (`C-x x g') command
+This controls how the new 'revert-buffer-quick' ('C-x x g') command
 prompts.
 
 +++
@@ -915,7 +915,7 @@ during command invocation.
 
 ---
 ** New user option 'save-place-abbreviate-file-names'.
-This can simplify sharing the ‘save-place-file’ file across
+This can simplify sharing the 'save-place-file' file across
 different hosts.
 
 ---
@@ -1505,13 +1505,13 @@ This allows controlling the current/total number of matches for the
 prompt prefix.
 
 +++
-*** New minor modes 'icomplete-vertical-mode' and 'fido-vertical-mode'
+*** New minor modes 'icomplete-vertical-mode' and 'fido-vertical-mode'.
 These modes modify Icomplete ('M-x icomplete-mode') and Fido ('M-x
-fido-mode'), to display completions candidates vertically instead of
+fido-mode'), to display completion candidates vertically instead of
 horizontally.  In Icomplete, completions are rotated and selection
 kept at the top.  In Fido, completions scroll like a typical dropdown
-widget.  Both these new minor modes will first turn on their
-non-vertical counterparts first, if they are not on already.
+widget.  Both these new minor modes will turn on their non-vertical
+counterparts first, if they are not on already.
 
 ---
 *** Default value of 'icomplete-compute-delay' has been changed to 0.15 s.
@@ -1591,8 +1591,8 @@ as a data list rather than as a piece of code.
 
 +++
 *** 'vc-revert-show-diff' now has a third possible value: 'kill'.
-If this variable is 'kill', then the diff buffer will be killed after
-the 'vc-revert' action instead of buried.
+If this user option is 'kill', then the diff buffer will be killed
+after the 'vc-revert' action instead of buried.
 
 *** More VC commands can be used from non-file buffers.
 The relevant commands are those that don't change the VC state.
@@ -1617,7 +1617,7 @@ Those are: 'vc-dir-header', 'vc-dir-header-value', 'vc-dir-directory',
 *** The responsible VC backend is now the most specific one.
 'vc-responsible-backend' loops over the backends in
 'vc-handled-backends' to determine which backend is responsible for a
-specific (unregistered) file.  Previously the first matching backend
+specific (unregistered) file.  Previously, the first matching backend
 was chosen, but now the one with the most specific path is chosen (in
 case there's a directory handled by one backend inside another).
 
@@ -2263,7 +2263,7 @@ information, see the related entry about 'shr-browse-url' above.
 *** New user option 'project-vc-merge-submodules'.
 
 *** Project commands now have their own history.
-Previously used project directories are now suggested by all commands
+Previously, used project directories are now suggested by all commands
 that prompt for a project directory.
 
 +++
@@ -2316,12 +2316,12 @@ before navigating to the selected location.
 
 +++
 *** New user options to automatically show the first Xref match.
-The new option 'xref-auto-jump-to-first-definition' controls the
+The new user option 'xref-auto-jump-to-first-definition' controls the
 behavior of 'xref-find-definitions' and related commands: if it's t or
 'show', the first match is automatically displayed; if it's 'move',
-point in the *xref* buffer is automatically moved to the first match
+point in the "*xref*" buffer is automatically moved to the first match
 without displaying it.
-The new option 'xref-auto-jump-to-first-xref' changes the behavior of
+The new user option 'xref-auto-jump-to-first-xref' changes the behavior of
 all Xref commands in the same way as 'xref-auto-jump-to-first-definition'
 affects the "find-definitions" commands.
 
@@ -2568,7 +2568,7 @@ Adding the new 'comint-osc-process-output' to
 ("Operating System Command") escape sequences in comint buffers.  By
 default, only OSC 8, for hyperlinks, and OSC 7, for directory
 tracking, are acted upon.  Adding more entries to
-`comint-osc-handlers' allows a customized treatment of further escape
+'comint-osc-handlers' allows a customized treatment of further escape
 sequences.
 
 +++
@@ -2878,7 +2878,7 @@ Xterm sends this sequence for both 'F16' and 'Menu' keys
 It used to be mapped to 'print' but we couldn't find a terminal
 that uses this sequence for any kind of 'Print' key.
 This makes the Menu key (see https://en.wikipedia.org/wiki/Menu_key)
-work for `context-menu-mode` in Xterm.
+work for 'context-menu-mode' in Xterm.
 
 ---
 ** New user option 'xterm-store-paste-on-kill-ring'.
@@ -2978,7 +2978,7 @@ multiple every time it runs, which means that if the laptop wakes at
 
 ---
 ** 'parse-partial-sexp' now signals an error if TO is smaller than FROM.
-Previously this would lead to the function interpreting FROM as TO and
+Previously, this would lead to the function interpreting FROM as TO and
 vice versa, which would be confusing when passing in OLDSTATE, which
 refers to the old state at FROM.
 
@@ -2993,7 +2993,7 @@ Previously, zero-length overlays at the end of the buffer were included
 in the result (if the region queried for stopped at that position).
 The same was not the case if the buffer had been narrowed to exclude
 the real end of the buffer.  This has now been changed, and
-zero-length overlays at `point-max' are always included in the results.
+zero-length overlays at 'point-max' are always included in the results.
 
 ---
 ** 'replace-match' now runs modification hooks slightly later.
@@ -3010,7 +3010,7 @@ replacement text.
 in the minibuffer instead of being set via a global let-binding.
 
 ** XML serialization functions now reject invalid characters.
-Previously 'xml-print' would produce invalid XML when given a string
+Previously, 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
 https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
@@ -3354,7 +3354,7 @@ initial frame used in batch mode.
 
 +++
 ** Doc strings can now link to customization groups.
-Text like "customization group `whitespace'" will be made into a
+Text like "customization group 'whitespace'" will be made into a
 button.  When clicked, it'll take the user to a Custom buffer
 displaying that customization group.
 
