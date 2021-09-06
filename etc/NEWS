@@ -2263,7 +2263,7 @@ information, see the related entry about 'shr-browse-url' above.
 *** New user option 'project-vc-merge-submodules'.
 
 *** Project commands now have their own history.
-Previously, used project directories are now suggested by all commands
+Previously used project directories are now suggested by all commands
 that prompt for a project directory.
 
 +++
