@@ -727,8 +727,12 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
     (while rest
       (setq fe (or all-for-effect (cdr rest)))
       (setq new (and (car rest) (byte-optimize-form (car rest) fe)))
-      (if (or new (not fe))
-	  (setq result (cons new result)))
+      (when (and (consp new) (eq (car new) 'progn))
+        ;; Flatten `progn' form into the body.
+        (setq result (append (reverse (cdr new)) result))
+        (setq new (pop result)))
+      (when (or new (not fe))
+	(setq result (cons new result)))
       (setq rest (cdr rest)))
     (nreverse result)))
 
