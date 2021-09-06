@@ -608,6 +608,14 @@ See `rcirc-connect' for more details on these variables.")
     "sasl"                              ;https://ircv3.net/specs/extensions/sasl-3.1
     "multi-prefix"                      ;https://ircv3.net/specs/extensions/multi-prefix
     "standard-replies"                  ;https://ircv3.net/specs/extensions/standard-replies
+    ;; The following capabilities should be implemented as soon as
+    ;; their specifications are undrafted:
+    ;;
+    ;; "reply"                             ;https://ircv3.net/specs/client-tags/reply
+    ;; "react"                             ;https://ircv3.net/specs/client-tags/react
+    ;; "multiline"                         ;https://ircv3.net/specs/extensions/multiline
+    ;; "chathistory"                       ;https://ircv3.net/specs/extensions/chathistory
+    ;; "channel-rename"                    ;https://ircv3.net/specs/extensions/channel-rename
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
