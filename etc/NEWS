@@ -1463,6 +1463,8 @@ passed to the browser.
 This support has been obsolete since 25.1.
 
 ** Completion List Mode
+
+*** Improved navigation in the "*Completions*" buffer.
 New key bindings have been added to 'completion-list-mode': 'n' and
 'p' now navigate completions, and 'M-g M-c' switches to the
 minibuffer and back to the completion list buffer.
