@@ -696,27 +696,207 @@ Each function should return a list of xrefs, or nil; the first
 non-nil result supersedes the xrefs produced by
 `elisp--xref-find-definitions'.")
 
+(defun elisp--xref-list-index ()
+  "Return the list index of the form at point, moving to the start.
+If the buffer start was reached, return nil."
+  (let ((i 0))
+    (while (condition-case nil
+               (let ((pt (point)))
+                 (backward-sexp)
+                 (< (point) pt))
+             (scan-error nil))
+      (setq i (1+ i)))
+    (and (not (bobp)) i)))
+
+(defun elisp--xref-infer-namespace (pos)
+  "Find the likely namespace of the identifier at POS.
+Return one of `function', `variable' `maybe-variable', `feature', `face', or
+`any' (indicating any namespace).  `maybe-variable' indicates a variable
+namespace but with lower confidence."
+  (save-excursion
+    (goto-char pos)
+    (cl-flet ((looking-at-sym ()
+                (let ((val (save-excursion
+                             (ignore-errors (read (current-buffer))))))
+                  (and (symbolp val) val))))
+      (cond
+       ((and (eq (char-before pos) ?\')
+             (eq (char-before (1- pos)) ?#))
+        ;; #'IDENT
+        'function)
+       ((memq (char-before pos) '(?\' ?`))
+        ;; 'IDENT or `IDENT -- try to disambiguate.
+        (backward-char)                 ; Step over '
+        (let ((i (elisp--xref-list-index))
+              (sym (looking-at-sym)))
+          (cond
+           ((eql i 1)
+            (cond
+             ((memq sym '( featurep require provide))
+              'feature)
+             ((memq sym
+                    '(
+                      ;; We are mostly interested in functions that take a
+                      ;; function symbol as argument:
+                      fboundp symbol-function fset
+                      ;; ... but we include some common higher-order functions
+                      ;; as well, even though the argument really should
+                      ;; be #'-quoted:
+                      function-get function-put
+                      func-arity functionp
+                      funcall funcall-interactively
+                      apply mapcar mapc mapcan mapconcat
+                      apply-partially
+                      substitute-key-definition))
+              'function)
+             ((memq sym
+                    '(
+                      ;; Functions taking a variable symbol as first argument.
+                      ;; More of these could be added for greater precision.
+                      boundp set symbol-value
+                      special-variable-p local-variable-p
+                      local-variable-if-set-p
+                      make-variable-buffer-local
+                      default-value set-default make-local-variable
+                      buffer-local-value))
+              'variable)
+             ((memq sym
+                    '(
+                      ;; FIXME: Add more functions taking a face
+                      ;; symbol for greater precision.
+                      facep face-name face-id))
+              'face)
+             (t 'any)))
+           ((and (eql i 2)
+                 (memq sym '( global-set-key local-set-key
+                              substitute-key-definition
+                              add-hook)))
+            'function)
+           ((and (eql i 3)
+                 (memq sym '( define-key add-function)))
+            'function)
+           (t 'any))))
+       ((or (and (eq (char-before (1- pos)) ?,)
+                 (eq (char-before pos) ?@))
+            (eq (char-before pos) ?,))
+        ;; ,IDENT or ,@IDENT
+        'variable)
+       (t
+        ;; Unquoted name -- look at the context.  General scheme:
+        ;; (K-HEAD ... (J-HEAD ... (I-HEAD ... IDENT
+        ;;             ^ index K   ^ index J   ^ index I
+        (let* ((i (elisp--xref-list-index))
+               (i-head (looking-at-sym))
+               (i-paren (and i-head (eq (char-before) ?\()
+                             (progn (backward-char) t)))
+               (i-quoted (and i-paren (memq (char-before) '(?\' ?`))))
+               (j (and i-paren (elisp--xref-list-index)))
+               (j-head (and j (looking-at-sym)))
+               (j-paren (and j-head (eq (char-before) ?\()
+                             (progn (backward-char) t)))
+               (j-quoted (and j-paren (memq (char-before) '(?\' ?`))))
+               (k (and j-paren (elisp--xref-list-index)))
+               (k-head (and k (looking-at-sym)))
+               (k-paren (and k-head (eq (char-before) ?\()
+                             (progn (backward-char) t)))
+               (k-quoted (and k-paren (memq (char-before) '(?\' ?`)))))
+          (cond
+           ((or i-quoted j-quoted k-quoted)
+            ;; '(... IDENT or '(... (... IDENT or '(... (... (... IDENT
+            'any)
+           ((and (eql j 1)
+                 (memq j-head '( let let* letrec dlet lambda)))
+            ;; (let (... IDENT
+            'variable)
+           ((and (eql j 2)
+                 (memq j-head '( defun defmacro defsubst
+                                 define-inline declare-function
+                                 defadvice
+                                 cl-defmethod cl-defgeneric)))
+            ;; (defun FUNC (... IDENT
+            'variable)
+           ((eq j-head 'cond)
+            ;; (cond ... (... IDENT
+            'variable)
+           ((and (eql k 1)
+                 (memq k-head '( let let* letrec dlet )))
+            ;; (let (... (... IDENT
+            'variable)
+           ((eql i 0)
+            ;; (IDENT ...
+            'function)
+           ((functionp i-head)
+            ;; (FUNC ... IDENT
+            'variable)
+           ((and (eql i 1)
+                 (cond
+                  ((memq i-head '( function
+                                   defun defmacro defsubst
+                                   define-inline declare-function
+                                   defadvice
+                                   cl-defmethod cl-defgeneric))
+                   'function)
+                  ((memq i-head '( defvar defvar-local defconst defcustom))
+                   'variable)
+                  ((eq i-head 'defface)
+                   'face))))
+           ((memq i-head '( if while and or when unless progn prog1
+                            let let* lambda defun defsubst defvar defconst))
+            ;; arg to some common non-function forms
+            'variable)
+           ;; Anything else: probably a variable, but since i-head may be
+           ;; a macro we cannot be sure.
+           (t 'maybe-variable))))))))
+
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'elisp)))
+  (let ((bounds (bounds-of-thing-at-point 'symbol)))
+    (and bounds
+         (let ((ident (buffer-substring-no-properties
+                       (car bounds) (cdr bounds))))
+           ;; Use a property to transport the location of the identifier.
+           (propertize ident 'pos (car bounds))))))
+
+
 (cl-defmethod xref-backend-definitions ((_backend (eql 'elisp)) identifier)
   (require 'find-func)
-  ;; FIXME: use information in source near point to filter results:
-  ;; (dvc-log-edit ...) - exclude 'feature
-  ;; (require 'dvc-log-edit) - only 'feature
-  ;; Semantic may provide additional information
-  ;;
   (let ((sym (intern-soft identifier)))
     (when sym
-      (elisp--xref-find-definitions sym))))
+      (let* ((pos (get-text-property 0 'pos identifier))
+             (namespace (if pos
+                            (elisp--xref-infer-namespace pos)
+                          'any)))
+        (elisp--xref-find-definitions sym namespace)))))
 
-(defun elisp--xref-find-definitions (symbol)
+(defun elisp--xref-find-definitions (symbol &optional namespace)
+  "Return xrefs of definitions for SYMBOL in NAMESPACE.
+NAMESPACE is one of: `function', `variable', `maybe-variable', `feature',
+`face' or `any' (indicating any namespace).  `maybe-variable' indicates a
+variable namespace but will include definitions in other namespaces if
+there are no matches for variables."
+  ;; FIXME: fix callers instead of having an optional argument
+  (unless namespace
+    (setq namespace 'any))
   ;; The file name is not known when `symbol' is defined via interactive eval.
-  (let (xrefs)
+  (let ((maybe (eq namespace 'maybe-variable))
+        (namespace (if (eq namespace 'maybe-variable) 'variable namespace))
+        (xrefs nil)                     ; xrefs from NAMESPACE
+        (secondary-xrefs nil))          ; other xrefs
 
     (let ((temp elisp-xref-find-def-functions))
+      ;; FIXME: The `elisp-xref-find-def-functions` function interface does
+      ;; not allow for namespace filtering so we tacitly assume they all match.
       (while (and (null xrefs)
                   temp)
         (setq xrefs (append xrefs (funcall (pop temp) symbol)))))
 
     (unless xrefs
+      (cl-flet ((add-xref (found-in-ns type symbol file &optional summary)
+                 (let ((xref (elisp--xref-make-xref type symbol file summary)))
+                   (push xref (if (or (eq namespace found-in-ns)
+                                      (eq namespace 'any))
+                                  xrefs
+                                secondary-xrefs)))))
+
       ;; alphabetical by result type symbol
 
       ;; FIXME: advised function; list of advice functions
@@ -725,153 +905,161 @@ non-nil result supersedes the xrefs produced by
       ;; Coding system symbols do not appear in ‘load-history’,
       ;; so we can’t get a location for them.
 
-      (when (and (symbolp symbol)
-                 (symbol-function symbol)
-                 (symbolp (symbol-function symbol)))
-        ;; aliased function
-        (let* ((alias-symbol symbol)
-               (alias-file (symbol-file alias-symbol))
-               (real-symbol  (symbol-function symbol))
-               (real-file (find-lisp-object-file-name real-symbol 'defun)))
+        (when (and (symbolp symbol)
+                   (symbol-function symbol)
+                   (symbolp (symbol-function symbol)))
+          ;; aliased function
+          (let* ((alias-symbol symbol)
+                 (alias-file (symbol-file alias-symbol))
+                 (real-symbol  (symbol-function symbol))
+                 (real-file (find-lisp-object-file-name real-symbol 'defun)))
 
-          (when real-file
-            (push (elisp--xref-make-xref nil real-symbol real-file) xrefs))
+            (when real-file
+              (add-xref 'function nil real-symbol real-file))
 
-          (when alias-file
-            (push (elisp--xref-make-xref 'defalias alias-symbol alias-file) xrefs))))
+            (when alias-file
+              (add-xref 'function 'defalias alias-symbol alias-file))))
 
-      (when (facep symbol)
-        (let ((file (find-lisp-object-file-name symbol 'defface)))
-          (when file
-            (push (elisp--xref-make-xref 'defface symbol file) xrefs))))
+        (when (facep symbol)
+          (let ((file (find-lisp-object-file-name symbol 'defface)))
+            (when file
+              (add-xref 'face 'defface symbol file))))
 
-      (when (fboundp symbol)
-        (let ((file (find-lisp-object-file-name symbol (symbol-function symbol)))
-              generic doc)
-          (when file
-            (cond
-             ((eq file 'C-source)
-              ;; First call to find-lisp-object-file-name for an object
-              ;; defined in C; the doc strings from the C source have
-              ;; not been loaded yet.  Second call will return "src/*.c"
-              ;; in file; handled by 't' case below.
-              (push (elisp--xref-make-xref nil symbol (help-C-file-name (symbol-function symbol) 'subr)) xrefs))
+        (when (fboundp symbol)
+          (let ((file (find-lisp-object-file-name symbol
+                                                  (symbol-function symbol)))
+                generic doc)
+            (when file
+              (cond
+               ((eq file 'C-source)
+                ;; First call to find-lisp-object-file-name for an object
+                ;; defined in C; the doc strings from the C source have
+                ;; not been loaded yet.  Second call will return "src/*.c"
+                ;; in file; handled by 't' case below.
+                (add-xref 'function nil symbol
+                          (help-C-file-name (symbol-function symbol) 'subr)))
 
-             ((and (setq doc (documentation symbol t))
-                   ;; This doc string is defined in cl-macs.el cl-defstruct
-                   (string-match "Constructor for objects of type `\\(.*\\)'" doc))
-              ;; `symbol' is a name for the default constructor created by
-              ;; cl-defstruct, so return the location of the cl-defstruct.
-              (let* ((type-name (match-string 1 doc))
-                     (type-symbol (intern type-name))
-                     (file (find-lisp-object-file-name type-symbol 'define-type))
-                     (summary (format elisp--xref-format-extra
-                                      'cl-defstruct
-                                      (concat "(" type-name)
-                                      (concat "(:constructor " (symbol-name symbol) "))"))))
-                (push (elisp--xref-make-xref 'define-type type-symbol file summary) xrefs)
-                ))
+               ((and (setq doc (documentation symbol t))
+                     ;; This doc string is defined in cl-macs.el cl-defstruct
+                     (string-match "Constructor for objects of type `\\(.*\\)'"
+                                   doc))
+                ;; `symbol' is a name for the default constructor created by
+                ;; cl-defstruct, so return the location of the cl-defstruct.
+                (let* ((type-name (match-string 1 doc))
+                       (type-symbol (intern type-name))
+                       (file (find-lisp-object-file-name type-symbol
+                                                         'define-type))
+                       (summary (format elisp--xref-format-extra
+                                        'cl-defstruct
+                                        (concat "(" type-name)
+                                        (concat "(:constructor "
+                                                (symbol-name symbol)
+                                                "))"))))
+                  (add-xref 'function 'define-type type-symbol file summary)))
 
-             ((setq generic (cl--generic symbol))
-              ;; FIXME: move this to elisp-xref-find-def-functions, in cl-generic.el
+               ((setq generic (cl--generic symbol))
+                ;; FIXME: move this to elisp-xref-find-def-functions,
+                ;; in cl-generic.el
 
-              ;; A generic function. If there is a default method, it
-              ;; will appear in the method table, with no
-              ;; specializers.
-              ;;
-              ;; If the default method is declared by the cl-defgeneric
-              ;; declaration, it will have the same location as the
-              ;; cl-defgeneric, so we want to exclude it from the
-              ;; result. In this case, it will have a null doc
-              ;; string. User declarations of default methods may also
-              ;; have null doc strings, but we hope that is
-              ;; rare. Perhaps this heuristic will discourage that.
-              (dolist (method (cl--generic-method-table generic))
-                (let* ((info (cl--generic-method-info method));; qual-string combined-args doconly
-                       (specializers (cl--generic-method-specializers method))
-                       (non-default nil)
-                       (met-name (cl--generic-load-hist-format
-                                  symbol
-                                  (cl--generic-method-qualifiers method)
-                                  specializers))
-                       (file (find-lisp-object-file-name met-name 'cl-defmethod)))
-                  (dolist (item specializers)
-                    ;; default method has all 't' in specializers
-                    (setq non-default (or non-default (not (equal t item)))))
+                ;; A generic function. If there is a default method, it
+                ;; will appear in the method table, with no
+                ;; specializers.
+                ;;
+                ;; If the default method is declared by the cl-defgeneric
+                ;; declaration, it will have the same location as the
+                ;; cl-defgeneric, so we want to exclude it from the
+                ;; result. In this case, it will have a null doc
+                ;; string. User declarations of default methods may also
+                ;; have null doc strings, but we hope that is
+                ;; rare. Perhaps this heuristic will discourage that.
+                (dolist (method (cl--generic-method-table generic))
+                  (let* ((info (cl--generic-method-info method))
+                         ;; qual-string combined-args doconly
+                         (specializers (cl--generic-method-specializers method))
+                         (non-default nil)
+                         (met-name (cl--generic-load-hist-format
+                                    symbol
+                                    (cl--generic-method-qualifiers method)
+                                    specializers))
+                         (file (find-lisp-object-file-name met-name
+                                                           'cl-defmethod)))
+                    (dolist (item specializers)
+                      ;; default method has all 't' in specializers
+                      (setq non-default (or non-default (not (equal t item)))))
 
-                  (when (and file
-                             (or non-default
-                                 (nth 2 info))) ;; assuming only co-located default has null doc string
-                    (if specializers
-                        (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol (nth 1 info))))
-                          (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))
+                    (when (and file
+                               (or non-default
+                                   ;; assuming only co-located default has null
+                                   ;; doc string
+                                   (nth 2 info)))
+                      (if specializers
+                          (let ((summary (format elisp--xref-format-extra
+                                                 'cl-defmethod symbol
+                                                 (nth 1 info))))
+                            (add-xref 'function
+                                      'cl-defmethod met-name file summary))
 
-                      (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol "()")))
-                        (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))))
-                  ))
+                        (let ((summary (format elisp--xref-format-extra
+                                               'cl-defmethod symbol "()")))
+                          (add-xref 'function
+                                    'cl-defmethod met-name file summary))))))
 
-              (if (and (setq doc (documentation symbol t))
-                       ;; This doc string is created somewhere in
-                       ;; cl--generic-make-function for an implicit
-                       ;; defgeneric.
-                       (string-match "\n\n(fn ARG &rest ARGS)" doc))
-                  ;; This symbol is an implicitly defined defgeneric, so
-                  ;; don't return it.
-                  nil
-                (push (elisp--xref-make-xref 'cl-defgeneric symbol file) xrefs))
-              )
+                (if (and (setq doc (documentation symbol t))
+                         ;; This doc string is created somewhere in
+                         ;; cl--generic-make-function for an implicit
+                         ;; defgeneric.
+                         (string-match "\n\n(fn ARG &rest ARGS)" doc))
+                    ;; This symbol is an implicitly defined defgeneric, so
+                    ;; don't return it.
+                    nil
+                  (add-xref 'function 'cl-defgeneric symbol file)))
 
-             (t
-              (push (elisp--xref-make-xref nil symbol file) xrefs))
-             ))))
+               (t
+                (add-xref 'function nil symbol file))))))
 
-      (when (boundp symbol)
-        ;; A variable
-        (let ((file (find-lisp-object-file-name symbol 'defvar)))
-          (when file
-            (cond
-             ((eq file 'C-source)
-              ;; The doc strings from the C source have not been loaded
-              ;; yet; help-C-file-name does that.  Second call will
-              ;; return "src/*.c" in file; handled below.
-              (push (elisp--xref-make-xref 'defvar symbol (help-C-file-name symbol 'var)) xrefs))
+        (when (boundp symbol)
+          ;; A variable
+          (let ((file (find-lisp-object-file-name symbol 'defvar)))
+            (when file
+              (cond
+               ((eq file 'C-source)
+                ;; The doc strings from the C source have not been loaded
+                ;; yet; help-C-file-name does that.  Second call will
+                ;; return "src/*.c" in file; handled below.
+                (add-xref 'variable
+                          'defvar symbol (help-C-file-name symbol 'var)))
 
-             ((string= "src/" (substring file 0 4))
-              ;; The variable is defined in a C source file; don't check
-              ;; for define-minor-mode.
-              (push (elisp--xref-make-xref 'defvar symbol file) xrefs))
+               ((string= "src/" (substring file 0 4))
+                ;; The variable is defined in a C source file; don't check
+                ;; for define-minor-mode.
+                (add-xref 'variable 'defvar symbol file))
 
-             ((memq symbol minor-mode-list)
-              ;; The symbol is a minor mode. These should be defined by
-              ;; "define-minor-mode", which means the variable and the
-              ;; function are declared in the same place. So we return only
-              ;; the function, arbitrarily.
-              ;;
-              ;; There is an exception, when the variable is defined in C
-              ;; code, as for abbrev-mode.
-              ;;
-              ;; IMPROVEME: If the user is searching for the identifier at
-              ;; point, we can determine whether it is a variable or
-              ;; function by looking at the source code near point.
-              ;;
-              ;; IMPROVEME: The user may actually be asking "do any
-              ;; variables by this name exist"; we need a way to specify
-              ;; that.
-              nil)
+               ((memq symbol minor-mode-list)
+                ;; The symbol is a minor mode. These should be defined by
+                ;; "define-minor-mode", which means the variable and the
+                ;; function are declared in the same place. So we return only
+                ;; the function, arbitrarily, unless the search is in
+                ;; variable context, since it would be silly to have the
+                ;; user choose between both.
+                ;;
+                ;; There is an exception, when the variable is defined in C
+                ;; code, as for abbrev-mode.
+                (when (eq namespace 'variable)
+                  (add-xref 'variable 'defvar symbol file)))
 
-             (t
-              (push (elisp--xref-make-xref 'defvar symbol file) xrefs))
+               (t
+                (add-xref 'variable 'defvar symbol file))))))
 
-             ))))
+        (when (featurep symbol)
+          (let ((file (ignore-errors
+                        (find-library-name (symbol-name symbol)))))
+            (when file
+              (add-xref 'feature 'feature symbol file))))
+        ))
 
-      (when (featurep symbol)
-        (let ((file (ignore-errors
-                      (find-library-name (symbol-name symbol)))))
-          (when file
-            (push (elisp--xref-make-xref 'feature symbol file) xrefs))))
-      );; 'unless xrefs'
-
-    xrefs))
+    ;; If no xrefs consistent with the specified namespace were found
+    ;; and we weren't sure, use all other hits.
+    (or xrefs (and maybe secondary-xrefs))))
 
 (declare-function xref-apropos-regexp "xref" (pattern))
 
@@ -880,7 +1068,8 @@ non-nil result supersedes the xrefs produced by
          (let ((regexp (xref-apropos-regexp pattern))
                lst)
            (dolist (sym (apropos-internal regexp))
-             (push (elisp--xref-find-definitions sym) lst))
+             (push (elisp--xref-find-definitions sym 'any)
+                   lst))
            (nreverse lst))))
 
 (defvar elisp--xref-identifier-completion-table

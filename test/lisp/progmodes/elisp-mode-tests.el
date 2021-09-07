@@ -899,5 +899,116 @@ to (xref-elisp-test-descr-to-target xref)."
                           "(\\(when\\)")
               nil)))
 
+(defmacro elisp-mode-test--with-buffer (text-with-pos &rest body)
+  "Eval BODY with buffer and variables from TEXT-WITH-POS.
+All occurrences of {NAME} are removed from TEXT-WITH-POS and
+the remaining text put in a buffer in `elisp-mode'.
+Each NAME is then bound to its position in the text during the
+evaluation of BODY."
+  (declare (indent 1))
+  (let* ((annot-text (eval text-with-pos t))
+         (pieces nil)
+         (positions nil)
+         (tlen (length annot-text))
+         (ofs 0)
+         (text-ofs 0))
+    (while
+        (and (< ofs tlen)
+             (let ((m (string-match (rx "{" (group (+ (not "}"))) "}")
+                                    annot-text ofs)))
+               (and m
+                    (let ((var (intern (match-string 1 annot-text))))
+                      (push (substring annot-text ofs m) pieces)
+                      (setq text-ofs (+ text-ofs (- m ofs)))
+                      (push (list var (1+ text-ofs)) positions)
+                      (setq ofs (match-end 0))
+                      t)))))
+    (push (substring annot-text ofs tlen) pieces)
+    (let ((text (apply #'concat (nreverse pieces)))
+          (bindings (nreverse positions)))
+      `(with-temp-buffer
+         (ert-info (,text :prefix "text: ")
+           (emacs-lisp-mode)
+           (insert ,text)
+           (let ,bindings . ,body))))))
+
+(ert-deftest elisp-mode-with-buffer ()
+  ;; Sanity test of macro, also demonstrating how it works.
+  (elisp-mode-test--with-buffer
+      "{a}123{b}45{c}6"
+    (should (equal a 1))
+    (should (equal b 4))
+    (should (equal c 6))
+    (should (equal (buffer-string) "123456"))))
+
+(ert-deftest elisp-mode-infer-namespace ()
+  (elisp-mode-test--with-buffer
+      (concat " ({p1}alphaX {p2}beta {p3}gamma '{p4}delta\n"
+              "    #'{p5}epsilon `{p6}zeta `(,{p7}eta ,@{p8}theta))\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'function))
+    (should (equal (elisp--xref-infer-namespace p2) 'maybe-variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'maybe-variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'any))
+    (should (equal (elisp--xref-infer-namespace p5) 'function))
+    (should (equal (elisp--xref-infer-namespace p6) 'any))
+    (should (equal (elisp--xref-infer-namespace p7) 'variable))
+    (should (equal (elisp--xref-infer-namespace p8) 'variable)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(let ({p1}alpha {p2}beta ({p3}gamma {p4}delta))\n"
+              "  ({p5}epsilon {p6}zeta)\n"
+              "  {p7}eta)\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'variable))
+    (should (equal (elisp--xref-infer-namespace p2) 'variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'variable))
+    (should (equal (elisp--xref-infer-namespace p5) 'function))
+    (should (equal (elisp--xref-infer-namespace p6) 'maybe-variable))
+    (should (equal (elisp--xref-infer-namespace p7) 'variable)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(defun {p1}alpha () {p2}beta)\n"
+              "(defface {p3}gamma ...)\n"
+              "(defvar {p4}delta {p5}epsilon)\n"
+              "(function {p6}zeta)\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'function))
+    (should (equal (elisp--xref-infer-namespace p2) 'variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'face))
+    (should (equal (elisp--xref-infer-namespace p4) 'variable))
+    (should (equal (elisp--xref-infer-namespace p5) 'variable))
+    (should (equal (elisp--xref-infer-namespace p6) 'function)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(require '{p1}alpha)\n"
+              "(fboundp '{p2}beta)\n"
+              "(boundp '{p3}gamma)\n"
+              "(facep '{p4}delta)\n"
+              "(define-key map [f1] '{p5}epsilon)\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'feature))
+    (should (equal (elisp--xref-infer-namespace p2) 'function))
+    (should (equal (elisp--xref-infer-namespace p3) 'variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'face))
+    (should (equal (elisp--xref-infer-namespace p5) 'function)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(list {p1}alpha {p2}beta)\n"
+              "(progn {p3}gamma {p4}delta)\n"
+              "(lambda ({p5}epsilon {p6}zeta) {p7}eta)\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'variable))
+    (should (equal (elisp--xref-infer-namespace p2) 'variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'variable))
+    (should (equal (elisp--xref-infer-namespace p5) 'variable))
+    (should (equal (elisp--xref-infer-namespace p6) 'variable))
+    (should (equal (elisp--xref-infer-namespace p7) 'variable)))
+
+  (elisp-mode-test--with-buffer
+      (concat "'({p1}alpha {p2}beta\n"
+              "  ({p3}gamma ({p4}delta)))\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'any))
+    (should (equal (elisp--xref-infer-namespace p2) 'any))
+    (should (equal (elisp--xref-infer-namespace p3) 'any))
+    (should (equal (elisp--xref-infer-namespace p4) 'any))))
+
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here
