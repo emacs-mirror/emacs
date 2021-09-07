@@ -161,7 +161,7 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
     (add-text-properties 0 (length tab-bar-new-button)
                          `(display (image :type xpm
                                           :file "tabs/new.xpm"
-                                          :margin (2 . 0)
+                                          :margin ,tab-bar-button-margin
                                           :ascent center))
                          tab-bar-new-button))
 
@@ -171,7 +171,7 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
     (add-text-properties 0 (length tab-bar-close-button)
                          `(display (image :type xpm
                                           :file "tabs/close.xpm"
-                                          :margin (2 . 0)
+                                          :margin ,tab-bar-button-margin
                                           :ascent center))
                          tab-bar-close-button)))
 
@@ -1597,7 +1597,7 @@ and can restore them."
           (add-text-properties 0 (length tab-bar-back-button)
                                `(display (image :type xpm
                                                 :file "tabs/left-arrow.xpm"
-                                                :margin (2 . 0)
+                                                :margin ,tab-bar-button-margin
                                                 :ascent center))
                                tab-bar-back-button))
         (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-forward-button)))
@@ -1605,7 +1605,7 @@ and can restore them."
           (add-text-properties 0 (length tab-bar-forward-button)
                                `(display (image :type xpm
                                                 :file "tabs/right-arrow.xpm"
-                                                :margin (2 . 0)
+                                                :margin ,tab-bar-button-margin
                                                 :ascent center))
                                tab-bar-forward-button))
 
