@@ -1203,153 +1203,198 @@ The expansion is entirely correct because it uses the C preprocessor."
 ;; minimalistic Perl grammar, to be used instead of individual (and
 ;; not always consistent) literal regular expressions.
 
-(defconst cperl--basic-identifier-regexp
-  (rx (sequence (or alpha "_") (* (or word "_"))))
-  "A regular expression for the name of a \"basic\" Perl variable.
+;; This is necessary to compile this file under Emacs 26.1
+;; (there's no rx-define which would help)
+(eval-and-compile
+
+  (defconst cperl--basic-identifier-rx
+    '(sequence (or alpha "_") (* (or word "_")))
+    "A regular expression for the name of a \"basic\" Perl variable.
 Neither namespace separators nor sigils are included.  As is,
 this regular expression applies to labels,subroutine calls where
 the ampersand sigil is not required, and names of subroutine
 attributes.")
 
-(defconst cperl--label-regexp
-  (rx-to-string
-   `(sequence
-     symbol-start
-     (regexp ,cperl--basic-identifier-regexp)
-     (0+ space)
-     ":"))
-  "A regular expression for a Perl label.
+  (defconst cperl--label-rx
+    `(sequence symbol-start
+               ,cperl--basic-identifier-rx
+               (0+ space)
+               ":")
+    "A regular expression for a Perl label.
 By convention, labels are uppercase alphabetics, but this isn't
 enforced.")
 
-(defconst cperl--normal-identifier-regexp
-  (rx-to-string
-   `(or
-     (sequence
-      (1+ (sequence
-           (opt (regexp ,cperl--basic-identifier-regexp))
-           "::"))
-      (opt (regexp ,cperl--basic-identifier-regexp)))
-     (regexp ,cperl--basic-identifier-regexp)))
-  "A regular expression for a Perl variable name with optional namespace.
+  (defconst cperl--false-label-rx
+    '(sequence (or (in "sym") "tr") (0+ space) ":")
+    "A regular expression which is similar to a label, but might as
+well be a quote-like operator with a colon as delimiter.")
+
+  (defconst cperl--normal-identifier-rx
+    `(or (sequence (1+ (sequence
+                        (opt ,cperl--basic-identifier-rx)
+                        "::"))
+                   (opt ,cperl--basic-identifier-rx))
+         ,cperl--basic-identifier-rx)
+    "A regular expression for a Perl variable name with optional namespace.
 Examples are `foo`, `Some::Module::VERSION`, and `::` (yes, that
 is a legal variable name).")
 
-(defconst cperl--special-identifier-regexp
-  (rx-to-string
-   `(or
-     (1+ digit)                          ; $0, $1, $2, ...
-     (sequence "^" (any "A-Z" "]^_?\\")) ; $^V
-     (sequence "{" (0+ space)            ; ${^MATCH}
-               "^" (any "A-Z" "]^_?\\")
-               (0+ (any "A-Z" "_" digit))
-               (0+ space) "}")
-     (in "!\"$%&'()+,-./:;<=>?@\\]^_`|~")))   ; $., $|, $", ... but not $^ or ${
-  "The list of Perl \"punctuation\" variables, as listed in perlvar.")
+  (defconst cperl--special-identifier-rx
+    '(or
+      (1+ digit)                          ; $0, $1, $2, ...
+      (sequence "^" (any "A-Z" "]^_?\\")) ; $^V
+      (sequence "{" (0+ space)            ; ${^MATCH}
+                "^" (any "A-Z" "]^_?\\")
+                (0+ (any "A-Z" "_" digit))
+                (0+ space) "}")
+      (in "!\"$%&'()+,-./:;<=>?@\\]^_`|~"))   ; $., $|, $", ... but not $^ or ${
+    "The list of Perl \"punctuation\" variables, as listed in perlvar.")
 
-(defconst cperl--ws-regexp
-  (rx-to-string
-   '(or space "\n"))
-  "Regular expression for a single whitespace in Perl.")
+  (defconst cperl--ws-rx
+    '(sequence (or space "\n"))
+    "Regular expression for a single whitespace in Perl.")
 
-(defconst cperl--eol-comment-regexp
-  (rx-to-string
-   '(sequence "#" (0+ (not (in "\n"))) "\n"))
-  "Regular expression for a single end-of-line comment in Perl")
+  (defconst cperl--eol-comment-rx
+    '(sequence "#" (0+ (not (in "\n"))) "\n")
+    "Regular expression for a single end-of-line comment in Perl")
 
-(defconst cperl--ws-or-comment-regexp
-  (rx-to-string
-   `(1+
-     (or
-      (regexp ,cperl--ws-regexp)
-      (regexp ,cperl--eol-comment-regexp))))
-  "Regular expression for a sequence of whitespace and comments in Perl.")
+  (defconst cperl--ws-or-comment-rx
+    `(or ,cperl--ws-rx
+         ,cperl--eol-comment-rx)
+    "A regular expression for either whitespace or comment")
 
-(defconst cperl--ows-regexp
-  (rx-to-string
-   `(opt (regexp ,cperl--ws-or-comment-regexp)))
-  "Regular expression for optional whitespaces or comments in Perl")
+  (defconst cperl--ws*-rx
+    `(0+ ,cperl--ws-or-comment-rx)
+    "Regular expression for optional whitespaces or comments in Perl")
 
-(defconst cperl--version-regexp
-  (rx-to-string
-   `(or
-     (sequence (opt "v")
-	       (>= 2 (sequence (1+ digit) "."))
-	       (1+ digit)
-	       (opt (sequence "_" (1+ word))))
-     (sequence (1+ digit)
-	       (opt (sequence "." (1+ digit)))
-	       (opt (sequence "_" (1+ word))))))
-  "A sequence for recommended version number schemes in Perl.")
+  (defconst cperl--ws+-rx
+    `(1+ ,cperl--ws-or-comment-rx)
+    "Regular expression for a sequence of whitespace and comments in Perl.")
 
-(defconst cperl--package-regexp
-  (rx-to-string
-   `(sequence
-     "package" ; FIXME: the "class" and "role" keywords need to be
-               ; recognized soon...ish.
-     (regexp ,cperl--ws-or-comment-regexp)
-     (group (regexp ,cperl--normal-identifier-regexp))
-     (opt
-      (sequence
-       (regexp ,cperl--ws-or-comment-regexp)
-       (group (regexp ,cperl--version-regexp))))))
-  "A regular expression for package NAME VERSION in Perl.
-Contains two groups for the package name and version.")
+  ;; This is left as a string regexp.  There are many version schemes in
+  ;; the wild, so people might want to fiddle with this variable.
+  (defconst cperl--version-regexp
+    (rx-to-string
+     `(or
+       (sequence (optional "v")
+	         (>= 2 (sequence (1+ digit) "."))
+	         (1+ digit)
+	         (optional (sequence "_" (1+ word))))
+       (sequence (1+ digit)
+	         (optional (sequence "." (1+ digit)))
+	         (optional (sequence "_" (1+ word))))))
+    "A sequence for recommended version number schemes in Perl.")
 
-(defconst cperl--package-for-imenu-regexp
-  (rx-to-string
-   `(sequence
-     (regexp ,cperl--package-regexp)
-     (regexp ,cperl--ows-regexp)
-     (group (or ";" "{"))))
-  "A regular expression to collect package names for `imenu`.
+  (defconst cperl--package-rx
+    `(sequence (group "package")
+               ,cperl--ws+-rx
+               (group ,cperl--normal-identifier-rx)
+               (optional (sequence ,cperl--ws+-rx
+                                   (group (regexp ,cperl--version-regexp)))))
+    "A regular expression for package NAME VERSION in Perl.
+Contains three groups for the keyword \"package\", for the
+package name and for the version.")
+
+  (defconst cperl--package-for-imenu-rx
+    `(sequence symbol-start
+               (group-n 1 "package")
+               ,cperl--ws*-rx
+               (group-n 2 ,cperl--normal-identifier-rx)
+               (optional (sequence ,cperl--ws+-rx
+                                   (regexp ,cperl--version-regexp)))
+               ,cperl--ws*-rx
+               (group-n 3 (or ";" "{")))
+    "A regular expression to collect package names for `imenu`.
 Catches \"package NAME;\", \"package NAME VERSION;\", \"package
 NAME BLOCK\" and \"package NAME VERSION BLOCK.\" Contains three
-groups: Two from `cperl--package-regexp` for the package name and
-version, and a third to detect \"package BLOCK\" syntax.")
+groups: One for the keyword \"package\", one for the package
+name, and one for the discovery of a following BLOCK.")
 
-(defconst cperl--sub-name-regexp
-  (rx-to-string
-   `(sequence
-     (optional (sequence (group (or "my" "state" "our"))
-			 (regexp ,cperl--ws-or-comment-regexp)))
-     "sub" ; FIXME: the "method" and maybe "fun" keywords need to be
-           ; recognized soon...ish.
-     (regexp ,cperl--ws-or-comment-regexp)
-     (group (regexp ,cperl--normal-identifier-regexp))))
-  "A regular expression to detect a subroutine start.
-Contains two groups: One for to distinguish lexical from
-\"normal\" subroutines and one for the subroutine name.")
+  (defconst cperl--sub-name-for-imenu-rx
+    `(sequence symbol-start
+               (optional (sequence (group-n 3 (or "my" "state" "our"))
+	                           ,cperl--ws+-rx))
+               (group-n 1 "sub")
+               ,cperl--ws+-rx
+               (group-n 2 ,cperl--normal-identifier-rx))
+    "A regular expression to detect a subroutine start.
+Contains three groups: One one to distinguish lexical from
+\"normal\" subroutines, for the keyword \"sub\", and one for the
+subroutine name.")
 
-(defconst cperl--pod-heading-regexp
-  (rx-to-string
-   `(sequence
-     line-start "=head"
-     (group (in "1-4"))
-     (1+ (in " \t"))
-     (group (1+ (not (in "\n"))))
-     line-end)) ; that line-end seems to be redundant?
+(defconst cperl--block-declaration-rx
+  `(sequence
+    (or "package" "sub")  ; "class" and "method" coming soon
+    (1+ ,cperl--ws-or-comment-rx)
+    ,cperl--normal-identifier-rx)
+  "A regular expression to find a declaration for a named block.
+Used for indentation.  These declarations introduce a block which
+does not need a semicolon to terminate the statement.")
+
+(defconst cperl--pod-heading-rx
+  `(sequence line-start
+             (group-n 1 "=head")
+             (group-n 3 (in "1-4"))
+             (1+ (in " \t"))
+             (group-n 2 (1+ (not (in "\n")))))
   "A regular expression to detect a POD heading.
 Contains two groups: One for the heading level, and one for the
 heading text.")
 
-(defconst cperl--imenu-entries-regexp
-  (rx-to-string
-   `(or
-     (regexp ,cperl--package-for-imenu-regexp) ; 1..3
-     (regexp ,cperl--sub-name-regexp)	       ; 4..5
-     (regexp ,cperl--pod-heading-regexp)))     ; 6..7
+(defconst cperl--imenu-entries-rx
+  `(or ,cperl--package-for-imenu-rx
+       ,cperl--sub-name-for-imenu-rx
+       ,cperl--pod-heading-rx)
   "A regular expression to collect stuff that goes into the `imenu` index.
 Covers packages, subroutines, and POD headings.")
 
+;; end of eval-and-compiled stuff
+)
+
+
+(defun cperl-block-declaration-p ()
+  "Test whether the following ?\\{ opens a declaration block.
+Returns the column where the declarating keyword is found, or nil
+if this isn't a declaration block.  Declaration blocks are named
+subroutines, packages and the like.  They start with a keyword
+and a name, to be followed by various descriptive items which are
+just skipped over for our purpose.  Declaration blocks end a
+statement, so there's no semicolon."
+  ;; A scan error means that none of the declarators has been found
+  (condition-case nil
+      (let ((is-block-declaration nil)
+            (continue-searching t))
+        (while (and continue-searching (not (bobp)))
+          (forward-sexp -1)
+          (cond
+           ((looking-at (rx (eval cperl--block-declaration-rx)))
+            (setq is-block-declaration (current-column)
+                  continue-searching nil))
+           ;; Another brace means this is no block declaration
+           ((looking-at "{")
+            (setq continue-searching nil))
+           (t
+            (cperl-backward-to-noncomment (point-min))
+            ;; A semicolon or an opening brace prevent this block from
+            ;; being a block declaration
+            (when (or (eq (preceding-char) ?\;)
+                      (eq (preceding-char) ?{))
+              (setq continue-searching nil)))))
+        is-block-declaration)
+    (error nil)))
+
 
 ;; These two must be unwound, otherwise take exponential time
-(defconst cperl-maybe-white-and-comment-rex "[ \t\n]*\\(#[^\n]*\n[ \t\n]*\\)*"
+(defconst cperl-maybe-white-and-comment-rex
+  (rx (group (eval cperl--ws*-rx)))
+  ;; was: "[ \t\n]*\\(#[^\n]*\n[ \t\n]*\\)*"
 "Regular expression to match optional whitespace with interspersed comments.
 Should contain exactly one group.")
 
 ;; This one is tricky to unwind; still very inefficient...
-(defconst cperl-white-and-comment-rex "\\([ \t\n]\\|#[^\n]*\n\\)+"
+(defconst cperl-white-and-comment-rex
+  (rx (group (eval cperl--ws+-rx)))
+  ;; was: "\\([ \t\n]\\|#[^\n]*\n\\)+"
 "Regular expression to match whitespace with interspersed comments.
 Should contain exactly one group.")
 
@@ -1405,28 +1450,9 @@ the last)."
            when (eq char (aref keyword (1- (length keyword))))
            return t))
 
-;; Details of groups in this are used in `cperl-imenu--create-perl-index'
-;;  and `cperl-outline-level'.
-;; Was: 2=sub|package; now 2=package-group, 5=package-name 8=sub-name (+3)
-(defvar cperl-imenu--function-name-regexp-perl
-  (concat
-   "^\\("				; 1 = all
-       "\\([ \t]*package"		; 2 = package-group
-          "\\("				; 3 = package-name-group
-	    cperl-white-and-comment-rex ; 4 = pre-package-name
-	       "\\([a-zA-Z_0-9:']+\\)\\)?\\)" ; 5 = package-name
-       "\\|"
-          "[ \t]*"
-          cperl-sub-regexp
-	  (cperl-after-sub-regexp 'named nil) ; 8=name 11=proto 14=attr-start
-	  cperl-maybe-white-and-comment-rex	; 15=pre-block
-   "\\|"
-     "=head\\([1-4]\\)[ \t]+"		; 16=level
-     "\\([^\n]+\\)$"			; 17=text
-   "\\)"))
-
 (defvar cperl-outline-regexp
-  (concat cperl-imenu--function-name-regexp-perl "\\|" "\\`"))
+  (rx (sequence line-start (0+ blank) (eval cperl--imenu-entries-rx)))
+  "The regular expression used for outline-minor-mode")
 
 (defvar cperl-mode-syntax-table nil
   "Syntax table in use in CPerl mode buffers.")
@@ -2516,8 +2542,9 @@ Return the amount the indentation changed by."
 	  (t
 	   (skip-chars-forward " \t")
 	   (if (listp indent) (setq indent (car indent)))
-	   (cond ((and (looking-at "[A-Za-z_][A-Za-z_0-9]*:[^:]")
-		       (not (looking-at "[smy]:\\|tr:")))
+	   (cond ((and (looking-at (rx (sequence (eval cperl--label-rx)
+                                                 (not (in ":")))))
+                       (not (looking-at (rx (eval cperl--false-label-rx)))))
 		  (and (> indent 0)
 		       (setq indent (max cperl-min-label-indent
 					 (+ indent cperl-label-offset)))))
@@ -2709,6 +2736,8 @@ Will not look before LIM."
 			     (and (eq (preceding-char) ?\})
 				  (cperl-after-block-and-statement-beg
 				   (point-min))) ; Was start - too close
+                             (and char-after (char-equal char-after ?{)
+                                  (save-excursion (cperl-block-declaration-p)))
 			     (memq char-after (append ")]}" nil))
 			     (and (eq (preceding-char) ?\:) ; label
 				  (progn
@@ -2752,12 +2781,10 @@ Will not look before LIM."
 		   ;; Back up over label lines, since they don't
 		   ;; affect whether our line is a continuation.
 		   ;; (Had \, too)
-		   (while;;(or (eq (preceding-char) ?\,)
-		       (and (eq (preceding-char) ?:)
-			    (or;;(eq (char-after (- (point) 2)) ?\') ; ????
-			     (memq (char-syntax (char-after (- (point) 2)))
-				   '(?w ?_))))
-		     ;;)
+                   (while (and (eq (preceding-char) ?:)
+                                 (re-search-backward
+                                  (rx (sequence (eval cperl--label-rx) point))
+                                  nil t))
 		     ;; This is always FALSE?
 		     (if (eq (preceding-char) ?\,)
 			 ;; Will go to beginning of line, essentially.
@@ -2769,6 +2796,7 @@ Will not look before LIM."
 		   (if (not (or (eq (1- (point)) containing-sexp)
                                 (and cperl-indent-parens-as-block
                                      (not is-block))
+                                (save-excursion (cperl-block-declaration-p))
 				(memq (preceding-char)
 				      (append (if is-block " ;{" " ,;{") '(nil)))
 				(and (eq (preceding-char) ?\})
@@ -2797,10 +2825,17 @@ Will not look before LIM."
 			(forward-char 1)
 			(let ((colon-line-end 0))
 			  (while
-			      (progn (skip-chars-forward " \t\n")
-				     ;; s: foo : bar :x is NOT label
-				     (and (looking-at "#\\|\\([a-zA-Z0-9_$]+\\):[^:]\\|=[a-zA-Z]")
-					  (not (looking-at "[sym]:\\|tr:"))))
+			      (progn
+                                (skip-chars-forward " \t\n")
+				;; s: foo : bar :x is NOT label
+                                (and (looking-at
+                                      (rx
+                                       (or "#"
+                                           (sequence (eval cperl--label-rx)
+                                                     (not (in ":")))
+                                           (sequence "=" (in "a-zA-Z")))))
+				     (not (looking-at
+                                           (rx (eval cperl--false-label-rx))))))
 			    ;; Skip over comments and labels following openbrace.
 			    (cond ((= (following-char) ?\#)
 				   (forward-line 1))
@@ -3059,7 +3094,10 @@ and closing parentheses and brackets."
 		 ;; If line starts with label, calculate label indentation
 		 (if (save-excursion
 		       (beginning-of-line)
-		       (looking-at "[ \t]*[a-zA-Z_][a-zA-Z_0-9]*:[^:]"))
+                       (looking-at (rx
+                                    (sequence (0+ space)
+                                              (eval cperl--label-rx)
+                                              (not (in ":"))))))
 		     (if (> (current-indentation) cperl-min-label-indent)
 			 (- (current-indentation) cperl-label-offset)
 		       ;; Do not move `parse-data', this should
@@ -4768,15 +4806,19 @@ recursive calls in starting lines of here-documents."
 	    (if (< p (point)) (goto-char p))
 	    (setq stop t))))))
 
-;; Used only in `cperl-calculate-indent'...
+;; Used only in `cperl-sniff-for-indent'...
 (defun cperl-block-p ()
-  "Point is before ?\\{.  Checks whether it starts a block."
+  "Point is before ?\\{.  Return true if it starts a block."
   ;; No save-excursion!  This is more a distinguisher of a block/hash ref...
   (cperl-backward-to-noncomment (point-min))
   (or (memq (preceding-char) (append ";){}$@&%\C-@" nil)) ; Or label!  \C-@ at bobp
 					; Label may be mixed up with `$blah :'
       (save-excursion (cperl-after-label))
+      ;; text with the 'attrib-group property is also covered by the
+      ;; next clause.  We keep it because it is faster (for
+      ;; subroutines with attributes).
       (get-text-property (cperl-1- (point)) 'attrib-group)
+      (save-excursion (cperl-block-declaration-p))
       (and (memq (char-syntax (preceding-char)) '(?w ?_))
 	   (progn
 	     (backward-sexp)
@@ -4814,6 +4856,7 @@ statement would start; thus the block in ${func()} does not count."
 	      (save-excursion (cperl-after-label))
 	      ;; sub :attr {}
 	      (get-text-property (cperl-1- (point)) 'attrib-group)
+              (save-excursion (cperl-block-declaration-p))
 	      (if (memq (char-syntax (preceding-char)) '(?w ?_)) ; else {}
 		  (save-excursion
 		    (forward-sexp -1)
@@ -4929,7 +4972,8 @@ CHARS is a string that contains good characters to have before us (however,
   (skip-chars-forward " \t"))
 
 (defun cperl-after-block-and-statement-beg (lim)
-  ;; We assume that we are after ?\}
+  "Return true if the preceding ?} ends the statement."
+  ;;  We assume that we are after ?\}
   (and
    (cperl-after-block-p lim)
    (save-excursion
@@ -5405,6 +5449,10 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  ;; Previous space could have gone:
 	  (or (memq (preceding-char) '(?\s ?\t)) (insert " "))))))
 
+(defvar cperl-imenu-package-keywords '("package" "class" "role"))
+(defvar cperl-imenu-sub-keywords '("sub" "method" "function" "fun"))
+(defvar cperl-imenu-pod-keywords '("=head"))
+
 (defun cperl-imenu--create-perl-index ()
   "Implement `imenu-create-index-function` for CPerl mode.
 This function relies on syntaxification to exclude lines which
@@ -5423,20 +5471,21 @@ comment, or POD."
 	(current-package "(main)")
 	(current-package-end (point-max)))   ; end of package scope
     ;; collect index entries
-    (while (re-search-forward cperl--imenu-entries-regexp nil t)
+    (while (re-search-forward (rx (eval cperl--imenu-entries-rx)) nil t)
       ;; First, check whether we have left the scope of previously
       ;; recorded packages, and if so, eliminate them from the stack.
       (while (< current-package-end (point))
 	(setq current-package (pop package-stack))
 	(setq current-package-end (pop package-stack)))
       (let ((state (syntax-ppss))
+            (entry-type (match-string 1))
 	    name marker) ; for the "current" entry
 	(cond
 	 ((nth 3 state) nil)            ; matched in a string, so skip
-	 ((match-string 1)              ; found a package name!
+         ((member entry-type cperl-imenu-package-keywords) ; package or class
 	  (unless (nth 4 state)         ; skip if in a comment
-	    (setq name (match-string-no-properties 1)
-		  marker (copy-marker (match-end 1)))
+	    (setq name (match-string-no-properties 2)
+		  marker (copy-marker (match-end 2)))
 	    (if  (string= (match-string 3) ";")
 		(setq current-package name)  ; package NAME;
 	      ;; No semicolon, therefore we have: package NAME BLOCK.
@@ -5449,32 +5498,33 @@ comment, or POD."
 	      (setq current-package-end (save-excursion
 					  (goto-char (match-beginning 3))
 					  (forward-sexp)
-					  (point)))
+					  (point))))
 	    (push (cons name marker) index-package-alist)
-	    (push (cons (concat "package " name) marker) index-unsorted-alist))))
-	 ((match-string 5)              ; found a sub name!
+	    (push (cons (concat entry-type " " name) marker) index-unsorted-alist)))
+	 ((or (member entry-type cperl-imenu-sub-keywords) ; sub or method
+              (string-equal entry-type ""))                ; named blocks
 	  (unless (nth 4 state)         ; skip if in a comment
-	    (setq name (match-string-no-properties 5)
-		  marker (copy-marker (match-end 5)))
+	    (setq name (match-string-no-properties 2)
+		  marker (copy-marker (match-end 2)))
 	    ;; Qualify the sub name with the package if it doesn't
 	    ;; already have one, and if it isn't lexically scoped.
 	    ;; "my" and "state" subs are lexically scoped, but "our"
 	    ;; are just lexical aliases to package subs.
 	    (if (and (null (string-match "::" name))
-		     (or (null (match-string 4))
-			 (string-equal (match-string 4) "our")))
+		     (or (null (match-string 3))
+			 (string-equal (match-string 3) "our")))
 	      (setq name (concat current-package "::" name)))
 	    (let ((index (cons name marker)))
 	      (push index index-alist)
 	      (push index index-sub-alist)
 	      (push index index-unsorted-alist))))
-	 ((match-string 6)              ; found a POD heading!
-	  (when (get-text-property (match-beginning 6) 'in-pod)
+	 ((member entry-type cperl-imenu-pod-keywords)  ; POD heading
+	  (when (get-text-property (match-beginning 2) 'in-pod)
 	    (setq name (concat (make-string
-				(* 3 (- (char-after (match-beginning 6)) ?1))
+				(* 3 (- (char-after (match-beginning 3)) ?1))
 				?\ )
-			       (match-string-no-properties 7))
-		  marker (copy-marker (match-beginning 7)))
+			       (match-string-no-properties 2))
+		  marker (copy-marker (match-beginning 2)))
 	    (push (cons name marker) index-pod-alist)
 	    (push (cons (concat "=" name) marker) index-unsorted-alist)))
 	 (t (error "Unidentified match: %s" (match-string 0))))))
@@ -5727,10 +5777,25 @@ function."
 		       2 font-lock-string-face t)))
 	    '("[[ \t{,(]\\(-?[a-zA-Z0-9_:]+\\)[ \t]*=>" 1
 	      font-lock-string-face t)
-	    '("^[ \t]*\\([a-zA-Z0-9_]+[ \t]*:\\)[ \t]*\\($\\|{\\|\\<\\(until\\|while\\|for\\(each\\)?\\|do\\)\\>\\)" 1
-	      font-lock-constant-face)	; labels
-	    '("\\<\\(continue\\|next\\|last\\|redo\\|break\\|goto\\)\\>[ \t]+\\([a-zA-Z0-9_:]+\\)" ; labels as targets
-	      2 font-lock-constant-face)
+            ;; labels
+            `(,(rx
+                (sequence
+                 (0+ space)
+                 (group (eval cperl--label-rx))
+                 (0+ space)
+                 (or line-end "#" "{"
+                     (sequence word-start
+                               (or "until" "while" "for" "foreach" "do")
+                               word-end))))
+              1 font-lock-constant-face)
+            ;; labels as targets (no trailing colon!)
+            `(,(rx
+                (sequence
+                 symbol-start
+                 (or "continue" "next" "last" "redo" "break" "goto")
+                 (1+ space)
+                 (group (eval cperl--basic-identifier-rx))))
+              1 font-lock-constant-face)
 	    ;; Uncomment to get perl-mode-like vars
             ;;; '("[$*]{?\\(\\sw+\\)" 1 font-lock-variable-name-face)
             ;;; '("\\([@%]\\|\\$#\\)\\(\\sw+\\)"
