@@ -2572,17 +2572,22 @@ to `rcirc-default-part-reason'."
   "Reconnect to current server."
   (interactive "i")
   (with-rcirc-server-buffer
-    (cond
-     (rcirc-connecting (message "Already connecting"))
-     ((process-live-p process) (message "Server process is alive"))
-     (t (let ((conn-info rcirc-connection-info))
-	  (setf (nth 5 conn-info)
-		(cl-remove-if-not #'rcirc-channel-p
-				  (mapcar #'car rcirc-buffer-alist)))
-          (dolist (buf (nth 5 conn-info))
-            (with-current-buffer (cdr (assoc buf rcirc-buffer-alist))
-              (setq rcirc-reconncting t)))
-	  (apply #'rcirc-connect conn-info))))))
+    (catch 'exit
+      (cond
+       (rcirc-connecting
+        (when (process-live-p process)
+          (kill-process process))
+        (setq rcirc-connecting nil))
+       ((process-live-p process)
+        (throw 'exit (message "Server process is alive"))))
+      (let ((conn-info rcirc-connection-info))
+	(setf (nth 5 conn-info)
+	      (cl-remove-if-not #'rcirc-channel-p
+				(mapcar #'car rcirc-buffer-alist)))
+        (dolist (buf (nth 5 conn-info))
+          (with-current-buffer (cdr (assoc buf rcirc-buffer-alist))
+            (setq rcirc-reconncting t)))
+	(apply #'rcirc-connect conn-info)))))
 
 (rcirc-define-command nick (nick)
   "Change nick to NICK."
