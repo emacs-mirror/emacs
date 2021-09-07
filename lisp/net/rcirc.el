@@ -2479,7 +2479,7 @@ that, an interactive form can specified."
                    (insert "\\(.*?\\)")
                    (insert "[[:space:]]*\\'")
                    (buffer-string)))
-         (argument (gensym))
+         (argument (make-symbol "arglist"))
          documentation
          interactive-spec)
     (when (stringp (car body))
