@@ -68,11 +68,11 @@
 
 (ert-deftest browse-url-tests-encode-url ()
   (should (equal (browse-url-encode-url "") ""))
-  (should (equal (browse-url-encode-url "a b c") "a b c"))
+  (should (equal (browse-url-encode-url "a b c") "a%20b%20c"))
   (should (equal (browse-url-encode-url "\"a\" \"b\"")
-                 "\"a%22\"b\""))
-  (should (equal (browse-url-encode-url "(a) (b)") "(a%29(b)"))
-  (should (equal (browse-url-encode-url "a$ b$") "a%24b$")))
+                 "%22a%22%20%22b%22"))
+  (should (equal (browse-url-encode-url "(a) (b)") "%28a%29%20%28b%29"))
+  (should (equal (browse-url-encode-url "a$ b$") "a%24%20b%24")))
 
 (ert-deftest browse-url-tests-url-at-point ()
   (with-temp-buffer

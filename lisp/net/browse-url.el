@@ -692,16 +692,11 @@ alist is deprecated.  Use `browse-url-handlers' instead.")
 
 (defun browse-url-url-encode-chars (text chars)
   "URL-encode the chars in TEXT that match CHARS.
-CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
-  (let ((encoded-text (copy-sequence text))
-	(s 0))
-    (while (setq s (string-match chars encoded-text s))
-      (setq encoded-text
-	    (replace-match (format "%%%X"
-				   (string-to-char (match-string 0 encoded-text)))
-			   t t encoded-text)
-	    s (1+ s)))
-    encoded-text))
+CHARS is a regexp that matches a character."
+  (replace-regexp-in-string chars
+                            (lambda (s)
+                              (format "%%%X" (string-to-char s)))
+                            text))
 
 (defun browse-url-encode-url (url)
   "Escape annoying characters in URL.
@@ -710,7 +705,7 @@ regarding its parameter treatment."
   ;; FIXME: Is there an actual example of a web browser getting
   ;; confused?  (This used to encode commas, but at least Firefox
   ;; handles commas correctly and doesn't accept encoded commas.)
-  (browse-url-url-encode-chars url "[\")$] "))
+  (browse-url-url-encode-chars url "[\"()$ ]"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
