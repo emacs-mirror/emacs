@@ -1747,10 +1747,12 @@ commands (@pxref{Xref Commands}).  When invoked with a prefix
 argument, this command additionally prompts for the base directory
 from which to start the search; this allows, for example, to limit the
 search only to project files under a certain subdirectory of the
-project root.
+project root.  The way this command displays the matches is affected
+by the value of @code{xref-auto-jump-to-first-xref} (@pxref{Identifier
+Search}).
 
 @findex project-search
-  @kbd{M-x project-search} is an interactive variant of
+  @kbd{M-x project-search} is an incremental variant of
 @code{project-find-regexp}.  It prompts for a regular expression to
 search in the current project's files, but instead of finding all the
 matches and displaying them, it stops when it finds a match and visits
@@ -2155,20 +2157,11 @@ which these definitions are found.  Selecting one of these candidates
 by typing @kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer
 showing the corresponding definition.  If the value of the variable
 @code{xref-auto-jump-to-first-definition} is @code{move}, the first
-candidate is automatically selected, and if it's @code{t} or
-@code{show}, the first candidate is automatically shown.  The default
-value is @code{nil}, which just shows the candidates in the
-@file{*xref*} buffer, but doesn't select any of them.
-
-@vindex xref-auto-jump-to-first-xref
-  If the value of the variable @code{xref-auto-jump-to-first-xref} is
-@code{t}, @emph{all} Xref commands automatically jump to the first
-result.  If the value is @code{show}, the first result is shown, but
-the window showing the @file{*xref*} buffer is left selected.  If the
-value is @code{move}, the first result is selected in the
-@file{*xref*} buffer, but is not shown.  The default value is
-@code{nil}, which just shows the results in the @file{*xref*} buffer,
-but doesn't select any of them.
+of these candidates is automatically selected, and if it's @code{t} or
+@code{show}, the first candidate is automatically shown; @code{t} also
+selects the window showing the first candidate.  The default value is
+@code{nil}, which just shows the candidates in the @file{*xref*}
+buffer, but doesn't select any of them.
 
   When entering the identifier argument to @kbd{M-.}, the usual
 minibuffer completion commands can be used (@pxref{Completion}), with
@@ -2337,6 +2330,16 @@ identifier, showing the file name and the line where the identifier is
 referenced.  The XREF mode commands are available in this buffer, see
 @ref{Xref Commands}.
 
+@vindex xref-auto-jump-to-first-xref
+  If the value of the variable @code{xref-auto-jump-to-first-xref} is
+@code{t}, @code{xref-find-references} automatically jumps to the first
+result and selects the window where it is displayed.  If the value is
+@code{show}, the first result is shown, but the window showing the
+@file{*xref*} buffer is left selected.  If the value is @code{move},
+the first result is selected in the @file{*xref*} buffer, but is not
+shown.  The default value is @code{nil}, which just shows the results
+in the @file{*xref*} buffer, but doesn't select any of them.
+
 @findex xref-query-replace-in-results
   @kbd{M-x xref-query-replace-in-results} reads a regexp to match identifier
 names and a replacement string, just like ordinary @kbd{M-x
@@ -2409,6 +2412,8 @@ selected tags table if one is loaded (@code{completion-at-point}).
 
 @item M-x xref-find-apropos @key{RET} @var{regexp} @key{RET}
 Display a list of all known identifiers matching @var{regexp}.
+The way this command displays the matches is affected by the value of
+@code{xref-auto-jump-to-first-xref} (@pxref{Identifier Search}).
 
 @item M-x list-tags @key{RET} @var{file} @key{RET}
 Display a list of the identifiers defined in the program file
@@ -2435,10 +2440,9 @@ for the project to be available.  @xref{Tags Tables}.  If used
 interactively, the default tag is file name of the current buffer if
 used interactively.
 
-@c Sadly, the new-and-improved Xref feature doesn't provide anything
-@c close to the described below features of the now-obsoleted
-@c tags-apropos.  I'm leaving this here to encourage enhancements to
-@c xref.el.
+@c Sadly, the new-and-improved Xref feature doesn't provide some
+@c of the features of the now-obsoleted tags-apropos.  I'm leaving
+@c this here to encourage enhancements to xref.el.
 @ignore
 @findex tags-apropos
 @vindex tags-apropos-verbose

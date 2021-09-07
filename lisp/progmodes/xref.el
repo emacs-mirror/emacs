@@ -420,7 +420,9 @@ elements is negated: these commands will NOT prompt."
   "If t, `xref-find-definitions' always jumps to the first result.
 `show' means to show the first result's location, but keep the
 focus on the Xref buffer's window.
-`move' means to only move point to the first result."
+`move' means to only move point to the first result.
+This variable also affects commands similar to `xref-find-definitions',
+such as `xref-find-definitions-other-window'."
   :type '(choice (const :tag "Jump" t)
                  (const :tag "Show" show)
                  (const :tag "Move point only" move)
@@ -429,13 +431,16 @@ focus on the Xref buffer's window.
   :package-version '(xref . "1.2.0"))
 
 (defcustom xref-auto-jump-to-first-xref nil
-  "If t, xref commands always jump to the first result.
+  "If t, `xref-find-references' always jumps to the first result.
 `show' means to show the first result's location, but keep the
 focus on the Xref buffer's window.
 `move' means to only move point to the first result.
+This variable also affects commands similar to `xref-find-definitions',
+such as `xref-find-references-at-mouse', `xref-find-apropos',
+and `project-find-regexp'.
 
-Please be careful changing this value if you are using Emacs 27
-or earlier: it can break dired-do-find-regexp-and-replace."
+Please be careful when changing the value if you are using Emacs 27
+or earlier: it can break `dired-do-find-regexp-and-replace'."
   :type '(choice (const :tag "Jump" t)
                  (const :tag "Show" show)
                  (const :tag "Move point only" move)
