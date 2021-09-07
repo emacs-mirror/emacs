@@ -1752,7 +1752,7 @@ by the value of @code{xref-auto-jump-to-first-xref} (@pxref{Identifier
 Search}).
 
 @findex project-search
-  @kbd{M-x project-search} is an incremental variant of
+  @kbd{M-x project-search} is a sequential variant of
 @code{project-find-regexp}.  It prompts for a regular expression to
 search in the current project's files, but instead of finding all the
 matches and displaying them, it stops when it finds a match and visits
