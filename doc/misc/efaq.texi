@@ -364,19 +364,21 @@ The main ones are: @code{help-gnu-emacs}, @code{bug-gnu-emacs},
 and @code{emacs-devel}.
 
 Messages advocating ``non-free'' software are considered unacceptable on
-any of the @code{gnu.*} mailing lists (except for @url{https://lists.gnu.org/mailman/listinfo/gnu-misc-discuss, the gnu-misc-discuss mailing list}).
+any of the GNU mailing lists, except for
+@url{https://lists.gnu.org/mailman/listinfo/gnu-misc-discuss,
+the gnu-misc-discuss mailing list}.
 ``Non-free'' software includes any software for which the end user can't
 freely modify the source code and exchange enhancements.  Please
 remove GNU mailing lists from the recipients when
 posting a reply that recommends such software.
 
 @cindex newsgroups
-Some of the GNU mailing lists are gatewayed to newsgroups.
-The newsgroup @uref{news:comp.emacs} is for discussion of Emacs programs
-in general.  The newsgroup @uref{news:gnu.emacs.help} (i.e., the
-@code{help-gnu-emacs} mailing list) is specifically
-for GNU Emacs.  It therefore makes no sense to cross-post to both
-groups, since only one can be appropriate to any question.
+Some of the GNU mailing lists are gatewayed to newsgroups (although
+the connection is occasionally unreliable).
+For example, sending an email to
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
+bug-gnu-emacs list} has the effect of posting on the newsgroup
+@uref{news:gnu.emacs.help}).
 
 Finally, we recommend reading the
 @url{https://www.gnu.org/philosophy/kind-communication.html, GNU Kind
@@ -409,10 +411,6 @@ newsgroups.
 Please see the Emacs manual for information on how to report bugs.
 @xref{Checklist, , Checklist for Bug Reports, emacs, The GNU Emacs Manual}.
 
-It is better to report bugs as described there than to ask on the help
-mailing list.  RMS says:
-
-@quotation
 Sending bug reports to
 @url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs, the
 help-gnu-emacs mailing list} is undesirable because it takes the time
@@ -422,15 +420,10 @@ problem.  @url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs,
 The bug-gnu-emacs list} reaches a much smaller group of people who are
 more likely to know what to do and have expressed a wish to receive
 more messages about Emacs than the others.
-@end quotation
 
-RMS says it is sometimes fine to post to the help list:
-
-@quotation
 If you have reported a bug and you don't hear about a possible fix,
 then after a suitable delay (such as a week) it is okay to post on
 the help list asking if anyone can help you.
-@end quotation
 
 If you are unsure whether you have found a bug, consider the following
 non-exhaustive list, courtesy of RMS:
