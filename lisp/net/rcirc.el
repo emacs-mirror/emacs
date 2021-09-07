@@ -415,6 +415,11 @@ will be killed."
   :version "28.1"
   :type 'function)
 
+(defcustom rcirc-track-ignore-server-buffer-flag nil
+  "Non-nil means activities in the server buffer are not traced."
+  :version "28.1"
+  :type 'boolean)
+
 (defvar-local rcirc-nick nil
   "The nickname used for the current connection.")
 
@@ -2249,7 +2254,9 @@ activity.  Only run if the buffer is not visible and
   (with-current-buffer buffer
     (let ((old-activity rcirc-activity)
 	  (old-types rcirc-activity-types))
-      (when (not (get-buffer-window (current-buffer) t))
+      (when (and (not (get-buffer-window (current-buffer) t))
+                 (not (and rcirc-track-ignore-server-buffer-flag
+                           (eq rcirc-server-buffer (current-buffer)))))
 	(setq rcirc-activity
 	      (sort (if (memq (current-buffer) rcirc-activity) rcirc-activity
                       (cons (current-buffer) rcirc-activity))
