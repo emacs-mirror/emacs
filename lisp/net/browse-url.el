@@ -966,6 +966,7 @@ click but point is not changed."
   "Invoke the MS-Windows system's default Web browser.
 The optional NEW-WINDOW argument is not used."
   (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
   (cond ((eq system-type 'ms-dos)
 	 (if dos-windows-version
 	     (shell-command (concat "start " (shell-quote-argument url)))
@@ -995,6 +996,7 @@ The optional NEW-WINDOW argument is not used."
   "Invoke the macOS system's default Web browser.
 The optional NEW-WINDOW argument is not used."
   (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
   (start-process (concat "open " url) nil "open" url))
 
 (function-put 'browse-url-default-macosx-browser 'browse-url-browser-kind
