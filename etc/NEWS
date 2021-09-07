@@ -1536,11 +1536,6 @@ will now choose the completion under point instead.  Also when this option
 is nil, completions are not shown when the minibuffer reads a file name
 with initial input as the default directory.
 
-** mspool.el
-
----
-*** Autoload the main entry point 'mspool-show'.
-
 ** Windmove
 
 +++
@@ -1576,10 +1571,6 @@ This is a fully compatible change to the internal occur-mode
 implementation, and code creating their own occur-mode buffers will
 work as before.
 
-** New minor mode 'cl-font-lock-built-in-mode' for 'lisp-mode'.
-The mode provides refined highlighting of built-in functions, types,
-and variables.
-
 ** Emacs Lisp mode
 
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
@@ -1588,6 +1579,17 @@ and variables.
 The presence of a space between an open paren and a symbol now is
 taken as a statement by the programmer that this should be indented
 as a data list rather than as a piece of code.
+
+** Lisp Mode
+
+*** New minor mode 'cl-font-lock-built-in-mode' for 'lisp-mode'.
+The mode provides refined highlighting of built-in functions, types,
+and variables.
+
+---
+*** Lisp mode now uses 'common-lisp-indent-function'.
+To revert to the previous behavior,
+'(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
 
 ** Change Logs and VC
 
@@ -1858,11 +1860,6 @@ messages, and will then be used when sending with
 A server entry retrieved by auth-source can request a desired smtp
 authentication mechanism by setting a value for the key 'smtp-auth'.
 
----
-** Lisp mode now uses 'common-lisp-indent-function'.
-To revert to the previous behavior,
-'(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
-
 ** ElDoc
 
 +++
@@ -1955,13 +1952,6 @@ In order to deactivate this, set user option
 Writing auto-save, backup or lock files to the local temporary
 directory must be confirmed.  In order to suppress this confirmation,
 set user option 'tramp-allow-unsafe-temporary-files' to t.
-
-** Tempo
-
----
-*** 'tempo-define-template' can now re-assign templates to tags.
-Previously, assigning a new template to an already defined tag had no
-effect.
 
 ** gdb-mi
 
@@ -2118,30 +2108,6 @@ To enable, add it to appropriate entries in 'c-offsets-alist', e.g.:
                                            c-lineup-arglist))
     (c-set-offset 'statement-cont '(c-lineup-ternary-bodies +))
 
-** SHR
-
----
-*** The command 'shr-browse-url' now supports custom mailto handlers.
-Clicking on or otherwise following a 'mailto:' link in a HTML buffer
-rendered by SHR previously invoked the command 'browse-url-mailto'.
-This is still the case by default, but if you customize
-'browse-url-mailto-function' or 'browse-url-handlers' to call some
-other function, it will now be called instead of the default.
-
-+++
-*** New user option 'shr-max-width'.
-If this user option is non-nil, and 'shr-width' is nil, then SHR will
-use the value of 'shr-max-width' to limit the width of the rendered
-HTML.  The default is 120 characters, so even if you have very wide
-frames, HTML text will be rendered more narrowly, which usually leads
-to a more readable text.  Set this user option to nil to get the
-previous behavior of rendering as wide as the 'window-width' allows.
-If 'shr-width' is non-nil, it overrides this variable.
-
----
-*** New faces for heading elements.
-Those are 'shr-h1', 'shr-h2', 'shr-h3', 'shr-h4', 'shr-h5', 'shr-h6'.
-
 ** Images
 
 ---
@@ -2259,6 +2225,30 @@ used.
 The function that is invoked when clicking on or otherwise following a
 'mailto:' link in an EWW buffer can now be customized.  For more
 information, see the related entry about 'shr-browse-url' above.
+
+** SHR
+
+---
+*** The command 'shr-browse-url' now supports custom mailto handlers.
+Clicking on or otherwise following a 'mailto:' link in a HTML buffer
+rendered by SHR previously invoked the command 'browse-url-mailto'.
+This is still the case by default, but if you customize
+'browse-url-mailto-function' or 'browse-url-handlers' to call some
+other function, it will now be called instead of the default.
+
++++
+*** New user option 'shr-max-width'.
+If this user option is non-nil, and 'shr-width' is nil, then SHR will
+use the value of 'shr-max-width' to limit the width of the rendered
+HTML.  The default is 120 characters, so even if you have very wide
+frames, HTML text will be rendered more narrowly, which usually leads
+to a more readable text.  Set this user option to nil to get the
+previous behavior of rendering as wide as the 'window-width' allows.
+If 'shr-width' is non-nil, it overrides this variable.
+
+---
+*** New faces for heading elements.
+Those are 'shr-h1', 'shr-h2', 'shr-h3', 'shr-h4', 'shr-h5', 'shr-h6'.
 
 ** Project
 
@@ -2438,20 +2428,6 @@ This face is used for error messages from 'diff'.
 *** New command 'diff-refresh-hunk'.
 This new command (bound to 'C-c C-l') regenerates the current hunk.
 
-** Buttons
-
-+++
-*** New minor mode 'button-mode'.
-This minor mode does nothing else than install 'button-buffer-map' as
-a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
-to buttons), and can be used in any view-mode-like buffer that has
-buttons in it.
-
-+++
-*** New utility function 'button-buttonize'.
-This function takes a string and returns a string propertized in a way
-that makes it a valid button.
-
 ** thing-at-point
 
 +++
@@ -2577,7 +2553,7 @@ sequences.
 *** 'comint-delete-output' can now save deleted text in the kill-ring.
 Interactively, 'C-u C-c C-o' triggers this new optional behavior.
 
-** erc
+** ERC
 
 ---
 *** erc-services.el now supports NickServ passwords from auth-source.
@@ -2762,6 +2738,11 @@ and 'doc-view-center-page-vertically' (bound to 'c v') center the page
 horizontally and vertically, respectively.
 
 ---
+*** 'tempo-define-template' can now re-assign templates to tags.
+Previously, assigning a new template to an already defined tag had no
+effect.
+
+---
 *** The width of the buffer-name column in 'list-buffers' is now dynamic.
 The width now depends of the width of the window, but will never be
 wider than the length of the longest buffer name, except that it will
@@ -2777,6 +2758,9 @@ different timezone causing a difference in the date.
 
 ---
 *** The old non-SMIE indentation of 'sh-mode' has been removed.
+
+---
+*** 'mspools-show' is now autoloaded.
 
 *** Loading dunnet.el in batch mode doesn't start the game any more.
 Instead you need to do "emacs -f dun-batch" to start the game in
@@ -3954,6 +3938,20 @@ messages, contain the error name of that message now.
 They carry now the destination and the error-name of an event.  They
 also keep the type information of their arguments.  Use the
 'dbus-event-*' accessor functions.
+
+** Buttons
+
++++
+*** New minor mode 'button-mode'.
+This minor mode does nothing else than install 'button-buffer-map' as
+a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
+to buttons), and can be used in any view-mode-like buffer that has
+buttons in it.
+
++++
+*** New utility function 'button-buttonize'.
+This function takes a string and returns a string propertized in a way
+that makes it a valid button.
 
 ---
 ** 'text-scale-mode' can now adjust font size of the header line.
