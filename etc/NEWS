@@ -2309,16 +2309,16 @@ before navigating to the selected location.
 +++
 *** New user options to automatically show the first Xref match.
 The new user option 'xref-auto-jump-to-first-definition' controls the
-behavior of 'xref-find-definitions' and related commands, like
-'xref-find-definitions-other-windo': if it's t or 'show', the first
+behavior of 'xref-find-definitions' and its variants, like
+'xref-find-definitions-other-window': if it's t or 'show', the first
 match is automatically displayed; if it's 'move', point in the
 "*xref*" buffer is automatically moved to the first match without
 displaying it.
 The new user option 'xref-auto-jump-to-first-xref' changes the
 behavior of Xref commands such as 'xref-find-references',
 'xref-find-apropos', and 'project-find-regexp', which are expected to
-display many match that the user would like to
-visit. 'xref-auto-jump-to-first-xref' changes their behavior muuch in
+display many matches that the user would like to
+visit. 'xref-auto-jump-to-first-xref' changes their behavior much in
 the same way as 'xref-auto-jump-to-first-definition' affects the
 "find-definitions" commands.
 

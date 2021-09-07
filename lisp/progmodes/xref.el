@@ -421,7 +421,7 @@ elements is negated: these commands will NOT prompt."
 `show' means to show the first result's location, but keep the
 focus on the Xref buffer's window.
 `move' means to only move point to the first result.
-This variable also affects commands similar to `xref-find-definitions',
+This variable also affects the variants of `xref-find-definitions',
 such as `xref-find-definitions-other-window'."
   :type '(choice (const :tag "Jump" t)
                  (const :tag "Show" show)
@@ -435,7 +435,7 @@ such as `xref-find-definitions-other-window'."
 `show' means to show the first result's location, but keep the
 focus on the Xref buffer's window.
 `move' means to only move point to the first result.
-This variable also affects commands similar to `xref-find-definitions',
+This variable also affects commands similar to `xref-find-references',
 such as `xref-find-references-at-mouse', `xref-find-apropos',
 and `project-find-regexp'.
 
