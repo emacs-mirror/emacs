@@ -1594,7 +1594,7 @@ capabilities.
 The command @kbd{M-x list-colors-display} pops up a window which
 exhibits all the colors Emacs knows about on the current display.
 
-Syntax highlighting is on by default since version 22.1.
+Syntax highlighting is on by default.
 
 @cindex direct color in terminals
 Emacs 26.1 and later support direct color mode in terminals.  If Emacs
@@ -3495,7 +3495,7 @@ problem (@pxref{Reporting bugs}).
 @cindex Downloading Emacs
 
 Information on downloading Emacs is available at
-@uref{https://www.gnu.org/software/emacs/, the Emacs home-page}.
+@uref{https://www.gnu.org/software/emacs/, the Emacs website}.
 
 @xref{Installing Emacs}, for information on how to obtain and build the latest
 version of Emacs, and see @ref{Current GNU distributions}, for a list of
