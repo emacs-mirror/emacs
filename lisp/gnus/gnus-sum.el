@@ -2252,6 +2252,7 @@ increase the score of each group you read."
   "s" gnus-treat-smiley
   "D" gnus-article-remove-images
   "W" gnus-article-show-images
+  "F" gnus-article-toggle-fonts
   "f" gnus-treat-from-picon
   "m" gnus-treat-mail-picon
   "n" gnus-treat-newsgroups-picon
@@ -2561,6 +2562,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	      ["Unfold headers" gnus-article-treat-unfold-headers t]
 	      ["Fold newsgroups" gnus-article-treat-fold-newsgroups t]
 	      ["Html" gnus-article-wash-html t]
+	      ["Toggle HTML fonts" gnus-article-toggle-fonts t]
 	      ["Unsplit URLs" gnus-article-unsplit-urls t]
 	      ["Verify X-PGP-Sig" gnus-article-verify-x-pgp-sig t]
 	      ["Decode HZ" gnus-article-decode-HZ t]

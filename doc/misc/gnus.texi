@@ -9374,6 +9374,12 @@ Use html2text---a simple @acronym{HTML} converter included with Gnus.
 
 @end table
 
+@item W D F
+@kindex W D F @r{(Summary)}
+@findex gnus-article-toggle-fonts
+Toggle proportional fonts for @acronym{HTML} articles.  This temporarily
+changes the @code{shr-use-fonts} variable in the current article buffer.
+
 @item W b
 @kindex W b @r{(Summary)}
 @findex gnus-article-add-buttons
