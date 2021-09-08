@@ -1238,7 +1238,7 @@ it is displayed along with the global value."
       (let ((size (buffer-size standard-output)))
         (apply func args)
         ;; This function inserted something, so register it.
-        (when (> (buffer-size) size)
+        (when (> (buffer-size standard-output) size)
           (push func help-fns--activated-functions)))))
   (with-current-buffer standard-output
     (help-fns--ensure-empty-line)))
