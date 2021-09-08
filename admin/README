@@ -61,6 +61,11 @@ Brief description of sub-directories:
 
 charsets		scripts for generating charset map files
 			in ../etc/charsets
+coccinelle              patches to make coccinelle work with
+                        the latest Emacs version.  Since they
+                        apply a few minor changes in Emacs internals
+                        in multiple places, they are trivial for
+                        copyright purposes.
 unidata			scripts for generating character property files
 			in ../lisp/international
 
