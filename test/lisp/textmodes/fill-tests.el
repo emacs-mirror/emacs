@@ -54,7 +54,7 @@
              (beg (line-beginning-position))
              (end (line-end-position))
              (fill-prefix (make-string (- pos beg) ?\s))
-             ;; `fill-column' is too small to accomodate the current line
+             ;; `fill-column' is too small to accommodate the current line
              (fill-column (- end beg 10)))
         (fill-region-as-paragraph beg end nil nil pos))
       (should (equal (buffer-string) string)))))
@@ -69,7 +69,7 @@
              (beg (line-beginning-position))
              (end (line-end-position))
              (fill-prefix (make-string (- pos beg) ?\s))
-             ;; `fill-column' is too small to accomodate the current line
+             ;; `fill-column' is too small to accommodate the current line
              (fill-column (- end beg 10)))
         (fill-region-as-paragraph beg end nil nil pos))
       (should (equal

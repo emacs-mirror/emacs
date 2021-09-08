@@ -68,6 +68,14 @@
                 (vector string string))
                124))))
 
+(ert-deftest memory-report-sizes-structs ()
+  (cl-defstruct memory-report-test-struct
+    (item0 nil)
+    (item1 nil))
+  (let ((s (make-memory-report-test-struct :item0 "hello" :item1 "world")))
+    (should (= (memory-report-object-size s)
+               90))))
+
 (provide 'memory-report-tests)
 
 ;;; memory-report-tests.el ends here

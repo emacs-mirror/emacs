@@ -17,7 +17,7 @@ For each of the HERE documents, the following checks will done:
 
 =item *
 
-All occurrences of the string "look-here" are fontified correcty.
+All occurrences of the string "look-here" are fontified correctly.
 Note that we deliberately test the face, not the syntax property:
 Users won't care for the syntax property, but they see the face.
 Different implementations with different syntax properties have been

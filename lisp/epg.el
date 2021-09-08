@@ -657,16 +657,17 @@ callback data (if any)."
 			     :sentinel #'ignore
 			     :noquery t))
     (setf (epg-context-error-buffer context) (process-buffer error-process))
-    (with-file-modes 448
-      (setq process (make-process :name "epg"
-				  :buffer buffer
-				  :command (cons (epg-context-program context)
-						 args)
-				  :connection-type 'pipe
-				  :coding 'raw-text
-				  :filter #'epg--process-filter
-				  :stderr error-process
-				  :noquery t)))
+    (with-existing-directory
+      (with-file-modes 448
+        (setq process (make-process :name "epg"
+				    :buffer buffer
+				    :command (cons (epg-context-program context)
+						   args)
+				    :connection-type 'pipe
+				    :coding 'raw-text
+				    :filter #'epg--process-filter
+				    :stderr error-process
+				    :noquery t))))
     (setf (epg-context-process context) process)))
 
 (defun epg--process-filter (process input)

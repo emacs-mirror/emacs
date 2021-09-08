@@ -2031,11 +2031,14 @@ w32_draw_image_relief (struct glyph_string *s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = (tab_bar_button_relief < 0
-	       ? DEFAULT_TAB_BAR_BUTTON_RELIEF
-	       : (tool_bar_button_relief < 0
-		  ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
-		  : min (tool_bar_button_relief, 1000000)));
+      if (s->face->id == TAB_BAR_FACE_ID)
+	thick = (tab_bar_button_relief < 0
+		 ? DEFAULT_TAB_BAR_BUTTON_RELIEF
+		 : min (tab_bar_button_relief, 1000000));
+      else
+	thick = (tool_bar_button_relief < 0
+		 ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+		 : min (tool_bar_button_relief, 1000000));
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else

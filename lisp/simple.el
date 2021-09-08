@@ -7777,7 +7777,9 @@ other purposes."
 When Visual Line mode is enabled, `word-wrap' is turned on in
 this buffer, and simple editing commands are redefined to act on
 visual lines, not logical lines.  See Info node `Visual Line
-Mode' for details."
+Mode' for details.
+Turning on this mode disables line truncation set up by
+variables `truncate-lines' and `truncate-partial-width-windows'."
   :keymap visual-line-mode-map
   :group 'visual-line
   :lighter " Wrap"
@@ -8306,8 +8308,13 @@ non-nil."
 		      (if (eq buffer (window-buffer window))
 			  (set-window-hscroll window 0)))
 		    nil t)))
-  (message "Truncate long lines %s"
-	   (if truncate-lines "enabled" "disabled")))
+  (message "Truncate long lines %s%s"
+	   (if truncate-lines "enabled" "disabled")
+           (if (and truncate-lines visual-line-mode)
+               (progn
+                 (visual-line-mode -1)
+                 (format-message " and `visual-line-mode' disabled"))
+             "")))
 
 (defun toggle-word-wrap (&optional arg)
   "Toggle whether to use word-wrapping for continuation lines.

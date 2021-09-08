@@ -119,14 +119,16 @@ or array."
             ((key key) (default default) (testfn testfn))
           (funcall do `(map-elt ,mgetter ,key ,default)
                    (lambda (v)
-                     `(condition-case nil
-                          ;; Silence warnings about the hidden 4th arg.
-                          (with-no-warnings (map-put! ,mgetter ,key ,v ,testfn))
-                        (map-not-inplace
-                         ,(funcall msetter
-                                   `(map-insert ,mgetter ,key ,v))
-                         ;; Always return the value.
-                         ,v))))))))
+                     (macroexp-let2 nil v v
+                       `(condition-case nil
+                            ;; Silence warnings about the hidden 4th arg.
+                            (with-no-warnings
+                              (map-put! ,mgetter ,key ,v ,testfn))
+                          (map-not-inplace
+                           ,(funcall msetter
+                                     `(map-insert ,mgetter ,key ,v))
+                           ;; Always return the value.
+                           ,v)))))))))
    ;; `testfn' is deprecated.
    (advertised-calling-convention (map key &optional default) "27.1"))
   ;; Can't use `cl-defmethod' with `advertised-calling-convention'.

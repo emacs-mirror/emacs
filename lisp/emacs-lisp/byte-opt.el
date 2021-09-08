@@ -562,13 +562,6 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          `(catch ,(byte-optimize-form tag nil)
             . ,(byte-optimize-body exps for-effect))))
 
-      (`(ignore . ,exps)
-       ;; Don't treat the args to `ignore' as being
-       ;; computed for effect.  We want to avoid the warnings
-       ;; that might occur if they were treated that way.
-       ;; However, don't actually bother calling `ignore'.
-       `(progn ,@(mapcar #'byte-optimize-form exps) nil))
-
       ;; Needed as long as we run byte-optimize-form after cconv.
       (`(internal-make-closure . ,_)
        ;; Look up free vars and mark them to be kept, so that they
@@ -734,8 +727,12 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
     (while rest
       (setq fe (or all-for-effect (cdr rest)))
       (setq new (and (car rest) (byte-optimize-form (car rest) fe)))
-      (if (or new (not fe))
-	  (setq result (cons new result)))
+      (when (and (consp new) (eq (car new) 'progn))
+        ;; Flatten `progn' form into the body.
+        (setq result (append (reverse (cdr new)) result))
+        (setq new (pop result)))
+      (when (or new (not fe))
+	(setq result (cons new result)))
       (setq rest (cdr rest)))
     (nreverse result)))
 
@@ -967,24 +964,25 @@ See Info node `(elisp) Integer Basics'."
     (_ (byte-optimize-binary-predicate form))))
 
 (defun byte-optimize-member (form)
-  ;; Replace `member' or `memql' with `memq' if the first arg is a symbol,
-  ;; or the second arg is a list of symbols.  Same with fixnums.
-  (if (= (length (cdr form)) 2)
-      (if (or (byte-optimize--constant-symbol-p (nth 1 form))
-              (byte-optimize--fixnump (nth 1 form))
-              (let ((arg2 (nth 2 form)))
-                (and (macroexp-const-p arg2)
-                     (let ((listval (eval arg2)))
-                       (and (listp listval)
-                            (not (memq nil (mapcar
-                                            (lambda (o)
-                                              (or (symbolp o)
-                                                  (byte-optimize--fixnump o)))
-                                            listval))))))))
-          (cons 'memq (cdr form))
-        form)
-    ;; Arity errors reported elsewhere.
-    form))
+  (cond
+   ((/= (length (cdr form)) 2) form)    ; arity error
+   ((null (nth 2 form))                 ; empty list
+    `(progn ,(nth 1 form) nil))
+   ;; Replace `member' or `memql' with `memq' if the first arg is a symbol
+   ;; or fixnum, or the second arg is a list of symbols or fixnums.
+   ((or (byte-optimize--constant-symbol-p (nth 1 form))
+        (byte-optimize--fixnump (nth 1 form))
+        (let ((arg2 (nth 2 form)))
+          (and (macroexp-const-p arg2)
+               (let ((listval (eval arg2)))
+                 (and (listp listval)
+                      (not (memq nil (mapcar
+                                      (lambda (o)
+                                        (or (symbolp o)
+                                            (byte-optimize--fixnump o)))
+                                      listval))))))))
+    (cons 'memq (cdr form)))
+   (t form)))
 
 (defun byte-optimize-assoc (form)
   ;; Replace 2-argument `assoc' with `assq', `rassoc' with `rassq',
@@ -992,22 +990,35 @@ See Info node `(elisp) Integer Basics'."
   (cond
    ((/= (length form) 3)
     form)
+   ((null (nth 2 form))                 ; empty list
+    `(progn ,(nth 1 form) nil))
    ((or (byte-optimize--constant-symbol-p (nth 1 form))
         (byte-optimize--fixnump (nth 1 form)))
     (cons (if (eq (car form) 'assoc) 'assq 'rassq)
           (cdr form)))
    (t (byte-optimize-constant-args form))))
 
+(defun byte-optimize-assq (form)
+  (cond
+   ((/= (length form) 3)
+    form)
+   ((null (nth 2 form))                 ; empty list
+    `(progn ,(nth 1 form) nil))
+   (t (byte-optimize-constant-args form))))
+
 (defun byte-optimize-memq (form)
-  ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
   (if (= (length (cdr form)) 2)
       (let ((list (nth 2 form)))
-        (if (and (eq (car-safe list) 'quote)
-                 (listp (setq list (cadr list)))
-                 (= (length list) 1))
-            `(and (eq ,(nth 1 form) ',(nth 0 list))
-                  ',list)
-          form))
+        (cond
+         ((null list)                   ; empty list
+          `(progn ,(nth 1 form) nil))
+         ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
+         ((and (eq (car-safe list) 'quote)
+               (listp (setq list (cadr list)))
+               (= (length list) 1))
+          `(and (eq ,(nth 1 form) ',(nth 0 list))
+                ',list))
+         (t form)))
     ;; Arity errors reported elsewhere.
     form))
 
@@ -1044,6 +1055,8 @@ See Info node `(elisp) Integer Basics'."
 (put 'member 'byte-optimizer #'byte-optimize-member)
 (put 'assoc 'byte-optimizer #'byte-optimize-assoc)
 (put 'rassoc 'byte-optimizer #'byte-optimize-assoc)
+(put 'assq 'byte-optimizer #'byte-optimize-assq)
+(put 'rassq 'byte-optimizer #'byte-optimize-assq)
 
 (put '+   'byte-optimizer #'byte-optimize-plus)
 (put '*   'byte-optimizer #'byte-optimize-multiply)
@@ -1403,7 +1416,9 @@ See Info node `(elisp) Integer Basics'."
 	 fixnump floatp following-char framep
 	 get-largest-window get-lru-window
 	 hash-table-p
-	 identity ignore integerp integer-or-marker-p interactive-p
+         ;; `ignore' isn't here because we don't want calls to it elided;
+         ;; see `byte-compile-ignore'.
+	 identity integerp integer-or-marker-p interactive-p
 	 invocation-directory invocation-name
 	 keymapp keywordp
 	 list listp

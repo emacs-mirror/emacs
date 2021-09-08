@@ -769,8 +769,8 @@ TOTAL is the total number of letters in the ciphertext."
       (while temp-list
         (insert (caar temp-list)
                 (format "%4d%3d%%  "
-                        (cl-cadar temp-list)
-                        (floor (* 100.0 (cl-cadar temp-list)) total)))
+                        (cadar temp-list)
+                        (floor (* 100.0 (cadar temp-list)) total)))
         (setq temp-list (nthcdr 4 temp-list)))
       (insert ?\n)
       (setq freq-list (cdr freq-list)

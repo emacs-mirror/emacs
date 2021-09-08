@@ -170,7 +170,7 @@ placement bugs in old versions of Emacs."
 
 (defcustom windmove-allow-all-windows nil
   "Whether the windmove commands are allowed to target all type of windows.
-If this variable is set to non-nil, all windmove commmands will
+If this variable is set to non-nil, all windmove commands will
 ignore the `no-other-window' parameter applied by `display-buffer-alist'
 or `set-window-parameter'."
   :type 'boolean

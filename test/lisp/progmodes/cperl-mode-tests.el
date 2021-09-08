@@ -158,66 +158,60 @@ point in the distant past, and is still broken in perl-mode. "
   "Test whether a construct containing \"<<\" followed by a
   bareword is properly identified for a here-document if
   appropriate."
-  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((here-docs
          '("$text .= <<DELIM;"          ; mutator concatenating a here-doc
            "func($arg) . <<DELIM;"      ; concatenating a return value
            "func 1, <<DELIM;"           ; a function taking two arguments
-           "print {a} <<DELIM;"         ; printing to a file handle
+           ))
+        ;; There forms are currently mishandled in `perl-mode' :-(
+        (here-docs-cperl
+         '("print {a} <<DELIM;"         ; printing to a file handle
            "system $prog <<DELIM;"      ; lie about the program's name
-           )
-         )
-        (undecidable
+           ))
+        (_undecidable
          '("foo <<bar")                 ; could be either "foo() <<bar"
                                         ; or "foo(<<bar)"
-         )
-        )
-    (dolist (code here-docs)
+         ))
+    (dolist (code (append here-docs (if (eq cperl-test-mode #'cperl-mode)
+                                        here-docs-cperl)))
       (with-temp-buffer
-        (insert code)
+        (insert code "\n\nDELIM\n")
         (funcall cperl-test-mode)
         (goto-char (point-min))
-        (search-forward "<<DELIM")
-        ;; point is now after delimiter, as in `cperl-find-pods-heres'
-        (should (cperl-is-here-doc-p (match-beginning 0)))
-        )
-      )
-    )
-  )
+        (forward-line 1)
+        ;; We should now be within a here-doc.
+        (let ((ppss (syntax-ppss)))
+          (should (and (nth 8 ppss) (nth 4 ppss))))
+        ))))
 
 (ert-deftest cperl-test-identify-no-heredoc ()
   "Test whether a construct containing \"<<\" which is not a
   here-document is properly rejected."
-  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let (
         (not-here-docs
-         '("while (<<>>) { ...; }"      ; double angle bracket operator
+         '("while (<<>>) {"             ; double angle bracket operator
            "expr <<func();"             ; left shift by a return value
            "$var <<func;"               ; left shift by a return value
            "($var+1) <<func;"           ; same for an expression
            "$hash{key} <<func;"         ; same for a hash element
            "or $var <<func;"            ; same for an expression
            "sorted $by <<func"          ; _not_ a call to sort
-           )
-         )
-        (undecidable
+           ))
+        (_undecidable
          '("foo <<bar"                  ; could be either "foo() <<bar"
                                         ; or "foo(<<bar)"
            "$foo = <<;")                ; empty delim forbidden since 5.28
-         )
-        )
+         ))
     (dolist (code not-here-docs)
       (with-temp-buffer
-        (insert code)
+        (insert code "\n\n")
         (funcall cperl-test-mode)
         (goto-char (point-min))
-        (re-search-forward "<<\\(func\\)?")
-        ;; point is now after delimiter, as in `cperl-find-pods-heres'
-        (should-not (cperl-is-here-doc-p (match-beginning 0)))
-        )
-      )
-    )
-  )
+        (forward-line 1)
+        ;; Point is not within a here-doc (nor string nor comment).
+        (let ((ppss (syntax-ppss)))
+          (should-not (nth 8 ppss)))
+        ))))
 
 (ert-deftest cperl-test-here-doc-missing-end ()
   "Verify that a missing here-document terminator gives a message.
@@ -248,13 +242,18 @@ issued by CPerl mode."
 (defvar perl-continued-statement-offset)
 (defvar perl-indent-level)
 
+(defconst cperl--tests-heredoc-face
+  (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
+    'font-lock-string-face))
+(defconst cperl--tests-heredoc-delim-face
+  (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
+    'font-lock-constant-face))
+
 (ert-deftest cperl-test-heredocs ()
   "Test that HERE-docs are fontified with the appropriate face."
   (require 'perl-mode)
   (let ((file (ert-resource-file "here-docs.pl"))
         (cperl-continued-statement-offset perl-continued-statement-offset)
-        (target-font (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
-                       'font-lock-string-face))
         (case-fold-search nil))
     (with-temp-buffer
       (insert-file-contents file)
@@ -267,7 +266,7 @@ issued by CPerl mode."
           (while (search-forward "look-here" nil t)
             (should (equal
                      (get-text-property (match-beginning 0) 'face)
-                     target-font))
+                     cperl--tests-heredoc-face))
             (beginning-of-line)
             (should (null (looking-at "[ \t]")))
             (forward-line 1)))
@@ -296,23 +295,23 @@ the whole string."
        (and (string-match regexp string)
 	    (string= (match-string 0 string) string))))))
 
-(ert-deftest cperl-test-ws-regexp ()
+(ert-deftest cperl-test-ws-rx ()
   "Tests capture of very simple regular expressions (yawn)."
   (let ((valid
 	 '(" " "\t" "\n"))
 	(invalid
 	 '("a" "  " "")))
-    (cperl-test--validate-regexp cperl--ws-regexp
+    (cperl-test--validate-regexp (rx (eval cperl--ws-rx))
 				 valid invalid)))
 
-(ert-deftest cperl-test-ws-or-comment-regexp ()
+(ert-deftest cperl-test-ws+-rx ()
   "Tests sequences of whitespace and comment lines."
   (let ((valid
 	 `(" " "\t#\n" "\n# \n"
 	   ,(concat "# comment\n" "# comment\n" "\n" "#comment\n")))
 	(invalid
 	 '("=head1 NAME\n" )))
-    (cperl-test--validate-regexp cperl--ws-or-comment-regexp
+    (cperl-test--validate-regexp (rx (eval cperl--ws+-rx))
 				 valid invalid)))
 
 (ert-deftest cperl-test-version-regexp ()
@@ -344,7 +343,7 @@ Also includes valid cases with whitespace in strange places."
 	   "packageFoo"            ; not a package declaration
 	   "package Foo1.1"        ; invalid package name
 	   "class O3D::Sphere")))  ; class not yet supported
-    (cperl-test--validate-regexp cperl--package-regexp
+    (cperl-test--validate-regexp (rx (eval cperl--package-rx))
 				 valid invalid)))
 
 ;;; Function test: Building an index for imenu
@@ -433,26 +432,68 @@ under timeout control."
 (ert-deftest cperl-test-bug-14343 ()
   "Verify that inserting text into a HERE-doc string with Elisp
 does not break fontification."
-  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (with-temp-buffer
-    (insert "my $string = <<HERE;\n")
-    (insert "One line of text.\n")
-    (insert "Last line of this string.\n")
-    (insert "HERE\n")
+    (insert "my $string = <<HERE;\n"
+            "One line of text.\n"
+            "Last line of this string.\n"
+            "HERE\n")
     (funcall cperl-test-mode)
     (font-lock-ensure)
     (goto-char (point-min))
     (search-forward "One line")
     (should (equal (get-text-property (point) 'face)
-                   'font-lock-string-face))
+                   cperl--tests-heredoc-face))
     (beginning-of-line)
     (insert "Another line if text.\n")
     (font-lock-ensure)
     (forward-line -1)
     (should (equal (get-text-property (point) 'face)
-                   'font-lock-string-face))
-    ))
-
+                   cperl--tests-heredoc-face))
+    (search-forward "HERE")
+    (beginning-of-line)
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face)))
+  ;; insert into an empty here-document
+  (with-temp-buffer
+    (insert "print <<HERE;\n"
+            "HERE\n")
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (forward-line)
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face))
+    ;; Insert a newline into the empty here-document
+    (goto-char (point-min))
+    (forward-line)
+    (insert "\n")
+    (search-forward "HERE")
+    (beginning-of-line)
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face))
+    ;; Insert text at the beginning of the here-doc
+    (goto-char (point-min))
+    (forward-line)
+    (insert "text")
+    (font-lock-ensure)
+    (search-backward "text")
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-face))
+    (search-forward "HERE")
+    (beginning-of-line)
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face))
+    ;; Insert a new line immediately before the delimiter
+    ;; (That's where the point is anyway)
+    (insert "A new line\n")
+    (font-lock-ensure)
+    ;; The delimiter is still the delimiter
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-delim-face))
+    (forward-line -1)
+    ;; The new line has been "added" to the here-document
+    (should (equal (get-text-property (point) 'face)
+                   cperl--tests-heredoc-face))))
 
 (ert-deftest cperl-test-bug-16368 ()
   "Verify that `cperl-forward-group-in-re' doesn't hide errors."

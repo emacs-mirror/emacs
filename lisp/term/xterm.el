@@ -73,6 +73,13 @@ string bytes that can be copied is 3/4 of this value."
   :version "27.1"
   :type 'boolean)
 
+(defcustom xterm-store-paste-on-kill-ring t
+  "If non-nil, pasting text into Emacs will put the text onto the kill ring.
+This user option is only heeded when using a terminal using xterm
+capabilities, and only when that terminal understands bracketed paste."
+  :version "28.1"
+  :type 'boolean)
+
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters sent by the terminal to end a bracketed paste.")
 
@@ -100,9 +107,15 @@ Return the pasted text as a string."
   (interactive "e")
   (unless (eq (car-safe event) 'xterm-paste)
     (error "xterm-paste must be found to xterm-paste event"))
-  (let* ((pasted-text (nth 1 event))
-         (interprogram-paste-function (lambda () pasted-text)))
-    (yank)))
+  (let ((pasted-text (nth 1 event)))
+    (if xterm-store-paste-on-kill-ring
+        ;; Put the text onto the kill ring and then insert it into the
+        ;; buffer.
+        (let ((interprogram-paste-function (lambda () pasted-text)))
+          (yank))
+      ;; Insert the text without putting it onto the kill ring.
+      (push-mark)
+      (insert-for-yank pasted-text))))
 
 ;; Put xterm-paste itself in global-map because, after translation,
 ;; it's just a normal input event.

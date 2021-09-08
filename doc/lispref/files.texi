@@ -936,6 +936,16 @@ file in @file{/foo/} will give an error:
 @end example
 @end defun
 
+@defmac with-existing-directory body@dots{}
+This macro ensures that @code{default-directory} is bound to an
+existing directory before executing @var{body}.  If
+@code{default-directory} already exists, that's preferred, and
+otherwise some other directory is used.  This macro can be useful, for
+instance, when calling an external command that requires that it's
+running in a directory that exists.  The chosen directory is not
+guaranteed to be writable.
+@end defmac
+
 @defun access-file filename string
 If you can read @var{filename} this function returns @code{nil};
 otherwise it signals an error

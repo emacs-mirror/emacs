@@ -88,7 +88,9 @@ this happens automatically before saving `save-place-alist' to
   :type 'boolean)
 
 (defcustom save-place-abbreviate-file-names nil
-  "If non-nil, abbreviate file names before saving them."
+  "If non-nil, abbreviate file names before saving them.
+This can simplify sharing the `save-place-file' file across
+different hosts."
   :type 'boolean
   :version "28.1")
 

@@ -3288,6 +3288,7 @@ STRUCT-TYPE is a symbol naming a struct type.  Return `record',
       (push (cdr x) res))
     (nreverse res)))
 
+;;;###autoload
 (defun cl-struct-slot-info (struct-type)
   "Return a list of slot names of struct STRUCT-TYPE.
 Each entry is a list (SLOT-NAME . OPTS), where SLOT-NAME is a

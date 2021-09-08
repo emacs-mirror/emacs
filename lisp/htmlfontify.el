@@ -1238,7 +1238,7 @@ return a `defface' style list of face properties instead of a face symbol."
                             (setq fprops (cdr fprops)))
                         ;; ((prop val))
                         (setq p (caar fprops))
-                        (setq v (cl-cadar fprops))
+                        (setq v (cadar fprops))
                         (setq fprops (cdr fprops)))
                     (if (listp (cdr fprops))
                         (progn
@@ -1358,8 +1358,8 @@ Returns a modified copy of FACE-MAP."
     ;;(push (car  tmp-map) reduced-map)
     ;;(push (cadr tmp-map) reduced-map)
     (while tmp-map
-      (setq first-start (cl-cadddr tmp-map)
-            first-stop (cl-caddr tmp-map)
+      (setq first-start (cadddr tmp-map)
+            first-stop (caddr tmp-map)
             last-start  (cadr   tmp-map)
             last-stop   (car    tmp-map)
             map-buf      tmp-map
@@ -1372,8 +1372,8 @@ Returns a modified copy of FACE-MAP."
                     (not (re-search-forward "[^ \t\n\r]" (car last-start) t))))
         (setq map-buf     (cddr map-buf)
               span-start  first-start
-              first-start (cl-cadddr map-buf)
-              first-stop (cl-caddr map-buf)
+              first-start (cadddr map-buf)
+              first-stop (caddr map-buf)
               last-start  (cadr   map-buf)
               last-stop   (car    map-buf)))
       (push span-stop  reduced-map)
@@ -1888,7 +1888,7 @@ property, with a value of \"tag.line-number\"."
             (lambda (TLIST)
               (if (string= file (car TLIST))
                   (let* ((line              (cadr TLIST) )
-                         (chr (cl-caddr TLIST))
+                         (chr (caddr TLIST))
                          (link (format "%s.%d" TAG line) ))
                     (put-text-property (+ 1 chr)
                                        (+ 2 chr)

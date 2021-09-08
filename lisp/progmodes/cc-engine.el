@@ -7422,7 +7422,7 @@ multi-line strings (but not C++, for example)."
 		     t)
 		    (save-excursion
 		      (goto-char (match-end 1))
-		      (if (c-in-literal) ; a psuedo closer.
+		      (if (c-in-literal) ; a pseudo closer.
 			  t
 			(setq saved-match-data (match-data))
 			(setq found t)

@@ -1387,7 +1387,7 @@ comment."
   "Check whether file on current line is marked or not."
   (save-excursion
     (beginning-of-line)
-    (not (looking-at "^ .*$"))))
+    (looking-at-p dired-re-mark)))
 
 (defun image-dired-modify-mark-on-thumb-original-file (command)
   "Modify mark in dired buffer.

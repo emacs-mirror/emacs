@@ -665,7 +665,8 @@ to continue it.
 \\{comint-mode-map}
 
 Entry to this mode runs the hooks on `comint-mode-hook'."
-  (setq mode-line-process '(":%s"))
+  (setq mode-line-process
+        (list (propertize ":%s" 'help-echo "Process status")))
   (setq-local window-point-insertion-type t)
   (setq-local comint-last-input-start (point-min-marker))
   (setq-local comint-last-input-end (point-min-marker))

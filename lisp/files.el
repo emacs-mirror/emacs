@@ -2351,7 +2351,7 @@ the various files."
                         ((not query-about-changed-file)
                          (message
                           (substitute-command-keys
-                           "File %s changed on disk.  \\[revert-buffer] to load new contents%s")
+                           "File %s changed on disk.  \\[revert-buffer-quick] to load new contents%s")
                           (file-name-nondirectory filename)
                           (if (buffer-modified-p buf)
                               " and discard your edits"

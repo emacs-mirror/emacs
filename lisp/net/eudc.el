@@ -664,7 +664,7 @@ If ERROR is non-nil, report an error if there is none."
   (let ((result (eudc-query (list (cons 'name name)) '(email)))
 	email)
     (if (null (cdr result))
-	(setq email (cl-cdaar result))
+        (setq email (cdaar result))
       (error "Multiple match--use the query form"))
     (if error
 	(if email
@@ -682,7 +682,7 @@ If ERROR is non-nil, report an error if there is none."
   (let ((result (eudc-query (list (cons 'name name)) '(phone)))
 	phone)
     (if (null (cdr result))
-	(setq phone (cl-cdaar result))
+        (setq phone (cdaar result))
       (error "Multiple match--use the query form"))
     (if error
 	(if phone

@@ -536,6 +536,21 @@
     (let ((_a 1)
           (_b 2))
       'z)
+
+    ;; Check empty-list optimisations.
+    (mapcar (lambda (x) (member x nil)) '("a" 2 nil))
+    (mapcar (lambda (x) (memql x nil)) '(a 2 nil))
+    (mapcar (lambda (x) (memq x nil)) '(a nil))
+    (let ((n 0))
+      (list (mapcar (lambda (x) (member (setq n (1+ n)) nil)) '(a "nil"))
+            n))
+    (mapcar (lambda (x) (assoc x nil)) '("a" nil))
+    (mapcar (lambda (x) (assq x nil)) '(a nil))
+    (mapcar (lambda (x) (rassoc x nil)) '("a" nil))
+    (mapcar (lambda (x) (rassq x nil)) '(a nil))
+    (let ((n 0))
+      (list (mapcar (lambda (x) (assoc (setq n (1+ n)) nil)) '(a "nil"))
+            n))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

@@ -1429,10 +1429,10 @@ The buffer is in Term mode; see `term-mode' for the
 commands to use in that buffer.
 
 \\<term-raw-map>Type \\[switch-to-buffer] to switch to another buffer."
-  (interactive (list (read-from-minibuffer "Run program: "
-					   (or explicit-shell-file-name
-					       (getenv "ESHELL")
-					       shell-file-name))))
+  (interactive (list (read-shell-command "Run program: "
+					 (or explicit-shell-file-name
+					     (getenv "ESHELL")
+					     shell-file-name))))
   (set-buffer (make-term "terminal" program))
   (term-mode)
   (term-char-mode)

@@ -288,6 +288,10 @@ or zero means the region is the expansion.
 A negative argument means to undefine the specified abbrev.
 Reads the abbreviation in the minibuffer.
 
+See also `inverse-add-mode-abbrev', which performs the opposite task:
+if the abbrev text is already in the buffer, use this command to
+define an abbrev by specifying the expansion in the minibuffer.
+
 Don't use this function in a Lisp program; use `define-abbrev' instead."
   (interactive "p")
   (add-abbrev
@@ -303,6 +307,10 @@ The prefix argument specifies the number of words before point that form the
 expansion; or zero means the region is the expansion.
 A negative argument means to undefine the specified abbrev.
 This command uses the minibuffer to read the abbreviation.
+
+See also `inverse-add-global-abbrev', which performs the opposite task:
+if the abbrev text is already in the buffer, use this command to
+define an abbrev by specifying the expansion in the minibuffer.
 
 Don't use this function in a Lisp program; use `define-abbrev' instead."
   (interactive "p")
@@ -330,7 +338,11 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
   "Define last word before point as a mode-specific abbrev.
 With prefix argument N, defines the Nth word before point.
 This command uses the minibuffer to read the expansion.
-Expands the abbreviation after defining it."
+Expands the abbreviation after defining it.
+
+See also `add-mode-abbrev', which performs the opposite task:
+if the expansion is already in the buffer, use this command
+to define an abbrev by specifying the abbrev in the minibuffer."
   (interactive "p")
   (inverse-add-abbrev
    (if only-global-abbrevs
@@ -343,7 +355,11 @@ Expands the abbreviation after defining it."
   "Define last word before point as a global (mode-independent) abbrev.
 With prefix argument N, defines the Nth word before point.
 This command uses the minibuffer to read the expansion.
-Expands the abbreviation after defining it."
+Expands the abbreviation after defining it.
+
+See also `add-global-abbrev', which performs the opposite task:
+if the expansion is already in the buffer, use this command
+to define an abbrev by specifying the abbrev in the minibuffer."
   (interactive "p")
   (inverse-add-abbrev global-abbrev-table "Global" n))
 

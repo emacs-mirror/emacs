@@ -228,6 +228,11 @@ The format is (FUNCTION ARGS...).")
   'help-function #'info
   'help-echo (purecopy "mouse-2, RET: read this Info node"))
 
+(define-button-type 'help-customization-group
+  :supertype 'help-xref
+  'help-function #'customize-group
+  'help-echo (purecopy "mouse-2, RET: display this customization group"))
+
 (define-button-type 'help-url
   :supertype 'help-xref
   'help-function #'browse-url
@@ -437,6 +442,10 @@ when help commands related to multilingual environment (e.g.,
    "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+['`‘]\\([^'’]+\\)['’]")
   "Regexp matching doc string references to an Info node.")
 
+(defconst help-xref-customization-group-regexp
+  (purecopy "\\<[Cc]ustomization[ \t\n]+[Gg]roup[ \t\n]+['`‘]\\([^'’]+\\)['’]")
+  "Regexp matching doc string references to a customization group.")
+
 (defconst help-xref-url-regexp
   (purecopy "\\<[Uu][Rr][Ll][ \t\n]+['`‘]\\([^'’]+\\)['’]")
   "Regexp matching doc string references to a URL.")
@@ -543,6 +552,12 @@ that."
 			(setq data ;; possible newlines if para filled
 			      (replace-regexp-in-string "[ \t\n]+" " " data t t)))
                       (help-xref-button 2 'help-info data))))
+                ;; Customization groups.
+                (save-excursion
+                  (while (re-search-forward
+                          help-xref-customization-group-regexp nil t)
+                    (help-xref-button 1 'help-customization-group
+                                      (intern (match-string 1)))))
                 ;; URLs
                 (save-excursion
                   (while (re-search-forward help-xref-url-regexp nil t)

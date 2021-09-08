@@ -924,7 +924,10 @@ Any other value is treated as nil."
   "Toggle whitespace visualization (Whitespace mode).
 
 See also `whitespace-style', `whitespace-newline' and
-`whitespace-display-mappings'."
+`whitespace-display-mappings'.
+
+This mode uses a number of faces to visualize the whitespace; see
+the customization group `whitespace' for details."
   :lighter    " ws"
   :init-value nil
   :global     nil

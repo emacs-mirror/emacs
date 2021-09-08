@@ -1045,6 +1045,8 @@ The value, if non-nil, is a list of mode name symbols.  */)
 
   if (COMPILEDP (fun))
     {
+      if (PVSIZE (fun) <= COMPILED_INTERACTIVE)
+	return Qnil;
       Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
       if (VECTORP (form))
 	/* New form -- the second element is the command modes. */

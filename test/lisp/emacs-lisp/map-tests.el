@@ -521,5 +521,14 @@ Evaluate BODY for each created map."
 		   'value2))
     (should (equal (map-elt ht 'key) 'value2))))
 
+(ert-deftest test-setf-map-with-function ()
+  (let ((num 0)
+        (map nil))
+    (setf (map-elt map 'foo)
+          (funcall (lambda ()
+                     (cl-incf num))))
+    ;; Check that the function is only called once.
+    (should (= num 1))))
+
 (provide 'map-tests)
 ;;; map-tests.el ends here

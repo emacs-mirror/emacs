@@ -4281,12 +4281,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; for completion.  We must refill the cache.
 	    (tramp-set-connection-property tramp-test-vec "property" nil)
 
-            (let ;; This is needed for the `simplified' syntax.
-                ((method-marker
-                  (if (zerop (length tramp-method-regexp))
-                      "" tramp-default-method-marker))
-                 ;; This is needed for the `separate' syntax.
-                 (prefix-format (substring tramp-prefix-format 1))
+            (let ;; This is needed for the `separate' syntax.
+                ((prefix-format (substring tramp-prefix-format 1))
 		 ;; This is needed for the IPv6 host name syntax.
 		 (ipv6-prefix
 		  (and (string-match-p tramp-ipv6-regexp host)
@@ -4302,22 +4298,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (concat prefix-format method tramp-postfix-method-format)
 		  (file-name-all-completions
                    (concat prefix-format (substring method 0 1)) "/"))))
-              ;; Complete host name for default method.  With gvfs
-              ;; based methods, host name will be determined as
-              ;; host.local, so we omit the test.
-	      (let ((tramp-default-method (or method tramp-default-method)))
-		(unless (or (zerop (length host))
-			    (tramp--test-gvfs-p tramp-default-method))
-		  (should
-		   (member
-		    (concat
-                     prefix-format method-marker tramp-postfix-method-format
-		     ipv6-prefix host ipv6-postfix tramp-postfix-host-format)
-		    (file-name-all-completions
-		     (concat
-                      prefix-format method-marker tramp-postfix-method-format
-		      ipv6-prefix (substring host 0 1))
-                     "/")))))
               ;; Complete host name.
 	      (unless (or (zerop (length method))
                           (zerop (length tramp-method-regexp))
@@ -4579,6 +4559,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
       ;; Process connection type.
       (when (and (tramp--test-sh-p)
+		 (not (tramp-direct-async-process-p))
 		 ;; `executable-find' has changed the number of
 		 ;; parameters in Emacs 27.1, so we use `apply' for
 		 ;; older Emacsen.
@@ -4635,8 +4616,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Define ert test `TEST-direct-async' for direct async processes.
 If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (declare (indent 1))
-  ;; `make-process' supports file name handlers since Emacs 27.
-  (when (let ((file-name-handler-alist '(("" . #'tramp--test-always))))
+  ;; `make-process' supports file name handlers since Emacs 27.  We
+  ;; cannot use `tramp--test-always' during compilation of the macro.
+  (when (let ((file-name-handler-alist '(("" . (lambda (&rest _) t)))))
 	  (ignore-errors (make-process :file-handler t)))
     `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
        ,docstring
@@ -4829,6 +4811,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
       ;; Process connection type.
       (when (and (tramp--test-sh-p)
+		 (not (tramp-direct-async-process-p))
 		 ;; `executable-find' has changed the number of
 		 ;; parameters in Emacs 27.1, so we use `apply' for
 		 ;; older Emacsen.

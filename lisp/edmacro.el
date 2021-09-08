@@ -612,7 +612,7 @@ This function assumes that the events can be stored in a string."
 		((eq (car ev) 'switch-frame))
 		((equal ev '(menu-bar))
 		 (push 'menu-bar result))
-		((equal (cl-cadadr ev) '(menu-bar))
+                ((equal (cadadr ev) '(menu-bar))
 		 (push (vector 'menu-bar (car ev)) result))
 		;; It would be nice to do pop-up menus, too, but not enough
 		;; info is recorded in macros to make this possible.

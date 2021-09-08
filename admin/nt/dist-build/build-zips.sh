@@ -134,7 +134,7 @@ while getopts "gb:hnsiV:" opt; do
         echo "  -g git update and worktree only"
         echo "  -i build installer only"
         echo "  -n do not configure"
-        echo "  -s snaphot build"
+        echo "  -s snapshot build"
         exit 0
         ;;
     \?)

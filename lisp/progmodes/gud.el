@@ -2780,14 +2780,24 @@ Commands:
 			(expand-file-name file-subst)
 		      file-subst)))
 	 (filepart (and file-word (concat "-" (file-name-nondirectory file))))
-	 (existing-buffer (get-buffer (concat "*gud" filepart "*"))))
+         (buffer-name (concat "*gud" filepart "*"))
+	 (existing-buffer (get-buffer buffer-name))
+         error)
+    (when (and existing-buffer
+               (get-buffer-process existing-buffer))
+      (if (equal (buffer-local-value 'default-directory existing-buffer)
+                 default-directory)
+          ;; We're already debugging this executable.
+          (setq error t)
+        ;; Open a new window to debug an executable with the same name.
+        (setq buffer-name (generate-new-buffer-name buffer-name))))
     (select-window
      (display-buffer
-      (get-buffer-create (concat "*gud" filepart "*"))
+      (get-buffer-create buffer-name)
       '((display-buffer-reuse-window
          display-buffer-in-previous-window
          display-buffer-same-window display-buffer-pop-up-window))))
-    (when (and existing-buffer (get-buffer-process existing-buffer))
+    (when error
       (error "This program is already being debugged"))
     ;; Set the dir, in case the buffer already existed with a different dir.
     (setq default-directory dir)
@@ -2809,8 +2819,12 @@ Commands:
 	(setq w (cdr w)))
       ;; Tramp has already been loaded if we are here.
       (if w (setcar w (setq file (file-local-name file)))))
-    (apply #'make-comint (concat "gud" filepart) program nil
-	   (if massage-args (funcall massage-args file args) args))
+    (apply #'make-comint-in-buffer
+           (concat "gud" filepart) (current-buffer)
+           program nil
+	   (if massage-args
+               (funcall massage-args file args)
+             args))
     ;; Since comint clobbered the mode, we don't set it until now.
     (gud-mode)
     (setq-local gud-target-name

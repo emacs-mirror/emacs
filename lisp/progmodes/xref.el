@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
-;; Version: 1.1.0
+;; Version: 1.2.2
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -415,6 +415,38 @@ elements is negated: these commands will NOT prompt."
   :type 'hook
   :version "28.1"
   :package-version '(xref . "1.0.4"))
+
+(defcustom xref-auto-jump-to-first-definition nil
+  "If t, `xref-find-definitions' always jumps to the first result.
+`show' means to show the first result's location, but keep the
+focus on the Xref buffer's window.
+`move' means to only move point to the first result.
+This variable also affects the variants of `xref-find-definitions',
+such as `xref-find-definitions-other-window'."
+  :type '(choice (const :tag "Jump" t)
+                 (const :tag "Show" show)
+                 (const :tag "Move point only" move)
+                 (const :tag "No auto-jump" nil))
+  :version "28.1"
+  :package-version '(xref . "1.2.0"))
+
+(defcustom xref-auto-jump-to-first-xref nil
+  "If t, `xref-find-references' always jumps to the first result.
+`show' means to show the first result's location, but keep the
+focus on the Xref buffer's window.
+`move' means to only move point to the first result.
+This variable also affects commands similar to `xref-find-references',
+such as `xref-find-references-at-mouse', `xref-find-apropos',
+and `project-find-regexp'.
+
+Please be careful when changing the value if you are using Emacs 27
+or earlier: it can break `dired-do-find-regexp-and-replace'."
+  :type '(choice (const :tag "Jump" t)
+                 (const :tag "Show" show)
+                 (const :tag "Move point only" move)
+                 (const :tag "No auto-jump" nil))
+  :version "28.1"
+  :package-version '(xref . "1.2.0"))
 
 (defvar xref--marker-ring (make-ring xref-marker-ring-length)
   "Ring of markers to implement the marker stack.")
@@ -898,17 +930,21 @@ beginning of the line."
 (defvar xref--button-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] #'xref-goto-xref)
-    (define-key map [mouse-2] #'xref--mouse-2)
+    (define-key map [mouse-2] #'xref-select-and-show-xref)
     map))
 
-(defun xref--mouse-2 (event)
-  "Move point to the button and show the xref definition."
+(defun xref-select-and-show-xref (event)
+  "Move point to the button and show the xref definition.
+The window showing the xref buffer will be selected."
   (interactive "e")
   (mouse-set-point event)
   (forward-line 0)
   (or (get-text-property (point) 'xref-item)
       (xref--search-property 'xref-item))
   (xref-show-location-at-point))
+
+(define-obsolete-function-alias
+  'xref--mouse-2 #'xref-select-and-show-xref "28.1")
 
 (defcustom xref-truncation-width 400
   "The column to visually \"truncate\" each Xref buffer line to."
@@ -1016,13 +1052,16 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
            (assoc-default 'fetched-xrefs alist)
            (funcall fetcher)))
          (xref-alist (xref--analyze xrefs))
-         (dd default-directory))
+         (dd default-directory)
+         buf)
     (with-current-buffer (get-buffer-create xref-buffer-name)
       (setq default-directory dd)
       (xref--xref-buffer-mode)
       (xref--show-common-initialize xref-alist fetcher alist)
       (pop-to-buffer (current-buffer))
-      (current-buffer))))
+      (setq buf (current-buffer)))
+    (xref--auto-jump-first buf (assoc-default 'auto-jump alist))
+    buf))
 
 (defun xref--project-root (project)
   (if (fboundp 'project-root)
@@ -1060,19 +1099,36 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
            (error-message-string err)
            'face 'error)))))))
 
+(defun xref--auto-jump-first (buf value)
+  (when value
+    (select-window (get-buffer-window buf))
+    (goto-char (point-min)))
+  (cond
+   ((eq value t)
+    (xref-next-line-no-show)
+    (xref-goto-xref))
+   ((eq value 'show)
+    (xref-next-line))
+   ((eq value 'move)
+    (forward-line 1))))
+
 (defun xref-show-definitions-buffer (fetcher alist)
   "Show the definitions list in a regular window.
 
 When only one definition found, jump to it right away instead."
-  (let ((xrefs (funcall fetcher)))
+  (let ((xrefs (funcall fetcher))
+        buf)
     (cond
      ((not (cdr xrefs))
       (xref-pop-to-location (car xrefs)
                             (assoc-default 'display-action alist)))
      (t
-      (xref--show-xref-buffer fetcher
-                              (cons (cons 'fetched-xrefs xrefs)
-                                    alist))))))
+      (setq buf
+            (xref--show-xref-buffer fetcher
+                                    (cons (cons 'fetched-xrefs xrefs)
+                                          alist)))
+      (xref--auto-jump-first buf (assoc-default 'auto-jump alist))
+      buf))))
 
 (define-obsolete-function-alias
   'xref--show-defs-buffer #'xref-show-definitions-buffer "28.1")
@@ -1088,7 +1144,8 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
          ;; XXX: Make percentage customizable maybe?
          (max-height (/ (window-height) 2))
          (size-fun (lambda (window)
-                     (fit-window-to-buffer window max-height))))
+                     (fit-window-to-buffer window max-height)))
+         buf)
     (cond
      ((not (cdr xrefs))
       (xref-pop-to-location (car xrefs)
@@ -1101,7 +1158,9 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
         (pop-to-buffer (current-buffer)
                        `(display-buffer-in-direction . ((direction . below)
                                                         (window-height . ,size-fun))))
-        (current-buffer))))))
+        (setq buf (current-buffer)))
+      (xref--auto-jump-first buf (assoc-default 'auto-jump alist))
+      buf))))
 
 (define-obsolete-function-alias 'xref--show-defs-buffer-at-bottom
   #'xref-show-definitions-buffer-at-bottom "28.1")
@@ -1230,13 +1289,15 @@ definitions."
                   (setq xrefs 'called-already)))))))
   (funcall xref-show-xrefs-function fetcher
            `((window . ,(selected-window))
-             (display-action . ,display-action))))
+             (display-action . ,display-action)
+             (auto-jump . ,xref-auto-jump-to-first-xref))))
 
 (defun xref--show-defs (xrefs display-action)
   (xref--push-markers)
   (funcall xref-show-definitions-function xrefs
            `((window . ,(selected-window))
-             (display-action . ,display-action))))
+             (display-action . ,display-action)
+             (auto-jump . ,xref-auto-jump-to-first-definition))))
 
 (defun xref--push-markers ()
   (unless (region-active-p) (push-mark nil t))
@@ -1500,18 +1561,18 @@ IGNORES is a list of glob patterns for files to ignore."
        ;; do that reliably enough, without creating false negatives?
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
-                                     (directory-file-name
-                                      (file-name-unquote
-                                       (file-local-name (expand-file-name dir))))
+                                     "."
                                      ignores))
-       (def default-directory)
+       (local-dir (directory-file-name
+                   (file-name-unquote
+                    (file-local-name (expand-file-name dir)))))
        (buf (get-buffer-create " *xref-grep*"))
        (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
        (status nil)
        (hits nil))
     (with-current-buffer buf
       (erase-buffer)
-      (setq default-directory def)
+      (setq default-directory dir)
       (setq status
             (process-file-shell-command command nil t))
       (goto-char (point-min))
@@ -1524,7 +1585,7 @@ IGNORES is a list of glob patterns for files to ignore."
         (user-error "Search failed with status %d: %s" status (buffer-string)))
       (while (re-search-forward grep-re nil t)
         (push (list (string-to-number (match-string line-group))
-                    (match-string file-group)
+                    (concat local-dir (substring (match-string file-group) 1))
                     (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
     (xref--convert-hits (nreverse hits) regexp)))
@@ -1577,7 +1638,7 @@ The template should have the following fields:
   "The program to use for regexp search inside files.
 
 This must reference a corresponding entry in `xref-search-program-alist'."
-  :type `(choice
+  :type '(choice
           (const :tag "Use Grep" grep)
           (const :tag "Use ripgrep" ripgrep)
           (symbol :tag "User defined"))
@@ -1693,6 +1754,11 @@ directory, used as the root of the ignore globs."
   (cl-assert (not (string-match-p "\\`~" dir)))
   (if (not ignores)
       ""
+    ;; TODO: All in-tree callers are passing in just "." or "./".
+    ;; We can simplify.
+    ;; And, if we ever end up deleting xref-matches-in-directory, move
+    ;; this function to the project package.
+    (setq dir (file-name-as-directory dir))
     (concat
      (shell-quote-argument "(")
      " -path "

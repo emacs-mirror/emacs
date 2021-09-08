@@ -7,10 +7,6 @@
 
 @include emacsver.texi
 
-@c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
-@c Feel free to install changes without prior permission (but I'd
-@c appreciate a notice if you do).
-
 @copying
 Copyright @copyright{} 2001--2021 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
@@ -86,7 +82,7 @@ Emacs, the Emacs manual is often the best starting point.
 * FAQ notation::
 * General questions::
 * Getting help::
-* Status of Emacs::
+* History of Emacs::
 * Common requests::
 * Bugs and problems::
 * Compiling and installing Emacs::
@@ -215,11 +211,6 @@ completion, @kbd{?} for a list of possibilities, and @kbd{M-p} and
 @kbd{M-n} (or up-arrow and down-arrow) to see previous commands entered.
 An Emacs @dfn{command} is an @dfn{interactive} Emacs function.
 
-@cindex @key{Do} key
-Your system administrator may have bound other key sequences to invoke
-@code{execute-extended-command}.  A function key labeled @kbd{Do} is a
-good candidate for this, on keyboards that have such a key.
-
 If you need to run non-interactive Emacs functions, see @ref{Evaluating
 Emacs Lisp code}.
 
@@ -231,7 +222,7 @@ Emacs Lisp code}.
 @cindex Info, finding topics in
 
 When we refer you to some @var{topic} in the Emacs manual, you can
-read this manual node inside Emacs (assuming nothing is broken) by
+read this manual node inside Emacs by
 typing @kbd{C-h i m emacs @key{RET} m @var{topic} @key{RET}}.
 
 This invokes Info, the GNU hypertext documentation browser.  If you don't
@@ -240,9 +231,8 @@ already know how to use Info, type @kbd{?} from within Info.
 If we refer to @var{topic}:@var{subtopic}, type @kbd{C-h i m emacs
 @key{RET} m @var{topic} @key{RET} m @var{subtopic} @key{RET}}.
 
-If these commands don't work as expected, your system administrator may
-not have installed the Info files, or may have installed them
-improperly.  In this case you should complain.
+(If these commands don't work as expected, your system may be missing
+the Info files, or they may not be installed properly.)
 
 If you are reading this FAQ in Info, you can simply press @key{RET} on a
 reference to follow it.
@@ -362,35 +352,29 @@ recipients the same freedom that you enjoyed.
 
 @node Guidelines for mailing list postings
 @section  What are appropriate messages for the various Emacs mailing lists?
-@cindex Newsgroups, appropriate messages for
-@cindex GNU newsgroups, appropriate messages for
-@cindex GNU mailing lists, appropriate messages for
-@cindex Usenet groups, appropriate messages for
 @cindex Mailing lists, appropriate messages for
 @cindex Posting messages to mailing lists
-
 @cindex GNU mailing lists
-The Emacs mailing lists are described at
+
+There are various Emacs mailing lists, described at
 @uref{https://savannah.gnu.org/mail/?group=emacs, the Emacs Savannah
 page}.
 
-Messages advocating ``non-free'' software are considered unacceptable
-on any of the GNU mailing lists, except for
-@url{https://lists.gnu.org/mailman/listinfo/gnu-misc-discuss, the
-gnu-misc-discuss mailing list} which was created to hold the extensive
-flame-wars on the subject.
+The main ones are: @code{help-gnu-emacs}, @code{bug-gnu-emacs},
+and @code{emacs-devel}.
 
-``Non-free'' software includes any software for which the end user
-can't freely modify the source code and exchange enhancements.  Be
-careful to remove any GNU mailing lists from @samp{Cc:} when posting a
-reply that recommends such software.
+Messages advocating ``non-free'' software are considered unacceptable on
+any of the GNU mailing lists, except for
+@url{https://lists.gnu.org/mailman/listinfo/gnu-misc-discuss,
+the gnu-misc-discuss mailing list}.
+``Non-free'' software includes any software for which the end user can't
+freely modify the source code and exchange enhancements.  Please
+remove GNU mailing lists from the recipients when
+posting a reply that recommends such software.
 
-@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
-bug-gnu-emacs list} is a place where bug reports appear, but we
-recommend using the commands @kbd{M-x report-emacs-bug} or @kbd{M-x
-submit-emacs-patch} if at all possible (@pxref{Reporting bugs}).
-
-Some GNU mailing lists are gatewayed to (Usenet) newsgroups.
+@cindex newsgroups
+Some of the GNU mailing lists are gatewayed to newsgroups (although
+the connection is occasionally unreliable).
 For example, sending an email to
 @url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
 bug-gnu-emacs list} has the effect of posting on the newsgroup
@@ -412,6 +396,8 @@ years, although there may be some unintentional gaps in coverage.  The
 archive can be browsed over the web at
 @uref{https://lists.gnu.org/r/, the GNU mail archive}.
 
+@cindex Usenet archives for GNU groups
+@cindex Old Usenet postings for GNU groups
 Some web-based Usenet search services also archive the @code{gnu.*}
 newsgroups.
 
@@ -422,15 +408,8 @@ newsgroups.
 @cindex How to submit a bug report
 @cindex Reporting bugs
 
-The correct way to report Emacs bugs is to use the command
-@kbd{M-x report-emacs-bug}.  It sets up a mail buffer with the
-essential information and the correct e-mail address,
-@email{bug-gnu-emacs@@gnu.org}.
-
-Be sure to read the ``Bugs'' section of the Emacs manual before reporting
-a bug!  The manual describes in detail how to submit a useful bug
-report (@pxref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}).
-(@xref{Emacs manual}, if you don't know how to read the manual.)
+Please see the Emacs manual for information on how to report bugs.
+@xref{Checklist, , Checklist for Bug Reports, emacs, The GNU Emacs Manual}.
 
 Sending bug reports to
 @url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs, the
@@ -444,7 +423,7 @@ more messages about Emacs than the others.
 
 If you have reported a bug and you don't hear about a possible fix,
 then after a suitable delay (such as a week) it is okay to post on
-@code{help-gnu-emacs@@gnu.org} asking if anyone can help you.
+the help list asking if anyone can help you.
 
 If you are unsure whether you have found a bug, consider the following
 non-exhaustive list, courtesy of RMS:
@@ -863,12 +842,9 @@ Emacs news, a history of recent user-visible changes
 
 @end table
 
-More GNU information, including back issues of the @cite{GNU's
-Bulletin}, are at
+More GNU and FSF information is available at
 
-@uref{https://www.gnu.org/bulletins/bulletins.html} and
-
-@uref{https://www.cs.pdx.edu/~trent/gnu/gnu.html}
+@uref{https://www.gnu.org} and @uref{http://www.fsf.org}
 
 @node Help installing Emacs
 @section Where can I get help in installing Emacs?
@@ -894,12 +870,9 @@ C-f} (@kbd{M-x view-emacs-FAQ}).  The very latest version is available
 in the Emacs development repository (@pxref{Latest version of Emacs}).
 
 @c ------------------------------------------------------------
-@node Status of Emacs
-@chapter Status of Emacs
-@cindex Status of Emacs
-
-This chapter gives you basic information about Emacs, including the
-status of its latest version.
+@node History of Emacs
+@chapter History of Emacs
+@cindex History of Emacs
 
 @menu
 * Origin of the term Emacs::
@@ -912,6 +885,7 @@ status of its latest version.
 * New in Emacs 22::
 * New in Emacs 21::
 * New in Emacs 20::
+* What was XEmacs?::
 @end menu
 
 @node Origin of the term Emacs
@@ -950,7 +924,6 @@ conventions}).
 @cindex Latest version of Emacs
 @cindex Development, Emacs
 @cindex Repository, Emacs
-@cindex Bazaar repository, Emacs
 
 Emacs @value{EMACSVER} is the current version as of this writing.  A version
 number with two components (e.g., @samp{24.5}) indicates a released
@@ -1475,6 +1448,28 @@ several languages in the same document; the ``Customize'' facility for
 modifying variables without having to use Lisp; and automatic conversion
 of files from Macintosh, Microsoft, and Unix platforms.
 
+@node What was XEmacs?
+@section What was XEmacs?
+@cindex XEmacs
+
+XEmacs was a branch version of Emacs that is no longer actively
+developed.  XEmacs last released a new version on January 30, 2009,
+and it lacks many important features that exist in Emacs.  Since its
+development has stopped, we do not expect to see any new releases.
+
+In the past, it was not uncommon for Emacs packages to include code
+for compatibility with XEmacs.  Nowadays, most built-in and third party
+packages have either stopped supporting XEmacs or were developed
+exclusively for Emacs.
+
+XEmacs was initially derived from a prerelease version of Emacs 19.
+If you want to talk about these two versions and distinguish them,
+please call them ``Emacs'' and ``XEmacs.''  To contrast ``XEmacs''
+with ``GNU Emacs'' would be misleading, since XEmacs too has its
+origin in the work of the GNU Project.  Terms such as ``Emacsen'' and
+``(X)Emacs'' are not wrong, but they are not very clear, so it
+is better to write ``Emacs and XEmacs.''
+
 @c ------------------------------------------------------------
 @node Common requests
 @chapter Common requests
@@ -1598,7 +1593,7 @@ capabilities.
 The command @kbd{M-x list-colors-display} pops up a window which
 exhibits all the colors Emacs knows about on the current display.
 
-Syntax highlighting is on by default since version 22.1.
+Syntax highlighting is on by default.
 
 @cindex direct color in terminals
 Emacs 26.1 and later support direct color mode in terminals.  If Emacs
@@ -3380,6 +3375,7 @@ dired, @code{directory-listing-before-filename-regexp}.
 
 @menu
 * Installing Emacs::
+* Emacs for other operating systems::
 * Problems building Emacs::
 @end menu
 
@@ -3392,9 +3388,7 @@ dired, @code{directory-listing-before-filename-regexp}.
 @cindex Source code, building Emacs from
 
 This answer is meant for users of Unix and Unix-like systems.  Users of
-other operating systems should see the series of questions beginning
-with @ref{Emacs for MS-DOS}, which describe where to get non-Unix source
-and binaries, and how to install Emacs on those systems.
+other operating systems should see @xref{Emacs for other operating systems}.
 
 Most GNU/Linux distributions provide pre-built Emacs packages.
 If Emacs is not installed already, you can install it by running (as
@@ -3413,20 +3407,20 @@ a list of sites that make them available.  On @url{https://ftp.gnu.org},
 the main GNU distribution site, sources are available as
 
 @c Don't include VER in the file name, because pretests are not there.
-@uref{https://ftp.gnu.org/pub/gnu/emacs/emacs-VERSION.tar.gz}
+@uref{https://ftp.gnu.org/pub/gnu/emacs/emacs-VERSION.tar.xz}
 
 (Replace @samp{VERSION} with the relevant version number, e.g., @samp{28.1}.)
 
 @item
 Next uncompress and extract the source files.  This requires
-the @code{gzip} and @code{tar} programs, which are standard utilities.
+the @code{xz} and @code{tar} programs, which are standard utilities.
 If your system does not have them, these can also be downloaded from
 @url{https://ftp.gnu.org}.
 
 GNU @code{tar} can uncompress and extract in a single-step:
 
 @example
-tar -zxvf emacs-VERSION.tar.gz
+tar -axvf emacs-VERSION.tar.xz
 @end example
 
 @item
@@ -3440,9 +3434,8 @@ cd emacs-VERSION
 make                # use Makefile to build components, then Emacs
 @end example
 
-If the @code{make} completes successfully, the odds are fairly good that
-the build has gone well.  (@xref{Problems building Emacs}, if you weren't
-successful.)
+If the @code{make} completes successfully, you can go on to install it.
+(@xref{Problems building Emacs}, if you weren't successful.)
 
 @item
 By default, Emacs is installed in @file{/usr/local}.  To actually
@@ -3456,6 +3449,46 @@ Note that @samp{make install} will overwrite @file{/usr/local/bin/emacs}
 and any Emacs Info files that might be in @file{/usr/local/share/info/}.
 
 @end itemize
+
+@node Emacs for other operating systems
+@section Where can I get Emacs for macOS, MS Windows, etc?
+
+@cindex Apple computers, Emacs for
+@cindex Macintosh, Emacs for
+@cindex macOS, Emacs for
+Beginning with version 22.1, Emacs supports macOS natively.
+See the file @file{nextstep/INSTALL} in the distribution.
+
+@cindex FAQ for Emacs on MS-Windows
+@cindex Emacs for MS-Windows
+@cindex Microsoft Windows, Emacs for
+There is a separate FAQ for Emacs on MS-Windows,
+@pxref{Top,,,efaq-w32,FAQ for Emacs on MS Windows}.
+
+@cindex GNUstep, Emacs for
+Beginning with version 23.1, Emacs supports GNUstep natively.
+See the file @file{nextstep/INSTALL} in the distribution.
+
+@cindex MS-DOS, Emacs for
+@cindex DOS, Emacs for
+@cindex Compiling Emacs for DOS
+@cindex Emacs for MS-DOS
+To build Emacs from source for MS-DOS, see the instructions in the file
+@file{msdos/INSTALL} in the distribution.  The DOS port builds and runs
+on plain DOS, and also on all versions of MS-Windows from version 3.X
+onwards, including Windows XP and Vista. Pre-built binaries may be
+available at
+@uref{http://www.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
+
+For a list of other implementations of Emacs (and Emacs
+look-alikes), consult the list of ``Emacs implementations and literature,''
+available at
+
+@uref{http://www.finseth.com/emacs.html}
+
+Note that while many of these programs look similar to Emacs, they often
+lack certain features, such as the Emacs Lisp extension language.
+
 
 @node Problems building Emacs
 @section What should I do if I have trouble building Emacs?
@@ -3480,26 +3513,20 @@ problem (@pxref{Reporting bugs}).
 @cindex Finding Emacs and related packages
 
 @menu
-* Finding Emacs on the Internet::
+* Downloading Emacs::
 * Finding a package with particular functionality::
 * Packages that do not come with Emacs::
 * Spell-checkers::
 * Current GNU distributions::
-* What was XEmacs?::
 * Emacs for minimalists::
-* Emacs for MS-DOS::
-* Emacs for MS-Windows::
-* Emacs for GNUstep::
-* Emacs for macOS::
 @end menu
 
-@node Finding Emacs on the Internet
-@section Where can I get Emacs on the net?
-@cindex Finding Emacs on the Internet
+@node Downloading Emacs
+@section Downloading Emacs
 @cindex Downloading Emacs
 
 Information on downloading Emacs is available at
-@uref{https://www.gnu.org/software/emacs/, the Emacs home-page}.
+@uref{https://www.gnu.org/software/emacs/, the Emacs website}.
 
 @xref{Installing Emacs}, for information on how to obtain and build the latest
 version of Emacs, and see @ref{Current GNU distributions}, for a list of
@@ -3511,24 +3538,21 @@ archive sites that make GNU software available.
 @cindex Finding an Emacs Lisp package
 @cindex Functionality, finding a particular package
 
-First of all, you should check to make sure that the package isn't
-already available.  For example, typing @kbd{M-x apropos @key{RET}
-python @key{RET}} lists all functions and variables containing the
-string @samp{python}.
-
-It is also possible that the package is on your system, but has not been
-loaded.  To see which packages are available for loading, look through
-your computer's lisp directory (@pxref{File-name conventions}).  The Lisp
-source to most packages contains a short description of how they
-should be loaded, invoked, and configured---so before you use or
-modify a Lisp package, see if the author has provided any hints in the
-source code.
-
 The command @kbd{C-h p} (@code{finder-by-keyword}) allows you to browse
-the constituent Emacs packages.
+the packages that come with Emacs.
 
 For advice on how to find extra packages that are not part of Emacs,
 see @ref{Packages that do not come with Emacs}.
+
+Other techniques that might be useful:
+
+Typing @kbd{M-x apropos @key{RET} python @key{RET}} lists all
+functions and variables containing the string @samp{python}.
+
+You can look through your computer's lisp directory (@pxref{File-name
+conventions}).  The Lisp source to most packages contains a short
+description of what they do and how they should be used.
+
 
 @c Note that M-x view-external-packages references this node.
 @node Packages that do not come with Emacs
@@ -3619,28 +3643,6 @@ A list of sites mirroring @samp{ftp.gnu.org} can be found at
 
 @uref{https://www.gnu.org/prep/ftp}
 
-@node What was XEmacs?
-@section What was XEmacs?
-@cindex XEmacs
-
-XEmacs was a branch version of Emacs that is no longer actively
-developed.  XEmacs last released a new version on January 30, 2009,
-and it lacks many important features that exist in Emacs.  Since its
-development has stopped, we do not expect to see any new releases.
-
-In the past, it was not uncommon for Emacs packages to include code
-for compatibility with XEmacs.  Nowadays, most built-in and third party
-packages have either stopped supporting XEmacs or were developed
-exclusively for Emacs.
-
-XEmacs was initially derived from a prerelease version of Emacs 19.
-If you want to talk about these two versions and distinguish them,
-please call them ``Emacs'' and ``XEmacs.''  To contrast ``XEmacs''
-with ``GNU Emacs'' would be misleading, since XEmacs too has its
-origin in the work of the GNU Project.  Terms such as ``Emacsen'' and
-``(X)Emacs'' are not wrong, but they are not very clear, so it
-is better to write ``Emacs and XEmacs.''
-
 @node Emacs for minimalists
 @section I don't have enough disk space to install Emacs
 @cindex Zile
@@ -3653,63 +3655,6 @@ if you are in an extremely space-restricted environment.  More
 information is available from
 
 @uref{https://www.gnu.org/software/zile/}
-
-
-@node Emacs for MS-DOS
-@section Where can I get Emacs for MS-DOS?
-@cindex MS-DOS, Emacs for
-@cindex DOS, Emacs for
-@cindex Compiling Emacs for DOS
-@cindex Emacs for MS-DOS
-
-To build Emacs from source for MS-DOS, see the instructions in the file
-@file{msdos/INSTALL} in the distribution.  The DOS port builds and runs
-on plain DOS, and also on all versions of MS-Windows from version 3.X
-onwards, including Windows XP and Vista.
-
-The file @file{etc/PROBLEMS} contains some additional information
-regarding Emacs under MS-DOS.
-
-A pre-built binary distribution of the old Emacs 24 is available, as
-described at
-
-@uref{http://www.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
-
-For a list of other MS-DOS implementations of Emacs (and Emacs
-look-alikes), consult the list of ``Emacs implementations and literature,''
-available at
-
-@uref{https://www.finseth.com/emacs.html}
-
-Note that while many of these programs look similar to Emacs, they often
-lack certain features, such as the Emacs Lisp extension language.
-
-@node Emacs for MS-Windows
-@section Where can I get Emacs for Microsoft Windows?
-@cindex FAQ for Emacs on MS-Windows
-@cindex Emacs for MS-Windows
-@cindex Microsoft Windows, Emacs for
-
-There is a separate FAQ for Emacs on MS-Windows,
-@pxref{Top,,,efaq-w32,FAQ for Emacs on MS Windows}.
-For MS-DOS, @pxref{Emacs for MS-DOS}.
-
-
-@node Emacs for GNUstep
-@section Where can I get Emacs for GNUstep?
-@cindex GNUstep, Emacs for
-
-Emacs supports GNUstep natively.  See the file @file{nextstep/INSTALL}
-in the distribution.
-
-@node Emacs for macOS
-@section Where can I get Emacs for macOS?
-@cindex Apple computers, Emacs for
-@cindex Macintosh, Emacs for
-@cindex macOS, Emacs for
-
-Emacs supports macOS natively.  See the file @file{nextstep/INSTALL}
-in the distribution.
 
 @c ------------------------------------------------------------
 @node Key bindings

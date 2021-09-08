@@ -391,6 +391,13 @@
 		    ((>= calc-gnuplot-version 3)
 		     "dumb")
 		    (t "postscript"))))
+	 (unless (equal device calc-graph-last-device)
+	   (setq calc-graph-last-device device)
+	   (unless (calc-gnuplot-command "set terminal" device)
+             ;; If gnuplot doesn't support the terminal, then set it
+             ;; to "dumb".
+             (calc-gnuplot-command "set terminal dumb")
+             (setq device "dumb")))
 	 (if (equal device "dumb")
 	     (setq device (format "dumb %d %d"
 				  (1- (frame-width)) (1- (frame-height)))))
@@ -404,10 +411,6 @@
 		 (setq tempoutfile (calc-temp-file-name -1)
 		       output tempoutfile))
 	   (setq output (eval output t)))
-	 (or (equal device calc-graph-last-device)
-	     (progn
-	       (setq calc-graph-last-device device)
-	       (calc-gnuplot-command "set terminal" device)))
 	 (or (equal output calc-graph-last-output)
 	     (progn
 	       (setq calc-graph-last-output output)
@@ -1411,6 +1414,8 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
       (calc-graph-view-trail)))
 
 (defun calc-gnuplot-command (&rest args)
+  "Send ARGS to Gnuplot.
+Returns nil if Gnuplot signalled an error."
   (calc-graph-init)
   (let ((cmd (concat (mapconcat 'identity args " ") "\n")))
     (or (calc-graph-w32-p)
@@ -1428,9 +1433,11 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
       (or (calc-graph-w32-p)
 	  (accept-process-output (and (not calc-graph-no-wait)
 				      calc-gnuplot-process)))
-      (calc-gnuplot-check-for-errors)
-      (if (get-buffer-window calc-gnuplot-buffer)
-	  (calc-graph-view-trail)))))
+      (prog1
+          ;; Return nil if we got an error.
+          (not (calc-gnuplot-check-for-errors))
+        (if (get-buffer-window calc-gnuplot-buffer)
+	    (calc-graph-view-trail))))))
 
 (defun calc-graph-init-buffers ()
   (or (and calc-gnuplot-buffer

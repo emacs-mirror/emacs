@@ -2271,7 +2271,7 @@ first element is the certificate key file name, and the second
 element is the certificate file name itself, or t, which means
 that `auth-source' will be queried for the key and the
 certificate.  Authenticating using a TLS client certificate is
-also refered to as \"CertFP\" (Certificate Fingerprint)
+also referred to as \"CertFP\" (Certificate Fingerprint)
 authentication by various IRC networks.
 
 Example usage:

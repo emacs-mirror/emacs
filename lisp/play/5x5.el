@@ -315,7 +315,7 @@ Quit current game           \\[5x5-quit-game]"
 	  (save-excursion
 	    (goto-char grid-org)
 	    (beginning-of-line (+ 1 (/ 5x5-y-scale 2)))
-	    (let ((solution-grid (cl-cdadr 5x5-solver-output)))
+            (let ((solution-grid (cdadr 5x5-solver-output)))
 	      (dotimes (y 5x5-grid-size)
 		(save-excursion
 		  (forward-char  (+ 1 (/ (1+ 5x5-x-scale) 2)))
@@ -746,9 +746,9 @@ Solutions are sorted from least to greatest Hamming weight."
 		    ;; The Hamming Weight is computed by matrix reduction
 		    ;; with an ad-hoc operator.
 		    (math-reduce-vec
-		     ;; (cl-cadadr '(vec (mod x 2))) => x
-		     (lambda (r x) (+ (if (integerp r) r (cl-cadadr r))
-				      (cl-cadadr x)))
+                     ;; (cadadr '(vec (mod x 2))) => x
+                     (lambda (r x) (+ (if (integerp r) r (cadadr r))
+                                      (cadadr x)))
 		     solution); car
 		    (5x5-vec-to-grid
 		     (calcFunc-arrange solution 5x5-grid-size));cdr

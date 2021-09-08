@@ -35,17 +35,17 @@
     (should (equal
              (buffer-substring-no-properties (point-min) (point-max))
              "relative-path/to/configure --prefix=$prefix\\
-			   --with-x")))
+			   --with-x"))))
+
+(ert-deftest test-basic-sh-indentation ()
   (with-temp-buffer
-    (insert "${path_to_root}/configure --prefix=$prefix\\
-             --with-x")
+    (insert "myecho () {\necho foo\n}\n")
     (shell-script-mode)
-    (goto-char (point-min))
-    (forward-line 1)
-    (indent-for-tab-command)
-    (should (equal
-             (buffer-substring-no-properties (point-min) (point-max))
-             "${path_to_root}/configure --prefix=$prefix\\
-			  --with-x"))))
+    (indent-region (point-min) (point-max))
+    (should (equal (buffer-string)
+  "myecho () {
+    echo foo
+}
+"))))
 
 ;;; sh-script-tests.el ends here

@@ -302,11 +302,10 @@ to find the list of ignores for each directory."
          ;; expanded and not left for the shell command
          ;; to interpret.
          (localdir (file-name-unquote (file-local-name (expand-file-name dir))))
-         (command (format "%s -H %s %s -type f %s -print0"
+         (dfn (directory-file-name localdir))
+         (command (format "%s -H . %s -type f %s -print0"
                           find-program
-                          (shell-quote-argument
-                           (directory-file-name localdir)) ; Bug#48471
-                          (xref--find-ignores-arguments ignores localdir)
+                          (xref--find-ignores-arguments ignores "./")
                           (if files
                               (concat (shell-quote-argument "(")
                                       " " find-name-arg " "
@@ -324,8 +323,9 @@ to find the list of ignores for each directory."
                        (unless (zerop status)
                          (error "File listing failed: %s" (buffer-string))))))))
     (project--remote-file-names
-     (sort (split-string output "\0" t)
-           #'string<))))
+     (mapcar (lambda (s) (concat dfn (substring s 1)))
+             (sort (split-string output "\0" t)
+                   #'string<)))))
 
 (defun project--remote-file-names (local-files)
   "Return LOCAL-FILES as if they were on the system of `default-directory'.
@@ -604,7 +604,9 @@ backend implementation of `project-external-roots'.")
                  (replace-match "./" t t entry 1)
                (concat "./" entry)))
             (t entry)))
-         (vc-call-backend backend 'ignore-completion-table root))))
+         (condition-case nil
+             (vc-call-backend backend 'ignore-completion-table root)
+           (vc-not-supported () nil)))))
      (project--value-in-dir 'project-vc-ignores root)
      (mapcar
       (lambda (dir)
@@ -1342,17 +1344,22 @@ Each element is of the form (COMMAND LABEL &optional KEY) where
 COMMAND is the command to run when KEY is pressed.  LABEL is used
 to distinguish the menu entries in the dispatch menu.  If KEY is
 absent, COMMAND must be bound in `project-prefix-map', and the
-key is looked up in that map."
+key is looked up in that map.
+
+The value can also be a symbol, the name of the command to be
+invoked immediately without any dispatch menu."
   :version "28.1"
   :group 'project
   :package-version '(project . "0.6.0")
-  :type '(repeat
-          (list
-           (symbol :tag "Command")
-           (string :tag "Label")
-           (choice :tag "Key to press"
-            (const :tag "Infer from the keymap" nil)
-            (character :tag "Explicit key")))))
+  :type '(choice
+          (repeat :tag "Commands menu"
+           (list
+            (symbol :tag "Command")
+            (string :tag "Label")
+            (choice :tag "Key to press"
+                    (const :tag "Infer from the keymap" nil)
+                    (character :tag "Explicit key"))))
+          (symbol :tag "Single command")))
 
 (defcustom project-switch-use-entire-map nil
   "Make `project-switch-project' use entire `project-prefix-map'.
@@ -1382,15 +1389,7 @@ are legal even if they aren't listed in the dispatch menu."
    project-switch-commands
    "  "))
 
-;;;###autoload
-(defun project-switch-project (dir)
-  "\"Switch\" to another project by running an Emacs command.
-The available commands are presented as a dispatch menu
-made from `project-switch-commands'.
-
-When called in a program, it will use the project corresponding
-to directory DIR."
-  (interactive (list (project-prompt-project-dir)))
+(defun project--switch-project-command ()
   (let* ((commands-menu
           (mapcar
            (lambda (row)
@@ -1421,6 +1420,20 @@ to directory DIR."
           (when (memq global-command
                       '(keyboard-quit keyboard-escape-quit))
             (call-interactively global-command)))))
+    command))
+
+;;;###autoload
+(defun project-switch-project (dir)
+  "\"Switch\" to another project by running an Emacs command.
+The available commands are presented as a dispatch menu
+made from `project-switch-commands'.
+
+When called in a program, it will use the project corresponding
+to directory DIR."
+  (interactive (list (project-prompt-project-dir)))
+  (let ((command (if (symbolp project-switch-commands)
+                     project-switch-commands
+                   (project--switch-project-command))))
     (let ((default-directory dir)
           (project-current-inhibit-prompt t))
       (call-interactively command))))
