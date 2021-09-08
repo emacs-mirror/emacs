@@ -3235,11 +3235,11 @@ x_draw_image_relief (struct glyph_string *s)
 	  && FIXNUMP (XCAR (Vtab_bar_button_margin))
 	  && FIXNUMP (XCDR (Vtab_bar_button_margin)))
 	{
-	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin));
-	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin));
+	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin)) - thick;
+	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin)) - thick;
 	}
       else if (FIXNUMP (Vtab_bar_button_margin))
-	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin);
+	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin) - thick;
     }
 
   if (s->face->id == TOOL_BAR_FACE_ID)
