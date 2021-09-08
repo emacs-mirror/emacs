@@ -513,6 +513,12 @@ built without SVG support, the old icons will be used instead.
 
 ** Help
 
+---
+*** The order things are displayed in the *Help* buffer has been changed.
+The indented "administrative" block (containing the "probably
+introduced" and "other relevant functions" (and similar things) has
+been moved to after the doc string.
+
 +++
 *** New command 'describe-command' shows help for a command.
 This can be used instead of 'describe-function' for interactive

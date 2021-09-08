@@ -960,10 +960,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                    ;; E.g. an alias for a not yet defined function.
                    ((invalid-function void-function) doc-raw))))
         (help-fns--ensure-empty-line)
+        (insert (or doc "Not documented."))
         (help-fns--run-describe-functions
-         help-fns-describe-function-functions function)
-        (help-fns--ensure-empty-line)
-        (insert (or doc "Not documented.")))
+         help-fns-describe-function-functions function))
       ;; Avoid asking the user annoying questions if she decides
       ;; to save the help buffer, when her locale's codeset
       ;; isn't UTF-8.
@@ -1197,10 +1196,6 @@ it is displayed along with the global value."
 		;; of a symbol.
 		(set-syntax-table emacs-lisp-mode-syntax-table)
 		(goto-char val-start-pos)
-		;; The line below previously read as
-		;; (delete-region (point) (progn (end-of-line) (point)))
-		;; which suppressed display of the buffer local value for
-		;; large values.
 		(when (looking-at "value is") (replace-match ""))
 		(save-excursion
 		  (insert "\n\nValue:")
@@ -1221,27 +1216,32 @@ it is displayed along with the global value."
                             (documentation-property
                              alias 'variable-documentation))))
 
+	      (with-current-buffer standard-output
+		(insert (or doc "Not documented as a variable.")))
+
+              ;; Output the indented administrative bits.
               (with-current-buffer buffer
                 (help-fns--run-describe-functions
-                 help-fns-describe-variable-functions variable))
-
-              (with-current-buffer standard-output
-                (help-fns--ensure-empty-line))
-	      (with-current-buffer standard-output
-		(insert (or doc "Not documented as a variable."))))
+                 help-fns-describe-variable-functions variable)))
 
 	    (with-current-buffer standard-output
 	      ;; Return the text we displayed.
 	      (buffer-string))))))))
 
 (defun help-fns--run-describe-functions (functions &rest args)
+  (with-current-buffer standard-output
+    (unless (bolp)
+      (insert "\n"))
+    (help-fns--ensure-empty-line))
   (let ((help-fns--activated-functions nil))
     (dolist (func functions)
       (let ((size (buffer-size standard-output)))
         (apply func args)
         ;; This function inserted something, so register it.
         (when (> (buffer-size) size)
-          (push func help-fns--activated-functions))))))
+          (push func help-fns--activated-functions)))))
+  (with-current-buffer standard-output
+    (help-fns--ensure-empty-line)))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--customize-variable)
 (defun help-fns--customize-variable (variable &optional text)
