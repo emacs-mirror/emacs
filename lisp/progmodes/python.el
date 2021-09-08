@@ -3537,13 +3537,12 @@ the full statement in the case of imports."
 
 (defcustom python-shell-completion-native-disabled-interpreters
   ;; PyPy's readline cannot handle some escape sequences yet.  Native
-  ;; completion was found to be non-functional for IPython (see
-  ;; Bug#25067).  Native completion doesn't work on w32 (Bug#28580).
+  ;; completion doesn't work on w32 (Bug#28580).
   (if (eq system-type 'windows-nt) '("")
-    '("pypy" "ipython"))
+    '("pypy"))
   "List of disabled interpreters.
 When a match is found, native completion is disabled."
-  :version "25.1"
+  :version "28.1"
   :type '(repeat string))
 
 (defcustom python-shell-completion-native-enable t
