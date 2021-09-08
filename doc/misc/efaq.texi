@@ -1467,7 +1467,7 @@ derived from a prerelease version of Emacs 19.  In this FAQ, we use
 the name ``Emacs'' only for the official version.
 
 XEmacs last released a new version on January 30, 2009, and it lacks
-many important features that exists in Emacs.  In the past, it was not
+many important features that exist in Emacs.  In the past, it was not
 uncommon for Emacs packages to include code for compatibility with
 XEmacs.  Nowadays, although some packages still maintain such
 compatibility code, several of the more popular built-in and third
