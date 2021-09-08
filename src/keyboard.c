@@ -951,6 +951,10 @@ cmd_error (Lisp_Object data)
       Vexecuting_kbd_macro = Qnil;
       executing_kbd_macro = Qnil;
     }
+  else if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
+    /* An `M-x' command that signals a `minibuffer-quit' condition
+       that's part of a kbd macro.  */
+    finalize_kbd_macro_chars ();
 
   specbind (Qstandard_output, Qt);
   specbind (Qstandard_input, Qt);
