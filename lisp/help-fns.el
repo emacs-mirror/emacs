@@ -64,6 +64,12 @@ described in `help-fns-describe-variable-functions', except that
 the functions are called with two parameters: The face and the
 frame.")
 
+(defvar help-fns--activated-functions nil
+  "Internal variable let-bound to help functions that have triggered.
+Help functions can check the contents of this list to see whether
+a specific previous help function has inserted something in the
+current help buffer.")
+
 ;; Functions
 
 (defvar help-definition-prefixes nil
@@ -723,8 +729,12 @@ FILE is the file where FUNCTION was probably defined."
 (add-hook 'help-fns-describe-variable-functions
           #'help-fns--mention-first-release)
 (defun help-fns--mention-first-release (object)
-  (let ((first (if (symbolp object) (help-fns--first-release object))))
-    (when first
+  ;; Don't output anything if we've already output the :version from
+  ;; the `defcustom'.
+  (unless (memq 'help-fns--customize-variable-version
+                help-fns--activated-functions)
+    (when-let ((first (and (symbolp object)
+                           (help-fns--first-release object))))
       (with-current-buffer standard-output
         (insert (format "  Probably introduced at or before Emacs version %s.\n"
                         first))))))
@@ -950,7 +960,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                    ;; E.g. an alias for a not yet defined function.
                    ((invalid-function void-function) doc-raw))))
         (help-fns--ensure-empty-line)
-        (run-hook-with-args 'help-fns-describe-function-functions function)
+        (help-fns--run-describe-functions
+         help-fns-describe-function-functions function)
         (help-fns--ensure-empty-line)
         (insert (or doc "Not documented.")))
       ;; Avoid asking the user annoying questions if she decides
@@ -1211,8 +1222,8 @@ it is displayed along with the global value."
                              alias 'variable-documentation))))
 
               (with-current-buffer buffer
-                (run-hook-with-args 'help-fns-describe-variable-functions
-                                    variable))
+                (help-fns--run-describe-functions
+                 help-fns-describe-variable-functions variable))
 
               (with-current-buffer standard-output
                 (help-fns--ensure-empty-line))
@@ -1222,6 +1233,15 @@ it is displayed along with the global value."
 	    (with-current-buffer standard-output
 	      ;; Return the text we displayed.
 	      (buffer-string))))))))
+
+(defun help-fns--run-describe-functions (functions &rest args)
+  (let ((help-fns--activated-functions nil))
+    (dolist (func functions)
+      (let ((size (buffer-size standard-output)))
+        (apply func args)
+        ;; This function inserted something, so register it.
+        (when (> (buffer-size) size)
+          (push func help-fns--activated-functions))))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--customize-variable)
 (defun help-fns--customize-variable (variable &optional text)
@@ -1234,13 +1254,15 @@ it is displayed along with the global value."
 	  (re-search-backward
 	   (concat "\\(" customize-label "\\)") nil t)
 	  (help-xref-button 1 'help-customize-variable variable)))
-      (terpri))
+      (terpri))))
+
+(add-hook 'help-fns-describe-variable-functions
+          #'help-fns--customize-variable-version)
+(defun help-fns--customize-variable-version (variable)
+  (when (custom-variable-p variable)
     ;; Note variable's version or package version.
-    (let ((output (describe-variable-custom-version-info variable)))
-      (when output
-	;; (terpri)
-	;; (terpri)
-	(princ output)))))
+    (when-let ((output (describe-variable-custom-version-info variable)))
+      (princ output))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-safe-local)
 (defun help-fns--var-safe-local (variable)
@@ -1479,7 +1501,8 @@ If FRAME is omitted or nil, use the selected frame."
 		(terpri)
 		(terpri))))
 	  (terpri)
-          (run-hook-with-args 'help-fns-describe-face-functions f frame))))))
+          (help-fns--run-describe-functions
+           help-fns-describe-face-functions f frame))))))
 
 (add-hook 'help-fns-describe-face-functions
           #'help-fns--face-custom-version-info)
