@@ -178,7 +178,8 @@ When this mode is enabled, clicking 'down-mouse-3' anywhere in the buffer
 pops up a menu whose contents depends on surrounding context near the
 mouse click.  You can change the order of the default sub-menus in the
 context menu by customizing the user option 'context-menu-functions'.
-You can also invoke the context menu by pressing 'S-<F10>'.
+You can also invoke the context menu by pressing 'S-<F10>' or,
+on macOS, by clicking 'C-down-mouse-1'.
 
 +++
 ** A new keymap for buffer actions has been added.
