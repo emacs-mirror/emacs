@@ -72,24 +72,30 @@ so that it is considered safe, see `enable-local-variables'.")
                 (get s 'bug-reference-url-format)))))
 
 (defcustom bug-reference-bug-regexp
-  "\\([Bb]ug ?#?\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z+-]+/\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
+  "\\(\\(?:[Bb]ug ?#?\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z+-]+/\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
   "Regular expression matching bug references.
-The second subexpression should match the bug reference (usually
-a number).
+The first subexpression defines the region of the bug-reference
+overlay, i.e., the region being fontified and made clickable in
+order to browse the referenced bug in the corresponding project's
+issue tracker.
 
-The complete expression's matches will be highlighted unless
-there is a 99th subexpression.  In that case, only the matches of
-that will be highlighted.  For example, this can be used to
-define that bug references at the beginning of a line must not be
-matched by using a regexp like
+If `bug-reference-url-format' is set to a format string with
+single %s placeholder, the second subexpression must match
+the (part of the) bug reference which needs to be injected in
+place of the %s in order to form the bug's ticket URL.
 
-  \"[^\\n]\\\\(?99:\\\\([Bb]ug ?\\\\)\\\\(#[0-9]+\\\\)\\\\)\"
-
-If there wasn't this explicitly numbered group 99, the
-non-newline character before the actual bug reference would be
-highlighted, too."
+If `bug-reference-url-format' is a function, the interpretation
+of the subexpressions larger than 1 is up to the function.
+However, it is checked that the bounds of all matching
+subexpressions from 2 to 10 are within the bounds of the
+subexpression 1 defining the overlay region.  Larger
+subexpressions may also be used by the function but may lay
+outside the bounds of subexpressions 1 and then don't contribute
+to the highlighted and clickable region."
   :type 'regexp
-  :version "24.3")			; previously defconst
+  ; 24.3: defconst -> defcustom
+  ; 28.1: contract about subexpression 1 defines the overlay region.
+  :version "28.1")
 
 ;;;###autoload
 (put 'bug-reference-bug-regexp 'safe-local-variable 'stringp)
@@ -119,6 +125,48 @@ highlighted, too."
 
 (defvar bug-reference-prog-mode)
 
+(defvar bug-reference--nonconforming-regexps nil
+  "Holds `bug-reference-bug-regexp' values which don't conform to
+the documented contract in order to warn about their
+non-conformance only once.")
+
+(defun bug-reference--overlay-bounds ()
+  (let ((m-b1 (match-beginning 1))
+        (m-e1 (match-end 1)))
+    (if (and m-b1 m-e1
+             (catch 'within-bounds
+               (let ((i 2))
+                 (while (<= i 10)
+                   (when (and (match-beginning i)
+                              (or (< (match-beginning i) m-b1)
+                                  (> (match-end i) m-e1)))
+                     (throw 'within-bounds nil))
+                   (cl-incf i))
+                 t)))
+        ;; All groups 2..10 are within bounds.
+        (cons m-b1 m-e1)
+      ;; The regexp doesn't fulfil the contract of
+      ;; bug-reference-bug-regexp, so fall back to the old behavior.
+      (unless (member bug-reference-bug-regexp
+                      bug-reference--nonconforming-regexps)
+        (setq bug-reference--nonconforming-regexps
+              (cons bug-reference-bug-regexp
+                    bug-reference--nonconforming-regexps))
+        (display-warning
+         'bug-reference
+         (format-message
+          "The value of `bug-reference-bug-regexp'
+
+  %S
+
+in buffer %S doesn't conform to the contract specified by its
+docstring.  The subexpression 1 should define the region of the
+bug-reference overlay and cover all other subexpressions up to
+subexpression 10."
+          bug-reference-bug-regexp
+          (buffer-name))))
+      (cons (match-beginning 0) (match-end 0)))))
+
 (defun bug-reference-fontify (start end)
   "Apply bug reference overlays to the region between START and END."
   (save-excursion
@@ -132,19 +180,14 @@ highlighted, too."
 	(when (or (not bug-reference-prog-mode)
 		  ;; This tests for both comment and string syntax.
 		  (nth 8 (syntax-ppss)))
-          ;; We highlight the 99th subexpression if that exists,
-          ;; otherwise the complete match.  See the docstring of
-          ;; `bug-reference-bug-regexp'.
-	  (let* ((s (or (match-beginning 99)
-                        (match-beginning 0)))
-                 (e (or (match-end 99)
-                        (match-end 0)))
+	  (let* ((bounds (bug-reference--overlay-bounds))
                  (overlay (or
                            (let ((ov (pop overlays)))
                              (when ov
-                               (move-overlay ov s e)
+                               (move-overlay ov (car bounds) (cdr bounds))
                                ov))
-                           (let ((ov (make-overlay s e nil t nil)))
+                           (let ((ov (make-overlay (car bounds) (cdr bounds)
+				                   nil t nil)))
                              (overlay-put ov 'category 'bug-reference)
                              ov))))
 	    ;; Don't put a link if format is undefined.
@@ -232,7 +275,7 @@ for the known free software forges from the variables
             ;; `bug-reference-url-format' and
             ;; `bug-reference-bug-regexp' aren't set already.
             ("git\\.\\(?:sv\\|savannah\\)\\.gnu\\.org:"
-             "\\<\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\>"
+             "\\<\\(\\(?:[Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)\\>"
              ,(lambda (_) "https://debbugs.gnu.org/%s"))
             ;;
             ;; GitHub projects.
@@ -243,17 +286,17 @@ for the known free software forges from the variables
             ;; user/project#17 links to possibly different projects
             ;; are also supported.
             ("[/@]github.com[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
-             "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+             "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
              ,(lambda (groups)
                 (let ((ns-project (nth 1 groups)))
                   (lambda ()
                     (concat "https://github.com/"
                             (or
                              ;; Explicit user/proj#18 link.
-                             (match-string 1)
+                             (match-string 2)
                              ns-project)
                             "/issues/"
-                            (match-string 2))))))
+                            (match-string 3))))))
             ;;
             ;; Gitea instances.
             ;;
@@ -261,7 +304,7 @@ for the known free software forges from the variables
             (,(concat "[/@]"
                       (regexp-opt bug-reference-gitea-instances t)
                       "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
-             "\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+             "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
              ,(lambda (groups)
                 (let ((host (nth 1 groups))
                       (ns-project (nth 2 groups)))
@@ -269,10 +312,10 @@ for the known free software forges from the variables
                     (concat "https://" host "/"
                             (or
                              ;; Explicit user/proj#18 link.
-                             (match-string 1)
+                             (match-string 2)
                              ns-project)
                             "/issues/"
-                            (match-string 2))))))
+                            (match-string 3))))))
             ;;
             ;; GitLab instances.
             ;;
@@ -283,19 +326,19 @@ for the known free software forges from the variables
             (,(concat "[/@]"
                       (regexp-opt bug-reference-gitlab-instances t)
                       "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
-             "\\(?1:[.A-Za-z0-9_/-]+\\)?\\(?3:[#!]\\)\\(?2:[0-9]+\\)\\>"
+             "\\(\\([.A-Za-z0-9_/-]+\\)?\\([#!]\\)\\([0-9]+\\)\\)\\>"
              ,(lambda (groups)
                 (let ((host (nth 1 groups))
                       (ns-project (nth 2 groups)))
                   (lambda ()
                     (concat "https://" host "/"
-                            (or (match-string 1)
+                            (or (match-string 2)
                                 ns-project)
                             "/-/"
                             (if (string= (match-string 3) "#")
                                 "issues/"
                               "merge_requests/")
-                            (match-string 2))))))
+                            (match-string 4))))))
             ;;
             ;; Sourcehut instances.
             ;;
@@ -311,7 +354,7 @@ for the known free software forges from the variables
             (,(concat "[/@]\\(?:git\\|hg\\)."
                       (regexp-opt bug-reference-sourcehut-instances t)
                       "[/:]\\(~[.A-Za-z0-9_/-]+\\)")
-             "\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\>"
+             "\\(\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
              ,(lambda (groups)
                 (let ((host (nth 1 groups))
                       (ns-project (nth 2 groups)))
@@ -319,10 +362,10 @@ for the known free software forges from the variables
                     (concat "https://todo." host "/"
                             (or
                              ;; Explicit user/proj#18 link.
-                             (match-string 1)
+                             (match-string 2)
                              ns-project)
                             "/"
-                            (match-string 2))))))))))
+                            (match-string 3))))))))))
 
 (defvar bug-reference-setup-from-vc-alist nil
   "An alist for setting up `bug-reference-mode' based on VC URL.

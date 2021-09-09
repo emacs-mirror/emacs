@@ -3108,7 +3108,7 @@ these local variables section would do.
 
 @smallexample
 ;; Local Variables:
-;; bug-reference-bug-regexp: "\\([Bb]ug[#-]\\)\\([0-9]+\\)"
+;; bug-reference-bug-regexp: "\\([Bb]ug[#-]\\([0-9]+\\)\\)"
 ;; bug-reference-url-format: "https://project.org/issues/%s"
 ;; End:
 @end smallexample
@@ -3118,9 +3118,9 @@ The string captured by the second regexp group in
 template in the @code{bug-reference-url-format}.
 
 Note that @code{bug-reference-url-format} may also be a function in
-order to cater for more complex scenarios, e.g., when the part before
-the actual bug number has to be used to distinguish between issues and
-merge requests where each of them has a different URL.
+order to cater for more complex scenarios, e.g., when different parts
+of the bug reference have to be used to distinguish between issues and
+merge requests resulting in different URLs.
 
 
 @heading Automatic Setup
