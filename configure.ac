@@ -3822,40 +3822,44 @@ if test "${with_native_compilation}" != "no"; then
        AC_MSG_ERROR(['--with-native-compilation' requires zlib])
     fi
 
-    # Ensure libgccjit installed by Homebrew can be found.
-    if test -n "$BREW"; then
-      if test -n "`$BREW --prefix --installed libgccjit 2>/dev/null`"; then
-        BREW_LIBGCCJIT_INCLUDE=$(dirname $($BREW ls -v libgccjit | \
-                                              grep libgccjit.h))
-        BREW_LIBGCCJIT_LIB=$(dirname $($BREW ls -v libgccjit| \
-                                          grep libgccjit.so\$))
-        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_INCLUDE}"
-        LDFLAGS="$LDFLAGS -L${BREW_LIBGCCJIT_LIB}"
-      fi
-    fi
+    SAVE_CFLAGS=$CFLAGS
+    SAVE_LIBS=$LIBS
 
-    # Ensure libgccjit installed by MacPorts can be found.
-    if test -n "$HAVE_MACPORTS"; then
-      # Determine which gcc version has been installed (gcc11, for
-      # instance).
-      PORT_PACKAGE=$(port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
-                          awk '{ print $1; }')
-      MACPORTS_LIBGCCJIT_INCLUDE=$(dirname $(port contents $PORT_PACKAGE | \
-                                           grep libgccjit.h))
-      MACPORTS_LIBGCCJIT_LIB=$(dirname $(port contents $PORT_PACKAGE | \
-                                              grep libgccjit.dylib))
-      CFLAGS="$CFLAGS -I${MACPORTS_LIBGCCJIT_INCLUDE}"
-      LDFLAGS="$LDFLAGS -L${MACPORTS_LIBGCCJIT_LIB}"
+    if test "${opsys}" = "darwin"; then
+      # Ensure libgccjit installed by Homebrew or macports can be found.
+      if test -n "$BREW"; then
+        if test -n "`$BREW --prefix --installed libgccjit 2>/dev/null`"; then
+          MAC_CFLAGS="-I$(dirname $($BREW ls -v libgccjit | \
+                                                grep libgccjit.h))"
+          MAC_LIBS="-L$(dirname $($BREW ls -v libgccjit| \
+                                            grep libgccjit.so\$))"
+        fi
+      fi
+
+      if test -n "$HAVE_MACPORTS"; then
+        # Determine which gcc version has been installed (gcc11, for
+        # instance).
+        PORT_PACKAGE=$(port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
+                            awk '{ print $1; }')
+        if test -n "$PORT_PACKAGE"; then
+          MAC_CFLAGS="-I$(dirname $(port contents $PORT_PACKAGE | \
+                                           grep libgccjit.h))"
+          MAC_LIBS="-L$(dirname $(port contents $PORT_PACKAGE | \
+                                              grep libgccjit.dylib))"
+        fi
+      fi
+
+      if test -n "$MAC_CFLAGS" && test -n "$MAC_LIBS"; then
+        CFLAGS="$CFLAGS ${MAC_CFLAGS}"
+        LIBS="$LIBS ${MAC_LIBS}"
+      fi
     fi
 
     # Check if libgccjit is available.
     AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, [], [libgccjit_not_found])
     AC_CHECK_HEADERS(libgccjit.h, [], [libgccjit_dev_not_found])
-    emacs_save_LIBS=$LIBS
-    LIBS="-lgccjit"
     # Check if libgccjit really works.
     AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
-    LIBS=$emacs_save_LIBS
     HAVE_NATIVE_COMP=yes
     case "${opsys}" in
       # mingw32 loads the library dynamically.
@@ -3863,17 +3867,17 @@ if test "${with_native_compilation}" != "no"; then
       # OpenBSD doesn't have libdl, all the functions are in libc
       netbsd|openbsd)
         LIBGCCJIT_LIBS="-lgccjit" ;;
+      darwin)
+        LIBGCCJIT_CFLAGS="${MAC_CFLAGS}"
+        LIBGCCJIT_LIBS="${MAC_LIBS} -lgccjit -ldl";;
       *)
         LIBGCCJIT_LIBS="-lgccjit -ldl" ;;
     esac
     NEED_DYNLIB=yes
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if native compiler is available.])
 
-    # Ensure libgccjit installed by MacPorts can be found.
-    if test -n "$HAVE_MACPORTS"; then
-      LIBGCCJIT_CFLAGS="$LIBGCCJIT_CFLAGS  -I${MACPORTS_LIBGCCJIT_INCLUDE}"
-      LIBGCCJIT_LIBS="-L${MACPORTS_LIBGCCJIT_LIB} $LIBGCCJIT_LIBS"
-    fi
+    CFLAGS=$SAVE_CFLAGS
+    LIBS=$SAVE_LIBS
 fi
 AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
   [System extension for native compiled elisp])
