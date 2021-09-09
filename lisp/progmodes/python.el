@@ -3152,7 +3152,7 @@ t when called interactively."
                       (python-shell--encode-string string)
                       (python-shell--encode-string (or (buffer-file-name)
                                                        "<string>")))))
-    (if (or (null (process-connection-type process))
+    (if (or (null (process-tty-name process))
             (<= (string-bytes code) comint-max-line-length))
         (comint-send-string process code)
       (let* ((temp-file-name (with-current-buffer (process-buffer process)
