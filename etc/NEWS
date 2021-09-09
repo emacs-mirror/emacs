@@ -2785,6 +2785,19 @@ different timezone causing a difference in the date.
 Instead you need to do "emacs -f dun-batch" to start the game in
 batch mode.
 
+** Ruby Mode
+
+---
+** 'ruby-use-smie' is declared obsolete.
+SMIE is now always enabled and 'ruby-use-smie' only controls whether
+indentation is done using SMIE or with the old ad-hoc code.
+
+---
+** Indentation has changed when 'ruby-align-chained-calls' is non-nil.
+This previously used to align subsequent lines with the last sibling,
+but it now aligns with the first sibling (which is the preferred style
+in Ruby).
+
 
 * New Modes and Packages in Emacs 28.1
 
@@ -3107,11 +3120,6 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 ** Some functions are no longer considered safe by 'unsafep':
 'replace-regexp-in-string', 'catch', 'throw', 'error', 'signal'
 and 'play-sound-file'.
-
----
-** 'ruby-use-smie' is declared obsolete.
-SMIE is now always enabled and 'ruby-use-smie' only controls whether
-indentation is done using SMIE or with the old ad-hoc code.
 
 ---
 ** 'sql-*-statement-starters' are no longer user options.

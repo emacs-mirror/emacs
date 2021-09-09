@@ -640,7 +640,15 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
     ('(:before . "do") (ruby-smie--indent-to-stmt))
     ('(:before . ".")
      (if (smie-rule-sibling-p)
-         (and ruby-align-chained-calls 0)
+         (when ruby-align-chained-calls
+           (while
+               (let ((pos (point))
+                     (parent (smie-backward-sexp ".")))
+                 (if (not (equal (nth 2 parent) "."))
+                     (progn (goto-char pos) nil)
+                   (goto-char (nth 1 parent))
+                   (not (smie-rule-bolp)))))
+           (cons 'column (current-column)))
        (smie-backward-sexp ".")
        (cons 'column (+ (current-column)
                         ruby-indent-level))))
@@ -828,6 +836,7 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
 ;; `ruby-calculate-indent' in user init files still call it.
 (defun ruby-current-indentation ()
   "Return the indentation level of current line."
+  (declare (obsolete nil "28.1"))
   (save-excursion
     (beginning-of-line)
     (back-to-indentation)
