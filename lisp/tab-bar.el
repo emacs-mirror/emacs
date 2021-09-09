@@ -89,10 +89,13 @@
 
 
 (defcustom tab-bar-select-tab-modifiers '()
-  "List of modifier keys for selecting a tab by its index digit.
+  "List of modifier keys for selecting tab-bar tabs by index numbers.
 Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
-`alt'.  To help you to select a tab by its number, you can customize
-`tab-bar-tab-hints' that will show tab numbers alongside the tab name."
+`alt'.  Presiing one of the modifiers in the list and a digit selects
+the tab whose index equals the digit.  Negative numbers count from
+the end of the tab bar.  The digit 9 selects the last (rightmost) tab.
+For easier selection of tabs by their numbers, consider customizing
+`tab-bar-tab-hints', which will show tab numbers alongside the tab name."
   :type '(set :tag "Tab selection modifier keys"
               (const control)
               (const meta)
@@ -353,8 +356,12 @@ and to bind mouse events to the commands."
   "Defines when to show the tab bar.
 If t, enable `tab-bar-mode' automatically on using the commands that
 create new window configurations (e.g. `tab-new').
-If the value is `1', then hide the tab bar when it has only one tab,
-and show it again once more tabs are created.
+If a non-negative integer, hide the tab bar when the number of the
+tabs does not exceed the value of this variable.  In particular,
+if the value is 1, hide the tab bar when it has only one tab, and
+show it again once more tabs are created.  A value that is a
+non-negative integer also makes the tab bar frame-local: the tab
+bar can be shown or hidden independently for each frame.
 If nil, always keep the tab bar hidden.  In this case it's still
 possible to use persistent named window configurations by relying on
 keyboard commands `tab-new', `tab-close', `tab-next', `tab-switcher', etc.

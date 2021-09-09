@@ -403,13 +403,6 @@ both modes are on).
 
 ** Tab Bars and Tab Lines
 
-*** The tab bar now supports more mouse commands.
-Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
-with items that operate on the clicked tab.  Dragging the tab with
-'mouse-1' moves it to another position on the tab bar.  Mouse wheel
-scrolling switches to the previous/next tab, and holding the Shift key
-during scrolling moves the tab to the left/right.
-
 *** The prefix key 'C-x t t' can be used to display a buffer in a new tab.
 Typing 'C-x t t' before a command will cause the buffer shown by that
 command to be displayed in a new tab.  'C-x t t" is bound to the
@@ -418,10 +411,17 @@ command 'other-tab-prefix'.
 +++
 *** New command 'C-x t C-r' to open file read-only in the other tab.
 
+*** The tab bar now supports more mouse commands.
+Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
+with items that operate on the clicked tab.  Dragging the tab with
+'mouse-1' moves it to another position on the tab bar.  Mouse wheel
+scrolling switches to the previous/next tab, and holding the Shift key
+during scrolling moves the tab to the left/right.
+
 ---
 *** The tab bar is frame-local when 'tab-bar-show' is a number.
-Show/hide the tab bar independently for each frame, according to the
-value of 'tab-bar-show'.
+You can show/hide the tab bar independently for each frame, according
+to the value of 'tab-bar-show'.
 
 ---
 *** New command 'toggle-frame-tab-bar'.
@@ -438,8 +438,14 @@ When 'tab-bar-format-tabs' is replaced with 'tab-bar-format-tabs-groups',
 the tab bar displays tab groups.
 
 ---
-*** 'Mod-9' bound to 'tab-last' now switches to the last tab.
-It also supports a negative argument.
+*** New optional key binding for 'tab-last'.
+If you customize the variable 'tab-bar-select-tab-modifiers' for
+selecting tabs using its index numbers, the '<MODIFIER>-9' key is
+bound to 'tab-last', and switches to the last tab.  Here <MODIFIER> is
+any of the modifiers in the list that is the value of
+'tab-bar-select-tab-modifiers'.  You can also use negative indices,
+which count from the last tab: -1 is the last tab, -2 the one before
+that, etc.
 
 ---
 *** New command 'tab-duplicate' bound to 'C-x t n'.
