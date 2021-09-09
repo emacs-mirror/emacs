@@ -294,6 +294,9 @@ Richard Matthew Stallman
 @item GPL
 GNU General Public License
 
+See @uref{https://gnu.org/licenses/, the GNU web site} for more
+information about the GPL.
+
 @end table
 
 The word ``free'' in the title of the Free Software Foundation refers to
@@ -312,43 +315,12 @@ This chapter contains general questions having to do with Emacs, the
 Free Software Foundation, and related organizations.
 
 @menu
-* Real meaning of copyleft::
 * Guidelines for mailing list postings::
 * Mailing list archives::
 * Reporting bugs::
 * Unsubscribing from Emacs lists::
 * Contacting the FSF::
 @end menu
-
-@node Real meaning of copyleft
-@section What is the real legal meaning of the GNU copyleft?
-@cindex Copyleft, real meaning of
-@cindex GPL, real meaning of
-@cindex General Public License, real meaning of
-@cindex Discussion of the GPL
-
-The real legal meaning of the GNU General Public License (copyleft) will
-only be known if and when a judge rules on its validity and scope.
-There has never been a copyright infringement case involving the GPL to
-set any precedents.  Although legal actions have been brought against
-companies for violating the terms of the GPL, so far all have been
-settled out of court (in favor of the plaintiffs).  Please take any
-discussion regarding this issue to
-@uref{https://lists.gnu.org/mailman/listinfo/gnu-misc-discuss, the
-gnu-misc-discuss mailing list}, which was created to hold the
-extensive flame wars on the subject.
-
-RMS writes:
-
-@quotation
-The legal meaning of the GNU copyleft is less important than the spirit,
-which is that Emacs is a free software project and that work pertaining
-to Emacs should also be free software.  ``Free'' means that all users
-have the freedom to study, share, change and improve Emacs.  To make
-sure everyone has this freedom, pass along source code when you
-distribute any version of Emacs or a related program, and give the
-recipients the same freedom that you enjoyed.
-@end quotation
 
 @node Guidelines for mailing list postings
 @section  What are appropriate messages for the various Emacs mailing lists?
