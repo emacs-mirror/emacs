@@ -27,10 +27,7 @@
 ;; bindings for the global tab bar.
 
 ;; The normal global binding for [tab-bar] (below) uses the value of
-;; `tab-bar-map' as the actual keymap to define the tab bar.  Modes
-;; may either bind items under the [tab-bar] prefix key of the local
-;; map to add to the global bar or may set `tab-bar-map'
-;; buffer-locally to override it.
+;; `tab-bar-map' as the actual keymap to define the tab bar.
 
 ;;; Code:
 
@@ -224,31 +221,71 @@ a list of frames to update."
       (tab-bar--define-keys)
     (tab-bar--undefine-keys)))
 
-(defun tab-bar-handle-mouse (event)
-  "Text-mode emulation of switching tabs on the tab bar.
-This command is used when you click the mouse in the tab bar
-on a console which has no window system but does have a mouse."
+(defun tab-bar--key-to-number (key)
+  (let ((key-name (format "%S" key)))
+    (when (string-prefix-p "tab-" key-name)
+      (string-to-number (string-replace "tab-" "" key-name)))))
+
+(defun tab-bar--event-to-item (posn)
+  (if (posn-window posn)
+      (let ((caption (car (posn-string posn))))
+        (when caption
+          (get-text-property 0 'menu-item caption)))
+    ;; Text-mode emulation of switching tabs on the tab bar.
+    ;; This code is used when you click the mouse in the tab bar
+    ;; on a console which has no window system but does have a mouse.
+    (let* ((x-position (car (posn-x-y posn)))
+           (keymap (lookup-key (cons 'keymap (nreverse (current-active-maps))) [tab-bar]))
+           (column 0))
+      (when x-position
+        (catch 'done
+          (map-keymap
+           (lambda (key binding)
+             (when (eq (car-safe binding) 'menu-item)
+               (when (> (+ column (length (nth 1 binding))) x-position)
+                 (throw 'done (list
+                               key (nth 2 binding)
+                               (get-text-property
+                                (- x-position column) 'close-tab (nth 1 binding)))))
+               (setq column (+ column (length (nth 1 binding))))))
+           keymap))))))
+
+(defun tab-bar-mouse-select-tab (event)
   (interactive "e")
-  (let* ((x-position (car (posn-x-y (event-start event))))
-         (keymap (lookup-key (cons 'keymap (nreverse (current-active-maps))) [tab-bar]))
-         (column 0))
-    (when x-position
-      (unless (catch 'done
-                (map-keymap
-                 (lambda (key binding)
-                   (when (eq (car-safe binding) 'menu-item)
-                     (when (> (+ column (length (nth 1 binding))) x-position)
-                       (if (get-text-property (- x-position column) 'close-tab (nth 1 binding))
-                           (let* ((close-key (vector (intern (format "C-%s" key))))
-                                  (close-def (lookup-key keymap close-key)))
-                             (when close-def
-                               (call-interactively close-def)))
-                         (call-interactively (nth 2 binding)))
-                       (throw 'done t))
-                     (setq column (+ column (length (nth 1 binding))))))
-                 keymap))
-        ;; Clicking anywhere outside existing tabs will add a new tab
-        (tab-bar-new-tab)))))
+  (let ((item (tab-bar--event-to-item (event-start event))))
+    (if (nth 2 item)
+        (tab-bar-close-tab (tab-bar--key-to-number (nth 0 item)))
+      (if (functionp (nth 1 item))
+          (call-interactively (nth 1 item))
+        (tab-bar-select-tab (tab-bar--key-to-number (nth 0 item)))))))
+
+(defun tab-bar-mouse-close-tab (event)
+  (interactive "e")
+  (let ((item (tab-bar--event-to-item (event-start event))))
+    (tab-bar-close-tab (tab-bar--key-to-number (nth 0 item)))))
+
+(defun tab-bar-mouse-context-menu (event)
+  (interactive "e")
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item)))
+         (menu (make-sparse-keymap "Context Menu")))
+
+    (define-key-after menu [close]
+      `(menu-item "Close" (lambda () (interactive)
+                            (tab-bar-close-tab ,tab-number))
+                  :help "Close the tab"))
+
+    (popup-menu menu event)))
+
+(defun tab-bar-mouse-move-tab (event)
+  (interactive "e")
+  (let ((from (tab-bar--key-to-number
+               (nth 0 (tab-bar--event-to-item
+                       (event-start event)))))
+        (to (tab-bar--key-to-number
+             (nth 0 (tab-bar--event-to-item
+                     (event-end event))))))
+    (tab-bar-move-tab-to to from)))
 
 (defun toggle-tab-bar-mode-from-frame (&optional arg)
   "Toggle tab bar on or off, based on the status of the current frame.
@@ -275,24 +312,41 @@ new frame when the global `tab-bar-mode' is enabled, by using
   (set-frame-parameter frame 'tab-bar-lines-keep-state
                        (not (frame-parameter frame 'tab-bar-lines-keep-state))))
 
-(defvar tab-bar-map (make-sparse-keymap)
-  "Keymap for the tab bar.
-Define this locally to override the global tab bar.")
+(defvar tab-bar-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [down-mouse-1] 'tab-bar-mouse-select-tab)
+    (define-key map [drag-mouse-1] 'tab-bar-mouse-move-tab)
+    (define-key map [mouse-1] 'ignore)
+    (define-key map [down-mouse-2] 'tab-bar-mouse-close-tab)
+    (define-key map [mouse-2] 'ignore)
+    (define-key map [down-mouse-3] 'tab-bar-mouse-context-menu)
+
+    (define-key map [mouse-4]     'tab-previous)
+    (define-key map [mouse-5]     'tab-next)
+    (define-key map [wheel-up]    'tab-previous)
+    (define-key map [wheel-down]  'tab-next)
+    (define-key map [wheel-left]  'tab-previous)
+    (define-key map [wheel-right] 'tab-next)
+
+    (define-key map [S-mouse-4]     'tab-bar-move-tab-backward)
+    (define-key map [S-mouse-5]     'tab-bar-move-tab)
+    (define-key map [S-wheel-up]    'tab-bar-move-tab-backward)
+    (define-key map [S-wheel-down]  'tab-bar-move-tab)
+    (define-key map [S-wheel-left]  'tab-bar-move-tab-backward)
+    (define-key map [S-wheel-right] 'tab-bar-move-tab)
+
+    map)
+  "Keymap for the commands used on the tab bar.")
 
 (global-set-key [tab-bar]
                 `(menu-item ,(purecopy "tab bar") ignore
                             :filter tab-bar-make-keymap))
 
-(defconst tab-bar-keymap-cache (make-hash-table :weakness t :test 'equal))
-
 (defun tab-bar-make-keymap (&optional _ignore)
   "Generate an actual keymap from `tab-bar-map'.
-Its main job is to show tabs in the tab bar."
-  (if (= 1 (length tab-bar-map))
-      (tab-bar-make-keymap-1)
-    (let ((key (cons (frame-terminal) tab-bar-map)))
-      (or (gethash key tab-bar-keymap-cache)
-          (puthash key tab-bar-map tab-bar-keymap-cache)))))
+Its main job is to show tabs in the tab bar
+and to bind mouse events to the commands."
+  (tab-bar-make-keymap-1))
 
 
 (defcustom tab-bar-show t
@@ -610,19 +664,12 @@ You can hide these buttons by customizing `tab-bar-format' and removing
      `((,(intern (format "tab-%i" i))
         menu-item
         ,(funcall tab-bar-tab-name-format-function tab i)
-        ,(or
-          (alist-get 'binding tab)
-          `(lambda ()
-             (interactive)
-             (tab-bar-select-tab ,i)))
+        ,(alist-get 'binding tab)
         :help "Click to visit tab"))))
-   `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
-      menu-item ""
-      ,(or
-        (alist-get 'close-binding tab)
-        `(lambda ()
-           (interactive)
-           (tab-bar-close-tab ,i)))))))
+   (when (alist-get 'close-binding tab)
+     `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
+        menu-item ""
+        ,(alist-get 'close-binding tab))))))
 
 (defun tab-bar-format-tabs ()
   (let ((i 0))
@@ -762,9 +809,7 @@ on the tab bar instead."
 
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
-  (append
-   '(keymap (mouse-1 . tab-bar-handle-mouse))
-   (tab-bar-format-list tab-bar-format)))
+  (append tab-bar-map (tab-bar-format-list tab-bar-format)))
 
 
 ;; Some window-configuration parameters don't need to be persistent.
@@ -868,11 +913,13 @@ ARG counts from 1.  Negative ARG counts tabs from the end of the tab bar."
     (let ((key (event-basic-type last-command-event)))
       (setq arg (if (and (characterp key) (>= key ?1) (<= key ?9))
                     (- key ?0)
-                  1))))
+                  0))))
 
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (tab-bar--current-tab-index tabs))
-         (to-index (if (< arg 0) (+ (length tabs) (1+ arg)) arg))
+         (to-index (cond ((< arg 0) (+ (length tabs) (1+ arg)))
+                         ((zerop arg) (1+ from-index))
+                         (t arg)))
          (to-index (1- (max 1 (min to-index (length tabs))))))
 
     (unless (eq from-index to-index)
@@ -1015,6 +1062,12 @@ where argument addressing is absolute."
          (from-index (or (tab-bar--current-tab-index tabs) 0))
          (to-index (mod (+ from-index arg) (length tabs))))
     (tab-bar-move-tab-to (1+ to-index) (1+ from-index))))
+
+(defun tab-bar-move-tab-backward (&optional arg)
+  "Move the current tab ARG positions to the left.
+Like `tab-bar-move-tab', but moves in the opposite direction."
+  (interactive "p")
+  (tab-bar-move-tab (- (or arg 1))))
 
 (defun tab-bar-move-tab-to-frame (arg &optional from-frame from-index to-frame to-index)
   "Move tab from FROM-INDEX position to new position at TO-INDEX.
@@ -2080,11 +2133,8 @@ Used in `repeat-mode'.")
 
 (defvar tab-bar-move-repeat-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "m" 'tab-move)
-    (define-key map "M" (lambda ()
-                          (interactive)
-                          (setq repeat-map 'tab-bar-move-repeat-map)
-                          (tab-move -1)))
+    (define-key map "m" 'tab-bar-move-tab)
+    (define-key map "M" 'tab-bar-move-tab-backward)
     map)
   "Keymap to repeat tab move key sequences `C-x t m m M'.
 Used in `repeat-mode'.")
