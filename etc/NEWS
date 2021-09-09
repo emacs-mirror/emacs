@@ -748,13 +748,6 @@ of the next command to be displayed in a new frame.
 
 ** Tab Bars
 
-*** The tab bar now supports more mouse commands.
-Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
-with items that operate on the clicked tab.  Dragging the tab with
-'mouse-1' moves it to another position on the tab bar.  Mouse wheel
-scrolling switches to the previous/next tab, and holding the Shift key
-during scrolling moves the tab to the left/right.
-
 *** The key prefix 'C-x t t' displays next command buffer in a new tab.
 It's bound to the command 'other-tab-prefix' that requests the buffer
 of the next command to be displayed in a new tab.
