@@ -8,7 +8,7 @@
 ;; Keywords: convenience
 ;; Created: 23 Dec 2015
 ;; Package-Requires: ((emacs "24.4"))
-;; Version: 1.1.1
+;; Version: 1.1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -410,6 +410,7 @@
 
 ;; * Change Log:
 ;;
+;; 1.1.2 - Use `so-long-mode-line-active' face on `mode-name' in `so-long-mode'.
 ;; 1.1.1 - Identical to 1.1, but fixing an incorrect GNU ELPA release.
 ;; 1.1   - Utilise `buffer-line-statistics' in Emacs 28+, with the new
 ;;         `so-long-predicate' function `so-long-statistics-excessive-p'.
@@ -477,7 +478,7 @@
              '(so-long ("1.0" . "27.1")
                        ("1.1" . "28.1")))
 
-(defconst so-long--latest-version "1.1")
+(defconst so-long--latest-version "1.1.2")
 
 (declare-function buffer-line-statistics "fns.c" t t) ;; Emacs 28+
 (declare-function longlines-mode "longlines")
@@ -969,7 +970,12 @@ If nil, no mode line indicator will be displayed."
 
 (defface so-long-mode-line-active
   '((t :inherit mode-line-emphasis))
-  "Face for `so-long-mode-line-info' when mitigations are active."
+  "Face for the mode line construct when mitigations are active.
+
+Applied to `mode-name' in the `so-long-mode' major mode, and to
+`so-long-mode-line-label' otherwise (for non-major-mode actions).
+
+See also `so-long-mode-line-info'."
   :package-version '(so-long . "1.0"))
 
 (defface so-long-mode-line-inactive
@@ -1355,7 +1361,8 @@ This minor mode is a standard `so-long-action' option."
   "Major mode keymap and menu for `so-long-mode'.")
 
 ;;;###autoload
-(define-derived-mode so-long-mode nil "So Long"
+(define-derived-mode so-long-mode nil
+  (propertize "So Long" 'face 'so-long-mode-line-active)
   "This major mode is the default `so-long-action' option.
 
 The normal reason for this mode being active is that `global-so-long-mode' is
