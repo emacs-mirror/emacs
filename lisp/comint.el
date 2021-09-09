@@ -479,6 +479,12 @@ executed once, when the buffer is created."
   :group 'comint
   :version "26.1")
 
+(defconst comint-max-line-length
+  (pcase system-type
+    ('gnu/linux 4096)
+    (_ 1024))
+  "Maximum line length, in bytes, accepted by the inferior process.")
+
 (defvar comint-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Keys:
