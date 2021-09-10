@@ -1445,7 +1445,9 @@ This command is intended to be bound to a mouse event."
 ;;;###autoload
 (defun xref-find-apropos (pattern)
   "Find all meaningful symbols that match PATTERN.
-The argument has the same meaning as in `apropos'."
+The argument has the same meaning as in `apropos'.
+See `tags-apropos-additional-actions' for how to augment the
+output of this command when the backend is etags."
   (interactive (list (read-string
                       "Search for pattern (word list or regexp): "
                       nil 'xref--read-pattern-history

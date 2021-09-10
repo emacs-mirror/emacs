@@ -158,11 +158,12 @@ Otherwise, `find-tag-default' is used."
   :version "21.1")
 
 (defcustom tags-apropos-additional-actions nil
-  "Specify additional actions for `tags-apropos'.
+  "Specify additional actions for `tags-apropos' and `xref-find-apropos'.
 
 If non-nil, value should be a list of triples (TITLE FUNCTION
-TO-SEARCH).  For each triple, `tags-apropos' processes TO-SEARCH and
-lists tags from it.  TO-SEARCH should be an alist, obarray, or symbol.
+TO-SEARCH).  For each triple, `tags-apropos' and `xref-find-apropos'
+process TO-SEARCH and list tags from it.  TO-SEARCH should be an alist,
+obarray, or symbol.
 If it is a symbol, the symbol's value is used.
 TITLE, a string, is a title used to label the additional list of tags.
 FUNCTION is a function to call when a symbol is selected in the
