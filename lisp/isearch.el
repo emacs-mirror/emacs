@@ -114,7 +114,7 @@ is called to let you enter the search string, and RET terminates editing
 and does a nonincremental search.)"
   :type 'boolean)
 
-(defcustom search-whitespace-regexp (purecopy "[ \t]")
+(defcustom search-whitespace-regexpx (purecopy "[ \t]")
   "If non-nil, regular expression to match a sequence of whitespace chars.
 When you enter a space or spaces in the incremental search, it
 will match any sequence matched by this regexp.  As an exception,
@@ -2009,7 +2009,8 @@ type \\[isearch-repeat-forward] with a numeric argument."
     ;; don't forward char in isearch-repeat
     (setq isearch-just-started t)
     (goto-char (point-min))
-    (isearch-repeat 'forward arg)))
+    (let ((isearch-repeat-on-direction-change nil))
+      (isearch-repeat 'forward arg))))
 
 (defun isearch-end-of-buffer (&optional arg)
   "Go to the last occurrence of the current search string.
@@ -2023,7 +2024,8 @@ type \\[isearch-repeat-backward] with a numeric argument."
       (isearch-beginning-of-buffer (abs arg))
     (setq isearch-just-started t)
     (goto-char (point-max))
-    (isearch-repeat 'backward arg)))
+    (let ((isearch-repeat-on-direction-change nil))
+      (isearch-repeat 'backward arg))))
 
 
 ;;; Toggles for `isearch-regexp-function' and `search-default-mode'.
