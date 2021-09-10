@@ -252,7 +252,7 @@ Will not do anything if `url-show-status' is nil."
     (while pairs
       (setq cur (car pairs)
 	    pairs (cdr pairs))
-      (unless (string-match "=" cur)
+      (unless (string-search "=" cur)
         (setq cur (concat cur "=")))
 
       (when (string-match "=" cur)

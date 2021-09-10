@@ -10039,7 +10039,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
   RsvgRectangle zero_rect, viewbox, out_logical_rect;
 
-  /* Try the instrinsic dimensions first.  */
+  /* Try the intrinsic dimensions first.  */
   gboolean has_width, has_height, has_viewbox;
   RsvgLength iwidth, iheight;
   double dpi = FRAME_DISPLAY_INFO (f)->resx;
@@ -10074,7 +10074,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     }
   else
     {
-      /* We haven't found a useable set of sizes, so try working out
+      /* We haven't found a usable set of sizes, so try working out
          the visible area.  */
       rsvg_handle_get_geometry_for_layer (rsvg_handle, NULL,
                                           &zero_rect, &viewbox,

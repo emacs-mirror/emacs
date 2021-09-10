@@ -277,7 +277,7 @@
       (setq version (process-get proc 'socks-server-protocol))
       (cond
        ((equal version 'http)
-	(if (not (string-match "\r\n\r\n" string))
+	(if (not (string-search "\r\n\r\n" string))
 	    nil			; Need to spin some more
 	  (process-put proc 'socks-state socks-state-connected)
 	  (process-put proc 'socks-reply 0)

@@ -12,6 +12,9 @@
   ;; It can't really display underlines.
   (tty-no-underline)
 
+  ;; Compositions confuse cursor movement.
+  (setq-default auto-composition-mode "linux")
+
   (ignore-errors (when gpm-mouse-mode (require 't-mouse) (gpm-mouse-enable)))
 
   ;; Make Latin-1 input characters work, too.

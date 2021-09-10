@@ -174,6 +174,10 @@ This variant works around bugs in `eval-when-compile' in various
 
 
 ;;; Macros.
+(or (fboundp 'cadar) (defsubst cadar (elt) (car (cdar elt))))
+(or (fboundp 'caddr) (defsubst caddr (elt) (car (cddr elt))))
+(or (fboundp 'cdddr) (defsubst cdddr (elt) (cdr (cddr elt))))
+
 (defmacro c--mapcan (fun liszt)
   ;; CC Mode equivalent of `mapcan' which bridges the difference
   ;; between the host [X]Emacsen."
@@ -230,12 +234,21 @@ On XEmacs and older Emacsen, this refontifies that region immediately."
       `(font-lock-flush ,beg ,end)
     `(font-lock-fontify-region ,beg ,end)))
 
+(defmacro c-benign-error (format &rest args)
+  ;; Formats an error message for the echo area and dings, i.e. like
+  ;; `error' but doesn't abort.
+  (declare (debug t))
+  `(progn
+     (message ,format ,@args)
+     (ding)))
+
 (defmacro c-point (position &optional point)
   "Return the value of certain commonly referenced POSITIONs relative to POINT.
 The current point is used if POINT isn't specified.  POSITION can be
 one of the following symbols:
 
 `bol'   -- beginning of line
+`boll'  -- beginning of logical line (i.e. without preceding escaped NL)
 `eol'   -- end of line
 `eoll'  -- end of logical line (i.e. without escaped NL)
 `bod'   -- beginning of defun
@@ -265,6 +278,15 @@ to it is returned.  This function does not modify the point or the mark."
 	       ,@(if point `((goto-char ,point)))
 	       (beginning-of-line)
 	       (point))))
+
+	 ((eq position 'boll)
+	  `(save-excursion
+	     ,@(if point `((goto-char ,point)))
+	     (while (progn (beginning-of-line)
+			   (when (not (bobp))
+			     (eq (char-before (1- (point))) ?\\)))
+	       (backward-char))
+	     (point)))
 
 	 ((eq position 'eol)
 	  (if (and (cc-bytecomp-fboundp 'line-end-position) (not point))
@@ -646,19 +668,27 @@ even when the buffer is read-only, and without interference from
 various buffer change hooks."
   (declare (indent 0) (debug t))
   `(let (-tnt-chng-keep
-	 -tnt-chng-state)
+	 -tnt-chng-state
+	 (old-undo-list buffer-undo-list))
      (unwind-protect
 	 ;; Insert an undo boundary for use with `undo-more'.  We
 	 ;; don't use `undo-boundary' since it doesn't insert one
 	 ;; unconditionally.
-	 (setq buffer-undo-list (cons nil buffer-undo-list)
-	       -tnt-chng-state (c-tnt-chng-record-state)
+	 (setq buffer-undo-list
+	       (if (eq old-undo-list t)
+		   nil
+		 (cons nil buffer-undo-list))
+	       old-undo-list (if (eq old-undo-list t)
+				 t
+			       buffer-undo-list)
+	       -tnt-chng-state (c-tnt-chng-record-state
+				old-undo-list)
 	       -tnt-chng-keep (progn ,@body))
        (c-tnt-chng-cleanup -tnt-chng-keep -tnt-chng-state))))
 
-(defun c-tnt-chng-record-state ()
+(defun c-tnt-chng-record-state (old-undo-list)
   ;; Used internally in `c-tentative-buffer-changes'.
-  (vector buffer-undo-list		; 0
+  (vector old-undo-list			; 0
 	  (current-buffer)		; 1
 	  ;; No need to use markers for the point and mark; if the
 	  ;; undo got out of synch we're hosed anyway.
@@ -676,18 +706,26 @@ various buffer change hooks."
 	(setq buffer-undo-list (cdr saved-undo-list))
 
       (if keep
-	  ;; Find and remove the undo boundary.
-	  (let ((p buffer-undo-list))
-	    (while (not (eq (cdr p) saved-undo-list))
-	      (setq p (cdr p)))
-	    (setcdr p (cdr saved-undo-list)))
+	  (if (eq saved-undo-list t)
+	      (progn
+		(c-benign-error
+		 "Can't save additional undo list in c-tnt-chng-cleanup")
+		(setq buffer-undo-list t))
+	    ;; Find and remove the undo boundary.
+	    (let ((p buffer-undo-list))
+	      (while (not (eq (cdr p) saved-undo-list))
+		(setq p (cdr p)))
+	      (setcdr p (cdr saved-undo-list))))
 
-	;; `primitive-undo' will remove the boundary.
-	(setq saved-undo-list (cdr saved-undo-list))
-	(let ((undo-in-progress t))
-	  (while (not (eq (setq buffer-undo-list
-				(primitive-undo 1 buffer-undo-list))
-			  saved-undo-list))))
+	(let ((undo-in-progress t)
+	      (end-undo-list (if (eq saved-undo-list t)
+				 nil
+			       ;; `primitive-undo' will remove the boundary.
+			       (cdr saved-undo-list))))
+	  (while (not (eq buffer-undo-list end-undo-list))
+	    (setq buffer-undo-list (primitive-undo 1 buffer-undo-list))))
+	(if (eq saved-undo-list t)
+	    (setq buffer-undo-list t))
 
 	(when (buffer-live-p (elt saved-state 1))
 	  (set-buffer (elt saved-state 1))
@@ -1013,14 +1051,6 @@ be after it."
   '(if c-vsemi-status-unknown-p-fn (funcall c-vsemi-status-unknown-p-fn)))
 
 
-(defmacro c-benign-error (format &rest args)
-  ;; Formats an error message for the echo area and dings, i.e. like
-  ;; `error' but doesn't abort.
-  (declare (debug t))
-  `(progn
-     (message ,format ,@args)
-     (ding)))
-
 (defmacro c-with-syntax-table (table &rest code)
   ;; Temporarily switches to the specified syntax table in a failsafe
   ;; way to execute code.
@@ -1254,6 +1284,9 @@ MODE is either a mode symbol or a list of mode symbols."
   ;; region that has been put with `c-put-char-property'.  PROPERTY is
   ;; assumed to be constant.
   ;;
+  ;; The returned value is the buffer position of the lowest character
+  ;; whose PROPERTY was removed, or nil if there was none.
+  ;;
   ;; Note that this function does not clean up the property from the
   ;; lists of the `rear-nonsticky' properties in the region, if such
   ;; are used.  Thus it should not be used for common properties like
@@ -1262,20 +1295,28 @@ MODE is either a mode symbol or a list of mode symbols."
   ;; This macro does hidden buffer changes.
   (declare (debug t))
   (setq property (eval property))
-  (if c-use-extents
-      ;; XEmacs.
-      `(map-extents (lambda (ext ignored)
-		      (delete-extent ext))
-		    nil ,from ,to nil nil ',property)
-    ;; Emacs.
-    (if (and (fboundp 'syntax-ppss)
-	     (eq `,property 'syntax-table))
-	`(let ((-from- ,from) (-to- ,to))
-	   (setq c-syntax-table-hwm
-		 (min c-syntax-table-hwm
-		      (c-min-property-position -from- -to- ',property)))
-	   (remove-text-properties -from- -to- '(,property nil)))
-      `(remove-text-properties ,from ,to '(,property nil)))))
+  `(let* ((-to- ,to)
+	  (ret (c-min-property-position ,from -to- ',property)))
+     (if (< ret -to-)
+	 (progn
+	   ,(cond
+	     (c-use-extents
+	      ;; XEmacs
+	      `(map-extents (lambda (ext ignored)
+				(delete-extent ext))
+			    nil ret -to- nil nil ',property))
+	     ((and (fboundp 'syntax-ppss)
+		   (eq property 'syntax-table))
+	      ;; Emacs 'syntax-table
+	      `(progn
+		     (setq c-syntax-table-hwm
+			   (min c-syntax-table-hwm ret))
+		     (remove-text-properties ret -to- '(,property nil))))
+	     (t
+	      ;; Emacs other property.
+	      `(remove-text-properties ret -to- '(,property nil))))
+	   ret)
+       nil)))
 
 (defmacro c-clear-syn-tab-properties (from to)
   ;; Remove all occurrences of the `syntax-table' and `c-fl-syn-tab' text

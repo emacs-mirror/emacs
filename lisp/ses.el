@@ -1677,7 +1677,7 @@ if the range was altered."
 		 (funcall field (ses-sym-rowcol min))))
 	  ;; This range has changed size.
 	  (setq ses-relocate-return 'range))
-      `(ses-range ,min ,max ,@(cl-cdddr range)))))
+      `(ses-range ,min ,max ,@(cdddr range)))))
 
 (defun ses-relocate-all (minrow mincol rowincr colincr)
   "Alter all cell values, symbols, formulas, and reference-lists to relocate
@@ -3357,7 +3357,7 @@ is non-nil.  Newlines and tabs in the export text are escaped."
 	(push "'" result)
 	(setq item (cadr item)))
       (setq item (ses-prin1 item))
-      (setq item (replace-regexp-in-string "\t" "\\\\t" item))
+      (setq item (string-replace "\t" "\\t" item))
       (push item result)
       (cond
        ((< col maxcol)

@@ -895,7 +895,7 @@ startup file, `~/.emacs-octave'."
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
   ;; https://debbugs.gnu.org/14300
-  (unless (string-match-p "/" (or (comint--match-partial-filename) ""))
+  (unless (string-search "/" (or (comint--match-partial-filename) ""))
     (let ((beg (save-excursion
                  (skip-syntax-backward "w_" (comint-line-beginning-position))
                  (point)))

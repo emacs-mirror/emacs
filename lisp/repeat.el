@@ -474,8 +474,9 @@ When Repeat mode is enabled, and the command symbol has the property named
         (if (current-message)
             (message "%s [%s]" (current-message) mess)
           (message mess)))
-    (when (string-prefix-p "Repeat with " (current-message))
-      (message nil))))
+    (and (current-message)
+         (string-search "Repeat with " (current-message))
+         (message nil))))
 
 (defvar repeat-echo-mode-line-string
   (propertize "[Repeating...] " 'face 'mode-line-emphasis)

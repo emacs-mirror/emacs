@@ -683,7 +683,7 @@ nil, or if the date is not visible, there is no holiday."
         (y displayed-year))
     (calendar-increment-month m y -1)
     (holiday-filter-visible-calendar
-     (calendar-dlet* (year date)
+     (calendar-dlet (year date)
        (list
         (progn
           (setq year y

@@ -146,7 +146,7 @@ The buffer's contents should %s:
                     "")
                   char
                   (if (string= fixture expected-string) "stay" "become")
-                  (replace-regexp-in-string "\n" "\\\\n" expected-string)
+                  (string-replace "\n" "\\n" expected-string)
                   expected-point)))
       `(ert-deftest ,(intern (format "electric-pair-%s-at-point-%s-in-%s%s"
                                      name
@@ -871,7 +871,7 @@ baz\"\""
 
 (defun electric-layout-for-c-style-du-jour (inserted)
   "A function to use in `electric-layout-rules'"
-  (when (memq inserted '(?{ ?}))
+  (when (memq inserted '(?\{ ?\}))
     (save-excursion
       (backward-char 2) (c-point-syntax) (forward-char) ; silly, but needed
       (c-brace-newlines (c-point-syntax)))))

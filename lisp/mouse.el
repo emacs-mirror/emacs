@@ -180,7 +180,7 @@ items `Turn Off' and `Help'."
                   `(keymap
                     ,(format "%s - %s" indicator
 			     (capitalize
-			      (replace-regexp-in-string
+			      (string-replace
 			       "-" " " (format "%S" minor-mode))))
                     (turn-off menu-item "Turn off minor mode" ,mm-fun)
                     (help menu-item "Help for minor mode"
@@ -275,6 +275,228 @@ not it is actually displayed."
            global-menu
            local-menu
            minor-mode-menus)))
+
+
+;; Context menus.
+
+(defcustom context-menu-functions '(context-menu-undo
+                                    context-menu-region
+                                    context-menu-local
+                                    context-menu-minor)
+  "List of functions that produce the contents of the context menu.
+Each function receives the menu as its argument and should return
+the same menu with changes such as added new menu items."
+  :type '(repeat
+          (choice (function-item context-menu-undo)
+                  (function-item context-menu-region)
+                  (function-item context-menu-toolbar)
+                  (function-item context-menu-global)
+                  (function-item context-menu-local)
+                  (function-item context-menu-minor)
+                  (function-item context-menu-buffers)
+                  (function-item context-menu-vc)
+                  (function-item context-menu-ffap)
+                  (function :tag "Custom function")))
+  :version "28.1")
+
+(defcustom context-menu-filter-function nil
+  "Function that can filter the list produced by `context-menu-functions'."
+  :type '(choice (const nil) function)
+  :version "28.1")
+
+(defun context-menu-map ()
+  "Return composite menu map."
+  (let ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
+    (let ((fun (mouse-posn-property (event-start last-input-event)
+                                    'context-menu-function)))
+      (if (functionp fun)
+          (setq menu (funcall fun menu))
+        (run-hook-wrapped 'context-menu-functions
+                          (lambda (fun)
+                            (setq menu (funcall fun menu))
+                            nil))))
+    ;; TODO: remove double separators
+    (when (functionp context-menu-filter-function)
+      (setq menu (funcall context-menu-filter-function menu)))
+    menu))
+
+(defun context-menu-toolbar (menu)
+  "Tool bar menu items."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-toolbar] menu-bar-separator)
+  (map-keymap (lambda (key binding)
+                (when (consp binding)
+                  (define-key-after menu (vector key)
+                    (copy-sequence binding))))
+              (lookup-key global-map [tool-bar]))
+  menu)
+
+(defun context-menu-global (menu)
+  "Global submenus."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-global] menu-bar-separator)
+  (map-keymap (lambda (key binding)
+                (when (consp binding)
+                  (define-key-after menu (vector key)
+                    (copy-sequence binding))))
+              (lookup-key global-map [menu-bar]))
+  menu)
+
+(defun context-menu-local (menu)
+  "Major mode submenus."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-local] menu-bar-separator)
+  (let ((keymap (local-key-binding [menu-bar])))
+    (when keymap
+      (map-keymap (lambda (key binding)
+                    (when (consp binding)
+                      (define-key-after menu (vector key)
+                        (copy-sequence binding))))
+                  keymap)))
+  menu)
+
+(defun context-menu-minor (menu)
+  "Minor modes submenus."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-minor] menu-bar-separator)
+  (dolist (mode (reverse (minor-mode-key-binding [menu-bar])))
+    (when (and (consp mode) (symbol-value (car mode)))
+      (map-keymap (lambda (key binding)
+                    (when (consp binding)
+                      (define-key-after menu (vector key)
+                        (copy-sequence binding))))
+                  (cdr mode))))
+  menu)
+
+(defun context-menu-buffers (menu)
+  "Submenus with buffers."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (define-key-after menu [separator-buffers] menu-bar-separator)
+  (map-keymap (lambda (key binding)
+                (when (consp binding)
+                  (define-key-after menu (vector key)
+                    (copy-sequence binding))))
+              (mouse-buffer-menu-keymap))
+  menu)
+
+(defun context-menu-vc (menu)
+  "Version Control menu."
+  (define-key-after menu [separator-vc] menu-bar-separator)
+  (define-key-after menu [vc-menu] vc-menu-entry)
+  menu)
+
+(defun context-menu-undo (menu)
+  "Undo menu."
+  (when (cddr menu)
+    (define-key-after menu [separator-undo] menu-bar-separator))
+  (define-key-after menu [undo]
+    '(menu-item "Undo" undo
+                :visible (and (not buffer-read-only)
+                              (not (eq t buffer-undo-list))
+                              (if (eq last-command 'undo)
+                                  (listp pending-undo-list)
+                                (consp buffer-undo-list)))
+                :help "Undo last edits"))
+  (define-key-after menu [undo-redo]
+    '(menu-item "Redo" undo-redo
+                :visible (and (not buffer-read-only)
+                              (undo--last-change-was-undo-p buffer-undo-list))
+                :help "Redo last undone edits"))
+  menu)
+
+(defun context-menu-region (menu)
+  "Region commands menu."
+  (when (cddr menu)
+    (define-key-after menu [separator-region] menu-bar-separator))
+  (define-key-after menu [cut]
+    '(menu-item "Cut" kill-region
+                :visible (and mark-active (not buffer-read-only))
+                :help
+                "Cut (kill) text in region between mark and current position"))
+  (define-key-after menu [copy]
+    ;; ns-win.el said: Substitute a Copy function that works better
+    ;; under X (for GNUstep).
+    `(menu-item "Copy" ,(if (featurep 'ns)
+                            'ns-copy-including-secondary
+                          'kill-ring-save)
+                :visible mark-active
+                :help "Copy text in region between mark and current position"
+                :keys ,(if (featurep 'ns)
+                           "\\[ns-copy-including-secondary]"
+                         "\\[kill-ring-save]")))
+  (define-key-after menu [paste]
+    `(menu-item "Paste" mouse-yank-at-click
+                :visible (funcall
+                          ',(lambda ()
+                              (and (or
+                                    (gui-backend-selection-exists-p 'CLIPBOARD)
+                                    (if (featurep 'ns) ; like paste-from-menu
+                                        (cdr yank-menu)
+                                      kill-ring))
+                                   (not buffer-read-only))))
+                :help "Paste (yank) text most recently cut/copied"))
+  (define-key-after menu (if (featurep 'ns) [select-paste]
+                           [paste-from-menu])
+    ;; ns-win.el said: Change text to be more consistent with
+    ;; surrounding menu items `paste', etc."
+    `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
+                yank-menu
+                :visible (and (cdr yank-menu) (not buffer-read-only))
+                :help "Choose a string from the kill ring and paste it"))
+  (define-key-after menu [clear]
+    '(menu-item "Clear" delete-active-region
+                :visible (and mark-active
+                              (not buffer-read-only))
+                :help
+                "Delete the text in region between mark and current position"))
+  (define-key-after menu [mark-whole-buffer]
+    '(menu-item "Select All" mark-whole-buffer
+                :help "Mark the whole buffer for a subsequent cut/copy"))
+  menu)
+
+(defun context-menu-ffap (menu)
+  "File at point menu."
+  (save-excursion
+    (mouse-set-point last-input-event)
+    (when (ffap-guess-file-name-at-point)
+      (define-key menu [ffap-separator] menu-bar-separator)
+      (define-key menu [ffap-at-mouse]
+        '(menu-item "Find File or URL" ffap-at-mouse
+                    :help "Find file or URL guessed from text around mouse click"))))
+  menu)
+
+(defvar context-menu-entry
+  `(menu-item ,(purecopy "Context Menu") ignore
+              :filter (lambda (_) (context-menu-map))))
+
+(defvar context-menu-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-3] nil)
+    (define-key map [down-mouse-3] context-menu-entry)
+    (define-key map [menu] #'context-menu-open)
+    (if (featurep 'w32)
+        (define-key map [apps] #'context-menu-open))
+    (when (featurep 'ns)
+      (define-key map [C-mouse-1] nil)
+      (define-key map [C-down-mouse-1] context-menu-entry))
+    map)
+  "Context Menu mode map.")
+
+(define-minor-mode context-menu-mode
+  "Toggle Context Menu mode.
+
+When Context Menu mode is enabled, clicking the mouse button down-mouse-3
+activates the menu whose contents depends on its surrounding context."
+  :global t :group 'mouse)
+
+(defun context-menu-open ()
+  "Start key navigation of the context menu.
+This is the keyboard interface to \\[context-menu-map]."
+  (interactive)
+  (let ((inhibit-mouse-event-check t))
+    (popup-menu (context-menu-map) (point))))
+
+(global-set-key [S-f10] 'context-menu-open)
 
 
 ;; Commands that operate on windows.

@@ -936,7 +936,7 @@ the remaining input.")
       (setq call-noexcursion nil)
       (with-current-buffer (process-buffer proc)
 	(cond ((eq xscheme-process-filter-state 'idle)
-	       (let ((start (string-match "\e" xscheme-filter-input)))
+	       (let ((start (string-search "\e" xscheme-filter-input)))
 		 (if start
 		     (progn
 		       (xscheme-process-filter-output
@@ -960,7 +960,7 @@ the remaining input.")
 			 (xscheme-process-filter-output ?\e char)
 			 (setq xscheme-process-filter-state 'idle)))))))
 	      ((eq xscheme-process-filter-state 'reading-string)
-	       (let ((start (string-match "\e" xscheme-filter-input)))
+	       (let ((start (string-search "\e" xscheme-filter-input)))
 		 (if start
 		     (let ((string
 			    (concat xscheme-string-accumulator

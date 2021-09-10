@@ -1767,6 +1767,10 @@ multiple screen lines.  Setting the variable @code{truncate-lines} in
 any way makes it local to the current buffer; until that time, the
 default value, which is normally @code{nil}, is in effect.
 
+  Since line truncation and word wrap (described in the next section)
+are contradictory, @code{toggle-truncate-lines} disables word wrap
+when it turns on line truncation.
+
   If a split window becomes too narrow, Emacs may automatically enable
 line truncation.  @xref{Split Window}, for the variable
 @code{truncate-partial-width-windows} which controls this.
@@ -1796,6 +1800,10 @@ the @samp{Word Wrap (Visual Line mode)} menu item.  While Visual Line
 mode is enabled, the mode line shows the string @samp{wrap} in the
 mode display.  The command @kbd{M-x global-visual-line-mode} toggles
 Visual Line mode in all buffers.
+
+  Since word wrap and line truncation (described in the previous
+section) are contradictory, turning on @code{visual-line-mode}
+disables line truncation.
 
 @findex beginning-of-visual-line
 @findex end-of-visual-line

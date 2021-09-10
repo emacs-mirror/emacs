@@ -658,7 +658,7 @@
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
   ;;
-  ;; This function gives invalid GAWK namepace separators (::)
+  ;; This function gives invalid GAWK namespace separators (::)
   ;; font-lock-warning-face.  "Invalid" here means there are spaces, etc.,
   ;; around a separator, or there are more than one of them in an identifier.
   ;; Invalid separators inside function declaration parentheses are handled

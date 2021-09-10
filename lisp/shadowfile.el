@@ -213,6 +213,14 @@ information defining the cluster.  For interactive use, call
 
 ;;; SITES
 
+;; This simplifies it a little bit.  "system-name" is also accepted.
+;; But we don't want to make the help echo too long.
+(defconst shadow-site-help "\
+A cluster identification \"/name:\", a remote identification
+\"/method:user@host:\", or \"/system-name:\" (the value of
+`shadow-system-name')"
+  "The help string describing a valid site.")
+
 (defun shadow-site-name (site)
   "Return name if SITE has the form \"/name:\", otherwise SITE."
   (if (string-match "\\`/\\([-.[:word:]]+\\):\\'" site)
@@ -239,9 +247,10 @@ information defining the cluster.  For interactive use, call
        shadow-clusters)))
 
 (defun shadow-read-site ()
-  "Read a cluster name or host identification from the minibuffer."
-  (let ((ans (completing-read "Host identification or cluster name: "
-			      shadow-clusters)))
+  "Read a site name from the minibuffer."
+  (let ((ans (completing-read
+              (propertize "Site name: " 'help-echo shadow-site-help)
+	      shadow-clusters)))
     (when (or (shadow-get-cluster (shadow-site-name ans))
 	      (string-equal ans shadow-system-name)
 	      (string-equal ans (shadow-site-name shadow-system-name))
@@ -285,7 +294,7 @@ Argument can be a simple name, remote file name, or already a
 (defsubst shadow-make-fullname (hup &optional host name)
   "Make a Tramp style fullname out of HUP, a `tramp-file-name' structure.
 Replace HOST, and NAME when non-nil.  HOST can also be a remote file name."
-  (let ((hup (copy-tramp-file-name hup)))
+  (when-let ((hup (copy-tramp-file-name hup)))
     (when host
       (if (file-remote-p host)
           (setq name (or name (and hup (tramp-file-name-localname hup)))
@@ -355,23 +364,23 @@ Will return the name bare if it is a local file."
 Do so by replacing (when possible) home directory with ~/, and
 hostname with cluster name that includes it.  Filename should be
 absolute and true."
-  (let* ((hup (shadow-parse-name file))
-	 (homedir (if (shadow-local-file hup)
-		      shadow-homedir
-		    (file-name-as-directory
-		     (file-local-name
-                      (expand-file-name
-                       (shadow-make-fullname hup nil shadow-homedir))))))
-	 (suffix (shadow-suffix homedir (tramp-file-name-localname hup)))
-	 (cluster (shadow-site-cluster (shadow-make-fullname hup nil ""))))
-    (when cluster
-      (setf (tramp-file-name-method hup) nil
-	    (tramp-file-name-host hup) (shadow-cluster-name cluster)))
-    (shadow-make-fullname
-     hup nil
-     (if suffix
-         (concat shadow-homedir suffix)
-       (tramp-file-name-localname hup)))))
+  (when-let ((hup (shadow-parse-name file)))
+    (let* ((homedir (if (shadow-local-file hup)
+		        shadow-homedir
+		      (file-name-as-directory
+		       (file-local-name
+                        (expand-file-name
+                         (shadow-make-fullname hup nil shadow-homedir))))))
+	   (suffix (shadow-suffix homedir (tramp-file-name-localname hup)))
+	   (cluster (shadow-site-cluster (shadow-make-fullname hup nil ""))))
+      (when cluster
+        (setf (tramp-file-name-method hup) nil
+	      (tramp-file-name-host hup) (shadow-cluster-name cluster)))
+      (shadow-make-fullname
+       hup nil
+       (if suffix
+           (concat shadow-homedir suffix)
+         (tramp-file-name-localname hup))))))
 
 (defun shadow-same-site (pattern file)
   "True if the site of PATTERN and of FILE are on the same site.
@@ -455,16 +464,17 @@ It may have different filenames on each site.  When this file is edited, the
 new version will be copied to each of the other locations.  Sites can be
 specific hostnames, or names of clusters (see `shadow-define-cluster')."
   (interactive)
-  (let* ((hup (shadow-parse-name
-	       (shadow-contract-file-name (buffer-file-name))))
-	 (name (tramp-file-name-localname hup))
-	 site group)
-    (while (setq site (shadow-read-site))
-      (setq name (read-string "Filename: " name)
-            hup (shadow-parse-name (shadow-contract-file-name name))
-	    group (cons (shadow-make-fullname hup site) group)))
-    (setq shadow-literal-groups (cons group shadow-literal-groups)))
-  (shadow-write-info-file))
+  (when-let ((hup (shadow-parse-name
+	           (shadow-contract-file-name (buffer-file-name)))))
+    (let* ((name (tramp-file-name-localname hup))
+	   site group)
+      (while (setq site (shadow-read-site))
+        (setq name (read-string "Filename: " name)
+              hup (shadow-parse-name (shadow-contract-file-name name))
+	      group (cons (shadow-make-fullname hup site) group)))
+      (when group
+        (setq shadow-literal-groups (cons group shadow-literal-groups))))
+    (shadow-write-info-file)))
 
 ;;;###autoload
 (defun shadow-define-regexp-group ()

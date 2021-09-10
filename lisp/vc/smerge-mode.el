@@ -214,6 +214,9 @@ Used in `smerge-diff-base-upper' and related functions."
     ["Invoke Ediff" smerge-ediff
      :help "Use Ediff to resolve the conflicts"
      :active (smerge-check 1)]
+    ["Refine" smerge-refine
+     :help "Highlight different words of the conflict"
+     :active (smerge-check 1)]
     ["Auto Resolve" smerge-resolve
      :help "Try auto-resolution heuristics"
      :active (smerge-check 1)]

@@ -178,9 +178,9 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		named variable, or a generalized variable.
 		PLACE can also be of the form (GET . SET), where GET is
 		an expression that returns the current state, and SET is
-		a function that takes one argument, the new state, and
-		sets it.  If you specify a :variable, this function does
-		not define a MODE variable (nor any of the terms used
+		a function that takes one argument, the new state, which should
+                be assigned to PLACE.  If you specify a :variable, this function
+                does not define a MODE variable (nor any of the terms used
 		in :variable).
 :after-hook     A single lisp form which is evaluated after the mode hooks
                 have been run.  It should not be quoted.
@@ -497,8 +497,11 @@ on if the hook has explicitly disabled it.
          ,(concat (format "Toggle %s in all buffers.\n" pretty-name)
                   (internal--format-docstring-line
                    "With prefix ARG, enable %s if ARG is positive; otherwise, \
-disable it.  If called from Lisp, enable the mode if ARG is omitted or nil.\n\n"
+disable it.\n\n"
                    pretty-global-name)
+                  "If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.\n\n"
                   (internal--format-docstring-line
                    "%s is enabled in all buffers where `%s' would do it.\n\n"
                    pretty-name turn-on)

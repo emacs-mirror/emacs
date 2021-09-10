@@ -1719,7 +1719,7 @@ If point is on a group name, this function operates on that group."
                             (ibuffer-buffer-name-face buffer mark))))
     (if (not (seq-position string ?\n))
         string
-      (replace-regexp-in-string
+      (string-replace
        "\n" (propertize "^J" 'font-lock-face 'escape-glyph) string))))
 
 (define-ibuffer-column size

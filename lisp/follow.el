@@ -858,8 +858,11 @@ from the bottom."
 	   (windows (follow-all-followers))
 	   (win (nth (/ (- (length windows) 1) 2) windows)))
       (select-window win)
-      (goto-char dest)
-      (recenter))))
+      (let ((win-s (window-start)))
+        (goto-char dest)
+        (recenter)
+        (when (< dest win-s)
+          (setq follow-internal-force-redisplay t))))))
 
 
 (defun follow-redraw ()

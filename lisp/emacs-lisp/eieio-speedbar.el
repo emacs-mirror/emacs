@@ -344,14 +344,14 @@ The object is at indentation level INDENT."
 (defun eieio-speedbar-object-expand (text token indent)
   "Expand object represented by TEXT.
 TOKEN is the object.  INDENT is the current indentation level."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (oset token expanded t)
 	 (speedbar-with-writable
 	   (save-excursion
 	     (end-of-line) (forward-char 1)
 	     (eieio-speedbar-expand token (1+ indent)))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (oset token expanded nil)
 	 (speedbar-delete-subblock indent))

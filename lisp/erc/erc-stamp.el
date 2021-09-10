@@ -181,6 +181,11 @@ or `erc-send-modify-hook'."
 				 (list (lambda (_window _before dir)
 					 (erc-echo-timestamp dir ct))))))))
 
+(defvar-local erc-timestamp-last-window-width nil
+  "Stores the width of the last window that showed the current
+buffer. This is used by `erc-insert-timestamp-right' when the
+current buffer is not shown in any window.")
+
 (defvar-local erc-timestamp-last-inserted nil
   "Last timestamp inserted into the buffer.")
 
@@ -250,27 +255,32 @@ property to get to the POSth column."
 
 (defun erc-insert-timestamp-right (string)
   "Insert timestamp on the right side of the screen.
-STRING is the timestamp to insert.  The function is a possible value
-for `erc-insert-timestamp-function'.
+STRING is the timestamp to insert.  This function is a possible
+value for `erc-insert-timestamp-function'.
 
-If `erc-timestamp-only-if-changed-flag' is nil, a timestamp is always
-printed.  If this variable is non-nil, a timestamp is only printed if
-it is different from the last.
+If `erc-timestamp-only-if-changed-flag' is nil, a timestamp is
+always printed.  If this variable is non-nil, a timestamp is only
+printed if it is different from the last.
 
-If `erc-timestamp-right-column' is set, its value will be used as the
-column at which the timestamp is to be printed.  If it is nil, and
-`erc-fill-mode' is active, then the timestamp will be printed just
-before `erc-fill-column'.  Otherwise, if the current buffer is
-shown in a window, that window's width is used.  If the buffer is
-not shown, and `fill-column' is set, then the timestamp will be
-printed just `fill-column'.  As a last resort, the timestamp will
-be printed just before the window-width."
+If `erc-timestamp-right-column' is set, its value will be used as
+the column at which the timestamp is to be printed.  If it is
+nil, and `erc-fill-mode' is active, then the timestamp will be
+printed just before `erc-fill-column'.  Otherwise, if the current
+buffer is shown in a window, that window's width is used as the
+right boundary.  In case multiple windows show the buffer, the
+width of the most recently selected one is used.  If the buffer
+is not shown, the timestamp will be printed just before the
+window width of the last window that showed it.  If the buffer
+was never shown, and `fill-column' is set, it will be printed
+just before `fill-column'.  As a last resort, timestamp will be
+printed just after each line's text (no alignment)."
   (unless (and erc-timestamp-only-if-changed-flag
 	       (string-equal string erc-timestamp-last-inserted))
     (setq erc-timestamp-last-inserted string)
     (goto-char (point-max))
-    (forward-char -1);; before the last newline
+    (forward-char -1)                   ; before the last newline
     (let* ((str-width (string-width string))
+           window                  ; used in computation of `pos' only
 	   (pos (cond
 		 (erc-timestamp-right-column erc-timestamp-right-column)
 		 ((and (boundp 'erc-fill-mode)
@@ -278,10 +288,15 @@ be printed just before the window-width."
 		       (boundp 'erc-fill-column)
 		       erc-fill-column)
 		  (1+ (- erc-fill-column str-width)))
+                 ((setq window (get-buffer-window nil t))
+                  (setq erc-timestamp-last-window-width
+                        (window-width window))
+                  (- erc-timestamp-last-window-width str-width))
+                 (erc-timestamp-last-window-width
+                  (- erc-timestamp-last-window-width str-width))
 		 (fill-column
 		  (1+ (- fill-column str-width)))
-		 (t
-		  (- (window-width) str-width 1))))
+                 (t (current-column))))
 	   (from (point))
 	   (col (current-column)))
       ;; The following is a kludge used to calculate whether to move

@@ -38,6 +38,7 @@
 (require 'sendmail)
 
 (autoload 'easy-menu-add "easymenu")
+(autoload 'mail-header-parse-address "mail-parse")
 (autoload 'mml-insert-tag "mml")
 
 
@@ -452,7 +453,7 @@ See also `mh-send'."
              ;; Header field exists and we have a value
              (let (address mailbox (alias (mh-alias-expand value)))
                (and alias
-                    (setq address (ietf-drums-parse-address alias))
+                    (setq address (mail-header-parse-address alias))
                     (setq mailbox (car address)))
                ;; XXX - Need to parse all addresses out of field
                (if (and
@@ -637,8 +638,8 @@ See also `mh-compose-forward-as-mime-flag',
 (defun mh-forwarded-letter-subject (from subject)
   "Return a Subject suitable for a forwarded message.
 Original message has headers FROM and SUBJECT."
-  (let ((addr-start (string-match "<" from))
-        (comment (string-match "(" from)))
+  (let ((addr-start (string-search "<" from))
+        (comment (string-search "(" from)))
     (cond ((and addr-start (> addr-start 0))
            ;; Full Name <luser@host>
            (setq from (substring from 0 (1- addr-start))))

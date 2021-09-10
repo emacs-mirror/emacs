@@ -307,7 +307,7 @@ entirely by setting `warning-suppress-types' or
                                'type 'warning-suppress-log-warning
                                'warning-type type))
               (funcall newline)
-	      (when (and warning-fill-prefix (not (string-match "\n" message)))
+	      (when (and warning-fill-prefix (not (string-search "\n" message)))
 		(let ((fill-prefix warning-fill-prefix)
 		      (fill-column warning-fill-column))
 		  (fill-region start (point))))

@@ -7318,7 +7318,7 @@ Frames, windows, buffers, and subprocesses count as vectors
 		make_int (strings_consed));
 }
 
-#ifdef GNU_LINUX
+#if defined GNU_LINUX && defined __GLIBC__
 DEFUN ("malloc-info", Fmalloc_info, Smalloc_info, 0, 0, "",
        doc: /* Report malloc information to stderr.
 This function outputs to stderr an XML-formatted
@@ -7678,7 +7678,7 @@ N should be nonnegative.  */);
   defsubr (&Sgarbage_collect_maybe);
   defsubr (&Smemory_info);
   defsubr (&Smemory_use_counts);
-#ifdef GNU_LINUX
+#if defined GNU_LINUX && defined __GLIBC__
   defsubr (&Smalloc_info);
 #endif
   defsubr (&Ssuspicious_object);

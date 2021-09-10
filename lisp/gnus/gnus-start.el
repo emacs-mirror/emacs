@@ -715,6 +715,9 @@ the first newsgroup."
        (kill-buffer (get-file-buffer gnus-current-startup-file)))
   ;; Clear the dribble buffer.
   (gnus-dribble-clear)
+  ;; Reset the level when Gnus is restarted.
+  (when (numberp gnus-group-use-permanent-levels)
+    (setq gnus-group-use-permanent-levels t))
   ;; Kill global KILL file buffer.
   (when (get-file-buffer (gnus-newsgroup-kill-file nil))
     (kill-buffer (get-file-buffer (gnus-newsgroup-kill-file nil))))
@@ -854,7 +857,7 @@ If REGEXP is given, lines that match it will be deleted."
       (goto-char (point-max))
       ;; Make sure that each dribble entry is a single line, so that
       ;; the "remove" code above works.
-      (insert (replace-regexp-in-string "\n" "\\\\n" string) "\n")
+      (insert (string-replace "\n" "\\n" string) "\n")
       (bury-buffer gnus-dribble-buffer)
       (with-current-buffer gnus-group-buffer
 	(gnus-group-set-mode-line)))))

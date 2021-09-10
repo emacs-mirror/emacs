@@ -1136,13 +1136,17 @@ Revert the work file(s) in the current VC fileset to the last revision
 @findex vc-revert
 @vindex vc-revert-show-diff
   If you want to discard all the changes you have made to the current
-VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This shows
-you a diff between the work file(s) and the revision from which you
-started editing, and asks for confirmation for discarding the changes.
-If you agree, the fileset is reverted.  If you don't want @kbd{C-x v
-u} to show a diff, set the variable @code{vc-revert-show-diff} to
-@code{nil} (you can still view the diff directly with @kbd{C-x v =};
-@pxref{Old Revisions}).
+VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This will ask you
+for confirmation before discarding the changes.  If you agree, the
+fileset is reverted.
+
+  If @code{vc-revert-show-diff} is non-@code{nil}, this command will
+show you a diff between the work file(s) and the revision from which
+you started editing.  Afterwards, the diff buffer will either be
+killed (if this variable is @code{kill}), or the buffer will be buried
+(any other non-@code{nil} value).  If you don't want @kbd{C-x v u} to
+show a diff, set this variable to @code{nil} (you can still view the
+diff directly with @kbd{C-x v =}; @pxref{Old Revisions}).
 
   On locking-based version control systems, @kbd{C-x v u} leaves files
 unlocked; you must lock again to resume editing.  You can also use
@@ -2141,6 +2145,7 @@ identifier at point, it prompts for the identifier.  (If you want it
 to always prompt, customize @code{xref-prompt-for-identifier} to
 @code{t}.)
 
+@vindex xref-auto-jump-to-first-definition
 If the specified identifier has only one definition, the command jumps
 to it.  If the identifier has more than one possible definition (e.g.,
 in an object-oriented language, or if there's a function and a
@@ -2148,7 +2153,22 @@ variable by the same name), the command shows the candidate
 definitions in the @file{*xref*} buffer, together with the files in
 which these definitions are found.  Selecting one of these candidates
 by typing @kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer
-showing the corresponding definition.
+showing the corresponding definition.  If the value of the variable
+@code{xref-auto-jump-to-first-definition} is @code{move}, the first
+candidate is automatically selected, and if it's @code{t} or
+@code{show}, the first candidate is automatically shown.  The default
+value is @code{nil}, which just shows the candidates in the
+@file{*xref*} buffer, but doesn't select any of them.
+
+@vindex xref-auto-jump-to-first-xref
+  If the value of the variable @code{xref-auto-jump-to-first-xref} is
+@code{t}, @emph{all} Xref commands automatically jump to the first
+result.  If the value is @code{show}, the first result is shown, but
+the window showing the @file{*xref*} buffer is left selected.  If the
+value is @code{move}, the first result is selected in the
+@file{*xref*} buffer, but is not shown.  The default value is
+@code{nil}, which just shows the results in the @file{*xref*} buffer,
+but doesn't select any of them.
 
   When entering the identifier argument to @kbd{M-.}, the usual
 minibuffer completion commands can be used (@pxref{Completion}), with
@@ -2218,9 +2238,15 @@ the special XREF mode:
 
 @table @kbd
 @item @key{RET}
-@itemx mouse-2
+@itemx mouse-1
 Display the reference on the current line (@code{xref-goto-xref}).
 With prefix argument, also bury the @file{*xref*} buffer.
+
+@item mouse-2
+@findex xref-select-and-show-xref
+The same as @code{mouse-1}, but make the window displaying the
+@file{*xref*} buffer the selected window
+(@code{xref-select-and-show-xref}).
 
 @item n
 @itemx .
@@ -2259,8 +2285,8 @@ the match with @var{replacement}.  @xref{Identifier Search}.
 Refresh the contents of the @file{*xref*} buffer
 (@code{xref-revert-buffer}.
 
-@findex xref-quit
 @item q
+@findex xref-quit
 Quit the window showing the @file{*xref*} buffer (@code{xref-quit}).
 @end table
 

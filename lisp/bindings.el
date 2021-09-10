@@ -463,7 +463,9 @@ displayed in `mode-line-position', a component of the default
 (defcustom mode-line-position-line-format '(" L%l")
   "Format used to display line numbers in the mode line.
 This is used when `line-number-mode' is switched on.  The \"%l\"
-format spec will be replaced by the line number."
+format spec will be replaced by the line number.
+
+Also see `mode-line-position-column-line-format'."
   :type '(list string)
   :version "28.1"
   :group 'mode-line)
@@ -471,9 +473,10 @@ format spec will be replaced by the line number."
 (defcustom mode-line-position-column-format '(" C%c")
   "Format used to display column numbers in the mode line.
 This is used when `column-number-mode' is switched on.  The
-\"%c\" format spec will be replaced by the column number, which
-is zero-based if `column-number-indicator-zero-based' is non-nil,
-and one-based if `column-number-indicator-zero-based' is nil."
+\"%c\" format spec is replaced by the zero-based column number,
+and \"%C\" is replaced by the one-based column number.
+
+Also see `mode-line-position-column-line-format'."
   :type '(list string)
   :version "28.1"
   :group 'mode-line)
@@ -1431,6 +1434,17 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "[" 'backward-page)
 (define-key ctl-x-map "]" 'forward-page)
+
+(defvar page-navigation-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "]" #'forward-page)
+    (define-key map "[" #'backward-page)
+    map)
+  "Keymap to repeat page navigation key sequences.  Used in `repeat-mode'.")
+
+(put 'forward-page 'repeat-map 'page-navigation-repeat-map)
+(put 'backward-page 'repeat-map 'page-navigation-repeat-map)
+
 (define-key ctl-x-map "\C-p" 'mark-page)
 (define-key ctl-x-map "l" 'count-lines-page)
 (define-key ctl-x-map "np" 'narrow-to-page)
@@ -1466,7 +1480,7 @@ if `inhibit-field-text-motion' is non-nil."
 (defvar ctl-x-x-map
   (let ((map (make-sparse-keymap)))
     (define-key map "f" #'font-lock-update)
-    (define-key map "g" #'revert-buffer)
+    (define-key map "g" #'revert-buffer-quick)
     (define-key map "r" #'rename-buffer)
     (define-key map "u" #'rename-uniquely)
     (define-key map "n" #'clone-buffer)

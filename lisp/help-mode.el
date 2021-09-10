@@ -35,7 +35,6 @@
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map (make-composed-keymap button-buffer-map
                                                  special-mode-map))
-    (define-key map [mouse-2] 'help-follow-mouse)
     (define-key map "l" 'help-go-back)
     (define-key map "r" 'help-go-forward)
     (define-key map "\C-c\C-b" 'help-go-back)
@@ -43,7 +42,6 @@
     (define-key map [XF86Back] 'help-go-back)
     (define-key map [XF86Forward] 'help-go-forward)
     (define-key map "\C-c\C-c" 'help-follow-symbol)
-    (define-key map "\r" 'help-follow)
     (define-key map "s" 'help-view-source)
     (define-key map "i" 'help-goto-info)
     (define-key map "c" 'help-customize)
@@ -72,6 +70,35 @@
     ["Customize" help-customize
      :help "Customize variable or face"]))
 
+(defun help-mode-context-menu (menu)
+  (define-key menu [help-mode-separator] menu-bar-separator)
+  (let ((easy-menu (make-sparse-keymap "Help-Mode")))
+    (easy-menu-define nil easy-menu nil
+      '("Help-Mode"
+        ["Previous Topic" help-go-back
+         :help "Go back to previous topic in this help buffer"
+         :active help-xref-stack]
+        ["Next Topic" help-go-forward
+         :help "Go back to next topic in this help buffer"
+         :active help-xref-forward-stack]))
+    (dolist (item (reverse (lookup-key easy-menu [menu-bar help-mode])))
+      (when (consp item)
+        (define-key menu (vector (car item)) (cdr item)))))
+
+  (when (and
+         ;; First check if `help-fns--list-local-commands'
+         ;; used `where-is-internal' to call this function
+         ;; with wrong `last-input-event'.
+         (eq (current-buffer) (window-buffer (posn-window (event-start last-input-event))))
+         (mouse-posn-property (event-start last-input-event) 'mouse-face))
+    (define-key menu [help-mode-push-button]
+      '(menu-item "Follow Link" (lambda (event)
+                                  (interactive "e")
+                                  (push-button event))
+                  :help "Follow the link at click")))
+
+  menu)
+
 (defvar help-mode-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item "close" 'quit-window 'quit map
@@ -88,20 +115,20 @@
 
 (defvar-local help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.
-Used by `help-follow' and `help-xref-go-back'.
+Used by `help-follow-symbol' and `help-xref-go-back'.
 An element looks like (POSITION FUNCTION ARGS...).
 To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-stack 'permanent-local t)
 
 (defvar-local help-xref-forward-stack nil
   "A stack used to navigate help forwards after using the back button.
-Used by `help-follow' and `help-xref-go-forward'.
+Used by `help-follow-symbol' and `help-xref-go-forward'.
 An element looks like (POSITION FUNCTION ARGS...).
 To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-forward-stack 'permanent-local t)
 
 (defvar-local help-xref-stack-item nil
-  "An item for `help-follow' in this buffer to push onto `help-xref-stack'.
+  "An item for `help-follow-symbol' to push onto `help-xref-stack'.
 The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-item 'permanent-local t)
 
@@ -112,6 +139,15 @@ The format is (FUNCTION ARGS...).")
 
 (setq-default help-xref-stack nil help-xref-stack-item nil)
 (setq-default help-xref-forward-stack nil help-xref-forward-stack-item nil)
+
+(defvar help-mode-syntax-table
+  (let ((table (make-syntax-table emacs-lisp-mode-syntax-table)))
+    ;; Treat single quotes as parens so that forward-sexp does not
+    ;; break when a quoted string contains punctuation.
+    (modify-syntax-entry ?‘ "(’  " table)
+    (modify-syntax-entry ?’ ")‘  " table)
+    table)
+  "Syntax table used in `help-mode'.")
 
 (defcustom help-mode-hook nil
   "Hook run by `help-mode'."
@@ -191,6 +227,11 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function #'info
   'help-echo (purecopy "mouse-2, RET: read this Info node"))
+
+(define-button-type 'help-customization-group
+  :supertype 'help-xref
+  'help-function #'customize-group
+  'help-echo (purecopy "mouse-2, RET: display this customization group"))
 
 (define-button-type 'help-url
   :supertype 'help-xref
@@ -342,6 +383,7 @@ Commands:
 \\{help-mode-map}"
   (setq-local revert-buffer-function
               #'help-mode-revert-buffer)
+  (add-hook 'context-menu-functions 'help-mode-context-menu 5 t)
   (setq-local tool-bar-map
               help-mode-tool-bar-map)
   (setq-local help-mode--current-data nil)
@@ -399,6 +441,10 @@ when help commands related to multilingual environment (e.g.,
   (purecopy
    "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+['`‘]\\([^'’]+\\)['’]")
   "Regexp matching doc string references to an Info node.")
+
+(defconst help-xref-customization-group-regexp
+  (purecopy "\\<[Cc]ustomization[ \t\n]+[Gg]roup[ \t\n]+['`‘]\\([^'’]+\\)['’]")
+  "Regexp matching doc string references to a customization group.")
 
 (defconst help-xref-url-regexp
   (purecopy "\\<[Uu][Rr][Ll][ \t\n]+['`‘]\\([^'’]+\\)['’]")
@@ -466,7 +512,7 @@ Each element has the form (NAME TESTFUN DESCFUN) where:
   "Parse and hyperlink documentation cross-references in the given BUFFER.
 
 Find cross-reference information in a buffer and activate such cross
-references for selection with `help-follow'.  Cross-references have
+references for selection with `help-follow-symbol'.  Cross-references have
 the canonical form `...'  and the type of reference may be
 disambiguated by the preceding word(s) used in
 `help-xref-symbol-regexp'.  Faces only get cross-referenced if
@@ -492,7 +538,7 @@ that."
         (let ((stab (syntax-table))
               (case-fold-search t)
               (inhibit-read-only t))
-          (set-syntax-table emacs-lisp-mode-syntax-table)
+          (set-syntax-table help-mode-syntax-table)
           ;; The following should probably be abstracted out.
           (unwind-protect
               (progn
@@ -506,6 +552,12 @@ that."
 			(setq data ;; possible newlines if para filled
 			      (replace-regexp-in-string "[ \t\n]+" " " data t t)))
                       (help-xref-button 2 'help-info data))))
+                ;; Customization groups.
+                (save-excursion
+                  (while (re-search-forward
+                          help-xref-customization-group-regexp nil t)
+                    (help-xref-button 1 'help-customization-group
+                                      (intern (match-string 1)))))
                 ;; URLs
                 (save-excursion
                   (while (re-search-forward help-xref-url-regexp nil t)
@@ -645,7 +697,7 @@ See `help-make-xrefs'."
 (defun help-xref-on-pp (from to)
   "Add xrefs for symbols in `pp's output between FROM and TO."
   (if (> (- to from) 5000) nil
-    (with-syntax-table emacs-lisp-mode-syntax-table
+    (with-syntax-table help-mode-syntax-table
       (save-excursion
 	(save-restriction
 	  (narrow-to-region from to)
@@ -774,6 +826,7 @@ a proper [back] button."
 ;; The doc string is meant to explain what buttons do.
 (defun help-follow-mouse ()
   "Follow the cross-reference that you click on."
+  (declare (obsolete nil "28.1"))
   (interactive)
   (error "No cross-reference here"))
 
@@ -782,6 +835,7 @@ a proper [back] button."
   "Follow cross-reference at point.
 
 For the cross-reference format, see `help-make-xrefs'."
+  (declare (obsolete nil "28.1"))
   (interactive)
   (user-error "No cross-reference here"))
 

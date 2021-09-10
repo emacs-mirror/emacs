@@ -525,25 +525,26 @@ be set in `.emacs' instead."
 
 ;; Summary mode faces.
 
-(defface gnus-summary-selected '((t (:underline t)))
+(defface gnus-summary-selected '((t (:underline t :extend t)))
   "Face used for selected articles."
   :group 'gnus-summary)
 
 (defface gnus-summary-cancelled
   '((((class color))
-     (:foreground "yellow" :background "black")))
+     (:foreground "yellow" :background "black" :extend t))
+    (t (:extend t)))
   "Face used for canceled articles."
   :group 'gnus-summary)
 
 (defface gnus-summary-normal-ticked
   '((((class color)
       (background dark))
-     (:foreground "pink"))
+     (:foreground "pink" :extend t))
     (((class color)
       (background light))
-     (:foreground "firebrick"))
+     (:foreground "firebrick" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest ticked articles."
   :group 'gnus-summary)
 
@@ -560,12 +561,12 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-ancient
   '((((class color)
       (background dark))
-     (:foreground "SkyBlue"))
+     (:foreground "SkyBlue" :extend t))
     (((class color)
       (background light))
-     (:foreground "RoyalBlue"))
+     (:foreground "RoyalBlue" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest ancient articles."
   :group 'gnus-summary)
 
@@ -582,10 +583,10 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-undownloaded
    '((((class color)
        (background light))
-      (:foreground "cyan4" :bold nil))
+      (:foreground "cyan4" :bold nil :extend t))
      (((class color) (background dark))
-      (:foreground "LightGray" :bold nil))
-     (t (:inverse-video t)))
+      (:foreground "LightGray" :bold nil :extend t))
+     (t (:inverse-video t :extend t)))
   "Face used for normal interest uncached articles."
   :group 'gnus-summary)
 
@@ -601,7 +602,7 @@ be set in `.emacs' instead."
 
 (defface gnus-summary-normal-unread
   '((t
-     ()))
+     (:extend t)))
   "Face used for normal interest unread articles."
   :group 'gnus-summary)
 
@@ -618,12 +619,12 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-read
   '((((class color)
       (background dark))
-     (:foreground "PaleGreen"))
+     (:foreground "PaleGreen" :extend t))
     (((class color)
       (background light))
-     (:foreground "DarkGreen"))
+     (:foreground "DarkGreen" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest read articles."
   :group 'gnus-summary)
 
@@ -3525,7 +3526,7 @@ You should probably use `gnus-find-method-for-group' instead."
 
 (defun gnus-group-native-p (group)
   "Say whether the group is native or not."
-  (not (string-match ":" group)))
+  (not (string-search ":" group)))
 
 (defun gnus-group-secondary-p (group)
   "Say whether the group is secondary or not."
@@ -3741,13 +3742,13 @@ just the host name."
     ;; Separate foreign select method from group name and collapse.
     ;; If method contains a server, collapse to non-domain server name,
     ;; otherwise collapse to select method.
-    (let* ((colon (string-match ":" group))
+    (let* ((colon (string-search ":" group))
 	   (server (and colon (substring group 0 colon)))
-	   (plus (and server (string-match "\\+" server))))
+	   (plus (and server (string-search "+" server))))
       (when server
 	(if plus
 	    (setq foreign (substring server (+ 1 plus)
-				     (string-match "\\." server))
+				     (string-search "." server))
 		  group (substring group (+ 1 colon)))
 	  (setq foreign server
 		group (substring group (+ 1 colon))))

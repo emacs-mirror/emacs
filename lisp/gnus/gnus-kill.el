@@ -435,7 +435,7 @@ Returns the number of articles marked as read."
 	;; The "f:+" command marks everything *but* the matches as read,
 	;; so we simply first match everything as read, and then unmark
 	;; PATTERN later.
-	(when (string-match "\\+" commands)
+	(when (string-search "+" commands)
 	  (gnus-kill "from" ".")
 	  (setq commands "m"))
 

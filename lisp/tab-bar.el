@@ -136,14 +136,13 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   ;; Replace default value with a condition that supports displaying
   ;; global-mode-string in the tab bar instead of the mode line.
   (when (and (memq 'tab-bar-format-global tab-bar-format)
-             (member '(global-mode-string ("" global-mode-string " "))
+             (member '(global-mode-string ("" global-mode-string))
                      mode-line-misc-info))
     (setf (alist-get 'global-mode-string mode-line-misc-info)
           '(("" (:eval (if (and tab-bar-mode
                                 (memq 'tab-bar-format-global
                                       tab-bar-format))
-                           "" global-mode-string))
-             " ")))))
+                           "" global-mode-string)))))))
 
 (defun tab-bar--undefine-keys ()
   "Uninstall key bindings previously bound by `tab-bar--define-keys'."
@@ -261,7 +260,9 @@ See `tab-bar-mode' for more information."
     (tab-bar-mode arg)))
 
 (defun toggle-frame-tab-bar (&optional frame)
-  "Toggle tab bar of FRAME.
+  "Toggle tab bar of the selected frame.
+When calling from Lisp, use the optional argument FRAME to toggle
+the tab bar on that frame.
 This is useful when you want to enable the tab bar individually
 on each new frame when the global `tab-bar-mode' is disabled,
 or when you want to disable the tab bar individually on each
@@ -366,6 +367,7 @@ When this is nil, you can create new tabs with \\[tab-new]."
          (force-mode-line-update))
   :group 'tab-bar
   :version "27.1")
+(make-obsolete-variable 'tab-bar-new-button-show 'tab-bar-format "28.1")
 
 (defvar tab-bar-new-button " + "
   "Button for creating a new tab.")
@@ -398,16 +400,6 @@ If nil, don't show it at all."
 
 (defvar tab-bar-forward-button " > "
   "Button for going forward in tab history.")
-
-(defcustom tab-bar-history-buttons-show t
-  "Show back and forward buttons when `tab-bar-history-mode' is enabled."
-  :type 'boolean
-  :initialize 'custom-initialize-default
-  :set (lambda (sym val)
-         (set-default sym val)
-         (force-mode-line-update))
-  :group 'tab-bar
-  :version "28.1")
 
 (defcustom tab-bar-tab-hints nil
   "Show absolute numbers on tabs in the tab bar before the tab name.
@@ -591,7 +583,10 @@ the mode line.  Replacing `tab-bar-format-tabs' with
   :version "28.1")
 
 (defun tab-bar-format-history ()
-  (when (and tab-bar-history-mode tab-bar-history-buttons-show)
+  "Show back and forward buttons when `tab-bar-history-mode' is enabled.
+You can hide these buttons by customizing `tab-bar-format' and removing
+`tab-bar-format-history' from it."
+  (when tab-bar-history-mode
     `((sep-history-back menu-item ,(tab-bar-separator) ignore)
       (history-back
        menu-item ,tab-bar-back-button tab-bar-history-back
@@ -748,7 +743,7 @@ When `tab-bar-format-global' is added to `tab-bar-format'
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
-  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
+  `((global menu-item ,(string-trim-right (format-mode-line global-mode-string)) ignore)))
 
 (defun tab-bar-format-list (format-list)
   (let ((i 0))
@@ -1081,7 +1076,8 @@ to the tab argument will be applied after all functions are called."
   "Add a new tab at the absolute position TO-INDEX.
 TO-INDEX counts from 1.  If no TO-INDEX is specified, then add
 a new tab at the position specified by `tab-bar-new-tab-to'.
-Negative TO-INDEX counts tabs from the end of the tab bar.
+Negative TO-INDEX counts tabs from the end of the tab bar,
+and -1 means the new tab will become the last one.
 Argument addressing is absolute in contrast to `tab-bar-new-tab'
 where argument addressing is relative.
 After the tab is created, the hooks in

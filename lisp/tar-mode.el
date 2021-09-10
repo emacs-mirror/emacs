@@ -962,7 +962,7 @@ return nil.  Otherwise point is returned."
          (new-buffer-file-name (expand-file-name
                                 ;; `:' is not allowed on Windows
                                 (concat tarname "!"
-                                        (if (string-match "/" name)
+                                        (if (string-search "/" name)
                                             name
                                           ;; Make sure `name' contains a /
                                           ;; so set-auto-mode doesn't try

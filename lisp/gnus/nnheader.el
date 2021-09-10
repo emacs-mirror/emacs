@@ -803,7 +803,7 @@ If FORMAT isn't a format string, it and all ARGS will be inserted
 without formatting."
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
-    (if (string-match "%" format)
+    (if (string-search "%" format)
 	(insert (apply #'format format args))
       (apply #'insert format args))
     t))

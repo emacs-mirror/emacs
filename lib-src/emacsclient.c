@@ -1401,10 +1401,8 @@ local_sockname (int s, char sockname[socknamesize], int tmpdirlen,
   /* Put the full address name into the buffer, since the caller might
      need it for diagnostics.  But don't overrun the buffer.  */
   uintmax_t uidmax = uid;
-  int emacsdirlen;
   int suffixlen = snprintf (sockname + tmpdirlen, socknamesize - tmpdirlen,
-			    "/emacs%"PRIuMAX"%n/%s", uidmax, &emacsdirlen,
-			    server_name);
+			    "/emacs%"PRIuMAX"/%s", uidmax, server_name);
   if (! (0 <= suffixlen && suffixlen < socknamesize - tmpdirlen))
     return ENAMETOOLONG;
 
@@ -1412,7 +1410,8 @@ local_sockname (int s, char sockname[socknamesize], int tmpdirlen,
      this user's directory and does not let others write to it; this
      fends off some symlink attacks.  To avoid races, keep the parent
      directory open while checking.  */
-  char *emacsdirend = sockname + tmpdirlen + emacsdirlen;
+  char *emacsdirend = sockname + tmpdirlen + suffixlen -
+    strlen(server_name) - 1;
   *emacsdirend = '\0';
   int dir = openat (AT_FDCWD, sockname,
 		    O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);

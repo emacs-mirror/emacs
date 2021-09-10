@@ -432,6 +432,15 @@
     (let ((x 2))
       (list (or (bytecomp-test-identity 'a) (setq x 3)) x))
 
+    (mapcar (lambda (b)
+              (let ((a nil))
+                (+ 0
+                   (progn
+                     (setq a b)
+                     (setq b 1)
+                     a))))
+            '(10))
+
     (let* ((x 1)
            (y (condition-case x
                   (/ 1 0)
@@ -503,6 +512,45 @@
                  (:success 'good))
                (1+ x))))
       (funcall f 3))
+
+    ;; Check `not' in cond switch (bug#49746).
+    (mapcar (lambda (x) (cond ((equal x "a") 1)
+                              ((member x '("b" "c")) 2)
+                              ((not x) 3)))
+            '("a" "b" "c" "d" nil))
+
+    ;; `let' and `let*' optimisations with body being constant or variable
+    (let* (a
+           (b (progn (setq a (cons 1 a)) 2))
+           (c (1+ b))
+           (d (list a c)))
+      d)
+    (let ((a nil))
+      (let ((b (progn (setq a (cons 1 a)) 2))
+            (c (progn (setq a (cons 3 a))))
+            (d (list a)))
+        d))
+    (let* ((_a 1)
+           (_b 2))
+      'z)
+    (let ((_a 1)
+          (_b 2))
+      'z)
+
+    ;; Check empty-list optimisations.
+    (mapcar (lambda (x) (member x nil)) '("a" 2 nil))
+    (mapcar (lambda (x) (memql x nil)) '(a 2 nil))
+    (mapcar (lambda (x) (memq x nil)) '(a nil))
+    (let ((n 0))
+      (list (mapcar (lambda (x) (member (setq n (1+ n)) nil)) '(a "nil"))
+            n))
+    (mapcar (lambda (x) (assoc x nil)) '("a" nil))
+    (mapcar (lambda (x) (assq x nil)) '(a nil))
+    (mapcar (lambda (x) (rassoc x nil)) '("a" nil))
+    (mapcar (lambda (x) (rassq x nil)) '(a nil))
+    (let ((n 0))
+      (list (mapcar (lambda (x) (assoc (setq n (1+ n)) nil)) '(a "nil"))
+            n))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

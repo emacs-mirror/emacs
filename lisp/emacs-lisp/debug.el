@@ -182,7 +182,11 @@ the debugger will not be entered."
                     (equal "initial_terminal" (terminal-name)))))
           ;; Don't let `inhibit-message' get in our way (especially important if
           ;; `non-interactive-frame' evaluated to a non-nil value.
-          (inhibit-message nil))
+          (inhibit-message nil)
+          ;; We may be entering the debugger from a context that has
+          ;; let-bound `inhibit-read-only', which means that all
+          ;; buffers would be read/write while the debugger is running.
+          (inhibit-read-only nil))
       (unless non-interactive-frame
         (message "Entering debugger..."))
       (let (debugger-value
@@ -262,16 +266,15 @@ the debugger will not be entered."
 				    (window-frame debugger-previous-window)))
 		          `((previous-window . ,debugger-previous-window))))))
 	        (setq debugger-window (selected-window))
-	        (if (eq debugger-previous-window debugger-window)
-		    (when debugger-jumping-flag
-		      ;; Try to restore previous height of debugger
-		      ;; window.
-		      (condition-case nil
-			  (window-resize
-			   debugger-window
-			   (- debugger-previous-window-height
-			      (window-total-height debugger-window)))
-		        (error nil)))
+		(when debugger-jumping-flag
+		  ;; Try to restore previous height of debugger
+		  ;; window.
+		  (condition-case nil
+		      (window-resize
+		       debugger-window
+		       (- debugger-previous-window-height
+			  (window-total-height debugger-window)))
+		    (error nil))
 		  (setq debugger-previous-window debugger-window))
 	        (message "")
 	        (let ((standard-output nil)

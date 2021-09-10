@@ -204,7 +204,7 @@ then quoting is done by a backslash, rather than a doubled delimiter."
 	  string
 	(if (eq (aref string (1- len)) ?\n)
 	    (setq string (substring string 0 (1- len))))
-	(if (string-match "\n" string)
+	(if (string-search "\n" string)
 	    (split-string string "\n")
 	  (if (and eshell-convert-numeric-arguments
 		   (string-match

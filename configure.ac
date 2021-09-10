@@ -1334,6 +1334,11 @@ if test -n "$BREW"; then
     [`$BREW --prefix texinfo 2>/dev/null`/bin$PATH_SEPARATOR$PATH])
 fi
 
+# Check MacPorts on macOS.
+if test $opsys = darwin; then
+  AC_PATH_PROG(HAVE_MACPORTS, port)
+fi
+
 ## Require makeinfo >= 4.13 (last of the 4.x series) to build the manuals.
 : ${MAKEINFO:=makeinfo}
 case `($MAKEINFO --version) 2>/dev/null` in
@@ -3792,7 +3797,7 @@ AC_DEFUN([libgccjit_dev_not_found], [
 not found.
 Please try installing libgccjit-dev or a similar package.
 If you are sure you want Emacs be compiled without ELisp native compiler,
-pass the --without-nativecomp option to configure.])])
+pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_broken], [
   AC_MSG_ERROR([The installed libgccjit failed to compile and run a test program using
@@ -3807,24 +3812,40 @@ source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])])
 
 HAVE_NATIVE_COMP=no
-LIBGCCJIT_LIB=
+LIBGCCJIT_LIBS=
+LIBGCCJIT_CFLAGS=
 if test "${with_native_compilation}" != "no"; then
     if test "${HAVE_PDUMPER}" = no; then
-       AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
+       AC_MSG_ERROR(['--with-native-compilation' requires '--with-dumping=pdumper'])
     fi
     if test "${HAVE_ZLIB}" = no; then
-       AC_MSG_ERROR(['--with-nativecomp' requires zlib])
+       AC_MSG_ERROR(['--with-native-compilation' requires zlib])
     fi
 
     # Ensure libgccjit installed by Homebrew can be found.
     if test -n "$BREW"; then
-      BREW_LIBGCCJIT_PREFIX=`$BREW --prefix --installed libgccjit 2>/dev/null`
-      if test "$BREW_LIBGCCJIT_PREFIX"; then
-        brew_libdir=`find ${BREW_LIBGCCJIT_PREFIX}/ -name \*.so \
-                     | sed -e '1!d;s|/[[^/]]*\.so$||'`
-        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_PREFIX}/include"
-        LDFLAGS="$LDFLAGS -L${brew_libdir} -I${BREW_LIBGCCJIT_PREFIX}/include"
+      if test -n "`$BREW --prefix --installed libgccjit 2>/dev/null`"; then
+        BREW_LIBGCCJIT_INCLUDE=$(dirname $($BREW ls -v libgccjit | \
+                                              grep libgccjit.h))
+        BREW_LIBGCCJIT_LIB=$(dirname $($BREW ls -v libgccjit| \
+                                          grep libgccjit.so\$))
+        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_INCLUDE}"
+        LDFLAGS="$LDFLAGS -L${BREW_LIBGCCJIT_LIB}"
       fi
+    fi
+
+    # Ensure libgccjit installed by MacPorts can be found.
+    if test -n "$HAVE_MACPORTS"; then
+      # Determine which gcc version has been installed (gcc11, for
+      # instance).
+      PORT_PACKAGE=$(port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
+                          awk '{ print $1; }')
+      MACPORTS_LIBGCCJIT_INCLUDE=$(dirname $(port contents $PORT_PACKAGE | \
+                                           grep libgccjit.h))
+      MACPORTS_LIBGCCJIT_LIB=$(dirname $(port contents $PORT_PACKAGE | \
+                                              grep libgccjit.dylib))
+      CFLAGS="$CFLAGS -I${MACPORTS_LIBGCCJIT_INCLUDE}"
+      LDFLAGS="$LDFLAGS -L${MACPORTS_LIBGCCJIT_LIB}"
     fi
 
     # Check if libgccjit is available.
@@ -3841,17 +3862,24 @@ if test "${with_native_compilation}" != "no"; then
       mingw32) ;;
       # OpenBSD doesn't have libdl, all the functions are in libc
       netbsd|openbsd)
-        LIBGCCJIT_LIB="-lgccjit" ;;
+        LIBGCCJIT_LIBS="-lgccjit" ;;
       *)
-        LIBGCCJIT_LIB="-lgccjit -ldl" ;;
+        LIBGCCJIT_LIBS="-lgccjit -ldl" ;;
     esac
     NEED_DYNLIB=yes
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if native compiler is available.])
+
+    # Ensure libgccjit installed by MacPorts can be found.
+    if test -n "$HAVE_MACPORTS"; then
+      LIBGCCJIT_CFLAGS="$LIBGCCJIT_CFLAGS  -I${MACPORTS_LIBGCCJIT_INCLUDE}"
+      LIBGCCJIT_LIBS="-L${MACPORTS_LIBGCCJIT_LIB} $LIBGCCJIT_LIBS"
+    fi
 fi
 AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
   [System extension for native compiled elisp])
 AC_SUBST(HAVE_NATIVE_COMP)
-AC_SUBST(LIBGCCJIT_LIB)
+AC_SUBST(LIBGCCJIT_CFLAGS)
+AC_SUBST(LIBGCCJIT_LIBS)
 
 DYNLIB_OBJ=
 if test "${NEED_DYNLIB}" = yes; then
@@ -4884,7 +4912,7 @@ emacs_broken_SIGIO=no
 
 case $opsys in
   dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
-  hpux* | nacl | openbsd | solaris | unixware )
+  hpux* | nacl | solaris | unixware )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -5639,7 +5667,7 @@ gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
-# timer_getoverrun needs the same libarary as timer_settime
+# timer_getoverrun needs the same library as timer_settime
 OLD_LIBS=$LIBS
 LIBS="$LIB_TIMER_TIME $LIBS"
 AC_CHECK_FUNCS(timer_getoverrun)
@@ -5660,7 +5688,8 @@ case "$opsys" in
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
      if test "$NS_IMPL_COCOA" = "yes"; then
-        libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon -framework IOSurface"
+        libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon \
+                    -framework IOSurface -framework QuartzCore"
      fi
    else
      libs_nsgui=

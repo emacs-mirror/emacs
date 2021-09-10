@@ -1532,6 +1532,7 @@ with your script for an edit-interpret-debug cycle."
   (setq-local add-log-current-defun-function #'sh-current-defun-name)
   (add-hook 'completion-at-point-functions
             #'sh-completion-at-point-function nil t)
+  (setq-local outline-regexp "###")
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell
@@ -1774,7 +1775,7 @@ Does not preserve point."
                      (goto-char p)
                      nil))))
         (while
-            (progn (skip-syntax-backward "w_'")
+            (progn (skip-syntax-backward ".w_'")
                    (or (not (zerop (skip-syntax-backward "\\")))
                        (when (eq ?\\ (char-before (1- (point))))
                          (let ((p (point)))
@@ -2672,7 +2673,7 @@ t means to return a list of all possible completions of STRING.
 	   (or sh-shell-variables-initialized
 	       (sh-shell-initialize-variables))
 	   (nconc (mapcar (lambda (var)
-                            (substring var 0 (string-match "=" var)))
+                            (substring var 0 (string-search "=" var)))
 			  process-environment)
 		  sh-shell-variables))))
     (complete-with-action code vars string predicate)))

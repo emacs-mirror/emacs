@@ -56,7 +56,7 @@
     (set-buffer-multibyte nil)
     (insert (encode-coding-string "あ" 'euc-jp) "\xd" "\n")
     (decode-coding-region (point-min) (point-max) 'euc-jp-dos)
-    (should-not (string-match-p "\^M" (buffer-string)))))
+    (should-not (string-search "\^M" (buffer-string)))))
 
 ;; Return the contents (specified by CONTENT-TYPE; ascii, latin, or
 ;; binary) of a test file.

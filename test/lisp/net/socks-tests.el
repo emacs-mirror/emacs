@@ -95,7 +95,7 @@
       ;; From fedora.org: 2605:bc80:3010:600:dead:beef:cafe:fed9
       ;; 5004 ~~> Version Status (OK) NOOP Addr-Type (4 -> IPv6)
       (socks-filter proc "\5\0\0\4\x26\x05\xbc\x80\x30\x10\x00\x60")
-      (ert-info ("State still waiting and response emtpy")
+      (ert-info ("State still waiting and response empty")
         (should (eq (process-get proc 'socks-state) socks-state-waiting))
         (should-not (process-get proc 'socks-response)))
       (ert-info ("Scratch field holds partial payload of pending msg")

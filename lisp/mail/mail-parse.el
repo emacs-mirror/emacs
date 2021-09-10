@@ -71,6 +71,45 @@
 (defalias 'mail-decode-encoded-address-region 'rfc2047-decode-address-region)
 (defalias 'mail-decode-encoded-address-string 'rfc2047-decode-address-string)
 
+(defun mail-header-parse-addresses-lax (string)
+  "Parse STRING as a comma-separated list of mail addresses.
+The return value is a list with mail/name pairs."
+  (delq nil
+        (mapcar (lambda (elem)
+                  (or (mail-header-parse-address elem)
+                      (mail-header-parse-address-lax elem)))
+                (mail-header-parse-addresses string t))))
+
+(defun mail-header-parse-address-lax (string)
+  "Parse STRING as a mail address.
+Returns a mail/name pair.
+
+This function will first try to parse STRING as a
+standards-compliant address string, and if that fails, try to use
+heuristics to determine the email address and the name in the
+string."
+  (with-temp-buffer
+    (insert (string-clean-whitespace string))
+    ;; Find the bit with the @ and guess that that's the mail.
+    (goto-char (point-max))
+    (when (search-backward "@" nil t)
+      (if (re-search-backward " " nil t)
+          (forward-char 1)
+        (goto-char (point-min)))
+      (let* ((start (point))
+             (mail (buffer-substring
+                    start (or (re-search-forward " " nil t)
+                              (goto-char (point-max))))))
+        (delete-region start (point))
+        ;; We've now removed the email bit, so the rest of the stuff
+        ;; has to be the name.
+        (cons (string-trim mail "[<]+" "[>]+")
+              (let ((name (string-trim (buffer-string)
+                                       "[ \t\n\r(]+" "[ \t\n\r)]+")))
+                (if (length= name 0)
+                    nil
+                  name)))))))
+
 (provide 'mail-parse)
 
 ;;; mail-parse.el ends here

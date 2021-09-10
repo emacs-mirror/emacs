@@ -366,20 +366,24 @@ This menu is for changing the default face within the window's buffer.
 @xref{Text Scale}.
 @end table
 
-  Some graphical applications use @kbd{mouse-3} for a mode-specific
-menu.  If you prefer @kbd{mouse-3} in Emacs to bring up such a menu
-instead of running the @code{mouse-save-then-kill} command, rebind
-@kbd{mouse-3} by adding the following line to your init file
-(@pxref{Init Rebinding}):
-
-@smallexample
-(global-set-key [mouse-3]
-  '(menu-item "Menu Bar" ignore
-    :filter (lambda (_)
-              (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
-                  (mouse-menu-bar-map)
-                (mouse-menu-major-mode-map)))))
-@end smallexample
+@cindex context menu
+@findex context-menu-mode
+@vindex context-menu-functions
+@kindex Down-mouse-3
+@kindex S-F10
+  Many GUI applications use @kbd{mouse-3} to display @dfn{context
+menus}: menus that provide access to various pertinent settings and
+actions for the location and context of the mouse click.  If you
+prefer this in Emacs over the default function of @kbd{mouse-3}, which
+is bound to the @code{mouse-save-then-kill} command (@pxref{Mouse
+Commands}), you can enable the minor mode @code{context-menu-mode}.
+Then Emacs will show context menus when you click @kbd{mouse-3}.  The
+exact contents of these context menus depends on the current major
+mode and the buffer contents around the place where you click the
+mouse.  To customize the contents of the context menu, you can use the
+variable @code{context-menu-functions} (@pxref{Major Mode
+Conventions,,, elisp, The Emacs Lisp Reference Manual}).
+You can also invoke the context menu by pressing @kbd{S-@key{F10}}.
 
 @node Mode Line Mouse
 @section Mode Line Mouse Commands
@@ -448,7 +452,14 @@ buffer to select:
 @item C-x 5 2
 @kindex C-x 5 2
 @findex make-frame-command
-Create a new frame (@code{make-frame-command}).
+Create a new frame using the default frame parameters
+(@code{make-frame-command}).
+
+@item C-x 5 c
+@kindex C-x 5 c
+@findex clone-frame
+Create a new frame using the parameters of the current frame
+(@code{clone-frame}).
 
 @item C-x 5 b @var{bufname} @key{RET}
 Select buffer @var{bufname} in another frame.  This runs
@@ -480,9 +491,10 @@ frame.  This runs @code{find-file-read-only-other-frame}.
 @xref{Visiting}.
 
 @item C-x 5 5
-A more general prefix command affects the buffer displayed by the next
-command invoked immediately after this prefix command.  It requests
-the buffer of the next command to be displayed in another frame.
+A more general prefix command that affects the buffer displayed by the
+next command invoked immediately after this prefix command
+(@code{other-frame-prefix}).  It requests the buffer of the next
+command to be displayed in another frame.
 @end table
 
   You can control the appearance and behavior of the newly-created
@@ -1217,7 +1229,9 @@ the use of menu bars at startup, customize the variable
 terminals, where this makes one additional line available for text.
 If the menu bar is off, you can still pop up a menu of its contents
 with @kbd{C-mouse-3} on a display which supports pop-up menus.
-@xref{Menu Mouse Clicks}.
+Or you can enable @code{context-menu-mode} and customize the variable
+@code{context-menu-functions} to pop up a context menu with
+@kbd{mouse-3}.  @xref{Menu Mouse Clicks}.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
 menu bar.  @xref{X Resources}, for how to customize the menu bar

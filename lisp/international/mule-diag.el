@@ -862,15 +862,28 @@ The IGNORED argument is ignored."
 
 (defvar mule--print-opened)
 
+(defun mule--kbd-at (point)
+  (save-excursion
+    (goto-char point)
+    (elt
+     (kbd (buffer-substring
+           (point)
+           (progn
+             ;; Might be a space, in which case we want it.
+             (if (zerop (skip-chars-forward "^ "))
+                 (1+ (point))
+               (point)))))
+     0)))
+
 (defun print-fontset-element (val)
   ;; VAL has this format:
   ;;  ((REQUESTED-FONT-NAME OPENED-FONT-NAME ...) ...)
   ;; CHAR RANGE is already inserted.  Get character codes from
   ;; the current line.
   (beginning-of-line)
-  (let ((from (following-char))
+  (let ((from (mule--kbd-at (point)))
 	(to (if (looking-at "[^.]*[.]* ")
-		(char-after (match-end 0)))))
+		(mule--kbd-at (match-end 0)))))
     (if (re-search-forward "[ \t]*$" nil t)
 	(delete-region (match-beginning 0) (match-end 0)))
 
@@ -905,13 +918,13 @@ The IGNORED argument is ignored."
 		  (setq family "*-*")
 		(if (symbolp family)
 		    (setq family (symbol-name family)))
-		(or (string-match "-" family)
+		(or (string-search "-" family)
 		    (setq family (concat "*-" family))))
 	      (if (not registry)
 		  (setq registry "*-*")
 		(if (symbolp registry)
 		    (setq registry (symbol-name registry)))
-		(or (string-match "-" registry)
+		(or (string-search "-" registry)
 		    (= (aref registry (1- (length registry))) ?*)
 		    (setq registry (concat registry "*"))))
 	      (insert (format"\n    -%s-%s-%s-%s-%s-*-*-*-*-*-*-%s"

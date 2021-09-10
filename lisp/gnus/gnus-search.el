@@ -572,7 +572,7 @@ nil.
 If VALUE is a relative time, interpret it as relative to
 REL-DATE, or (current-time) if REL-DATE is nil."
   ;; Time parsing doesn't seem to work with slashes.
-  (let ((value (replace-regexp-in-string "/" "-" value))
+  (let ((value (string-replace "/" "-" value))
 	(now (append '(0 0 0)
 		     (seq-subseq (decode-time (or rel-date
 						  (current-time)))
@@ -980,7 +980,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 
 ;; Most search engines use implicit ANDs.
 (cl-defmethod gnus-search-transform-expression ((_ gnus-search-engine)
-						(_expr (eql and)))
+						(_expr (eql 'and)))
   nil)
 
 ;; Most search engines use explicit infixed ORs.
@@ -1358,6 +1358,7 @@ Returns a list of [group article score] vectors."
 						server query &optional groups)
   (let ((prefix (or (slot-value engine 'remove-prefix)
                     ""))
+        (groups (mapcar #'gnus-group-short-name groups))
 	artlist article group)
     (goto-char (point-min))
     ;; Prep prefix, we want to at least be removing the root
@@ -1384,7 +1385,6 @@ Returns a list of [group article score] vectors."
                    nil t)
 	          nil t)
 	         nil t))
-          (setq group (gnus-group-full-name group server))
           (setq article (file-name-nondirectory f-name)
                 article
                 ;; TODO: Provide a cleaner way of producing final
@@ -1392,7 +1392,7 @@ Returns a list of [group article score] vectors."
                 (if (string-match-p "\\`[[:digit:]]+\\'" article)
 		    (string-to-number article)
 		  (nnmaildir-base-name-to-article-number
-		   (substring article 0 (string-match ":" article))
+		   (substring article 0 (string-search ":" article))
 		   group (string-remove-prefix "nnmaildir:" server))))
           (when (and (numberp article)
                      (or (null groups)
@@ -1404,10 +1404,12 @@ Returns a list of [group article score] vectors."
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
     ;; Munge into the list of vectors expected by nnselect.
     (mapcar (pcase-lambda (`(,_ ,article ,group ,score))
-              (vector group article
-                      (if (numberp score)
-			  score
-		        (string-to-number score))))
+              (vector
+               (gnus-group-full-name group server)
+               article
+               (if (numberp score)
+		   score
+		 (string-to-number score))))
             artlist)))
 
 (cl-defmethod gnus-search-indexed-extract ((_engine gnus-search-indexed))
@@ -1667,7 +1669,7 @@ cross our fingers for the rest of it."
 Mairix negation requires a \"~\" preceding string search terms,
 and \"-\" before marks."
   (let ((next (gnus-search-transform-expression engine (cadr expr))))
-    (replace-regexp-in-string
+    (string-replace
      ":"
      (if (eql (caadr expr) 'mark)
 	 ":-"
@@ -1861,9 +1863,9 @@ Assume \"size\" key is equal to \"larger\"."
 				  group
 				(if (file-directory-p
 				     (setq group
-					   (replace-regexp-in-string
-					    "\\." "/"
-					    group nil t)))
+					   (string-replace
+					    "." "/"
+					    group)))
 				    group))))))
 		     (unless group
 		       (signal 'gnus-search-config-error
@@ -2134,7 +2136,7 @@ article came from is also searched."
 		  ;; If the value contains spaces, make sure it's
 		  ;; quoted.
 		  (when (and (memql status '(exact finished))
-			     (or (string-match-p " " str)
+			     (or (string-search " " str)
 				 in-string))
 		    (unless (looking-at-p "\\s\"")
 		      (insert "\""))

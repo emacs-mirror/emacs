@@ -402,11 +402,12 @@ displayed in a window:
              (appt-display-message string-list min-list))
         (when appt-display-mode-line
           (setq appt-mode-string
-                (concat " " (propertize
-                             (appt-mode-line (mapcar #'number-to-string
-                                                     min-list)
-                                             t)
-                             'face 'mode-line-emphasis))))
+                (concat (propertize
+                         (appt-mode-line (mapcar #'number-to-string
+                                                 min-list)
+                                         t)
+                         'face 'mode-line-emphasis)
+                        " ")))
         ;; Reset count to 0 in case we display another appt on the next cycle.
         (setq appt-display-count (if (eq '(0) min-list) 0
                                    (1+ prev-appt-display-count))))

@@ -1174,7 +1174,7 @@ string_make_multibyte (Lisp_Object string)
 
 
 /* Convert STRING (if unibyte) to a multibyte string without changing
-   the number of characters.  Characters 0200 trough 0237 are
+   the number of characters.  Characters 0200 through 0237 are
    converted to eight-bit characters. */
 
 Lisp_Object
@@ -1755,7 +1755,8 @@ DEFUN ("assoc", Fassoc, Sassoc, 2, 3, 0,
        doc: /* Return non-nil if KEY is equal to the car of an element of ALIST.
 The value is actually the first element of ALIST whose car equals KEY.
 
-Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
+Equality is defined by the function TESTFN, defaulting to `equal'.
+TESTFN is called with 2 arguments: a car of an alist element and KEY.  */)
      (Lisp_Object key, Lisp_Object alist, Lisp_Object testfn)
 {
   if (eq_comparable_value (key) && NILP (testfn))
@@ -5767,16 +5768,6 @@ characters.  */ )
     }
 
   return list3 (make_int (lines), make_int (longest), make_float (mean));
-}
-
-static bool
-string_ascii_p (Lisp_Object string)
-{
-  ptrdiff_t nbytes = SBYTES (string);
-  for (ptrdiff_t i = 0; i < nbytes; i++)
-    if (SREF (string, i) > 127)
-      return false;
-  return true;
 }
 
 DEFUN ("string-search", Fstring_search, Sstring_search, 2, 3, 0,

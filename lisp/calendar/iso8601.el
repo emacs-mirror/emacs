@@ -57,7 +57,7 @@
 (defun iso8601--concat-regexps (regexps)
   (mapconcat (lambda (regexp)
                (concat "\\(?:"
-                       (replace-regexp-in-string "(" "(?:" regexp)
+                       (string-replace "(" "(?:" regexp)
                        "\\)"))
              regexps "\\|"))
 
@@ -92,13 +92,13 @@
   "\\(Z\\|\\([+-]\\)\\([0-9][0-9]\\):?\\([0-9][0-9]\\)?\\)")
 
 (defconst iso8601--full-time-match
-  (concat "\\(" (replace-regexp-in-string "(" "(?:" iso8601--time-match) "\\)"
+  (concat "\\(" (string-replace "(" "(?:" iso8601--time-match) "\\)"
           "\\(" iso8601--zone-match "\\)?"))
 
 (defconst iso8601--combined-match
   (concat "\\(" iso8601--date-match "\\)"
           "\\(?:T\\("
-          (replace-regexp-in-string "(" "(?:" iso8601--time-match)
+          (string-replace "(" "(?:" iso8601--time-match)
           "\\)"
           "\\(" iso8601--zone-match "\\)?\\)?"))
 

@@ -51,6 +51,7 @@
 (autoload 'article-emphasize "gnus-art")
 (autoload 'gnus-eval-format "gnus-spec")
 (autoload 'mail-content-type-get "mail-parse")
+(autoload 'mail-decode-encoded-word-region "mail-parse")
 (autoload 'mail-decode-encoded-word-string "mail-parse")
 (autoload 'mail-header-parse-content-type "mail-parse")
 (autoload 'mail-header-strip-cte "mail-parse")
@@ -61,7 +62,6 @@
 (autoload 'mm-decode-body "mm-bodies")
 (autoload 'mm-uu-dissect "mm-uu")
 (autoload 'mml-unsecure-message "mml-sec")
-(autoload 'rfc2047-decode-region "rfc2047")
 (autoload 'widget-convert-button "wid-edit")
 
 
@@ -496,7 +496,7 @@ decoding the same message multiple times."
   "Decode RFC2047 encoded message header fields."
   (when mh-decode-mime-flag
     (let ((buffer-read-only nil))
-      (rfc2047-decode-region (point-min) (mh-mail-header-end)))))
+      (mail-decode-encoded-word-region (point-min) (mh-mail-header-end)))))
 
 ;;;###mh-autoload
 (defun mh-decode-message-subject ()
@@ -504,8 +504,9 @@ decoding the same message multiple times."
   (when mh-decode-mime-flag
     (save-excursion
       (let ((buffer-read-only nil))
-        (rfc2047-decode-region (progn (mh-goto-header-field "Subject:") (point))
-                               (progn (mh-header-field-end) (point)))))))
+        (mail-decode-encoded-word-region
+         (progn (mh-goto-header-field "Subject:") (point))
+         (progn (mh-header-field-end) (point)))))))
 
 ;;;###mh-autoload
 (defun mh-mime-display (&optional pre-dissected-handles)

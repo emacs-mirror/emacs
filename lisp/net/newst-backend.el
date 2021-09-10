@@ -610,7 +610,7 @@ This does NOT start the retrieval timers."
   (interactive)
   (let ((filename (read-string "Filename: "
                                (concat feed ":_"
-                                       (replace-regexp-in-string
+                                       (string-replace
                                         " " "_" (newsticker--title item))
                                        ".html"))))
     (with-temp-buffer

@@ -357,7 +357,7 @@ is output until the first non-zero unit is encountered."
                            (format " %s%s" name
                                    (if (= num 1) "" "s"))))
                  t t string))))))
-  (replace-regexp-in-string "%%" "%" string))
+  (string-replace "%%" "%" string))
 
 (defvar seconds-to-string
   (list (list 1 "ms" 0.001)

@@ -208,8 +208,8 @@ Optional argument GROUP defaults to the string \"Desktop Entry\"."
   "Partition VALUE into elements delimited by unescaped semicolons."
   (let (res)
     (setq value (string-trim-left value))
-    (dolist (x (split-string (replace-regexp-in-string "\\\\;" "\0" value) ";"))
-      (push (replace-regexp-in-string "\0" ";" x) res))
+    (dolist (x (split-string (string-replace "\\;" "\0" value) ";"))
+      (push (string-replace "\0" ";" x) res))
     (when (null (string-match-p "[^[:blank:]]" (car res))) (pop res))
     (nreverse res)))
 

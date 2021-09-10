@@ -93,6 +93,14 @@ name to be bound to the rest of SEQUENCE."
   (declare (indent 2) (debug (sexp form body)))
   `(pcase-let ((,(seq--make-pcase-patterns args) ,sequence))
      ,@body))
+
+(defmacro seq-setq (args sequence)
+  "Assign to the variables in ARGS the elements of SEQUENCE.
+
+ARGS can also include the `&rest' marker followed by a variable
+name to be bound to the rest of SEQUENCE."
+  (declare (debug (sexp form)))
+  `(pcase-setq ,(seq--make-pcase-patterns args) ,sequence))
 
 
 ;;; Basic seq functions that have to be implemented by new sequence types
@@ -394,14 +402,15 @@ found or not."
         (setq count (+ 1 count))))
     count))
 
-(cl-defgeneric seq-contains (sequence elt &optional testfn)
-  "Return the first element in SEQUENCE that is equal to ELT.
+(with-suppressed-warnings ((obsolete seq-contains))
+  (cl-defgeneric seq-contains (sequence elt &optional testfn)
+    "Return the first element in SEQUENCE that is equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
-  (declare (obsolete seq-contains-p "27.1"))
-  (seq-some (lambda (e)
-              (when (funcall (or testfn #'equal) elt e)
-                e))
-            sequence))
+    (declare (obsolete seq-contains-p "27.1"))
+    (seq-some (lambda (e)
+                (when (funcall (or testfn #'equal) elt e)
+                  e))
+              sequence)))
 
 (cl-defgeneric seq-contains-p (sequence elt &optional testfn)
   "Return non-nil if SEQUENCE contains an element equal to ELT.

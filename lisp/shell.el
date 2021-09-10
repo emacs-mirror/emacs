@@ -1199,7 +1199,7 @@ Returns t if successful."
     (if data
 	(prog2 (unless (window-minibuffer-p)
 		 (message "Completing command name..."))
-	    (apply #'completion-in-region data)))))
+            (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))))
 
 (defun shell-command-completion ()
   "Return the completion data for the command at point, if any."
@@ -1252,7 +1252,7 @@ Returns t if successful."
     (list
      start end
      (lambda (string pred action)
-       (if (string-match "/" string)
+       (if (string-search "/" string)
            (completion-file-name-table string pred action)
          (complete-with-action action completions string pred)))
      :exit-function
@@ -1314,7 +1314,7 @@ Returns non-nil if successful."
     (if data
 	(prog2 (unless (window-minibuffer-p)
 		 (message "Completing variable name..."))
-	    (apply #'completion-in-region data)))))
+	    (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))))
 
 
 (defun shell-environment-variable-completion ()
@@ -1328,7 +1328,7 @@ Returns non-nil if successful."
                 (looking-at "\\$?[({]*")
                 (match-end 0)))
              (variables (mapcar (lambda (x)
-                                  (substring x 0 (string-match "=" x)))
+                                  (substring x 0 (string-search "=" x)))
                                 process-environment))
              (suffix (pcase (char-before start) (?\{ "}") (?\( ")") (_ ""))))
         (list start end variables

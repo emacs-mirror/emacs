@@ -417,22 +417,6 @@
   (should-error (cl-nth-value -1 (cl-values 2 3)) :type 'args-out-of-range)
   (should (string= (cl-nth-value 0 "only lists") "only lists")))
 
-(ert-deftest cl-test-caaar ()
-  (should (null (cl-caaar '())))
-  (should (null (cl-caaar '(() (2)))))
-  (should (null (cl-caaar '((() (2)) (a b)))))
-  (should-error (cl-caaar '(1 2)) :type 'wrong-type-argument)
-  (should-error (cl-caaar '((1 2))) :type 'wrong-type-argument)
-  (should (=  1 (cl-caaar '(((1 2) (3 4))))))
-  (should (null (cl-caaar '((() (3 4)))))))
-
-(ert-deftest cl-test-caadr ()
-  (should (null (cl-caadr '())))
-  (should (null (cl-caadr '(1))))
-  (should-error (cl-caadr '(1 2)) :type 'wrong-type-argument)
-  (should (= 2 (cl-caadr '(1 (2 3)))))
-  (should (equal '((2) (3)) (cl-caadr '((1) (((2) (3))) (4))))))
-
 (ert-deftest cl-test-ldiff ()
   (let ((l '(1 2 3)))
     (should (null (cl-ldiff '() '())))

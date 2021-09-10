@@ -974,8 +974,8 @@ Return non-nil if it is."
                    (not (looking-at (format ".+  .+  <%s>"
                                             (regexp-quote mail))))
                    (looking-at ".+  \\(.+  <.+>\\) *\\((tiny change)\\)?"))
-          (let ((author (replace-regexp-in-string "  " " "
-                                                  (match-string 1))))
+          (let ((author (string-replace "  " " "
+                                        (match-string 1))))
             (unless (and log-edit-author
                          (string-match (regexp-quote author)
                                        (car log-edit-author)))

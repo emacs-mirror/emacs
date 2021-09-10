@@ -1538,6 +1538,14 @@ cannot represent in Unicode.
 
 *** Performance
 
+**** Make the implementation of markers more efficient
+Markers are implemented as a non-sorted singly linked list of markers.
+This makes them scale badly when thousands of markers are created in a
+buffer for some purpose, because some low-level primitives in Emacs
+traverse the markers' list (e.g., when converting between character
+and byte positions), and also because searching for a marker (e.g.,
+with 'buffer-has-markers-at') becomes very slow.
+
 **** Explore whether overlay-recenter can cure overlays performance problems
 
 **** Cache schemas.  Need to have list of files and mtimes

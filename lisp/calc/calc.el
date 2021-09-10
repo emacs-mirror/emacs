@@ -139,6 +139,7 @@
 ;;; Code:
 
 (require 'calc-macs)
+(require 'rect)
 
 ;; Declare functions which are defined elsewhere.
 (declare-function calc-set-language "calc-lang" (lang &optional option no-refresh))
@@ -2126,7 +2127,7 @@ the United States."
 	    (goto-char (point-max))
 	    (cond ((null prefix) (insert "     "))
 		  ((and (> (length prefix) 4)
-			(string-match " " prefix 4))
+			(string-search " " prefix 4))
 		   (insert (substring prefix 0 4) " "))
 		  (t (insert (format "%4s " prefix))))
 	    (insert fval "\n")
@@ -2469,7 +2470,7 @@ the United States."
 	      (calc-minibuffer-contains
 	       "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9]+\\.?0*[@oh] *\\)?\\([0-9]+\\.?0*['m] *\\)?[0-9]*\\(\\.?[0-9]*\\(e[-+]?[0-3]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?\\)?\\|[0-9]:\\([0-9]+:\\)?[0-9]*\\)?[\"s]?\\'"))
 	  (if (and (memq last-command-event '(?@ ?o ?h ?\' ?m))
-		   (string-match " " calc-hms-format))
+		   (string-search " " calc-hms-format))
 	      (insert " "))
 	(if (and (memq last-command '(calcDigit-start calcDigit-key))
 		 (eq last-command-event ?.))
@@ -3059,7 +3060,7 @@ the United States."
 (defun calc-count-lines (s)
   (let ((pos 0)
 	(num 1))
-    (while (setq pos (string-match "\n" s pos))
+    (while (setq pos (string-search "\n" s pos))
       (setq pos (1+ pos)
 	    num (1+ num)))
     num))
@@ -3388,7 +3389,9 @@ and all digits are kept, regardless of Calc's current precision."
   "Parse the region as a vector of numbers and push it on the Calculator stack."
   (interactive "r\nP")
   (require 'calc-ext)
-  (calc-do-grab-region top bot arg))
+  (if rectangle-mark-mode
+      (calc-do-grab-rectangle top bot arg)
+    (calc-do-grab-region top bot arg)))
 
 ;;;###autoload
 (defun calc-grab-rectangle (top bot arg)
@@ -3397,12 +3400,14 @@ and all digits are kept, regardless of Calc's current precision."
   (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg))
 
+;;;###autoload
 (defun calc-grab-sum-down (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its columns."
   (interactive "r\nP")
   (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg 'calcFunc-reduced))
 
+;;;###autoload
 (defun calc-grab-sum-across (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its rows."
   (interactive "r\nP")

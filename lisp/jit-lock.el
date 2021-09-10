@@ -150,7 +150,10 @@ If 0, then fontification is only deferred while there is input pending."
 (defvar jit-lock-functions nil
   "Special hook run to do the actual fontification.
 The functions are called with two arguments:
-the START and END of the region to fontify.")
+the START and END of the region to fontify.
+Each function can return a list of the form (jit-lock-bounds BEG . END),
+to indicate the bounds of the region it actually fontified;
+JIT font-lock will use this information to optimize redisplay cycles.")
 
 (defvar-local jit-lock-context-unfontify-pos nil
   "Consider text after this position as contextually unfontified.
@@ -332,7 +335,10 @@ like `debug-on-error' and Edebug can be used."
   "Register FUN as a fontification function to be called in this buffer.
 FUN will be called with two arguments START and END indicating the region
 that needs to be (re)fontified.
-If non-nil, CONTEXTUAL means that a contextual fontification would be useful."
+If non-nil, CONTEXTUAL means that a contextual fontification would be useful.
+FUN can return a list of the form (jit-lock-bounds BEG . END),
+to indicate the bounds of the region it actually fontified; JIT
+font-lock will use this information to optimize redisplay cycles."
   (add-hook 'jit-lock-functions fun nil t)
   (when (and contextual jit-lock-contextually)
     (setq-local jit-lock-contextually t))

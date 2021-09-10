@@ -137,10 +137,9 @@ For more details, see Info node `(emacs)ls in Lisp'."
                  (const :tag "Do not use --dired" nil)
                  (other :tag "Always use --dired" t)))
 
-(defcustom dired-chmod-program "chmod"
-  "Name of chmod command (usually `chmod')."
-  :group 'dired
-  :type 'file)
+(defvar dired-chmod-program "chmod"
+  "Name of chmod command (usually `chmod').")
+(make-obsolete-variable 'dired-chmod-program nil "28.1")
 
 (defcustom dired-touch-program "touch"
   "Name of touch command (usually `touch')."
@@ -1587,8 +1586,8 @@ see `dired-use-ls-dired' for more details.")
       ;; because newlines in dirnames are uncommon, and people may
       ;; have gotten used to seeing unescaped "\" in the headers.
       ;; Note: adjust dired-build-subdir-alist if you change this.
-      (setq dir (replace-regexp-in-string "\\\\" "\\\\" dir nil t)
-            dir (replace-regexp-in-string "\n" "\\n" dir nil t)))
+      (setq dir (string-replace "\\" "\\\\" dir)
+            dir (string-replace "\n" "\\n" dir)))
     ;; If we used --dired and it worked, the lines are already indented.
     ;; Otherwise, indent them.
     (unless (save-excursion
@@ -2194,6 +2193,21 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ["Delete Image Tag..." image-dired-delete-tag
      :help "Delete image tag from current or marked files"]))
 
+(defun dired-context-menu (menu)
+  (when (mouse-posn-property (event-start last-input-event) 'dired-filename)
+    (define-key menu [dired-separator] menu-bar-separator)
+    (let ((easy-menu (make-sparse-keymap "Immediate")))
+      (easy-menu-define nil easy-menu nil
+        '("Immediate"
+          ["Find This File" dired-mouse-find-file
+           :help "Edit file at mouse click"]
+          ["Find in Other Window" dired-mouse-find-file-other-window
+           :help "Edit file at mouse click in other window"]))
+      (dolist (item (reverse (lookup-key easy-menu [menu-bar immediate])))
+        (when (consp item)
+          (define-key menu (vector (car item)) (cdr item))))))
+  menu)
+
 
 ;;; Dired mode
 
@@ -2293,6 +2307,7 @@ Keybindings:
                 (append dired-dnd-protocol-alist dnd-protocol-alist)))
   (add-hook 'file-name-at-point-functions #'dired-file-name-at-point nil t)
   (add-hook 'isearch-mode-hook #'dired-isearch-filenames-setup nil t)
+  (add-hook 'context-menu-functions 'dired-context-menu 5 t)
   (run-mode-hooks 'dired-mode-hook))
 
 
@@ -2872,7 +2887,7 @@ dired-buffers."
        ((null (buffer-name buf))
 	;; Buffer is killed - clean up:
 	(setq dired-buffers (delq elt dired-buffers)))
-       ((file-in-directory-p (car elt) dir)
+       ((dired-in-this-tree-p (car elt) dir)
 	(with-current-buffer buf
           (when (and (or subdirs
                          (assoc dir dired-subdir-alist))
@@ -2909,7 +2924,7 @@ dired-buffers."
 		       (if (= (aref pattern (1+ set-start)) ?^)
 			   (+ 3 set-start)
 			 (+ 2 set-start)))
-		      (set-end (string-match-p "]" pattern set-cont))
+		      (set-end (string-search "]" pattern set-cont))
 		      (set (substring pattern set-start (1+ set-end))))
 		 (setq regexp (concat regexp set))
 		 (setq matched-in-pattern (1+ set-end))))
@@ -2947,7 +2962,7 @@ dired-buffers."
   ;;"Is FILE part of the directory tree starting at DIR?"
   (let (case-fold-search)
     (string-match-p (concat "^" (regexp-quote dir)) file)))
-(make-obsolete 'dired-in-this-tree-p 'file-in-directory-p "28.1")
+
 (define-obsolete-function-alias 'dired-in-this-tree
   'dired-in-this-tree-p "27.1")
 
@@ -3167,15 +3182,15 @@ the quoted forms of those characters.
 FULL-NAME specifies the actual file name the listing must have,
 as returned by `dired-get-filename'.  LIMIT is the search limit."
   (let (str)
-    (setq str (replace-regexp-in-string "\^m" "\\^m"  file nil t))
-    (setq str (replace-regexp-in-string "\\\\" "\\\\" str nil t))
+    (setq str (string-replace "\^m" "\\^m"  file))
+    (setq str (string-replace "\\" "\\\\" str))
     (and (dired-switches-escape-p dired-actual-switches)
 	 (string-match-p "[ \t\n]" str)
 	 ;; FIXME: to fix this for embedded control characters etc, we
 	 ;; should escape everything that `ls -b' does.
-	 (setq str (replace-regexp-in-string " " "\\ "  str nil t)
-	       str (replace-regexp-in-string "\t" "\\t" str nil t)
-	       str (replace-regexp-in-string "\n" "\\n" str nil t)))
+	 (setq str (string-replace " " "\\ "  str)
+	       str (string-replace "\t" "\\t" str)
+	       str (string-replace "\n" "\\n" str)))
     (let ((found nil)
 	  ;; filenames are preceded by SPC, this makes the search faster
 	  ;; (e.g. for the filename "-").
@@ -4479,11 +4494,17 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;###autoload
 (defun dired-jump (&optional other-window file-name)
   "Jump to Dired buffer corresponding to current buffer.
-If in a file, Dired the current directory and move to file's line.
+If in a buffer visiting a file, Dired that file's directory and
+move to that file's line in the directory listing.
+
+If the current buffer isn't visiting a file, Dired `default-directory'.
+
 If in Dired already, pop up a level and goto old directory's line.
 In case the proper Dired file line cannot be found, refresh the dired
 buffer and try again.
+
 When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
+
 When FILE-NAME is non-nil, jump to its line in Dired.
 Interactively with prefix argument, read FILE-NAME."
   (interactive

@@ -723,7 +723,7 @@ test and possibly others should be updated."
           (edebug-on-error nil)
           error-message
           (command-error-function (lambda (&rest args)
-                                    (setq error-message (cl-cadar args)))))
+                                    (setq error-message (cadar args)))))
      (edebug-tests-run-kbd-macro
       "@"    (edebug-tests-should-be-at "format-node" "start")
       "SPC"  (edebug-tests-should-be-at "format-node" "vectorp")
@@ -744,7 +744,7 @@ test and possibly others should be updated."
           (edebug-on-error nil)
           (error-message "")
           (command-error-function (lambda (&rest args)
-                                    (setq error-message (cl-cadar args)))))
+                                    (setq error-message (cadar args)))))
      (edebug-tests-run-kbd-macro
       "@ SPC SPC SPC SPC SPC"
       (edebug-tests-should-be-at "try-flavors" "macro")

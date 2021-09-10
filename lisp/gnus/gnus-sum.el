@@ -9191,7 +9191,7 @@ specified by the `gnus-refer-thread-limit' variable."
   (interactive "sMessage-ID: " gnus-summary-mode)
   (when (and (stringp message-id)
 	     (not (zerop (length message-id))))
-    (setq message-id (replace-regexp-in-string " " "" message-id))
+    (setq message-id (string-replace " " "" message-id))
     ;; Construct the correct Message-ID if necessary.
     ;; Suggested by tale@pawl.rpi.edu.
     (unless (string-match "^<" message-id)
@@ -9199,7 +9199,7 @@ specified by the `gnus-refer-thread-limit' variable."
     (unless (string-match ">$" message-id)
       (setq message-id (concat message-id ">")))
     ;; People often post MIDs from URLs, so unhex it:
-    (unless (string-match "@" message-id)
+    (unless (string-search "@" message-id)
       (setq message-id (gnus-url-unhex-string message-id)))
     (let* ((header (gnus-id-to-header message-id))
 	   (sparse (and header

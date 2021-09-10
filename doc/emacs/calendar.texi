@@ -1363,6 +1363,20 @@ the 11 above to @samp{'(1 2 3)} and have the entry apply to the last
 Thursday of January, February, and March.  If the month is @code{t}, the
 entry applies to all months of the year.
 
+@findex diary-offset
+@example
+%%(diary-offset '(diary-float t 3 4) 2) Monthly committee meeting
+@end example
+
+@noindent
+This entry applies to the Saturday after the third Thursday of each
+month.  The 2 specifies number of days after when the sexp
+@w{@code{'(diary-float t 3 4)}} would evaluate to @code{t}.  This is
+useful when for example your organization has a committee meeting two
+days after every monthly meeting which takes place on the third
+Thursday, or if you would like to attend a virtual meeting scheduled
+in a different timezone causing a difference in the date.
+
   Each of the standard sexp diary entries takes an optional parameter
 specifying the name of a face or a single-character string to use when
 marking the entry in the calendar.  Most generally, sexp diary entries

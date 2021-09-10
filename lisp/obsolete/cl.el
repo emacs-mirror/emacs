@@ -431,8 +431,7 @@ definitions, or lack thereof).
            (obsolete "use either `cl-flet' or `cl-letf'."  "24.3"))
   `(letf ,(mapcar
            (lambda (x)
-             (if (or (and (fboundp (car x))
-                          (eq (car-safe (symbol-function (car x))) 'macro))
+             (if (or (eq (car-safe (symbol-function (car x))) 'macro)
                      (cdr (assq (car x) macroexpand-all-environment)))
                  (error "Use `labels', not `flet', to rebind macro names"))
              (let ((func `(cl-function
@@ -466,10 +465,10 @@ rather than relying on `lexical-binding'."
 	(push `(cl-function (lambda . ,(cdr binding))) sets)
 	(push var sets)
 	(push (cons (car binding)
-                    `(lambda (&rest cl-labels-args)
-                       (if (eq (car cl-labels-args) cl--labels-magic)
-                           (list cl--labels-magic ',var)
-                         (cl-list* 'funcall ',var cl-labels-args))))
+                    (lambda (&rest cl-labels-args)
+                      (if (eq (car cl-labels-args) cl--labels-magic)
+                          (list cl--labels-magic var)
+                        (cl-list* 'funcall var cl-labels-args))))
               newenv)))
     ;; `lexical-let' adds `cl--function-convert' (which calls
     ;; `cl--labels-convert') as a macroexpander for `function'.

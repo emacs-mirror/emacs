@@ -713,7 +713,7 @@ Return the footnote number to use."
   (save-excursion
     (let (rc)
       (dolist (alist-elem footnote--markers-alist)
-	(when (<= (point) (cl-caddr alist-elem))
+        (when (<= (point) (caddr alist-elem))
 	  (unless rc
 	    (setq rc (car alist-elem)))
 	  (save-excursion
@@ -835,7 +835,7 @@ being set it is automatically widened."
     (when note
       (when footnote-narrow-to-footnotes-when-editing
 	(widen))
-      (goto-char (cl-caddr (assq note footnote--markers-alist)))
+      (goto-char (caddr (assq note footnote--markers-alist)))
       (when (looking-at (footnote--current-regexp))
         (goto-char (match-end 0))))))
 

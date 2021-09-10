@@ -116,9 +116,9 @@ or one if there's just one execution unit."
   :version "28.1")
 
 (defcustom native-comp-async-cu-done-functions nil
-  "List of functions to call after asynchronously compiling one compilation unit.
-Called with one argument FILE, the filename used as input to
-compilation."
+  "List of functions to call when asynchronous compilation of a file is done.
+Each function is called with one argument FILE, the filename whose
+compilation has completed."
   :type 'hook
   :version "28.1")
 
@@ -1171,7 +1171,7 @@ clashes."
 	                   do (aset str j (aref byte 0))
 	                      (aset str (1+ j) (aref byte 1))
 	                   finally return str))
-         (human-readable (replace-regexp-in-string
+         (human-readable (string-replace
                           "-" "_" orig-name))
          (human-readable (replace-regexp-in-string
                           (rx (not (any "0-9a-z_"))) "" human-readable)))
@@ -3918,7 +3918,9 @@ display a message."
          do (let* ((expr `((require 'comp)
                            ,(when (boundp 'backtrace-line-length)
                               `(setf backtrace-line-length ,backtrace-line-length))
-                           (setf native-comp-speed ,native-comp-speed
+                           (setf comp-file-preloaded-p ,comp-file-preloaded-p
+                                 native-compile-target-directory ,native-compile-target-directory
+                                 native-comp-speed ,native-comp-speed
                                  native-comp-debug ,native-comp-debug
                                  native-comp-verbose ,native-comp-verbose
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
@@ -3936,7 +3938,9 @@ display a message."
                                (concat "emacs-async-comp-"
                                        (file-name-base source-file) "-")
                                nil ".el"))
-                   (expr-strings (mapcar #'prin1-to-string expr))
+                   (expr-strings (let ((print-length nil)
+                                       (print-level nil))
+                                   (mapcar #'prin1-to-string expr)))
                    (_ (progn
                         (with-temp-file temp-file
                           (mapc #'insert expr-strings))

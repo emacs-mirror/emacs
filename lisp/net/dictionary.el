@@ -86,7 +86,7 @@ You can specify here:
 (defcustom dictionary-port
   2628
   "The port of the dictionary server.
-This port is propably always 2628 so there should be no need to modify it."
+This port is probably always 2628 so there should be no need to modify it."
   :group 'dictionary
   :set #'dictionary-set-server-var
   :type 'number

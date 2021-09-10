@@ -1407,7 +1407,9 @@ BASE-POS is the position relative to which offsets should be applied."
     (funcall smie-rules-function method token)))
 
 (defun smie-indent-forward-token ()
-  "Skip token forward and return it, along with its levels."
+  "Skip token forward and return it, along with its levels.
+Point should be between tokens when calling this function (i.e.,
+not in the middle of a string/comment)."
   (let ((tok (funcall smie-forward-token-function)))
     (cond
      ((< 0 (length tok)) (assoc tok smie-grammar))

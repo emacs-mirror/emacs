@@ -291,7 +291,7 @@ the form:
     (let ((index 1))
       (setq incl glob)
       (while (and (eq incl glob)
-		  (setq index (string-match "~" glob index)))
+		  (setq index (string-search "~" glob index)))
 	(if (or (get-text-property index 'escaped glob)
 		(or (= (1+ index) len)))
 	    (setq index (1+ index))

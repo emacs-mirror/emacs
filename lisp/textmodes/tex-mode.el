@@ -1014,12 +1014,18 @@ says which mode to use."
   (tex-common-initialization))
 
 (advice-add 'tex-mode :around #'tex--redirect-to-submode)
+(defvar tex-mode--recursing nil)
 (defun tex--redirect-to-submode (orig-fun)
   "Redirect to one of the submodes when called directly."
-  (funcall (if delay-mode-hooks
-               ;; We're called from one of the children already.
-               orig-fun
-             (tex--guess-mode))))
+  ;; The file may have "mode: tex" in the local variable
+  ;; block, in which case we'll be called recursively
+  ;; infinitely.  Inhibit that.
+  (let ((tex-mode--recursing tex-mode--recursing))
+    (funcall (if (or delay-mode-hooks tex-mode--recursing)
+                 ;; We're called from one of the children already.
+                 orig-fun
+               (setq tex-mode--recursing t)
+               (tex--guess-mode)))))
 
 ;; The following three autoloaded aliases appear to conflict with
 ;; AUCTeX.  However, even though AUCTeX uses the mixed case variants
@@ -1426,20 +1432,22 @@ on the line for the invalidity you want to see."
 		    ;; Skip "Mismatches:" header line.
 		    (forward-line 1)
 		    (setq num-matches (1+ num-matches))
-		    (insert-buffer-substring buffer start end)
-		    (let ((text-end (point-marker))
-                          (inhibit-read-only t)
-                          text-beg)
-		      (forward-char (- start end))
-		      (setq text-beg (point-marker))
-		      (insert (format "%3d: " linenum))
-		      (add-text-properties
-		       text-beg (- text-end 1)
-		       '(mouse-face highlight
-				    help-echo
-				    "mouse-2: go to this invalidity"))
-		      (put-text-property text-beg (- text-end 1)
-					 'occur-target tem))))))))
+                    (let ((inhibit-read-only t))
+		      (insert-buffer-substring buffer start end)
+		      (let ((text-end (point-marker))
+                            text-beg)
+		        (forward-char (- start end))
+		        (setq text-beg (point-marker))
+		        (insert (format "%3d: " linenum))
+		        (add-text-properties
+		         text-beg (- text-end 1)
+		         '(mouse-face highlight
+				      help-echo
+				      "mouse-2: go to this invalidity"))
+		        (put-text-property (point) (- text-end 1)
+					   'occur-match t)
+		        (put-text-property text-beg text-end
+					   'occur-target tem)))))))))
       (with-current-buffer standard-output
 	(let ((no-matches (zerop num-matches))
               (inhibit-read-only t))
@@ -2070,7 +2078,7 @@ Return the process in which TeX is running."
     (let* ((cmd (eval command t))
 	   (proc (tex-shell-proc))
 	   (buf (process-buffer proc))
-           (star (string-match "\\*" cmd))
+           (star (string-search "*" cmd))
 	   (string
 	    (concat
 	     (if (null file)
@@ -2472,7 +2480,7 @@ Only applies the FSPEC to the args part of FORMAT."
 
 (defun tex-start-tex (command file &optional dir)
   "Start a TeX run, using COMMAND on FILE."
-  (let* ((star (string-match "\\*" command))
+  (let* ((star (string-search "*" command))
          (compile-command
           (if star
 	      (concat (substring command 0 star)
@@ -2531,7 +2539,10 @@ The value of `tex-command' specifies the command to use to run TeX."
           (file-name-as-directory (expand-file-name tex-directory)))
          (tex-out-file (expand-file-name (concat tex-zap-file ".tex")
 					 zap-directory))
-	 (main-file (expand-file-name (tex-main-file)))
+         ;; We may be running from an unsaved buffer, in which case
+         ;; there's no point in guessing for a main file name.
+	 (main-file (and buffer-file-name
+                         (expand-file-name (tex-main-file))))
 	 (ismain (string-equal main-file (buffer-file-name)))
 	 already-output)
     ;; Don't delete temp files if we do the same buffer twice in a row.
@@ -2540,9 +2551,11 @@ The value of `tex-command' specifies the command to use to run TeX."
     (let ((default-directory zap-directory)) ; why?
       ;; We assume the header is fully contained in tex-main-file.
       ;; We use f-f-ns so we get prompted about any changes on disk.
-      (with-current-buffer (find-file-noselect main-file)
-	(setq already-output (tex-region-header tex-out-file
-						(and ismain beg))))
+      (if (not main-file)
+          (setq already-output 0)
+        (with-current-buffer (find-file-noselect main-file)
+	  (setq already-output (tex-region-header tex-out-file
+						  (and ismain beg)))))
       ;; Write out the specified region (but don't repeat anything
       ;; already written in the header).
       (write-region (if ismain
@@ -2771,7 +2784,7 @@ so normally SUFFIX starts with one."
 	  ;; Not found, so split on first period.
 	  (concat (file-name-directory file-name)
 		  (substring file 0
-			     (string-match "\\." file))
+			     (string-search "." file))
 		  suffix)))
     " "))
 
@@ -3335,7 +3348,6 @@ There might be text before point."
     ("\\oplus" . ?⊕)
     ("\\oslash" . ?⊘)
     ("\\otimes" . ?⊗)
-    ("\\par" . ? )
     ("\\parallel" . ?∥)
     ("\\partial" . ?∂)
     ("\\perp" . ?⊥)

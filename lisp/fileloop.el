@@ -120,7 +120,10 @@ operating on the next file and nil otherwise."
         (kill-all-local-variables)
         (erase-buffer)
         (setq new next)
-        (insert-file-contents new nil))
+        (condition-case nil
+            (insert-file-contents new nil)
+          (file-missing
+           (fileloop-next-file novisit))))
       new)))
 
 (defun fileloop-continue ()

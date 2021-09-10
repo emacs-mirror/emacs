@@ -952,6 +952,11 @@ This is a good function to put in `comint-output-filter-functions'.
 
 \(fn IGNORED)" nil nil)
 
+(autoload 'ansi-color-compilation-filter "ansi-color" "\
+Maybe translate SGR control sequences into text properties.
+This function depends on the `ansi-color-for-compilation-mode'
+variable, and is meant to be used in `compilation-filter-hook'." nil nil)
+
 (register-definition-prefixes "ansi-color" '("ansi-color-"))
 
 ;;;***
@@ -1548,7 +1553,7 @@ ENTRY is the name of a password-store entry.
 The key used to retrieve the password is the symbol `secret'.
 
 The convention used as the format for a password-store file is
-the following (see https://www.passwordstore.org/#organization):
+the following (see URL `https://www.passwordstore.org/#organization'):
 
 secret
 key1: value1
@@ -1787,6 +1792,10 @@ disk changes.
 
 When a buffer is reverted, a message is generated.  This can be
 suppressed by setting `auto-revert-verbose' to nil.
+
+Reverting can sometimes fail to preserve all the markers in the buffer.
+To avoid that, set `revert-buffer-insert-file-contents-function' to
+the slower function `revert-buffer-insert-file-contents-delicately'.
 
 Use `global-auto-revert-mode' to automatically revert all buffers.
 Use `auto-revert-tail-mode' if you know that the file will only grow
@@ -2929,6 +2938,13 @@ from `browse-url-elinks-wrapper'.
 
 \(fn URL &optional NEW-WINDOW)" t nil)
 
+(autoload 'browse-url-button-open "browse-url" "\
+Follow the link under point using `browse-url'.
+If EXTERNAL (the prefix if used interactively), open with the
+external browser instead of the default one.
+
+\(fn &optional EXTERNAL MOUSE-EVENT)" t nil)
+
 (autoload 'browse-url-button-open-url "browse-url" "\
 Open URL using `browse-url'.
 If `current-prefix-arg' is non-nil, use
@@ -3382,6 +3398,16 @@ Parse the region as a vector of numbers and push it on the Calculator stack.
 
 (autoload 'calc-grab-rectangle "calc" "\
 Parse a rectangle as a matrix of numbers and push it on the Calculator stack.
+
+\(fn TOP BOT ARG)" t nil)
+
+(autoload 'calc-grab-sum-down "calc" "\
+Parse a rectangle as a matrix of numbers and sum its columns.
+
+\(fn TOP BOT ARG)" t nil)
+
+(autoload 'calc-grab-sum-across "calc" "\
+Parse a rectangle as a matrix of numbers and sum its rows.
 
 \(fn TOP BOT ARG)" t nil)
 
@@ -5215,7 +5241,7 @@ Normally display output in temp buffer, but
 prefix arg means replace the region with it.
 
 `c-macro-preprocessor' specifies the preprocessor to use.
-Tf the user option `c-macro-prompt-flag' is non-nil
+If the user option `c-macro-prompt-flag' is non-nil
 prompt for arguments to the preprocessor (e.g. `-DDEBUG -I ./include'),
 otherwise use `c-macro-cppflags'.
 
@@ -6843,8 +6869,11 @@ or call the function `global-cwarn-mode'.")
 (autoload 'global-cwarn-mode "cwarn" "\
 Toggle Cwarn mode in all buffers.
 With prefix ARG, enable Global Cwarn mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if ARG is
-omitted or nil.
+otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Cwarn mode is enabled in all buffers where
 `turn-on-cwarn-mode-if-enabled' would do it.
@@ -8112,11 +8141,17 @@ Keybindings:
 
 (autoload 'dired-jump "dired" "\
 Jump to Dired buffer corresponding to current buffer.
-If in a file, Dired the current directory and move to file's line.
+If in a buffer visiting a file, Dired that file's directory and
+move to that file's line in the directory listing.
+
+If the current buffer isn't visiting a file, Dired `default-directory'.
+
 If in Dired already, pop up a level and goto old directory's line.
 In case the proper Dired file line cannot be found, refresh the dired
 buffer and try again.
+
 When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
+
 When FILE-NAME is non-nil, jump to its line in Dired.
 Interactively with prefix argument, read FILE-NAME.
 
@@ -8356,8 +8391,11 @@ or call the function `global-display-fill-column-indicator-mode'.")
 (autoload 'global-display-fill-column-indicator-mode "display-fill-column-indicator" "\
 Toggle Display-Fill-Column-Indicator mode in all buffers.
 With prefix ARG, enable Global Display-Fill-Column-Indicator mode if
-ARG is positive; otherwise, disable it.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+ARG is positive; otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Display-Fill-Column-Indicator mode is enabled in all buffers where
 `display-fill-column-indicator--turn-on' would do it.
@@ -8433,8 +8471,11 @@ or call the function `global-display-line-numbers-mode'.")
 (autoload 'global-display-line-numbers-mode "display-line-numbers" "\
 Toggle Display-Line-Numbers mode in all buffers.
 With prefix ARG, enable Global Display-Line-Numbers mode if ARG is
-positive; otherwise, disable it.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+positive; otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Display-Line-Numbers mode is enabled in all buffers where
 `display-line-numbers--turn-on' would do it.
@@ -8724,9 +8765,9 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		named variable, or a generalized variable.
 		PLACE can also be of the form (GET . SET), where GET is
 		an expression that returns the current state, and SET is
-		a function that takes one argument, the new state, and
-		sets it.  If you specify a :variable, this function does
-		not define a MODE variable (nor any of the terms used
+		a function that takes one argument, the new state, which should
+                be assigned to PLACE.  If you specify a :variable, this function
+                does not define a MODE variable (nor any of the terms used
 		in :variable).
 :after-hook     A single lisp form which is evaluated after the mode hooks
                 have been run.  It should not be quoted.
@@ -11216,6 +11257,8 @@ Any other value means use the setting of `case-fold-search'.")
 
 (custom-autoload 'tags-case-fold-search "etags" t)
 
+(put 'tags-case-fold-search 'safe-local-variable 'symbolp)
+
 (defvar tags-table-list nil "\
 List of file names of tags tables to search.
 An element that is a directory means the file \"TAGS\" in that directory.
@@ -12269,6 +12312,9 @@ Besides the choice of face, it is the same as `buffer-face-mode'.
 
 ;;;### (autoloads nil "facemenu" "facemenu.el" (0 0 0 0))
 ;;; Generated autoloads from facemenu.el
+ (autoload 'facemenu-menu "facemenu" nil nil 'keymap)
+
+(define-key global-map [C-down-mouse-2] 'facemenu-menu)
 
 (autoload 'list-colors-display "facemenu" "\
 Display names of defined colors, and show what they look like.
@@ -12386,6 +12432,11 @@ reminders, you can set `feedmail-queue-reminder-alist' to nil.
 
 ;;;### (autoloads nil "ffap" "ffap.el" (0 0 0 0))
 ;;; Generated autoloads from ffap.el
+
+(defvar ffap-file-finder 'find-file "\
+The command called by `find-file-at-point' to find a file.")
+
+(custom-autoload 'ffap-file-finder "ffap" t)
 
 (autoload 'ffap-next "ffap" "\
 Search buffer for next file or URL, and run ffap.
@@ -15255,8 +15306,11 @@ or call the function `global-goto-address-mode'.")
 (autoload 'global-goto-address-mode "goto-addr" "\
 Toggle Goto-Address mode in all buffers.
 With prefix ARG, enable Global Goto-Address mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if ARG
-is omitted or nil.
+otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Goto-Address mode is enabled in all buffers where
 `goto-addr-mode--turn-on' would do it.
@@ -15348,7 +15402,7 @@ List of hook functions run by `grep-process-setup' (see `run-hooks').")
 
 (custom-autoload 'grep-setup-hook "grep" t)
 
-(defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:" "\\(?:[a-zA-Z]:\\)?" "[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches" 1 nil nil 0 1)) "\
+(defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:" "\\(?:[a-zA-Z]:\\)?" "[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg 1)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches" 1 nil nil 0 1)) "\
 Regexp used to match grep hits.
 See `compilation-error-regexp-alist' for format details.")
 
@@ -15551,9 +15605,14 @@ directories if your program contains sources from more than one directory.
 \(fn COMMAND-LINE)" t nil)
 
 (autoload 'perldb "gud" "\
-Run perldb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger.
+Debug a perl program with gud.
+Interactively, this will prompt you for a command line.
+
+Noninteractively, COMMAND-LINE should be on the form
+\"perl -d perl-file.pl\".
+
+The directory containing the perl program becomes the initial
+working directory and source-file directory for your debugger.
 
 \(fn COMMAND-LINE)" t nil)
 
@@ -16169,7 +16228,7 @@ it does not already exist." nil nil)
 Parse and hyperlink documentation cross-references in the given BUFFER.
 
 Find cross-reference information in a buffer and activate such cross
-references for selection with `help-follow'.  Cross-references have
+references for selection with `help-follow-symbol'.  Cross-references have
 the canonical form `...'  and the type of reference may be
 disambiguated by the preceding word(s) used in
 `help-xref-symbol-regexp'.  Faces only get cross-referenced if
@@ -16443,8 +16502,11 @@ or call the function `global-hi-lock-mode'.")
 (autoload 'global-hi-lock-mode "hi-lock" "\
 Toggle Hi-Lock mode in all buffers.
 With prefix ARG, enable Global Hi-Lock mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if ARG is
-omitted or nil.
+otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Hi-Lock mode is enabled in all buffers where
 `turn-on-hi-lock-if-enabled' would do it.
@@ -16841,8 +16903,11 @@ or call the function `global-highlight-changes-mode'.")
 (autoload 'global-highlight-changes-mode "hilit-chg" "\
 Toggle Highlight-Changes mode in all buffers.
 With prefix ARG, enable Global Highlight-Changes mode if ARG is
-positive; otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+positive; otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Highlight-Changes mode is enabled in all buffers where
 `highlight-changes-mode-turn-on' would do it.
@@ -17443,9 +17508,42 @@ evaluate `(default-value 'icomplete-vertical-mode)'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
+If none of these modes are on, turn on `icomplete-mode'.
+
 As many completion candidates as possible are displayed, depending on
 the value of `max-mini-window-height', and the way the mini-window is
 resized depends on `resize-mini-windows'.
+
+\(fn &optional ARG)" t nil)
+
+(defvar fido-vertical-mode nil "\
+Non-nil if Fido-Vertical mode is enabled.
+See the `fido-vertical-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `fido-vertical-mode'.")
+
+(custom-autoload 'fido-vertical-mode "icomplete" nil)
+
+(autoload 'fido-vertical-mode "icomplete" "\
+Toggle vertical candidate display in `fido-mode'.
+When turning on, if non-vertical `fido-mode' is off, turn it on.
+If it's on, just add the vertical display.
+
+This is a minor mode.  If called interactively, toggle the
+`Fido-Vertical mode' mode.  If the prefix argument is positive, enable
+the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value 'fido-vertical-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
 
 \(fn &optional ARG)" t nil)
 (when (locate-library "obsolete/iswitchb")
@@ -17453,7 +17551,7 @@ resized depends on `resize-mini-windows'.
  (make-obsolete 'iswitchb-mode
    "use `icomplete-mode' or `ido-mode' instead." "24.4"))
 
-(register-definition-prefixes "icomplete" '("fido-vertical-mode" "icomplete-"))
+(register-definition-prefixes "icomplete" '("icomplete-"))
 
 ;;;***
 
@@ -18657,9 +18755,14 @@ Convert old Emacs Devanagari characters to UCS.
 Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'.
 If there is a process already running in `*inferior-lisp*', just switch
 to that buffer.
+
 With argument, allows you to edit the command line (default is value
 of `inferior-lisp-program').  Runs the hooks from
 `inferior-lisp-mode-hook' (after the `comint-mode-hook' is run).
+
+If any parts of the command name contains spaces, they should be
+quoted using shell quote syntax.
+
 \(Type \\[describe-mode] in the process buffer for a list of commands.)
 
 \(fn CMD)" t nil)
@@ -19836,7 +19939,7 @@ Create lambda form for macro bound to symbol or key.
 ;;;;;;  0 0))
 ;;; Generated autoloads from language/korea-util.el
 
-(defvar default-korean-keyboard (purecopy (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") "")) "3" "")) "\
+(defvar default-korean-keyboard (purecopy (if (string-search "3" (or (getenv "HANGUL_KEYBOARD_TYPE") "")) "3" "")) "\
 The kind of Korean keyboard for Korean (Hangul) input method.
 \"\" for 2, \"3\" for 3, and \"3f\" for 3f.")
 
@@ -20115,8 +20218,11 @@ or call the function `global-linum-mode'.")
 (autoload 'global-linum-mode "linum" "\
 Toggle Linum mode in all buffers.
 With prefix ARG, enable Global Linum mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if ARG is
-omitted or nil.
+otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Linum mode is enabled in all buffers where `linum-on' would do it.
 
@@ -20510,7 +20616,10 @@ This function is primarily meant for when you're displaying the
 result to the user: Many prettifications are applied to the
 result returned.  If you want to decode an address for further
 non-display use, you should probably use
-`mail-header-parse-address' instead.
+`mail-header-parse-address' instead.  Also see
+`mail-header-parse-address-lax' for a function that's less strict
+than `mail-header-parse-address', but does less post-processing
+to the results.
 
 \(fn ADDRESS &optional ALL)" nil nil)
 
@@ -21033,7 +21142,7 @@ Default bookmark handler for Man buffers.
 
 ;;;### (autoloads nil "map" "emacs-lisp/map.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/map.el
-(push (purecopy '(map 3 0)) package--builtin-versions)
+(push (purecopy '(map 3 1)) package--builtin-versions)
 
 (register-definition-prefixes "map" '("map-"))
 
@@ -22455,7 +22564,7 @@ The default is 20.  If LIMIT is negative, do not limit the listing.
 
 \(fn &optional LIMIT)" t nil)
 
-(register-definition-prefixes "mule-diag" '("charset-history" "describe-font-internal" "insert-section" "list-" "print-" "sort-listed-character-sets"))
+(register-definition-prefixes "mule-diag" '("charset-history" "describe-font-internal" "insert-section" "list-" "mule--kbd-at" "print-" "sort-listed-character-sets"))
 
 ;;;***
 
@@ -22579,7 +22688,9 @@ QUALITY can be:
   `approximate', in which case we may cut some corners to avoid
     excessive work.
   `exact', in which case we may end up re-(en/de)coding a large
-    part of the file/buffer, this can be expensive and slow.
+    part of the file/buffer, this can be expensive and slow.  (It
+    is an error to request the `exact' method when the buffer's
+    EOL format is not yet decided.)
   nil, in which case we may return nil rather than an approximation.
 
 \(fn BYTE &optional QUALITY CODING-SYSTEM)" nil nil)
@@ -22593,7 +22704,9 @@ QUALITY can be:
   `approximate', in which case we may cut some corners to avoid
     excessive work.
   `exact', in which case we may end up re-(en/de)coding a large
-    part of the file/buffer, this can be expensive and slow.
+    part of the file/buffer, this can be expensive and slow.  (It
+    is an error to request the `exact' method when the buffer's
+    EOL format is not yet decided.)
   nil, in which case we may return nil rather than an approximation.
 
 \(fn POSITION &optional QUALITY CODING-SYSTEM)" nil nil)
@@ -22605,13 +22718,13 @@ QUALITY can be:
 ;;;### (autoloads nil "mwheel" "mwheel.el" (0 0 0 0))
 ;;; Generated autoloads from mwheel.el
 
-(defcustom mouse-wheel-mode t "\
+(defvar mouse-wheel-mode t "\
 Non-nil if Mouse-Wheel mode is enabled.
 See the `mouse-wheel-mode' command
 for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
-or call the function `mouse-wheel-mode'." :set #'custom-set-minor-mode :initialize 'custom-initialize-delay :type 'boolean :group 'mouse)
+or call the function `mouse-wheel-mode'.")
 
 (custom-autoload 'mouse-wheel-mode "mwheel" nil)
 
@@ -25075,6 +25188,19 @@ of the elements of LIST is performed as if by `pcase-let'.
 
 (function-put 'pcase-dolist 'lisp-indent-function '1)
 
+(autoload 'pcase-setq "pcase" "\
+Assign values to variables by destructuring with `pcase'.
+PATTERNS are normal `pcase' patterns, and VALUES are expression.
+
+Evaluation happens sequentially as in `setq' (not in parallel).
+
+An example: (pcase-setq `((,a) [(,b)]) '((1) [(2)]))
+
+VAL is presumed to match PAT.  Failure to match may signal an error or go
+undetected, binding variables to arbitrary values, such as nil.
+
+\(fn PATTERNS VALUE PATTERN VALUES ...)" nil t)
+
 (autoload 'pcase-defmacro "pcase" "\
 Define a new kind of pcase PATTERN, by macro expansion.
 Patterns of the form (NAME ...) will be expanded according
@@ -26279,7 +26405,7 @@ Open profile FILENAME.
 
 ;;;### (autoloads nil "project" "progmodes/project.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/project.el
-(push (purecopy '(project 0 6 0)) package--builtin-versions)
+(push (purecopy '(project 0 6 1)) package--builtin-versions)
 
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
@@ -27308,7 +27434,11 @@ If ARG is non-nil, instead prompt for connection parameters.
 (defalias 'irc 'rcirc)
 
 (autoload 'rcirc-connect "rcirc" "\
-
+Connect to SERVER.
+The arguments PORT, NICK, USER-NAME, FULL-NAME, PASSWORD,
+ENCRYPTION, SERVER-ALIAS are interpreted as in
+`rcirc-server-alist'.  STARTUP-CHANNELS is a list of channels
+that are joined after authentication.
 
 \(fn SERVER &optional PORT NICK USER-NAME FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION SERVER-ALIAS)" nil nil)
 
@@ -27341,7 +27471,7 @@ disabled.
 
 \(fn &optional ARG)" t nil)
 
-(register-definition-prefixes "rcirc" '("defun-rcirc-command" "rcirc-" "set-rcirc-" "with-rcirc-"))
+(register-definition-prefixes "rcirc" '("rcirc-" "with-rcirc-"))
 
 ;;;***
 
@@ -27782,8 +27912,8 @@ This means the number of non-shy regexp grouping constructs
 
 (autoload 'remember "remember" "\
 Remember an arbitrary piece of data.
-INITIAL is the text to initially place in the *Remember* buffer,
-or nil to bring up a blank *Remember* buffer.
+INITIAL is the text to initially place in the `remember-buffer',
+or nil to bring up a blank `remember-buffer'.
 
 With a prefix or a visible region, use the region as INITIAL.
 
@@ -27884,7 +28014,7 @@ disabled.
 
 \(fn &optional ARG)" t nil)
 
-(register-definition-prefixes "repeat" '("describe-repeat" "repeat-"))
+(register-definition-prefixes "repeat" '("describe-repeat-maps" "repeat-"))
 
 ;;;***
 
@@ -28048,10 +28178,10 @@ disabled.
 
 ;;;***
 
-;;;### (autoloads nil "rfc2368" "mail/rfc2368.el" (0 0 0 0))
-;;; Generated autoloads from mail/rfc2368.el
+;;;### (autoloads nil "rfc6068" "mail/rfc6068.el" (0 0 0 0))
+;;; Generated autoloads from mail/rfc6068.el
 
-(register-definition-prefixes "rfc2368" '("rfc2368-"))
+(register-definition-prefixes "rfc6068" '("rfc6068-"))
 
 ;;;***
 
@@ -28891,7 +29021,8 @@ Zero-width assertions: these all match the empty string in specific places.
 
 \(literal EXPR) Match the literal string from evaluating EXPR at run time.
 \(regexp EXPR)  Match the string regexp from evaluating EXPR at run time.
-\(eval EXPR)    Match the rx sexp from evaluating EXPR at compile time.
+\(eval EXPR)    Match the rx sexp from evaluating EXPR at macro-expansion
+                (compile) time.
 
 Additional constructs can be defined using `rx-define' and `rx-let',
 which see.
@@ -30312,6 +30443,13 @@ arguments.")
 
 (custom-autoload 'shell-dumb-shell-regexp "shell" t)
 
+(autoload 'split-string-shell-command "shell" "\
+Split STRING (a shell command) into a list of strings.
+General shell syntax, like single and double quoting, as well as
+backslash quoting, is respected.
+
+\(fn STRING)" nil nil)
+
 (autoload 'shell "shell" "\
 Run an inferior shell, with I/O through BUFFER (which defaults to `*shell*').
 Interactively, a prefix arg means to prompt for BUFFER.
@@ -30358,8 +30496,9 @@ Make the shell buffer the current buffer, and return it.
 
 (autoload 'shortdoc-display-group "shortdoc" "\
 Pop to a buffer with short documentation summary for functions in GROUP.
+If FUNCTION is non-nil, place point on the entry for FUNCTION (if any).
 
-\(fn GROUP)" t nil)
+\(fn GROUP &optional FUNCTION)" t nil)
 
 (register-definition-prefixes "shortdoc" '("alist" "buffer" "define-short-documentation-group" "file" "hash-table" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "vector"))
 
@@ -30763,7 +30902,7 @@ then `snmpv2-mode-hook'." t nil)
 
 ;;;### (autoloads nil "so-long" "so-long.el" (0 0 0 0))
 ;;; Generated autoloads from so-long.el
-(push (purecopy '(so-long 1 0)) package--builtin-versions)
+(push (purecopy '(so-long 1 1 1)) package--builtin-versions)
 
 (autoload 'so-long-commentary "so-long" "\
 View the so-long documentation in `outline-mode'." t nil)
@@ -32081,6 +32220,14 @@ Truncate STRING to LENGTH, replacing initial surplus with \"...\".
 
 \(fn STRING LENGTH)" nil nil)
 
+(autoload 'string-clean-whitespace "subr-x" "\
+Clean up whitespace in STRING.
+All sequences of whitespaces in STRING are collapsed into a
+single space character, and leading/trailing whitespace is
+removed.
+
+\(fn STRING)" nil nil)
+
 (autoload 'string-lines "subr-x" "\
 Split STRING into a list of lines.
 If OMIT-NULLS, empty lines will be removed from the results.
@@ -32148,8 +32295,11 @@ or call the function `global-subword-mode'.")
 (autoload 'global-subword-mode "subword" "\
 Toggle Subword mode in all buffers.
 With prefix ARG, enable Global Subword mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if ARG is
-omitted or nil.
+otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Subword mode is enabled in all buffers where `(lambda nil
 \(subword-mode 1))' would do it.
@@ -32199,8 +32349,11 @@ or call the function `global-superword-mode'.")
 (autoload 'global-superword-mode "subword" "\
 Toggle Superword mode in all buffers.
 With prefix ARG, enable Global Superword mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if ARG is
-omitted or nil.
+otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Superword mode is enabled in all buffers where `(lambda nil
 \(superword-mode 1))' would do it.
@@ -32336,8 +32489,11 @@ or call the function `global-tab-line-mode'.")
 (autoload 'global-tab-line-mode "tab-line" "\
 Toggle Tab-Line mode in all buffers.
 With prefix ARG, enable Global Tab-Line mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if ARG is
-omitted or nil.
+otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
 Tab-Line mode is enabled in all buffers where
 `tab-line-mode--turn-on' would do it.
@@ -33691,11 +33847,15 @@ positions of the thing found.
 Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
-`line', `number', and `page'.
+`filename', `existing-filename', `url', `email', `uuid', `word',
+`sentence', `whitespace', `line', `number', and `page'.
 
 When the optional argument NO-PROPERTIES is non-nil,
 strip text properties from the return value.
+
+If the current buffer uses fields (see Info node `(elisp)Fields'),
+this function will narrow to the field before identifying the
+thing at point.
 
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING.
@@ -34129,25 +34289,37 @@ Valid ZONE values are described in the documentation of `format-time-string'.
 (put 'time-stamp-pattern 'safe-local-variable 'stringp)
 
 (autoload 'time-stamp "time-stamp" "\
-Update the time stamp string(s) in the buffer.
-A template in a file can be automatically updated with a new time stamp
-every time you save the file.  Add this line to your init file:
-    (add-hook \\='before-save-hook \\='time-stamp)
-or customize option `before-save-hook'.
-Normally the template must appear in the first 8 lines of a file and
-look like one of the following:
+Update any time stamp string(s) in the buffer.
+This function looks for a time stamp template and updates it with
+the current date, time, and/or other info.
+
+The template, which you manually create on one of the first 8 lines
+of the file before running this function, by default can look like
+one of the following (your choice):
       Time-stamp: <>
       Time-stamp: \" \"
-The time stamp is written between the brackets or quotes:
+This function writes the current time between the brackets or quotes,
+by default formatted like this:
       Time-stamp: <2020-08-07 17:10:21 gildea>
 
-The time stamp is updated only if the variable
-`time-stamp-active' is non-nil.
-The format of the time stamp is set by the variable
-`time-stamp-pattern' or `time-stamp-format'.
-The variables `time-stamp-pattern', `time-stamp-line-limit',
-`time-stamp-start', `time-stamp-end', `time-stamp-count', and
-`time-stamp-inserts-lines' control finding the template." t nil)
+Although you can run this function manually to update a time stamp
+once, usually you want automatic time stamp updating.
+
+A time stamp can be automatically updated with current information
+every time you save a file.  To enable time-stamping for all files,
+customize option `before-save-hook' or add this line to your init file:
+    (add-hook \\='before-save-hook \\='time-stamp)
+
+To enable automatic time-stamping for only a specific file, add
+this line to a local variables list near the end of the file:
+    eval: (add-hook \\='before-save-hook \\='time-stamp nil t)
+
+If the file has no time-stamp template, this function does nothing.
+
+You can set `time-stamp-pattern' in a files's local variables list
+to customize the information in the time stamp and where it is written.
+
+The time stamp is updated only if `time-stamp-active' is non-nil." t nil)
 
 (autoload 'time-stamp-toggle-active "time-stamp" "\
 Toggle `time-stamp-active', setting whether \\[time-stamp] updates a buffer.
@@ -34182,6 +34354,9 @@ the timeclock will use its own sixty second timer to do its
 updating.  With prefix ARG, turn mode line display on if and only
 if ARG is positive.  Returns the new status of timeclock mode line
 display (non-nil means on).
+
+If using a customized `timeclock-workday' value, this should be
+set before switching this mode on.
 
 \(fn &optional ARG)" t nil)
 
@@ -34761,7 +34936,7 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
-(push (purecopy '(tramp 2 5 1)) package--builtin-versions)
+(push (purecopy '(tramp 2 5 2 -1)) package--builtin-versions)
 
 (register-definition-prefixes "trampver" '("tramp-"))
 
@@ -35472,7 +35647,9 @@ or call the function `url-handler-mode'.")
 (custom-autoload 'url-handler-mode "url-handlers" nil)
 
 (autoload 'url-handler-mode "url-handlers" "\
-Toggle using `url' library for URL filenames (URL Handler mode).
+Handle URLs as if they were file names throughout Emacs.
+After switching on this minor mode, Emacs file primitives handle
+URLs.  For instance:
 
 This is a minor mode.  If called interactively, toggle the
 `Url-Handler mode' mode.  If the prefix argument is positive, enable
@@ -35487,6 +35664,12 @@ evaluate `(default-value 'url-handler-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
+
+  (file-exists-p \"https://www.gnu.org/\")
+  => t
+
+and `C-x C-f https://www.gnu.org/ RET' will give you the HTML at
+that URL in a buffer.
 
 \(fn &optional ARG)" t nil)
 
@@ -35885,10 +36068,13 @@ instead of just \"key\" as in the example above.
 \(fn QUERY &optional SEMICOLONS KEEP-EMPTY)" nil nil)
 
 (autoload 'url-unhex-string "url-util" "\
-Remove %XX embedded spaces, etc in a URL.
+Decode %XX sequences in a percent-encoded URL.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
 decoding of carriage returns and line feeds in the string, which is normally
 forbidden in URL encoding.
+
+The resulting string in general requires decoding using an
+appropriate coding-system; see `decode-coding-string'.
 
 \(fn STR &optional ALLOW-NEWLINES)" nil nil)
 
@@ -36443,11 +36629,6 @@ From a program, any ARGS are assumed to be filenames for which
 log entries should be gathered.
 
 \(fn &rest ARGS)" t nil)
-
-(autoload 'vc-branch-part "vc" "\
-Return the branch part of a revision number REV.
-
-\(fn REV)" nil nil)
 
 (register-definition-prefixes "vc" '("vc-" "with-vc-properties"))
 
@@ -38945,6 +39126,8 @@ definition for IDENTIFIER, display it in the selected window.
 Otherwise, display the list of the possible definitions in a
 buffer where the user can select from the list.
 
+Use \\[xref-pop-marker-stack] to return back to where you invoked this command.
+
 \(fn IDENTIFIER)" t nil)
 
 (autoload 'xref-find-definitions-other-window "xref" "\
@@ -38969,6 +39152,12 @@ is nil, prompt only if there's no usable symbol at point.
 
 (autoload 'xref-find-definitions-at-mouse "xref" "\
 Find the definition of identifier at or around mouse click.
+This command is intended to be bound to a mouse event.
+
+\(fn EVENT)" t nil)
+
+(autoload 'xref-find-references-at-mouse "xref" "\
+Find references to the identifier at or around mouse click.
 This command is intended to be bound to a mouse event.
 
 \(fn EVENT)" t nil)

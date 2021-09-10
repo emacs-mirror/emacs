@@ -2001,10 +2001,10 @@ all symbols are bound before any of the VALUEFORMs are evalled."
        (t `(let* ,(nreverse seqbinds) ,nbody))))))
 
 (defmacro dlet (binders &rest body)
-  "Like `let*' but using dynamic scoping."
+  "Like `let' but using dynamic scoping."
   (declare (indent 1) (debug let))
   ;; (defvar FOO) only affects the current scope, but in order for
-  ;; this not to affect code after the `let*' we need to create a new scope,
+  ;; this not to affect code after the main `let' we need to create a new scope,
   ;; which is what the surrounding `let' is for.
   ;; FIXME: (let () ...) currently doesn't actually create a new scope,
   ;; which is why we use (let (_) ...).
@@ -2012,7 +2012,7 @@ all symbols are bound before any of the VALUEFORMs are evalled."
      ,@(mapcar (lambda (binder)
                  `(defvar ,(if (consp binder) (car binder) binder)))
                binders)
-     (let* ,binders ,@body)))
+     (let ,binders ,@body)))
 
 
 (defmacro with-wrapper-hook (hook args &rest body)
@@ -2872,9 +2872,23 @@ This function is used by the `interactive' code letter `n'."
 
 (defvar read-char-choice-use-read-key nil
   "Prefer `read-key' when reading a character by `read-char-choice'.
-Otherwise, use the minibuffer.")
+Otherwise, use the minibuffer.
+
+When using the minibuffer, the user is less constrained, and can
+use the normal commands available in the minibuffer, and can, for
+instance, switch to another buffer, do things there, and then
+switch back again to the minibuffer before entering the
+character.  This is not possible when using `read-key', but using
+`read-key' may be less confusing to some users.")
 
 (defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
+  "Read and return one of CHARS, prompting for PROMPT.
+Any input that is not one of CHARS is ignored.
+
+By default, the minibuffer is used to read the key
+non-modally (see `read-char-from-minibuffer').  If
+`read-char-choice-use-read-key' is non-nil, the modal `read-key'
+function is used instead (see `read-char-choice-with-read-key')."
   (if (not read-char-choice-use-read-key)
       (read-char-from-minibuffer prompt chars)
     (read-char-choice-with-read-key prompt chars inhibit-keyboard-quit)))
@@ -3174,7 +3188,14 @@ Also discard all previous input in the minibuffer."
 
 (defvar y-or-n-p-use-read-key nil
   "Prefer `read-key' when answering a \"y or n\" question by `y-or-n-p'.
-Otherwise, use the minibuffer.")
+Otherwise, use the minibuffer.
+
+When using the minibuffer, the user is less constrained, and can
+use the normal commands available in the minibuffer, and can, for
+instance, switch to another buffer, do things there, and then
+switch back again to the minibuffer before entering the
+character.  This is not possible when using `read-key', but using
+`read-key' may be less confusing to some users.")
 
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
@@ -3203,7 +3224,12 @@ responses, perform the requested window recentering or scrolling
 and ask again.
 
 Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil and `use-dialog-box' is non-nil."
+is nil and `use-dialog-box' is non-nil.
+
+By default, this function uses the minibuffer to read the key.
+If `y-or-n-p-use-read-key' is non-nil, `read-key' is used
+instead (which means that the user can't change buffers (and the
+like) while `y-or-n-p' is running)."
   (let ((answer 'recenter)
 	(padded (lambda (prompt &optional dialog)
 		  (let ((l (length prompt)))
@@ -3681,7 +3707,7 @@ See Info node `(elisp)Security Considerations'."
         "''"
       ;; Quote everything except POSIX filename characters.
       ;; This should be safe enough even for really weird shells.
-      (replace-regexp-in-string
+      (string-replace
        "\n" "'\n'"
        (replace-regexp-in-string "[^-0-9a-zA-Z_./\n]" "\\\\\\&" argument))))
    ))
@@ -3858,6 +3884,67 @@ Point in BUFFER will be placed after the inserted text."
   (let ((current (current-buffer)))
     (with-current-buffer buffer
       (insert-buffer-substring current start end))))
+
+(defun replace-string-in-region (string replacement &optional start end)
+  "Replace STRING with REPLACEMENT in the region from START to END.
+The number of replaced occurrences are returned, or nil if STRING
+doesn't exist in the region.
+
+If START is nil, use the current point.  If END is nil, use `point-max'.
+
+Comparisons and replacements are done with fixed case."
+  (if start
+      (when (< start (point-min))
+        (error "Start before start of buffer"))
+    (setq start (point)))
+  (if end
+      (when (> end (point-max))
+        (error "End after end of buffer"))
+    (setq end (point-max)))
+  (save-excursion
+    (let ((matches 0)
+          (case-fold-search nil))
+      (goto-char start)
+      (while (search-forward string end t)
+        (delete-region (match-beginning 0) (match-end 0))
+        (insert replacement)
+        (setq matches (1+ matches)))
+      (and (not (zerop matches))
+           matches))))
+
+(defun replace-regexp-in-region (regexp replacement &optional start end)
+  "Replace REGEXP with REPLACEMENT in the region from START to END.
+The number of replaced occurrences are returned, or nil if REGEXP
+doesn't exist in the region.
+
+If START is nil, use the current point.  If END is nil, use `point-max'.
+
+Comparisons and replacements are done with fixed case.
+
+REPLACEMENT can use the following special elements:
+
+  `\\&' in NEWTEXT means substitute original matched text.
+  `\\N' means substitute what matched the Nth `\\(...\\)'.
+       If Nth parens didn't match, substitute nothing.
+  `\\\\' means insert one `\\'.
+  `\\?' is treated literally."
+  (if start
+      (when (< start (point-min))
+        (error "Start before start of buffer"))
+    (setq start (point)))
+  (if end
+      (when (> end (point-max))
+        (error "End after end of buffer"))
+    (setq end (point-max)))
+  (save-excursion
+    (let ((matches 0)
+          (case-fold-search nil))
+      (goto-char start)
+      (while (re-search-forward regexp end t)
+        (replace-match replacement t)
+        (setq matches (1+ matches)))
+      (and (not (zerop matches))
+           matches))))
 
 (defun yank-handle-font-lock-face-property (face start end)
   "If `font-lock-defaults' is nil, apply FACE as a `face' property.
@@ -4532,6 +4619,19 @@ MODES is as for `set-default-file-modes'."
              ,@body)
          (set-default-file-modes ,umask)))))
 
+(defmacro with-existing-directory (&rest body)
+  "Execute BODY with `default-directory' bound to an existing directory.
+If `default-directory' is already an existing directory, it's not changed."
+  (declare (indent 0) (debug t))
+  `(let ((default-directory (seq-find (lambda (dir)
+                                        (and dir
+                                             (file-exists-p dir)))
+                                      (list default-directory
+                                            (expand-file-name "~/")
+                                            (getenv "TMPDIR")
+                                            "/tmp/")
+                                      "/")))
+     ,@body))
 
 ;;; Matching and match data.
 
@@ -4808,7 +4908,7 @@ It understands Emacs Lisp quoting within STRING, such that
   (split-string-and-unquote (combine-and-quote-strings strs)) == strs
 The SEPARATOR regexp defaults to \"\\s-+\"."
   (let ((sep (or separator "\\s-+"))
-	(i (string-match "\"" string)))
+	(i (string-search "\"" string)))
     (if (null i)
 	(split-string string sep t)	; no quoting:  easy
       (append (unless (eq i 0) (split-string (substring string 0 i) sep t))

@@ -1960,7 +1960,7 @@ Value is the size of the newly read mail after conversion."
 			    (file-name-nondirectory
 			     (if (memq system-type '(windows-nt cygwin ms-dos))
 				 ;; cannot have colons in file name
-				 (replace-regexp-in-string ":" "-" file)
+				 (string-replace ":" "-" file)
 			       file)))
 		    ;; Use the directory of this rmail file
 		    ;; because it's a nuisance to use the homedir
@@ -3374,7 +3374,7 @@ The idea is to match it against simplified subjects of other messages."
     ;; Hide commas so it will work ok if parsed as a comma-separated list
     ;; of regexps.
     (setq subject
-	  (replace-regexp-in-string "," "\054" subject t t))
+	  (string-replace "," "\054" subject))
     (concat "\\`" subject "\\'")))
 
 (defun rmail-next-same-subject (n)

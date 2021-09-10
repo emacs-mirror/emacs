@@ -1649,6 +1649,24 @@ extra actual argument values not matched by any other parameter in
 Since the definition is global, it is recommended to give @var{name} a
 package prefix to avoid name clashes with definitions elsewhere, as is
 usual when naming non-local variables and functions.
+
+Forms defined this way only perform simple template substitution.
+For arbitrary computations, use them together with with the @code{rx}
+forms @code{eval}, @code{regexp} or @code{literal}.  Example:
+
+@example
+@group
+(defun n-tuple-rx (n element)
+  `(seq "<"
+        (group-n 1 ,element)
+        ,@@(mapcar (lambda (i) `(seq ?, (group-n ,i ,element)))
+                  (number-sequence 2 n))
+        ">"))
+(rx-define n-tuple (n element) (eval (n-tuple-rx n 'element)))
+(rx (n-tuple 3 (+ (in "0-9"))))
+  @result{} "<\\(?1:[0-9]+\\),\\(?2:[0-9]+\\),\\(?3:[0-9]+\\)>"
+@end group
+@end example
 @end defmac
 
 @defmac rx-let (bindings@dots{}) body@dots{}
@@ -2540,9 +2558,9 @@ associated with it still exists.
 @cindex replacement after search
 @cindex searching and replacing
 
-  If you want to find all matches for a regexp in part of the buffer,
-and replace them, the best way is to write an explicit loop using
-@code{re-search-forward} and @code{replace-match}, like this:
+  If you want to find all matches for a regexp in part of the buffer
+and replace them, the most flexible way is to write an explicit loop
+using @code{re-search-forward} and @code{replace-match}, like this:
 
 @example
 (while (re-search-forward "foo[ \t]+bar" nil t)
@@ -2553,9 +2571,33 @@ and replace them, the best way is to write an explicit loop using
 @xref{Replacing Match,, Replacing the Text that Matched}, for a
 description of @code{replace-match}.
 
-  However, replacing matches in a string is more complex, especially
-if you want to do it efficiently.  So Emacs provides two functions to do
-this.
+  It may be more convenient to limit the replacements to a specific
+region.  The function @code{replace-regexp-in-region} does that.
+
+@defun replace-regexp-in-region regexp replacement &optional start end
+This function replaces all the occurrences of @var{regexp} with
+@var{replacement} in the region of buffer text between @var{start} and
+@var{end}; @var{start} defaults to position of point, and @var{end}
+defaults to the last accessible position of the buffer.  The search
+for @var{regexp} is case-sensitive, and @var{replacement} is inserted
+without changing its letter-case.  The @var{replacement} string can
+use the same special elements starting with @samp{\} as
+@code{replace-match} does.  The function returns the number of
+replaced occurrences, or @code{nil} if @var{regexp} is not found.  The
+function preserves the position of point.
+
+@example
+(replace-regexp-in-region "foo[ \t]+bar" "foobar")
+@end example
+@end defun
+
+@defun replace-string-in-region string replacement &optional start end
+  This function works similarly to @code{replace-regexp-in-region},
+but searches for, and replaces, literal @var{string}s instead of
+regular expressions.
+@end defun
+
+  Emacs also has special functions for replacing matches in a string.
 
 @defun replace-regexp-in-string regexp rep string &optional fixedcase literal subexp start
 This function copies @var{string} and searches it for matches for
