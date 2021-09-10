@@ -105,21 +105,27 @@ highlighted, too."
 
 (bug-reference-set-overlay-properties)
 
+(defun bug-reference--overlays-in (start end)
+  "Return bug reference overlays in the region between START and END."
+  (let (overlays)
+    (dolist (o (overlays-in start end))
+      (when (eq (overlay-get o 'category) 'bug-reference)
+        (push o overlays)))
+    (nreverse overlays)))
+
 (defun bug-reference-unfontify (start end)
   "Remove bug reference overlays from the region between START and END."
-  (dolist (o (overlays-in start end))
-    (when (eq (overlay-get o 'category) 'bug-reference)
-      (delete-overlay o))))
+  (mapc #'delete-overlay (bug-reference--overlays-in start end)))
 
 (defvar bug-reference-prog-mode)
 
 (defun bug-reference-fontify (start end)
   "Apply bug reference overlays to the region between START and END."
   (save-excursion
-    (let ((beg-line (progn (goto-char start) (line-beginning-position)))
-	  (end-line (progn (goto-char end) (line-end-position))))
-      ;; Remove old overlays.
-      (bug-reference-unfontify beg-line end-line)
+    (let* ((beg-line (progn (goto-char start) (line-beginning-position)))
+	   (end-line (progn (goto-char end) (line-end-position)))
+           ;; Reuse existing overlays overlays.
+           (overlays (bug-reference--overlays-in beg-line end-line)))
       (goto-char beg-line)
       (while (and (< (point) end-line)
 		  (re-search-forward bug-reference-bug-regexp end-line 'move))
@@ -129,19 +135,28 @@ highlighted, too."
           ;; We highlight the 99th subexpression if that exists,
           ;; otherwise the complete match.  See the docstring of
           ;; `bug-reference-bug-regexp'.
-	  (let ((overlay (make-overlay (or (match-beginning 99)
-                                           (match-beginning 0))
-                                       (or (match-end 99)
-                                           (match-end 0))
-				       nil t nil)))
-	    (overlay-put overlay 'category 'bug-reference)
-	    ;; Don't put a link if format is undefined
+	  (let* ((s (or (match-beginning 99)
+                        (match-beginning 0)))
+                 (e (or (match-end 99)
+                        (match-end 0)))
+                 (overlay (or
+                           (let ((ov (pop overlays)))
+                             (when ov
+                               (move-overlay ov s e)
+                               ov))
+                           (let ((ov (make-overlay s e nil t nil)))
+                             (overlay-put ov 'category 'bug-reference)
+                             ov))))
+	    ;; Don't put a link if format is undefined.
 	    (when bug-reference-url-format
               (overlay-put overlay 'bug-reference-url
                            (if (stringp bug-reference-url-format)
                                (format bug-reference-url-format
                                        (match-string-no-properties 2))
-                             (funcall bug-reference-url-format))))))))))
+                             (funcall bug-reference-url-format)))))))
+      ;; Delete remaining but unused overlays.
+      (dolist (ov overlays)
+        (delete-overlay ov)))))
 
 ;; Taken from button.el.
 (defun bug-reference-push-button (&optional pos _use-mouse-action)
