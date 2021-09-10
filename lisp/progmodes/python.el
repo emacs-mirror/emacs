@@ -2571,10 +2571,12 @@ the `buffer-name'."
    (format
     (concat
      "import os.path;import sys;"
-     "sys.path.append(os.path.dirname(os.path.dirname('''%s''')));"
-     "__package__ = '''%s''';"
+     "sys.path.append(os.path.dirname(os.path.dirname(%s)));"
+     "__package__ = %s;"
      "import %s")
-    directory package package)
+    (python-shell--encode-string directory)
+    (python-shell--encode-string package)
+    package)
    (python-shell-get-process)))
 
 (defun python-shell-accept-process-output (process &optional timeout regexp)
@@ -3532,14 +3534,6 @@ def __PYTHON_EL_get_completions(text):
   "25.1"
   "Completion string code must work for (i)pdb.")
 
-(defcustom python-shell-completion-string-code
-  "';'.join(__PYTHON_EL_get_completions('''%s'''))"
-  "Python code used to get a string of completions separated by semicolons.
-The string passed to the function is the current python name or
-the full statement in the case of imports."
-  :type 'string
-  :group 'python)
-
 (defcustom python-shell-completion-native-disabled-interpreters
   ;; PyPy's readline cannot handle some escape sequences yet.  Native
   ;; completion doesn't work on w32 (Bug#28580).
@@ -3834,9 +3828,10 @@ completion."
            (python-util-strip-string
             (python-shell-send-string-no-output
              (format
-              (concat python-shell-completion-setup-code
-                      "\nprint (" python-shell-completion-string-code ")")
-              input) process))))
+              "%s\nprint(';'.join(__PYTHON_EL_get_completions(%s)))"
+              python-shell-completion-setup-code
+              (python-shell--encode-string input))
+             process))))
       (when (> (length completions) 2)
         (split-string completions
                       "^'\\|^\"\\|;\\|'$\\|\"$" t)))))
@@ -4559,28 +4554,16 @@ def __FFAP_get_module_path(objstr):
   :type 'string
   :group 'python)
 
-(defcustom python-ffap-string-code
-  "__FFAP_get_module_path('''%s''')"
-  "Python code used to get a string with the path of a module."
-  :type 'string
-  :group 'python)
-
 (defun python-ffap-module-path (module)
   "Function for `ffap-alist' to return path for MODULE."
-  (let ((process (or
-                  (and (derived-mode-p 'inferior-python-mode)
-                       (get-buffer-process (current-buffer)))
-                  (python-shell-get-process))))
-    (if (not process)
-        nil
-      (let ((module-file
-             (python-shell-send-string-no-output
-              (concat
-               python-ffap-setup-code
-               "\nprint (" (format python-ffap-string-code module) ")")
-              process)))
-        (unless (zerop (length module-file))
-          (python-util-strip-string module-file))))))
+  (when-let ((process (python-shell-get-process))
+             (module-file
+              (python-shell-send-string-no-output
+               (format "%s\nprint(__FFAP_get_module_path(%s))"
+                       python-ffap-setup-code
+                       (python-shell--encode-string module)))))
+    (unless (string-empty-p module-file)
+      (python-util-strip-string module-file))))
 
 (defvar ffap-alist)
 
@@ -4671,12 +4654,6 @@ See `python-check-command' for the default."
   :type 'string
   :group 'python)
 
-(defcustom python-eldoc-string-code
-  "__PYDOC_get_help('''%s''')"
-  "Python code used to get a string with the documentation of an object."
-  :type 'string
-  :group 'python)
-
 (defun python-eldoc--get-symbol-at-point ()
   "Get the current symbol for eldoc.
 Returns the current symbol handling point within arguments."
@@ -4706,11 +4683,12 @@ returns will be used.  If not FORCE-PROCESS is passed what
                 ;; enabled.  Bug#18794.
                 (python-util-strip-string
                  (python-shell-send-string-no-output
-                  (concat
+                  (format
+                   "%s\nprint(__PYDOC_get_help(%s))"
                    python-eldoc-setup-code
-                   "\nprint(" (format python-eldoc-string-code input) ")")
+                   (python-shell--encode-string input))
                   process)))))
-        (unless (zerop (length docstring))
+        (unless (string-empty-p docstring)
           docstring)))))
 
 (defvar-local python-eldoc-get-doc t
