@@ -515,6 +515,7 @@ typedef struct {
 typedef struct {
   EMACS_INT speed;
   EMACS_INT debug;
+  Lisp_Object compiler_options;
   Lisp_Object driver_options;
   gcc_jit_context *ctxt;
   gcc_jit_type *void_type;
@@ -4383,6 +4384,22 @@ DEFUN ("comp-native-driver-options-effective-p",
 }
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic ignored "-Waddress"
+DEFUN ("comp-native-compiler-options-effective-p",
+       Fcomp_native_compiler_options_effective_p,
+       Scomp_native_compiler_options_effective_p,
+       0, 0, 0,
+       doc: /* Return t if `comp-native-compiler-options' is effective.  */)
+  (void)
+{
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)
+  if (gcc_jit_context_add_command_line_option)
+    return Qt;
+#endif
+  return Qnil;
+}
+#pragma GCC diagnostic pop
+
 static void
 add_driver_options (void)
 {
@@ -4419,6 +4436,43 @@ add_driver_options (void)
 					    ENCODE_FILE or
 					    ENCODE_SYSTEM.  */
 					 SSDATA (XCAR (options)));
+#endif
+}
+
+static void
+add_compiler_options (void)
+{
+  Lisp_Object options = Fsymbol_value (Qnative_comp_compiler_options);
+
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)
+  load_gccjit_if_necessary (true);
+  if (!NILP (Fcomp_native_compiler_options_effective_p ()))
+    FOR_EACH_TAIL (options)
+        gcc_jit_context_add_command_line_option (comp.ctxt,
+                                                 /* FIXME: Need to encode
+                                                    this, but how? either
+                                                    ENCODE_FILE or
+                                                    ENCODE_SYSTEM.  */
+                                                 SSDATA (XCAR (options)));
+#endif
+  if (CONSP (options))
+    xsignal1 (Qnative_compiler_error,
+	      build_string ("Customizing native compiler options"
+			    " via `comp-native-compiler-options' is"
+			    " only available on libgccjit version 9"
+			    " and above."));
+
+  /* Captured `comp-native-compiler-options' because file-local.  */
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)
+  options = comp.compiler_options;
+  if (!NILP (Fcomp_native_compiler_options_effective_p ()))
+    FOR_EACH_TAIL (options)
+      gcc_jit_context_add_command_line_option (comp.ctxt,
+                                               /* FIXME: Need to encode
+                                                  this, but how? either
+                                                  ENCODE_FILE or
+                                                  ENCODE_SYSTEM.  */
+                                               SSDATA (XCAR (options)));
 #endif
 }
 
@@ -4467,6 +4521,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   comp.debug = XFIXNUM (CALL1I (comp-ctxt-debug, Vcomp_ctxt));
   eassert (comp.debug < INT_MAX);
   comp.driver_options = CALL1I (comp-ctxt-driver-options, Vcomp_ctxt);
+  comp.compiler_options = CALL1I (comp-ctxt-compiler-options, Vcomp_ctxt);
 
   if (comp.debug)
       gcc_jit_context_set_bool_option (comp.ctxt,
@@ -4541,6 +4596,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 					     "-fdisable-tree-isolate-paths");
 #endif
 
+  add_compiler_options ();
   add_driver_options ();
 
   if (comp.debug > 1)
@@ -5248,6 +5304,7 @@ compiled one.  */);
   DEFSYM (Qnative_comp_speed, "native-comp-speed");
   DEFSYM (Qnative_comp_debug, "native-comp-debug");
   DEFSYM (Qnative_comp_driver_options, "native-comp-driver-options");
+  DEFSYM (Qnative_comp_compiler_options, "native-comp-compiler-options");
   DEFSYM (Qcomp_libgccjit_reproducer, "comp-libgccjit-reproducer");
 
   /* Limple instruction set.  */
@@ -5357,6 +5414,7 @@ compiled one.  */);
   defsubr (&Scomp_el_to_eln_rel_filename);
   defsubr (&Scomp_el_to_eln_filename);
   defsubr (&Scomp_native_driver_options_effective_p);
+  defsubr (&Scomp_native_compiler_options_effective_p);
   defsubr (&Scomp__install_trampoline);
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
