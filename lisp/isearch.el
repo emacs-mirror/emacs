@@ -114,7 +114,7 @@ is called to let you enter the search string, and RET terminates editing
 and does a nonincremental search.)"
   :type 'boolean)
 
-(defcustom search-whitespace-regexp (purecopy "\\s-+")
+(defcustom search-whitespace-regexp (purecopy "[ \t]")
   "If non-nil, regular expression to match a sequence of whitespace chars.
 When you enter a space or spaces in the incremental search, it
 will match any sequence matched by this regexp.  As an exception,
@@ -134,7 +134,7 @@ add any capturing groups into this value; that can change the
 numbering of existing capture groups in unexpected ways."
   :type '(choice (const :tag "Match Spaces Literally" nil)
 		 regexp)
-  :version "24.3")
+  :version "28.1")
 
 (defcustom search-invisible 'open
   "If t incremental search/query-replace can match hidden text.
