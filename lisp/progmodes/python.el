@@ -4739,7 +4739,9 @@ Interactively, prompt for symbol."
   (interactive
    (let ((symbol (python-eldoc--get-symbol-at-point))
          (enable-recursive-minibuffers t))
-     (list (read-string (format-prompt "Describe symbol" symbol)
+     (list (read-string (if symbol
+                            (format "Describe symbol (default %s): " symbol)
+                          "Describe symbol: ")
                         nil nil symbol))))
   (message (python-eldoc--get-doc-at-point symbol)))
 
