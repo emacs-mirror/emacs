@@ -836,7 +836,7 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
 ;; `ruby-calculate-indent' in user init files still call it.
 (defun ruby-current-indentation ()
   "Return the indentation level of current line."
-  (declare (obsolete nil "28.1"))
+  (declare (obsolete current-indentation "28.1"))
   (save-excursion
     (beginning-of-line)
     (back-to-indentation)
