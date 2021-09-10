@@ -841,7 +841,8 @@ When 0, do not auto-reconnect."
                          (not rcirc-target))
 	    (rcirc-disconnect-buffer)))
         (when (and (string= sentinel "deleted")
-                   (< 0 rcirc-reconnect-delay))
+                   (< 0 rcirc-reconnect-delay)
+                   (not rcirc-connecting))
           (let ((now (current-time)))
             (when (or (null rcirc-last-connect-time)
 		      (time-less-p rcirc-reconnect-delay
@@ -2580,13 +2581,9 @@ to `rcirc-default-part-reason'."
   (interactive "i")
   (with-rcirc-server-buffer
     (catch 'exit
-      (cond
-       (rcirc-connecting
-        (when (process-live-p process)
-          (kill-process process))
-        (setq rcirc-connecting nil))
-       ((process-live-p process)
-        (throw 'exit (message "Server process is alive"))))
+      (if (eq (process-status process) 'open)
+          (throw 'exit (message "Server process is alive"))
+        (delete-process process))
       (let ((conn-info rcirc-connection-info))
 	(setf (nth 5 conn-info)
 	      (cl-remove-if-not #'rcirc-channel-p
