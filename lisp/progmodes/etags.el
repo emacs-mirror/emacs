@@ -2096,7 +2096,10 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
     definitions))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql 'etags)) pattern)
-  (etags--xref-find-definitions (xref-apropos-regexp pattern) t))
+  (let ((regexp (xref-apropos-regexp pattern)))
+    (nconc
+     (etags--xref-find-definitions regexp t)
+     (etags--xref-apropos-additional regexp))))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behavior of `find-tag-in-order' but instead of
@@ -2131,6 +2134,32 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
                       (puthash mark-key t marks))))))))))
     (nreverse xrefs)))
 
+(defun etags--xref-apropos-additional (regexp)
+  (cl-mapcan
+   (lambda (oba)
+     (pcase-let* ((`(,group ,goto-fun ,symbs) oba)
+                  (res nil)
+                  (add-xref (lambda (sym)
+                              (let ((sn (symbol-name sym)))
+                                (when (string-match-p regexp sn)
+                                  (push
+                                   (xref-make
+                                    sn
+                                    (xref-make-etags-apropos-location
+                                     sym goto-fun group))
+                                   res))))))
+       (when (symbolp symbs)
+         (if (boundp symbs)
+             (setq symbs (symbol-value symbs))
+           (warn "symbol `%s' has no value" symbs)
+           (setq symbs nil))
+         (if (vectorp symbs)
+             (mapatoms add-xref symbs)
+           (dolist (sy symbs)
+             (funcall add-xref (car sy))))
+         (nreverse res))))
+   tags-apropos-additional-actions))
+
 (defclass xref-etags-location (xref-location)
   ((tag-info :type list   :initarg :tag-info)
    (file     :type string :initarg :file
@@ -2154,6 +2183,25 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
 (cl-defmethod xref-location-line ((l xref-etags-location))
   (with-slots (tag-info) l
     (nth 1 tag-info)))
+
+(defclass xref-etags-apropos-location (xref-location)
+  ((symbol :type symbol :initarg :symbol)
+   (goto-fun :type function :initarg :goto-fun)
+   (group :type string :initarg :group
+          :reader xref-location-group))
+  :documentation "Location of an additional apropos etags symbol.")
+
+(defun xref-make-etags-apropos-location (symbol goto-fun group)
+  (make-instance 'xref-etags-apropos-location
+                 :symbol symbol
+                 :goto-fun goto-fun
+                 :group group))
+
+(cl-defmethod xref-location-marker ((l xref-etags-apropos-location))
+  (save-window-excursion
+    (with-slots (goto-fun symbol) l
+      (funcall goto-fun symbol)
+      (point-marker))))
 
 
 (provide 'etags)

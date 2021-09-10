@@ -2382,6 +2382,9 @@ binding in 'xref--xref-buffer-mode-map'.
 When non-nil, matches for identifiers in the file visited by the
 current buffer will be shown first in the "*xref*" buffer.
 
+*** The etags Xref backend now honors 'tags-apropos-additional-actions'.
+You can customize it to augment the output of 'xref-find-apropos'.
+
 ** Battery
 
 ---
