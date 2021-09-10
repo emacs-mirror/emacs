@@ -2141,31 +2141,15 @@ Switch @code{xref} to use the @code{etags} backend.
 @kindex M-.
 @findex xref-find-definitions
 @vindex xref-prompt-for-identifier
-  @kbd{M-.}@: (@code{xref-find-definitions}) shows the definitions of
+  @kbd{M-.}@: (@code{xref-find-definitions}) shows the definition of
 the identifier at point.  With a prefix argument, or if there's no
 identifier at point, it prompts for the identifier.  (If you want it
 to always prompt, customize @code{xref-prompt-for-identifier} to
 @code{t}.)
 
-@vindex xref-auto-jump-to-first-definition
-If the specified identifier has only one definition, the command jumps
-to it.  If the identifier has more than one possible definition (e.g.,
-in an object-oriented language, or if there's a function and a
-variable by the same name), the command shows the candidate
-definitions in the @file{*xref*} buffer, together with the files in
-which these definitions are found.  Selecting one of these candidates
-by typing @kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer
-showing the corresponding definition.  If the value of the variable
-@code{xref-auto-jump-to-first-definition} is @code{move}, the first
-of these candidates is automatically selected, and if it's @code{t} or
-@code{show}, the first candidate is automatically shown; @code{t} also
-selects the window showing the first candidate.  The default value is
-@code{nil}, which just shows the candidates in the @file{*xref*}
-buffer, but doesn't select any of them.
-
-  When entering the identifier argument to @kbd{M-.}, the usual
-minibuffer completion commands can be used (@pxref{Completion}), with
-the known identifier names as completion candidates.
+  When entering the identifier argument to @kbd{M-.}, you can use the
+usual minibuffer completion commands (@pxref{Completion}), with the
+known identifier names being the completion candidates.
 
 @kindex C-x 4 .
 @findex xref-find-definitions-other-window
@@ -2183,23 +2167,40 @@ former is @w{@kbd{C-x 4 .}}
 or around the place of a mouse event.  This command is intended to be
 bound to a mouse event, such as @kbd{C-M-mouse-1}, for example.
 
-@findex xref-find-apropos
 @kindex C-M-.
-  The command @kbd{C-M-.} (@code{xref-find-apropos}) finds the
-definitions of one or more identifiers that match a specified regular
-expression.  It is just like @kbd{M-.} except that it does regexp
+@findex xref-find-apropos
+@vindex tags-apropos-additional-actions
+  The command @kbd{C-M-.}@: (@code{xref-find-apropos}) is like
+@code{apropos} for tags (@pxref{Apropos}).  It displays a list of
+identifiers in the selected tags table whose names match the specified
+@var{regexp}.  This is just like @kbd{M-.}, except that it does regexp
 matching of identifiers instead of matching symbol names as fixed
-strings.
+strings.  By default, the command pops up the @file{*xref*} buffer,
+like @kbd{M-.}, but you can display additional output by customizing
+the variable @code{tags-apropos-additional-actions}; see its
+documentation for details.
 
-  When any of the above commands finds more than one definition, it
-presents the @file{*xref*} buffer showing the definition candidates.
-In that buffer, you have several specialized commands, described in
-@ref{Xref Commands}.
+@vindex xref-auto-jump-to-first-definition
+  If any of the above commands finds more than one matching
+definition, it by default pops up the @file{*xref*} buffer showing the
+matching candidates.  (@kbd{C-M-.}@: @emph{always} pops up the
+@file{*xref*} buffer if it finds at least one match.)  The candidates
+are normally shown in that buffer as the name of a file and the
+matching identifier(s) in that file.  In that buffer, you can select
+any of the candidates for display, and you have several additional
+commands, described in @ref{Xref Commands}.  However, if the value of
+the variable @code{xref-auto-jump-to-first-definition} is @code{move},
+the first of these candidates is automatically selected in the
+@file{*xref*} buffer, and if it's @code{t} or @code{show}, the first
+candidate is automatically shown in its own window; @code{t} also
+selects the window showing the first candidate.  The default value is
+@code{nil}, which just shows the candidates in the @file{*xref*}
+buffer, but doesn't select any of them.
 
 @kindex M-,
 @findex xref-pop-marker-stack
 @vindex xref-marker-ring-length
-  To go back to places @emph{from where} you found the definition,
+  To go back to places @emph{from where} you've displayed the definition,
 use @kbd{M-,} (@code{xref-pop-marker-stack}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
@@ -2410,14 +2411,13 @@ Searching}.
 Perform completion on the text around point, possibly using the
 selected tags table if one is loaded (@code{completion-at-point}).
 
-@item M-x xref-find-apropos @key{RET} @var{regexp} @key{RET}
-Display a list of all known identifiers matching @var{regexp}.
-The way this command displays the matches is affected by the value of
-@code{xref-auto-jump-to-first-xref} (@pxref{Identifier Search}).
-
 @item M-x list-tags @key{RET} @var{file} @key{RET}
 Display a list of the identifiers defined in the program file
 @var{file}.
+
+@item C-M-. @var{regexp} @key{RET}
+Display a list of all identifiers matching @var{regexp}
+(@code{xref-find-apropos}).  @xref{Looking Up Identifiers}.
 
 @item M-x tags-next-file
 Visit files recorded in the selected tags table.
@@ -2439,25 +2439,6 @@ command works only with the etags backend, and requires a tags table
 for the project to be available.  @xref{Tags Tables}.  If used
 interactively, the default tag is file name of the current buffer if
 used interactively.
-
-@c Sadly, the new-and-improved Xref feature doesn't provide some
-@c of the features of the now-obsoleted tags-apropos.  I'm leaving
-@c this here to encourage enhancements to xref.el.
-@ignore
-@findex tags-apropos
-@vindex tags-apropos-verbose
-@vindex tags-tag-face
-@vindex tags-apropos-additional-actions
-  @kbd{M-x tags-apropos} is like @code{apropos} for tags
-(@pxref{Apropos}).  It displays a list of tags in the selected tags
-table whose entries match @var{regexp}.  If the variable
-@code{tags-apropos-verbose} is non-@code{nil}, it displays the names
-of the tags files together with the tag names.  You can customize the
-appearance of the output by setting the variable @code{tags-tag-face}
-to a face.  You can display additional output by customizing the
-variable @code{tags-apropos-additional-actions}; see its documentation
-for details.
-@end ignore
 
 @findex tags-next-file
   @kbd{M-x tags-next-file} visits files covered by the selected tags table.
