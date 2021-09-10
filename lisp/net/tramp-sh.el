@@ -2449,8 +2449,9 @@ The method used must be an out-of-band method."
     (tramp-flush-directory-properties
      v (if parents "/" (file-name-directory localname)))
     (tramp-barf-unless-okay
-     v (format "%s %s"
+     v (format "%s -m %#o %s"
 	       (if parents "mkdir -p" "mkdir")
+	       (default-file-modes)
 	       (tramp-shell-quote-argument localname))
      "Couldn't make directory %s" dir)))
 

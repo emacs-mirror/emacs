@@ -1574,10 +1574,13 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(when (and parents (not (file-directory-p ldir)))
 	  (make-directory ldir parents))
 	;; Just do it.
-	(unless (or (tramp-gvfs-send-command
-		     v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))
-		    (and parents (file-directory-p dir)))
-	  (tramp-error v 'file-error "Couldn't make directory %s" dir))))))
+	(or (let ((mkdir-succeeded
+		   (tramp-gvfs-send-command
+		    v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))))
+	      (if mkdir-succeeded (set-file-modes dir (default-file-modes)))
+	      mkdir-succeeded)
+	    (and parents (file-directory-p dir))
+	    (tramp-error v 'file-error "Couldn't make directory %s" dir))))))
 
 (defun tramp-gvfs-handle-rename-file
   (filename newname &optional ok-if-already-exists)

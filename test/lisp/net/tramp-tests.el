@@ -2765,34 +2765,58 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    (ignore-errors (delete-directory source 'recursive))
 	    (ignore-errors (delete-directory target 'recursive))))))))
 
-(ert-deftest tramp-test13-make-directory ()
-  "Check `make-directory'.
-This tests also `file-directory-p' and `file-accessible-directory-p'."
-  (skip-unless (tramp--test-enabled))
-
-  (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
+(defun tramp-test-make-directory-helper (test-default-file-modes-p)
+  "Helper test used by tramp-test13-make-directory* tests."
+  (dolist (quoted (if (and (tramp--test-expensive-test)
+                           (not test-default-file-modes-p))
+                      '(nil t)
+                    '(nil)))
     (let* ((tmp-name1 (tramp--test-make-temp-name nil quoted))
-	   (tmp-name2 (expand-file-name "foo/bar" tmp-name1)))
+	   (tmp-name2 (expand-file-name "foo/bar" tmp-name1))
+	   (unusual-file-mode-1 #o740)
+	   (unusual-file-mode-2 #o710))
       (unwind-protect
 	  (progn
-	    (make-directory tmp-name1)
+	    (with-file-modes unusual-file-mode-1
+	      (make-directory tmp-name1))
 	    (should-error
 	     (make-directory tmp-name1)
 	     :type 'file-already-exists)
 	    (should (file-directory-p tmp-name1))
 	    (should (file-accessible-directory-p tmp-name1))
+	    (and test-default-file-modes-p
+		 (should (equal (format "%#o" unusual-file-mode-1)
+				(format "%#o" (file-modes tmp-name1)))))
 	    (should-error
 	     (make-directory tmp-name2)
 	     :type 'file-error)
-	    (make-directory tmp-name2 'parents)
+	    (with-file-modes unusual-file-mode-2
+	      (make-directory tmp-name2 'parents))
 	    (should (file-directory-p tmp-name2))
 	    (should (file-accessible-directory-p tmp-name2))
+	    (and test-default-file-modes-p
+		 (should (equal (format "%#o" unusual-file-mode-2)
+				(format "%#o" (file-modes tmp-name2)))))
 	    ;; If PARENTS is non-nil, `make-directory' shall not
 	    ;; signal an error when DIR exists already.
 	    (make-directory tmp-name2 'parents))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
+
+(ert-deftest tramp-test13-make-directory ()
+  "Check `make-directory'.
+This tests also `file-directory-p' and `file-accessible-directory-p'."
+  (skip-unless (tramp--test-enabled))
+  (tramp-test-make-directory-helper nil))
+
+(ert-deftest tramp-test13-make-directory-with-file-modes ()
+  "Check that `make-directory' honors `default-file-modes'.
+This is a separate test from `tramp-test13-make-directory' so
+it can be skipped for backends that do not support file modes."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-supports-file-modes-p))
+  (tramp-test-make-directory-helper t))
 
 (ert-deftest tramp-test14-delete-directory ()
   "Check `delete-directory'."
@@ -3590,14 +3614,7 @@ They might differ only in time attributes or directory size."
   "Check `file-modes'.
 This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (tramp--test-enabled))
-  (skip-unless
-   (or (tramp--test-sh-p) (tramp--test-sshfs-p) (tramp--test-sudoedit-p)
-       ;; Not all tramp-gvfs.el methods support changing the file mode.
-       (and
-	(tramp--test-gvfs-p)
-	(string-match-p
-	 "ftp" (file-remote-p tramp-test-temporary-file-directory 'method)))))
-
+  (skip-unless (tramp--test-supports-file-modes-p))
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	  (tmp-name2 (tramp--test-make-temp-name nil quoted)))
@@ -6171,6 +6188,17 @@ This requires restrictions of file name syntax."
   "Check, whether the locale or remote host runs MS Windows.
 This requires restrictions of file name syntax."
   (tramp-smb-file-name-p tramp-test-temporary-file-directory))
+
+(defun tramp--test-supports-file-modes-p ()
+  "Return whether the method under test supports file modes."
+  ;; "smb" does not unless the SMB server supports "posix" extensions.
+  ;; "adb" does not unless the Android device is rooted.
+  (or (tramp--test-sh-p) (tramp--test-sshfs-p) (tramp--test-sudoedit-p)
+      ;; Not all tramp-gvfs.el methods support changing the file mode.
+      (and
+       (tramp--test-gvfs-p)
+       (string-match-p
+	"ftp" (file-remote-p tramp-test-temporary-file-directory 'method)))))
 
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."

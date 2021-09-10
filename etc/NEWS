@@ -1955,7 +1955,7 @@ security key, like yubikey, solokey, or nitrokey.
 
 +++
 *** Trashed remote files are moved to the local trash directory.
-All remote files, which are trashed, are moved to the local trash
+All remote files that are trashed are moved to the local trash
 directory, except remote encrypted files, which are always deleted.
 
 +++
@@ -1990,6 +1990,9 @@ In order to deactivate this, set user option
 Writing auto-save, backup or lock files to the local temporary
 directory must be confirmed.  In order to suppress this confirmation,
 set user option 'tramp-allow-unsafe-temporary-files' to t.
+
++++
+*** 'make-directory' of a remote directory honors the default file modes.
 
 ** gdb-mi
 
