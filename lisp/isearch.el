@@ -2927,11 +2927,48 @@ If non-nil, scrolling commands can be used in Isearch mode.
 However, you cannot scroll far enough that the current match is
 no longer visible (is off screen).  But if the value is `unlimited'
 that limitation is removed and you can scroll any distance off screen.
-If nil, scrolling commands exit Isearch mode."
+If nil, scrolling commands exit Isearch mode.
+See also the related option `isearch-allow-motion'."
   :type '(choice (const :tag "Scrolling exits Isearch" nil)
                  (const :tag "Scrolling with current match on screen" t)
                  (const :tag "Scrolling with current match off screen" unlimited))
   :group 'isearch)
+
+(put 'beginning-of-buffer 'isearch-motion
+     '((lambda () (goto-char (point-min))) . forward))
+(put 'end-of-buffer 'isearch-motion
+     '((lambda () (goto-char (point-max))) . backward))
+(put 'scroll-up-command 'isearch-motion
+     '((lambda () (goto-char (window-end)) (recenter 1 t)) . forward))
+(put 'scroll-down-command 'isearch-motion
+     '((lambda () (goto-char (window-start)) (recenter -1 t)) . backward))
+
+(defcustom isearch-allow-motion nil
+  "Whether to allow movement between isearch matches by cursor motion commands.
+If non-nil, the four motion commands \\[beginning-of-buffer], \\[end-of-buffer], \
+\\[scroll-up-command] and \\[scroll-down-command], when invoked during
+Isearch, move respectively to the first occurrence of the current search string
+in the buffer, the last one, the first one after the current window, and the
+last one before the current window.
+If nil, these motion commands normally exit Isearch and are executed.
+See also the related options `isearch-motion-changes-direction' and
+`isearch-allow-scroll'."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On" t))
+  :group 'isearch
+  :version "28.1")
+
+(defcustom isearch-motion-changes-direction nil
+  "Whether motion commands during incremental search change search direction.
+If nil, the search direction (forward or backward) does not change when
+motion commands are used during incremental search, except when wrapping.
+If non-nil, the search direction is forward after \\[beginning-of-buffer] and \
+\\[scroll-up-command], and
+backward after \\[end-of-buffer] and \\[scroll-down-command]."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On" t))
+  :group 'isearch
+  :version "28.1")
 
 (defcustom isearch-allow-prefix t
   "Whether prefix arguments are allowed during incremental search.
@@ -3034,6 +3071,24 @@ See more for options in `search-exit-option'."
      ;; Optionally edit the search string instead of exiting.
      ((eq search-exit-option 'edit)
       (setq this-command 'isearch-edit-string))
+     ;; Handle motion command functions.
+     ((and isearch-allow-motion
+           (symbolp this-command)
+           (get this-command 'isearch-motion))
+      (let* ((property (get this-command 'isearch-motion))
+             (function (car property))
+             (current-direction (if isearch-forward 'forward 'backward))
+             (direction (or (cdr property)
+                            (if isearch-forward 'forward 'backward))))
+        (funcall function)
+        (setq isearch-just-started t)
+        (let ((isearch-repeat-on-direction-change nil))
+          (isearch-repeat direction))
+        (when (and isearch-success (not isearch-motion-changes-direction))
+          (unless (eq direction current-direction)
+            (let ((isearch-repeat-on-direction-change nil))
+              (isearch-repeat current-direction))))
+        (setq this-command 'ignore)))
      ;; Handle a scrolling function or prefix argument.
      ((or (and isearch-allow-prefix
                (memq this-command '(universal-argument universal-argument-more
