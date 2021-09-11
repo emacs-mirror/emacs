@@ -310,13 +310,6 @@ Earlier variables shadow later ones with the same name.")
 
 ;;; implementing source-level optimizers
 
-(defvar byte-optimize--vars-outside-condition nil
-  "Alist of variables lexically bound outside conditionally executed code.
-Variables here are sensitive to mutation inside the conditional code,
-since their contents in sequentially later code depends on the path taken
-and may no longer be statically known.
-Same format as `byte-optimize--lexvars', with shared structure and contents.")
-
 (defvar byte-optimize--vars-outside-loop nil
   "Alist of variables lexically bound outside the innermost `while' loop.
 Variables here are sensitive to mutation inside the loop, since this can
@@ -432,19 +425,19 @@ for speeding up processing.")
       (`(,(or 'let 'let*) . ,rest)
        (cons fn (byte-optimize-let-form fn rest for-effect)))
       (`(cond . ,clauses)
-       ;; The condition in the first clause is always executed, but
-       ;; right now we treat all of them as conditional for simplicity.
-       (let ((byte-optimize--vars-outside-condition byte-optimize--lexvars))
-         (cons fn
-               (mapcar (lambda (clause)
-                         (if (consp clause)
-                             (cons
-                              (byte-optimize-form (car clause) nil)
-                              (byte-optimize-body (cdr clause) for-effect))
-                           (byte-compile-warn "malformed cond form: `%s'"
-                                              (prin1-to-string clause))
-                           clause))
-                       clauses))))
+       ;; FIXME: The condition in the first clause is always executed, and
+       ;; clause bodies are mutually exclusive -- use this for improved
+       ;; optimisation (see comment about `if' below).
+       (cons fn
+             (mapcar (lambda (clause)
+                       (if (consp clause)
+                           (cons
+                            (byte-optimize-form (car clause) nil)
+                            (byte-optimize-body (cdr clause) for-effect))
+                         (byte-compile-warn "malformed cond form: `%s'"
+                                            (prin1-to-string clause))
+                         clause))
+                     clauses)))
       (`(progn . ,exps)
        ;; As an extra added bonus, this simplifies (progn <x>) --> <x>.
        (if (cdr exps)
@@ -470,22 +463,15 @@ for speeding up processing.")
        ;; FIXME: We are conservative here: any variable changed in the
        ;; THEN branch will be barred from substitution in the ELSE
        ;; branch, despite the branches being mutually exclusive.
-
-       ;; The test is always executed.
        (let* ((test-opt (byte-optimize-form test nil))
               (const (macroexp-const-p test-opt))
-              ;; The branches are traversed unconditionally when possible.
-              (byte-optimize--vars-outside-condition
-               (if const
-                   byte-optimize--vars-outside-condition
-                 byte-optimize--lexvars))
               ;; Avoid traversing dead branches.
               (then-opt (and test-opt (byte-optimize-form then for-effect)))
               (else-opt (and (not (and test-opt const))
                              (byte-optimize-body else for-effect))))
          `(if ,test-opt ,then-opt . ,else-opt)))
 
-      (`(,(or 'and 'or) . ,exps) ; Remember, and/or are control structures.
+      (`(,(or 'and 'or) . ,exps)
        ;; FIXME: We have to traverse the expressions in left-to-right
        ;; order (because that is the order of evaluation and variable
        ;; mutations must be found prior to their use), but doing so we miss
@@ -494,19 +480,11 @@ for speeding up processing.")
        ;; Then A could be optimised in a for-effect context too.
        (let ((tail exps)
              (args nil))
-         (when tail
-           ;; The first argument is always unconditional.
+         (while tail
            (push (byte-optimize-form
                   (car tail) (and for-effect (null (cdr tail))))
                  args)
-           (setq tail (cdr tail))
-           ;; Remaining arguments are conditional.
-           (let ((byte-optimize--vars-outside-condition byte-optimize--lexvars))
-             (while tail
-               (push (byte-optimize-form
-                      (car tail) (and for-effect (null (cdr tail))))
-                     args)
-               (setq tail (cdr tail)))))
+           (setq tail (cdr tail)))
          (cons fn (nreverse args))))
 
       (`(while ,exp . ,exps)
@@ -515,12 +493,10 @@ for speeding up processing.")
        ;; but this misses many opportunities: variables not mutated in the
        ;; loop at all, and variables affecting the initial condition (which
        ;; is always executed unconditionally).
-       (let* ((byte-optimize--vars-outside-condition byte-optimize--lexvars)
-              (byte-optimize--vars-outside-loop byte-optimize--lexvars)
+       (let* ((byte-optimize--vars-outside-loop byte-optimize--lexvars)
               (condition (byte-optimize-form exp nil))
               (body (byte-optimize-body exps t)))
          `(while ,condition . ,body)))
-
 
       (`(interactive . ,_)
        (byte-compile-warn "misplaced interactive spec: `%s'"
@@ -533,19 +509,18 @@ for speeding up processing.")
        form)
 
       (`(condition-case ,var ,exp . ,clauses)
-       (let ((byte-optimize--vars-outside-condition byte-optimize--lexvars))
-         `(condition-case ,var          ;Not evaluated.
-              ,(byte-optimize-form exp for-effect)
-            ,@(mapcar (lambda (clause)
-                        (let ((byte-optimize--lexvars
-                               (and lexical-binding
-                                    (if var
-                                        (cons (list var t)
-                                              byte-optimize--lexvars)
-                                      byte-optimize--lexvars))))
-                          (cons (car clause)
-                                (byte-optimize-body (cdr clause) for-effect))))
-                      clauses))))
+       `(condition-case ,var          ;Not evaluated.
+            ,(byte-optimize-form exp for-effect)
+          ,@(mapcar (lambda (clause)
+                      (let ((byte-optimize--lexvars
+                             (and lexical-binding
+                                  (if var
+                                      (cons (list var t)
+                                            byte-optimize--lexvars)
+                                    byte-optimize--lexvars))))
+                        (cons (car clause)
+                              (byte-optimize-body (cdr clause) for-effect))))
+                    clauses)))
 
       (`(unwind-protect ,exp . ,exps)
        ;; The unwinding part of an unwind-protect is compiled (and thus
@@ -554,8 +529,7 @@ for speeding up processing.")
        ;; protected part has the same for-effect status as the
        ;; unwind-protect itself.  (The unwinding part is always for effect,
        ;; but that isn't handled properly yet.)
-       (let* ((byte-optimize--vars-outside-condition byte-optimize--lexvars)
-              (bodyform (byte-optimize-form exp for-effect)))
+       (let ((bodyform (byte-optimize-form exp for-effect)))
          (pcase exps
            (`(:fun-body ,f)
             `(unwind-protect ,bodyform
@@ -565,9 +539,8 @@ for speeding up processing.")
                . ,(byte-optimize-body exps t))))))
 
       (`(catch ,tag . ,exps)
-       (let ((byte-optimize--vars-outside-condition byte-optimize--lexvars))
-         `(catch ,(byte-optimize-form tag nil)
-            . ,(byte-optimize-body exps for-effect))))
+       `(catch ,(byte-optimize-form tag nil)
+          . ,(byte-optimize-body exps for-effect)))
 
       ;; Needed as long as we run byte-optimize-form after cconv.
       (`(internal-make-closure . ,_)
