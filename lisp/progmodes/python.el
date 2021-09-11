@@ -3163,7 +3163,9 @@ t when called interactively."
                       (python-shell--encode-string (or (buffer-file-name)
                                                        "<string>")))))
     (if (or (null (process-tty-name process))
-            (<= (string-bytes code) comint-max-line-length))
+            (<= (string-bytes code)
+                (or (bound-and-true-p comint-max-line-length)
+                    1024))) ;; For Emacs < 28
         (comint-send-string process code)
       (let* ((temp-file-name (with-current-buffer (process-buffer process)
                                (python-shell--save-temp-file string)))
