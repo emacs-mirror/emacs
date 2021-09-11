@@ -2719,9 +2719,6 @@ message-ids, invite-notify, multi-prefix and standard-replies.
 *** Allow for channels to hide certain message types right after connecting.
 Set rcirc-omit-responses-after-join analogously to rcirc-omit-responses.
 
----
-*** 
-
 ** Miscellaneous
 
 ---
