@@ -935,6 +935,37 @@ because @code{defun-rcirc-command} is not yet available, and without
                          (concat "I use " rcirc-id-string))))
 @end smallexample
 
+@node Using rcirc with bouncers
+@section Using rcirc with bouncers
+@cindex bouncer
+
+Some bouncers multiplex connections to various servers, but have to
+modify nicks and channel names to make this work. The channel
+@code{#emacs} on @code{irc.libera.chat} becomes
+@code{#emacs/irc.libera.chat}.
+
+@vindex rcirc-nick-filter
+@vindex rcirc-channel-filter
+The options @code{rcirc-nick-filter} and @code{rcirc-channel-filter}
+can be used to make this feel more natural. When set to functions,
+these will be used to change how nicks and channel names are
+displayed. A simple configuration to fix the above example might be:
+
+@smallexample
+(defun my/rcirc-remove-suffix (STR)
+  "Remove suffixes from STR."
+  (save-match-data
+    (if (string-match "/[[:alpha:]]+?\\'" str)
+        (substring str 0 (match-beginning 0))
+      str)))
+
+(setq rcirc-nick-filter #'my/rcirc-remove-suffix
+      rcirc-channel-filter #'local/rcirc-soju-suffix)
+@end smallexample
+
+The effect is that buffer names, nicks in messages, nick-completion
+all strip away the suffix introduced by the bouncer.
+
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
