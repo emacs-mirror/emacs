@@ -244,14 +244,14 @@ The string is used in `tramp-methods'.")
  (add-to-list 'tramp-methods
               `("telnet"
                 (tramp-login-program        "telnet")
-                (tramp-login-args           (("%h") ("%p") ("%n")))
+                (tramp-login-args           (("%h") ("%p")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
  (add-to-list 'tramp-methods
               `("nc"
                 (tramp-login-program        "telnet")
-                (tramp-login-args           (("%h") ("%p") ("%n")))
+                (tramp-login-args           (("%h") ("%p")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
