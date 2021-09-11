@@ -254,6 +254,10 @@ To make this permanent, add the following to your init file:
 
 Use @kbd{C-c C-@key{SPC}} to switch to these buffers.
 
+@vindex rcirc-track-ignore-server-buffer-flag
+If the user wishes to ignore events in the server buffer, set
+@code{rcirc-track-ignore-server-buffer-flag} to a non-nil value.
+
 @node Reference
 @chapter Reference
 @cindex reference
