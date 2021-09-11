@@ -5092,12 +5092,38 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
   enum window_part part;
   Lisp_Object posn = Qnil;
   Lisp_Object extra_info = Qnil;
+  int mx = XFIXNUM (x), my = XFIXNUM (y);
   /* Coordinate pixel positions to return.  */
   int xret = 0, yret = 0;
   /* The window or frame under frame pixel coordinates (x,y)  */
   Lisp_Object window_or_frame = f
-    ? window_from_coordinates (f, XFIXNUM (x), XFIXNUM (y), &part, 0, 0)
+    ? window_from_coordinates (f, mx, my, &part, true, true)
     : Qnil;
+
+  /* Report mouse events on the tab bar and (on GUI frames) on the
+     tool bar.  */
+#ifdef HAVE_WINDOW_SYSTEM
+  if ((WINDOWP (f->tab_bar_window)
+       && EQ (window_or_frame, f->tab_bar_window))
+      || (WINDOWP (f->tool_bar_window)
+	  && EQ (window_or_frame, f->tool_bar_window)))
+    {
+      posn = EQ (window_or_frame, f->tab_bar_window) ? Qtab_bar : Qtool_bar;
+      /* Kludge alert: for mouse events on the tab bar and tool bar,
+	 keyboard.c wants the frame, not the special-purpose window
+	 we use to display those, and it wants frame-relative
+	 coordinates.  FIXME!  */
+      window_or_frame = Qnil;
+    }
+#endif
+  if (!FRAME_WINDOW_P (f)
+      && FRAME_TAB_BAR_LINES (f) > 0
+      && my >= FRAME_MENU_BAR_LINES (f)
+      && my < FRAME_MENU_BAR_LINES (f) + FRAME_TAB_BAR_LINES (f))
+    {
+      posn = Qtab_bar;
+      window_or_frame = Qnil;	/* see above */
+    }
 
   if (WINDOWP (window_or_frame))
     {
@@ -5111,15 +5137,15 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       Lisp_Object object = Qnil;
 
       /* Pixel coordinates relative to the window corner.  */
-      int wx = XFIXNUM (x) - WINDOW_LEFT_EDGE_X (w);
-      int wy = XFIXNUM (y) - WINDOW_TOP_EDGE_Y (w);
+      int wx = mx - WINDOW_LEFT_EDGE_X (w);
+      int wy = my - WINDOW_TOP_EDGE_Y (w);
 
       /* For text area clicks, return X, Y relative to the corner of
 	 this text area.  Note that dX, dY etc are set below, by
 	 buffer_posn_from_coords.  */
       if (part == ON_TEXT)
 	{
-	  xret = XFIXNUM (x) - window_box_left (w, TEXT_AREA);
+	  xret = mx - window_box_left (w, TEXT_AREA);
 	  yret = wy - WINDOW_TAB_LINE_HEIGHT (w) - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
       /* For mode line and header line clicks, return X, Y relative to
@@ -5243,7 +5269,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	    : (part == ON_RIGHT_FRINGE || part == ON_RIGHT_MARGIN
 	       || (part == ON_VERTICAL_SCROLL_BAR
 		   && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
-	    ? (XFIXNUM (x) - window_box_left (w, TEXT_AREA))
+	    ? (mx - window_box_left (w, TEXT_AREA))
 	    : 0;
 	  int y2 = wy;
 
@@ -5295,17 +5321,17 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 					       make_fixnum (row)),
 					extra_info)));
     }
-
   else if (f)
     {
       /* Return mouse pixel coordinates here.  */
       XSETFRAME (window_or_frame, f);
-      xret = XFIXNUM (x);
-      yret = XFIXNUM (y);
+      xret = mx;
+      yret = my;
 
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (f)
 	  && FRAME_LIVE_P (f)
+	  && NILP (posn)
 	  && FRAME_INTERNAL_BORDER_WIDTH (f) > 0
 	  && !NILP (get_frame_param (f, Qdrag_internal_border)))
 	{
@@ -5655,11 +5681,10 @@ make_lispy_event (struct input_event *event)
 	    position = make_lispy_position (f, event->x, event->y,
 					    event->timestamp);
 
+	    /* For tab-bar clicks, add the propertized string with
+	       button information as OBJECT member of POSITION.  */
 	    if (CONSP (event->arg) && EQ (XCAR (event->arg), Qtab_bar))
-	      {
-		XSETCAR (XCDR (position), Qtab_bar);
-		position = nconc2 (position, Fcons (XCDR (event->arg), Qnil));
-	      }
+	      position = nconc2 (position, Fcons (XCDR (event->arg), Qnil));
 	  }
 #ifndef USE_TOOLKIT_SCROLL_BARS
 	else
