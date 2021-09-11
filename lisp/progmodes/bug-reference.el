@@ -26,17 +26,17 @@
 ;; This file provides minor modes for putting clickable overlays on
 ;; references to bugs.  A bug reference is text like "PR foo/29292";
 ;; this is mapped to a URL using a user-supplied format; see
-;; `bug-reference-url-format' and `bug-reference-bug-regexp'. More
+;; `bug-reference-url-format' and `bug-reference-bug-regexp'.  More
 ;; extensive documentation is in (info "(emacs) Bug Reference").
 
 ;; Two minor modes are provided.  One works on any text in the buffer;
-;; the other operates only on comments and strings. By default, the
+;; the other operates only on comments and strings.  By default, the
 ;; URL link is followed by invoking C-c RET or mouse-2.
 
 ;;; Code:
 
 (defgroup bug-reference nil
-  "Hyperlinking references to bug reports"
+  "Hyperlinking references to bug reports."
   ;; Somewhat arbitrary, by analogy with eg goto-address.
   :group 'comm)
 
@@ -125,10 +125,7 @@ to the highlighted and clickable region."
 
 (defvar bug-reference-prog-mode)
 
-(defvar bug-reference--nonconforming-regexps nil
-  "Holds `bug-reference-bug-regexp' values which don't conform to
-the documented contract in order to warn about their
-non-conformance only once.")
+(defvar bug-reference--nonconforming-regexps nil)
 
 (defun bug-reference--overlay-bounds ()
   (let ((m-b1 (match-beginning 1))
@@ -171,27 +168,27 @@ subexpression 10."
   "Apply bug reference overlays to the region between START and END."
   (save-excursion
     (let* ((beg-line (progn (goto-char start) (line-beginning-position)))
-	   (end-line (progn (goto-char end) (line-end-position)))
+           (end-line (progn (goto-char end) (line-end-position)))
            ;; Reuse existing overlays overlays.
            (overlays (bug-reference--overlays-in beg-line end-line)))
       (goto-char beg-line)
       (while (and (< (point) end-line)
-		  (re-search-forward bug-reference-bug-regexp end-line 'move))
-	(when (or (not bug-reference-prog-mode)
-		  ;; This tests for both comment and string syntax.
-		  (nth 8 (syntax-ppss)))
-	  (let* ((bounds (bug-reference--overlay-bounds))
+                  (re-search-forward bug-reference-bug-regexp end-line 'move))
+        (when (or (not bug-reference-prog-mode)
+                  ;; This tests for both comment and string syntax.
+                  (nth 8 (syntax-ppss)))
+          (let* ((bounds (bug-reference--overlay-bounds))
                  (overlay (or
                            (let ((ov (pop overlays)))
                              (when ov
                                (move-overlay ov (car bounds) (cdr bounds))
                                ov))
                            (let ((ov (make-overlay (car bounds) (cdr bounds)
-				                   nil t nil)))
+                                                   nil t nil)))
                              (overlay-put ov 'category 'bug-reference)
                              ov))))
-	    ;; Don't put a link if format is undefined.
-	    (when bug-reference-url-format
+            ;; Don't put a link if format is undefined.
+            (when bug-reference-url-format
               (overlay-put overlay 'bug-reference-url
                            (if (stringp bug-reference-url-format)
                                (format bug-reference-url-format
@@ -212,14 +209,14 @@ subexpression 10."
   (if (and (not (integerp pos)) (eventp pos))
       ;; POS is a mouse event; switch to the proper window/buffer
       (let ((posn (event-start pos)))
-	(with-current-buffer (window-buffer (posn-window posn))
-	  (bug-reference-push-button (posn-point posn) t)))
+        (with-current-buffer (window-buffer (posn-window posn))
+          (bug-reference-push-button (posn-point posn) t)))
     ;; POS is just normal position.
     (dolist (o (overlays-at pos))
       ;; It should only be possible to have one URL overlay.
       (let ((url (overlay-get o 'bug-reference-url)))
-	(when url
-	  (browse-url url))))))
+        (when url
+          (browse-url url))))))
 
 (defun bug-reference-maybe-setup-from-vc (url url-rx bug-rx bug-url-fmt)
   (when (string-match url-rx url)
@@ -230,54 +227,123 @@ subexpression 10."
                     (push (match-string i url) groups))
                   (funcall bug-url-fmt (nreverse groups))))))
 
-;; TODO: Change to alist with (HOST PROTOCOL) entries because
-;; self-hosted instances might be accessed with http rather than
-;; https.
-(defvar bug-reference-gitea-instances '("gitea.com"
-                                        "codeberg.org")
-  "List of Gitea forge instances.
-When the value is changed after bug-reference has already been
-loaded, and performed an auto-setup, evaluate
-`(bug-reference--setup-from-vc-alist t)' for rebuilding the value
-of `bug-reference--setup-from-vc-alist'.")
-
-;; TODO: Change to alist with (HOST PROTOCOL) entries because
-;; self-hosted instances might be accessed with http rather than
-;; https.
-(defvar bug-reference-gitlab-instances '("gitlab.com"
-                                         "salsa.debian.org"
-                                         "framagit.org")
-  "List of GitLab forge instances.
-When the value is changed after bug-reference has already been
-loaded, and performed an auto-setup, evaluate
-`(bug-reference--setup-from-vc-alist t)' for rebuilding the value
-of `bug-reference--setup-from-vc-alist'.")
-
-;; TODO: Change to alist with (HOST PROTOCOL) entries because
-;; self-hosted instances might be accessed with http rather than
-;; https.
-(defvar bug-reference-sourcehut-instances '("sr.ht")
-  "List of SourceHut forge instances.
-When the value is changed after bug-reference has already been
-loaded, and performed an auto-setup, evaluate
-`(bug-reference--setup-from-vc-alist t)' for rebuilding the value
-of `bug-reference--setup-from-vc-alist'.")
-
 (defvar bug-reference--setup-from-vc-alist nil
-  "An alist for setting up ‘bug-reference-mode’ based on VC URL.
+  "An alist for setting up `bug-reference-mode' based on VC URL.
 This is like `bug-reference-setup-from-vc-alist' but generated
-for the known free software forges from the variables
-`bug-reference-gitea-instances',
-`bug-reference-gitlab-instances', and
-`bug-reference-sourcehut-instances'.")
+from a few default entries, and the value of
+`bug-reference-forge-alist'.")
+
+(defvar bug-reference-forge-alist
+  '(("github.com"       github    "https")
+    ("gitea.com"        gitea     "https")
+    ("codeberg.org"     gitea     "https")
+    ("gitlab.com"       gitlab    "https")
+    ("framagit.org"     gitlab    "https")
+    ("salsa.debian.org" gitlab    "https")
+    ("sr.ht"            sourcehut "https"))
+  "An alist of forge instances.
+Each entry has the form (HOST-DOMAIN FORGE-TYPE PROTOCOL).
+HOST-DOMAIN is the host- and domain name, e.g., gitlab.com,
+salsa.debian.org, or sr.ht.
+FORGE-TYPE is the type of the forge, e.g., gitlab, gitea,
+sourcehut, or github.
+PROTOCOL is the protocol for accessing the forge's issue tracker,
+usually \"https\" but for self-hosted forge instances not
+accessible via the internet it might also be \"http\".")
+
+(cl-defgeneric bug-reference--build-forge-setup-entry
+    (host-domain forge-type protocol)
+  "Build an entry for `bug-reference--setup-from-vc-alist'.
+HOST-DOMAIN is the host- and domain name, e.g., gitlab.com, or
+sr.ht.
+
+FORGE-TYPE is the type of the forge, e.g., gitlab, gitea,
+sourcehut, or github.
+
+PROTOCOL is the protocol for accessing the forge's issue tracker,
+usually https but for self-hosted forge instances not accessible
+via the internet it might also be http.")
+
+;; GitHub: Here #17 may refer to either an issue or a pull request but
+;; visiting the issue/17 web page will automatically redirect to the
+;; pull/17 page if 17 is a PR.  Explicit user/project#17 links to
+;; possibly different projects are also supported.
+(cl-defmethod bug-reference--build-forge-setup-entry
+  (host-domain (_forge-type (eql github)) protocol)
+  `(,(concat "[/@]" host-domain "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+    "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
+    ,(lambda (groups)
+       (let ((ns-project (nth 1 groups)))
+         (lambda ()
+           (format "%s://%s/%s/issues/%s"
+                   protocol host-domain
+                   (or (match-string-no-properties 2) ns-project)
+                   (match-string-no-properties 3)))))))
+
+;; GitLab: Here #18 is an issue and !17 is a merge request.  Explicit
+;; namespace/project#18 or namespace/project!17 references to possibly
+;; different projects are also supported.
+(cl-defmethod bug-reference--build-forge-setup-entry
+  (host-domain (_forge-type (eql gitlab)) protocol)
+  `(,(concat "[/@]" (regexp-quote host-domain)
+             "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+    "\\(\\([.A-Za-z0-9_/-]+\\)?\\([#!]\\)\\([0-9]+\\)\\)\\>"
+    ,(lambda (groups)
+       (let ((ns-project (nth 1 groups)))
+         (lambda ()
+           (format "%s://%s/%s/-/%s/%s"
+                   protocol host-domain
+                   (or (match-string-no-properties 2) ns-project)
+                   (if (string= (match-string-no-properties 3) "#")
+                       "issues/"
+                     "merge_requests/")
+                   (match-string-no-properties 4)))))))
+
+;; Gitea: The systematics is exactly as for Github projects.
+(cl-defmethod bug-reference--build-forge-setup-entry
+  (host-domain (_forge-type (eql gitea)) protocol)
+  `(,(concat "[/@]" (regexp-quote host-domain)
+             "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+    "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
+    ,(lambda (groups)
+       (let ((ns-project (nth 1 groups)))
+         (lambda ()
+           (format "%s://%s/%s/issues/%s"
+                   protocol host-domain
+                   (or (match-string-no-properties 2) ns-project)
+                   (match-string-no-properties 3)))))))
+
+;; Sourcehut: #19 is an issue.  Other project's issues can be
+;; referenced as ~user/project#19.
+;;
+;; Caveat: The code assumes that a project on git.sr.ht or hg.sr.ht
+;; has a tracker of the same name on todo.sh.ht.  That's a very common
+;; setup but all sr.ht services are loosely coupled, so you can have a
+;; repo without tracker, or a repo with a tracker using a different
+;; name, etc.  So we can only try to make a good guess.
+(cl-defmethod bug-reference--build-forge-setup-entry
+  (host-domain (_forge-type (eql sourcehut)) protocol)
+  `(,(concat "[/@]\\(?:git\\|hg\\)." (regexp-quote host-domain)
+             "[/:]\\(~[.A-Za-z0-9_/-]+\\)")
+    "\\(\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
+    ,(lambda (groups)
+       (let ((ns-project (nth 1 groups)))
+         (lambda ()
+           (format "%s://todo.%s/%s/%s"
+                   protocol host-domain
+                   (or (match-string-no-properties 2) ns-project)
+                   (match-string-no-properties 3)))))))
 
 (defun bug-reference--setup-from-vc-alist (&optional rebuild)
+  "Compute the `bug-reference--setup-from-vc-alist' value.
+If REBUILD is non-nil, compute it again even if has been computed
+already.  The value contains a few default entries, and entries
+generated from `bug-reference-forge-alist'."
   (if (and bug-reference--setup-from-vc-alist
            (null rebuild))
       bug-reference--setup-from-vc-alist
     (setq bug-reference--setup-from-vc-alist
-          `(;;
-            ;; GNU projects on savannah.
+          `(;; GNU projects on savannah.
             ;;
             ;; Not all of them use debbugs but that doesn't really
             ;; matter because the auto-setup is only performed if
@@ -286,95 +352,12 @@ for the known free software forges from the variables
             ("git\\.\\(?:sv\\|savannah\\)\\.gnu\\.org:"
              "\\<\\(\\(?:[Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)\\>"
              ,(lambda (_) "https://debbugs.gnu.org/%s"))
-            ;;
-            ;; GitHub projects.
-            ;;
-            ;; Here #17 may refer to either an issue or a pull request
-            ;; but visiting the issue/17 web page will automatically
-            ;; redirect to the pull/17 page if 17 is a PR.  Explicit
-            ;; user/project#17 links to possibly different projects
-            ;; are also supported.
-            ("[/@]github.com[/:]\\([.A-Za-z0-9_/-]+\\)\\.git"
-             "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
-             ,(lambda (groups)
-                (let ((ns-project (nth 1 groups)))
-                  (lambda ()
-                    (concat "https://github.com/"
-                            (or
-                             ;; Explicit user/proj#18 link.
-                             (match-string 2)
-                             ns-project)
-                            "/issues/"
-                            (match-string 3))))))
-            ;;
-            ;; Gitea instances.
-            ;;
-            ;; The systematics is exactly as for Github projects.
-            (,(concat "[/@]"
-                      (regexp-opt bug-reference-gitea-instances t)
-                      "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
-             "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
-             ,(lambda (groups)
-                (let ((host (nth 1 groups))
-                      (ns-project (nth 2 groups)))
-                  (lambda ()
-                    (concat "https://" host "/"
-                            (or
-                             ;; Explicit user/proj#18 link.
-                             (match-string 2)
-                             ns-project)
-                            "/issues/"
-                            (match-string 3))))))
-            ;;
-            ;; GitLab instances.
-            ;;
-            ;; Here #18 is an issue and !17 is a merge request.
-            ;; Explicit namespace/project#18 or namespace/project!17
-            ;; references to possibly different projects are also
-            ;; supported.
-            (,(concat "[/@]"
-                      (regexp-opt bug-reference-gitlab-instances t)
-                      "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
-             "\\(\\([.A-Za-z0-9_/-]+\\)?\\([#!]\\)\\([0-9]+\\)\\)\\>"
-             ,(lambda (groups)
-                (let ((host (nth 1 groups))
-                      (ns-project (nth 2 groups)))
-                  (lambda ()
-                    (concat "https://" host "/"
-                            (or (match-string 2)
-                                ns-project)
-                            "/-/"
-                            (if (string= (match-string 3) "#")
-                                "issues/"
-                              "merge_requests/")
-                            (match-string 4))))))
-            ;;
-            ;; Sourcehut instances.
-            ;;
-            ;; #19 is an issue.  Other project's issues can be
-            ;; #referenced as ~user/project#19.
-            ;;
-            ;; Caveat: The code assumes that a project on git.sr.ht or
-            ;; hg.sr.ht has a tracker of the same name on todo.sh.ht.
-            ;; That's a very common setup but all sr.ht services are
-            ;; loosely coupled, so you can have a repo without
-            ;; tracker, or a repo with a tracker using a different
-            ;; name, etc.  So we can only try to make a good guess.
-            (,(concat "[/@]\\(?:git\\|hg\\)."
-                      (regexp-opt bug-reference-sourcehut-instances t)
-                      "[/:]\\(~[.A-Za-z0-9_/-]+\\)")
-             "\\(\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
-             ,(lambda (groups)
-                (let ((host (nth 1 groups))
-                      (ns-project (nth 2 groups)))
-                  (lambda ()
-                    (concat "https://todo." host "/"
-                            (or
-                             ;; Explicit user/proj#18 link.
-                             (match-string 2)
-                             ns-project)
-                            "/"
-                            (match-string 3))))))))))
+
+            ;; Entries for the software forges of
+            ;; `bug-reference-forge-alist'.
+            ,@(mapcar (lambda (entry)
+                        (apply #'bug-reference--build-forge-setup-entry entry))
+                      bug-reference-forge-alist)))))
 
 (defvar bug-reference-setup-from-vc-alist nil
   "An alist for setting up `bug-reference-mode' based on VC URL.

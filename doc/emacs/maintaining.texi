@@ -3113,6 +3113,10 @@ these local variables section would do.
 ;; End:
 @end smallexample
 
+The string captured by the first regexp group defines the bounds of
+the overlay bug-reference creates, i.e., the part which is highlighted
+and made clickable.
+
 The string captured by the second regexp group in
 @code{bug-reference-bug-regexp} is used to replace the @code{%s}
 template in the @code{bug-reference-url-format}.
@@ -3135,20 +3139,22 @@ variables itself by calling the functions in
 one is able to set the variables.
 
 @vindex bug-reference-setup-from-vc-alist
+@vindex bug-reference-forge-alist
 @vindex bug-reference-setup-from-mail-alist
 @vindex bug-reference-setup-from-irc-alist
   Right now, there are three types of setup functions.
 @enumerate
 @item
-Setup for version-controlled files configurable by the variable
-@code{bug-reference-setup-from-vc-alist}.  The default is able to
+Setup for version-controlled files configurable by the variables
+@code{bug-reference-forge-alist}, and
+@code{bug-reference-setup-from-vc-alist}.  The defaults are able to
 setup GNU projects where @url{https://debbugs.gnu.org} is used as
 issue tracker and issues are usually referenced as @code{bug#13} (but
-many different notations are considered, too), Sourcehut projects
-where issues are referenced using the notation @code{#17}, Codeberg
-and Github projects where both bugs and pull requests are referenced
-using the same notation, and GitLab projects where bugs are referenced
-with @code{#17}, too, but merge requests use the @code{!18} notation.
+many different notations are considered, too), and several kinds of
+modern software forges such as GitLab, Gitea, SourceHut, or GitHub.
+If you deploy a self-hosted instance of such a forge, the easiest way
+to tell bug-reference about it is through
+@code{bug-reference-forge-alist}.
 
 @item
 Setup for email guessing from mail folder/mbox names, and mail header
