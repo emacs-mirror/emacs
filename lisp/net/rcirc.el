@@ -194,16 +194,15 @@ If nil, no maximum is applied."
   "Responses which will be hidden when `rcirc-omit-mode' is enabled."
   :type '(repeat string))
 
-(defcustom rcirc-omit-after-reconnect
-  '("JOIN" "TOPIC" "NAMES")
-  "Types of messages to hide right after reconnecting."
+(defcustom rcirc-omit-responses-after-join '()
+  "Types of messages to hide right after joining a channel."
   :type '(repeat string)
   :version "28.1")
 
-(defvar-local rcirc-reconncting nil
-  "Non-nil means we have just reconnected.
+(defvar-local rcirc-joined nil
+  "Non-nil means we have just connected.
 This is used to hide the message types enumerated in
-`rcirc-supress-after-reconnect'.")
+`rcirc-omit-responses-after-join'.")
 
 (defvar-local rcirc-prompt-start-marker nil
   "Marker indicating the beginning of the message prompt.")
@@ -1493,10 +1492,11 @@ Create the buffer if it doesn't exist."
 			   (rcirc-generate-new-buffer-name process target))))
 	  (with-current-buffer new-buffer
             (unless (eq major-mode 'rcirc-mode)
-	      (rcirc-mode process target)))
+	      (rcirc-mode process target))
             (setq mode-line-process nil)
-	    (rcirc-put-nick-channel process (rcirc-nick process) target
-				    rcirc-current-line)
+            (setq rcirc-joined (current-time)))
+	  (rcirc-put-nick-channel process (rcirc-nick process) target
+				  rcirc-current-line)
 	  new-buffer)))))
 
 (defun rcirc-send-input ()
@@ -1891,9 +1891,9 @@ connection."
 	      (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
 		(if (and (not (string= (rcirc-nick process) sender))
 			 (or (member response rcirc-omit-responses)
-                             (if (member response rcirc-omit-after-reconnect)
-                                 rcirc-reconncting
-                               (setq rcirc-reconncting nil)))
+                             (and (member response rcirc-omit-responses-after-join)
+                                  (< (time-to-seconds (time-since rcirc-joined))
+                                     1)))
 			 (or (not last-activity-lines)
 			     (< rcirc-omit-threshold last-activity-lines)))
                   (put-text-property (point-min) (point-max)
@@ -2588,9 +2588,6 @@ to `rcirc-default-part-reason'."
 	(setf (nth 5 conn-info)
 	      (cl-remove-if-not #'rcirc-channel-p
 				(mapcar #'car rcirc-buffer-alist)))
-        (dolist (buf (nth 5 conn-info))
-          (with-current-buffer (cdr (assoc buf rcirc-buffer-alist))
-            (setq rcirc-reconncting t)))
 	(apply #'rcirc-connect conn-info)))))
 
 (rcirc-define-command nick (nick)
