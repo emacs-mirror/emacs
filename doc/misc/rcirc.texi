@@ -925,20 +925,20 @@ how to include the date in the time stamp:
 @cindex new commands, defining
 
 Here's a simple new command, @code{/sv}.  With it, you can boast about
-your IRC client.  It shows how you can use @code{defun-rcirc-command} to
+your IRC client.  It shows how you can use @code{rcirc-define-command} to
 define new commands.
 
+@findex rcirc-define-command
 We're waiting for the definition of this command until @code{rcirc} is loaded
-because @code{defun-rcirc-command} is not yet available, and without
+because @code{rcirc-define-command} is not yet available, and without
 @code{rcirc} loaded, the command wouldn't do us much good anyway.
 
 @smallexample
 (with-eval-after-load 'rcirc
-  (defun-rcirc-command sv (arg)
+  (rcirc-define-command sv ()
     "Boast about rcirc."
     (interactive "i")
-    (rcirc-send-message process target
-                         (concat "I use " rcirc-id-string))))
+    (rcirc-send-message process target "I use " rcirc-id-string)))
 @end smallexample
 
 @node Using rcirc with bouncers
