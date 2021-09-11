@@ -5225,8 +5225,8 @@ w32_read_socket (struct terminal *terminal,
 			&& !frame_ancestor_p (f, dpyinfo->w32_focus_frame)))
 		  inev.kind = NO_EVENT;
 
-		  if (!NILP (tab_bar_arg))
-		    inev.arg = tab_bar_arg;
+		if (!NILP (tab_bar_arg))
+		  inev.arg = tab_bar_arg;
 
                 /* Is this in the tool-bar?  */
                 if (WINDOWP (f->tool_bar_window)
