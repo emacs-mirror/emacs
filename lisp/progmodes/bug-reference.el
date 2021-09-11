@@ -230,6 +230,9 @@ subexpression 10."
                     (push (match-string i url) groups))
                   (funcall bug-url-fmt (nreverse groups))))))
 
+;; TODO: Change to alist with (HOST PROTOCOL) entries because
+;; self-hosted instances might be accessed with http rather than
+;; https.
 (defvar bug-reference-gitea-instances '("gitea.com"
                                         "codeberg.org")
   "List of Gitea forge instances.
@@ -238,6 +241,9 @@ loaded, and performed an auto-setup, evaluate
 `(bug-reference--setup-from-vc-alist t)' for rebuilding the value
 of `bug-reference--setup-from-vc-alist'.")
 
+;; TODO: Change to alist with (HOST PROTOCOL) entries because
+;; self-hosted instances might be accessed with http rather than
+;; https.
 (defvar bug-reference-gitlab-instances '("gitlab.com"
                                          "salsa.debian.org"
                                          "framagit.org")
@@ -247,6 +253,9 @@ loaded, and performed an auto-setup, evaluate
 `(bug-reference--setup-from-vc-alist t)' for rebuilding the value
 of `bug-reference--setup-from-vc-alist'.")
 
+;; TODO: Change to alist with (HOST PROTOCOL) entries because
+;; self-hosted instances might be accessed with http rather than
+;; https.
 (defvar bug-reference-sourcehut-instances '("sr.ht")
   "List of SourceHut forge instances.
 When the value is changed after bug-reference has already been
