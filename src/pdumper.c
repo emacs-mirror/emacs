@@ -4537,15 +4537,28 @@ dump_map_file_w32 (void *base, int fd, off_t offset, size_t size,
   uint32_t offset_low = (uint32_t) (full_offset & 0xffffffff);
 
   int error;
+  DWORD protect;
   DWORD map_access;
 
   file = (HANDLE) _get_osfhandle (fd);
   if (file == INVALID_HANDLE_VALUE)
     goto out;
 
+  switch (protection)
+    {
+    case DUMP_MEMORY_ACCESS_READWRITE:
+      protect = PAGE_WRITECOPY;	/* for Windows 9X */
+      break;
+    default:
+    case DUMP_MEMORY_ACCESS_NONE:
+    case DUMP_MEMORY_ACCESS_READ:
+      protect = PAGE_READONLY;
+      break;
+    }
+
   section = CreateFileMapping (file,
 			       /*lpAttributes=*/NULL,
-			       PAGE_READONLY,
+			       protect,
 			       /*dwMaximumSizeHigh=*/0,
 			       /*dwMaximumSizeLow=*/0,
 			       /*lpName=*/NULL);
