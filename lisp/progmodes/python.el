@@ -3577,13 +3577,12 @@ When a match is found, native completion is disabled."
          python-shell-completion-native-try-output-timeout))
     (python-shell-completion-native-get-completions
      (get-buffer-process (current-buffer))
-     nil "_")))
+     "_")))
 
 (defun python-shell-completion-native-setup ()
   "Try to setup native completion, return non-nil on success."
-  (let ((process (python-shell-get-process)))
-    (with-current-buffer (process-buffer process)
-      (python-shell-send-string "
+  (let* ((process (python-shell-get-process))
+         (output (python-shell-send-string-no-output "
 def __PYTHON_EL_native_completion_setup():
     try:
         import readline
@@ -3693,14 +3692,10 @@ def __PYTHON_EL_native_completion_setup():
         print ('python.el: native completion setup failed, %s: %s'
                % sys.exc_info()[:2])
 
-__PYTHON_EL_native_completion_setup()" process)
-      (when (and
-             (python-shell-accept-process-output
-              process python-shell-completion-native-try-output-timeout)
-             (save-excursion
-               (re-search-backward
-                (regexp-quote "python.el: native completion setup loaded") nil t 1)))
-        (python-shell-completion-native-try)))))
+__PYTHON_EL_native_completion_setup()" process)))
+    (when (string-match-p "python\\.el: native completion setup loaded"
+                          output)
+      (python-shell-completion-native-try))))
 
 (defun python-shell-completion-native-turn-off (&optional msg)
   "Turn off shell native completions.
@@ -3760,13 +3755,10 @@ With argument MSG show activation/deactivation message."
       (python-shell-completion-native-turn-on msg))
     python-shell-completion-native-enable))
 
-(defun python-shell-completion-native-get-completions (process import input)
-  "Get completions using native readline for PROCESS.
-When IMPORT is non-nil takes precedence over INPUT for
-completion."
+(defun python-shell-completion-native-get-completions (process input)
+  "Get completions of INPUT using native readline for PROCESS."
   (with-current-buffer (process-buffer process)
-    (let* ((input (or import input))
-           (original-filter-fn (process-filter process))
+    (let* ((original-filter-fn (process-filter process))
            (redirect-buffer (get-buffer-create
                              python-shell-completion-native-redirect-buffer))
            (trigger "\t")
@@ -3818,11 +3810,8 @@ completion."
                  :test #'string=))))
         (set-process-filter process original-filter-fn)))))
 
-(defun python-shell-completion-get-completions (process import input)
-  "Do completion at point using PROCESS for IMPORT or INPUT.
-When IMPORT is non-nil takes precedence over INPUT for
-completion."
-  (setq input (or import input))
+(defun python-shell-completion-get-completions (process input)
+  "Get completions of INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
     (let ((completions
            (python-util-strip-string
@@ -3835,6 +3824,9 @@ completion."
       (when (> (length completions) 2)
         (split-string completions
                       "^'\\|^\"\\|;\\|'$\\|\"$" t)))))
+
+(defvar-local python-shell--capf-cache nil
+  "Variable to store cached completions and invalidation keys.")
 
 (defun python-shell-completion-at-point (&optional process)
   "Function for `completion-at-point-functions' in `inferior-python-mode'.
@@ -3889,12 +3881,21 @@ using that one instead of current buffer's process."
                        ;; it during a multiline statement (Bug#28051).
                        #'ignore
                      #'python-shell-completion-get-completions))
-                  (t #'python-shell-completion-native-get-completions)))))
-    (list start end
-          (completion-table-dynamic
-           (apply-partially
-            completion-fn
-            process import-statement)))))
+                  (t #'python-shell-completion-native-get-completions))))
+         (prev-prompt (car python-shell--capf-cache))
+         (re (or (cadr python-shell--capf-cache) regexp-unmatchable))
+         (prefix (buffer-substring-no-properties start end)))
+    ;; To invalidate the cache, we check if the prompt position or the
+    ;; completion prefix changed.
+    (unless (and (equal prev-prompt (car prompt-boundaries))
+                 (string-match re prefix))
+      (setq python-shell--capf-cache
+            `(,(car prompt-boundaries)
+              ,(if (string-empty-p prefix)
+                   regexp-unmatchable
+                 (concat "\\`" (regexp-quote prefix) "\\(?:\\sw\\|\\s_\\)*\\'"))
+              ,@(funcall completion-fn process (or import-statement prefix)))))
+    (list start end (cddr python-shell--capf-cache))))
 
 (define-obsolete-function-alias
   'python-shell-completion-complete-at-point
