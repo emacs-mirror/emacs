@@ -169,7 +169,7 @@ if `confirm-kill-processes' is non-nil."
 (defcustom native-comp-compiler-options nil
   "Command line options passed verbatim to GCC compiler.
 Note that not all options are meaningful and some options might even
-break your Emacs.  Use at own risk.
+break your Emacs.  Use at your own risk.
 
 Passing these options is only available in libgccjit version 9
 and above."
