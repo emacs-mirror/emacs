@@ -2842,14 +2842,20 @@ def __PYTHON_EL_eval(source, filename):
 
 (defconst python-shell-eval-file-setup-code
   "\
-def __PYTHON_EL_eval_file(filename, tempname, encoding, delete):
-    import codecs, os
+def __PYTHON_EL_eval_file(filename, tempname, delete):
+    import codecs, os, re
+    pattern = r'^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)'
+    with codecs.open(tempname or filename, encoding='latin-1') as file:
+        match = re.match(pattern, file.readline())
+        match = match or re.match(pattern, file.readline())
+        encoding = match.group(1) if match else 'utf-8'
     with codecs.open(tempname or filename, encoding=encoding) as file:
         source = file.read().encode(encoding)
     if delete and tempname:
         os.remove(tempname)
     return __PYTHON_EL_eval(source, filename)"
-  "Code used to evaluate files in inferior Python processes.")
+  "Code used to evaluate files in inferior Python processes.
+The coding cookie regexp is specified in PEP 263.")
 
 (defun python-shell-comint-watch-for-first-prompt-output-filter (output)
   "Run `python-shell-first-prompt-hook' when first prompt is found in OUTPUT."
@@ -3126,7 +3132,9 @@ there for compatibility with CEDET.")
          (temp-file-name (make-temp-file "py"))
          (coding-system-for-write (python-info-encoding)))
     (with-temp-file temp-file-name
-      (insert string)
+      (if (bufferp string)
+          (insert-buffer-substring string)
+        (insert string))
       (delete-trailing-whitespace))
     temp-file-name))
 
@@ -3402,11 +3410,15 @@ t when called interactively."
 (defun python-shell-send-file (file-name &optional process temp-file-name
                                          delete msg)
   "Send FILE-NAME to inferior Python PROCESS.
+
 If TEMP-FILE-NAME is passed then that file is used for processing
 instead, while internally the shell will continue to use
-FILE-NAME.  If TEMP-FILE-NAME and DELETE are non-nil, then
-TEMP-FILE-NAME is deleted after evaluation is performed.  When
-optional argument MSG is non-nil, forces display of a
+FILE-NAME.  FILE-NAME can be remote, but TEMP-FILE-NAME must be
+in the same host as PROCESS.  If TEMP-FILE-NAME and DELETE are
+non-nil, then TEMP-FILE-NAME is deleted after evaluation is
+performed.
+
+When optional argument MSG is non-nil, forces display of a
 user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive
@@ -3416,22 +3428,25 @@ t when called interactively."
     nil                                 ; temp-file-name
     nil                                 ; delete
     t))                                 ; msg
-  (let* ((process (or process (python-shell-get-process-or-error msg)))
-         (encoding (with-temp-buffer
-                     (insert-file-contents
-                      (or temp-file-name file-name))
-                     (python-info-encoding)))
-         (file-name (file-local-name (expand-file-name file-name)))
+  (setq process (or process (python-shell-get-process-or-error msg)))
+  (with-current-buffer (process-buffer process)
+    (unless (or temp-file-name
+                (string= (file-remote-p file-name)
+                         (file-remote-p default-directory)))
+      (setq delete t
+            temp-file-name (with-temp-buffer
+                             (insert-file-contents file-name)
+                             (python-shell--save-temp-file (current-buffer))))))
+  (let* ((file-name (file-local-name (expand-file-name file-name)))
          (temp-file-name (when temp-file-name
                            (file-local-name (expand-file-name
                                              temp-file-name)))))
     (comint-send-string
      process
      (format
-      "__PYTHON_EL_eval_file(%s, %s, %s, %s)\n"
+      "__PYTHON_EL_eval_file(%s, %s, %s)\n"
       (python-shell--encode-string file-name)
       (python-shell--encode-string (or temp-file-name ""))
-      (python-shell--encode-string (symbol-name encoding))
       (if delete "True" "False")))))
 
 (defun python-shell-switch-to-shell (&optional msg)
