@@ -1455,6 +1455,7 @@ is non-nil)."
 (defvar Info-streamline-headings
   '(("Emacs" . "Emacs")
     ("Software development\\|Programming" . "Software development")
+    ("Compression\\|Data Compression" . "Compression")
     ("Libraries" . "Libraries")
     ("Network applications\\|World Wide Web\\|Net Utilities"
      . "Network applications"))
