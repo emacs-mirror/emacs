@@ -5105,8 +5105,11 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 #ifdef HAVE_WINDOW_SYSTEM
   if ((WINDOWP (f->tab_bar_window)
        && EQ (window_or_frame, f->tab_bar_window))
+#ifndef HAVE_EXT_TOOL_BAR
       || (WINDOWP (f->tool_bar_window)
-	  && EQ (window_or_frame, f->tool_bar_window)))
+	  && EQ (window_or_frame, f->tool_bar_window))
+#endif
+      )
     {
       posn = EQ (window_or_frame, f->tab_bar_window) ? Qtab_bar : Qtool_bar;
       /* Kludge alert: for mouse events on the tab bar and tool bar,
