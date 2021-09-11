@@ -813,7 +813,8 @@ displayed.  The default is 102400.
 of automatic matching.  Whenever point is before an opening delimiter
 or after a closing delimiter, the delimiter, its matching delimiter,
 and optionally the text between them are highlighted.  To toggle Show
-Paren mode, type @kbd{M-x show-paren-mode}.  To customize it, type
+Paren mode, type @kbd{M-x show-paren-mode}.  To toggle it in single
+buffer, type @kbd{M-x show-paren-local-mode}.  To customize it, type
 @kbd{M-x customize-group @key{RET} paren-showing}.  The customizable
 options which control the operation of this mode include:
 

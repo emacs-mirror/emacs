@@ -983,6 +983,10 @@ achieve that.
 It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.
 
+** New minor mode 'show-paren-local-mode'.
+It serves as a local counterpart for 'show-paren-mode', allowing you
+to toggle it separately in different buffers.
+
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
