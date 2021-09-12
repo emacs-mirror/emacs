@@ -43,12 +43,12 @@
                                 display-line-numbers-mode
                                 prettify-symbols-mode))
 
-(defun prog-context-menu (menu)
+(defun prog-context-menu (menu click)
   (require 'xref)
   (define-key-after menu [prog-separator] menu-bar-separator
     'mark-whole-buffer)
   (when (save-excursion
-          (mouse-set-point last-input-event)
+          (mouse-set-point click)
           (xref-backend-identifier-at-point
            (xref-find-backend)))
     (define-key-after menu [xref-find-def]
@@ -56,7 +56,7 @@
                   :help "Find definition of identifier")
       'prog-separator))
   (when (save-excursion
-          (mouse-set-point last-input-event)
+          (mouse-set-point click)
           (xref-backend-identifier-at-point
            (xref-find-backend)))
     (define-key-after menu [xref-find-ref]

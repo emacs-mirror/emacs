@@ -284,8 +284,8 @@ not it is actually displayed."
                                     context-menu-local
                                     context-menu-minor)
   "List of functions that produce the contents of the context menu.
-Each function receives the menu as its argument and should return
-the same menu with changes such as added new menu items."
+Each function receives the menu and the mouse click event as its arguments
+and should return the same menu with changes such as added new menu items."
   :type '(repeat
           (choice (function-item context-menu-undo)
                   (function-item context-menu-region)
@@ -304,17 +304,18 @@ the same menu with changes such as added new menu items."
   :type '(choice (const nil) function)
   :version "28.1")
 
-(defun context-menu-map ()
+(defun context-menu-map (&optional click)
   "Return composite menu map."
-  (let ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
-    (let ((fun (mouse-posn-property (event-start last-input-event)
-                                    'context-menu-function)))
-      (if (functionp fun)
-          (setq menu (funcall fun menu))
-        (run-hook-wrapped 'context-menu-functions
-                          (lambda (fun)
-                            (setq menu (funcall fun menu))
-                            nil))))
+  (let* ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t)))
+         (click (or click last-input-event))
+         (fun (mouse-posn-property (event-start click)
+                                   'context-menu-function)))
+    (if (functionp fun)
+        (setq menu (funcall fun menu click))
+      (run-hook-wrapped 'context-menu-functions
+                        (lambda (fun)
+                          (setq menu (funcall fun menu click))
+                          nil)))
 
     ;; Remove duplicate separators
     (let ((l menu))
@@ -325,10 +326,10 @@ the same menu with changes such as added new menu items."
         (setq l (cdr l))))
 
     (when (functionp context-menu-filter-function)
-      (setq menu (funcall context-menu-filter-function menu)))
+      (setq menu (funcall context-menu-filter-function menu click)))
     menu))
 
-(defun context-menu-toolbar (menu)
+(defun context-menu-toolbar (menu _click)
   "Tool bar menu items."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-toolbar] menu-bar-separator)
@@ -339,7 +340,7 @@ the same menu with changes such as added new menu items."
               (lookup-key global-map [tool-bar]))
   menu)
 
-(defun context-menu-global (menu)
+(defun context-menu-global (menu _click)
   "Global submenus."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-global] menu-bar-separator)
@@ -350,7 +351,7 @@ the same menu with changes such as added new menu items."
               (lookup-key global-map [menu-bar]))
   menu)
 
-(defun context-menu-local (menu)
+(defun context-menu-local (menu _click)
   "Major mode submenus."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-local] menu-bar-separator)
@@ -363,7 +364,7 @@ the same menu with changes such as added new menu items."
                   keymap)))
   menu)
 
-(defun context-menu-minor (menu)
+(defun context-menu-minor (menu _click)
   "Minor modes submenus."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-minor] menu-bar-separator)
@@ -376,7 +377,7 @@ the same menu with changes such as added new menu items."
                   (cdr mode))))
   menu)
 
-(defun context-menu-buffers (menu)
+(defun context-menu-buffers (menu _click)
   "Submenus with buffers."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-buffers] menu-bar-separator)
@@ -387,13 +388,13 @@ the same menu with changes such as added new menu items."
               (mouse-buffer-menu-keymap))
   menu)
 
-(defun context-menu-vc (menu)
+(defun context-menu-vc (menu _click)
   "Version Control menu."
   (define-key-after menu [separator-vc] menu-bar-separator)
   (define-key-after menu [vc-menu] vc-menu-entry)
   menu)
 
-(defun context-menu-undo (menu)
+(defun context-menu-undo (menu _click)
   "Undo menu."
   (define-key-after menu [separator-undo] menu-bar-separator)
   (when (and (not buffer-read-only)
@@ -411,7 +412,7 @@ the same menu with changes such as added new menu items."
                   :help "Redo last undone edits")))
   menu)
 
-(defun context-menu-region (menu)
+(defun context-menu-region (menu _click)
   "Region commands menu."
   (define-key-after menu [separator-region] menu-bar-separator)
   (when (and mark-active (not buffer-read-only))
@@ -456,10 +457,10 @@ the same menu with changes such as added new menu items."
                 :help "Mark the whole buffer for a subsequent cut/copy"))
   menu)
 
-(defun context-menu-ffap (menu)
+(defun context-menu-ffap (menu click)
   "File at point menu."
   (save-excursion
-    (mouse-set-point last-input-event)
+    (mouse-set-point click)
     (when (ffap-guess-file-name-at-point)
       (define-key menu [ffap-separator] menu-bar-separator)
       (define-key menu [ffap-at-mouse]

@@ -1021,7 +1021,7 @@ the like."
         ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
     map))
 
-(defun eww-context-menu (menu)
+(defun eww-context-menu (menu click)
   (define-key menu [eww-separator] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Eww")))
     (easy-menu-define nil easy-menu nil
@@ -1035,8 +1035,8 @@ the like."
       (when (consp item)
         (define-key menu (vector (car item)) (cdr item)))))
 
-  (when (or (mouse-posn-property (event-start last-input-event) 'shr-url)
-            (mouse-posn-property (event-start last-input-event) 'image-url))
+  (when (or (mouse-posn-property (event-start click) 'shr-url)
+            (mouse-posn-property (event-start click) 'image-url))
     (define-key menu [shr-mouse-browse-url-new-window]
       `(menu-item "Follow URL in new window" ,(if browse-url-new-window-flag
                                                   'shr-mouse-browse-url
