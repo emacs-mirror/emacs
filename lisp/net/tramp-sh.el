@@ -244,14 +244,14 @@ The string is used in `tramp-methods'.")
  (add-to-list 'tramp-methods
               `("telnet"
                 (tramp-login-program        "telnet")
-                (tramp-login-args           (("%h") ("%p") ("%n")))
+                (tramp-login-args           (("%h") ("%p")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
  (add-to-list 'tramp-methods
               `("nc"
                 (tramp-login-program        "telnet")
-                (tramp-login-args           (("%h") ("%p") ("%n")))
+                (tramp-login-args           (("%h") ("%p")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
@@ -2449,8 +2449,9 @@ The method used must be an out-of-band method."
     (tramp-flush-directory-properties
      v (if parents "/" (file-name-directory localname)))
     (tramp-barf-unless-okay
-     v (format "%s %s"
+     v (format "%s -m %#o %s"
 	       (if parents "mkdir -p" "mkdir")
+	       (default-file-modes)
 	       (tramp-shell-quote-argument localname))
      "Couldn't make directory %s" dir)))
 

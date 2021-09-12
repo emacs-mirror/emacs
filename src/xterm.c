@@ -3209,11 +3209,14 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = (tab_bar_button_relief < 0
-	       ? DEFAULT_TAB_BAR_BUTTON_RELIEF
-	       : (tool_bar_button_relief < 0
-		  ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
-		  : min (tool_bar_button_relief, 1000000)));
+      if (s->face->id == TAB_BAR_FACE_ID)
+	thick = (tab_bar_button_relief < 0
+		 ? DEFAULT_TAB_BAR_BUTTON_RELIEF
+		 : min (tab_bar_button_relief, 1000000));
+      else
+	thick = (tool_bar_button_relief < 0
+		 ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+		 : min (tool_bar_button_relief, 1000000));
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -3232,11 +3235,11 @@ x_draw_image_relief (struct glyph_string *s)
 	  && FIXNUMP (XCAR (Vtab_bar_button_margin))
 	  && FIXNUMP (XCDR (Vtab_bar_button_margin)))
 	{
-	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin));
-	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin));
+	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin)) - thick;
+	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin)) - thick;
 	}
       else if (FIXNUMP (Vtab_bar_button_margin))
-	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin);
+	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin) - thick;
     }
 
   if (s->face->id == TOOL_BAR_FACE_ID)
@@ -9166,6 +9169,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       {
         /* If we decide we want to generate an event to be seen
            by the rest of Emacs, we put it here.  */
+        Lisp_Object tab_bar_arg = Qnil;
         bool tab_bar_p = false;
         bool tool_bar_p = false;
 
@@ -9214,8 +9218,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                 window = window_from_coordinates (f, x, y, 0, true, true);
                 tab_bar_p = EQ (window, f->tab_bar_window);
 
-                if (tab_bar_p && event->xbutton.button < 4)
-		  handle_tab_bar_click
+                if (tab_bar_p)
+		  tab_bar_arg = handle_tab_bar_click
 		    (f, x, y, event->xbutton.type == ButtonPress,
 		     x_x_to_emacs_modifiers (dpyinfo, event->xbutton.state));
               }
@@ -9239,7 +9243,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               }
 #endif /* !USE_GTK */
 
-            if (!tab_bar_p && !tool_bar_p)
+            if (!(tab_bar_p && NILP (tab_bar_arg)) && !tool_bar_p)
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
               if (! popup_activated ())
 #endif
@@ -9257,6 +9261,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                     }
                   else
                     x_construct_mouse_click (&inev.ie, &event->xbutton, f);
+
+		  if (!NILP (tab_bar_arg))
+		    inev.ie.arg = tab_bar_arg;
                 }
             if (FRAME_X_EMBEDDED_P (f))
               xembed_send_message (f, event->xbutton.time,

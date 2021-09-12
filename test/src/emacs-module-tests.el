@@ -324,7 +324,9 @@ local reference."
 
 (mod-test-sum a b)
 
-Return A + B"
+Return A + B
+
+"
                        module-file-suffix))))))
 
 (ert-deftest module/load-history ()

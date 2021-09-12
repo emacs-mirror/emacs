@@ -2821,6 +2821,15 @@ not in completion mode."
   "Like `file-name-all-completions' for partial Tramp files."
   (let ((fullname
 	 (tramp-drop-volume-letter (expand-file-name filename directory)))
+	;; When `tramp-syntax' is `simplified', we need a default method.
+	(tramp-default-method
+	 (and (zerop (length tramp-postfix-method-format))
+	      tramp-default-method))
+	(tramp-default-method-alist
+	 (and (zerop (length tramp-postfix-method-format))
+	      tramp-default-method-alist))
+	tramp-default-user tramp-default-user-alist
+	tramp-default-host tramp-default-host-alist
 	hop result result1)
 
     ;; Suppress hop from completion.
@@ -3006,7 +3015,7 @@ remote host and localname (filename on remote host)."
   "Return all method completions for PARTIAL-METHOD."
   (mapcar
    (lambda (method)
-     (and method (string-prefix-p partial-method method)
+     (and method (string-prefix-p (or partial-method "") method)
 	  (tramp-completion-make-tramp-file-name method nil nil nil)))
    (mapcar #'car tramp-methods)))
 

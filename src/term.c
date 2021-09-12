@@ -2575,21 +2575,8 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
     {
       f->mouse_moved = 0;
       term_mouse_click (&ie, event, f);
-      /* eassert (ie.kind == MOUSE_CLICK_EVENT); */
-      if (tty_handle_tab_bar_click (f, event->x, event->y,
-                                    (ie.modifiers & down_modifier) != 0, &ie))
-        {
-          /* eassert (ie.kind == MOUSE_CLICK_EVENT
-           *          || ie.kind == TAB_BAR_EVENT); */
-          /* tty_handle_tab_bar_click stores 2 events in the event
-             queue, so we are done here.  */
-          /* FIXME: Actually, `tty_handle_tab_bar_click` returns true
-             without storing any events, when
-             (ie.modifiers & down_modifier) != 0  */
-          count += 2;
-          return count;
-        }
-      /* eassert (ie.kind == MOUSE_CLICK_EVENT); */
+      ie.arg = tty_handle_tab_bar_click (f, event->x, event->y,
+					 (ie.modifiers & down_modifier) != 0, &ie);
       kbd_buffer_store_event (&ie);
       count++;
     }

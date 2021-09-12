@@ -3231,7 +3231,10 @@ directory @file{/sbin} on your local host.
 Type @kbd{s h @value{postfixhop}} for the minibuffer completion to
 @samp{@value{prefix}ssh@value{postfixhop}}.  Typing @kbd{@key{TAB}}
 shows host names @value{tramp} extracts from @file{~/.ssh/config}
-file, for example.
+@c bug#50387
+file, for example@footnote{Some completion styles, like
+@code{substring} or @code{flex}, require to type at least one
+character after the trailing @samp{@value{postfixhop}}.}.
 
 @example
 @group

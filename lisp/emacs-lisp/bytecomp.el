@@ -2257,6 +2257,9 @@ With argument ARG, insert value in current buffer after the form."
           (push `(native-comp-speed . ,native-comp-speed) byte-native-qualities)
           (defvar native-comp-debug)
           (push `(native-comp-debug . ,native-comp-debug) byte-native-qualities)
+          (defvar native-comp-compiler-options)
+          (push `(native-comp-compiler-options . ,native-comp-compiler-options)
+                byte-native-qualities)
           (defvar native-comp-driver-options)
           (push `(native-comp-driver-options . ,native-comp-driver-options)
                 byte-native-qualities)
@@ -4207,6 +4210,7 @@ discarding."
 (byte-defop-compiler-1 funcall)
 (byte-defop-compiler-1 let)
 (byte-defop-compiler-1 let* byte-compile-let)
+(byte-defop-compiler-1 ignore)
 
 (defun byte-compile-progn (form)
   (byte-compile-body-do-effect (cdr form)))
@@ -4221,6 +4225,11 @@ discarding."
 	(if ,discard 'byte-goto-if-not-nil 'byte-goto-if-not-nil-else-pop)
       (if ,discard 'byte-goto-if-nil 'byte-goto-if-nil-else-pop))
     ,tag))
+
+(defun byte-compile-ignore (form)
+  (dolist (arg (cdr form))
+    (byte-compile-form arg t))
+  (byte-compile-form nil))
 
 ;; Return the list of items in CONDITION-PARAM that match PRED-LIST.
 ;; Only return items that are not in ONLY-IF-NOT-PRESENT.

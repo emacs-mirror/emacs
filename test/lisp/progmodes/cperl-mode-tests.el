@@ -295,23 +295,23 @@ the whole string."
        (and (string-match regexp string)
 	    (string= (match-string 0 string) string))))))
 
-(ert-deftest cperl-test-ws-regexp ()
+(ert-deftest cperl-test-ws-rx ()
   "Tests capture of very simple regular expressions (yawn)."
   (let ((valid
 	 '(" " "\t" "\n"))
 	(invalid
 	 '("a" "  " "")))
-    (cperl-test--validate-regexp cperl--ws-regexp
+    (cperl-test--validate-regexp (rx (eval cperl--ws-rx))
 				 valid invalid)))
 
-(ert-deftest cperl-test-ws-or-comment-regexp ()
+(ert-deftest cperl-test-ws+-rx ()
   "Tests sequences of whitespace and comment lines."
   (let ((valid
 	 `(" " "\t#\n" "\n# \n"
 	   ,(concat "# comment\n" "# comment\n" "\n" "#comment\n")))
 	(invalid
 	 '("=head1 NAME\n" )))
-    (cperl-test--validate-regexp cperl--ws-or-comment-regexp
+    (cperl-test--validate-regexp (rx (eval cperl--ws+-rx))
 				 valid invalid)))
 
 (ert-deftest cperl-test-version-regexp ()
@@ -343,7 +343,7 @@ Also includes valid cases with whitespace in strange places."
 	   "packageFoo"            ; not a package declaration
 	   "package Foo1.1"        ; invalid package name
 	   "class O3D::Sphere")))  ; class not yet supported
-    (cperl-test--validate-regexp cperl--package-regexp
+    (cperl-test--validate-regexp (rx (eval cperl--package-rx))
 				 valid invalid)))
 
 ;;; Function test: Building an index for imenu

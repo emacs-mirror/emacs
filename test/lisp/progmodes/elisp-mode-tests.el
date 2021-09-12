@@ -604,6 +604,12 @@ to (xref-elisp-test-descr-to-target xref)."
                 'xref-location-marker nil '(xref-etags-location))
                'cl-defmethod
                (expand-file-name "../../../lisp/progmodes/etags.el" emacs-test-dir)))
+   (xref-make "(cl-defmethod xref-location-marker ((l xref-etags-apropos-location)))"
+              (xref-make-elisp-location
+               (cl--generic-load-hist-format
+                'xref-location-marker nil '(xref-etags-apropos-location))
+               'cl-defmethod
+               (expand-file-name "../../../lisp/progmodes/etags.el" emacs-test-dir)))
    ))
 
 (xref-elisp-deftest find-defs-defgeneric-eval

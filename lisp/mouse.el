@@ -1408,9 +1408,10 @@ its value is returned."
             ;; Mouse clicks in the fringe come with a position in
             ;; (nth 5).  This is useful but is not exactly where we clicked, so
             ;; don't look up that position's properties!
-	    (and pt (not (memq (posn-area pos) '(left-fringe right-fringe
-                                                 left-margin right-margin)))
-		 (get-char-property pt property w))))
+            (and pt (not (memq (posn-area pos)
+                               '(left-fringe right-fringe
+                                 left-margin right-margin tab-bar)))
+                 (get-char-property pt property w))))
     (get-char-property pos property)))
 
 (defun mouse-on-link-p (pos)

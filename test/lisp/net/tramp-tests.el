@@ -2772,21 +2772,31 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let* ((tmp-name1 (tramp--test-make-temp-name nil quoted))
-	   (tmp-name2 (expand-file-name "foo/bar" tmp-name1)))
+	   (tmp-name2 (expand-file-name "foo/bar" tmp-name1))
+	   (unusual-file-mode-1 #o740)
+	   (unusual-file-mode-2 #o710))
       (unwind-protect
 	  (progn
-	    (make-directory tmp-name1)
+	    (with-file-modes unusual-file-mode-1
+	      (make-directory tmp-name1))
 	    (should-error
 	     (make-directory tmp-name1)
 	     :type 'file-already-exists)
 	    (should (file-directory-p tmp-name1))
 	    (should (file-accessible-directory-p tmp-name1))
+	    (when (tramp--test-supports-file-modes-p)
+	      (should (equal (format "%#o" unusual-file-mode-1)
+			     (format "%#o" (file-modes tmp-name1)))))
 	    (should-error
 	     (make-directory tmp-name2)
 	     :type 'file-error)
-	    (make-directory tmp-name2 'parents)
+	    (with-file-modes unusual-file-mode-2
+	      (make-directory tmp-name2 'parents))
 	    (should (file-directory-p tmp-name2))
 	    (should (file-accessible-directory-p tmp-name2))
+	    (when (tramp--test-supports-file-modes-p)
+	      (should (equal (format "%#o" unusual-file-mode-2)
+			     (format "%#o" (file-modes tmp-name2)))))
 	    ;; If PARENTS is non-nil, `make-directory' shall not
 	    ;; signal an error when DIR exists already.
 	    (make-directory tmp-name2 'parents))
@@ -3590,14 +3600,7 @@ They might differ only in time attributes or directory size."
   "Check `file-modes'.
 This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (tramp--test-enabled))
-  (skip-unless
-   (or (tramp--test-sh-p) (tramp--test-sshfs-p) (tramp--test-sudoedit-p)
-       ;; Not all tramp-gvfs.el methods support changing the file mode.
-       (and
-	(tramp--test-gvfs-p)
-	(string-match-p
-	 "ftp" (file-remote-p tramp-test-temporary-file-directory 'method)))))
-
+  (skip-unless (tramp--test-supports-file-modes-p))
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	  (tmp-name2 (tramp--test-make-temp-name nil quoted)))
@@ -4281,12 +4284,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; for completion.  We must refill the cache.
 	    (tramp-set-connection-property tramp-test-vec "property" nil)
 
-            (let ;; This is needed for the `simplified' syntax.
-                ((method-marker
-                  (if (zerop (length tramp-method-regexp))
-                      "" tramp-default-method-marker))
-                 ;; This is needed for the `separate' syntax.
-                 (prefix-format (substring tramp-prefix-format 1))
+            (let ;; This is needed for the `separate' syntax.
+                ((prefix-format (substring tramp-prefix-format 1))
 		 ;; This is needed for the IPv6 host name syntax.
 		 (ipv6-prefix
 		  (and (string-match-p tramp-ipv6-regexp host)
@@ -4302,22 +4301,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (concat prefix-format method tramp-postfix-method-format)
 		  (file-name-all-completions
                    (concat prefix-format (substring method 0 1)) "/"))))
-              ;; Complete host name for default method.  With gvfs
-              ;; based methods, host name will be determined as
-              ;; host.local, so we omit the test.
-	      (let ((tramp-default-method (or method tramp-default-method)))
-		(unless (or (zerop (length host))
-			    (tramp--test-gvfs-p tramp-default-method))
-		  (should
-		   (member
-		    (concat
-                     prefix-format method-marker tramp-postfix-method-format
-		     ipv6-prefix host ipv6-postfix tramp-postfix-host-format)
-		    (file-name-all-completions
-		     (concat
-                      prefix-format method-marker tramp-postfix-method-format
-		      ipv6-prefix (substring host 0 1))
-                     "/")))))
               ;; Complete host name.
 	      (unless (or (zerop (length method))
                           (zerop (length tramp-method-regexp))
@@ -6192,6 +6175,17 @@ This requires restrictions of file name syntax."
 This requires restrictions of file name syntax."
   (tramp-smb-file-name-p tramp-test-temporary-file-directory))
 
+(defun tramp--test-supports-file-modes-p ()
+  "Return whether the method under test supports file modes."
+  ;; "smb" does not unless the SMB server supports "posix" extensions.
+  ;; "adb" does not unless the Android device is rooted.
+  (or (tramp--test-sh-p) (tramp--test-sshfs-p) (tramp--test-sudoedit-p)
+      ;; Not all tramp-gvfs.el methods support changing the file mode.
+      (and
+       (tramp--test-gvfs-p)
+       (string-match-p
+	"ftp" (file-remote-p tramp-test-temporary-file-directory 'method)))))
+
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."
   ;; `filename-non-special' has been fixed in Emacs 27.1, see Bug#29579.
@@ -6755,11 +6749,6 @@ process sentinels.  They shall not disturb each other."
             (cond
              ((getenv "EMACS_HYDRA_CI") 10)
              (t 1)))
-           ;; We must distinguish due to performance reasons.
-           (timer-operation
-            (cond
-             ((tramp--test-mock-p) #'vc-registered)
-             (t #'file-attributes)))
 	   ;; This is when all timers start.  We check inside the
 	   ;; timer function, that we don't exceed timeout.
 	   (timer-start (current-time))
@@ -6795,7 +6784,7 @@ process sentinels.  They shall not disturb each other."
 			   (cons 'remote-file-error debug-ignored-errors)))
                       (tramp--test-message
                        "Start timer %s %s" file (current-time-string))
-		      (funcall timer-operation file)
+		      (vc-registered file)
                       (tramp--test-message
                        "Stop timer %s %s" file (current-time-string))
                       ;; Adjust timer if it takes too much time.

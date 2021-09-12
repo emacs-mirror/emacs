@@ -597,6 +597,7 @@ the result will be a local, non-Tramp, file name."
      v (if parents "/" (file-name-directory localname)))
     (unless (tramp-sudoedit-send-command
 	     v (if parents '("mkdir" "-p") "mkdir")
+	     "-m" (format "%#o" (default-file-modes))
 	     (tramp-compat-file-name-unquote localname))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 

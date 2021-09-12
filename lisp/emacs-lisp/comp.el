@@ -166,6 +166,16 @@ if `confirm-kill-processes' is non-nil."
   :type 'boolean
   :version "28.1")
 
+(defcustom native-comp-compiler-options nil
+  "Command line options passed verbatim to GCC compiler.
+Note that not all options are meaningful and some options might even
+break your Emacs.  Use at your own risk.
+
+Passing these options is only available in libgccjit version 9
+and above."
+  :type '(repeat string)
+  :version "28.1")
+
 (defcustom native-comp-driver-options nil
   "Options passed verbatim to the native compiler's back-end driver.
 Note that not all options are meaningful; typically only the options
@@ -755,6 +765,8 @@ Returns ELT."
          :documentation "Default speed for this compilation unit.")
   (debug native-comp-debug :type number
          :documentation "Default debug level for this compilation unit.")
+  (compiler-options native-comp-compiler-options :type list
+                    :documentation "Options for the GCC compiler.")
   (driver-options native-comp-driver-options :type list
          :documentation "Options for the GCC driver.")
   (top-level-forms () :type list
@@ -1347,6 +1359,8 @@ clashes."
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
                                                byte-native-qualities)
+        (comp-ctxt-compiler-options comp-ctxt) (alist-get 'native-comp-compiler-options
+                                                        byte-native-qualities)
         (comp-ctxt-driver-options comp-ctxt) (alist-get 'native-comp-driver-options
                                                         byte-native-qualities)
         (comp-ctxt-top-level-forms comp-ctxt)
@@ -3663,6 +3677,8 @@ Prepare every function for final compilation and drive the C back-end."
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                            comp-ctxt ,comp-ctxt
                            native-comp-eln-load-path ',native-comp-eln-load-path
+                           native-comp-compiler-options
+                           ',native-comp-compiler-options
                            native-comp-driver-options
                            ',native-comp-driver-options
                            load-path ',load-path)
@@ -3926,6 +3942,8 @@ display a message."
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                                  comp-async-compilation t
                                  native-comp-eln-load-path ',native-comp-eln-load-path
+                                 native-comp-compiler-options
+                                 ',native-comp-compiler-options
                                  native-comp-driver-options
                                  ',native-comp-driver-options
                                  load-path ',load-path

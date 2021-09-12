@@ -168,8 +168,8 @@ int w32_keyboard_codepage;
 int w32_message_fd = -1;
 #endif /* CYGWIN */
 
-static void w32_handle_tab_bar_click (struct frame *,
-                                      struct input_event *);
+static Lisp_Object w32_handle_tab_bar_click (struct frame *,
+					     struct input_event *);
 static void w32_handle_tool_bar_click (struct frame *,
                                        struct input_event *);
 static void w32_define_cursor (Window, Emacs_Cursor);
@@ -2031,11 +2031,14 @@ w32_draw_image_relief (struct glyph_string *s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = (tab_bar_button_relief < 0
-	       ? DEFAULT_TAB_BAR_BUTTON_RELIEF
-	       : (tool_bar_button_relief < 0
-		  ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
-		  : min (tool_bar_button_relief, 1000000)));
+      if (s->face->id == TAB_BAR_FACE_ID)
+	thick = (tab_bar_button_relief < 0
+		 ? DEFAULT_TAB_BAR_BUTTON_RELIEF
+		 : min (tab_bar_button_relief, 1000000));
+      else
+	thick = (tool_bar_button_relief < 0
+		 ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+		 : min (tool_bar_button_relief, 1000000));
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -2054,11 +2057,11 @@ w32_draw_image_relief (struct glyph_string *s)
 	  && FIXNUMP (XCAR (Vtab_bar_button_margin))
 	  && FIXNUMP (XCDR (Vtab_bar_button_margin)))
 	{
-	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin));
-	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin));
+	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin)) - thick;
+	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin)) - thick;
 	}
       else if (FIXNUMP (Vtab_bar_button_margin))
-	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin);
+	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin) - thick;
     }
 
   if (s->face->id == TOOL_BAR_FACE_ID)
@@ -3684,17 +3687,17 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
    frame-relative coordinates X/Y.  EVENT_TYPE is either ButtonPress
    or ButtonRelease.  */
 
-static void
+static Lisp_Object
 w32_handle_tab_bar_click (struct frame *f, struct input_event *button_event)
 {
   int x = XFIXNAT (button_event->x);
   int y = XFIXNAT (button_event->y);
 
   if (button_event->modifiers & down_modifier)
-    handle_tab_bar_click (f, x, y, 1, 0);
+    return handle_tab_bar_click (f, x, y, 1, 0);
   else
-    handle_tab_bar_click (f, x, y, 0,
-                          button_event->modifiers & ~up_modifier);
+    return handle_tab_bar_click (f, x, y, 0,
+				 button_event->modifiers & ~up_modifier);
 }
 
 
@@ -5186,6 +5189,7 @@ w32_read_socket (struct terminal *terminal,
 	  {
             /* If we decide we want to generate an event to be seen
                by the rest of Emacs, we put it here.  */
+	    Lisp_Object tab_bar_arg = Qnil;
 	    bool tab_bar_p = 0;
 	    bool tool_bar_p = 0;
 	    int button = 0;
@@ -5208,18 +5212,21 @@ w32_read_socket (struct terminal *terminal,
 
                     if (EQ (window, f->tab_bar_window))
                       {
-                        w32_handle_tab_bar_click (f, &inev);
+                        tab_bar_arg = w32_handle_tab_bar_click (f, &inev);
                         tab_bar_p = 1;
                       }
                   }
 
-                if (tab_bar_p
+                if ((tab_bar_p && NILP (tab_bar_arg))
 		    || (dpyinfo->w32_focus_frame
 			&& f != dpyinfo->w32_focus_frame
 			/* This does not help when the click happens in
 			   a grand-parent frame.  */
 			&& !frame_ancestor_p (f, dpyinfo->w32_focus_frame)))
 		  inev.kind = NO_EVENT;
+
+		if (!NILP (tab_bar_arg))
+		  inev.arg = tab_bar_arg;
 
                 /* Is this in the tool-bar?  */
                 if (WINDOWP (f->tool_bar_window)

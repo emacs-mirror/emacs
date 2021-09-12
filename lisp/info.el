@@ -1455,6 +1455,7 @@ is non-nil)."
 (defvar Info-streamline-headings
   '(("Emacs" . "Emacs")
     ("Software development\\|Programming" . "Software development")
+    ("Compression\\|Data Compression" . "Compression")
     ("Libraries" . "Libraries")
     ("Network applications\\|World Wide Web\\|Net Utilities"
      . "Network applications"))
@@ -1735,10 +1736,12 @@ escaped (\\\",\\\\)."
 		  (if (stringp Info-current-file)
                       (string-replace
 		       "%" "%%"
-		       (file-name-sans-extension
-		        (file-name-nondirectory Info-current-file)))
+                       ;; Remove trailing ".info" and ".info.gz", etc.
+		       (replace-regexp-in-string
+                        "\\..*\\'" ""
+                        (file-name-nondirectory Info-current-file)))
 		    (format "*%S*" Info-current-file))
-                  'help-echo "Info file name")
+                  'help-echo "Manual name")
 		 ") ")
 		(if Info-current-node
 		    (propertize (string-replace

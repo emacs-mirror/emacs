@@ -616,9 +616,17 @@ This checks also `vc-backend' and `vc-responsible-backend'."
       (setq tempdir (make-temp-file "vc-test--version-diff" t)
             process-environment (cons (format "BZR_HOME=%s" tempdir)
                                       process-environment)))
+    ;; git tries various approaches to guess a user name and email,
+    ;; which can fail depending on how the system is configured.
+    ;; Eg if the user account has no GECOS, git commit can fail with
+    ;; status 128 "fatal: empty ident name".
     (when (memq backend '(Bzr Git))
       (setq process-environment (cons "EMAIL=john@doe.ee"
                                       process-environment)))
+    (if (eq backend 'Git)
+        (setq process-environment (append '("GIT_AUTHOR_NAME=A"
+                                            "GIT_COMMITTER_NAME=C")
+                                          process-environment)))
     (unwind-protect
         (progn
           ;; Cleanup.

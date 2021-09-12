@@ -394,6 +394,9 @@ Return the pasted text as a string."
     (define-key map "\eOx" [kp-8])
     (define-key map "\eOy" [kp-9])
 
+    ;; Some keypads have an equal key (for instance, most Apple keypads).
+    (define-key map "\eOX" [kp-equal])
+
     (define-key map "\eO2j" [S-kp-multiply])
     (define-key map "\eO2k" [S-kp-add])
     (define-key map "\eO2l" [S-kp-separator])

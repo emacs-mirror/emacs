@@ -586,9 +586,8 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
       int x = event->dwMousePosition.X;
       int y = event->dwMousePosition.Y;
       struct frame *f = get_frame ();
-      if (tty_handle_tab_bar_click (f, x, y, (button_state & mask) != 0,
-				    emacs_ev))
-	return 0;	/* tty_handle_tab_bar_click adds the event to queue */
+      emacs_ev->arg = tty_handle_tab_bar_click (f, x, y, (button_state & mask) != 0,
+						emacs_ev);
 
       emacs_ev->modifiers |= ((button_state & mask)
 			      ? down_modifier : up_modifier);
@@ -597,7 +596,6 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
       XSETFASTINT (emacs_ev->x, x);
       XSETFASTINT (emacs_ev->y, y);
       XSETFRAME (emacs_ev->frame_or_window, f);
-      emacs_ev->arg = Qnil;
 
       return 1;
     }

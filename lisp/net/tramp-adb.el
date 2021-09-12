@@ -442,7 +442,9 @@ Emacs dired can't find files."
 	  (make-directory par parents))))
     (tramp-flush-directory-properties v localname)
     (unless (or (tramp-adb-send-command-and-check
-		 v (format "mkdir %s" (tramp-shell-quote-argument localname)))
+		 v (format "mkdir -m %#o %s"
+			   (default-file-modes)
+			   (tramp-shell-quote-argument localname)))
 		(and parents (file-directory-p dir)))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
