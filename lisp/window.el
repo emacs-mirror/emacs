@@ -4632,7 +4632,7 @@ another window.  Also, if WINDOW's frame has a `buffer-predicate'
 parameter, that predicate may inhibit switching to certain
 buffers.
 
-This function is called by `prev-buffer'."
+This function is called by `previous-buffer'."
   (interactive)
   (let* ((window (window-normalize-window window t))
 	 (frame (window-frame window))
