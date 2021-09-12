@@ -6567,9 +6567,6 @@ of the window used."
 (make-obsolete-variable 'display-buffer-function
 			'display-buffer-alist "24.3")
 
-;; Eventually, we want to turn this into a defvar; instead of
-;; customizing this, the user should use a `pop-up-frame-parameters'
-;; alist entry in `display-buffer-base-action'.
 (defcustom pop-up-frame-alist nil
   "Alist of parameters for automatically generated new frames.
 If non-nil, the value you specify here is used by the default
@@ -6579,7 +6576,12 @@ Since `pop-up-frame-function' is used by `display-buffer' for
 making new frames, any value specified here by default affects
 the automatic generation of new frames via `display-buffer' and
 all functions based on it.  The behavior of `make-frame' is not
-affected by this variable."
+affected by this variable.
+
+This option is provided for backward compatibility only.  New
+code should use a `pop-up-frame-parameters' action alist entry in
+`display-buffer-alist' instead.  See Info node `(elisp) Choosing
+Window Options' in the Emacs Lisp manual."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
@@ -6851,6 +6853,11 @@ the buffer name.  This is for compatibility with
 `special-display-buffer-names'; the cdr of the cons cell is
 ignored.
 
+This variable is provided for backward compatibility only and
+should not be used in new code.  Customize `display-buffer-alist'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example.
+
 See also `same-window-regexps'."
  :type '(repeat (string :format "%v"))
  :group 'windows)
@@ -6865,6 +6872,11 @@ An element of this list can be a cons cell instead of just a
 string.  In that case, the cell's car must be a regexp matching
 the buffer name.  This is for compatibility with
 `special-display-regexps'; the cdr of the cons cell is ignored.
+
+This variable is provided for backward compatibility only and
+should not be used in new code.  Customize `display-buffer-alist'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example.
 
 See also `same-window-buffer-names'."
   :type '(repeat (regexp :format "%v"))
@@ -6897,7 +6909,13 @@ selected rather than (as usual) some other window.  See
 If nil, never make a separate frame.
 If the value is `graphic-only', make a separate frame
 on graphic displays only.
-Any other non-nil value means always make a separate frame."
+Any other non-nil value means always make a separate frame.
+
+This variable is provided mainly for backward compatibility and
+should not be used in new code.  To make `display-buffer' behave
+as if this were t, customize `display-buffer-base-action'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example."
   :type '(choice
 	  (const :tag "Never" nil)
 	  (const :tag "On graphic displays only" graphic-only)
@@ -6918,7 +6936,12 @@ that frame."
  "24.3")
 
 (defcustom pop-up-windows t
-  "Non-nil means `display-buffer' should make a new window."
+  "Non-nil means `display-buffer' should make a new window.
+This variable is provided mainly for backward compatibility and
+should not be used in new code.  To make `display-buffer' behave
+as if this were t, customize `display-buffer-base-action'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example."
   :type 'boolean
   :group 'windows)
 
