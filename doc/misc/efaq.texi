@@ -1425,9 +1425,17 @@ of files from Macintosh, Microsoft, and Unix platforms.
 @cindex XEmacs
 
 XEmacs was a branch version of Emacs that is no longer actively
-developed.  XEmacs last released a new version on January 30, 2009,
-and it lacks many important features that exist in Emacs.  Since its
-development has stopped, we do not expect to see any new releases.
+developed.  XEmacs was first called Lucid Emacs, and was initially
+derived from a prerelease version of Emacs 19.  In this FAQ, we use
+the name ``Emacs'' only for the official version.
+
+XEmacs last released a new version on January 30, 2009, and it lacks
+many important features that exist in Emacs.  In the past, it was not
+uncommon for Emacs packages to include code for compatibility with
+XEmacs.  Nowadays, although some packages still maintain such
+compatibility code, several of the more popular built-in and third
+party packages have either stopped supporting XEmacs or were developed
+exclusively for Emacs.
 
 In the past, it was not uncommon for Emacs packages to include code
 for compatibility with XEmacs.  Nowadays, most built-in and third party

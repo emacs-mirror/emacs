@@ -262,14 +262,22 @@ nil            - don't add to mode line."
 
 (defvar erc-modified-channels-alist nil
   "An ALIST used for tracking channel modification activity.
-Each element looks like (BUFFER COUNT FACE) where BUFFER is a buffer
-object of the channel the entry corresponds to, COUNT is a number
-indicating how often activity was noticed, and FACE is the face to use
-when displaying the buffer's name.  See `erc-track-faces-priority-list',
-and `erc-track-showcount'.
+Each element is a list of the form (BUFFER COUNT . FACE) where
+BUFFER is a buffer object of the channel the entry corresponds
+to, COUNT is a number indicating how often activity was noticed,
+and FACE is a face (or a list of faces, combined as usual) to use
+when displaying the buffer's name in the mode line.
 
-Entries in this list should only happen for buffers where activity occurred
-while the buffer was not visible.")
+Entries in this list are only added/updated for buffers that were
+not visible when activity occurred in them, and are removed for
+each buffer as soon as it becomes visible again (or if the server
+is disconnected, provided `erc-track-remove-disconnected-buffers'
+is true).
+
+For how the face is chosen for a buffer, see
+`erc-track-find-face' and `erc-track-priority-faces-only'.  For
+how buffers are then displayed in the mode line, see
+`erc-modified-channels-display'.")
 
 (defcustom erc-track-showcount nil
   "If non-nil, count of unseen messages will be shown for each channel."
@@ -622,8 +630,14 @@ ARGS are ignored."
   "The face to use when mouse is over channel names in the mode line.")
 
 (defun erc-make-mode-line-buffer-name (string buffer &optional faces count)
-  "Return STRING as a button that switches to BUFFER when clicked.
-If FACES are provided, color STRING with them."
+  "Returns a button that switches to BUFFER when clicked.
+STRING is the string in the button.  It is possibly suffixed with
+the number of unread messages, according to variables
+`erc-track-showcount' and `erc-track-showcount-string'.
+
+If `erc-track-use-faces' is true and FACES are provided, format
+STRING with them. When the mouse hovers above the button, STRING
+is displayed according to `erc-track-mouse-face'."
   ;; We define a new sparse keymap every time, because 1. this data
   ;; structure is very small, the alternative would require us to
   ;; defvar a keymap, 2. the user is not interested in customizing it
