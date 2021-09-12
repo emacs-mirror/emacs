@@ -179,9 +179,9 @@ This is a floating point number if the size is too large for an integer."
 Case is significant."
     (string< s1 s2)))
 
-;; The time- functions below translate nil to `current-time' and
-;; accept an integer as of Emacs 25.  `decode-time' and
-;; `format-time-string' accept nil on Emacs 24 but don't accept an
+;; The time- functions below translate nil to 'current-time' and
+;; accept an integer as of Emacs 25.  'decode-time' and
+;; 'format-time-string' accept nil on Emacs 24 but don't accept an
 ;; integer until Emacs 25.
 (if (< emacs-major-version 25)
     (let ((convert

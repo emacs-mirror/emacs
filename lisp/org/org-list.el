@@ -3355,7 +3355,7 @@ Valid parameters are:
     (when (and backend (symbolp backend) (not (org-export-get-backend backend)))
       (user-error "Unknown :backend value"))
     (unless backend (require 'ox-org))
-    ;; When `:raw' property has a non-nil value, turn all objects back
+    ;; When ':raw' property has a non-nil value, turn all objects back
     ;; into Org syntax.
     (when (and backend (plist-get params :raw))
       (org-element-map data org-element-all-objects
