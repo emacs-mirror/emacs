@@ -254,7 +254,8 @@ included in the completions."
 
 (defun vc-git--literal-pathspecs (files)
   "Prepend :(literal) path magic to FILES."
-  (mapcar #'vc-git--literal-pathspec files))
+  (unless (vc-git--file-list-is-rootdir files)
+    (mapcar #'vc-git--literal-pathspec files)))
 
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
@@ -1792,15 +1793,18 @@ The difference to vc-do-command is that this function always invokes
                 '("GIT_OPTIONAL_LOCKS=0")))
           process-environment)))
     (apply #'vc-do-command (or buffer "*vc*") okstatus vc-git-program
-	   ;; https://debbugs.gnu.org/16897
-	   (unless (and (not (cdr-safe file-or-list))
-			(let ((file (or (car-safe file-or-list)
-					file-or-list)))
-			  (and file
-			       (eq ?/ (aref file (1- (length file))))
-			       (equal file (vc-git-root file)))))
-	     file-or-list)
-	   (cons "--no-pager" flags))))
+           ;; https://debbugs.gnu.org/16897
+           (unless (vc-git--file-list-is-rootdir file-or-list)
+             file-or-list)
+           (cons "--no-pager" flags))))
+
+(defun vc-git--file-list-is-rootdir (file-or-list)
+  (and (not (cdr-safe file-or-list))
+       (let ((file (or (car-safe file-or-list)
+                       file-or-list)))
+         (and file
+              (eq ?/ (aref file (1- (length file))))
+              (equal file (vc-git-root file))))))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."
