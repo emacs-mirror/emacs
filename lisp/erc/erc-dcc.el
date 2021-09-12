@@ -632,8 +632,13 @@ that subcommand."
 
 (define-inline erc-dcc-unquote-filename (filename)
   (inline-quote
-   (string-replace "\\\\" "\\"
-                   (string-replace "\\\"" "\"" ,filename))))
+   (if (>= emacs-major-version 28)
+       (string-replace
+        "\\\\" "\\"
+        (string-replace "\\\"" "\"" ,filename))
+     (replace-regexp-in-string
+      "\\\\\\\\" "\\"
+      (replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t))))
 
 (defun erc-dcc-handle-ctcp-send (proc query nick login host to)
   "This is called if a CTCP DCC SEND subcommand is sent to the client.
