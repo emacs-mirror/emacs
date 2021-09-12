@@ -419,14 +419,17 @@ scrolling switches to the previous/next tab, and holding the Shift key
 during scrolling moves the tab to the left/right.
 
 ---
-*** The tab bar is frame-local when 'tab-bar-show' is a number.
-You can show/hide the tab bar independently for each frame, according
-to the value of 'tab-bar-show'.
+*** Frame-specific appearance of the tab bar when 'tab-bar-show' is a number.
+When 'tab-bar-show' is a number, the tab bar on different frames can
+be shown or hidden independently, as determined by the number of tabs
+on each frame compared to the numerical value of 'tab-bar-show'.
 
 ---
 *** New command 'toggle-frame-tab-bar'.
 It can be used to enable/disable the tab bar on the currently selected
 frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
+This allows to enable/disable the tab bar independently on different
+frames.
 
 ---
 *** New user option 'tab-bar-format' defines a list of tab bar items.

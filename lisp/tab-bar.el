@@ -303,9 +303,9 @@ See `tab-bar-mode' for more information."
   "Toggle tab bar of the selected frame.
 When calling from Lisp, use the optional argument FRAME to toggle
 the tab bar on that frame.
-This is useful when you want to enable the tab bar individually
+This is useful if you want to enable the tab bar individually
 on each new frame when the global `tab-bar-mode' is disabled,
-or when you want to disable the tab bar individually on each
+or if you want to disable the tab bar individually on each
 new frame when the global `tab-bar-mode' is enabled, by using
 
   (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
@@ -354,14 +354,17 @@ and to bind mouse events to the commands."
 
 (defcustom tab-bar-show t
   "Defines when to show the tab bar.
-If t, enable `tab-bar-mode' automatically on using the commands that
-create new window configurations (e.g. `tab-new').
-If a non-negative integer, hide the tab bar when the number of the
-tabs does not exceed the value of this variable.  In particular,
+If t, the default, enable `tab-bar-mode' automatically upon using
+the commands that create new window configurations (e.g., `tab-new').
+If a non-negative integer, show the tab bar only if the number of
+the tabs exceeds the value of this variable.  In particular,
 if the value is 1, hide the tab bar when it has only one tab, and
 show it again once more tabs are created.  A value that is a
-non-negative integer also makes the tab bar frame-local: the tab
-bar can be shown or hidden independently for each frame.
+non-negative integer also makes the tab bar appearance be different
+on different frames: the tab bar can be shown on some frames and
+hidden on others, depending on how many tab-bar tabs are on that
+frame, and whether that number is greater than the numerical value
+of this variable.
 If nil, always keep the tab bar hidden.  In this case it's still
 possible to use persistent named window configurations by relying on
 keyboard commands `tab-new', `tab-close', `tab-next', `tab-switcher', etc.
