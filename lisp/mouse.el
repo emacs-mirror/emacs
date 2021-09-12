@@ -315,7 +315,15 @@ the same menu with changes such as added new menu items."
                           (lambda (fun)
                             (setq menu (funcall fun menu))
                             nil))))
-    ;; TODO: remove double separators
+
+    ;; Remove duplicate separators
+    (let ((l menu))
+      (while l
+        (when (and (equal (cdr-safe (car l)) menu-bar-separator)
+                   (equal (cdr-safe (cadr l)) menu-bar-separator))
+          (setcdr l (cddr l)))
+        (setq l (cdr l))))
+
     (when (functionp context-menu-filter-function)
       (setq menu (funcall context-menu-filter-function menu)))
     menu))
@@ -387,68 +395,62 @@ the same menu with changes such as added new menu items."
 
 (defun context-menu-undo (menu)
   "Undo menu."
-  (when (cddr menu)
-    (define-key-after menu [separator-undo] menu-bar-separator))
-  (define-key-after menu [undo]
-    '(menu-item "Undo" undo
-                :visible (and (not buffer-read-only)
-                              (not (eq t buffer-undo-list))
-                              (if (eq last-command 'undo)
-                                  (listp pending-undo-list)
-                                (consp buffer-undo-list)))
-                :help "Undo last edits"))
-  (define-key-after menu [undo-redo]
-    '(menu-item "Redo" undo-redo
-                :visible (and (not buffer-read-only)
-                              (undo--last-change-was-undo-p buffer-undo-list))
-                :help "Redo last undone edits"))
+  (define-key-after menu [separator-undo] menu-bar-separator)
+  (when (and (not buffer-read-only)
+             (not (eq t buffer-undo-list))
+             (if (eq last-command 'undo)
+                 (listp pending-undo-list)
+               (consp buffer-undo-list)))
+    (define-key-after menu [undo]
+      '(menu-item "Undo" undo
+                  :help "Undo last edits")))
+  (when (and (not buffer-read-only)
+             (undo--last-change-was-undo-p buffer-undo-list))
+    (define-key-after menu [undo-redo]
+      '(menu-item "Redo" undo-redo
+                  :help "Redo last undone edits")))
   menu)
 
 (defun context-menu-region (menu)
   "Region commands menu."
-  (when (cddr menu)
-    (define-key-after menu [separator-region] menu-bar-separator))
-  (define-key-after menu [cut]
-    '(menu-item "Cut" kill-region
-                :visible (and mark-active (not buffer-read-only))
-                :help
-                "Cut (kill) text in region between mark and current position"))
-  (define-key-after menu [copy]
-    ;; ns-win.el said: Substitute a Copy function that works better
-    ;; under X (for GNUstep).
-    `(menu-item "Copy" ,(if (featurep 'ns)
-                            'ns-copy-including-secondary
-                          'kill-ring-save)
-                :visible mark-active
-                :help "Copy text in region between mark and current position"
-                :keys ,(if (featurep 'ns)
-                           "\\[ns-copy-including-secondary]"
-                         "\\[kill-ring-save]")))
-  (define-key-after menu [paste]
-    `(menu-item "Paste" mouse-yank-at-click
-                :visible (funcall
-                          ',(lambda ()
-                              (and (or
-                                    (gui-backend-selection-exists-p 'CLIPBOARD)
-                                    (if (featurep 'ns) ; like paste-from-menu
-                                        (cdr yank-menu)
-                                      kill-ring))
-                                   (not buffer-read-only))))
-                :help "Paste (yank) text most recently cut/copied"))
-  (define-key-after menu (if (featurep 'ns) [select-paste]
-                           [paste-from-menu])
-    ;; ns-win.el said: Change text to be more consistent with
-    ;; surrounding menu items `paste', etc."
-    `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
-                yank-menu
-                :visible (and (cdr yank-menu) (not buffer-read-only))
-                :help "Choose a string from the kill ring and paste it"))
-  (define-key-after menu [clear]
-    '(menu-item "Clear" delete-active-region
-                :visible (and mark-active
-                              (not buffer-read-only))
-                :help
-                "Delete the text in region between mark and current position"))
+  (define-key-after menu [separator-region] menu-bar-separator)
+  (when (and mark-active (not buffer-read-only))
+    (define-key-after menu [cut]
+      '(menu-item "Cut" kill-region
+                  :help
+                  "Cut (kill) text in region between mark and current position")))
+  (when mark-active
+    (define-key-after menu [copy]
+      ;; ns-win.el said: Substitute a Copy function that works better
+      ;; under X (for GNUstep).
+      `(menu-item "Copy" ,(if (featurep 'ns)
+                              'ns-copy-including-secondary
+                            'kill-ring-save)
+                  :help "Copy text in region between mark and current position"
+                  :keys ,(if (featurep 'ns)
+                             "\\[ns-copy-including-secondary]"
+                           "\\[kill-ring-save]"))))
+  (when (and (or (gui-backend-selection-exists-p 'CLIPBOARD)
+                 (if (featurep 'ns) ; like paste-from-menu
+                     (cdr yank-menu)
+                   kill-ring))
+             (not buffer-read-only))
+    (define-key-after menu [paste]
+      `(menu-item "Paste" mouse-yank-at-click
+                  :help "Paste (yank) text most recently cut/copied")))
+  (when (and (cdr yank-menu) (not buffer-read-only))
+    (define-key-after menu (if (featurep 'ns) [select-paste]
+                             [paste-from-menu])
+      ;; ns-win.el said: Change text to be more consistent with
+      ;; surrounding menu items `paste', etc."
+      `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
+                  yank-menu
+                  :help "Choose a string from the kill ring and paste it")))
+  (when (and mark-active (not buffer-read-only))
+    (define-key-after menu [clear]
+      '(menu-item "Clear" delete-active-region
+                  :help
+                  "Delete the text in region between mark and current position")))
   (define-key-after menu [mark-whole-buffer]
     '(menu-item "Select All" mark-whole-buffer
                 :help "Mark the whole buffer for a subsequent cut/copy"))

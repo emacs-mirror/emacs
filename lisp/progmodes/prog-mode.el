@@ -47,27 +47,27 @@
   (require 'xref)
   (define-key-after menu [prog-separator] menu-bar-separator
     'mark-whole-buffer)
-  (define-key-after menu [xref-find-def]
-    '(menu-item "Find Definition" xref-find-definitions-at-mouse
-                :visible (save-excursion
-                           (mouse-set-point last-input-event)
-                           (xref-backend-identifier-at-point
-                            (xref-find-backend)))
-                :help "Find definition of identifier")
-    'prog-separator)
-  (define-key-after menu [xref-find-ref]
-    '(menu-item "Find References" xref-find-references-at-mouse
-                :visible (save-excursion
-                           (mouse-set-point last-input-event)
-                           (xref-backend-identifier-at-point
-                            (xref-find-backend)))
-                :help "Find references to identifier")
-    'xref-find-def)
-  (define-key-after menu [xref-pop]
-    '(menu-item "Back Definition" xref-pop-marker-stack
-                :visible (not (xref-marker-stack-empty-p))
-                :help "Back to the position of the last search")
-    'xref-find-ref)
+  (when (save-excursion
+          (mouse-set-point last-input-event)
+          (xref-backend-identifier-at-point
+           (xref-find-backend)))
+    (define-key-after menu [xref-find-def]
+      '(menu-item "Find Definition" xref-find-definitions-at-mouse
+                  :help "Find definition of identifier")
+      'prog-separator))
+  (when (save-excursion
+          (mouse-set-point last-input-event)
+          (xref-backend-identifier-at-point
+           (xref-find-backend)))
+    (define-key-after menu [xref-find-ref]
+      '(menu-item "Find References" xref-find-references-at-mouse
+                  :help "Find references to identifier")
+      'xref-find-def))
+  (when (not (xref-marker-stack-empty-p))
+    (define-key-after menu [xref-pop]
+      '(menu-item "Back Definition" xref-pop-marker-stack
+                  :help "Back to the position of the last search")
+      'xref-find-ref))
   menu)
 
 (defvar prog-mode-map
