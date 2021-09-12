@@ -2688,7 +2688,7 @@ the current input method and the setting of`enable-multibyte-characters'.
 If `inhibit-interaction' is non-nil, this function will signal an
 `inhibited-interaction' error."
   (read-from-minibuffer prompt initial minibuffer-local-ns-map
-		        nil minibuffer-history nil inherit-input-method))
+		        nil 'minibuffer-history nil inherit-input-method))
 
 ;;; Major modes for the minibuffer
 
