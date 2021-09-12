@@ -1917,11 +1917,12 @@ The optional argument ALL-FRAMES specifies the frames to consider:
 
 - A frame means consider all tabs on that frame only.
 
-Any other value of ALL-FRAMES means consider all tabs on the
+- Any other value of ALL-FRAMES means consider all tabs on the
 selected frame and no others.
 
 When the optional argument IGNORE-CURRENT-TAB is non-nil,
-don't take into account the buffers in the currently selected tab."
+don't take into account the buffers in the currently selected tab.
+Otherwise, prefer buffers of the current tab."
   (let ((buffer (if buffer-or-name
                     (get-buffer buffer-or-name)
                   (current-buffer))))
@@ -1931,8 +1932,7 @@ don't take into account the buffers in the currently selected tab."
          (seq-some
           (lambda (tab)
             (when (if (eq (car tab) 'current-tab)
-                      (unless ignore-current-tab
-                        (get-buffer-window buffer frame))
+                      (get-buffer-window buffer frame)
                     (let* ((state (alist-get 'ws tab))
                            (buffers (when state
                                       (window-state-buffers state))))
@@ -1943,7 +1943,14 @@ don't take into account the buffers in the currently selected tab."
                        (member (buffer-name buffer) buffers))))
               (append tab `((index . ,(tab-bar--tab-index tab nil frame))
                             (frame . ,frame)))))
-          (funcall tab-bar-tabs-function frame)))
+          (let* ((tabs (funcall tab-bar-tabs-function frame))
+                 (current-tab (tab-bar--current-tab-find tabs)))
+            (seq-remove (lambda (tab) (eq (car tab) 'current-tab)) tabs)
+            (if ignore-current-tab
+                ;; Use tabs without current-tab.
+                tabs
+              ;; Make sure current-tab is at the beginning of tabs.
+              (cons current-tab tabs)))))
        (tab-bar--reusable-frames all-frames)))))
 
 (defun display-buffer-in-tab (buffer alist)
@@ -1963,19 +1970,26 @@ The ALIST entry `tab-group' (string or function) defines the tab group.
 
 If ALIST contains a `reusable-frames' entry, its value determines
 which frames to search for a reusable tab:
-  nil -- the selected frame (actually the last non-minibuffer frame)
-  A frame   -- just that frame
-  `visible' -- all visible frames
-  0   -- all frames on the current terminal
-  t   -- all frames.
+  nil -- do not reuse any frames;
+  a frame  -- just that frame;
+  `visible' -- all visible frames;
+  0 -- all frames on the current terminal;
+  t -- all frames;
+  other non-nil values -- use the selected frame.
+
+If ALIST contains a non-nil `ignore-current-tab' entry, then the buffers
+of the current tab are skipped when searching for a reusable tab.
+Otherwise, prefer buffers of the current tab.
 
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
 indirectly called by the latter."
   (let* ((reusable-frames (alist-get 'reusable-frames alist))
+         (ignore-current-tab (alist-get 'ignore-current-tab alist))
          (reusable-tab (when reusable-frames
-                         (tab-bar-get-buffer-tab buffer reusable-frames))))
+                         (tab-bar-get-buffer-tab buffer reusable-frames
+                                                 ignore-current-tab))))
     (if reusable-tab
         (let* ((frame (alist-get 'frame reusable-tab))
                (index (alist-get 'index reusable-tab)))
