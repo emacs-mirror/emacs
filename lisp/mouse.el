@@ -1583,8 +1583,15 @@ The region will be defined with mark and point."
      t (lambda ()
          (setq track-mouse old-track-mouse)
          (setq auto-hscroll-mode auto-hscroll-mode-saved)
-         (deactivate-mark)
-         (pop-mark)))))
+         ;; Don't deactivate the mark when the context menu was invoked
+         ;; by down-mouse-3 immediately after down-mouse-1 and without
+         ;; releasing the mouse button with mouse-1. This allows to use
+         ;; region-related context menu to operate on the selected region.
+         (unless (and context-menu-mode
+                      (eq (car-safe (aref (this-command-keys-vector) 0))
+                          'down-mouse-3))
+           (deactivate-mark)
+           (pop-mark))))))
 
 (defun mouse--drag-set-mark-and-point (start click click-count)
   (let* ((range (mouse-start-end start click click-count))
