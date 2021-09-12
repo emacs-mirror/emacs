@@ -1211,7 +1211,6 @@ allows editing it."
 		(save-excursion
 		  (mouse-set-point event)
 		  (current-word)))))
-    (selected-window)
     (dictionary-popup-matching-words word)))
 
 ;;;###autoload
@@ -1367,6 +1366,27 @@ any buffer where (dictionary-tooltip-mode 1) has been called."
     (global-set-key [mouse-movement]
                     (if on #'dictionary-tooltip-track-mouse #'ignore))
     on))
+
+;;; Context menu support
+
+(defun dictionary-search-word-at-mouse (event)
+  (interactive "e")
+  (let ((word (save-window-excursion
+		(save-excursion
+		  (mouse-set-point event)
+		  (current-word)))))
+    (dictionary-search word)))
+
+(defun context-menu-dictionary (menu click)
+  "Dictionary context menu."
+  (when (thing-at-mouse click 'word)
+    (define-key menu [dictionary-separator] menu-bar-separator)
+    (define-key menu [dictionary-search-word-at-mouse]
+      '(menu-item "Dictionary Search" dictionary-search-word-at-mouse
+                  :help "Search the word at mouse click in dictionary")))
+  menu)
+
+(add-hook 'context-menu-functions 'context-menu-dictionary 15)
 
 (provide 'dictionary)
 ;;; dictionary.el ends here

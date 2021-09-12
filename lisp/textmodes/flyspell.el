@@ -470,7 +470,7 @@ See also `flyspell-duplicate-distance'."
 
 (defvar flyspell-overlay nil)
 
-(defun flyspell-context-menu (_menu)
+(defun flyspell-context-menu (_menu _click)
   "Context menu for `context-menu-mode'."
   ;; TODO: refactor `flyspell-correct-word' and related functions to return
   ;; a keymap menu where every menu item is bound to a lambda that calls

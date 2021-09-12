@@ -152,6 +152,15 @@ positions of the thing found."
 		    (cons real-beg end))))))))))
 
 ;;;###autoload
+(defun thing-at-mouse (event thing &optional no-properties)
+  "Return the THING at mouse click.
+Like `thing-at-point', but tries to use the event
+where the mouse button is clicked to find a thing nearby."
+  (save-excursion
+    (mouse-set-point event)
+    (thing-at-point thing no-properties)))
+
+;;;###autoload
 (defun thing-at-point (thing &optional no-properties)
   "Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
