@@ -1945,7 +1945,7 @@ Otherwise, prefer buffers of the current tab."
                             (frame . ,frame)))))
           (let* ((tabs (funcall tab-bar-tabs-function frame))
                  (current-tab (tab-bar--current-tab-find tabs)))
-            (seq-remove (lambda (tab) (eq (car tab) 'current-tab)) tabs)
+            (setq tabs (remq current-tab tabs))
             (if ignore-current-tab
                 ;; Use tabs without current-tab.
                 tabs
