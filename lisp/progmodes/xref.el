@@ -86,7 +86,10 @@
 
 (cl-defgeneric xref-location-group (location)
   "Return a string used to group a set of locations.
-This is typically the filename.")
+This is typically a file name, but can also be a package name, or
+some other label.
+
+When it is a file name, it should be the \"expanded\" version.")
 
 (cl-defgeneric xref-location-line (_location)
   "Return the line number corresponding to the location."
@@ -119,7 +122,7 @@ in its full absolute form."
 ;; FIXME: might be useful to have an optional "hint" i.e. a string to
 ;; search for in case the line number is slightly out of date.
 (defclass xref-file-location (xref-location)
-  ((file :type string :initarg :file)
+  ((file :type string :initarg :file :reader xref-location-group)
    (line :type fixnum :initarg :line :reader xref-location-line)
    (column :type fixnum :initarg :column :reader xref-file-location-column))
   :documentation "A file location is a file/line/column triple.
@@ -147,32 +150,6 @@ Line numbers start from 1 and columns from 0.")
             (beginning-of-line line)
             (forward-char column))
           (point-marker))))))
-
-(defvar xref--project-root-memo nil
-  "Cons mapping `default-directory' value to the search root.")
-
-(cl-defmethod xref-location-group ((l xref-file-location))
-  (cl-ecase xref-file-name-display
-    (abs
-     (oref l file))
-    (nondirectory
-     (file-name-nondirectory (oref l file)))
-    (project-relative
-     (unless (and xref--project-root-memo
-                  (equal (car xref--project-root-memo)
-                         default-directory))
-       (setq xref--project-root-memo
-             (cons default-directory
-                   (let ((root
-                          (let ((pr (project-current)))
-                            (and pr (xref--project-root pr)))))
-                     (and root (expand-file-name root))))))
-     (let ((file (oref l file))
-           (search-root (cdr xref--project-root-memo)))
-       (if (and search-root
-                (string-prefix-p search-root file))
-           (substring file (length search-root))
-         file)))))
 
 (defclass xref-buffer-location (xref-location)
   ((buffer :type buffer :initarg :buffer)
@@ -1037,13 +1014,50 @@ GROUP is a string for decoration purposes and XREF is an
       (xref--apply-truncation)))
   (run-hooks 'xref-after-update-hook))
 
+(defun xref--group-name-for-display (group project-root)
+  "Return GROUP formatted in the prefered style.
+
+The style is determined by the value of `xref-file-name-display'.
+If GROUP looks like a file name, its value is formatted according
+to that style.  Otherwise it it returned unchanged."
+  ;; XXX: The way we verify that it's indeed a file name and not some
+  ;; other kind of string, e.g. Java package name or TITLE from
+  ;; `tags-apropos-additional-actions', is pretty lax.  But we don't
+  ;; want to use `file-exists-p' for performance reasons.  If this
+  ;; ever turns out to be a problem, some other alternatives are to
+  ;; either have every location class which uses file names format the
+  ;; values themselves (e.g. by piping through some public function),
+  ;; or adding a new accessor to locations, like GROUP-TYPE.
+  (cl-ecase xref-file-name-display
+    (abs group)
+    (nondirectory
+     (if (string-match-p "\\`~?/" group)
+         (file-name-nondirectory group)
+       group))
+    (project-relative
+     (if (and project-root
+              (string-prefix-p project-root group))
+         (substring group (length project-root))
+       group))))
+
 (defun xref--analyze (xrefs)
-  "Find common filenames in XREFS.
-Return an alist of the form ((FILENAME . (XREF ...)) ...)."
-  (xref--alistify xrefs
-                  (lambda (x)
-                    (xref-location-group (xref-item-location x)))
-                  #'equal))
+  "Find common groups in XREFS and format group names.
+Return an alist of the form ((GROUP . (XREF ...)) ...)."
+  (let* ((alist
+          (xref--alistify xrefs
+                          (lambda (x)
+                            (xref-location-group (xref-item-location x)))
+                          #'equal))
+         (project (and
+                   (eq xref-file-name-display 'project-relative)
+                   (project-current)))
+         (project-root (and project
+                            (expand-file-name (project-root project)))))
+    (mapcar
+     (lambda (pair)
+       (cons (xref--group-name-for-display (car pair) project-root)
+             (cdr pair)))
+     alist)))
 
 (defun xref--show-xref-buffer (fetcher alist)
   (cl-assert (functionp fetcher))
