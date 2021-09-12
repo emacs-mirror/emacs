@@ -85,12 +85,7 @@
       (when (consp item)
         (define-key menu (vector (car item)) (cdr item)))))
 
-  (when (and
-         ;; First check if `help-fns--list-local-commands'
-         ;; used `where-is-internal' to call this function
-         ;; with wrong `last-input-event'.
-         (eq (current-buffer) (window-buffer (posn-window (event-start last-input-event))))
-         (mouse-posn-property (event-start last-input-event) 'mouse-face))
+  (when (mouse-posn-property (event-start last-input-event) 'mouse-face)
     (define-key menu [help-mode-push-button]
       '(menu-item "Follow Link" (lambda (event)
                                   (interactive "e")

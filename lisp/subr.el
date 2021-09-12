@@ -1510,8 +1510,10 @@ nil or (STRING . POSITION)'.
 
 For more information, see Info node `(elisp)Click Events'."
   (if (consp event) (nth 1 event)
-    (or (posn-at-point)
-        (list (selected-window) (point) '(0 . 0) 0))))
+    ;; Use `window-point' for the case when the current buffer
+    ;; is temporarily switched to some other buffer (bug#50256)
+    (or (posn-at-point (window-point))
+        (list (selected-window) (window-point) '(0 . 0) 0))))
 
 (defun event-end (event)
   "Return the ending position of EVENT.
@@ -1519,8 +1521,10 @@ EVENT should be a click, drag, or key press event.
 
 See `event-start' for a description of the value returned."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
-    (or (posn-at-point)
-        (list (selected-window) (point) '(0 . 0) 0))))
+    ;; Use `window-point' for the case when the current buffer
+    ;; is temporarily switched to some other buffer (bug#50256)
+    (or (posn-at-point (window-point))
+        (list (selected-window) (window-point) '(0 . 0) 0))))
 
 (defsubst event-click-count (event)
   "Return the multi-click count of EVENT, a click or drag event.
