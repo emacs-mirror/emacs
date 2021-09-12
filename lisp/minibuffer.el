@@ -2683,7 +2683,7 @@ Such values are treated as in `read-from-minibuffer', but are normally
 not useful in this function.)
 
 Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
-the current input method and the setting of`enable-multibyte-characters'.
+the current input method and the setting of `enable-multibyte-characters'.
 
 If `inhibit-interaction' is non-nil, this function will signal an
 `inhibited-interaction' error."
