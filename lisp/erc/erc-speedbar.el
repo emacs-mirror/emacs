@@ -139,7 +139,9 @@ This will add a speedbar major display mode."
 	t))))
 
 (defun erc-speedbar-expand-server (text server indent)
-  (cond ((string-search "+" text)
+  (cond ((if (>= emacs-major-version 28)
+             (string-search "+" text)
+           (string-match "\\+" text))
 	 (speedbar-change-expand-button-char ?-)
 	 (if (speedbar-with-writable
 	       (save-excursion
@@ -147,7 +149,10 @@ This will add a speedbar major display mode."
 		 (erc-speedbar-channel-buttons nil (1+ indent) server)))
 	     (speedbar-change-expand-button-char ?-)
 	   (speedbar-change-expand-button-char ??)))
-	((string-search "-" text)	;we have to contract this node
+	(;; we have to contract this node
+         (if (>= emacs-major-version 28)
+             (string-search "-" text)
+           (string-match "-" text))
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops... not sure what to do")))
@@ -184,7 +189,9 @@ This will add a speedbar major display mode."
   "For the line matching TEXT, in CHANNEL, expand or contract a line.
 INDENT is the current indentation level."
   (cond
-   ((string-search "+" text)
+   ((if (>= emacs-major-version 28)
+        (string-search "+" text)
+      (string-match "\\+" text))
     (speedbar-change-expand-button-char ?-)
     (speedbar-with-writable
      (save-excursion
@@ -233,7 +240,9 @@ INDENT is the current indentation level."
 	     (speedbar-with-writable
 	      (dolist (entry names)
 		(erc-speedbar-insert-user entry ?+ (1+ indent))))))))))
-   ((string-search "-" text)
+   ((if (>= emacs-major-version 28)
+        (string-search "-" text)
+      (string-match "-" text))
     (speedbar-change-expand-button-char ?+)
     (speedbar-delete-subblock indent))
    (t (error "Ooops... not sure what to do")))
@@ -284,7 +293,9 @@ The update is only done when the channel is actually expanded already."
 	(erc-speedbar-expand-channel "+" buffer 1)))))
 
 (defun erc-speedbar-expand-user (text token indent)
-  (cond ((string-search "+" text)
+  (cond ((if (>= emacs-major-version 28)
+             (string-search "+" text)
+           (string-match "\\+" text))
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -307,7 +318,9 @@ The update is only done when the channel is actually expanded already."
 		  nil nil nil nil
 		  info nil nil nil
 		  (1+ indent)))))))
-	((string-search "-" text)
+	((if (>= emacs-major-version 28)
+             (string-search "-" text)
+           (string-match "-" text))
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops... not sure what to do")))

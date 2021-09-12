@@ -5587,7 +5587,9 @@ This returns non-nil only if we actually send anything."
       (when (and (erc-input-sendp state)
 		 erc-send-this)
 	(let ((string (erc-input-string state)))
-          (if (or (string-search "\n" string)
+          (if (or (if (>= emacs-major-version 28)
+                      (string-search "\n" string)
+                    (string-match "\n" string))
                   (not (string-match erc-command-regexp string)))
               (mapc
                (lambda (line)
