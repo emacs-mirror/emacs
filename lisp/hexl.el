@@ -93,7 +93,7 @@ as that will override any bit grouping options set here."
   "Face used in address area of Hexl mode buffer.")
 
 (defface hexl-ascii-region
-  ;; Copied from `header-line`.  We used to inherit from it, but that
+  ;; Copied from `header-line'.  We used to inherit from it, but that
   ;; looks awful when the headerline is given a variable-pitch font or
   ;; (even worse) a 3D look.
   '((((class color grayscale) (background light))

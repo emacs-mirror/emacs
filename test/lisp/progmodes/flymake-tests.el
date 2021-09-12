@@ -60,7 +60,7 @@
 (cl-defun flymake-tests--call-with-fixture (fn file
                                                &key (severity-predicate
                                                      nil sev-pred-supplied-p))
-  "Call FN after flymake setup in FILE, using `flymake-proc`.
+  "Call FN after flymake setup in FILE, using `flymake-proc'.
 SEVERITY-PREDICATE is used to setup
 `flymake-proc-diagnostic-type-pred'"
   (let* ((file (expand-file-name file flymake-tests-data-directory))

@@ -515,7 +515,7 @@
 ;;
 ;;   Turn on the mode used for editing the check in log.  This
 ;;   defaults to `log-edit-mode'.  If changed, it should use a mode
-;;   derived from`log-edit-mode'.
+;;   derived from `log-edit-mode'.
 ;;
 ;; - check-headers ()
 ;;

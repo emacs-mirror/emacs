@@ -198,7 +198,7 @@ Argument COLLECTOR is an object which can be used to calculate
 a list of possible hits.  See `semantic-completion-collector-engine'
 for details on COLLECTOR.
 Argument DISPLAYER is an object used to display a list of possible
-completions for a given prefix.  See`semantic-completion-display-engine'
+completions for a given prefix.  See `semantic-completion-display-engine'
 for details on DISPLAYER.
 PROMPT is a string to prompt with.
 DEFAULT-TAG is a semantic tag or string to use as the default value.
@@ -746,7 +746,7 @@ Argument COLLECTOR is an object which can be used to calculate
 a list of possible hits.  See `semantic-completion-collector-engine'
 for details on COLLECTOR.
 Argument DISPLAYER is an object used to display a list of possible
-completions for a given prefix.  See`semantic-completion-display-engine'
+completions for a given prefix.  See `semantic-completion-display-engine'
 for details on DISPLAYER.
 BUFFER is the buffer in which completion will take place.
 START is a location for the start of the full symbol.

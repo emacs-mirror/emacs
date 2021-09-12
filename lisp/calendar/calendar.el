@@ -119,7 +119,7 @@
 ;; Calendar has historically relied heavily on dynamic scoping.
 ;; Concretely, this manifests in the use of references to let-bound variables
 ;; in Custom vars as well as code in diary files.
-;; `eval` is hence the core of the culprit.  It's used on:
+;; `eval' is hence the core of the culprit.  It's used on:
 ;; - calendar-date-display-form
 ;; - calendar-time-display-form
 ;; - calendar-chinese-time-zone

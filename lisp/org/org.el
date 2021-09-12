@@ -19654,7 +19654,7 @@ When BLOCK-REGEXP is non-nil, use this regexp to find blocks."
 ;; Org still relies on `comment-dwim', but cannot trust
 ;; `comment-only-p'.  So, `comment-region-function' and
 ;; `uncomment-region-function' both point
-;; to`org-comment-or-uncomment-region'.  Eventually,
+;; to `org-comment-or-uncomment-region'.  Eventually,
 ;; `org-insert-comment' takes care of insertion of comments at the
 ;; beginning of line.
 

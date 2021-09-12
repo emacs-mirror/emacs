@@ -883,7 +883,7 @@ there are no matches for variables."
         (secondary-xrefs nil))          ; other xrefs
 
     (let ((temp elisp-xref-find-def-functions))
-      ;; FIXME: The `elisp-xref-find-def-functions` function interface does
+      ;; FIXME: The `elisp-xref-find-def-functions' function interface does
       ;; not allow for namespace filtering so we tacitly assume they all match.
       (while (and (null xrefs)
                   temp)

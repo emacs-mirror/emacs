@@ -624,7 +624,7 @@ Value for `adaptive-fill-function'."
   (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
 
 ;; Maybe this should be discouraged/obsoleted and users should be
-;; encouraged to use `lisp-data-mode` instead.
+;; encouraged to use `lisp-data-mode' instead.
 (defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
                                       elisp)
   "Common initialization routine for lisp modes.

@@ -1304,7 +1304,7 @@ package name and for the version.")
                                    (regexp ,cperl--version-regexp)))
                ,cperl--ws*-rx
                (group-n 3 (or ";" "{")))
-    "A regular expression to collect package names for `imenu`.
+    "A regular expression to collect package names for `imenu'.
 Catches \"package NAME;\", \"package NAME VERSION;\", \"package
 NAME BLOCK\" and \"package NAME VERSION BLOCK.\" Contains three
 groups: One for the keyword \"package\", one for the package
@@ -1345,7 +1345,7 @@ heading text.")
   `(or ,cperl--package-for-imenu-rx
        ,cperl--sub-name-for-imenu-rx
        ,cperl--pod-heading-rx)
-  "A regular expression to collect stuff that goes into the `imenu` index.
+  "A regular expression to collect stuff that goes into the `imenu' index.
 Covers packages, subroutines, and POD headings.")
 
 ;; end of eval-and-compiled stuff
@@ -5454,7 +5454,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 (defvar cperl-imenu-pod-keywords '("=head"))
 
 (defun cperl-imenu--create-perl-index ()
-  "Implement `imenu-create-index-function` for CPerl mode.
+  "Implement `imenu-create-index-function' for CPerl mode.
 This function relies on syntaxification to exclude lines which
 look like declarations but actually are part of a string, a
 comment, or POD."

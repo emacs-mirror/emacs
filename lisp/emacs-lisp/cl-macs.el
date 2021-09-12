@@ -3277,7 +3277,7 @@ the form NAME which is a shorthand for (NAME NAME)."
 (defun cl-struct-sequence-type (struct-type)
   "Return the sequence used to build STRUCT-TYPE.
 STRUCT-TYPE is a symbol naming a struct type.  Return `record',
-`vector`, or `list' if STRUCT-TYPE is a struct type, nil otherwise."
+`vector', or `list' if STRUCT-TYPE is a struct type, nil otherwise."
   (declare (side-effect-free t) (pure t))
   (cl--struct-class-type (cl--struct-get-class struct-type)))
 
