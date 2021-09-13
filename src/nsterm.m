@@ -8323,9 +8323,8 @@ not_in_argv (NSString *arg)
   EmacsToolbar *toolbar = [[EmacsToolbar alloc]
                             initForView:view
                             withIdentifier:[NSString stringWithLispString:f->name]];
+  [toolbar setVisible:NO];
   [self setToolbar:toolbar];
-
-  update_frame_tool_bar (f);
 
 #ifdef NS_IMPL_COCOA
   {
