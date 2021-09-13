@@ -304,11 +304,12 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
 Do not set this by hand, use a function like `checkdoc-current-buffer'
 with a universal argument.")
 
-(defcustom checkdoc-symbol-words nil
+(defcustom checkdoc-symbol-words '("byte-code" "command-line" "top-level")
   "A list of symbol names (strings) which also happen to make good words.
 These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
-  :type '(repeat (symbol :tag "Word")))
+  :type '(repeat (symbol :tag "Word"))
+  :version "28.1")
 ;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
 ;;;###autoload
@@ -320,7 +321,7 @@ This should be set in an Emacs Lisp file's local variables."
        (not (memq nil (mapcar #'stringp obj)))))
 
 (defvar checkdoc-proper-noun-list
-  '("ispell" "xemacs" "emacs" "lisp")
+  '("ispell" "emacs" "lisp")
   "List of words (not capitalized) which should be capitalized.")
 
 (defvar checkdoc-proper-noun-regexp
@@ -2016,10 +2017,11 @@ Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
                     ;; so we need to skip it here too.
                     (? "\\(")
                     ;; The abbreviations:
-                    (or (seq (any "iI") "." (any "eE")) ; i.e.
-                        (seq (any "eE") ".g")           ; e.g.
-                        (seq (any "cC") "f")))          ; c.f.
-                   "vs")                                ; vs.
+                    (or (seq (any "cC") "f")              ; cf.
+                        (seq (any "eE") ".g")             ; e.g.
+                        (seq (any "iI") "." (any "eE")))) ; i.e.
+                   "etc"                                  ; etc.
+                   "vs")                                  ; vs.
                ".")))
       (error t))))
 
