@@ -2826,6 +2826,13 @@ or if you would like to attend a virtual meeting scheduled in a
 different timezone causing a difference in the date.
 
 ---
+*** New user option 'checkdoc-column-zero-backslash-before-paren'.
+Checkdoc warns if there is a left parenthesis in column zero of a
+documentation string.  That warning can now be disabled by customizing
+this new user option to nil.  This can be useful if you don't expect
+your code to be edited with an Emacs version older than 27.1.
+
+---
 *** The old non-SMIE indentation of 'sh-mode' has been removed.
 
 ---

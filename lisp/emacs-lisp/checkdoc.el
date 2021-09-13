@@ -312,6 +312,14 @@ This should be set in an Emacs Lisp file's local variables."
   :version "28.1")
 ;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
+(defcustom checkdoc-column-zero-backslash-before-paren t
+  "Non-nil means to warn if there is no '\\' before '(' in column zero.
+This backslash is no longer needed on Emacs 27.1 later.
+
+See Info node `(elisp) Documentation Tips' for background."
+  :type 'boolean
+  :version "28.1")
+
 ;;;###autoload
 (defun checkdoc-list-of-strings-p (obj)
   "Return t when OBJ is a list of strings."
@@ -1403,16 +1411,17 @@ buffer, otherwise stop after the first error."
 	      (match-beginning 1)
 	      (match-end 1)))))
      ;; * Check for '(' in column 0.
-     (save-excursion
-       (when (re-search-forward "^(" e t)
-	 (if (checkdoc-autofix-ask-replace (match-beginning 0)
-					   (match-end 0)
-					   (format-message "Escape this `('? ")
-					   "\\(")
-	     nil
-	   (checkdoc-create-error
-	    "Open parenthesis in column 0 should be escaped"
-	    (match-beginning 0) (match-end 0)))))
+     (when checkdoc-column-zero-backslash-before-paren
+       (save-excursion
+         (when (re-search-forward "^(" e t)
+           (if (checkdoc-autofix-ask-replace (match-beginning 0)
+                                     (match-end 0)
+                                     (format-message "Escape this `('? ")
+                                     "\\(")
+               nil
+             (checkdoc-create-error
+              "Open parenthesis in column 0 should be escaped"
+              (match-beginning 0) (match-end 0))))))
      ;; * Do not start or end a documentation string with whitespace.
      (let (start end)
        (if (or (if (looking-at "\"\\([ \t\n]+\\)")
