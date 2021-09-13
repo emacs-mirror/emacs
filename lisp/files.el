@@ -2533,7 +2533,7 @@ buffer unibyte, so if this function is used when handling
 binary (non-character) data, it can be convenient to make the
 buffer unibyte first.  This isn't, strictly speaking, necessary,
 because multibyte buffers can also deal with raw bytes.  See info
-node `(elisp)Character Codes' for details.")
+node `(elisp)Character Codes' for details."
   (let ((format-alist nil)
 	(after-insert-file-functions nil)
 	(coding-system-for-read 'no-conversion)
