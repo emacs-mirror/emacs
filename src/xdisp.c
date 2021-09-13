@@ -13774,7 +13774,7 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
   frame_to_window_pixel_xy (w, &x, &y);
   ts = get_tab_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx, &close_p);
   if (ts == -1)
-    return Qnil;
+    return Fcons (Qtab_bar, Qnil);
 
   /* If item is disabled, do nothing.  */
   enabled_p = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_ENABLED_P);

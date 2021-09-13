@@ -113,7 +113,6 @@ For easier selection of tabs by their numbers, consider customizing
   :group 'tab-bar
   :version "27.1")
 
-
 (defun tab-bar--define-keys ()
   "Install key bindings for switching between tabs if the user has configured them."
   (when tab-bar-select-tab-modifiers
@@ -224,10 +223,15 @@ a list of frames to update."
       (tab-bar--define-keys)
     (tab-bar--undefine-keys)))
 
+
+;;; Key bindings
+
 (defun tab-bar--key-to-number (key)
-  (let ((key-name (format "%S" key)))
-    (when (string-prefix-p "tab-" key-name)
-      (string-to-number (string-replace "tab-" "" key-name)))))
+  (unless (eq key 'current-tab)
+    (let ((key-name (format "%S" key)))
+      (if (string-prefix-p "tab-" key-name)
+          (string-to-number (string-replace "tab-" "" key-name))
+        t))))
 
 (defun tab-bar--event-to-item (posn)
   (if (posn-window posn)
@@ -246,37 +250,59 @@ a list of frames to update."
            (lambda (key binding)
              (when (eq (car-safe binding) 'menu-item)
                (when (> (+ column (length (nth 1 binding))) x-position)
-                 (throw 'done (list
-                               key (nth 2 binding)
-                               (get-text-property
-                                (- x-position column) 'close-tab (nth 1 binding)))))
+                 (throw 'done (list key (nth 2 binding)
+                                    (get-text-property
+                                     (- x-position column)
+                                     'close-tab (nth 1 binding)))))
                (setq column (+ column (length (nth 1 binding))))))
            keymap))))))
 
 (defun tab-bar-mouse-select-tab (event)
   (interactive "e")
-  (let ((item (tab-bar--event-to-item (event-start event))))
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item))))
     (if (nth 2 item)
-        (tab-bar-close-tab (tab-bar--key-to-number (nth 0 item)))
+        (unless (eq tab-number t)
+          (tab-bar-close-tab tab-number))
       (if (functionp (nth 1 item))
           (call-interactively (nth 1 item))
-        (tab-bar-select-tab (tab-bar--key-to-number (nth 0 item)))))))
+        (unless (eq tab-number t)
+          (tab-bar-select-tab tab-number))))))
 
 (defun tab-bar-mouse-close-tab (event)
   (interactive "e")
-  (let ((item (tab-bar--event-to-item (event-start event))))
-    (tab-bar-close-tab (tab-bar--key-to-number (nth 0 item)))))
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item))))
+    (unless (eq tab-number t)
+      (tab-bar-close-tab tab-number))))
 
 (defun tab-bar-mouse-context-menu (event)
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item)))
-         (menu (make-sparse-keymap "Context Menu")))
+         (menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
 
-    (define-key-after menu [close]
-      `(menu-item "Close" (lambda () (interactive)
-                            (tab-bar-close-tab ,tab-number))
-                  :help "Close the tab"))
+    (cond
+     ((eq tab-number t)
+      (define-key-after menu [new-tab]
+        '(menu-item "New tab" tab-bar-new-tab
+                    :help "Create a new tab"))
+      (when tab-bar-closed-tabs
+        (define-key-after menu [undo-close]
+          '(menu-item "Reopen closed tab" tab-bar-undo-close-tab
+                      :help "Undo closing the tab"))))
+
+     (t
+      (define-key-after menu [duplicate-tab]
+        `(menu-item "Duplicate" (lambda () (interactive)
+                                  (tab-bar-duplicate-tab
+                                   nil ;; TODO: add ,tab-number
+                                   ))
+                    :help "Duplicate the tab"))
+      (define-key-after menu [close]
+        `(menu-item "Close" (lambda () (interactive)
+                              (tab-bar-close-tab ,tab-number))
+                    :help "Close the tab"))))
 
     (popup-menu menu event)))
 
@@ -289,31 +315,6 @@ a list of frames to update."
              (nth 0 (tab-bar--event-to-item
                      (event-end event))))))
     (tab-bar-move-tab-to to from)))
-
-(defun toggle-tab-bar-mode-from-frame (&optional arg)
-  "Toggle tab bar on or off, based on the status of the current frame.
-Used in the Show/Hide menu, to have the toggle reflect the current frame.
-See `tab-bar-mode' for more information."
-  (interactive (list (or current-prefix-arg 'toggle)))
-  (if (eq arg 'toggle)
-      (tab-bar-mode (if (> (frame-parameter nil 'tab-bar-lines) 0) 0 1))
-    (tab-bar-mode arg)))
-
-(defun toggle-frame-tab-bar (&optional frame)
-  "Toggle tab bar of the selected frame.
-When calling from Lisp, use the optional argument FRAME to toggle
-the tab bar on that frame.
-This is useful if you want to enable the tab bar individually
-on each new frame when the global `tab-bar-mode' is disabled,
-or if you want to disable the tab bar individually on each
-new frame when the global `tab-bar-mode' is enabled, by using
-
-  (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
-  (interactive)
-  (set-frame-parameter frame 'tab-bar-lines
-                       (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))
-  (set-frame-parameter frame 'tab-bar-lines-keep-state
-                       (not (frame-parameter frame 'tab-bar-lines-keep-state))))
 
 (defvar tab-bar-map
   (let ((map (make-sparse-keymap)))
@@ -350,6 +351,32 @@ new frame when the global `tab-bar-mode' is enabled, by using
 Its main job is to show tabs in the tab bar
 and to bind mouse events to the commands."
   (tab-bar-make-keymap-1))
+
+
+(defun toggle-tab-bar-mode-from-frame (&optional arg)
+  "Toggle tab bar on or off, based on the status of the current frame.
+Used in the Show/Hide menu, to have the toggle reflect the current frame.
+See `tab-bar-mode' for more information."
+  (interactive (list (or current-prefix-arg 'toggle)))
+  (if (eq arg 'toggle)
+      (tab-bar-mode (if (> (frame-parameter nil 'tab-bar-lines) 0) 0 1))
+    (tab-bar-mode arg)))
+
+(defun toggle-frame-tab-bar (&optional frame)
+  "Toggle tab bar of the selected frame.
+When calling from Lisp, use the optional argument FRAME to toggle
+the tab bar on that frame.
+This is useful if you want to enable the tab bar individually
+on each new frame when the global `tab-bar-mode' is disabled,
+or if you want to disable the tab bar individually on each
+new frame when the global `tab-bar-mode' is enabled, by using
+
+  (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
+  (interactive)
+  (set-frame-parameter frame 'tab-bar-lines
+                       (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))
+  (set-frame-parameter frame 'tab-bar-lines-keep-state
+                       (not (frame-parameter frame 'tab-bar-lines-keep-state))))
 
 
 (defcustom tab-bar-show t
@@ -1224,8 +1251,7 @@ where argument addressing is absolute."
 
 (defun tab-bar-duplicate-tab (&optional arg)
   "Duplicate the current tab to ARG positions to the right.
-If a negative ARG, duplicate the tab to ARG positions to the left.
-If ARG is zero, duplicate the tab in place of the current tab."
+ARG has the same meaning as in `tab-bar-new-tab'."
   (interactive "P")
   (let ((tab-bar-new-tab-choice nil)
         (tab-bar-new-tab-group t))
