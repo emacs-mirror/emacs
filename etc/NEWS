@@ -3383,6 +3383,7 @@ It is written as '(:success BODY...)' where BODY is executed
 whenever the protected form terminates without error, with the
 specified variable bound to the the value of the protected form.
 
++++
 ** New function 'benchmark-call' to measure the execution time of a function.
 Additionally, the number of repetitions can be expressed as a minimal duration
 in seconds.
@@ -3410,6 +3411,7 @@ If bound to non-nil, a command with '(interactive "e")' doesn't signal
 an error when invoked by input event that is not a mouse click (e.g.,
 a key sequence).
 
+---
 ** New variable 'redisplay-skip-initial-frame' to enable batch redisplay tests.
 Setting it to nil forces the redisplay to do its job even in the
 initial frame used in batch mode.
@@ -3481,10 +3483,13 @@ To load the file after byte-compiling, add a call to 'load' from Lisp
 or use 'M-x emacs-lisp-byte-compile-and-load' interactively.
 
 ** Macroexp
+
 ---
 *** New function 'macroexp-file-name' to know the name of the current file.
+
 ---
 *** New function 'macroexp-compiling-p' to know if we're compiling.
+
 ---
 *** New function 'macroexp-warn-and-return' to help emit warnings.
 This used to be named 'macroexp--warn-and-return' and has proved useful
