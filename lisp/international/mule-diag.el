@@ -882,7 +882,7 @@ The IGNORED argument is ignored."
   ;; the current line.
   (beginning-of-line)
   (let ((from (mule--kbd-at (point)))
-	(to (if (looking-at "[^.]*[.]* ")
+	(to (if (looking-at "[^.]+[.][.] ")
 		(mule--kbd-at (match-end 0)))))
     (if (re-search-forward "[ \t]*$" nil t)
 	(delete-region (match-beginning 0) (match-end 0)))
