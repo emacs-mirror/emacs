@@ -60,9 +60,9 @@
 
 (defcustom rcirc-server-alist
   (if (gnutls-available-p)
-      '(("irc.libera.chat" :channels ("#rcirc")
+      '(("irc.libera.chat" :channels ("#emacs" "#rcirc")
          :port 6697 :encryption tls))
-    '(("irc.libera.chat" :channels ("#rcirc"))))
+    '(("irc.libera.chat" :channels ("#emacs" "#rcirc"))))
   "An alist of IRC connections to establish when running `rcirc'.
 Each element looks like (SERVER-NAME PARAMETERS).
 
