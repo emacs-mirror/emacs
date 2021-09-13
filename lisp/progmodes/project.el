@@ -1308,7 +1308,10 @@ It's also possible to enter an arbitrary directory not in the list."
           ;; completion style).
           (project--file-completion-table
            (append project--list `(,dir-choice))))
-         (pr-dir (completing-read "Select project: " choices nil t)))
+         (pr-dir ""))
+    (while (equal pr-dir "")
+      ;; If the user simply pressed RET, do this again until they don't.
+      (setq pr-dir (completing-read "Select project: " choices nil t)))
     (if (equal pr-dir dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
