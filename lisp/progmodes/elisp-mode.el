@@ -153,6 +153,26 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      :style toggle
      :selected (bound-and-true-p eldoc-mode)]))
 
+(defun elisp-context-menu (menu click)
+  (define-key-after menu [elisp-separator] menu-bar-separator
+    'mark-whole-buffer)
+  (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [describe-symbol]
+      '(menu-item "Describe Symbol"
+                  (lambda (click) (interactive "e")
+                    (describe-symbol
+                     (intern (thing-at-mouse click 'symbol t))))
+                  :help "Display the full documentation of symbol")
+      'elisp-separator)
+    (define-key-after menu [info-lookup-symbol]
+      '(menu-item "Lookup Symbol"
+                  (lambda (click) (interactive "e")
+                    (info-lookup-symbol
+                     (intern (thing-at-mouse click 'symbol t))))
+                  :help "Display definition in relevant manual")
+      'describe-symbol))
+  menu)
+
 (defun emacs-lisp-byte-compile ()
   "Byte compile the file containing the current buffer."
   (interactive nil emacs-lisp-mode)
@@ -280,7 +300,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
             #'elisp-completion-at-point nil 'local)
   (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
   (add-hook 'flymake-diagnostic-functions
-              #'elisp-flymake-byte-compile nil t))
+              #'elisp-flymake-byte-compile nil t)
+  (add-hook 'context-menu-functions #'elisp-context-menu 10 t))
 
 ;; Font-locking support.
 
