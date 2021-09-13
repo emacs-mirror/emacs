@@ -3601,8 +3601,10 @@ packages list, respectively."
 
 (defun package-menu-execute (&optional noquery)
   "Perform marked Package Menu actions.
-Packages marked for installation are downloaded and installed;
-packages marked for deletion are removed.
+Packages marked for installation are downloaded and installed,
+packages marked for deletion are removed,
+and packages marked for upgrading are downloaded and upgraded.
+
 Optional argument NOQUERY non-nil means do not ask the user to confirm."
   (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
