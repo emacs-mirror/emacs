@@ -531,7 +531,7 @@ From, and Cc against HEADER-REGEXP in
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
                                 "erc") 'words))
      "Libera.Chat"
-     "\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
+     "\\([Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in IRC modes.
 
