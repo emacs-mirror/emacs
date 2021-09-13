@@ -2475,7 +2475,8 @@ Will untabify if `cperl-electric-backspace-untabify' is non-nil."
 
 (put 'cperl-electric-backspace 'delete-selection 'supersede)
 
-(defun cperl-inside-parens-p ()		;; NOT USED????
+(defun cperl-inside-parens-p ()
+  (declare (obsolete nil "28.1")) ; not used
   (condition-case ()
       (save-excursion
 	(save-restriction
