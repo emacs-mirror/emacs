@@ -302,6 +302,25 @@ Binding}), but it's impractical to @code{defvar} these variables.
 the forms, and then make the variables non-special again.
 @end defspec
 
+@defspec named-let name bindings &rest body
+This special form is like @code{let}: It binds the variables in
+@var{bindings}, and then evaluates @var{body}.  However,
+@code{named-let} allows you to call @var{body} recursively by calling
+@var{name}, where the arguments passed to @var{name} are used as the
+new values of the bound variables in the recursive invocation.
+
+Here's a trivial example:
+
+@lisp
+(named-let foo
+    ((a 1)
+     (b 2))
+  (nconc (list a b)
+         (and (= a 1) (foo 3 4))))
+     @result{} (1 2 3 4)
+@end lisp
+@end defspec
+
   Here is a complete list of the other facilities that create local
 bindings:
 

@@ -3828,6 +3828,7 @@ Until it is solved you could ignore such errors by performing
 
     (setq debug-ignored-errors (cons 'remote-file-error debug-ignored-errors))
 
++++
 ** New macro 'named-let' added to subr-x.el.
 It provides Scheme's "named let" looping construct.
 
@@ -3840,6 +3841,7 @@ non-nil value to get back the old behavior, whereby after reading
 from a subprocess, Emacs would check for output of other subprocesses
 in a way that is likely to read from the same process again.
 
++++
 ** 'set-process-buffer' now updates the process mark.
 The mark will be set to point to the end of the new buffer.
 
@@ -4041,6 +4043,7 @@ form below the header line.  It is enabled by default in
 ---
 ** 'ascii' is now a coding system alias for 'us-ascii'.
 
+---
 ** New coding-systems for EBCDIC variants.
 New coding-systems 'ibm256', 'ibm273', 'ibm274', 'ibm277', 'ibm278',
 'ibm280', 'ibm281', 'ibm284', 'ibm285', 'ibm290', 'ibm297'.  These are
@@ -4103,8 +4106,11 @@ The new variable 'xwidget-webkit-download-dir' says where to download to.
 
 ---
 *** New command 'xwidget-webkit-clone-and-split-below'.
+Open a new window below displaying the current URL.
+
+---
 *** New command 'xwidget-webkit-clone-and-split-right'.
-These are used in 'xwidget-webkit-mode'.
+Open a new window to the right displaying the current URL.
 
 ---
 *** New variable 'xwidget-webkit-enable-plugins'.
