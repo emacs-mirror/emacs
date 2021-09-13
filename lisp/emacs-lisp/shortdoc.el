@@ -889,6 +889,9 @@ There can be any number of :example/:result elements."
    :eg-result 67)
   (char-after
    :eval (char-after 45))
+  (get-byte
+   :no-eval (get-byte 45)
+   :eg-result-string "#xff")
   "Altering Buffers"
   (delete-region
    :no-value (delete-region (point-min) (point-max)))
