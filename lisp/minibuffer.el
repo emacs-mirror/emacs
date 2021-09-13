@@ -1807,7 +1807,9 @@ Return nil if there is no valid completion, else t."
     (_     t)))
 
 (defface completions-annotations '((t :inherit (italic shadow)))
-  "Face to use for annotations in the *Completions* buffer.")
+  "Face to use for annotations in the *Completions* buffer.
+This face is only used if the strings used for completions
+doesn't already specify a face.")
 
 (defcustom completions-format 'horizontal
   "Define the appearance and sorting of completions.

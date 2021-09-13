@@ -3120,8 +3120,10 @@ these cases.
 These were actually rendered obsolete in Emacs 21 but were never
 marked as such.
 
+---
 ** 'pcomplete-ignore-case' is now an obsolete alias of 'completion-ignore-case'.
 
++++
 ** 'completions-annotations' face is not used when the caller puts own face.
 This affects the suffix specified by completion 'annotation-function'.
 
@@ -3130,7 +3132,8 @@ This affects the suffix specified by completion 'annotation-function'.
 This is instead of the erroneous 'minibuffer-inactive-mode' it
 formerly had.
 
-** 'make-text-button' no longer text properties of its first argument.
+---
+** 'make-text-button' no longer modifies text properties of its first argument.
 When its first argument is a string, 'make-text-button' no longer
 modifies the string's text properties; instead, it uses and returns
 a copy of the string.  This helps avoid trouble when strings are
@@ -3142,6 +3145,7 @@ If 'minibuffer-allow-text-properties' is non-nil, doing completion
 over a table of strings with properties will no longer remove all the
 properties before returning.  This affects things like 'completing-read'.
 
+---
 ** 'dns-query' now consistently uses Lisp integers to represent integers.
 Formerly it made an exception for integer components of SOA records,
 because SOA serial numbers can exceed fixnum ranges on 32-bit platforms.
@@ -3156,6 +3160,7 @@ the Emacs Lisp reference manual for background.
 +++
 ** The error 'ftp-error' belongs also to category 'remote-file-error'.
 
++++
 ** The WHEN argument of 'make-obsolete' and related functions is mandatory.
 The use of those functions without a WHEN argument was marked obsolete
 back in Emacs 23.1.  The affected functions are: 'make-obsolete',
