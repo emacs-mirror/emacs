@@ -87,7 +87,7 @@ Optional argument MODE specifies the `major-mode' to test."
         (if (null (cdr pat))
             args
           `("(" ,@args
-            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) pat)
+            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) (cdr pat))
             ")"))))))
 
 (defvar semantic-symref-grep-flags)
