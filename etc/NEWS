@@ -3176,6 +3176,7 @@ These variables describe facts about the SQL standard and
 product-specific additions.  There should be no need for users to
 customize them.
 
+---
 ** Some locale-related variables have been removed.
 The Lisp variables 'previous-system-messages-locale' and
 'previous-system-time-locale' have been removed, as they were created
@@ -3185,12 +3186,15 @@ by mistake and were not useful to Lisp code.
 ** Function 'lm-maintainer' is replaced with 'lm-maintainers'.
 The former is now declared obsolete.
 
++++
 ** 'facemenu.el' is no longer preloaded.
 To use functions/variables from the package, you now have to say
 '(require 'facemenu)' or similar.
 
+---
 ** 'facemenu-color-alist' is now obsolete, and is not used.
 
+---
 ** The variable 'keyboard-type' is obsolete and not dynamically scoped any more.
 
 +++
