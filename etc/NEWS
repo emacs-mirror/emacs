@@ -2909,13 +2909,16 @@ structures.
 This is for symmetry with 'visual-line-mode', which disables
 'truncate-lines'.
 
-** 'electric-indent-mode' now also indents inside strings and comments,
-(unless the indentation function doesn't, of course).
+---
+** 'electric-indent-mode' now also indents inside strings and comments.
+(This only happens when indentation function also supports this.)
+
 To recover the previous behavior you can use:
 
     (add-hook 'electric-indent-functions
               (lambda (_) (if (nth 8 (syntax-ppss)) 'no-indent)))
 
+---
 ** The 'M-o' ('facemenu-keymap') global binding has been removed.
 To restore the old binding, say something like:
 
@@ -2927,6 +2930,7 @@ To restore the old binding, say something like:
 The last two lines are not strictly necessary if you don't care about
 having those two commands on the 'M-o' keymap; see the next section.
 
+---
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
 Use 'M-x center-line' and 'M-x center-paragraph' instead.  See the
 previous section for how to get back the old bindings.  Alternatively,
@@ -2936,10 +2940,12 @@ before, you can add the following to your init file:
   (define-key global-map "\M-o\M-s" 'center-line)
   (define-key global-map "\M-o\M-S" 'center-paragraph)
 
+---
 ** The 'M-o M-o' global binding has been removed.
 Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
 command, which updates the syntax highlighting in the current buffer.
 
+---
 ** The escape sequence '\e[29~' in Xterm is now mapped to 'menu'.
 Xterm sends this sequence for both 'F16' and 'Menu' keys
 It used to be mapped to 'print' but we couldn't find a terminal
@@ -2953,8 +2959,9 @@ If non-nil (the default), Emacs pushes pasted text onto the kill ring
 (if using an xterm-like terminal that supports bracketed paste).
 Setting this to nil inhibits that.
 
-** 'vc-print-branch-log' shows the change log for BRANCH from its root
-directory instead of the default directory.
+---
+** 'vc-print-branch-log' shows the change log from its root directory.
+It previously used to use the default directory.
 
 ---
 ** 'project-shell' and 'shell' now use 'pop-to-buffer-same-window'.
