@@ -3202,7 +3202,7 @@ enum tab_bar_item_idx
 
 /* Default values of the above variables.  */
 
-#define DEFAULT_TAB_BAR_BUTTON_MARGIN 4
+#define DEFAULT_TAB_BAR_BUTTON_MARGIN 1
 #define DEFAULT_TAB_BAR_BUTTON_RELIEF 1
 
 /* The height in pixels of the default tab-bar images.  */
