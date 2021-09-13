@@ -1,4 +1,5 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX  -*- lexical-binding: t; -*-
+
 ;; Copyright (C) 1997-2000, 2003-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
@@ -1930,7 +1931,7 @@ When DIE is non-nil, throw an error if file not found."
 (defun reftex-convert-string (string split-re invalid-re dot keep-fp
                                      nwords maxchar invalid abbrev sep
                                      ignore-words &optional downcase)
-  "Convert a string (a sentence) to something shorter.
+  "Convert STRING (a sentence) to something shorter.
 SPLIT-RE     is the regular expression used to split the string into words.
 INVALID-RE   matches characters which are invalid in the final string.
 DOT          t means add dots to abbreviated words.

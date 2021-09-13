@@ -2353,7 +2353,7 @@ FILE is typically the output DVI or PDF file."
            collect (cons char (shell-quote-argument file))))
 
 (defun tex-format-cmd (format fspec)
-  "Like `format-spec' but adds user-specified args to the command.
+  "Like `format-spec' but add user-specified args to the command.
 Only applies the FSPEC to the args part of FORMAT."
   (setq fspec (tex--quote-spec fspec))
   (if (not (string-match "\\([^ /\\]+\\) " format))

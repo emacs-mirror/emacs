@@ -1165,7 +1165,7 @@ Please send all bug fixes and enhancements to
 ;;; Interface to the command system
 
 (defgroup postscript nil
-  "Printing with PostScript"
+  "Printing with PostScript."
   :tag "PostScript"
   :version "20"
   :group 'environment)

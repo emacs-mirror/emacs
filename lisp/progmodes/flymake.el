@@ -626,7 +626,7 @@ associated `flymake-category' return DEFAULT."
                              (list bitmap)))))))
 
 (defun flymake--highlight-line (diagnostic)
-  "Highlight buffer with info in DIGNOSTIC."
+  "Highlight buffer with info in DIAGNOSTIC."
   (let ((type (or (flymake--diag-type diagnostic)
                   :error))
         (ov (make-overlay
@@ -973,7 +973,7 @@ Interactively, with a prefix arg, FORCE is t."
 
 (defvar flymake-mode-map
   (let ((map (make-sparse-keymap))) map)
-  "Keymap for `flymake-mode'")
+  "Keymap for `flymake-mode'.")
 
 ;;;###autoload
 (define-minor-mode flymake-mode

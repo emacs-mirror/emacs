@@ -61,7 +61,7 @@
 ;; holders.  Amazingly there have been no direct support for WYSIWYG
 ;; table editing tasks in Emacs.  Many people must have experienced
 ;; manipulating existing overwrite-mode and picture-mode for this task
-;; and only dreamed of having such a lisp package which supports this
+;; and only dreamed of having such a Lisp package which supports this
 ;; specific task directly.  Certainly, I have been one of them.  The
 ;; most difficult part of dealing with table editing in Emacs probably
 ;; is how to realize localized rectangular editing effect.  Emacs has
@@ -860,7 +860,7 @@ cell to cache and cache to cell.")
 This is always set to nil at the entry to `table-with-cache-buffer' before
 executing body forms.")
 (defvar-local table-mode-indicator nil
-  "For mode line indicator")
+  "For mode line indicator.")
 ;; This is not a real minor-mode but placed in the minor-mode-alist
 ;; so that we can show the indicator on the mode line handy.
 (unless (assq table-mode-indicator minor-mode-alist)
@@ -3625,8 +3625,7 @@ independently.
 
 By applying `table-release', which does the opposite process, the
 contents become once again plain text.  `table-release' works as
-companion command to `table-capture' this way.
-"
+companion command to `table-capture' this way."
   (interactive
    (let ((col-delim-regexp)
 	 (row-delim-regexp))
@@ -4535,7 +4534,7 @@ grow into."
 
 (defun table--untabify-line (&optional from)
   "Untabify current line.
-Unlike save-excursion this guarantees preserving the cursor location
+Unlike `save-excursion' this guarantees preserving the cursor location
 even when the point is on a tab character which is to be removed.
 Optional FROM narrows the subject operation from this point to the end
 of line."
@@ -5074,7 +5073,7 @@ signals error if the optional ABORT-ON-ERROR is non-nil."
 
 (defun table--insert-rectangle (rectangle)
   "Insert text of RECTANGLE with upper left corner at point.
-Same as insert-rectangle except that mark operation is eliminated."
+Same as `insert-rectangle' except that mark operation is eliminated."
   (let ((lines rectangle)
 	(insertcolumn (current-column))
 	(first t))

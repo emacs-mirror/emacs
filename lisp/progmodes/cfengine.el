@@ -47,8 +47,8 @@
 ;; (add-hook 'cfengine3-mode-hook 'eldoc-mode)
 
 ;; You may also find the command `cfengine3-reformat-json-string'
-;; useful, just bind it to a key you prefer. It will take the current
-;; string and reformat it as JSON. So if you're editing JSON inside
+;; useful, just bind it to a key you prefer.  It will take the current
+;; string and reformat it as JSON.  So if you're editing JSON inside
 ;; the policy, it's a quick way to make it more legible without
 ;; manually reindenting it.  For instance:
 
@@ -140,8 +140,7 @@ bundle agent rcfiles
       \"/tmp/netrc\"
               comment => \"my netrc\",
                 perms => mog(\"600\", \"tzz\", \"tzz\");
-}
-"
+}"
   :version "24.4"
   :type '(list
           (choice (const :tag "Anchor at beginning of promise" promise)
@@ -1193,7 +1192,7 @@ Intended as the value of `indent-line-function'."
 ;; CATEGORY: [a-zA-Z_]+:
 
 (defun cfengine3--current-function ()
-  "Look up current CFEngine 3 function"
+  "Look up current CFEngine 3 function."
   (let* ((syntax (cfengine3-make-syntax-cache))
          (flist (assq 'functions syntax)))
     (when flist

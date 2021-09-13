@@ -175,7 +175,7 @@
 
 ;;;###autoload
 (define-derived-mode bat-mode prog-mode "Bat"
-  "Major mode for editing DOS/Windows batch files.\n
+  "Major mode for editing DOS/Windows batch files.
 Start a new script from `bat-template'.  Read help pages for DOS commands
 with `bat-cmd-help'.  Navigate between sections using `imenu'.
 Run script using `bat-run' and `bat-run-args'.\n

@@ -312,8 +312,7 @@ own abbrevs in cperl-mode, but do not want keywords to be
 electric, you must redefine `cperl-mode-abbrev-table': do
 \\[edit-abbrevs], search for `cperl-mode-abbrev-table', and, in
 that paragraph, delete the words that appear at the ends of lines and
-that begin with \"cperl-electric\".
-"
+that begin with \"cperl-electric\"."
   :type '(choice (const null) boolean)
   :group 'cperl-affected-by-hairy)
 
@@ -767,8 +766,7 @@ line-breaks/spacing between elements of the construct.
 
 10) Uses a linear-time algorithm for indentation of regions.
 
-11) Syntax-highlight, indentation, sexp-recognition inside regular expressions.
-")
+11) Syntax-highlight, indentation, sexp-recognition inside regular expressions.")
 
 (defvar cperl-speed 'please-ignore-this-line
   "This is an incomplete compendium of what is available in other parts
@@ -865,9 +863,7 @@ In regular expressions (including character classes):
 				backslashes of escape sequences
   `font-lock-variable-name-face' Interpolated constructs, embedded code,
 				POSIX classes (inside charclasses)
-  `font-lock-comment-face'	Embedded comments
-
-")
+  `font-lock-comment-face'	Embedded comments")
 
 
 
@@ -1452,7 +1448,7 @@ the last)."
 
 (defvar cperl-outline-regexp
   (rx (sequence line-start (0+ blank) (eval cperl--imenu-entries-rx)))
-  "The regular expression used for outline-minor-mode")
+  "The regular expression used for `outline-minor-mode'.")
 
 (defvar cperl-mode-syntax-table nil
   "Syntax table in use in CPerl mode buffers.")
@@ -4840,7 +4836,7 @@ recursive calls in starting lines of here-documents."
 ;; Moreover, one takes positive approach (looks for else,grep etc)
 ;; another negative (looks for bless,tr etc)
 (defun cperl-after-block-p (lim &optional pre-block)
-  "Return true if the preceding } (if PRE-BLOCK, following {) delimits a block.
+  "Return non-nil if the preceding } (if PRE-BLOCK, following {) delimits a block.
 Would not look before LIM.  Assumes that LIM is a good place to begin a
 statement.  The kind of block we treat here is one after which a new
 statement would start; thus the block in ${func()} does not count."
@@ -4876,7 +4872,7 @@ statement would start; thus the block in ${func()} does not count."
       (error nil))))
 
 (defun cperl-after-expr-p (&optional lim chars test)
-  "Return true if the position is good for start of expression.
+  "Return non-nil if the position is good for start of expression.
 TEST is the expression to evaluate at the found position.  If absent,
 CHARS is a string that contains good characters to have before us (however,
 `}' is treated \"smartly\" if it is not in the list)."
@@ -4972,7 +4968,7 @@ CHARS is a string that contains good characters to have before us (however,
   (skip-chars-forward " \t"))
 
 (defun cperl-after-block-and-statement-beg (lim)
-  "Return true if the preceding ?} ends the statement."
+  "Return non-nil if the preceding ?} ends the statement."
   ;;  We assume that we are after ?\}
   (and
    (cperl-after-block-p lim)
@@ -5620,7 +5616,7 @@ comment, or POD."
 (defvar cperl-font-lock-keywords nil
   "Additional expressions to highlight in Perl mode.  Default set.")
 (defvar cperl-font-lock-keywords-2 nil
-  "Additional expressions to highlight in Perl mode.  Maximal set")
+  "Additional expressions to highlight in Perl mode.  Maximal set.")
 
 (defun cperl-load-font-lock-keywords ()
   (or cperl-faces-init (cperl-init-faces))
@@ -5635,10 +5631,10 @@ comment, or POD."
   cperl-font-lock-keywords-2)
 
 (defun cperl-font-lock-syntactic-face-function (state)
-  "Apply faces according to their syntax type.  In CPerl mode, this
-is used for here-documents which have been marked as c-style
-comments.  For everything else, delegate to the default
-function."
+  "Apply faces according to their syntax type.
+In CPerl mode, this is used for here-documents which have been
+marked as c-style comments.  For everything else, delegate to the
+default function."
   (cond
    ;; A c-style comment is a HERE-document.  Fontify if requested.
    ((and (eq 2 (nth 7 state))
@@ -6251,7 +6247,7 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
 		  (filename nodename &optional no-going-back strict-case))
 
 (defun cperl-info-buffer (type)
-  ;; Returns buffer with documentation.  Creates if missing.
+  ;; Return buffer with documentation.  Creates if missing.
   ;; If TYPE, this vars buffer.
   ;; Special care is taken to not stomp over an existing info buffer
   (let* ((bname (if type "*info-perl-var*" "*info-perl*"))
@@ -6385,7 +6381,7 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
 (declare-function imenu-choose-buffer-index "imenu" (&optional prompt alist))
 
 (defun cperl-imenu-on-info ()
-  "Shows imenu for Perl Info Buffer.
+  "Show imenu for Perl Info Buffer.
 Opens Perl Info buffer if needed."
   (interactive)
   (require 'imenu)
@@ -6733,8 +6729,7 @@ Does not move point."
   "Add to TAGS data for \"pure\" Perl files in the current directory and kids.
 Use as
   emacs -batch -q -no-site-file -l emacs/cperl-mode.el \\
-        -f cperl-add-tags-recurse-noxs
-"
+        -f cperl-add-tags-recurse-noxs"
   (cperl-write-tags nil nil t t nil t))
 
 (defun cperl-add-tags-recurse-noxs-fullpath ()
@@ -6742,16 +6737,14 @@ Use as
 Writes down fullpath, so TAGS is relocatable (but if the build directory
 is relocated, the file TAGS inside it breaks). Use as
   emacs -batch -q -no-site-file -l emacs/cperl-mode.el \\
-        -f cperl-add-tags-recurse-noxs-fullpath
-"
+        -f cperl-add-tags-recurse-noxs-fullpath"
   (cperl-write-tags nil nil t t nil t ""))
 
 (defun cperl-add-tags-recurse ()
   "Add to TAGS file data for Perl files in the current directory and kids.
 Use as
   emacs -batch -q -no-site-file -l emacs/cperl-mode.el \\
-        -f cperl-add-tags-recurse
-"
+        -f cperl-add-tags-recurse"
   (cperl-write-tags nil nil t t))
 
 (defvar cperl-tags-file-name "TAGS"
@@ -7735,11 +7728,10 @@ prototype \\&SUB	Returns prototype of the function given a reference.
 =begin formatname	Start directly formatted region.
 =end formatname	End directly formatted region.
 =for formatname text	Paragraph in special format.
-=encoding encodingname	Encoding of the document.
-")
+=encoding encodingname	Encoding of the document.")
 
 (defun cperl-switch-to-doc-buffer (&optional interactive)
-  "Go to the perl documentation buffer and insert the documentation."
+  "Go to the Perl documentation buffer and insert the documentation."
   (interactive "p")
   (let ((buf (get-buffer-create cperl-doc-buffer)))
     (if interactive

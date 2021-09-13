@@ -30,11 +30,11 @@
 
 ;;; Variables and constants
 (defvar reftex-cite-regexp-hist nil
-  "The history list of regular expressions used for citations")
+  "The history list of regular expressions used for citations.")
 
 (defconst reftex-citation-prompt
   "Select: [n]ext [p]revious [r]estrict [ ]full_entry [q]uit RET [?]Help+more"
-  "Prompt and help string for citation selection")
+  "Prompt and help string for citation selection.")
 
 (defconst reftex-citation-help
   " n / p      Go to next/previous entry (Cursor motion works as well).

@@ -86,7 +86,7 @@ This is bound before running `compilation-filter-hook'.")
   "This is how compilers number the first column, usually 1 or 0.
 If this is buffer-local in the destination buffer, Emacs obeys
 that value, otherwise it uses the value in the *compilation*
-buffer.  This enables a major-mode to specify its own value.")
+buffer.  This enables a major mode to specify its own value.")
 
 (defvar compilation-parse-errors-filename-function #'identity
   "Function to call to post-process filenames while parsing error messages.
@@ -752,7 +752,7 @@ program and Emacs agree about the display width of the characters,
 especially the TAB character.
 If this is buffer-local in the destination buffer, Emacs obeys
 that value, otherwise it uses the value in the *compilation*
-buffer.  This enables a major-mode to specify its own value."
+buffer.  This enables a major mode to specify its own value."
   :type 'boolean
   :version "20.4")
 
@@ -2767,7 +2767,7 @@ Actual value is never used, only the text property.")
     (set-window-margins w (- (car (window-margins w)) 2))))
 
 (defun compilation--set-up-arrow-spec-in-margins ()
-  "Set up compilation-arrow-overlay to display as an arrow in margins."
+  "Set up `compilation-arrow-overlay' to display as an arrow in margins."
   (setq overlay-arrow-string "")
   (setq compilation-arrow-overlay
 	(make-overlay overlay-arrow-position overlay-arrow-position))
@@ -2780,7 +2780,7 @@ Actual value is never used, only the text property.")
             #'compilation--tear-down-arrow-spec-in-margins nil t))
 
 (defun compilation--tear-down-arrow-spec-in-margins ()
-  "Restore compilation-arrow-overlay to not using the margins, which are removed."
+  "Restore `compilation-arrow-overlay' to not using the margins, which are removed."
   (when (overlayp compilation-arrow-overlay)
     (overlay-put compilation-arrow-overlay 'before-string nil)
     (delete-overlay compilation-arrow-overlay)

@@ -195,7 +195,7 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
 	 (sit-for 0))))
 
 (defun r2b-match (exp)
-   "Returns string matched in current buffer."
+   "Return string matched in current buffer."
    (buffer-substring (match-beginning exp) (match-end exp)))
 
 (defcustom r2b-out-buf-name "*Out*"

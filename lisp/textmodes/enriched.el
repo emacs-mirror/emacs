@@ -34,7 +34,7 @@
 ;; A separate file, enriched.txt, contains further documentation and other
 ;; important information about this code.  It also serves as an example
 ;; file in text/enriched format.  It should be in the etc directory of your
-;; emacs distribution.
+;; Emacs distribution.
 
 ;;; Code:
 

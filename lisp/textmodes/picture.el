@@ -514,7 +514,7 @@ Interactively, reads the register using `register-read-with-preview'."
 	   (move-to-column column t))))
 
 (defun picture-yank-rectangle (&optional insertp)
-  "Overlay rectangle saved by \\[picture-clear-rectangle]
+  "Overlay rectangle saved by \\[picture-clear-rectangle].
 The rectangle is positioned with upper left corner at point, overwriting
 existing text.  With prefix argument, the rectangle is inserted instead,
 shifting existing text.  Leaves mark at one corner of rectangle and

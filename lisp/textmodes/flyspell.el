@@ -546,7 +546,7 @@ in your init file.
 (custom-add-option 'text-mode-hook 'turn-on-flyspell)
 
 (defvar flyspell-buffers nil
-  "For remembering buffers running flyspell")
+  "For remembering buffers running flyspell.")
 (make-obsolete-variable 'flyspell-buffers "not used." "28.1")
 
 ;;*---------------------------------------------------------------------*/
@@ -702,8 +702,8 @@ has been used, the current word is not checked."
 ;;*    has to be spell checked.                                         */
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-pre-buffer     nil "Buffer current before `this-command'.")
-(defvar flyspell-pre-point      nil "Point before running `this-command'")
-(defvar flyspell-pre-column     nil "Column before running `this-command'")
+(defvar flyspell-pre-point      nil "Point before running `this-command'.")
+(defvar flyspell-pre-column     nil "Column before running `this-command'.")
 (defvar flyspell-pre-pre-buffer nil)
 (defvar flyspell-pre-pre-point  nil)
 (make-variable-buffer-local 'flyspell-pre-point) ;Why??  --Stef
@@ -1746,7 +1746,7 @@ FLYSPELL-BUFFER."
 ;;*    flyspell-overlay-p ...                                           */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-overlay-p (o)
-  "Return true if O is an overlay used by flyspell."
+  "Return non-nil if O is an overlay used by flyspell."
   (and (overlayp o) (overlay-get o 'flyspell-overlay)))
 
 ;;*---------------------------------------------------------------------*/

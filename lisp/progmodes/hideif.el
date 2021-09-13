@@ -531,7 +531,7 @@ that form should be displayed.")
      ((bound-and-true-p semantic-c-takeover-hideif)
       (semantic-c-hideif-defined var))
      ;; Here we can't use hif-lookup as an empty definition like `#define EMPTY'
-     ;; is considered defined but is evaluated as `nil'.
+     ;; is considered defined but is evaluated as nil.
      ((assq var hide-ifdef-env) 1)
      ((and (setq def (assq var hif-predefine-alist))
            (funcall (cdr def))) 1)

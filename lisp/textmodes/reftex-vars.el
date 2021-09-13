@@ -433,8 +433,8 @@ This flag can be toggled from within the *toc* buffer with the `f' key."
   :type 'boolean)
 
 (defcustom reftex-revisit-to-follow nil
-  "Non-nil means, follow-mode will revisit files if necessary.
-If nil, follow-mode will be suspended for stuff in unvisited files."
+  "Non-nil means, `follow-mode' will revisit files if necessary.
+If nil, `follow-mode' will be suspended for stuff in unvisited files."
   :group 'reftex-table-of-contents-browser
   :group 'reftex-referencing-labels
   :type 'boolean)
@@ -1694,8 +1694,8 @@ entries and for BibTeX database files with live associated buffers."
   "Non-nil means, echoed information for cite macros is cached.
 The information displayed in the echo area for cite macros is
 cached and even saved along with the parsing information.  The
-cache survives document scans.  In order to clear it, use M-x
-reftex-reset-mode <RET>."
+cache survives document scans.  In order to clear it, use
+\\[reftex-reset-mode]."
   :group 'reftex-viewing-cross-references
   :type 'boolean)
 

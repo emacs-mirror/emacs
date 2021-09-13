@@ -1208,7 +1208,7 @@ and move to the line in the SGML document that caused it."
   (compilation-start command))
 
 (defsubst sgml-at-indentation-p ()
-  "Return true if point is at the first non-whitespace character on the line."
+  "Return t if point is at the first non-whitespace character on the line."
   (save-excursion
     (skip-chars-backward " \t")
     (bolp)))
@@ -2614,7 +2614,7 @@ HTML Autoview mode is a buffer-local minor mode for use with
   "</nav>")
 
 (define-skeleton html-html5-template
-  "Initial HTML5 template"
+  "Initial HTML5 template."
   nil
   "<!DOCTYPE html>" \n
   "<html lang=\"en\">" \n

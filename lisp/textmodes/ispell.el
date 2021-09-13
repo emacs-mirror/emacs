@@ -60,7 +60,7 @@
 ;; `a': Accept word for this session.
 ;; `A': Accept word and place in buffer-local dictionary.
 ;; `r': Replace word with typed-in value.  Rechecked.
-;; `R': Replace word with typed-in value. Query-replaced in buffer. Rechecked.
+;; `R': Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
 ;; `?': Show these commands
 ;; `x': Exit spelling buffer.  Move cursor to original point.
 ;; `X': Exit spelling buffer.  Leaves cursor at the current point, and permits
@@ -731,8 +731,7 @@ Otherwise returns the library directory name, if that is defined."
     result))
 
 (defmacro ispell-with-safe-default-directory (&rest body)
-  "Execute the forms in BODY with a reasonable
-`default-directory'."
+  "Execute the forms in BODY with a reasonable `default-directory'."
   (declare (indent 0) (debug t))
   `(let ((default-directory default-directory))
      (unless (file-accessible-directory-p default-directory)
@@ -2530,7 +2529,7 @@ if defined."
       ;; `grep' returns status 1 and no output when word not found, which
       ;; is a perfectly normal thing.
       (if (stringp status)
-          (error "error: %s exited with signal %s"
+          (error "Error: %s exited with signal %s"
                  (file-name-nondirectory prog) status)
         ;; Else collect words into `results' in FIFO order.
         (goto-char (point-max))
@@ -4090,7 +4089,7 @@ Includes LaTeX/Nroff modes and extended character mode."
 ;; Can kill the current ispell process
 
 (defun ispell-buffer-local-dict (&optional no-reload)
-  "Initializes local dictionary and local personal dictionary.
+  "Initialize local dictionary and local personal dictionary.
 If optional NO-RELOAD is non-nil, do not reload any dictionary.
 When a dictionary is defined in the buffer (see variable
 `ispell-dictionary-keyword'), it will override the local setting

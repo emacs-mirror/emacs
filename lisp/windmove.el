@@ -498,7 +498,7 @@ Default value of MODIFIERS is `shift'."
 
 (defcustom windmove-display-no-select nil
   "Whether the window should be selected after displaying the buffer in it.
-If `nil', then the new window where the buffer is displayed will be selected.
+If nil, then the new window where the buffer is displayed will be selected.
 If `ignore', then don't select a window: neither the new nor the old window,
 thus allowing the next command to decide what window it selects.
 Other non-nil values will reselect the old window that was selected before.

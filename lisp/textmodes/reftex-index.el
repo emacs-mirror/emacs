@@ -1150,7 +1150,7 @@ When index is restricted, select the previous section as restriction criterion."
 
 ;; Some constants and variables
 (defconst reftex-index-phrases-comment-regexp "^[ \t]*%.*"
-  "Regular expression to match comment lines in phrases buffer")
+  "Regular expression to match comment lines in phrases buffer.")
 (defconst reftex-index-phrases-macrodef-regexp
   "^\\(>>>INDEX_MACRO_DEFINITION:\\)[ \t]+\\(\\S-\\)\\( *\t[ \t]*\\)\\([^\t]*[^ \t]\\)\\( *\t[ \t]*\\)\\(\\S-+\\)"
   "Regular expression to match macro definition lines the phrases buffer.")
@@ -2068,7 +2068,7 @@ both ends."
 
 (defun reftex-index-phrases-replace-space (pos)
   "If there is a space at POS, replace it with a newline char.
-Does not do a save-excursion."
+Does not do a `save-excursion'."
   (when (equal (char-after pos) ?\ )
     (goto-char pos)
     (delete-char 1)

@@ -291,7 +291,7 @@ and an optional path to which to limit history) and produce a
 string.  The function is called with `default-directory' set to
 within the repository.
 
-If no list entry produces a useful revision, return `nil'."
+If no list entry produces a useful revision, return nil."
   :type '(repeat (choice
                   (const :tag "Active bookmark" builtin-active-bookmark)
                   (string :tag "Hg template")
@@ -301,7 +301,7 @@ If no list entry produces a useful revision, return `nil'."
 (defcustom vc-hg-use-file-version-for-mode-line-version nil
   "When enabled, the modeline contains revision information for the visited file.
 When not, the revision in the modeline is for the repository
-working copy.  `nil' is the much faster setting for
+working copy.  nil is the much faster setting for
 large repositories."
   :type 'boolean
   :version "26.1")

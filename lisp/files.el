@@ -1108,7 +1108,7 @@ customize the variable `user-emacs-directory-warning'."
 (defun exec-path ()
   "Return list of directories to search programs to run in remote subprocesses.
 The remote host is identified by `default-directory'.  For remote
-hosts that do not support subprocesses, this returns `nil'.
+hosts that do not support subprocesses, this returns nil.
 If `default-directory' is a local directory, this function returns
 the value of the variable `exec-path'."
   (let ((handler (find-file-name-handler default-directory 'exec-path)))
