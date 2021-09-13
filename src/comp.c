@@ -2481,8 +2481,7 @@ emit_static_object (const char *name, Lisp_Object obj)
   ptrdiff_t len = SBYTES (str);
   const char *p = SSDATA (str);
 
-#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer) \
-  || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
   if (gcc_jit_global_set_initializer)
     {
       ptrdiff_t str_size = len + 1;
@@ -4375,8 +4374,7 @@ DEFUN ("comp-native-driver-options-effective-p",
        doc: /* Return t if `comp-native-driver-options' is effective.  */)
   (void)
 {
-#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)  \
-  || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)
   if (gcc_jit_context_add_driver_option)
     return Qt;
 #endif
@@ -4405,8 +4403,7 @@ add_driver_options (void)
 {
   Lisp_Object options = Fsymbol_value (Qnative_comp_driver_options);
 
-#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
-  || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)
   load_gccjit_if_necessary (true);
   if (!NILP (Fcomp_native_driver_options_effective_p ()))
     FOR_EACH_TAIL (options)
@@ -4425,8 +4422,7 @@ add_driver_options (void)
 			    " and above."));
 
   /* Captured `comp-native-driver-options' because file-local.  */
-#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
-  || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)
   options = comp.driver_options;
   if (!NILP (Fcomp_native_driver_options_effective_p ()))
     FOR_EACH_TAIL (options)
@@ -4587,8 +4583,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   /* Work around bug#46495 (GCC PR99126). */
 #if defined (WIDE_EMACS_INT)						\
-  && (defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)	\
-      || defined (WINDOWSNT))
+  && defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)
   Lisp_Object version = Fcomp_libgccjit_version ();
   if (NILP (version)
       || XFIXNUM (XCAR (version)) < 11)
@@ -4640,7 +4635,7 @@ The return value has the form (MAJOR MINOR PATCHLEVEL) or nil if
 unknown (before GCC version 10).  */)
   (void)
 {
-#if defined (LIBGCCJIT_HAVE_gcc_jit_version) || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_version)
   load_gccjit_if_necessary (true);
 
   return gcc_jit_version_major
