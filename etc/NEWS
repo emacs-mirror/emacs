@@ -2983,6 +2983,7 @@ file:
 
 * Incompatible Lisp Changes in Emacs 28.1
 
++++
 ** Emacs now prints a backtrace when signaling an error in batch mode.
 This makes debugging Emacs Lisp scripts run in batch mode easier.  To
 get back the old behavior, set the new variable
