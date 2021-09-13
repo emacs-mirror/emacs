@@ -2125,6 +2125,7 @@ modified flag.  The default is nil, to preserve the old behavior.
 
 ** CC Mode
 
++++
 *** Added support for Doxygen documentation style.
 'doxygen' is now a valid 'c-doc-comment-style' which recognises all
 comment styles supported by Doxygen (namely '///', '//!', '/** … */'
@@ -2139,6 +2140,7 @@ use 'doxygen' by default one might evaluate:
 
 or use it in a custom 'c-style'.
 
++++
 *** Added support to line up '?' and ':' of a ternary operator.
 The new 'c-lineup-ternary-bodies' function can be used as a lineup
 function to align question mark and colon which are part of a ternary
