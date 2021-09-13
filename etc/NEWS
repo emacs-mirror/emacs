@@ -1285,10 +1285,9 @@ the variables 'bookmark-bmenu-use-header-line' and
 'bookmark-bmenu-inline-header-height' are now declared obsolete.
 
 ---
-*** New user option 'bookmark-fontify'.
-If non-nil, setting a bookmark will colorize the current line with
-'bookmark-face', and jumping to a bookmark will colorize the line the
-bookmark was set on.
+*** New user option 'bookmark-set-fringe-mark'.
+If non-nil, setting a bookmark will set a fringe mark on the current
+line, and jumping to a bookmark will also set this mark.
 
 ---
 *** New user option 'bookmark-menu-confirm-deletion'.
