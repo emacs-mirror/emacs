@@ -668,9 +668,12 @@ Currently this means either text/html or application/xhtml+xml."
 		   ("home" . :home)
 		   ("contents" . :contents)
 		   ("up" . :up)))))
-    (and href
-	 where
-	 (plist-put eww-data (cdr where) href))))
+    (when (and href where)
+      (when (memq (cdr where) '(:next :previous))
+        ;; Multi-page isearch support.
+        (setq-local multi-isearch-next-buffer-function
+                    #'eww-isearch-next-buffer))
+      (plist-put eww-data (cdr where) href))))
 
 (defvar eww-redirect-level 1)
 
@@ -840,6 +843,8 @@ Currently this means either text/html or application/xhtml+xml."
     (remove-overlays)
     (erase-buffer))
   (setq bidi-paragraph-direction nil)
+  ;; May be set later if there's a next/prev link.
+  (setq-local multi-isearch-next-buffer-function nil)
   (unless (eq major-mode 'eww-mode)
     (eww-mode)))
 
@@ -1080,8 +1085,6 @@ the like."
     (setq-local tool-bar-map eww-tool-bar-map))
   ;; desktop support
   (setq-local desktop-save-buffer #'eww-desktop-misc-data)
-  ;; multi-page isearch support
-  (setq-local multi-isearch-next-buffer-function #'eww-isearch-next-buffer)
   (setq truncate-lines t)
   (setq-local thing-at-point-provider-alist
               (append thing-at-point-provider-alist
