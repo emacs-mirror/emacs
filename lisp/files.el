@@ -2526,7 +2526,14 @@ A buffer may be modified in several ways after reading into the buffer,
 due to Emacs features such as format decoding, character code
 conversion, `find-file-hook', automatic uncompression, etc.
 
-This function ensures that none of these modifications will take place."
+This function ensures that none of these modifications will take place.
+
+Unlike `find-file-literally', this function does not make the
+buffer unibyte, so if this function is used when handling
+binary (non-character) data, it can be convenient to make the
+buffer unibyte first.  This isn't, strictly speaking, necessary,
+because multibyte buffers can also deal with raw bytes.  See info
+node `(elisp)Character Codes' for details.")
   (let ((format-alist nil)
 	(after-insert-file-functions nil)
 	(coding-system-for-read 'no-conversion)
