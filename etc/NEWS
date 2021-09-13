@@ -3598,10 +3598,30 @@ This splits a shell command string into separate components,
 respecting quoting with single ('like this') and double ("like this")
 quotes, as well as backslash quoting (like\ this).
 
-** New string manipulation functions added to subr-x.el.
-the functions are 'string-clean-whitespace', 'string-fill',
-'string-limit', 'string-lines', 'string-pad' and
-'string-chop-newline'.
++++
+** New function 'string-clean-whitespace'.
+This removed whitespace from a string
+
++++
+** New function 'string-fill'.
+Word-wrap a string so that no lines are longer that a specific length.
+
++++
+** New function 'string-limit'.
+Return (up to) a specific substring length.
+
++++
+** New function 'string-lines'.
+Return a list of strings representing the individual lines in a
+string.
+
++++
+** New function 'string-pad'.
+Pad a string to a specific length.
+
++++
+** New function 'string-chop-newline'.
+Remove a trailing newline from a string.
 
 +++
 ** New function 'replace-regexp-in-region'.
@@ -3646,6 +3666,7 @@ This is identical to 'ignore', but returns t instead.
 This is identical to 'sxhash-equal' but also accounts for string
 properties.
 
+---
 ** New function 'buffer-line-statistics'.
 This function returns some statistics about the line lengths in a buffer.
 
