@@ -1601,7 +1601,7 @@ So `allout-post-command-business' should not reactivate it...")
   ;; the _transient_ opening of invisible text during isearch -- is keyed to
   ;; presence of the isearch-open-invisible property -- even though this
   ;; property controls the isearch _arrival_ behavior.  This is the case at
-  ;; least in emacs 21, 22.1, and xemacs 21.4.
+  ;; least in emacs 21, 22.1.
   (put 'allout-exposure-category 'isearch-open-invisible
        #'allout-isearch-end-handler)
   (put 'allout-exposure-category 'insert-in-front-hooks

@@ -87,12 +87,10 @@ Commands:
   (kill-all-local-variables)
   (setq major-mode 'ediff-mode)
   (setq mode-name "Ediff")
-  ;; We use run-hooks instead of run-mode-hooks for two reasons.
+  ;; We use run-hooks instead of run-mode-hooks for one reason.
   ;; The ediff control buffer is read-only and it is not supposed to be
   ;; modified by minor modes and such. So, run-mode-hooks doesn't do anything
   ;; useful here on top of what run-hooks does.
-  ;; Second, changing run-hooks to run-mode-hooks would require an
-  ;; if-statement, since XEmacs doesn't have this.
   (run-hooks 'ediff-mode-hook))
 
 
@@ -3938,8 +3936,8 @@ If Emacs happens to dump core, this is NOT an Ediff problem---it is
 an Emacs bug.  Report this to Emacs maintainers.
 
 Another popular topic for reports is compilation messages.  Because Ediff
-interfaces to several other packages and runs under Emacs and XEmacs,
-byte-compilation may produce output like this:
+interfaces to several other packages, byte-compilation may produce output
+like this:
 
        While compiling toplevel forms in file ediff.el:
 	 ** reference to free variable zzz

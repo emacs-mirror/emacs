@@ -514,9 +514,7 @@ See the Semantic manual node on SemanticDB for more about search paths.")
 Argument EVENT describes the event that caused this function to be called."
   (interactive "e")
   (let* ((startwin (selected-window))
-	 ;; This line has an issue in XEmacs.
-	 (win (semantic-event-window event))
-	 )
+         (win (semantic-event-window event)))
     (select-window win t)
     (save-excursion
       ;(goto-char (window-start win))
@@ -557,9 +555,7 @@ searches, but you cannot visit this include.\n\n")
 Argument EVENT describes the event that caused this function to be called."
   (interactive "e")
   (let* ((startwin (selected-window))
-	 ;; This line has an issue in XEmacs.
-	 (win (semantic-event-window event))
-	 )
+         (win (semantic-event-window event)))
     (select-window win t)
     (save-excursion
       ;(goto-char (window-start win))

@@ -49,7 +49,6 @@ that Ediff doesn't know about.")
   (declare (obsolete nil "27.1"))
   window-system)
 
-;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun ediff-window-display-p ()
   (and window-system
        (not (memq window-system '(tty pc stream)))))
