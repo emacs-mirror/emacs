@@ -1802,7 +1802,12 @@ read, you should set @code{fill-column} to no more than 70.  Otherwise
 the line will be too long for people to read comfortably, and this can
 make the text seem clumsy.
 
-The default value for @code{fill-column} is 70.
+The default value for @code{fill-column} is 70.  To disable Auto Fill
+mode in a specific mode, you could say something like:
+
+@lisp
+(add-hook 'foo-mode-hook (lambda () (auto-fill-mode -1))
+@end lisp
 @end defopt
 
 @deffn Command set-left-margin from to margin

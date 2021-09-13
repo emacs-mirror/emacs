@@ -2964,6 +2964,7 @@ This is to keep the same behavior as Eshell.
 The original key binding was 'M-s', which interfered with I-search,
 since the latter uses 'M-s' as a prefix key of the search prefix map.
 
+---
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
 special escape syntax in Fortran F90.  To get the old behavior back,
@@ -2971,6 +2972,7 @@ say something like:
 
     (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
 
++++
 ** Setting 'fill-column' to nil is obsolete.
 This undocumented use of 'fill-column' is now obsolete.  To disable
 auto filling, turn off 'auto-fill-mode' instead.
