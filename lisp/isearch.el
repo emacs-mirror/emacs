@@ -133,6 +133,8 @@ tab, a carriage return (control-M), a newline, and `]+'.  Don't
 add any capturing groups into this value; that can change the
 numbering of existing capture groups in unexpected ways."
   :type '(choice (const :tag "Match Spaces Literally" nil)
+                 (const :tag "Tabs and spaces" "[ \t]+")
+                 (const :tag "Tabs, spaces and line breaks" "[ \t\n]+")
 		 regexp)
   :version "28.1")
 
