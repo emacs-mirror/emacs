@@ -841,6 +841,7 @@ Here are some examples of stuff you can do to configure @code{rcirc}.
 * Scrolling conservatively::
 * Changing the time stamp format::
 * Defining a new command::
+* Using rcirc with bouncers::
 @end menu
 
 @node Skipping /away messages using handlers
