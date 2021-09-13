@@ -2996,6 +2996,7 @@ integer 2.  Such numerals are now read as floats with the exponent included:
 2.e6 is now read as the floating-point value 2000000.0.
 That is, '(read-from-string "1.e3")' => '(1000.0 . 4)' now.
 
+---
 ** 'equal' no longer examines some contents of window configurations.
 Instead, it considers window configurations to be equal only if they
 are 'eq'.  To compare contents, use 'compare-window-configurations'
@@ -3024,6 +3025,7 @@ hooks 'kill-buffer-hook', 'kill-buffer-query-functions', and
 'buffer-list-update-hook' for the temporary buffers they create.  This
 avoids slowing them down when a lot of these hooks are defined.
 
++++
 ** New face 'child-frame-border' and frame parameter 'child-frame-border-width'.
 The face and width of child frames borders can now be determined
 separately from those of normal frames.  To minimize backward
@@ -3076,6 +3078,7 @@ replacement text.
 'minibuffer-completion-table' and related variables are now set buffer-locally
 in the minibuffer instead of being set via a global let-binding.
 
+---
 ** XML serialization functions now reject invalid characters.
 Previously, 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
@@ -3084,12 +3087,14 @@ https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 ---
 ** JSON
 
+---
 *** JSON number parsing is now stricter.
 Numbers with a leading plus sign, leading zeros, or a missing integer
 component are now rejected by 'json-read' and friends.  This makes
 them more compliant with the JSON specification and consistent with
 the native JSON parsing functions.
 
+---
 *** JSON functions support the semantics of RFC 8259.
 The JSON functions 'json-serialize', 'json-insert',
 'json-parse-string', and 'json-parse-buffer' now implement some of the
