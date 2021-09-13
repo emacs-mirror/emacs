@@ -1998,6 +1998,31 @@ The text checked is between START and LIMIT."
 	  (setq c (1+ c)))
 	(and (< 0 c) (= (% c 2) 0))))))
 
+(defun checkdoc-in-abbreviation-p (begin)
+  "Return non-nil if point is at an abbreviation.
+Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
+  (save-excursion
+    (goto-char begin)
+    (condition-case nil
+        (progn
+          (forward-sexp -1)
+          ;; Piece of an abbreviation.
+          (looking-at
+           (rx (or letter     ; single letter, as in "a."
+                   (seq
+                    ;; There might exist an escaped parenthesis, as
+                    ;; this is often used in docstrings.  In this
+                    ;; case, `forward-sexp' will have skipped over it,
+                    ;; so we need to skip it here too.
+                    (? "\\(")
+                    ;; The abbreviations:
+                    (or (seq (any "iI") "." (any "eE")) ; i.e.
+                        (seq (any "eE") ".g")           ; e.g.
+                        (seq (any "cC") "f")))          ; c.f.
+                   "vs")                                ; vs.
+               ".")))
+      (error t))))
+
 (defun checkdoc-proper-noun-region-engine (begin end)
   "Check all text between BEGIN and END for lower case proper nouns.
 These are Emacs centric proper nouns which should be capitalized for
@@ -2060,16 +2085,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
                     (e (match-end 1)))
                 (unless (or (checkdoc-in-sample-code-p begin end)
                             (checkdoc-in-example-string-p begin end)
-                            (save-excursion
-                              (goto-char b)
-                              (condition-case nil
-                                  (progn
-                                    (forward-sexp -1)
-                                    ;; piece of an abbreviation
-                                    ;; FIXME etc
-                                    (looking-at
-                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\|[cC]f\\)\\."))
-                                (error t))))
+                            (checkdoc-in-abbreviation-p b))
                   (if (checkdoc-autofix-ask-replace
                        b e
                        "There should be two spaces after a period.  Fix? "
