@@ -3683,8 +3683,7 @@ the current system.
 
 +++
 ** New function 'insert-into-buffer'.
-This is like 'insert-buffer-substring', but works in the opposite
-direction.
+This inserts the contents of the current buffer into another buffer.
 
 +++
 ** New function 'json-available-p'.
