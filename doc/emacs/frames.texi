@@ -1285,7 +1285,8 @@ displayed by moving the mouse pointer to the top of the screen.
 
   On graphical displays and on text terminals, Emacs can optionally
 display a @dfn{Tab Bar} at the top of each frame, just below the menu
-bar (@pxref{Menu Bars}) and above the tool bar (@pxref{Tool Bars}).
+bar (@pxref{Menu Bars}) and above or below the tool bar (@pxref{Tool
+Bars}) depending on the variable @code{tab-bar-position}.
 The Tab Bar is a row of @dfn{tabs}---buttons that you can click to
 switch between window configurations.
 
@@ -1448,9 +1449,10 @@ with a negative argument @minus{}@var{n}, it switches to the
 @findex tab-switch
 @item C-x t @key{RET} @var{tabname} @key{RET}
 Switch to the tab by its name (@code{tab-switch}), with completion on
-all tab names.  History of used tab names is sorted by recency, so you
-can use @kbd{M-n} (@code{next-history-element}) to get the name of the
-last visited tab, the second last, and so on.
+all tab names.  The default value and the ``future history'' of tab
+names is sorted by recency, so you can use @kbd{M-n}
+(@code{next-history-element}) to get the name of the last visited tab,
+the second last, and so on.
 
 @kindex C-1, tab bar
 @kindex C-9, tab bar
@@ -1464,11 +1466,12 @@ Switch to the tab by its number @var{tab-number} (@code{tab-select}).
 After customizing the variable @code{tab-bar-select-tab-modifiers} to
 specify one or more @var{modifier} keys, you can select a tab by its
 ordinal number using one of the specified modifiers in combination
-with the tab number to select.  You can select any modifiers supported
-by Emacs, @pxref{Modifier Keys}.  To display the tab number alongside
-the tab name, you can customize another variable
-@code{tab-bar-tab-hints}.  This will help you decide which numerical
-key to press to select the tab by its number.
+with the tab number to select.  The number 9 can be used to select the
+last tab. You can select any modifiers supported by Emacs,
+@pxref{Modifier Keys}.  To display the tab number alongside the tab
+name, you can customize another variable @code{tab-bar-tab-hints}.
+This will help you decide which numerical key to press to select the
+tab by its number.
 
 @kindex C-0, tab bar
 @kindex M-0, tab bar
