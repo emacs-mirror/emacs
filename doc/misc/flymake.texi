@@ -15,19 +15,19 @@ This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}).
 
 Flymake is a universal on-the-fly syntax checker for Emacs.  When
 enabled, Flymake contacts one or more source @dfn{backends} to
-collects information about problems in the buffer, called
+collect information about problems in the buffer, called
 @dfn{diagnostics}, and visually annotates them with a special face.
-The mode line display overall status including totals for different
+The mode line displays overall status including totals for different
 types of diagnostics.
 
-To learn about using Flymake, @xref{Using Flymake}.
+To learn about using Flymake, @pxref{Using Flymake}.
 
 Flymake is designed to be easily extended to support new backends via
 an Elisp interface.  @xref{Extending Flymake}
 
 Historically, Flymake used to accept diagnostics from a single
-backend.  Although obsolete, it is still functional. To learn how to
-use and customize it, @xref{The legacy Proc backend}.
+backend.  Although obsolete, it is still functional.  To learn how to
+use and customize it, @pxref{The legacy Proc backend}.
 
 Copyright @copyright{} 2004--2021 Free Software Foundation, Inc.
 
@@ -100,10 +100,10 @@ write your own Flymake backend functions.  @xref{Backend functions}.
 
 @node Starting Flymake
 @section Starting Flymake
-@cindex Starting Flymake
+@cindex starting Flymake
 
-To use Flymake, the minor-mode @code{flymake-mode} must be activated.
-If it's not, use the command @kbd{flymake-mode} to toggle it on.  The
+To use Flymake, activate the minor-mode @code{flymake-mode}.
+Use the command @kbd{flymake-mode} to toggle it on and off.  The
 mode line should indicate its presence via an indicator (@pxref{Mode
 line status}).
 
@@ -127,22 +127,22 @@ When the user invokes the command @code{flymake-start}.
 @end itemize
 
 If the check detected errors or warnings, the respective buffer
-regions are highlighted.  @xref{Finding diagnostics} for how to
+regions are highlighted.  @xref{Finding diagnostics}, for how to
 learn what the problems are.
 
 @node Finding diagnostics
 @section Finding diagnostics
 
-@cindex Read diagnostic message
+@cindex read diagnostic message
 If Flymake has highlighted the buffer, you may hover the mouse on the
 highlighted regions to learn what the specific problem
-is. Alternatively, place point on the highlighted regions and use the
+is.  Alternatively, place point on the highlighted regions and use the
 commands @code{eldoc} or @code{display-local-help}.
 
-@cindex Next and previous diagnostic
+@cindex next and previous diagnostic
 If the diagnostics are outside the visible region of the buffer,
 @code{flymake-goto-next-error} and @code{flymake-goto-prev-error} are
-let you navigate to the next/previous errorenous regions,
+let you navigate to the next/previous erroneous regions,
 respectively.  It might be a good idea to map them to @kbd{M-n} and
 @kbd{M-p} in @code{flymake-mode}, by adding to your init file:
 
@@ -151,9 +151,9 @@ respectively.  It might be a good idea to map them to @kbd{M-n} and
 (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
 @end lisp
 
-@cindex Listing diagnostics
+@cindex listing diagnostics
 Sometimes it is useful to have a detailed overview of the diagnostics
-in your files without having to jump to each one to one.  The commands
+in your files without having to jump to each one.  The commands
 @code{flymake-show-buffer-diagnostics} and
 @code{flymake-show-project-diagnostics} are designed to handle this
 situation.  When invoked, they bring up a separate buffer containing a
@@ -164,13 +164,13 @@ emacs, The Emacs Editor}).
 The listings is continuously updated as you edit source code, adding or
 removing lines as you make or correct mistakes.  Each line of this
 listing includes the type of the diagnostic, its line and column in
-the file as well as the diagnostic message.  You may sort the listing
+the file, as well as the diagnostic message.  You may sort the listing
 by each of these columns.
 
 @node Mode line status
 @section Mode line status
-@cindex Flymake mode line
-@cindex Syntax check status
+@cindex flymake mode line
+@cindex syntax check status
 
 When enabled, Flymake displays its status in the mode line, which
 provides a visual summary of diagnostic collection.  It may also hint
@@ -210,13 +210,13 @@ can use the variables @code{flymake-mode-line-format} and
 
 @node Troubleshooting
 @section Troubleshooting
-@cindex Troubleshooting
-@cindex Backend exceptions
+@cindex troubleshooting
+@cindex backend exceptions
 
 @cindex disabled backends
 @cindex backends, disabled
 As Flymake supports multiple simutaneously active external backends,
-is becomes useful monitor their status.  For example, some backends
+is becomes useful to monitor their status.  For example, some backends
 may take longer than others to respond or complete, and some may
 decide to @emph{disable} themselves if they are not suitable for the
 current buffer or encounter some unavoidable problem.  A disabled
@@ -235,7 +235,7 @@ some external roadblock has been removed (for example after the user
 installed a needed syntax-check program).  Invoking
 @code{flymake-start} with a prefix argument is a way to reset the
 disabled backend list, so that they will be tried again in the next
-check.  Manually toggle @code{flymake-mode} off and on again also
+check.  Manually toggling @code{flymake-mode} off and on again also
 works.
 
 @cindex logging
@@ -1174,7 +1174,7 @@ of every syntax check attempt.
 @section Locating the buildfile
 @cindex locating the buildfile
 @cindex buildfile, locating
-@cindex Makefile, locating
+@cindex makefile, locating
 
 The Proc backend can be configured to use different tools for
 performing syntax checks.  For example, it can use direct compiler
