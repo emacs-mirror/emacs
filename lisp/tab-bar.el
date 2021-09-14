@@ -227,11 +227,13 @@ a list of frames to update."
 ;;; Key bindings
 
 (defun tab-bar--key-to-number (key)
-  (unless (eq key 'current-tab)
-    (let ((key-name (format "%S" key)))
-      (if (string-prefix-p "tab-" key-name)
-          (string-to-number (string-replace "tab-" "" key-name))
-        t))))
+  (cond
+   ((null key) t)
+   ((eq key 'current-tab) nil)
+   ((let ((key-name (format "%S" key)))
+      (when (string-prefix-p "tab-" key-name)
+        (string-to-number (string-replace "tab-" "" key-name)))))
+   (t t)))
 
 (defun tab-bar--event-to-item (posn)
   (if (posn-window posn)
@@ -261,15 +263,27 @@ a list of frames to update."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
-    (if (nth 2 item)
-        (unless (eq tab-number t)
-          (tab-bar-close-tab tab-number))
+    ;; Don't close the tab when clicked on the close button.
+    ;; Let `tab-bar-mouse-close-tab-from-button' do this.
+    (unless (nth 2 item)
       (if (functionp (nth 1 item))
           (call-interactively (nth 1 item))
         (unless (eq tab-number t)
           (tab-bar-select-tab tab-number))))))
 
+(defun tab-bar-mouse-close-tab-from-button (event)
+  "Close the tab only when clicked on the close button."
+  (interactive "e")
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item))))
+    (when (nth 2 item)
+      (unless (eq tab-number t)
+        (tab-bar-close-tab tab-number)))))
+
 (defun tab-bar-mouse-close-tab (event)
+  "Close the tab when clicked anywhere on the tab.
+This is in contrast with `tab-bar-mouse-close-tab-from-button'
+that closes only when clicked on the close button."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
@@ -314,13 +328,14 @@ a list of frames to update."
         (to (tab-bar--key-to-number
              (nth 0 (tab-bar--event-to-item
                      (event-end event))))))
-    (tab-bar-move-tab-to to from)))
+    (unless (or (eq from t) (eq to t))
+      (tab-bar-move-tab-to to from))))
 
 (defvar tab-bar-map
   (let ((map (make-sparse-keymap)))
     (define-key map [down-mouse-1] 'tab-bar-mouse-select-tab)
     (define-key map [drag-mouse-1] 'tab-bar-mouse-move-tab)
-    (define-key map [mouse-1] 'ignore)
+    (define-key map [mouse-1] 'tab-bar-mouse-close-tab-from-button)
     (define-key map [down-mouse-2] 'tab-bar-mouse-close-tab)
     (define-key map [mouse-2] 'ignore)
     (define-key map [down-mouse-3] 'tab-bar-mouse-context-menu)
