@@ -803,12 +803,7 @@ collections of diagnostics outside the buffer where this
 (cl-defun flymake--handle-report
     (backend token report-action
              &key explanation force region
-             &allow-other-keys
-             &aux
-             (state (or (gethash backend flymake--state)
-                        (error "Can't find state for %s in `flymake--state'"
-                               backend)))
-             expected-token)
+             &allow-other-keys)
   "Handle reports from BACKEND identified by TOKEN.
 BACKEND, REPORT-ACTION and EXPLANATION, and FORCE conform to the
 calling convention described in
@@ -816,41 +811,45 @@ calling convention described in
 to handle a report even if TOKEN was not expected.  REGION is
 a (BEG . END) pair of buffer positions indicating that this
 report applies to that region."
-  (cond
-   ((null state)
-    (flymake-error
-     "Unexpected report from unknown backend %s" backend))
-   ((flymake--state-disabled state)
-    (flymake-error
-     "Unexpected report from disabled backend %s" backend))
-   ((progn
-      (setq expected-token (flymake--state-running state))
-      (null expected-token))
-    ;; should never happen
-    (flymake-error "Unexpected report from stopped backend %s" backend))
-   ((not (or (eq expected-token token)
-             force))
-    (flymake-error "Obsolete report from backend %s with explanation %s"
-                   backend explanation))
-   ((eq :panic report-action)
-    (flymake--disable-backend backend explanation))
-   ((not (listp report-action))
-    (flymake--disable-backend backend
-                              (format "Unknown action %S" report-action))
-    (flymake-error "Expected report, but got unknown key %s" report-action))
-   (t
-    (flymake--publish-diagnostics report-action
-                                  :backend backend
-                                  :state state
-                                  :region region)
-    (when flymake-check-start-time
-      (flymake-log :debug "backend %s reported %d diagnostics in %.2f second(s)"
-                   backend
-                   (length report-action)
-                   (float-time
-                    (time-since flymake-check-start-time))))))
-  (setf (flymake--state-reported-p state) t)
-  (flymake--update-diagnostics-listings (current-buffer)))
+  (let ((state (or (gethash backend flymake--state)
+                   (error "Can't find state for %s in `flymake--state'"
+                          backend)))
+        expected-token)
+    (cond
+     ((null state)
+      (flymake-error
+       "Unexpected report from unknown backend %s" backend))
+     ((flymake--state-disabled state)
+      (flymake-error
+       "Unexpected report from disabled backend %s" backend))
+     ((progn
+        (setq expected-token (flymake--state-running state))
+        (null expected-token))
+      ;; should never happen
+      (flymake-error "Unexpected report from stopped backend %s" backend))
+     ((not (or (eq expected-token token)
+               force))
+      (flymake-error "Obsolete report from backend %s with explanation %s"
+                     backend explanation))
+     ((eq :panic report-action)
+      (flymake--disable-backend backend explanation))
+     ((not (listp report-action))
+      (flymake--disable-backend backend
+                                (format "Unknown action %S" report-action))
+      (flymake-error "Expected report, but got unknown key %s" report-action))
+     (t
+      (flymake--publish-diagnostics report-action
+                                    :backend backend
+                                    :state state
+                                    :region region)
+      (when flymake-check-start-time
+        (flymake-log :debug "backend %s reported %d diagnostics in %.2f second(s)"
+                     backend
+                     (length report-action)
+                     (float-time
+                      (time-since flymake-check-start-time))))))
+    (setf (flymake--state-reported-p state) t)
+    (flymake--update-diagnostics-listings (current-buffer))))
 
 (defun flymake--clear-foreign-diags (state)
   (maphash (lambda (_buffer diags)
