@@ -1620,6 +1620,11 @@ The argument JUSTIFY is passed on to `fill-region'."
 
 (defun rcirc-process-message (line)
   "Process LINE as a message to be sent."
+  (when (and (null rcirc-target)
+             (string-match
+              (rx bos (group (+? nonl)) "@" (+ nonl) eos)
+              (buffer-name)))
+    (setq rcirc-target (match-string 1 (buffer-name))))
   (if (not rcirc-target)
       (message "Not joined (no target)")
     (delete-region rcirc-prompt-end-marker (point))
