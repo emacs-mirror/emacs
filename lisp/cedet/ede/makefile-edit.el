@@ -30,7 +30,7 @@
 ;; Formatting of a makefile
 ;;
 ;; 1) Creating an automakefile, stick in a top level comment about
-;;    being created by emacs
+;;    being created by Emacs.
 ;; 2) Leave order of variable contents alone, except for SOURCE
 ;;    SOURCE always keep in the order of .c, .h, the other stuff.
 

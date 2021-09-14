@@ -1190,7 +1190,7 @@ executing body forms.")
 
 ;; register table menu under global tools menu
 (easy-menu-define table-global-menu-map nil
-  "Table global menu" table-global-menu)
+  "Table global menu." table-global-menu)
 (easy-menu-add-item (current-global-map) '("menu-bar" "tools") "--")
 (easy-menu-add-item (current-global-map)
                     '("menu-bar" "tools") table-global-menu-map)
@@ -2368,7 +2368,9 @@ table's rectangle structure."
   "Move point forward to the beginning of the next cell.
 With argument ARG, do it ARG times;
 a negative argument ARG = -N means move backward N cells.
-Do not specify NO-RECOGNIZE and UNRECOGNIZE. They are for internal use only.
+
+Do not specify NO-RECOGNIZE and UNRECOGNIZE.  They are for
+internal use only.
 
 Sample Cell Traveling Order (In Irregular Table Cases)
 
@@ -2399,8 +2401,7 @@ You can actually try how it works in this buffer.  Press
 +--+  |4 |  |4 |  +--+	|5 +--+--+6 |  |3 +--+--+4 |  |5 |     |6 |
 |5 +--+  |  |  +--+5 |	|  |7 |8 |  |  |  |5 |6 |  |  |  |     |  |
 |  |6 |  |  |  |6 |  |	+--+--+--+--+  +--+--+--+--+  +--+-----+--+
-+--+--+--+  +--+--+--+
-"
++--+--+--+  +--+--+--+"
   ;; After modifying this function, test against the above tables in
   ;; the doc string.  It is quite tricky.  The tables above do not
   ;; mean to cover every possible cases of cell layout, of course.
@@ -2915,8 +2916,7 @@ LaTeX:
 
 CALS (DocBook DTD):
         URL `https://www.oasis-open.org/html/a502.htm'
-        URL `https://www.oreilly.com/catalog/docbook/chapter/book/table.html#AEN114751'
-"
+        URL `https://www.oreilly.com/catalog/docbook/chapter/book/table.html#AEN114751'"
   (interactive
    (let* ((_ (unless (table--probe-cell) (error "Table not found here")))
 	  (completion-ignore-case t)
@@ -3206,7 +3206,7 @@ CALS (DocBook DTD):
 	(insert ?\n))))))
 
 (defun table--cell-horizontal-char-p (c)
-  "Test if character C is one of the horizontal characters"
+  "Test if character C is one of the horizontal characters."
   (memq c (string-to-list table-cell-horizontal-chars)))
 
 (defun table--generate-source-scan-lines (dest-buffer _language origin-cell tail-cell col-list row-list)
@@ -5289,7 +5289,7 @@ Current buffer must already be set to the cache buffer."
     (set-marker marker-point nil)))
 
 (defun table--fill-region-strictly (beg end)
-  "Fill region strictly so that no line exceeds fill-column.
+  "Fill region strictly so that no line exceeds `fill-column'.
 When a word exceeds fill-column the word is chopped into pieces.  The
 chopped location is indicated with table-word-continuation-char."
   (or (and (markerp beg) (markerp end))

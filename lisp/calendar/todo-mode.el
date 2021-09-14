@@ -6543,8 +6543,8 @@ Filtered Items mode following todo (not done) items."
     map)
   "Todo Filtered Items mode keymap.")
 
-(easy-menu-define
-  todo-menu todo-mode-map "Todo Menu"
+(easy-menu-define todo-menu todo-mode-map
+  "Todo Menu."
   '("Todo"
     ("Navigation"
      ["Next Item"            todo-next-item t]

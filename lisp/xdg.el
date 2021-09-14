@@ -109,7 +109,7 @@ file:///foo/bar.jpg"
         "_DIR=\""
         (group-n 2 (or "/" "$HOME/") (*? (or (not (any "\"")) "\\\"")))
         "\""))
-  "Regexp matching non-comment lines in xdg-user-dirs config files.")
+  "Regexp matching non-comment lines in `xdg-user-dirs' config files.")
 
 (defvar xdg-user-dirs nil
   "Alist of directory keys and values.")
@@ -131,7 +131,7 @@ This should be called at the beginning of a line."
       (when (and k v) (cons k (xdg--substitute-home-env v))))))
 
 (defun xdg--user-dirs-parse-file (filename)
-  "Return alist of xdg-user-dirs from FILENAME."
+  "Return alist of `xdg-user-dirs' from FILENAME."
   (let (elt res)
     (when (file-readable-p filename)
       (with-temp-buffer

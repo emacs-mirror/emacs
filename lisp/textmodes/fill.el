@@ -1064,7 +1064,7 @@ than line breaks untouched, and fifth arg TO-EOP non-nil means
 to keep filling to the end of the paragraph (or next hard newline,
 if variable `use-hard-newlines' is on).
 
-Return the fill-prefix used for filling the last paragraph.
+Return the `fill-prefix' used for filling the last paragraph.
 
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."

@@ -829,7 +829,7 @@ The name of the function or case will be set between the braces."
 (defcustom verilog-auto-ignore-concat nil
   "Non-nil means ignore signals in {...} concatenations for AUTOWIRE etc.
 This will exclude signals referenced as pin connections in {...}
-or (...) from AUTOWIRE, AUTOOUTPUT and friends. See also AUTONOHOOKUP."
+or (...) from AUTOWIRE, AUTOOUTPUT and friends.  See also AUTONOHOOKUP."
   :group 'verilog-mode-actions
   :type 'boolean)
 (put 'verilog-auto-ignore-concat 'safe-local-variable #'verilog-booleanp)
@@ -1529,8 +1529,8 @@ If set will become buffer local.")
   "Keymap used in Verilog mode.")
 
 ;; menus
-(easy-menu-define
-  verilog-menu verilog-mode-map "Menu for Verilog mode"
+(easy-menu-define verilog-menu verilog-mode-map
+  "Menu for Verilog mode."
   (verilog-easy-menu-filter
    `("Verilog"
      ("Choose Compilation Action"
@@ -3610,19 +3610,19 @@ inserted using a single call to `verilog-insert'."
   (search-forward ";" nil t))
 
 (defun verilog-single-declaration-end (limit)
-  "Returns pos where current (single) declaration statement ends.
+  "Return pos where current (single) declaration statement ends.
 Also, this function moves POINT forward to the start of a variable name
 (skipping the range-part and whitespace).
 Function expected to be called with POINT just after a declaration keyword.
-LIMIT sets the max POINT for searching and moving to. No such limit if LIMIT
+LIMIT sets the max POINT for searching and moving to.  No such limit if LIMIT
 is 0.
 
 Meaning of *single* declaration:
-   Eg. In a module's port-list -
+   E.g. In a module's port-list -
            module test(input clk, rst, x, output [1:0] y);
    Here 'input clk, rst, x' is 1 *single* declaration statement,
 and 'output [1:0] y' is the other single declaration.  In the 1st single
-declaration, POINT is moved to start of 'clk'. And in the 2nd declaration,
+declaration, POINT is moved to start of 'clk'.  And in the 2nd declaration,
 POINT is moved to 'y'."
 
 
@@ -13651,7 +13651,7 @@ signals to deasserted.
 the same input/output list as another module, but no internals.
 Specifically, it finds all outputs in the module, and if that
 input is not otherwise declared as a register or wire, nor comes
-from a AUTOINST submodule's output, creates a tieoff. AUTOTIEOFF
+from a AUTOINST submodule's output, creates a tieoff.  AUTOTIEOFF
 does not examine assignments to determine what is already driven.
 
 AUTORESET ties signals to deasserted, which is presumed to be zero.
@@ -14428,7 +14428,7 @@ See also `verilog-header' for an alternative format."
 ;; ------------------------------------------------------------------------
 
 (define-skeleton verilog-sk-ovm-class
-  "Insert a class definition"
+  "Insert a class definition."
   ()
   > "class " (setq name (skeleton-read "Name: ")) " extends " (skeleton-read "Extends: ") ";" \n
   > _ \n
@@ -14442,7 +14442,7 @@ See also `verilog-header' for an alternative format."
   > "endclass" (progn (electric-verilog-terminate-line) nil))
 
 (define-skeleton verilog-sk-uvm-object
-  "Insert a class definition"
+  "Insert a class definition."
   ()
   > "class " (setq name (skeleton-read "Name: ")) " extends " (skeleton-read "Extends: ") ";" \n
   > _ \n
@@ -14456,7 +14456,7 @@ See also `verilog-header' for an alternative format."
   > "endclass" (progn (electric-verilog-terminate-line) nil))
 
 (define-skeleton verilog-sk-uvm-component
-  "Insert a class definition"
+  "Insert a class definition."
   ()
   > "class " (setq name (skeleton-read "Name: ")) " extends " (skeleton-read "Extends: ") ";" \n
   > _ \n
@@ -14497,8 +14497,7 @@ See also `verilog-header' for an alternative format."
   > (- verilog-indent-level-behavioral) "endfunction" (progn (electric-verilog-terminate-line) nil))
 
 (define-skeleton verilog-sk-always
-  "Insert always block.  Uses the minibuffer to prompt
-for sensitivity list."
+  "Insert always block.  Prompt for sensitivity list."
   ()
   > "always @ ( /*AUTOSENSE*/ ) begin\n"
   > _ \n
@@ -14513,14 +14512,14 @@ for sensitivity list."
   > (- verilog-indent-level-behavioral) "end" \n > )
 
 (define-skeleton verilog-sk-specify
-  "Insert specify block.  "
+  "Insert specify block."
   ()
   > "specify\n"
   > _ \n
   > (- verilog-indent-level-behavioral) "endspecify" \n > )
 
 (define-skeleton verilog-sk-generate
-  "Insert generate block.  "
+  "Insert generate block."
   ()
   > "generate\n"
   > _ \n

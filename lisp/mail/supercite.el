@@ -1299,7 +1299,7 @@ use it instead of `sc-citation-root-regexp'."
 (defvar sc-fill-begin 1
   "Buffer position to begin filling.")
 (defvar sc-fill-line-prefix ""
-  "Fill prefix of previous line")
+  "Fill prefix of previous line.")
 
 ;; filling
 (defun sc-fill-if-different (&optional prefix)

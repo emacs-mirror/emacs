@@ -539,7 +539,7 @@ This function is intended to be used as eldoc callback."
        (+ N (/ N (/ hexl-bits 4))) )) ) ; char offset into hexl display line
 
 (defun hexl-goto-address (address)
-  "Go to hexl-mode (decimal) address ADDRESS.
+  "Go to `hexl-mode' (decimal) address ADDRESS.
 Signal error if ADDRESS is out of range."
   (interactive "nAddress: ")
   (if (or (< address 0) (> address hexl-max-address))

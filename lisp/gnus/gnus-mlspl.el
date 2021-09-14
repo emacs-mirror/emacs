@@ -75,7 +75,7 @@ match any of the group-specified splitting rules.  See
 
 ;;;###autoload
 (defun gnus-group-split-update (&optional catch-all)
-  "Computes nnmail-split-fancy from group params and CATCH-ALL.
+  "Computes `nnmail-split-fancy' from group params and CATCH-ALL.
 It does this by calling (gnus-group-split-fancy nil nil CATCH-ALL).
 
 If CATCH-ALL is nil, `gnus-group-split-default-catch-all-group' is used

@@ -2264,7 +2264,7 @@ except for the verb."
     result)))
 
 (defun dun-get-path (dirstring startlist)
-  "Given a unix style pathname, build a list of path components (recursive)"
+  "Given a unix style pathname, build a list of path components (recursive)."
   (let (slash)
     (if (= (length dirstring) 0)
 	startlist

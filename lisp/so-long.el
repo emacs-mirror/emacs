@@ -491,7 +491,7 @@
   ;; considered internal-use only (with `global-so-long-mode' the interface
   ;; for enabling or disabling the automated behaviour).  FIXME: Establish a
   ;; way to support the original use-case, or rename to `so-long--enabled'.
-  "Internal use.  Non-nil when any so-long functionality has been used.")
+  "Internal use.  Non-nil when any `so-long' functionality has been used.")
 
 (defvar-local so-long--active nil ; internal use
   "Non-nil when `so-long' mitigations are in effect.")
@@ -761,7 +761,7 @@ place of `so-long-mode' -- therefore respecting the file-local mode value, yet
 still overriding minor modes and variables (as if `so-long-action' had been set
 to `so-long-minor-mode').
 
-The value `so-long-inhibit' means that so-long will not take any action at all
+The value `so-long-inhibit' means that `so-long' will not take any action at all
 for this file.
 
 If nil, then do not treat files with file-local modes any differently to other
@@ -1090,7 +1090,7 @@ This command calls `so-long' with the selected action as an argument.")
 
 ;;;###autoload
 (defun so-long-commentary ()
-  "View the so-long documentation in `outline-mode'."
+  "View the `so-long' documentation in `outline-mode'."
   (interactive)
   (let ((buf "*So Long: Commentary*"))
     (when (buffer-live-p (get-buffer buf))
@@ -1130,7 +1130,7 @@ This command calls `so-long' with the selected action as an argument.")
 
 ;;;###autoload
 (defun so-long-customize ()
-  "Open the so-long `customize' group."
+  "Open the `so-long' customize group."
   (interactive)
   (customize-group 'so-long))
 
@@ -1583,7 +1583,7 @@ because we do not want to downgrade the major mode in that scenario."
             so-long-revert-function 'turn-off-so-long-minor-mode))))
 
 (defun so-long-inhibit (&optional _mode)
-  "Prevent so-long from having any effect at all.
+  "Prevent `so-long' from having any effect at all.
 
 This is a `so-long-file-local-mode-function' option."
   (setq so-long--inhibited t))
@@ -1848,14 +1848,14 @@ invoked."
 
 ;;;###autoload
 (defun so-long-enable ()
-  "Enable the so-long library's functionality.
+  "Enable the `so-long' library's functionality.
 
 Equivalent to calling (global-so-long-mode 1)"
   (interactive)
   (global-so-long-mode 1))
 
 (defun so-long-disable ()
-  "Disable the so-long library's functionality.
+  "Disable the `so-long' library's functionality.
 
 Equivalent to calling (global-so-long-mode 0)"
   (interactive)

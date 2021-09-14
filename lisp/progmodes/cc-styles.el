@@ -406,7 +406,7 @@ a null operation."
 
 ;;;###autoload
 (defun c-add-style (style description &optional set-p)
-  "Adds a style to `c-style-alist', or updates an existing one.
+  "Add a style to `c-style-alist', or update an existing one.
 STYLE is a string identifying the style to add or update.  DESCRIPTION
 is an association list describing the style and must be of the form:
 

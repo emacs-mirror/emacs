@@ -2340,9 +2340,9 @@ If DIRECTORY already exists, signal an error."
 ;;;###autoload
 (defun dired-create-empty-file (file)
   "Create an empty file called FILE.
- Add a new entry for the new file in the Dired buffer.
- Parent directories of FILE are created as needed.
- If FILE already exists, signal an error."
+Add a new entry for the new file in the Dired buffer.
+Parent directories of FILE are created as needed.
+If FILE already exists, signal an error."
   (interactive (list (read-file-name "Create empty file: ")))
   (let* ((expanded (expand-file-name file))
          new)

@@ -106,9 +106,10 @@ nor UTF-8."
 (defcustom nxml-prefer-utf-16-little-to-big-endian-flag (eq system-type
 							    'windows-nt)
   "Non-nil means prefer little-endian to big-endian byte-order for UTF-16.
-This is used only for saving a buffer; when reading the byte-order is
-auto-detected. It may be relevant both when there is no encoding declaration
-and when the encoding declaration specifies `UTF-16'."
+This is used only for saving a buffer; when reading the
+byte-order is auto-detected.  It may be relevant both when there
+is no encoding declaration and when the encoding declaration
+specifies `UTF-16'."
   :group 'nxml
   :type 'boolean
   :safe #'booleanp)
@@ -392,11 +393,11 @@ reference.")
     (define-key map "/" 'nxml-electric-slash)
     (define-key map "\M-\t" 'completion-at-point)
     map)
-  "Keymap for nxml-mode.")
+  "Keymap for `nxml-mode'.")
 
 (defvar nxml-font-lock-keywords
   '(nxml-fontify-matcher)
-  "Default font lock keywords for nxml-mode.")
+  "Default font lock keywords for `nxml-mode'.")
 
 (defsubst nxml-set-face (start end face)
   (when (and face (< start end))
@@ -576,7 +577,7 @@ Many aspects this mode can be customized using
     string)
 
 (defun nxml-cleanup ()
-  "Clean up after nxml-mode."
+  "Clean up after `nxml-mode'."
   ;; Disable associated minor modes.
   (rng-validate-mode -1)
   ;; Clean up fontification.
@@ -2269,7 +2270,7 @@ ENDP is t in the former case, nil in the latter."
 (defun nxml-dynamic-markup-word ()
   "Dynamically markup the word before point.
 This attempts to find a tag to put around the word before point based
-on the contents of the current buffer. The end-tag will be inserted at
+on the contents of the current buffer.  The end-tag will be inserted at
 point.  The start-tag will be inserted at or before the beginning of
 the word before point; the contents of the current buffer is used to
 decide where.

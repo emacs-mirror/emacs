@@ -152,7 +152,7 @@ Display the references in `semantic-symref-results-mode'."
 
 (easy-menu-define semantic-symref-list-menu
   semantic-symref-results-mode-map
-  "Symref Mode Menu"
+  "Symref Mode Menu."
   semantic-symref-list-menu-entries)
 
 (defcustom semantic-symref-auto-expand-results nil

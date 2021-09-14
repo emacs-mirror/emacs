@@ -1403,7 +1403,7 @@ The printer name symbol should be defined on `pr-txt-printer-alist' (see it for
 documentation).
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update text printer menu."
   :type 'symbol
   :set 'pr-txt-name-custom-set)
@@ -1489,7 +1489,7 @@ NAME		A string that specifies a text printer name.
 			\"share-name\"
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update text printer menu.
 
 Examples:
@@ -1544,7 +1544,7 @@ This printer name symbol should be defined on `pr-ps-printer-alist' (see it for
 documentation).
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript printer menu."
   :type 'symbol
   :set 'pr-ps-name-custom-set)
@@ -2246,7 +2246,7 @@ This utility symbol should be defined on `pr-ps-utility-alist' (see it for
 documentation).
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript utility menu.
 
 NOTE: Don't forget to download and install the utilities declared on
@@ -2560,7 +2560,7 @@ SETTING		It's a cons like:
 		  * If LOCAL is nil:
 		   (set VARIABLE (eval VALUE))
 
-		Note that VALUE can be any valid lisp expression.  So, don't
+                Note that VALUE can be any valid Lisp expression.  So, don't
 		forget to quote symbols and constant lists.
 		This setting is ignored if VARIABLE is equal to keyword
 		`inherits-from:'.
@@ -2672,7 +2672,7 @@ happens when printing:
   "Non-nil means list directory when processing a directory.
 
 That is, any subdirectories (and the superdirectory) of the directory (given as
-argument of functions below) are also printed (as dired-mode listings).
+argument of functions below) are also printed (as `dired-mode' listings).
 
 It's used by `pr-ps-directory-preview', `pr-ps-directory-using-ghostscript',
 `pr-ps-directory-print', `pr-ps-directory-ps-print', `pr-printify-directory'
@@ -5577,7 +5577,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
     (define-key map "q" 'pr-interface-quit)
     (define-key map "?" 'pr-interface-help)
     map)
-  "Keymap for pr-interface.")
+  "Keymap for `pr-interface'.")
 
 (defmacro pr-interface-save (&rest body)
   `(with-current-buffer pr-i-buffer
@@ -5933,7 +5933,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 
 (defun pr-interface-help (&rest _ignore)
-  "printing buffer interface help."
+  "Printing buffer interface help."
   (interactive)
   (pr-show-setup pr-interface-help-message "*Printing Interface Help*"))
 

@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Heavily borrowed from gnus-art.el. Thanks to the original authors.
+;; Heavily borrowed from gnus-art.el.  Thanks to the original authors.
 ;; This buttonizes nicks and other stuff to make it all clickable.
 ;; To enable, add to your init file:
 ;; (require 'erc-button)
@@ -165,7 +165,7 @@ REGEXP is the string matching text around the button or a symbol
 BUTTON is the number of the regexp grouping actually matching the
   button.  This is ignored if REGEXP is \\='nicknames.
 
-FORM is a lisp expression which must eval to true for the button to
+FORM is a Lisp expression which must eval to true for the button to
   be added.
 
 CALLBACK is the function to call when the user push this button.

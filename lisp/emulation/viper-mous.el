@@ -116,7 +116,7 @@ considered related."
   (buffer-name (viper-mouse-click-window-buffer click)))
 
 (defsubst viper-mouse-click-posn (click)
-  "Returns position of a click."
+  "Return position of a click."
   (declare (obsolete nil "27.1"))
   (posn-point (event-start click)))
 

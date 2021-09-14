@@ -315,12 +315,12 @@ new Dired buffers."
 
 (defcustom dired-always-read-filesystem nil
   "Non-nil means revert buffers visiting files before searching them.
- By default,  commands like `dired-mark-files-containing-regexp' will
- search any buffers visiting the marked files without reverting them,
- even if they were changed on disk.  When this option is non-nil, such
- buffers are always reverted in a temporary buffer before searching
- them: the search is performed on the temporary buffer, the original
- buffer visiting the file is not modified."
+By default,  commands like `dired-mark-files-containing-regexp' will
+search any buffers visiting the marked files without reverting them,
+even if they were changed on disk.  When this option is non-nil, such
+buffers are always reverted in a temporary buffer before searching
+them: the search is performed on the temporary buffer, the original
+buffer visiting the file is not modified."
   :type 'boolean
   :version "26.1"
   :group 'dired)
@@ -1019,27 +1019,27 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
 ;;;###autoload (define-key ctl-x-4-map "d" 'dired-other-window)
 ;;;###autoload
 (defun dired-other-window (dirname &optional switches)
-  "\"Edit\" directory DIRNAME.  Like `dired' but selects in another window."
+  "\"Edit\" directory DIRNAME.  Like `dired' but select in another window."
   (interactive (dired-read-dir-and-switches "in other window "))
   (switch-to-buffer-other-window (dired-noselect dirname switches)))
 
 ;;;###autoload (define-key ctl-x-5-map "d" 'dired-other-frame)
 ;;;###autoload
 (defun dired-other-frame (dirname &optional switches)
-  "\"Edit\" directory DIRNAME.  Like `dired' but makes a new frame."
+  "\"Edit\" directory DIRNAME.  Like `dired' but make a new frame."
   (interactive (dired-read-dir-and-switches "in other frame "))
   (switch-to-buffer-other-frame (dired-noselect dirname switches)))
 
 ;;;###autoload (define-key tab-prefix-map "d" 'dired-other-tab)
 ;;;###autoload
 (defun dired-other-tab (dirname &optional switches)
-  "\"Edit\" directory DIRNAME.  Like `dired' but makes a new tab."
+  "\"Edit\" directory DIRNAME.  Like `dired' but make a new tab."
   (interactive (dired-read-dir-and-switches "in other tab "))
   (switch-to-buffer-other-tab (dired-noselect dirname switches)))
 
 ;;;###autoload
 (defun dired-noselect (dir-or-list &optional switches)
-  "Like `dired' but returns the Dired buffer as value, does not select it."
+  "Like `dired' but return the Dired buffer as value, do not select it."
   (or dir-or-list (setq dir-or-list default-directory))
   ;; This loses the distinction between "/foo/*/" and "/foo/*" that
   ;; some shells make:
@@ -1616,7 +1616,7 @@ see `dired-use-ls-dired' for more details.")
       (dired-insert-set-properties content-point (point)))))
 
 (defun dired-insert-set-properties (beg end)
-  "Add various text properties to the lines in the region."
+  "Add various text properties to the lines in the region, from BEG to END."
   (save-excursion
     (goto-char beg)
     (while (< (point) end)
@@ -2879,7 +2879,7 @@ If SUBDIRS is non-nil, also include the dired buffers of
 directories below DIR.
 The list is in reverse order of buffer creation, most recent last.
 As a side effect, killed dired buffers for DIR are removed from
-dired-buffers."
+`dired-buffers'."
   (setq dir (file-name-as-directory dir))
   (let (result buf)
     (dolist (elt dired-buffers)
@@ -4191,7 +4191,7 @@ The idea is to set this buffer-locally in special Dired buffers.")
 (defcustom dired-switches-in-mode-line nil
   "How to indicate `dired-actual-switches' in mode-line.
 Possible values:
- * `nil':    Indicate name-or-date sort order, if possible.
+ * nil:      Indicate name-or-date sort order, if possible.
              Else show full switches.
  * `as-is':  Show full switches.
  * Integer:  Show only the first N chars of full switches.

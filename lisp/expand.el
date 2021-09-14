@@ -88,7 +88,7 @@
 
 ;;; Samples:
 
-(define-skeleton expand-c-for-skeleton "For loop skeleton"
+(define-skeleton expand-c-for-skeleton "For loop skeleton."
   "Loop var: "
   "for(" str _ @ "=0; " str @ "; " str @ ") {" \n
   @ _ \n

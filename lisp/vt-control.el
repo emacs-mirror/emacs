@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;;  The functions contained in this file send various VT control codes
-;;  to the terminal where emacs is running.  The following functions are
+;;  to the terminal where Emacs is running.  The following functions are
 ;;  available.
 
 ;;    Function           Action

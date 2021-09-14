@@ -221,7 +221,7 @@ Return list with entries."
     (if (string-match "\\`[ \t]*\\'" (or first-re ""))
         (user-error "Empty regular expression"))
     (if (string-match first-re "")
-        (user-error "Regular expression matches the empty string."))
+        (user-error "Regular expression matches the empty string"))
 
     (save-excursion
       (save-window-excursion

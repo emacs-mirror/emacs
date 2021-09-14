@@ -542,7 +542,7 @@ the {...} holes that appear within f-strings."
      (1 font-lock-function-name-face))
     (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
      (1 font-lock-type-face)))
-  "Font lock keywords to use in python-mode for level 1 decoration.
+  "Font lock keywords to use in `python-mode' for level 1 decoration.
 
 This is the minimum decoration level, including function and
 class declarations.")
@@ -596,7 +596,7 @@ class declarations.")
            ;; Extras:
            "__all__")
           symbol-end) . font-lock-builtin-face))
-  "Font lock keywords to use in python-mode for level 2 decoration.
+  "Font lock keywords to use in `python-mode' for level 2 decoration.
 
 This is the medium decoration level, including everything in
 `python-font-lock-keywords-level-1', as well as keywords and
@@ -712,7 +712,7 @@ avoid '==' being treated as an assignment."
                   (or ")" "]") (* space)
                   assignment-operator))
      (1 font-lock-variable-name-face)))
-  "Font lock keywords to use in python-mode for maximum decoration.
+  "Font lock keywords to use in `python-mode' for maximum decoration.
 
 This decoration level includes everything in
 `python-font-lock-keywords-level-2', as well as constants,
@@ -726,7 +726,7 @@ decorators, exceptions, and assignments.")
                                                  ; is more than 1, or t (which it is,
                                                  ; by default).
     )
-  "List of font lock keyword specifications to use in python-mode.
+  "List of font lock keyword specifications to use in `python-mode'.
 
 Which one will be chosen depends on the value of
 `font-lock-maximum-decoration'.")
@@ -3072,13 +3072,12 @@ of `error' with a user-friendly message."
   (or (python-shell-get-process)
       (if interactivep
           (user-error
-           "Start a Python process first with `M-x run-python' or `%s'."
+           "Start a Python process first with `M-x run-python' or `%s'"
            ;; Get the binding.
            (key-description
             (where-is-internal
              #'run-python overriding-local-map t)))
-        (error
-         "No inferior Python process running."))))
+        (error "No inferior Python process running"))))
 
 (defun python-shell-get-or-create-process (&optional cmd dedicated show)
   "Get or create an inferior Python process for current buffer and return it.
@@ -4714,10 +4713,10 @@ returns will be used.  If not FORCE-PROCESS is passed what
           docstring)))))
 
 (defvar-local python-eldoc-get-doc t
-  "Non-nil means eldoc should fetch the documentation
-  automatically.  Set to nil by `python-eldoc-function' if
-  `python-eldoc-function-timeout-permanent' is non-nil and
-  `python-eldoc-function' times out.")
+  "Non-nil means eldoc should fetch the documentation automatically.
+Set to nil by `python-eldoc-function' if
+`python-eldoc-function-timeout-permanent' is non-nil and
+`python-eldoc-function' times out.")
 
 (defcustom python-eldoc-function-timeout 1
   "Timeout for `python-eldoc-function' in seconds."

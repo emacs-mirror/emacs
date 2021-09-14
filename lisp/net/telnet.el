@@ -83,8 +83,9 @@ LOGIN-NAME, which is optional, says what to log in as on that machine.")
   "Program to run to open a telnet connection.")
 
 (defvar telnet-initial-count -50
-  "Initial value of `telnet-count'.  Should be set to the negative of the
-number of terminal writes telnet will make setting up the host connection.")
+  "Initial value of `telnet-count'.
+Should be set to the negative of the number of terminal writes
+telnet will make setting up the host connection.")
 
 (defvar telnet-maximum-count 4
   "Maximum value `telnet-count' can have.

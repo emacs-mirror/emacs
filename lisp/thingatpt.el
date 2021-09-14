@@ -31,7 +31,7 @@
 ;; The function bounds-of-thing-at-point finds the beginning and end
 ;; positions by moving first forward to the end of the "thing", and then
 ;; backwards to the beginning.  By default, it uses the corresponding
-;; forward-"thing" operator (eg. forward-word, forward-line).
+;; forward-"thing" operator (e.g. forward-word, forward-line).
 ;;
 ;; Special cases are allowed for using properties associated with the named
 ;; "thing":

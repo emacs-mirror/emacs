@@ -308,7 +308,7 @@ Can be overwritten by `cperl-hairy' if nil."
 Can be overwritten by `cperl-hairy' if nil.
 
 Uses `abbrev-mode' to do the expansion.  If you want to use your
-own abbrevs in cperl-mode, but do not want keywords to be
+own abbrevs in `cperl-mode', but do not want keywords to be
 electric, you must redefine `cperl-mode-abbrev-table': do
 \\[edit-abbrevs], search for `cperl-mode-abbrev-table', and, in
 that paragraph, delete the words that appear at the ends of lines and
@@ -1584,7 +1584,7 @@ into
 
 \\{cperl-mode-map}
 
-Setting the variable `cperl-font-lock' to t switches on font-lock-mode
+Setting the variable `cperl-font-lock' to t switches on `font-lock-mode'
 \(even with older Emacsen), `cperl-electric-lbrace-space' to t switches
 on electric space between $ and {, `cperl-electric-parens-string' is
 the string that contains parentheses that should be electric in CPerl
@@ -2577,9 +2577,9 @@ Return the amount the indentation changed by."
                                    (not (in ":"))))))))
 
 (defun cperl-get-state (&optional parse-start start-state)
-  "Return list (START STATE DEPTH PRESTART),
+  "Return list (START STATE DEPTH PRESTART).
 START is a good place to start parsing, or equal to
-PARSE-START if preset,
+PARSE-START if preset.
 STATE is what is returned by `parse-partial-sexp'.
 DEPTH is true is we are immediately after end of block
 which contains START.
@@ -3110,8 +3110,9 @@ and closing parentheses and brackets."
 	(error "Got strange value of indent: %s" i))))))
 
 (defun cperl-calculate-indent-within-comment ()
-  "Return the indentation amount for line, assuming that
-the current line is to be regarded as part of a block comment."
+  "Return the indentation amount for line.
+Assume that the current line is to be regarded as part of a block
+comment."
   (let (end)
     (save-excursion
       (beginning-of-line)
@@ -8523,7 +8524,7 @@ If a region is highlighted, restricts to the region."
 			    beg end))))
 
 (defun cperl-map-pods-heres (func &optional prop s end)
-  "Executes a function over regions of pods or here-documents.
+  "Execute a function over regions of pods or here-documents.
 PROP is the text-property to search for; default to `in-pod'.  Stop when
 function returns nil."
   (let (pos posend has-prop (cont t))
@@ -8698,7 +8699,7 @@ Delay of auto-help controlled by `cperl-lazy-help-time'."
     (remove-text-properties beg end '(face nil))))
 
 (defun cperl-font-lock-fontify-region-function (beg end loudly)
-  "Extends the region to safe positions, then calls the default function.
+  "Extend the region to safe positions, then call the default function.
 Newer `font-lock's can do it themselves.
 We unwind only as far as needed for fontification.  Syntaxification may
 do extra unwind via `cperl-unwind-to-safe'."

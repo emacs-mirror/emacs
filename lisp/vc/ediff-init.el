@@ -404,7 +404,7 @@ It needs to be killed when we quit the session.")
 (defcustom ediff-before-setup-hook nil
   "Hooks to run before Ediff begins to set up windows and buffers.
 This hook can be used to save the previous window config, which can be restored
-on ediff-quit or ediff-suspend."
+on `ediff-quit' or `ediff-suspend'."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-before-setup-windows-hook nil
@@ -455,7 +455,7 @@ For each buffer, the hooks are run with that buffer made current."
                         "use `with-eval-after-load' instead." "28.1")
 
 (defcustom ediff-mode-hook nil
-  "Hook run just after ediff-mode is set up in the control buffer.
+  "Hook run just after `ediff-mode' is set up in the control buffer.
 This is done before any windows or frames are created.  One can use it to
 set local variables that determine how the display looks like."
   :type 'hook
@@ -1473,7 +1473,7 @@ This default should work without changes."
 	  (delete-overlay overlay)))))
 
 (defun ediff-overlay-put (overlay prop value)
-  "Calls `overlay-put', but checks if overlay's buffer exists."
+  "Call `overlay-put', but check if OVERLAY's buffer exists."
   (if (ediff-buffer-live-p (overlay-buffer overlay))
       (overlay-put overlay prop value)
     (delete-overlay overlay)))

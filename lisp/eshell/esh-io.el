@@ -94,7 +94,7 @@ though they were files."
 Currently this is standard input, output and error.  But even all of
 these Emacs does not currently support with asynchronous processes
 \(which is what eshell uses so that you can continue doing work in
-other buffers) ."
+other buffers)."
   :type 'integer
   :group 'eshell-io)
 

@@ -5985,13 +5985,11 @@ corresponding \"begin\" keyword, else return nil."
 
 (defconst vhdl-begin-fwd-re
   "\\b\\(is\\|begin\\|block\\|component\\|generate\\|then\\|else\\|loop\\|process\\|procedural\\(\\s-+body\\)?\\|units\\|use\\|record\\|protected\\(\\s-+body\\)?\\|for\\)\\b\\([^_]\\|\\'\\)"
-  "A regular expression for searching forward that matches all known
-\"begin\" keywords.")
+  "Regexp for searching forward that matches all known \"begin\" keywords.")
 
 (defconst vhdl-begin-bwd-re
   "\\b\\(is\\|begin\\|block\\|component\\|generate\\|then\\|else\\|loop\\|process\\|procedural\\(\\s-+body\\)?\\|units\\|use\\|record\\|protected\\(\\s-+body\\)?\\|for\\)\\b[^_]"
-  "A regular expression for searching backward that matches all known
-\"begin\" keywords.")
+  "Regexp for searching backward that matches all known \"begin\" keywords.")
 
 (defun vhdl-begin-p (&optional lim)
   "Return t if we are looking at a real \"begin\" keyword.
@@ -6848,7 +6846,7 @@ keyword at PLACEHOLDER, then return the library unit type."
     ))
 
 (defun vhdl-get-block-state (&optional lim)
-  "Finds and records all the closest opens.
+  "Find and records all the closest opens.
 LIM is the furthest back we need to search (it should be the
 previous libunit keyword)."
   (let ((here (point))
@@ -7722,13 +7720,13 @@ indentation is done before aligning."
 	   (setq copy (cdr copy))))))))
 
 (defun vhdl-align-region-2 (begin end match &optional substr spacing)
-  "Align a range of lines from BEGIN to END.  The regular expression
-MATCH must match exactly one field: the whitespace to be
-contracted/expanded.  The alignment column will equal the
-rightmost column of the widest whitespace block.  SPACING is
-the amount of extra spaces to add to the calculated maximum required.
-SPACING defaults to 1 so that at least one space is inserted after
-the token in MATCH."
+  "Align a range of lines from BEGIN to END.
+The regular expression MATCH must match exactly one field: the
+whitespace to be contracted/expanded.  The alignment column will
+equal the rightmost column of the widest whitespace block.
+SPACING is the amount of extra spaces to add to the calculated
+maximum required.  SPACING defaults to 1 so that at least one
+space is inserted after the token in MATCH."
   (setq spacing (or spacing 1))
   (setq substr (or substr 1))
   (save-excursion
@@ -7994,8 +7992,9 @@ the token in MATCH."
 	 (beginning-of-line 2))))))
 
 (defun vhdl-align-inline-comment-region (beg end &optional spacing no-message)
-  "Align inline comments within a region.  Groups of code lines separated by
-empty lines are aligned individually, if `vhdl-align-groups' is non-nil."
+  "Align inline comments within a region.
+Groups of code lines separated by empty lines are aligned
+individually, if `vhdl-align-groups' is non-nil."
   (interactive "r\nP")
   (save-excursion
     (let (orig pos)
@@ -8044,8 +8043,9 @@ empty lines are aligned individually, if `vhdl-align-groups' is non-nil."
       (message "Aligning inline comments...done"))))
 
 (defun vhdl-align-inline-comment-buffer ()
-  "Align inline comments within buffer.  Groups of code lines separated by
-empty lines are aligned individually, if `vhdl-align-groups' is non-nil."
+  "Align inline comments within buffer.
+Groups of code lines separated by empty lines are aligned
+individually, if `vhdl-align-groups' is non-nil."
   (interactive)
   (vhdl-align-inline-comment-region (point-min) (point-max)))
 
@@ -8053,9 +8053,10 @@ empty lines are aligned individually, if `vhdl-align-groups' is non-nil."
 ;; Fixup whitespace
 
 (defun vhdl-fixup-whitespace-region (beg end &optional no-message)
-  "Fixup whitespace in region.  Surround operator symbols by one space,
-eliminate multiple spaces (except at beginning of line), eliminate spaces at
-end of line, do nothing in comments and strings."
+  "Fixup whitespace in region.
+Surround operator symbols by one space, eliminate multiple
+spaces (except at beginning of line), eliminate spaces at end of
+line, do nothing in comments and strings."
   (interactive "r")
   (unless no-message (message "Fixing up whitespace..."))
   (save-excursion
@@ -8107,9 +8108,10 @@ end of line, do nothing in comments and strings."
   (unless no-message (message "Fixing up whitespace...done")))
 
 (defun vhdl-fixup-whitespace-buffer ()
-  "Fixup whitespace in buffer.  Surround operator symbols by one space,
-eliminate multiple spaces (except at beginning of line), eliminate spaces at
-end of line, do nothing in comments."
+  "Fixup whitespace in buffer.
+Surround operator symbols by one space, eliminate multiple
+spaces (except at beginning of line), eliminate spaces at end of
+line, do nothing in comments."
   (interactive)
   (vhdl-fixup-whitespace-region (point-min) (point-max)))
 
@@ -10456,8 +10458,8 @@ otherwise."
     reset))
 
 (defun vhdl-template-standard-package (library package)
-  "Insert specification of a standard package.  Include a library
-specification, if not already there."
+  "Insert specification of a standard package.
+Include a library specification, if not already there."
   (let ((margin (current-indentation)))
     (unless (equal library "std")
       (unless (or (save-excursion
@@ -13175,7 +13177,7 @@ File statistics: \"%s\"\n\
   "Regexp to match start of construct to hide.")
 
 (defun vhdl-hs-forward-sexp-func (count)
-  "Find end of construct to hide (for hideshow).  Only searches forward."
+  "Find end of construct to hide (for hideshow).  Only search forward."
   (let ((pos (point)))
     (vhdl-prepare-search-2
      (beginning-of-line)
@@ -13299,7 +13301,8 @@ File statistics: \"%s\"\n\
 	  (goto-char end))))))
 
 (defun vhdl-font-lock-match-item (limit)
-  "Match, and move over, any declaration item after point.  Adapted from
+  "Match, and move over, any declaration item after point.
+Adapted from
 `font-lock-match-c-style-declaration-item-and-skip-to-next'."
   (condition-case nil
       (save-restriction
@@ -13750,8 +13753,7 @@ This does background highlighting of translate-off regions.")
 ;; Variables
 
 (defvar vhdl-entity-alist nil
-  "Cache with entities and corresponding architectures for each
-project/directory.")
+  "Cache with entities and corresponding architectures for each project/directory.")
 ;; structure: (parenthesized expression means list of such entries)
 ;; (cache-key
 ;;   (ent-key ent-name ent-file ent-line
@@ -15019,8 +15021,7 @@ otherwise use cached data."
 (declare-function speedbar-goto-this-file "speedbar" (file))
 
 (defun vhdl-speedbar-expand-dirs (_directory)
-  "Expand subdirectories in DIRECTORY according to
- `speedbar-shown-directories'."
+  "Expand subdirectories in DIRECTORY according to `speedbar-shown-directories'."
   ;; (nicked from `speedbar-default-directory-list')
   (let ((sf (cdr (reverse speedbar-shown-directories)))
 	(vhdl-speedbar-update-current-unit nil))
@@ -15836,7 +15837,7 @@ NO-POSITION non-nil means do not re-position cursor."
 (declare-function speedbar-line-text "speedbar" (&optional p))
 
 (defun vhdl-speedbar-line-text ()
-  "Calls `speedbar-line-text' and removes text properties."
+  "Call `speedbar-line-text' and remove text properties."
   (let ((string (speedbar-line-text)))
     (set-text-properties 0 (length string) nil string)
     string))
@@ -17074,8 +17075,7 @@ do not print any file names."
     (or project-options compiler-options)))
 
 (defun vhdl-compile ()
-  "Compile current buffer using the VHDL compiler specified in
-`vhdl-compiler'."
+  "Compile current buffer using the VHDL compiler specified in `vhdl-compiler'."
   (interactive)
   (vhdl-compile-init)
   (let* ((project (vhdl-aget vhdl-project-alist vhdl-project))
@@ -17852,8 +17852,7 @@ User Options
 `vhdl-indent-comment-like-next-code-line': (new)
   Specify whether comment lines are indented like following code line.
 `vhdl-array-index-record-field-in-sensitivity-list': (new)
-  Specify whether to include array indices / record fields in sensitivity list.
-")
+  Specify whether to include array indices / record fields in sensitivity list.")
 
 
 (defconst vhdl-doc-keywords nil

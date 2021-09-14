@@ -104,7 +104,7 @@
 (require 'dbus)
 
 (defvar zeroconf-debug nil
-  "Write messages during service discovery")
+  "Write messages during service discovery.")
 
 (defconst zeroconf-service-avahi "org.freedesktop.Avahi"
   "The D-Bus name used to talk to Avahi.")
@@ -375,7 +375,7 @@ type used when registering FUNCTION."
 (defun zeroconf-get-service (name type)
   "Return the service description of service NAME as list.
 NAME must be a string.  The service must be of service type
-TYPE. The resulting list has the format
+TYPE.  The resulting list has the format
 
   (INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS)."
   ;; Due to the service browser, all known services are kept in
@@ -387,7 +387,7 @@ TYPE. The resulting list has the format
 (defun zeroconf-resolve-service (service)
   "Return all service attributes SERVICE as list.
 NAME must be a string.  The service must be of service type
-TYPE. The resulting list has the format
+TYPE.  The resulting list has the format
 
   (INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS)."
   (let* ((name (zeroconf-service-name service))

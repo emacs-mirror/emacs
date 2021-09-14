@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Allout outline minor mode provides extensive outline formatting and
-;; and manipulation beyond standard emacs outline mode.  Some features:
+;; and manipulation beyond standard Emacs outline mode.  Some features:
 ;;
 ;;  - Classic outline-mode topic-oriented navigation and exposure adjustment
 ;;  - Topic-oriented editing including coherent topic and subtopic
@@ -35,7 +35,7 @@
 ;;  - Customizable bullet format -- enables programming-language specific
 ;;    outlining, for code-folding editing.  (Allout code itself is to try it;
 ;;    formatted as an outline -- do ESC-x eval-buffer in allout.el; but
-;;    emacs local file variables need to be enabled when the
+;;    Emacs local file variables need to be enabled when the
 ;;    file was visited -- see `enable-local-variables'.)
 ;;  - Configurable per-file initial exposure settings
 ;;  - Symmetric-key and key-pair topic encryption.  Encryption is via the
@@ -242,7 +242,7 @@ prevails."
     )
   "Allout-mode functions bound to keys without any added prefix.
 
-This is in contrast to the majority of allout-mode bindings on
+This is in contrast to the majority of `allout-mode' bindings on
 `allout-prefixed-keybindings', whose bindings are created with a
 preceding command key.
 
@@ -288,7 +288,7 @@ Control whether and how allout outline mode is automatically
 activated when files are visited with non-nil buffer-specific
 file variable `allout-layout'.
 
-When allout-auto-activation is \"On\" (t), allout mode is
+When `allout-auto-activation' is \"On\" (t), allout mode is
 activated in buffers with non-nil `allout-layout', and the
 specified layout is applied.
 
@@ -382,7 +382,7 @@ in individual buffers if you want to inhibit auto-fill only in particular
 buffers.  (You could use a function on `allout-mode-hook' to inhibit
 auto-fill according, eg, to the major mode.)
 
-If you don't set this and auto-fill-mode is enabled, allout will use the
+If you don't set this and `auto-fill-mode' is enabled, allout will use the
 value that `normal-auto-fill-function', if any, when allout mode starts, or
 else allout's special hanging-indent maintaining auto-fill function,
 `allout-auto-fill'."
@@ -460,7 +460,7 @@ advance as follows:
  - if the cursor is on the first column of the headline:
    then it goes to the start of the headline within the item body.
 
-In this fashion, you can use the beginning-of-line command to do
+In this fashion, you can use the `beginning-of-line' command to do
 its normal job and then, when repeated, advance through the
 entry, cycling back to start.
 
@@ -882,7 +882,7 @@ has been customized to enable this behavior), `allout-mode' will be
 automatically activated.  The layout dictated by the value will be used to
 set the initial exposure when `allout-mode' is activated.
 
-*You should not setq-default this variable non-nil unless you want every
+*You should not `setq-default' this variable non-nil unless you want every
 visited file to be treated as an allout file.*
 
 The value would typically be set by a file local variable.  For
@@ -1321,21 +1321,21 @@ The settings are stored on `allout-mode-prior-settings'."
       (if qualifier
           (cond ((eq qualifier 'extend)
                  (if (not (listp prior-value))
-                     (error "extension of non-list prior value attempted")
+                     (error "Extension of non-list prior value attempted")
                    (set name (cons value prior-value))))
                 ((eq qualifier 'append)
                  (if (not (listp prior-value))
-                     (error "appending of non-list prior value attempted")
+                     (error "Appending of non-list prior value attempted")
                    (set name (append prior-value (list value)))))
-                (t (error "unrecognized setting qualifier `%s' encountered"
+                (t (error "Unrecognized setting qualifier `%s' encountered"
                           qualifier)))
         (set name value)))))
 ;;;_   > allout-do-resumptions ()
 (defun allout-do-resumptions ()
   "Resume all name/value settings registered by `allout-add-resumptions'.
 
-This is used when concluding allout-mode, to resume selected variables to
-their settings before allout-mode was started."
+This is used when concluding `allout-mode', to resume selected variables to
+their settings before `allout-mode' was started."
 
     (while allout-mode-prior-settings
       (let* ((pair (pop allout-mode-prior-settings))
@@ -2129,7 +2129,7 @@ to return the current depth."
   allout-recent-depth)
 ;;;_  > allout-recent-prefix ()
 (defsubst allout-recent-prefix ()
-  "Like `allout-recent-depth', but returns text of last encountered prefix.
+  "Like `allout-recent-depth', but return text of last encountered prefix.
 
 All outline functions which directly do string matches to assess
 headings set the variables `allout-recent-prefix-beginning' and
@@ -2139,7 +2139,7 @@ to return the current prefix."
                                   allout-recent-prefix-end))
 ;;;_  > allout-recent-bullet ()
 (defmacro allout-recent-bullet ()
-  "Like `allout-recent-prefix', but returns bullet of last encountered prefix.
+  "Like `allout-recent-prefix', but return bullet of last encountered prefix.
 
 All outline functions which directly do string matches to assess
 headings set the variables `allout-recent-prefix-beginning' and
@@ -3145,7 +3145,7 @@ Returns resulting position, else nil if none found."
 	(start-arg arg)
 	(backward (> 0 arg)))
     (if (= 0 start-depth)
-	(error "No siblings, not in a topic..."))
+        (error "No siblings, not in a topic"))
     (if backward (setq arg (* -1 arg)))
     (allout-back-to-current-heading)
     (while (and (not (zerop arg))
@@ -3185,7 +3185,7 @@ are mapped to the command of the corresponding control-key on the
 `allout-mode-map-value'.")
 ;;;_   = allout-command-counter
 (defvar-local allout-command-counter 0
-  "Counter that monotonically increases in allout-mode buffers.
+  "Counter that monotonically increases in `allout-mode' buffers.
 
 Set by `allout-pre-command-business', to support allout addons in
 coordinating with allout activity.")
@@ -3325,7 +3325,6 @@ See `allout-auto-activation' for setup instructions."
 ;;;_  - Topic Format Assessment
 ;;;_   > allout-solicit-alternate-bullet (depth &optional current-bullet)
 (defun allout-solicit-alternate-bullet (depth &optional current-bullet)
-
   "Prompt for and return a bullet char as an alternative to the current one.
 
 Offer one suitable for current depth DEPTH as default."
@@ -5807,7 +5806,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
            (after-bullet-pos (point))
            (was-encrypted
             (progn (if (= (point-max) after-bullet-pos)
-                       (error "no body to encrypt"))
+                       (error "No body to encrypt"))
                    (allout-encrypted-topic-p)))
            (was-collapsed (if (not (search-forward "\n" nil t))
                               nil
@@ -6032,7 +6031,7 @@ signal."
 
     ;; validate result -- non-empty
     (if (not result-text)
-        (error "%scryption failed." (if decrypt "De" "En")))
+        (error "%scryption failed" (if decrypt "De" "En")))
 
 
     (when (eq keypair-mode 'prompt-save)

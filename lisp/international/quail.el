@@ -2020,7 +2020,7 @@ minibuffer and the selected frame has no other windows)."
   (bury-buffer quail-completion-buf)
 
   ;; Then, show the guidance.
-  (when (and 
+  (when (and
          ;; Don't try to display guidance on an expired minibuffer.  This
          ;; would go into an infinite wait rather than executing the user's
          ;; command.  Bug #45792.

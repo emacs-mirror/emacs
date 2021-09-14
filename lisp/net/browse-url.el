@@ -1754,11 +1754,11 @@ from `browse-url-elinks-wrapper'."
     (define-key map [mouse-2] #'browse-url-button-open)
     (define-key map "w" #'browse-url-button-copy)
     map)
-  "The keymap used for browse-url buttons.")
+  "The keymap used for `browse-url' buttons.")
 
 (defface browse-url-button
   '((t :inherit link))
-  "Face for browse-url buttons (i.e., links)."
+  "Face for `browse-url' buttons (i.e., links)."
   :version "27.1")
 
 (defun browse-url-add-buttons ()

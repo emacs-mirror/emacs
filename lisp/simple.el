@@ -259,7 +259,7 @@ all other buffers."
                                                         extra-test-exclusive)
   "Try the current buffer when outside navigation.
 But return nil if we navigated to the current buffer by the means
-of `next-error' command.  Otherwise, return it if it's next-error
+of `next-error' command.  Otherwise, return it if it's `next-error'
 capable."
   ;; Check that next-error-buffer has no buffer-local value
   ;; (i.e. we never navigated to the current buffer from another),
@@ -7911,8 +7911,8 @@ With argument 0, interchanges line point is in with line mark is in."
 (defun transpose-subr (mover arg &optional special)
   "Subroutine to do the work of transposing objects.
 Works for lines, sentences, paragraphs, etc.  MOVER is a function that
-moves forward by units of the given object (e.g. forward-sentence,
-forward-paragraph).  If ARG is zero, exchanges the current object
+moves forward by units of the given object (e.g. `forward-sentence',
+`forward-paragraph').  If ARG is zero, exchanges the current object
 with the one containing mark.  If ARG is an integer, moves the
 current object past ARG following (if ARG is positive) or
 preceding (if ARG is negative) objects, leaving point after the

@@ -1929,7 +1929,7 @@ The outline level is equal to the verbosity of the Tramp message."
 (put #'tramp-trace-buffer-name 'tramp-suppress-trace t)
 
 (defvar tramp-trace-functions nil
-  "A list of non-Tramp functions to be traced with tramp-verbose > 10.")
+  "A list of non-Tramp functions to be traced with `tramp-verbose' > 10.")
 
 (defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.

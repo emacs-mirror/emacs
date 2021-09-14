@@ -24,7 +24,7 @@
 ;;; Code:
 
 (defgroup epa-file nil
-  "The EasyPG Assistant hooks for transparent file encryption"
+  "The EasyPG Assistant hooks for transparent file encryption."
   :version "23.1"
   :group 'epa)
 

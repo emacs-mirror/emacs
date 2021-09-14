@@ -486,7 +486,7 @@ was called."
   "Return VALUE with its bits shifted left by COUNT.
 If COUNT is negative, shifting is actually to the right.
 In this case, if VALUE is a negative fixnum treat it as unsigned,
-i.e., subtract 2 * most-negative-fixnum from VALUE before shifting it."
+i.e., subtract 2 * `most-negative-fixnum' from VALUE before shifting it."
   (when (and (< value 0) (< count 0))
     (when (< value most-negative-fixnum)
       (signal 'args-out-of-range (list value count)))
@@ -2902,7 +2902,7 @@ function is used instead (see `read-char-choice-with-read-key')."
 Any input that is not one of CHARS is ignored.
 
 If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
-keyboard-quit events while waiting for a valid input.
+`keyboard-quit' events while waiting for a valid input.
 
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
@@ -5274,7 +5274,7 @@ that can be added.
 If `buffer-invisibility-spec' isn't a list before calling this
 function, `buffer-invisibility-spec' will afterwards be a list
 with the value `(t ELEMENT)'.  This means that if text exists
-that invisibility values that aren't either `t' or ELEMENT, that
+that invisibility values that aren't either t or ELEMENT, that
 text will become visible."
   (if (eq buffer-invisibility-spec t)
       (setq buffer-invisibility-spec (list t)))
@@ -5284,8 +5284,8 @@ text will become visible."
 (defun remove-from-invisibility-spec (element)
   "Remove ELEMENT from `buffer-invisibility-spec'.
 If `buffer-invisibility-spec' isn't a list before calling this
-function, it will be made into a list containing just `t' as the
-only list member.  This means that if text exists with non-`t'
+function, it will be made into a list containing just t as the
+only list member.  This means that if text exists with non-t
 invisibility values, that text will become visible."
   (setq buffer-invisibility-spec
         (if (consp buffer-invisibility-spec)

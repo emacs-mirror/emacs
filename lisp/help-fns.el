@@ -227,7 +227,7 @@ interactive command."
 ;;;###autoload
 (defun describe-function (function)
   "Display the full documentation of FUNCTION (a symbol).
-When called from lisp, FUNCTION may also be a function object."
+When called from Lisp, FUNCTION may also be a function object."
   (interactive (help-fns--describe-function-or-command-prompt))
 
   ;; We save describe-function-orig-buffer on the help xref stack, so
@@ -263,7 +263,7 @@ When called from lisp, FUNCTION may also be a function object."
 ;;;###autoload
 (defun describe-command (command)
   "Display the full documentation of COMMAND (a symbol).
-When called from lisp, COMMAND may also be a function object."
+When called from Lisp, COMMAND may also be a function object."
   (interactive (help-fns--describe-function-or-command-prompt 'is-command))
   (describe-function command))
 
@@ -1641,7 +1641,7 @@ BUFFER defaults to the current buffer."
 	   ((char-table-p value) "deeper char-table ...")
 	   (t (condition-case nil
 		  (category-set-mnemonics value)
-		(error "invalid"))))))
+                (error "Invalid"))))))
 
 ;;;###autoload
 (defun describe-categories (&optional buffer)

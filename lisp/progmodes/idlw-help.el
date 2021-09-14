@@ -218,9 +218,8 @@ support."
 
 ;; Define the menu for the Help application
 
-(easy-menu-define
-  idlwave-help-menu idlwave-help-mode-map
-  "Menu for Help IDLWAVE system"
+(easy-menu-define idlwave-help-menu idlwave-help-mode-map
+  "Menu for Help IDLWAVE system."
   '("IDLHelp"
     ["Definition <-> Help Text" idlwave-help-toggle-header-match-and-def t]
     ["Find DocLib Header" idlwave-help-find-header t]

@@ -634,7 +634,7 @@ is unpredictable."
 (defun window-with-parameter (parameter &optional value frame any minibuf)
   "Return first window on FRAME with PARAMETER non-nil.
 FRAME defaults to the selected frame.  Optional argument VALUE
-non-nil means only return a window whose window-parameter value
+non-nil means only return a window whose `window-parameter' value
 for PARAMETER equals VALUE (comparison is done with `equal').
 Optional argument ANY non-nil means consider internal windows
 too.
@@ -867,7 +867,7 @@ window annihilates any effect provided by this variable.")
 (defun window--sides-reverse-on-frame-p (frame)
   "Return non-nil when side windows should appear reversed on FRAME.
 This uses some heuristics to guess the user's intentions when the
-selected window of FRAME is a side window ."
+selected window of FRAME is a side window."
   (cond
    ;; Reverse when `window-sides-reversed' is t.  Do not reverse when
    ;; `window-sides-reversed' is nil.
@@ -8619,7 +8619,7 @@ the buffer in the window specified by the rules from these variables."
 
 WARNING: This is NOT the way to work on another buffer temporarily
 within a Lisp program!  Use `set-buffer' instead.  That avoids
-messing with the window-buffer correspondences.
+messing with the `window-buffer' correspondences.
 
 If the selected window cannot display the specified buffer
 because it is a minibuffer window or strongly dedicated to
@@ -8674,7 +8674,7 @@ Return the buffer switched to."
                        "Cannot switch buffers in a dedicated window"))
                 ('prompt
                  (if (y-or-n-p
-                      (format "Window is dedicated to %s; undedicate it"
+                      (format "Window is dedicated to %s; undedicate it?"
                               (window-buffer)))
                      (progn
                        (set-window-dedicated-p nil nil)
@@ -10389,7 +10389,7 @@ displaying that processes's buffer."
                           (setq repeat-map 'other-window-repeat-map)
                           (other-window -1)))
     map)
-  "Keymap to repeat other-window key sequences.  Used in `repeat-mode'.")
+  "Keymap to repeat `other-window' key sequences.  Used in `repeat-mode'.")
 (put 'other-window 'repeat-map 'other-window-repeat-map)
 
 (defvar resize-window-repeat-map

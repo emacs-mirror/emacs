@@ -546,8 +546,7 @@ keybindings will not do anything useful."
        (erc-track-minor-mode -1)))))
 
 (defcustom erc-track-when-inactive nil
-  "Enable channel tracking even for visible buffers, if you are
-inactive."
+  "Enable channel tracking even for visible buffers, if you are inactive."
   :type 'boolean
   :set (lambda (sym val)
 	 (if erc-track-mode
@@ -598,9 +597,10 @@ only consider active buffers visible.")
     (erc-modified-channels-update)))
 
 (defvar erc-modified-channels-update-inside nil
-  "Variable to prevent running `erc-modified-channels-update' multiple
-times.  Without it, you cannot debug `erc-modified-channels-display',
-because the debugger also causes changes to the window-configuration.")
+  "Variable to prevent running `erc-modified-channels-update' multiple times.
+Without it, you cannot debug `erc-modified-channels-display',
+because the debugger also causes changes to the
+window-configuration.")
 
 (defun erc-modified-channels-update (&rest _args)
   "This function updates the information in `erc-modified-channels-alist'
@@ -630,7 +630,7 @@ ARGS are ignored."
   "The face to use when mouse is over channel names in the mode line.")
 
 (defun erc-make-mode-line-buffer-name (string buffer &optional faces count)
-  "Returns a button that switches to BUFFER when clicked.
+  "Return a button that switches to BUFFER when clicked.
 STRING is the string in the button.  It is possibly suffixed with
 the number of unread messages, according to variables
 `erc-track-showcount' and `erc-track-showcount-string'.

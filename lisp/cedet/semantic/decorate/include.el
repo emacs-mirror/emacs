@@ -66,7 +66,7 @@ Used by the decoration style: `semantic-decoration-on-includes'."
 (easy-menu-define
   semantic-decoration-on-include-menu
   semantic-decoration-on-include-map
-  "Include Menu"
+  "Include Menu."
   (list
    "Include"
    ["What Is This?" semantic-decoration-include-describe
@@ -124,7 +124,7 @@ Used by the decoration style: `semantic-decoration-on-unknown-includes'."
 (easy-menu-define
   semantic-decoration-on-unknown-include-menu
   semantic-decoration-on-unknown-include-map
-  "Unknown Include Menu"
+  "Unknown Include Menu."
   (list
    "Unknown Include"
    ["What Is This?" semantic-decoration-unknown-include-describe
@@ -179,7 +179,7 @@ Used by the decoration style: `semantic-decoration-on-fileless-includes'."
 (easy-menu-define
   semantic-decoration-on-fileless-include-menu
   semantic-decoration-on-fileless-include-map
-  "Fileless Include Menu"
+  "Fileless Include Menu."
   (list
    "Fileless Include"
    ["What Is This?" semantic-decoration-fileless-include-describe
@@ -234,7 +234,7 @@ Used by the decoration style: `semantic-decoration-on-unparsed-includes'."
 (easy-menu-define
   semantic-decoration-on-unparsed-include-menu
   semantic-decoration-on-unparsed-include-map
-  "Unparsed Include Menu"
+  "Unparsed Include Menu."
   (list
    "Unparsed Include"
    ["What Is This?" semantic-decoration-unparsed-include-describe

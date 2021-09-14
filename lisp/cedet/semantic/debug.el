@@ -108,7 +108,7 @@ These buffers are brought into view when layout occurs.")
 	     :documentation
 	     "Any active overlays being used to show the debug position.")
    )
-  "Controls action when in `semantic-debug-mode'")
+  "Controls action when in `semantic-debug-mode'.")
 
 ;; Methods
 (cl-defmethod semantic-debug-set-frame ((iface semantic-debug-interface) frame)
@@ -559,10 +559,8 @@ down to your parser later."
 (cl-defmethod semantic-debug-parser-frames ((_parser semantic-debug-parser))
   "Return a list of frames for the current parser.
 A frame is of the form:
-  ( .. .what ? .. )
-"
-  (error "Parser has not implemented frame values")
-  )
+  ( .. .what ? .. )"
+  (error "Parser has not implemented frame values"))
 
 
 (provide 'semantic/debug)

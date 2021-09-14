@@ -565,7 +565,7 @@ to indicate a parse in progress."
 (easy-menu-define
   semantic-stickyfunc-popup-menu
   semantic-stickyfunc-mode-map
-  "Stickyfunc Menu"
+  "Stickyfunc Menu."
   '("Stickyfunc Mode"  :visible (progn nil)
     [ "Copy Headerline Tag" senator-copy-tag
       :active (semantic-current-tag)
@@ -837,7 +837,7 @@ Used by `semantic-highlight-func-mode'.")
 (easy-menu-define
   semantic-highlight-func-popup-menu
   semantic-highlight-func-mode-map
-  "Highlight-Func Menu"
+  "Highlight-Func Menu."
   '("Highlight-Func Mode"  :visible (progn nil)
     [ "Copy Tag" senator-copy-tag
       :active (semantic-current-tag)

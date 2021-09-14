@@ -168,7 +168,7 @@ Various PARAMS can be set:
  :sound-file     The path to a sound file to play when the notification pops up.
  :sound-name     A themable named sound from the freedesktop.org sound naming
                  specification to play when the notification pops up.
-                 Similar to icon-name,only for sounds. An example would
+                 Similar to icon-name, only for sounds.  An example would
                  be \"message-new-instant\".
  :suppress-sound Causes the server to suppress playing any sounds, if it has
                  that ability.

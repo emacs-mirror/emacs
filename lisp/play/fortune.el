@@ -142,7 +142,7 @@ No need to add an `in'."
 ;;; **************
 ;;; Inserting a new fortune
 (defun fortune-append (string &optional interactive file)
-  "Appends STRING to the fortune FILE.
+  "Append STRING to the fortune FILE.
 
 If INTERACTIVE is non-nil, don't compile the fortune file afterwards."
   (setq file (expand-file-name

@@ -930,7 +930,7 @@ inserted into the current context.")
 
 (cl-defmethod semantic-collector-calculate-completions-raw
   ((obj semantic-collector-analyze-completions) prefix _completionlist)
-  "calculate the completions for prefix from COMPLETIONLIST."
+  "Calculate the completions for prefix from COMPLETIONLIST."
   ;; if there are no completions yet, calculate them.
   (if (not (slot-boundp obj 'first-pass-completions))
       (oset obj first-pass-completions

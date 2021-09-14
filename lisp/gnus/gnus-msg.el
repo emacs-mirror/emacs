@@ -303,7 +303,7 @@ If nil, the address field will always be empty after invoking
 
 (defcustom gnus-message-highlight-citation
   t ;; gnus-treat-highlight-citation ;; gnus-cite dependency
-  "Enable highlighting of different citation levels in message-mode."
+  "Enable highlighting of different citation levels in `message-mode'."
   :version "23.1" ;; No Gnus
   :group 'gnus-cite
   :group 'gnus-message

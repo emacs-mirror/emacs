@@ -161,11 +161,11 @@ comments always start in column zero.")
 
 (defvar-local comment-combine-change-calls t
   "If non-nil (the default), use `combine-change-calls' around
-  calls of `comment-region-function' and
-  `uncomment-region-function'.  This Substitutes a single call to
-  each of the hooks `before-change-functions' and
-  `after-change-functions' in place of those hooks being called
-  for each individual buffer change.")
+calls of `comment-region-function' and
+`uncomment-region-function'.  This Substitutes a single call to
+each of the hooks `before-change-functions' and
+`after-change-functions' in place of those hooks being called
+for each individual buffer change.")
 
 (defvar comment-region-function 'comment-region-default
   "Function to comment a region.

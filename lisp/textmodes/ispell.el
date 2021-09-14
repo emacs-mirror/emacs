@@ -621,7 +621,7 @@ this would require some extra guessing in `ispell-aspell-find-dictionary'.")
     ("svenska"       "sv_SE")
     ("hebrew"        "he_IL"))
   "Alist with known matching locales for standard dict names in
-  `ispell-dictionary-base-alist'.")
+`ispell-dictionary-base-alist'.")
 
 
 ;;; **********************************************************************

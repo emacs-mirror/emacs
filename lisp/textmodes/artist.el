@@ -4891,7 +4891,7 @@ If optional argument STATE is positive, turn borders on."
 	    (+ window-y window-start-y))))
 
 (defun artist--adjust-x (x)
-  "Adjust the X position wrt. `display-line-numbers-mode'."
+  "Adjust the X position with regards to `display-line-numbers-mode'."
   (let ((adjust (line-number-display-width)))
     (if (= adjust 0)
         x

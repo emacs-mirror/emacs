@@ -119,7 +119,7 @@
 ;;
 ;;   Moving the point backwards in conjunction with abbrev expansion
 ;;   does not work as I would like it, but this is a problem with
-;;   emacs abbrev expansion done by the self-insert-command.  It ends
+;;   Emacs abbrev expansion done by the self-insert-command.  It ends
 ;;   up inserting the character that expanded the abbrev after moving
 ;;   point backward, e.g., "\cl" expanded with a space becomes
 ;;   "LONG( )" with point before the close paren.  This is solved by
@@ -1359,7 +1359,7 @@ Normally a space.")
 
 (defconst idlwave-continuation-char ?$
   "Character which is inserted as a last character on previous line by
-   \\[idlwave-split-line] to begin a continuation line.  Normally $.")
+\\[idlwave-split-line] to begin a continuation line.  Normally $.")
 
 (defconst idlwave-mode-version "6.1_em22")
 
@@ -1953,7 +1953,7 @@ The main features of this mode are
 
 (defvar idlwave--command-function nil
   "If non-nil, a function called from `post-command-hook'.
-It is evaluated in the lisp function `idlwave-command-hook' which is
+It is evaluated in the Lisp function `idlwave-command-hook' which is
 placed in `post-command-hook'.")
 
 (defun idlwave-command-hook ()
@@ -4067,7 +4067,7 @@ blank lines."
     iname))
 
 (defun idlwave-sintern-keyword-list (kwd-list &optional set)
-  "Sintern a set of keywords (file (key . link) (key2 . link2) ...)"
+  "Sintern a set of keywords (file (key . link) (key2 . link2) ...)."
   (mapc (lambda(x)
 	  (setcar x (idlwave-sintern-keyword (car x) set)))
 	(cdr kwd-list))
@@ -5049,7 +5049,7 @@ Can run from `after-save-hook'."
 ;;----- Scanning buffers -------------------
 
 (defun idlwave-get-routine-info-from-buffers (buffers)
-  "Call `idlwave-get-buffer-routine-info' on idlwave-mode buffers in BUFFERS."
+  "Call `idlwave-get-buffer-routine-info' on `idlwave-mode' buffers in BUFFERS."
   (let (buf routine-lists res)
     (save-excursion
       (while (setq buf (pop buffers))
@@ -8971,10 +8971,10 @@ Assumes that point is at the beginning of the unit as found by
 	  idlwave-shell-automatic-start)]))
 
 (easy-menu-define idlwave-mode-menu idlwave-mode-map
-  "IDL and WAVE CL editing menu"
+  "IDL and WAVE CL editing menu."
   idlwave-mode-menu-def)
 (easy-menu-define idlwave-mode-debug-menu idlwave-mode-map
-  "IDL and WAVE CL editing menu"
+  "IDL and WAVE CL editing menu."
   idlwave-mode-debug-menu-def)
 
 (defun idlwave-customize ()

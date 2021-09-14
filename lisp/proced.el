@@ -32,7 +32,7 @@
 ;; - Allow "sudo kill PID", "sudo renice PID"
 ;;   `proced-send-signal' operates on multiple processes one by one.
 ;;   With "sudo" we want to execute one "kill" or "renice" command
-;;   for all marked processes. Is there a `sudo-call-process'?
+;;   for all marked processes.  Is there a `sudo-call-process'?
 ;;
 ;; Thoughts and Ideas
 ;; - Currently, `process-attributes' returns the list of
@@ -497,8 +497,8 @@ Important: the match ends just after the marker.")
     km)
   "Keymap for Proced commands.")
 
-(easy-menu-define
-  proced-menu proced-mode-map "Proced Menu"
+(easy-menu-define proced-menu proced-mode-map
+  "Proced Menu."
   `("Proced"
     ["Mark" proced-mark
      :help "Mark Current Process"]

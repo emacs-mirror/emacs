@@ -204,7 +204,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 Load the compiled code when finished.
 
 Use `emacs-lisp-byte-compile-and-load' in combination with
-`native-comp-deferred-compilation' set to `t' to achieve asynchronous
+`native-comp-deferred-compilation' set to t to achieve asynchronous
 native compilation."
   (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
@@ -1249,7 +1249,7 @@ this command arranges for all errors to enter the debugger."
 
 (defun last-sexp-setup-props (beg end value alt1 alt2)
   "Set up text properties for the output of `elisp--eval-last-sexp'.
-BEG and END are the start and end of the output in current-buffer.
+BEG and END are the start and end of the output in current buffer.
 VALUE is the Lisp value printed, ALT1 and ALT2 are strings for the
 alternative printed representations that can be displayed."
   (let ((map (make-sparse-keymap)))

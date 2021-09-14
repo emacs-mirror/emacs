@@ -772,7 +772,7 @@ possible.  Uses `gnus-registry-split-strategy'."
         nil))))
 
 (defun gnus-registry-follow-group-p (group)
-  "Determines if a group name should be followed.
+  "Determine if a group name should be followed.
 Consults `gnus-registry-unfollowed-groups' and
 `nnmail-split-fancy-with-parent-ignore-groups'."
   (and group
@@ -789,7 +789,7 @@ Consults `gnus-registry-unfollowed-groups' and
 ;; we do special logic for ignoring to accept regular expressions and
 ;; nnmail-split-fancy-with-parent-ignore-groups as well
 (defun gnus-registry-ignore-group-p (group)
-  "Determines if a group name should be ignored.
+  "Determine if a group name should be ignored.
 Consults `gnus-registry-ignored-groups' and
 `nnmail-split-fancy-with-parent-ignore-groups'."
   (and group

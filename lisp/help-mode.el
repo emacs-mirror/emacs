@@ -811,7 +811,7 @@ See `help-make-xrefs'."
 
 (defun help-do-xref (_pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.
-Things are set up properly so that the resulting help-buffer has
+Things are set up properly so that the resulting help buffer has
 a proper [back] button."
   ;; There is a reference at point.  Follow it.
   (let ((help-xref-following t))

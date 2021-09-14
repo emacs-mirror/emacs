@@ -68,7 +68,7 @@ being evaluated and should return strings."
 
 ;;;###autoload
 (defun erc-xdcc-add-file (file)
-  "Add a file to `erc-xdcc-files'."
+  "Add FILE to `erc-xdcc-files'."
   (interactive "fFilename to add to XDCC: ")
   (if (file-exists-p file)
       (add-to-list 'erc-xdcc-files file)))

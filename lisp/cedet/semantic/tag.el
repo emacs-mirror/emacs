@@ -119,8 +119,7 @@ Statement that represents a file from which more tags can be found.
 Statement that declares this file's package name.
 @item code
 Code that has not name or binding to any other symbol, such as in a script.
-@end table
-"
+@end table"
   (nth 1 tag))
 
 (defsubst semantic-tag-attributes (tag)
@@ -703,7 +702,7 @@ It is safe for FILTER to modify the input tag and return it."
 
 It is safe to modify ATTR, and return a permutation of that list.
 
-FILTER takes TAG as an argument, and should returns a semantic-tag.
+FILTER takes TAG as an argument, and should return a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
   (when (car attrs)
     (when (not (symbolp (car attrs))) (error "Bad Attribute List in tag"))
@@ -716,7 +715,7 @@ It is safe for FILTER to modify the input tag and return it."
 
 It is safe to modify VALUE, and return a permutation of that list.
 
-FILTER takes TAG as an argument, and should returns a semantic-tag.
+FILTER takes TAG as an argument, and should return a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
   (cond
    ;; Another tag.
@@ -735,7 +734,7 @@ It is safe for FILTER to modify the input tag and return it."
 
 It is safe to modify the TAGS list, and return a permutation of that list.
 
-FILTER takes TAG as an argument, and should returns a semantic-tag.
+FILTER takes TAG as an argument, and should return a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
   (when (car tags)
     (if (semantic-tag-p (car tags))
@@ -1309,12 +1308,12 @@ This function is overridable with the symbol `insert-foreign-tag'."
 ;;; Support log modes here
 (define-mode-local-override semantic-insert-foreign-tag
   log-edit-mode (foreign-tag)
-  "Insert foreign tags into log-edit mode."
+  "Insert foreign tags into `log-edit' mode."
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
 (define-mode-local-override semantic-insert-foreign-tag
   change-log-mode (foreign-tag)
-  "Insert foreign tags into log-edit mode."
+  "Insert foreign tags into `log-edit' mode."
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
 

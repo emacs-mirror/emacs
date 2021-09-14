@@ -271,7 +271,7 @@ a parse of the buffer.")
 (defsubst semantic-error-if-unparsed ()
   "Raise an error if current buffer was not parsed by Semantic."
   (unless semantic-new-buffer-fcn-was-run
-    (error "Buffer was not parsed by Semantic.")))
+    (error "Buffer was not parsed by Semantic")))
 
 (defsubst semantic--umatched-syntax-needs-refresh-p  ()
   "Return non-nil if the unmatched syntax cache needs a refresh.

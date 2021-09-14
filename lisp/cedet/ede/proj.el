@@ -562,7 +562,7 @@ Converts all symbols into the objects to be used."
 	  ;; Provide a good error msg.
 	  (unless comp
 	    (error "Could not find compiler match for source code extension \"%s\".
-You may need to add support for this type of file."
+You may need to add support for this type of file"
 		   (if sources
 		       (file-name-extension (car sources))
 		     "")))

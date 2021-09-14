@@ -607,7 +607,7 @@ the filename."
 	(:ignore-on-read-text t)
 	;; (:constraintp ,pic-cmd)
 	))))
-  "Association list of file patterns and external viewers for use with
+  "Alist of file patterns and external viewers for use with
 `filesets-find-or-display-file'.
 
 Has the form ((FILE-PATTERN VIEWER PROPERTIES) ...), VIEWER being either a

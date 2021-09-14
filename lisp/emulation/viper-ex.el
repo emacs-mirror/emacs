@@ -2176,7 +2176,7 @@ Please contact your system administrator. "))))))
 	(goto-char beg)))))
 
 (defun ex-compile ()
-  "Reads args from the command line, then runs make with the args.
+  "Read args from the command line, then run make with the args.
 If no args are given, then it runs the last compile command.
 Type `mak ' (including the space) to run make with no args."
   (let (args)

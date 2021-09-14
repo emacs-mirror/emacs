@@ -773,11 +773,11 @@ SYMBOL is a function that can be overridden."
 (defconst xref-mode-local-find-overloadable-regexp
   "(define-overload\\(able-function\\)? +%s"
   "Regexp used by `xref-find-definitions' when searching for a
-  mode-local overloadable function definition.")
+mode-local overloadable function definition.")
 
 (defun xref-mode-local-find-override (meta-name)
   "Function used by `xref-find-definitions' when searching for an
-  override of a mode-local overloadable function.
+override of a mode-local overloadable function.
 META-NAME is a cons (OVERLOADABLE-SYMBOL . MAJOR-MODE)."
   (let* ((override (car meta-name))
 	 (mode (cdr meta-name))

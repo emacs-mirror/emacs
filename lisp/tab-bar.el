@@ -189,7 +189,7 @@ either 1 or 0 depending on the value of the customizable variable
 (defun tab-bar--update-tab-bar-lines (&optional frames)
   "Update the `tab-bar-lines' frame parameter in FRAMES.
 If the optional parameter FRAMES is omitted, update only
-the currently selected frame.  If it is `t', update all frames
+the currently selected frame.  If it is t, update all frames
 as well as the default for new frames.  Otherwise FRAMES should be
 a list of frames to update."
   (let ((frame-lst (cond ((null frames)
@@ -1319,7 +1319,7 @@ If `recent', select the most recently visited tab."
   "Defines what to do when the last tab is closed.
 If nil, do nothing and show a message, like closing the last window or frame.
 If `delete-frame', delete the containing frame, as a web browser would do.
-If `tab-bar-mode-disable', disable tab-bar-mode so that tabs no longer show
+If `tab-bar-mode-disable', disable `tab-bar-mode' so that tabs no longer show
 in the frame.
 If the value is a function, call that function with the tab to be closed
 as an argument."

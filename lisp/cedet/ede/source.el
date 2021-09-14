@@ -91,12 +91,12 @@ that they are willing to use.")
       (ede-want-file-auxiliary-p this filename)))
 
 (cl-defmethod ede-want-file-source-p ((this ede-sourcecode) filename)
-  "Return non-nil if THIS will take FILENAME as an auxiliary ."
+  "Return non-nil if THIS will take FILENAME as an auxiliary."
   (let ((case-fold-search nil))
     (string-match (oref this sourcepattern) filename)))
 
 (cl-defmethod ede-want-file-auxiliary-p ((this ede-sourcecode) filename)
-  "Return non-nil if THIS will take FILENAME as an auxiliary ."
+  "Return non-nil if THIS will take FILENAME as an auxiliary."
   (let ((case-fold-search nil))
     (and (slot-boundp this 'auxsourcepattern)
 	 (oref this auxsourcepattern)

@@ -1416,7 +1416,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 
 (defun use-default-char-width-table ()
   "Internal use only.
-Setup char-width-table appropriate for non-CJK language environment."
+Setup `char-width-table' appropriate for non-CJK language environment."
   (while (char-table-parent char-width-table)
     (setq char-width-table (char-table-parent char-width-table))))
 

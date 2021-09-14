@@ -136,10 +136,10 @@
 (defvar life-window-start nil)
 
 (defvar life--max-width nil
-  "If non-nil, restrict width to this positive integer. ")
+  "If non-nil, restrict width to this positive integer.")
 
 (defvar life--max-height nil
-  "If non-nil, restrict height to this positive integer. ")
+  "If non-nil, restrict height to this positive integer.")
 
 ;; For mode line
 (defvar life-current-generation nil)

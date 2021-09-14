@@ -1723,8 +1723,7 @@ For example:
 \(setq gnus-newsgroup-variables
      \\='(message-use-followup-to
        (gnus-visible-headers .
-	 \"^From:\\\\|^Newsgroups:\\\\|^Subject:\\\\|^Date:\\\\|^To:\")))
-")
+         \"^From:\\\\|^Newsgroups:\\\\|^Subject:\\\\|^Date:\\\\|^To:\")))")
 
 (eval-when-compile
   ;; Bind features so that require will believe that gnus-sum has
@@ -3146,8 +3145,9 @@ You can also post articles and send mail from this buffer.  To
 follow up an article, type `\\[gnus-summary-followup]'.  To mail a reply to the author
 of an article, type `\\[gnus-summary-reply]'.
 
-There are approx. one gazillion commands you can execute in this
-buffer; read the Info manual for more information (`\\[gnus-info-find-node]').
+There are approximately one gazillion commands you can execute in
+this buffer; read the Info manual for more
+information (`\\[gnus-info-find-node]').
 
 The following commands are available:
 
@@ -6843,7 +6843,7 @@ Also do horizontal recentering."
 
 (defun gnus-forward-line-ignore-invisible (n)
   "Move N lines forward (backward if N is negative).
-Like forward-line, but skip over (and don't count) invisible lines."
+Like `forward-line', but skip over (and don't count) invisible lines."
   (let (done)
     (while (and (> n 0) (not done))
       ;; If the following character is currently invisible,

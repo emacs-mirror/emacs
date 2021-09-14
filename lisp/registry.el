@@ -60,7 +60,7 @@
 ;; The user decides which fields are "precious", F2 for example.  When
 ;; the registry is pruned, any entries without the F2 field will be
 ;; removed until the size is :max-size * :prune-factor _less_ than the
-;; maximum database size. No entries with the F2 field will be removed
+;; maximum database size.  No entries with the F2 field will be removed
 ;; at PRUNE TIME, which means it may not be possible to prune back all
 ;; the way to the target size.
 
@@ -326,7 +326,7 @@ Errors out if the key exists already."
 
 Attempts to prune the number of entries down to \(*
 :max-size :prune-factor) less than the max-size limit, so
-pruning doesn't need to happen on every save. Removes only
+pruning doesn't need to happen on every save.  Removes only
 entries without the :precious keys, so it may not be possible to
 reach the target limit.
 

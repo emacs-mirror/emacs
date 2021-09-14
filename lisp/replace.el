@@ -83,7 +83,7 @@ from Isearch by using a key sequence like `C-s C-s M-%'." "24.3")
 (defcustom query-replace-from-to-separator " → "
   "String that separates FROM and TO in the history of replacement pairs.
 When nil, the pair will not be added to the history (same behavior
-as in emacs 24.5)."
+as in Emacs 24.5)."
   :group 'matching
   :type '(choice
           (const :tag "Disabled" nil)
@@ -796,7 +796,7 @@ of `history-length', which see.")
   "Overlays used to temporarily highlight occur matches.")
 
 (defvar occur-collect-regexp-history '("\\1")
-  "History of regexp for occur's collect operation")
+  "History of regexp for occur's collect operation.")
 
 (defcustom read-regexp-defaults-function nil
   "Function that provides default regexp(s) for `read-regexp'.

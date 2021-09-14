@@ -1747,7 +1747,7 @@ some of this variable's contents the diagnostic listings.")
       (revert-buffer))))
 
 (defun flymake--update-diagnostics-listings (buffer)
-  "Update diagnostics listings somehow relevant to BUFFER"
+  "Update diagnostics listings somehow relevant to BUFFER."
   (dolist (probe (buffer-list))
     (with-current-buffer probe
       (when (or (and (eq major-mode 'flymake-project-diagnostics-mode)

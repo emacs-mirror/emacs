@@ -99,7 +99,7 @@ You may enter a guess for a letter's value by typing first the letter,
 then the digit.  Thus, to guess that A=3, type `A 3'.
 
 To leave the game to do other editing work, just switch buffers.
-Then you may resume the game with M-x mpuz.
+Then you may resume the game with \\[mpuz].
 You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (setq tab-width 30))
 

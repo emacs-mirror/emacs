@@ -1312,9 +1312,9 @@ allows editing it."
   "Turn off or on support for the dictionary tooltip mode.
 
 It is normally internally called with 1 to enable support for the
-tooltip mode. The hook function will check the value of the
-variable dictionary-tooltip-mode to decide if some action must be
-taken. When disabling the tooltip mode the value of this variable
+tooltip mode.  The hook function will check the value of the
+variable `dictionary-tooltip-mode' to decide if some action must be
+taken.  When disabling the tooltip mode the value of this variable
 will be set to nil."
   (interactive)
   (tooltip-mode on)
@@ -1345,10 +1345,10 @@ active it will overwrite that mode for the current buffer."
 
 ;;;###autoload
 (defun global-dictionary-tooltip-mode (&optional arg)
-  "Enable/disable dictionary-tooltip-mode for all buffers.
+  "Enable/disable `dictionary-tooltip-mode' for all buffers.
 
-Internally it provides a default for the dictionary-tooltip-mode.
-It can be overwritten for each buffer using dictionary-tooltip-mode.
+Internally it provides a default for the `dictionary-tooltip-mode'.
+It can be overwritten for each buffer using `dictionary-tooltip-mode'.
 
 Note: (global-dictionary-tooltip-mode 0) will not disable the mode
 any buffer where (dictionary-tooltip-mode 1) has been called."

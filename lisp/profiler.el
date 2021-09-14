@@ -463,12 +463,12 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
   "The current profile.")
 
 (defvar-local profiler-report-reversed nil
-  "True if calltree is rendered in bottom-up.  Do not touch this
-variable directly.")
+  "True if calltree is rendered in bottom-up.
+Do not touch this variable directly.")
 
 (defvar-local profiler-report-order nil
-  "The value can be `ascending' or `descending'.  Do not touch
-this variable directly.")
+  "The value can be `ascending' or `descending'.
+Do not touch this variable directly.")
 
 (defun profiler-report-make-entry-part (entry)
   (let ((string (cond
@@ -618,8 +618,7 @@ RET: expand or collapse"))
     buffer))
 
 (defun profiler-report-setup-buffer (profile)
-  "Make a buffer for PROFILE with rendering the profile and
-return it."
+  "Make a buffer for PROFILE with rendering the profile and return it."
   (let ((buffer (profiler-report-setup-buffer-1 profile)))
     (with-current-buffer buffer
       (profiler-report-render-calltree))
@@ -706,9 +705,9 @@ With a prefix argument, expand the whole subtree."
       t)))
 
 (defun profiler-report-toggle-entry (&optional arg)
-  "Expand entry at point if the tree is collapsed,
-otherwise collapse.  With prefix argument, expand all subentries
-below entry at point."
+  "Expand entry at point if the tree is collapsed, otherwise collapse.
+With prefix argument, expand all subentries below entry at
+point."
   (interactive "P")
   (or (profiler-report-expand-entry arg)
       (profiler-report-collapse-entry)))

@@ -80,32 +80,32 @@
   :group 'applications)
 
 (defgroup erc-buffers nil
-  "Creating new ERC buffers"
+  "Creating new ERC buffers."
   :group 'erc)
 
 (defgroup erc-display nil
-  "Settings for how various things are displayed"
+  "Settings for how various things are displayed."
   :group 'erc)
 
 (defgroup erc-mode-line-and-header nil
-  "Displaying information in the mode-line and header"
+  "Displaying information in the mode-line and header."
   :group 'erc-display)
 
 (defgroup erc-ignore nil
-  "Ignoring certain messages"
+  "Ignoring certain messages."
   :group 'erc)
 
 (defgroup erc-lurker nil
-  "Hide specified message types sent by lurkers"
+  "Hide specified message types sent by lurkers."
   :version "24.3"
   :group 'erc-ignore)
 
 (defgroup erc-query nil
-  "Using separate buffers for private discussions"
+  "Using separate buffers for private discussions."
   :group 'erc)
 
 (defgroup erc-quit-and-part nil
-  "Quitting and parting channels"
+  "Quitting and parting channels."
   :group 'erc)
 
 (defgroup erc-paranoia nil
@@ -113,7 +113,7 @@
   :group 'erc)
 
 (defgroup erc-scripts nil
-  "Running scripts at startup and with /LOAD"
+  "Running scripts at startup and with /LOAD."
   :group 'erc)
 
 (require 'erc-backend)
@@ -280,9 +280,9 @@ indicate it has handled the input."
   :type 'hook)
 
 (defcustom erc-join-hook nil
-  "Hook run when we join a channel.  Hook functions are called
-without arguments, with the current buffer set to the buffer of
-the new channel.
+  "Hook run when we join a channel.
+Hook functions are called without arguments, with the current
+buffer set to the buffer of the new channel.
 
 See also `erc-server-JOIN-functions', `erc-part-hook'."
   :group 'erc-hooks
@@ -533,10 +533,10 @@ Removes all users in the current channel.  This is called by
               (erc-channel-user-voice (cdr cdata))))))))
 
 (defun erc-get-channel-user-list ()
-  "Return a list of users in the current channel.  Each element
-of the list is of the form (USER . CHANNEL-DATA), where USER is
-an erc-server-user struct, and CHANNEL-DATA is either nil or an
-erc-channel-user struct.
+  "Return a list of users in the current channel.
+Each element of the list is of the form (USER . CHANNEL-DATA),
+where USER is an erc-server-user struct, and CHANNEL-DATA is
+either nil or an erc-channel-user struct.
 
 See also: `erc-sort-channel-users-by-activity'."
   (let (users)
@@ -816,7 +816,7 @@ set if some hacker is trying to flood you away."
 
 (defcustom erc-system-name nil
   "Use this as the name of your system.
-If nil, ERC will call `system-name' to get this information."
+If nil, ERC will call function `system-name' to get this information."
   :group 'erc
   :type '(choice (const :tag "Default system name" nil)
                  string))
@@ -1487,8 +1487,8 @@ Defaults to the server buffer."
   "IRC port to use if it cannot be detected otherwise.")
 
 (defconst erc-default-port-tls 6697
-  "IRC port to use for encrypted connections if it cannot be
-  detected otherwise.")
+  "IRC port to use for encrypted connections if it cannot be \
+detected otherwise.")
 
 (defcustom erc-join-buffer 'buffer
   "Determines how to display a newly created IRC buffer.
@@ -3741,7 +3741,7 @@ the message given by REASON."
   (condition-case nil
       (erc :server server :nick (erc-current-nick))
     (error
-     (erc-error "Cannot find host %s." server)))
+     (erc-error "Cannot find host: `%s'" server)))
   t)
 (put 'erc-cmd-SERVER 'process-not-needed t)
 
@@ -4490,7 +4490,7 @@ also `erc-format-nick-function'."
       (propertize prefix 'font-lock-face 'erc-default-face))))
 
 (defun erc-echo-notice-in-default-buffer (s parsed buffer _sender)
-  "Echos a private notice in the default buffer, namely the
+  "Echo a private notice in the default buffer, namely the
 target buffer specified by BUFFER, or there is no target buffer,
 the server buffer.  This function is designed to be added to
 either `erc-echo-notice-hook' or `erc-echo-notice-always-hook',
@@ -4499,30 +4499,32 @@ and always returns t."
   t)
 
 (defun erc-echo-notice-in-target-buffer (s parsed buffer _sender)
-  "Echos a private notice in BUFFER, if BUFFER is non-nil.  This
-function is designed to be added to either `erc-echo-notice-hook'
-or `erc-echo-notice-always-hook', and returns non-nil if BUFFER
-is non-nil."
+  "Echo a private notice in BUFFER, if BUFFER is non-nil.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+returns non-nil if BUFFER is non-nil."
   (if buffer
       (progn (erc-display-message parsed nil buffer s) t)
     nil))
 
 (defun erc-echo-notice-in-minibuffer (s _parsed _buffer _sender)
-  "Echos a private notice in the minibuffer.  This function is
-designed to be added to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and always returns t."
+  "Echo a private notice in the minibuffer.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+always returns t."
   (message "%s" (concat "NOTICE: " s))
   t)
 
 (defun erc-echo-notice-in-server-buffer (s parsed _buffer _sender)
-  "Echos a private notice in the server buffer.  This function is
-designed to be added to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and always returns t."
+  "Echo a private notice in the server buffer.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+always returns t."
   (erc-display-message parsed nil nil s)
   t)
 
 (defun erc-echo-notice-in-active-non-server-buffer (s parsed _buffer _sender)
-  "Echos a private notice in the active buffer if the active
+  "Echo a private notice in the active buffer if the active
 buffer is not the server buffer.  This function is designed to be
 added to either `erc-echo-notice-hook' or
 `erc-echo-notice-always-hook', and returns non-nil if the active
@@ -4532,14 +4534,15 @@ buffer is not the server buffer."
     nil))
 
 (defun erc-echo-notice-in-active-buffer (s parsed _buffer _sender)
-  "Echos a private notice in the active buffer.  This function is
-designed to be added to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and always returns t."
+  "Echo a private notice in the active buffer.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+always returns t."
   (erc-display-message parsed nil 'active s)
   t)
 
 (defun erc-echo-notice-in-user-buffers (s parsed _buffer sender)
-  "Echos a private notice in all of the buffers for which SENDER
+  "Echo a private notice in all of the buffers for which SENDER
 is a member.  This function is designed to be added to either
 `erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
 returns non-nil if there is at least one buffer for which the
@@ -4553,7 +4556,7 @@ See also: `erc-echo-notice-in-first-user-buffer',
       nil)))
 
 (defun erc-echo-notice-in-user-and-target-buffers (s parsed buffer sender)
-  "Echos a private notice in BUFFER and in all of the buffers for
+  "Echo a private notice in BUFFER and in all of the buffers for
 which SENDER is a member.  This function is designed to be added
 to either `erc-echo-notice-hook' or
 `erc-echo-notice-always-hook', and returns non-nil if there is
@@ -4569,7 +4572,7 @@ See also: `erc-echo-notice-in-user-buffers',
       nil)))
 
 (defun erc-echo-notice-in-first-user-buffer (s parsed _buffer sender)
-  "Echos a private notice in one of the buffers for which SENDER
+  "Echo a private notice in one of the buffers for which SENDER
 is a member.  This function is designed to be added to either
 `erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
 returns non-nil if there is at least one buffer for which the
@@ -5030,10 +5033,11 @@ See also: `erc-update-user'."
 
 (defun erc-update-user (user &optional new-nick
                              host login full-name info)
-  "Update user info for USER.  USER must be an erc-server-user
-struct.  Any of NEW-NICK, HOST, LOGIN, FULL-NAME, INFO which are
-non-nil and not equal to the existing values for USER are used to
-replace the stored values in USER.
+  "Update user info for USER.
+USER must be an erc-server-user struct.  Any of NEW-NICK, HOST,
+LOGIN, FULL-NAME, INFO which are non-nil and not equal to the
+existing values for USER are used to replace the stored values in
+USER.
 
 If, and only if, a change is made,
 `erc-channel-members-changed-hook' is run for each channel for
@@ -5570,9 +5574,9 @@ submitted line to be intentional."
   string insertp sendp)
 
 (defun erc-send-input (input)
-  "Treat INPUT as typed in by the user.  It is assumed that the input
-and the prompt is already deleted.
-This returns non-nil only if we actually send anything."
+  "Treat INPUT as typed in by the user.
+It is assumed that the input and the prompt is already deleted.
+Return non-nil only if we actually send anything."
   ;; Handle different kinds of inputs
   (cond
    ;; Ignore empty input

@@ -842,7 +842,7 @@ The function will go to the section where the entry at point was defined."
   (reftex-display-index nil nil 'redo))
 
 (defun reftex-index-restrict-to-section (&optional force)
-  "Restrict index to entries defined in same document sect. as entry at point."
+  "Restrict index to entries defined in same document section as entry at point."
   ;; Optional FORCE means, even if point is not on an index entry.
   (interactive)
   (let* ((data (get-text-property (point) :data))

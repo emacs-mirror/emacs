@@ -45,7 +45,7 @@
 ;; Variables
 
 (defgroup erc-networks nil
-  "IRC Networks"
+  "IRC Networks."
   :group 'erc)
 
 (defcustom erc-server-alist
@@ -720,7 +720,7 @@ NET is a symbol naming that IRC network and
 MATCHER is used to find a corresponding network to a server while
   connected to it.  If it is regexp, it's used to match against
   `erc-server-announced-name'.  It can also be a function (predicate).
-  Then it is executed with the server buffer as current-buffer."
+  Then it is executed with the server buffer as current buffer."
   :type '(repeat
 	  (list :tag "Network"
 		(symbol :tag "Network name")

@@ -79,7 +79,7 @@ STATE-OR-STRING should be a string or an erc-input object."
   (setq erc-input-ring-index nil))
 
 (defun erc-clear-input-ring ()
-  "Remove all entries from the input ring, then call garbage-collect.
+  "Remove all entries from the input ring, then call `garbage-collect'.
 You might use this for security purposes if you have typed a command
 containing a password."
   (interactive)

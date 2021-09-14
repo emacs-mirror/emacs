@@ -247,7 +247,7 @@
     (should-not (auth-source-remembered-p '(:host t)))))
 
 (ert-deftest auth-source-test-searches ()
-  "Test auth-source searches with various parameters"
+  "Test auth-source searches with various parameters."
   :tags '(auth-source auth-source/netrc)
   (let* ((entries '("machine a1 port a2 user a3 password a4"
                     "machine b1 port b2 user b3 password b4"

@@ -834,7 +834,7 @@ Each function on the list may modify the dynamically bound variable
   :type 'hook)
 
 (defcustom ido-rewrite-file-prompt-functions nil
-  "List of functions to run when the find-file prompt is created.
+  "List of functions to run when the `find-file' prompt is created.
 Each function on the list may modify the following dynamically bound
 variables:
   dirname   - the (abbreviated) directory name
@@ -3620,7 +3620,7 @@ Uses and updates `ido-dir-file-cache'."
 
 
 (defun ido-make-file-list-1 (dir &optional merged)
-  "Return list of non-ignored files in DIR
+  "Return list of non-ignored files in DIR.
 If MERGED is non-nil, each file is cons'ed with DIR."
   (and (or (ido-is-tramp-root dir) (ido-is-unc-root dir)
 	   (file-directory-p dir))
@@ -4397,7 +4397,7 @@ For details of keybindings, see `ido-find-file'."
 
 ;;;###autoload
 (defun ido-dired-other-window ()
-  "\"Edit\" a directory.  Like `ido-dired' but selects in another window.
+  "\"Edit\" a directory.  Like `ido-dired' but select in another window.
 The directory is selected interactively by typing a substring.
 For details of keybindings, see `ido-find-file'."
   (interactive)
@@ -4408,7 +4408,7 @@ For details of keybindings, see `ido-find-file'."
 
 ;;;###autoload
 (defun ido-dired-other-frame ()
-  "\"Edit\" a directory.  Like `ido-dired' but makes a new frame.
+  "\"Edit\" a directory.  Like `ido-dired' but make a new frame.
 The directory is selected interactively by typing a substring.
 For details of keybindings, see `ido-find-file'."
   (interactive)

@@ -71,7 +71,7 @@
 (require 'ring)
 (require 'project)
 
-(defgroup xref nil "Cross-referencing commands"
+(defgroup xref nil "Cross-referencing commands."
   :version "25.1"
   :group 'tools)
 
@@ -247,7 +247,7 @@ generic functions.")
 
 The result must be a list of xref objects.  If IDENTIFIER
 contains sufficient information to determine a unique definition,
-return only that definition. If there are multiple possible
+return only that definition.  If there are multiple possible
 definitions, return all of them.  If no definitions can be found,
 return nil.
 
@@ -491,7 +491,7 @@ value."
   (goto-char pos))
 
 (defun xref--goto-location (location)
-  "Set buffer and point according to xref-location LOCATION."
+  "Set buffer and point according to `xref-location' LOCATION."
   (let ((marker (xref-location-marker location)))
     (set-buffer (marker-buffer marker))
     (xref--goto-char marker)))
@@ -499,9 +499,9 @@ value."
 (defun xref-pop-to-location (item &optional action)
   "Go to the location of ITEM and display the buffer.
 ACTION controls how the buffer is displayed:
-  nil      -- switch-to-buffer
-  `window' -- pop-to-buffer (other window)
-  `frame'  -- pop-to-buffer (other frame)
+  nil      -- `switch-to-buffer'
+  `window' -- `pop-to-buffer' (other window)
+  `frame'  -- `pop-to-buffer' (other frame)
 If SELECT is non-nil, select the target window."
   (let* ((marker (save-excursion
                    (xref-location-marker (xref-item-location item))))
@@ -962,7 +962,7 @@ The window showing the xref buffer will be selected."
         (put-text-property (+ pos xref-truncation-width) eol 'invisible 'ellipsis))))))
 
 (defun xref--insert-xrefs (xref-alist)
-  "Insert XREF-ALIST in the current-buffer.
+  "Insert XREF-ALIST in the current buffer.
 XREF-ALIST is of the form ((GROUP . (XREF ...)) ...), where
 GROUP is a string for decoration purposes and XREF is an
 `xref-item' object."

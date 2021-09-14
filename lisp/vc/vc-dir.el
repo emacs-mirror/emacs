@@ -1542,7 +1542,7 @@ This implements the `bookmark-make-record-function' type for
 
 ;;;###autoload
 (defun vc-dir-bookmark-jump (bmk)
-  "Provides the bookmark-jump behavior for a `vc-dir' buffer.
+  "Provide the `bookmark-jump' behavior for a `vc-dir' buffer.
 This implements the `handler' function interface for the record
 type returned by `vc-dir-bookmark-make-record'."
   (let* ((file (bookmark-prop-get bmk 'filename))

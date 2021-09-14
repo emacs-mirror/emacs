@@ -4432,8 +4432,8 @@ variables will override modes."
           (t -2))))
 
 (defun dir-locals--sort-variables (variables)
-  "Sorts VARIABLES so that applying them in order has the right effect.
-The variables are compared by dir-locals--get-sort-score.
+  "Sort VARIABLES so that applying them in order has the right effect.
+The variables are compared by `dir-locals--get-sort-score'.
 Directory entries are then recursively sorted using the same
 criteria."
   (setq variables (sort variables

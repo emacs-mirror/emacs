@@ -106,7 +106,7 @@
     (should (abbrev-table-empty-p table))))
 
 (ert-deftest kill-all-abbrevs-test ()
-  "Test undefining all defined abbrevs"
+  "Test undefining all defined abbrevs."
   (unless noninteractive
     (ert-skip "Cannot test kill-all-abbrevs in interactive mode"))
 
@@ -125,14 +125,14 @@
                                    abbrev-table-name-list))))))
 
 (ert-deftest abbrev-table-name-test ()
-  "Test returning name of abbrev-table"
+  "Test returning name of abbrev-table."
   (let ((ert-test-abbrevs (setup-test-abbrev-table))
         (no-such-table nil))
     (should (equal 'ert-test-abbrevs (abbrev-table-name ert-test-abbrevs)))
     (should (equal nil (abbrev-table-name no-such-table)))))
 
 (ert-deftest clear-abbrev-table-test ()
-  "Test clearing single abbrev table"
+  "Test clearing single abbrev table."
   (let ((ert-test-abbrevs (setup-test-abbrev-table)))
     (should (equal "abbrev-ert-test" (abbrev-expansion "a-e-t" ert-test-abbrevs)))
     (clear-abbrev-table ert-test-abbrevs)
@@ -140,7 +140,7 @@
     (should (equal t (abbrev-table-empty-p ert-test-abbrevs)))))
 
 (ert-deftest list-abbrevs-test ()
-  "Test generation of abbrev list buffer"
+  "Test generation of abbrev list buffer."
   ;; Somewhat redundant as prepare-abbrev-list-buffer is also tested.
   ;; all abbrevs
   (let ((abbrev-buffer (prepare-abbrev-list-buffer)))
@@ -152,7 +152,7 @@
     (kill-buffer abbrev-buffer)))
 
 (ert-deftest prepare-abbrev-list-buffer-test ()
-  "Test generation of abbrev list buffer"
+  "Test generation of abbrev list buffer."
   ;; all abbrevs
   (let ((ert-test-abbrevs (setup-test-abbrev-table)))
     (with-current-buffer (prepare-abbrev-list-buffer)
@@ -180,7 +180,7 @@
       (kill-buffer "*Abbrevs*"))))
 
 (ert-deftest insert-abbrevs-test ()
-  "Test inserting abbrev definitions into buffer"
+  "Test inserting abbrev definitions into buffer."
   (with-temp-buffer
     (insert-abbrevs)
       (should (progn
@@ -188,7 +188,7 @@
                 (search-forward "global-abbrev-table")))))
 
 (ert-deftest edit-abbrevs-test ()
-  "Test editing abbrevs from buffer"
+  "Test editing abbrevs from buffer."
   (defvar ert-edit-abbrevs-test-table nil)
   (let ((ert-test-abbrevs (setup-test-abbrev-table)))
     (with-temp-buffer
@@ -205,7 +205,7 @@
                      (abbrev-expansion "e-a-t" ert-edit-abbrevs-test-table))))))
 
 (ert-deftest define-abbrevs-test ()
-  "Test defining abbrevs from buffer"
+  "Test defining abbrevs from buffer."
   (defvar ert-bad-abbrev-table nil)
   (defvar ert-good-abbrev-table nil)
   (defvar ert-redefine-abbrev-table nil)
@@ -235,7 +235,7 @@
     (should (equal nil (abbrev-expansion "g-a-t" ert-good-abbrev-table)))))
 
 (ert-deftest read-write-abbrev-file-test ()
-  "Test reading and writing abbrevs from file"
+  "Test reading and writing abbrevs from file."
   (let ((temp-test-file (make-temp-file "ert-abbrev-test"))
         (ert-test-abbrevs (setup-test-abbrev-table)))
     (write-abbrev-file temp-test-file)
@@ -246,7 +246,7 @@
     (delete-file temp-test-file)))
 
 (ert-deftest read-write-abbrev-file-test-with-props ()
-  "Test reading and writing abbrevs from file"
+  "Test reading and writing abbrevs from file."
   (let ((temp-test-file (make-temp-file "ert-abbrev-test"))
         (ert-test-abbrevs (setup-test-abbrev-table-with-props)))
     (write-abbrev-file temp-test-file)
@@ -257,7 +257,7 @@
     (delete-file temp-test-file)))
 
 (ert-deftest abbrev-edit-save-to-file-test ()
-  "Test saving abbrev definitions in buffer to file"
+  "Test saving abbrev definitions in buffer to file."
   (defvar ert-save-test-table nil)
   (let ((temp-test-file (make-temp-file "ert-abbrev-test"))
         (ert-test-abbrevs (setup-test-abbrev-table)))

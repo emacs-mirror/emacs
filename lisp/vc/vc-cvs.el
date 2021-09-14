@@ -825,7 +825,7 @@ individually should stay local."
 				  (line-end-position))))))))
 
 (defun vc-cvs-parse-uhp (path)
-  "parse user@host/path into (user@host /path)"
+  "Parse user@host/path into (user@host /path)."
   (if (string-match "\\([^/]+\\)\\(/.*\\)" path)
       (list (match-string 1 path) (match-string 2 path))
       (list nil path)))

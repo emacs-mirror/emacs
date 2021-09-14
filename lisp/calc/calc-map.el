@@ -139,7 +139,7 @@
 
 (defvar calc-verify-arglist t)
 (defun calc-map-stack ()
-  "This is meant to be called by calc-keypad mode."
+  "This is meant to be called by `calc-keypad' mode."
   (interactive)
   (let ((calc-verify-arglist nil))
     (calc-unread-command ?\$)

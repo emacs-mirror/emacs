@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This file includes stuff to work with pattern matching in ERC. If
+;; This file includes stuff to work with pattern matching in ERC.  If
 ;; you were used to customizing erc-fools, erc-keywords, erc-pals,
 ;; erc-dangerous-hosts and the like, this file contains these
 ;; customizable variables.

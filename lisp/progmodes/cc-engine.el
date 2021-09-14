@@ -1731,7 +1731,7 @@ Line continuations, i.e. a backslashes followed by line breaks, are
 treated as whitespace.  The line breaks that end line comments are
 considered to be the comment enders, so the point cannot be at the end
 of the same line to move over a line comment.  Unlike
-c-backward-syntactic-ws, this function doesn't move back over
+`c-backward-syntactic-ws', this function doesn't move back over
 preprocessor directives.
 
 Note that this function might do hidden buffer changes.  See the
@@ -3210,7 +3210,7 @@ comment at the start of cc-engine.el for more info."
 This function should be added to the `before-change-functions'
 hook by major modes that use CC Mode's filling functionality
 without initializing CC Mode.  Currently (2020-06) these are
-js-mode and mhtml-mode."
+`js-mode' and `mhtml-mode'."
   (c-truncate-lit-pos-cache beg))
 
 (defun c-foreign-init-lit-pos-cache ()
@@ -3218,8 +3218,8 @@ js-mode and mhtml-mode."
 
 This function should be called from the mode functions of major
 modes which use CC Mode's filling functionality without
-initializing CC Mode.  Currently (2020-06) these are js-mode and
-mhtml-mode."
+initializing CC Mode.  Currently (2020-06) these are `js-mode' and
+`mhtml-mode'."
   (c-truncate-lit-pos-cache 1))
 
 
@@ -7223,7 +7223,7 @@ comment at the start of cc-engine.el for more info."
 ;;   the rest of the file is fontified normally.
 
 (defun c-ml-string-make-closer-re (_opener)
-  "Return c-ml-string-any-closer-re.
+  "Return `c-ml-string-any-closer-re'.
 
 This is a suitable language specific value of
 `c-make-ml-string-closer-re-function' for most languages with
@@ -7231,7 +7231,7 @@ multi-line strings (but not C++, for example)."
   c-ml-string-any-closer-re)
 
 (defun c-ml-string-make-opener-re (_closer)
-  "Return c-ml-string-opener-re.
+  "Return `c-ml-string-opener-re'.
 
 This is a suitable language specific value of
 `c-make-ml-string-opener-re-function' for most languages with

@@ -1070,7 +1070,7 @@ be called."
 (easy-menu-define
   semantic-idle-breadcrumbs-popup-menu
   semantic-idle-breadcrumbs-popup-map
-  "Semantic Breadcrumbs Mode Menu"
+  "Semantic Breadcrumbs Mode Menu."
   (list
    "Breadcrumb Tag"
    (vector

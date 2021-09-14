@@ -2340,9 +2340,9 @@ If FORCE is non-nil, the .newsrc file is read."
 
 (defun gnus-convert-mark-converter-prompt (converter no-prompt)
   "Indicate whether CONVERTER requires `gnus-convert-old-newsrc' to
-  display the conversion prompt.  NO-PROMPT may be nil (prompt),
-  t (no prompt), or any form that can be called as a function.
-  The form should return either t or nil."
+display the conversion prompt.  NO-PROMPT may be nil (prompt),
+t (no prompt), or any form that can be called as a function.
+The form should return either t or nil."
   (put converter 'gnus-convert-no-prompt no-prompt))
 
 (defun gnus-convert-converter-needs-prompt (converter)

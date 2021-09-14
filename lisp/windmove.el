@@ -698,8 +698,8 @@ Keys are bound to commands that delete windows in the specified
 direction.  Keybindings are of the form PREFIX MODIFIERS-{left,right,up,down},
 where PREFIX is a prefix key and MODIFIERS is either a list of modifiers or
 a single modifier.
-If PREFIX is `none', no prefix is used. If MODIFIERS is `none', the keybindings
-are directly bound to the arrow keys.
+If PREFIX is `none', no prefix is used.  If MODIFIERS is `none',
+the keybindings are directly bound to the arrow keys.
 Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
   (interactive)
   (unless prefix (setq prefix '(?\C-x)))

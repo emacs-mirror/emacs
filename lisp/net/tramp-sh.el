@@ -5800,8 +5800,8 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 ;; Some predefined connection properties.
 (defun tramp-get-inline-compress (vec prop size)
   "Return the compress command related to PROP.
-PROP is either `inline-compress' or `inline-decompress'. SIZE is
-the length of the file to be compressed.
+PROP is either `inline-compress' or `inline-decompress'.
+SIZE is the length of the file to be compressed.
 
 If no corresponding command is found, nil is returned."
   (when (and (integerp tramp-inline-compress-start-size)

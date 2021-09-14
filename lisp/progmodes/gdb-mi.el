@@ -788,7 +788,7 @@ becomes the initial working directory and source-file directory
 for your debugger.
 If COMMAND-LINE requests that gdb attaches to a process PID, gdb
 will run in *gud-PID*, otherwise it will run in *gud*; in these
-cases the initial working directory is the default-directory of
+cases the initial working directory is the `default-directory' of
 the buffer in which this command was invoked.
 
 COMMAND-LINE should include \"-i=mi\" to use gdb's MI text interface.

@@ -158,8 +158,7 @@ none          -- Always send last location.
 domain-match  -- Send last location if the new location is within the
                  same domain
 host-match    -- Send last location if the new location is on the
-                 same host
-"
+                 same host"
   :version "27.1"
   :type '(radio (const :tag "Always send" none)
                 (const :tag "Domains match" domain-match)

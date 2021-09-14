@@ -2794,7 +2794,7 @@ See `sql-product-alist' for a list of products and supported features."
                (symbolp v))
               (symbol-value v)
             v))
-      (error "`%s' is not a known product; use `sql-add-product' to add it first." product)
+      (error "`%s' is not a known product; use `sql-add-product' to add it first" product)
       nil)))
 
 (defun sql-product-font-lock (keywords-only imenu)
@@ -2952,7 +2952,7 @@ adds a fontification pattern to fontify identifiers ending in
   "Display a SQLi buffer based on `sql-display-sqli-buffer-function'.
 
 If BUF is hidden or `sql-display-sqli-buffer-function' is nil,
-then the buffer will not be displayed. Otherwise the BUF is
+then the buffer will not be displayed.  Otherwise the BUF is
 displayed."
   (unless (sql-buffer-hidden-p buf)
     (cond

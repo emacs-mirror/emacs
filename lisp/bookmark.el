@@ -279,7 +279,7 @@ STR-BEFORE-POS is buffer text that immediately precedes POS.
 ANNOTATION is a string that describes the bookmark.
   See options `bookmark-use-annotations' and
   `bookmark-automatically-show-annotations'.
-HANDLER is a function that provides the bookmark-jump behavior for a
+HANDLER is a function that provides the `bookmark-jump' behavior for a
 specific kind of bookmark instead of the default `bookmark-default-handler'.
 This is the case for Info bookmarks, for instance.  HANDLER must accept
 a bookmark as its single argument.

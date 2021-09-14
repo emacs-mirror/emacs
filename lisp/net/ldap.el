@@ -51,7 +51,8 @@ a separator."
 
 (defcustom ldap-default-port nil
   "Default TCP port for LDAP connections.
-Initialized from the LDAP library at build time. Default value is 389."
+Initialized from the LDAP library at build time.
+Default value is 389."
   :type '(choice (const :tag "Use library default" nil)
 		 (integer :tag "Port number")))
 

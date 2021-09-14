@@ -787,7 +787,7 @@ See the variable `align-exclude-rules-list' for more details.")
   "The current overlays highlighting the text matched by a rule.")
 
 (defvar align-regexp-history nil
-  "Input history for the full user-entered regex in `align-regexp'")
+  "Input history for the full user-entered regex in `align-regexp'.")
 
 ;; Sample extension rule set for vhdl-mode.  This is now obsolete.
 (defcustom align-vhdl-rules-list

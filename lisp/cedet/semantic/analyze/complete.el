@@ -107,7 +107,7 @@ in a buffer."
     ;; Buffer was not parsed by Semantic.
     ;; Raise error if called interactively.
     (when (called-interactively-p 'any)
-      (error "Buffer was not parsed by Semantic."))))
+      (error "Buffer was not parsed by Semantic"))))
 
 (defvar semantic--prefixtypes)
 

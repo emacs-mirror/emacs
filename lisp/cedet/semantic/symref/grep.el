@@ -39,7 +39,7 @@
    )
   "A symref tool implementation using grep.
 This tool uses EDE to find the root of the project, then executes
-find-grep in the project.  The output is parsed for hits and
+`find-grep' in the project.  The output is parsed for hits and
 those hits returned.")
 
 (defvar semantic-symref-filepattern-alist

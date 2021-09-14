@@ -533,7 +533,7 @@ ARGS are passed to `message'."
 
 (defun gnus-extract-references (references)
   "Return a list of Message-IDs in REFERENCES (in In-Reply-To
-  format), trimmed to only contain the Message-IDs."
+format), trimmed to only contain the Message-IDs."
   (let ((ids (gnus-split-references references))
 	refs)
     (dolist (id ids)
@@ -1528,8 +1528,8 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
      (t emacs-version))))
 
 (defun gnus-rename-file (old-path new-path &optional trim)
-  "Rename OLD-PATH as NEW-PATH.  If TRIM, recursively delete
-empty directories from OLD-PATH."
+  "Rename OLD-PATH as NEW-PATH.
+If TRIM, recursively delete empty directories from OLD-PATH."
   (when (file-exists-p old-path)
     (let* ((old-dir (file-name-directory old-path))
 	   ;; (old-name (file-name-nondirectory old-path))
@@ -1549,7 +1549,7 @@ empty directories from OLD-PATH."
 			  (concat old-dir "..")))))))))
 
 (defun gnus-set-file-modes (filename mode &optional flag)
-  "Wrapper for set-file-modes."
+  "Wrapper for `set-file-modes'."
   (ignore-errors
     (set-file-modes filename mode flag)))
 

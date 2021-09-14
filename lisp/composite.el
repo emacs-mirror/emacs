@@ -864,7 +864,7 @@ Auto Composition mode in all buffers (this is the default)."
   "Toggle Auto Composition mode in all buffers.
 
 For more information on Auto Composition mode, see
-`auto-composition-mode' ."
+`auto-composition-mode'."
   :global t
   :variable (default-value 'auto-composition-mode))
 

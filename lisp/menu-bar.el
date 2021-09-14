@@ -2772,7 +2772,7 @@ This is the keyboard interface to \\[mouse-buffer-menu]."
     km))
 
 (defun menu-bar-define-mouse-key (map key def)
-  "Like `define-key', but adds all possible prefixes for the mouse."
+  "Like `define-key', but add all possible prefixes for the mouse."
   (define-key map (vector key) def)
   (mapc (lambda (prefix) (define-key map (vector prefix key) def))
         ;; This list only needs to contain special window areas that

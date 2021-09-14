@@ -610,17 +610,17 @@ The recommended coding systems are `utf-8', `iso-2022-7bit' and so on,
 which can safely encode any characters in text.  This is used by the
 commands including:
 
-* gnus-summary-save-article-file
-* gnus-summary-save-article-body-file
-* gnus-summary-write-article-file
-* gnus-summary-write-article-body-file
+* `gnus-summary-save-article-file'
+* `gnus-summary-save-article-body-file'
+* `gnus-summary-write-article-file'
+* `gnus-summary-write-article-body-file'
 
 and the functions to which you may set `gnus-default-article-saver':
 
-* gnus-summary-save-in-file
-* gnus-summary-save-body-in-file
-* gnus-summary-write-to-file
-* gnus-summary-write-body-to-file
+* `gnus-summary-save-in-file'
+* `gnus-summary-save-body-in-file'
+* `gnus-summary-write-to-file'
+* `gnus-summary-write-body-to-file'
 
 Those commands and functions save just text displayed in the article
 buffer to a file if the value of this variable is non-nil.  Note that
@@ -8519,8 +8519,7 @@ whose names match REGEXP.
 For example:
 \((\"chinese\" . gnus-decode-encoded-word-region-by-guess)
  mail-decode-encoded-word-region
- (\"chinese\" . rfc1843-decode-region))
-")
+ (\"chinese\" . rfc1843-decode-region))")
 
 (defvar gnus-decode-header-methods-cache nil)
 

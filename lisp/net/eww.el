@@ -36,7 +36,7 @@
 (eval-when-compile (require 'subr-x))
 
 (defgroup eww nil
-  "Emacs Web Wowser"
+  "Emacs Web Wowser."
   :version "25.1"
   :link '(custom-manual "(eww) Top")
   :group 'web

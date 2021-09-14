@@ -44,7 +44,7 @@
 (require 'time-date)
 
 (defgroup erc-pcomplete nil
-  "Programmable completion for ERC"
+  "Programmable completion for ERC."
   :group 'erc)
 
 (defcustom erc-pcomplete-nick-postfix ":"

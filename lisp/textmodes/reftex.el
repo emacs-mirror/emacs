@@ -2140,7 +2140,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 (make-variable-buffer-local 'reftex-isearch-minor-mode)
 
 (easy-menu-define reftex-mode-menu reftex-mode-map
- "Menu used in RefTeX mode"
+ "Menu used in RefTeX mode."
  `("Ref"
    ["Table of Contents"       reftex-toc t]
    ["Recenter TOC"            reftex-toc-recenter t]

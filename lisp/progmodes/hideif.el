@@ -1071,7 +1071,7 @@ Assuming we've just performed a `hif-token-regexp' lookup."
                 (error "`defined' followed by non-identifier: %S" target))
             (if (and paren
                      (not (eq (hif-nexttoken) 'hif-rparen)))
-                (error "missing right parenthesis for `defined'"))
+                (error "Missing right parenthesis for `defined'"))
             (setq hif-token
                   (list 'hif-defined 'hif-lparen target 'hif-rparen)))
           (push hif-token tokens))

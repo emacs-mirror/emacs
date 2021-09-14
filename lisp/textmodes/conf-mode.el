@@ -615,7 +615,7 @@ For details see `conf-mode'.  Example:
   (conf-mode-initialize "!"))
 
 (defun conf-toml-recognize-section (limit)
-  "Font-lock helper function for conf-toml-mode.
+  "Font-lock helper function for `conf-toml-mode'.
 Handles recognizing TOML section names, like [section],
 \[[section]], or [something.\"else\".section]."
   (save-excursion

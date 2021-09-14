@@ -35,7 +35,7 @@
 
 ;; This file defines a general command-interpreter-in-a-buffer package
 ;; (term mode).  The idea is that you can build specific process-in-a-buffer
-;; modes on top of term mode -- e.g., lisp, shell, scheme, T, soar, ....
+;; modes on top of term mode -- e.g., Lisp, shell, Scheme, T, soar, ....
 ;; This way, all these specific packages share a common base functionality,
 ;; and a common set of bindings, which makes them easier to use (and
 ;; saves code, implementation time, etc., etc.).
