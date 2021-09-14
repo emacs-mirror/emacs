@@ -3384,6 +3384,19 @@ In Emacs 24.3, the variable 'dbus-event-error-hooks' was renamed to
 The old names, which were kept as obsolete aliases of the new names,
 have now been removed.
 
+---
+** 'find-function-source-path' renamed and re-documented.
+The 'find-function' command (and various related commands) were
+documented to respect 'find-function-source-path', and to search for
+objects in files specified by that variable.  It's unclear when this
+actually changed, but at some point (perhaps decades ago) these
+commands started using 'load-history' to determine where symbols had
+been defined (which is much faster).  The doc strings of all the
+affected function has been updated.  'find-function-source-path' was
+still being used by 'find-library' and related commands, so the
+variable has been renamed to 'find-library-source-path', and
+'find-function-source-path' is now an obsolete variable alias.
+
 
 * Lisp Changes in Emacs 28.1
 
