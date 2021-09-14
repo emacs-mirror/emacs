@@ -314,7 +314,7 @@ This should be set in an Emacs Lisp file's local variables."
 
 (defcustom checkdoc-column-zero-backslash-before-paren t
   "Non-nil means to warn if there is no '\\' before '(' in column zero.
-This backslash is no longer needed on Emacs 27.1 later.
+This backslash is no longer needed on Emacs 27.1 or later.
 
 See Info node `(elisp) Documentation Tips' for background."
   :type 'boolean
