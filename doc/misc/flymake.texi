@@ -13,22 +13,6 @@
 @copying
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}).
 
-Flymake is a universal on-the-fly syntax checker for Emacs.  When
-enabled, Flymake contacts one or more source @dfn{backends} to
-collect information about problems in the buffer, called
-@dfn{diagnostics}, and visually annotates them with a special face.
-The mode line displays overall status including totals for different
-types of diagnostics.
-
-To learn about using Flymake, @pxref{Using Flymake}.
-
-Flymake is designed to be easily extended to support new backends via
-an Elisp interface.  @xref{Extending Flymake}
-
-Historically, Flymake used to accept diagnostics from a single
-backend.  Although obsolete, it is still functional.  To learn how to
-use and customize it, @pxref{The legacy Proc backend}.
-
 Copyright @copyright{} 2004--2021 Free Software Foundation, Inc.
 
 @quotation
@@ -64,6 +48,25 @@ modify this GNU manual.''
 @ifnottex
 @node Top
 @top GNU Flymake
+@end ifnottex
+
+Flymake is a universal on-the-fly syntax checker for Emacs.  When
+enabled, Flymake contacts one or more source @dfn{backends} to
+collect information about problems in the buffer, called
+@dfn{diagnostics}, and visually annotates them with a special face.
+The mode line displays overall status including totals for different
+types of diagnostics.
+
+To learn about using Flymake, @pxref{Using Flymake}.
+
+Flymake is designed to be easily extended to support new backends via
+an Elisp interface.  @xref{Extending Flymake}.
+
+Historically, Flymake used to accept diagnostics from a single
+backend.  Although obsolete, it is still functional.  To learn how to
+use and customize it, @pxref{The legacy Proc backend}.
+
+@ifnottex
 @insertcopying
 @end ifnottex
 
@@ -611,7 +614,7 @@ of the problem detected in this region.  Most commonly @var{locus} is
 the buffer object designating for the current buffer being
 syntax-checked.  However, it may be a string nameing a file relative
 to the current working directory.  @xref{Foreign and list-only
-diagnostics} for when this may be useful.  Depending on the type of
+diagnostics}, for when this may be useful.  Depending on the type of
 @var{locus}, @var{beg} and @var{end} are both either buffer positions
 or conses (@var{line} . @var{col}) which specify the line and column
 of the diagnostic's start and end positions, respectively.
