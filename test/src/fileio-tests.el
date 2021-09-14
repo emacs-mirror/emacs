@@ -136,6 +136,15 @@ Also check that an encoding error can appear in a symlink."
     (should (and (file-name-absolute-p name)
                  (not (eq (aref name 0) ?~))))))
 
+(ert-deftest fileio-test--expand-file-name-null-bytes ()
+  "Test that expand-file-name checks for null bytes in filenames."
+  (should-error (expand-file-name (concat "file" (char-to-string ?\0) ".txt"))
+                :type 'wrong-type-argument)
+  (should-error (expand-file-name "file.txt" (concat "dir" (char-to-string ?\0)))
+                :type 'wrong-type-argument)
+  (let ((default-directory (concat "dir" (char-to-string ?\0))))
+    (should-error (expand-file-name "file.txt") :type 'wrong-type-argument)))
+
 (ert-deftest fileio-tests--file-name-absolute-p ()
   "Test file-name-absolute-p."
   (dolist (suffix '("" "/" "//" "/foo" "/foo/" "/foo//" "/foo/bar"))

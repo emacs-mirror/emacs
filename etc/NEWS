@@ -294,6 +294,13 @@ personalize the uniquified buffer name.
 ---
 ** 'remove-hook' is now an interactive command.
 
+** 'expand-file-name' now checks for null bytes in filenames.
+The function will now check for null bytes in both NAME and
+DEFAULT-DIRECTORY arguments, as well as in the 'default-directory'
+buffer-local variable, assuming its value is used.  If null bytes are
+found, 'expand-file-name' will signal an error.
+
+---
 ** Frames
 
 +++

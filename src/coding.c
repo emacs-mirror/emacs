@@ -10430,8 +10430,7 @@ encode_file_name (Lisp_Object fname)
      cause subtle bugs because the system would silently use a
      different filename than expected.  Perform this check after
      encoding to not miss NUL bytes introduced through encoding.  */
-  CHECK_TYPE (memchr (SSDATA (encoded), '\0', SBYTES (encoded)) == NULL,
-              Qfilenamep, fname);
+  CHECK_STRING_NULL_BYTES (encoded);
   return encoded;
 }
 
