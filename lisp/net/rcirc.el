@@ -601,6 +601,8 @@ FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION SERVER-ALIAS).
 See `rcirc-connect' for more details on these variables.")
 (defvar-local rcirc-process nil
   "Network process for the current connection.")
+(defvar-local rcirc-last-connect-time nil
+  "The last time the buffer was connected.")
 
 ;;; IRCv3 capability negotiation (https://ircv3.net/specs/extensions/capability-negotiation)
 (defvar rcirc-implemented-capabilities
@@ -669,11 +671,18 @@ that are joined after authentication."
            (full-name (or full-name rcirc-default-full-name))
            (startup-channels startup-channels)
 
-           (process (open-network-stream
+           process)
+
+      ;; Ensure any previous process is killed
+      (when-let ((old-process (get-process (or server-alias server))))
+        (set-process-sentinel old-process #'ignore)
+        (delete-process process))
+
+      ;; Set up process
+      (setq process (open-network-stream
                      (or server-alias server) nil server port-number
                      :type (or encryption 'plain)
-                     :nowait t)))
-      ;; set up process
+                     :nowait t))
       (set-process-coding-system process 'raw-text 'raw-text)
       (with-current-buffer (get-buffer-create (rcirc-generate-new-buffer-name process nil))
         (set-process-buffer process (current-buffer))
@@ -692,9 +701,17 @@ that are joined after authentication."
         (setq rcirc-nick nick)
         (setq rcirc-startup-channels startup-channels)
         (setq rcirc-last-server-message-time (current-time))
+        (setq rcirc-last-connect-time (current-time))
 
-        (setq mode-line-process ":connecting")
-        (setq rcirc-connecting t)
+        ;; Check if the immediate process state
+        (sit-for .1)
+        (cond
+         ((eq (process-status process) 'failed)
+          (setq mode-line-process ":disconnected")
+          (setq rcirc-connecting nil))
+         ((eq (process-status process) 'connect)
+          (setq mode-line-process ":connecting")
+          (setq rcirc-connecting t)))
 
         (add-hook 'auto-save-hook #'rcirc-log-write)
 
@@ -788,66 +805,110 @@ When 0, do not auto-reconnect."
   :version "25.1"
   :type 'integer)
 
-(defvar-local rcirc-last-connect-time nil
-  "The last time the buffer was connected.")
+(defcustom rcirc-reconnect-attempts 3
+  "Number of times a reconnection should be attempted."
+  :version "28.1"
+  :type 'integer)
+
+(defvar-local rcirc-failed-attempts 0
+  "Number of times reconnecting has failed.")
+
+(defvar-local rcirc-reconnection-timer nil
+  "Timer used for reconnecting.")
+
+(defun rcirc-reconnect (process &optional quiet)
+  "Attempt to reconnect connection to PROCESS.
+If QUIET is non-nil, no not emit a message."
+  (with-rcirc-process-buffer process
+    (catch 'exit
+      (if (rcirc--connection-open-p process)
+          (throw 'exit (or quiet (message "Server process is alive")))
+        (delete-process process))
+      (let ((conn-info rcirc-connection-info))
+	(setf (nth 5 conn-info)
+	      (cl-remove-if-not #'rcirc-channel-p
+				(mapcar #'car rcirc-buffer-alist)))
+        (dolist (buffer (mapcar #'cdr rcirc-buffer-alist))
+	  (when (buffer-live-p buffer)
+            (with-current-buffer buffer
+	      (setq mode-line-process ":connecting"))))
+	(let ((nprocess (apply #'rcirc-connect conn-info)))
+          (when (and (< rcirc-failed-attempts rcirc-reconnect-attempts)
+                     (eq (process-status nprocess) 'failed))
+            (setq rcirc-failed-attempts (1+ rcirc-failed-attempts))
+            (rcirc-print nprocess "*rcirc*" "ERROR" nil
+		         (format "Failed to reconnect (%d/%d)..."
+                                 rcirc-failed-attempts
+                                 rcirc-reconnect-attempts))
+            (setq rcirc-reconnection-timer
+                  (run-at-time rcirc-timeout-seconds nil
+                               #'rcirc-reconnect process t))))))))
 
 (defun rcirc-sentinel (process sentinel)
   "Called when PROCESS receives SENTINEL."
   (let ((sentinel (string-replace "\n" "" sentinel)))
     (rcirc-debug process (format "SENTINEL: %S %S\n" process sentinel))
     (with-rcirc-process-buffer process
-      (if (string= sentinel "open")
-          (let* ((server (nth 0 rcirc-connection-info))
-                 (user-name (nth 3 rcirc-connection-info))
-                 (full-name (nth 4 rcirc-connection-info))
-                 (password (nth 6 rcirc-connection-info))
-                 (server-alias (nth 8 rcirc-connection-info))
-                 (use-sasl (eq (rcirc-get-server-method server) 'sasl)))
+      (cond
+       ((string= sentinel "open")
+        (let* ((server (nth 0 rcirc-connection-info))
+               (user-name (nth 3 rcirc-connection-info))
+               (full-name (nth 4 rcirc-connection-info))
+               (password (nth 6 rcirc-connection-info))
+               (server-alias (nth 8 rcirc-connection-info))
+               (use-sasl (eq (rcirc-get-server-method server) 'sasl)))
 
-            ;; prepare SASL authentication
-            (when use-sasl
-              (rcirc-send-string process "CAP REQ sasl")
-              (setq-local rcirc-finished-sasl nil))
+          ;; Prepare SASL authentication
+          (when use-sasl
+            (rcirc-send-string process "CAP REQ sasl")
+            (setq-local rcirc-finished-sasl nil))
 
-            ;; identify
-            (dolist (cap rcirc-implemented-capabilities)
-              (rcirc-send-string process "CAP" "REQ" : cap)
-              (push cap rcirc-requested-capabilities))
-            (unless (zerop (length password))
-              (rcirc-send-string process "PASS" password))
-            (rcirc-send-string process "NICK" rcirc-nick)
-            (rcirc-send-string process "USER" user-name "0" "*" : full-name)
+          ;; Capability negotiation
+          (dolist (cap rcirc-implemented-capabilities)
+            (rcirc-send-string process "CAP" "REQ" : cap)
+            (push cap rcirc-requested-capabilities))
 
-            ;; Setup sasl, and initiate authentication.
-            (when (and rcirc-auto-authenticate-flag
-                       use-sasl)
-              (rcirc-send-string process "AUTHENTICATE" "PLAIN"))
+          ;; Identify user
+          (unless (zerop (length password))
+            (rcirc-send-string process "PASS" password))
+          (rcirc-send-string process "NICK" rcirc-nick)
+          (rcirc-send-string process "USER" user-name "0" "*" : full-name)
 
-            ;; setup ping timer if necessary
-            (unless rcirc-keepalive-timer
-              (setq rcirc-keepalive-timer
-                    (run-at-time 0 (/ rcirc-timeout-seconds 2) #'rcirc-keepalive)))
+          ;; Setup sasl, and initiate authentication.
+          (when (and rcirc-auto-authenticate-flag
+                     use-sasl)
+            (rcirc-send-string process "AUTHENTICATE" "PLAIN"))
 
-            (message "Connecting to %s...done" (or server-alias server))
-            (setq mode-line-process nil))
-        (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
+          ;; Setup ping timer if necessary
+          (unless rcirc-keepalive-timer
+            (setq rcirc-keepalive-timer
+                  (run-at-time 0 (/ rcirc-timeout-seconds 2) #'rcirc-keepalive)))
+
+          ;; Reset previous reconnection attempts
+          (setq rcirc-failed-attempts 0)
+          (when rcirc-reconnection-timer
+            (cancel-timer rcirc-reconnection-timer)
+            (setq rcirc-reconnection-timer nil))
+
+          (message "Connecting to %s...done" (or server-alias server))
+          (setq mode-line-process nil)))
+       ((string= sentinel "deleted")
+        (let ((now (current-time)))
+          (with-rcirc-process-buffer process
+            (when (and (< 0 rcirc-reconnect-delay)
+                       (time-less-p rcirc-reconnect-delay
+				    (time-subtract now rcirc-last-connect-time)))
+              (setq rcirc-last-connect-time now)
+              (rcirc-reconnect process)))))
+       ((dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
 	  (with-current-buffer (or buffer (current-buffer))
-	    (rcirc-print process "rcirc.el" "ERROR" rcirc-target
+	    (rcirc-print process "*rcirc*" "ERROR" rcirc-target
 		         (format "%s: %s (%S)"
 			         (process-name process)
 			         sentinel
 			         (process-status process))
                          (not rcirc-target))
-	    (rcirc-disconnect-buffer)))
-        (when (and (string= sentinel "deleted")
-                   (< 0 rcirc-reconnect-delay)
-                   (not rcirc-connecting))
-          (let ((now (current-time)))
-            (when (or (null rcirc-last-connect-time)
-		      (time-less-p rcirc-reconnect-delay
-				   (time-subtract now rcirc-last-connect-time)))
-              (setq rcirc-last-connect-time now)
-              (rcirc-cmd-reconnect nil)))))
+	    (rcirc-disconnect-buffer)))))
       (run-hook-with-args 'rcirc-sentinel-functions process sentinel))))
 
 (defun rcirc-disconnect-buffer (&optional buffer)
@@ -907,7 +968,7 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
       (condition-case err
           (rcirc-process-server-response-1 process text)
         (error
-         (rcirc-print process "RCIRC" "ERROR" nil
+         (rcirc-print process "*rcirc*" "ERROR" nil
                       (format "\"%s\" %s" text err) t)))
     (rcirc-process-server-response-1 process text)))
 
@@ -1310,7 +1371,6 @@ PROCESS is the process object used for communication.
   (setq rcirc-last-post-time (current-time))
   (setq-local fill-paragraph-function 'rcirc-fill-paragraph)
   (setq rcirc-current-line 0)
-  (setq rcirc-last-connect-time (current-time))
 
   (use-hard-newlines t)
 
@@ -2579,16 +2639,8 @@ to `rcirc-default-part-reason'."
 (rcirc-define-command reconnect ()
   "Reconnect to current server."
   (interactive "i")
-  (with-rcirc-server-buffer
-    (catch 'exit
-      (if (eq (process-status process) 'open)
-          (throw 'exit (message "Server process is alive"))
-        (delete-process process))
-      (let ((conn-info rcirc-connection-info))
-	(setf (nth 5 conn-info)
-	      (cl-remove-if-not #'rcirc-channel-p
-				(mapcar #'car rcirc-buffer-alist)))
-	(apply #'rcirc-connect conn-info)))))
+  (setq rcirc-failed-attempts 0)
+  (rcirc-reconnect process))
 
 (rcirc-define-command nick (nick)
   "Change nick to NICK."

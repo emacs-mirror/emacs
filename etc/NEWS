@@ -2699,7 +2699,7 @@ The function now accepts a variable number of arguments.
 
 +++
 *** Deprecate defun-rcirc-command in favour of rcirc-define-command
-The new macro handles 
+The new macro handles multiple and optional arguments.
 
 ---
 *** Add basic IRCv3 support
@@ -2718,6 +2718,10 @@ message-ids, invite-notify, multi-prefix and standard-replies.
 ---
 *** Allow for channels to hide certain message types right after connecting.
 Set rcirc-omit-responses-after-join analogously to rcirc-omit-responses.
+
++++
+*** Implement repeated reconnection strategy
+See rcirc-reconnect-attempts.
 
 ** Miscellaneous
 

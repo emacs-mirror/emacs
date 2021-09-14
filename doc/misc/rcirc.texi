@@ -430,7 +430,13 @@ lost.  The simple solution is to use @kbd{M-x rcirc}.  The problem is
 that this opens an @emph{additional} connection, so you'll have two
 copies of every channel buffer, one dead and one live.
 
-The real answer, therefore, is the @code{/reconnect} command.
+One option therefore, is the @code{/reconnect} command.
+
+An other approach is to set @code{rcirc-reconnect-delay} to a value
+greater than 0, and allow rcirc to reconnect when it detects that the
+connection has been closed.  By default it will try to do this three
+times (as specified by @code{rcirc-reconnect-attempts}), before giving
+up.
 @end table
 
 @node Useful IRC commands
