@@ -419,6 +419,11 @@ will be killed."
   :version "28.1"
   :type 'boolean)
 
+(defcustom rcirc-display-server-buffer t
+  "Non-nil means the server buffer should be shown on connecting."
+  :version "28.1"
+  :type 'boolean)
+
 (defvar-local rcirc-nick nil
   "The nickname used for the current connection.")
 
@@ -518,10 +523,12 @@ If ARG is non-nil, instead prompt for connection parameters."
 							   :channels)
 						" "))
 			"[, ]+" t))
-             (encryption (rcirc-prompt-for-encryption server-plist)))
-	(rcirc-connect server port nick user-name
-		       rcirc-default-full-name
-		       channels password encryption))
+             (encryption (rcirc-prompt-for-encryption server-plist))
+             (process (rcirc-connect server port nick user-name
+		                     rcirc-default-full-name
+		                     channels password encryption)))
+	(when rcirc-display-server-buffer
+          (pop-to-buffer-same-window (process-buffer process))))
     ;; connect to servers in `rcirc-server-alist'
     (let (connected-servers)
       (dolist (c rcirc-server-alist)
@@ -550,9 +557,11 @@ If ARG is non-nil, instead prompt for connection parameters."
 		  (setq connected p)))
 	      (if (not connected)
 		  (condition-case nil
-		      (rcirc-connect server port nick user-name
-                                     full-name channels password encryption
-                                     server-alias)
+		      (let ((process (rcirc-connect server port nick user-name
+                                                    full-name channels password encryption
+                                                    server-alias)))
+                        (when rcirc-display-server-buffer
+                          (pop-to-buffer-same-window (process-buffer process))))
 		    (quit (message "Quit connecting to %s"
                                    (or server-alias server))))
 		(with-current-buffer (process-buffer connected)
