@@ -3706,6 +3706,12 @@ and well-behaved enough to lose the "internal" marker.
 
 ** map.el
 
+---
+*** Alist keys are now consistently compared with 'equal' by default.
+Until now, 'map-elt' and 'map-delete' compared alist keys with 'eq' by
+default.  They now use 'equal' instead, for consistency with
+'map-put!' and 'map-contains-key'.
+
 *** Pcase 'map' pattern added keyword symbols abbreviation.
 A pattern like '(map :sym)' binds the map's value for ':sym' to 'sym',
 equivalent to '(map (:sym sym))'.
