@@ -308,7 +308,7 @@ with a universal argument.")
   "A list of symbol names (strings) which also happen to make good words.
 These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
-  :type '(repeat (symbol :tag "Word"))
+  :type '(repeat (string :tag "Word"))
   :version "28.1")
 ;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
