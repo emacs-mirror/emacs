@@ -1021,16 +1021,14 @@ ns_update_begin (struct frame *f)
 
   ns_update_auto_hide_menu_bar ();
 
-#ifdef NS_IMPL_COCOA
-  if ([view isFullscreen] && [view fsIsNative])
+  NSToolbar *toolbar = [[FRAME_NS_VIEW (f) window] toolbar];
+  if (toolbar)
   {
-    // Fix reappearing tool bar in fullscreen for Mac OS X 10.7
+    /* Ensure the toolbars visibility is set correctly.  */
     BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (f) ? YES : NO;
-    NSToolbar *toolbar = [[FRAME_NS_VIEW (f) window] toolbar];
     if (! tbar_visible != ! [toolbar isVisible])
       [toolbar setVisible: tbar_visible];
   }
-#endif
 
   ns_updating_frame = f;
   [view lockFocus];
