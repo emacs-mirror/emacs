@@ -47,7 +47,7 @@
 ;;         explanation of the two nil placeholders in such elements.
 ;;
 ;;         There is API for extracting the components of the members of the
-;;         above list. Search for `API for ediff-meta-list' for details.
+;;         above list.  Search for `API for ediff-meta-list' for details.
 ;;
 ;;	   HEADER must be a list of SIX elements (nil or string):
 ;;             (regexp metaobj1 metaobj2 metaobj3 merge-save-buffer
@@ -157,8 +157,7 @@ Useful commands (type ? to hide them and free up screen):
     (define-key map [delete] #'previous-line)
     (define-key map [backspace] #'previous-line)
     map)
-  "The keymap to be installed in the buffer showing differences between
-directories.")
+  "Keymap for buffer showing differences between directories.")
 
 ;; Variable specifying the action to take when the use invokes ediff in the
 ;; meta buffer.  This is usually ediff-registry-action or ediff-filegroup-action

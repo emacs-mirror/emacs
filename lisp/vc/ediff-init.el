@@ -248,7 +248,7 @@ It needs to be killed when we quit the session.")
 ;; Doesn't save the point and mark.
 ;; This is `with-current-buffer' with the added test for live buffers."
 (defmacro ediff-with-current-buffer (buffer &rest body)
-  "Evaluates BODY in BUFFER."
+  "Evaluate BODY in BUFFER."
   (declare (indent 1) (debug (form body)))
   `(if (ediff-buffer-live-p ,buffer)
        (save-current-buffer
@@ -615,7 +615,7 @@ highlighted using ASCII flags."
 Actually, Ediff restores the scope of visibility that existed at startup.")
 
 (defcustom ediff-keep-variants t
-  "nil means prompt to remove unmodified buffers A/B/C at session end.
+  "Nil means prompt to remove unmodified buffers A/B/C at session end.
 Supplying a prefix argument to the quit command `q' temporarily reverses the
 meaning of this variable."
   :type 'boolean
@@ -680,10 +680,10 @@ shown in brighter colors."
 (ediff-defvar-local ediff-custom-diff-buffer nil "")
 ;; Buffer used for diff-style fine differences between regions.
 (ediff-defvar-local ediff-fine-diff-buffer nil "")
-;; Temporary buffer used for computing fine differences.
-(defconst ediff-tmp-buffer " *ediff-tmp*" "")
-;; Buffer used for messages
-(defconst ediff-msg-buffer " *ediff-message*" "")
+(defconst ediff-tmp-buffer " *ediff-tmp*"
+  "Temporary buffer used for computing fine differences.")
+(defconst ediff-msg-buffer " *ediff-message*"
+  "Buffer used for messages.")
 ;; Buffer containing the output of diff when diff returns errors.
 (ediff-defvar-local ediff-error-buffer nil "")
 ;; Buffer to display debug info
@@ -835,7 +835,7 @@ this variable represents.")
 ;; this variable is set to nil, then again to the appropriate face.
 (defvar ediff-current-diff-face-B 'ediff-current-diff-B
   "Face for highlighting the selected difference in buffer B.
- this variable.  Instead, use the customization
+DO NOT CHANGE this variable.  Instead, use the customization
 widget to customize the actual face `ediff-current-diff-B'
 this variable represents.")
 

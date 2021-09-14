@@ -271,9 +271,9 @@ If `ask', you will be prompted for a branch type."
 (defcustom vc-hg-symbolic-revision-styles
   '(builtin-active-bookmark
     "{if(bookmarks,sub(' ',',',bookmarks),if(phabdiff,phabdiff,shortest(node,6)))}")
-  "List of ways to present versions symbolically.  The version
-that we use is the first one that successfully produces a
-non-empty string.
+  "List of ways to present versions symbolically.
+The version that we use is the first one that successfully
+produces a non-empty string.
 
 Each entry in the list can be either:
 
@@ -811,7 +811,7 @@ if we don't understand a construct, we signal
                (push c parts)
                (cond ((eq c ?\\) (setf state 'charclass-backslash))
                      ((eq c ?\]) (setf state 'normal))))
-              (t (error "invalid state")))
+              (t (error "Invalid state")))
         (setf i (1+ i))))
     (unless (eq state 'normal)
       (signal 'vc-hg-unsupported-syntax (list pcre)))
@@ -1151,7 +1151,7 @@ hg binary."
                  (expand-file-name old)))
 
 (defun vc-hg-register (files &optional _comment)
-  "Register FILES under hg. COMMENT is ignored."
+  "Register FILES under hg.  COMMENT is ignored."
   (vc-hg-command nil 0 files "add"))
 
 (defun vc-hg-create-repo ()

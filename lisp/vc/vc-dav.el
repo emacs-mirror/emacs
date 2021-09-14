@@ -136,7 +136,7 @@ It should return a status of either 0 (no differences found), or
 ;; This should use url-dav-get-properties with a depth of `1' to get
 ;; all the properties.
 (defun vc-dav-dir-state (_url)
-  "find the version control state of all files in DIR in a fast way."
+  "Find the version control state of all files in DIR in a fast way."
   )
 
 (defun vc-dav-responsible-p (_url)

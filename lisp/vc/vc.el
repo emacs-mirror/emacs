@@ -1012,7 +1012,7 @@ responsible for the given file."
         (error "No VC backend is responsible for %s" file))))
 
 (defun vc-expand-dirs (file-or-dir-list backend)
-  "Expands directories in a file list specification.
+  "Expand directories in a file list specification.
 Within directories, only files already under version control are noticed."
   (let ((flattened '()))
     (dolist (node file-or-dir-list)
@@ -1152,7 +1152,7 @@ BEWARE: this function may change the current buffer."
              (memq (vc-state file) '(edited needs-merge conflict))))))
 
 (defun vc-compatible-state (p q)
-  "Controls which states can be in the same commit."
+  "Control which states can be in the same commit."
   (or
    (eq p q)
    (and (member p '(edited added removed)) (member q '(edited added removed)))))

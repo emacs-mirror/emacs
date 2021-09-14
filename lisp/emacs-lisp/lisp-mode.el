@@ -824,7 +824,7 @@ function is `common-lisp-indent-function'."
   "Return Parse-Partial-Sexp State at POS, defaulting to point.
 Like `syntax-ppss' but includes the character address of the last
 complete sexp in the innermost containing list at position
-2 (counting from 0).  This is important for lisp indentation."
+2 (counting from 0).  This is important for Lisp indentation."
   (unless pos (setq pos (point)))
   (let ((pss (syntax-ppss pos)))
     (if (nth 9 pss)

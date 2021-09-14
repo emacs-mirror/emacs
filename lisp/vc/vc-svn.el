@@ -295,7 +295,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 (autoload 'vc-switches "vc")
 
 (defun vc-svn-register (files &optional _comment)
-  "Register FILES into the SVN version-control system.
+  "Register FILES into the SVN version control system.
 The COMMENT argument is ignored  This does an add but not a commit.
 Passes either `vc-svn-register-switches' or `vc-register-switches'
 to the SVN command."

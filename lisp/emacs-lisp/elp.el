@@ -407,11 +407,11 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
   (>= (aref vec1 0) (aref vec2 0)))
 
 (defun elp-sort-by-total-time (vec1 vec2)
-  "Predicate to sort by highest total time spent in function. See `sort'."
+  "Predicate to sort by highest total time spent in function.  See `sort'."
   (>= (aref vec1 1) (aref vec2 1)))
 
 (defun elp-sort-by-average-time (vec1 vec2)
-  "Predicate to sort by highest average time spent in function. See `sort'."
+  "Predicate to sort by highest average time spent in function.  See `sort'."
   (>= (aref vec1 2) (aref vec2 2)))
 
 (defsubst elp-pack-number (number width)

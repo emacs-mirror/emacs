@@ -32,7 +32,7 @@
 ;; natural for the minor-mode end-users.
 
 ;; For each mode, easy-mmode defines the following:
-;; <mode>      : The minor mode predicate. A buffer-local variable.
+;; <mode>      : The minor mode predicate.  A buffer-local variable.
 ;; <mode>-map  : The keymap possibly associated to <mode>.
 ;;       see `define-minor-mode' documentation
 ;;
@@ -182,7 +182,7 @@ BODY contains code to execute each time the mode is enabled or disabled.
                 be assigned to PLACE.  If you specify a :variable, this function
                 does not define a MODE variable (nor any of the terms used
 		in :variable).
-:after-hook     A single lisp form which is evaluated after the mode hooks
+:after-hook     A single Lisp form which is evaluated after the mode hooks
                 have been run.  It should not be quoted.
 
 For example, you could write

@@ -765,7 +765,7 @@ See `find-function-on-key'."
 
 ;;;###autoload
 (defun find-function-setup-keys ()
-  "Define some key bindings for the find-function family of functions."
+  "Define some key bindings for the `find-function' family of functions."
   (define-key ctl-x-map "F" 'find-function)
   (define-key ctl-x-4-map "F" 'find-function-other-window)
   (define-key ctl-x-5-map "F" 'find-function-other-frame)

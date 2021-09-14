@@ -33,7 +33,7 @@
 (require 'gnus-util)
 
 (defcustom gnus-post-method 'current
-  "Preferred method for posting USENET news.
+  "Preferred method for posting Usenet news.
 
 If this variable is `current' (which is the default), Gnus will use
 the \"current\" select method when posting.  If it is `native', Gnus

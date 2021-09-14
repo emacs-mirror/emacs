@@ -444,7 +444,7 @@ negates this setting for the duration of the command."
   :safe (lambda (val) (or (booleanp val) (integerp val))))
 
 (defcustom org-link-email-description-format "Email %c: %s"
-  "Format of the description part of a link to an email or usenet message.
+  "Format of the description part of a link to an email or Usenet message.
 The following %-escapes will be replaced by corresponding information:
 
 %F   full \"From\" field

@@ -1532,7 +1532,7 @@ This is the `so-long-revert-function' for `so-long-mode'."
   (interactive)
   (let ((so-long-original-mode (so-long-original 'major-mode)))
     (unless so-long-original-mode
-      (error "Original mode unknown."))
+      (error "Original mode unknown"))
     (funcall so-long-original-mode)
     ;; Emacs 26+ has already called `hack-local-variables' (during
     ;; `run-mode-hooks'; provided there was a `buffer-file-name'), but for older

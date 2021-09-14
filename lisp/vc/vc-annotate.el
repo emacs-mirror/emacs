@@ -277,7 +277,7 @@ cover the range from the oldest annotation to the newest."
 
 ;; Menu -- Using easymenu.el
 (easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
-  "VC Annotate Display Menu"
+  "VC Annotate Display Menu."
   `("VC-Annotate"
     ["By Color Map Range" (unless (null vc-annotate-display-mode)
                  (setq vc-annotate-display-mode nil)

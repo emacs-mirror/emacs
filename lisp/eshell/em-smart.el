@@ -131,7 +131,7 @@ only if that output can be presented in its entirely in the Eshell window."
   :group 'eshell-smart)
 
 (defcustom eshell-smart-space-goes-to-end t
-  "If non-nil, space will go to end of buffer when point-max is visible.
+  "If non-nil, space will go to end of buffer when `point-max' is visible.
 That is, if a command is running and the user presses SPACE at a time
 when the end of the buffer is visible, point will go to the end of the
 buffer and smart-display will be turned off (that is, subsequently
@@ -195,7 +195,7 @@ The options are `begin', `after' or `end'."
 
 ;; This is called by window-scroll-functions with two arguments.
 (defun eshell-smart-scroll-window (wind _start)
-  "Scroll the given Eshell window accordingly."
+  "Scroll the given Eshell window WIND accordingly."
   (unless eshell-currently-handling-window
     (let ((inhibit-point-motion-hooks t)
 	  (eshell-currently-handling-window t))

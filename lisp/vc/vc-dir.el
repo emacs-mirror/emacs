@@ -1113,33 +1113,33 @@ If it is a file, return the corresponding cons for the file itself."
 
 (define-derived-mode vc-dir-mode special-mode "VC dir"
   "Major mode for VC directory buffers.
-Marking/Unmarking key bindings and actions:
-m - mark a file/directory
+Marking/Unmarking key bindings and actions: \\<vc-dir-mode-map>
+\\[vc-dir-mark] - mark a file/directory
   - if the region is active, mark all the files in region.
     Restrictions: - a file cannot be marked if any parent directory is marked
                   - a directory cannot be marked if any child file or
                     directory is marked
-u - unmark a file/directory
+\\[vc-dir-unmark] - unmark a file/directory
   - if the region is active, unmark all the files in region.
-M - if the cursor is on a file: mark all the files with the same state as
+\\[vc-dir-mark-all-files] - if the cursor is on a file: mark all the files with the same state as
       the current file
   - if the cursor is on a directory: mark all child files
   - with a prefix argument: mark all files
-U - if the cursor is on a file: unmark all the files with the same state
+\\[vc-dir-unmark-all-files] - if the cursor is on a file: unmark all the files with the same state
       as the current file
   - if the cursor is on a directory: unmark all child files
   - with a prefix argument: unmark all files
 
 VC commands
-VC commands in the `C-x v' prefix can be used.
+VC commands in the \\[vc-prefix-map] prefix can be used.
 VC commands act on the marked entries.  If nothing is marked, VC
 commands act on the current entry.
 
 Search & Replace
-S - searches the marked files
-Q - does a query replace on the marked files
-M-s a C-s - does an isearch on the marked files
-M-s a C-M-s - does a regexp isearch on the marked files
+\\[vc-dir-search] - searches the marked files
+\\[vc-dir-query-replace-regexp] - does a query replace on the marked files
+\\[vc-dir-isearch] - does an isearch on the marked files
+\\[vc-dir-isearch-regexp] - does a regexp isearch on the marked files
 If nothing is marked, these commands act on the current entry.
 When a directory is current or marked, the Search & Replace
 commands act on the child files of that directory that are displayed in

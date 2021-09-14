@@ -91,7 +91,7 @@ This option slows down recursive glob processing by quite a bit."
 
 (defcustom eshell-error-if-no-glob nil
   "If non-nil, it is an error for a glob pattern not to match.
- This mimics the behavior of zsh if non-nil, but bash if nil."
+This mimics the behavior of zsh if non-nil, but bash if nil."
   :type 'boolean
   :group 'eshell-glob)
 
@@ -266,7 +266,7 @@ the form:
 
 ;; FIXME does this really need to abuse eshell-glob-matches, message-shown?
 (defun eshell-glob-entries (path globs &optional recurse-p)
-  "Glob the entries in PATHS, possibly recursing if RECURSE-P is non-nil."
+  "Glob the entries in PATH, possibly recursing if RECURSE-P is non-nil."
   (let* ((entries (ignore-errors
 		    (file-name-all-completions "" path)))
 	 (case-fold-search eshell-glob-case-insensitive)

@@ -6,7 +6,7 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, vc, tools, unix
 ;; Version: 2.81.6
-(defconst ediff-version "2.81.6" "The current version of Ediff")
+(defconst ediff-version "2.81.6" "The current version of Ediff.")
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 20/3/2008, and the maintainer agreed that when a bug is

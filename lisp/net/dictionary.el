@@ -25,9 +25,9 @@
 ;; dictionary allows you to interact with dictionary servers.
 ;; Use M-x customize-group dictionary to modify user settings.
 ;;
-;; Main functions for interaction are:
-;; dictionary        - opens a new dictionary buffer
-;; dictionary-search - search for the definition of a word
+;; Main commands for interaction are:
+;; M-x dictionary        - opens a new dictionary buffer
+;; M-x dictionary-search - search for the definition of a word
 ;;
 ;; You can find more information in the README file of the GitHub
 ;; repository https://github.com/myrkr/dictionary-el
@@ -58,11 +58,11 @@ the existing connection."
   (set-default name value))
 
 (defgroup dictionary nil
-  "Client for accessing the dictd server based dictionaries"
+  "Client for accessing the dictd server based dictionaries."
   :group 'hypermedia)
 
 (defgroup dictionary-proxy nil
-  "Proxy configuration options for the dictionary client"
+  "Proxy configuration options for the dictionary client."
   :group 'dictionary)
 
 (defcustom dictionary-server
@@ -943,7 +943,6 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-set-dictionary (param &optional more)
   "Select the dictionary which is the car of PARAM as new default."
-
   (if more
       (dictionary-display-more-info param)
     (let ((dictionary (car param)))
@@ -1051,7 +1050,6 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-do-matching (word dictionary strategy function)
   "Find matches for WORD with STRATEGY in DICTIONARY and display them with FUNCTION."
-
   (message "Lookup matching words for %s in %s using %s"
 	   word dictionary strategy)
   (dictionary-send-command

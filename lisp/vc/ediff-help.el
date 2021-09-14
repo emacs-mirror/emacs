@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-
 ;; Compiler pacifier start
 (defvar ediff-multiframe)
 ;; end pacifier

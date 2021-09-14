@@ -119,7 +119,7 @@ don't know how to recognize (e.g. some macros)."
 (autoload 'byte-compile-arglist-signature "bytecomp")
 
 (defgroup check-declare nil
-  "Check declare-function statements."
+  "Check `declare-function' statements."
   :group 'tools)
 
 (defcustom check-declare-ext-errors nil
@@ -230,8 +230,8 @@ fset\\|\\(?:cl-\\)?defmethod\\)\\>" type)
     errlist))
 
 (defun check-declare-sort (alist)
-  "Sort a list with elements FILE (FNFILE ...).
-Returned list has elements FNFILE (FILE ...)."
+  "Sort list ALIST with elements FILE (FNFILE ...).
+Return list with elements FNFILE (FILE ...)."
   (let (file fnfile rest sort a)
     (dolist (e alist)
       (setq file (car e))
