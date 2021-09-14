@@ -900,7 +900,9 @@ If QUIET is non-nil, no not emit a message."
             (setq rcirc-reconnection-timer nil))
 
           (message "Connecting to %s...done" (or server-alias server))
-          (setq mode-line-process nil)))
+          (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
+	    (with-current-buffer (or buffer (current-buffer))
+	      (setq mode-line-process nil)))))
        ((string= sentinel "deleted")
         (let ((now (current-time)))
           (with-rcirc-process-buffer process
