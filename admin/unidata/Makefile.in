@@ -81,8 +81,10 @@ charscript.el: ${unidir}/charscript.el
 
 blocks = ${srcdir}/blocks.awk
 
-${unidir}/charscript.el: ${srcdir}/Blocks.txt ${blocks}
-	$(AM_V_GEN)$(AWK) -f ${blocks} < $< > $@
+${unidir}/charscript.el: ${blocks}
+
+${unidir}/charscript.el: ${srcdir}/Blocks.txt ${srcdir}/emoji-data.txt
+	$(AM_V_GEN)$(AWK) -f ${blocks} $^ > $@
 
 
 .PHONY: clean bootstrap-clean distclean maintainer-clean gen-clean

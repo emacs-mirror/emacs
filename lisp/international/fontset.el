@@ -278,7 +278,8 @@
 	(indic-siyaq-number #x1ec71)
 	(ottoman-siyaq-number #x1ed01)
 	(mahjong-tile #x1F000)
-	(domino-tile #x1F030)))
+	(domino-tile #x1F030)
+        (emoji #x1F300 #x1F600 #xFE0F)))
 
 (defvar otf-script-alist)
 
@@ -781,7 +782,8 @@
                     toto
 		    adlam
 		    mahjong-tile
-		    domino-tile))
+		    domino-tile
+                    emoji))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)
 		      nil 'append))
@@ -894,6 +896,9 @@
              (#x1FA00 . #x1FA6F)))	;; Chess Symbols
     (set-fontset-font "fontset-default" symbol-subgroup
                       '("Symbola" . "iso10646-1") nil 'prepend))
+  ;; This sets up the Emoji codepoints to use prettier fonts.
+  (set-fontset-font "fontset-default" 'emoji
+                    '("Noto Color Emoji" . "iso10646-1") nil 'prepend)
   ;; Box Drawing and Block Elements
   (set-fontset-font "fontset-default" '(#x2500 . #x259F)
                     '("FreeMono" . "iso10646-1") nil 'prepend)

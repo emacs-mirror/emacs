@@ -405,7 +405,8 @@ punctuation characters, disregarding the fontsets, should be modified
 to exempt Emoji from this rule (since Emoji characters belong to the
 'symbol' script in Emacs), so that use-default-font-for-symbols would
 not have to be tweaked to have Emoji display by default with a capable
-font.
+font. (This has now been implemented, but only one font is currently
+considered, please augment the list).
 
 *** Consider changing the default display of Variation Selectors
 Emacs by default displays the Variation Selector (VS) codepoints not
