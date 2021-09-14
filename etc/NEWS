@@ -2342,10 +2342,12 @@ This specifies the file in which to save the list of known projects.
 This command lets you interactively remove an entry from the list of projects
 in 'project-list-file'.
 
+---
 *** 'project-find-file' now accepts non-existent file names.
 This is to allow easy creation of files inside some nested
 sub-directory.
 
++++
 *** 'project-find-file' doesn't use the string at point as default input.
 Now it's only suggested as part of the "future history".
 
