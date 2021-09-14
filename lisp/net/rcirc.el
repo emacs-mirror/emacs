@@ -2569,13 +2569,13 @@ that, an interactive form can specified."
     (when (stringp (car body))
       (setq documentation (pop body)))
     (when (eq (car-safe (car-safe body)) 'interactive)
-      (setq interactive-spec (cdr (pop body))))
+      (setq interactive-spec (cadr (pop body))))
     `(progn
        (defun ,fn-name (,argument &optional process target)
          ,(concat documentation
                   "\n\nNote: If PROCESS or TARGET are nil, the values given"
 		  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
-         (interactive (list ,@interactive-spec))
+         (interactive ,interactive-spec)
          (unless (if (listp ,argument)
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))
