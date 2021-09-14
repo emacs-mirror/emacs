@@ -276,6 +276,9 @@ Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 
+When editing Lisp data (as opposed to code), `lisp-data-mode' can
+be used instead.
+
 \\{emacs-lisp-mode-map}"
   :group 'lisp
   (defvar project-vc-external-roots-function)

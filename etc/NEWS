@@ -2900,6 +2900,7 @@ This is a mode for searching a RFC 2229 dictionary server.
 the mouse in 'dictionary-tooltip-dictionary' (which must be customized
 first).
 
+---
 ** Lisp Data mode
 The new command 'lisp-data-mode' enables a major mode for buffers
 composed of Lisp symbolic expressions that do not form a computer
