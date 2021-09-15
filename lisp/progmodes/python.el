@@ -2189,6 +2189,9 @@ virtualenv."
   :type '(alist regexp)
   :group 'python)
 
+(defvar python-shell-output-filter-in-progress nil)
+(defvar python-shell-output-filter-buffer nil)
+
 (defmacro python-shell--add-to-path-with-priority (pathvar paths)
   "Modify PATHVAR and ensure PATHS are added only once at beginning."
   `(dolist (path (reverse ,paths))
@@ -2821,7 +2824,6 @@ def __PYTHON_EL_eval(source, filename):
         from __builtin__ import compile, eval, globals
     else:
         from builtins import compile, eval, globals
-    sys.stdout.write('\\n')
     try:
         p, e = ast.parse(source, filename), None
     except SyntaxError:
@@ -3162,6 +3164,11 @@ t when called interactively."
                       (python-shell--encode-string string)
                       (python-shell--encode-string (or (buffer-file-name)
                                                        "<string>")))))
+    (unless python-shell-output-filter-in-progress
+      (with-current-buffer (process-buffer process)
+        (save-excursion
+          (goto-char (process-mark process))
+          (insert-before-markers "\n"))))
     (if (or (null (process-tty-name process))
             (<= (string-bytes code)
                 (or (bound-and-true-p comint-max-line-length)
@@ -3171,9 +3178,6 @@ t when called interactively."
                                (python-shell--save-temp-file string)))
              (file-name (or (buffer-file-name) temp-file-name)))
         (python-shell-send-file file-name process temp-file-name t)))))
-
-(defvar python-shell-output-filter-in-progress nil)
-(defvar python-shell-output-filter-buffer nil)
 
 (defun python-shell-output-filter (string)
   "Filter used in `python-shell-send-string-no-output' to grab output.
