@@ -89,10 +89,10 @@
 
 
 (defcustom tab-bar-select-tab-modifiers '()
-  "List of modifier keys for selecting tab-bar tabs by index numbers.
+  "List of modifier keys for selecting tab-bar tabs by their numbers.
 Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
-`alt'.  Presiing one of the modifiers in the list and a digit selects
-the tab whose index equals the digit.  Negative numbers count from
+`alt'.  Pressing one of the modifiers in the list and a digit selects
+the tab whose number equals the digit.  Negative numbers count from
 the end of the tab bar.  The digit 9 selects the last (rightmost) tab.
 For easier selection of tabs by their numbers, consider customizing
 `tab-bar-tab-hints', which will show tab numbers alongside the tab name."
@@ -954,25 +954,25 @@ on the tab bar instead."
                              tabs))))
 
 
-(defun tab-bar-select-tab (&optional arg)
-  "Switch to the tab by its absolute position ARG in the tab bar.
+(defun tab-bar-select-tab (&optional tab-number)
+  "Switch to the tab by its absolute position TAB-NUMBER in the tab bar.
 When this command is bound to a numeric key (with a prefix or modifier key
 using `tab-bar-select-tab-modifiers'), calling it without an argument
 will translate its bound numeric key to the numeric argument.
-ARG counts from 1.  Negative ARG counts tabs from the end of the tab bar."
+TAB-NUMBER counts from 1.  Negative TAB-NUMBER counts tabs from the end of the tab bar."
   (interactive "P")
-  (unless (integerp arg)
+  (unless (integerp tab-number)
     (let ((key (event-basic-type last-command-event)))
-      (setq arg (if (and (characterp key) (>= key ?1) (<= key ?9))
-                    (- key ?0)
-                  0))))
+      (setq tab-number (if (and (characterp key) (>= key ?1) (<= key ?9))
+                           (- key ?0)
+                         0))))
 
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (tab-bar--current-tab-index tabs))
-         (to-index (cond ((< arg 0) (+ (length tabs) (1+ arg)))
-                         ((zerop arg) (1+ from-index))
-                         (t arg)))
-         (to-index (1- (max 1 (min to-index (length tabs))))))
+         (to-number (cond ((< tab-number 0) (+ (length tabs) (1+ tab-number)))
+                          ((zerop tab-number) (1+ from-index))
+                          (t tab-number)))
+         (to-index (1- (max 1 (min to-number (length tabs))))))
 
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))
@@ -1085,20 +1085,20 @@ most recent, and so on."
 (defalias 'tab-bar-select-tab-by-name 'tab-bar-switch-to-tab)
 
 
-(defun tab-bar-move-tab-to (to-index &optional from-index)
-  "Move tab from FROM-INDEX position to new position at TO-INDEX.
-FROM-INDEX defaults to the current tab index.
-FROM-INDEX and TO-INDEX count from 1.
-Negative TO-INDEX counts tabs from the end of the tab bar.
+(defun tab-bar-move-tab-to (to-number &optional from-number)
+  "Move tab from FROM-NUMBER position to new position at TO-NUMBER.
+FROM-NUMBER defaults to the current tab number.
+FROM-NUMBER and TO-NUMBER count from 1.
+Negative TO-NUMBER counts tabs from the end of the tab bar.
 Argument addressing is absolute in contrast to `tab-bar-move-tab'
 where argument addressing is relative."
   (interactive "P")
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (from-index (or from-index (1+ (tab-bar--current-tab-index tabs))))
-         (from-tab (nth (1- from-index) tabs))
-         (to-index (if to-index (prefix-numeric-value to-index) 1))
-         (to-index (if (< to-index 0) (+ (length tabs) (1+ to-index)) to-index))
-         (to-index (max 0 (min (1- to-index) (1- (length tabs))))))
+         (from-number (or from-number (1+ (tab-bar--current-tab-index tabs))))
+         (from-tab (nth (1- from-number) tabs))
+         (to-number (if to-number (prefix-numeric-value to-number) 1))
+         (to-number (if (< to-number 0) (+ (length tabs) (1+ to-number)) to-number))
+         (to-index (max 0 (min (1- to-number) (1- (length tabs))))))
     (setq tabs (delq from-tab tabs))
     (cl-pushnew from-tab (nthcdr to-index tabs))
     (tab-bar-tabs-set tabs)
@@ -1121,10 +1121,10 @@ Like `tab-bar-move-tab', but moves in the opposite direction."
   (interactive "p")
   (tab-bar-move-tab (- (or arg 1))))
 
-(defun tab-bar-move-tab-to-frame (arg &optional from-frame from-index to-frame to-index)
-  "Move tab from FROM-INDEX position to new position at TO-INDEX.
-FROM-INDEX defaults to the current tab index.
-FROM-INDEX and TO-INDEX count from 1.
+(defun tab-bar-move-tab-to-frame (arg &optional from-frame from-number to-frame to-number)
+  "Move tab from FROM-NUMBER position to new position at TO-NUMBER.
+FROM-NUMBER defaults to the current tab number.
+FROM-NUMBER and TO-NUMBER count from 1.
 FROM-FRAME specifies the source frame and defaults to the selected frame.
 TO-FRAME specifies the target frame and defaults the next frame.
 Interactively, ARG selects the ARGth different frame to move to."
@@ -1136,10 +1136,10 @@ Interactively, ARG selects the ARGth different frame to move to."
       (setq to-frame (next-frame to-frame))))
   (unless (eq from-frame to-frame)
     (let* ((from-tabs (funcall tab-bar-tabs-function from-frame))
-           (from-index (or from-index (1+ (tab-bar--current-tab-index from-tabs))))
-           (from-tab (nth (1- from-index) from-tabs))
+           (from-number (or from-number (1+ (tab-bar--current-tab-index from-tabs))))
+           (from-tab (nth (1- from-number) from-tabs))
            (to-tabs (funcall tab-bar-tabs-function to-frame))
-           (to-index (max 0 (min (1- (or to-index 1)) (1- (length to-tabs))))))
+           (to-index (max 0 (min (1- (or to-number 1)) (1- (length to-tabs))))))
       (cl-pushnew (assq-delete-all
                    'wc (if (eq (car from-tab) 'current-tab)
                            (tab-bar--tab from-frame)
@@ -1148,7 +1148,7 @@ Interactively, ARG selects the ARGth different frame to move to."
       (with-selected-frame from-frame
         (let ((inhibit-message t) ; avoid message about deleted tab
               tab-bar-closed-tabs)
-          (tab-bar-close-tab from-index)))
+          (tab-bar-close-tab from-number)))
       (tab-bar-tabs-set to-tabs to-frame)
       (force-mode-line-update t))))
 
@@ -1177,11 +1177,11 @@ to the tab argument will be applied after all functions are called."
   :group 'tab-bar
   :version "27.1")
 
-(defun tab-bar-new-tab-to (&optional to-index)
-  "Add a new tab at the absolute position TO-INDEX.
-TO-INDEX counts from 1.  If no TO-INDEX is specified, then add
+(defun tab-bar-new-tab-to (&optional tab-number)
+  "Add a new tab at the absolute position TAB-NUMBER.
+TAB-NUMBER counts from 1.  If no TAB-NUMBER is specified, then add
 a new tab at the position specified by `tab-bar-new-tab-to'.
-Negative TO-INDEX counts tabs from the end of the tab bar,
+Negative TAB-NUMBER counts tabs from the end of the tab bar,
 and -1 means the new tab will become the last one.
 Argument addressing is absolute in contrast to `tab-bar-new-tab'
 where argument addressing is relative.
@@ -1215,11 +1215,11 @@ After the tab is created, the hooks in
     (let* ((to-tab (tab-bar--current-tab-make
                     (when (eq tab-bar-new-tab-group t)
                       `((group . ,(alist-get 'group from-tab))))))
-           (to-index (and to-index (prefix-numeric-value to-index)))
-           (to-index (or (if to-index
-                             (if (< to-index 0)
-                                 (+ (length tabs) (1+ to-index))
-                               (1- to-index)))
+           (to-number (and tab-number (prefix-numeric-value tab-number)))
+           (to-index (or (if to-number
+                             (if (< to-number 0)
+                                 (+ (length tabs) (1+ to-number))
+                               (1- to-number)))
                          (pcase tab-bar-new-tab-to
                            ('leftmost 0)
                            ('rightmost (length tabs))
@@ -1320,15 +1320,15 @@ respectively."
   :group 'tab-bar
   :version "27.1")
 
-(defun tab-bar-close-tab (&optional arg to-index)
-  "Close the tab specified by its absolute position ARG.
-If no ARG is specified, then close the current tab and switch
+(defun tab-bar-close-tab (&optional tab-number to-number)
+  "Close the tab specified by its absolute position TAB-NUMBER.
+If no TAB-NUMBER is specified, then close the current tab and switch
 to the tab specified by `tab-bar-close-tab-select'.
-ARG counts from 1.
-Optional TO-INDEX could be specified to override the value of
+TAB-NUMBER counts from 1.
+Optional TO-NUMBER could be specified to override the value of
 `tab-bar-close-tab-select' programmatically with a position
 of an existing tab to select after closing the current tab.
-TO-INDEX counts from 1.
+TO-NUMBER counts from 1.
 
 The functions in `tab-bar-tab-prevent-close-functions' will be
 run to determine whether or not to close the tab.
@@ -1339,7 +1339,7 @@ for the last tab on a frame is determined by
   (interactive "P")
   (let* ((tabs (funcall tab-bar-tabs-function))
          (current-index (tab-bar--current-tab-index tabs))
-         (close-index (if (integerp arg) (1- arg) current-index))
+         (close-index (if (integerp tab-number) (1- tab-number) current-index))
          (last-tab-p (= 1 (length tabs)))
          (prevent-close (run-hook-with-args-until-success
                          'tab-bar-tab-prevent-close-functions
@@ -1367,7 +1367,7 @@ for the last tab on a frame is determined by
         ;; More than one tab still open
         (when (eq current-index close-index)
           ;; Select another tab before deleting the current tab
-          (let ((to-index (or (if to-index (1- to-index))
+          (let ((to-index (or (if to-number (1- to-number))
                               (pcase tab-bar-close-tab-select
                                 ('left (1- (if (< current-index 1) 2 current-index)))
                                 ('right (if (> (length tabs) (1+ current-index))
@@ -1462,23 +1462,23 @@ for the last tab on a frame is determined by
     (message "No more closed tabs to undo")))
 
 
-(defun tab-bar-rename-tab (name &optional arg)
-  "Rename the tab specified by its absolute position ARG.
-If no ARG is specified, then rename the current tab.
-ARG counts from 1.
+(defun tab-bar-rename-tab (name &optional tab-number)
+  "Rename the tab specified by its absolute position TAB-NUMBER.
+If no TAB-NUMBER is specified, then rename the current tab.
+TAB-NUMBER counts from 1.
 If NAME is the empty string, then use the automatic name
 function `tab-bar-tab-name-function'."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
-          (tab-index (or current-prefix-arg (1+ (tab-bar--current-tab-index tabs))))
-          (tab-name (alist-get 'name (nth (1- tab-index) tabs))))
+          (tab-number (or current-prefix-arg (1+ (tab-bar--current-tab-index tabs))))
+          (tab-name (alist-get 'name (nth (1- tab-number) tabs))))
      (list (read-from-minibuffer
             "New name for tab (leave blank for automatic naming): "
             nil nil nil nil tab-name)
            current-prefix-arg)))
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (tab-index (if arg
-                        (1- (max 0 (min arg (length tabs))))
+         (tab-index (if (integerp tab-number)
+                        (1- (max 0 (min tab-number (length tabs))))
                       (tab-bar--current-tab-index tabs)))
          (tab-to-rename (nth tab-index tabs))
          (tab-explicit-name (> (length name) 0))
@@ -1545,20 +1545,20 @@ The current tab is supplied as an argument."
   :group 'tab-bar
   :version "28.1")
 
-(defun tab-bar-change-tab-group (group-name &optional arg)
-  "Add the tab specified by its absolute position ARG to GROUP-NAME.
-If no ARG is specified, then set the GROUP-NAME for the current tab.
-ARG counts from 1.
+(defun tab-bar-change-tab-group (group-name &optional tab-number)
+  "Add the tab specified by its absolute position TAB-NUMBER to GROUP-NAME.
+If no TAB-NUMBER is specified, then set the GROUP-NAME for the current tab.
+TAB-NUMBER counts from 1.
 If GROUP-NAME is the empty string, then remove the tab from any group.
 While using this command, you might also want to replace
 `tab-bar-format-tabs' with `tab-bar-format-tabs-groups' in
 `tab-bar-format' to group tabs on the tab bar."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
-          (tab-index (or current-prefix-arg
+          (tab-number (or current-prefix-arg
                          (1+ (tab-bar--current-tab-index tabs))))
           (group-name (funcall tab-bar-tab-group-function
-                               (nth (1- tab-index) tabs))))
+                               (nth (1- tab-number) tabs))))
      (list (completing-read
             "Group name for tab (leave blank to remove group): "
             (delete-dups
@@ -1568,8 +1568,8 @@ While using this command, you might also want to replace
                                      (funcall tab-bar-tabs-function))))))
            current-prefix-arg)))
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (tab-index (if arg
-                        (1- (max 0 (min arg (length tabs))))
+         (tab-index (if tab-number
+                        (1- (max 0 (min tab-number (length tabs))))
                       (tab-bar--current-tab-index tabs)))
          (tab (nth tab-index tabs))
          (group (assq 'group tab))
