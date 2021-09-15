@@ -154,9 +154,9 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      :selected (bound-and-true-p eldoc-mode)]))
 
 (defun elisp-context-menu (menu click)
-  (define-key-after menu [elisp-separator] menu-bar-separator
-    'mark-whole-buffer)
   (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [elisp-separator] menu-bar-separator
+      'mark-whole-buffer)
     (define-key-after menu [describe-symbol]
       '(menu-item "Describe Symbol"
                   (lambda (click) (interactive "e")

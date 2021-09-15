@@ -2385,13 +2385,16 @@ To be added to `context-menu-functions'."
   (let ((word (thing-at-mouse click 'word))
         (sym (thing-at-mouse click 'symbol)))
     (when (or word sym)
-      (define-key-after menu [occur-separator] menu-bar-separator)
-      (when word
-        (define-key-after menu [occur-word-at-mouse]
-          '(menu-item "Occur Word" occur-word-at-mouse)))
+      (define-key-after menu [occur-separator] menu-bar-separator
+        'mark-whole-buffer)
       (when sym
         (define-key-after menu [occur-symbol-at-mouse]
-          '(menu-item "Occur Symbol" occur-symbol-at-mouse)))))
+          '(menu-item "Occur Symbol" occur-symbol-at-mouse)
+          'occur-separator))
+      (when word
+        (define-key-after menu [occur-word-at-mouse]
+          '(menu-item "Occur Word" occur-word-at-mouse)
+          'occur-separator))))
   menu)
 
 
