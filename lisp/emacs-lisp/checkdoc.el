@@ -249,11 +249,18 @@ with these words enabled."
   "List of words that are correct when spell-checking Lisp documentation.")
 ;;;###autoload(put 'checkdoc-ispell-list-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
-(defcustom checkdoc-max-keyref-before-warn 10
-  "The number of \\ [command-to-keystroke] tokens allowed in a doc string.
+(defcustom checkdoc-max-keyref-before-warn nil
+  "If non-nil, number of \\\\=[command-to-keystroke] tokens allowed in a doc string.
 Any more than this and a warning is generated suggesting that the construct
-\\ {keymap} be used instead."
-  :type 'integer)
+\\\\={keymap} be used instead.  If the value is nil, never warn.
+
+It used to not be practical to use `\\\\=[...]' very many times,
+because display of the documentation string would become slow.
+This is not an issue on modern machines, unless you have
+thousands of substitutions."
+  :type '(choice (const nil)
+                 integer)
+  :version "28.1")
 
 (defcustom checkdoc-arguments-in-order-flag nil
   "Non-nil means warn if arguments appear out of order.
@@ -1543,17 +1550,15 @@ mouse-[0-3]\\)\\)\\>"))
 	       " embedded in doc string.  Use \\\\<keymap> & \\\\[function] "
 	       "instead")
 	      (match-beginning 1) (match-end 1) t))))
-     ;; It is not practical to use `\\[...]' very many times, because
-     ;; display of the documentation string will become slow.  So use this
-     ;; to describe the most important commands in your major mode, and
-     ;; then use `\\{...}' to display the rest of the mode's keymap.
-     (save-excursion
-       (if (and (re-search-forward "\\\\\\\\\\[\\w+" e t
-				   (1+ checkdoc-max-keyref-before-warn))
-		(not (re-search-forward "\\\\\\\\{\\w+}" e t)))
-	   (checkdoc-create-error
-	    "Too many occurrences of \\[function].  Use \\{keymap} instead"
-	    s (marker-position e))))
+     ;; Optionally warn about too many command substitutions.
+     (when checkdoc-max-keyref-before-warn
+       (save-excursion
+         (if (and (re-search-forward "\\\\\\\\\\[\\w+" e t
+                                     (1+ checkdoc-max-keyref-before-warn))
+                  (not (re-search-forward "\\\\\\\\{\\w+}" e t)))
+             (checkdoc-create-error
+              "Too many occurrences of \\[function].  Use \\{keymap} instead"
+              s (marker-position e)))))
      ;; Ambiguous quoted symbol.  When a symbol is both bound and fbound,
      ;; and is referred to in documentation, it should be prefixed with
      ;; something to disambiguate it.  This check must be before the
