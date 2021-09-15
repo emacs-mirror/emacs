@@ -459,8 +459,9 @@ In other words, return all information but the name."
 (defun bookmark--set-fringe-mark ()
   "Apply a colorized overlay to the bookmarked location.
 See user option `bookmark-set-fringe-mark'."
-  (let ((bm (make-overlay (point-at-bol) (point-at-bol))))
+  (let ((bm (make-overlay (point-at-bol) (1+ (point-at-bol)))))
     (overlay-put bm 'category 'bookmark)
+    (overlay-put bm 'evaporate t)
     (overlay-put bm 'before-string
                  (propertize
                   "x" 'display
