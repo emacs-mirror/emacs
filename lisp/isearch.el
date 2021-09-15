@@ -2945,13 +2945,13 @@ See also the related option `isearch-allow-motion'."
   :group 'isearch)
 
 (put 'beginning-of-buffer 'isearch-motion
-     '((lambda () (goto-char (point-min))) . forward))
+     (cons (lambda () (goto-char (point-min))) 'forward))
 (put 'end-of-buffer 'isearch-motion
-     '((lambda () (goto-char (point-max)) (recenter -1 t)) . backward))
+     (cons (lambda () (goto-char (point-max)) (recenter -1 t)) 'backward))
 (put 'scroll-up-command 'isearch-motion
-     '((lambda () (goto-char (window-end)) (recenter 0 t)) . forward))
+     (cons (lambda () (goto-char (window-end)) (recenter 0 t)) 'forward))
 (put 'scroll-down-command 'isearch-motion
-     '((lambda () (goto-char (window-start)) (recenter -1 t)) . backward))
+     (cons (lambda () (goto-char (window-start)) (recenter -1 t)) 'backward))
 
 (defcustom isearch-allow-motion nil
   "Whether to allow movement between isearch matches by cursor motion commands.
