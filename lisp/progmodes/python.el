@@ -4775,10 +4775,9 @@ Interactively, prompt for symbol."
 
 ;;; Hideshow
 
-(defun python-hideshow-forward-sexp-function (arg)
+(defun python-hideshow-forward-sexp-function (_arg)
   "Python specific `forward-sexp' function for `hs-minor-mode'.
 Argument ARG is ignored."
-  arg  ; Shut up, byte compiler.
   (python-nav-end-of-defun)
   (unless (python-info-current-line-empty-p)
     (backward-char)))
