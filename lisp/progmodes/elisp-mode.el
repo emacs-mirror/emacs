@@ -989,6 +989,8 @@ namespace but with lower confidence."
 
              ((setq generic (cl--generic symbol))
               ;; FIXME: move this to elisp-xref-find-def-functions, in cl-generic.el
+              ;; XXX: How are we going to support using newer xref
+              ;; with older versions of Emacs, though?
 
               ;; A generic function. If there is a default method, it
               ;; will appear in the method table, with no
