@@ -1376,7 +1376,7 @@ any buffer where (dictionary-tooltip-mode 1) has been called."
     (dictionary-search word)))
 
 (defun context-menu-dictionary (menu click)
-  "Dictionary context menu."
+  "Populate MENU with dictionary commands at CLICK."
   (when (thing-at-mouse click 'word)
     (define-key menu [dictionary-separator] menu-bar-separator)
     (define-key menu [dictionary-search-word-at-mouse]

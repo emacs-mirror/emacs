@@ -281,6 +281,7 @@ not it is actually displayed."
 
 (defcustom context-menu-functions '(context-menu-undo
                                     context-menu-region
+                                    context-menu-middle-separator
                                     context-menu-local
                                     context-menu-minor)
   "List of functions that produce the contents of the context menu.
@@ -305,11 +306,19 @@ and should return the same menu with changes such as added new menu items."
   :version "28.1")
 
 (defun context-menu-map (&optional click)
-  "Return composite menu map."
+  "Return menu map constructed for context near mouse CLICK.
+The menu is populated by calling functions from `context-menu-functions'.
+Each function receives the menu and the mouse click event
+and returns the same menu after adding own menu items to the composite menu.
+When there is a text property `context-menu-function' at CLICK,
+it overrides all functions from `context-menu-functions'.
+At the end, it's possible to modify the final menu by specifying
+the function `context-menu-filter-function'."
   (let* ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t)))
          (click (or click last-input-event))
          (fun (mouse-posn-property (event-start click)
                                    'context-menu-function)))
+
     (if (functionp fun)
         (setq menu (funcall fun menu click))
       (run-hook-wrapped 'context-menu-functions
@@ -329,8 +338,14 @@ and should return the same menu with changes such as added new menu items."
       (setq menu (funcall context-menu-filter-function menu click)))
     menu))
 
+(defun context-menu-middle-separator (menu _click)
+  "Add separator to the middle of the context menu.
+Some context functions add menu items below the separator."
+  (define-key-after menu [middle-separator] menu-bar-separator)
+  menu)
+
 (defun context-menu-toolbar (menu _click)
-  "Tool bar menu items."
+  "Populate MENU with submenus from the tool bar."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-toolbar] menu-bar-separator)
   (map-keymap (lambda (key binding)
@@ -341,7 +356,7 @@ and should return the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-global (menu _click)
-  "Global submenus."
+  "Populate MENU with submenus from the global menu."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-global] menu-bar-separator)
   (map-keymap (lambda (key binding)
@@ -352,7 +367,7 @@ and should return the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-local (menu _click)
-  "Major mode submenus."
+  "Populate MENU with submenus provided by major mode."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-local] menu-bar-separator)
   (let ((keymap (local-key-binding [menu-bar])))
@@ -365,7 +380,7 @@ and should return the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-minor (menu _click)
-  "Minor modes submenus."
+  "Populate MENU with submenus provided by minor modes."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-minor] menu-bar-separator)
   (dolist (mode (reverse (minor-mode-key-binding [menu-bar])))
@@ -378,7 +393,7 @@ and should return the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-buffers (menu _click)
-  "Submenus with buffers."
+  "Populate MENU with the buffer submenus to buffer switching."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (define-key-after menu [separator-buffers] menu-bar-separator)
   (map-keymap (lambda (key binding)
@@ -389,13 +404,13 @@ and should return the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-vc (menu _click)
-  "Version Control menu."
+  "Populate MENU with Version Control commands."
   (define-key-after menu [separator-vc] menu-bar-separator)
   (define-key-after menu [vc-menu] vc-menu-entry)
   menu)
 
 (defun context-menu-undo (menu _click)
-  "Undo menu."
+  "Populate MENU with undo commands."
   (define-key-after menu [separator-undo] menu-bar-separator)
   (when (and (not buffer-read-only)
              (not (eq t buffer-undo-list))
@@ -413,7 +428,7 @@ and should return the same menu with changes such as added new menu items."
   menu)
 
 (defun context-menu-region (menu _click)
-  "Region commands menu."
+  "Populate MENU with region commands."
   (define-key-after menu [separator-region] menu-bar-separator)
   (when (and mark-active (not buffer-read-only))
     (define-key-after menu [cut]
@@ -451,26 +466,27 @@ and should return the same menu with changes such as added new menu items."
     (define-key-after menu [clear]
       '(menu-item "Clear" delete-active-region
                   :help
-                  "Delete the text in region between mark and current position")))
+                  "Delete text in region between mark and current position")))
   (define-key-after menu [mark-whole-buffer]
     '(menu-item "Select All" mark-whole-buffer
                 :help "Mark the whole buffer for a subsequent cut/copy"))
   menu)
 
 (defun context-menu-ffap (menu click)
-  "File at point menu."
+  "Populate MENU with commands that find file at point."
   (save-excursion
     (mouse-set-point click)
     (when (ffap-guess-file-name-at-point)
       (define-key menu [ffap-separator] menu-bar-separator)
       (define-key menu [ffap-at-mouse]
         '(menu-item "Find File or URL" ffap-at-mouse
-                    :help "Find file or URL guessed from text around mouse click"))))
+                    :help "Find file or URL from text around mouse click"))))
   menu)
 
 (defvar context-menu-entry
   `(menu-item ,(purecopy "Context Menu") ignore
-              :filter (lambda (_) (context-menu-map))))
+              :filter (lambda (_) (context-menu-map)))
+  "Menu item that creates the context menu and can be bound to a mouse key.")
 
 (defvar context-menu-mode-map
   (let ((map (make-sparse-keymap)))

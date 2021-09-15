@@ -154,23 +154,24 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      :selected (bound-and-true-p eldoc-mode)]))
 
 (defun elisp-context-menu (menu click)
+  "Populate MENU with symbol help commands at CLICK."
   (when (thing-at-mouse click 'symbol)
     (define-key-after menu [elisp-separator] menu-bar-separator
-      'mark-whole-buffer)
+      'middle-separator)
+    (define-key-after menu [info-lookup-symbol]
+      '(menu-item "Look up Symbol"
+                  (lambda (click) (interactive "e")
+                    (info-lookup-symbol
+                     (intern (thing-at-mouse click 'symbol t))))
+                  :help "Display definition in relevant manual")
+      'elisp-separator)
     (define-key-after menu [describe-symbol]
       '(menu-item "Describe Symbol"
                   (lambda (click) (interactive "e")
                     (describe-symbol
                      (intern (thing-at-mouse click 'symbol t))))
                   :help "Display the full documentation of symbol")
-      'elisp-separator)
-    (define-key-after menu [info-lookup-symbol]
-      '(menu-item "Lookup Symbol"
-                  (lambda (click) (interactive "e")
-                    (info-lookup-symbol
-                     (intern (thing-at-mouse click 'symbol t))))
-                  :help "Display definition in relevant manual")
-      'describe-symbol))
+      'elisp-separator))
   menu)
 
 (defun emacs-lisp-byte-compile ()

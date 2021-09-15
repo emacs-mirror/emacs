@@ -1027,6 +1027,7 @@ the like."
     map))
 
 (defun eww-context-menu (menu click)
+  "Populate MENU with eww commands at CLICK."
   (define-key menu [eww-separator] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Eww")))
     (easy-menu-define nil easy-menu nil

@@ -71,6 +71,7 @@
      :help "Customize variable or face"]))
 
 (defun help-mode-context-menu (menu click)
+  "Populate MENU with Help mode commands at CLICK."
   (define-key menu [help-mode-separator] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Help-Mode")))
     (easy-menu-define nil easy-menu nil

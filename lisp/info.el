@@ -4152,6 +4152,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
    ["Exit" quit-window :help "Stop reading Info"]))
 
 (defun Info-context-menu (menu click)
+  "Populate MENU with Info commands at CLICK."
   (define-key menu [Info-separator] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Info")))
     (easy-menu-define nil easy-menu nil

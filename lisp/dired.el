@@ -2194,6 +2194,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
      :help "Delete image tag from current or marked files"]))
 
 (defun dired-context-menu (menu click)
+  "Populate MENU with Dired mode commands at CLICK."
   (when (mouse-posn-property (event-start click) 'dired-filename)
     (define-key menu [dired-separator] menu-bar-separator)
     (let ((easy-menu (make-sparse-keymap "Immediate")))

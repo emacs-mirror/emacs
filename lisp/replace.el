@@ -2380,13 +2380,13 @@ See also `multi-occur'."
     (occur (concat "\\_<" (regexp-quote symbol) "\\_>"))))
 
 (defun occur-context-menu (menu click)
-  "Populate MENU with occur commands for CLICK.
+  "Populate MENU with occur commands at CLICK.
 To be added to `context-menu-functions'."
   (let ((word (thing-at-mouse click 'word))
         (sym (thing-at-mouse click 'symbol)))
     (when (or word sym)
       (define-key-after menu [occur-separator] menu-bar-separator
-        'mark-whole-buffer)
+        'middle-separator)
       (when sym
         (define-key-after menu [occur-symbol-at-mouse]
           '(menu-item "Occur Symbol" occur-symbol-at-mouse)
