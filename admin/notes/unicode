@@ -12,11 +12,11 @@ Emacs uses the following files from the Unicode Character Database
   . UnicodeData.txt
   . Blocks.txt
   . BidiBrackets.txt
-  . BidiCharacterTest.txt
   . BidiMirroring.txt
   . IVD_Sequences.txt
   . NormalizationTest.txt
   . SpecialCasing.txt
+  . BidiCharacterTest.txt
 
 First, the first 7 files need to be copied into admin/unidata/, and
 the file https://www.unicode.org/copyright.html should be copied over
@@ -81,7 +81,12 @@ regarding failing lines.
 
 The file BidiCharacterTest.txt should be copied to the test suite, and
 if its format has changed, the file biditest.el there should be
-modified to follow suit.
+modified to follow suit.  If there's trailing whitespace in
+BidiCharacterTest.txt, it should be removed before committing the new
+version.
+
+etc/NEWS should be updated to announce the support for the new Unicode
+version.
 
 Problems, fixmes and other unicode-related issues
 -------------------------------------------------------------

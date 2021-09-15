@@ -128,6 +128,9 @@ of files visited via 'C-x C-f' and other commands.
 
 * Changes in Emacs 28.1
 
+---
+** Emacs now supports Unicode Standard version 14.0.
+
 +++
 ** New command 'execute-extended-command-for-buffer'.
 This new command, bound to 'M-S-x', works like
