@@ -755,15 +755,6 @@ server name and search for a match in `erc-networks-alist'."
   "Return the value of `erc-network' for the current server."
   (erc-with-server-buffer erc-network))
 
-(defun erc-current-network ()
-  "Deprecated.  Use `erc-network' instead.
-Return the name of this server's network as a symbol."
-  (erc-with-server-buffer
-    (intern (downcase (symbol-name erc-network)))))
-
-(make-obsolete 'erc-current-network 'erc-network
-               "Obsolete since erc-networks 1.5")
-
 (defun erc-network-name ()
   "Return the name of the current network as a string."
   (erc-with-server-buffer (symbol-name erc-network)))

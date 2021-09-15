@@ -3404,9 +3404,9 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 ---
 ** Some functions and variables obsolete since Emacs 22 have been removed:
-'gnus-article-hide-pgp-hook', 'gnus-inews-mark-gcc-as-read',
-'gnus-treat-display-xface', 'gnus-treat-strip-pgp',
-'nnmail-spool-file'.
+'erc-current-network', 'gnus-article-hide-pgp-hook',
+'gnus-inews-mark-gcc-as-read', 'gnus-treat-display-xface',
+'gnus-treat-strip-pgp', 'nnmail-spool-file'.
 
 ---
 ** The obsolete function 'thread-alive-p' has been removed.
