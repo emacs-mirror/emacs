@@ -280,13 +280,14 @@ The string is used in `tramp-methods'.")
                 (tramp-connection-timeout   10)))
  (add-to-list 'tramp-methods
               `("sudo"
-                (tramp-login-program        "sudo")
+                (tramp-login-program        "env")
                 ;; The password template must be masked.  Otherwise,
                 ;; it could be interpreted as password prompt if the
                 ;; remote host echoes the command.
-                (tramp-login-args           (("-u" "%u") ("-s") ("-H")
-				             ("-p" "P\"\"a\"\"s\"\"s\"\"w\"\"o\"\"r\"\"d\"\":")
-                                             ("%l")))
+		;; The "-p" argument doesn't work reliably, see Bug#50594.
+                (tramp-login-args           (("SUDO_PROMPT=P\"\"a\"\"s\"\"s\"\"w\"\"o\"\"r\"\"d\"\":")
+                                             ("sudo") ("-u" "%u") ("-s") ("-H")
+				             ("%l")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
