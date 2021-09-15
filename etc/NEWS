@@ -1208,7 +1208,7 @@ Thus, packages on nonGNU ELPA will appear by default in the list shown
 by 'list-packages'.
 
 ---
-*** '/ s' ('package-menu-filter-by-status') changes parameter handling.
+*** '/ s' ('package-menu-filter-by-status') changed parameter handling.
 The command was documented to take a comma-separated list of statuses
 to filter by, but instead it used the parameter as a regexp.  The
 command has been changed so that it now works as documented, and
