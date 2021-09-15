@@ -8363,7 +8363,8 @@ indirectly called by the latter."
 	    (throw 'best t)))))
     ;; When ALIST has a `previous-window' entry, that entry may override
     ;; anything we found so far.
-    (when (and previous-window (boundp previous-window))
+    (when (and previous-window (symbolp previous-window)
+               (boundp previous-window))
       (setq previous-window (symbol-value previous-window)))
     (when (and (setq window previous-window)
 	       (window-live-p window)
