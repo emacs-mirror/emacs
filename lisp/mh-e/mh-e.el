@@ -26,11 +26,8 @@
 
 ;; MH-E is an Emacs interface to the MH mail system.
 
-;; MH-E is supported in GNU Emacs 21 and higher, as well as XEmacs 21
-;; (except for versions 21.5.9-21.5.16). It is compatible with MH
-;; versions 6.8.4 and higher, all versions of nmh, and GNU mailutils
-;; 1.0 and higher. Gnus is also required; version 5.10 or higher is
-;; recommended.
+;; MH-E is compatible with MH versions 6.8.4 and higher, all versions
+;; of nmh, and GNU mailutils 1.0 and higher.
 
 ;; MH (Message Handler) is a powerful mail reader. See
 ;; https://rand-mh.sourceforge.io/.
@@ -48,12 +45,6 @@
 ;;   (global-set-key "\C-cr" 'mh-rmail)
 ;;   (global-set-key "\C-xm" 'mh-smail)
 ;;   (global-set-key "\C-x4m" 'mh-smail-other-window)
-
-;; If Emacs can't find mh-rmail or mh-smail, add the following to ~/.emacs:
-;;   (require 'mh-autoloads)
-
-;; If you want to customize MH-E before explicitly loading it, add this:
-;;   (require 'mh-cus-load)
 
 ;; Mailing Lists:
 ;;   mh-e-users@lists.sourceforge.net
