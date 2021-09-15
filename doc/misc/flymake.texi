@@ -4,7 +4,7 @@
 @set VERSION 1.2
 @set UPDATED September 2021
 @settitle GNU Flymake @value{VERSION}
-@include ../emacs/docstyle.texi
+@include docstyle.texi
 @syncodeindex pg cp
 @syncodeindex vr cp
 @syncodeindex fn cp
