@@ -60,9 +60,9 @@
 
 (defcustom rcirc-server-alist
   (if (gnutls-available-p)
-      '(("irc.libera.chat" :channels ("#rcirc")
+      '(("irc.libera.chat" :channels ("#emacs" "#rcirc")
          :port 6697 :encryption tls))
-    '(("irc.libera.chat" :channels ("#rcirc"))))
+    '(("irc.libera.chat" :channels ("#emacs" "#rcirc"))))
   "An alist of IRC connections to establish when running `rcirc'.
 Each element looks like (SERVER-NAME PARAMETERS).
 
@@ -194,16 +194,15 @@ If nil, no maximum is applied."
   "Responses which will be hidden when `rcirc-omit-mode' is enabled."
   :type '(repeat string))
 
-(defcustom rcirc-omit-after-reconnect
-  '("JOIN" "TOPIC" "NAMES")
-  "Types of messages to hide right after reconnecting."
+(defcustom rcirc-omit-responses-after-join '()
+  "Types of messages to hide right after joining a channel."
   :type '(repeat string)
   :version "28.1")
 
-(defvar-local rcirc-reconncting nil
-  "Non-nil means we have just reconnected.
+(defvar-local rcirc-joined nil
+  "Non-nil means we have just connected.
 This is used to hide the message types enumerated in
-`rcirc-supress-after-reconnect'.")
+`rcirc-omit-responses-after-join'.")
 
 (defvar-local rcirc-prompt-start-marker nil
   "Marker indicating the beginning of the message prompt.")
@@ -215,11 +214,8 @@ Uninteresting lines are those whose responses are listed in
 `rcirc-omit-responses'."
   :lighter " Omit"
   (if rcirc-omit-mode
-      (progn
-	(add-to-invisibility-spec '(rcirc-omit . nil))
-	(message "Rcirc-Omit mode enabled"))
-    (remove-from-invisibility-spec '(rcirc-omit . nil))
-    (message "Rcirc-Omit mode disabled"))
+      (add-to-invisibility-spec '(rcirc-omit . nil))
+    (remove-from-invisibility-spec '(rcirc-omit . nil)))
   (dolist (window (get-buffer-window-list (current-buffer)))
     (with-selected-window window
       (recenter (when (> (point) rcirc-prompt-start-marker) -1)))))
@@ -413,6 +409,21 @@ will be killed."
   :version "28.1"
   :type 'function)
 
+(defcustom rcirc-channel-filter #'identity
+  "Function applied to channels before displaying."
+  :version "28.1"
+  :type 'function)
+
+(defcustom rcirc-track-ignore-server-buffer-flag nil
+  "Non-nil means activities in the server buffer are not traced."
+  :version "28.1"
+  :type 'boolean)
+
+(defcustom rcirc-display-server-buffer t
+  "Non-nil means the server buffer should be shown on connecting."
+  :version "28.1"
+  :type 'boolean)
+
 (defvar-local rcirc-nick nil
   "The nickname used for the current connection.")
 
@@ -512,10 +523,12 @@ If ARG is non-nil, instead prompt for connection parameters."
 							   :channels)
 						" "))
 			"[, ]+" t))
-             (encryption (rcirc-prompt-for-encryption server-plist)))
-	(rcirc-connect server port nick user-name
-		       rcirc-default-full-name
-		       channels password encryption))
+             (encryption (rcirc-prompt-for-encryption server-plist))
+             (process (rcirc-connect server port nick user-name
+		                     rcirc-default-full-name
+		                     channels password encryption)))
+	(when rcirc-display-server-buffer
+          (pop-to-buffer-same-window (process-buffer process))))
     ;; connect to servers in `rcirc-server-alist'
     (let (connected-servers)
       (dolist (c rcirc-server-alist)
@@ -544,9 +557,11 @@ If ARG is non-nil, instead prompt for connection parameters."
 		  (setq connected p)))
 	      (if (not connected)
 		  (condition-case nil
-		      (rcirc-connect server port nick user-name
-                                     full-name channels password encryption
-                                     server-alias)
+		      (let ((process (rcirc-connect server port nick user-name
+                                                    full-name channels password encryption
+                                                    server-alias)))
+                        (when rcirc-display-server-buffer
+                          (pop-to-buffer-same-window (process-buffer process))))
 		    (quit (message "Quit connecting to %s"
                                    (or server-alias server))))
 		(with-current-buffer (process-buffer connected)
@@ -595,6 +610,8 @@ FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION SERVER-ALIAS).
 See `rcirc-connect' for more details on these variables.")
 (defvar-local rcirc-process nil
   "Network process for the current connection.")
+(defvar-local rcirc-last-connect-time nil
+  "The last time the buffer was connected.")
 
 ;;; IRCv3 capability negotiation (https://ircv3.net/specs/extensions/capability-negotiation)
 (defvar rcirc-implemented-capabilities
@@ -604,6 +621,16 @@ See `rcirc-connect' for more details on these variables.")
     "message-ids"                       ;https://ircv3.net/specs/extensions/message-ids
     "invite-notify"                     ;https://ircv3.net/specs/extensions/invite-notify
     "sasl"                              ;https://ircv3.net/specs/extensions/sasl-3.1
+    "multi-prefix"                      ;https://ircv3.net/specs/extensions/multi-prefix
+    "standard-replies"                  ;https://ircv3.net/specs/extensions/standard-replies
+    ;; The following capabilities should be implemented as soon as
+    ;; their specifications are undrafted:
+    ;;
+    ;; "reply"                             ;https://ircv3.net/specs/client-tags/reply
+    ;; "react"                             ;https://ircv3.net/specs/client-tags/react
+    ;; "multiline"                         ;https://ircv3.net/specs/extensions/multiline
+    ;; "chathistory"                       ;https://ircv3.net/specs/extensions/chathistory
+    ;; "channel-rename"                    ;https://ircv3.net/specs/extensions/channel-rename
     )
   "A list of capabilities that rcirc supports.")
 (defvar-local rcirc-requested-capabilities nil
@@ -611,7 +638,7 @@ See `rcirc-connect' for more details on these variables.")
 (defvar-local rcirc-acked-capabilities nil
   "A list of capabilities that the server supports.")
 (defvar-local rcirc-finished-sasl t
-  "Check whether SASL authentication has completed")
+  "Check whether SASL authentication has completed.")
 
 (defun rcirc-get-server-method (server)
   "Return authentication method for SERVER."
@@ -644,69 +671,61 @@ that are joined after authentication."
     (message "Connecting to %s..." (or server-alias server))
     (let* ((inhibit-eol-conversion)
            (port-number (if port
-			    (if (stringp port)
-				(string-to-number port)
-			      port)
-			  rcirc-default-port))
-	   (nick (or nick rcirc-default-nick))
-	   (user-name (or user-name rcirc-default-user-name))
-	   (full-name (or full-name rcirc-default-full-name))
-	   (startup-channels startup-channels)
-           (use-sasl (eq (rcirc-get-server-method server) 'sasl))
-           (process (open-network-stream
+                            (if (stringp port)
+                                (string-to-number port)
+                              port)
+                          rcirc-default-port))
+           (nick (or nick rcirc-default-nick))
+           (user-name (or user-name rcirc-default-user-name))
+           (full-name (or full-name rcirc-default-full-name))
+           (startup-channels startup-channels)
+
+           process)
+
+      ;; Ensure any previous process is killed
+      (when-let ((old-process (get-process (or server-alias server))))
+        (set-process-sentinel old-process #'ignore)
+        (delete-process process))
+
+      ;; Set up process
+      (setq process (open-network-stream
                      (or server-alias server) nil server port-number
-                     :type (or encryption 'plain))))
-      ;; set up process
+                     :type (or encryption 'plain)
+                     :nowait t))
       (set-process-coding-system process 'raw-text 'raw-text)
-      (switch-to-buffer (rcirc-generate-new-buffer-name process nil))
-      (set-process-buffer process (current-buffer))
-      (unless (eq major-mode 'rcirc-mode)
-        (rcirc-mode process nil))
-      (set-process-sentinel process 'rcirc-sentinel)
-      (set-process-filter process 'rcirc-filter)
+      (with-current-buffer (get-buffer-create (rcirc-generate-new-buffer-name process nil))
+        (set-process-buffer process (current-buffer))
+        (unless (eq major-mode 'rcirc-mode)
+          (rcirc-mode process nil))
+        (set-process-sentinel process #'rcirc-sentinel)
+        (set-process-filter process #'rcirc-filter)
 
-      (setq rcirc-connection-info
-	    (list server port nick user-name full-name startup-channels
-		  password encryption server-alias))
-      (setq rcirc-process process)
-      (setq rcirc-server server)
-      (setq rcirc-server-name (or server-alias server)) ; Update when we get 001 response.
-      (setq rcirc-nick-table (make-hash-table :test 'equal))
-      (setq rcirc-nick nick)
-      (setq rcirc-startup-channels startup-channels)
-      (setq rcirc-last-server-message-time (current-time))
+        (setq rcirc-connection-info
+              (list server port nick user-name full-name startup-channels
+                    password encryption server-alias))
+        (setq rcirc-process process)
+        (setq rcirc-server server)
+        (setq rcirc-server-name (or server-alias server)) ; Update when we get 001 response.
+        (setq rcirc-nick-table (make-hash-table :test 'equal))
+        (setq rcirc-nick nick)
+        (setq rcirc-startup-channels startup-channels)
+        (setq rcirc-last-server-message-time (current-time))
+        (setq rcirc-last-connect-time (current-time))
 
-      (setq rcirc-connecting t)
+        ;; Check if the immediate process state
+        (sit-for .1)
+        (cond
+         ((eq (process-status process) 'failed)
+          (setq mode-line-process ":disconnected")
+          (setq rcirc-connecting nil))
+         ((eq (process-status process) 'connect)
+          (setq mode-line-process ":connecting")
+          (setq rcirc-connecting t)))
 
-      (add-hook 'auto-save-hook 'rcirc-log-write)
-      (when use-sasl
-        (rcirc-send-string process "CAP REQ sasl"))
+        (add-hook 'auto-save-hook #'rcirc-log-write)
 
-      (when use-sasl
-        (setq-local rcirc-finished-sasl nil))
-      ;; identify
-      (dolist (cap rcirc-implemented-capabilities)
-        (rcirc-send-string process "CAP" "REQ" : cap)
-        (push cap rcirc-requested-capabilities))
-      (unless (zerop (length password))
-        (rcirc-send-string process "PASS" password))
-      (rcirc-send-string process "NICK" nick)
-      (rcirc-send-string process "USER" user-name "0" "*" : full-name)
-      ;; Setup sasl, and initiate authentication.
-      (when (and rcirc-auto-authenticate-flag
-                 use-sasl)
-        (rcirc-send-string process "AUTHENTICATE" "PLAIN"))
-
-      ;; setup ping timer if necessary
-      (unless rcirc-keepalive-timer
-	(setq rcirc-keepalive-timer
-	      (run-at-time 0 (/ rcirc-timeout-seconds 2) 'rcirc-keepalive)))
-
-      (message "Connecting to %s...done" (or server-alias server))
-      (setq mode-line-process nil)
-
-      ;; return process object
-      process)))
+        ;; return process object
+        process))))
 
 (defmacro with-rcirc-process-buffer (process &rest body)
   "Evaluate BODY in the buffer of PROCESS."
@@ -795,31 +814,112 @@ When 0, do not auto-reconnect."
   :version "25.1"
   :type 'integer)
 
-(defvar-local rcirc-last-connect-time nil
-  "The last time the buffer was connected.")
+(defcustom rcirc-reconnect-attempts 3
+  "Number of times a reconnection should be attempted."
+  :version "28.1"
+  :type 'integer)
+
+(defvar-local rcirc-failed-attempts 0
+  "Number of times reconnecting has failed.")
+
+(defvar-local rcirc-reconnection-timer nil
+  "Timer used for reconnecting.")
+
+(defun rcirc-reconnect (process &optional quiet)
+  "Attempt to reconnect connection to PROCESS.
+If QUIET is non-nil, no not emit a message."
+  (with-rcirc-process-buffer process
+    (catch 'exit
+      (if (rcirc--connection-open-p process)
+          (throw 'exit (or quiet (message "Server process is alive")))
+        (delete-process process))
+      (let ((conn-info rcirc-connection-info))
+	(setf (nth 5 conn-info)
+	      (cl-remove-if-not #'rcirc-channel-p
+				(mapcar #'car rcirc-buffer-alist)))
+        (dolist (buffer (mapcar #'cdr rcirc-buffer-alist))
+	  (when (buffer-live-p buffer)
+            (with-current-buffer buffer
+	      (setq mode-line-process ":connecting"))))
+	(let ((nprocess (apply #'rcirc-connect conn-info)))
+          (when (and (< rcirc-failed-attempts rcirc-reconnect-attempts)
+                     (eq (process-status nprocess) 'failed))
+            (setq rcirc-failed-attempts (1+ rcirc-failed-attempts))
+            (rcirc-print nprocess "*rcirc*" "ERROR" nil
+		         (format "Failed to reconnect (%d/%d)..."
+                                 rcirc-failed-attempts
+                                 rcirc-reconnect-attempts))
+            (setq rcirc-reconnection-timer
+                  (run-at-time rcirc-timeout-seconds nil
+                               #'rcirc-reconnect process t))))))))
 
 (defun rcirc-sentinel (process sentinel)
   "Called when PROCESS receives SENTINEL."
   (let ((sentinel (string-replace "\n" "" sentinel)))
     (rcirc-debug process (format "SENTINEL: %S %S\n" process sentinel))
     (with-rcirc-process-buffer process
-      (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
-	(with-current-buffer (or buffer (current-buffer))
-	  (rcirc-print process "rcirc.el" "ERROR" rcirc-target
-		       (format "%s: %s (%S)"
-			       (process-name process)
-			       sentinel
-			       (process-status process))
-                       (not rcirc-target))
-	  (rcirc-disconnect-buffer)))
-      (when (and (string= sentinel "deleted")
-                 (< 0 rcirc-reconnect-delay))
+      (cond
+       ((string= sentinel "open")
+        (let* ((server (nth 0 rcirc-connection-info))
+               (user-name (nth 3 rcirc-connection-info))
+               (full-name (nth 4 rcirc-connection-info))
+               (password (nth 6 rcirc-connection-info))
+               (server-alias (nth 8 rcirc-connection-info))
+               (use-sasl (eq (rcirc-get-server-method server) 'sasl)))
+
+          ;; Prepare SASL authentication
+          (when use-sasl
+            (rcirc-send-string process "CAP REQ sasl")
+            (setq-local rcirc-finished-sasl nil))
+
+          ;; Capability negotiation
+          (dolist (cap rcirc-implemented-capabilities)
+            (rcirc-send-string process "CAP" "REQ" : cap)
+            (push cap rcirc-requested-capabilities))
+
+          ;; Identify user
+          (unless (zerop (length password))
+            (rcirc-send-string process "PASS" password))
+          (rcirc-send-string process "NICK" rcirc-nick)
+          (rcirc-send-string process "USER" user-name "0" "*" : full-name)
+
+          ;; Setup sasl, and initiate authentication.
+          (when (and rcirc-auto-authenticate-flag
+                     use-sasl)
+            (rcirc-send-string process "AUTHENTICATE" "PLAIN"))
+
+          ;; Setup ping timer if necessary
+          (unless rcirc-keepalive-timer
+            (setq rcirc-keepalive-timer
+                  (run-at-time 0 (/ rcirc-timeout-seconds 2) #'rcirc-keepalive)))
+
+          ;; Reset previous reconnection attempts
+          (setq rcirc-failed-attempts 0)
+          (when rcirc-reconnection-timer
+            (cancel-timer rcirc-reconnection-timer)
+            (setq rcirc-reconnection-timer nil))
+
+          (message "Connecting to %s...done" (or server-alias server))
+          (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
+	    (with-current-buffer (or buffer (current-buffer))
+	      (setq mode-line-process nil)))))
+       ((string= sentinel "deleted")
         (let ((now (current-time)))
-          (when (or (null rcirc-last-connect-time)
-		    (time-less-p rcirc-reconnect-delay
-				 (time-subtract now rcirc-last-connect-time)))
-            (setq rcirc-last-connect-time now)
-            (rcirc-cmd-reconnect nil))))
+          (with-rcirc-process-buffer process
+            (when (and (< 0 rcirc-reconnect-delay)
+                       (time-less-p rcirc-reconnect-delay
+				    (time-subtract now rcirc-last-connect-time)))
+              (setq rcirc-last-connect-time now)
+              (rcirc-reconnect process)))))
+       ((dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
+	  (with-current-buffer (or buffer (current-buffer))
+	    (rcirc-print process "*rcirc*" "ERROR" rcirc-target
+		         (format "%s: %s (%S)"
+			         (process-name process)
+			         sentinel
+			         (process-status process))
+                         (not rcirc-target))
+	    (rcirc-disconnect-buffer)))))
       (run-hook-with-args 'rcirc-sentinel-functions process sentinel))))
 
 (defun rcirc-disconnect-buffer (&optional buffer)
@@ -879,7 +979,7 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
       (condition-case err
           (rcirc-process-server-response-1 process text)
         (error
-         (rcirc-print process "RCIRC" "ERROR" nil
+         (rcirc-print process "*rcirc*" "ERROR" nil
                       (format "\"%s\" %s" text err) t)))
     (rcirc-process-server-response-1 process text)))
 
@@ -1054,7 +1154,7 @@ With no argument or nil as argument, use the current buffer."
   (let ((buffer (or buffer (and (buffer-live-p rcirc-server-buffer)
 				rcirc-server-buffer))))
     (if buffer
-        (with-current-buffer buffer rcirc-process)
+        (buffer-local-value 'rcirc-process buffer)
       rcirc-process)))
 
 (defun rcirc-server-name (process)
@@ -1258,7 +1358,8 @@ Each element looks like (FILENAME . TEXT).")
 This number is independent of the number of lines in the buffer.")
 
 (defun rcirc-mode (process target)
-  "Major mode for IRC channel buffers.
+  "Initialize an IRC buffer for writing with TARGET.
+PROCESS is the process object used for communication.
 
 \\{rcirc-mode-map}"
   ;; FIXME: Use define-derived-mode.
@@ -1281,7 +1382,6 @@ This number is independent of the number of lines in the buffer.")
   (setq rcirc-last-post-time (current-time))
   (setq-local fill-paragraph-function 'rcirc-fill-paragraph)
   (setq rcirc-current-line 0)
-  (setq rcirc-last-connect-time (current-time))
 
   (use-hard-newlines t)
 
@@ -1320,8 +1420,7 @@ This number is independent of the number of lines in the buffer.")
   (when target				; skip server buffer
     (let ((buffer (current-buffer)))
       (with-rcirc-process-buffer process
-	(setq rcirc-buffer-alist (cons (cons target buffer)
-				       rcirc-buffer-alist))))
+        (push (cons target buffer) rcirc-buffer-alist)))
     (rcirc-update-short-buffer-names))
 
   (add-hook 'completion-at-point-functions
@@ -1464,10 +1563,11 @@ Create the buffer if it doesn't exist."
 			   (rcirc-generate-new-buffer-name process target))))
 	  (with-current-buffer new-buffer
             (unless (eq major-mode 'rcirc-mode)
-	      (rcirc-mode process target)))
+	      (rcirc-mode process target))
             (setq mode-line-process nil)
-	    (rcirc-put-nick-channel process (rcirc-nick process) target
-				    rcirc-current-line)
+            (setq rcirc-joined (current-time)))
+	  (rcirc-put-nick-channel process (rcirc-nick process) target
+				  rcirc-current-line)
 	  new-buffer)))))
 
 (defun rcirc-send-input ()
@@ -1522,6 +1622,11 @@ The argument JUSTIFY is passed on to `fill-region'."
 
 (defun rcirc-process-message (line)
   "Process LINE as a message to be sent."
+  (when (and (null rcirc-target)
+             (string-match
+              (rx bos (group (+? nonl)) "@" (+ nonl) eos)
+              (buffer-name)))
+    (setq rcirc-target (match-string 1 (buffer-name))))
   (if (not rcirc-target)
       (message "Not joined (no target)")
     (delete-region rcirc-prompt-end-marker (point))
@@ -1625,6 +1730,9 @@ extracted."
     ("ACTION"  . "[%N %m]")
     ("COMMAND" . "%m")
     ("ERROR"   . "%fw!!! %m")
+    ("FAIL"   . "(%fwFAIL%f-) %m")
+    ("WARN"   . "(%fwWARN%f-) %m")
+    ("NOTE"   . "(%fwNOTE%f-) %m")
     (t         . "%fp*** %fs%n %r %m"))
   "An alist of formats used for printing responses.
 The format is looked up using the response-type as a key;
@@ -1742,8 +1850,9 @@ Returns nil if the information is not recorded.
 PROCESS is the process object for the current connection."
   (let ((chanbuf (rcirc-get-buffer process target)))
     (when chanbuf
-      (cdr (assoc-string nick (with-current-buffer chanbuf
-				rcirc-recent-quit-alist))))))
+      (cdr (assoc-string nick (buffer-local-value
+                               'rcirc-recent-quit-alist
+                               chanbuf))))))
 
 (defun rcirc-last-line (process nick target)
   "Return the line from the last activity from NICK in TARGET.
@@ -1858,9 +1967,9 @@ connection."
 	      (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
 		(if (and (not (string= (rcirc-nick process) sender))
 			 (or (member response rcirc-omit-responses)
-                             (if (member response rcirc-omit-after-reconnect)
-                                 rcirc-reconncting
-                               (setq rcirc-reconncting nil)))
+                             (and (member response rcirc-omit-responses-after-join)
+                                  (< (time-to-seconds (time-since rcirc-joined))
+                                     1)))
 			 (or (not last-activity-lines)
 			     (< rcirc-omit-threshold last-activity-lines)))
                   (put-text-property (point-min) (point-max)
@@ -2008,7 +2117,8 @@ PROCESS is the process object for the current connection."
   "Return the nick from USER.  Remove any non-nick junk."
   (save-match-data
     (if (string-match (concat "^[" rcirc-nick-prefix-chars
-			      "]?\\([^! ]+\\)!?") (or user ""))
+			      "]*\\([^! ]+\\)!?")
+                      (or user ""))
 	(match-string 1 user)
       user)))
 
@@ -2119,6 +2229,11 @@ This function does not alter the INPUT string."
     map)
   "Keymap for rcirc track minor mode.")
 
+(defcustom rcirc-track-abbrevate-flag t
+  "Non-nil means `rcirc-track-minor-mode' should abbreviate names."
+  :version "28.1"
+  :type 'boolean)
+
 ;;;###autoload
 (define-minor-mode rcirc-track-minor-mode
   "Global minor mode for tracking activity in rcirc buffers."
@@ -2176,7 +2291,7 @@ This function does not alter the INPUT string."
   "Bury all RCIRC buffers."
   (interactive)
   (dolist (buf (buffer-list))
-    (when (eq 'rcirc-mode (with-current-buffer buf major-mode))
+    (when (eq 'rcirc-mode (buffer-local-value 'major-mode buf))
       (bury-buffer buf)         ; buffers not shown
       (quit-windows-on buf))))  ; buffers shown in a window
 
@@ -2216,13 +2331,15 @@ activity.  Only run if the buffer is not visible and
   (with-current-buffer buffer
     (let ((old-activity rcirc-activity)
 	  (old-types rcirc-activity-types))
-      (when (not (get-buffer-window (current-buffer) t))
+      (when (and (not (get-buffer-window (current-buffer) t))
+                 (not (and rcirc-track-ignore-server-buffer-flag
+                           (eq rcirc-server-buffer (current-buffer)))))
 	(setq rcirc-activity
 	      (sort (if (memq (current-buffer) rcirc-activity) rcirc-activity
                       (cons (current-buffer) rcirc-activity))
 		    (lambda (b1 b2)
-		      (let ((t1 (with-current-buffer b1 rcirc-last-post-time))
-			    (t2 (with-current-buffer b2 rcirc-last-post-time)))
+		      (let ((t1 (buffer-local-value 'rcirc-last-post-time b1))
+			    (t2 (buffer-local-value 'rcirc-last-post-time b2)))
 			(time-less-p t2 t1)))))
 	(cl-pushnew type rcirc-activity-types)
 	(unless (and (equal rcirc-activity old-activity)
@@ -2299,7 +2416,12 @@ activity.  Only run if the buffer is not visible and
 (defun rcirc-short-buffer-name (buffer)
   "Return a short name for BUFFER to use in the mode line indicator."
   (with-current-buffer buffer
-    (or rcirc-short-buffer-name (buffer-name))))
+    (funcall rcirc-channel-filter
+             (replace-regexp-in-string
+              "@.*?\\'" ""
+              (or (and rcirc-track-abbrevate-flag
+                       rcirc-short-buffer-name)
+                  (buffer-name))))))
 
 (defun rcirc-visible-buffers ()
   "Return a list of the visible buffers that are in `rcirc-mode'."
@@ -2408,7 +2530,7 @@ prefix with another element in PAIRS."
 	    (when (and (listp x) (listp (cadr x)))
 	      (setcdr x (if (> (length (cdr x)) 1)
 			    (rcirc-make-trees (cdr x))
-                          (setcdr x (list (cdadr x)))))))
+			  (setcdr x (list (cdadr x)))))))
 	  alist)))
 
 ;;; /commands these are called with 3 args: PROCESS, TARGET, which is
@@ -2441,23 +2563,23 @@ that, an interactive form can specified."
                    (insert "\\(.*?\\)")
                    (insert "[[:space:]]*\\'")
                    (buffer-string)))
-         (argument (gensym))
+         (argument (make-symbol "arglist"))
          documentation
          interactive-spec)
     (when (stringp (car body))
       (setq documentation (pop body)))
     (when (eq (car-safe (car-safe body)) 'interactive)
-      (setq interactive-spec (cdr (pop body))))
+      (setq interactive-spec (cadr (pop body))))
     `(progn
        (defun ,fn-name (,argument &optional process target)
          ,(concat documentation
                   "\n\nNote: If PROCESS or TARGET are nil, the values given"
 		  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
-         (interactive (list ,@interactive-spec))
+         (interactive ,interactive-spec)
          (unless (if (listp ,argument)
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))
-           (user-error "Malformed input (%s): %S" ',command ',argument))
+           (user-error "Malformed input (%s): %S" ',command ,argument))
          (let ((process (or process (rcirc-buffer-process)))
 	       (target (or target rcirc-target)))
            (ignore target process)
@@ -2533,18 +2655,8 @@ to `rcirc-default-part-reason'."
 (rcirc-define-command reconnect ()
   "Reconnect to current server."
   (interactive "i")
-  (with-rcirc-server-buffer
-    (cond
-     (rcirc-connecting (message "Already connecting"))
-     ((process-live-p process) (message "Server process is alive"))
-     (t (let ((conn-info rcirc-connection-info))
-	  (setf (nth 5 conn-info)
-		(cl-remove-if-not #'rcirc-channel-p
-				  (mapcar #'car rcirc-buffer-alist)))
-          (dolist (buf (nth 5 conn-info))
-            (with-current-buffer (cdr (assoc buf rcirc-buffer-alist))
-              (setq rcirc-reconncting t)))
-	  (apply #'rcirc-connect conn-info))))))
+  (setq rcirc-failed-attempts 0)
+  (rcirc-reconnect process))
 
 (rcirc-define-command nick (nick)
   "Change nick to NICK."
@@ -2564,8 +2676,8 @@ With a prefix arg, prompt for new topic."
   (interactive (list (and current-prefix-arg
                           (read-string "List names in channel: "))))
   (if (> (length topic) 0)
-      (rcirc-send-string process "TOPIC" : topic)
-    (rcirc-send-string process "TOPIC")))
+      (rcirc-send-string process "TOPIC" target : topic)
+    (rcirc-send-string process "TOPIC" target)))
 
 (rcirc-define-command whois (nick)
   "Request information from server about NICK."
@@ -3046,11 +3158,11 @@ connection."
       ;; already open buffer (after getting kicked e.g.)
       (setq mode-line-process nil))
 
-    (rcirc-print process sender "JOIN" channel "")
+    (rcirc-print process sender "JOIN" (funcall rcirc-channel-filter channel) "")
 
     ;; print in private chat buffer if it exists
     (when (rcirc-get-buffer (rcirc-buffer-process) sender)
-      (rcirc-print process sender "JOIN" sender channel))))
+      (rcirc-print process sender "JOIN" sender (funcall rcirc-channel-filter channel)))))
 
 ;; PART and KICK are handled the same way
 (defun rcirc-handler-PART-or-KICK (process _response channel _sender nick _args)
@@ -3079,10 +3191,10 @@ PROCESS is the process object for the current connection."
   (let* ((channel (car args))
 	 (reason (cadr args))
 	 (message (concat channel " " reason)))
-    (rcirc-print process sender "PART" channel message)
+    (rcirc-print process sender "PART" (funcall rcirc-channel-filter channel) message)
     ;; print in private chat buffer if it exists
     (when (rcirc-get-buffer (rcirc-buffer-process) sender)
-      (rcirc-print process sender "PART" sender message))
+      (rcirc-print process sender "PART" (funcall rcirc-channel-filter channel) message))
 
     (rcirc-handler-PART-or-KICK process "PART" channel sender sender reason)))
 
@@ -3094,7 +3206,7 @@ PROCESS is the process object for the current connection."
 	 (nick (cadr args))
 	 (reason (nth 2 args))
 	 (message (concat nick " " channel " " reason)))
-    (rcirc-print process sender "KICK" channel message t)
+    (rcirc-print process sender "KICK" (funcall rcirc-channel-filter channel) message t)
     ;; print in private chat buffer if it exists
     (when (rcirc-get-buffer (rcirc-buffer-process) nick)
       (rcirc-print process sender "KICK" nick message))
@@ -3124,7 +3236,7 @@ PROCESS is the process object for the current connection."
   (rcirc-ignore-update-automatic sender)
   (mapc (lambda (channel)
 	  ;; broadcast quit message each channel
-	  (rcirc-print process sender "QUIT" channel (apply 'concat args))
+	  (rcirc-print process sender "QUIT" (funcall rcirc-channel-filter channel) (apply 'concat args))
 	  ;; record nick in quit table if they recently spoke
 	  (rcirc-maybe-remember-nick-quit process sender channel))
 	(rcirc-nick-channels process sender))
@@ -3145,13 +3257,16 @@ PROCESS is the process object for the current connection."
     ;; print message to nick's channels
     (dolist (target channels)
       (rcirc-print process sender "NICK" target new-nick))
-    ;; update private chat buffer, if it exists
-    (let ((chat-buffer (rcirc-get-buffer process old-nick)))
-      (when chat-buffer
-	(with-current-buffer chat-buffer
-	  (rcirc-print process sender "NICK" old-nick new-nick)
-	  (setq rcirc-target new-nick)
-	  (rename-buffer (rcirc-generate-new-buffer-name process new-nick)))))
+    ;; update chat buffer, if it exists
+    (when-let ((chat-buffer (rcirc-get-buffer process old-nick)))
+      (with-current-buffer chat-buffer
+	(rcirc-print process sender "NICK" old-nick new-nick)
+	(setq rcirc-target new-nick)
+	(rename-buffer (rcirc-generate-new-buffer-name process new-nick)))
+      (setf rcirc-buffer-alist
+            (cons (cons new-nick chat-buffer)
+                  (delq (assoc-string old-nick rcirc-buffer-alist t)
+                        rcirc-buffer-alist))))
     ;; remove old nick and add new one
     (with-rcirc-process-buffer process
       (let ((v (gethash old-nick rcirc-nick-table)))
@@ -3234,7 +3349,7 @@ RFC1459."
     (with-current-buffer buffer
       (let ((setter (nth 2 args))
 	    (time (current-time-string
-                   (string-to-number (cadddr args)))))
+		   (string-to-number (cadddr args)))))
 	(rcirc-print process sender "TOPIC" (cadr args)
 		     (format "%s (%s on %s)" rcirc-topic setter time))))))
 
@@ -3344,7 +3459,7 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	    (server (car i))
 	    (nick (nth 2 i))
 	    (method (cadr i))
-            (args (cdddr i)))
+	    (args (cdddr i)))
 	(when (and (string-match server rcirc-server))
           (if (and (memq method '(nickserv chanserv bitlbee))
                    (string-match nick rcirc-nick))
@@ -3381,6 +3496,8 @@ process object for the current connection."
   (let ((self (buffer-local-value 'rcirc-nick rcirc-process))
         (target (car args))
         (chan (cadr args)))
+    ;; `rcirc-channel-filter' is not used here because joining
+    ;; requires an unfiltered name.
     (if (string= target self)
         (rcirc-print process sender "INVITE" nil
                      (format "%s invited you to %s"
@@ -3451,7 +3568,7 @@ is the process object for the current connection."
     (let ((subcmd (cadr args)))
       (dolist (cap (cddr args))
         (cond ((string= subcmd "ACK")
-               (push cap rcirc-acked-capabilities)
+               (push (intern (downcase cap)) rcirc-acked-capabilities)
                (setq rcirc-requested-capabilities
                      (delete cap rcirc-requested-capabilities)))
               ((string= subcmd "NAK")
@@ -3525,12 +3642,35 @@ PROCESS is the process object for the current connection."
             "\0" (rcirc-get-server-password rcirc-server)))))
 
 (defun rcirc-handler-900 (process sender args _text)
-  "Respond to a successful authentication response."
+  "Respond to a successful authentication response.
+SENDER is passed on to `rcirc-handler-generic'.  PROCESS is the
+process object for the current connection."
   (rcirc-handler-generic process "900" sender args nil)
   (when (not rcirc-finished-sasl)
     (setq-local rcirc-finished-sasl t)
     (rcirc-send-string process "CAP" "END"))
   (rcirc-join-channels-post-auth process))
+
+(defun rcirc-handler-FAIL (process _sender args _text)
+  "Display a FAIL message, as indicated by ARGS.
+PROCESS is the process object for the current connection."
+  (rcirc-print process nil "FAIL" nil
+               (mapconcat #'identity args " ")
+               t))
+
+(defun rcirc-handler-WARN (process _sender args _text)
+  "Display a WARN message, as indicated by ARGS.
+PROCESS is the process object for the current connection."
+  (rcirc-print process nil "WARN" nil
+               (mapconcat #'identity args " ")
+               t))
+
+(defun rcirc-handler-NOTE (process _sender args _text)
+  "Display a NOTE message, as indicated by ARGS.
+PROCESS is the process object for the current connection."
+  (rcirc-print process nil "NOTE" nil
+               (mapconcat #'identity args " ")
+               t))
 
 
 (defgroup rcirc-faces nil

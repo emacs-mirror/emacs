@@ -2746,6 +2746,44 @@ Variable 'mh-whitelist-preserves-sequences-flag' is renamed
 Face 'mh-folder-blacklisted' is renamed 'mh-folder-blocklisted'.
 Face 'mh-folder-whitelisted' is renamed 'mh-folder-allowlisted'.
 
+** Rcirc
+
++++
+*** rcirc now supports SASL authentication.
+
+---
+*** rcirc connects asynchronously
+
+---
+*** Integrate formatting into rcirc-send-string
+The function now accepts a variable number of arguments.
+
++++
+*** Deprecate defun-rcirc-command in favour of rcirc-define-command
+The new macro handles multiple and optional arguments.
+
+---
+*** Add basic IRCv3 support
+This includes support for the capabilities: server-time, batch,
+message-ids, invite-notify, multi-prefix and standard-replies.
+
+---
+*** Add mouse property support to rcirc-track-minor-mode
+
+---
+*** Improve support for IRC markup codes
+
+---
+*** Check auth-sources for server passwords
+
+---
+*** Allow for channels to hide certain message types right after connecting.
+Set rcirc-omit-responses-after-join analogously to rcirc-omit-responses.
+
++++
+*** Implement repeated reconnection strategy
+See rcirc-reconnect-attempts.
+
 ** Miscellaneous
 
 ---
@@ -2765,9 +2803,6 @@ will now restore the original order.
 
 ---
 *** 'M-left' and 'M-right' now move between columns in 'tabulated-list-mode'.
-
-+++
-*** rcirc now supports SASL authentication.
 
 ---
 *** New variable 'hl-line-overlay-priority'.
