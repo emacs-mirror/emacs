@@ -528,6 +528,7 @@ and `tab-bar-select-tab-modifiers'."
   "String that delimits tabs.")
 
 (defun tab-bar-separator ()
+  "Separator between tabs."
   (or tab-bar-separator (if window-system " " "|")))
 
 
@@ -679,7 +680,8 @@ it will display time aligned to the right on the tab bar instead of
 the mode line.  Replacing `tab-bar-format-tabs' with
 `tab-bar-format-tabs-groups' will group tabs on the tab bar."
   :type 'hook
-  :options '(tab-bar-format-history
+  :options '(tab-bar-format-menu-global
+             tab-bar-format-history
              tab-bar-format-tabs
              tab-bar-format-tabs-groups
              tab-bar-separator
@@ -692,6 +694,23 @@ the mode line.  Replacing `tab-bar-format-tabs' with
          (force-mode-line-update))
   :group 'tab-bar
   :version "28.1")
+
+(defun tab-bar-format-menu-global ()
+  "Show global menu on clicking the Menu button."
+  `((add-tab menu-item (propertize "Menu" 'face 'tab-bar-tab-inactive)
+             (lambda (event) (interactive "e")
+               (let ((menu (make-sparse-keymap
+                            (propertize "Global Menu" 'hide t))))
+
+                 (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+                 (map-keymap (lambda (key binding)
+                               (when (consp binding)
+                                 (define-key-after menu (vector key)
+                                   (copy-sequence binding))))
+                             (lookup-key global-map [menu-bar]))
+
+                 (popup-menu menu event)))
+             :help "Global Menu")))
 
 (defun tab-bar-format-history ()
   "Show back and forward buttons when `tab-bar-history-mode' is enabled.
@@ -708,6 +727,7 @@ You can hide these buttons by customizing `tab-bar-format' and removing
        :help "Click to go forward in tab history"))))
 
 (defun tab-bar--format-tab (tab i)
+  "Format TAB using its index I and return the result as a string."
   (append
    `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
    (cond
@@ -729,6 +749,7 @@ You can hide these buttons by customizing `tab-bar-format' and removing
         ,(alist-get 'close-binding tab))))))
 
 (defun tab-bar-format-tabs ()
+  "Show all tabs."
   (let ((i 0))
     (mapcan
      (lambda (tab)
@@ -799,6 +820,7 @@ Function gets one argument: a tab."
       :help "Click to visit group"))))
 
 (defun tab-bar-format-tabs-groups ()
+  "Show tabs with their groups."
   (let* ((tabs (funcall tab-bar-tabs-function))
          (current-group (funcall tab-bar-tab-group-function
                                  (tab-bar--current-tab-find tabs)))
@@ -827,6 +849,7 @@ Function gets one argument: a tab."
      tabs)))
 
 (defun tab-bar-format-add-tab ()
+  "Button to add a new tab."
   (when (and tab-bar-new-button-show tab-bar-new-button)
     `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
                :help "New tab"))))
