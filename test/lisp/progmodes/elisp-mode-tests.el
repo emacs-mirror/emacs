@@ -752,15 +752,11 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; Source for both variable and defun is "(define-minor-mode
 ;; compilation-minor-mode". There is no way to tell that directly from
 ;; the symbol, but we can use (memq sym minor-mode-list) to detect
-;; that the symbol is a minor mode. See `elisp--xref-find-definitions'
-;; for more comments.
-;;
-;; IMPROVEME: return defvar instead of defun if source near starting
-;; point indicates the user is searching for a variable, not a
-;; function.
+;; that the symbol is a minor mode. In non-filtering mode we only
+;; return the function.
 (require 'compile) ;; not loaded by default at test time
 (xref-elisp-deftest find-defs-defun-defvar-el
-  (elisp--xref-find-definitions 'compilation-minor-mode)
+  (xref-backend-definitions 'elisp "compilation-minor-mode")
   (list
    (cons
     (xref-make "(defun compilation-minor-mode)"
@@ -768,6 +764,21 @@ to (xref-elisp-test-descr-to-target xref)."
                 'compilation-minor-mode nil
                 (expand-file-name "../../../lisp/progmodes/compile.el" emacs-test-dir)))
     "(define-minor-mode compilation-minor-mode")
+   ))
+
+;; Returning only defvar because source near point indicates the user
+;; is searching for a variable, not a function.
+(xref-elisp-deftest find-defs-minor-defvar-c
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(foo overwrite-mode")
+    (xref-backend-definitions 'elisp
+                              (xref-backend-identifier-at-point 'elisp)))
+  (list
+   (cons
+    (xref-make "(defvar overwrite-mode)"
+               (xref-make-elisp-location 'overwrite-mode 'defvar "src/buffer.c"))
+    "DEFVAR_PER_BUFFER (\"overwrite-mode\"")
    ))
 
 (xref-elisp-deftest find-defs-defvar-el
