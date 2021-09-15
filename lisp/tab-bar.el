@@ -316,7 +316,12 @@ that closes only when clicked on the close button."
       (define-key-after menu [close]
         `(menu-item "Close" (lambda () (interactive)
                               (tab-bar-close-tab ,tab-number))
-                    :help "Close the tab"))))
+                    :help "Close the tab"))
+      (define-key-after menu [close-other]
+        `(menu-item "Close other tabs"
+                    (lambda () (interactive)
+                      (tab-bar-close-other-tabs ,tab-number))
+                    :help "Close all other tabs"))))
 
     (popup-menu menu event)))
 
@@ -1405,15 +1410,25 @@ for the last tab on a frame is determined by
                                   (funcall tab-bar-tabs-function)))))
   (tab-bar-close-tab (1+ (tab-bar--tab-index-by-name name))))
 
-(defun tab-bar-close-other-tabs ()
-  "Close all tabs on the selected frame, except the selected one."
+(defun tab-bar-close-other-tabs (&optional tab-number)
+  "Close all tabs on the selected frame, except TAB-NUMBER.
+TAB-NUMBER counts from 1 and defaults to the current tab."
   (interactive)
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (current-tab (tab-bar--current-tab-find tabs))
+         (current-index (tab-bar--current-tab-index tabs))
+         (keep-index (if (integerp tab-number)
+                         (1- (max 0 (min tab-number (length tabs))))
+                       current-index))
+         (keep-tab (nth keep-index tabs))
          (index 0))
-    (when current-tab
+
+    (when keep-tab
+      (unless (eq keep-index current-index)
+        (tab-bar-select-tab (1+ keep-index))
+        (setq tabs (funcall tab-bar-tabs-function)))
+
       (dolist (tab tabs)
-        (unless (or (eq tab current-tab)
+        (unless (or (eq tab keep-tab)
                     (run-hook-with-args-until-success
                      'tab-bar-tab-prevent-close-functions tab
                      ;; `last-tab-p' logically can't ever be true
