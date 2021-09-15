@@ -2367,6 +2367,33 @@ See also `multi-occur'."
      ;; And the second element is the list of context after-lines.
      (if (> nlines 0) after-lines))))
 
+(defun occur-word-at-mouse (event)
+  "Display an occur buffer for the word at EVENT."
+  (interactive "e")
+  (let ((word (thing-at-mouse event 'word t)))
+    (occur (concat "\\<" (regexp-quote word) "\\>"))))
+
+(defun occur-symbol-at-mouse (event)
+  "Display an occur buffer for the symbol at EVENT."
+  (interactive "e")
+  (let ((symbol (thing-at-mouse event 'symbol t)))
+    (occur (concat "\\_<" (regexp-quote symbol) "\\_>"))))
+
+(defun occur-context-menu (menu click)
+  "Populate MENU with occur commands for CLICK.
+To be added to `context-menu-functions'."
+  (let ((word (thing-at-mouse click 'word))
+        (sym (thing-at-mouse click 'symbol)))
+    (when (or word sym)
+      (define-key-after menu [occur-separator] menu-bar-separator)
+      (when word
+        (define-key-after menu [occur-word-at-mouse]
+          '(menu-item "Occur Word" occur-word-at-mouse)))
+      (when sym
+        (define-key-after menu [occur-symbol-at-mouse]
+          '(menu-item "Occur Symbol" occur-symbol-at-mouse)))))
+  menu)
+
 
 ;; It would be nice to use \\[...], but there is no reasonable way
 ;; to make that display both SPC and Y.
