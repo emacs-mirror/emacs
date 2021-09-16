@@ -2475,6 +2475,31 @@ Argument END is the maximum bounds to search in."
 	  (setq return type))))
     return))
 
+(defun checkdoc--fix-y-or-n-p ()
+  "Fix `y-or-n-p' prompt to end with \"?\" or \"? \".
+The space is technically redundant, but also more compatible with
+Emacs versions before Emacs 24.1.  In the future, we might treat
+a space as a style error."
+  (when (and (save-excursion (forward-sexp 1)
+                             (forward-char -3)
+                             (not (looking-at "\\? ")))
+             (save-excursion (forward-sexp 1)
+                             (forward-char -2)
+                             (not (looking-at "\\?"))))
+    (if (and
+         (save-excursion (forward-sexp 1)
+                         (forward-char -1)
+                         (looking-at "\""))
+         (checkdoc-autofix-ask-replace
+          (match-beginning 0) (match-end 0)
+          (format-message
+           "`y-or-n-p' argument should end with \"? \".  Fix?")
+          "?\"" t))
+        nil
+      (checkdoc-create-error
+       "`y-or-n-p' argument should end with \"?\""
+       (match-beginning 0) (match-end 0)))))
+
 (defun checkdoc-message-text-engine (&optional type)
   "Return or fix errors found in strings passed to a message display function.
 According to the documentation for the function `error', the error list
@@ -2530,63 +2555,20 @@ Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
 	  "Error messages should *not* end with a period"
 	  (match-beginning 0) (match-end 0))
        nil)
-     ;; `y-or-n-p' documentation explicitly says:
-     ;; It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
-     ;; I added the ? requirement.  Without it, it is unclear that we
-     ;; ask a question and it appears to be an undocumented style.
-     (if (eq type 'y-or-n-p)
-	 (if (not (save-excursion (forward-sexp 1)
-				  (forward-char -3)
-				  (not (looking-at "\\? "))))
-	     nil
-	   (if (save-excursion (forward-sexp 1)
-			       (forward-char -2)
-			       (looking-at "\\?"))
-	       ;; If we see a ?, then replace with "? ".
-	       (if (checkdoc-autofix-ask-replace
-		    (match-beginning 0) (match-end 0)
-                    (format-message
-                     "`y-or-n-p' argument should end with \"? \".  Fix? ")
-		    "? " t)
-		   nil
-		 (checkdoc-create-error
-		  "`y-or-n-p' argument should end with \"? \""
-		  (match-beginning 0) (match-end 0)))
-	     (if (save-excursion (forward-sexp 1)
-				 (forward-char -2)
-				 (looking-at " "))
-		 (if (checkdoc-autofix-ask-replace
-		      (match-beginning 0) (match-end 0)
-                      (format-message
-                       "`y-or-n-p' argument should end with \"? \".  Fix? ")
-		      "? " t)
-		     nil
-		   (checkdoc-create-error
-		    "`y-or-n-p' argument should end with \"? \""
-		    (match-beginning 0) (match-end 0)))
-	       (if (and ;; if this isn't true, we have a problem.
-		    (save-excursion (forward-sexp 1)
-				    (forward-char -1)
-				    (looking-at "\""))
-		    (checkdoc-autofix-ask-replace
-		     (match-beginning 0) (match-end 0)
-                     (format-message
-                      "`y-or-n-p' argument should end with \"? \".  Fix? ")
-		     "? \"" t))
-		   nil
-		 (checkdoc-create-error
-		  "`y-or-n-p' argument should end with \"? \""
-		  (match-beginning 0) (match-end 0)))))))
+     ;; From `(elisp) Programming Tips': "A question asked in the
+     ;; minibuffer with `yes-or-no-p' or `y-or-n-p' should start with
+     ;; a capital letter and end with '?'."
+     (when (eq type 'y-or-n-p)
+       (checkdoc--fix-y-or-n-p))
      ;; Now, let's just run the spell checker on this guy.
      (checkdoc-ispell-docstring-engine (save-excursion (forward-sexp 1)
-						       (point)))
-     )))
+                                                       (point))))))
 
 ;;; Auto-fix helper functions
 ;;
 (defun checkdoc-y-or-n-p (question)
   "Like `y-or-n-p', but pays attention to `checkdoc-autofix-flag'.
-Argument QUESTION is the prompt passed to `y-or-n-p'."
+  Argument QUESTION is the prompt passed to `y-or-n-p'."
   (prog1
       (if (or (not checkdoc-autofix-flag)
 	      (eq checkdoc-autofix-flag 'never))
