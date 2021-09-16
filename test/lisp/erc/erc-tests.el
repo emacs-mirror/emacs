@@ -24,6 +24,7 @@
 (require 'ert)
 (require 'erc)
 (require 'erc-ring)
+(require 'erc-networks)
 
 (ert-deftest erc--read-time-period ()
   (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "")))
@@ -46,6 +47,85 @@
 
   (cl-letf (((symbol-function 'read-string) (lambda (&rest _) "1d")))
     (should (equal (erc--read-time-period "foo: ") 86400))))
+
+(ert-deftest erc-with-all-buffers-of-server ()
+  (let (proc-exnet
+        proc-onet
+        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+
+    (with-current-buffer (get-buffer-create "OtherNet")
+      (erc-mode)
+      (setq proc-onet (start-process "sleep" (current-buffer) "sleep" "1")
+            erc-server-process proc-onet
+            erc-network 'OtherNet)
+      (set-process-query-on-exit-flag erc-server-process nil))
+
+    (with-current-buffer (get-buffer-create "ExampleNet")
+      (erc-mode)
+      (setq proc-exnet (start-process "sleep" (current-buffer) "sleep" "1")
+            erc-server-process proc-exnet
+            erc-network 'ExampleNet)
+      (set-process-query-on-exit-flag erc-server-process nil))
+
+    (with-current-buffer (get-buffer-create "#foo")
+      (erc-mode)
+      (setq erc-server-process proc-exnet)
+      (setq erc-default-recipients '("#foo")))
+
+    (with-current-buffer (get-buffer-create "#spam")
+      (erc-mode)
+      (setq erc-server-process proc-onet)
+      (setq erc-default-recipients '("#spam")))
+
+    (with-current-buffer (get-buffer-create "#bar")
+      (erc-mode)
+      (setq erc-server-process proc-onet)
+      (setq erc-default-recipients '("#bar")))
+
+    (with-current-buffer (get-buffer-create "#baz")
+      (erc-mode)
+      (setq erc-server-process proc-exnet)
+      (setq erc-default-recipients '("#baz")))
+
+    (should (eq (get-buffer-process "ExampleNet") proc-exnet))
+    (erc-with-all-buffers-of-server (get-buffer-process "ExampleNet")
+      nil
+      (kill-buffer))
+
+    (should-not (get-buffer "ExampleNet"))
+    (should-not (get-buffer "#foo"))
+    (should-not (get-buffer "#baz"))
+    (should (get-buffer "OtherNet"))
+    (should (get-buffer "#bar"))
+    (should (get-buffer "#spam"))
+
+    (let* ((test (lambda () (not (string= (buffer-name) "#spam"))))
+           (calls 0)
+           (get-test (lambda () (cl-incf calls) test)))
+
+      (erc-with-all-buffers-of-server proc-onet
+        (funcall get-test)
+        (kill-buffer))
+
+      (should (= calls 1)))
+
+    (should-not (get-buffer "OtherNet"))
+    (should-not (get-buffer "#bar"))
+    (should (get-buffer "#spam"))
+    (kill-buffer "#spam")))
+
+(ert-deftest erc-lurker-maybe-trim ()
+  (let (erc-lurker-trim-nicks
+        (erc-lurker-ignore-chars "_`"))
+
+    (should (string= "nick`" (erc-lurker-maybe-trim "nick`")))
+
+    (setq erc-lurker-trim-nicks t)
+    (should (string= "nick" (erc-lurker-maybe-trim "nick`")))
+    (should (string= "ni`_ck" (erc-lurker-maybe-trim "ni`_ck__``")))
+
+    (setq erc-lurker-ignore-chars "_-`") ; set of chars, not character alts
+    (should (string= "nick" (erc-lurker-maybe-trim "nick-_`")))))
 
 (ert-deftest erc-ring-previous-command-base-case ()
   (ert-info ("Create ring when nonexistent and do nothing")

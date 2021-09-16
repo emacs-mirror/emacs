@@ -1732,20 +1732,11 @@ FORMS will be evaluated in all buffers having the process PROCESS and
 where PRED matches or in all buffers of the server process if PRED is
 nil."
   (declare (indent 1) (debug (form form body)))
-  ;; Make the evaluation have the correct order
-  (let ((pre (make-symbol "pre"))
-        (pro (make-symbol "pro")))
-    `(let* ((,pro ,process)
-            (,pre ,pred)
-            (res (mapcar (lambda (buffer)
-                           (with-current-buffer buffer
-                             ,@forms))
-                         (erc-buffer-list ,pre
-                                          ,pro))))
-       ;; Silence the byte-compiler by binding the result of mapcar to
-       ;; a variable.
-       (ignore res)
-       res)))
+  (macroexp-let2 nil pred pred
+    `(erc-buffer-filter (lambda ()
+                          (when (or (not ,pred) (funcall ,pred))
+                            ,@forms))
+                        ,process)))
 
 (define-obsolete-function-alias 'erc-iswitchb #'erc-switch-to-buffer "25.1")
 (defun erc--switch-to-buffer (&optional arg)
@@ -2583,9 +2574,8 @@ See also `erc-lurker-trim-nicks'."
 Returns NICK unmodified unless `erc-lurker-trim-nicks' is
 non-nil."
   (if erc-lurker-trim-nicks
-      (replace-regexp-in-string
-       (regexp-opt-charset (string-to-list erc-lurker-ignore-chars))
-       "" nick)
+      (string-trim-right
+       nick (rx-to-string `(+ (in ,@(string-to-list erc-lurker-ignore-chars)))))
     nick))
 
 (defcustom erc-lurker-hide-list nil
