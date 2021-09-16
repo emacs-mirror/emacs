@@ -431,7 +431,7 @@
 ;;   and displays a file name and a revision, then return a cons
 ;;   (REVISION . FILENAME).
 ;;
-;; - region-history (FILE BUFFER LFROM LTO)
+;; - region-history (file buffer lfrom lto)
 ;;
 ;;   Insert into BUFFER the history (log comments and diffs) of the content of
 ;;   FILE between lines LFROM and LTO.  This is typically done asynchronously.
@@ -496,7 +496,7 @@
 ;;   `.bzrignore'.  The default behavior is to read the contents of
 ;;   the file returned by the `find-ignore-file' function.
 ;;
-;; - find-ignore-file
+;; - find-ignore-file (file)
 ;;
 ;;   Return the ignore file that controls FILE, e.g. `.gitignore' or
 ;;   `.bzrignore'.
