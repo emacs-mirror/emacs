@@ -7615,7 +7615,7 @@ normally equivalent short `-D' option is just passed on to
 		  ;; Replace "total" with "total used in directory" to
 		  ;; avoid confusion.
 		  (replace-match "total used in directory" nil nil nil 1)
-		  (let ((available (get-free-disk-space ".")))
+		  (let ((available (get-free-disk-space file)))
 		    (when available
 		      (end-of-line)
 		      (insert " available " available))))))))))
