@@ -7,7 +7,7 @@
 ;; Author: Bill Carpenter <bill@carpenter.ORG>
 ;; Version: 11
 ;; Keywords: email, queue, mail, sendmail, message, spray, smtp, draft
-;; X-URL: <URL:http://www.carpenter.org/feedmail/feedmail.html>
+;; URL: http://www.carpenter.org/feedmail/feedmail.html
 
 ;;; Commentary:
 

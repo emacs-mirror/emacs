@@ -4,7 +4,7 @@
 
 ;; Author: Michael McNamara <mac@verilog.com>
 ;;    Wilson Snyder <wsnyder@wsnyder.org>
-;; X-URL: https://www.veripool.org
+;; URL: https://www.veripool.org
 ;; Created: 3 Jan 1996
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git

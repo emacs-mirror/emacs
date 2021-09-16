@@ -8,7 +8,6 @@
 ;; Package-Requires: ((emacs "24.5"))
 ;; Keywords: lisp wp files convenience
 ;; URL: https://github.com/cl-font-lock/cl-font-lock
-;; Homepage: https://github.com/cl-font-lock/cl-font-lock
 
 ;; This file is part of GNU Emacs
 

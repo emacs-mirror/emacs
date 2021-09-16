@@ -6,7 +6,7 @@
 ;; Created: October 2010
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
-;; Homepage: https://github.com/alex-hhh/emacs-soap-client
+;; URL: https://github.com/alex-hhh/emacs-soap-client
 
 ;; This file is part of GNU Emacs.
 

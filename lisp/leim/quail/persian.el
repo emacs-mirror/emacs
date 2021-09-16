@@ -3,7 +3,7 @@
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Mohsen BANAN <libre@mohsen.1.banan.byname.net>
-;; X-URL: http://mohsen.1.banan.byname.net/contact
+;; URL: http://mohsen.1.banan.byname.net/contact
 
 ;; Keywords: multilingual, input method, Farsi, Persian, keyboard
 

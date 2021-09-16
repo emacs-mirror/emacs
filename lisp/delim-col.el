@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Old-Version: 2.1
 ;; Keywords: convenience text
-;; X-URL: https://www.emacswiki.org/emacs/ViniciusJoseLatorre
+;; URL: https://www.emacswiki.org/emacs/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
 
