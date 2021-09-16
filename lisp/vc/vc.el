@@ -1157,10 +1157,12 @@ BEWARE: this function may change the current buffer."
    (eq p q)
    (and (member p '(edited added removed)) (member q '(edited added removed)))))
 
-(defun vc-read-backend (prompt)
-  (intern
-   (completing-read prompt (mapcar #'symbol-name vc-handled-backends)
-                    nil 'require-match)))
+(defun vc-read-backend (prompt &optional backends default)
+  (let ((backends (or backends vc-handled-backends))
+        (completion-ignore-case t))
+    (intern
+     (completing-read prompt (mapcar #'symbol-name backends)
+                      nil 'require-match nil nil default))))
 
 ;; Here's the major entry point.
 
@@ -1369,14 +1371,7 @@ For old-style locking-based version control systems, like RCS:
 
 (defun vc-create-repo (backend)
   "Create an empty repository in the current directory."
-  (interactive
-   (list
-    (intern
-     (upcase
-      (completing-read
-       "Create repository for: "
-       (mapcar (lambda (b) (list (downcase (symbol-name b)))) vc-handled-backends)
-       nil t)))))
+  (interactive (list (vc-read-backend "Create repository for: ")))
   (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
@@ -2884,12 +2879,7 @@ To get a prompt, use a prefix argument."
 	(cond
 	 ((null others) (error "No other backend to switch to"))
 	 (current-prefix-arg
-	  (intern
-	   (upcase
-	    (completing-read
-	     (format "Switch to backend [%s]: " def)
-	     (mapcar (lambda (b) (list (downcase (symbol-name b)))) backends)
-	     nil t nil nil (downcase (symbol-name def))))))
+          (vc-read-backend "Switch to backend: " backends (symbol-name def)))
 	 (t def))))))
   (unless (eq backend (vc-backend file))
     (vc-file-clearprops file)
