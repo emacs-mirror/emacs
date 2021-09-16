@@ -2807,12 +2807,12 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 @cindex early init file
 
   Most customizations for Emacs should be put in the normal init file.
-@xref{Init File}.  However, it is sometimes desirable
-to have customizations that take effect during Emacs startup earlier than the
+@xref{Init File}.  However, it is sometimes necessary
+to have customizations take effect during Emacs startup earlier than the
 normal init file is processed.  Such customizations can be put in the early
 init file, @file{~/.config/emacs/early-init.el} or @file{~/.emacs.d/early-init.el}.  This file is loaded before the
 package system and GUI is initialized, so in it you can customize variables
-that affect frame appearance as well as the package initialization process,
+that affect the package initialization process,
 such as @code{package-enable-at-startup}, @code{package-load-list}, and
 @code{package-user-dir}.  Note that variables like @code{package-archives}
 which only affect the installation of new packages, and not the process of
