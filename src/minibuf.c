@@ -2055,8 +2055,8 @@ See also `completing-read-function'.  */)
 /* Test whether TXT is an exact completion.  */
 DEFUN ("test-completion", Ftest_completion, Stest_completion, 2, 3, 0,
        doc: /* Return non-nil if STRING is a valid completion.
-For instance, if COLLECTION is a list of strings, this is true if
-STRING appears in the list and PREDICATE is satisfied.
+For instance, if COLLECTION is a list of strings, STRING is a
+valid completion if it appears in the list and PREDICATE is satisfied.
 
 Takes the same arguments as `all-completions' and `try-completion'.
 
