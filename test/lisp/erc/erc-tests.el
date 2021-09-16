@@ -192,3 +192,38 @@
         (should (looking-at "abc")))))
   (when noninteractive
     (kill-buffer "*#fake*")))
+
+(ert-deftest erc-log-irc-protocol ()
+  (should-not erc-debug-irc-protocol)
+  (with-temp-buffer
+    (setq erc-server-process (start-process "fake" (current-buffer) "true")
+          erc-server-current-nick "tester"
+          erc-session-server "myproxy.localhost"
+          erc-session-port 6667)
+    (let ((inhibit-message noninteractive))
+      (erc-toggle-debug-irc-protocol)
+      (erc-log-irc-protocol "PASS changeme\r\n" 'outgoing)
+      (setq erc-server-announced-name "irc.gnu.org")
+      (erc-log-irc-protocol ":irc.gnu.org 001 tester :Welcome")
+      (erc-log-irc-protocol ":irc.gnu.org 002 tester :Your host is irc.gnu.org")
+      (setq erc-network 'FooNet)
+      (erc-log-irc-protocol ":irc.gnu.org 422 tester :MOTD missing")
+      (setq erc-network 'BarNet)
+      (erc-log-irc-protocol ":irc.gnu.org 221 tester +i")
+      (set-process-query-on-exit-flag erc-server-process nil)))
+  (with-current-buffer "*erc-protocol*"
+    (goto-char (point-min))
+    (search-forward "Version")
+    (search-forward "\r\n\r\n")
+    (search-forward "myproxy.localhost:6667 >> PASS" (line-end-position))
+    (forward-line)
+    (search-forward "irc.gnu.org << :irc.gnu.org 001" (line-end-position))
+    (forward-line)
+    (search-forward "irc.gnu.org << :irc.gnu.org 002" (line-end-position))
+    (forward-line)
+    (search-forward "FooNet << :irc.gnu.org 422" (line-end-position))
+    (forward-line)
+    (search-forward "BarNet << :irc.gnu.org 221" (line-end-position)))
+  (when noninteractive
+    (kill-buffer "*erc-protocol*")
+    (should-not erc-debug-irc-protocol)))
