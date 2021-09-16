@@ -27,7 +27,8 @@ modify this GNU manual.''
 
 @dircategory Emacs network features
 @direntry
-* PGG: (pgg).                   Emacs interface to various PGP implementations.
+* PGG: (pgg).                   An obsolete Emacs interface to various
+                                  PGP implementations.
 @end direntry
 
 @titlepage
