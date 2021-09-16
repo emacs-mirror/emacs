@@ -51,19 +51,16 @@
 ;; Similar color variations occur for individual messages in a group;
 ;; high scoring messages bubble to the top, and have a higher
 ;; luminance.  This color schema has made me slightly faster at
-;; reading mail/USENET.
+;; reading mail/Usenet.
 
 ;; In the message itself, quoted mail messages from different people
 ;; are color coordinated, with high contrast between citations that are
 ;; close to each other in the hierarchy, so it is less likely that one
 ;; misunderstands who said what in a long conversation.
 
-;; The following scheme covers programming languages, Gnus, Erc, mail,
-;; org-mode, CUA-mode, apt-utils, bbdb, compilation buffers, changelog
-;; mode, diff and ediff, eshell, and more. You need emacs-goodies
-;; package on Debian to use this.  See the wiki page at
-;; https://www.emacswiki.org/cgi-bin/wiki?ColorTheme for details. The
-;; project home page is at https://gna.org/projects/color-theme.
+;; This theme covers programming languages, Gnus, Erc, mail, org-mode,
+;; CUA-mode, apt-utils, bbdb, compilation buffers, changelog mode,
+;; diff and ediff, eshell, and more.
 
 ;;; Code:
 
