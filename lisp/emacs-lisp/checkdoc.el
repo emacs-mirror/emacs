@@ -311,7 +311,10 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
 Do not set this by hand, use a function like `checkdoc-current-buffer'
 with a universal argument.")
 
-(defcustom checkdoc-symbol-words '("byte-code" "command-line" "top-level")
+(defcustom checkdoc-symbol-words
+  '("beginning-of-line" "byte-code" "command-line" "end-of-line"
+    "major-mode" "syntax-table" "top-level" "user-error"
+    "version-control" "window-system")
   "A list of symbol names (strings) which also happen to make good words.
 These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
@@ -336,7 +339,7 @@ See Info node `(elisp) Documentation Tips' for background."
        (not (memq nil (mapcar #'stringp obj)))))
 
 (defvar checkdoc-proper-noun-list
-  '("ispell" "emacs" "lisp")
+  '("emacs" "lisp" "dired")
   "List of words (not capitalized) which should be capitalized.")
 
 (defvar checkdoc-proper-noun-regexp
@@ -368,8 +371,11 @@ See Info node `(elisp) Documentation Tips' for background."
     ("converts" . "convert")
     ("creates" . "create")
     ("destroys" . "destroy")
+    ("determines" . "determine")
     ("disables" . "disable")
+    ("echoes" . "echo")
     ("executes" . "execute")
+    ("extends" . "extend")
     ("evals" . "evaluate")
     ("evaluates" . "evaluate")
     ("finds" . "find")
@@ -394,7 +400,7 @@ See Info node `(elisp) Documentation Tips' for background."
     ("looks" . "look")
     ("makes" . "make")
     ("marks" . "mark")
-    ("matches" . "match")
+    ;;("matches" . "match") ; Leads to almost only false positives.
     ("moves" . "move")
     ("notifies" . "notify")
     ("offers" . "offer")
@@ -420,6 +426,7 @@ See Info node `(elisp) Documentation Tips' for background."
     ("signifies" . "signify")
     ("sorts" . "sort")
     ("starts" . "start")
+    ("steps" . "step")
     ("stores" . "store")
     ("switches" . "switch")
     ("tells" . "tell")
@@ -1562,7 +1569,7 @@ mouse-[0-3]\\)\\)\\>"))
      ;; Ambiguous quoted symbol.  When a symbol is both bound and fbound,
      ;; and is referred to in documentation, it should be prefixed with
      ;; something to disambiguate it.  This check must be before the
-     ;; 80 column check because it will probably break that.
+     ;; 80 column check because it might break that.
      (save-excursion
        (let ((case-fold-search t)
 	     (ret nil) mb me)
@@ -2035,7 +2042,10 @@ Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
                         (seq (any "eE") ".g")             ; e.g.
                         (seq (any "iI") "." (any "eE")))) ; i.e.
                    "etc"                                  ; etc.
-                   "vs")                                  ; vs.
+                   "vs"                                   ; vs.
+                   ;; Some non-standard or less common ones that we
+                   ;; might as well ignore.
+                   "Inc" "Univ" "misc" "resp")
                ".")))
       (error t))))
 
