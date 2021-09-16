@@ -878,8 +878,8 @@ IDL has currently stepped.")
    -------------------------------
    Info documentation for this package is available.  Use \\[idlwave-info]
    to display (complain to your sysadmin if that does not work).
-   For PostScript and HTML versions of the documentation, check IDLWAVE's
-   homepage at URL `https://github.com/jdtsmith/idlwave'.
+   For PostScript and HTML versions of the documentation, see IDLWAVE's
+   website at URL `https://github.com/jdtsmith/idlwave'.
    IDLWAVE has customize support - see the group `idlwave'.
 
 8. Keybindings

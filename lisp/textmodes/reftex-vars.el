@@ -263,7 +263,7 @@ distribution.  Mixed-case symbols are convenience aliases.")
 (defgroup reftex nil
   "LaTeX label and citation support."
   :tag "RefTeX"
-  :link '(url-link :tag "Home Page"
+  :link '(url-link :tag "Website"
                    "https://www.gnu.org/software/auctex/reftex.html")
   :link '(emacs-commentary-link :tag "Commentary in reftex.el" "reftex.el")
   :link '(custom-manual "(reftex)Top")

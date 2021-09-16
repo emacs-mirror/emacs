@@ -767,7 +767,7 @@ Finally, to create a hyperlink to URLs, write the single-quoted URL,
 preceded by @samp{URL}.  For example,
 
 @smallexample
-The home page for the GNU project has more information (see URL
+The GNU project wesite has more information (see URL
 `https://www.gnu.org/').
 @end smallexample
 
@@ -1100,9 +1100,9 @@ The name of this field is unfortunate, since people often assume it is
 the place to write arbitrary keywords that describe their package,
 rather than just the relevant Finder keywords.
 
-@item Homepage
-@itemx URL
-These lines state the homepage of the library.
+@item URL
+@itemx Homepage
+These lines state the website of the library.
 
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then

@@ -163,7 +163,7 @@
 (defgroup idlwave nil
   "Major mode for editing IDL .pro files."
   :tag "IDLWAVE"
-  :link '(url-link :tag "Home Page"
+  :link '(url-link :tag "Website"
                    "https://github.com/jdtsmith/idlwave")
   :link '(emacs-commentary-link :tag "Commentary in idlw-shell.el"
 				"idlw-shell.el")
@@ -1821,7 +1821,7 @@ The main features of this mode are
    Info documentation for this package is available.  Use
    \\[idlwave-info] to display (complain to your sysadmin if that does
    not work).  For Postscript, PDF, and HTML versions of the
-   documentation, check IDLWAVE's homepage at URL
+   documentation, check IDLWAVE's website at URL
    `https://github.com/jdtsmith/idlwave'.
    IDLWAVE has customize support - see the group `idlwave'.
 

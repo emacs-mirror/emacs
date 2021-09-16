@@ -195,7 +195,7 @@ PAR is a number of a regexp grouping whose text will be passed to
                         (integer :tag "Regexp section number")))))
 
 (defcustom erc-emacswiki-url "https://www.emacswiki.org/cgi-bin/wiki.pl?"
-  "URL of the EmacsWiki Homepage."
+  "URL of the EmacsWiki website."
   :type 'string)
 
 (defcustom erc-emacswiki-lisp-url "https://www.emacswiki.org/elisp/"

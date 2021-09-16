@@ -1556,7 +1556,7 @@ You can also use TRAMP for use with rcp & scp.
 
 @item :web-site-file @*
 
-A file which contains the home page for this project.
+A file which contains the website for this project.
 This file can be relative to slot @code{web-site-directory}.
 This can be a local file, use ange-ftp, EFS, or TRAMP.
 

@@ -1848,7 +1848,7 @@ User will be queried, if no fileset name is provided."
       (filesets-goto-homepage)))
 
 (defun filesets-goto-homepage ()
-  "Show filesets's homepage."
+  "Show filesets's website."
   (interactive)
   (browse-url filesets-homepage))
 

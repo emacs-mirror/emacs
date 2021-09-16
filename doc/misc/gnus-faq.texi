@@ -1443,7 +1443,7 @@ details.
 
 However, what you really want is the Insidious Big Brother
 Database bbdb. Get it from
-@uref{http://bbdb.sourceforge.net/, bbdb's homepage}.
+@uref{http://bbdb.sourceforge.net/, bbdb's website}.
 Now place the following in @file{~/.gnus.el}, to activate bbdb for Gnus:
 
 @example

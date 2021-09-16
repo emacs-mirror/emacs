@@ -2807,8 +2807,8 @@ either a full name or nil, and EMAIL is a valid email address."
   "Menu for `package-menu-mode'."
   '("Package"
     ["Describe Package" package-menu-describe-package :help "Display information about this package"]
-    ["Open Package Homepage" package-browse-url
-     :help "Open the homepage of this package"]
+    ["Open Package Website" package-browse-url
+     :help "Open the website of this package"]
     ["Help" package-menu-quick-help :help "Show short key binding help for package-menu-mode"]
     "--"
     ["Refresh Package List" revert-buffer
@@ -4230,7 +4230,7 @@ beginning of the line."
             (package-desc-summary package-desc))))
 
 (defun package-browse-url (desc &optional secondary)
-  "Open the home page of the package under point in a browser.
+  "Open the website of the package under point in a browser.
 `browse-url' is used to determine the browser to be used.
 If SECONDARY (interactively, the prefix), use the secondary browser."
   (interactive (list (tabulated-list-get-id)
@@ -4240,7 +4240,7 @@ If SECONDARY (interactively, the prefix), use the secondary browser."
     (user-error "No package here"))
   (let ((url (cdr (assoc :url (package-desc-extras desc)))))
     (unless url
-      (user-error "No home page for %s" (package-desc-name desc)))
+      (user-error "No website for %s" (package-desc-name desc)))
     (if secondary
 	(funcall browse-url-secondary-browser-function url)
       (browse-url url))))
