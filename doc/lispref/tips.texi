@@ -398,7 +398,7 @@ with a period.
 @item
 A question asked in the minibuffer with @code{yes-or-no-p} or
 @code{y-or-n-p} should start with a capital letter and end with
-@samp{? }.
+@samp{?}.
 
 @item
 When you mention a default value in a minibuffer prompt,

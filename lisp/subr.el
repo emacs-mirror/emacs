@@ -3204,8 +3204,10 @@ character.  This is not possible when using `read-key', but using
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
 Return t if answer is \"y\" and nil if it is \"n\".
-PROMPT is the string to display to ask the question.  It should
-end in a space; `y-or-n-p' adds \"(y or n) \" to it.
+
+PROMPT is the string to display to ask the question; `y-or-n-p'
+adds \" (y or n) \" to it.  It does not need to end in space, but
+if it does up to one space will be removed.
 
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'

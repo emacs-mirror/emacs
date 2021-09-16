@@ -4085,6 +4085,11 @@ The special events 'dbus-event' and 'file-notify' are now ignored in
 do not support the old calling conventions any longer.
 
 +++
+** 'yes-or-no-p' and 'y-or-n-p' PROMPT parameter no longer needs trailing space.
+This has been the case since Emacs 24.4 but was not announced or
+documented until now.
+
++++
 ** The 'uniquify' argument in 'auto-save-file-name-transforms' can be a symbol.
 If this symbol is one of the members of 'secure-hash-algorithms',
 Emacs constructs the nondirectory part of the auto-save file name by

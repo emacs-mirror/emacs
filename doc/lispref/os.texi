@@ -813,7 +813,7 @@ Here is an example of how you could use these hooks:
 @smallexample
 @group
 (add-hook 'suspend-hook
-          (lambda () (or (y-or-n-p "Really suspend? ")
+          (lambda () (or (y-or-n-p "Really suspend?")
                          (error "Suspend canceled"))))
 @end group
 (add-hook 'suspend-resume-hook (lambda () (message "Resumed!")
