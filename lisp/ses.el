@@ -3124,13 +3124,13 @@ Otherwise the text is inserted as the formula for the current cell.
 
 When inserting cells, the formulas are usually relocated to keep the same
 relative references to neighboring cells.  This is best if the formulas
-generally refer to other cells within the yanked text.  You can use the C-u
+generally refer to other cells within the yanked text.  You can use the \\[universal-argument]
 prefix to specify insertion without relocation, which is best when the
 formulas refer to cells outside the yanked text.
 
 When inserting formulas, the text is treated as a string constant if it doesn't
 make sense as a sexp or would otherwise be considered a symbol.  Use `sym' to
-explicitly insert a symbol, or use the C-u prefix to treat all unmarked words
+explicitly insert a symbol, or use the \\[universal-argument] prefix to treat all unmarked words
 as symbols."
   (if (not (and (derived-mode-p 'ses-mode)
 		(eq (get-text-property (point) 'keymap) 'ses-mode-print-map)))

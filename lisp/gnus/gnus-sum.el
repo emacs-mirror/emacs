@@ -9839,11 +9839,11 @@ article currently."
   "Force redisplaying of the current article.
 If ARG (the prefix) is a number, show the article with the charset
 defined in `gnus-summary-show-article-charset-alist', or the charset
-input.
+input.\\<gnus-summary-mode-map>
 If ARG (the prefix) is non-nil and not a number, show the article,
 but without running any of the article treatment functions
-article.  Normally, the keystroke is `C-u g'.  When using `C-u
-C-u g', show the raw article."
+article.  Normally, the keystroke is `\\[universal-argument] \\[gnus-summary-show-article]'.  When using `\\[universal-argument]
+\\[universal-argument] \\[gnus-summary-show-article]', show the raw article."
   (interactive "P" gnus-summary-mode)
   (cond
    ((numberp arg)

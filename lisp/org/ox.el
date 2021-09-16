@@ -294,7 +294,7 @@ and its CDR is a list of export options.")
 
 (defvar org-export-dispatch-last-position (make-marker)
   "The position where the last export command was created using the dispatcher.
-This marker will be used with `C-u C-c C-e' to make sure export repetition
+This marker will be used with `\\[universal-argument] C-c C-e' to make sure export repetition
 uses the same subtree if the previous command was restricted to a subtree.")
 
 ;; For compatibility with Org < 8

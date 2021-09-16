@@ -6511,13 +6511,13 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 
 (defcustom set-mark-command-repeat-pop nil
   "Non-nil means repeating \\[set-mark-command] after popping mark pops it again.
-That means that C-u \\[set-mark-command] \\[set-mark-command]
+That means that \\[universal-argument] \\[set-mark-command] \\[set-mark-command]
 will pop the mark twice, and
-C-u \\[set-mark-command] \\[set-mark-command] \\[set-mark-command]
+\\[universal-argument] \\[set-mark-command] \\[set-mark-command] \\[set-mark-command]
 will pop the mark three times.
 
 A value of nil means \\[set-mark-command]'s behavior does not change
-after C-u \\[set-mark-command]."
+after \\[universal-argument] \\[set-mark-command]."
   :type 'boolean
   :group 'editing-basics)
 

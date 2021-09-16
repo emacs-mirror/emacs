@@ -908,11 +908,11 @@ To yank words from the text of the buffer and use them as part of the
 bookmark name, type C-w while setting a bookmark.  Successive C-w's
 yank successive words.
 
-Typing C-u inserts (at the bookmark name prompt) the name of the last
+Typing \\[universal-argument] inserts (at the bookmark name prompt) the name of the last
 bookmark used in the document where the new bookmark is being set;
 this helps you use a single bookmark name to track progress through a
 large document.  If there is no prior bookmark for this document, then
-C-u inserts an appropriate name based on the buffer or file.
+\\[universal-argument] inserts an appropriate name based on the buffer or file.
 
 Use \\[bookmark-delete] to remove bookmarks (you give it a name and
 it removes only the first instance of a bookmark with that name from
@@ -941,11 +941,11 @@ To yank words from the text of the buffer and use them as part of the
 bookmark name, type C-w while setting a bookmark.  Successive C-w's
 yank successive words.
 
-Typing C-u inserts (at the bookmark name prompt) the name of the last
+Typing \\[universal-argument] inserts (at the bookmark name prompt) the name of the last
 bookmark used in the document where the new bookmark is being set;
 this helps you use a single bookmark name to track progress through a
 large document.  If there is no prior bookmark for this document, then
-C-u inserts an appropriate name based on the buffer or file.
+\\[universal-argument] inserts an appropriate name based on the buffer or file.
 
 Use \\[bookmark-delete] to remove bookmarks (you give it a name and
 it removes only the first instance of a bookmark with that name from
@@ -1494,7 +1494,7 @@ is greater than `bookmark-alist-modification-count'."
   "Save currently defined bookmarks in FILE.
 FILE defaults to `bookmark-default-file'.
 With prefix PARG, query user for a file to save in.
-If MAKE-DEFAULT is non-nil (interactively with prefix C-u C-u)
+If MAKE-DEFAULT is non-nil (interactively with prefix \\[universal-argument] \\[universal-argument])
 the file we save in becomes the new default in the current Emacs
 session (without affecting the value of `bookmark-default-file'.).
 

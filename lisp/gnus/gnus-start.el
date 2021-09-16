@@ -1068,9 +1068,9 @@ If no function returns `non-nil', call `gnus-subscribe-zombies'."
 Each new newsgroup will be treated with `gnus-subscribe-newsgroup-method'.
 The `-n' option line from .newsrc is respected.
 
-With 1 C-u, use the `ask-server' method to query the server for new
+With 1 \\[universal-argument], use the `ask-server' method to query the server for new
 groups.
-With 2 C-u's, use most complete method possible to query the server
+With 2 \\[universal-argument]'s, use most complete method possible to query the server
 for new groups, and subscribe the new groups as zombies."
   (interactive "p" gnus-group-mode)
   (let* ((gnus-subscribe-newsgroup-method

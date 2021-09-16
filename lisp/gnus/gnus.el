@@ -1114,7 +1114,7 @@ that case, just return a fully prefixed name of the group --
 (defcustom gnus-secondary-servers nil
   "List of NNTP servers that the user can choose between interactively.
 To make Gnus query you for a server, you have to give `gnus' a
-non-numeric prefix - `C-u M-x gnus', in short."
+non-numeric prefix - `\\[universal-argument] \\[gnus]', in short."
   :group 'gnus-server
   :type '(repeat string))
 (make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")

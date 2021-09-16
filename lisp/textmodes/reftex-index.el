@@ -38,8 +38,8 @@
   "Put selection or the word near point into the default index macro.
 This uses the information in `reftex-index-default-macro' to make an index
 entry.  The phrase indexed is the current selection or the word near point.
-When called with one `C-u' prefix, let the user have a chance to edit the
-index entry.  When called with 2 `C-u' as prefix, also ask for the index
+When called with one \\[universal-argument] prefix, let the user have a chance to edit the
+index entry.  When called with 2 \\[universal-argument] as prefix, also ask for the index
 macro and other stuff.
 When called inside TeX math mode as determined by the `texmathp.el' library
 which is part of AUCTeX, the string is first processed with the
@@ -462,7 +462,7 @@ _ ^        Add/Remove parent key (to make this item a subitem).
   "Display a buffer with an index compiled from the current document.
 When the document has multiple indices, first prompts for the correct one.
 When index support is turned off, offer to turn it on.
-With one or two `C-u' prefixes, rescan document first.
+With one or two \\[universal-argument] prefixes, rescan document first.
 With prefix 2, restrict index to current document section.
 With prefix 3, restrict index to region."
 

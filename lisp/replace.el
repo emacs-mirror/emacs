@@ -1760,7 +1760,7 @@ If REGEXP contains upper case characters (excluding those preceded by `\\')
 and `search-upper-case' is non-nil, the matching is case-sensitive.
 
 When NLINES is a string or when the function is called
-interactively with prefix argument without a number (`C-u' alone
+interactively with prefix argument without a number (\\[universal-argument] alone
 as prefix) the matching strings are collected into the `*Occur*'
 buffer by using NLINES as a replacement regexp.  NLINES may
 contain \\& and \\N which convention follows `replace-match'.

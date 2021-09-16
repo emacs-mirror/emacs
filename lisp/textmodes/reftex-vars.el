@@ -1292,7 +1292,7 @@ prompt for values.  Possible values are:
 
 nil     Never prompt for optional arguments
 t       Always prompt
-maybe   Prompt only if `reftex-citation' was called with C-u prefix arg
+maybe   Prompt only if `reftex-citation' was called with \\[universal-argument] prefix arg
 
 Unnecessary empty optional arguments are removed before insertion into
 the buffer.  See `reftex-cite-cleanup-optional-args'."
@@ -1861,11 +1861,11 @@ of the regular expressions in this list, that file is not parsed by RefTeX."
 
 (defcustom reftex-enable-partial-scans nil
   "Non-nil means, re-parse only 1 file when asked to re-parse.
-Re-parsing is normally requested with a `C-u' prefix to many RefTeX commands,
+Re-parsing is normally requested with a \\[universal-argument] prefix to many RefTeX commands,
 or with the `r' key in menus.  When this option is t in a multifile document,
 we will only parse the current buffer, or the file associated with the label
 or section heading near point in a menu.  Requesting re-parsing of an entire
-multifile document then requires a `C-u C-u' prefix or the capital `R' key
+multifile document then requires a \\[universal-argument] \\[universal-argument] prefix or the capital `R' key
 in menus."
   :group 'reftex-optimizations-for-large-documents
   :type 'boolean)

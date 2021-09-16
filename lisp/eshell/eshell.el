@@ -240,7 +240,7 @@ session.  Return the buffer selected (or created).
 
 With a nonnumeric prefix arg, create a new session.
 
-With a numeric prefix arg (as in `C-u 42 M-x eshell RET'), switch
+With a numeric prefix arg (as in `\\[universal-argument] 42 \\[eshell]'), switch
 to the session with that number, or create it if it doesn't
 already exist.
 

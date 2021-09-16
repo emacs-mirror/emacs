@@ -415,7 +415,7 @@ reftex-label.  Rescanning of the buffer can also be requested from the
 label selection menu.
 The function returns the selected label or nil.
 If NO-INSERT is non-nil, do not insert \\ref command, just return label.
-When called with 2 C-u prefix args, disable magic word recognition."
+When called with 2 \\[universal-argument] prefix args, disable magic word recognition."
 
   (interactive)
 

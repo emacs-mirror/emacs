@@ -5727,10 +5727,10 @@ Possible values are:
 8  <=>  `function-method-keyword'
 9  <=>  `class'
 
-As a special case, the universal argument C-u forces completion of
+As a special case, the universal argument \\[universal-argument] forces completion of
 function names in places where the default would be a keyword.
 
-Two prefix argument, C-u C-u, prompts for a regexp by which to limit
+Two prefix argument, \\[universal-argument] \\[universal-argument], prompts for a regexp by which to limit
 completion.
 
 For Lisp programmers only:

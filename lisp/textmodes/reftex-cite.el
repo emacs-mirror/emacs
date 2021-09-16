@@ -628,7 +628,7 @@ If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
 
 FORMAT-KEY can be used to pre-select a citation format.
 
-When called with a `C-u' prefix, prompt for optional arguments in
+When called with a \\[universal-argument] prefix, prompt for optional arguments in
 cite macros.  When called with a numeric prefix, make that many
 citations.  When called with point inside the braces of a `\\cite'
 command, it will add another key, ignoring the value of

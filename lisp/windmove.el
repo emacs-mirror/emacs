@@ -525,7 +525,7 @@ to decide what window it selects.  With other non-nil values of
 `windmove-display-no-select', this function reselects
 a previously selected old window.
 
-If prefix ARG is `C-u', reselect a previously selected old window.
+If prefix ARG is \\[universal-argument], reselect a previously selected old window.
 If `windmove-display-no-select' is non-nil, the meaning of
 the prefix argument is reversed and it selects the new window.
 
@@ -662,7 +662,7 @@ from the opposite side of the frame."
 ;;;###autoload
 (defun windmove-delete-left (&optional arg)
   "Delete the window to the left of the current one.
-If prefix ARG is `C-u', delete the selected window and
+If prefix ARG is \\[universal-argument], delete the selected window and
 select the window that was to the left of the current one."
   (interactive "P")
   (windmove-delete-in-direction 'left arg))
@@ -670,7 +670,7 @@ select the window that was to the left of the current one."
 ;;;###autoload
 (defun windmove-delete-up (&optional arg)
   "Delete the window above the current one.
-If prefix ARG is `C-u', delete the selected window and
+If prefix ARG is \\[universal-argument], delete the selected window and
 select the window that was above the current one."
   (interactive "P")
   (windmove-delete-in-direction 'up arg))
@@ -678,7 +678,7 @@ select the window that was above the current one."
 ;;;###autoload
 (defun windmove-delete-right (&optional arg)
   "Delete the window to the right of the current one.
-If prefix ARG is `C-u', delete the selected window and
+If prefix ARG is \\[universal-argument], delete the selected window and
 select the window that was to the right of the current one."
   (interactive "P")
   (windmove-delete-in-direction 'right arg))
@@ -686,7 +686,7 @@ select the window that was to the right of the current one."
 ;;;###autoload
 (defun windmove-delete-down (&optional arg)
   "Delete the window below the current one.
-If prefix ARG is `C-u', delete the selected window and
+If prefix ARG is \\[universal-argument], delete the selected window and
 select the window that was below the current one."
   (interactive "P")
   (windmove-delete-in-direction 'down arg))

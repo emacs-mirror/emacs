@@ -587,16 +587,16 @@ is the one that ends before END."
 Non-interactively, arguments BEG and END delimit the region.
 Normally it searches forwards, keeping the first instance of
 each identical line.  If REVERSE is non-nil (interactively, with
-a C-u prefix), it searches backwards and keeps the last instance of
+a \\[universal-argument] prefix), it searches backwards and keeps the last instance of
 each repeated line.
 
 Identical lines need not be adjacent, unless the argument
-ADJACENT is non-nil (interactively, with a C-u C-u prefix).
+ADJACENT is non-nil (interactively, with a \\[universal-argument] \\[universal-argument] prefix).
 This is a more efficient mode of operation, and may be useful
 on large regions that have already been sorted.
 
 If the argument KEEP-BLANKS is non-nil (interactively, with a
-C-u C-u C-u prefix), it retains repeated blank lines.
+\\[universal-argument] \\[universal-argument] \\[universal-argument] prefix), it retains repeated blank lines.
 
 Returns the number of deleted lines.  Interactively, or if INTERACTIVE
 is non-nil, it also prints a message describing the number of deletions."

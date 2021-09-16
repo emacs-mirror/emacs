@@ -9770,7 +9770,7 @@ tool-bar's height to the minimum height needed); if
 `recenter-redisplay' has the special value `tty', then only tty frames
 are redrawn.
 
-Just C-u as prefix means put point in the center of the window
+Just \\[universal-argument] as prefix means put point in the center of the window
 and redisplay normally--don't erase and redraw the frame."
   (if (functionp recenter-window-group-function)
       (funcall recenter-window-group-function arg)
@@ -9899,7 +9899,7 @@ With plain \\[universal-argument], move current line to window center."
 
 A prefix argument is handled like `recenter':
  With numeric prefix ARG, move current line to window-line ARG.
- With plain `C-u', move current line to window center."
+ With plain \\[universal-argument], move current line to window center."
   (interactive "P")
   (with-selected-window (other-window-for-scrolling)
     (recenter-top-bottom arg)
