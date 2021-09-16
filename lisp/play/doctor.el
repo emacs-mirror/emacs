@@ -137,6 +137,7 @@
 Like Text mode with Auto Fill mode
 except that RET when point is after a newline, or LFD at any time,
 reads the sentence before point, and prints the Doctor's answer."
+  :interactive nil
   (make-doctor-variables)
   (turn-on-auto-fill)
   (doctor-type '(i am the psychotherapist \.
@@ -827,14 +828,14 @@ reads the sentence before point, and prints the Doctor's answer."
 (defun doctor-ret-or-read (arg)
   "Insert a newline if preceding character is not a newline.
 Otherwise call the Doctor to parse preceding sentence."
-  (interactive "*p")
+  (interactive "*p" doctor-mode)
   (if (= (preceding-char) ?\n)
       (doctor-read-print)
     (newline arg)))
 
 (defun doctor-read-print ()
   "Top level loop."
-  (interactive)
+  (interactive nil doctor-mode)
   (setq doctor-sent (doctor-readin))
   (insert "\n")
   (setq doctor--lincount (1+ doctor--lincount))
