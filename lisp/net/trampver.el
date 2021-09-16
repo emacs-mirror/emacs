@@ -29,7 +29,7 @@
 
 ;;; Commentary:
 
-;; Convenience functions around the Tramp version. Partly generated
+;; Convenience functions around the Tramp version.  Partly generated
 ;; during Tramp configuration.
 
 ;;; Code:

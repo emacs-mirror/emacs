@@ -190,7 +190,7 @@ arguments to pass to the OPERATION."
 		  (and (numberp ok-if-already-exists)
 		       (not (yes-or-no-p
 			     (format
-			      "File %s already exists; make it a link anyway? "
+			      "File %s already exists; make it a link anyway?"
 			      v2-localname)))))
 	      (tramp-error v2 'file-already-exists newname)
 	    (delete-file newname)))
@@ -632,7 +632,7 @@ component is used as the target of the symlink."
 		       (not
 			(yes-or-no-p
 			 (format
-			  "File %s already exists; make it a link anyway? "
+			  "File %s already exists; make it a link anyway?"
 			  localname)))))
 	      (tramp-error v 'file-already-exists localname)
 	    (delete-file linkname)))

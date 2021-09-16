@@ -48,7 +48,7 @@
                   ;; Another guess.  We might implement a better check later on.
                   (tramp-case-insensitive t)))))
 
-;; Add a default for `tramp-default-user-alist'. Rule: For the SMB method,
+;; Add a default for `tramp-default-user-alist'.  Rule: For the SMB method,
 ;; the anonymous user is chosen.
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -83,7 +83,7 @@ call, letting the SMB client use the default one."
 They are added to the `tramp-smb-program' call via \"--option '...'\".
 
 For example, if the deprecated SMB1 protocol shall be used, add to
-this variable (\"client min protocol=NT1\") ."
+this variable \"client min protocol=NT1\"."
   :group 'tramp
   :type '(repeat string)
   :version "28.1")
@@ -376,7 +376,7 @@ arguments to pass to the OPERATION."
 		(and (numberp ok-if-already-exists)
 		     (not (yes-or-no-p
 			   (format
-			    "File %s already exists; make it a link anyway? "
+			    "File %s already exists; make it a link anyway?"
 			    v2-localname)))))
 	    (tramp-error v2 'file-already-exists newname)
 	  (delete-file newname)))
@@ -1247,7 +1247,7 @@ component is used as the target of the symlink."
 		  (and (numberp ok-if-already-exists)
 		       (not (yes-or-no-p
 			     (format
-			      "File %s already exists; make it a link anyway? "
+			      "File %s already exists; make it a link anyway?"
 			      localname)))))
 	      (tramp-error v 'file-already-exists localname)
 	    (delete-file linkname)))
@@ -1526,7 +1526,7 @@ component is used as the target of the symlink."
 	  (tramp-error
 	   v 'file-error "Error while changing file's mode %s" filename))))))
 
-;; We use BUFFER also as connection buffer during setup. Because of
+;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
 (defun tramp-smb-handle-start-file-process (name buffer program &rest args)
@@ -1603,7 +1603,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	       (or (eq mustbenew 'excl)
 		   (not
 		    (y-or-n-p
-		     (format "File %s exists; overwrite anyway? " filename)))))
+		     (format "File %s exists; overwrite anyway?" filename)))))
       (tramp-error v 'file-already-exists filename))
 
     (let ((file-locked (eq (file-locked-p lockname) t))
@@ -1703,7 +1703,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 
       localname)))
 
-;; Share names of a host are cached. It is very unlikely that the
+;; Share names of a host are cached.  It is very unlikely that the
 ;; shares do change during connection.
 (defun tramp-smb-get-file-entries (directory)
   "Read entries which match DIRECTORY.
@@ -2200,5 +2200,7 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 ;;
 ;; * Try to remove the inclusion of dummy "" directory.  Seems to be at
 ;;   several places, especially in `tramp-smb-handle-insert-directory'.
+;;
+;; * Keep a separate connection process per share.
 
 ;;; tramp-smb.el ends here

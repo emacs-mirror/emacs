@@ -361,7 +361,7 @@ arguments to pass to the OPERATION."
     (tramp-message vec 5 "Finding a suitable `ls' command")
     (cond
      ;; Support Android derived systems where "ls" command is provided
-     ;; by GNU Coreutils. Force "ls" to print one column and set
+     ;; by GNU Coreutils.  Force "ls" to print one column and set
      ;; time-style to imitate other "ls" flavors.
      ((tramp-adb-send-command-and-check
        vec (concat "ls --time-style=long-iso "
@@ -548,7 +548,7 @@ But handle the case, if the \"test\" command is not available."
 	       (or (eq mustbenew 'excl)
 		   (not
 		    (y-or-n-p
-		     (format "File %s exists; overwrite anyway? " filename)))))
+		     (format "File %s exists; overwrite anyway?" filename)))))
       (tramp-error v 'file-already-exists filename))
 
     (let ((file-locked (eq (file-locked-p lockname) t))

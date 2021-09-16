@@ -190,7 +190,7 @@ It must be supported by libarchive(3).")
 
 ;; In older Emacsen (prior 27.1), `tramp-archive-autoload-file-name-regexp'
 ;; is not autoloaded.  So we cannot expect it to be known in
-;; tramp-loaddefs.el. But it exists, when tramp-archive.el is loaded.
+;; tramp-loaddefs.el.  But it exists, when tramp-archive.el is loaded.
 ;;;###tramp-autoload
 (defconst tramp-archive-file-name-regexp
   (ignore-errors (tramp-archive-autoload-file-name-regexp))
