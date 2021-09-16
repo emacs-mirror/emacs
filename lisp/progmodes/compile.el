@@ -1783,6 +1783,9 @@ Returns the compilation buffer created."
 	    (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
 	 (thisdir default-directory)
 	 (thisenv compilation-environment)
+         (buffer-path (and (local-variable-p 'exec-path) exec-path))
+         (buffer-env (and (local-variable-p 'process-environment)
+                          process-environment))
 	 outwin outbuf)
     (with-current-buffer
 	(setq outbuf
@@ -1850,6 +1853,12 @@ Returns the compilation buffer created."
         ;; NB: must be done after (funcall mode) as that resets local variables
         (setq-local compilation-directory thisdir)
         (setq-local compilation-environment thisenv)
+        (if buffer-path
+            (setq-local exec-path buffer-path)
+          (kill-local-variable 'exec-path))
+        (if buffer-env
+            (setq-local process-environment buffer-env)
+          (kill-local-variable 'process-environment))
 	(if highlight-regexp
             (setq-local compilation-highlight-regexp highlight-regexp))
         (if (or compilation-auto-jump-to-first-error
