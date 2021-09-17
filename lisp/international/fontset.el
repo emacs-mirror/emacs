@@ -896,9 +896,6 @@
              (#x1FA00 . #x1FA6F)))	;; Chess Symbols
     (set-fontset-font "fontset-default" symbol-subgroup
                       '("Symbola" . "iso10646-1") nil 'prepend))
-  ;; This sets up the Emoji codepoints to use prettier fonts.
-  (set-fontset-font "fontset-default" 'emoji
-                    '("Noto Color Emoji" . "iso10646-1") nil 'prepend)
   ;; Box Drawing and Block Elements
   (set-fontset-font "fontset-default" '(#x2500 . #x259F)
                     '("FreeMono" . "iso10646-1") nil 'prepend)
@@ -927,6 +924,9 @@
     (set-fontset-font "fontset-default" symbol-subgroup
                       "-*-fixed-medium-*-*-*-*-*-*-*-*-*-iso10646-1"
                       nil 'prepend))
+  ;; This sets up the Emoji codepoints to use prettier fonts.
+  (set-fontset-font "fontset-default" 'emoji
+                    '("Noto Color Emoji" . "iso10646-1") nil 'prepend)
 
   ;; Append CJK fonts for characters other than han, kana, cjk-misc.
   ;; Append fonts for scripts whose name is also a charset name.
