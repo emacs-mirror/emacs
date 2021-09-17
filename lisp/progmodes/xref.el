@@ -1625,13 +1625,8 @@ IGNORES is a list of glob patterns for files to ignore."
      "xargs -0 grep <C> -snHE -e <R>")
     (ripgrep
      .
-     ;; Note: by default, ripgrep's output order is non-deterministic
-     ;; (https://github.com/BurntSushi/ripgrep/issues/152)
-     ;; because it does the search in parallel.  You can use the template
-     ;; without the '| sort ...' part if GNU sort is not available on
-     ;; your system and/or stable ordering is not important to you.
-     ;; Note#2: '!*/' is there to filter out dirs (e.g. submodules).
-     "xargs -0 rg <C> -nH --no-messages -g '!*/' -e <R> | sort -t: -k1,1 -k2n,2"
+     ;; '!*/' is there to filter out dirs (e.g. submodules).
+     "xargs -0 rg <C> -nH --no-messages -g '!*/' -e <R>"
      ))
   "Associative list mapping program identifiers to command templates.
 
@@ -1723,7 +1718,16 @@ FILES must be a list of absolute file names."
                     (match-string file-group)
                     (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
-    (xref--convert-hits (nreverse hits) regexp)))
+    ;; By default, ripgrep's output order is non-deterministic
+    ;; (https://github.com/BurntSushi/ripgrep/issues/152)
+    ;; because it does the search in parallel.
+    ;; Grep's output also comes out in seemingly arbitrary order,
+    ;; though stable one. Let's sort both for better UI.
+    (setq hits
+          (sort (nreverse hits)
+                (lambda (h1 h2)
+                  (string< (cadr h1) (cadr h2)))))
+    (xref--convert-hits hits regexp)))
 
 (defun xref--process-file-region ( start end program
                                    &optional buffer display
