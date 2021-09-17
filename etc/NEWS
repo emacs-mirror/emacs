@@ -3856,6 +3856,11 @@ instead of 'load-path'.  It can be used by Custom themes to load
 supporting Lisp files when 'require' is unsuitable.
 
 +++
+** New function 'seq-union'.
+This function takes two sequences and returns a list of all elements
+that appear in either of them.
+
++++
 ** New function 'syntax-class-to-char'.
 This does almost the opposite of 'string-to-syntax' -- it returns the
 syntax descriptor (a character) given a raw syntax descriptor (an

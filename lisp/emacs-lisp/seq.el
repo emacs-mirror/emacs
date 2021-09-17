@@ -467,6 +467,17 @@ negative integer or 0, nil is returned."
         (setq sequence (seq-drop sequence n)))
       (nreverse result))))
 
+(cl-defgeneric seq-union (sequence1 sequence2 &optional testfn)
+  "Return a list of all elements that appear in either SEQUENCE1 or SEQUENCE2.
+Equality is defined by TESTFN if non-nil or by `equal' if nil."
+  (let ((accum (lambda (acc elt)
+                 (if (seq-contains-p acc elt testfn)
+                     acc
+                   (cons elt acc)))))
+    (seq-reverse
+     (seq-reduce accum sequence2
+                 (seq-reduce accum sequence1 '())))))
+
 ;;;###autoload
 (cl-defgeneric seq-intersection (sequence1 sequence2 &optional testfn)
   "Return a list of the elements that appear in both SEQUENCE1 and SEQUENCE2.

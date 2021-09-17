@@ -809,6 +809,8 @@ There can be any number of :example/:result elements."
    :eval (seq-remove #'numberp '(1 2 c d 5)))
   (seq-group-by
    :eval (seq-group-by #'cl-plusp '(-1 2 3 -4 -5 6)))
+  (seq-union
+   :eval (seq-union '(1 2 3) '(3 5)))
   (seq-difference
    :eval (seq-difference '(1 2 3) '(2 3 4)))
   (seq-intersection
