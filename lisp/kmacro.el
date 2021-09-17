@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; The kmacro package provides the user interface to emacs' basic
+;; The kmacro package provides the user interface to Emacs' basic
 ;; keyboard macro functionality.  With kmacro, two function keys are
 ;; dedicated to keyboard macros, by default F3 and F4.
 
@@ -144,7 +144,7 @@ macro to be executed before appending to it."
 
 
 (defcustom kmacro-repeat-no-prefix t
-  "Allow repeating certain macro commands without entering the C-x C-k prefix."
+  "Allow repeating certain macro commands without entering the \\[kmacro-keymap] prefix."
   :type 'boolean)
 
 (defcustom kmacro-call-repeat-key t
@@ -728,7 +728,7 @@ With \\[universal-argument], call second macro in macro ring."
 
 
 (defun kmacro-end-or-call-macro-repeat (arg)
-  "As `kmacro-end-or-call-macro' but allows repeat without repeating prefix."
+  "As `kmacro-end-or-call-macro' but allow repeat without repeating prefix."
   (interactive "P")
   (let ((keys (kmacro-get-repeat-prefix)))
     (kmacro-end-or-call-macro arg t)

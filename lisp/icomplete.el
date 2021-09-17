@@ -165,7 +165,7 @@ icompletion is occurring."
   "Overlay used to display the list of completions.")
 
 (defvar icomplete--initial-input nil
-  "Initial input in the minibuffer when icomplete-mode was activated.
+  "Initial input in the minibuffer when `icomplete-mode' was activated.
 Used to implement the option `icomplete-show-matches-on-no-input'.")
 
 (defun icomplete-post-command-hook ()

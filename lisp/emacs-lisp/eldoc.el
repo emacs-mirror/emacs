@@ -437,7 +437,7 @@ return any documentation.")
 (defvar eldoc-display-functions
   '(eldoc-display-in-echo-area eldoc-display-in-buffer)
   "Hook of functions tasked with displaying ElDoc results.
-Each function is passed two arguments: DOCS and INTERACTIVE. DOCS
+Each function is passed two arguments: DOCS and INTERACTIVE.  DOCS
 is a list (DOC ...) where DOC looks like (STRING :KEY VALUE :KEY2
 VALUE2 ...).  STRING is a string containing the documentation's
 text and the remainder of DOC is an optional list of

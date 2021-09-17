@@ -40,7 +40,7 @@
 ;; For state 3 it is t.
 ;; The special display is achieved by using overlays.  The overlays
 ;; are computed from the nxml-outline-state property by
-;; `nxml-refresh-outline'. There overlays all have a category property
+;; `nxml-refresh-outline'.  There overlays all have a category property
 ;; with an nxml-outline-display property with value t.
 ;;
 ;; For a section to be recognized as such, the following conditions must
@@ -445,7 +445,7 @@ non-transparent child section."
 	(cond ((not (nxml-section-tag-forward))
 	       (if (null tag-qnames)
 		   nil
-		 (nxml-outline-error "missing end-tag %s"
+                 (nxml-outline-error "Missing end-tag %s"
 				     (car tag-qnames))))
 	      ;; section end-tag
 	      ((nxml-token-end-tag-p)
@@ -455,9 +455,9 @@ non-transparent child section."
 			  xmltok-start))
 	       (let ((qname (xmltok-end-tag-qname)))
 		 (unless tag-qnames
-		   (nxml-outline-error "extra end-tag %s" qname))
+                   (nxml-outline-error "Extra end-tag %s" qname))
 		 (unless (string= (car tag-qnames) qname)
-		   (nxml-outline-error "mismatched end-tag; expected %s, got %s"
+                   (nxml-outline-error "Mismatched end-tag; expected %s, got %s"
 				       (car tag-qnames)
 				       qname)))
 	       (cond ((> transparent-depth 0)
@@ -938,7 +938,7 @@ If unbalanced section tags are found, signal an `nxml-outline-error'."
 		       (setq found t))
 		   (let ((qname (xmltok-start-tag-qname)))
 		     (unless (string= (car open-tags) qname)
-		       (nxml-outline-error "mismatched end-tag"))
+                       (nxml-outline-error "Mismatched end-tag"))
 		     (setq open-tags (cdr open-tags)))))
 	       (goto-char section-start-pos)
 	       (and (not found)

@@ -183,7 +183,7 @@ See `erc-auto-discard-away'."
 
 (defcustom erc-autoaway-idle-seconds 1800
   "Number of seconds after which ERC will set you automatically away.
-If you are changing this variable using lisp instead of customizing it,
+If you are changing this variable using Lisp instead of customizing it,
 you have to run `erc-autoaway-reestablish-idletimer' afterwards."
   :set (lambda (sym val)
 	 (set-default sym val)

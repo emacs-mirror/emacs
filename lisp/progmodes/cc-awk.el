@@ -1095,9 +1095,10 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
 			     "[#\n\r]"))))))))
 
 (defun c-awk-beginning-of-defun (&optional arg)
-  "Move backward to the beginning of an AWK \"defun\".  With ARG, do it that
-many times.  Negative arg -N means move forward to Nth following beginning of
-defun.  Returns t unless search stops due to beginning or end of buffer.
+  "Move backward to the beginning of an AWK \"defun\".
+With ARG, do it that many times.  Negative arg -N means move
+forward to Nth following beginning of defun.  Returns t unless
+search stops due to beginning or end of buffer.
 
 By a \"defun\" is meant either a pattern-action pair or a function.  The start
 of a defun is recognized as code starting at column zero which is neither a

@@ -247,7 +247,7 @@ If -CVS-MODE!-FUN is provided, it is executed *cvs* being the current buffer
   (let* ((-cvs-mode!-buf (current-buffer))
 	 (cvsbuf (cond ((cvs-buffer-p) (current-buffer))
 		       ((and cvs-buffer (cvs-buffer-p cvs-buffer)) cvs-buffer)
-		       (t (error "can't find the *cvs* buffer"))))
+                       (t (error "Can't find the *cvs* buffer"))))
 	 (-cvs-mode!-wrapper cvs-minor-wrap-function)
 	 (-cvs-mode!-cont (lambda ()
 			    (save-current-buffer

@@ -83,7 +83,7 @@
 ;;;  Macros to parse the list
 
 (defconst xml-undefined-entity "?"
-  "What to substitute for undefined entities")
+  "What to substitute for undefined entities.")
 
 (defconst xml-default-ns '(("" . "")
 			   ("xml" . "http://www.w3.org/XML/1998/namespace")

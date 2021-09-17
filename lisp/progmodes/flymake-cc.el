@@ -61,23 +61,34 @@ SOURCE."
   (cl-loop
    while
    (search-forward-regexp
-    "^\\(In file included from \\)?<stdin>:\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?:\n?\\(.*\\): \\(.*\\)$"
+    "^\\(In file included from \\)?\\([^ :]+\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?:\n?\\(.*\\): \\(.*\\)$"
     nil t)
-   for msg = (match-string 5)
-   for (beg . end) = (flymake-diag-region
-                      source
-                      (string-to-number (match-string 2))
-                      (and (match-string 3) (string-to-number (match-string 3))))
+   for msg = (match-string 6)
+   for locus = (match-string 2)
+   for line = (string-to-number (match-string 3))
+   for col = (ignore-errors (string-to-number (match-string 4)))
+   for source-buffer = (and (string= locus "<stdin>") source)
    for type = (if (match-string 1)
                   :error
-                (assoc-default
-                 (match-string 4)
-                 '(("error" . :error)
-                   ("note" . :note)
-                   ("warning" . :warning))
-                 #'string-match
-                 :error))
-   collect (flymake-make-diagnostic source beg end type msg)))
+                (save-match-data
+                  (assoc-default
+                   (match-string 5)
+                   '(("error" . :error)
+                     ("note" . :note)
+                     ("warning" . :warning))
+                   #'string-match
+                   :error)))
+   for diag =
+   (cond (source-buffer
+          (pcase-let ((`(,beg . ,end)
+                       (flymake-diag-region source-buffer line col)))
+            (flymake-make-diagnostic source-buffer beg end type msg)))
+         (t (flymake-make-diagnostic locus (cons line col) nil type msg)))
+   collect diag
+   ;; If "In file included from..." matched, then move to end of that
+   ;; line.  This helps us collect the diagnostic at its .h locus,
+   ;; too.
+   when (match-end 1) do (goto-char (match-end 2))))
 
 (defun flymake-cc-use-special-make-target ()
   "Command for checking a file via a CHK_SOURCES Make target."
@@ -88,7 +99,7 @@ SOURCE."
              (cond ((derived-mode-p 'c++-mode) "c++")
                    (t "c")))))
 
-(defvar-local flymake-cc--proc nil "Internal variable for `flymake-cc'")
+(defvar-local flymake-cc--proc nil "Internal variable for `flymake-cc'.")
 
 ;; forward declare this to shoosh compiler (instead of requiring
 ;; flymake-proc)

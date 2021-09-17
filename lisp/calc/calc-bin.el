@@ -202,7 +202,7 @@
 (defun math-power-of-2 (n)    ;  [I I] [Public]
   (if (natnump n)
       (ash 1 n)
-    (error "argument must be a natural number")))
+    (error "Argument must be a natural number")))
 
 (defun math-integer-log2 (n)    ; [I I] [Public]
   (and (natnump n)

@@ -351,7 +351,7 @@ Non-nil means always go to the next Octave code line after sending."
 ;; corresponding continuation lines).
 
 (defun octave-smie--funcall-p ()
-  "Return non-nil if we're in an expression context.  Moves point."
+  "Return non-nil if we're in an expression context.  Move point."
   (looking-at "[ \t]*("))
 
 (defun octave-smie--end-index-p ()
@@ -1034,7 +1034,7 @@ directory and makes this the current buffer's default directory."
   (nth 8 (syntax-ppss)))
 
 (defun octave-looking-at-kw (regexp)
-  "Like `looking-at', but sets `case-fold-search' nil."
+  "Like `looking-at', but set `case-fold-search' nil first."
   (let ((case-fold-search nil))
     (looking-at regexp)))
 

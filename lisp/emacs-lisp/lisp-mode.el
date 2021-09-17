@@ -462,8 +462,8 @@ This will generate compile-time constants from BINDINGS."
          ;; Ineffective backslashes (typically in need of doubling).
          ("\\(\\\\\\)\\([^\"\\]\\)"
           (1 (elisp--font-lock-backslash) prepend))
-         ;; Words inside ‘’ and `' tend to be symbol names.
-         (,(concat "[`‘]\\(" lisp-mode-symbol-regexp "\\)['’]")
+         ;; Words inside ‘’, '' and `' tend to be symbol names.
+         (,(concat "[`‘']\\(" lisp-mode-symbol-regexp "\\)['’]")
           (1 font-lock-constant-face prepend))
          ;; Constant values.
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
@@ -624,7 +624,7 @@ Value for `adaptive-fill-function'."
   (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
 
 ;; Maybe this should be discouraged/obsoleted and users should be
-;; encouraged to use `lisp-data-mode` instead.
+;; encouraged to use 'lisp-data-mode' instead.
 (defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
                                       elisp)
   "Common initialization routine for lisp modes.
@@ -824,7 +824,7 @@ function is `common-lisp-indent-function'."
   "Return Parse-Partial-Sexp State at POS, defaulting to point.
 Like `syntax-ppss' but includes the character address of the last
 complete sexp in the innermost containing list at position
-2 (counting from 0).  This is important for lisp indentation."
+2 (counting from 0).  This is important for Lisp indentation."
   (unless pos (setq pos (point)))
   (let ((pss (syntax-ppss pos)))
     (if (nth 9 pss)

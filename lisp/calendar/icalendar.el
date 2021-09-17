@@ -1749,7 +1749,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 (defun icalendar--convert-float-to-ical (nonmarker entry-main)
   "Convert float diary entry to iCalendar format -- partially unsupported!
 
-  FIXME! DAY from diary-float yet unimplemented.
+  FIXME! DAY from `diary-float' yet unimplemented.
 
   NONMARKER is a regular expression matching the start of non-marking
   entries.  ENTRY-MAIN is the first line of the diary entry."

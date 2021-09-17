@@ -514,7 +514,7 @@ Interactively, reads the register using `register-read-with-preview'."
 	   (move-to-column column t))))
 
 (defun picture-yank-rectangle (&optional insertp)
-  "Overlay rectangle saved by \\[picture-clear-rectangle]
+  "Overlay rectangle saved by \\[picture-clear-rectangle].
 The rectangle is positioned with upper left corner at point, overwriting
 existing text.  With prefix argument, the rectangle is inserted instead,
 shifting existing text.  Leaves mark at one corner of rectangle and
@@ -699,10 +699,10 @@ afterwards settable by these commands:
  Move southwest (sw) after insertion:  \\[picture-movement-sw]
  Move southeast (se) after insertion:  \\[picture-movement-se]
 
- Move westnorthwest (wnw) after insertion:  C-u \\[picture-movement-nw]
- Move eastnortheast (ene) after insertion:  C-u \\[picture-movement-ne]
- Move westsouthwest (wsw) after insertion:  C-u \\[picture-movement-sw]
- Move eastsoutheast (ese) after insertion:  C-u \\[picture-movement-se]
+ Move westnorthwest (wnw) after insertion:  \\[universal-argument] \\[picture-movement-nw]
+ Move eastnortheast (ene) after insertion:  \\[universal-argument] \\[picture-movement-ne]
+ Move westsouthwest (wsw) after insertion:  \\[universal-argument] \\[picture-movement-sw]
+ Move eastsoutheast (ese) after insertion:  \\[universal-argument] \\[picture-movement-se]
 
 The current direction is displayed in the mode line.  The initial
 direction is right.  Whitespace is inserted and tabs are changed to

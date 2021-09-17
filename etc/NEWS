@@ -128,6 +128,22 @@ of files visited via 'C-x C-f' and other commands.
 
 * Changes in Emacs 28.1
 
+---
+** Emacs now supports Unicode Standard version 14.0.
+
++++
+** New character script 'emoji' has been created.
+Various blocks of codepoints have been split out of the 'symbol'
+script into their own 'emoji' script to allow easier specification of
+their treatment.  Which codepoints are treated as emoji is derived
+from the Unicode specifications.  Also, Emacs will now use "Noto Color
+Emoji" by default for that script.  Use:
+
+(set-fontset-font t 'emoji
+                  '("My New Emoji Font" . "iso10646-1") nil 'prepend)
+
+to change the font used.
+
 +++
 ** New command 'execute-extended-command-for-buffer'.
 This new command, bound to 'M-S-x', works like
@@ -419,14 +435,17 @@ scrolling switches to the previous/next tab, and holding the Shift key
 during scrolling moves the tab to the left/right.
 
 ---
-*** The tab bar is frame-local when 'tab-bar-show' is a number.
-You can show/hide the tab bar independently for each frame, according
-to the value of 'tab-bar-show'.
+*** Frame-specific appearance of the tab bar when 'tab-bar-show' is a number.
+When 'tab-bar-show' is a number, the tab bar on different frames can
+be shown or hidden independently, as determined by the number of tabs
+on each frame compared to the numerical value of 'tab-bar-show'.
 
 ---
 *** New command 'toggle-frame-tab-bar'.
 It can be used to enable/disable the tab bar on the currently selected
 frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
+This allows to enable/disable the tab bar independently on different
+frames.
 
 ---
 *** New user option 'tab-bar-format' defines a list of tab bar items.
@@ -1202,7 +1221,7 @@ Thus, packages on nonGNU ELPA will appear by default in the list shown
 by 'list-packages'.
 
 ---
-*** '/ s' ('package-menu-filter-by-status') changes parameter handling.
+*** '/ s' ('package-menu-filter-by-status') changed parameter handling.
 The command was documented to take a comma-separated list of statuses
 to filter by, but instead it used the parameter as a regexp.  The
 command has been changed so that it now works as documented, and
@@ -1282,9 +1301,9 @@ the variables 'bookmark-bmenu-use-header-line' and
 'bookmark-bmenu-inline-header-height' are now declared obsolete.
 
 ---
-*** New user option 'bookmark-fontify'.
-If non-nil, setting a bookmark will colorize the current line with
-'bookmark-face'.
+*** New user option 'bookmark-set-fringe-mark'.
+If non-nil, setting a bookmark will set a fringe mark on the current
+line, and jumping to a bookmark will also set this mark.
 
 ---
 *** New user option 'bookmark-menu-confirm-deletion'.
@@ -2122,6 +2141,7 @@ modified flag.  The default is nil, to preserve the old behavior.
 
 ** CC Mode
 
++++
 *** Added support for Doxygen documentation style.
 'doxygen' is now a valid 'c-doc-comment-style' which recognises all
 comment styles supported by Doxygen (namely '///', '//!', '/** … */'
@@ -2136,6 +2156,7 @@ use 'doxygen' by default one might evaluate:
 
 or use it in a custom 'c-style'.
 
++++
 *** Added support to line up '?' and ':' of a ternary operator.
 The new 'c-lineup-ternary-bodies' function can be used as a lineup
 function to align question mark and colon which are part of a ternary
@@ -2337,10 +2358,12 @@ This specifies the file in which to save the list of known projects.
 This command lets you interactively remove an entry from the list of projects
 in 'project-list-file'.
 
+---
 *** 'project-find-file' now accepts non-existent file names.
 This is to allow easy creation of files inside some nested
 sub-directory.
 
++++
 *** 'project-find-file' doesn't use the string at point as default input.
 Now it's only suggested as part of the "future history".
 
@@ -2500,6 +2523,8 @@ This allows mode-specific alterations to how 'thing-at-point' works.
 'symbol-at-point') will narrow to the current field (if any) before
 trying to identify the thing at point.
 
+*** New function 'thing-at-mouse'.
+
 ** image-dired
 
 ---
@@ -2514,6 +2539,15 @@ images are marked.
 *** New command 'image-dired-delete-marked'.
 
 ** Flymake mode
+
++++
+*** New command 'flymake-show-project-diagnostics'
+This lists all diagnostics for buffers in the currently active
+project.  The listing is similar to the one obtained by
+'flymake-show-buffer-diagnostics', but adds a column for the
+project-relative file name.  For backends which support it,
+'flymake-show-project-diagnostics' also lists diagnostics for files
+that have not yet been visited.
 
 +++
 *** New user options to customize Flymake's mode-line.
@@ -2611,13 +2645,22 @@ Interactively, 'C-u C-c C-o' triggers this new optional behavior.
 ** ERC
 
 ---
-*** erc-services.el now supports NickServ passwords from auth-source.
+*** NickServ passwords can now be retrieved from auth-source.
 The 'erc-use-auth-source-for-nickserv-password' user option enables
 querying auth-source for NickServ passwords.  To enable this, add the
 following to your init file:
 
-    (setq erc-prompt-for-nickserv-password nil
-          erc-use-auth-source-for-nickserv-password t)
+    (setq erc-use-auth-source-for-nickserv-password t)
+
+---
+*** NickServ identification now prompts for password last.
+When 'erc-prompt-for-nickserv-password' is non-nil, the user used to
+be unconditionally prompted interactively for a password, regardless
+of the value of 'erc-nickserv-passwords', which was effectively
+ignored (same for the new
+'erc-use-auth-source-for-nickserv-password').  This limitation is now
+lifted, and the user is interactively prompted last, after the other
+identification methods have run.
 
 ---
 *** The '/ignore' command will now ask for a timeout to stop ignoring the user.
@@ -2652,6 +2695,13 @@ for Certificate Fingerprint) by several IRC networks.  See the Info
 node "(erc) Connecting" in the ERC manual for more details and
 examples on how to specify and use TLS client certificates with
 'erc-tls'.
+
+---
+*** Add 'erc-track-select-mode-line-face' (obsoletes 'erc-track-find-face').
+The 'erc-track-find-face' function of the erc-track module has been
+declared obsolete and rewritten as 'erc-track-select-mode-line-face',
+with different expected arguments (the current and old faces are now
+separated) and clearer documentation.
 
 ** xwidget-webkit mode
 
@@ -2718,6 +2768,44 @@ Variable 'mh-whitelist-preserves-sequences-flag' is renamed
 Face 'mh-folder-blacklisted' is renamed 'mh-folder-blocklisted'.
 Face 'mh-folder-whitelisted' is renamed 'mh-folder-allowlisted'.
 
+** Rcirc
+
++++
+*** rcirc now supports SASL authentication.
+
+---
+*** rcirc connects asynchronously
+
+---
+*** Integrate formatting into rcirc-send-string
+The function now accepts a variable number of arguments.
+
++++
+*** Deprecate defun-rcirc-command in favour of rcirc-define-command
+The new macro handles multiple and optional arguments.
+
+---
+*** Add basic IRCv3 support
+This includes support for the capabilities: server-time, batch,
+message-ids, invite-notify, multi-prefix and standard-replies.
+
+---
+*** Add mouse property support to rcirc-track-minor-mode
+
+---
+*** Improve support for IRC markup codes
+
+---
+*** Check auth-sources for server passwords
+
+---
+*** Allow for channels to hide certain message types right after connecting.
+Set rcirc-omit-responses-after-join analogously to rcirc-omit-responses.
+
++++
+*** Implement repeated reconnection strategy
+See rcirc-reconnect-attempts.
+
 ** Miscellaneous
 
 ---
@@ -2737,9 +2825,6 @@ will now restore the original order.
 
 ---
 *** 'M-left' and 'M-right' now move between columns in 'tabulated-list-mode'.
-
-+++
-*** rcirc now supports SASL authentication.
 
 ---
 *** New variable 'hl-line-overlay-priority'.
@@ -2812,6 +2897,13 @@ or if you would like to attend a virtual meeting scheduled in a
 different timezone causing a difference in the date.
 
 ---
+*** New user option 'checkdoc-column-zero-backslash-before-paren'.
+Checkdoc warns if there is a left parenthesis in column zero of a
+documentation string.  That warning can now be disabled by customizing
+this new user option to nil.  This can be useful if you don't expect
+your code to be edited with an Emacs version older than 27.1.
+
+---
 *** The old non-SMIE indentation of 'sh-mode' has been removed.
 
 ---
@@ -2833,6 +2925,13 @@ indentation is done using SMIE or with the old ad-hoc code.
 This previously used to align subsequent lines with the last sibling,
 but it now aligns with the first sibling (which is the preferred style
 in Ruby).
+
+** Imenu
+
++++
+*** New user option 'imenu-max-index-time'.
+If creating the imenu index takes longer than specified by this
+variable (default 5 seconds), imenu indexing is stopped.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -2868,6 +2967,7 @@ This is a mode for searching a RFC 2229 dictionary server.
 the mouse in 'dictionary-tooltip-dictionary' (which must be customized
 first).
 
+---
 ** Lisp Data mode
 The new command 'lisp-data-mode' enables a major mode for buffers
 composed of Lisp symbolic expressions that do not form a computer
@@ -2896,13 +2996,16 @@ structures.
 This is for symmetry with 'visual-line-mode', which disables
 'truncate-lines'.
 
-** 'electric-indent-mode' now also indents inside strings and comments,
-(unless the indentation function doesn't, of course).
+---
+** 'electric-indent-mode' now also indents inside strings and comments.
+(This only happens when indentation function also supports this.)
+
 To recover the previous behavior you can use:
 
     (add-hook 'electric-indent-functions
               (lambda (_) (if (nth 8 (syntax-ppss)) 'no-indent)))
 
+---
 ** The 'M-o' ('facemenu-keymap') global binding has been removed.
 To restore the old binding, say something like:
 
@@ -2914,6 +3017,7 @@ To restore the old binding, say something like:
 The last two lines are not strictly necessary if you don't care about
 having those two commands on the 'M-o' keymap; see the next section.
 
+---
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
 Use 'M-x center-line' and 'M-x center-paragraph' instead.  See the
 previous section for how to get back the old bindings.  Alternatively,
@@ -2923,10 +3027,12 @@ before, you can add the following to your init file:
   (define-key global-map "\M-o\M-s" 'center-line)
   (define-key global-map "\M-o\M-S" 'center-paragraph)
 
+---
 ** The 'M-o M-o' global binding has been removed.
 Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
 command, which updates the syntax highlighting in the current buffer.
 
+---
 ** The escape sequence '\e[29~' in Xterm is now mapped to 'menu'.
 Xterm sends this sequence for both 'F16' and 'Menu' keys
 It used to be mapped to 'print' but we couldn't find a terminal
@@ -2940,17 +3046,20 @@ If non-nil (the default), Emacs pushes pasted text onto the kill ring
 (if using an xterm-like terminal that supports bracketed paste).
 Setting this to nil inhibits that.
 
-** 'vc-print-branch-log' shows the change log for BRANCH from its root
-directory instead of the default directory.
+---
+** 'vc-print-branch-log' shows the change log from its root directory.
+It previously used to use the default directory.
 
 ---
 ** 'project-shell' and 'shell' now use 'pop-to-buffer-same-window'.
 This is to keep the same behavior as Eshell.
 
-** In 'nroff-mode', 'center-line' is now bound to 'M-o M-s'.
+---
+** In 'nroff-mode', 'center-line' is no longer bound to a key.
 The original key binding was 'M-s', which interfered with I-search,
 since the latter uses 'M-s' as a prefix key of the search prefix map.
 
+---
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
 special escape syntax in Fortran F90.  To get the old behavior back,
@@ -2958,6 +3067,7 @@ say something like:
 
     (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
 
++++
 ** Setting 'fill-column' to nil is obsolete.
 This undocumented use of 'fill-column' is now obsolete.  To disable
 auto filling, turn off 'auto-fill-mode' instead.
@@ -2970,6 +3080,7 @@ file:
 
 * Incompatible Lisp Changes in Emacs 28.1
 
++++
 ** Emacs now prints a backtrace when signaling an error in batch mode.
 This makes debugging Emacs Lisp scripts run in batch mode easier.  To
 get back the old behavior, set the new variable
@@ -2983,6 +3094,7 @@ integer 2.  Such numerals are now read as floats with the exponent included:
 2.e6 is now read as the floating-point value 2000000.0.
 That is, '(read-from-string "1.e3")' => '(1000.0 . 4)' now.
 
+---
 ** 'equal' no longer examines some contents of window configurations.
 Instead, it considers window configurations to be equal only if they
 are 'eq'.  To compare contents, use 'compare-window-configurations'
@@ -3011,6 +3123,7 @@ hooks 'kill-buffer-hook', 'kill-buffer-query-functions', and
 'buffer-list-update-hook' for the temporary buffers they create.  This
 avoids slowing them down when a lot of these hooks are defined.
 
++++
 ** New face 'child-frame-border' and frame parameter 'child-frame-border-width'.
 The face and width of child frames borders can now be determined
 separately from those of normal frames.  To minimize backward
@@ -3063,6 +3176,7 @@ replacement text.
 'minibuffer-completion-table' and related variables are now set buffer-locally
 in the minibuffer instead of being set via a global let-binding.
 
+---
 ** XML serialization functions now reject invalid characters.
 Previously, 'xml-print' would produce invalid XML when given a string
 with characters that are not valid in XML (see
@@ -3071,12 +3185,14 @@ https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 ---
 ** JSON
 
+---
 *** JSON number parsing is now stricter.
 Numbers with a leading plus sign, leading zeros, or a missing integer
 component are now rejected by 'json-read' and friends.  This makes
 them more compliant with the JSON specification and consistent with
 the native JSON parsing functions.
 
+---
 *** JSON functions support the semantics of RFC 8259.
 The JSON functions 'json-serialize', 'json-insert',
 'json-parse-string', and 'json-parse-buffer' now implement some of the
@@ -3107,8 +3223,10 @@ these cases.
 These were actually rendered obsolete in Emacs 21 but were never
 marked as such.
 
+---
 ** 'pcomplete-ignore-case' is now an obsolete alias of 'completion-ignore-case'.
 
++++
 ** 'completions-annotations' face is not used when the caller puts own face.
 This affects the suffix specified by completion 'annotation-function'.
 
@@ -3117,7 +3235,8 @@ This affects the suffix specified by completion 'annotation-function'.
 This is instead of the erroneous 'minibuffer-inactive-mode' it
 formerly had.
 
-** 'make-text-button' no longer text properties of its first argument.
+---
+** 'make-text-button' no longer modifies text properties of its first argument.
 When its first argument is a string, 'make-text-button' no longer
 modifies the string's text properties; instead, it uses and returns
 a copy of the string.  This helps avoid trouble when strings are
@@ -3129,6 +3248,7 @@ If 'minibuffer-allow-text-properties' is non-nil, doing completion
 over a table of strings with properties will no longer remove all the
 properties before returning.  This affects things like 'completing-read'.
 
+---
 ** 'dns-query' now consistently uses Lisp integers to represent integers.
 Formerly it made an exception for integer components of SOA records,
 because SOA serial numbers can exceed fixnum ranges on 32-bit platforms.
@@ -3143,6 +3263,7 @@ the Emacs Lisp reference manual for background.
 +++
 ** The error 'ftp-error' belongs also to category 'remote-file-error'.
 
++++
 ** The WHEN argument of 'make-obsolete' and related functions is mandatory.
 The use of those functions without a WHEN argument was marked obsolete
 back in Emacs 23.1.  The affected functions are: 'make-obsolete',
@@ -3163,6 +3284,7 @@ These variables describe facts about the SQL standard and
 product-specific additions.  There should be no need for users to
 customize them.
 
+---
 ** Some locale-related variables have been removed.
 The Lisp variables 'previous-system-messages-locale' and
 'previous-system-time-locale' have been removed, as they were created
@@ -3172,12 +3294,15 @@ by mistake and were not useful to Lisp code.
 ** Function 'lm-maintainer' is replaced with 'lm-maintainers'.
 The former is now declared obsolete.
 
++++
 ** 'facemenu.el' is no longer preloaded.
 To use functions/variables from the package, you now have to say
 '(require 'facemenu)' or similar.
 
+---
 ** 'facemenu-color-alist' is now obsolete, and is not used.
 
+---
 ** The variable 'keyboard-type' is obsolete and not dynamically scoped any more.
 
 +++
@@ -3308,9 +3433,9 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 
 ---
 ** Some functions and variables obsolete since Emacs 22 have been removed:
-'gnus-article-hide-pgp-hook', 'gnus-inews-mark-gcc-as-read',
-'gnus-treat-display-xface', 'gnus-treat-strip-pgp',
-'nnmail-spool-file'.
+'erc-current-network', 'gnus-article-hide-pgp-hook',
+'gnus-inews-mark-gcc-as-read', 'gnus-treat-display-xface',
+'gnus-treat-strip-pgp', 'nnmail-spool-file'.
 
 ---
 ** The obsolete function 'thread-alive-p' has been removed.
@@ -3326,6 +3451,19 @@ In Emacs 24.3, the variable 'dbus-event-error-hooks' was renamed to
 'dbus-call-method-non-blocking' was renamed to 'dbus-call-method'.
 The old names, which were kept as obsolete aliases of the new names,
 have now been removed.
+
+---
+** 'find-function-source-path' renamed and re-documented.
+The 'find-function' command (and various related commands) were
+documented to respect 'find-function-source-path', and to search for
+objects in files specified by that variable.  It's unclear when this
+actually changed, but at some point (perhaps decades ago) these
+commands started using 'load-history' to determine where symbols had
+been defined (which is much faster).  The doc strings of all the
+affected function has been updated.  'find-function-source-path' was
+still being used by 'find-library' and related commands, so the
+variable has been renamed to 'find-library-source-path', and
+'find-function-source-path' is now an obsolete variable alias.
 
 
 * Lisp Changes in Emacs 28.1
@@ -3370,6 +3508,7 @@ It is written as '(:success BODY...)' where BODY is executed
 whenever the protected form terminates without error, with the
 specified variable bound to the the value of the protected form.
 
++++
 ** New function 'benchmark-call' to measure the execution time of a function.
 Additionally, the number of repetitions can be expressed as a minimal duration
 in seconds.
@@ -3397,6 +3536,7 @@ If bound to non-nil, a command with '(interactive "e")' doesn't signal
 an error when invoked by input event that is not a mouse click (e.g.,
 a key sequence).
 
+---
 ** New variable 'redisplay-skip-initial-frame' to enable batch redisplay tests.
 Setting it to nil forces the redisplay to do its job even in the
 initial frame used in batch mode.
@@ -3468,10 +3608,13 @@ To load the file after byte-compiling, add a call to 'load' from Lisp
 or use 'M-x emacs-lisp-byte-compile-and-load' interactively.
 
 ** Macroexp
+
 ---
 *** New function 'macroexp-file-name' to know the name of the current file.
+
 ---
 *** New function 'macroexp-compiling-p' to know if we're compiling.
+
 ---
 *** New function 'macroexp-warn-and-return' to help emit warnings.
 This used to be named 'macroexp--warn-and-return' and has proved useful
@@ -3513,11 +3656,13 @@ in better code.
 ---
 *** New function 'pcase-compile-patterns' to write other macros.
 
++++
 *** Added 'cl-type' pattern.
 The new 'cl-type' pattern compares types using 'cl-typep', which allows
 comparing simple types like '(cl-type integer)', as well as forms like
 '(cl-type (integer 0 10))'.
 
++++
 *** New macro 'pcase-setq'.
 This macro is the 'setq' equivalent of 'pcase-let', which allows for
 destructuring patterns in a 'setq' form.
@@ -3585,10 +3730,30 @@ This splits a shell command string into separate components,
 respecting quoting with single ('like this') and double ("like this")
 quotes, as well as backslash quoting (like\ this).
 
-** New string manipulation functions added to subr-x.el.
-the functions are 'string-clean-whitespace', 'string-fill',
-'string-limit', 'string-lines', 'string-pad' and
-'string-chop-newline'.
++++
+** New function 'string-clean-whitespace'.
+This removed whitespace from a string
+
++++
+** New function 'string-fill'.
+Word-wrap a string so that no lines are longer that a specific length.
+
++++
+** New function 'string-limit'.
+Return (up to) a specific substring length.
+
++++
+** New function 'string-lines'.
+Return a list of strings representing the individual lines in a
+string.
+
++++
+** New function 'string-pad'.
+Pad a string to a specific length.
+
++++
+** New function 'string-chop-newline'.
+Remove a trailing newline from a string.
 
 +++
 ** New function 'replace-regexp-in-region'.
@@ -3633,6 +3798,7 @@ This is identical to 'ignore', but returns t instead.
 This is identical to 'sxhash-equal' but also accounts for string
 properties.
 
+---
 ** New function 'buffer-line-statistics'.
 This function returns some statistics about the line lengths in a buffer.
 
@@ -3671,8 +3837,7 @@ the current system.
 
 +++
 ** New function 'insert-into-buffer'.
-This is like 'insert-buffer-substring', but works in the opposite
-direction.
+This inserts the contents of the current buffer into another buffer.
 
 +++
 ** New function 'json-available-p'.
@@ -3709,6 +3874,12 @@ been added, and takes a callback to handle the return status.
 This function is like 'require', but searches 'custom-theme-load-path'
 instead of 'load-path'.  It can be used by Custom themes to load
 supporting Lisp files when 'require' is unsuitable.
+
++++
+** New function 'seq-union'.
+This function takes two sequences and returns a list of all elements
+that appear in either of them, with no two elements that compare equal
+appearing in the result.
 
 +++
 ** New function 'syntax-class-to-char'.
@@ -3816,6 +3987,7 @@ Until it is solved you could ignore such errors by performing
 
     (setq debug-ignored-errors (cons 'remote-file-error debug-ignored-errors))
 
++++
 ** New macro 'named-let' added to subr-x.el.
 It provides Scheme's "named let" looping construct.
 
@@ -3828,6 +4000,7 @@ non-nil value to get back the old behavior, whereby after reading
 from a subprocess, Emacs would check for output of other subprocesses
 in a way that is likely to read from the same process again.
 
++++
 ** 'set-process-buffer' now updates the process mark.
 The mark will be set to point to the end of the new buffer.
 
@@ -3947,6 +4120,11 @@ The special events 'dbus-event' and 'file-notify' are now ignored in
 do not support the old calling conventions any longer.
 
 +++
+** 'yes-or-no-p' and 'y-or-n-p' PROMPT parameter no longer needs trailing space.
+This has been the case since Emacs 24.4 but was not announced or
+documented until now.
+
++++
 ** The 'uniquify' argument in 'auto-save-file-name-transforms' can be a symbol.
 If this symbol is one of the members of 'secure-hash-algorithms',
 Emacs constructs the nondirectory part of the auto-save file name by
@@ -4029,6 +4207,7 @@ form below the header line.  It is enabled by default in
 ---
 ** 'ascii' is now a coding system alias for 'us-ascii'.
 
+---
 ** New coding-systems for EBCDIC variants.
 New coding-systems 'ibm256', 'ibm273', 'ibm274', 'ibm277', 'ibm278',
 'ibm280', 'ibm281', 'ibm284', 'ibm285', 'ibm290', 'ibm297'.  These are
@@ -4091,8 +4270,11 @@ The new variable 'xwidget-webkit-download-dir' says where to download to.
 
 ---
 *** New command 'xwidget-webkit-clone-and-split-below'.
+Open a new window below displaying the current URL.
+
+---
 *** New command 'xwidget-webkit-clone-and-split-right'.
-These are used in 'xwidget-webkit-mode'.
+Open a new window to the right displaying the current URL.
 
 ---
 *** New variable 'xwidget-webkit-enable-plugins'.

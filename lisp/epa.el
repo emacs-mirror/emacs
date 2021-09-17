@@ -30,7 +30,7 @@
 ;;; Options
 
 (defgroup epa nil
-  "The EasyPG Assistant"
+  "The EasyPG Assistant."
   :version "23.1"
   :link '(custom-manual "(epa) Top")
   :group 'epg)

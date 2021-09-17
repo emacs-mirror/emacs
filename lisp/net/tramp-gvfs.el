@@ -1815,10 +1815,8 @@ a downcased host name only."
 			     (message "%s" message)
 			   (pop-to-buffer (current-buffer)))
 			 (if (yes-or-no-p
-			      (concat
-			       (buffer-substring
-				(line-beginning-position) (point))
-			       " "))
+			      (buffer-substring
+			       (line-beginning-position) (point)))
 			     0 1)))))
 
 		;; When QUIT is raised, we shall return this
@@ -1840,7 +1838,7 @@ a downcased host name only."
   (ignore-errors
     (let ((signal-name (dbus-event-member-name last-input-event))
 	  (elt mount-info))
-      ;; Jump over the first elements of the mount info. Since there
+      ;; Jump over the first elements of the mount info.  Since there
       ;; were changes in the entries, we cannot access dedicated
       ;; elements.
       (while (stringp (car elt)) (setq elt (cdr elt)))
@@ -1936,7 +1934,7 @@ a downcased host name only."
 	      :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
 	      tramp-gvfs-interface-mounttracker tramp-gvfs-listmounts))
 	  nil)
-       ;; Jump over the first elements of the mount info. Since there
+       ;; Jump over the first elements of the mount info.  Since there
        ;; were changes in the entries, we cannot access dedicated
        ;; elements.
        (while (stringp (car elt)) (setq elt (cdr elt)))

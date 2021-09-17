@@ -151,10 +151,8 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     map)
   "Keymap used in Ruby mode.")
 
-(easy-menu-define
-  ruby-mode-menu
-  ruby-mode-map
-  "Ruby Mode Menu"
+(easy-menu-define ruby-mode-menu ruby-mode-map
+  "Ruby Mode Menu."
   '("Ruby"
     ["Beginning of Block" ruby-beginning-of-block t]
     ["End of Block" ruby-end-of-block t]
@@ -936,7 +934,7 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
 
 (defun ruby-forward-string (term &optional end no-error expand)
   "Move forward across one balanced pair of string delimiters.
-Skips escaped delimiters. If EXPAND is non-nil, also ignores
+Skips escaped delimiters.  If EXPAND is non-nil, also ignores
 delimiters in interpolated strings.
 
 TERM should be a string containing either a single, self-matching

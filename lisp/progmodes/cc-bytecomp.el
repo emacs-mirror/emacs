@@ -381,7 +381,7 @@ afterwards.  Don't use within `eval-when-compile'."
      (eval-when-compile (cc-bytecomp-setup-environment))))
 
 (defmacro cc-bytecomp-defvar (var)
-  "Binds the symbol as a variable during compilation of the file,
+  "Bind the symbol as a variable during compilation of the file,
 to silence the byte compiler.  Don't use within `eval-when-compile'."
   (declare (debug nil))
   `(eval-when-compile

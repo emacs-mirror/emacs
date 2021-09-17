@@ -336,6 +336,33 @@ Evaluate BODY for each created sequence.
     (should (same-contents-p list vector))
     (should (vectorp vector))))
 
+(ert-deftest test-seq-union ()
+  (let ((v1 '(1 2 3))
+        (v2 '(3 5)))
+   (should (same-contents-p (seq-union v1 v2)
+                            '(1 2 3 5))))
+
+  (let ((v1 '(1 2 3 4 5 6))
+        (v2 '(4 5 6 7 8 9)))
+   (should (same-contents-p (seq-union v1 v2)
+                            '(1 2 3 4 5 6 7 8 9))))
+
+  (let ((v1 [1 2 3 4 5])
+        (v2 [4 5 6 "a"]))
+   (should (same-contents-p (seq-union v1 v2)
+                            '(1 2 3 4 5 6 "a"))))
+
+  (let ((v1 '("a" "b" "c"))
+        (v2 '("f" "c" "e" "a")))
+   (should (same-contents-p (seq-union v1 v2)
+                            '("a" "b" "c" "f" "e"))))
+
+  (let ((v1 '("a"))
+        (v2 '("a"))
+        (testfn #'eq))
+   (should (same-contents-p (seq-union v1 v2 testfn)
+                            '("a" "a")))))
+
 (ert-deftest test-seq-intersection ()
   (let ((v1 [2 3 4 5])
         (v2 [1 3 5 6 7]))

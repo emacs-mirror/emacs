@@ -152,8 +152,10 @@ DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_context_new_global,
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_function_new_local,
             (gcc_jit_function *func, gcc_jit_location *loc, gcc_jit_type *type,
              const char *name));
+#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_global_set_initializer,
 	    (gcc_jit_lvalue *global, const void *blob, size_t num_bytes));
+#endif
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_lvalue_access_field,
             (gcc_jit_lvalue *struct_or_union, gcc_jit_location *loc,
              gcc_jit_field *field));
@@ -259,9 +261,11 @@ DEF_DLL_FN (void, gcc_jit_context_set_str_option,
 DEF_DLL_FN (void, gcc_jit_struct_set_fields,
             (gcc_jit_struct *struct_type, gcc_jit_location *loc, int num_fields,
              gcc_jit_field **fields));
+#if defined (LIBGCCJIT_HAVE_gcc_jit_version)
 DEF_DLL_FN (int, gcc_jit_version_major, (void));
 DEF_DLL_FN (int, gcc_jit_version_minor, (void));
 DEF_DLL_FN (int, gcc_jit_version_patchlevel, (void));
+#endif
 
 static bool
 init_gccjit_functions (void)
@@ -332,10 +336,14 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_command_line_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
+#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
   LOAD_DLL_FN_OPT (library, gcc_jit_global_set_initializer);
+#endif
+#if defined (LIBGCCJIT_HAVE_gcc_jit_version)
   LOAD_DLL_FN_OPT (library, gcc_jit_version_major);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_minor);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_patchlevel);
+#endif
 
   return true;
 }
@@ -388,7 +396,9 @@ init_gccjit_functions (void)
 #define gcc_jit_function_get_param fn_gcc_jit_function_get_param
 #define gcc_jit_function_new_block fn_gcc_jit_function_new_block
 #define gcc_jit_function_new_local fn_gcc_jit_function_new_local
-#define gcc_jit_global_set_initializer fn_gcc_jit_global_set_initializer
+#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
+ #define gcc_jit_global_set_initializer fn_gcc_jit_global_set_initializer
+#endif
 #define gcc_jit_lvalue_access_field fn_gcc_jit_lvalue_access_field
 #define gcc_jit_lvalue_as_rvalue fn_gcc_jit_lvalue_as_rvalue
 #define gcc_jit_lvalue_get_address fn_gcc_jit_lvalue_get_address
@@ -402,9 +412,11 @@ init_gccjit_functions (void)
 #define gcc_jit_struct_set_fields fn_gcc_jit_struct_set_fields
 #define gcc_jit_type_get_const fn_gcc_jit_type_get_const
 #define gcc_jit_type_get_pointer fn_gcc_jit_type_get_pointer
-#define gcc_jit_version_major fn_gcc_jit_version_major
-#define gcc_jit_version_minor fn_gcc_jit_version_minor
-#define gcc_jit_version_patchlevel fn_gcc_jit_version_patchlevel
+#if defined (LIBGCCJIT_HAVE_gcc_jit_version)
+ #define gcc_jit_version_major fn_gcc_jit_version_major
+ #define gcc_jit_version_minor fn_gcc_jit_version_minor
+ #define gcc_jit_version_patchlevel fn_gcc_jit_version_patchlevel
+#endif
 
 #endif
 
@@ -2481,8 +2493,7 @@ emit_static_object (const char *name, Lisp_Object obj)
   ptrdiff_t len = SBYTES (str);
   const char *p = SSDATA (str);
 
-#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer) \
-  || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
   if (gcc_jit_global_set_initializer)
     {
       ptrdiff_t str_size = len + 1;
@@ -4375,8 +4386,7 @@ DEFUN ("comp-native-driver-options-effective-p",
        doc: /* Return t if `comp-native-driver-options' is effective.  */)
   (void)
 {
-#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)  \
-  || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)
   if (gcc_jit_context_add_driver_option)
     return Qt;
 #endif
@@ -4405,8 +4415,7 @@ add_driver_options (void)
 {
   Lisp_Object options = Fsymbol_value (Qnative_comp_driver_options);
 
-#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
-  || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)
   load_gccjit_if_necessary (true);
   if (!NILP (Fcomp_native_driver_options_effective_p ()))
     FOR_EACH_TAIL (options)
@@ -4425,8 +4434,7 @@ add_driver_options (void)
 			    " and above."));
 
   /* Captured `comp-native-driver-options' because file-local.  */
-#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
-  || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)
   options = comp.driver_options;
   if (!NILP (Fcomp_native_driver_options_effective_p ()))
     FOR_EACH_TAIL (options)
@@ -4587,8 +4595,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   /* Work around bug#46495 (GCC PR99126). */
 #if defined (WIDE_EMACS_INT)						\
-  && (defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)	\
-      || defined (WINDOWSNT))
+  && defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)
   Lisp_Object version = Fcomp_libgccjit_version ();
   if (NILP (version)
       || XFIXNUM (XCAR (version)) < 11)
@@ -4640,7 +4647,7 @@ The return value has the form (MAJOR MINOR PATCHLEVEL) or nil if
 unknown (before GCC version 10).  */)
   (void)
 {
-#if defined (LIBGCCJIT_HAVE_gcc_jit_version) || defined (WINDOWSNT)
+#if defined (LIBGCCJIT_HAVE_gcc_jit_version)
   load_gccjit_if_necessary (true);
 
   return gcc_jit_version_major

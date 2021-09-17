@@ -275,8 +275,10 @@ a non-@code{nil} value.  There is no need to rescan because of small
 changes in the text.
 
 @vindex imenu-auto-rescan-maxout
+@vindex imenu-max-index-time
   @code{imenu-auto-rescan} will be disabled in buffers that are larger
-than @code{imenu-auto-rescan-maxout} in bytes.
+than @code{imenu-auto-rescan-maxout} in bytes, and scanning is
+stopped if it takes more than @code{imenu-max-index-time} seconds.
 
 @vindex imenu-sort-function
   You can customize the way the menus are sorted by setting the

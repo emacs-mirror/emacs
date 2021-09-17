@@ -1618,7 +1618,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
   (if (and (symbolp (car (cdr (car texinfo-stack))))
            (> 1 (length (symbol-name (car (cdr (car texinfo-stack)))))))
       (error
-       "@enumerate: Use a number or letter, eg: 1, A, a, 3, B, or d." ))
+       "@enumerate: Use a number or letter, eg: 1, A, a, 3, B, or d"))
   (texinfo-discard-line-with-args)
   (setq fill-column (- fill-column 5)))
 
@@ -1705,7 +1705,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
            (if (or (equal ?\[ (string-to-char enumerating-symbol))
                    (equal ?\{ (string-to-char enumerating-symbol)))
                (error
-                "Too many items in enumerated list; alphabet ends at Z."))
+                "Too many items in enumerated list; alphabet ends at Z"))
            (insert ?\b (format "%3s. " enumerating-symbol) ?\n)
            (setcar (cdr (car texinfo-stack))
                    (make-symbol
@@ -1714,7 +1714,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
                       (string-to-char enumerating-symbol))))))
           (t
           (error
-           "@enumerate: Use a number or letter, eg: 1, A, a, 3, B or d." )))
+           "@enumerate: Use a number or letter, eg: 1, A, a, 3, B or d")))
     (forward-line -1)))
 
 (put 'alphaenumerate 'texinfo-item 'texinfo-alphaenumerate-item)
@@ -2032,7 +2032,7 @@ commands that are defined in texinfo.tex for printed output.
      ;; Case 3: Trouble
      (t
       (error
-       "You probably need to specify column widths for @multitable correctly.")))
+       "You probably need to specify column widths for @multitable correctly")))
     ;; Check whether columns fit on page.
     (let ((desired-columns
            (+
@@ -2044,7 +2044,7 @@ commands that are defined in texinfo.tex for printed output.
             (apply #'+ texinfo-multitable-width-list))))
       (if (> desired-columns fill-column)
           (error
-           "Multi-column table width, %d chars, is greater than page width, %d chars."
+           "Multi-column table width, %d chars, is greater than page width, %d chars"
             desired-columns fill-column)))
     texinfo-multitable-width-list))
 

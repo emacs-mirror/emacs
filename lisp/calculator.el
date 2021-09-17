@@ -1475,8 +1475,7 @@ a multiplication."
       (calculator-put-value (calculator-string-to-number str)))))
 
 (defun calculator-register-read-with-preview (prompt)
-  "Similar to `register-read-with-preview' but for calculator
-registers."
+  "Similar to `register-read-with-preview' but for calculator registers."
   (let ((register-alist calculator-registers)
         (register-preview-delay 1)
         (register-preview-function

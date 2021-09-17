@@ -422,12 +422,12 @@ was first made obsolete, for example a date or a release number."
                                            &optional docstring)
   "Set OBSOLETE-NAME's function definition to CURRENT-NAME and mark it obsolete.
 
-\(define-obsolete-function-alias \\='old-fun \\='new-fun \"22.1\" \"old-fun's doc.\")
+\(define-obsolete-function-alias \\='old-fun \\='new-fun \"28.1\" \"old-fun's doc.\")
 
 is equivalent to the following two lines of code:
 
 \(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
-\(make-obsolete \\='old-fun \\='new-fun \"22.1\")
+\(make-obsolete \\='old-fun \\='new-fun \"28.1\")
 
 WHEN should be a string indicating when the function was first
 made obsolete, for example a date or a release number.
@@ -462,7 +462,7 @@ made obsolete, for example a date or a release number.
 This macro evaluates all its parameters, and both OBSOLETE-NAME
 and CURRENT-NAME should be symbols, so a typical usage would look like:
 
-  (define-obsolete-variable-alias 'foo-thing 'bar-thing \"27.1\")
+  (define-obsolete-variable-alias 'foo-thing 'bar-thing \"28.1\")
 
 This macro uses `defvaralias' and `make-obsolete-variable' (which see).
 See the Info node `(elisp)Variable Aliases' for more details.

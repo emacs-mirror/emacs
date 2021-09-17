@@ -1425,16 +1425,17 @@ of files from Macintosh, Microsoft, and Unix platforms.
 @cindex XEmacs
 
 XEmacs was a branch version of Emacs that is no longer actively
-developed.  XEmacs last released a new version on January 30, 2009,
-and it lacks many important features that exist in Emacs.  Since its
-development has stopped, we do not expect to see any new releases.
+developed.  Originally known as ``Lucid Emacs'', XEmacs was forked
+from a prerelease version of Emacs 19.  XEmacs last released a new
+version on January 30, 2009, which lacks many important features that
+exist in Emacs.  Since its development has stopped, we do not expect
+to see any new releases.
 
 In the past, it was not uncommon for Emacs packages to include code
 for compatibility with XEmacs.  Nowadays, most built-in and third party
 packages have either stopped supporting XEmacs or were developed
 exclusively for Emacs.
 
-XEmacs was initially derived from a prerelease version of Emacs 19.
 If you want to talk about these two versions and distinguish them,
 please call them ``Emacs'' and ``XEmacs.''  To contrast ``XEmacs''
 with ``GNU Emacs'' would be misleading, since XEmacs too has its
@@ -1565,7 +1566,7 @@ capabilities.
 The command @kbd{M-x list-colors-display} pops up a window which
 exhibits all the colors Emacs knows about on the current display.
 
-Syntax highlighting is on by default.
+Syntax highlighting is also on by default on text-only terminals.
 
 @cindex direct color in terminals
 Emacs 26.1 and later support direct color mode in terminals.  If Emacs

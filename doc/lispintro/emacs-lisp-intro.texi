@@ -238,7 +238,7 @@ supports it in developing GNU and promoting software freedom.''
 
 @ifset WWW_GNU_ORG
 @html
-<p>The homepage for GNU Emacs is at
+<p>The GNU Emacs website is at
 <a href="/software/emacs/">https://www.gnu.org/software/emacs/</a>.<br>
 To view this manual in other formats, click
 <a href="/software/emacs/manual/eintr.html">here</a>.

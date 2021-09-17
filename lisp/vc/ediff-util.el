@@ -87,12 +87,10 @@ Commands:
   (kill-all-local-variables)
   (setq major-mode 'ediff-mode)
   (setq mode-name "Ediff")
-  ;; We use run-hooks instead of run-mode-hooks for two reasons.
+  ;; We use run-hooks instead of run-mode-hooks for one reason.
   ;; The ediff control buffer is read-only and it is not supposed to be
   ;; modified by minor modes and such. So, run-mode-hooks doesn't do anything
   ;; useful here on top of what run-hooks does.
-  ;; Second, changing run-hooks to run-mode-hooks would require an
-  ;; if-statement, since XEmacs doesn't have this.
   (run-hooks 'ediff-mode-hook))
 
 
@@ -3938,8 +3936,8 @@ If Emacs happens to dump core, this is NOT an Ediff problem---it is
 an Emacs bug.  Report this to Emacs maintainers.
 
 Another popular topic for reports is compilation messages.  Because Ediff
-interfaces to several other packages and runs under Emacs and XEmacs,
-byte-compilation may produce output like this:
+interfaces to several other packages, byte-compilation may produce output
+like this:
 
        While compiling toplevel forms in file ediff.el:
 	 ** reference to free variable zzz
@@ -4139,6 +4137,7 @@ Mail anyway? (y or n) ")
 
 ;; this uses comparison-func to decide who is a member
 (defun ediff-member (elt lis comparison-func)
+  (declare (obsolete seq-contains-p "28.1"))
   (while (and lis (not (funcall comparison-func (car lis) elt)))
     (setq lis (cdr lis)))
   lis)
@@ -4153,42 +4152,11 @@ Mail anyway? (y or n) ")
 	(key-description desc)
       (format "M-x %s" func-def))))
 
-;; this uses comparison-func to decide who is a member, and this determines how
-;; intersection looks like
-(defun ediff-intersection (lis1 lis2 comparison-func)
-  (let ((result (list 'a)))
-    (while lis1
-      (if (ediff-member (car lis1) lis2 comparison-func)
-	  (nconc result (list (car lis1))))
-      (setq lis1 (cdr lis1)))
-    (cdr result)))
-
-
-;; eliminates duplicates using comparison-func
-(defun ediff-union (lis1 lis2 comparison-func)
-  (let ((result (list 'a)))
-    (while lis1
-      (or (ediff-member (car lis1) (cdr result) comparison-func)
-	  (nconc result (list (car lis1))))
-      (setq lis1 (cdr lis1)))
-    (while lis2
-      (or (ediff-member (car lis2) (cdr result) comparison-func)
-	  (nconc result (list (car lis2))))
-      (setq lis2 (cdr lis2)))
-    (cdr result)))
-
-;; eliminates duplicates using comparison-func
-(defun ediff-set-difference (lis1 lis2 comparison-func)
-  (let ((result (list 'a)))
-    (while lis1
-      (or (ediff-member (car lis1) (cdr result) comparison-func)
-	  (ediff-member (car lis1) lis2 comparison-func)
-	  (nconc result (list (car lis1))))
-      (setq lis1 (cdr lis1)))
-    (cdr result)))
-
 (define-obsolete-function-alias 'ediff-add-to-history #'add-to-history "27.1")
 (define-obsolete-function-alias 'ediff-copy-list #'copy-sequence "28.1")
+(define-obsolete-function-alias 'ediff-union #'seq-union "28.1")
+(define-obsolete-function-alias 'ediff-intersection #'seq-intersection "28.1")
+(define-obsolete-function-alias 'ediff-set-difference #'seq-difference "28.1")
 
 (run-hooks 'ediff-load-hook)
 

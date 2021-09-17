@@ -379,7 +379,7 @@ FILE should be in a form suitable for passing to `locate-library'."
    (list
     (completing-read "Library name: "
 		     (apply-partially 'locate-file-completion-table
-                                      (or find-function-source-path load-path)
+                                      (or find-library-source-path load-path)
                                       (find-library-suffixes)))))
   (let ((str (lm-commentary (find-library-name file))))
     (or str (error "Can't find any Commentary section"))

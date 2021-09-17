@@ -38,7 +38,7 @@
   (scroll-up n))
 
 (defun kill-region-and-unmark (beg end)
-  "Like `kill-region', but pops the mark [which equals point, anyway.]"
+  "Like `kill-region', but pops the mark [which equals point, anyway]."
   (interactive "r")
   (kill-region beg end)
   (setq this-command 'kill-region-and-unmark)
@@ -49,7 +49,7 @@
   (interactive)
   (eval (nth 0 command-history)))
 
-(defvar grep-arg nil "Default arg for RE-search")
+(defvar grep-arg nil "Default arg for RE-search.")
 (defun grep-arg ()
   (if (memq last-command '(research-forward research-backward)) grep-arg
     (let* ((command (car command-history))

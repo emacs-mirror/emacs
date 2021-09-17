@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
-;; Version: 0.6.1
+;; Version: 0.7.1
 ;; Package-Requires: ((emacs "26.1") (xref "1.0.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -866,8 +866,8 @@ pattern to search for."
 (defun project-find-file ()
   "Visit a file (with completion) in the current project.
 
-The completion default is the filename at point, determined by
-`thing-at-point' (whether such file exists or not)."
+The filename at point (determined by `thing-at-point'), if any,
+is available as part of \"future history\"."
   (interactive)
   (let* ((pr (project-current t))
          (dirs (list (project-root pr))))
@@ -877,8 +877,8 @@ The completion default is the filename at point, determined by
 (defun project-or-external-find-file ()
   "Visit a file (with completion) in the current project or external roots.
 
-The completion default is the filename at point, determined by
-`thing-at-point' (whether such file exists or not)."
+The filename at point (determined by `thing-at-point'), if any,
+is available as part of \"future history\"."
   (interactive)
   (let* ((pr (project-current t))
          (dirs (cons
@@ -899,11 +899,14 @@ For the arguments list, see `project--read-file-cpd-relative'."
 
 (defun project--read-file-cpd-relative (prompt
                                         all-files &optional predicate
-                                        hist default)
+                                        hist mb-default)
   "Read a file name, prompting with PROMPT.
 ALL-FILES is a list of possible file name completions.
-PREDICATE, HIST, and DEFAULT have the same meaning as in
-`completing-read'."
+
+PREDICATE and HIST have the same meaning as in `completing-read'.
+
+MB-DEFAULT is used as part of \"future history\", to be inserted
+by the user at will."
   (let* ((common-parent-directory
           (let ((common-prefix (try-completion "" all-files)))
             (if (> (length common-prefix) 0)
@@ -917,36 +920,39 @@ PREDICATE, HIST, and DEFAULT have the same meaning as in
          (res (project--completing-read-strict prompt
                                                new-collection
                                                predicate
-                                               hist default)))
+                                               hist mb-default)))
     (concat common-parent-directory res)))
 
 (defun project--read-file-absolute (prompt
                                     all-files &optional predicate
-                                    hist default)
+                                    hist mb-default)
   (project--completing-read-strict prompt
                                    (project--file-completion-table all-files)
                                    predicate
-                                   hist default))
+                                   hist mb-default))
 
-(defun project-find-file-in (filename dirs project)
-  "Complete FILENAME in DIRS in PROJECT and visit the result."
+(defun project-find-file-in (suggested-filename dirs project)
+  "Complete a file name in DIRS in PROJECT and visit the result.
+
+SUGGESTED-FILENAME is a relative file name, or part of it, which
+is used as part of \"future history\"."
   (let* ((all-files (project-files project dirs))
          (completion-ignore-case read-file-name-completion-ignore-case)
          (file (funcall project-read-file-name-function
                         "Find file" all-files nil nil
-                        filename)))
+                        suggested-filename)))
     (if (string= file "")
         (user-error "You didn't specify the file")
       (find-file file))))
 
 (defun project--completing-read-strict (prompt
                                         collection &optional predicate
-                                        hist default)
+                                        hist mb-default)
   (minibuffer-with-setup-hook
       (lambda ()
         (setq-local minibuffer-default-add-function
                     (lambda ()
-                      (let ((minibuffer-default default))
+                      (let ((minibuffer-default mb-default))
                         (minibuffer-default-add-completions)))))
     (completing-read (format "%s: " prompt)
                      collection predicate 'confirm
@@ -1337,7 +1343,10 @@ It's also possible to enter an arbitrary directory not in the list."
           ;; completion style).
           (project--file-completion-table
            (append project--list `(,dir-choice))))
-         (pr-dir (completing-read "Select project: " choices nil t)))
+         (pr-dir ""))
+    (while (equal pr-dir "")
+      ;; If the user simply pressed RET, do this again until they don't.
+      (setq pr-dir (completing-read "Select project: " choices nil t)))
     (if (equal pr-dir dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))

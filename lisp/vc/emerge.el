@@ -2062,7 +2062,7 @@ With prefix argument, puts point before, mark after."
       (goto-char opoint))))
 
 (defun emerge-mark-difference (arg)
-  "Leaves the point before this difference and the mark after it.
+  "Leave the point before this difference and the mark after it.
 With prefix argument, puts mark before, point after."
   (interactive "P")
   (emerge-validate-difference)
@@ -2921,7 +2921,7 @@ around the current difference are removed."
 
 ;; Define a key, even if a prefix of it is defined
 (defun emerge-force-define-key (keymap key definition)
-  "Like `define-key', but forcibly creates prefix characters as needed.
+  "Like `define-key', but forcibly create prefix characters as needed.
 If some prefix of KEY has a non-prefix definition, it is redefined."
   ;; Find out if a prefix of key is defined
   (let ((v (lookup-key keymap key)))

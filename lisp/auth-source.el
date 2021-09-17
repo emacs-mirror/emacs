@@ -79,9 +79,8 @@
 
 ;;;###autoload
 (defcustom auth-source-cache-expiry 7200
-  "How many seconds passwords are cached, or nil to disable
-expiring.  Overrides `password-cache-expiry' through a
-let-binding."
+  "How many seconds passwords are cached, or nil to disable expiring.
+Overrides `password-cache-expiry' through a let-binding."
   :version "24.1"
   :type '(choice (const :tag "Never" nil)
                  (const :tag "All Day" 86400)
@@ -353,7 +352,7 @@ backend starts with the first element on the list and stops as
 soon as a function returns non-nil.")
 
 (defun auth-source-backend-parse (entry)
-  "Create an auth-source-backend from an ENTRY in `auth-sources'."
+  "Create an `auth-source-backend' from an ENTRY in `auth-sources'."
 
   (let ((backend
          (run-hook-with-args-until-success 'auth-source-backend-parser-functions
@@ -823,7 +822,7 @@ Returns t or nil for forgotten or not found."
   (password-cache-remove (auth-source-format-cache-entry spec)))
 
 (defun auth-source-forget+ (&rest spec)
-  "Forget any cached data matching SPEC.  Returns forgotten count.
+  "Forget any cached data matching SPEC.  Return forgotten count.
 
 This is not a full `auth-source-search' spec but works similarly.
 For instance, \(:host \"myhost\" \"yourhost\") would find all the
@@ -1198,7 +1197,7 @@ FILE is the file from which we obtained this token."
     (mapcar #'1- string)))
 
 (defun auth-source--pad (string length)
-  "Pad string S to a modulo of LENGTH."
+  "Pad STRING to a modulo of LENGTH."
   (let ((pad (- length (mod (length string) length))))
     (concat string (make-string pad pad))))
 
@@ -1573,8 +1572,7 @@ collection that's a Google Chrome entry for the git.gnus.org site
 authentication tokens:
 
  (let ((auth-sources \\='(\"secrets:Login\")))
-    (auth-source-search :max 1 :signon_realm \"https://git.gnus.org/Git\"))
-"
+    (auth-source-search :max 1 :signon_realm \"https://git.gnus.org/Git\"))"
 
   ;; TODO
   ;; (secrets-delete-item coll elt)
@@ -1875,8 +1873,7 @@ And this one looks for the first item in the internet keychain
 entries for git.gnus.org:
 
  (let ((auth-sources \\='(macos-keychain-internet\")))
-    (auth-source-search :max 1 :host \"git.gnus.org\"))
-"
+    (auth-source-search :max 1 :host \"git.gnus.org\"))"
   ;; TODO
   (cl-assert (not create) nil
           "The macOS Keychain auth-source backend doesn't support creation yet")
@@ -1941,7 +1938,7 @@ entries for git.gnus.org:
 
 
 (defun auth-source--decode-octal-string (string)
-  "Convert octal string to utf-8 string.  E.g: 'a\134b' to 'a\b'"
+  "Convert octal STRING to utf-8 string.  E.g: 'a\134b' to 'a\b'."
   (let ((list (string-to-list string))
         (size (length string)))
     (decode-coding-string

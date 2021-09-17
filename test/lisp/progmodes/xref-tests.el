@@ -128,8 +128,12 @@
   (let ((xref-file-name-display 'abs))
     (should (equal
              (delete-dups
-              (mapcar 'xref-location-group
-                      (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
+              (mapcar
+               (lambda (loc)
+                 (xref--group-name-for-display
+                  (xref-location-group loc)
+                  nil))
+               (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
              (list
               (concat xref-tests--data-dir "file1.txt")
               (concat xref-tests--data-dir "file2.txt"))))))
@@ -137,8 +141,12 @@
 (ert-deftest xref--xref-file-name-display-is-nondirectory ()
   (let ((xref-file-name-display 'nondirectory))
     (should (equal (delete-dups
-                    (mapcar 'xref-location-group
-                            (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
+                    (mapcar
+                     (lambda (loc)
+                       (xref--group-name-for-display
+                        (xref-location-group loc)
+                        nil))
+                     (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
                    (list
                     "file1.txt"
                     "file2.txt")))))
@@ -146,13 +154,15 @@
 (ert-deftest xref--xref-file-name-display-is-relative-to-project-root ()
   (let* ((data-parent-dir
           (file-name-directory (directory-file-name xref-tests--data-dir)))
-         (project-find-functions
-          (lambda (_) (cons 'transient data-parent-dir)))
          (xref-file-name-display 'project-relative))
     (should (equal
              (delete-dups
-              (mapcar 'xref-location-group
-                      (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
+              (mapcar
+               (lambda (loc)
+                 (xref--group-name-for-display
+                  (xref-location-group loc)
+                  data-parent-dir))
+               (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))
              (list
               "xref-resources/file1.txt"
               "xref-resources/file2.txt")))))

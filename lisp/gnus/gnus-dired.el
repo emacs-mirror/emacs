@@ -92,7 +92,7 @@ See `mail-user-agent' for more information."
 
 ;;;###autoload
 (defun turn-on-gnus-dired-mode ()
-  "Convenience method to turn on gnus-dired-mode."
+  "Convenience method to turn on `gnus-dired-mode'."
   (interactive)
   (gnus-dired-mode 1))
 

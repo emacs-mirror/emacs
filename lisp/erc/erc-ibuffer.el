@@ -38,17 +38,16 @@
   :group 'erc)
 
 (defcustom erc-ibuffer-keyword-char ?k
-  "Char used to indicate a channel which had keyword traffic lately (hidden)."
+  "Char indicating a channel which had keyword traffic lately (hidden)."
   :type 'character)
 (defcustom erc-ibuffer-pal-char ?p
-  "Char used to indicate a channel which had pal traffic lately (hidden)."
+  "Char indicating a channel which had pal traffic lately (hidden)."
   :type 'character)
 (defcustom erc-ibuffer-fool-char ?f
-  "Char used to indicate a channel which had fool traffic lately (hidden)."
+  "Char indicating a channel which had fool traffic lately (hidden)."
   :type 'character)
 (defcustom erc-ibuffer-dangerous-host-char ?d
-  "Char used to indicate a channel which had dangerous-host traffic lately
-\(hidden)."
+  "Char indicating a channel which had dangerous-host traffic lately (hidden)."
   :type 'character)
 
 (define-ibuffer-filter erc-server

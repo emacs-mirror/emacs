@@ -88,7 +88,7 @@
 ;;     constructed.  The current fields are available to the function
 ;;     in the variable `forms-fields', they should *NOT* be modified.
 ;;
-;;   - a lisp symbol, that must evaluate to one of the above.
+;;   - a Lisp symbol, that must evaluate to one of the above.
 ;;
 ;; Optional variables which may be set in the control file:
 ;;
@@ -357,7 +357,7 @@ This variable is for use by the filter routines only.
 The contents may NOT be modified.")
 
 (defcustom forms-use-text-properties t
-  "Non-nil means to use text properties. "
+  "Non-nil means to use text properties."
   :type 'boolean)
 
 (defcustom forms-insert-after nil
@@ -376,7 +376,7 @@ Also, initial position is at last record."
 ;;; Internal variables.
 
 (defvar forms--file-buffer nil
-  "Buffer which holds the file data")
+  "Buffer which holds the file data.")
 
 (defvar forms--total-records 0
   "Total number of records in the data file.")
@@ -410,7 +410,7 @@ Also, initial position is at last record."
   "Forms parser routine.")
 
 (defvar-local forms--mode-setup nil
-  "To keep track of forms-mode being set-up.")
+  "To keep track of `forms-mode' being set-up.")
 
 (defvar forms--dynamic-text nil
   "Array that holds dynamic texts to insert between fields.")
@@ -453,8 +453,7 @@ Commands:                        Equivalent keys in read-only mode:
  C-c C-p        forms-prev-record          p
  C-c C-r        forms-search-reverse       r
  C-c C-s        forms-search-forward       s
- C-c C-x        forms-exit                 x
-"
+ C-c C-x        forms-exit                 x"
   (interactive)
 
   ;; This is not a simple major mode, as usual.  Therefore, forms-mode
@@ -1392,8 +1391,7 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key map [prior] #'forms-prev-record)
   (define-key map [begin] #'forms-first-record)
   (define-key map [last] #'forms-last-record)
-  (define-key map [backtab] #'forms-prev-field)
-  )
+  (define-key map [backtab] #'forms-prev-field))
 
 ;;; Changed functions
 
@@ -1435,8 +1433,8 @@ Commands:                        Equivalent keys in read-only mode:
   "   \\[describe-mode]:help"))))
 
 (defun forms--trans (subj arg rep)
-  "Translate in SUBJ all chars ARG into char REP.  ARG and REP should
- be single-char strings."
+  "Translate in SUBJ all chars ARG into char REP.
+ARG and REP should be single-char strings."
   (let ((i 0)
 	(re (regexp-quote arg))
 	(k (string-to-char rep)))

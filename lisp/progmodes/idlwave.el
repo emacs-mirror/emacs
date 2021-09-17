@@ -119,7 +119,7 @@
 ;;
 ;;   Moving the point backwards in conjunction with abbrev expansion
 ;;   does not work as I would like it, but this is a problem with
-;;   emacs abbrev expansion done by the self-insert-command.  It ends
+;;   Emacs abbrev expansion done by the self-insert-command.  It ends
 ;;   up inserting the character that expanded the abbrev after moving
 ;;   point backward, e.g., "\cl" expanded with a space becomes
 ;;   "LONG( )" with point before the close paren.  This is solved by
@@ -163,7 +163,7 @@
 (defgroup idlwave nil
   "Major mode for editing IDL .pro files."
   :tag "IDLWAVE"
-  :link '(url-link :tag "Home Page"
+  :link '(url-link :tag "Website"
                    "https://github.com/jdtsmith/idlwave")
   :link '(emacs-commentary-link :tag "Commentary in idlw-shell.el"
 				"idlw-shell.el")
@@ -1359,13 +1359,13 @@ Normally a space.")
 
 (defconst idlwave-continuation-char ?$
   "Character which is inserted as a last character on previous line by
-   \\[idlwave-split-line] to begin a continuation line.  Normally $.")
+\\[idlwave-split-line] to begin a continuation line.  Normally $.")
 
 (defconst idlwave-mode-version "6.1_em22")
 
 (defun idlwave-keyword-abbrev (&rest args)
   "Create a function for abbrev hooks to call `idlwave-modify-abbrev' with args."
-  (lambda () (append #'idlwave-modify-abbrev args)))
+  (lambda () (apply #'idlwave-modify-abbrev args)))
 
 (autoload 'idlwave-shell "idlw-shell"
   "Run an inferior IDL, with I/O through buffer `(idlwave-shell-buffer)'." t)
@@ -1821,7 +1821,7 @@ The main features of this mode are
    Info documentation for this package is available.  Use
    \\[idlwave-info] to display (complain to your sysadmin if that does
    not work).  For Postscript, PDF, and HTML versions of the
-   documentation, check IDLWAVE's homepage at URL
+   documentation, check IDLWAVE's website at URL
    `https://github.com/jdtsmith/idlwave'.
    IDLWAVE has customize support - see the group `idlwave'.
 
@@ -1953,7 +1953,7 @@ The main features of this mode are
 
 (defvar idlwave--command-function nil
   "If non-nil, a function called from `post-command-hook'.
-It is evaluated in the lisp function `idlwave-command-hook' which is
+It is evaluated in the Lisp function `idlwave-command-hook' which is
 placed in `post-command-hook'.")
 
 (defun idlwave-command-hook ()
@@ -4067,7 +4067,7 @@ blank lines."
     iname))
 
 (defun idlwave-sintern-keyword-list (kwd-list &optional set)
-  "Sintern a set of keywords (file (key . link) (key2 . link2) ...)"
+  "Sintern a set of keywords (file (key . link) (key2 . link2) ...)."
   (mapc (lambda(x)
 	  (setcar x (idlwave-sintern-keyword (car x) set)))
 	(cdr kwd-list))
@@ -5049,7 +5049,7 @@ Can run from `after-save-hook'."
 ;;----- Scanning buffers -------------------
 
 (defun idlwave-get-routine-info-from-buffers (buffers)
-  "Call `idlwave-get-buffer-routine-info' on idlwave-mode buffers in BUFFERS."
+  "Call `idlwave-get-buffer-routine-info' on `idlwave-mode' buffers in BUFFERS."
   (let (buf routine-lists res)
     (save-excursion
       (while (setq buf (pop buffers))
@@ -5727,10 +5727,10 @@ Possible values are:
 8  <=>  `function-method-keyword'
 9  <=>  `class'
 
-As a special case, the universal argument C-u forces completion of
+As a special case, the universal argument \\[universal-argument] forces completion of
 function names in places where the default would be a keyword.
 
-Two prefix argument, C-u C-u, prompts for a regexp by which to limit
+Two prefix argument, \\[universal-argument] \\[universal-argument], prompts for a regexp by which to limit
 completion.
 
 For Lisp programmers only:
@@ -8971,10 +8971,10 @@ Assumes that point is at the beginning of the unit as found by
 	  idlwave-shell-automatic-start)]))
 
 (easy-menu-define idlwave-mode-menu idlwave-mode-map
-  "IDL and WAVE CL editing menu"
+  "IDL and WAVE CL editing menu."
   idlwave-mode-menu-def)
 (easy-menu-define idlwave-mode-debug-menu idlwave-mode-map
-  "IDL and WAVE CL editing menu"
+  "IDL and WAVE CL editing menu."
   idlwave-mode-debug-menu-def)
 
 (defun idlwave-customize ()

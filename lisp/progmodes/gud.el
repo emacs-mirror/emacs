@@ -31,7 +31,7 @@
 ;; <shane@spr.com> added support for xdb (HPUX debugger).  Rick Sladkey
 ;; <jrs@world.std.com> wrote the GDB command completion code.  Dave Love
 ;; <d.love@dl.ac.uk> added the IRIX kluge, re-implemented the Mips-ish variant
-;; and added a menu. Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX
+;; and added a menu.  Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX
 ;; kluge with the gud-xdb-directories hack producing gud-dbx-directories.
 ;; Derek L. Davies <ddavies@world.std.com> added support for jdb (Java
 ;; debugger.)  Jan Nieuwenhuizen added support for the Guile REPL (Guile
@@ -795,7 +795,7 @@ becomes the initial working directory and source-file directory
 for your debugger.
 If COMMAND-LINE requests that gdb attaches to a process PID, gdb
 will run in *gud-PID*, otherwise it will run in *gud*; in these
-cases the initial working directory is the default-directory of
+cases the initial working directory is the `default-directory' of
 the buffer in which this command was invoked."
   (interactive (list (gud-query-cmdline 'gud-gdb)))
 
@@ -2677,8 +2677,8 @@ gud, see `gud-mode'."
 (define-derived-mode gud-mode comint-mode "Debugger"
   "Major mode for interacting with an inferior debugger process.
 
-   You start it up with one of the commands M-x gdb, M-x sdb, M-x dbx,
-M-x perldb, M-x xdb, or M-x jdb.  Each entry point finishes by executing a
+   You start it up with one of the commands \\[gdb], \\[sdb], \\[dbx],
+\\[perldb], \\[xdb], or \\[jdb].  Each entry point finishes by executing a
 hook; `gdb-mode-hook', `sdb-mode-hook', `dbx-mode-hook',
 `perldb-mode-hook', `xdb-mode-hook', or `jdb-mode-hook' respectively.
 
@@ -3333,7 +3333,7 @@ This function uses the `gud-jdb-classpath' (and optional
 `gud-jdb-sourcepath') list(s) to derive a file
 pathname relative to its classpath directory.  The values in
 `gud-jdb-classpath' are assumed to have been converted to absolute
-pathname standards using file-truename.
+pathname standards using `file-truename'.
 If F is visited by a buffer and its mode is CC-mode(Java),
 syntactic information of LINE is used to find the enclosing (nested)
 class string which is appended to the top level

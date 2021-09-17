@@ -953,6 +953,24 @@ contain less elements than @var{n}.  @var{n} must be an integer.  If
 @end example
 @end defun
 
+@defun seq-union sequence1 sequence2 &optional function
+@cindex sequences, union of
+@cindex union of sequences
+  This function returns a list of the elements that appear either in
+@var{sequence1} or @var{sequence2}.  The elements of the returned list
+are all unique, in the sense that no two elements there will compare
+equal.  If the optional argument @var{function} is non-@code{nil}, it
+should be a function of two arguments to use to compare elements,
+instead of the default @code{equal}.
+
+@example
+@group
+(seq-union [1 2 3] [3 5])
+@result{} (1 2 3 5)
+@end group
+@end example
+@end defun
+
 @defun seq-intersection sequence1 sequence2 &optional function
 @cindex sequences, intersection of
 @cindex intersection of sequences

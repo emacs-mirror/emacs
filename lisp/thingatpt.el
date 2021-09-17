@@ -31,7 +31,7 @@
 ;; The function bounds-of-thing-at-point finds the beginning and end
 ;; positions by moving first forward to the end of the "thing", and then
 ;; backwards to the beginning.  By default, it uses the corresponding
-;; forward-"thing" operator (eg. forward-word, forward-line).
+;; forward-"thing" operator (e.g. forward-word, forward-line).
 ;;
 ;; Special cases are allowed for using properties associated with the named
 ;; "thing":
@@ -150,6 +150,15 @@ positions of the thing found."
 		       (point))))
 		(if (and (<= real-beg orig) (<= orig end) (< real-beg end))
 		    (cons real-beg end))))))))))
+
+;;;###autoload
+(defun thing-at-mouse (event thing &optional no-properties)
+  "Return the THING at mouse click.
+Like `thing-at-point', but tries to use the event
+where the mouse button is clicked to find a thing nearby."
+  (save-excursion
+    (mouse-set-point event)
+    (thing-at-point thing no-properties)))
 
 ;;;###autoload
 (defun thing-at-point (thing &optional no-properties)

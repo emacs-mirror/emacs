@@ -151,10 +151,10 @@
 	c-emacs-variable-inits-tail c-emacs-variable-inits))
 
 (defmacro c-lang-defvar (var val &optional doc)
-  "Declares the buffer local variable VAR to get the value VAL.  VAL is
-evaluated and assigned at mode initialization.  More precisely, VAL is
-evaluated and bound to VAR when the result from the macro
-`c-init-language-vars' is evaluated.
+  "Declares the buffer local variable VAR to get the value VAL.
+VAL is evaluated and assigned at mode initialization.  More
+precisely, VAL is evaluated and bound to VAR when the result from
+the macro `c-init-language-vars' is evaluated.
 
 `c-lang-const' is typically used in VAL to get the right value for the
 language being initialized, and such calls will be macro expanded to
@@ -184,8 +184,8 @@ the evaluated constant value at compile time."
   `',var)
 
 (defmacro c-lang-setvar (var val)
-  "Causes the variable VAR to be made buffer local and to get set to the
-value VAL.  VAL is evaluated and assigned at mode initialization.  More
+  "Make variable VAR buffer local and set it to value VAL.
+VAL is evaluated and assigned at mode initialization.  More
 precisely, VAL is evaluated and bound to VAR when the result from the
 macro `c-init-language-vars' is evaluated.  VAR is typically a standard
 Emacs variable like `comment-start'.

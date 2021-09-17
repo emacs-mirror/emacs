@@ -99,7 +99,7 @@ If the element is a function or a list of a function and a number,
                                (functionp (car elem))
                                (numberp (cadr elem)))
                           (apply 'zone-call elem))
-                         (t (error "bad `zone-call' elem: %S" elem))))
+                         (t (error "Bad `zone-call' elem: %S" elem))))
                  program))))
 
 ;;;###autoload

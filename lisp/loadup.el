@@ -520,7 +520,7 @@ lost after dumping")))
                         ((equal dump-mode "dump") "emacs")
                         ((equal dump-mode "bootstrap") "emacs")
                         ((equal dump-mode "pbootstrap") "bootstrap-emacs.pdmp")
-                        (t (error "unrecognized dump mode %s" dump-mode)))))
+                        (t (error "Unrecognized dump mode %s" dump-mode)))))
       (when (and (featurep 'native-compile)
                  (equal dump-mode "pdump"))
         ;; Don't enable this before bootstrap is completed, as the

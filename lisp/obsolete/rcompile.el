@@ -108,7 +108,7 @@ nil means run no commands."
 
 ;;;; entry point
 
-;; We use the Tramp internal function`tramp-make-tramp-file-name'.
+;; We use the Tramp internal function `tramp-make-tramp-file-name'.
 ;; Better would be, if there are functions to provide user, host and
 ;; localname of a remote filename, independent of Tramp's implementation.
 ;; The function calls are wrapped by `funcall' in order to pacify the byte

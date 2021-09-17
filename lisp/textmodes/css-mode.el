@@ -1156,7 +1156,7 @@ by `css--colors-regexp'.  START-POINT is the start of the color,
 and MATCH is the string matched by the regexp.
 
 This function will either return the color, as a hex RGB string;
-or `nil' if no color could be recognized.  When this function
+or nil if no color could be recognized.  When this function
 returns, point will be at the end of the recognized color."
   (cond
    ((eq (aref match 0) ?#)
@@ -1170,7 +1170,7 @@ returns, point will be at the end of the recognized color."
 
 (defcustom css-fontify-colors t
   "Whether CSS colors should be fontified using the color as the background.
-When non-`nil', a text representing CSS color will be fontified
+When non-nil, a text representing CSS color will be fontified
 such that its background is the color itself.  E.g., #ff0000 will
 be fontified with a red background."
   :version "26.1"

@@ -486,7 +486,7 @@ was called."
   "Return VALUE with its bits shifted left by COUNT.
 If COUNT is negative, shifting is actually to the right.
 In this case, if VALUE is a negative fixnum treat it as unsigned,
-i.e., subtract 2 * most-negative-fixnum from VALUE before shifting it."
+i.e., subtract 2 * `most-negative-fixnum' from VALUE before shifting it."
   (when (and (< value 0) (< count 0))
     (when (< value most-negative-fixnum)
       (signal 'args-out-of-range (list value count)))
@@ -1510,8 +1510,10 @@ nil or (STRING . POSITION)'.
 
 For more information, see Info node `(elisp)Click Events'."
   (if (consp event) (nth 1 event)
-    (or (posn-at-point)
-        (list (selected-window) (point) '(0 . 0) 0))))
+    ;; Use `window-point' for the case when the current buffer
+    ;; is temporarily switched to some other buffer (bug#50256)
+    (or (posn-at-point (window-point))
+        (list (selected-window) (window-point) '(0 . 0) 0))))
 
 (defun event-end (event)
   "Return the ending position of EVENT.
@@ -1519,8 +1521,10 @@ EVENT should be a click, drag, or key press event.
 
 See `event-start' for a description of the value returned."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
-    (or (posn-at-point)
-        (list (selected-window) (point) '(0 . 0) 0))))
+    ;; Use `window-point' for the case when the current buffer
+    ;; is temporarily switched to some other buffer (bug#50256)
+    (or (posn-at-point (window-point))
+        (list (selected-window) (window-point) '(0 . 0) 0))))
 
 (defsubst event-click-count (event)
   "Return the multi-click count of EVENT, a click or drag event.
@@ -2898,7 +2902,7 @@ function is used instead (see `read-char-choice-with-read-key')."
 Any input that is not one of CHARS is ignored.
 
 If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
-keyboard-quit events while waiting for a valid input.
+`keyboard-quit' events while waiting for a valid input.
 
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
@@ -3200,8 +3204,10 @@ character.  This is not possible when using `read-key', but using
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
 Return t if answer is \"y\" and nil if it is \"n\".
-PROMPT is the string to display to ask the question.  It should
-end in a space; `y-or-n-p' adds \"(y or n) \" to it.
+
+PROMPT is the string to display to ask the question; `y-or-n-p'
+adds \" (y or n) \" to it.  It does not need to end in space, but
+if it does up to one space will be removed.
 
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
@@ -5268,7 +5274,7 @@ that can be added.
 If `buffer-invisibility-spec' isn't a list before calling this
 function, `buffer-invisibility-spec' will afterwards be a list
 with the value `(t ELEMENT)'.  This means that if text exists
-that invisibility values that aren't either `t' or ELEMENT, that
+that invisibility values that aren't either t or ELEMENT, that
 text will become visible."
   (if (eq buffer-invisibility-spec t)
       (setq buffer-invisibility-spec (list t)))
@@ -5278,8 +5284,8 @@ text will become visible."
 (defun remove-from-invisibility-spec (element)
   "Remove ELEMENT from `buffer-invisibility-spec'.
 If `buffer-invisibility-spec' isn't a list before calling this
-function, it will be made into a list containing just `t' as the
-only list member.  This means that if text exists with non-`t'
+function, it will be made into a list containing just t as the
+only list member.  This means that if text exists with non-t
 invisibility values, that text will become visible."
   (setq buffer-invisibility-spec
         (if (consp buffer-invisibility-spec)

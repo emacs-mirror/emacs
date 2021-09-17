@@ -34,7 +34,7 @@
 (defvar nsm-temporary-host-settings nil)
 
 (defgroup nsm nil
-  "Network Security Manager"
+  "Network Security Manager."
   :version "25.1"
   :group 'comm)
 
@@ -446,8 +446,8 @@ this check has no effect on GnuTLS >= 3.2.0.
 
 Reference:
 
-[1]: Schneier, Bruce (1996). Applied Cryptography (Second ed.). John
-Wiley & Sons. ISBN 0-471-11709-9.
+[1]: Schneier, Bruce (1996).  Applied Cryptography (Second ed.).
+John Wiley & Sons.  ISBN 0-471-11709-9.
 [2]: N. Mavrogiannopoulos, FSF (Apr 2015).  \"GnuTLS NEWS -- History
 of user-visible changes.\" Version 3.4.0,
 `https://gitlab.com/gnutls/gnutls/blob/master/NEWS'"
@@ -466,7 +466,7 @@ man-in-the-middle attacks.
 
 Reference:
 
-GnuTLS authors (2018). \"GnuTLS Manual 4.3.3 Anonymous
+GnuTLS authors (2018).  \"GnuTLS Manual 4.3.3 Anonymous
 authentication\",
 `https://www.gnutls.org/manual/gnutls.html#Anonymous-authentication'"
   (let ((kx (plist-get status :key-exchange)))

@@ -177,7 +177,7 @@ the tail of the list."
       (modify-syntax-entry c "_" table) ;Digits are not part of words
       (cl-incf c))
     table)
-  "Decipher mode syntax table")
+  "Decipher mode syntax table.")
 
 (defvar-local decipher-alphabet nil)
 ;; This is an alist containing entries (PLAIN-CHAR . CIPHER-CHAR),

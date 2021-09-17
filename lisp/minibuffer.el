@@ -1807,7 +1807,9 @@ Return nil if there is no valid completion, else t."
     (_     t)))
 
 (defface completions-annotations '((t :inherit (italic shadow)))
-  "Face to use for annotations in the *Completions* buffer.")
+  "Face to use for annotations in the *Completions* buffer.
+This face is only used if the strings used for completions
+doesn't already specify a face.")
 
 (defcustom completions-format 'horizontal
   "Define the appearance and sorting of completions.
@@ -2683,12 +2685,12 @@ Such values are treated as in `read-from-minibuffer', but are normally
 not useful in this function.)
 
 Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
-the current input method and the setting of`enable-multibyte-characters'.
+the current input method and the setting of `enable-multibyte-characters'.
 
 If `inhibit-interaction' is non-nil, this function will signal an
 `inhibited-interaction' error."
   (read-from-minibuffer prompt initial minibuffer-local-ns-map
-		        nil minibuffer-history nil inherit-input-method))
+		        nil 'minibuffer-history nil inherit-input-method))
 
 ;;; Major modes for the minibuffer
 

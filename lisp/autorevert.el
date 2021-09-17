@@ -36,7 +36,7 @@
 ;; buffer contains no unsaved changes.
 ;;
 ;; Auto-Revert Mode can be activated for individual buffers.  Global
-;; Auto-Revert Mode applies to all file buffers. (If the user option
+;; Auto-Revert Mode applies to all file buffers.  (If the user option
 ;; `global-auto-revert-non-file-buffers' is non-nil, it also applies
 ;; to some non-file buffers.  This option is disabled by default.)
 ;;
@@ -72,7 +72,7 @@
 ;; at the end of the buffer in that window, even if the window is not
 ;; selected.  This way, you can use Auto-Revert Mode to `tail' a file.
 ;; Just put point at the end of the buffer and it will stay there.
-;; These rules apply to file buffers. For non-file buffers, the
+;; These rules apply to file buffers.  For non-file buffers, the
 ;; behavior may be mode dependent.
 ;;
 ;; While you can use Auto-Revert Mode to tail a file, this package
@@ -853,8 +853,8 @@ This is an internal function used by Auto-Revert Mode."
   "Return a prioritized list of buffers to maybe auto-revert.
 The differences between this return value and the reference
 variable `auto-revert-buffer-list' include: 1) this has more
-entries when in global-auto-revert-mode; 2) this prioritizes
-buffers not reverted last time due to user interruption. "
+entries when in `global-auto-revert-mode'; 2) this prioritizes
+buffers not reverted last time due to user interruption."
   (let ((bufs (delq nil
                     ;; Buffers with remote contents shall be reverted only
                     ;; if the connection is established already.
@@ -881,7 +881,7 @@ buffers not reverted last time due to user interruption. "
     (nreverse (nconc new remaining))))
 
 (defun auto-revert-buffer (buf)
-  "Revert a single buffer.
+  "Revert a single buffer BUF.
 
 This is performed as specified by Auto-Revert and Global
 Auto-Revert Modes."

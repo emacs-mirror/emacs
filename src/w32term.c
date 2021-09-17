@@ -2423,29 +2423,15 @@ w32_draw_stretch_glyph_string (struct glyph_string *s)
   else if (!s->background_filled_p)
     {
       int background_width = s->background_width;
-      int x = s->x, text_left_x = window_box_left_offset (s->w, TEXT_AREA);
+      int x = s->x, text_left_x = window_box_left (s->w, TEXT_AREA);
 
       /* Don't draw into left fringe or scrollbar area except for
          header line and mode line.  */
-      if (x < text_left_x && !s->row->mode_line_p)
+      if (s->area == TEXT_AREA
+	  && x < text_left_x && !s->row->mode_line_p)
 	{
-	  int left_x = WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (s->w);
-	  int right_x = text_left_x;
-
-	  if (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
-	    left_x += WINDOW_LEFT_FRINGE_WIDTH (s->w);
-	  else
-	    right_x -= WINDOW_LEFT_FRINGE_WIDTH (s->w);
-
-	  /* Adjust X and BACKGROUND_WIDTH to fit inside the space
-	     between LEFT_X and RIGHT_X.  */
-	  if (x < left_x)
-	    {
-	      background_width -= left_x - x;
-	      x = left_x;
-	    }
-	  if (x + background_width > right_x)
-	    background_width = right_x - x;
+	  background_width -= text_left_x - x;
+	  x = text_left_x;
 	}
       if (background_width > 0)
 	w32_draw_glyph_string_bg_rect (s, x, s->y, background_width, s->height);

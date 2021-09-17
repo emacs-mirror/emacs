@@ -83,7 +83,7 @@
 (require 'epg)
 
 (defgroup plstore nil
-  "Searchable, partially encrypted, persistent plist store"
+  "Searchable, partially encrypted, persistent plist store."
   :version "24.1"
   :group 'files)
 

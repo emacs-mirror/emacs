@@ -2444,7 +2444,7 @@ PREFER-ROMAN roman numbering is preferred over using letters."
     tab))
 
 ;; FIXME: At least the continuation may be folded into
-;;        `newline-and-indent`. However, this may not be wanted by everyone so
+;;        'newline-and-indent'. However, this may not be wanted by everyone so
 ;;        it should be possible to switch this off.
 (defun rst-insert-list (&optional prefer-roman)
   ;; testcover: ok.
@@ -2915,7 +2915,7 @@ error if there is no working link at the given position."
     (pop-to-buffer (marker-buffer mrkr))
     (goto-char mrkr)
     ;; FIXME: Should be a customizable number of lines from beginning or end of
-    ;;        window just like the argument to `recenter`. It would be ideal if
+    ;;        window just like the argument to 'recenter'. It would be ideal if
     ;;        the adornment is always completely visible.
     (recenter 5)))
 
@@ -2995,7 +2995,7 @@ burying it."
 (define-derived-mode rst-toc-mode special-mode "ReST-TOC"
   "Major mode for output from \\[rst-toc], the table-of-contents for the document.
 \\{rst-toc-mode-map}"
-  ;; FIXME: `revert-buffer-function` must be defined so `revert-buffer` works
+  ;; FIXME: 'revert-buffer-function' must be defined so 'revert-buffer' works
   ;;        as expected for a special mode. In particular the referred buffer
   ;;        needs to be rescanned and the TOC must be updated accordingly.
   ;; FIXME: Should contain the name of the buffer this is the toc of.
@@ -3217,7 +3217,7 @@ Return a list of tabs sorted by likeliness to continue writing
 like `rst-line-tabs'.  Nearer lines have generally a higher
 likeliness than farther lines.  Return nil if no tab is found in
 the text above."
-  ;; FIXME: See test `indent-for-tab-command-BUGS`.
+  ;; FIXME: See test 'indent-for-tab-command-BUGS'.
   (save-excursion
     (goto-char pt)
     (let (leftmost ; Leftmost column found so far.

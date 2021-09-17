@@ -24,9 +24,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
-;; This is based on Karl Landstrom's barebones javascript-mode. This
+;; This is based on Karl Landstrom's barebones javascript-mode.  This
 ;; is much more robust and works with cc-mode's comment filling
 ;; (mostly).
 ;;
@@ -237,8 +237,7 @@ will create multiple top-level entries.  Don't use :prototype
 unnecessarily: it has an associated cost in performance.
 
 If :strip-prototype is present and non-nil, then if the class
-name as matched contains
-")
+name as matched contains.")
 
 (defconst js--available-frameworks
   (cl-loop for style in js--class-styles
@@ -554,8 +553,7 @@ If the previous expression also contains a \".\" at the same level,
 then the \".\"s will be lined up:
 
   let x = svg.mumble()
-             .chained;
-"
+             .chained;"
   :version "26.1"
   :type 'boolean
   :safe 'booleanp)
@@ -574,8 +572,8 @@ to `js-jsx-regexps', which see."
 
 This enables proper font-locking and indentation of code using
 Facebook’s “JSX” syntax extension for JavaScript, for use with
-Facebook’s “React” library.  Font-locking is like sgml-mode.
-Indentation is also like sgml-mode, although some indentation
+Facebook’s “React” library.  Font-locking is like `sgml-mode'.
+Indentation is also like `sgml-mode', although some indentation
 behavior may differ slightly to align more closely with the
 conventions of the React developer community.
 
@@ -3267,7 +3265,7 @@ the broken-down class name of the item to insert."
 
 (defun js--get-all-known-symbols ()
   "Return a hash table of all JavaScript symbols.
-This searches all existing `js-mode' buffers. Each key is the
+This searches all existing `js-mode' buffers.  Each key is the
 name of a symbol (possibly disambiguated with <N>, where N > 1),
 and each value is a marker giving the location of that symbol."
   (cl-loop with symbols = (make-hash-table :test 'equal)

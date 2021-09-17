@@ -34,18 +34,18 @@
 ;; are some variants.
 ;;
 ;; Suppose the major mode for the current buffer is one of the modes
-;; provided by cc-mode. `c-guess' guesses the indentation style by
+;; provided by cc-mode.  `c-guess' guesses the indentation style by
 ;; examining the indentation in the region between beginning of buffer
 ;; and `c-guess-region-max'.
 
-;; and installs the guessed style. The name for installed style is given
+;; and installs the guessed style.  The name for installed style is given
 ;; by `c-guess-style-name'.
 ;;
 ;; `c-guess-buffer' does the same but in the whole buffer.
 ;; `c-guess-region' does the same but in the region between the point
 ;; and the mark.  `c-guess-no-install', `c-guess-buffer-no-install'
 ;; and `c-guess-region-no-install' guess the indentation style but
-;; don't install it. You can review a guessed style with `c-guess-view'.
+;; don't install it.  You can review a guessed style with `c-guess-view'.
 ;; After reviewing, use `c-guess-install' to install the style
 ;; if you prefer it.
 ;;
@@ -56,11 +56,11 @@
 ;; or implicitly with `c-guess', `c-guess-buffer', or `c-guess-region',
 ;; a style name is given by `c-guess-style-name' with the above form.
 ;;
-;; If you want to reuse the guessed style in future emacs sessions,
-;; you may want to put it to your .emacs. `c-guess-view' is for
-;; you. It emits Emacs Lisp code which defines the last guessed
-;; style, in a temporary buffer. You can put the emitted code into
-;; your .emacs. This command was suggested by Alan Mackenzie.
+;; If you want to reuse the guessed style in future Emacs sessions,
+;; you may want to put it to your .emacs.  `c-guess-view' is for
+;; you.  It emits Emacs Lisp code which defines the last guessed
+;; style, in a temporary buffer.  You can put the emitted code into
+;; your .emacs.  This command was suggested by Alan Mackenzie.
 
 ;;; Code:
 
@@ -91,7 +91,7 @@ The offset of a line included in the indent information returned by
 (defcustom c-guess-region-max 50000
   "The maximum region size for examining indent information with `c-guess'.
 It takes a long time to examine indent information from a large region;
-this option helps you limit that time. nil means no limit."
+this option helps you limit that time.  nil means no limit."
   :version "24.1"
   :type 'integer
   :group 'c)
@@ -465,7 +465,7 @@ the absolute file name of the file if STYLE-NAME is nil."
 (defun c-guess-dump-guessed-style (&optional printer)
   "Show the guessed style.
 `pp' is used to print the style but if PRINTER is given,
-PRINTER is used instead. If PRINTER is not nil, it
+PRINTER is used instead.  If PRINTER is not nil, it
 is called with one argument, the guessed style."
   (interactive)
   (let ((style (c-guess-make-style c-guess-guessed-basic-offset

@@ -249,11 +249,18 @@ with these words enabled."
   "List of words that are correct when spell-checking Lisp documentation.")
 ;;;###autoload(put 'checkdoc-ispell-list-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
-(defcustom checkdoc-max-keyref-before-warn 10
-  "The number of \\ [command-to-keystroke] tokens allowed in a doc string.
+(defcustom checkdoc-max-keyref-before-warn nil
+  "If non-nil, number of \\\\=[command-to-keystroke] tokens allowed in a doc string.
 Any more than this and a warning is generated suggesting that the construct
-\\ {keymap} be used instead."
-  :type 'integer)
+\\\\={keymap} be used instead.  If the value is nil, never warn.
+
+It used to not be practical to use `\\\\=[...]' very many times,
+because display of the documentation string would become slow.
+This is not an issue on modern machines, unless you have
+thousands of substitutions."
+  :type '(choice (const nil)
+                 integer)
+  :version "28.1")
 
 (defcustom checkdoc-arguments-in-order-flag nil
   "Non-nil means warn if arguments appear out of order.
@@ -304,12 +311,24 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
 Do not set this by hand, use a function like `checkdoc-current-buffer'
 with a universal argument.")
 
-(defcustom checkdoc-symbol-words nil
+(defcustom checkdoc-symbol-words
+  '("beginning-of-line" "byte-code" "command-line" "end-of-line"
+    "major-mode" "syntax-table" "top-level" "user-error"
+    "version-control" "window-system")
   "A list of symbol names (strings) which also happen to make good words.
 These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
-  :type '(repeat (symbol :tag "Word")))
+  :type '(repeat (string :tag "Word"))
+  :version "28.1")
 ;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
+
+(defcustom checkdoc-column-zero-backslash-before-paren t
+  "Non-nil means to warn if there is no '\\' before '(' in column zero.
+This backslash is no longer needed on Emacs 27.1 or later.
+
+See Info node `(elisp) Documentation Tips' for background."
+  :type 'boolean
+  :version "28.1")
 
 ;;;###autoload
 (defun checkdoc-list-of-strings-p (obj)
@@ -320,7 +339,7 @@ This should be set in an Emacs Lisp file's local variables."
        (not (memq nil (mapcar #'stringp obj)))))
 
 (defvar checkdoc-proper-noun-list
-  '("ispell" "xemacs" "emacs" "lisp")
+  '("emacs" "lisp" "dired")
   "List of words (not capitalized) which should be capitalized.")
 
 (defvar checkdoc-proper-noun-regexp
@@ -352,8 +371,11 @@ This should be set in an Emacs Lisp file's local variables."
     ("converts" . "convert")
     ("creates" . "create")
     ("destroys" . "destroy")
+    ("determines" . "determine")
     ("disables" . "disable")
+    ("echoes" . "echo")
     ("executes" . "execute")
+    ("extends" . "extend")
     ("evals" . "evaluate")
     ("evaluates" . "evaluate")
     ("finds" . "find")
@@ -378,7 +400,7 @@ This should be set in an Emacs Lisp file's local variables."
     ("looks" . "look")
     ("makes" . "make")
     ("marks" . "mark")
-    ("matches" . "match")
+    ;;("matches" . "match") ; Leads to almost only false positives.
     ("moves" . "move")
     ("notifies" . "notify")
     ("offers" . "offer")
@@ -404,6 +426,7 @@ This should be set in an Emacs Lisp file's local variables."
     ("signifies" . "signify")
     ("sorts" . "sort")
     ("starts" . "start")
+    ("steps" . "step")
     ("stores" . "store")
     ("switches" . "switch")
     ("tells" . "tell")
@@ -1402,16 +1425,17 @@ buffer, otherwise stop after the first error."
 	      (match-beginning 1)
 	      (match-end 1)))))
      ;; * Check for '(' in column 0.
-     (save-excursion
-       (when (re-search-forward "^(" e t)
-	 (if (checkdoc-autofix-ask-replace (match-beginning 0)
-					   (match-end 0)
-					   (format-message "Escape this `('? ")
-					   "\\(")
-	     nil
-	   (checkdoc-create-error
-	    "Open parenthesis in column 0 should be escaped"
-	    (match-beginning 0) (match-end 0)))))
+     (when checkdoc-column-zero-backslash-before-paren
+       (save-excursion
+         (when (re-search-forward "^(" e t)
+           (if (checkdoc-autofix-ask-replace (match-beginning 0)
+                                     (match-end 0)
+                                     (format-message "Escape this `('? ")
+                                     "\\(")
+               nil
+             (checkdoc-create-error
+              "Open parenthesis in column 0 should be escaped"
+              (match-beginning 0) (match-end 0))))))
      ;; * Do not start or end a documentation string with whitespace.
      (let (start end)
        (if (or (if (looking-at "\"\\([ \t\n]+\\)")
@@ -1533,21 +1557,19 @@ mouse-[0-3]\\)\\)\\>"))
 	       " embedded in doc string.  Use \\\\<keymap> & \\\\[function] "
 	       "instead")
 	      (match-beginning 1) (match-end 1) t))))
-     ;; It is not practical to use `\\[...]' very many times, because
-     ;; display of the documentation string will become slow.  So use this
-     ;; to describe the most important commands in your major mode, and
-     ;; then use `\\{...}' to display the rest of the mode's keymap.
-     (save-excursion
-       (if (and (re-search-forward "\\\\\\\\\\[\\w+" e t
-				   (1+ checkdoc-max-keyref-before-warn))
-		(not (re-search-forward "\\\\\\\\{\\w+}" e t)))
-	   (checkdoc-create-error
-	    "Too many occurrences of \\[function].  Use \\{keymap} instead"
-	    s (marker-position e))))
+     ;; Optionally warn about too many command substitutions.
+     (when checkdoc-max-keyref-before-warn
+       (save-excursion
+         (if (and (re-search-forward "\\\\\\\\\\[\\w+" e t
+                                     (1+ checkdoc-max-keyref-before-warn))
+                  (not (re-search-forward "\\\\\\\\{\\w+}" e t)))
+             (checkdoc-create-error
+              "Too many occurrences of \\[function].  Use \\{keymap} instead"
+              s (marker-position e)))))
      ;; Ambiguous quoted symbol.  When a symbol is both bound and fbound,
      ;; and is referred to in documentation, it should be prefixed with
      ;; something to disambiguate it.  This check must be before the
-     ;; 80 column check because it will probably break that.
+     ;; 80 column check because it might break that.
      (save-excursion
        (let ((case-fold-search t)
 	     (ret nil) mb me)
@@ -1998,6 +2020,35 @@ The text checked is between START and LIMIT."
 	  (setq c (1+ c)))
 	(and (< 0 c) (= (% c 2) 0))))))
 
+(defun checkdoc-in-abbreviation-p (begin)
+  "Return non-nil if point is at an abbreviation.
+Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
+  (save-excursion
+    (goto-char begin)
+    (condition-case nil
+        (progn
+          (forward-sexp -1)
+          ;; Piece of an abbreviation.
+          (looking-at
+           (rx (or letter     ; single letter, as in "a."
+                   (seq
+                    ;; There might exist an escaped parenthesis, as
+                    ;; this is often used in docstrings.  In this
+                    ;; case, `forward-sexp' will have skipped over it,
+                    ;; so we need to skip it here too.
+                    (? "\\(")
+                    ;; The abbreviations:
+                    (or (seq (any "cC") "f")              ; cf.
+                        (seq (any "eE") ".g")             ; e.g.
+                        (seq (any "iI") "." (any "eE")))) ; i.e.
+                   "etc"                                  ; etc.
+                   "vs"                                   ; vs.
+                   ;; Some non-standard or less common ones that we
+                   ;; might as well ignore.
+                   "Inc" "Univ" "misc" "resp")
+               ".")))
+      (error t))))
+
 (defun checkdoc-proper-noun-region-engine (begin end)
   "Check all text between BEGIN and END for lower case proper nouns.
 These are Emacs centric proper nouns which should be capitalized for
@@ -2060,16 +2111,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
                     (e (match-end 1)))
                 (unless (or (checkdoc-in-sample-code-p begin end)
                             (checkdoc-in-example-string-p begin end)
-                            (save-excursion
-                              (goto-char b)
-                              (condition-case nil
-                                  (progn
-                                    (forward-sexp -1)
-                                    ;; piece of an abbreviation
-                                    ;; FIXME etc
-                                    (looking-at
-                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\|[cC]f\\)\\."))
-                                (error t))))
+                            (checkdoc-in-abbreviation-p b))
                   (if (checkdoc-autofix-ask-replace
                        b e
                        "There should be two spaces after a period.  Fix? "

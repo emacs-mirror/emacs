@@ -259,7 +259,7 @@ all other buffers."
                                                         extra-test-exclusive)
   "Try the current buffer when outside navigation.
 But return nil if we navigated to the current buffer by the means
-of `next-error' command.  Otherwise, return it if it's next-error
+of `next-error' command.  Otherwise, return it if it's `next-error'
 capable."
   ;; Check that next-error-buffer has no buffer-local value
   ;; (i.e. we never navigated to the current buffer from another),
@@ -6511,13 +6511,13 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 
 (defcustom set-mark-command-repeat-pop nil
   "Non-nil means repeating \\[set-mark-command] after popping mark pops it again.
-That means that C-u \\[set-mark-command] \\[set-mark-command]
+That means that \\[universal-argument] \\[set-mark-command] \\[set-mark-command]
 will pop the mark twice, and
-C-u \\[set-mark-command] \\[set-mark-command] \\[set-mark-command]
+\\[universal-argument] \\[set-mark-command] \\[set-mark-command] \\[set-mark-command]
 will pop the mark three times.
 
 A value of nil means \\[set-mark-command]'s behavior does not change
-after C-u \\[set-mark-command]."
+after \\[universal-argument] \\[set-mark-command]."
   :type 'boolean
   :group 'editing-basics)
 
@@ -7911,8 +7911,8 @@ With argument 0, interchanges line point is in with line mark is in."
 (defun transpose-subr (mover arg &optional special)
   "Subroutine to do the work of transposing objects.
 Works for lines, sentences, paragraphs, etc.  MOVER is a function that
-moves forward by units of the given object (e.g. forward-sentence,
-forward-paragraph).  If ARG is zero, exchanges the current object
+moves forward by units of the given object (e.g. `forward-sentence',
+`forward-paragraph').  If ARG is zero, exchanges the current object
 with the one containing mark.  If ARG is an integer, moves the
 current object past ARG following (if ARG is positive) or
 preceding (if ARG is negative) objects, leaving point after the

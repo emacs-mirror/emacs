@@ -408,7 +408,7 @@ in the order given by `git status'."
   orig-name)          ;; Original name for renames or copies.
 
 (defun vc-git-escape-file-name (name)
-  "Escape a file name if necessary."
+  "Escape filename NAME if necessary."
   (if (string-match "[\n\t\"\\]" name)
       (concat "\""
               (mapconcat (lambda (c)

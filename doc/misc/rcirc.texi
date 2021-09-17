@@ -254,6 +254,10 @@ To make this permanent, add the following to your init file:
 
 Use @kbd{C-c C-@key{SPC}} to switch to these buffers.
 
+@vindex rcirc-track-ignore-server-buffer-flag
+If the user wishes to ignore events in the server buffer, set
+@code{rcirc-track-ignore-server-buffer-flag} to a non-nil value.
+
 @node Reference
 @chapter Reference
 @cindex reference
@@ -426,7 +430,13 @@ lost.  The simple solution is to use @kbd{M-x rcirc}.  The problem is
 that this opens an @emph{additional} connection, so you'll have two
 copies of every channel buffer, one dead and one live.
 
-The real answer, therefore, is the @code{/reconnect} command.
+One option therefore, is the @code{/reconnect} command.
+
+An other approach is to set @code{rcirc-reconnect-delay} to a value
+greater than 0, and allow rcirc to reconnect when it detects that the
+connection has been closed.  By default it will try to do this three
+times (as specified by @code{rcirc-reconnect-attempts}), before giving
+up.
 @end table
 
 @node Useful IRC commands
@@ -671,6 +681,12 @@ window is showing them), the mode line will now show you the abbreviated
 channel or nick name.  Use @kbd{C-c C-@key{SPC}} to switch to these
 buffers.
 
+@cindex rcirc-track-abbrevate-flag
+By default the channel names are abbreviated, set
+@code{rcirc-track-abbrevate-flag} to a non-nil value. This might be
+interesting if the IRC activities are not tracked in the mode line,
+but somewhere else.
+
 @vindex rcirc-mode-hook
 If you prefer not to load @code{rcirc} immediately, you can delay the
 activation of this mode:
@@ -807,6 +823,18 @@ active and only omits a message if the nick has not been active.  The
 window @code{rcirc} considers is controlled by the
 @code{rcirc-omit-threshold} variable.
 
+@vindex rcirc-omit-responses-after-join
+Right after connecting to a server, rcirc will also hide all messages
+in @code{rcirc-omit-responses-after-join}, next to
+@code{rcirc-omit-responses}. For example,
+
+@example
+(setq rcirc-omit-responses-after-join '("TOPIC" "NICK"))
+@end example
+
+would hide the topic message and the list of users in the current
+channel right after joining a new channel.
+
 @node Hacking and Tweaking
 @chapter Hacking and Tweaking
 @cindex hacking and tweaking
@@ -819,6 +847,7 @@ Here are some examples of stuff you can do to configure @code{rcirc}.
 * Scrolling conservatively::
 * Changing the time stamp format::
 * Defining a new command::
+* Using rcirc with bouncers::
 @end menu
 
 @node Skipping /away messages using handlers
@@ -903,21 +932,52 @@ how to include the date in the time stamp:
 @cindex new commands, defining
 
 Here's a simple new command, @code{/sv}.  With it, you can boast about
-your IRC client.  It shows how you can use @code{defun-rcirc-command} to
+your IRC client.  It shows how you can use @code{rcirc-define-command} to
 define new commands.
 
+@findex rcirc-define-command
 We're waiting for the definition of this command until @code{rcirc} is loaded
-because @code{defun-rcirc-command} is not yet available, and without
+because @code{rcirc-define-command} is not yet available, and without
 @code{rcirc} loaded, the command wouldn't do us much good anyway.
 
 @smallexample
 (with-eval-after-load 'rcirc
-  (defun-rcirc-command sv (arg)
+  (rcirc-define-command sv ()
     "Boast about rcirc."
     (interactive "i")
-    (rcirc-send-message process target
-                         (concat "I use " rcirc-id-string))))
+    (rcirc-send-message process target "I use " rcirc-id-string)))
 @end smallexample
+
+@node Using rcirc with bouncers
+@section Using rcirc with bouncers
+@cindex bouncer
+
+Some bouncers multiplex connections to various servers, but have to
+modify nicks and channel names to make this work. The channel
+@code{#emacs} on @code{irc.libera.chat} becomes
+@code{#emacs/irc.libera.chat}.
+
+@vindex rcirc-nick-filter
+@vindex rcirc-channel-filter
+The options @code{rcirc-nick-filter} and @code{rcirc-channel-filter}
+can be used to make this feel more natural. When set to functions,
+these will be used to change how nicks and channel names are
+displayed. A simple configuration to fix the above example might be:
+
+@smallexample
+(defun my/rcirc-remove-suffix (STR)
+  "Remove suffixes from STR."
+  (save-match-data
+    (if (string-match "/[[:alpha:]]+?\\'" str)
+        (substring str 0 (match-beginning 0))
+      str)))
+
+(setq rcirc-nick-filter #'my/rcirc-remove-suffix
+      rcirc-channel-filter #'local/rcirc-soju-suffix)
+@end smallexample
+
+The effect is that buffer names, nicks in messages, nick-completion
+all strip away the suffix introduced by the bouncer.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

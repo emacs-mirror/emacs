@@ -263,7 +263,7 @@ Optional string ARGS are included as options for the article
 document class with inclusion of default values \"12pt\" for
 size, and \"a4paper\" for paper unless size or paper are already
 specified in ARGS.  When ARGS is omitted, by default the option
-\"12pt,a4paper\" is passed. When ARGS has any other value, then
+\"12pt,a4paper\" is passed.  When ARGS has any other value, then
 no option is passed to the class.
 
 Insert the \"\\usepackage{geometry}\" directive when ARGS

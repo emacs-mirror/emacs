@@ -1874,7 +1874,7 @@ Interactively, @var{mode} is read from the minibuffer using
 @code{read-file-modes} (see below), which lets the user type in either
 an integer or a string representing the permissions symbolically.
 
-@xref{File Attributes}, for the function @code{file-modes}, which
+@xref{Testing Accessibility}, for the function @code{file-modes}, which
 returns the permissions of a file.
 @end deffn
 

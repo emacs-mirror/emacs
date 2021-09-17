@@ -312,7 +312,7 @@ The remote connection identified by SOURCE is flushed by
      (if (null connections)
 	 (tramp-user-error nil "There are no remote connections.")
        (setq source
-	     ;; Likely, the source remote connection is broken. So we
+	     ;; Likely, the source remote connection is broken.  So we
 	     ;; shall avoid any action on it.
 	     (let (non-essential)
 	       (completing-read-default
@@ -717,7 +717,7 @@ the debug buffer(s).")
 	(setq buffer-read-only t)
 	(goto-char (point-min))
 
-	(when (y-or-n-p "Do you want to append the buffer(s)? ")
+	(when (y-or-n-p "Do you want to append the buffer(s)?")
 	  ;; OK, let's send.  First we delete the buffer list.
 	  (kill-buffer nil)
 	  (switch-to-buffer curbuf)

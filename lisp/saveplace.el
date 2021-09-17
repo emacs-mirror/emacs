@@ -55,7 +55,7 @@ This alist is saved between Emacs sessions.")
   :type 'file)
 
 (defcustom save-place-version-control nil
-  "Controls whether to make numbered backups of master save-place file.
+  "Controls whether to make numbered backups of master `save-place' file.
 It can have four values: t, nil, `never', and `nospecial'.  The first
 three have the same meaning that they do for the variable
 `version-control', and the final value `nospecial' means just use the

@@ -26,7 +26,7 @@
 
 ;; Extension commands for keyboard macros.  These permit you to assign
 ;; a name to the last-defined keyboard macro, expand and insert the
-;; lisp corresponding to a macro, query the user from within a macro,
+;; Lisp corresponding to a macro, query the user from within a macro,
 ;; or apply a macro to each line in the reason.
 
 ;;; Code:

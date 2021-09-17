@@ -86,7 +86,7 @@ This is bound before running `compilation-filter-hook'.")
   "This is how compilers number the first column, usually 1 or 0.
 If this is buffer-local in the destination buffer, Emacs obeys
 that value, otherwise it uses the value in the *compilation*
-buffer.  This enables a major-mode to specify its own value.")
+buffer.  This enables a major mode to specify its own value.")
 
 (defvar compilation-parse-errors-filename-function #'identity
   "Function to call to post-process filenames while parsing error messages.
@@ -752,7 +752,7 @@ program and Emacs agree about the display width of the characters,
 especially the TAB character.
 If this is buffer-local in the destination buffer, Emacs obeys
 that value, otherwise it uses the value in the *compilation*
-buffer.  This enables a major-mode to specify its own value."
+buffer.  This enables a major mode to specify its own value."
   :type 'boolean
   :version "20.4")
 
@@ -1783,6 +1783,9 @@ Returns the compilation buffer created."
 	    (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
 	 (thisdir default-directory)
 	 (thisenv compilation-environment)
+         (buffer-path (and (local-variable-p 'exec-path) exec-path))
+         (buffer-env (and (local-variable-p 'process-environment)
+                          process-environment))
 	 outwin outbuf)
     (with-current-buffer
 	(setq outbuf
@@ -1850,6 +1853,12 @@ Returns the compilation buffer created."
         ;; NB: must be done after (funcall mode) as that resets local variables
         (setq-local compilation-directory thisdir)
         (setq-local compilation-environment thisenv)
+        (if buffer-path
+            (setq-local exec-path buffer-path)
+          (kill-local-variable 'exec-path))
+        (if buffer-env
+            (setq-local process-environment buffer-env)
+          (kill-local-variable 'process-environment))
 	(if highlight-regexp
             (setq-local compilation-highlight-regexp highlight-regexp))
         (if (or compilation-auto-jump-to-first-error
@@ -2767,7 +2776,7 @@ Actual value is never used, only the text property.")
     (set-window-margins w (- (car (window-margins w)) 2))))
 
 (defun compilation--set-up-arrow-spec-in-margins ()
-  "Set up compilation-arrow-overlay to display as an arrow in margins."
+  "Set up `compilation-arrow-overlay' to display as an arrow in margins."
   (setq overlay-arrow-string "")
   (setq compilation-arrow-overlay
 	(make-overlay overlay-arrow-position overlay-arrow-position))
@@ -2780,7 +2789,7 @@ Actual value is never used, only the text property.")
             #'compilation--tear-down-arrow-spec-in-margins nil t))
 
 (defun compilation--tear-down-arrow-spec-in-margins ()
-  "Restore compilation-arrow-overlay to not using the margins, which are removed."
+  "Restore `compilation-arrow-overlay' to not using the margins, which are removed."
   (when (overlayp compilation-arrow-overlay)
     (overlay-put compilation-arrow-overlay 'before-string nil)
     (delete-overlay compilation-arrow-overlay)

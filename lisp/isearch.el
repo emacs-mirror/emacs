@@ -133,6 +133,8 @@ tab, a carriage return (control-M), a newline, and `]+'.  Don't
 add any capturing groups into this value; that can change the
 numbering of existing capture groups in unexpected ways."
   :type '(choice (const :tag "Match Spaces Literally" nil)
+                 (const :tag "Tabs and spaces" "[ \t]+")
+                 (const :tag "Tabs, spaces and line breaks" "[ \t\n]+")
 		 regexp)
   :version "28.1")
 
@@ -2001,7 +2003,8 @@ Move point to the beginning of the buffer and search forwards from the top.
 \\<isearch-mode-map>
 With a numeric argument, go to the ARGth absolute occurrence counting from
 the beginning of the buffer.  To find the next relative occurrence forwards,
-type \\[isearch-repeat-forward] with a numeric argument."
+type \\[isearch-repeat-forward] with a numeric argument.
+You might want to use `isearch-allow-motion' instead of this command."
   (interactive "p")
   (if (and arg (< arg 0))
       (isearch-end-of-buffer (abs arg))
@@ -2009,8 +2012,11 @@ type \\[isearch-repeat-forward] with a numeric argument."
     ;; don't forward char in isearch-repeat
     (setq isearch-just-started t)
     (goto-char (point-min))
-    (let ((isearch-repeat-on-direction-change nil))
-      (isearch-repeat 'forward arg))))
+    (let ((current-direction (if isearch-forward 'forward 'backward))
+          (isearch-repeat-on-direction-change nil))
+      (isearch-repeat 'forward arg)
+      (unless (eq current-direction (if isearch-forward 'forward 'backward))
+        (isearch-repeat current-direction)))))
 
 (defun isearch-end-of-buffer (&optional arg)
   "Go to the last occurrence of the current search string.
@@ -2018,14 +2024,18 @@ Move point to the end of the buffer and search backwards from the bottom.
 \\<isearch-mode-map>
 With a numeric argument, go to the ARGth absolute occurrence counting from
 the end of the buffer.  To find the next relative occurrence backwards,
-type \\[isearch-repeat-backward] with a numeric argument."
+type \\[isearch-repeat-backward] with a numeric argument.
+You might want to use `isearch-allow-motion' instead of this command."
   (interactive "p")
   (if (and arg (< arg 0))
       (isearch-beginning-of-buffer (abs arg))
     (setq isearch-just-started t)
     (goto-char (point-max))
-    (let ((isearch-repeat-on-direction-change nil))
-      (isearch-repeat 'backward arg))))
+    (let ((current-direction (if isearch-forward 'forward 'backward))
+          (isearch-repeat-on-direction-change nil))
+      (isearch-repeat 'backward arg)
+      (unless (eq current-direction (if isearch-forward 'forward 'backward))
+        (isearch-repeat current-direction)))))
 
 
 ;;; Toggles for `isearch-regexp-function' and `search-default-mode'.
@@ -2935,13 +2945,13 @@ See also the related option `isearch-allow-motion'."
   :group 'isearch)
 
 (put 'beginning-of-buffer 'isearch-motion
-     '((lambda () (goto-char (point-min))) . forward))
+     (cons (lambda () (goto-char (point-min))) 'forward))
 (put 'end-of-buffer 'isearch-motion
-     '((lambda () (goto-char (point-max))) . backward))
+     (cons (lambda () (goto-char (point-max)) (recenter -1 t)) 'backward))
 (put 'scroll-up-command 'isearch-motion
-     '((lambda () (goto-char (window-end)) (recenter 1 t)) . forward))
+     (cons (lambda () (goto-char (window-end)) (recenter 0 t)) 'forward))
 (put 'scroll-down-command 'isearch-motion
-     '((lambda () (goto-char (window-start)) (recenter -1 t)) . backward))
+     (cons (lambda () (goto-char (window-start)) (recenter -1 t)) 'backward))
 
 (defcustom isearch-allow-motion nil
   "Whether to allow movement between isearch matches by cursor motion commands.
@@ -3074,7 +3084,10 @@ See more for options in `search-exit-option'."
      ;; Handle motion command functions.
      ((and isearch-allow-motion
            (symbolp this-command)
-           (get this-command 'isearch-motion))
+           (get this-command 'isearch-motion)
+           ;; Don't override `isearch-yank-on-move' used below.
+           (not (and (eq isearch-yank-on-move 'shift)
+                     this-command-keys-shift-translated)))
       (let* ((property (get this-command 'isearch-motion))
              (function (car property))
              (current-direction (if isearch-forward 'forward 'backward))

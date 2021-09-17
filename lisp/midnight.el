@@ -26,7 +26,7 @@
 ;; To use the file, put (require 'midnight) into your .emacs.  Then, at
 ;; midnight, Emacs will run the normal hook `midnight-hook'.  You can
 ;; put whatever you like there, say, `calendar'; by default there is
-;; only one function there - `clean-buffer-list'. It will kill the
+;; only one function there - `clean-buffer-list'.  It will kill the
 ;; buffers matching `clean-buffer-list-kill-buffer-names' and
 ;; `clean-buffer-list-kill-regexps' and the buffers which where last
 ;; displayed more than `clean-buffer-list-delay-general' days ago,

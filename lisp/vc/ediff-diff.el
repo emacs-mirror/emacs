@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-
 (require 'ediff-init)
 (require 'ediff-util)
 
@@ -78,14 +77,14 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
   "Options to pass to `ediff-diff-program'.
 If Unix diff is used as `ediff-diff-program',
 then a useful option is `-w', to ignore space.
-Options `-c', `-u', and `-i' are not allowed. Case sensitivity can be
+Options `-c', `-u', and `-i' are not allowed.  Case sensitivity can be
 toggled interactively using \\[ediff-toggle-ignore-case].
 
-Do not remove the default options. If you need to change this variable, add new
+Do not remove the default options.  If you need to change this variable, add new
 options after the default ones.
 
 This variable is not for customizing the look of the differences produced by
-the command \\[ediff-show-diff-output]. Use the variable
+the command \\[ediff-show-diff-output].  Use the variable
 `ediff-custom-diff-options' for that."
   :set #'ediff-set-diff-options
   :type 'string)

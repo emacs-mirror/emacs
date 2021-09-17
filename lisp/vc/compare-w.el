@@ -113,7 +113,7 @@ and the value `((4) (4))' for horizontally split windows."
   :version "22.1")
 
 (defcustom compare-windows-highlight t
-  "Non-nil means compare-windows highlights the differences.
+  "Non-nil means `compare-windows' highlights the differences.
 The value t removes highlighting immediately after invoking a command
 other than `compare-windows'.
 The value `persistent' leaves all highlighted differences.  You can clear

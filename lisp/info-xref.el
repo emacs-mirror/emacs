@@ -242,18 +242,18 @@ buffer's line and column of point."
                                        node t t))
 
   (if (not (string-match "\\`([^)]*)" node))
-      (info-xref-output-error "no `(file)' part at start of node: %s\n" node)
+      (info-xref-output-error "No `(file)' part at start of node: %s\n" node)
     (let ((file (match-string 0 node)))
 
       (if (string-equal "()" file)
-          (info-xref-output-error "empty filename part: %s" node)
+          (info-xref-output-error "Empty filename part: %s" node)
 
         ;; see if the file exists, if haven't looked before
         (unless (assoc file info-xref-xfile-alist)
           (let ((found (info-xref-goto-node-p file)))
             (push (cons file found) info-xref-xfile-alist)
             (unless found
-              (info-xref-output-error "not available to check: %s\n    (this reported once per file)" file))))
+              (info-xref-output-error "Not available to check: %s\n    (this reported once per file)" file))))
 
         ;; if the file exists, try the node
         (cond ((not (cdr (assoc file info-xref-xfile-alist)))
@@ -262,7 +262,7 @@ buffer's line and column of point."
                (cl-incf info-xref-good))
               (t
                (cl-incf info-xref-bad)
-               (info-xref-output-error "no such node: %s" node)))))))
+               (info-xref-output-error "No such node: %s" node)))))))
 
 
 ;;-----------------------------------------------------------------------------

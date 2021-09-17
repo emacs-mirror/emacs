@@ -968,7 +968,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
       (set-window-configuration eshell-diff-window-config)))
 
 (defun nil-blank-string (string)
-  "Return STRING, or nil if STRING contains only non-blank characters."
+  "Return STRING, or nil if STRING contains only blank characters."
   (cond
     ((string-match "[^[:blank:]]" string) string)
     (nil)))

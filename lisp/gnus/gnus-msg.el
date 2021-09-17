@@ -33,7 +33,7 @@
 (require 'gnus-util)
 
 (defcustom gnus-post-method 'current
-  "Preferred method for posting USENET news.
+  "Preferred method for posting Usenet news.
 
 If this variable is `current' (which is the default), Gnus will use
 the \"current\" select method when posting.  If it is `native', Gnus
@@ -303,7 +303,7 @@ If nil, the address field will always be empty after invoking
 
 (defcustom gnus-message-highlight-citation
   t ;; gnus-treat-highlight-citation ;; gnus-cite dependency
-  "Enable highlighting of different citation levels in message-mode."
+  "Enable highlighting of different citation levels in `message-mode'."
   :version "23.1" ;; No Gnus
   :group 'gnus-cite
   :group 'gnus-message

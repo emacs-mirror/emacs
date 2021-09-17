@@ -204,7 +204,7 @@ If nil, a faster, but more primitive, buffer is used instead."
   '((((class color) (background light)) (:foreground "ForestGreen" :inverse-video t :italic t))
     (((class color) (background dark)) (:foreground "PaleGreen" :inverse-video t :italic t))
     (t (:inverse-video t :italic t)))
-  "Face used for displaying the Cloud Host"
+  "Face used for displaying the Cloud Host."
   :group 'gnus-server-visual)
 
 (defface gnus-server-opened

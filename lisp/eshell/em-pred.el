@@ -258,7 +258,7 @@ EXAMPLES:
   (eshell-pred-mode))
 
 (defun eshell-apply-modifiers (lst predicates modifiers)
-  "Apply to LIST a series of PREDICATES and MODIFIERS."
+  "Apply to list LST a series of PREDICATES and MODIFIERS."
   (let (stringified)
     (if (stringp lst)
 	(setq lst (list lst)

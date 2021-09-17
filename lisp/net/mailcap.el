@@ -93,7 +93,7 @@ The elements of the list are alists of the following structure
    (type   . MIME-TYPE)
    (test   . TEST))
 
-where VIEWER is either a lisp command, e.g., a major-mode, or a
+where VIEWER is either a Lisp command, e.g., a major mode, or a
 string containing a shell command for viewing files of the
 defined MIME-TYPE.  In case of a shell command, %s will be
 replaced with the file.
@@ -101,7 +101,7 @@ replaced with the file.
 MIME-TYPE is a regular expression being matched against the
 actual MIME type.  It is implicitly surrounded with ^ and $.
 
-TEST is a lisp form which is evaluated in order to test if the
+TEST is a Lisp form which is evaluated in order to test if the
 entry should be chosen.  The `test' entry is optional.
 
 When selecting a viewer for a given MIME type, the first viewer

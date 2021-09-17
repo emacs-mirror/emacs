@@ -1735,7 +1735,8 @@ the full file name of the file to visit, you can type only the file's
 base name (i.e., omit the leading directories).  In addition, the
 completion candidates considered by the command include only the files
 belonging to the current project, and nothing else.  If there's a file
-name at point, this command offers that file as the default to visit.
+name at point, this command offers that file as the first element of
+the ``future history''.
 
 @findex project-find-regexp
   The command @kbd{C-x p g} (@code{project-find-regexp}) is similar to

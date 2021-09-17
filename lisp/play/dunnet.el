@@ -1135,11 +1135,12 @@ treasures for points?" "4" "four")
 
 (define-derived-mode dun-mode text-mode "Dungeon"
   "Major mode for running dunnet."
+  :interactive nil
   (setq-local scroll-step 2))
 
 (defun dun-parse (_arg)
   "Function called when return is pressed in interactive mode to parse line."
-  (interactive "*p")
+  (interactive "*p" dun-mode)
   (beginning-of-line)
   (let ((beg (1+ (point)))
         line)
@@ -2229,7 +2230,7 @@ Call the proper verb with the rest of the line passed in as a list."
 (defun dun-fix-screen ()
   "In window mode, keep screen from jumping by keeping last line at
 the bottom of the screen."
-  (interactive)
+  (interactive nil dun-mode)
   (forward-line (- 0 (- (window-height) 2 )))
   (set-window-start (selected-window) (point))
   (goto-char (point-max)))
@@ -2263,7 +2264,7 @@ except for the verb."
     result)))
 
 (defun dun-get-path (dirstring startlist)
-  "Given a unix style pathname, build a list of path components (recursive)"
+  "Given a unix style pathname, build a list of path components (recursive)."
   (let (slash)
     (if (= (length dirstring) 0)
 	startlist
@@ -2336,7 +2337,7 @@ Also prints current score to let user know he has scored."
 ;;;;
 
 (defun dun-unix-parse (_args)
-  (interactive "*p")
+  (interactive "*p" dun-mode)
   (beginning-of-line)
   (let (beg esign)
     (setq beg (+ (point) 2))
@@ -2825,7 +2826,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 ;;;;
 
 (defun dun-dos-parse (_args)
-  (interactive "*p")
+  (interactive "*p" dun-mode)
   (beginning-of-line)
   (let (beg)
     (setq beg (+ (point) 3))
@@ -3119,7 +3120,7 @@ File not found")))
 
 (defun dungeon-nil (_arg)
   "noop"
-  (interactive "*p")
+  (interactive "*p" dun-mode)
   nil)
 
 (defun dun-batch-dungeon ()

@@ -25,7 +25,7 @@
 ;;; Commentary:
 ;;    This package provides a common interface to query directory servers using
 ;;    different protocols such as LDAP, CCSO PH/QI or BBDB.  Queries can be
-;;    made through an interactive form or inline. Inline query strings in
+;;    made through an interactive form or inline.  Inline query strings in
 ;;    buffers are expanded with appropriately formatted query results
 ;;    (especially used to expand email addresses in message buffers).  EUDC
 ;;    also interfaces with the BBDB package to let you register query results

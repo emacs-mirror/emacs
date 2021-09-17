@@ -161,7 +161,7 @@ enable expiration per categories, topics, and groups."
 
 (defcustom gnus-agent-expire-unagentized-dirs t
   "Whether expiration should expire in unagentized directories.
-Have gnus-agent-expire scan the directories under
+Have `gnus-agent-expire' scan the directories under
 \(gnus-agent-directory) for groups that are no longer agentized.
 When found, offer to remove them."
   :version "22.1"
@@ -622,7 +622,7 @@ manipulated as follows:
 
 The gnus-agentize function is now called internally by gnus when
 gnus-agent is set.  If you wish to avoid calling gnus-agentize,
-customize gnus-agent to nil.
+customize `gnus-agent' to nil.
 
 This will modify the `gnus-setup-news-hook', and
 `message-send-mail-real-function' variables, and install the Gnus agent
@@ -1703,8 +1703,8 @@ and that there are no duplicates."
 
 (defun gnus-agent-flush-server (&optional server-or-method)
   "Flush all agent index files for every subscribed group within
-  the given SERVER-OR-METHOD.  When called with nil, the current
-  value of gnus-command-method identifies the server."
+the given SERVER-OR-METHOD.  When called with nil, the current
+value of gnus-command-method identifies the server."
   (let* ((gnus-command-method (if server-or-method
 				  (gnus-server-to-method server-or-method)
 				gnus-command-method))
@@ -2153,8 +2153,9 @@ doesn't exist, to valid the overview buffer."
 (defvar gnus-agent-file-loading-local nil)
 
 (defun gnus-agent-load-local (&optional method)
-  "Load the METHOD'S local file.  The local file contains min/max
-article counts for each of the method's subscribed groups."
+  "Load the METHOD'S local file.
+The local file contains min/max article counts for each of the
+method's subscribed groups."
   (let ((gnus-command-method (or method gnus-command-method)))
     (when (or (null gnus-agent-article-local-times)
 	      (zerop gnus-agent-article-local-times)
@@ -2171,9 +2172,9 @@ article counts for each of the method's subscribed groups."
     gnus-agent-article-local))
 
 (defun gnus-agent-read-and-cache-local (file)
-  "Load and read FILE then bind its contents to
-gnus-agent-article-local.  If that variable had `dirty' (also known as
-modified) original contents, they are first saved to their own file."
+  "Load and read FILE then bind its contents to `gnus-agent-article-local'.
+If that variable had `dirty' (also known as modified) original
+contents, they are first saved to their own file."
   (if (and gnus-agent-article-local
            (gethash "+dirty" gnus-agent-article-local))
       (gnus-agent-save-local))
@@ -2224,7 +2225,7 @@ modified) original contents, they are first saved to their own file."
     hashtb))
 
 (defun gnus-agent-save-local (&optional force)
-  "Save gnus-agent-article-local under it method's agent.lib directory."
+  "Save `gnus-agent-article-local' under it method's agent.lib directory."
   (let ((hashtb gnus-agent-article-local))
     (when (and hashtb
                (or force (gethash "+dirty" hashtb)))

@@ -22,7 +22,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; This lisp code is a general framework for translating various
+;; This Lisp code is a general framework for translating various
 ;; representations of the same data.
 ;; among other things it can be used to translate TeX, HTML, and compressed
 ;; files to ISO 8859-1.  It can also be used to translate different charsets
@@ -37,7 +37,7 @@
 
 ;; SEE ALSO:
 ; If you are interested in questions related to using the ISO 8859-1
-; characters set (configuring emacs, Unix, etc. to use ISO), then you
+; characters set (configuring Emacs, Unix, etc. to use ISO), then you
 ; can get the ISO 8859-1 FAQ via anonymous ftp from
 ; ftp.vlsivie.tuwien.ac.at in /pub/8bit/FAQ-ISO-8859-1
 

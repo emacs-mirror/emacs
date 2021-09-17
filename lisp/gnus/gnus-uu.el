@@ -354,12 +354,12 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 ;; Commands.
 
 (defun gnus-uu-decode-uu (&optional n)
-  "Uudecodes the current article."
+  "Uudecode the current article."
   (interactive "P" gnus-article-mode gnus-summary-mode)
   (gnus-uu-decode-with-method #'gnus-uu-uustrip-article n))
 
 (defun gnus-uu-decode-uu-and-save (n dir)
-  "Decodes and saves the resulting file."
+  "Decode and save the resulting file."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
@@ -370,12 +370,12 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (gnus-uu-decode-with-method #'gnus-uu-uustrip-article n dir nil nil t))
 
 (defun gnus-uu-decode-unshar (&optional n)
-  "Unshars the current article."
+  "Unshar the current article."
   (interactive "P" gnus-article-mode gnus-summary-mode)
   (gnus-uu-decode-with-method #'gnus-uu-unshar-article n nil nil 'scan t))
 
 (defun gnus-uu-decode-unshar-and-save (n dir)
-  "Unshars and saves the current article."
+  "Unshar and save the current article."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
@@ -386,7 +386,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (gnus-uu-decode-with-method #'gnus-uu-unshar-article n dir nil 'scan t))
 
 (defun gnus-uu-decode-save (n file)
-  "Saves the current article."
+  "Save the current article."
   (interactive
    (list current-prefix-arg
 	 (if gnus-uu-save-separate-articles
@@ -399,7 +399,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (gnus-uu-decode-with-method #'gnus-uu-save-article n nil t))
 
 (defun gnus-uu-decode-binhex (n dir)
-  "Unbinhexes the current article."
+  "Unbinhex the current article."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
@@ -425,13 +425,13 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (gnus-uu-decode-with-method #'gnus-uu-yenc-article n dir nil t))
 
 (defun gnus-uu-decode-uu-view (&optional n)
-  "Uudecodes and views the current article."
+  "Uudecode and view the current article."
   (interactive "P" gnus-article-mode gnus-summary-mode)
   (let ((gnus-view-pseudos (or gnus-view-pseudos 'automatic)))
     (gnus-uu-decode-uu n)))
 
 (defun gnus-uu-decode-uu-and-save-view (n dir)
-  "Decodes, views and saves the resulting file."
+  "Decode, view and save the resulting file."
   (interactive
    (list current-prefix-arg
 	 (read-file-name "Uudecode, view and save in dir: "
@@ -442,13 +442,13 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
     (gnus-uu-decode-uu-and-save n dir)))
 
 (defun gnus-uu-decode-unshar-view (&optional n)
-  "Unshars and views the current article."
+  "Unshar and view the current article."
   (interactive "P" gnus-article-mode gnus-summary-mode)
   (let ((gnus-view-pseudos (or gnus-view-pseudos 'automatic)))
     (gnus-uu-decode-unshar n)))
 
 (defun gnus-uu-decode-unshar-and-save-view (n dir)
-  "Unshars and saves the current article."
+  "Unshar and save the current article."
   (interactive
    (list current-prefix-arg
 	 (read-file-name "Unshar, view and save in dir: "
@@ -459,7 +459,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
     (gnus-uu-decode-unshar-and-save n dir)))
 
 (defun gnus-uu-decode-save-view (n file)
-  "Saves and views the current article."
+  "Save and view the current article."
   (interactive
    (list current-prefix-arg
 	 (if gnus-uu-save-separate-articles
@@ -472,7 +472,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
     (gnus-uu-decode-save n file)))
 
 (defun gnus-uu-decode-binhex-view (n file)
-  "Unbinhexes and views the current article."
+  "Unbinhex and view the current article."
   (interactive
    (list current-prefix-arg
 	 (read-file-name "Unbinhex, view and save in dir: "
@@ -488,7 +488,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 ;; Digest and forward articles
 
 (defun gnus-uu-digest-mail-forward (&optional n post)
-  "Digests and forwards all articles in this series."
+  "Digest and forward all articles in this series."
   (interactive "P" gnus-article-mode gnus-summary-mode)
   (gnus-uu-initialize)
   (let ((gnus-uu-save-in-digest t)
@@ -643,7 +643,7 @@ When called interactively, prompt for REGEXP."
   (gnus-uu-mark-region (point-min) (point-max) t))
 
 (defun gnus-uu-mark-thread ()
-  "Marks all articles downwards in this thread."
+  "Mark all articles downwards in this thread."
   (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-save-hidden-threads
     (let ((level (gnus-summary-thread-level)))
@@ -654,7 +654,7 @@ When called interactively, prompt for REGEXP."
   (gnus-summary-position-point))
 
 (defun gnus-uu-unmark-thread ()
-  "Unmarks all articles downwards in this thread."
+  "Unmark all articles downwards in this thread."
   (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((level (gnus-summary-thread-level)))
     (while (and (gnus-summary-remove-process-mark
@@ -747,7 +747,7 @@ When called interactively, prompt for REGEXP."
     (gnus-uu-decode-postscript n)))
 
 (defun gnus-uu-decode-postscript-and-save (n dir)
-  "Extracts PostScript and saves the current article."
+  "Extract PostScript and save the current article."
   (interactive (list current-prefix-arg
 		     (file-name-as-directory
 		      (read-directory-name "Save in dir: "
@@ -758,7 +758,7 @@ When called interactively, prompt for REGEXP."
 			      n dir nil nil t))
 
 (defun gnus-uu-decode-postscript-and-save-view (n dir)
-  "Decodes, views and saves the resulting file."
+  "Decode, view and save the resulting file."
   (interactive (list current-prefix-arg
 		     (read-file-name "Where do you want to save the file(s)? "
 				     gnus-uu-default-dir
@@ -1606,7 +1606,7 @@ Gnus might fail to display all of it.")
 				 gnus-uu-unshar-warning))
 			(goto-char (point-min))
 			(display-buffer buffer)
-			(yes-or-no-p "This is a shell archive, unshar it? "))
+                        (yes-or-no-p "This is a shell archive, unshar it?"))
 		    (kill-buffer buffer))
 		(setq state (list 'error))))))
 	(unless (memq 'error state)
@@ -1925,7 +1925,7 @@ is t."
 			  (gnus-uu-post-insert-binary)))))
 
 (defun gnus-uu-post-insert-binary-in-article ()
-  "Inserts an encoded file in the buffer.
+  "Insert an encoded file in the buffer.
 The user will be asked for a file name."
   (interactive)
   (save-excursion

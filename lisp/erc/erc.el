@@ -80,32 +80,32 @@
   :group 'applications)
 
 (defgroup erc-buffers nil
-  "Creating new ERC buffers"
+  "Creating new ERC buffers."
   :group 'erc)
 
 (defgroup erc-display nil
-  "Settings for how various things are displayed"
+  "Settings for how various things are displayed."
   :group 'erc)
 
 (defgroup erc-mode-line-and-header nil
-  "Displaying information in the mode-line and header"
+  "Displaying information in the mode-line and header."
   :group 'erc-display)
 
 (defgroup erc-ignore nil
-  "Ignoring certain messages"
+  "Ignoring certain messages."
   :group 'erc)
 
 (defgroup erc-lurker nil
-  "Hide specified message types sent by lurkers"
+  "Hide specified message types sent by lurkers."
   :version "24.3"
   :group 'erc-ignore)
 
 (defgroup erc-query nil
-  "Using separate buffers for private discussions"
+  "Using separate buffers for private discussions."
   :group 'erc)
 
 (defgroup erc-quit-and-part nil
-  "Quitting and parting channels"
+  "Quitting and parting channels."
   :group 'erc)
 
 (defgroup erc-paranoia nil
@@ -113,7 +113,7 @@
   :group 'erc)
 
 (defgroup erc-scripts nil
-  "Running scripts at startup and with /LOAD"
+  "Running scripts at startup and with /LOAD."
   :group 'erc)
 
 (require 'erc-backend)
@@ -280,9 +280,9 @@ indicate it has handled the input."
   :type 'hook)
 
 (defcustom erc-join-hook nil
-  "Hook run when we join a channel.  Hook functions are called
-without arguments, with the current buffer set to the buffer of
-the new channel.
+  "Hook run when we join a channel.
+Hook functions are called without arguments, with the current
+buffer set to the buffer of the new channel.
 
 See also `erc-server-JOIN-functions', `erc-part-hook'."
   :group 'erc-hooks
@@ -533,10 +533,10 @@ Removes all users in the current channel.  This is called by
               (erc-channel-user-voice (cdr cdata))))))))
 
 (defun erc-get-channel-user-list ()
-  "Return a list of users in the current channel.  Each element
-of the list is of the form (USER . CHANNEL-DATA), where USER is
-an erc-server-user struct, and CHANNEL-DATA is either nil or an
-erc-channel-user struct.
+  "Return a list of users in the current channel.
+Each element of the list is of the form (USER . CHANNEL-DATA),
+where USER is an erc-server-user struct, and CHANNEL-DATA is
+either nil or an erc-channel-user struct.
 
 See also: `erc-sort-channel-users-by-activity'."
   (let (users)
@@ -816,7 +816,7 @@ set if some hacker is trying to flood you away."
 
 (defcustom erc-system-name nil
   "Use this as the name of your system.
-If nil, ERC will call `system-name' to get this information."
+If nil, ERC will call function `system-name' to get this information."
   :group 'erc
   :type '(choice (const :tag "Default system name" nil)
                  string))
@@ -1487,8 +1487,8 @@ Defaults to the server buffer."
   "IRC port to use if it cannot be detected otherwise.")
 
 (defconst erc-default-port-tls 6697
-  "IRC port to use for encrypted connections if it cannot be
-  detected otherwise.")
+  "IRC port to use for encrypted connections if it cannot be \
+detected otherwise.")
 
 (defcustom erc-join-buffer 'buffer
   "Determines how to display a newly created IRC buffer.
@@ -1732,20 +1732,11 @@ FORMS will be evaluated in all buffers having the process PROCESS and
 where PRED matches or in all buffers of the server process if PRED is
 nil."
   (declare (indent 1) (debug (form form body)))
-  ;; Make the evaluation have the correct order
-  (let ((pre (make-symbol "pre"))
-        (pro (make-symbol "pro")))
-    `(let* ((,pro ,process)
-            (,pre ,pred)
-            (res (mapcar (lambda (buffer)
-                           (with-current-buffer buffer
-                             ,@forms))
-                         (erc-buffer-list ,pre
-                                          ,pro))))
-       ;; Silence the byte-compiler by binding the result of mapcar to
-       ;; a variable.
-       (ignore res)
-       res)))
+  (macroexp-let2 nil pred pred
+    `(erc-buffer-filter (lambda ()
+                          (when (or (not ,pred) (funcall ,pred))
+                            ,@forms))
+                        ,process)))
 
 (define-obsolete-function-alias 'erc-iswitchb #'erc-switch-to-buffer "25.1")
 (defun erc--switch-to-buffer (&optional arg)
@@ -2312,6 +2303,22 @@ message instead, to make debugging easier."
 
 ;;; Debugging the protocol
 
+(defvar erc-debug-irc-protocol-time-format "%FT%T.%6N%z "
+  "Timestamp format string for protocol logger.")
+
+(defconst erc-debug-irc-protocol-version "1"
+  "Protocol log format version number.
+This exists to help tooling track changes to the format.
+
+In version 1, everything before and including the first double CRLF is
+front matter, which must also be CRLF terminated.  Lines beginning with
+three asterisks must be ignored as comments.  Other lines should be
+interpreted as email-style headers.  Folding is not supported.  A second
+double CRLF, if present, signals the end of a log.  Session resumption
+is not supported.  Logger lines must adhere to the following format:
+TIMESTAMP PEER-NAME FLOW-INDICATOR IRC-MESSAGE CRLF.  Outgoing messages
+are indicated with a >> and incoming with a <<.")
+
 (defvar erc-debug-irc-protocol nil
   "If non-nil, log all IRC protocol traffic to the buffer \"*erc-protocol*\".
 
@@ -2333,32 +2340,32 @@ This only has any effect if `erc-debug-irc-protocol' is non-nil.
 
 The buffer is created if it doesn't exist.
 
-If OUTBOUND is non-nil, STRING is being sent to the IRC server
-and appears in face `erc-input-face' in the buffer."
+If OUTBOUND is non-nil, STRING is being sent to the IRC server and
+appears in face `erc-input-face' in the buffer.  Lines must already
+contain CRLF endings.  Peer is identified by the most precise label
+available at run time, starting with the network name, followed by the
+announced host name, and falling back to the dialed <server>:<port>."
   (when erc-debug-irc-protocol
-    (let ((network-name (or (ignore-errors (erc-network-name))
-                            "???")))
+    (let ((esid (or (and (fboundp 'erc-network)
+                         (erc-network)
+                         (erc-network-name))
+                    erc-server-announced-name
+                    (format "%s:%s" erc-session-server erc-session-port)))
+          (ts (when erc-debug-irc-protocol-time-format
+                (format-time-string erc-debug-irc-protocol-time-format))))
       (with-current-buffer (get-buffer-create "*erc-protocol*")
         (save-excursion
           (goto-char (point-max))
           (let ((inhibit-read-only t))
-            (insert (if (not outbound)
-                        ;; Cope with the fact that string might
-                        ;; contain multiple lines of text.
-                        (let ((lines (delete "" (split-string string
-                                                              "\n\\|\r\n")))
-                              (result ""))
-                          (dolist (line lines)
-                            (setq result (concat result network-name
-                                                 " << " line "\n")))
-                          result)
-                      (propertize
-                       (concat network-name " >> " string
-                               (if (/= ?\n
-                                       (aref string
-                                             (1- (length string))))
-                                   "\n"))
-                       'font-lock-face 'erc-input-face)))))
+            (insert (if outbound
+                        (concat ts esid " >> " string)
+                      ;; Cope with multi-line messages
+                      (let ((lines (split-string string "[\r\n]+" t))
+                            result)
+                        (dolist (line lines)
+                          (setq result (concat result ts esid
+                                               " << " line "\r\n")))
+                        result)))))
         (let ((orig-win (selected-window))
               (debug-buffer-window (get-buffer-window (current-buffer) t)))
           (when debug-buffer-window
@@ -2377,9 +2384,16 @@ If ARG is non-nil, show the *erc-protocol* buffer."
     (with-current-buffer buf
       (view-mode-enter)
       (when (null (current-local-map))
-        (let ((inhibit-read-only t))
-          (insert (erc-make-notice "This buffer displays all IRC protocol traffic exchanged with each server.\n"))
-          (insert (erc-make-notice "Kill this buffer to terminate protocol logging.\n\n")))
+        (let ((inhibit-read-only t)
+              (msg (list
+                    (concat "Version: " erc-debug-irc-protocol-version)
+                    (concat "Emacs-Version: " emacs-version)
+                    (erc-make-notice
+                     (concat "This buffer displays all IRC protocol "
+                             "traffic exchanged with servers."))
+                    (erc-make-notice "Kill it to disable logging.")
+                    (erc-make-notice "Press `t' to toggle."))))
+          (insert (string-join msg "\r\n")))
         (use-local-map (make-sparse-keymap))
         (local-set-key (kbd "t") 'erc-toggle-debug-irc-protocol))
       (add-hook 'kill-buffer-hook
@@ -2387,10 +2401,12 @@ If ARG is non-nil, show the *erc-protocol* buffer."
                 nil 'local)
       (goto-char (point-max))
       (let ((inhibit-read-only t))
-        (insert (erc-make-notice
-                 (format "IRC protocol logging %s at %s -- Press `t' to toggle logging.\n"
+        (insert (if erc-debug-irc-protocol "\r\n" "")
+                (erc-make-notice
+                 (format "IRC protocol logging %s at %s"
                          (if erc-debug-irc-protocol "disabled" "enabled")
-                         (current-time-string))))))
+                         (current-time-string)))
+                (if erc-debug-irc-protocol "\r\n" "\r\n\r\n"))))
     (setq erc-debug-irc-protocol (not erc-debug-irc-protocol))
     (if (and arg
              (not (get-buffer-window "*erc-protocol*" t)))
@@ -2583,9 +2599,8 @@ See also `erc-lurker-trim-nicks'."
 Returns NICK unmodified unless `erc-lurker-trim-nicks' is
 non-nil."
   (if erc-lurker-trim-nicks
-      (replace-regexp-in-string
-       (regexp-opt-charset (string-to-list erc-lurker-ignore-chars))
-       "" nick)
+      (string-trim-right
+       nick (rx-to-string `(+ (in ,@(string-to-list erc-lurker-ignore-chars)))))
     nick))
 
 (defcustom erc-lurker-hide-list nil
@@ -3597,7 +3612,9 @@ If S is non-nil, it will be used as the quit reason."
 If S is non-nil, it will be used as the quit reason."
   (or s
       (if (fboundp 'yow)
-          (string-replace "\n" "" (yow))
+          (if (>= emacs-major-version 28)
+              (string-replace "\n" "" (yow))
+            (replace-regexp-in-string "\n" "" (yow)))
         (erc-quit/part-reason-default))))
 
 (make-obsolete 'erc-quit-reason-zippy "it will be removed." "24.4")
@@ -3624,7 +3641,9 @@ If S is non-nil, it will be used as the part reason."
 If S is non-nil, it will be used as the quit reason."
   (or s
       (if (fboundp 'yow)
-          (string-replace "\n" "" (yow))
+          (if (>= emacs-major-version 28)
+              (string-replace "\n" "" (yow))
+            (replace-regexp-in-string "\n" "" (yow)))
         (erc-quit/part-reason-default))))
 
 (make-obsolete 'erc-part-reason-zippy "it will be removed." "24.4")
@@ -3722,7 +3741,7 @@ the message given by REASON."
   (condition-case nil
       (erc :server server :nick (erc-current-nick))
     (error
-     (erc-error "Cannot find host %s." server)))
+     (erc-error "Cannot find host: `%s'" server)))
   t)
 (put 'erc-cmd-SERVER 'process-not-needed t)
 
@@ -4471,7 +4490,7 @@ also `erc-format-nick-function'."
       (propertize prefix 'font-lock-face 'erc-default-face))))
 
 (defun erc-echo-notice-in-default-buffer (s parsed buffer _sender)
-  "Echos a private notice in the default buffer, namely the
+  "Echo a private notice in the default buffer, namely the
 target buffer specified by BUFFER, or there is no target buffer,
 the server buffer.  This function is designed to be added to
 either `erc-echo-notice-hook' or `erc-echo-notice-always-hook',
@@ -4480,30 +4499,32 @@ and always returns t."
   t)
 
 (defun erc-echo-notice-in-target-buffer (s parsed buffer _sender)
-  "Echos a private notice in BUFFER, if BUFFER is non-nil.  This
-function is designed to be added to either `erc-echo-notice-hook'
-or `erc-echo-notice-always-hook', and returns non-nil if BUFFER
-is non-nil."
+  "Echo a private notice in BUFFER, if BUFFER is non-nil.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+returns non-nil if BUFFER is non-nil."
   (if buffer
       (progn (erc-display-message parsed nil buffer s) t)
     nil))
 
 (defun erc-echo-notice-in-minibuffer (s _parsed _buffer _sender)
-  "Echos a private notice in the minibuffer.  This function is
-designed to be added to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and always returns t."
+  "Echo a private notice in the minibuffer.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+always returns t."
   (message "%s" (concat "NOTICE: " s))
   t)
 
 (defun erc-echo-notice-in-server-buffer (s parsed _buffer _sender)
-  "Echos a private notice in the server buffer.  This function is
-designed to be added to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and always returns t."
+  "Echo a private notice in the server buffer.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+always returns t."
   (erc-display-message parsed nil nil s)
   t)
 
 (defun erc-echo-notice-in-active-non-server-buffer (s parsed _buffer _sender)
-  "Echos a private notice in the active buffer if the active
+  "Echo a private notice in the active buffer if the active
 buffer is not the server buffer.  This function is designed to be
 added to either `erc-echo-notice-hook' or
 `erc-echo-notice-always-hook', and returns non-nil if the active
@@ -4513,14 +4534,15 @@ buffer is not the server buffer."
     nil))
 
 (defun erc-echo-notice-in-active-buffer (s parsed _buffer _sender)
-  "Echos a private notice in the active buffer.  This function is
-designed to be added to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and always returns t."
+  "Echo a private notice in the active buffer.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+always returns t."
   (erc-display-message parsed nil 'active s)
   t)
 
 (defun erc-echo-notice-in-user-buffers (s parsed _buffer sender)
-  "Echos a private notice in all of the buffers for which SENDER
+  "Echo a private notice in all of the buffers for which SENDER
 is a member.  This function is designed to be added to either
 `erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
 returns non-nil if there is at least one buffer for which the
@@ -4534,7 +4556,7 @@ See also: `erc-echo-notice-in-first-user-buffer',
       nil)))
 
 (defun erc-echo-notice-in-user-and-target-buffers (s parsed buffer sender)
-  "Echos a private notice in BUFFER and in all of the buffers for
+  "Echo a private notice in BUFFER and in all of the buffers for
 which SENDER is a member.  This function is designed to be added
 to either `erc-echo-notice-hook' or
 `erc-echo-notice-always-hook', and returns non-nil if there is
@@ -4550,7 +4572,7 @@ See also: `erc-echo-notice-in-user-buffers',
       nil)))
 
 (defun erc-echo-notice-in-first-user-buffer (s parsed _buffer sender)
-  "Echos a private notice in one of the buffers for which SENDER
+  "Echo a private notice in one of the buffers for which SENDER
 is a member.  This function is designed to be added to either
 `erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
 returns non-nil if there is at least one buffer for which the
@@ -5011,10 +5033,11 @@ See also: `erc-update-user'."
 
 (defun erc-update-user (user &optional new-nick
                              host login full-name info)
-  "Update user info for USER.  USER must be an erc-server-user
-struct.  Any of NEW-NICK, HOST, LOGIN, FULL-NAME, INFO which are
-non-nil and not equal to the existing values for USER are used to
-replace the stored values in USER.
+  "Update user info for USER.
+USER must be an erc-server-user struct.  Any of NEW-NICK, HOST,
+LOGIN, FULL-NAME, INFO which are non-nil and not equal to the
+existing values for USER are used to replace the stored values in
+USER.
 
 If, and only if, a change is made,
 `erc-channel-members-changed-hook' is run for each channel for
@@ -5551,9 +5574,9 @@ submitted line to be intentional."
   string insertp sendp)
 
 (defun erc-send-input (input)
-  "Treat INPUT as typed in by the user.  It is assumed that the input
-and the prompt is already deleted.
-This returns non-nil only if we actually send anything."
+  "Treat INPUT as typed in by the user.
+It is assumed that the input and the prompt is already deleted.
+Return non-nil only if we actually send anything."
   ;; Handle different kinds of inputs
   (cond
    ;; Ignore empty input
@@ -5587,7 +5610,9 @@ This returns non-nil only if we actually send anything."
       (when (and (erc-input-sendp state)
 		 erc-send-this)
 	(let ((string (erc-input-string state)))
-          (if (or (string-search "\n" string)
+          (if (or (if (>= emacs-major-version 28)
+                      (string-search "\n" string)
+                    (string-match "\n" string))
                   (not (string-match erc-command-regexp string)))
               (mapc
                (lambda (line)
@@ -6528,13 +6553,21 @@ if `erc-away' is non-nil."
                                   (fill-region (point-min) (point-max))
                                   (buffer-string))))
                  (setq header-line-format
-                       (string-replace
-                        "%"
-                        "%%"
-                        (if face
-                            (propertize header 'help-echo help-echo
-                                        'face face)
-                          (propertize header 'help-echo help-echo))))))
+                       (if (>= emacs-major-version 28)
+                           (string-replace
+                            "%"
+                            "%%"
+                            (if face
+                                (propertize header 'help-echo help-echo
+                                            'face face)
+                              (propertize header 'help-echo help-echo)))
+                         (replace-regexp-in-string
+                          "%"
+                          "%%"
+                          (if face
+                              (propertize header 'help-echo help-echo
+                                          'face face)
+                            (propertize header 'help-echo help-echo)))))))
               (t (setq header-line-format
                        (if face
                            (propertize header 'face face)
@@ -6804,7 +6837,9 @@ functions."
               nick user host channel
               (if (not (string= reason ""))
                   (format ": %s"
-                          (string-replace "%" "%%" reason))
+                          (if (>= emacs-major-version 28)
+                              (string-replace "%" "%%" reason)
+                            (replace-regexp-in-string "%" "%%" reason)))
                 "")))))
 
 

@@ -83,7 +83,7 @@ from Isearch by using a key sequence like `C-s C-s M-%'." "24.3")
 (defcustom query-replace-from-to-separator " → "
   "String that separates FROM and TO in the history of replacement pairs.
 When nil, the pair will not be added to the history (same behavior
-as in emacs 24.5)."
+as in Emacs 24.5)."
   :group 'matching
   :type '(choice
           (const :tag "Disabled" nil)
@@ -796,7 +796,7 @@ of `history-length', which see.")
   "Overlays used to temporarily highlight occur matches.")
 
 (defvar occur-collect-regexp-history '("\\1")
-  "History of regexp for occur's collect operation")
+  "History of regexp for occur's collect operation.")
 
 (defcustom read-regexp-defaults-function nil
   "Function that provides default regexp(s) for `read-regexp'.
@@ -1760,7 +1760,7 @@ If REGEXP contains upper case characters (excluding those preceded by `\\')
 and `search-upper-case' is non-nil, the matching is case-sensitive.
 
 When NLINES is a string or when the function is called
-interactively with prefix argument without a number (`C-u' alone
+interactively with prefix argument without a number (\\[universal-argument] alone
 as prefix) the matching strings are collected into the `*Occur*'
 buffer by using NLINES as a replacement regexp.  NLINES may
 contain \\& and \\N which convention follows `replace-match'.
@@ -2366,6 +2366,36 @@ See also `multi-occur'."
 	     (list out-line)))
      ;; And the second element is the list of context after-lines.
      (if (> nlines 0) after-lines))))
+
+(defun occur-word-at-mouse (event)
+  "Display an occur buffer for the word at EVENT."
+  (interactive "e")
+  (let ((word (thing-at-mouse event 'word t)))
+    (occur (concat "\\<" (regexp-quote word) "\\>"))))
+
+(defun occur-symbol-at-mouse (event)
+  "Display an occur buffer for the symbol at EVENT."
+  (interactive "e")
+  (let ((symbol (thing-at-mouse event 'symbol t)))
+    (occur (concat "\\_<" (regexp-quote symbol) "\\_>"))))
+
+(defun occur-context-menu (menu click)
+  "Populate MENU with occur commands at CLICK.
+To be added to `context-menu-functions'."
+  (let ((word (thing-at-mouse click 'word))
+        (sym (thing-at-mouse click 'symbol)))
+    (when (or word sym)
+      (define-key-after menu [occur-separator] menu-bar-separator
+        'middle-separator)
+      (when sym
+        (define-key-after menu [occur-symbol-at-mouse]
+          '(menu-item "Occur Symbol" occur-symbol-at-mouse)
+          'occur-separator))
+      (when word
+        (define-key-after menu [occur-word-at-mouse]
+          '(menu-item "Occur Word" occur-word-at-mouse)
+          'occur-separator))))
+  menu)
 
 
 ;; It would be nice to use \\[...], but there is no reasonable way

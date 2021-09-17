@@ -31,13 +31,13 @@
 ;; a file with the same name in a later load-path directory.  When
 ;; this is unintentional, it may result in problems that could have
 ;; been easily avoided.  This occurs often (to me) when installing a
-;; new version of emacs and something in the site-lisp directory
-;; has been updated and added to the emacs distribution.  The old
-;; version, now outdated, shadows the new one. This is obviously
+;; new version of Emacs and something in the site-lisp directory
+;; has been updated and added to the Emacs distribution.  The old
+;; version, now outdated, shadows the new one.  This is obviously
 ;; undesirable.
 ;;
 ;; The `list-load-path-shadows' function was run when you installed
-;; this version of emacs. To run it by hand in emacs:
+;; this version of Emacs.  To run it by hand in emacs:
 ;;
 ;;     M-x list-load-path-shadows
 ;;
@@ -181,7 +181,7 @@ See the documentation for `list-load-path-shadows' for further information."
   "Keywords to highlight in `load-path-shadows-mode'.")
 
 (define-derived-mode load-path-shadows-mode fundamental-mode "LP-Shadows"
-  "Major mode for load-path shadows buffer."
+  "Major mode for `load-path' shadows buffer."
   (setq-local font-lock-defaults
               '((load-path-shadows-font-lock-keywords)))
   (setq buffer-undo-list t

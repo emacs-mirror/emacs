@@ -156,7 +156,7 @@
   :group 'log-view)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
-  "Log-View Display Menu"
+  "Log-View Display Menu."
   '("Log-View"
     ;; XXX Do we need menu entries for these?
     ;; ["Quit"  quit-window]

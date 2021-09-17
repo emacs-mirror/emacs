@@ -1569,8 +1569,8 @@ Set this variable before loading BibTeX mode."
     km)
   "Keymap used in BibTeX mode.")
 
-(easy-menu-define
-  bibtex-edit-menu bibtex-mode-map "BibTeX-Edit Menu in BibTeX mode"
+(easy-menu-define bibtex-edit-menu bibtex-mode-map
+  "BibTeX-Edit Menu in BibTeX mode."
   '("BibTeX-Edit"
     ("Moving inside an Entry"
      ["End of Field" bibtex-find-text t]

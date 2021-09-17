@@ -400,7 +400,7 @@ applicable."
      ,(regexp-opt '("@debbugs.gnu.org" "-devel@gnu.org"
                     ;; List-Id of Gnus devel mailing list.
                     "ding.gnus.org"))
-     "\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
+     "\\([Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in mail modes.
 
@@ -531,7 +531,7 @@ From, and Cc against HEADER-REGEXP in
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
                                 "erc") 'words))
      "Libera.Chat"
-     "\\([Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)"
+     "\\([Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in IRC modes.
 
@@ -651,7 +651,7 @@ guesswork is based on these variables:
   "Enable `bug-reference-mode' and force auto-setup.
 Enabling `bug-reference-mode' runs its auto-setup only if
 `bug-reference-bug-regexp' and `bug-reference-url-format' are not
-set already.  This function sets the latter to `nil'
+set already.  This function sets the latter to nil
 buffer-locally, so that the auto-setup will always run.
 
 This is mostly intended for MUA modes like `rmail-mode' where the

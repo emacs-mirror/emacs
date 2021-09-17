@@ -178,7 +178,7 @@
 ;;    Inserts a completion at point
 ;;
 ;;  completion-initialize
-;;    Loads the completions file and sets up so that exiting emacs will
+;;    Loads the completions file and sets up so that exiting Emacs will
 ;;  save them.
 ;;
 ;;  save-completions-to-file &optional filename
@@ -207,7 +207,7 @@
 ;;   Add package prefix smarts (for Common Lisp)
 ;;   Add autoprompting of possible completions after every keystroke (fast
 ;;      terminals only !)
-;;   Add doc. to texinfo
+;;   Add documentation to texinfo
 ;;
 ;;
 ;;-----------------------------------------------

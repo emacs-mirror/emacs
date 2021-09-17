@@ -19,6 +19,8 @@
 
 ;;; Commentary:
 
+;;; Code:
+
 (defvar calc-arithmetic-menu
   (list "Arithmetic"
         (list "Basic"

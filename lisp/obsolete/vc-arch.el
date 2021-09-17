@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; The home page of the Arch version control system is at
+;; The Arch version control system website is at
 ;;
 ;;      https://www.gnu.org/software/gnu-arch/
 ;;

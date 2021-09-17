@@ -288,7 +288,7 @@ quoted for Tcl."
     ["Tcl help" tcl-help-on-word tcl-help-directory-list]))
 
 (defvar inferior-tcl-buffer nil
-  "The current inferior-tcl process buffer.
+  "The current `inferior-tcl' process buffer.
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================

@@ -39,7 +39,7 @@
    )
   "A symref tool implementation using grep.
 This tool uses EDE to find the root of the project, then executes
-find-grep in the project.  The output is parsed for hits and
+`find-grep' in the project.  The output is parsed for hits and
 those hits returned.")
 
 (defvar semantic-symref-filepattern-alist
@@ -87,7 +87,7 @@ Optional argument MODE specifies the `major-mode' to test."
         (if (null (cdr pat))
             args
           `("(" ,@args
-            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) pat)
+            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) (cdr pat))
             ")"))))))
 
 (defvar semantic-symref-grep-flags)
@@ -150,15 +150,8 @@ This shell should support pipe redirect syntax."
                            "-l ")
                           ((eq (oref tool searchtype) 'regexp)
                            "-nE ")
-                          (t "-n ")))
-         (greppat (cond ((eq (oref tool searchtype) 'regexp)
-                         (oref tool searchfor))
-                        (t
-                         ;; Can't use the word boundaries: Grep
-                         ;; doesn't always agree with the language
-                         ;; syntax on those.
-                         (format "\\(^\\|\\W\\)%s\\(\\W\\|$\\)"
-                                 (oref tool searchfor)))))
+                          (t "-nw ")))
+         (greppat (oref tool searchfor))
 	 ;; Misc
 	 (b (get-buffer-create "*Semantic SymRef*"))
 	 (ans nil)

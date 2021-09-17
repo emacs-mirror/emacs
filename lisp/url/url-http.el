@@ -1451,8 +1451,8 @@ The return value of this function is the retrieval buffer."
                (error "gnutls-error: %s" e))
               (error
                (url-http-activate-callback)
-               (error "error: %s" e)))
-          (error "error: gnutls support needed!")))
+               (error "Error: %s" e)))
+          (error "Error: gnutls support needed!")))
        (t
         (url-http-debug "error response: %d" url-http-response-status)
         (url-http-activate-callback))))))

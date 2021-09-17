@@ -97,7 +97,7 @@ into help buttons that call `describe-text-category' or
 ;;; Describe-Text Commands.
 
 (defun describe-text-category (category)
-  "Describe a text property category."
+  "Describe a text property CATEGORY."
   (interactive "SCategory: ")
   (help-setup-xref (list #'describe-text-category category)
 		   (called-interactively-p 'interactive))

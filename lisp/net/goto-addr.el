@@ -124,8 +124,9 @@ will have no effect.")
     m)
   "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
-(defun goto-address-context-menu (menu)
-  (when (mouse-posn-property (event-start last-input-event) 'goto-address)
+(defun goto-address-context-menu (menu click)
+  "Populate MENU with `goto-address' commands at CLICK."
+  (when (mouse-posn-property (event-start click) 'goto-address)
     (define-key menu [goto-address-separator] menu-bar-separator)
     (define-key menu [goto-address-at-mouse]
       '(menu-item "Follow Link" goto-address-at-mouse

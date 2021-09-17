@@ -950,15 +950,22 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
   (unless (string= string "") ;; Ignore empty strings
     (save-match-data
       (let* ((tag-list (when (eq (aref string 0) ?@)
-                         (substring string 1 (string-search " " string))))
+                         (substring string 1
+                                    (if (>= emacs-major-version 28)
+                                        (string-search " " string)
+                                      (string-match " " string)))))
              (msg (make-erc-response :unparsed string :tags (when tag-list
                                                               (erc-parse-tags
                                                                tag-list))))
              (string (if tag-list
-                         (substring string (+ 1 (string-search " " string)))
+                         (substring string (+ 1 (if (>= emacs-major-version 28)
+                                                    (string-search " " string)
+                                                  (string-match " " string))))
                        string))
              (posn (if (eq (aref string 0) ?:)
-                       (string-search " " string)
+                       (if (>= emacs-major-version 28)
+                           (string-search " " string)
+                         (string-match " " string))
                      0)))
 
         (setf (erc-response.sender msg)
@@ -968,7 +975,9 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
 
         (setf (erc-response.command msg)
               (let* ((bposn (string-match "[^ \n]" string posn))
-                     (eposn (string-search " " string bposn)))
+                     (eposn (if (>= emacs-major-version 28)
+                                (string-search " " string bposn)
+                              (string-match " " string bposn))))
                 (setq posn (and eposn
                                 (string-match "[^ \n]" string eposn)))
                 (substring string bposn eposn)))
@@ -976,7 +985,9 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
         (while (and posn
                     (not (eq (aref string posn) ?:)))
           (push (let* ((bposn posn)
-                       (eposn (string-search " " string bposn)))
+                       (eposn (if (>= emacs-major-version 28)
+                                  (string-search " " string bposn)
+                                (string-match " " string bposn))))
                   (setq posn (and eposn
                                   (string-match "[^ \n]" string eposn)))
                   (substring string bposn eposn))

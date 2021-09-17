@@ -390,7 +390,7 @@ Include the reason for debugger entry from ARGS."
         (`(set ,buffer) (format "setting %s in buffer %s to %s"
                                 symbol buffer
                                 (backtrace-print-to-string newval)))
-        (_ (error "unrecognized watchpoint triggered %S" (cdr args))))
+        (_ (error "Unrecognized watchpoint triggered %S" (cdr args))))
       ": ")
      (insert ?\n))
     ;; Debugger entered for an error.

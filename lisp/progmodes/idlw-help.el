@@ -37,10 +37,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
 ;;; Code:
-(defvar idlwave-help-browse-url-available t
-  "Whether browse-url is available.")
 
 (require 'browse-url)
 
@@ -221,9 +218,8 @@ support."
 
 ;; Define the menu for the Help application
 
-(easy-menu-define
-  idlwave-help-menu idlwave-help-mode-map
-  "Menu for Help IDLWAVE system"
+(easy-menu-define idlwave-help-menu idlwave-help-mode-map
+  "Menu for Help IDLWAVE system."
   '("IDLHelp"
     ["Definition <-> Help Text" idlwave-help-toggle-header-match-and-def t]
     ["Find DocLib Header" idlwave-help-find-header t]
@@ -332,9 +328,7 @@ Here are all keybindings.
     (when (and idlwave-help-use-assistant
 	       (not (eq (idlwave-help-assistant-available) t)))
       (message "Cannot locate IDL Assistant, enabling default browser.")
-      (setq idlwave-help-use-assistant nil)
-      (unless idlwave-help-browse-url-available
-	(error "browse-url is not available; install it or IDL Assistant to use HTML help")))))
+      (setq idlwave-help-use-assistant nil))))
 
 
 (defvar idlwave-current-obj_new-class)
@@ -1354,6 +1348,8 @@ IDL assistant.")
     (setq idlwave-help-assistant-socket nil
 	  idlwave-help-assistant-process nil)))
 
+(defvar idlwave-help-browse-url-available t)
+(make-obsolete-variable 'idlwave-help-browse-url-available nil "28.1")
 
 (provide 'idlw-help)
 (provide 'idlwave-help)

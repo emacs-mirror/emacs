@@ -27,7 +27,7 @@
 ;;
 ;; With the following setup, the keypad can be used for numeric data
 ;; entry when NumLock is off, and to give numeric prefix arguments to
-;; emacs commands, when NumLock is on.
+;; Emacs commands, when NumLock is on.
 ;;
 ;;  keypad-setup         => Plain Numeric Keypad
 ;;  keypad-numlock-setup => Prefix numeric args
@@ -203,7 +203,7 @@ keys are bound.
  `S-cursor' Bind shifted keypad keys to the shifted cursor movement keys.
  `cursor'   Bind keypad keys to the cursor movement keys.
  `numeric'  Plain numeric keypad, i.e. 0 .. 9 and .  (or DECIMAL arg)
- `none'     Removes all bindings for keypad keys in function-key-map;
+ `none'     Removes all bindings for keypad keys in `function-key-map';
             this enables any user-defined bindings for the keypad keys
             in the global and local keymaps.
 

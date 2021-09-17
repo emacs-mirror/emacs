@@ -47,7 +47,7 @@
 ;;         explanation of the two nil placeholders in such elements.
 ;;
 ;;         There is API for extracting the components of the members of the
-;;         above list. Search for `API for ediff-meta-list' for details.
+;;         above list.  Search for `API for ediff-meta-list' for details.
 ;;
 ;;	   HEADER must be a list of SIX elements (nil or string):
 ;;             (regexp metaobj1 metaobj2 metaobj3 merge-save-buffer
@@ -157,8 +157,7 @@ Useful commands (type ? to hide them and free up screen):
     (define-key map [delete] #'previous-line)
     (define-key map [backspace] #'previous-line)
     map)
-  "The keymap to be installed in the buffer showing differences between
-directories.")
+  "Keymap for buffer showing differences between directories.")
 
 ;; Variable specifying the action to take when the use invokes ediff in the
 ;; meta buffer.  This is usually ediff-registry-action or ediff-filegroup-action
@@ -611,22 +610,22 @@ behavior."
     (if (ediff-nonempty-string-p merge-autostore-dir)
 	(setq merge-autostore-dir
 	      (file-name-as-directory merge-autostore-dir)))
-    (setq common (ediff-intersection lis1 lis2 #'string=))
+    (setq common (seq-intersection lis1 lis2 #'string=))
 
     ;; In merge with ancestor jobs, we don't intersect with lis3.
     ;; If there is no ancestor, we'll offer to merge without the ancestor.
     ;; So, we intersect with lis3 only when we are doing 3-way file comparison
     (if (and lis3 (ediff-comparison-metajob3 jobname))
-	(setq common (ediff-intersection common lis3 #'string=)))
+        (setq common (seq-intersection common lis3 #'string=)))
 
     ;; copying is needed because sort sorts via side effects
     (setq common (sort (copy-sequence common) #'string-lessp))
 
     ;; compute difference list
-    (setq difflist (ediff-set-difference
-		    (ediff-union (ediff-union lis1 lis2 #'string=)
-				 lis3
-				 #'string=)
+    (setq difflist (seq-difference
+                    (seq-union (seq-union lis1 lis2 #'string=)
+                               lis3
+                               #'string=)
 		    common
 		    #'string=)
 	  difflist (delete "."  difflist)

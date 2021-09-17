@@ -1427,23 +1427,23 @@ localized, they cannot be made global again.
 This variable must be set appropriately before CC Mode is loaded.
 
 The list of variables to buffer localize are:
-    c-basic-offset
-    c-comment-only-line-offset
-    c-indent-comment-alist
-    c-indent-comments-syntactically-p
-    c-block-comment-prefix
-    c-comment-prefix-regexp
-    c-doc-comment-style
-    c-cleanup-list
-    c-hanging-braces-alist
-    c-hanging-colons-alist
-    c-hanging-semi&comma-criteria
-    c-backslash-column
-    c-backslash-max-column
-    c-label-minimum-indentation
-    c-offsets-alist
-    c-special-indent-hook
-    c-indentation-style"
+    `c-basic-offset'
+    `c-comment-only-line-offset'
+    `c-indent-comment-alist'
+    `c-indent-comments-syntactically-p'
+    `c-block-comment-prefix'
+    `c-comment-prefix-regexp'
+    `c-doc-comment-style'
+    `c-cleanup-list'
+    `c-hanging-braces-alist'
+    `c-hanging-colons-alist'
+    `c-hanging-semi&comma-criteria'
+    `c-backslash-column'
+    `c-backslash-max-column'
+    `c-label-minimum-indentation'
+    `c-offsets-alist'
+    `c-special-indent-hook'
+    `c-indentation-style'"
   :type 'boolean
   :safe 'booleanp
   :group 'c)
@@ -1864,13 +1864,13 @@ Set from `c-comment-prefix-regexp' at mode initialization.")
 (defvar c-string-par-start
 ;;   (concat "\\(" (default-value 'paragraph-start) "\\)\\|[ \t]*\\\\$")
   "\f\\|[ \t]*\\\\?$"
-  "Value of paragraph-start used when scanning strings.
+  "Value of `paragraph-start' used when scanning strings.
 It treats escaped EOLs as whitespace.")
 
 (defvar c-string-par-separate
   ;; (concat "\\(" (default-value 'paragraph-separate) "\\)\\|[ \t]*\\\\$")
   "[ \t\f]*\\\\?$"
-  "Value of paragraph-separate used when scanning strings.
+  "Value of `paragraph-separate' used when scanning strings.
 It treats escaped EOLs as whitespace.")
 
 (defvar c-sentence-end-with-esc-eol
@@ -1878,7 +1878,7 @@ It treats escaped EOLs as whitespace.")
 		;; N.B.:  "$" would be illegal when not enclosed like "\\($\\)".
 		"\\|" "[.?!][]\"')}]* ?\\\\\\($\\)[ \t\n]*"
 		"\\)")
-  "Value used like sentence-end used when scanning strings.
+  "Value used like `sentence-end' used when scanning strings.
 It treats escaped EOLs as whitespace.")
 
 

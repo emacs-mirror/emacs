@@ -315,7 +315,7 @@ Default action as described in `semanticdb-find-translate-path'."
 
 ;;;###autoload
 (define-overloadable-function semanticdb-find-table-for-include (includetag &optional table)
-  "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
+  "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object.
 INCLUDETAG is a semantic TAG of class `include'.
 TABLE is a semanticdb table that identifies where INCLUDETAG came from.
 TABLE is optional if INCLUDETAG has an overlay of :filename attribute."

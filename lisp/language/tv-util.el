@@ -21,12 +21,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Code
+;;; Code:
 
-;; Regexp matching with a sequence of Tai Viet characters.
-(defconst tai-viet-re "[\xaa80-\xaac2\xaadb-\xaadf]+")
+(defconst tai-viet-re "[\xaa80-\xaac2\xaadb-\xaadf]+"
+  "Regexp matching with a sequence of Tai Viet characters.")
 
-;; Char-table of information about glyph type of Tai Viet characters.
 (defconst tai-viet-glyph-info
   (let ((table (make-char-table nil))
 	(specials '((right-overhang . "ꪊꪋꪌꪍꪏꪓꪖꪜꪞꪡꪤꪨ")
@@ -43,7 +42,8 @@
 	    (chars (cdr elt)))
 	(dotimes (i (length chars))
 	  (aset table (aref chars i) category))))
-    table))
+    table)
+  "Char-table of information about glyph type of Tai Viet characters.")
 
 (defun tai-viet-compose-string (from to string)
   "Compose Tai Viet characters in STRING between indices FROM and TO."

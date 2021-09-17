@@ -350,7 +350,7 @@ and also to be turned into Info files with \\[makeinfo-buffer] or
 the `makeinfo' program.  These files must be written in a very restricted and
 modified version of TeX input format.
 
-  Editing commands are like text-mode except that the syntax table is
+  Editing commands are like `text-mode' except that the syntax table is
 set up so expression commands skip Texinfo bracket groups.  To see
 what the Info version of a region of the Texinfo file will look like,
 use \\[makeinfo-region], which runs `makeinfo' on the current region.
@@ -378,15 +378,15 @@ updating menus and node pointers.  These functions
 
 Here are the functions:
 
-    texinfo-update-node                \\[texinfo-update-node]
-    texinfo-every-node-update          \\[texinfo-every-node-update]
-    texinfo-sequential-node-update
+    `texinfo-update-node'                \\[texinfo-update-node]
+    `texinfo-every-node-update'          \\[texinfo-every-node-update]
+    `texinfo-sequential-node-update'
 
-    texinfo-make-menu                  \\[texinfo-make-menu]
-    texinfo-all-menus-update           \\[texinfo-all-menus-update]
-    texinfo-master-menu
+    `texinfo-make-menu'                  \\[texinfo-make-menu]
+    `texinfo-all-menus-update'           \\[texinfo-all-menus-update]
+    `texinfo-master-menu'
 
-    texinfo-indent-menu-description (column &optional region-p)
+    `texinfo-indent-menu-description' (column &optional region-p)
 
 The `texinfo-column-for-description' variable specifies the column to
 which menu descriptions are indented.

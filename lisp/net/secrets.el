@@ -159,7 +159,7 @@
   "Whether there is a daemon offering the Secret Service API.")
 
 (defvar secrets-debug nil
-  "Write debug messages")
+  "Write debug messages.")
 
 (defconst secrets-service "org.freedesktop.secrets"
   "The D-Bus name used to talk to Secret Service.")

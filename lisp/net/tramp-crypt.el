@@ -517,7 +517,7 @@ kept in their encrypted form."
 	      tramp-crypt-encfs-config
 	      (directory-files name nil directory-files-no-dot-files-regexp))
 	     (yes-or-no-p
-	      "There exist encrypted files, do you want to continue? "))
+	      "There exist encrypted files, do you want to continue?"))
     (setq tramp-crypt-directories (delete name tramp-crypt-directories))
     (tramp-register-file-name-handlers)))
 

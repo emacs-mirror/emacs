@@ -328,7 +328,7 @@ Tab indents for C code.
 Comments start with -- and end with newline or another --.
 Delete converts tabs to spaces as it moves back.
 \\{snmp-mode-map}
-Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
+Turning on `snmp-mode' runs the hooks in `snmp-common-mode-hook', then
 `snmp-mode-hook'."
   (interactive)
 
@@ -361,7 +361,7 @@ Tab indents for C code.
 Comments start with -- and end with newline or another --.
 Delete converts tabs to spaces as it moves back.
 \\{snmp-mode-map}
-Turning on snmp-mode runs the hooks in `snmp-common-mode-hook',
+Turning on `snmp-mode' runs the hooks in `snmp-common-mode-hook',
 then `snmpv2-mode-hook'."
   (interactive)
 

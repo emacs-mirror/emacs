@@ -169,9 +169,8 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
 
 (defcustom erc-use-auth-source-for-nickserv-password nil
   "Query auth-source for a password when identifiying to NickServ.
-This option has an no effect if `erc-prompt-for-nickserv-password'
-is non-nil, and passwords from `erc-nickserv-passwords' take
-precedence."
+Passwords from `erc-nickserv-passwords' take precedence.  See
+function `erc-nickserv-get-password'."
   :version "28.1"
   :type 'boolean)
 
@@ -405,85 +404,114 @@ password for this nickname, otherwise try to send it automatically."
 		 identify-regex
 		 (string-match identify-regex msg))
 	(erc-log "NickServ IDENTIFY request detected")
-	(erc-nickserv-call-identify-function nick)
+        (erc-nickserv-identify nil nick)
 	nil))))
 
 (defun erc-nickserv-identify-on-connect (_server nick)
   "Identify to Nickserv after the connection to the server is established."
-  (unless (or (and (null erc-nickserv-passwords)
-                   (null erc-prompt-for-nickserv-password)
-                   (null erc-use-auth-source-for-nickserv-password))
-              (and (eq erc-nickserv-identify-mode 'both)
-                   (erc-nickserv-alist-regexp (erc-network))))
-    (erc-nickserv-call-identify-function nick)))
+  (unless (and (eq erc-nickserv-identify-mode 'both)
+               (erc-nickserv-alist-regexp (erc-network)))
+    (erc-nickserv-identify nil nick)))
 
 (defun erc-nickserv-identify-on-nick-change (nick _old-nick)
   "Identify to Nickserv whenever your nick changes."
-  (unless (or (and (null erc-nickserv-passwords)
-                   (null erc-prompt-for-nickserv-password)
-                   (null erc-use-auth-source-for-nickserv-password))
-              (and (eq erc-nickserv-identify-mode 'both)
-                   (erc-nickserv-alist-regexp (erc-network))))
-    (erc-nickserv-call-identify-function nick)))
+  (unless (and (eq erc-nickserv-identify-mode 'both)
+               (erc-nickserv-alist-regexp (erc-network)))
+    (erc-nickserv-identify nil nick)))
 
-(defun erc-nickserv-get-password (nickname)
-  "Return the password for NICKNAME from configured sources.
+(defun erc-nickserv-get-password (nick)
+  "Return the password for NICK from configured sources.
+First, a password for NICK is looked up in
+`erc-nickserv-passwords'.  Then, it is looked up in auth-source
+if `erc-use-auth-source-for-nickserv-password' is not nil.
+Finally, interactively prompt the user, if
+`erc-prompt-for-nickserv-password' is true.
 
-It uses `erc-nickserv-passwords' and additionally auth-source
-when `erc-use-auth-source-for-nickserv-password' is not nil."
-  (or
-   (when erc-nickserv-passwords
-     (cdr (assoc nickname
-                 (nth 1 (assoc (erc-network)
-                               erc-nickserv-passwords)))))
-   (when erc-use-auth-source-for-nickserv-password
-     (let* ((secret (nth 0 (auth-source-search
-                            :max 1 :require '(:secret)
-                            :host (erc-with-server-buffer erc-session-server)
-                            :port (format ; ensure we have a string
-                                   "%s" (erc-with-server-buffer erc-session-port))
-                            :user nickname))))
-       (when secret
-         (let ((passwd (plist-get secret :secret)))
-           (if (functionp passwd) (funcall passwd) passwd)))))))
-
-(defun erc-nickserv-call-identify-function (nickname)
-  "Call `erc-nickserv-identify'.
-Either call it interactively or run it with NICKNAME's password,
-depending on the value of `erc-prompt-for-nickserv-password'."
-  (if erc-prompt-for-nickserv-password
-      (call-interactively 'erc-nickserv-identify)
-    (erc-nickserv-identify (erc-nickserv-get-password nickname))))
+As soon as some source returns a password, the sequence of
+lookups stops and this function returns it (or returns nil if it
+is empty).  Otherwise, no corresponding password was found, and
+it returns nil."
+  (let (network server port)
+    ;; Fill in local vars, switching to the server buffer once only
+    (erc-with-server-buffer
+     (setq network erc-network
+           server erc-session-server
+           port erc-session-port))
+    (let ((ret
+           (or
+            (when erc-nickserv-passwords
+              (cdr (assoc nick
+                          (cl-second (assoc network
+                                            erc-nickserv-passwords)))))
+            (when erc-use-auth-source-for-nickserv-password
+              (let ((secret (cl-first (auth-source-search
+                                       :max 1 :require '(:secret)
+                                       :host server
+                                       ;; Ensure a string for :port
+                                       :port (format "%s" port)
+                                       :user nick))))
+                (when secret
+                  (let ((passwd (plist-get secret :secret)))
+                    (if (functionp passwd) (funcall passwd) passwd)))))
+            (when erc-prompt-for-nickserv-password
+              (read-passwd
+               (format "NickServ password for %s on %s (RET to cancel): "
+                       nick network))))))
+      (when (and ret (not (string= ret "")))
+        ret))))
 
 (defvar erc-auto-discard-away)
 
-;;;###autoload
-(defun erc-nickserv-identify (password)
+(defun erc-nickserv-send-identify (nick password)
   "Send an \"identify <PASSWORD>\" message to NickServ.
-When called interactively, read the password using `read-passwd'."
+Returns t if the message could be sent, nil otherwise."
+  (let* ((erc-auto-discard-away nil)
+         (network (erc-network))
+         (nickserv-info (assoc network erc-nickserv-alist))
+         (nickserv (or (erc-nickserv-alist-nickserv nil nickserv-info)
+                       "NickServ"))
+         (identify-word (or (erc-nickserv-alist-ident-keyword
+                             nil nickserv-info)
+                            "IDENTIFY"))
+         (nick (if (erc-nickserv-alist-use-nick-p nil nickserv-info)
+                   (concat nick " ")
+                 ""))
+         (msgtype (or (erc-nickserv-alist-ident-command nil nickserv-info)
+                      "PRIVMSG")))
+    (erc-message msgtype
+                 (concat nickserv " " identify-word " " nick password))))
+
+(defun erc-nickserv-call-identify-function (nickname)
+  "Call `erc-nickserv-identify' with NICKNAME."
+  (declare (obsolete erc-nickserv-identify "28.1"))
+  (erc-nickserv-identify nil nickname))
+
+;;;###autoload
+(defun erc-nickserv-identify (&optional password nick)
+  "Identify to NickServ immediately.
+Identification will either use NICK or the current nick if not
+provided, and some password obtained through
+`erc-nickserv-get-password' (which see).  If no password can be
+found, an error is reported trough `erc-error'.
+
+Interactively, the user will be prompted for NICK, an empty
+string meaning to default to the current nick.
+
+Returns t if the identify message could be sent, nil otherwise."
   (interactive
-   (list (read-passwd
-	  (format "NickServ password for %s on %s (RET to cancel): "
-		  (erc-current-nick)
-		  (or (and (erc-network)
-			   (symbol-name (erc-network)))
-		      "Unknown network")))))
-  (when (and password (not (string= "" password)))
-    (let* ((erc-auto-discard-away nil)
-	   (network (erc-network))
-	   (nickserv-info (assoc network erc-nickserv-alist))
-	   (nickserv (or (erc-nickserv-alist-nickserv nil nickserv-info)
-			 "NickServ"))
-	   (identify-word (or (erc-nickserv-alist-ident-keyword
-			       nil nickserv-info)
-			      "IDENTIFY"))
-	   (nick (if (erc-nickserv-alist-use-nick-p nil nickserv-info)
-		     (concat (erc-current-nick) " ")
-		   ""))
-	   (msgtype (or (erc-nickserv-alist-ident-command nil nickserv-info)
-			"PRIVMSG")))
-      (erc-message msgtype
-		   (concat nickserv " " identify-word " " nick password)))))
+   (list
+    nil
+    (read-from-minibuffer "Nickname: " nil nil nil
+                          'erc-nick-history-list (erc-current-nick))))
+  (unless (and nick (not (string= nick "")))
+    (setq nick (erc-current-nick)))
+  (unless password
+    (setq password (erc-nickserv-get-password nick)))
+  (if password
+      (erc-nickserv-send-identify nick password)
+    (erc-error "Cannot find a password for nickname %s"
+               nick)
+    nil))
 
 (provide 'erc-services)
 

@@ -130,7 +130,7 @@ other meta-variable based on this name.")
 (defclass project-am-program (project-am-objectcode)
   ((ldadd :initarg :ldadd :documentation "Additional LD args."
 	  :initform nil))
-  "A top level program to build")
+  "A top level program to build.")
 
 (defclass project-am-header (project-am-target)
   ()
@@ -154,7 +154,7 @@ other meta-variable based on this name.")
 
 (defclass project-am-lib (project-am-objectcode)
   nil
-  "A top level library to build")
+  "A top level library to build.")
 
 (defclass project-am-lisp (project-am-target)
   ()
@@ -705,7 +705,7 @@ Strip out duplicates, and recurse on variables."
   (oset this source (makefile-macro-file-list (project-am-macro this))))
 
 (cl-defmethod project-rescan ((this project-am-lisp))
-  "Rescan the lisp sources."
+  "Rescan the Lisp sources."
   (oset this source (makefile-macro-file-list (project-am-macro this))))
 
 (cl-defmethod project-rescan ((this project-am-header))

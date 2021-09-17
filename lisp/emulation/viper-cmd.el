@@ -91,7 +91,7 @@
 				     space return
 				     delete backspace
 				     )
-				     "Movement commands")
+                                     "Movement commands.")
 ;; define viper-movement-command-p
 (viper-test-com-defun viper-movement-command)
 
@@ -487,7 +487,7 @@
   (viper-change-state-to-vi))
 
 (defun viper-set-mode-vars-for (state)
-  "Sets Viper minor mode variables to put Viper's state STATE in effect."
+  "Set Viper minor mode variables to put Viper's state STATE in effect."
 
   ;; Emacs state
   (setq viper-vi-minibuffer-minor-mode	     nil
@@ -1197,7 +1197,7 @@ as a Meta key and any number of multiple escapes are allowed."
   )
 
 (defsubst viper-yank-last-insertion ()
-  "Inserts the text saved by the previous viper-save-last-insertion command."
+  "Insert the text saved by the previous viper-save-last-insertion command."
   (condition-case nil
       (insert viper-last-insertion)
     (error nil)))
@@ -1500,7 +1500,7 @@ Doesn't change viper-command-ring in any way, so `.' will work as before
 executing this command.
 This command is supposed to be bound to a two-character Vi macro where
 the second character is a digit 0 to 9.  The digit indicates which
-history command to execute. `<char>0' is equivalent to `.', `<char>1'
+history command to execute.  `<char>0' is equivalent to `.', `<char>1'
 invokes the command before that, etc."
   (interactive)
   (let* ((viper-intermediate-command 'repeating-display-destructive-command)
@@ -3838,7 +3838,7 @@ Null string will repeat previous search."
 ;; yank and pop
 
 (defsubst viper-yank (text)
-  "Yank TEXT silently.  This works correctly with Emacs's yank-pop command."
+  "Yank TEXT silently.  This works correctly with Emacs's `yank-pop' command."
     (insert text)
     (setq this-command 'yank))
 
@@ -4510,7 +4510,7 @@ One can use \\=`\\=` and \\='\\=' to temporarily jump 1 step back."
 
 
 (defun viper-set-expert-level (&optional dont-change-unless)
-  "Sets the expert level for a Viper user.
+  "Set the expert level for a Viper user.
 Can be called interactively to change (temporarily or permanently) the
 current expert level.
 

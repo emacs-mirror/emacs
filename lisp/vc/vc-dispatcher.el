@@ -104,12 +104,13 @@
 ;; will be called with the buffer file name as argument whenever the
 ;; dispatcher resyncs the buffer.
 
-;; To do:
-;;
+;;; Code:
+
+;; TODO:
 ;; - log buffers need font-locking.
-;;
 
 ;; General customization
+
 (defcustom vc-logentry-check-hook nil
   "Normal hook run by `vc-finish-logentry'.
 Use this to impose your own rules on the entry in addition to any the
@@ -662,7 +663,7 @@ contents of the log entry buffer.  If COMMENT is a string and
 INITIAL-CONTENTS is nil, do action immediately as if the user had
 entered COMMENT.  If COMMENT is t, also do action immediately with an
 empty comment.  Remember the file's buffer in `vc-parent-buffer'
-\(current one if no file).  Puts the log-entry buffer in major-mode
+\(current one if no file).  Puts the log-entry buffer in major mode
 MODE, defaulting to `log-edit-mode' if MODE is nil.
 AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'.
 BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."

@@ -252,7 +252,7 @@
 
 (defcustom calc-embedded-announce-formula
   "%Embed\n\\(% .*\n\\)*"
-  "A regular expression which is sure to be followed by a calc-embedded formula."
+  "A regular expression which is sure to be followed by a `calc-embedded' formula."
   :type '(regexp))
 
 (defcustom calc-embedded-announce-formula-alist
@@ -278,12 +278,12 @@
 
 (defcustom calc-embedded-close-formula
   "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
-  "Regexp for the closing delimiter of a formula used by calc-embedded."
+  "Regexp for the closing delimiter of a formula used by `calc-embedded'."
   :type '(regexp))
 
 (defcustom calc-embedded-open-close-formula-alist
   nil
-  "Alist of major modes with pairs of formula delimiters used by calc-embedded."
+  "Alist of major modes with pairs of formula delimiters used by `calc-embedded'."
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (list (regexp :tag "Opening formula delimiter")
                                   (regexp :tag "Closing formula delimiter"))))
@@ -348,13 +348,13 @@ See calc-embedded-open-plain."
 
 (defcustom calc-embedded-open-mode
   "% "
-  "A string which should precede calc-embedded mode annotations.
+  "A string which should precede `calc-embedded' mode annotations.
 This is not required to be present for user-written mode annotations."
   :type '(string))
 
 (defcustom calc-embedded-close-mode
   "\n"
-  "A string which should follow calc-embedded mode annotations.
+  "A string which should follow `calc-embedded' mode annotations.
 This is not required to be present for user-written mode annotations."
   :type '(string))
 
@@ -387,43 +387,35 @@ This is not required to be present for user-written mode annotations."
   :type '(string)
   :version "26.2")
 
-(defcustom calc-gnuplot-plot-command
-  nil
+(defcustom calc-gnuplot-plot-command nil
   "Name of command for displaying GNUPLOT output; %s = file name to print."
   :type '(choice (string) (sexp)))
 
-(defcustom calc-gnuplot-print-command
-  "lp %s"
+(defcustom calc-gnuplot-print-command "lp %s"
   "Name of command for printing GNUPLOT output; %s = file name to print."
   :type '(choice (string) (sexp)))
 
-(defcustom calc-multiplication-has-precedence
-  t
-  "If non-nil, multiplication has precedence over division
-in normal mode."
+(defcustom calc-multiplication-has-precedence t
+  "If non-nil, multiplication has precedence over division in normal mode."
   :type 'boolean)
 
-(defcustom calc-ensure-consistent-units
-  nil
+(defcustom calc-ensure-consistent-units nil
   "If non-nil, make sure new units are consistent with current units
 when converting units."
   :version "24.3"
   :type 'boolean)
 
-(defcustom calc-context-sensitive-enter
-  nil
+(defcustom calc-context-sensitive-enter nil
   "If non-nil, the stack element under the cursor will be copied by `calc-enter'
 and deleted by `calc-pop'."
   :version "24.4"
   :type 'boolean)
 
-(defcustom calc-undo-length
-  100
+(defcustom calc-undo-length 100
   "The number of undo steps that will be preserved when Calc is quit."
   :type 'integer)
 
-(defcustom calc-highlight-selections-with-faces
-  nil
+(defcustom calc-highlight-selections-with-faces nil
   "If non-nil, use a separate face to indicate selected sub-formulas.
 If option `calc-show-selections' is non-nil, then selected sub-formulas are
 shown by displaying the rest of the formula in `calc-nonselected-face'.
@@ -432,14 +424,12 @@ by displaying the sub-formula in `calc-selected-face'."
   :version "24.1"
   :type 'boolean)
 
-(defcustom calc-lu-field-reference
-  "20 uPa"
+(defcustom calc-lu-field-reference "20 uPa"
   "The default reference level for logarithmic units (field)."
   :version "24.1"
   :type '(string))
 
-(defcustom calc-lu-power-reference
-  "mW"
+(defcustom calc-lu-power-reference "mW"
   "The default reference level for logarithmic units (power)."
   :version "24.1"
   :type '(string))
@@ -496,7 +486,7 @@ This setting only applies to floats in normal display mode.")
   "List of strings for Y prefix help.")
 
 (defvar calc-loaded-settings-file nil
-  "t if `calc-settings-file' has been loaded yet.")
+  "Return t if `calc-settings-file' has been loaded yet.")
 
 
 (defvar calc-mode-var-list '()
@@ -961,7 +951,7 @@ Used by `calc-user-invocation'.")
 (defvar calc-lang-allow-percentsigns nil
   "A list of languages which allow percent signs in variable names.")
 (defvar calc-lang-c-type-hex nil
-  "Languages in which octal and hex numbers are written with leading 0 and 0x,")
+  "Languages in which octal and hex numbers are written with leading 0 and 0x.")
 (defvar calc-lang-brackets-are-subscripts nil
   "Languages in which subscripts are indicated by brackets.")
 (defvar calc-lang-parens-are-subscripts nil
@@ -1311,8 +1301,7 @@ Notations:  3.14e6     3.14 * 10^6
 	    <1 jan 91> Date form (enter using \\=' key)
 
 
-\\{calc-mode-map}
-"
+\\{calc-mode-map}"
   (interactive)
   (mapc (lambda (v)
           ;; FIXME: Why (set-default v (symbol-value v)) ?!?!?
@@ -1383,12 +1372,12 @@ Notations:  3.14e6     3.14 * 10^6
     map))
 
 (defun calc--header-line (long short width &optional fudge)
-  "Return a Calc header line appropriate for the buffer width.
+  "Return a Calc header line appropriate for the buffer WIDTH.
 
 LONG is a desired text for a wide window, SHORT is a desired
 abbreviated text, and width is the buffer width, which will be
 some fraction of the 'parent' window width (At the time of
-writing, 2/3 for calc, 1/3 for trail). The optional FUDGE is a
+writing, 2/3 for calc, 1/3 for trail).  The optional FUDGE is a
 trial-and-error adjustment number for the edge-cases at the
 border of the two cases."
   ;; TODO: This could be called as part of a 'window-resize' hook.
@@ -1410,7 +1399,7 @@ border of the two cases."
 This mode is used by the *Calc Trail* buffer, which records all results
 obtained by the GNU Emacs Calculator.
 
-Calculator commands beginning with the `t' key are used to manipulate
+Calculator commands beginning with the t key are used to manipulate
 the Trail.
 
 This buffer uses the same key map as the *Calculator* buffer; calculator
@@ -1501,7 +1490,7 @@ See `window-dedicated-p' for what that means."
   (calc nil t interactive))
 
 (defun calc-same-interface (arg)
-  "Invoke the Calculator using the most recent interface (calc or calc-keypad)."
+  "Invoke the Calculator using the most recent interface (`calc' or `calc-keypad')."
   (interactive "P")
   (if (and (equal (buffer-name) "*Gnuplot Trail*")
 	   (> (recursion-depth) 0))
@@ -1578,7 +1567,7 @@ or a list containing a character position and an error message in string form."
   "Invoke the Calculator in \"visual keypad\" mode.
 This is most useful in the X window system.
 In this mode, click on the Calc \"buttons\" using the left mouse button.
-Or, position the cursor manually and do M-x calc-keypad-press."
+Or, position the cursor manually and do \\[calc-keypad-press]."
   (interactive "p")
   (require 'calc-ext)
   (calc-do-keypad calc-full-mode interactive))

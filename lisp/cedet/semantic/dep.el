@@ -133,7 +133,7 @@ Changes made by this function are not persistent."
 ;;;###autoload
 (defun semantic-remove-system-include (dir &optional mode)
   "Add a system include DIR to path for MODE.
-Modifies a mode-local version of`semantic-dependency-system-include-path'.
+Modifies a mode-local version of `semantic-dependency-system-include-path'.
 
 Changes made by this function are not persistent."
   (interactive (list

@@ -86,7 +86,7 @@
         (funcall pf (and me (symbolp me) (edebug-get-spec me))))))
 
 (defun pcase--get-macroexpander (s)
-  "Return the macroexpander for pcase pattern head S, or nil"
+  "Return the macroexpander for pcase pattern head S, or nil."
   (get s 'pcase-macroexpander))
 
 ;;;###autoload

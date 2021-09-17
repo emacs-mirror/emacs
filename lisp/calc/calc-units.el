@@ -529,7 +529,7 @@ If COMP or STD is non-nil, put that in the units table instead."
   (calc-slow-wrapper
    (let* ((expr (calc-top-n 1)))
      (unless (math-units-in-expr-p expr t)
-       (error "No units in expression."))
+       (error "No units in expression"))
      (let* ((old-units (math-extract-units expr))
             (defunits (math-get-default-units expr))
             units

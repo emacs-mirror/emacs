@@ -75,7 +75,7 @@
 ;; <http://www.zip.com.au/~cs/app/wily/auug.html>.  I'd like
 ;; to incorporate some of these ideas into mouse-copy.  The only
 ;; lose is that this is not the current Emacs Way Of Doing Things, so
-;; there would be a learning curve for existing emacs users.
+;; there would be a learning curve for existing Emacs users.
 ;;
 ;;
 ;; Thanks:
@@ -110,7 +110,7 @@ The problem occurs under XFree86-3.1.1 (X11R6pl11) but not under X11R5,
 and under post-19.29 but not early versions of Emacs.
 
 19.29 and 19.30 seems to drop mouse drag events
-sometimes. (Reproducible under XFree86-3.1.1 (X11R6pl11) and
+sometimes.  (Reproducible under XFree86-3.1.1 (X11R6pl11) and
 XFree86-3.1.2 under Linux 1.2.x.  Doesn't occur under X11R5 and SunOS
 4.1.1.)
 

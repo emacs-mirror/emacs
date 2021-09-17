@@ -13774,7 +13774,7 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
   frame_to_window_pixel_xy (w, &x, &y);
   ts = get_tab_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx, &close_p);
   if (ts == -1)
-    return Qnil;
+    return Fcons (Qtab_bar, Qnil);
 
   /* If item is disabled, do nothing.  */
   enabled_p = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_ENABLED_P);
@@ -16061,12 +16061,13 @@ redisplay_internal (void)
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		{
 
-		  /* Don't allow freeing images for this frame as long
-		     as the frame's update wasn't completed.  This
-		     prevents crashes when some Lisp that runs from
-		     the various hooks or font-lock decides to clear
-		     the frame's image cache, when the images in that
-		     cache are referenced by the desired matrix.  */
+		  /* Don't allow freeing images and faces for this
+		     frame as long as the frame's update wasn't
+		     completed.  This prevents crashes when some Lisp
+		     that runs from the various hooks or font-lock
+		     decides to clear the frame's image cache and face
+		     cache, when the images and faces in those caches
+		     are referenced by the desired matrix.  */
 		  f->inhibit_clear_image_cache = true;
 		  redisplay_windows (FRAME_ROOT_WINDOW (f));
 		}

@@ -77,7 +77,7 @@ and is the default except for MS-Windows."
 
 
 (defcustom dnd-open-file-other-window nil
-  "If non-nil, always use find-file-other-window to open dropped files."
+  "If non-nil, always use `find-file-other-window' to open dropped files."
   :version "22.1"
   :type 'boolean)
 

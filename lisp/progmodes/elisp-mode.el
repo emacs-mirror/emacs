@@ -153,6 +153,34 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      :style toggle
      :selected (bound-and-true-p eldoc-mode)]))
 
+(defun elisp-context-menu (menu click)
+  "Populate MENU with symbol help commands at CLICK."
+  (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [elisp-separator] menu-bar-separator
+      'middle-separator)
+    (define-key-after menu [info-lookup-symbol]
+      '(menu-item "Look up in Manual"
+                  (lambda (click) (interactive "e")
+                    (info-lookup-symbol
+                     (intern (thing-at-mouse click 'symbol t))))
+                  :help "Display definition in relevant manual")
+      'elisp-separator)
+    (let* ((string (thing-at-mouse click 'symbol t))
+           (symbol (when (stringp string) (intern string)))
+           (title (cond
+                   ((not (symbolp symbol)) nil)
+                   ((fboundp symbol) "Function")
+                   ((and (boundp symbol) (not (keywordp symbol))) "Variable")
+                   ((facep symbol) "Face"))))
+      (when title
+        (define-key-after menu [describe-symbol]
+          `(menu-item (format "Describe %s" ,title)
+                      (lambda (_click) (interactive "e")
+                        (describe-symbol ',symbol))
+                      :help "Display the full documentation of symbol")
+          'elisp-separator))))
+  menu)
+
 (defun emacs-lisp-byte-compile ()
   "Byte compile the file containing the current buffer."
   (interactive nil emacs-lisp-mode)
@@ -183,7 +211,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 Load the compiled code when finished.
 
 Use `emacs-lisp-byte-compile-and-load' in combination with
-`native-comp-deferred-compilation' set to `t' to achieve asynchronous
+`native-comp-deferred-compilation' set to t to achieve asynchronous
 native compilation."
   (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
@@ -256,6 +284,9 @@ Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 
+When editing Lisp data (as opposed to code), `lisp-data-mode' can
+be used instead.
+
 \\{emacs-lisp-mode-map}"
   :group 'lisp
   (defvar project-vc-external-roots-function)
@@ -280,7 +311,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
             #'elisp-completion-at-point nil 'local)
   (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
   (add-hook 'flymake-diagnostic-functions
-              #'elisp-flymake-byte-compile nil t))
+              #'elisp-flymake-byte-compile nil t)
+  (add-hook 'context-menu-functions #'elisp-context-menu 10 t))
 
 ;; Font-locking support.
 
@@ -661,6 +693,7 @@ functions are annotated with \"<f>\" via the
 ;;; Xref backend
 
 (declare-function xref-make "xref" (summary location))
+(declare-function xref-item-location "xref" (this))
 
 (defun elisp--xref-backend () 'elisp)
 
@@ -696,21 +729,214 @@ Each function should return a list of xrefs, or nil; the first
 non-nil result supersedes the xrefs produced by
 `elisp--xref-find-definitions'.")
 
+(defun elisp--xref-list-index ()
+  "Return the list index of the form at point, moving to the start.
+If the buffer start was reached, return nil."
+  (let ((i 0))
+    (while (condition-case nil
+               (let ((pt (point)))
+                 (backward-sexp)
+                 (< (point) pt))
+             (scan-error nil))
+      (setq i (1+ i)))
+    (and (not (bobp)) i)))
+
+(defun elisp--xref-infer-namespace (pos)
+  "Find the likely namespace of the identifier at POS.
+Return one of `function', `variable' `maybe-variable', `feature', `face', or
+`any' (indicating any namespace).  `maybe-variable' indicates a variable
+namespace but with lower confidence."
+  (save-excursion
+    (goto-char pos)
+    (cl-flet ((looking-at-sym ()
+                (let ((val (save-excursion
+                             (ignore-errors (read (current-buffer))))))
+                  (and (symbolp val) val))))
+      (cond
+       ((and (eq (char-before pos) ?\')
+             (eq (char-before (1- pos)) ?#))
+        ;; #'IDENT
+        'function)
+       ((memq (char-before pos) '(?\' ?`))
+        ;; 'IDENT or `IDENT -- try to disambiguate.
+        (backward-char)                 ; Step over '
+        (let ((i (elisp--xref-list-index))
+              (sym (looking-at-sym)))
+          (cond
+           ((eql i 1)
+            (cond
+             ((memq sym '( featurep require provide))
+              'feature)
+             ((memq sym
+                    '(
+                      ;; We are mostly interested in functions that take a
+                      ;; function symbol as argument:
+                      fboundp symbol-function fset
+                      ;; ... but we include some common higher-order functions
+                      ;; as well, even though the argument really should
+                      ;; be #'-quoted:
+                      function-get function-put
+                      func-arity functionp
+                      funcall funcall-interactively
+                      apply mapcar mapc mapcan mapconcat
+                      apply-partially
+                      substitute-key-definition))
+              'function)
+             ((memq sym
+                    '(
+                      ;; Functions taking a variable symbol as first argument.
+                      ;; More of these could be added for greater precision.
+                      boundp set symbol-value
+                      special-variable-p local-variable-p
+                      local-variable-if-set-p
+                      make-variable-buffer-local
+                      default-value set-default make-local-variable
+                      buffer-local-value))
+              'variable)
+             ((memq sym
+                    '(
+                      ;; FIXME: Add more functions taking a face
+                      ;; symbol for greater precision.
+                      facep face-name face-id))
+              'face)
+             (t 'any)))
+           ((and (eql i 2)
+                 (memq sym '( global-set-key local-set-key
+                              substitute-key-definition
+                              add-hook)))
+            'function)
+           ((and (eql i 3)
+                 (memq sym '( define-key add-function)))
+            'function)
+           (t 'any))))
+       ((or (and (eq (char-before (1- pos)) ?,)
+                 (eq (char-before pos) ?@))
+            (eq (char-before pos) ?,))
+        ;; ,IDENT or ,@IDENT
+        'variable)
+       (t
+        ;; Unquoted name -- look at the context.  General scheme:
+        ;; (K-HEAD ... (J-HEAD ... (I-HEAD ... IDENT
+        ;;             ^ index K   ^ index J   ^ index I
+        (let* ((i (elisp--xref-list-index))
+               (i-head (looking-at-sym))
+               (i-paren (and i-head (eq (char-before) ?\()
+                             (progn (backward-char) t)))
+               (i-quoted (and i-paren (memq (char-before) '(?\' ?`))))
+               (j (and i-paren (elisp--xref-list-index)))
+               (j-head (and j (looking-at-sym)))
+               (j-paren (and j-head (eq (char-before) ?\()
+                             (progn (backward-char) t)))
+               (j-quoted (and j-paren (memq (char-before) '(?\' ?`))))
+               (k (and j-paren (elisp--xref-list-index)))
+               (k-head (and k (looking-at-sym)))
+               (k-paren (and k-head (eq (char-before) ?\()
+                             (progn (backward-char) t)))
+               (k-quoted (and k-paren (memq (char-before) '(?\' ?`)))))
+          (cond
+           ((or i-quoted j-quoted k-quoted)
+            ;; '(... IDENT or '(... (... IDENT or '(... (... (... IDENT
+            'any)
+           ((and (eql j 1)
+                 (memq j-head '( let let* letrec dlet lambda)))
+            ;; (let (... IDENT
+            'variable)
+           ((and (eql j 2)
+                 (memq j-head '( defun defmacro defsubst
+                                 define-inline declare-function
+                                 defadvice
+                                 cl-defmethod cl-defgeneric)))
+            ;; (defun FUNC (... IDENT
+            'variable)
+           ((eq j-head 'cond)
+            ;; (cond ... (... IDENT
+            'variable)
+           ((and (eql k 1)
+                 (memq k-head '( let let* letrec dlet )))
+            ;; (let (... (... IDENT
+            'variable)
+           ((eql i 0)
+            ;; (IDENT ...
+            'function)
+           ((functionp i-head)
+            ;; (FUNC ... IDENT
+            'variable)
+           ((and (eql i 1)
+                 (cond
+                  ((memq i-head '( function
+                                   defun defmacro defsubst
+                                   define-inline declare-function
+                                   defadvice
+                                   cl-defmethod cl-defgeneric))
+                   'function)
+                  ((memq i-head '( defvar defvar-local defconst defcustom))
+                   'variable)
+                  ((eq i-head 'defface)
+                   'face))))
+           ((memq i-head '( if while and or when unless progn prog1
+                            let let* lambda defun defsubst defvar defconst))
+            ;; arg to some common non-function forms
+            'variable)
+           ;; Anything else: probably a variable, but since i-head may be
+           ;; a macro we cannot be sure.
+           (t 'maybe-variable))))))))
+
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'elisp)))
+  (let ((bounds (bounds-of-thing-at-point 'symbol)))
+    (and bounds
+         (let ((ident (buffer-substring-no-properties
+                       (car bounds) (cdr bounds))))
+           ;; Use a property to transport the location of the identifier.
+           (propertize ident 'pos (car bounds))))))
+
 (cl-defmethod xref-backend-definitions ((_backend (eql 'elisp)) identifier)
   (require 'find-func)
-  ;; FIXME: use information in source near point to filter results:
-  ;; (dvc-log-edit ...) - exclude 'feature
-  ;; (require 'dvc-log-edit) - only 'feature
-  ;; Semantic may provide additional information
-  ;;
   (let ((sym (intern-soft identifier)))
     (when sym
-      (elisp--xref-find-definitions sym))))
+      (let* ((pos (get-text-property 0 'pos identifier))
+             (namespace (if pos
+                            (elisp--xref-infer-namespace pos)
+                          'any))
+             (defs (elisp--xref-find-definitions sym)))
+        (if (eq namespace 'maybe-variable)
+            (or (elisp--xref-filter-definitions defs 'variable sym)
+                (elisp--xref-filter-definitions defs 'any sym))
+          (elisp--xref-filter-definitions defs namespace sym))))))
+
+(defun elisp--xref-filter-definitions (definitions namespace symbol)
+  (if (eq namespace 'any)
+      (if (memq symbol minor-mode-list)
+          ;; The symbol is a minor mode. These should be defined by
+          ;; "define-minor-mode", which means the variable and the
+          ;; function are declared in the same place. So we return only
+          ;; the function, arbitrarily.
+          ;;
+          ;; There is an exception, when the variable is defined in C
+          ;; code, as for abbrev-mode.
+          (cl-loop for d in definitions
+                   for loc = (xref-item-location d)
+                   for file = (xref-elisp-location-file loc)
+                   when (or (not (eq (xref-elisp-location-type loc) 'defvar))
+                            (null file)
+                            (string-prefix-p "src/" file))
+                   collect d)
+        definitions)
+    (let ((expected-types
+           (pcase-exhaustive namespace
+             ('function '( nil defalias define-type
+                           cl-defgeneric cl-defmethod))
+             ('variable '(defvar))
+             ('face '(defface))
+             ('feature '(feature)))))
+      (cl-loop for d in definitions
+               when (memq
+                     (xref-elisp-location-type (xref-item-location d))
+                     expected-types)
+               collect d))))
 
 (defun elisp--xref-find-definitions (symbol)
   ;; The file name is not known when `symbol' is defined via interactive eval.
   (let (xrefs)
-
     (let ((temp elisp-xref-find-def-functions))
       (while (and (null xrefs)
                   temp)
@@ -774,6 +1000,8 @@ non-nil result supersedes the xrefs produced by
 
              ((setq generic (cl--generic symbol))
               ;; FIXME: move this to elisp-xref-find-def-functions, in cl-generic.el
+              ;; XXX: How are we going to support using newer xref
+              ;; with older versions of Emacs, though?
 
               ;; A generic function. If there is a default method, it
               ;; will appear in the method table, with no
@@ -835,29 +1063,6 @@ non-nil result supersedes the xrefs produced by
               ;; yet; help-C-file-name does that.  Second call will
               ;; return "src/*.c" in file; handled below.
               (push (elisp--xref-make-xref 'defvar symbol (help-C-file-name symbol 'var)) xrefs))
-
-             ((string= "src/" (substring file 0 4))
-              ;; The variable is defined in a C source file; don't check
-              ;; for define-minor-mode.
-              (push (elisp--xref-make-xref 'defvar symbol file) xrefs))
-
-             ((memq symbol minor-mode-list)
-              ;; The symbol is a minor mode. These should be defined by
-              ;; "define-minor-mode", which means the variable and the
-              ;; function are declared in the same place. So we return only
-              ;; the function, arbitrarily.
-              ;;
-              ;; There is an exception, when the variable is defined in C
-              ;; code, as for abbrev-mode.
-              ;;
-              ;; IMPROVEME: If the user is searching for the identifier at
-              ;; point, we can determine whether it is a variable or
-              ;; function by looking at the source code near point.
-              ;;
-              ;; IMPROVEME: The user may actually be asking "do any
-              ;; variables by this name exist"; we need a way to specify
-              ;; that.
-              nil)
 
              (t
               (push (elisp--xref-make-xref 'defvar symbol file) xrefs))
@@ -1051,7 +1256,7 @@ this command arranges for all errors to enter the debugger."
 
 (defun last-sexp-setup-props (beg end value alt1 alt2)
   "Set up text properties for the output of `elisp--eval-last-sexp'.
-BEG and END are the start and end of the output in current-buffer.
+BEG and END are the start and end of the output in current buffer.
 VALUE is the Lisp value printed, ALT1 and ALT2 are strings for the
 alternative printed representations that can be displayed."
   (let ((map (make-sparse-keymap)))

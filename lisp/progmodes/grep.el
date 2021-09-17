@@ -523,7 +523,7 @@ This variable's value takes effect when `grep-compute-defaults' is called."
 ;;;###autoload
 (defvar grep-history nil "History list for grep.")
 ;;;###autoload
-(defvar grep-find-history nil "History list for grep-find.")
+(defvar grep-find-history nil "History list for `grep-find'.")
 
 ;; History of lgrep and rgrep regexp and files args.
 (defvar grep-regexp-history nil)

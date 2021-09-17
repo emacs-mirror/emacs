@@ -337,7 +337,7 @@ or nil, use a compact 80-column format."
 	(funcall finish-hook)))))
 
 (defun edmacro-insert-key (key)
-  "Insert the written name of a key in the buffer."
+  "Insert the written name of a KEY in the buffer."
   (interactive "kKey to insert: ")
   (if (bolp)
       (insert (edmacro-format-keys key t) "\n")

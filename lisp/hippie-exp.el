@@ -38,7 +38,7 @@
 ;;
 ;;  If the variable `hippie-expand-verbose' is non-nil, `hippie-expand'
 ;;  outputs in a message which try-function in the list that is used
-;;  currently (ie. was used currently and will be tried first the next
+;;  currently (i.e. was used currently and will be tried first the next
 ;;  time).
 ;;  The variable `hippie-expand-max-buffers' determines in how many
 ;;  buffers, apart from the current, to search for expansions in.  It

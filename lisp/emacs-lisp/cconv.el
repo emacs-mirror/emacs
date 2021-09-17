@@ -32,7 +32,7 @@
 ;; Here is a brief explanation how this code works.
 ;; Firstly, we analyze the tree by calling cconv-analyze-form.
 ;; This function finds all mutated variables, all functions that are suitable
-;; for lambda lifting and all variables captured by closure. It passes the tree
+;; for lambda lifting and all variables captured by closure.  It passes the tree
 ;; once, returning a list of three lists.
 ;;
 ;; Then we calculate the intersection of the first and third lists returned by
