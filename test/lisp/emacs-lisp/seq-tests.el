@@ -347,11 +347,6 @@ Evaluate BODY for each created sequence.
    (should (same-contents-p (seq-union v1 v2)
                             '(1 2 3 4 5 6 7 8 9))))
 
-  (let ((v1 '(1 2 3 4 5 6))
-        (v2 '(4 5 6 7 8 9)))
-   (should (same-contents-p (seq-union v1 v2)
-                            '(1 2 3 4 5 6 7 8 9))))
-
   (let ((v1 [1 2 3 4 5])
         (v2 [4 5 6 "a"]))
    (should (same-contents-p (seq-union v1 v2)
