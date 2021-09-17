@@ -392,9 +392,6 @@ When customized to nil, it uses 'minibuffer-restore-windows' in
 'minibuffer-exit-hook' to remove only the window showing the
 "*Completions*" buffer.
 
-
-* Editing Changes in Emacs 28.1
-
 ---
 *** New variable 'redisplay-adhoc-scroll-in-resize-mini-windows'.
 Customizing it to nil will disable the ad-hoc auto-scrolling of
