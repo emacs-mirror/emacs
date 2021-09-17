@@ -622,7 +622,7 @@ behavior."
     (setq common (sort (copy-sequence common) #'string-lessp))
 
     ;; compute difference list
-    (setq difflist (ediff-set-difference
+    (setq difflist (seq-difference
                     (seq-union (seq-union lis1 lis2 #'string=)
                                lis3
                                #'string=)

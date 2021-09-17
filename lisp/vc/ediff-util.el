@@ -4151,20 +4151,11 @@ Mail anyway? (y or n) ")
 	(key-description desc)
       (format "M-x %s" func-def))))
 
-;; eliminates duplicates using comparison-func
-(defun ediff-set-difference (lis1 lis2 comparison-func)
-  (let ((result (list 'a)))
-    (while lis1
-      (or (ediff-member (car lis1) (cdr result) comparison-func)
-	  (ediff-member (car lis1) lis2 comparison-func)
-	  (nconc result (list (car lis1))))
-      (setq lis1 (cdr lis1)))
-    (cdr result)))
-
 (define-obsolete-function-alias 'ediff-add-to-history #'add-to-history "27.1")
 (define-obsolete-function-alias 'ediff-copy-list #'copy-sequence "28.1")
 (define-obsolete-function-alias 'ediff-union #'seq-union "28.1")
 (define-obsolete-function-alias 'ediff-intersection #'seq-intersection "28.1")
+(define-obsolete-function-alias 'ediff-set-difference #'seq-difference "28.1")
 
 (run-hooks 'ediff-load-hook)
 
