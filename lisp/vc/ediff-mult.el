@@ -610,13 +610,13 @@ behavior."
     (if (ediff-nonempty-string-p merge-autostore-dir)
 	(setq merge-autostore-dir
 	      (file-name-as-directory merge-autostore-dir)))
-    (setq common (ediff-intersection lis1 lis2 #'string=))
+    (setq common (seq-intersection lis1 lis2 #'string=))
 
     ;; In merge with ancestor jobs, we don't intersect with lis3.
     ;; If there is no ancestor, we'll offer to merge without the ancestor.
     ;; So, we intersect with lis3 only when we are doing 3-way file comparison
     (if (and lis3 (ediff-comparison-metajob3 jobname))
-	(setq common (ediff-intersection common lis3 #'string=)))
+        (setq common (seq-intersection common lis3 #'string=)))
 
     ;; copying is needed because sort sorts via side effects
     (setq common (sort (copy-sequence common) #'string-lessp))
