@@ -159,19 +159,26 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
     (define-key-after menu [elisp-separator] menu-bar-separator
       'middle-separator)
     (define-key-after menu [info-lookup-symbol]
-      '(menu-item "Look up Symbol"
+      '(menu-item "Look up in Manual"
                   (lambda (click) (interactive "e")
                     (info-lookup-symbol
                      (intern (thing-at-mouse click 'symbol t))))
                   :help "Display definition in relevant manual")
       'elisp-separator)
-    (define-key-after menu [describe-symbol]
-      '(menu-item "Describe Symbol"
-                  (lambda (click) (interactive "e")
-                    (describe-symbol
-                     (intern (thing-at-mouse click 'symbol t))))
-                  :help "Display the full documentation of symbol")
-      'elisp-separator))
+    (let* ((string (thing-at-mouse click 'symbol t))
+           (symbol (when (stringp string) (intern string)))
+           (title (cond
+                   ((not (symbolp symbol)) nil)
+                   ((fboundp symbol) "Function")
+                   ((and (boundp symbol) (not (keywordp symbol))) "Variable")
+                   ((facep symbol) "Face"))))
+      (when title
+        (define-key-after menu [describe-symbol]
+          `(menu-item (format "Describe %s" ,title)
+                      (lambda (_click) (interactive "e")
+                        (describe-symbol ',symbol))
+                      :help "Display the full documentation of symbol")
+          'elisp-separator))))
   menu)
 
 (defun emacs-lisp-byte-compile ()
