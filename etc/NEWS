@@ -3858,7 +3858,8 @@ supporting Lisp files when 'require' is unsuitable.
 +++
 ** New function 'seq-union'.
 This function takes two sequences and returns a list of all elements
-that appear in either of them.
+that appear in either of them, with no two elements that compare equal
+appearing in the result.
 
 +++
 ** New function 'syntax-class-to-char'.
