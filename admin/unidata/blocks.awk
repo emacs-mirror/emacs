@@ -131,7 +131,7 @@ function name2alias(name   , w, w2) {
     return name
 }
 
-FILENAME == "Blocks.txt" && /^[0-9A-F]/ {
+FILENAME ~ "Blocks.txt" && /^[0-9A-F]/ {
     sep = index($1, "..")
     len = length($1)
     s = substr($1,1,sep-1)
@@ -204,10 +204,10 @@ FILENAME == "Blocks.txt" && /^[0-9A-F]/ {
 
 # The space after 'Emoji' is significant in the next two rules.
 # This purposely and deliberately excludes codepoints <= 00FF
-FILENAME == "emoji-data.txt" && /^00[0-9A-F]{2}.*; Emoji / {
+FILENAME ~ "emoji-data.txt" && /^00[0-9A-F]{2}.*; Emoji / {
     next
 }
-FILENAME == "emoji-data.txt" && /^[0-9A-F].*; Emoji / {
+FILENAME ~ "emoji-data.txt" && /^[0-9A-F].*; Emoji / {
     sep = index($1, "..")
     len = length($1)
     if (sep > 0)  {
