@@ -1365,7 +1365,7 @@ Normally a space.")
 
 (defun idlwave-keyword-abbrev (&rest args)
   "Create a function for abbrev hooks to call `idlwave-modify-abbrev' with args."
-  (lambda () (append #'idlwave-modify-abbrev args)))
+  (lambda () (apply #'idlwave-modify-abbrev args)))
 
 (autoload 'idlwave-shell "idlw-shell"
   "Run an inferior IDL, with I/O through buffer `(idlwave-shell-buffer)'." t)
