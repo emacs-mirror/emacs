@@ -166,7 +166,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	(if (member
 	     key
 	     '(?\b ?\d '^? '^H (control h) (control \?) backspace delete))
-	    (setq key-seq (viper-subseq key-seq 0 (- (length key-seq) 2))))
+            (setq key-seq (seq-subseq key-seq 0 (- (length key-seq) 2))))
 	(setq message
 	      (format
 	       ":map%s %s"
