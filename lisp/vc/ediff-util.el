@@ -4137,6 +4137,7 @@ Mail anyway? (y or n) ")
 
 ;; this uses comparison-func to decide who is a member
 (defun ediff-member (elt lis comparison-func)
+  (declare (obsolete seq-contains-p "28.1"))
   (while (and lis (not (funcall comparison-func (car lis) elt)))
     (setq lis (cdr lis)))
   lis)
