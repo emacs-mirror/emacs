@@ -5056,7 +5056,6 @@ Examples:
       max-pos)))
 ;;;_   > allout-old-expose-topic (spec &rest followers)
 (defun allout-old-expose-topic (spec &rest followers)
-
   "Deprecated.  Use `allout-expose-topic' (with different schema
 format) instead.
 
@@ -5088,7 +5087,7 @@ elements of the list are nested SPECs, dictating the specific exposure
 for the corresponding offspring of the topic.
 
 Optional FOLLOWERS arguments dictate exposure for succeeding siblings."
-
+  (declare (obsolete allout-expose-topic "28.1"))
   (interactive "xExposure spec: ")
   (let ((inhibit-field-text-motion t)
         (depth (allout-current-depth))
