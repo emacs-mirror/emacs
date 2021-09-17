@@ -3126,7 +3126,7 @@ See `term-prompt-regexp'."
 		   (setq win (next-window win nil t))
 		   (when (eq (window-buffer win) (process-buffer proc))
 		     (let ((scroll term-scroll-to-bottom-on-output))
-		       (select-window win)
+		       (select-window win t)
 		       (when (or (= (point) save-marker)
 			         (eq scroll t) (eq scroll 'all)
 			         ;; Maybe user wants point to jump to the end.
