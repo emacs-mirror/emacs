@@ -467,6 +467,7 @@ negative integer or 0, nil is returned."
         (setq sequence (seq-drop sequence n)))
       (nreverse result))))
 
+;;;###autoload
 (cl-defgeneric seq-union (sequence1 sequence2 &optional testfn)
   "Return a list of all elements that appear in either SEQUENCE1 or SEQUENCE2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."

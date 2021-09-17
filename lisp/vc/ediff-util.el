@@ -4161,20 +4161,6 @@ Mail anyway? (y or n) ")
       (setq lis1 (cdr lis1)))
     (cdr result)))
 
-
-;; eliminates duplicates using comparison-func
-(defun ediff-union (lis1 lis2 comparison-func)
-  (let ((result (list 'a)))
-    (while lis1
-      (or (ediff-member (car lis1) (cdr result) comparison-func)
-	  (nconc result (list (car lis1))))
-      (setq lis1 (cdr lis1)))
-    (while lis2
-      (or (ediff-member (car lis2) (cdr result) comparison-func)
-	  (nconc result (list (car lis2))))
-      (setq lis2 (cdr lis2)))
-    (cdr result)))
-
 ;; eliminates duplicates using comparison-func
 (defun ediff-set-difference (lis1 lis2 comparison-func)
   (let ((result (list 'a)))
@@ -4187,6 +4173,7 @@ Mail anyway? (y or n) ")
 
 (define-obsolete-function-alias 'ediff-add-to-history #'add-to-history "27.1")
 (define-obsolete-function-alias 'ediff-copy-list #'copy-sequence "28.1")
+(define-obsolete-function-alias 'ediff-union #'seq-union "28.1")
 
 (run-hooks 'ediff-load-hook)
 

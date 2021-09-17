@@ -623,9 +623,9 @@ behavior."
 
     ;; compute difference list
     (setq difflist (ediff-set-difference
-		    (ediff-union (ediff-union lis1 lis2 #'string=)
-				 lis3
-				 #'string=)
+                    (seq-union (seq-union lis1 lis2 #'string=)
+                               lis3
+                               #'string=)
 		    common
 		    #'string=)
 	  difflist (delete "."  difflist)
