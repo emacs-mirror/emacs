@@ -785,14 +785,16 @@ is described by the variable `mh-variants'."
 (defun mh-variant-gnu-mh-info (dir)
   "Return info for GNU mailutils MH variant in DIR.
 This assumes that a temporary buffer is set up."
-  ;; 'mhparam -version' output:
+  ;; Sample '-version' outputs:
   ;; mhparam (GNU mailutils 0.3.2)
-  (let ((mhparam (expand-file-name "mhparam" dir)))
-    (when (mh-file-command-p mhparam)
+  ;; install-mh (GNU Mailutils 2.2)
+  ;; install-mh (GNU Mailutils 3.7)
+  (let ((install-mh (expand-file-name "install-mh" dir)))
+    (when (mh-file-command-p install-mh)
       (erase-buffer)
-      (call-process mhparam nil '(t nil) nil "-version")
+      (call-process install-mh nil '(t nil) nil "-version")
       (goto-char (point-min))
-      (when (search-forward-regexp "mhparam (\\(GNU [Mm]ailutils \\S +\\))"
+      (when (search-forward-regexp "install-mh (\\(GNU [Mm]ailutils \\S +\\))"
                                    nil t)
         (let ((version (match-string 1))
               (mh-progs dir))
@@ -806,14 +808,15 @@ This assumes that a temporary buffer is set up."
 
 (defun mh-variant-nmh-info (dir)
   "Return info for nmh variant in DIR assuming a temporary buffer is set up."
-  ;; `mhparam -version' outputs:
+  ;; Sample '-version' outputs:
   ;; mhparam -- nmh-1.1-RC1 [compiled on chaak at Fri Jun 20 11:03:28 PDT 2003]
-  (let ((mhparam (expand-file-name "mhparam" dir)))
-    (when (mh-file-command-p mhparam)
+  ;; install-mh -- nmh-1.7.1 built October 26, 2019 on build-server-000
+  (let ((install-mh (expand-file-name "install-mh" dir)))
+    (when (mh-file-command-p install-mh)
       (erase-buffer)
-      (call-process mhparam nil '(t nil) nil "-version")
+      (call-process install-mh nil '(t nil) nil "-version")
       (goto-char (point-min))
-      (when (search-forward-regexp "mhparam -- nmh-\\(\\S +\\)" nil t)
+      (when (search-forward-regexp "install-mh -- nmh-\\(\\S +\\)" nil t)
         (let ((version (format "nmh %s" (match-string 1)))
               (mh-progs dir))
           `(,version
