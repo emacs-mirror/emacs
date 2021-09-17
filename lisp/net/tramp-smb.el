@@ -2049,7 +2049,10 @@ If ARGUMENT is non-nil, use it as argument for
 	    (let* ((coding-system-for-read nil)
 		   (process-connection-type tramp-process-connection-type)
 		   (p (let ((default-directory
-			      (tramp-compat-temporary-file-directory)))
+			      (tramp-compat-temporary-file-directory))
+			    (process-environment
+			     (cons (concat "TERM=" tramp-terminal-type)
+				   process-environment)))
 			(apply #'start-process
 			       (tramp-get-connection-name vec)
 			       (tramp-get-connection-buffer vec)
