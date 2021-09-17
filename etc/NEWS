@@ -2929,6 +2929,13 @@ This previously used to align subsequent lines with the last sibling,
 but it now aligns with the first sibling (which is the preferred style
 in Ruby).
 
+** Imenu
+
++++
+*** New user option 'imenu-max-index-time'.
+If creating the imenu index takes longer than specified by this
+variable (default 5 seconds), imenu indexing is stopped.
+
 
 * New Modes and Packages in Emacs 28.1
 
