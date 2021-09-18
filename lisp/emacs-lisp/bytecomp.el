@@ -915,7 +915,7 @@ CONST2 may be evaluated multiple times."
 				,bytes ,pc))
 
 (defun byte-compile-lapcode (lap)
-  "Turn lapcode into bytecode.  The lapcode is destroyed."
+  "Turn lapcode LAP into bytecode.  The lapcode is destroyed."
   ;; Lapcode modifications: changes the ID of a tag to be the tag's PC.
   (let ((pc 0)			; Program counter
 	op off			; Operation & offset
