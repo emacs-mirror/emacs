@@ -2671,6 +2671,24 @@ something like the following in your init file:
 
 (push "\\`-[^-]*-monaco-bold-" face-ignored-fonts)
 
+** Native Compilation on macOS
+
+Native complitation requires the libgccjit library to be installed and
+its path available to Emacs.  Errors such as:
+
+    libgccjit.so: error: error invoking gcc driver
+    Error: Internal native compiler error failed to compile
+
+indicate Emacs can't find the library in running time.  One can set
+the "LIBRARY_PATH" environment variable in the early initalization
+file; for example:
+
+(setenv "LIBRARY_PATH"
+  (string-join
+    '("/usr/local/opt/gcc/lib/gcc/11"
+      "/usr/local/opt/libgccjit/lib/gcc/11"
+      "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
+
 * Build-time problems
 
 ** Configuration
