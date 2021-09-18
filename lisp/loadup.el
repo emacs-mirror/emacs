@@ -275,7 +275,6 @@
 (load "textmodes/paragraphs")
 (load "progmodes/prog-mode")
 (load "emacs-lisp/lisp-mode")
-(load "progmodes/elisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
 (load "newcomment")
@@ -339,6 +338,13 @@
     ;; Do it after loading term/foo-win.el since the value of the
     ;; mouse-wheel-*-event vars depends on those files being loaded or not.
     (load "mwheel"))
+
+;; progmodes/elisp-mode.el must be after w32-fns.el, to avoid this:
+;;"Eager macro-expansion failure: (void-function w32-convert-standard-filename)"
+;; which happens while processing 'elisp-flymake-byte-compile', when
+;; elisp-mode.elc is outdated.
+(load "progmodes/elisp-mode")
+
 ;; Preload some constants and floating point functions.
 (load "emacs-lisp/float-sup")
 
