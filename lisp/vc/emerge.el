@@ -26,7 +26,7 @@
 
 ;;; Macros
 
-(defmacro emerge-defvar-local (symbol value doc)
+(defmacro emerge-defvar-local (symbol value &optional doc)
   "Define SYMBOL as an advertised buffer-local variable.
 Run `defvar-local', setting the value of the variable to VALUE
 and its docstring to DOC.
