@@ -807,11 +807,28 @@ leak information from the reporting user.
 *** Rudimentary support for the 'st' terminal emulator.
 Emacs now supports 256 color display on the 'st' terminal emulator.
 
----
-*** Prefer "chat.freenode.net" to "irc.freenode.net".
-"chat.freenode.net" has been the preferred address for connecting to the
-Freenode IRC network for years now.  Occurrences of "irc.freenode.net"
-have been replaced with "chat.freenode.net" throughout Emacs.
++++
+*** Update IRC-related references to point to Libera.Chat.
+In June 2021, the Free Software Foundation and the GNU Project moved
+their official IRC channels from the Freenode network to Libera.Chat
+in the aftermath of the changes in Freenode's governance structure and
+policies in May and June 2021.  The decision-making process took into
+account the feedback received from the community against a set of
+criteria devised by a working group drawn from both GNU and the FSF
+to gauge a chat network's acceptability to software freedom activists.
+
+For the original announcement and the follow-up update, including more
+details, see:
+
+https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html
+https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html
+
+Given the relocation of GNU and FSF's official IRC channels, as well
+as #emacs and various other Emacs-themed channels (see the link below)
+to Libera.Chat, IRC-related references in the Emacs repository have
+now been updated to point to Libera.Chat.
+
+https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html
 
 
 * Editing Changes in Emacs 28.1
