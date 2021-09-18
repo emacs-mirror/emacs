@@ -3,6 +3,7 @@
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
+;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
 ;;               Mario Lang (mlang@delysid.org),
 ;;               Alex Schroeder (alex@gnu.org)
@@ -11,10 +12,10 @@
 ;;               David Edmondson (dme@dme.org)
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: IRC, chat, client, Internet
-
 ;; Version: 5.3
+;; Package-Requires: ((emacs "27.1"))
+;; Keywords: IRC, chat, client, Internet
+;; URL: https://www.gnu.org/software/emacs/erc.html
 
 ;; This file is part of GNU Emacs.
 
