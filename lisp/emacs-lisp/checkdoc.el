@@ -29,11 +29,12 @@
 ;; to forget.  The main checkdoc engine will perform the stylistic
 ;; checks needed to make sure these styles are remembered.
 ;;
-;; There are two ways to use checkdoc:
-;;   1) Periodically use `checkdoc' or `checkdoc-current-buffer'.
+;; There are three ways to use checkdoc:
+;;   1) Use `flymake-mode'.
+;;   2) Periodically use `checkdoc' or `checkdoc-current-buffer'.
 ;;      `checkdoc' is a more interactive version of
 ;;      `checkdoc-current-buffer'
-;;   2) Use `checkdoc-minor-mode' to automatically check your
+;;   3) Use `checkdoc-minor-mode' to automatically check your
 ;;      documentation whenever you evaluate Lisp code with C-M-x
 ;;      or [menu-bar emacs-lisp eval-buffer].  Additional key-bindings
 ;;      are also provided under C-c ? KEY
