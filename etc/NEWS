@@ -2733,22 +2733,26 @@ separated) and clearer documentation.
 
 ** xwidget-webkit mode
 
+---
 *** New xwidget commands.
 'xwidget-webkit-uri' (return the current URL), 'xwidget-webkit-title'
 (return the current title), and 'xwidget-webkit-goto-history' (goto a
 point in history).
 
+---
 *** Pixel-based scrolling.
 The 'xwidget-webkit-scroll-up', 'xwidget-webkit-scroll-down' commands
 now supports scrolling arbitrary pixel values.  It now treats the
 optional 2nd argument as the pixel values to scroll.
 
+---
 *** New commands for scrolling.
 The new commands 'xwidget-webkit-scroll-up-line',
 'xwidget-webkit-scroll-down-line', 'xwidget-webkit-scroll-forward',
 'xwidget-webkit-scroll-backward' can be used to scroll webkit by the
 height of lines or width of chars.
 
+---
 *** New user option 'xwidget-webkit-bookmark-jump-new-session'.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
@@ -2937,6 +2941,7 @@ your code to be edited with an Emacs version older than 27.1.
 ---
 *** 'mspools-show' is now autoloaded.
 
+---
 *** Loading dunnet.el in batch mode doesn't start the game any more.
 Instead you need to do "emacs -f dun-batch" to start the game in
 batch mode.
@@ -2980,6 +2985,7 @@ direction with e.g. 'C-x o M-- o o'.  Also it can help to set a new
 step with e.g. 'C-x { C-5 { { {', which will set the window resizing
 step to 5 columns.
 
+---
 ** New themes 'modus-vivendi' and 'modus-operandi'.
 These themes are designed to conform with the highest standard for
 color-contrast accessibility (WCAG AAA).  You can load either of them
