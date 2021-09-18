@@ -4074,7 +4074,7 @@ Mail anyway? (y or n) ")
 
 ;;; Debug
 
-(ediff-defvar-local ediff-command-begin-time '(0 0 0) "")
+(ediff-defvar-local ediff-command-begin-time '(0 0 0))
 
 ;; calculate time used by command
 (defun ediff-calc-command-time ()

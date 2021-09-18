@@ -81,7 +81,7 @@ that Ediff doesn't know about.")
 ;; commands) won't destroy Ediff control variables.
 ;;
 ;; Plagiarized from `emerge-defvar-local'.
-(defmacro ediff-defvar-local (symbol value doc)
+(defmacro ediff-defvar-local (symbol value &optional doc)
   "Define SYMBOL as an advertised buffer-local variable.
 Run `defvar-local', setting the value of the variable to VALUE
 and its docstring to DOC.
@@ -166,10 +166,10 @@ It needs to be killed when we quit the session.")
 ;; no-fine-diffs-flag says if there are fine differences.
 ;; state-of-difference is A, B, C, or nil, indicating which buffer is
 ;;	different from the other two (used only in 3-way jobs.
-(ediff-defvar-local ediff-difference-vector-A nil "")
-(ediff-defvar-local ediff-difference-vector-B nil "")
-(ediff-defvar-local ediff-difference-vector-C nil "")
-(ediff-defvar-local ediff-difference-vector-Ancestor nil "")
+(ediff-defvar-local ediff-difference-vector-A nil)
+(ediff-defvar-local ediff-difference-vector-B nil)
+(ediff-defvar-local ediff-difference-vector-C nil)
+(ediff-defvar-local ediff-difference-vector-Ancestor nil)
 ;; A-list of diff vector types associated with buffer types
 (defconst ediff-difference-vector-alist
   '((A . ediff-difference-vector-A)
@@ -275,7 +275,7 @@ It needs to be killed when we quit the session.")
   '(memq
     ediff-job-name
     '(ediff-files3 ediff-buffers3)))
-(ediff-defvar-local ediff-3way-comparison-job nil "")
+(ediff-defvar-local ediff-3way-comparison-job nil)
 
 (defmacro ediff-merge-job ()
   '(memq
@@ -286,7 +286,7 @@ It needs to be killed when we quit the session.")
       ediff-merge-buffers-with-ancestor
       ediff-merge-revisions
       ediff-merge-revisions-with-ancestor)))
-(ediff-defvar-local ediff-merge-job nil "")
+(ediff-defvar-local ediff-merge-job nil)
 
 (defmacro ediff-patch-job ()
   '(eq ediff-job-name 'epatch))
@@ -297,18 +297,18 @@ It needs to be killed when we quit the session.")
     '(ediff-merge-files-with-ancestor
       ediff-merge-buffers-with-ancestor
       ediff-merge-revisions-with-ancestor)))
-(ediff-defvar-local ediff-merge-with-ancestor-job nil "")
+(ediff-defvar-local ediff-merge-with-ancestor-job nil)
 
 (defmacro ediff-3way-job ()
   '(or ediff-3way-comparison-job ediff-merge-job))
-(ediff-defvar-local ediff-3way-job nil "")
+(ediff-defvar-local ediff-3way-job nil)
 
 ;; A diff3 job is like a 3way job, but ediff-merge doesn't require the use
 ;; of diff3.
 (defmacro ediff-diff3-job ()
   '(or ediff-3way-comparison-job
        ediff-merge-with-ancestor-job))
-(ediff-defvar-local ediff-diff3-job nil "")
+(ediff-defvar-local ediff-diff3-job nil)
 
 (defmacro ediff-windows-job ()
   '(memq ediff-job-name '(ediff-windows-wordwise ediff-windows-linewise)))
@@ -316,14 +316,14 @@ It needs to be killed when we quit the session.")
 
 (defmacro ediff-word-mode-job ()
   '(memq ediff-job-name '(ediff-windows-wordwise ediff-regions-wordwise)))
-(ediff-defvar-local ediff-word-mode-job nil "")
+(ediff-defvar-local ediff-word-mode-job nil)
 
 (defmacro ediff-narrow-job ()
   '(memq ediff-job-name '(ediff-windows-wordwise
 			  ediff-regions-wordwise
 			  ediff-windows-linewise
 			  ediff-regions-linewise)))
-(ediff-defvar-local ediff-narrow-job nil "")
+(ediff-defvar-local ediff-narrow-job nil)
 
 ;; Note: ediff-merge-directory-revisions-with-ancestor is not treated as an
 ;; ancestor metajob, since it behaves differently.
@@ -528,7 +528,7 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
   "Regexp that determines buf C regions to focus on when skipping to diff.")
 ;; connective that determines whether to focus regions that match both or
 ;; one of the regexps
-(ediff-defvar-local ediff-focus-regexp-connective 'and "")
+(ediff-defvar-local ediff-focus-regexp-connective 'and)
 
 (ediff-defvar-local ediff-regexp-hide-A ""
   "Regexp that determines buf A regions to ignore when skipping to diff.")
@@ -538,7 +538,7 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
   "Regexp that determines buf C regions to ignore when skipping to diff.")
 ;; connective that determines whether to hide regions that match both or
 ;; one of the regexps
-(ediff-defvar-local ediff-hide-regexp-connective 'and "")
+(ediff-defvar-local ediff-hide-regexp-connective 'and)
 
 
 ;;; Copying difference regions between buffers.
@@ -548,12 +548,12 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
 ;; from another buffer.  This alist has the form:
 ;; \((num (buff-object . diff) (buff-object . diff) (buff-object . diff)) ...),
 ;; where some buffer-objects may be missing.
-(ediff-defvar-local ediff-killed-diffs-alist nil "")
+(ediff-defvar-local ediff-killed-diffs-alist nil)
 
 ;; Syntax table to use in ediff-forward-word-function
 ;; This is chosen by a heuristic. The important thing is for all buffers to
 ;; have the same syntax table. Which is not too important.
-(ediff-defvar-local ediff-syntax-table nil "")
+(ediff-defvar-local ediff-syntax-table nil)
 
 
 ;; Highlighting
@@ -593,25 +593,25 @@ highlighted using ASCII flags."
 
 ;; this indicates that diff regions are word-size, so fine diffs are
 ;; permanently nixed; used in ediff-windows-wordwise and ediff-regions-wordwise
-(ediff-defvar-local ediff-word-mode nil "")
+(ediff-defvar-local ediff-word-mode nil)
 ;; Name of the job (ediff-files, ediff-windows, etc.)
-(ediff-defvar-local ediff-job-name nil "")
+(ediff-defvar-local ediff-job-name nil)
 
 ;; Narrowing and ediff-region/windows support
 ;; This is a list (overlay-A overlay-B overlay-C)
 ;; If set, Ediff compares only those parts of buffers A/B/C that lie within
 ;; the bounds of these overlays.
-(ediff-defvar-local ediff-narrow-bounds nil "")
+(ediff-defvar-local ediff-narrow-bounds nil)
 
 ;; List (overlay-A overlay-B overlay-C), where each overlay spans the
 ;; entire corresponding buffer.
-(ediff-defvar-local ediff-wide-bounds nil "")
+(ediff-defvar-local ediff-wide-bounds nil)
 
 ;; Current visibility boundaries in buffers A, B, and C.
 ;; This is also a list of overlays.  When the user toggles narrow/widen,
 ;; this list changes from ediff-wide-bounds to ediff-narrow-bounds.
 ;; and back.
-(ediff-defvar-local ediff-visible-bounds nil "")
+(ediff-defvar-local ediff-visible-bounds nil)
 
 (ediff-defvar-local ediff-start-narrowed t
   "Non-nil means start narrowed, if doing ediff-windows-* or ediff-regions-*")
@@ -744,8 +744,7 @@ Ediff needs to find fine differences."
 ;; in effect for this buffer: `face', `ascii',
 ;; `off' -- turned off (on a dumb terminal only).
 (ediff-defvar-local ediff-highlighting-style
-  (if (and (ediff-has-face-support-p) ediff-use-faces) 'face 'ascii)
-  "")
+  (if (and (ediff-has-face-support-p) ediff-use-faces) 'face 'ascii))
 
 
 (define-obsolete-function-alias 'ediff-display-pixel-width
@@ -1226,7 +1225,7 @@ This property can be toggled interactively."
 
 ;; Store orig value of `ediff-show-ancestor'  when changed in
 ;; `ediff-toggle-show-ancestor' and restore it on exit.
-(ediff-defvar-local ediff--show-ancestor-orig nil "")
+(ediff-defvar-local ediff--show-ancestor-orig nil)
 
 (defcustom ediff-autostore-merges  'group-jobs-only
   "Save the results of merge jobs automatically.

@@ -114,8 +114,8 @@
 (require 'ediff-util)
 
 ;; meta-buffer
-(ediff-defvar-local ediff-meta-buffer nil "")
-(ediff-defvar-local ediff-parent-meta-buffer nil "")
+(ediff-defvar-local ediff-meta-buffer nil)
+(ediff-defvar-local ediff-parent-meta-buffer nil)
 ;; the registry buffer
 (defvar ediff-registry-buffer nil)
 
@@ -161,23 +161,23 @@ Useful commands (type ? to hide them and free up screen):
 
 ;; Variable specifying the action to take when the use invokes ediff in the
 ;; meta buffer.  This is usually ediff-registry-action or ediff-filegroup-action
-(ediff-defvar-local ediff-meta-action-function nil "")
+(ediff-defvar-local ediff-meta-action-function nil)
 ;; Tells ediff-update-meta-buffer how to redraw it
-(ediff-defvar-local ediff-meta-redraw-function nil "")
+(ediff-defvar-local ediff-meta-redraw-function nil)
 ;; Tells ediff-filegroup-action and similar procedures how to invoke Ediff for
 ;; the sessions in a given session group
-(ediff-defvar-local ediff-session-action-function nil "")
+(ediff-defvar-local ediff-session-action-function nil)
 
-(ediff-defvar-local ediff-metajob-name nil "")
+(ediff-defvar-local ediff-metajob-name nil)
 
 ;; buffer used to collect custom diffs from individual sessions in the group
-(ediff-defvar-local ediff-meta-diff-buffer nil "")
+(ediff-defvar-local ediff-meta-diff-buffer nil)
 
 ;; t means recurse into subdirs when deciding which files have same contents
-(ediff-defvar-local ediff-recurse-to-subdirectories nil "")
+(ediff-defvar-local ediff-recurse-to-subdirectories nil)
 
 ;; history var to use for filtering groups of files
-(defvar ediff-filtering-regexp-history nil "")
+(defvar ediff-filtering-regexp-history nil)
 
 (defcustom ediff-default-filtering-regexp nil
   "Default regular expression used as a filename filter in multifile comparisons.
@@ -194,14 +194,14 @@ Should be a sexp.  For instance (car ediff-filtering-regexp-history) or nil."
 ;; buffer, this means ediff is still working on the pair.
 ;; Eq-status of a file is t if the file equals some other file in the same
 ;; group.
-(ediff-defvar-local ediff-meta-list nil "")
+(ediff-defvar-local ediff-meta-list nil)
 
-(ediff-defvar-local ediff-meta-session-number nil "")
+(ediff-defvar-local ediff-meta-session-number nil)
 
 
 ;; the difference list between directories in a directory session group
-(ediff-defvar-local ediff-dir-difference-list nil "")
-(ediff-defvar-local ediff-dir-diffs-buffer nil "")
+(ediff-defvar-local ediff-dir-difference-list nil)
+(ediff-defvar-local ediff-dir-diffs-buffer nil)
 
 ;; The registry of Ediff sessions.  A list of control buffers.
 (defvar ediff-session-registry nil)
