@@ -1545,7 +1545,9 @@ may require more formatting")
      ;;     Instead, use the `\\[...]' construct to stand for them.
      (save-excursion
        (let ((f nil) (m nil) (start (point))
-	     (re "[^`‘A-Za-z0-9_]\\([CMA]-[a-zA-Z]\\|\\(\\([CMA]-\\)?\
+             ;; Ignore the "A-" modifier: it is uncommon in practice,
+             ;; and leads to false positives in regexp ranges.
+             (re "[^`‘A-Za-z0-9_]\\([CMs]-[a-zA-Z]\\|\\(\\([CMs]-\\)?\
 mouse-[0-3]\\)\\)\\>"))
 	 ;; Find the first key sequence not in a sample
 	 (while (and (not f) (setq m (re-search-forward re e t)))
