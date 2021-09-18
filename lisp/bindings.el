@@ -382,8 +382,7 @@ Keymap to display on minor modes.")
 
 (defvar mode-line-modes
   (let ((recursive-edit-help-echo
-         (substitute-command-keys
-          "Recursive edit, type \\[exit-recursive-edit] to get out")))
+         "Recursive edit, type M-C-c to get out"))
     (list (propertize "%[" 'help-echo recursive-edit-help-echo)
 	  "("
 	  `(:propertize ("" mode-name)
