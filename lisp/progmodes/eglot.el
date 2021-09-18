@@ -141,7 +141,8 @@ chosen (interactively or automatically)."
 
 (defvar eglot-server-programs `((rust-mode . (eglot-rls "rls"))
                                 (python-mode
-                                 . ,(eglot-alternatives '("pylsp" "pyls")))
+                                 . ,(eglot-alternatives
+                                     '("pylsp" "pyls" ("pyright-langserver" "--stdio"))))
                                 ((js-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
