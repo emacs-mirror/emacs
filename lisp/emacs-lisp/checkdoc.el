@@ -457,6 +457,9 @@ be re-created.")
     st)
   "Syntax table used by checkdoc in document strings.")
 
+(defconst checkdoc--help-buffer "*Checkdoc Help*"
+  "Name of buffer used for Checkdoc Help.")
+
 ;;; User level commands
 ;;
 ;;;###autoload
@@ -704,31 +707,30 @@ style."
 		      begin (point)))
 	       ;; Goofy stuff
 	       (t
-		(if (get-buffer-window "*Checkdoc Help*")
+                (if (get-buffer-window checkdoc--help-buffer)
 		    (progn
-		      (delete-window (get-buffer-window "*Checkdoc Help*"))
-		      (kill-buffer "*Checkdoc Help*"))
-		  (with-output-to-temp-buffer "*Checkdoc Help*"
+                      (delete-window (get-buffer-window checkdoc--help-buffer))
+                      (kill-buffer checkdoc--help-buffer))
+                  (with-output-to-temp-buffer checkdoc--help-buffer
                     (with-current-buffer standard-output
                       (insert
                        "Checkdoc Keyboard Summary:\n"
                        (if (checkdoc-error-unfixable (car (car err-list)))
                            ""
                          (concat
-                          "f, y    - auto Fix this warning without asking (if\
- available.)\n"
-                          "         Very complex operations will still query.\n")
-                         )
+                          "f, y    - auto Fix this warning without asking"
+                          " (if available.)\n"
+                          "         Very complex operations will still query.\n"))
                        "e      - Enter recursive Edit.  Press C-M-c to exit.\n"
                        "SPC, n - skip to the Next error.\n"
                        "DEL, p - skip to the Previous error.\n"
                        "q      - Quit checkdoc.\n"
                        "C-h    - Toggle this help buffer.")))
 		  (shrink-window-if-larger-than-buffer
-		   (get-buffer-window "*Checkdoc Help*"))))))
+                   (get-buffer-window checkdoc--help-buffer))))))
 	  (if cdo (delete-overlay cdo)))))
     (goto-char begin)
-    (if (get-buffer "*Checkdoc Help*") (kill-buffer "*Checkdoc Help*"))
+    (if (get-buffer checkdoc--help-buffer) (kill-buffer checkdoc--help-buffer))
     (message "Checkdoc: Done.")
     returnme))
 
@@ -822,20 +824,21 @@ assumes that the cursor is already positioned to perform the fix."
 (defun checkdoc-recursive-edit (msg)
   "Enter recursive edit to permit a user to fix some error checkdoc has found.
 MSG is the error that was found, which is displayed in a help buffer."
-  (with-output-to-temp-buffer "*Checkdoc Help*"
-    (mapc #'princ
-          (list "Error message:\n  " msg
-                "\n\nEdit to fix this problem, and press C-M-c to continue.")))
+  (with-output-to-temp-buffer checkdoc--help-buffer
+    (with-current-buffer standard-output
+      (insert "Error message:\n  " msg "\n\n"
+              (substitute-command-keys
+               "Edit to fix this problem, and press \\[exit-recursive-edit] to continue."))))
   (shrink-window-if-larger-than-buffer
-   (get-buffer-window "*Checkdoc Help*"))
+   (get-buffer-window checkdoc--help-buffer))
   (message (substitute-command-keys
             "When you're done editing press \\[exit-recursive-edit] to continue."))
   (unwind-protect
       (recursive-edit)
-    (if (get-buffer-window "*Checkdoc Help*")
+    (if (get-buffer-window checkdoc--help-buffer)
 	(progn
-	  (delete-window (get-buffer-window "*Checkdoc Help*"))
-	  (kill-buffer "*Checkdoc Help*")))))
+          (delete-window (get-buffer-window checkdoc--help-buffer))
+          (kill-buffer checkdoc--help-buffer)))))
 
 ;;;###autoload
 (defun checkdoc-eval-current-buffer ()
