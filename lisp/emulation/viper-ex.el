@@ -1798,7 +1798,7 @@ reversed."
 		      set-cmd var auto-cmd-label)))
 
     (if (and ask-if-save
-	     (y-or-n-p (format "Do you want to save this setting in %s "
+             (y-or-n-p (format "Do you want to save this setting in %s?"
 			       viper-custom-file-name)))
 	(progn
 	  (viper-save-string-in-file

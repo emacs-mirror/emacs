@@ -1091,14 +1091,11 @@ In addition, the symbol `_' may be considered alphanumeric if
 `viper-syntax-preference' is `strict-vi' or `reformed-vi'.")
 
 (defconst viper-strict-ALPHA-chars "a-zA-Z0-9_"
-  "Regexp matching the set of alphanumeric characters acceptable to strict
-Vi.")
+  "Regexp matching the set of alphanumeric characters acceptable to strict Vi.")
 (defconst viper-strict-SEP-chars " \t\n"
-  "Regexp matching the set of alphanumeric characters acceptable to strict
-Vi.")
+  "Regexp matching the set of alphanumeric characters acceptable to strict Vi.")
 (defconst viper-strict-SEP-chars-sans-newline " \t"
-  "Regexp matching the set of alphanumeric characters acceptable to strict
-Vi.")
+  "Regexp matching the set of alphanumeric characters acceptable to strict Vi.")
 
 (defconst viper-SEP-char-class " -"
   "String of syntax classes for Vi separators.
