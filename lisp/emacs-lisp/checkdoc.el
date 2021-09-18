@@ -2081,7 +2081,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
                      (not (thing-at-point-looking-at
                            help-xref-url-regexp)))
                 (if (checkdoc-autofix-ask-replace
-                     b e (format "Text %s should be capitalized.  Fix? "
+                     b e (format "Text %s should be capitalized.  Fix?"
                                  text)
                      (capitalize text) t)
                     nil

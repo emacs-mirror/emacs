@@ -25,7 +25,7 @@
 
 ;; This code helps GNU Emacs maintainers keep the loaddefs.el file up to
 ;; date.  It interprets magic cookies of the form ";;;###autoload" in
-;; lisp source files in various useful ways.  To learn more, read the
+;; Lisp source files in various useful ways.  To learn more, read the
 ;; source; if you're going to use this, you'd better be able to.
 
 ;;; Code:
@@ -432,8 +432,8 @@ FILE's name."
   file)
 
 (defun autoload-insert-section-header (outbuf autoloads load-name file time)
-  "Insert the section-header line,
-which lists the file name and which functions are in it, etc."
+  "Insert the section-header line.
+This lists the file name and which functions are in it, etc."
   ;; (cl-assert ;Make sure we don't insert it in the middle of another section.
   ;;  (save-excursion
   ;;    (or (not (re-search-backward

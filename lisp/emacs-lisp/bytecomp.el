@@ -915,7 +915,7 @@ CONST2 may be evaluated multiple times."
 				,bytes ,pc))
 
 (defun byte-compile-lapcode (lap)
-  "Turns lapcode into bytecode.  The lapcode is destroyed."
+  "Turn lapcode into bytecode.  The lapcode is destroyed."
   ;; Lapcode modifications: changes the ID of a tag to be the tag's PC.
   (let ((pc 0)			; Program counter
 	op off			; Operation & offset
@@ -1899,7 +1899,7 @@ also be compiled."
   "Non-nil to prevent byte-compiling of Emacs Lisp code.
 This is normally set in local file variables at the end of the elisp file:
 
-\;; Local Variables:\n;; no-byte-compile: t\n;; End: ") ;Backslash for compile-main.
+\;; Local Variables:\n;; no-byte-compile: t\n;; End:") ;Backslash for compile-main.
 ;;;###autoload(put 'no-byte-compile 'safe-local-variable 'booleanp)
 
 (defun byte-recompile-file (filename &optional force arg load)

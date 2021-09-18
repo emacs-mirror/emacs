@@ -3804,7 +3804,7 @@ Return the trampoline if found or nil otherwise."
 
 ;;;###autoload
 (defun comp-clean-up-stale-eln (file)
-  "Given FILE remove all its *.eln files in `native-comp-eln-load-path'
+  "Given FILE remove all its *.eln files in `native-comp-eln-load-path'.
 sharing the original source filename (including FILE)."
   (when (string-match (rx "-" (group-n 1 (1+ hex)) "-" (1+ hex) ".eln" eos)
                       file)
