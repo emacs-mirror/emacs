@@ -58,7 +58,7 @@
 
 ;;; Code:
 
-(load "erc-loaddefs" nil t)
+(load "erc-loaddefs" 'noerror 'nomessage)
 
 (require 'cl-lib)
 (require 'format-spec)
