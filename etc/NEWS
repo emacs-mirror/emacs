@@ -586,6 +586,11 @@ be assumed to be a propertized string.
 Note that the new face will also be used in tooltips.  When using the
 GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
 
+*** New user option 'help-enable-symbol-autoload'.
+If non-nil, displaying help for an autoloaded function that has no
+documentation string will try to load the file it's from.  This will
+give more extensive help for these functions.
+
 ---
 *** The 'help-for-help' ('C-h C-h') screen has been redesigned.
 

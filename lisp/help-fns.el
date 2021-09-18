@@ -132,6 +132,12 @@ with the current prefix.  The files are chosen according to
   :group 'help
   :version "26.3")
 
+(defcustom help-enable-symbol-autoload nil
+  "Perform autoload if docs are missing from autoload objects."
+  :type 'boolean
+  :group 'help
+  :version "28.1")
+
 (defun help--symbol-class (s)
   "Return symbol class characters for symbol S."
   (when (stringp s)
@@ -227,7 +233,10 @@ interactive command."
 ;;;###autoload
 (defun describe-function (function)
   "Display the full documentation of FUNCTION (a symbol).
-When called from Lisp, FUNCTION may also be a function object."
+When called from Lisp, FUNCTION may also be a function object.
+
+See the `help-enable-symbol-autoload' variable for special
+handling of autoloaded functions."
   (interactive (help-fns--describe-function-or-command-prompt))
 
   ;; We save describe-function-orig-buffer on the help xref stack, so
@@ -823,6 +832,16 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                        f))
 		    ((subrp def) (intern (subr-name def)))
                     (t def))))
+
+    ;; If we don't have a doc string, then try to load the file.
+    (when (and help-enable-symbol-autoload
+               (autoloadp real-def)
+               ;; Empty documentation slot.
+               (not (nth 2 real-def)))
+      (condition-case err
+          (autoload-do-load real-def)
+        (error (message "Error while autoloading: %S" err))))
+
     (list real-function def aliased real-def)))
 
 (defun help-fns-function-description-header (function)
