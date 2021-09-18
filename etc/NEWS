@@ -2436,10 +2436,12 @@ have been renamed to have "proper" public names and documented
 ('xref-show-definitions-buffer' and
 'xref-show-definitions-buffer-at-bottom').
 
-*** New command 'xref-quit-and-pop-marker-stack' and a binding for it
-in "*xref*" buffers ('M-,').  This combination is easy to press
-semi-accidentally if the user wants to go back in the middle of
-choosing the exact definition to go to, and this should do TRT.
++++
+*** New command 'xref-quit-and-pop-marker-stack'.
+This command is bound to 'M-,' in "*xref*" buffers.  This combination
+is easy to press semi-accidentally if the user wants to go back in the
+middle of choosing the exact definition to go to, and this should do
+TRT.
 
 ---
 *** New value 'project-relative' for 'xref-file-name-display'.
@@ -2458,6 +2460,7 @@ binding in 'xref--xref-buffer-mode-map'.
 When non-nil, matches for identifiers in the file visited by the
 current buffer will be shown first in the "*xref*" buffer.
 
++++
 *** The etags Xref backend now honors 'tags-apropos-additional-actions'.
 You can customize it to augment the output of 'xref-find-apropos',
 like it affected the output of 'tags-apropos', which is obsolete since
@@ -2710,6 +2713,7 @@ The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
 'erc-dangerous-host-highlight-type' variables now support a 'message'
 type for highlighting the entire message but not the sender's nick.
 
+---
 *** erc-status-sidebar.el is now part of ERC.
 The 'erc-status-sidebar' package which provides a HexChat-like
 activity overview sidebar for joined IRC channels is now part of ERC.
