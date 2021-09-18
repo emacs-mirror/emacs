@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'seq)
+(require 'cl-lib)
 
 ;; Compiler pacifier
 (defvar viper-minibuffer-current-face)
