@@ -294,11 +294,15 @@ personalize the uniquified buffer name.
 ---
 ** 'remove-hook' is now an interactive command.
 
+---
 ** 'expand-file-name' now checks for null bytes in filenames.
 The function will now check for null bytes in both NAME and
 DEFAULT-DIRECTORY arguments, as well as in the 'default-directory'
-buffer-local variable, assuming its value is used.  If null bytes are
+buffer-local variable, when its value is used.  If null bytes are
 found, 'expand-file-name' will signal an error.
+This means that practically all file-related operations will now check
+file names for null bytes, thus avoiding subtle bugs with silently
+using only the part of file name up to the first null byte.
 
 ---
 ** Frames
@@ -4154,12 +4158,6 @@ If this symbol is one of the members of 'secure-hash-algorithms',
 Emacs constructs the nondirectory part of the auto-save file name by
 applying that 'secure-hash' to the buffer file name.  This avoids any
 risk of excessively long file names.
-
----
-** File names checked for null bytes.
-Functions operating on local file names now check that the file names
-don't contain any NUL bytes.  This avoids subtle bugs caused by
-silently using only the part of the file name until the first NUL byte.
 
 +++
 ** New user option 'process-file-return-signal-string'.
