@@ -828,7 +828,8 @@ MSG is the error that was found, which is displayed in a help buffer."
                 "\n\nEdit to fix this problem, and press C-M-c to continue.")))
   (shrink-window-if-larger-than-buffer
    (get-buffer-window "*Checkdoc Help*"))
-  (message "When you're done editing press C-M-c to continue.")
+  (message (substitute-command-keys
+            "When you're done editing press \\[exit-recursive-edit] to continue."))
   (unwind-protect
       (recursive-edit)
     (if (get-buffer-window "*Checkdoc Help*")
