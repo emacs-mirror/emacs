@@ -4937,25 +4937,25 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (aset newstr i tochar)))
     newstr))
 
-(defun string-replace (fromstring tostring instring)
-  "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs."
+(defun string-replace (from-string to-string in-string)
+  "Replace FROM-STRING with TO-STRING in IN-STRING each time it occurs."
   (declare (pure t) (side-effect-free t))
-  (when (equal fromstring "")
+  (when (equal from-string "")
     (signal 'wrong-length-argument '(0)))
   (let ((start 0)
         (result nil)
         pos)
-    (while (setq pos (string-search fromstring instring start))
+    (while (setq pos (string-search from-string in-string start))
       (unless (= start pos)
-        (push (substring instring start pos) result))
-      (push tostring result)
-      (setq start (+ pos (length fromstring))))
+        (push (substring in-string start pos) result))
+      (push to-string result)
+      (setq start (+ pos (length from-string))))
     (if (null result)
         ;; No replacements were done, so just return the original string.
-        instring
+        in-string
       ;; Get any remaining bit.
-      (unless (= start (length instring))
-        (push (substring instring start) result))
+      (unless (= start (length in-string))
+        (push (substring in-string start) result))
       (apply #'concat (nreverse result)))))
 
 (defun replace-regexp-in-string (regexp rep string &optional

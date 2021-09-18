@@ -359,10 +359,10 @@ CONDITION can also be a list of error conditions."
 (defalias 'tramp-compat-string-replace
   (if (fboundp 'string-replace)
       #'string-replace
-    (lambda (fromstring tostring instring)
+    (lambda (from-string to-string in-string)
       (let ((case-fold-search nil))
         (replace-regexp-in-string
-         (regexp-quote fromstring) tostring instring t t)))))
+         (regexp-quote from-string) to-string in-string t t)))))
 
 ;; Function `string-search' is new in Emacs 28.1.
 (defalias 'tramp-compat-string-search
