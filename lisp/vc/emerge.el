@@ -34,6 +34,7 @@ and its docstring to DOC.
 Then set the `permanent-local' property, so that
 `kill-all-local-variables' (called by major-mode setting
 commands) won't destroy Emerge control variables."
+  (declare (indent defun) (doc-string 3))
   `(progn
      (defvar-local ,symbol ,value ,doc)
      (put ',symbol 'permanent-local t)))
@@ -481,10 +482,10 @@ replaced by emerge-fast-keymap.")
 (emerge-defvar-local emerge-old-keymap nil
   "The original local keymap for the merge buffer.")
 (emerge-defvar-local emerge-auto-advance nil
-		     "If non-nil, emerge-select-A and emerge-select-B automatically advance to
+  "If non-nil, emerge-select-A and emerge-select-B automatically advance to
 the next difference.")
 (emerge-defvar-local emerge-skip-prefers nil
-		     "If non-nil, differences for which there is a preference are automatically
+  "If non-nil, differences for which there is a preference are automatically
 skipped.")
 (emerge-defvar-local emerge-quit-hook nil
   "Hooks to run in the merge buffer after the merge has been finished.
