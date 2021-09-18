@@ -87,10 +87,10 @@ minibuffer.  The default for NEW is the current buffer's file
 name, and the default for OLD is a backup file for NEW, if one
 exists.  If NO-ASYNC is non-nil, call diff synchronously.
 
-When called interactively with a prefix argument, prompt
+When called interactively with a prefix argument SWITCHES, prompt
 interactively for diff switches.  Otherwise, the switches
-specified in the variable `diff-switches' are passed to the
-diff command.
+specified in the variable `diff-switches' are passed to the diff
+command.
 
 Non-interactively, OLD and NEW may each be a file or a buffer."
   (interactive
@@ -229,7 +229,7 @@ returns the buffer used."
 Uses the latest backup, if there are several numerical backups.
 If this file is a backup, diff it with its original.
 The backup file is the first file given to `diff'.
-With prefix arg, prompt for diff switches."
+With prefix arg SWITCHES, prompt for diff switches."
   (interactive (list (read-file-name "Diff (file with backup): ")
 		     (diff-switches)))
   (let (bak ori)
@@ -243,7 +243,7 @@ With prefix arg, prompt for diff switches."
 
 ;;;###autoload
 (defun diff-latest-backup-file (fn)
-  "Return the latest existing backup of FILE, or nil."
+  "Return the latest existing backup of file FN, or nil."
   (let ((handler (find-file-name-handler fn 'diff-latest-backup-file)))
     (if handler
 	(funcall handler 'diff-latest-backup-file fn)

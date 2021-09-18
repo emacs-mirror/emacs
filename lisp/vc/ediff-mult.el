@@ -232,8 +232,8 @@ on `ediff-quit', `ediff-suspend', or `ediff-quit-session-group-hook'."
 (make-obsolete-variable 'ediff-before-session-group-setup-hooks nil "27.1")
 
 (defcustom ediff-after-session-group-setup-hook nil
-  "Hooks run just after a meta-buffer controlling a session group, such as
-ediff-directories, is run."
+  "Hooks run just after a meta-buffer controlling a session group is run.
+One example of this is `ediff-directories'."
   :type 'hook)
 (defcustom ediff-quit-session-group-hook nil
   "Hooks run just before exiting a session group."
@@ -251,8 +251,8 @@ This means that you can set different bindings for different kinds of meta
 buffers."
   :type 'hook)
 
-;; Buffer holding the multi-file patch.  Local to the meta buffer
-(ediff-defvar-local ediff-meta-patchbufer nil "")
+(ediff-defvar-local ediff-meta-patchbufer nil
+  "Buffer holding the multi-file patch.  Local to the meta buffer.")
 
 ;;; API for ediff-meta-list
 
@@ -366,8 +366,8 @@ buffers."
 
 
 (ediff-defvar-local ediff-verbose-help-enabled nil
-  "If t, display redundant help in ediff-directories and other meta buffers.
-Toggled by ediff-toggle-verbose-help-meta-buffer" )
+  "If t, display redundant help in `ediff-directories' and other meta buffers.
+Toggled by `ediff-toggle-verbose-help-meta-buffer'.")
 
 ;; Toggle verbose help in meta-buffers
 ;; TODO: Someone who understands all this can make it better.
@@ -459,7 +459,9 @@ Commands:
 
 (defun ediff-next-meta-item (count)
   "Move to the next item in Ediff registry or session group buffer.
-Moves in circular fashion.  With numeric prefix arg, skip this many items."
+Moves in circular fashion.
+
+With numeric prefix arg COUNT, skip this many items."
   (interactive "p")
   (or count (setq count 1))
   (let (overl)
@@ -487,7 +489,9 @@ Moves in circular fashion.  With numeric prefix arg, skip this many items."
 
 (defun ediff-previous-meta-item (count)
   "Move to the previous item in Ediff registry or session group buffer.
-Moves in circular fashion.  With numeric prefix arg, skip this many items."
+Moves in circular fashion.
+
+With numeric prefix arg COUNT, skip this many items."
   (interactive "p")
   (or count (setq count 1))
   (let (overl)
@@ -1530,7 +1534,9 @@ Useful commands:
 	(ediff-overlay-put overl 'ediff-meta-session-number session-number))))
 
 (defun ediff-mark-for-hiding-at-pos (unmark)
-  "Mark session for hiding.  With prefix arg, unmark."
+  "Mark session for hiding.
+
+With prefix arg UNMARK, unmark instead."
   (interactive "P")
   (let* ((pos (ediff-event-point last-command-event))
 	 (meta-buf (ediff-event-buffer last-command-event))
@@ -1540,10 +1546,9 @@ Useful commands:
     (ediff-mark-session-for-hiding info unmark)
     (ediff-next-meta-item 1)
     (save-excursion
-      (ediff-update-meta-buffer meta-buf nil session-number))
-    ))
+      (ediff-update-meta-buffer meta-buf nil session-number))))
 
-;; Returns whether session was marked or unmarked
+;; Return whether session was marked or unmarked.
 (defun ediff-mark-session-for-hiding (info unmark)
   (let (ignore)
     (cond ((eq unmark 'mark) (setq unmark nil))
@@ -1559,7 +1564,9 @@ Useful commands:
 
 
 (defun ediff-mark-for-operation-at-pos (unmark)
-  "Mark session for a group operation.  With prefix arg, unmark."
+  "Mark session for a group operation.
+
+With prefix arg UNMARK, unmark instead."
   (interactive "P")
   (let* ((pos (ediff-event-point last-command-event))
 	 (meta-buf (ediff-event-buffer last-command-event))
@@ -1588,7 +1595,9 @@ Useful commands:
 
 
 (defun ediff-hide-marked-sessions (unhide)
-  "Hide marked sessions.  With prefix arg, unhide."
+  "Hide marked sessions.
+
+With prefix arg UNHIDE, unhide instead."
   (interactive "P")
   (let ((grp-buf (ediff-get-group-buffer ediff-meta-list))
 	(meta-list (cdr ediff-meta-list))

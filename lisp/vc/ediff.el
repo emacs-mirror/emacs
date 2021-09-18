@@ -551,9 +551,11 @@ symbol describing the Ediff job type; it defaults to
 
 ;;;###autoload
 (defun ediff-directories (dir1 dir2 regexp)
-  "Run Ediff on a pair of directories, DIR1 and DIR2, comparing files that have
-the same name in both.  The third argument, REGEXP, is nil or a regular
-expression; only file names that match the regexp are considered."
+  "Run Ediff on directories DIR1 and DIR2, comparing files.
+Consider only files that have the same name in both directories.
+
+REGEXP is nil or a regular expression; only file names that match
+the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp t))
@@ -608,10 +610,11 @@ names.  Only the files that are under revision control are taken into account."
 
 ;;;###autoload
 (defun ediff-directories3 (dir1 dir2 dir3 regexp)
-  "Run Ediff on three directories, DIR1, DIR2, and DIR3, comparing files that
-have the same name in all three.  The last argument, REGEXP, is nil or a
-regular expression; only file names that match the regexp are considered."
+  "Run Ediff on directories DIR1, DIR2, and DIR3, comparing files.
+Consider only files that have the same name in all three directories.
 
+REGEXP is nil or a regular expression; only file names that match
+the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp t))

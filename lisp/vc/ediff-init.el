@@ -81,39 +81,44 @@ that Ediff doesn't know about.")
 ;; commands) won't destroy Ediff control variables.
 ;;
 ;; Plagiarized from `emerge-defvar-local'.
-(defmacro ediff-defvar-local (var value doc)
-  "Defines VAR as a local variable."
+(defmacro ediff-defvar-local (symbol value doc)
+  "Define SYMBOL as an advertised buffer-local variable.
+Run `defvar-local', setting the value of the variable to VALUE
+and its docstring to DOC.
+
+Then set the `permanent-local' property, so that
+`kill-all-local-variables' (called by major-mode setting
+commands) won't destroy Ediff control variables."
   (declare (indent defun) (doc-string 3))
   `(progn
-     (defvar-local ,var ,value ,doc)
-     (put ',var 'permanent-local t)))
+     (defvar-local ,symbol ,value ,doc)
+     (put ',symbol 'permanent-local t)))
 
 
 
 ;; Variables that control each Ediff session---local to the control buffer.
 
 ;; Mode variables
-;; The buffer in which the A variant is stored.
-(ediff-defvar-local ediff-buffer-A nil "")
-;; The buffer in which the B variant is stored.
-(ediff-defvar-local ediff-buffer-B nil "")
-;; The buffer in which the C variant is stored or where the merge buffer lives.
-(ediff-defvar-local ediff-buffer-C nil "")
-;; Ancestor buffer
-(ediff-defvar-local ediff-ancestor-buffer nil "")
-;; The Ediff control buffer
-(ediff-defvar-local ediff-control-buffer nil "")
+(ediff-defvar-local ediff-buffer-A nil
+  "The buffer in which the A variant is stored.")
+(ediff-defvar-local ediff-buffer-B nil
+  "The buffer in which the B variant is stored.")
+(ediff-defvar-local ediff-buffer-C nil
+  "The buffer in which the C variant is stored or where the merge buffer lives.")
+(ediff-defvar-local ediff-ancestor-buffer nil
+  "Ancestor buffer.")
+(ediff-defvar-local ediff-control-buffer nil
+  "The Ediff control buffer.")
 
 (ediff-defvar-local ediff-temp-indirect-buffer nil
   "If t, the buffer is a temporary indirect buffer.
 It needs to be killed when we quit the session.")
 
-
-;; Association between buff-type and ediff-buffer-*
 (defconst ediff-buffer-alist
   '((?A . ediff-buffer-A)
     (?B . ediff-buffer-B)
-    (?C . ediff-buffer-C)))
+    (?C . ediff-buffer-C))
+  "Association between `buff-type' and `ediff-buffer-*'.")
 
 ;;; Macros
 (defsubst ediff-buffer-live-p (buf)
@@ -515,22 +520,22 @@ See the documentation string of `ediff-hide-regexp-matches' for details.")
   "Function to use in determining which regions to focus on.
 See the documentation string of `ediff-focus-on-regexp-matches' for details.")
 
-;; Regexp that determines buf A regions to focus on when skipping to diff
-(ediff-defvar-local ediff-regexp-focus-A "" "")
-;; Regexp that determines buf B regions to focus on when skipping to diff
-(ediff-defvar-local ediff-regexp-focus-B "" "")
-;; Regexp that determines buf C regions to focus on when skipping to diff
-(ediff-defvar-local ediff-regexp-focus-C "" "")
+(ediff-defvar-local ediff-regexp-focus-A ""
+  "Regexp that determines buf A regions to focus on when skipping to diff.")
+(ediff-defvar-local ediff-regexp-focus-B ""
+  "Regexp that determines buf B regions to focus on when skipping to diff.")
+(ediff-defvar-local ediff-regexp-focus-C ""
+  "Regexp that determines buf C regions to focus on when skipping to diff.")
 ;; connective that determines whether to focus regions that match both or
 ;; one of the regexps
 (ediff-defvar-local ediff-focus-regexp-connective 'and "")
 
-;; Regexp that determines buf A regions to ignore when skipping to diff
-(ediff-defvar-local ediff-regexp-hide-A "" "")
-;; Regexp that determines buf B regions to ignore when skipping to diff
-(ediff-defvar-local ediff-regexp-hide-B "" "")
-;; Regexp that determines buf C regions to ignore when skipping to diff
-(ediff-defvar-local ediff-regexp-hide-C "" "")
+(ediff-defvar-local ediff-regexp-hide-A ""
+  "Regexp that determines buf A regions to ignore when skipping to diff.")
+(ediff-defvar-local ediff-regexp-hide-B ""
+  "Regexp that determines buf B regions to ignore when skipping to diff.")
+(ediff-defvar-local ediff-regexp-hide-C ""
+  "Regexp that determines buf C regions to ignore when skipping to diff.")
 ;; connective that determines whether to hide regions that match both or
 ;; one of the regexps
 (ediff-defvar-local ediff-hide-regexp-connective 'and "")
@@ -631,28 +636,28 @@ shown in brighter colors."
 (put 'ediff-highlight-all-diffs 'permanent-local t)
 
 
-;; The suffix of the control buffer name.
-(ediff-defvar-local ediff-control-buffer-suffix nil "")
-;; Same as ediff-control-buffer-suffix, but without <,>.
-;; It's a number rather than string.
-(ediff-defvar-local ediff-control-buffer-number nil "")
+(ediff-defvar-local ediff-control-buffer-suffix nil
+  "The suffix of the control buffer name.")
+(ediff-defvar-local ediff-control-buffer-number nil
+  "Same as `ediff-control-buffer-suffix', but without \"<,>\".
+It's a number rather than string.")
 
 
-;; The original values of ediff-protected-variables for buffer A
-(ediff-defvar-local ediff-buffer-values-orig-A nil "")
-;; The original values of ediff-protected-variables for buffer B
-(ediff-defvar-local ediff-buffer-values-orig-B nil "")
-;; The original values of ediff-protected-variables for buffer C
-(ediff-defvar-local ediff-buffer-values-orig-C nil "")
-;; The original values of ediff-protected-variables for buffer Ancestor
-(ediff-defvar-local ediff-buffer-values-orig-Ancestor nil "")
+(ediff-defvar-local ediff-buffer-values-orig-A nil
+  "The original values of ediff-protected-variables for buffer A.")
+(ediff-defvar-local ediff-buffer-values-orig-B nil
+  "The original values of ediff-protected-variables for buffer B.")
+(ediff-defvar-local ediff-buffer-values-orig-C nil
+  "The original values of ediff-protected-variables for buffer C.")
+(ediff-defvar-local ediff-buffer-values-orig-Ancestor nil
+  "The original values of ediff-protected-variables for buffer Ancestor.")
 
-;; association between buff-type and ediff-buffer-values-orig-*
 (defconst ediff-buffer-values-orig-alist
   '((A . ediff-buffer-values-orig-A)
     (B . ediff-buffer-values-orig-B)
     (C . ediff-buffer-values-orig-C)
-    (Ancestor . ediff-buffer-values-orig-Ancestor)))
+    (Ancestor . ediff-buffer-values-orig-Ancestor))
+  "Association between buff-type and `ediff-buffer-values-orig-*'.")
 
 ;; Buffer-local variables to be saved then restored during Ediff sessions
 (defconst ediff-protected-variables '(
@@ -665,37 +670,37 @@ shown in brighter colors."
 ;; indicates the way a diff region was created in buffer C.
 ;; state-of-ancestor says if the corresponding region in ancestor buffer is
 ;; empty.
-(ediff-defvar-local ediff-state-of-merge nil "")
+(ediff-defvar-local ediff-state-of-merge nil)
 
-;; The difference that is currently selected.
-(ediff-defvar-local ediff-current-difference -1 "")
-;; Number of differences found.
-(ediff-defvar-local ediff-number-of-differences nil "")
+(ediff-defvar-local ediff-current-difference -1
+  "The difference that is currently selected.")
+(ediff-defvar-local ediff-number-of-differences nil
+  "Number of differences found.")
 
-;; Buffer containing the output of diff, which is used by Ediff to step
-;; through files.
-(ediff-defvar-local ediff-diff-buffer nil "")
-;; Like ediff-diff-buffer, but contains context diff.  It is not used by
-;; Ediff, but it is saved in a file, if user requests so.
-(ediff-defvar-local ediff-custom-diff-buffer nil "")
-;; Buffer used for diff-style fine differences between regions.
-(ediff-defvar-local ediff-fine-diff-buffer nil "")
+(ediff-defvar-local ediff-diff-buffer nil
+  "Buffer containing the output of diff, which is used to step through files.")
+(ediff-defvar-local ediff-custom-diff-buffer nil
+  "Like `ediff-diff-buffer', but contains context diff.
+It is not used by Ediff, but it is saved in a file, if user
+requests so.")
+(ediff-defvar-local ediff-fine-diff-buffer nil
+  "Buffer used for diff-style fine differences between regions.")
 (defconst ediff-tmp-buffer " *ediff-tmp*"
   "Temporary buffer used for computing fine differences.")
 (defconst ediff-msg-buffer " *ediff-message*"
   "Buffer used for messages.")
-;; Buffer containing the output of diff when diff returns errors.
-(ediff-defvar-local ediff-error-buffer nil "")
-;; Buffer to display debug info
-(ediff-defvar-local ediff-debug-buffer "*ediff-debug*" "")
+(ediff-defvar-local ediff-error-buffer nil
+  "Buffer containing the output of diff when diff returns errors.")
+(ediff-defvar-local ediff-debug-buffer "*ediff-debug*"
+  "Buffer to display debug info.")
 
-;; List of ediff control panels associated with each buffer A/B/C/Ancestor.
-;; Not used any more, but may be needed in the future.
-(ediff-defvar-local ediff-this-buffer-ediff-sessions  nil "")
+(ediff-defvar-local ediff-this-buffer-ediff-sessions nil
+  "List of ediff control panels associated with each buffer A/B/C/Ancestor.
+Not used any more, but may be needed in the future.")
 
 ;; to be deleted in due time
 ;; List of difference overlays disturbed by working with the current diff.
-(defvar ediff-disturbed-overlays nil "")
+(defvar ediff-disturbed-overlays nil)
 
 (defcustom ediff-version-control-package 'vc
   "Version control package used.
@@ -707,7 +712,7 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff)
 
 (defcustom ediff-coding-system-for-read 'raw-text
-  "The coding system for read to use when running the diff program as a subprocess.
+  "Coding system for read to use when running the diff program as a subprocess.
 In most cases, the default will do.  However, under certain circumstances in
 MS-Windows you might need to use something like `raw-text-dos' here.
 So, if the output that your diff program sends to Emacs contains extra ^M's,
@@ -717,8 +722,9 @@ work."
   :group 'ediff)
 
 (defcustom ediff-coding-system-for-write 'emacs-internal
-  "The coding system for write to use when writing out difference regions
-to temp files in buffer jobs and when Ediff needs to find fine differences."
+  "Coding system for write to use when writing out difference regions.
+This is used when writing to temp files in buffer jobs and when
+Ediff needs to find fine differences."
   :type 'symbol
   :group 'ediff)
 
@@ -789,7 +795,7 @@ to temp files in buffer jobs and when Ediff needs to find fine differences."
 
 
 (defun ediff-set-face-pixmap (face pixmap)
-  "Set face pixmap on a monochrome display."
+  "Set stipple pixmap of FACE to PIXMAP on a monochrome display."
   (if (and (ediff-window-display-p) (not (display-color-p)))
       (condition-case nil
 	  (set-face-background-pixmap face pixmap)
@@ -1232,8 +1238,8 @@ or `ediff-merge-directory-revisions'."
   :group 'ediff-merge)
 (make-variable-buffer-local 'ediff-autostore-merges)
 
-;; file where the result of the merge is to be saved.  used internally
-(ediff-defvar-local ediff-merge-store-file nil "")
+(ediff-defvar-local ediff-merge-store-file nil
+  "File where the result of the merge is to be saved.  Internal.")
 
 (defcustom ediff-merge-filename-prefix "merge_"
   "Prefix to be attached to saved merge buffers."
@@ -1266,12 +1272,12 @@ This default should work without changes."
 (make-obsolete-variable 'ediff-H-glyph nil "28.1")
 
 
-;; Temporary file used for refining difference regions in buffer A.
-(ediff-defvar-local ediff-temp-file-A nil "")
-;; Temporary file used for refining difference regions in buffer B.
-(ediff-defvar-local ediff-temp-file-B nil "")
-;; Temporary file used for refining difference regions in buffer C.
-(ediff-defvar-local ediff-temp-file-C nil "")
+(ediff-defvar-local ediff-temp-file-A nil
+  "Temporary file used for refining difference regions in buffer A.")
+(ediff-defvar-local ediff-temp-file-B nil
+  "Temporary file used for refining difference regions in buffer B.")
+(ediff-defvar-local ediff-temp-file-C nil
+  "Temporary file used for refining difference regions in buffer C.")
 
 
 (defun ediff-file-remote-p (file-name)

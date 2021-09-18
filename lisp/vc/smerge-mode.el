@@ -961,7 +961,7 @@ It has the following disadvantages:
 (defvar smerge--refine-long-words)
 
 (defun smerge--refine-chopup-region (beg end file &optional preproc)
-  "Chopup the region into small elements, one per line.
+  "Chopup the region from BEG to END into small elements, one per line.
 Save the result into FILE.
 If non-nil, PREPROC is called with no argument in a buffer that contains
 a copy of the text, just before chopping it up.  It can be used to replace

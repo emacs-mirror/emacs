@@ -128,18 +128,19 @@ You probably don't want to change that, unless you are using an obscure patch
 program."
   :type 'regexp)
 
-;; The buffer of the patch file.  Local to control buffer.
-(ediff-defvar-local ediff-patchbufer nil "")
+(ediff-defvar-local ediff-patchbufer nil
+  "The buffer of the patch file.  Local to control buffer.")
 
-;; The buffer where patch displays its diagnostics.
-(ediff-defvar-local ediff-patch-diagnostics nil "")
+(ediff-defvar-local ediff-patch-diagnostics nil
+  "The buffer where patch displays its diagnostics.")
 
-;; Map of patch buffer.  Has the form:
-;;    ((filename1 marker1 marker2) (filename2 marker1 marker2) ...)
-;; where filenames are files to which patch would have applied the patch;
-;; marker1 delimits the beginning of the corresponding patch and marker2 does
-;; it for the end.
-(ediff-defvar-local ediff-patch-map nil "")
+(ediff-defvar-local ediff-patch-map nil
+  "Map of patch buffer.
+Has the form:
+   ((filename1 marker1 marker2) (filename2 marker1 marker2) ...)
+where filenames are files to which patch would have applied the patch;
+marker1 delimits the beginning of the corresponding patch and marker2 does
+it for the end.")
 
 ;; strip prefix from filename
 ;; returns /dev/null, if can't strip prefix

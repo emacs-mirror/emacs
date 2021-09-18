@@ -672,7 +672,7 @@ it is finished."
 	  (when cvs-postproc
 	    (if (null procbuf)
 		;;(set-process-buffer proc nil)
-		(error "cvs' process buffer was killed")
+                (error "CVS process buffer was killed")
 	      (with-current-buffer procbuf
 		;; Do the postprocessing like parsing and such.
 		(save-excursion
@@ -1503,7 +1503,7 @@ The POSTPROC specified there (typically `log-edit') is then called,
 (defvar cvs-edit-log-revision)
 (defvar cvs-edit-log-files) (put 'cvs-edit-log-files 'permanent-local t)
 (defun cvs-mode-edit-log (file rev &optional text)
-  "Edit the log message at point.
+  "Edit log message at point.
 This is best called from a `log-view-mode' buffer."
   (interactive
    (list
@@ -1661,7 +1661,7 @@ See `cvs-mode-diff' for more info."
 This command can be used on files that are marked with \"Merged\"
 or \"Conflict\" in the *cvs* buffer."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "diff flags")))
-  (unless (listp flags) (error "flags should be a list of strings"))
+  (unless (listp flags) (error "Flags should be a list of strings"))
   (save-some-buffers)
   (let* ((marked (cvs-get-marked (cvs-ignore-marks-p "diff")))
 	 (fis (car (cvs-partition 'cvs-fileinfo->backup-file marked))))
@@ -1862,7 +1862,7 @@ POSTPROC is a function of no argument to be evaluated at the very end (after
   (let ((def-dir default-directory))
     ;; Save the relevant buffers
     (save-some-buffers nil (lambda () (cvs-is-within-p fis def-dir))))
-  (unless (listp flags) (error "flags should be a list of strings"))
+  (unless (listp flags) (error "Flags should be a list of strings"))
   ;; Some w32 versions of CVS don't like an explicit . too much.
   (when (and (car fis) (null (cdr fis))
 	     (eq (cvs-fileinfo->type (car fis)) 'DIRCHANGE)
@@ -2259,7 +2259,7 @@ With prefix argument, prompt for cvs flags."
 ;;;;
 
 (defun cvs-dir-member-p (fileinfo dir)
-  "Return true if FILEINFO represents a file in directory DIR."
+  "Return non-nil if FILEINFO represents a file in directory DIR."
   (and (not (eq (cvs-fileinfo->type fileinfo) 'DIRCHANGE))
        (string-prefix-p dir (cvs-fileinfo->dir fileinfo))))
 
@@ -2316,7 +2316,7 @@ this file, or a list of arguments to send to the program."
 
 
 (defun cvs-change-cvsroot (newroot)
-  "Change the CVSROOT."
+  "Change the CVSROOT to NEWROOT."
   (interactive "DNew repository: ")
   (if (or (file-directory-p (expand-file-name "CVSROOT" newroot))
 	  (y-or-n-p (concat "Warning: no CVSROOT found inside repository."

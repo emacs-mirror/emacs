@@ -374,7 +374,7 @@ See `run-hooks'."
   "Keymap for directory buffer.")
 
 (defmacro vc-dir-at-event (event &rest body)
-  "Evaluate BODY with point located at event-start of EVENT.
+  "Evaluate BODY with point located at `event-start' of EVENT.
 If BODY uses EVENT, it should be a variable,
  otherwise it will be evaluated twice."
   (let ((posn (make-symbol "vc-dir-at-event-posn")))
@@ -567,7 +567,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 
 (defun vc-dir-next-line (arg)
   "Go to the next line.
-If a prefix argument is given, move by that many lines."
+With prefix argument ARG, move that many lines."
   (interactive "p")
   (with-no-warnings
     (ewoc-goto-next vc-ewoc arg)
@@ -575,7 +575,7 @@ If a prefix argument is given, move by that many lines."
 
 (defun vc-dir-previous-line (arg)
   "Go to the previous line.
-If a prefix argument is given, move by that many lines."
+With prefix argument ARG, move that many lines."
   (interactive "p")
   (ewoc-goto-prev vc-ewoc arg)
   (vc-dir-move-to-goal-column))
@@ -703,7 +703,7 @@ line."
 
 (defun vc-dir-mark-all-files (arg)
   "Mark all files with the same state as the current one.
-With a prefix argument mark all files (not directories).
+With prefix argument ARG, mark all files (not directories).
 If the current entry is a directory, mark all child files.
 
 The commands operate on files that are on the same state.
@@ -813,7 +813,7 @@ line."
 
 (defun vc-dir-unmark-all-files (arg)
   "Unmark all files with the same state as the current one.
-With a prefix argument unmark all files.
+With prefix argument ARG, unmark all files.
 If the current entry is a directory, unmark all the child files.
 
 The commands operate on files that are on the same state.
@@ -1181,7 +1181,7 @@ specific headers."
    "\n"))
 
 (defun vc-dir-refresh-files (files)
-  "Refresh some files in the *VC-dir* buffer."
+  "Refresh some FILES in the *VC-dir* buffer."
   (let ((def-dir default-directory)
 	(backend vc-dir-backend))
     (vc-set-mode-line-busy-indicator)
