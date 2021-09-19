@@ -100,7 +100,7 @@ FONT-NAME-REGEXP is checked using `string-match'."
 (save-excursion
 (goto-char (point-min))
 (let (res char name ifont)
-  (while (re-search-forward "; Emoji [^(]+(\\(.\\)[).\uFE0F]" nil t)
+  (while (re-search-forward "; Emoji_Presentation [^(]+(\\(.\\)[).]" nil t)
     (setq char (aref (match-string 1) 0))
     (setq ifont (car (internal-char-font nil char)))
     (when ifont
