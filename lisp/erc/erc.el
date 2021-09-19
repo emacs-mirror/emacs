@@ -3803,6 +3803,24 @@ the message given by REASON."
                              (mapconcat #'identity people " ")))
     t))
 
+(defun erc-cmd-OPME ()
+  "Ask ChanServ to op the current nick in the current channel.
+
+This command assumes a ChanServ (channel service) available on
+the IRC network which accepts an \"op\" command that takes the
+channel name and the user's nick, and that the current nick is
+allowed to become an operator in the current channel (typically
+means that the user has a +o flag in the channel's access list)."
+  (erc-message "PRIVMSG"
+               (format "ChanServ op %s %s"
+                       (erc-default-target)
+                       (erc-current-nick))
+               nil))
+
+(defun erc-cmd-DEOPME ()
+  "Deop the current nick in the current channel."
+  (erc-cmd-DEOP (erc-current-nick)))
+
 (defun erc-cmd-TIME (&optional line)
   "Request the current time and date from the current server."
   (cond

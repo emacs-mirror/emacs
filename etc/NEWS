@@ -2736,6 +2736,11 @@ declared obsolete and rewritten as 'erc-track-select-mode-line-face',
 with different expected arguments (the current and old faces are now
 separated) and clearer documentation.
 
+*** Add '/opme' and '/deopme' convenience commands.
+The new '/opme' convenience command asks ChanServ to set the operator
+status for the current nick in the current channel, and '/deopme'
+unsets it.
+
 ** xwidget-webkit mode
 
 ---
