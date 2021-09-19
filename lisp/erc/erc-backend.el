@@ -444,7 +444,7 @@ Currently this is called by `erc-send-input'."
 
 (defun erc-forward-word ()
   "Move forward one word, ignoring any subword settings.
-If no subword-mode is active, then this is (forward-word)."
+If no `subword-mode' is active, then this is (forward-word)."
   (skip-syntax-forward "^w")
   (> (skip-syntax-forward "w") 0))
 
@@ -458,7 +458,7 @@ If POS is out of range, the value is nil."
 
 (defun erc-bounds-of-word-at-point ()
   "Return the bounds of word at point, or nil if we're not at a word.
-If no subword-mode is active, then this is
+If no `subword-mode' is active, then this is
 \(bounds-of-thing-at-point 'word)."
   (if (or (erc-word-at-arg-p (point))
           (erc-word-at-arg-p (1- (point))))

@@ -227,8 +227,7 @@ NONE-ALIVE-FUNC is the function to call if no ERC processes are alive."
       (when none-alive-func (funcall none-alive-func)))))
 
 (defun erc-autoaway-some-open-server-buffer ()
-  "Return some ERC server buffer if its connection is alive and the
-user is not away.
+  "Return some ERC server buffer if its connection is alive and user is not away.
 If none is found, return nil."
   (car (erc-buffer-list (lambda ()
 			  (and (erc-open-server-buffer-p)

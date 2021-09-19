@@ -81,7 +81,8 @@ IRC users."
 All values of the list must be uppercase strings.")
 
 (defvar erc-dcc-list nil
-  "List of DCC connections. Looks like:
+  "List of DCC connections.
+Looks like:
   ((:nick \"nick!user@host\" :type GET :peer proc
     :parent proc :size size :file file)
    (:nick \"nick!user@host\" :type CHAT :peer proc :parent proc)
@@ -163,8 +164,9 @@ All values of the list must be uppercase strings.")
 ;;; Misc macros and utility functions
 
 (defun erc-dcc-member (&rest args)
-  "Return the first matching entry in `erc-dcc-list' which satisfies the
-constraints given as a plist in ARGS.  Returns nil on no match.
+  "Return first matching entry in `erc-dcc-list' satisfying constraints in plist ARGS.
+
+Return nil on no match.
 
 The property :nick is treated specially, if it contains a `!' character,
 it is treated as a nick!user@host string, and compared with the :nick property
@@ -205,8 +207,7 @@ compared with `erc-nick-equal-p' which is IRC case-insensitive."
     result))
 
 (defun erc-pack-int (value)
-  "Convert an integer into a packed string in network byte order,
-which is big-endian."
+  "Convert integer into a packed string in network byte order, which is big-endian."
   ;; make sure value is not negative
   (when (< value 0)
     (error "ERC-DCC (erc-pack-int): packet size is negative"))
