@@ -1282,6 +1282,8 @@ See `auth-source-search' for details on SPEC."
          (required (append base-required create-extra))
          (file (oref backend source))
          (add "")
+         ;; Whether to set save-function.
+         save-function
          ;; `valist' is an alist
          valist
          ;; `artificial' will be returned if no creation is needed
@@ -1411,6 +1413,8 @@ See `auth-source-search' for details on SPEC."
         ;; When r is not an empty string...
         (when (and (stringp data)
                    (< 0 (length data)))
+          (when (eq r 'secret)
+            (setq save-function t))
           ;; this function is not strictly necessary but I think it
           ;; makes the code clearer -tzz
           (let ((printer (lambda ()
@@ -1431,12 +1435,13 @@ See `auth-source-search' for details on SPEC."
                                      data)))))
             (setq add (concat add (funcall printer)))))))
 
-    (plist-put
-     artificial
-     :save-function
-     (let ((file file)
-           (add add))
-       (lambda () (auth-source-netrc-saver file add))))
+    (when save-function
+      (plist-put
+       artificial
+       :save-function
+       (let ((file file)
+             (add add))
+         (lambda () (auth-source-netrc-saver file add)))))
 
     (list artificial)))
 
@@ -1664,6 +1669,8 @@ authentication tokens:
                                                 :port port)))
          (required (append base-required create-extra))
          (collection (oref backend source))
+         ;; Whether to set save-function.
+         save-function
          ;; `args' are the arguments for `secrets-create-item'.
          args
          ;; `valist' is an alist
@@ -1778,21 +1785,24 @@ authentication tokens:
 
         ;; When r is not an empty string...
         (when (and (stringp data)
-                   (< 0 (length data))
-                   (not (member r '(secret label))))
-          ;; append the key (the symbol name of r)
-          ;; and the value in r
-          (setq args (append args (list (auth-source--symbol-keyword r) data))))))
+                   (< 0 (length data)))
+          (if (eq r 'secret)
+              (setq save-function t)
+            (if (not (eq r 'label))
+                ;; append the key (the symbol name of r)
+                ;; and the value in r
+                (setq args (append args (list (auth-source--symbol-keyword r) data))))))))
 
-    (plist-put
-     artificial
-     :save-function
-     (let* ((collection collection)
-            (item (plist-get artificial :label))
-            (secret (plist-get artificial :secret))
-            (secret (if (functionp secret) (funcall secret) secret)))
-       (lambda ()
-	 (auth-source-secrets-saver collection item secret args))))
+    (when save-function
+      (plist-put
+       artificial
+       :save-function
+       (let* ((collection collection)
+              (item (plist-get artificial :label))
+              (secret (plist-get artificial :secret))
+              (secret (if (functionp secret) (funcall secret) secret)))
+         (lambda ()
+	   (auth-source-secrets-saver collection item secret args)))))
 
     (list artificial)))
 

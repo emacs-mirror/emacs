@@ -312,39 +312,105 @@
   ;; Emacs process.  Therefore, we don't care to delete it.
   (let ((auth-sources '((:source (:secrets "session"))))
         (auth-source-save-behavior t)
-        (host (md5 (concat (prin1-to-string process-environment)
-			   (current-time-string))))
-        (passwd (md5 (concat (prin1-to-string process-environment)
-			     (current-time-string) (current-time-string))))
-        auth-info auth-passwd)
-    ;; Redefine `read-*' in order to avoid interactive input.
-    (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
-              ((symbol-function 'read-string)
-               (lambda (_prompt &optional _initial _history default
-                                _inherit-input-method)
-                 default)))
-      (setq auth-info
-            (car (auth-source-search
-                  :max 1 :host host :require '(:user :secret) :create t))))
-    (should (functionp (plist-get auth-info :save-function)))
-    (funcall (plist-get auth-info :save-function))
+        host auth-info auth-passwd)
+    (dolist (passwd '("foo" "" nil))
+      (unwind-protect
+          ;; Redefine `read-*' in order to avoid interactive input.
+          (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
+                    ((symbol-function 'read-string)
+                     (lambda (_prompt &optional _initial _history default
+                                      _inherit-input-method)
+                       default)))
+            (setq host
+                  (md5 (concat (prin1-to-string process-environment) passwd))
+                  auth-info
+                  (car (auth-source-search
+                        :max 1 :host host :require '(:user :secret) :create t))
+	          auth-passwd (plist-get auth-info :secret)
+	          auth-passwd (if (functionp auth-passwd)
+			          (funcall auth-passwd)
+			        auth-passwd))
+            (should (string-equal (plist-get auth-info :user) (user-login-name)))
+            (should (string-equal (plist-get auth-info :host) host))
+            (should (equal auth-passwd passwd))
+            (when (functionp (plist-get auth-info :save-function))
+              (funcall (plist-get auth-info :save-function)))
 
-    ;; Check, that the item has been created indeed.
-    (auth-source-forget+ :host t)
-    (setq auth-info (car (auth-source-search :host host))
-	  auth-passwd (plist-get auth-info :secret)
-	  auth-passwd (if (functionp auth-passwd)
-			  (funcall auth-passwd)
-			auth-passwd))
-    (should (string-equal (plist-get auth-info :user) (user-login-name)))
-    (should (string-equal (plist-get auth-info :host) host))
-    (should (string-equal auth-passwd passwd))
+            ;; Check, that the item has been created indeed.
+            (auth-source-forget+ :host t)
+            (setq auth-info (car (auth-source-search :host host))
+	          auth-passwd (plist-get auth-info :secret)
+	          auth-passwd (if (functionp auth-passwd)
+			          (funcall auth-passwd)
+			        auth-passwd))
+            (if (zerop (length passwd))
+                (progn
+                  (should-not (plist-get auth-info :user))
+                  (should-not (plist-get auth-info :host))
+                  (should-not auth-passwd))
+              (should
+               (string-equal (plist-get auth-info :user) (user-login-name)))
+              (should (string-equal (plist-get auth-info :host) host))
+              (should (string-equal auth-passwd passwd)))))
 
-    ;; Cleanup.
-    ;; Should use `auth-source-delete' when implemented for :secrets backend.
-    (secrets-delete-item
-     "session"
-     (format "%s@%s" (plist-get auth-info :user) (plist-get auth-info :host)))))
+      ;; Cleanup.
+      ;; Should use `auth-source-delete' when implemented for :secrets backend.
+      (secrets-delete-item
+       "session"
+       (format "%s@%s" (plist-get auth-info :user) (plist-get auth-info :host))))))
+
+(ert-deftest auth-source-test-netrc-create-secret ()
+  (skip-unless secrets-enabled)
+  (let* ((netrc-file (make-temp-file "auth-source-test"))
+         (auth-sources (list netrc-file))
+         (auth-source-save-behavior t)
+         host auth-info auth-passwd)
+    (unwind-protect
+        (dolist (passwd '("foo" "" nil))
+          ;; Redefine `read-*' in order to avoid interactive input.
+          (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
+                    ((symbol-function 'read-string)
+                     (lambda (_prompt &optional _initial _history default
+                                      _inherit-input-method)
+                       default)))
+            (setq host
+                  (md5 (concat (prin1-to-string process-environment) passwd))
+                  auth-info
+                  (car (auth-source-search
+                        :max 1 :host host :require '(:user :secret) :create t))
+	          auth-passwd (plist-get auth-info :secret)
+	          auth-passwd (if (functionp auth-passwd)
+			          (funcall auth-passwd)
+			        auth-passwd))
+            (should (string-equal (plist-get auth-info :user) (user-login-name)))
+            (should (string-equal (plist-get auth-info :host) host))
+            (should (equal auth-passwd passwd))
+            (when (functionp (plist-get auth-info :save-function))
+              (funcall (plist-get auth-info :save-function)))
+
+            ;; Check, that the item has been created indeed.
+            (auth-source-forget+ :host t)
+            (setq auth-info (car (auth-source-search :host host))
+	          auth-passwd (plist-get auth-info :secret)
+	          auth-passwd (if (functionp auth-passwd)
+			          (funcall auth-passwd)
+			        auth-passwd))
+            (with-temp-buffer
+              (insert-file-contents netrc-file)
+              (if (zerop (length passwd))
+                  (progn
+                    (should-not (plist-get auth-info :user))
+                    (should-not (plist-get auth-info :host))
+                    (should-not auth-passwd)
+                    (should-not (search-forward host nil 'noerror)))
+                (should
+                 (string-equal (plist-get auth-info :user) (user-login-name)))
+                (should (string-equal (plist-get auth-info :host) host))
+                (should (string-equal auth-passwd passwd))
+                (should (search-forward host nil 'noerror))))))
+
+      ;; Cleanup.
+      (delete-file netrc-file))))
 
 (ert-deftest auth-source-delete ()
   (let* ((netrc-file (make-temp-file "auth-source-test" nil nil "\

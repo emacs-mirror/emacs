@@ -5677,6 +5677,10 @@ Invokes `password-read' if available, `read-passwd' else."
 	       ;; Else, get the password interactively w/o cache.
 	       (read-passwd pw-prompt))
 
+	    ;; Workaround.  Prior Emacs 28.1, auth-source has saved
+	    ;; empty passwords.  See discussion in Bug#50399.
+	    (when (zerop (length auth-passwd))
+	      (setq tramp-password-save-function nil))
 	    (tramp-set-connection-property v "first-password-request" nil)))
 
       ;; Reenable the timers.
