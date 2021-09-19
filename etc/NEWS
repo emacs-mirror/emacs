@@ -2767,6 +2767,36 @@ height of lines or width of chars.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
 
+** Checkdoc
+
+---
+*** No longer warns about command substitutions by default.
+Checkdoc used to warn about "too many command substitutions" (as in
+"\\[foo-command]"), even if you only used ten of them in a docstring.
+On modern machines, you can have hundreds or thousands of command
+substitutions before it becomes a performance issue, so this warning
+is now disabled by default.  To re-enable this warning, customize the
+user option 'checkdoc-max-keyref-before-warn'.
+
+---
+*** New user option 'checkdoc-column-zero-backslash-before-paren'.
+Checkdoc warns if there is a left parenthesis in column zero of a
+documentation string.  That warning can now be disabled by customizing
+this new user option to nil.  This is useful if you don't expect
+your code to be edited with an Emacs older than version 27.1.
+
+---
+*** Now checks the prompt format for 'yes-or-no-p'.
+In addition to verifying the format of the prompt for 'y-or-n-p',
+checkdoc will now check the format of 'yes-or-no-p'.
+
+---
+*** No longer checks for "A-" modifiers.
+Checkdoc recommends usage of command substitutions ("\\[foo-command]")
+in favor of writing keybindings like "C-c f".  It now no longer warns
+about the "A-" modifier as it is not used very much in practice, and
+this warning therefore mostly led to false positives.
+
 ** Enriched mode
 
 ---
@@ -2937,13 +2967,6 @@ when for example your organization has a committee meeting two days
 after every monthly meeting which takes place on the third Thursday,
 or if you would like to attend a virtual meeting scheduled in a
 different timezone causing a difference in the date.
-
----
-*** New user option 'checkdoc-column-zero-backslash-before-paren'.
-Checkdoc warns if there is a left parenthesis in column zero of a
-documentation string.  That warning can now be disabled by customizing
-this new user option to nil.  This can be useful if you don't expect
-your code to be edited with an Emacs version older than 27.1.
 
 ---
 *** The old non-SMIE indentation of 'sh-mode' has been removed.
@@ -4165,8 +4188,9 @@ do not support the old calling conventions any longer.
 
 +++
 ** 'yes-or-no-p' and 'y-or-n-p' PROMPT parameter no longer needs trailing space.
-This has been the case since Emacs 24.4 but was not announced or
-documented until now.
+In other words, the prompt can now end with "?" instead of "? ".  This
+has been the case since Emacs 24.4 but was not announced or documented
+until now.  (Checkdoc has also been updated to accept this convention.)
 
 +++
 ** The 'uniquify' argument in 'auto-save-file-name-transforms' can be a symbol.
