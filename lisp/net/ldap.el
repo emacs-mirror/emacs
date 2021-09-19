@@ -154,8 +154,7 @@ Valid properties include:
 		 (string :tag "Argument")))
 
 (defcustom ldap-ldapsearch-password-prompt-regexp "Enter LDAP Password: "
-  "A regular expression used to recognize the `ldapsearch'
-program's password prompt."
+  "Regexp used to recognize the `ldapsearch' program's password prompt."
   :type 'regexp
   :version "25.1")
 

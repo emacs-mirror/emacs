@@ -1357,7 +1357,7 @@ only return the directory part of FILE."
 
 (defun ange-ftp-parse-netrc ()
   ;; We set this before actually doing it to avoid the possibility
-  ;; of an infinite loop if ange-ftp-netrc-filename is an FTP file.
+  ;; of an infinite loop if `ange-ftp-netrc-filename' is an FTP file.
   (interactive)
   (let (file attr)
     (let ((default-directory "/"))
@@ -3591,11 +3591,11 @@ Value is (0 0) if the modification time cannot be determined."
       (ange-ftp-real-verify-visited-file-modtime buf))))
 
 (defun ange-ftp-file-size (file &optional ascii-mode)
-  "Return the size of remote file FILE. Return -1 if can't get it.
-If ascii-mode is non-nil, return the size with the extra octets that
+  "Return the size of remote file FILE.  Return -1 if can't get it.
+If ASCII-MODE is non-nil, return the size with the extra octets that
 need to be inserted, one at the end of each line, to provide correct
-end-of-line semantics for a transfer using TYPE=A. The default is nil,
-so return the size on the remote host exactly. See RFC 3659."
+end-of-line semantics for a transfer using TYPE=A.  The default is nil,
+so return the size on the remote host exactly.  See RFC 3659."
   (let* ((parsed (ange-ftp-ftp-name file))
 	 (host (nth 0 parsed))
 	 (user (nth 1 parsed))

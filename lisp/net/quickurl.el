@@ -284,7 +284,7 @@ It also restores point after the `read'."
   "Return URL associated with key LOOKUP.
 
 The lookup is done by looking in the alist `quickurl-urls' and the `cons'
-for the URL is returned. The actual method used to look into the alist
+for the URL is returned.  The actual method used to look into the alist
 depends on the setting of the variable `quickurl-assoc-function'."
   (funcall quickurl-assoc-function lookup quickurl-urls))
 

@@ -154,7 +154,7 @@
 
 (defcustom socks-server
   (list "Default server" "socks" 1080 5)
-  ""
+  "Socks server."
   :type '(list
 	  (string :format "" :value "Default server")
 	  (string :tag "Server")
