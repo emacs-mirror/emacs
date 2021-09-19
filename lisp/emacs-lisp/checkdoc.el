@@ -2463,10 +2463,18 @@ Return the message classification.
 Argument END is the maximum bounds to search in."
   (let ((return nil))
     (while (and (not return)
-		(re-search-forward
-		 "(\\s-*\\(\\(\\w\\|\\s_\\)*error\\|\
-\\(\\w\\|\\s_\\)*y-or-n-p\\(-with-timeout\\)?\
-\\|checkdoc-autofix-ask-replace\\)[ \t\n]+" end t))
+                (re-search-forward
+                 (rx "("
+                     (* (syntax whitespace))
+                     (group
+                      (or (seq (* (group (or wordchar (syntax symbol))))
+                               "error")
+                          (seq (* (group (or wordchar (syntax symbol))))
+                               (or "y-or-n-p" "yes-or-no-p")
+                               (? (group "-with-timeout")))
+                          "checkdoc-autofix-ask-replace"))
+                     (+ (any "\n\t ")))
+                 end t))
       (let* ((fn (match-string 1))
 	     (type (cond ((string-match "error" fn)
 			  'error)
@@ -2475,7 +2483,7 @@ Argument END is the maximum bounds to search in."
 	    (progn (forward-sexp 2)
 		   (skip-chars-forward " \t\n")))
 	(if (and (eq type 'y-or-n-p)
-		 (looking-at "(format[ \t\n]+"))
+                 (looking-at (rx "(format" (? "-message") (+ (any " \t\n")))))
 	    (goto-char (match-end 0)))
 	(skip-chars-forward " \t\n")
 	(if (not (looking-at "\""))
