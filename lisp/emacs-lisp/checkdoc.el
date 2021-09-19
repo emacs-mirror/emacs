@@ -320,7 +320,6 @@ with a universal argument.")
 These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
   :type '(repeat (string :tag "Word"))
-  :safe #'listp
   :version "28.1")
 ;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
