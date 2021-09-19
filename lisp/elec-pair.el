@@ -485,6 +485,27 @@ happened."
     (electric-pair-conservative-inhibit char)))
 
 (defun electric-pair-post-self-insert-function ()
+  "Member of `post-self-insert-hook'.  Do main work for `electric-pair-mode'.
+If the newly inserted character C has delimiter syntax, this
+function may decide to insert additional paired delimiters, or
+skip the insertion of the new character altogether by jumping
+over an existing identical character, or do nothing.
+
+The decision is taken by order of preference:
+
+* According to `use-region-p'.  If this returns non-nil this
+  function will unconditionally \"wrap\" the region in the
+  corresponding delimiter for C;
+
+* According to C alone, by looking C up in the tables
+  `electric-pair-paris' or `electric-pair-text-pairs' (which
+  see);
+
+* According to C's syntax and the syntactic state of the buffer
+  (both as defined by the major mode's syntax table).  This is
+  done by looking up up the variables
+  `electric-pair-inhibit-predicate', `electric-pair-skip-self'
+  and `electric-pair-skip-whitespace' (which see)."
   (let* ((pos (and electric-pair-mode (electric--after-char-pos)))
          (skip-whitespace-info))
     (pcase (electric-pair-syntax-info last-command-event)
@@ -551,18 +572,21 @@ happened."
                          (goto-char pos)
                          (funcall electric-pair-inhibit-predicate
                                   last-command-event)))))
-         (save-excursion (electric-pair--insert pair)))))
-      (_
-       (when (and (if (functionp electric-pair-open-newline-between-pairs)
-                      (funcall electric-pair-open-newline-between-pairs)
-                    electric-pair-open-newline-between-pairs)
-                  (eq last-command-event ?\n)
-                  (< (1+ (point-min)) (point) (point-max))
-                  (eq (save-excursion
-                        (skip-chars-backward "\t\s")
-                        (char-before (1- (point))))
-                      (matching-paren (char-after))))
-         (save-excursion (newline 1 t)))))))
+         (save-excursion (electric-pair--insert pair))))))))
+
+(defun electric-pair-open-newline-between-pairs-psif ()
+  "Honour `electric-pair-open-newline-between-pairs'.
+Member of `post-self-insert-hook' if `electric-pair-mode' is on."
+  (when (and (if (functionp electric-pair-open-newline-between-pairs)
+                 (funcall electric-pair-open-newline-between-pairs)
+               electric-pair-open-newline-between-pairs)
+             (eq last-command-event ?\n)
+             (< (1+ (point-min)) (point) (point-max))
+             (eq (save-excursion
+                   (skip-chars-backward "\t\s")
+                   (char-before (1- (point))))
+                 (matching-paren (char-after))))
+    (save-excursion (newline 1 t))))
 
 (defun electric-pair-will-use-region ()
   (and (use-region-p)
@@ -623,10 +647,15 @@ To toggle the mode in a single buffer, use `electric-pair-local-mode'."
                   ;; `electric-indent-mode' are used together.
                   ;; Use `vc-region-history' on these lines for more info.
                   50)
+        (add-hook 'post-self-insert-hook
+		  #'electric-pair-open-newline-between-pairs-psif
+                  50)
 	(add-hook 'self-insert-uses-region-functions
 		  #'electric-pair-will-use-region))
     (remove-hook 'post-self-insert-hook
                  #'electric-pair-post-self-insert-function)
+    (remove-hook 'post-self-insert-hook
+                 #'electric-pair-open-newline-between-pairs-psif)
     (remove-hook 'self-insert-uses-region-functions
                  #'electric-pair-will-use-region)))
 
