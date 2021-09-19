@@ -553,7 +553,7 @@ that `ls -l' will show in the first column of its display."
          lst)))))
 
 (defun eshell-include-members (&optional invert-p)
-  "Include only lisp members matching a regexp."
+  "Include only Lisp members matching a regexp."
   (let ((delim (char-after))
 	regexp end)
     (forward-char)

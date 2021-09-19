@@ -165,7 +165,8 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 (put 'eshell/man 'eshell-no-numeric-conversions t)
 
 (defun eshell/info (&rest args)
-  "Run the info command in-frame with the same behavior as command-line `info', ie:
+  "Run the info command in-frame with the same behavior as command-line `info'.
+For example:
   `info'           => goes to top info window
   `info arg1'      => IF arg1 is a file, then visits arg1
   `info arg1'      => OTHERWISE goes to top info window and then menu item arg1

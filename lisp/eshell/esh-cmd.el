@@ -116,9 +116,9 @@
 		  (&optional form stub paring form-only))
 
 (defgroup eshell-cmd nil
-  "Executing an Eshell command is as simple as typing it in and
-pressing <RET>.  There are several different kinds of commands,
-however."
+  "Executing an Eshell command is as simple as typing it in and \
+pressing \\<eshell-mode-map>\\[eshell-send-input].
+There are several different kinds of commands, however."
   :tag "Command invocation"
   ;; :link '(info-link "(eshell)Command invocation")
   :group 'eshell)
