@@ -133,9 +133,9 @@ This shell should support pipe redirect syntax."
   :group 'semantic
   :type 'string)
 
-(defun semantic-symref-grep--quote-extended (string)
-  "Quote STRING as an extended-syntax regexp."
-  (replace-regexp-in-string (rx (in ".^$*+?|{}[]()|\\"))
+(defun semantic-symref-grep--quote-grep (string)
+  "Quote STRING as a grep-syntax regexp."
+  (replace-regexp-in-string (rx (in ".^$*[\\"))
                             (lambda (s) (concat "\\" s))
                             string nil t))
 
@@ -160,7 +160,7 @@ This shell should support pipe redirect syntax."
          (searchfor (oref tool searchfor))
          (greppat (if (eq (oref tool searchtype) 'regexp)
                       searchfor
-                    (semantic-symref-grep--quote-extended searchfor)))
+                    (semantic-symref-grep--quote-grep searchfor)))
 	 ;; Misc
 	 (b (get-buffer-create "*Semantic SymRef*"))
 	 (ans nil)
