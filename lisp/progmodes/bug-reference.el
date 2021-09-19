@@ -376,24 +376,19 @@ URL-REGEXP against the VCS URL and returns the value to be set as
 Test each configuration in `bug-reference-setup-from-vc-alist'
 and `bug-reference--setup-from-vc-alist' and apply it if
 applicable."
-  (let ((file-or-dir (or buffer-file-name
-                         ;; Catches modes such as vc-dir and Magit.
-                         default-directory)))
-    (when file-or-dir
-      (let* ((backend (vc-responsible-backend file-or-dir t))
-             (url
-              (or (ignore-errors
-                    (vc-call-backend backend 'repository-url "upstream"))
-                  (ignore-errors
-                    (vc-call-backend backend 'repository-url)))))
-        (when url
-          (catch 'found
-            (dolist (config (append
-                             bug-reference-setup-from-vc-alist
-                             (bug-reference--setup-from-vc-alist)))
-              (when (apply #'bug-reference-maybe-setup-from-vc
-                           url config)
-                (throw 'found t)))))))))
+  (when-let ((file-or-dir (or buffer-file-name
+                              ;; Catches modes such as vc-dir and Magit.
+                              default-directory))
+             (backend (vc-responsible-backend file-or-dir t))
+             (url (seq-some (lambda (remote)
+                              (ignore-errors
+                                (vc-call-backend backend 'repository-url
+                                                 file-or-dir remote)))
+                            '("upstream" nil))))
+    (seq-some (lambda (config)
+                (apply #'bug-reference-maybe-setup-from-vc url config))
+              (append bug-reference-setup-from-vc-alist
+                      (bug-reference--setup-from-vc-alist)))))
 
 (defvar bug-reference-setup-from-mail-alist
   `((,(regexp-opt '("emacs" "auctex" "gnus" "tramp" "orgmode") 'words)
