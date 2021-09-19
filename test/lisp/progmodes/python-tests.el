@@ -193,7 +193,6 @@ aliqua."
 
 (ert-deftest python-syntax-after-python-backspace ()
   ;; `python-indent-dedent-line-backspace' garbles syntax
-  :expected-result :failed
   (python-tests-with-temp-buffer
       "\"\"\""
     (goto-char (point-max))
