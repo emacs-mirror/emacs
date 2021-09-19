@@ -1749,6 +1749,9 @@ tags to be considered as well.
 *** New user option 'vc-git-log-switches'.
 String or list of strings specifying switches for Git log under VC.
 
+---
+*** The macro 'vc-call' no longer evaluates its second argument twice.
+
 ** Gnus
 
 +++
