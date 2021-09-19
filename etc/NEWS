@@ -3080,6 +3080,11 @@ similar to prefix arguments, but are more flexible and discoverable.
 It's a library to create, query, navigate and display hierarchical
 structures.
 
+---
+** New major mode for displaying the "etc/AUTHORS" file.
+This new 'etc-authors-mode' provides font-locking for displaying the
+"etc/AUTHORS" file from the Emacs distribution, and not much else.
+
 
 * Incompatible Editing Changes in Emacs 28.1
 
