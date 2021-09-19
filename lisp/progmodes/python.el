@@ -775,12 +775,14 @@ is used to limit the scan."
            ;; The first quote is escaped, so it's not part of a triple quote!
            (goto-char (1+ quote-starting-pos)))
           ((null string-start)
-           ;; This set of quotes delimit the start of a string.
-           (put-text-property quote-starting-pos (1+ quote-starting-pos)
+           ;; This set of quotes delimit the start of a string.  Put
+           ;; the delimiter syntax in the last of the three quotes.
+           (put-text-property (1- quote-ending-pos) quote-ending-pos
                               'syntax-table (string-to-syntax "|")))
           (t
-           ;; This set of quotes delimit the end of a string.
-           (put-text-property (1- quote-ending-pos) quote-ending-pos
+           ;; This set of quotes delimit the end of a string.  Put the
+           ;; delimiter syntax in the first of the three quotess.
+           (put-text-property quote-starting-pos (1+ quote-starting-pos)
                               'syntax-table (string-to-syntax "|"))))))
 
 (defvar python-mode-syntax-table
