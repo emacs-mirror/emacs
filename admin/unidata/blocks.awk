@@ -204,7 +204,7 @@ FILENAME ~ "Blocks.txt" && /^[0-9A-F]/ {
 
 # The space after 'Emoji' is significant in the next two rules.
 # This purposely and deliberately excludes codepoints <= 00FF
-FILENAME ~ "emoji-data.txt" && /^00[0-9A-F]{2}.*; Emoji / {
+FILENAME ~ "emoji-data.txt" && /^00[0-9A-F][0-9A-F].*; Emoji / {
     next
 }
 FILENAME ~ "emoji-data.txt" && /^[0-9A-F].*; Emoji / {
