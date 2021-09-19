@@ -74,12 +74,6 @@ that Ediff doesn't know about.")
        (boundp 'ediff-use-toolbar-p)
        ediff-use-toolbar-p))		;Does the user want it ?
 
-;; Defines VAR as an advertised local variable.
-;; Performs a defvar, then executes `make-variable-buffer-local' on
-;; the variable.  Also sets the `permanent-local' property,
-;; so that `kill-all-local-variables' (called by major-mode setting
-;; commands) won't destroy Ediff control variables.
-;;
 ;; Plagiarized from `emerge-defvar-local'.
 (defmacro ediff-defvar-local (symbol value &optional doc)
   "Define SYMBOL as an advertised buffer-local variable.
