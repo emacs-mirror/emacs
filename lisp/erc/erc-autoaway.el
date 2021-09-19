@@ -43,8 +43,7 @@ This is only used when `erc-autoaway-idle-method' is set to `emacs'.")
   "The last time the user sent something.")
 
 (defvar erc-autoaway-caused-away nil
-  "Indicates whether this module was responsible for setting the
-user's away status.")
+  "Non-nil if this module was responsible for setting the user's away status.")
 
 (defvar erc-autoaway-idle-seconds)
 

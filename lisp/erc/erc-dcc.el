@@ -760,8 +760,7 @@ the matching regexp, or nil if none found."
   :type 'integer)
 
 (defcustom erc-dcc-pump-bytes nil
-  "If set to an integer, keep sending until that number of bytes are
-unconfirmed."
+  "If an integer, keep sending until that number of bytes are unconfirmed."
   :type '(choice (const nil) integer))
 
 (define-inline erc-dcc-get-parent (proc)
@@ -833,8 +832,7 @@ bytes sent."
 
 (defcustom erc-dcc-send-connect-hook
   '(erc-dcc-display-send erc-dcc-send-block)
-  "Hook run whenever the remote end of a DCC SEND offer connected to your
-listening port."
+  "Hook run when remote end of a DCC SEND offer connected to your listening port."
   :type 'hook)
 
 (defun erc-dcc-nick (plist)
@@ -865,7 +863,7 @@ listening port."
     (buffer-string)))
 
 (defun erc-dcc-send-file (nick file &optional pproc)
-  "Open a socket for incoming connections, and send a CTCP send request to the
+  "Open socket for incoming connections and send a CTCP send request to the
 other client."
   (interactive "sNick: \nfFile: ")
   (when (null pproc) (if (processp erc-server-process)
@@ -1028,11 +1026,11 @@ transfer is complete."
   :type 'hook)
 
 (defcustom erc-dcc-chat-connect-hook nil
-  ""
+  "" ; FIXME
   :type 'hook)
 
 (defcustom erc-dcc-chat-exit-hook nil
-  ""
+  "" ; FIXME
   :type 'hook)
 
 (defun erc-cmd-CREQ (line &optional _force)

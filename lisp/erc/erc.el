@@ -158,9 +158,7 @@ parameters and authentication."
   :type 'string)
 
 (defcustom erc-try-new-nick-p t
-  "If the nickname you chose isn't available, and this option is non-nil,
-ERC should automatically attempt to connect with another nickname.
-
+  "Non-nil means attempt to connect with another nickname if nickname unavailable.
 You can manually set another nickname with the /NICK command."
   :group 'erc
   :type 'boolean)
@@ -329,15 +327,15 @@ Functions are passed a buffer as the first argument."
 
 
 (defvar-local erc-channel-users nil
-  "A hash table of members in the current channel, which
-associates nicknames with cons cells of the form:
+  "Hash table of members in the current channel.
+It associates nicknames with cons cells of the form:
 \(USER . MEMBER-DATA) where USER is a pointer to an
 erc-server-user struct, and MEMBER-DATA is a pointer to an
 erc-channel-user struct.")
 
 (defvar-local erc-server-users nil
-  "A hash table of users on the current server, which associates
-nicknames with erc-server-user struct instances.")
+  "Hash table of users on the current server.
+It associates nicknames with `erc-server-user' struct instances.")
 
 (defun erc-downcase (string)
   "Convert STRING to IRC standard conforming downcase."
@@ -381,13 +379,11 @@ If no server buffer exists, return nil."
   (last-message-time nil))
 
 (define-inline erc-get-channel-user (nick)
-  "Find the (USER . CHANNEL-DATA) element corresponding to NICK
-in the current buffer's `erc-channel-users' hash table."
+  "Find NICK in the current buffer's `erc-channel-users' hash table."
   (inline-quote (gethash (erc-downcase ,nick) erc-channel-users)))
 
 (define-inline erc-get-server-user (nick)
-  "Find the USER corresponding to NICK in the current server's
-`erc-server-users' hash table."
+  "Find NICK in the current server's `erc-server-users' hash table."
   (inline-letevals (nick)
     (inline-quote (erc-with-server-buffer
 		    (gethash (erc-downcase ,nick) erc-server-users)))))
@@ -1384,8 +1380,7 @@ If BUFFER is nil, the current buffer is used."
          (null (erc-default-target)))))
 
 (defun erc-open-server-buffer-p (&optional buffer)
-  "Return non-nil if argument BUFFER is an ERC server buffer that
-has an open IRC process.
+  "Return non-nil if BUFFER is an ERC server buffer with an open IRC process.
 
 If BUFFER is nil, the current buffer is used."
   (and (erc-server-buffer-p buffer)
@@ -3561,8 +3556,7 @@ just as you provided it.  Use this command with care!"
 (put 'erc-cmd-QUOTE 'do-not-parse-args t)
 
 (defcustom erc-query-display 'window
-  "Indicates how to display query buffers when using the /QUERY
-command to talk to someone.
+  "How to display query buffers when using the /QUERY command to talk to someone.
 
 The default behavior is to display the message in a new window
 and bring it to the front.  See the documentation for
@@ -4318,8 +4312,8 @@ disconnected, you should set this option to t."
   :type 'boolean)
 
 (defcustom erc-format-query-as-channel-p t
-  "If non-nil, format text from others in a query buffer like in a channel,
-otherwise format like a private message."
+  "If non-nil, format text from others in a query buffer like in a channel.
+Otherwise format like a private message."
   :group 'erc-query
   :type 'boolean)
 
@@ -4561,8 +4555,8 @@ always returns t."
   t)
 
 (defun erc-echo-notice-in-user-buffers (s parsed _buffer sender)
-  "Echo a private notice in all of the buffers for which SENDER
-is a member.  This function is designed to be added to either
+  "Echo a private notice in all of the buffers for which SENDER is a member.
+This function is designed to be added to either
 `erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
 returns non-nil if there is at least one buffer for which the
 sender is a member.
@@ -4575,12 +4569,11 @@ See also: `erc-echo-notice-in-first-user-buffer',
       nil)))
 
 (defun erc-echo-notice-in-user-and-target-buffers (s parsed buffer sender)
-  "Echo a private notice in BUFFER and in all of the buffers for
-which SENDER is a member.  This function is designed to be added
-to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and returns non-nil if there is
-at least one buffer for which the sender is a member or the
-default target.
+  "Echo a private notice in BUFFER and in all buffers for which SENDER is a member.
+This function is designed to be added to either
+`erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
+returns non-nil if there is at least one buffer for which the
+sender is a member or the default target.
 
 See also: `erc-echo-notice-in-user-buffers',
 `erc-buffer-list-with-nick'."
@@ -4591,8 +4584,8 @@ See also: `erc-echo-notice-in-user-buffers',
       nil)))
 
 (defun erc-echo-notice-in-first-user-buffer (s parsed _buffer sender)
-  "Echo a private notice in one of the buffers for which SENDER
-is a member.  This function is designed to be added to either
+  "Echo a private notice in one of the buffers for which SENDER is a member.
+This function is designed to be added to either
 `erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
 returns non-nil if there is at least one buffer for which the
 sender is a member.
@@ -5201,8 +5194,7 @@ See also: `erc-update-user' and `erc-update-channel-member'."
 (defun erc-update-channel-member (channel nick new-nick
                                           &optional add voice halfop op admin owner host login
                                           full-name info update-message-time)
-  "Update user and channel information for the user with
-nickname NICK in channel CHANNEL.
+  "Update user and channel for user with nickname NICK in channel CHANNEL.
 
 See also: `erc-update-current-channel-member'."
   (erc-with-buffer
@@ -5670,8 +5662,7 @@ Return non-nil only if we actually send anything."
 ;;           (run-hooks 'erc-send-post-hook))))))
 
 (defun erc-display-msg (line)
-  "Display LINE as a message of the user to the current target at the
-current position."
+  "Display LINE as a message of the user to the current target at point."
   (when erc-insert-this
     (let ((insert-position (point)))
       (insert (erc-format-my-nick))
@@ -6403,8 +6394,8 @@ See `erc-mode-line-format' for which characters are can be used."
   :type 'boolean)
 
 (defcustom erc-header-line-uses-help-echo-p t
-  "Show the contents of the header line in the echo area or as a tooltip
-when you move point into the header line."
+  "Show header line in echo area or as a tooltip
+when point moves to the header line."
   :group 'erc-mode-line-and-header
   :type 'boolean)
 
@@ -6493,8 +6484,7 @@ shortened server name instead."
           (t (buffer-name (current-buffer))))))
 
 (defun erc-format-away-status ()
-  "Return a formatted `erc-mode-line-away-status-format'
-if `erc-away' is non-nil."
+  "Return a formatted `erc-mode-line-away-status-format' if `erc-away' is non-nil."
   (let ((a (erc-away-time)))
     (if a
         (format-time-string erc-mode-line-away-status-format a)

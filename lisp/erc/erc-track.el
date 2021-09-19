@@ -104,14 +104,13 @@ channel (353)."
   :type 'erc-message-type)
 
 (defcustom erc-track-exclude-server-buffer nil
-  "If true, don't perform tracking on the server buffer; this is
-useful for excluding all the things like MOTDs from the server and
-other miscellaneous functions."
+  "If true, don't perform tracking on the server buffer.
+This is useful for excluding all the things like MOTDs from the
+server and other miscellaneous functions."
   :type 'boolean)
 
 (defcustom erc-track-shorten-start 1
-  "This number specifies the minimum number of characters a channel name in
-the mode-line should be reduced to."
+  "Minimum number of characters for a channel name in the mode-line."
   :type 'number)
 
 (defcustom erc-track-shorten-cutoff 4
@@ -149,8 +148,7 @@ If nil instead of a function, shortening is disabled."
 		 function))
 
 (defcustom erc-track-list-changed-hook nil
-  "Hook that is run whenever the contents of
-`erc-modified-channels-alist' changes.
+  "Hook run when the contents of `erc-modified-channels-alist' changes.
 
 This is useful for people that don't use the default mode-line
 notification but instead use a separate mechanism to provide
@@ -603,10 +601,9 @@ because the debugger also causes changes to the
 window-configuration.")
 
 (defun erc-modified-channels-update (&rest _args)
-  "This function updates the information in `erc-modified-channels-alist'
-according to buffer visibility.  It calls
-`erc-modified-channels-display' at the end.  This should usually be
-called via `window-configuration-change-hook'.
+  "Update `erc-modified-channels-alist' according to buffer visibility.
+It calls `erc-modified-channels-display' at the end.  This should
+usually be called via `window-configuration-change-hook'.
 ARGS are ignored."
   (interactive)
   (unless erc-modified-channels-update-inside
@@ -675,8 +672,7 @@ is displayed according to `erc-track-mouse-face'."
     name))
 
 (defun erc-modified-channels-display ()
-  "Set `erc-modified-channels-object'
-according to `erc-modified-channels-alist'.
+  "Set `erc-modified-channels-object' according to `erc-modified-channels-alist'.
 Use `erc-make-mode-line-buffer-name' to create buttons."
   (cond ((or (eq 'mostactive erc-track-switch-direction)
 	     (eq 'leastactive erc-track-switch-direction))
@@ -779,10 +775,10 @@ that face with highest priority in NEW-FACES is also a member of
         choice))))
 
 (defun erc-track-modified-channels ()
-  "Hook function for `erc-insert-post-hook' to check if the current
-buffer should be added to the mode line as a hidden, modified
-channel.  Assumes it will only be called when current-buffer
-is in `erc-mode'."
+  "Hook function for `erc-insert-post-hook'.
+Check if the current buffer should be added to the mode line as a
+hidden, modified channel.  Assumes it will only be called when
+the current buffer is in `erc-mode'."
   (let ((this-channel (or (erc-default-target)
 			  (buffer-name (current-buffer)))))
     (if (and (not (erc-buffer-visible (current-buffer)))
@@ -858,8 +854,7 @@ is in `erc-mode'."
 ;;; Buffer switching
 
 (defvar erc-track-last-non-erc-buffer nil
-  "Stores the name of the last buffer you were in before activating
-`erc-track-switch-buffer'.")
+  "Name of the last buffer before activating `erc-track-switch-buffer'.")
 
 (defun erc-track-sort-by-activest ()
   "Sort erc-modified-channels-alist by activity.
@@ -869,9 +864,8 @@ That means the number of unseen messages in a channel."
 	      (lambda (a b) (> (nth 1 a) (nth 1 b))))))
 
 (defun erc-track-face-priority (face)
-  "Return a number indicating the priority of FACE in
-`erc-track-faces-priority-list'.  Lower number means higher
-priority.
+  "Return priority (a number) of FACE in `erc-track-faces-priority-list'.
+Lower number means higher priority.
 
 If face is not in `erc-track-faces-priority-list', it will have a
 higher number than any other face in that list."
