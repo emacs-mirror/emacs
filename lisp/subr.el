@@ -166,8 +166,8 @@ variables are literal symbols and should not be quoted.
 
 The second VALUE is not computed until after the first VARIABLE
 is set, and so on; each VALUE can use the new value of variables
-set earlier in the ‘setq-local’.  The return value of the
-‘setq-local’ form is the value of the last VALUE.
+set earlier in the `setq-local'.  The return value of the
+`setq-local' form is the value of the last VALUE.
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
