@@ -13,17 +13,17 @@ BidiMirroring.txt
 http://www.unicode.org/Public/UNIDATA/BidiMirroring.txt
 2021-08-08
 
-IVD_Sequences.txt
-http://www.unicode.org/ivd/
-2020-11-06
-
-UnicodeData.txt
-http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
-2021-07-06
-
 Blocks.txt
 http://www.unicode.org/Public/8.0.0/ucd/Blocks.txt
 2021-01-22
+
+EastAsianWidth.txt
+https://www.unicode.org/Public/UNIDATA/EastAsianWidth.txt
+2021-07-06
+
+IVD_Sequences.txt
+http://www.unicode.org/ivd/
+2020-11-06
 
 NormalizationTest.txt
 http://www.unicode.org/Public/UNIDATA/NormalizationTest.txt
@@ -33,10 +33,10 @@ SpecialCasing.txt
 http://unicode.org/Public/UNIDATA/SpecialCasing.txt
 2021-03-08
 
+UnicodeData.txt
+http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
+2021-07-06
+
 emoji-data.txt
 https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
 2021-08-26
-
-EastAsianWidth.txt
-https://www.unicode.org/Public/UNIDATA/EastAsianWidth.txt
-2021-07-06
