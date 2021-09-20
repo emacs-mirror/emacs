@@ -491,8 +491,13 @@ confirm the aborting of the current minibuffer and all contained ones.  */)
       array[1] = make_fixnum (minibuf_level - minibuf_depth + 1);
       if (!NILP (Fyes_or_no_p (Fformat (2, array))))
 	{
-	  minibuffer_quit_level = minibuf_depth;
-	  Fthrow (Qexit, Qt);
+	  /* Due to the above check, the current minibuffer is in the
+	     most nested command loop, which means that we don't have
+	     to abort any extra non-minibuffer recursive edits.  Thus,
+	     the number of recursive edits we have to abort equals the
+	     number of minibuffers we have to abort.  */
+	  CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"),
+		 array[1]);
 	}
     }
   else

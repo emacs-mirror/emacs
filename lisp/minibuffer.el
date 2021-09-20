@@ -2349,14 +2349,18 @@ that displays the \"*Completions*\" buffer."
 
 (add-hook 'minibuffer-exit-hook 'minibuffer-restore-windows)
 
-(defun minibuffer-quit-recursive-edit ()
-  "Quit the command that requested this recursive edit without error.
-Like `abort-recursive-edit' without aborting keyboard macro
-execution."
-  ;; See Info node `(elisp)Recursive Editing' for an explanation of
-  ;; throwing a function to `exit'.
-  (throw 'exit (lambda ()
-                 (signal 'minibuffer-quit nil))))
+(defun minibuffer-quit-recursive-edit (&optional levels)
+  "Quit the command that requested this recursive edit or minibuffer input.
+Do so without terminating keyboard macro recording or execution.
+LEVELS specifies the number of nested recursive edits to quit.
+If nil, it defaults to 1."
+  (unless levels
+    (setq levels 1))
+  (if (> levels 1)
+      ;; See Info node `(elisp)Recursive Editing' for an explanation
+      ;; of throwing a function to `exit'.
+      (throw 'exit (lambda () (minibuffer-quit-recursive-edit (1- levels))))
+    (throw 'exit (lambda () (signal 'minibuffer-quit nil)))))
 
 (defun self-insert-and-exit ()
   "Terminate minibuffer input."
