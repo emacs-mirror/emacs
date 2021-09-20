@@ -310,8 +310,7 @@ that closes only when clicked on the close button."
       (define-key-after menu [duplicate-tab]
         `(menu-item "Duplicate" (lambda () (interactive)
                                   (tab-bar-duplicate-tab
-                                   nil ;; TODO: add ,tab-number
-                                   ))
+                                   nil ,tab-number))
                     :help "Duplicate the tab"))
       (define-key-after menu [close]
         `(menu-item "Close" (lambda () (interactive)
@@ -1276,15 +1275,19 @@ After the tab is created, the hooks in
     (unless tab-bar-mode
       (message "Added new tab at %s" tab-bar-new-tab-to))))
 
-(defun tab-bar-new-tab (&optional arg)
+(defun tab-bar-new-tab (&optional arg from-number)
   "Create a new tab ARG positions to the right.
 If a negative ARG, create a new tab ARG positions to the left.
 If ARG is zero, create a new tab in place of the current tab.
 If no ARG is specified, then add a new tab at the position
 specified by `tab-bar-new-tab-to'.
 Argument addressing is relative in contrast to `tab-bar-new-tab-to'
-where argument addressing is absolute."
+where argument addressing is absolute.
+If FROM-NUMBER is a tab number, a new tab is created from that tab."
   (interactive "P")
+  (when from-number
+    (let ((inhibit-message t))
+      (tab-bar-select-tab from-number)))
   (if arg
       (let* ((tabs (funcall tab-bar-tabs-function))
              (from-index (or (tab-bar--current-tab-index tabs) 0))
@@ -1292,13 +1295,13 @@ where argument addressing is absolute."
         (tab-bar-new-tab-to (1+ to-index)))
     (tab-bar-new-tab-to)))
 
-(defun tab-bar-duplicate-tab (&optional arg)
+(defun tab-bar-duplicate-tab (&optional arg from-number)
   "Duplicate the current tab to ARG positions to the right.
-ARG has the same meaning as in `tab-bar-new-tab'."
+ARG and FROM-NUMBER have the same meaning as in `tab-bar-new-tab'."
   (interactive "P")
   (let ((tab-bar-new-tab-choice nil)
         (tab-bar-new-tab-group t))
-    (tab-bar-new-tab arg)))
+    (tab-bar-new-tab arg from-number)))
 
 
 (defvar tab-bar-closed-tabs nil
