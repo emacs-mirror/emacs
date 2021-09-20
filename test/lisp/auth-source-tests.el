@@ -360,7 +360,6 @@
        (format "%s@%s" (plist-get auth-info :user) (plist-get auth-info :host))))))
 
 (ert-deftest auth-source-test-netrc-create-secret ()
-  (skip-unless secrets-enabled)
   (let* ((netrc-file (make-temp-file "auth-source-test"))
          (auth-sources (list netrc-file))
          (auth-source-save-behavior t)
