@@ -157,6 +157,14 @@ top-level directory.  Most tests are in the directory "test/".  From
 the "test/" directory, run "make <filename>" to run the tests for
 <filename>.el(c).  See "test/README" for more information.
 
+If you're making changes that involve the Emacs build system, please
+test 'out-of-tree' builds as well, i.e.:
+
+    mkdir emacs-build
+    cd emacs-build
+    ../path-to-emacs-sources/configure
+    make
+
 ** Commit messages
 
 Ordinarily, a change you commit should contain a log entry in its
