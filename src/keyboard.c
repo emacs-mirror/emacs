@@ -753,10 +753,20 @@ DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
 To get out of the recursive edit, a command can throw to `exit' -- for
 instance (throw \\='exit nil).
-If you throw a value other than t, `recursive-edit' returns normally
-to the function that called it.  Throwing a t value causes
-`recursive-edit' to quit, so that control returns to the command loop
-one level up.
+
+The following values can be thrown to 'exit:
+
+- t causes `recursive-edit' to quit, so that control returns to the
+  command loop one level up.
+
+- A string causes `recursive-edit' to signal an error, printing this
+  string as the message.
+
+- A function causes `recursive-edit' to call this function without
+  arguments before returning normally.
+
+- Any other value causes `recursive-edit' to return normally to the
+  function that called it.
 
 This function is called by the editor initialization to begin editing.  */)
   (void)
