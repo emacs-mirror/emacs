@@ -2302,7 +2302,8 @@ This is a regexp that can be set to alter how links are followed in eww.
 +++
 *** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
-(the default), then 'url-retrieve' is used.
+(the default), then 'url-retrieve' is used.  When 'sync', then
+'url-retrieve-synchronously' is used.
 
 +++
 *** New Emacs command line convenience command.

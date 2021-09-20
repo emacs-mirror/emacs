@@ -143,11 +143,13 @@ The string will be passed through `substitute-command-keys'."
 
 (defcustom eww-retrieve-command nil
   "Command to retrieve an URL via an external program.
-If nil, `url-retrieve' is used to download the data.  If non-nil,
-this should be a list where the first item is the program, and
-the rest are the arguments."
+If nil, `url-retrieve' is used to download the data.
+If `sync', `url-retrieve-synchronously' is used.
+For other non-nil values, this should be a list where the first item
+is the program, and the rest are the arguments."
   :version "28.1"
   :type '(choice (const :tag "Use `url-retrieve'" nil)
+                 (const :tag "Use `url-retrieve-synchronously'" sync)
                  (repeat string)))
 
 (defcustom eww-use-external-browser-for-content-type
@@ -366,9 +368,16 @@ killed after rendering."
                     (list url nil (current-buffer))))))
 
 (defun eww-retrieve (url callback cbargs)
-  (if (null eww-retrieve-command)
-      (url-retrieve url #'eww-render
-                    (list url nil (current-buffer)))
+  (cond
+   ((null eww-retrieve-command)
+    (url-retrieve url #'eww-render
+                  (list url nil (current-buffer))))
+   ((eq eww-retrieve-command 'sync)
+    (let ((orig-buffer (current-buffer))
+          (data-buffer (url-retrieve-synchronously url)))
+      (with-current-buffer data-buffer
+        (eww-render nil url nil orig-buffer))))
+   (t
     (let ((buffer (generate-new-buffer " *eww retrieve*"))
           (error-buffer (generate-new-buffer " *eww error*")))
       (with-current-buffer buffer
@@ -388,7 +397,7 @@ killed after rendering."
                          (with-current-buffer buffer
                            (goto-char (point-min))
                            (insert "Content-type: text/html; charset=utf-8\n\n")
-                           (apply #'funcall callback nil cbargs))))))))))
+                           (apply #'funcall callback nil cbargs)))))))))))
 
 (function-put 'eww 'browse-url-browser-kind 'internal)
 
@@ -2398,13 +2407,14 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 
 (defun eww-isearch-next-buffer (&optional _buffer wrap)
   "Go to the next page to search using `rel' attribute for navigation."
-  (if wrap
-      (condition-case nil
-	  (eww-top-url)
-	(error nil))
-    (if isearch-forward
-	(eww-next-url)
-      (eww-previous-url)))
+  (let ((eww-retrieve-command 'sync))
+    (if wrap
+        (condition-case nil
+	    (eww-top-url)
+	  (error nil))
+      (if isearch-forward
+	  (eww-next-url)
+        (eww-previous-url))))
   (current-buffer))
 
 (provide 'eww)
