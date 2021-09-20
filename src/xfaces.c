@@ -2709,7 +2709,7 @@ merge_face_ref (struct window *w,
 		{
 		  if (EQ (value, Qt))
 		    value = make_fixnum (1);
-		  if (FIXNUMP (value)
+		  if ((FIXNUMP (value) && XFIXNUM (value) != 0)
 		      || STRINGP (value)
 		      || CONSP (value)
 		      || NILP (value))
