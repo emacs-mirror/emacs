@@ -145,6 +145,13 @@ Emoji" by default for that script.  Use:
 to change the font used.
 
 +++
+** Zero Width Joiner (ZWJ) and emoji sequences are now composed.
+Emacs can now compose (almost) all the Unicode-14 ZWJ and emoji
+sequences (if a suitable font is installed) so that they are displayed
+as single glyphs instead of multiple ones.  'Noto Color Emoji' is one
+such suitable font.
+
++++
 ** New command 'execute-extended-command-for-buffer'.
 This new command, bound to 'M-S-x', works like
 'execute-extended-command', but limits the set of commands to the

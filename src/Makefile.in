@@ -545,7 +545,11 @@ charscript = ${lispintdir}/charscript.el
 ${charscript}: FORCE
 	$(MAKE) -C ../admin/unidata $(notdir $@)
 
-${lispintdir}/characters.elc: ${charscript:.el=.elc}
+emoji-zwj = ${lispintdir}/emoji-zwj.el
+${emoji-zwj}: FORCE
+	$(MAKE) -C ../admin/unidata $(notdir $@)
+
+${lispintdir}/characters.elc: ${charscript:.el=.elc} ${emoji-zwj:.el=.elc}
 
 SYSTEM_TYPE = @SYSTEM_TYPE@
 
@@ -634,7 +638,7 @@ endif
 ## This goes on to affect various things, and the emacs binary fails
 ## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
-  $(charsets) $(charscript) $(MAKE_PDUMPER_FINGERPRINT)
+  $(charsets) $(charscript) ${emoji-zwj} $(MAKE_PDUMPER_FINGERPRINT)
 	$(AM_V_CCLD)$(CC) -o $@.tmp \
 	  $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)

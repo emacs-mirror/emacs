@@ -36,3 +36,11 @@ http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
 emoji-data.txt
 https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
 2021-08-26
+
+emoji-zwj-sequences.txt
+https://www.unicode.org/Public/emoji/14.0/emoji-zwj-sequences.txt
+2021-06-08
+
+emoji-sequences.txt
+https://www.unicode.org/Public/emoji/14.0/emoji-sequences.txt
+2020-08-26
