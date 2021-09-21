@@ -376,8 +376,7 @@
                   (md5 (concat (prin1-to-string process-environment) passwd))
                   auth-info
                   (car (auth-source-search
-                        :max 1 :host host :require '(:user :secret) :create t
-                        :type 'netrc))
+                        :max 1 :host host :require '(:user :secret) :create t))
 	          auth-passwd (plist-get auth-info :secret)
 	          auth-passwd (if (functionp auth-passwd)
 			          (funcall auth-passwd)
@@ -390,6 +389,7 @@
 
             ;; Check, that the item has been created indeed.
             (auth-source-forget+ :host t)
+            (setq auth-source-netrc-cache nil)
             (setq auth-info (car (auth-source-search :host host))
 	          auth-passwd (plist-get auth-info :secret)
 	          auth-passwd (if (functionp auth-passwd)
