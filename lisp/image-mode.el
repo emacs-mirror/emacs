@@ -1241,7 +1241,7 @@ will have the line where the image appears (if any) marked.
 If no such buffer exists, it will be opened."
   (interactive)
   (unless buffer-file-name
-    (error "The current buffer doesn't visit a file."))
+    (error "Current buffer is not visiting a file"))
   (image-mode--mark-file buffer-file-name #'dired-mark "marked"))
 
 (defun image-mode-unmark-file ()
@@ -1253,7 +1253,7 @@ any).
 If no such buffer exists, it will be opened."
   (interactive)
   (unless buffer-file-name
-    (error "The current buffer doesn't visit a file."))
+    (error "Current buffer is not visiting a file"))
   (image-mode--mark-file buffer-file-name #'dired-unmark "unmarked"))
 
 (declare-function dired-mark "dired" (arg &optional interactive))

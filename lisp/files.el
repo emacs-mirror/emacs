@@ -1108,7 +1108,7 @@ customize the variable `user-emacs-directory-warning'."
 (defun exec-path ()
   "Return list of directories to search programs to run in remote subprocesses.
 The remote host is identified by `default-directory'.  For remote
-hosts that do not support subprocesses, this returns `nil'.
+hosts that do not support subprocesses, this returns nil.
 If `default-directory' is a local directory, this function returns
 the value of the variable `exec-path'."
   (let ((handler (find-file-name-handler default-directory 'exec-path)))
@@ -2526,7 +2526,14 @@ A buffer may be modified in several ways after reading into the buffer,
 due to Emacs features such as format decoding, character code
 conversion, `find-file-hook', automatic uncompression, etc.
 
-This function ensures that none of these modifications will take place."
+This function ensures that none of these modifications will take place.
+
+Unlike `find-file-literally', this function does not make the
+buffer unibyte, so if this function is used when handling
+binary (non-character) data, it can be convenient to make the
+buffer unibyte first.  This isn't, strictly speaking, necessary,
+because multibyte buffers can also deal with raw bytes.  See info
+node `(elisp)Character Codes' for details."
   (let ((format-alist nil)
 	(after-insert-file-functions nil)
 	(coding-system-for-read 'no-conversion)
@@ -4425,8 +4432,8 @@ variables will override modes."
           (t -2))))
 
 (defun dir-locals--sort-variables (variables)
-  "Sorts VARIABLES so that applying them in order has the right effect.
-The variables are compared by dir-locals--get-sort-score.
+  "Sort VARIABLES so that applying them in order has the right effect.
+The variables are compared by `dir-locals--get-sort-score'.
 Directory entries are then recursively sorted using the same
 criteria."
   (setq variables (sort variables
@@ -7608,7 +7615,7 @@ normally equivalent short `-D' option is just passed on to
 		  ;; Replace "total" with "total used in directory" to
 		  ;; avoid confusion.
 		  (replace-match "total used in directory" nil nil nil 1)
-		  (let ((available (get-free-disk-space ".")))
+		  (let ((available (get-free-disk-space file)))
 		    (when available
 		      (end-of-line)
 		      (insert " available " available))))))))))

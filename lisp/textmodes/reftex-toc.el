@@ -180,7 +180,7 @@ z          Jump to a specific section (e.g. '3 z' goes to section 3).")
 (defun reftex-toc (&optional _rebuild reuse)
   ;; FIXME: Get rid of the `rebuild' argument.
   "Show the table of contents for the current document.
-When called with a raw C-u prefix, rescan the document first."
+When called with a raw \\[universal-argument] prefix, rescan the document first."
 
 ;; The REUSE argument means, search all visible frames for a window
 ;; displaying the toc window.  If yes, reuse this window.

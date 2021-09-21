@@ -43,7 +43,7 @@
 ;;
 ;;
 ;; rule ::= symbol '::=' expression
-;; /* rules are separated by at least one blank line. */
+;; /* rules are separated by at least one blank line.  */
 ;;
 ;; expression ::= concatenation ('|' concatenation)*
 ;;

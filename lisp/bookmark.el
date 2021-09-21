@@ -173,10 +173,8 @@ A non-nil value may result in truncated bookmark names."
   "Time before `bookmark-bmenu-search' updates the display."
   :type  'number)
 
-(defcustom bookmark-fontify t
-  "Whether to colorize a bookmarked line.
-If non-nil, setting a bookmark will colorize the current line with
-`bookmark-face'."
+(defcustom bookmark-set-fringe-mark t
+  "Whether to set a fringe mark at bookmarked lines."
   :type  'boolean
   :version "28.1")
 
@@ -189,16 +187,16 @@ If non-nil, setting a bookmark will colorize the current line with
 (defface bookmark-face
   '((((class grayscale)
       (background light))
-     :background "DimGray")
+     :foreground "DimGray")
     (((class grayscale)
       (background dark))
-     :background "LightGray")
+     :foreground "LightGray")
     (((class color)
       (background light))
-     :foreground "White" :background "DarkOrange1")
+     :background "White" :foreground "DarkOrange1")
     (((class color)
       (background dark))
-     :foreground "Black" :background "DarkOrange1"))
+     :background "Black" :foreground "DarkOrange1"))
   "Face used to highlight current line."
   :version "28.1")
 
@@ -281,7 +279,7 @@ STR-BEFORE-POS is buffer text that immediately precedes POS.
 ANNOTATION is a string that describes the bookmark.
   See options `bookmark-use-annotations' and
   `bookmark-automatically-show-annotations'.
-HANDLER is a function that provides the bookmark-jump behavior for a
+HANDLER is a function that provides the `bookmark-jump' behavior for a
 specific kind of bookmark instead of the default `bookmark-default-handler'.
 This is the case for Info bookmarks, for instance.  HANDLER must accept
 a bookmark as its single argument.
@@ -455,18 +453,24 @@ In other words, return all information but the name."
 (defvar bookmark-history nil
   "The history list for bookmark functions.")
 
-(defun bookmark--fontify ()
-  "Apply a colorized overlay to the bookmarked location.
-See user option `bookmark-fontify'."
-  (let ((bm (make-overlay (point-at-bol)
-                          (min (point-max) (1+ (point-at-eol))))))
-    (overlay-put bm 'category 'bookmark)
-    (overlay-put bm 'face 'bookmark-face)))
+(define-fringe-bitmap 'bookmark-fringe-mark
+  "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
 
-(defun bookmark--unfontify (bm)
+(defun bookmark--set-fringe-mark ()
+  "Apply a colorized overlay to the bookmarked location.
+See user option `bookmark-set-fringe-mark'."
+  (let ((bm (make-overlay (point-at-bol) (1+ (point-at-bol)))))
+    (overlay-put bm 'category 'bookmark)
+    (overlay-put bm 'evaporate t)
+    (overlay-put bm 'before-string
+                 (propertize
+                  "x" 'display
+                  `(left-fringe bookmark-fringe-mark bookmark-face)))))
+
+(defun bookmark--remove-fringe-mark (bm)
   "Remove a bookmark's colorized overlay.
 BM is a bookmark as returned from function `bookmark-get-bookmark'.
-See user option `bookmark-fontify'."
+See user option `bookmark-set-fringe'."
   (let ((filename (cdr (assq 'filename bm)))
         (pos (cdr (assq 'position bm)))
         overlays found temp)
@@ -475,7 +479,7 @@ See user option `bookmark-fontify'."
       (dolist (buf (buffer-list))
         (with-current-buffer buf
           (when (equal filename buffer-file-name)
-            (setq overlays (overlays-at pos))
+            (setq overlays (overlays-in pos pos))
             (while (and (not found) (setq temp (pop overlays)))
               (when (eq 'bookmark (overlay-get temp 'category))
                 (delete-overlay (setq found temp))))))))))
@@ -565,8 +569,8 @@ old one."
         ;; no prefix arg means just overwrite old bookmark.
         (let ((bm (bookmark-get-bookmark stripped-name)))
           ;; First clean up if previously location was fontified.
-          (when bookmark-fontify
-            (bookmark--unfontify bm))
+          (when bookmark-set-fringe-mark
+            (bookmark--remove-fringe-mark bm))
           ;; Modify using the new (NAME . ALIST) format.
           (setcdr bm alist))
 
@@ -882,8 +886,8 @@ still there, in order, if the topmost one is ever deleted."
            ;; Ask for an annotation buffer for this bookmark
            (when bookmark-use-annotations
              (bookmark-edit-annotation str))
-           (when bookmark-fontify
-             (bookmark--fontify))))
+           (when bookmark-set-fringe-mark
+             (bookmark--set-fringe-mark))))
     (setq bookmark-yank-point nil)
     (setq bookmark-current-buffer nil)))
 
@@ -904,11 +908,11 @@ To yank words from the text of the buffer and use them as part of the
 bookmark name, type C-w while setting a bookmark.  Successive C-w's
 yank successive words.
 
-Typing C-u inserts (at the bookmark name prompt) the name of the last
+Typing \\[universal-argument] inserts (at the bookmark name prompt) the name of the last
 bookmark used in the document where the new bookmark is being set;
 this helps you use a single bookmark name to track progress through a
 large document.  If there is no prior bookmark for this document, then
-C-u inserts an appropriate name based on the buffer or file.
+\\[universal-argument] inserts an appropriate name based on the buffer or file.
 
 Use \\[bookmark-delete] to remove bookmarks (you give it a name and
 it removes only the first instance of a bookmark with that name from
@@ -937,11 +941,11 @@ To yank words from the text of the buffer and use them as part of the
 bookmark name, type C-w while setting a bookmark.  Successive C-w's
 yank successive words.
 
-Typing C-u inserts (at the bookmark name prompt) the name of the last
+Typing \\[universal-argument] inserts (at the bookmark name prompt) the name of the last
 bookmark used in the document where the new bookmark is being set;
 this helps you use a single bookmark name to track progress through a
 large document.  If there is no prior bookmark for this document, then
-C-u inserts an appropriate name based on the buffer or file.
+\\[universal-argument] inserts an appropriate name based on the buffer or file.
 
 Use \\[bookmark-delete] to remove bookmarks (you give it a name and
 it removes only the first instance of a bookmark with that name from
@@ -1152,14 +1156,14 @@ and then show any annotations for this bookmark."
     (if win (set-window-point win (point))))
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
-  (when bookmark-fontify
-    (let ((overlays (overlays-at (point)))
+  (when bookmark-set-fringe-mark
+    (let ((overlays (overlays-in (point) (point)))
           temp found)
       (while (and (not found) (setq temp (pop overlays)))
         (when (eq 'bookmark (overlay-get temp 'category))
           (setq found t)))
       (unless found
-        (bookmark--fontify))))
+        (bookmark--set-fringe-mark))))
   (run-hooks 'bookmark-after-jump-hook)
   (if bookmark-automatically-show-annotations
       ;; if there is an annotation for this bookmark,
@@ -1423,7 +1427,7 @@ probably because we were called from there."
   (bookmark-maybe-historicize-string bookmark-name)
   (bookmark-maybe-load-default-file)
   (let ((will-go (bookmark-get-bookmark bookmark-name 'noerror)))
-    (bookmark--unfontify will-go)
+    (bookmark--remove-fringe-mark will-go)
     (setq bookmark-alist (delq will-go bookmark-alist))
     ;; Added by db, nil bookmark-current-bookmark if the last
     ;; occurrence has been deleted
@@ -1490,7 +1494,7 @@ is greater than `bookmark-alist-modification-count'."
   "Save currently defined bookmarks in FILE.
 FILE defaults to `bookmark-default-file'.
 With prefix PARG, query user for a file to save in.
-If MAKE-DEFAULT is non-nil (interactively with prefix C-u C-u)
+If MAKE-DEFAULT is non-nil (interactively with prefix \\[universal-argument] \\[universal-argument])
 the file we save in becomes the new default in the current Emacs
 session (without affecting the value of `bookmark-default-file'.).
 

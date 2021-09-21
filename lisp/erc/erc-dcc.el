@@ -81,7 +81,8 @@ IRC users."
 All values of the list must be uppercase strings.")
 
 (defvar erc-dcc-list nil
-  "List of DCC connections. Looks like:
+  "List of DCC connections.
+Looks like:
   ((:nick \"nick!user@host\" :type GET :peer proc
     :parent proc :size size :file file)
    (:nick \"nick!user@host\" :type CHAT :peer proc :parent proc)
@@ -163,8 +164,9 @@ All values of the list must be uppercase strings.")
 ;;; Misc macros and utility functions
 
 (defun erc-dcc-member (&rest args)
-  "Return the first matching entry in `erc-dcc-list' which satisfies the
-constraints given as a plist in ARGS.  Returns nil on no match.
+  "Return first matching entry in `erc-dcc-list' satisfying constraints in plist ARGS.
+
+Return nil on no match.
 
 The property :nick is treated specially, if it contains a `!' character,
 it is treated as a nick!user@host string, and compared with the :nick property
@@ -187,7 +189,9 @@ compared with `erc-nick-equal-p' which is IRC case-insensitive."
                             (plist-get elt prop)))
             ;; if the property exists and is equal, we continue, else, try the
             ;; next element of the list
-            (or (and (eq prop :nick) (string-search "!" val)
+            (or (and (eq prop :nick) (if (>= emacs-major-version 28)
+                                         (string-search "!" val)
+                                       (string-match "!" val))
                      test (string-equal test val))
                 (and (eq prop :nick)
                      test val
@@ -203,8 +207,7 @@ compared with `erc-nick-equal-p' which is IRC case-insensitive."
     result))
 
 (defun erc-pack-int (value)
-  "Convert an integer into a packed string in network byte order,
-which is big-endian."
+  "Convert integer into a packed string in network byte order, which is big-endian."
   ;; make sure value is not negative
   (when (< value 0)
     (error "ERC-DCC (erc-pack-int): packet size is negative"))
@@ -630,8 +633,13 @@ that subcommand."
 
 (define-inline erc-dcc-unquote-filename (filename)
   (inline-quote
-   (string-replace "\\\\" "\\"
-                   (string-replace "\\\"" "\"" ,filename))))
+   (if (>= emacs-major-version 28)
+       (string-replace
+        "\\\\" "\\"
+        (string-replace "\\\"" "\"" ,filename))
+     (replace-regexp-in-string
+      "\\\\\\\\" "\\"
+      (replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t))))
 
 (defun erc-dcc-handle-ctcp-send (proc query nick login host to)
   "This is called if a CTCP DCC SEND subcommand is sent to the client.
@@ -753,8 +761,7 @@ the matching regexp, or nil if none found."
   :type 'integer)
 
 (defcustom erc-dcc-pump-bytes nil
-  "If set to an integer, keep sending until that number of bytes are
-unconfirmed."
+  "If an integer, keep sending until that number of bytes are unconfirmed."
   :type '(choice (const nil) integer))
 
 (define-inline erc-dcc-get-parent (proc)
@@ -826,8 +833,7 @@ bytes sent."
 
 (defcustom erc-dcc-send-connect-hook
   '(erc-dcc-display-send erc-dcc-send-block)
-  "Hook run whenever the remote end of a DCC SEND offer connected to your
-listening port."
+  "Hook run when remote end of a DCC SEND offer connected to your listening port."
   :type 'hook)
 
 (defun erc-dcc-nick (plist)
@@ -858,7 +864,7 @@ listening port."
     (buffer-string)))
 
 (defun erc-dcc-send-file (nick file &optional pproc)
-  "Open a socket for incoming connections, and send a CTCP send request to the
+  "Open socket for incoming connections and send a CTCP send request to the
 other client."
   (interactive "sNick: \nfFile: ")
   (when (null pproc) (if (processp erc-server-process)
@@ -1021,11 +1027,11 @@ transfer is complete."
   :type 'hook)
 
 (defcustom erc-dcc-chat-connect-hook nil
-  ""
+  "" ; FIXME
   :type 'hook)
 
 (defcustom erc-dcc-chat-exit-hook nil
-  ""
+  "" ; FIXME
   :type 'hook)
 
 (defun erc-cmd-CREQ (line &optional _force)

@@ -188,10 +188,14 @@ Convert it to Flymake internal format."
       2 4 5 6))
    ;; compilation-error-regexp-alist)
    (flymake-proc-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist))
-  "Patterns for matching error/warning lines.  Each pattern has the form
-\(REGEXP FILE-IDX LINE-IDX COL-IDX ERR-TEXT-IDX).
-Use `flymake-proc-reformat-err-line-patterns-from-compile-el' to add patterns
-from compile.el")
+  "Patterns for matching error/warning lines.
+
+Each pattern has the form:
+
+    (REGEXP FILE-IDX LINE-IDX COL-IDX ERR-TEXT-IDX)
+
+Use `flymake-proc-reformat-err-line-patterns-from-compile-el' to
+add patterns from compile.el.")
 
 (define-obsolete-variable-alias 'flymake-warning-re 'flymake-proc-diagnostic-type-pred "26.1")
 (defvar flymake-proc-diagnostic-type-pred
@@ -760,7 +764,7 @@ May only be called in a dynamic environment where
 (defun flymake-proc-legacy-flymake (report-fn &rest args)
   "Flymake backend based on the original Flymake implementation.
 This function is suitable for inclusion in
-`flymake-diagnostic-functions'. For backward compatibility, it
+`flymake-diagnostic-functions'.  For backward compatibility, it
 can also be executed interactively independently of
 `flymake-mode'."
   ;; Interactively, behave as if flymake had invoked us through its

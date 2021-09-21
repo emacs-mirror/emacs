@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This is an ERC module to enable flyspell mode in ERC buffers. This
+;; This is an ERC module to enable flyspell mode in ERC buffers.  This
 ;; ensures correct behavior of flyspell, and even sets up a
 ;; channel-local dictionary if so required.
 

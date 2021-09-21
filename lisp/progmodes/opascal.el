@@ -24,9 +24,10 @@
 
 ;;; Commentary:
 
-;; To enter OPascal mode when you find an Object Pascal source file, one must
-;; override the auto-mode-alist to associate OPascal with .pas (and .dpr and
-;; .dpk) files.  Emacs, by default, will otherwise enter Pascal mode. E.g.
+;; To enter OPascal mode when you find an Object Pascal source file,
+;; one must override the auto-mode-alist to associate OPascal with
+;; .pas (and .dpr and .dpk) files.  Emacs, by default, will otherwise
+;; enter Pascal mode.  For example:
 ;;
 ;; (autoload 'opascal-mode "opascal")
 ;; (add-to-list 'auto-mode-alist
@@ -244,8 +245,8 @@ are followed by an expression.")
 
 (defconst opascal-begin-previous-tokens
   `(,@opascal-decl-sections ,@opascal-routine-statements)
-  "Tokens that a begin token aligns with, but only if not part of a nested
-routine.")
+  "Tokens that a begin token aligns with, but only if not part of a \
+nested routine.")
 
 (defconst opascal-space-chars "\000-\011\013- ") ; all except \n
 (defconst opascal-non-space-chars (concat "^" opascal-space-chars))
@@ -1530,7 +1531,7 @@ If no extension is specified, .pas is assumed.  Creates a buffer for the unit."
                       (concat unit ".pas")))
          (file (opascal-find-unit-file unit-file)))
     (if (null file)
-        (error "unit not found: %s" unit-file)
+        (error "Unit not found: %s" unit-file)
       (find-file file)
       (if (not (derived-mode-p 'opascal-mode))
           (opascal-mode)))

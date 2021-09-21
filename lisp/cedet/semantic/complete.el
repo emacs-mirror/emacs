@@ -198,7 +198,7 @@ Argument COLLECTOR is an object which can be used to calculate
 a list of possible hits.  See `semantic-completion-collector-engine'
 for details on COLLECTOR.
 Argument DISPLAYER is an object used to display a list of possible
-completions for a given prefix.  See`semantic-completion-display-engine'
+completions for a given prefix.  See `semantic-completion-display-engine'
 for details on DISPLAYER.
 PROMPT is a string to prompt with.
 DEFAULT-TAG is a semantic tag or string to use as the default value.
@@ -746,7 +746,7 @@ Argument COLLECTOR is an object which can be used to calculate
 a list of possible hits.  See `semantic-completion-collector-engine'
 for details on COLLECTOR.
 Argument DISPLAYER is an object used to display a list of possible
-completions for a given prefix.  See`semantic-completion-display-engine'
+completions for a given prefix.  See `semantic-completion-display-engine'
 for details on DISPLAYER.
 BUFFER is the buffer in which completion will take place.
 START is a location for the start of the full symbol.
@@ -930,7 +930,7 @@ inserted into the current context.")
 
 (cl-defmethod semantic-collector-calculate-completions-raw
   ((obj semantic-collector-analyze-completions) prefix _completionlist)
-  "calculate the completions for prefix from COMPLETIONLIST."
+  "Calculate the completions for prefix from COMPLETIONLIST."
   ;; if there are no completions yet, calculate them.
   (if (not (slot-boundp obj 'first-pass-completions))
       (oset obj first-pass-completions

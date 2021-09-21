@@ -483,7 +483,7 @@ status of this file.  Otherwise, the value returned is one of:
    (vc-call-backend backend 'state file)))
 
 (defsubst vc-up-to-date-p (file)
-  "Convenience function that checks whether `vc-state' of FILE is `up-to-date'."
+  "Convenience function to check whether `vc-state' of FILE is `up-to-date'."
   (eq (vc-state file) 'up-to-date))
 
 (defun vc-working-revision (file &optional backend)
@@ -627,7 +627,7 @@ Before doing that, check if there are any old backups and get rid of them."
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
 
-(defvar vc-dir-buffers nil "List of vc-dir buffers.")
+(defvar vc-dir-buffers nil "List of `vc-dir' buffers.")
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."

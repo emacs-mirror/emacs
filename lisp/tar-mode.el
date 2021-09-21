@@ -360,7 +360,7 @@ of the file header.  This is used for \"old GNU\" Tar format."
   #'tar-parse-octal-integer "27.1")
 
 (defun tar-parse-octal-integer-safe (string)
-  (if (zerop (length string)) (error "empty string"))
+  (if (zerop (length string)) (error "Empty string"))
   (mapc (lambda (c)
 	  (if (or (< c ?0) (> c ?7))
 	      (error "`%c' is not an octal digit" c)))
@@ -372,7 +372,7 @@ of the file header.  This is used for \"old GNU\" Tar format."
 The header will lack a proper checksum; use `tar-header-block-checksum'
 to compute one, or request `tar-header-serialize' to do that.
 
-Other tar-mode facilities may also require the data-start header
+Other `tar-mode' facilities may also require the data-start header
 field to be set to a valid value.
 
 If SIZE is not given or nil, it defaults to 0.
@@ -1241,7 +1241,7 @@ for this to be permanent."
   (interactive
     (list (read-string "New name: "
 	    (tar-header-name (tar-current-descriptor)))))
-  (if (string= "" new-name) (error "zero length name"))
+  (if (string= "" new-name) (error "Zero length name"))
   (let ((encoded-new-name (encode-coding-string new-name
 						tar-file-name-coding-system))
         (descriptor (tar-current-descriptor))
@@ -1259,7 +1259,7 @@ for this to be permanent."
       (setq prefix (substring encoded-new-name 0 (match-beginning 0)))
       (setq encoded-new-name (substring encoded-new-name (match-end 0))))
 
-    (if (> (length encoded-new-name) 98) (error "name too long"))
+    (if (> (length encoded-new-name) 98) (error "Name too long"))
     (setf (tar-header-name descriptor) new-name)
     (tar-alter-one-field 0
      (substring (concat encoded-new-name (make-string 99 0)) 0 99))

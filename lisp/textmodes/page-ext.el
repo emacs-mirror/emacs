@@ -257,7 +257,7 @@
 ;;; Addresses related variables
 
 (defcustom pages-addresses-file-name "~/addresses"
-  "Standard name for file of addresses. Entries separated by page-delimiter.
+  "Standard name for file of addresses.  Entries separated by `page-delimiter'.
 Used by `pages-directory-for-addresses' function."
   :type 'file)
 

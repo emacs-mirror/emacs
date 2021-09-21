@@ -102,7 +102,6 @@ it is unlikely the user would be ready to type again right away."
 
 (defun semantic-idle-scheduler-setup-timers ()
   "Lazy initialization of the auto parse idle timer."
-  ;; REFRESH THIS FUNCTION for XEMACS FOIBLES
   (or (timerp semantic-idle-scheduler-timer)
       (setq semantic-idle-scheduler-timer
             (run-with-idle-timer
@@ -1071,7 +1070,7 @@ be called."
 (easy-menu-define
   semantic-idle-breadcrumbs-popup-menu
   semantic-idle-breadcrumbs-popup-map
-  "Semantic Breadcrumbs Mode Menu"
+  "Semantic Breadcrumbs Mode Menu."
   (list
    "Breadcrumb Tag"
    (vector

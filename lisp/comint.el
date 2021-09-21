@@ -191,7 +191,7 @@ wish to put something like the following in your init file:
             (define-key comint-mode-map [remap kill-whole-line]
               \\='comint-kill-whole-line)))
 
-If you sometimes use comint-mode on text-only terminals or with `emacs -nw',
+If you sometimes use `comint-mode' on text-only terminals or with `emacs -nw',
 you might wish to use another binding for `comint-kill-whole-line'."
   :type 'boolean
   :group 'comint
@@ -478,6 +478,15 @@ executed once, when the buffer is created."
   :type 'string
   :group 'comint
   :version "26.1")
+
+(defconst comint-max-line-length
+  (pcase system-type
+    ('gnu/linux 4096)
+    ('windows-nt 8196)
+    (_ 1024))
+  "Maximum line length, in bytes, accepted by the inferior process.
+This setting is only meaningful when communicating with subprocesses
+via PTYs.")
 
 (defvar comint-mode-map
   (let ((map (make-sparse-keymap)))

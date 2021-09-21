@@ -243,19 +243,19 @@ is executed without being compiled first."
     (while arglist
       (cond ((eq (car arglist) '&optional)
              ;; ok, I'll let this slide because funcall_lambda() does...
-             ;; (if optionalp (error "multiple &optional keywords in %s" name))
+             ;; (if optionalp (error "Multiple &optional keywords in %s" name))
              (if restp (error "&optional found after &rest in %s" name))
              (if (null (cdr arglist))
-                 (error "nothing after &optional in %s" name))
+                 (error "Nothing after &optional in %s" name))
              (setq optionalp t))
             ((eq (car arglist) '&rest)
              ;; ...but it is by no stretch of the imagination a reasonable
              ;; thing that funcall_lambda() allows (&rest x y) and
              ;; (&rest x &optional y) in arglists.
              (if (null (cdr arglist))
-                 (error "nothing after &rest in %s" name))
+                 (error "Nothing after &rest in %s" name))
              (if (cdr (cdr arglist))
-                 (error "multiple vars after &rest in %s" name))
+                 (error "Multiple vars after &rest in %s" name))
              (setq restp t))
             (restp
              (setq bindings (cons (list (car arglist)

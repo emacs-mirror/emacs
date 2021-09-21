@@ -20,7 +20,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; The colors in this theme come from the Tango palette, which is in
 ;; the public domain: http://tango.freedesktop.org/

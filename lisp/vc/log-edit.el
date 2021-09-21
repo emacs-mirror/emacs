@@ -98,7 +98,7 @@
 (defcustom log-edit-confirm 'changed
   "If non-nil, `log-edit-done' will request confirmation.
 If `changed', only request confirmation if the list of files has
-  changed since the beginning of the log-edit session."
+  changed since the beginning of the `log-edit' session."
   :group 'log-edit
   :type '(choice (const changed) (const t) (const nil)))
 
@@ -497,7 +497,7 @@ When done editing the log entry, type \\[log-edit-done], which will
 trigger the actual commit of the file(s).
 Several other handy support commands are provided, and the package
 from which this is used might also provide additional commands (under
-the \"C-x v\" prefix for VC commands, for example).
+the \\[vc-prefix-map] prefix for VC commands, for example).
 
 \\{log-edit-mode-map}"
   (setq-local font-lock-defaults '(log-edit-font-lock-keywords t))

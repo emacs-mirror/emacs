@@ -145,13 +145,16 @@ in which case the function is called with one argument (the object
 we're looking for) and it should search for it.")
 (put 'find-function-regexp-alist 'risky-local-variable t)
 
-(defcustom find-function-source-path nil
-  "The default list of directories where `find-function' searches.
+(define-obsolete-variable-alias 'find-function-source-path
+  'find-library-source-path "28.1")
+(defcustom find-library-source-path nil
+  "The default list of directories where `find-library' searches.
 
-If this variable is nil then `find-function' searches `load-path' by
+If this variable is nil then `find-library' searches `load-path' by
 default."
   :type '(repeat directory)
-  :group 'find-function)
+  :group 'find-function
+  :version "28.1")
 
 (defcustom find-function-recenter-line 1
   "The window line-number from which to start displaying a symbol definition.
@@ -200,20 +203,20 @@ LIBRARY should be a string (the name of the library)."
     (setq library (gethash (file-name-nondirectory library) comp-eln-to-el-h))))
   (or
    (locate-file library
-                (or find-function-source-path load-path)
+                (or find-library-source-path load-path)
                 (find-library-suffixes))
    (locate-file library
-                (or find-function-source-path load-path)
+                (or find-library-source-path load-path)
                 load-file-rep-suffixes)
    (when (file-name-absolute-p library)
      (let ((rel (find-library--load-name library)))
        (when rel
          (or
           (locate-file rel
-                       (or find-function-source-path load-path)
+                       (or find-library-source-path load-path)
                        (find-library-suffixes))
           (locate-file rel
-                       (or find-function-source-path load-path)
+                       (or find-library-source-path load-path)
                        load-file-rep-suffixes)))))
    (find-library--from-load-history library)
    (signal 'file-error (list "Can't find library" library))))
@@ -286,7 +289,10 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 (defun find-library (library)
   "Find the Emacs Lisp source of LIBRARY.
 
-Interactively, prompt for LIBRARY using the one at or near point."
+Interactively, prompt for LIBRARY using the one at or near point.
+
+This function searches `find-library-source-path' if non-nil, and
+`load-path' otherwise."
   (interactive (list (read-library-name)))
   (prog1
       (switch-to-buffer (find-file-noselect (find-library-name library)))
@@ -297,9 +303,9 @@ Interactively, prompt for LIBRARY using the one at or near point."
   "Read and return a library name, defaulting to the one near point.
 
 A library name is the filename of an Emacs Lisp library located
-in a directory under `load-path' (or `find-function-source-path',
+in a directory under `load-path' (or `find-library-source-path',
 if non-nil)."
-  (let* ((dirs (or find-function-source-path load-path))
+  (let* ((dirs (or find-library-source-path load-path))
          (suffixes (find-library-suffixes))
          (table (apply-partially 'locate-file-completion-table
                                  dirs suffixes))
@@ -521,11 +527,7 @@ the buffer, returns (BUFFER).
 
 If FUNCTION is a built-in function, this function normally
 attempts to find it in the Emacs C sources; however, if LISP-ONLY
-is non-nil, signal an error instead.
-
-If the file where FUNCTION is defined is not known, then it is
-searched for in `find-function-source-path' if non-nil, otherwise
-in `load-path'."
+is non-nil, signal an error instead."
   (if (not function)
     (error "You didn't specify a function"))
   (let ((func-lib (find-function-library function lisp-only t)))
@@ -589,8 +591,6 @@ near point (selected by `function-called-at-point') in a buffer and
 places point before the definition.
 Set mark before moving, if the buffer already existed.
 
-The library where FUNCTION is defined is searched for in
-`find-function-source-path', if non-nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read))
   (find-function-do-it function nil 'switch-to-buffer))
@@ -617,10 +617,7 @@ See `find-function' for more details."
 
 Finds the library containing the definition of VARIABLE in a buffer and
 the point of the definition.  The buffer is not selected.
-If the variable's definition can't be found in the buffer, return (BUFFER).
-
-The library where VARIABLE is defined is searched for in FILE or
-`find-function-source-path', if non-nil, otherwise in `load-path'."
+If the variable's definition can't be found in the buffer, return (BUFFER)."
   (if (not variable)
       (error "You didn't specify a variable")
     (let ((library (or file
@@ -638,8 +635,6 @@ places point before the definition.
 
 Set mark before moving, if the buffer already existed.
 
-The library where VARIABLE is defined is searched for in
-`find-function-source-path', if non-nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read 'defvar))
   (find-function-do-it variable 'defvar 'switch-to-buffer))
@@ -666,10 +661,7 @@ See `find-variable' for more details."
 If the definition can't be found in the buffer, return (BUFFER).
 TYPE says what type of definition: nil for a function, `defvar' for a
 variable, `defface' for a face.  This function does not switch to the
-buffer nor display it.
-
-The library where SYMBOL is defined is searched for in FILE or
-`find-function-source-path', if non-nil, otherwise in `load-path'."
+buffer nor display it."
   (cond
    ((not symbol)
     (error "You didn't specify a symbol"))
@@ -693,8 +685,6 @@ places point before the definition.
 
 Set mark before moving, if the buffer already existed.
 
-The library where FACE is defined is searched for in
-`find-function-source-path', if non-nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read 'defface))
   (find-function-do-it face 'defface 'switch-to-buffer))
@@ -765,7 +755,7 @@ See `find-function-on-key'."
 
 ;;;###autoload
 (defun find-function-setup-keys ()
-  "Define some key bindings for the find-function family of functions."
+  "Define some key bindings for the `find-function' family of functions."
   (define-key ctl-x-map "F" 'find-function)
   (define-key ctl-x-4-map "F" 'find-function-other-window)
   (define-key ctl-x-5-map "F" 'find-function-other-frame)

@@ -1846,9 +1846,9 @@ consist of the last todo items and the first done items."
 This inserts a new todo item into a category.
 
 With no prefix argument ARG, add the item to the current
-category; with one prefix argument (`C-u'), prompt for a category
-from the current todo file; with two prefix arguments (`C-u
-C-u'), first prompt for a todo file, then a category in that
+category; with one prefix argument (\\[universal-argument]), prompt for a category
+from the current todo file; with two prefix arguments (\\[universal-argument]
+\\[universal-argument]), first prompt for a todo file, then a category in that
 file.  If a non-existing category is entered, ask whether to add
 it to the todo file; if answered affirmatively, add the category
 and insert the item there.
@@ -3969,14 +3969,14 @@ See `todo-set-top-priorities' for more details."
 The categories can be any of those in the current todo file.
 
 With numerical prefix ARG show at most ARG top priority items
-from each category.  With `C-u' as prefix argument show the
+from each category.  With \\[universal-argument] as prefix argument show the
 numbers of top priority items specified by category in
 `todo-top-priorities-overrides', if this has an entry for the file(s);
 otherwise show `todo-top-priorities' items per category in the
 file(s).  With no prefix argument, if a top priorities file for
 the current todo file has previously been saved (see
 `todo-save-filtered-items-buffer'), visit this file; if there is
-no such file, build the list as with prefix argument `C-u'.
+no such file, build the list as with prefix argument \\[universal-argument].
 
   The prefix ARG regulates how many top priorities from
 each category to show, as described above."
@@ -3990,14 +3990,14 @@ in `todo-filter-files', or if this nil, in the files chosen from
 a file selection dialog that pops up in this case.
 
 With numerical prefix ARG show at most ARG top priority items
-from each category in each file.  With `C-u' as prefix argument
+from each category in each file.  With \\[universal-argument] as prefix argument
 show the numbers of top priority items specified in
 `todo-top-priorities-overrides', if this is non-nil; otherwise show
 `todo-top-priorities' items per category.  With no prefix
 argument, if a top priorities file for the chosen todo files
 exists (see `todo-save-filtered-items-buffer'), visit this file;
 if there is no such file, do the same as with prefix argument
-`C-u'."
+\\[universal-argument]."
   (interactive "P")
   (todo-filter-items 'top arg t))
 
@@ -6543,8 +6543,8 @@ Filtered Items mode following todo (not done) items."
     map)
   "Todo Filtered Items mode keymap.")
 
-(easy-menu-define
-  todo-menu todo-mode-map "Todo Menu"
+(easy-menu-define todo-menu todo-mode-map
+  "Todo Menu."
   '("Todo"
     ("Navigation"
      ["Next Item"            todo-next-item t]

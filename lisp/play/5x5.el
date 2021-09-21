@@ -443,8 +443,9 @@ should return a grid vector array that is the new solution."
   solution)
 
 (defun 5x5-play-solution (solution best)
-  "Play a solution on an empty grid.  This destroys the current game
-in progress because it is an animated attempt."
+  "Play a solution on an empty grid.
+This destroys the current game in progress because it is an
+animated attempt."
   (5x5-new-game)
   (let ((inhibit-quit t))
     (dotimes (y 5x5-grid-size)
@@ -802,7 +803,7 @@ there are 4 possible solutions.  When function
 `5x5-solve-suggest' (press `\\[5x5-solve-suggest]') is called the
 solution that is presented is the one that needs least number of
 strokes --- other solutions can be viewed by rotating through the
-list. The list of solution is ordered by number of strokes, so
+list.  The list of solution is ordered by number of strokes, so
 rotating left just after calling `5x5-solve-suggest' will show
 the solution with second least number of strokes, while rotating
 right will show the solution with greatest number of strokes."

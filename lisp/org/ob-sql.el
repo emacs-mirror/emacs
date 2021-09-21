@@ -189,8 +189,8 @@ Otherwise, use Emacs' standard conversion function."
   "Return database connection parameter NAME.
 Given a parameter NAME, if :dbconnection is defined in PARAMS
 then look for the parameter into the corresponding connection
-defined in `sql-connection-alist`, otherwise look into PARAMS.
-Look `sql-connection-alist` (part of SQL mode) for how to define
+defined in `sql-connection-alist', otherwise look into PARAMS.
+See `sql-connection-alist' (part of SQL mode) for how to define
 database connections."
   (if (assq :dbconnection params)
       (let* ((dbconnection (cdr (assq :dbconnection params)))

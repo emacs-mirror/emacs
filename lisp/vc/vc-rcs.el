@@ -242,7 +242,7 @@ When VERSION is given, perform check for that version."
 (autoload 'vc-switches "vc")
 
 (defun vc-rcs-register (files &optional comment)
-  "Register FILES into the RCS version-control system.
+  "Register FILES into the RCS version control system.
 Automatically retrieve a read-only version of the file with keywords expanded.
 COMMENT can be used to provide an initial description for each FILES.
 Passes either `vc-rcs-register-switches' or `vc-register-switches'
@@ -382,8 +382,9 @@ whether to remove it."
 	 (vc-switches 'RCS 'checkout)))
 
 (defun vc-rcs-checkout (file &optional rev)
-  "Retrieve a copy of a saved version of FILE.  If FILE is a directory,
-attempt the checkout for all registered files beneath it."
+  "Retrieve a copy of a saved version of FILE.
+If FILE is a directory, attempt the checkout for all registered
+files beneath it."
   (if (file-directory-p file)
       (mapc #'vc-rcs-checkout (vc-expand-dirs (list file) 'RCS))
     (let ((file-buffer (get-file-buffer file))
@@ -448,8 +449,8 @@ attempt the checkout for all registered files beneath it."
 	(message "Checking out %s...done" file))))))
 
 (defun vc-rcs-revert (file &optional _contents-done)
-  "Revert FILE to the version it was based on.  If FILE is a directory,
-revert all registered files beneath it."
+  "Revert FILE to the version it was based on.
+If FILE is a directory, revert all registered files beneath it."
   (if (file-directory-p file)
       (mapc #'vc-rcs-revert (vc-expand-dirs (list file) 'RCS))
     (vc-do-command "*vc*" 0 "co" (vc-master-name file) "-f"
@@ -516,8 +517,9 @@ Needs RCS 5.6.2 or later for -M."
 	(kill-buffer filename)))))
 
 (defun vc-rcs-modify-change-comment (files rev comment)
-  "Modify the change comments change on FILES on a specified REV.  If FILE is a
-directory the operation is applied to all registered files beneath it."
+  "Modify the change comments change on FILES on a specified REV.
+If FILE is a directory the operation is applied to all registered
+files beneath it."
   (dolist (file (vc-expand-dirs files 'RCS))
     (vc-do-command "*vc*" 0 "rcs" (vc-master-name file)
 		   (concat "-m" rev ":" comment))))

@@ -43,7 +43,7 @@
 ;; The "Graphic Rendition Combination Mode (GRCM)" implemented is
 ;; "cumulative mode" as defined in section 7.2.8.  Cumulative mode
 ;; means that whenever possible, SGR control sequences are combined
-;; (ie. blue and bold).
+;; (i.e. blue and bold).
 
 ;; The basic functions are:
 ;;

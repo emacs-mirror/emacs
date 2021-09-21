@@ -69,7 +69,7 @@ into memory.")
   (let* ((fc (oref dirmatch fromconfig))
 	 (found (cond ((stringp fc) fc)
 		      ((functionp fc) (funcall fc))
-		      (t (error "Unknown dirmatch object match style.")))))
+                      (t (error "Unknown dirmatch object match style")))))
     (expand-file-name found)
     ))
 
@@ -129,7 +129,7 @@ into memory.")
 
      ;; Error if none others known
      (t
-      (error "Unknown dirmatch object match style.")))
+      (error "Unknown dirmatch object match style")))
     ))
 
 (declare-function ede-directory-safe-p "ede")

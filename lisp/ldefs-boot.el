@@ -1592,7 +1592,7 @@ For example:
 `6 9 a' inserts 69 `a's into the buffer.
 `6 9 \\[autoarg-terminate] \\[autoarg-terminate]' inserts `69' into the buffer and
 then invokes the normal binding of \\[autoarg-terminate].
-`C-u \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
+`\\[universal-argument] \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
 
 \\{autoarg-mode-map}
 
@@ -8735,7 +8735,7 @@ BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.
   Before the actual body code, you can write keyword arguments, i.e.
   alternating keywords and values.  If you provide BODY, then you must
-  provide at least one keyword argument (e.g. `:lighter nil`).
+  provide at least one keyword argument (e.g. `:lighter nil').
   The following special keywords are supported (other keywords are passed
   to `defcustom' if the minor mode is global):
 

@@ -160,7 +160,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
    (t (eval spec))))
 
 (defun advice--interactive-form (function)
-  ;; Like `interactive-form' but tries to avoid autoloading functions.
+  "Like `interactive-form' but tries to avoid autoloading functions."
   (when (commandp function)
     (if (not (and (symbolp function) (autoloadp (indirect-function function))))
         (interactive-form function)
@@ -245,7 +245,7 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
                           (list (advice--remove-function rest function)))))))
 
 (defvar advice--buffer-local-function-sample nil
-  "keeps an example of the special \"run the default value\" functions.
+  "Keeps an example of the special \"run the default value\" functions.
 These functions play the same role as t in buffer-local hooks, and to recognize
 them, we keep a sample here against which to compare.  Each instance is
 different, but `function-equal' will hopefully ignore those differences.")

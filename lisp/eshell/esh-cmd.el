@@ -116,9 +116,9 @@
 		  (&optional form stub paring form-only))
 
 (defgroup eshell-cmd nil
-  "Executing an Eshell command is as simple as typing it in and
-pressing <RET>.  There are several different kinds of commands,
-however."
+  "Executing an Eshell command is as simple as typing it in and \
+pressing \\<eshell-mode-map>\\[eshell-send-input].
+There are several different kinds of commands, however."
   :tag "Command invocation"
   ;; :link '(info-link "(eshell)Command invocation")
   :group 'eshell)
@@ -1236,10 +1236,10 @@ or an external command."
       (eshell-external-command command args))))
 
 (defun eshell-exec-lisp (printer errprint func-or-form args form-p)
-  "Execute a lisp FUNC-OR-FORM, maybe passing ARGS.
+  "Execute a Lisp FUNC-OR-FORM, maybe passing ARGS.
 PRINTER and ERRPRINT are functions to use for printing regular
 messages, and errors.  FORM-P should be non-nil if FUNC-OR-FORM
-represent a lisp form; ARGS will be ignored in that case."
+represent a Lisp form; ARGS will be ignored in that case."
   (eshell-condition-case err
       (let ((result
              (save-current-buffer

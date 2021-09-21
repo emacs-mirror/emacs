@@ -1,10 +1,10 @@
-# BidiMirroring-13.0.0.txt
-# Date: 2019-09-09, 19:34:00 GMT [KW, LI, RP]
-# © 2019 Unicode®, Inc.
-# For terms of use, see http://www.unicode.org/terms_of_use.html
+# BidiMirroring-14.0.0.txt
+# Date: 2021-08-08, 22:55:00 GMT [KW, RP]
+# © 2021 Unicode®, Inc.
+# For terms of use, see https://www.unicode.org/terms_of_use.html
 #
 # Unicode Character Database
-# For documentation, see http://www.unicode.org/reports/tr44/
+# For documentation, see https://www.unicode.org/reports/tr44/
 #
 # Bidi_Mirroring_Glyph Property
 #
@@ -15,7 +15,7 @@
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 13.0.0.
+# The repertoire covered by the file is Unicode 14.0.0.
 #
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.
@@ -40,7 +40,7 @@
 # for character-based mirroring.
 #
 # For information on bidi mirroring, see UAX #9: Unicode Bidirectional Algorithm,
-# at http://www.unicode.org/unicode/reports/tr9/
+# at https://www.unicode.org/reports/tr9/
 #
 # This file was originally created by Markus Scherer.
 # Extended for Unicode 3.2, 4.0, 4.1, 5.0, 5.1, 5.2, and 6.0 by Ken Whistler,
@@ -96,10 +96,10 @@
 208D; 208E # SUBSCRIPT LEFT PARENTHESIS
 208E; 208D # SUBSCRIPT RIGHT PARENTHESIS
 2208; 220B # ELEMENT OF
-2209; 220C # NOT AN ELEMENT OF
+2209; 220C # [BEST FIT] NOT AN ELEMENT OF
 220A; 220D # SMALL ELEMENT OF
 220B; 2208 # CONTAINS AS MEMBER
-220C; 2209 # DOES NOT CONTAIN AS MEMBER
+220C; 2209 # [BEST FIT] DOES NOT CONTAIN AS MEMBER
 220D; 220A # SMALL CONTAINS AS MEMBER
 2215; 29F5 # DIVISION SLASH
 221F; 2BFE # RIGHT ANGLE
@@ -453,6 +453,14 @@
 2E27; 2E26 # RIGHT SIDEWAYS U BRACKET
 2E28; 2E29 # LEFT DOUBLE PARENTHESIS
 2E29; 2E28 # RIGHT DOUBLE PARENTHESIS
+2E55; 2E56 # LEFT SQUARE BRACKET WITH STROKE
+2E56; 2E55 # RIGHT SQUARE BRACKET WITH STROKE
+2E57; 2E58 # LEFT SQUARE BRACKET WITH DOUBLE STROKE
+2E58; 2E57 # RIGHT SQUARE BRACKET WITH DOUBLE STROKE
+2E59; 2E5A # TOP HALF LEFT PARENTHESIS
+2E5A; 2E59 # TOP HALF RIGHT PARENTHESIS
+2E5B; 2E5C # BOTTOM HALF LEFT PARENTHESIS
+2E5C; 2E5B # BOTTOM HALF RIGHT PARENTHESIS
 3008; 3009 # LEFT ANGLE BRACKET
 3009; 3008 # RIGHT ANGLE BRACKET
 300A; 300B # LEFT DOUBLE ANGLE BRACKET

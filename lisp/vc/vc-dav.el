@@ -96,8 +96,7 @@ If REV is non-nil, that is the revision to check out.  If REV is the
 empty string, that means to check ou tht ehead of the trunk.
 
 If optional arg DESTFILE is given, it is an alternate filename to
-write the contents to.
-"
+write the contents to."
   ;; This should LOCK the resource.
   )
 
@@ -106,8 +105,7 @@ write the contents to.
 
 If optional arg CONTENTS-DONE is non-nil, then the contents of FILE
 have already been reverted from a version backup, and this function
-only needs to update the status of URL within the backend.
-"
+only needs to update the status of URL within the backend."
   ;; Should do a GET if !contents_done
   ;; Should UNLOCK the file.
   )
@@ -123,8 +121,7 @@ If REV1 is nil, use the current workfile version as the older version.
 If REV2 is nil, use the current workfile contents as the nwer version.
 
 It should return a status of either 0 (no differences found), or
-1 (either non-empty diff or the diff is run asynchronously).
-"
+1 (either non-empty diff or the diff is run asynchronously)."
   ;; We should do this asynchronously...
   ;; How would we do it at all, that is the question!
   )
@@ -136,7 +133,7 @@ It should return a status of either 0 (no differences found), or
 ;; This should use url-dav-get-properties with a depth of `1' to get
 ;; all the properties.
 (defun vc-dav-dir-state (_url)
-  "find the version control state of all files in DIR in a fast way."
+  "Find the version control state of all files in DIR in a fast way."
   )
 
 (defun vc-dav-responsible-p (_url)

@@ -101,9 +101,11 @@ its position."
 (define-minor-mode show-paren-mode
   "Toggle visualization of matching parens (Show Paren mode).
 
-Show Paren mode is a global minor mode.  When enabled, any
-matching parenthesis is highlighted in `show-paren-style' after
-`show-paren-delay' seconds of Emacs idle time."
+When enabled, any matching parenthesis is highlighted in `show-paren-style'
+after `show-paren-delay' seconds of Emacs idle time.
+
+This is a global minor mode.  To toggle the mode in a single buffer,
+use `show-paren-local-mode'."
   :global t :group 'paren-showing
   ;; Enable or disable the mechanism.
   ;; First get rid of the old idle timer.
@@ -114,8 +116,28 @@ matching parenthesis is highlighted in `show-paren-style' after
                                 show-paren-delay t
                                 #'show-paren-function))
   (unless show-paren-mode
-    (delete-overlay show-paren--overlay)
-    (delete-overlay show-paren--overlay-1)))
+    (show-paren--delete-overlays)))
+
+(defun show-paren--delete-overlays ()
+  (delete-overlay show-paren--overlay)
+  (delete-overlay show-paren--overlay-1))
+
+;;;###autoload
+(define-minor-mode show-paren-local-mode
+  "Toggle `show-paren-mode' only in this buffer."
+  :variable (buffer-local-value 'show-paren-mode (current-buffer))
+  (cond
+   ((eq show-paren-mode (default-value 'show-paren-mode))
+    (unless show-paren-mode
+      (show-paren--delete-overlays))
+    (kill-local-variable 'show-paren-mode))
+   ((not (default-value 'show-paren-mode))
+    ;; Locally enabled, but globally disabled.
+    (show-paren-mode 1)                ; Setup the timer.
+    (setq-default show-paren-mode nil) ; But keep it globally disabled.
+    )
+   (t ;; Locally disabled only.
+    (show-paren--delete-overlays))))
 
 (defun show-paren--unescaped-p (pos)
   "Determine whether the paren after POS is unescaped."

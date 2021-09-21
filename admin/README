@@ -61,8 +61,19 @@ Brief description of sub-directories:
 
 charsets		scripts for generating charset map files
 			in ../etc/charsets
+coccinelle		patches to make coccinelle work with
+			the latest Emacs version.  Since they
+			apply a few minor changes in Emacs internals
+			in multiple places, they are trivial for
+			copyright purposes.
+grammars		wisent and bovine grammars, used to produce
+			files in lisp/cedet/.
+notes			miscellaneous notes related to administrative
+			tasks.
+nt			support files for administrative tasks related
+			to building MS-Windows distributions.
 unidata			scripts for generating character property files
-			in ../lisp/international
+			in ../lisp/international/.
 
 
 This file is part of GNU Emacs.

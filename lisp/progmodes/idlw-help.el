@@ -37,10 +37,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
 ;;; Code:
-(defvar idlwave-help-browse-url-available t
-  "Whether browse-url is available.")
 
 (require 'browse-url)
 
@@ -68,9 +65,6 @@ is used in preference to the old `idlwave-html-help-location'."
   "The directory where the idl_html_help/ dir lives.  Obsolete for IDL
 6.2 or later (see `idlwave-html-system-help-location')."
   :type 'directory)
-
-(defvar idlwave-help-use-hh nil
-  "Obsolete variable.")
 
 (defcustom idlwave-help-use-assistant t
   "Whether to use the IDL Assistant as the help browser."
@@ -100,9 +94,6 @@ assumed to be local to Emacs.  For other local browsers, this variable
 must be explicitly set non-nil in order for the variable
 `idlwave-help-use-dedicated-frame' to function."
   :type 'boolean)
-
-(defvar idlwave-help-directory ""
-  "Obsolete variable.  See `idlwave-html-help-location'.")
 
 (defcustom idlwave-help-use-dedicated-frame t
   "Non-nil means, use a separate frame for Online Help if possible."
@@ -221,9 +212,8 @@ support."
 
 ;; Define the menu for the Help application
 
-(easy-menu-define
-  idlwave-help-menu idlwave-help-mode-map
-  "Menu for Help IDLWAVE system"
+(easy-menu-define idlwave-help-menu idlwave-help-mode-map
+  "Menu for Help IDLWAVE system."
   '("IDLHelp"
     ["Definition <-> Help Text" idlwave-help-toggle-header-match-and-def t]
     ["Find DocLib Header" idlwave-help-find-header t]
@@ -332,9 +322,7 @@ Here are all keybindings.
     (when (and idlwave-help-use-assistant
 	       (not (eq (idlwave-help-assistant-available) t)))
       (message "Cannot locate IDL Assistant, enabling default browser.")
-      (setq idlwave-help-use-assistant nil)
-      (unless idlwave-help-browse-url-available
-	(error "browse-url is not available; install it or IDL Assistant to use HTML help")))))
+      (setq idlwave-help-use-assistant nil))))
 
 
 (defvar idlwave-current-obj_new-class)
@@ -1354,6 +1342,15 @@ IDL assistant.")
     (setq idlwave-help-assistant-socket nil
 	  idlwave-help-assistant-process nil)))
 
+;;; Obsolete
+
+(defvar idlwave-help-browse-url-available t)
+(make-obsolete-variable 'idlwave-help-browse-url-available nil "28.1")
+(defvar idlwave-help-use-hh nil "Obsolete variable.")
+(make-obsolete-variable 'idlwave-help-use-hh nil "28.1")
+(defvar idlwave-help-directory ""
+  "Obsolete variable.  See `idlwave-html-help-location'.")
+(make-obsolete-variable 'idlwave-help-directory nil "28.1")
 
 (provide 'idlw-help)
 (provide 'idlwave-help)

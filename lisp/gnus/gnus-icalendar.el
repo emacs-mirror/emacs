@@ -107,19 +107,19 @@
          :accessor gnus-icalendar-event:opt-participants
          :initform nil
          :type (or null t)))
-  "generic iCalendar Event class")
+  "Generic iCalendar Event class.")
 
 (defclass gnus-icalendar-event-request (gnus-icalendar-event)
   nil
-  "iCalendar class for REQUEST events")
+  "iCalendar class for REQUEST events.")
 
 (defclass gnus-icalendar-event-cancel (gnus-icalendar-event)
   nil
-  "iCalendar class for CANCEL events")
+  "iCalendar class for CANCEL events.")
 
 (defclass gnus-icalendar-event-reply (gnus-icalendar-event)
   nil
-  "iCalendar class for REPLY events")
+  "iCalendar class for REPLY events.")
 
 (cl-defmethod gnus-icalendar-event:recurring-p ((event gnus-icalendar-event))
   "Return t if EVENT is recurring."

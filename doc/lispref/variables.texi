@@ -302,6 +302,41 @@ Binding}), but it's impractical to @code{defvar} these variables.
 the forms, and then make the variables non-special again.
 @end defspec
 
+@defspec named-let name bindings &rest body
+This special form is a looping construct inspired from the
+Scheme language.  It is similar to @code{let}: It binds the variables in
+@var{bindings}, and then evaluates @var{body}.  However,
+@code{named-let} also binds @var{name} to a
+local function whose formal arguments are the variables in @var{bindings}
+and whose body is @var{body}.  This allows @var{body} to call itself
+recursively by calling
+@var{name}, where the arguments passed to @var{name} are used as the
+new values of the bound variables in the recursive invocation.
+
+Example of a loop summing a list of numbers:
+
+@lisp
+(named-let sum ((numbers '(1 2 3 4))
+                (running-sum 0))
+  (if numbers
+      (sum (cdr numbers) (+ running-sum (car numbers)))
+    running-sum))
+@result{} 10
+@end lisp
+
+@anchor{Tail recursion}
+Recursive calls to @var{name} that occur in @emph{tail
+positions} in @var{body} are guaranteed to be optimised as @emph{tail
+calls}, which means that they will not consume any additional stack
+space no matter how deeply the recursion runs.  Such recursive calls
+will effectively jump to the top of the loop with new values for the
+variables.
+
+A function call is in the tail position if it's the very last thing
+done so that the value returned by the call is the value of @var{body}
+itself, as is the case in the recursive call to @code{sum} above.
+@end defspec
+
   Here is a complete list of the other facilities that create local
 bindings:
 

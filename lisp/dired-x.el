@@ -340,8 +340,8 @@ A `.' is automatically prepended to EXTENSION when not present.
 EXTENSION may also be a list of extensions instead of a single one.
 Optional MARKER-CHAR is marker to use.
 Interactively, ask for EXTENSION.
-Prefixed with one C-u, unmark files instead.
-Prefixed with two C-u's, prompt for MARKER-CHAR and mark files with it."
+Prefixed with one \\[universal-argument], unmark files instead.
+Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark files with it."
   (interactive (dired--mark-suffix-interactive-spec))
   (unless (listp extension)
     (setq extension (list extension)))
@@ -365,8 +365,8 @@ prepends `.' when not present.
 SUFFIX may also be a list of suffixes instead of a single one.
 Optional MARKER-CHAR is marker to use.
 Interactively, ask for SUFFIX.
-Prefixed with one C-u, unmark files instead.
-Prefixed with two C-u's, prompt for MARKER-CHAR and mark files with it."
+Prefixed with one \\[universal-argument], unmark files instead.
+Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark files with it."
   (interactive (dired--mark-suffix-interactive-spec))
   (unless (listp suffix)
     (setq suffix (list suffix)))

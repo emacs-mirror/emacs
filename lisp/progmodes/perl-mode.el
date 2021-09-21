@@ -101,7 +101,7 @@
   :version "28.1")
 
 (defvar perl-mode-abbrev-table nil
-  "Abbrev table in use in perl-mode buffers.")
+  "Abbrev table in use in `perl-mode' buffers.")
 (define-abbrev-table 'perl-mode-abbrev-table ())
 
 (defvar perl-mode-map
@@ -509,7 +509,7 @@
 
 (defface perl-heredoc
   '((t (:inherit font-lock-string-face)))
-  "The face for here-documents.  Inherits from font-lock-string-face.")
+  "The face for here-documents.  Inherits from `font-lock-string-face'.")
 
 (defun perl-font-lock-syntactic-face-function (state)
   (cond
@@ -644,10 +644,10 @@ the Perl source to be checked as its standard input."
 
 ;;;###autoload
 (defun perl-flymake (report-fn &rest _args)
-  "Perl backend for Flymake.  Launches
-`perl-flymake-command' (which see) and passes to its standard
-input the contents of the current buffer.  The output of this
-command is analyzed for error and warning messages."
+  "Perl backend for Flymake.
+Launch `perl-flymake-command' (which see) and pass to its
+standard input the contents of the current buffer.  The output of
+this command is analyzed for error and warning messages."
   (unless (executable-find (car perl-flymake-command))
     (error "Cannot find a suitable checker"))
 

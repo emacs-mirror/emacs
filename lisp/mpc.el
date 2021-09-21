@@ -197,10 +197,10 @@ numerically rather than lexicographically."
 (defcustom mpc-host
   (concat (or (getenv "MPD_HOST") "localhost")
           (if (getenv "MPD_PORT") (concat ":" (getenv "MPD_PORT"))))
-  "Host (and port) where the Music Player Daemon is running.  The
-format is \"HOST\", \"HOST:PORT\", \"PASSWORD@HOST\" or
-\"PASSWORD@HOST:PORT\" where PASSWORD defaults to no password, PORT
-defaults to 6600 and HOST defaults to localhost."
+  "Host (and port) where the Music Player Daemon is running.
+The format is \"HOST\", \"HOST:PORT\", \"PASSWORD@HOST\" or
+\"PASSWORD@HOST:PORT\" where PASSWORD defaults to no password,
+PORT defaults to 6600 and HOST defaults to localhost."
   :type 'string)
 
 (defvar mpc-proc nil)

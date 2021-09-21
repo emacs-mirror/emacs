@@ -499,7 +499,7 @@ and the hook `eshell-exit-hook'."
     (yank)))
 
 (defun eshell-bol ()
-  "Goes to the beginning of line, then skips past the prompt, if any."
+  "Go to the beginning of line, then skip past the prompt, if any."
   (interactive)
   (beginning-of-line)
   (and eshell-skip-prompt-function

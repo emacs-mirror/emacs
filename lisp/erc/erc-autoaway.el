@@ -43,8 +43,7 @@ This is only used when `erc-autoaway-idle-method' is set to `emacs'.")
   "The last time the user sent something.")
 
 (defvar erc-autoaway-caused-away nil
-  "Indicates whether this module was responsible for setting the
-user's away status.")
+  "Non-nil if this module was responsible for setting the user's away status.")
 
 (defvar erc-autoaway-idle-seconds)
 
@@ -183,7 +182,7 @@ See `erc-auto-discard-away'."
 
 (defcustom erc-autoaway-idle-seconds 1800
   "Number of seconds after which ERC will set you automatically away.
-If you are changing this variable using lisp instead of customizing it,
+If you are changing this variable using Lisp instead of customizing it,
 you have to run `erc-autoaway-reestablish-idletimer' afterwards."
   :set (lambda (sym val)
 	 (set-default sym val)
@@ -228,8 +227,7 @@ NONE-ALIVE-FUNC is the function to call if no ERC processes are alive."
       (when none-alive-func (funcall none-alive-func)))))
 
 (defun erc-autoaway-some-open-server-buffer ()
-  "Return some ERC server buffer if its connection is alive and the
-user is not away.
+  "Return some ERC server buffer if its connection is alive and user is not away.
 If none is found, return nil."
   (car (erc-buffer-list (lambda ()
 			  (and (erc-open-server-buffer-p)

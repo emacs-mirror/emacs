@@ -51,7 +51,7 @@
 
 (defcustom gnus-pick-elegant-flow t
   "If non-nil, `gnus-pick-start-reading' runs
- `gnus-summary-next-group' when no articles have been picked."
+`gnus-summary-next-group' when no articles have been picked."
   :type 'boolean
   :group 'gnus-summary-pick)
 

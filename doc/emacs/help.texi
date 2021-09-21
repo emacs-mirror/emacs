@@ -278,6 +278,15 @@ name is defined as a Lisp function.  Type @kbd{C-g} to cancel the
 @kbd{C-h f} command if you don't really want to view the
 documentation.
 
+@vindex help-enable-symbol-autoload
+  If you request help for an autoloaded function whose @code{autoload}
+form (@pxref{Autoload,,, elisp, The Emacs Lisp Reference Manual})
+doesn't provide a doc string, the @file{*Help*} buffer won't have any
+doc string to display.  In that case, if
+@code{help-enable-symbol-autoload} is non-@code{nil}, Emacs will try
+to load the file in which the function is defined to see whether
+there's a doc string there.
+
 @findex shortdoc-display-group
   You can get an overview of functions relevant for a particular topic
 by using the @kbd{M-x shortdoc-display-group} command.  This will

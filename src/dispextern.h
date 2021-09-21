@@ -3213,7 +3213,7 @@ enum tab_bar_item_idx
 
 /* Default values of the above variables.  */
 
-#define DEFAULT_TAB_BAR_BUTTON_MARGIN 4
+#define DEFAULT_TAB_BAR_BUTTON_MARGIN 1
 #define DEFAULT_TAB_BAR_BUTTON_RELIEF 1
 
 /* The height in pixels of the default tab-bar images.  */
@@ -3426,8 +3426,8 @@ extern void get_glyph_string_clip_rect (struct glyph_string *,
                                         NativeRectangle *nr);
 extern Lisp_Object find_hot_spot (Lisp_Object, int, int);
 
-extern void handle_tab_bar_click (struct frame *,
-                                   int, int, bool, int);
+extern Lisp_Object handle_tab_bar_click (struct frame *,
+					 int, int, bool, int);
 extern void handle_tool_bar_click (struct frame *,
                                    int, int, bool, int);
 

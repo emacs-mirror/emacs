@@ -1403,14 +1403,12 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
     (or calc-graph-no-auto-view (sit-for 0))))
 
 (defun calc-gnuplot-check-for-errors ()
-  (if (save-excursion
-	(prog2
-	 (progn
-	   (set-buffer calc-gnuplot-buffer)
-	   (goto-char calc-gnuplot-last-error-pos))
-	 (re-search-forward "^[ \t]+\\^$" nil t)
-	 (goto-char (point-max))
-	 (setq calc-gnuplot-last-error-pos (point-max))))
+  (if (with-current-buffer calc-gnuplot-buffer
+	(goto-char calc-gnuplot-last-error-pos)
+        (prog1
+	    (re-search-forward "^[ \t]+\\^$" nil t)
+	  (goto-char (point-max))
+	  (setq calc-gnuplot-last-error-pos (point-max))))
       (calc-graph-view-trail)))
 
 (defun calc-gnuplot-command (&rest args)

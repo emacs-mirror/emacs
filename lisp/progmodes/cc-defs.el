@@ -1385,7 +1385,7 @@ point is then left undefined."
   "Remove all text-properties PROPERTY from the region (FROM, TO)
 which have the value VALUE, as tested by `equal'.  These
 properties are assumed to be over individual characters, having
-been put there by c-put-char-property.  POINT remains unchanged."
+been put there by `c-put-char-property'.  POINT remains unchanged."
   (let ((place from) end-place)
     (while			  ; loop round occurrences of (PROPERTY VALUE)
 	(progn
@@ -1406,7 +1406,7 @@ been put there by c-put-char-property.  POINT remains unchanged."
   "Remove all text-properties PROPERTY from the region [FROM, TO)
 which have the value VALUE, as tested by `equal'.  These
 properties are assumed to be over individual characters, having
-been put there by c-put-char-property.  POINT remains unchanged."
+been put there by `c-put-char-property'.  POINT remains unchanged."
   (declare (debug t))
   (if c-use-extents
     ;; XEmacs

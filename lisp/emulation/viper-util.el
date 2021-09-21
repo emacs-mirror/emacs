@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'seq)
+(require 'cl-lib)
 
 ;; Compiler pacifier
 (defvar viper-minibuffer-current-face)
@@ -927,7 +928,7 @@ Otherwise return the normal value."
 		 (t key)))
 
 	  ((listp key)
-	   (setq modifiers (viper-subseq key 0 (1- (length key)))
+           (setq modifiers (cl-subseq key 0 (1- (length key)))
 		 base-key (viper-seq-last-elt key)
 		 base-key-name (symbol-name base-key)
 		 char-p (= (length base-key-name) 1))
@@ -1091,14 +1092,11 @@ In addition, the symbol `_' may be considered alphanumeric if
 `viper-syntax-preference' is `strict-vi' or `reformed-vi'.")
 
 (defconst viper-strict-ALPHA-chars "a-zA-Z0-9_"
-  "Regexp matching the set of alphanumeric characters acceptable to strict
-Vi.")
+  "Regexp matching the set of alphanumeric characters acceptable to strict Vi.")
 (defconst viper-strict-SEP-chars " \t\n"
-  "Regexp matching the set of alphanumeric characters acceptable to strict
-Vi.")
+  "Regexp matching the set of alphanumeric characters acceptable to strict Vi.")
 (defconst viper-strict-SEP-chars-sans-newline " \t"
-  "Regexp matching the set of alphanumeric characters acceptable to strict
-Vi.")
+  "Regexp matching the set of alphanumeric characters acceptable to strict Vi.")
 
 (defconst viper-SEP-char-class " -"
   "String of syntax classes for Vi separators.
@@ -1345,32 +1343,7 @@ This option is appropriate if you like Emacs-style words."
       (not (eq (get-char-property (point) 'field)
 	       (get-char-property (1- (point)) 'field)))))
 
-
-;; this is copied from cl-extra.el
-;; Return the subsequence of SEQ from START to END.
-;; If END is omitted, it defaults to the length of the sequence.
-;; If START or END is negative, it counts from the end.
-(defun viper-subseq (seq start &optional end)
-  (if (stringp seq) (substring seq start end)
-    (let (len)
-      (and end (< end 0) (setq end (+ end (setq len (length seq)))))
-      (if (< start 0) (setq start (+ start (or len (setq len (length seq))))))
-      (cond ((listp seq)
-	     (if (> start 0) (setq seq (nthcdr start seq)))
-	     (if end
-		 (let ((res nil))
-		   (while (>= (setq end (1- end)) start)
-		     (push (pop seq) res))
-		   (nreverse res))
-	       (copy-sequence seq)))
-	    (t
-	     (or end (setq end (or len (length seq))))
-	     (let ((res (make-vector (max (- end start) 0) nil))
-		   (i 0))
-	       (while (< start end)
-		 (aset res i (aref seq start))
-		 (setq i (1+ i) start (1+ start)))
-	       res))))))
+(define-obsolete-function-alias 'viper-subseq #'cl-subseq "28.1")
 
 (provide 'viper-util)
 ;;; viper-util.el ends here

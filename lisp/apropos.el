@@ -78,7 +78,7 @@ This option only controls the default behavior.  Each of the above
 commands also has an optional argument to request a more extensive search.
 
 Additionally, this option makes the function `apropos-library'
-include key-binding information in its output."
+include keybinding information in its output."
   :type 'boolean)
 
 (defface apropos-symbol

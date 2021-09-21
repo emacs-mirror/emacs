@@ -1114,7 +1114,7 @@ that case, just return a fully prefixed name of the group --
 (defcustom gnus-secondary-servers nil
   "List of NNTP servers that the user can choose between interactively.
 To make Gnus query you for a server, you have to give `gnus' a
-non-numeric prefix - `C-u M-x gnus', in short."
+non-numeric prefix - `\\[universal-argument] \\[gnus]', in short."
   :group 'gnus-server
   :type '(repeat string))
 (make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")
@@ -2140,8 +2140,9 @@ instance, to switch off all visual things except menus, you can say:
 
 Valid elements include `summary-highlight', `group-highlight',
 `article-highlight', `mouse-face', `summary-menu', `group-menu',
-`article-menu', `tree-highlight', `menu', `highlight', `browse-menu',
-`server-menu', `page-marker', `tree-menu', `binary-menu', and`pick-menu'."
+`article-menu', `tree-highlight', `menu', `highlight',
+`browse-menu', `server-menu', `page-marker', `tree-menu',
+`binary-menu', and `pick-menu'."
   :group 'gnus-meta
   :group 'gnus-visual
   :type '(set (const summary-highlight)
@@ -2216,7 +2217,7 @@ covered by that variable."
 (defcustom gnus-agent t
   "Whether we want to use the Gnus agent or not.
 
-You may customize gnus-agent to disable its use.  However, some
+You may customize `gnus-agent' to disable its use.  However, some
 back ends have started to use the agent as a client-side cache.
 Disabling the agent may result in noticeable loss of performance."
   :version "22.1"

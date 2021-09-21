@@ -49,7 +49,7 @@
 (declare-function math-to-percentsigns "calccomp" (x))
 
 (defvar calc-quick-calc-history nil
-  "The history list for quick-calc.")
+  "The history list for `quick-calc'.")
 
 ;;;###autoload
 (defun calc-do-quick-calc (&optional insert)

@@ -8,7 +8,7 @@
 ;; Version: 3.2.0
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
-;; Homepage: https://github.com/alex-hhh/emacs-soap-client
+;; URL: https://github.com/alex-hhh/emacs-soap-client
 ;; Package-Requires: ((cl-lib "0.6.1"))
 ;;FIXME: Put in `Package-Requires:' the Emacs version we expect.
 

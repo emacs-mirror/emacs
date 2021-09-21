@@ -238,9 +238,9 @@ inside a comment or string."
     (self-insert-command 1)))
 
 (cl-defmacro electric-pair--with-uncached-syntax ((table &optional start) &rest body)
-  "Like `with-syntax-table', but flush the syntax-ppss cache afterwards.
+  "Like `with-syntax-table', but flush the `syntax-ppss' cache afterwards.
 Use this instead of (with-syntax-table TABLE BODY) when BODY
-contains code which may update the syntax-ppss cache.  This
+contains code which may update the `syntax-ppss' cache.  This
 includes calling `parse-partial-sexp' and any sexp-based movement
 functions when `parse-sexp-lookup-properties' is non-nil.  The
 cache is flushed from position START, defaulting to point."

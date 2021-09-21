@@ -37,7 +37,7 @@
 (require 'erc)
 
 (defgroup erc-replace nil
-  "Replace text from incoming messages"
+  "Replace text from incoming messages."
   :group 'erc)
 
 (defcustom erc-replace-alist nil

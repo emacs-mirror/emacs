@@ -7,28 +7,40 @@ The names, URLs, and dates for these files are as follows.
 
 BidiBrackets.txt
 http://www.unicode.org/Public/UNIDATA/BidiBrackets.txt
-2017-04-20
+2021-06-30
 
 BidiMirroring.txt
 http://www.unicode.org/Public/UNIDATA/BidiMirroring.txt
-2017-04-20
-
-IVD_Sequences.txt
-http://www.unicode.org/ivd/
-2016-08-15
-
-UnicodeData.txt
-http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
-2017-03-07
+2021-08-08
 
 Blocks.txt
 http://www.unicode.org/Public/8.0.0/ucd/Blocks.txt
-2017-04-20
+2021-01-22
+
+IVD_Sequences.txt
+http://www.unicode.org/ivd/
+2020-11-06
 
 NormalizationTest.txt
 http://www.unicode.org/Public/UNIDATA/NormalizationTest.txt
-2017-03-08
+2021-05-28
 
 SpecialCasing.txt
 http://unicode.org/Public/UNIDATA/SpecialCasing.txt
-2017-04-20
+2021-03-08
+
+UnicodeData.txt
+http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
+2021-07-06
+
+emoji-data.txt
+https://www.unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
+2021-08-26
+
+emoji-zwj-sequences.txt
+https://www.unicode.org/Public/emoji/14.0/emoji-zwj-sequences.txt
+2021-06-08
+
+emoji-sequences.txt
+https://www.unicode.org/Public/emoji/14.0/emoji-sequences.txt
+2020-08-26

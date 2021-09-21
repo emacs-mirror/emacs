@@ -575,9 +575,8 @@ preferably use the `c-mode-menu' language constant directly."
 (make-variable-buffer-local 'c-max-syn-tab-mkr)
 
 (defun c-basic-common-init (mode default-style)
-  "Do the necessary initialization for the syntax handling routines
-and the line breaking/filling code.  Intended to be used by other
-packages that embed CC Mode.
+  "Initialize the syntax handling routines and the line breaking/filling code.
+Intended to be used by other packages that embed CC Mode.
 
 MODE is the CC Mode flavor to set up, e.g. `c-mode' or `java-mode'.
 DEFAULT-STYLE tells which indentation style to install.  It has the
@@ -2568,17 +2567,17 @@ opening \" and the next unescaped end of line."
 
 (defvar c-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table c))
-  "Syntax table used in c-mode buffers.")
+  "Syntax table used in `c-mode' buffers.")
 
 (defvar c-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
-  "Keymap used in c-mode buffers.")
+  "Keymap used in `c-mode' buffers.")
 ;; Add bindings which are only useful for C.
 (define-key c-mode-map "\C-c\C-e"  'c-macro-expand)
 
 
-(easy-menu-define c-c-menu c-mode-map "C Mode Commands"
+(easy-menu-define c-c-menu c-mode-map "C Mode Commands."
 		  (cons "C" (c-lang-const c-mode-menu c)))
 
 ;; In XEmacs >= 21.5 modes should add their own entries to
@@ -2617,7 +2616,7 @@ opening \" and the next unescaped end of line."
   "Major mode for editing C code.
 
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
-c-mode buffer.  This automatically sets up a mail buffer with version
+`c-mode' buffer.  This automatically sets up a mail buffer with version
 information already added.  You just need to add a description of the
 problem, including a reproducible test case, and send the message.
 
@@ -2701,7 +2700,7 @@ the code is C or C++ and based on that chooses whether to enable
 (define-key c++-mode-map "<"        'c-electric-lt-gt)
 (define-key c++-mode-map ">"        'c-electric-lt-gt)
 
-(easy-menu-define c-c++-menu c++-mode-map "C++ Mode Commands"
+(easy-menu-define c-c++-menu c++-mode-map "C++ Mode Commands."
 		  (cons "C++" (c-lang-const c-mode-menu c++)))
 
 ;;;###autoload
@@ -2738,16 +2737,16 @@ Key bindings:
 
 (defvar objc-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table objc))
-  "Syntax table used in objc-mode buffers.")
+  "Syntax table used in `objc-mode' buffers.")
 
 (defvar objc-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
-  "Keymap used in objc-mode buffers.")
+  "Keymap used in `objc-mode' buffers.")
 ;; Add bindings which are only useful for Objective-C.
 (define-key objc-mode-map "\C-c\C-e" 'c-macro-expand)
 
-(easy-menu-define c-objc-menu objc-mode-map "ObjC Mode Commands"
+(easy-menu-define c-objc-menu objc-mode-map "ObjC Mode Commands."
 		  (cons "ObjC" (c-lang-const c-mode-menu objc)))
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.m\\'" . objc-mode))
@@ -2756,7 +2755,7 @@ Key bindings:
 (define-derived-mode objc-mode prog-mode "ObjC"
   "Major mode for editing Objective C code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
-objc-mode buffer.  This automatically sets up a mail buffer with
+`objc-mode' buffer.  This automatically sets up a mail buffer with
 version information already added.  You just need to add a description
 of the problem, including a reproducible test case, and send the
 message.
@@ -2785,12 +2784,12 @@ Key bindings:
 
 (defvar java-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table java))
-  "Syntax table used in java-mode buffers.")
+  "Syntax table used in `java-mode' buffers.")
 
 (defvar java-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
-  "Keymap used in java-mode buffers.")
+  "Keymap used in `java-mode' buffers.")
 ;; Add bindings which are only useful for Java.
 
 ;; Regexp trying to describe the beginning of a Java top-level
@@ -2800,7 +2799,7 @@ Key bindings:
 (defconst c-Java-defun-prompt-regexp
   "^[ \t]*\\(\\(\\(public\\|protected\\|private\\|const\\|abstract\\|synchronized\\|final\\|static\\|threadsafe\\|transient\\|native\\|volatile\\)\\s-+\\)*\\(\\(\\([[a-zA-Z][][_$.a-zA-Z0-9]+\\|[[a-zA-Z]\\)\\s-*\\)\\s-+\\)\\)?\\(\\([[a-zA-Z][][_$.a-zA-Z0-9]*\\s-+\\)\\s-*\\)?\\([_a-zA-Z][^][ \t:;.,{}()\^?=]*\\|\\([_$a-zA-Z][_$.a-zA-Z0-9]*\\)\\)\\s-*\\(([^);{}]*)\\)?\\([] \t]*\\)\\(\\s-*\\<throws\\>\\s-*\\(\\([_$a-zA-Z][_$.a-zA-Z0-9]*\\)[, \t\n\r\f\v]*\\)+\\)?\\s-*")
 
-(easy-menu-define c-java-menu java-mode-map "Java Mode Commands"
+(easy-menu-define c-java-menu java-mode-map "Java Mode Commands."
 		  (cons "Java" (c-lang-const c-mode-menu java)))
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.java\\'" . java-mode))
@@ -2809,7 +2808,7 @@ Key bindings:
 (define-derived-mode java-mode prog-mode "Java"
   "Major mode for editing Java code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
-java-mode buffer.  This automatically sets up a mail buffer with
+`java-mode' buffer.  This automatically sets up a mail buffer with
 version information already added.  You just need to add a description
 of the problem, including a reproducible test case, and send the
 message.
@@ -2836,15 +2835,15 @@ Key bindings:
 
 (defvar idl-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table idl))
-  "Syntax table used in idl-mode buffers.")
+  "Syntax table used in `idl-mode' buffers.")
 
 (defvar idl-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
-  "Keymap used in idl-mode buffers.")
+  "Keymap used in `idl-mode' buffers.")
 ;; Add bindings which are only useful for IDL.
 
-(easy-menu-define c-idl-menu idl-mode-map "IDL Mode Commands"
+(easy-menu-define c-idl-menu idl-mode-map "IDL Mode Commands."
 		  (cons "IDL" (c-lang-const c-mode-menu idl)))
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.idl\\'" . idl-mode))
@@ -2853,7 +2852,7 @@ Key bindings:
 (define-derived-mode idl-mode prog-mode "IDL"
   "Major mode for editing CORBA's IDL, PSDL and CIDL code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
-idl-mode buffer.  This automatically sets up a mail buffer with
+`idl-mode' buffer.  This automatically sets up a mail buffer with
 version information already added.  You just need to add a description
 of the problem, including a reproducible test case, and send the
 message.
@@ -2879,16 +2878,16 @@ Key bindings:
 
 (defvar pike-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table pike))
-  "Syntax table used in pike-mode buffers.")
+  "Syntax table used in `pike-mode' buffers.")
 
 (defvar pike-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
-  "Keymap used in pike-mode buffers.")
+  "Keymap used in `pike-mode' buffers.")
 ;; Additional bindings.
 (define-key pike-mode-map "\C-c\C-e" 'c-macro-expand)
 
-(easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands"
+(easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands."
 		  (cons "Pike" (c-lang-const c-mode-menu pike)))
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(\\.in\\)?\\)\\'" . pike-mode))
@@ -2898,7 +2897,7 @@ Key bindings:
 (define-derived-mode pike-mode prog-mode "Pike"
   "Major mode for editing Pike code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
-pike-mode buffer.  This automatically sets up a mail buffer with
+`pike-mode' buffer.  This automatically sets up a mail buffer with
 version information already added.  You just need to add a description
 of the problem, including a reproducible test case, and send the
 message.
@@ -2932,7 +2931,7 @@ Key bindings:
 (defvar awk-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
-  "Keymap used in awk-mode buffers.")
+  "Keymap used in `awk-mode' buffers.")
 ;; Add bindings which are only useful for awk.
 (define-key awk-mode-map "#" 'self-insert-command);Overrides electric parent binding.
 (define-key awk-mode-map "/" 'self-insert-command);Overrides electric parent binding.
@@ -2945,7 +2944,7 @@ Key bindings:
 (define-key awk-mode-map "\C-\M-a" 'c-awk-beginning-of-defun)
 (define-key awk-mode-map "\C-\M-e" 'c-awk-end-of-defun)
 
-(easy-menu-define c-awk-menu awk-mode-map "AWK Mode Commands"
+(easy-menu-define c-awk-menu awk-mode-map "AWK Mode Commands."
 		  (cons "AWK" (c-lang-const c-mode-menu awk)))
 
 ;; (require 'cc-awk) brings these in.
@@ -2956,7 +2955,7 @@ Key bindings:
 (define-derived-mode awk-mode prog-mode "AWK"
   "Major mode for editing AWK code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
-awk-mode buffer.  This automatically sets up a mail buffer with version
+`awk-mode' buffer.  This automatically sets up a mail buffer with version
 information already added.  You just need to add a description of the
 problem, including a reproducible test case, and send the message.
 

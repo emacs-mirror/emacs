@@ -386,7 +386,8 @@ the map can't be set on the command symbol property `repeat-map'.")
 (define-minor-mode repeat-mode
   "Toggle Repeat mode.
 When Repeat mode is enabled, and the command symbol has the property named
-`repeat-map', this map is activated temporarily for the next command."
+`repeat-map', this map is activated temporarily for the next command.
+See `describe-repeat-maps' for a list of all repeatable command."
   :global t :group 'convenience
   (if (not repeat-mode)
       (remove-hook 'post-command-hook 'repeat-post-hook)
@@ -470,13 +471,18 @@ When Repeat mode is enabled, and the command symbol has the property named
 (defun repeat-echo-message (keymap)
   "Display available repeating keys in the echo area."
   (if keymap
-      (let ((mess (repeat-echo-message-string keymap)))
+      (let ((message (repeat-echo-message-string keymap)))
         (if (current-message)
-            (message "%s [%s]" (current-message) mess)
-          (message mess)))
-    (and (current-message)
-         (string-search "Repeat with " (current-message))
-         (message nil))))
+            (message "%s [%s]" (current-message) message)
+          (message "%s" message)))
+    (let ((message (current-message)))
+      (when message
+        (cond
+         ((string-prefix-p "Repeat with " message)
+          (message nil))
+         ((string-search " [Repeat with " message)
+          (message "%s" (replace-regexp-in-string
+                         " \\[Repeat with .*\\'" "" message))))))))
 
 (defvar repeat-echo-mode-line-string
   (propertize "[Repeating...] " 'face 'mode-line-emphasis)
@@ -491,7 +497,8 @@ When Repeat mode is enabled, and the command symbol has the property named
     (force-mode-line-update t)))
 
 (defun describe-repeat-maps ()
-  "Describe mappings of commands repeatable by symbol property `repeat-map'."
+  "Describe mappings of commands repeatable by symbol property `repeat-map'.
+Used in `repeat-mode'."
   (interactive)
   (help-setup-xref (list #'describe-repeat-maps)
                    (called-interactively-p 'interactive))

@@ -108,7 +108,7 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     ;; cp932-2-byte
     (#x2015 ?-) (#xFF5E ?~) (#xFF0D ?-))
   "Japanese JISX0208 and CP932 symbol character table.
-  Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
+Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
 belongs to `japanese-jisx0208' or `cp932', ASCII belongs to `ascii',
 and HANKAKU belongs to `japanese-jisx0201-kana'.")
 

@@ -154,7 +154,7 @@
 
 (defcustom socks-server
   (list "Default server" "socks" 1080 5)
-  ""
+  "Socks server."
   :type '(list
 	  (string :format "" :value "Default server")
 	  (string :tag "Server")
@@ -453,7 +453,7 @@ When ATYPE indicates an IP, param ADDRESS must be given as raw bytes."
 
 ;; Replacement functions for open-network-stream, etc.
 (defvar socks-noproxy nil
-  "List of regexps matching hosts that we should not socksify connections to")
+  "List of regexps matching hosts that we should not socksify connections to.")
 
 (defun socks-find-route (host _service)
   (let ((route socks-server)

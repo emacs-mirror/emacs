@@ -498,7 +498,7 @@ Default value of MODIFIERS is `shift'."
 
 (defcustom windmove-display-no-select nil
   "Whether the window should be selected after displaying the buffer in it.
-If `nil', then the new window where the buffer is displayed will be selected.
+If nil, then the new window where the buffer is displayed will be selected.
 If `ignore', then don't select a window: neither the new nor the old window,
 thus allowing the next command to decide what window it selects.
 Other non-nil values will reselect the old window that was selected before.
@@ -525,7 +525,7 @@ to decide what window it selects.  With other non-nil values of
 `windmove-display-no-select', this function reselects
 a previously selected old window.
 
-If prefix ARG is `C-u', reselect a previously selected old window.
+If prefix ARG is \\[universal-argument], reselect a previously selected old window.
 If `windmove-display-no-select' is non-nil, the meaning of
 the prefix argument is reversed and it selects the new window.
 
@@ -662,7 +662,7 @@ from the opposite side of the frame."
 ;;;###autoload
 (defun windmove-delete-left (&optional arg)
   "Delete the window to the left of the current one.
-If prefix ARG is `C-u', delete the selected window and
+If prefix ARG is \\[universal-argument], delete the selected window and
 select the window that was to the left of the current one."
   (interactive "P")
   (windmove-delete-in-direction 'left arg))
@@ -670,7 +670,7 @@ select the window that was to the left of the current one."
 ;;;###autoload
 (defun windmove-delete-up (&optional arg)
   "Delete the window above the current one.
-If prefix ARG is `C-u', delete the selected window and
+If prefix ARG is \\[universal-argument], delete the selected window and
 select the window that was above the current one."
   (interactive "P")
   (windmove-delete-in-direction 'up arg))
@@ -678,7 +678,7 @@ select the window that was above the current one."
 ;;;###autoload
 (defun windmove-delete-right (&optional arg)
   "Delete the window to the right of the current one.
-If prefix ARG is `C-u', delete the selected window and
+If prefix ARG is \\[universal-argument], delete the selected window and
 select the window that was to the right of the current one."
   (interactive "P")
   (windmove-delete-in-direction 'right arg))
@@ -686,7 +686,7 @@ select the window that was to the right of the current one."
 ;;;###autoload
 (defun windmove-delete-down (&optional arg)
   "Delete the window below the current one.
-If prefix ARG is `C-u', delete the selected window and
+If prefix ARG is \\[universal-argument], delete the selected window and
 select the window that was below the current one."
   (interactive "P")
   (windmove-delete-in-direction 'down arg))
@@ -698,8 +698,8 @@ Keys are bound to commands that delete windows in the specified
 direction.  Keybindings are of the form PREFIX MODIFIERS-{left,right,up,down},
 where PREFIX is a prefix key and MODIFIERS is either a list of modifiers or
 a single modifier.
-If PREFIX is `none', no prefix is used. If MODIFIERS is `none', the keybindings
-are directly bound to the arrow keys.
+If PREFIX is `none', no prefix is used.  If MODIFIERS is `none',
+the keybindings are directly bound to the arrow keys.
 Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
   (interactive)
   (unless prefix (setq prefix '(?\C-x)))

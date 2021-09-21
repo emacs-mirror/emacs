@@ -274,7 +274,7 @@ to the `window-configuration-change-hook'."
       (apply #'window-preserve-size (selected-window) t t nil))))
 
 (define-derived-mode erc-status-sidebar-mode special-mode "ERC Sidebar"
-  "Major mode for ERC status sidebar"
+  "Major mode for ERC status sidebar."
   ;; Don't scroll the buffer horizontally, if a channel name is
   ;; obscured then the window can be resized.
   (setq-local auto-hscroll-mode nil)

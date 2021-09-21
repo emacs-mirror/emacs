@@ -296,9 +296,9 @@ unseen line above the first line, respectively, is provided."
 
 (defun pixel-visible-pos-in-window ()
   "Return position shown on text line where cursor is in the selected window.
-This will look for positions of point and end-of-visual-line,
-then positions from beginning-of-visual-line to
-end-of-visual-line.  When no char in a line is shown, this
+This will look for positions of point and `end-of-visual-line',
+then positions from `beginning-of-visual-line' to
+`end-of-visual-line'.  When no char in a line is shown, this
 returns nil."
   (let* ((beginning-of-visual-line-pos (save-excursion (beginning-of-visual-line) (point)))
          (end-of-visual-line-pos (save-excursion (end-of-visual-line) (point)))

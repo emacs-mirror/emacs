@@ -92,13 +92,13 @@ See also `eshell-visual-commands' and `eshell-visual-options'."
 
 (defcustom eshell-visual-options
   nil
-  "An alist of the form
+  "An alist of commands that present their output in a visual fashion.
+It has this form:
 
   ((COMMAND1 OPTION1 OPTION2...)
    (COMMAND2 OPTION1 ...))
 
-of commands with options that present their output in a visual
-fashion.  For example, a sensible entry would be
+For example, a sensible entry would be
 
   (\"git\" \"--help\" \"--paginate\")
 

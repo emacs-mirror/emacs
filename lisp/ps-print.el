@@ -9,7 +9,7 @@
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
 ;; Version: 7.3.5
-;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 (eval-when-compile (require 'cl-lib))
 
@@ -450,7 +450,7 @@ Please send all bug fixes and enhancements to
 ;;     (setq ps-left-header (list 'moe-func 'larry-var "(Curly)"))
 ;;
 ;; Note that Curly has the PostScript string delimiters inside his quotes --
-;; those aren't misplaced lisp delimiters!
+;; those aren't misplaced Lisp delimiters!
 ;;
 ;; Without them, PostScript would attempt to call the undefined function Curly,
 ;; which would result in a PostScript error.
@@ -676,7 +676,7 @@ Please send all bug fixes and enhancements to
 ;; Valid values for `ps-print-control-characters' are:
 ;;
 ;;  8-bit           This is the value to use when you want an ASCII encoding of
-;;                  any control or non-ASCII character. Control characters are
+;;                  any control or non-ASCII character.  Control characters are
 ;;                  encoded as "^D", and non-ASCII characters have an
 ;;                  octal encoding.
 ;;
@@ -689,7 +689,7 @@ Please send all bug fixes and enhancements to
 ;;                  European 8-bits accented characters are printed according
 ;;                  the current font.
 ;;
-;;  nil             No ASCII encoding. Any character is printed according the
+;;  nil             No ASCII encoding.  Any character is printed according the
 ;;                  current font.
 ;;
 ;; Any other value is treated as nil.
@@ -968,7 +968,7 @@ Please send all bug fixes and enhancements to
 ;;	    ps-font-info-database))
 ;; - Now you can use this font family with any size:
 ;;	(setq ps-font-family 'Helvetica)
-;; - if you want to use this family in another emacs session, you must put into
+;; - if you want to use this family in another Emacs session, you must put into
 ;;   your `~/.emacs':
 ;;	(require 'ps-print)
 ;;	(setq ps-font-info-database (append ...)))
@@ -1101,7 +1101,7 @@ Please send all bug fixes and enhancements to
 ;; -----------------------
 ;;
 ;; As ps-print uses PostScript to print buffers, it is possible to have other
-;; attributes associated with faces. So the new attributes used by ps-print
+;; attributes associated with faces.  So the new attributes used by ps-print
 ;; are:
 ;;
 ;;   strikeout - like underline, but the line is in middle of text.
@@ -1423,7 +1423,7 @@ Please send all bug fixes and enhancements to
 ;;  * Check `ps-paper-type': Sudhakar Frederick <sfrederi@asc.corp.mot.com>
 ;;
 ;; Thanks to Jacques Duthen <duthen@cegelec-red.fr> (Jack) for version 3.4 I
-;; started from. [vinicius]
+;; started from.  [vinicius]
 ;;
 ;; Thanks to Jim Thompson <?@?> for the 2.8 version I started from.  [jack]
 ;;

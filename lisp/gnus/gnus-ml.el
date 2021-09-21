@@ -127,7 +127,7 @@ If FORCE is non-nil, replace the old ones."
 	  (t (gnus-message 1 "no list-unsubscribe in this group")))))
 
 (defun gnus-mailing-list-post ()
-  "Post message (really useful ?)"
+  "Post message (really useful ?)."
   (interactive)
   (let ((list-post
 	 (with-current-buffer gnus-original-article-buffer

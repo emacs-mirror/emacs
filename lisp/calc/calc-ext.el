@@ -3418,7 +3418,7 @@ If X is not an error form, return 1."
 
 ;;; Users can redefine this in their init files.
 (defvar calc-keypad-user-menu nil
-  "If non-nil, this describes an additional menu for calc-keypad.
+  "If non-nil, this describes an additional menu for `calc-keypad'.
 It should contain a list of three rows.
 Each row should be a list of six keys.
 Each key should be a list of a label string, plus a Calc command name spec.

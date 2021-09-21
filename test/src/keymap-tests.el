@@ -269,7 +269,8 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
         (shadow-map (let ((map (make-keymap)))
                       (define-key map "f" 'bar)
                       map))
-        (text-quoting-style 'grave))
+        (text-quoting-style 'grave)
+        (describe-bindings-check-shadowing-in-ranges 'ignore-self-insert))
     (with-temp-buffer
       (help--describe-vector (cadr orig-map) nil #'help--describe-command
                              t shadow-map orig-map t)

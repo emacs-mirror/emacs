@@ -400,16 +400,16 @@ prompt the user if she wants to replace it.
 Called with a numeric prefix argument, use this numeric value as
 the duration of the timer in minutes.
 
-Called with a `C-u' prefix arguments, use `org-timer-default-timer'
+Called with a \\[universal-argument] prefix arguments, use `org-timer-default-timer'
 without prompting the user for a duration.
 
-With two `C-u' prefix arguments, use `org-timer-default-timer'
+With two \\[universal-argument] prefix arguments, use `org-timer-default-timer'
 without prompting the user for a duration and automatically
 replace any running timer.
 
 By default, the timer duration will be set to the number of
 minutes in the Effort property, if any.  You can ignore this by
-using three `C-u' prefix arguments."
+using three \\[universal-argument] prefix arguments."
   (interactive "P")
   (when (and org-timer-start-time
 	     (not org-timer-countdown-timer))

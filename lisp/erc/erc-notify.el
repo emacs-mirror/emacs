@@ -40,13 +40,11 @@
   :group 'erc)
 
 (defcustom erc-notify-list nil
-  "List of nicknames you want to be notified about online/offline
-status change."
+  "List of nicknames you want to be notified about online/offline status change."
   :type '(repeat string))
 
 (defcustom erc-notify-interval 60
-  "Time interval (in seconds) for checking online status of notified
-people."
+  "Time interval (in seconds) for checking online status of notified people."
   :type 'integer)
 
 (defcustom erc-notify-signon-hook nil

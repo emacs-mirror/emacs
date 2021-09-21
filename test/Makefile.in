@@ -75,7 +75,7 @@ EMACS_EXTRAOPT=
 EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(elpa_opts) $(EMACS_EXTRAOPT)
 
 # Prevent any settings in the user environment causing problems.
-unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
+unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS XDG_CONFIG_HOME
 
 ## To run tests under a debugger, set this to eg: "gdb --args".
 GDB =

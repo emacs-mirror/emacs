@@ -1148,7 +1148,7 @@ Value is a list of transformed arguments."
 	      (,(plist-get props 'decode) . ,(plist-get props 'encode))
 	      ,properties ,eol-type))
      (t
-      (error "unsupported XEmacs style make-coding-style arguments: %S"
+      (error "Unsupported XEmacs style make-coding-style arguments: %S"
 	     `(,name ,type ,doc-string ,props))))))
 
 (defun merge-coding-systems (first second)

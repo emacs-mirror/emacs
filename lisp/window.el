@@ -634,7 +634,7 @@ is unpredictable."
 (defun window-with-parameter (parameter &optional value frame any minibuf)
   "Return first window on FRAME with PARAMETER non-nil.
 FRAME defaults to the selected frame.  Optional argument VALUE
-non-nil means only return a window whose window-parameter value
+non-nil means only return a window whose `window-parameter' value
 for PARAMETER equals VALUE (comparison is done with `equal').
 Optional argument ANY non-nil means consider internal windows
 too.
@@ -867,7 +867,7 @@ window annihilates any effect provided by this variable.")
 (defun window--sides-reverse-on-frame-p (frame)
   "Return non-nil when side windows should appear reversed on FRAME.
 This uses some heuristics to guess the user's intentions when the
-selected window of FRAME is a side window ."
+selected window of FRAME is a side window."
   (cond
    ;; Reverse when `window-sides-reversed' is t.  Do not reverse when
    ;; `window-sides-reversed' is nil.
@@ -4632,7 +4632,7 @@ another window.  Also, if WINDOW's frame has a `buffer-predicate'
 parameter, that predicate may inhibit switching to certain
 buffers.
 
-This function is called by `prev-buffer'."
+This function is called by `previous-buffer'."
   (interactive)
   (let* ((window (window-normalize-window window t))
 	 (frame (window-frame window))
@@ -6567,9 +6567,6 @@ of the window used."
 (make-obsolete-variable 'display-buffer-function
 			'display-buffer-alist "24.3")
 
-;; Eventually, we want to turn this into a defvar; instead of
-;; customizing this, the user should use a `pop-up-frame-parameters'
-;; alist entry in `display-buffer-base-action'.
 (defcustom pop-up-frame-alist nil
   "Alist of parameters for automatically generated new frames.
 If non-nil, the value you specify here is used by the default
@@ -6579,7 +6576,12 @@ Since `pop-up-frame-function' is used by `display-buffer' for
 making new frames, any value specified here by default affects
 the automatic generation of new frames via `display-buffer' and
 all functions based on it.  The behavior of `make-frame' is not
-affected by this variable."
+affected by this variable.
+
+This option is provided for backward compatibility only.  New
+code should use a `pop-up-frame-parameters' action alist entry in
+`display-buffer-alist' instead.  See Info node `(elisp) Choosing
+Window Options' in the Emacs Lisp manual."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
@@ -6851,6 +6853,11 @@ the buffer name.  This is for compatibility with
 `special-display-buffer-names'; the cdr of the cons cell is
 ignored.
 
+This variable is provided for backward compatibility only and
+should not be used in new code.  Customize `display-buffer-alist'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example.
+
 See also `same-window-regexps'."
  :type '(repeat (string :format "%v"))
  :group 'windows)
@@ -6865,6 +6872,11 @@ An element of this list can be a cons cell instead of just a
 string.  In that case, the cell's car must be a regexp matching
 the buffer name.  This is for compatibility with
 `special-display-regexps'; the cdr of the cons cell is ignored.
+
+This variable is provided for backward compatibility only and
+should not be used in new code.  Customize `display-buffer-alist'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example.
 
 See also `same-window-buffer-names'."
   :type '(repeat (regexp :format "%v"))
@@ -6897,7 +6909,13 @@ selected rather than (as usual) some other window.  See
 If nil, never make a separate frame.
 If the value is `graphic-only', make a separate frame
 on graphic displays only.
-Any other non-nil value means always make a separate frame."
+Any other non-nil value means always make a separate frame.
+
+This variable is provided mainly for backward compatibility and
+should not be used in new code.  To make `display-buffer' behave
+as if this were t, customize `display-buffer-base-action'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example."
   :type '(choice
 	  (const :tag "Never" nil)
 	  (const :tag "On graphic displays only" graphic-only)
@@ -6918,7 +6936,12 @@ that frame."
  "24.3")
 
 (defcustom pop-up-windows t
-  "Non-nil means `display-buffer' should make a new window."
+  "Non-nil means `display-buffer' should make a new window.
+This variable is provided mainly for backward compatibility and
+should not be used in new code.  To make `display-buffer' behave
+as if this were t, customize `display-buffer-base-action'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example."
   :type 'boolean
   :group 'windows)
 
@@ -8340,7 +8363,8 @@ indirectly called by the latter."
 	    (throw 'best t)))))
     ;; When ALIST has a `previous-window' entry, that entry may override
     ;; anything we found so far.
-    (when (and previous-window (boundp previous-window))
+    (when (and previous-window (symbolp previous-window)
+               (boundp previous-window))
       (setq previous-window (symbol-value previous-window)))
     (when (and (setq window previous-window)
 	       (window-live-p window)
@@ -8595,7 +8619,7 @@ the buffer in the window specified by the rules from these variables."
 
 WARNING: This is NOT the way to work on another buffer temporarily
 within a Lisp program!  Use `set-buffer' instead.  That avoids
-messing with the window-buffer correspondences.
+messing with the `window-buffer' correspondences.
 
 If the selected window cannot display the specified buffer
 because it is a minibuffer window or strongly dedicated to
@@ -8650,7 +8674,7 @@ Return the buffer switched to."
                        "Cannot switch buffers in a dedicated window"))
                 ('prompt
                  (if (y-or-n-p
-                      (format "Window is dedicated to %s; undedicate it"
+                      (format "Window is dedicated to %s; undedicate it?"
                               (window-buffer)))
                      (progn
                        (set-window-dedicated-p nil nil)
@@ -9746,7 +9770,7 @@ tool-bar's height to the minimum height needed); if
 `recenter-redisplay' has the special value `tty', then only tty frames
 are redrawn.
 
-Just C-u as prefix means put point in the center of the window
+Just \\[universal-argument] as prefix means put point in the center of the window
 and redisplay normally--don't erase and redraw the frame."
   (if (functionp recenter-window-group-function)
       (funcall recenter-window-group-function arg)
@@ -9875,7 +9899,7 @@ With plain \\[universal-argument], move current line to window center."
 
 A prefix argument is handled like `recenter':
  With numeric prefix ARG, move current line to window-line ARG.
- With plain `C-u', move current line to window center."
+ With plain \\[universal-argument], move current line to window center."
   (interactive "P")
   (with-selected-window (other-window-for-scrolling)
     (recenter-top-bottom arg)
@@ -10365,7 +10389,7 @@ displaying that processes's buffer."
                           (setq repeat-map 'other-window-repeat-map)
                           (other-window -1)))
     map)
-  "Keymap to repeat other-window key sequences.  Used in `repeat-mode'.")
+  "Keymap to repeat `other-window' key sequences.  Used in `repeat-mode'.")
 (put 'other-window 'repeat-map 'other-window-repeat-map)
 
 (defvar resize-window-repeat-map

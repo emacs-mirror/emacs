@@ -239,7 +239,7 @@ The caller can expect SUCCESS-FN or ERROR-FN to be called with a
 JSONRPC `:result' or `:error' object, respectively.  If this
 doesn't happen after TIMEOUT seconds (defaults to
 `jrpc-default-request-timeout'), the caller can expect TIMEOUT-FN
-to be called with no arguments. The default values of SUCCESS-FN,
+to be called with no arguments.  The default values of SUCCESS-FN,
 ERROR-FN and TIMEOUT-FN simply log the events into
 `jsonrpc-events-buffer'.
 
@@ -363,7 +363,7 @@ expected to understand JSONRPC messages with basic HTTP-style
 enveloping headers such as \"Content-Length:\".
 
 :ON-SHUTDOWN (optional), a function of one argument, the
-connection object, called when the process dies .")
+connection object, called when the process dies.")
 
 (cl-defmethod initialize-instance ((conn jsonrpc-process-connection) slots)
   (cl-call-next-method)

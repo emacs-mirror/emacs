@@ -1114,7 +1114,7 @@ like)."
 
 (defun ffap-search-backward-file-end (&optional dir-separator end)
   "Search backward position point where file would probably end.
-Optional DIR-SEPARATOR defaults to \"/\". The search maximum is
+Optional DIR-SEPARATOR defaults to \"/\".  The search maximum is
 `line-end-position' or optional END point.
 
 Suppose the cursor is somewhere that might be near end of file,
@@ -1190,7 +1190,7 @@ Call `ffap-search-backward-file-end' to refine the ending point."
 
 (defun ffap-dir-separator-near-point ()
   "Search backward and forward for closest slash or backlash in line.
-Return string slash or backslash. Point is moved to closest position."
+Return string slash or backslash.  Point is moved to closest position."
   (let ((point (point))
 	str pos)
     (when (looking-at ".*?/")

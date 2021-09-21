@@ -104,7 +104,7 @@ For example:
 `6 9 a' inserts 69 `a's into the buffer.
 `6 9 \\[autoarg-terminate] \\[autoarg-terminate]' inserts `69' into the buffer and
 then invokes the normal binding of \\[autoarg-terminate].
-`C-u \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
+`\\[universal-argument] \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
 
 \\{autoarg-mode-map}"
   :lighter" Aarg" :global t :group 'keyboard)

@@ -97,15 +97,15 @@ function is called."
                  function))
 
 (defcustom erc-fill-static-center 27
-  "Column around which all statically filled messages will be
-centered.  This column denotes the point where the ` ' character
-between <nickname> and the entered text will be put, thus aligning
-nick names right and text left."
+  "Column around which all statically filled messages will be centered.
+This column denotes the point where the ` ' character between
+<nickname> and the entered text will be put, thus aligning nick
+names right and text left."
   :type 'integer)
 
 (defcustom erc-fill-variable-maximum-indentation 17
-  "If we indent a line after a long nick, don't indent more then this
-characters.  Set to nil to disable."
+  "Don't indent a line after a long nick more than this many characters.
+Set to nil to disable."
   :type 'integer)
 
 (defcustom erc-fill-column 78

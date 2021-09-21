@@ -44,7 +44,7 @@
 (require 'time-date)
 
 (defgroup erc-pcomplete nil
-  "Programmable completion for ERC"
+  "Programmable completion for ERC."
   :group 'erc)
 
 (defcustom erc-pcomplete-nick-postfix ":"
@@ -53,8 +53,7 @@ add this string to nicks completed."
   :type 'string)
 
 (defcustom erc-pcomplete-order-nickname-completions t
-  "If t, channel nickname completions will be ordered such that
-the most recent speakers are listed first."
+  "If t, order nickname completions with the most recent speakers first."
   :type 'boolean)
 
 ;;;###autoload(autoload 'erc-completion-mode "erc-pcomplete" nil t)

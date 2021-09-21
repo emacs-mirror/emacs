@@ -840,7 +840,7 @@ If optional argument FORCE is non-nil, unconditionally re-generate the
 Lisp code."
   (interactive "P")
   (unless (semantic-active-p)
-    (error "You have to activate semantic-mode to create a package."))
+    (error "You have to activate semantic-mode to create a package"))
   (setq force (or force current-prefix-arg))
   (semantic-fetch-tags)
   (let* (

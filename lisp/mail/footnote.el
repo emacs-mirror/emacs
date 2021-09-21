@@ -39,15 +39,15 @@
 ;;     commands.
 ;; + more language styles.
 ;; + The key sequence 'C-c ! a C-y C-c ! b' should auto-fill the
-;;   footnote in adaptive fill mode. This does not seem to be a bug in
+;;   footnote in adaptive fill mode.  This does not seem to be a bug in
 ;;   `adaptive-fill' because it behaves that way on all point movements
 ;; + Handle footmode mode elegantly in all modes, even if that means refuses to
-;;   accept the burden. For example, in a programming language mode, footnotes
+;;   accept the burden.  For example, in a programming language mode, footnotes
 ;;   should be commented.
 ;; + Manually autofilling the a first footnote should not cause it to
 ;;   wrap into the footnote section tag
 ;;   + Current solution adds a second newline after the section tag, so it is
-;;     clearly a separate paragraph. There may be stylistic objections to this.
+;;     clearly a separate paragraph.  There may be stylistic objections to this.
 ;; + Footnotes with multiple paragraphs should not have their first
 ;;   line out-dented.
 ;; + Upon leaving footnote area, perform an auto-fill on an entire
@@ -55,7 +55,7 @@
 ;;   + fill-paragraph takes arg REGION, but seemingly only when called
 ;;     interactively.
 ;; + At some point, it became necessary to change `footnote-section-tag-regexp'
-;;   to remove its trailing space. (Adaptive fill side-effect?)
+;;   to remove its trailing space.  (Adaptive fill side-effect?)
 ;; + useful for lazy testing
 ;;   (setq footnote-narrow-to-footnotes-when-editing t)
 ;;   (setq footnote-section-tag "Footnotes: ")
@@ -151,7 +151,7 @@ has no effect on buffers already displaying footnotes."
 (defcustom footnote-align-to-fn-text t
   "How to left-align footnote text.
 If nil, footnote text is to be aligned flush left with left side
-of the footnote number. If non-nil, footnote text is to be aligned
+of the footnote number.  If non-nil, footnote text is to be aligned
 left with the first character of footnote text."
   :type  'boolean)
 
@@ -243,7 +243,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
   "List of roman numerals with their values.")
 
 (defconst footnote-roman-upper-regexp (upcase footnote-roman-lower-regexp)
-  "Regexp of roman numerals.  Not complete")
+  "Regexp of roman numerals.  Not complete.")
 
 (defun footnote--roman-upper (n)
   "Generic Roman number footnoting."
@@ -380,8 +380,8 @@ Use Unicode characters for footnoting."
   (concat "[" (apply #'concat footnote-hebrew-symbolic) "]"))
 
 (defun footnote--hebrew-symbolic (n)
-  "Only 22 elements, per the style of eg. 'פירוש שפתי חכמים על רש״י'.
-Proceeds from `י' to `כ', from `צ' to `ק'. After `ת', rolls over to `א'."
+  "Only 22 elements, per the style of e.g. 'פירוש שפתי חכמים על רש״י'.
+Proceeds from `י' to `כ', from `צ' to `ק'.  After `ת', rolls over to `א'."
   (nth (mod (1- n) 22) footnote-hebrew-symbolic))
 
 ;;; list of all footnote styles
@@ -679,7 +679,7 @@ instead, if applicable."
 (defun footnote--get-area-point-max ()
   "Return the end of footnote area.
 This is either `point-max' or the start of a `.signature' string, as
-defined by variable `footnote-signature-separator'. If there is no
+defined by variable `footnote-signature-separator'.  If there is no
 footnote area, returns `point-max'."
   (save-excursion (footnote--goto-char-point-max)))
 

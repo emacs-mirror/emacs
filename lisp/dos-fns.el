@@ -290,14 +290,14 @@ and `dos-set-register-value', which see."
 ;; set screen size.
 
 (defun dos-mode25 ()
-  "Changes the number of screen rows to 25."
+  "Change the number of screen rows to 25."
   (interactive)
   (set-frame-size (selected-frame) 80 25))
 
 (define-obsolete-function-alias 'mode25 'dos-mode25 "24.1")
 
 (defun dos-mode4350 ()
-  "Changes the number of rows to 43 or 50.
+  "Change the number of rows to 43 or 50.
 Emacs always tries to set the screen height to 50 rows first.
 If this fails, it will try to set it to 43 rows, on the assumption
 that your video hardware might not support 50-line mode."

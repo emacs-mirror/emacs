@@ -33,7 +33,7 @@
 (require 'gnus-util)
 
 (defcustom gnus-post-method 'current
-  "Preferred method for posting USENET news.
+  "Preferred method for posting Usenet news.
 
 If this variable is `current' (which is the default), Gnus will use
 the \"current\" select method when posting.  If it is `native', Gnus
@@ -303,7 +303,7 @@ If nil, the address field will always be empty after invoking
 
 (defcustom gnus-message-highlight-citation
   t ;; gnus-treat-highlight-citation ;; gnus-cite dependency
-  "Enable highlighting of different citation levels in message-mode."
+  "Enable highlighting of different citation levels in `message-mode'."
   :version "23.1" ;; No Gnus
   :group 'gnus-cite
   :group 'gnus-message
@@ -1303,15 +1303,9 @@ For the \"inline\" alternatives, also see the variable
 (defun gnus-summary-resend-message-insert-gcc ()
   "Insert Gcc header according to `gnus-gcc-self-resent-messages'."
   (gnus-inews-insert-gcc)
-  (let ((gcc (mapcar
-	      (lambda (group)
-		(encode-coding-string
-		 group
-		 (gnus-group-name-charset (gnus-inews-group-method group)
-					  group)))
-	      (message-unquote-tokens
+  (let ((gcc (message-unquote-tokens
 	       (message-tokenize-header (mail-fetch-field "gcc" nil t)
-					" ,"))))
+					" ,")))
 	(self (with-current-buffer gnus-summary-buffer
 		gnus-gcc-self-resent-messages)))
     (message-remove-header "gcc")
@@ -1322,12 +1316,9 @@ For the \"inline\" alternatives, also see the variable
 	     (insert "Gcc: \"" gnus-newsgroup-name "\"\n"))
 	    ((stringp self)
 	     (insert "Gcc: "
-		     (encode-coding-string
-		      (if (string-search " " self)
-			  (concat "\"" self "\"")
-			self)
-		      (gnus-group-name-charset (gnus-inews-group-method self)
-					       self))
+		     (if (string-search " " self)
+			 (concat "\"" self "\"")
+		       self)
 		     "\n"))
 	    ((null self)
 	     (insert "Gcc: " (mapconcat #'identity gcc ", ") "\n"))
@@ -1584,10 +1575,7 @@ this is a reply."
 			(message-tokenize-header gcc " ,\n\t")))
 	  ;; Copy the article over to some group(s).
 	  (while (setq group (pop groups))
-	    (setq method (gnus-inews-group-method group)
-		  group (encode-coding-string
-			 group
-			 (gnus-group-name-charset method group)))
+	    (setq method (gnus-inews-group-method group))
 	    (unless (gnus-check-server method)
 	      (error "Can't open server %s" (if (stringp method) method
 					      (car method))))

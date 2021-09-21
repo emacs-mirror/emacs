@@ -104,14 +104,13 @@ channel (353)."
   :type 'erc-message-type)
 
 (defcustom erc-track-exclude-server-buffer nil
-  "If true, don't perform tracking on the server buffer; this is
-useful for excluding all the things like MOTDs from the server and
-other miscellaneous functions."
+  "If true, don't perform tracking on the server buffer.
+This is useful for excluding all the things like MOTDs from the
+server and other miscellaneous functions."
   :type 'boolean)
 
 (defcustom erc-track-shorten-start 1
-  "This number specifies the minimum number of characters a channel name in
-the mode-line should be reduced to."
+  "Minimum number of characters for a channel name in the mode-line."
   :type 'number)
 
 (defcustom erc-track-shorten-cutoff 4
@@ -149,8 +148,7 @@ If nil instead of a function, shortening is disabled."
 		 function))
 
 (defcustom erc-track-list-changed-hook nil
-  "Hook that is run whenever the contents of
-`erc-modified-channels-alist' changes.
+  "Hook run when the contents of `erc-modified-channels-alist' changes.
 
 This is useful for people that don't use the default mode-line
 notification but instead use a separate mechanism to provide
@@ -262,14 +260,22 @@ nil            - don't add to mode line."
 
 (defvar erc-modified-channels-alist nil
   "An ALIST used for tracking channel modification activity.
-Each element looks like (BUFFER COUNT FACE) where BUFFER is a buffer
-object of the channel the entry corresponds to, COUNT is a number
-indicating how often activity was noticed, and FACE is the face to use
-when displaying the buffer's name.  See `erc-track-faces-priority-list',
-and `erc-track-showcount'.
+Each element is a list of the form (BUFFER COUNT . FACE) where
+BUFFER is a buffer object of the channel the entry corresponds
+to, COUNT is a number indicating how often activity was noticed,
+and FACE is a face (or a list of faces, combined as usual) to use
+when displaying the buffer's name in the mode line.
 
-Entries in this list should only happen for buffers where activity occurred
-while the buffer was not visible.")
+Entries in this list are only added/updated for buffers that were
+not visible when activity occurred in them, and are removed for
+each buffer as soon as it becomes visible again (or if the server
+is disconnected, provided `erc-track-remove-disconnected-buffers'
+is true).
+
+For how the face is chosen for a buffer, see
+`erc-track-select-mode-line-face' and
+`erc-track-priority-faces-only'.  For how buffers are then
+displayed in the mode line, see `erc-modified-channels-display'.")
 
 (defcustom erc-track-showcount nil
   "If non-nil, count of unseen messages will be shown for each channel."
@@ -538,8 +544,7 @@ keybindings will not do anything useful."
        (erc-track-minor-mode -1)))))
 
 (defcustom erc-track-when-inactive nil
-  "Enable channel tracking even for visible buffers, if you are
-inactive."
+  "Enable channel tracking even for visible buffers, if you are inactive."
   :type 'boolean
   :set (lambda (sym val)
 	 (if erc-track-mode
@@ -590,15 +595,15 @@ only consider active buffers visible.")
     (erc-modified-channels-update)))
 
 (defvar erc-modified-channels-update-inside nil
-  "Variable to prevent running `erc-modified-channels-update' multiple
-times.  Without it, you cannot debug `erc-modified-channels-display',
-because the debugger also causes changes to the window-configuration.")
+  "Variable to prevent running `erc-modified-channels-update' multiple times.
+Without it, you cannot debug `erc-modified-channels-display',
+because the debugger also causes changes to the
+window-configuration.")
 
 (defun erc-modified-channels-update (&rest _args)
-  "This function updates the information in `erc-modified-channels-alist'
-according to buffer visibility.  It calls
-`erc-modified-channels-display' at the end.  This should usually be
-called via `window-configuration-change-hook'.
+  "Update `erc-modified-channels-alist' according to buffer visibility.
+It calls `erc-modified-channels-display' at the end.  This should
+usually be called via `window-configuration-change-hook'.
 ARGS are ignored."
   (interactive)
   (unless erc-modified-channels-update-inside
@@ -622,8 +627,14 @@ ARGS are ignored."
   "The face to use when mouse is over channel names in the mode line.")
 
 (defun erc-make-mode-line-buffer-name (string buffer &optional faces count)
-  "Return STRING as a button that switches to BUFFER when clicked.
-If FACES are provided, color STRING with them."
+  "Return a button that switches to BUFFER when clicked.
+STRING is the string in the button.  It is possibly suffixed with
+the number of unread messages, according to variables
+`erc-track-showcount' and `erc-track-showcount-string'.
+
+If `erc-track-use-faces' is true and FACES are provided, format
+STRING with them. When the mouse hovers above the button, STRING
+is displayed according to `erc-track-mouse-face'."
   ;; We define a new sparse keymap every time, because 1. this data
   ;; structure is very small, the alternative would require us to
   ;; defvar a keymap, 2. the user is not interested in customizing it
@@ -661,8 +672,7 @@ If FACES are provided, color STRING with them."
     name))
 
 (defun erc-modified-channels-display ()
-  "Set `erc-modified-channels-object'
-according to `erc-modified-channels-alist'.
+  "Set `erc-modified-channels-object' according to `erc-modified-channels-alist'.
 Use `erc-make-mode-line-buffer-name' to create buttons."
   (cond ((or (eq 'mostactive erc-track-switch-direction)
 	     (eq 'leastactive erc-track-switch-direction))
@@ -720,43 +730,55 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
     (erc-modified-channels-display)))
 
 (defun erc-track-find-face (faces)
-  "Return the face to use in the mode line from the faces in FACES.
-If `erc-track-faces-priority-list' is set, the one from FACES who
-is first in that list will be used.  If nothing matches or if
-`erc-track-faces-priority-list' is not set, the default mode-line
-faces will be used.
+  "Return the face to use in the mode line."
+  (declare (obsolete erc-track-select-mode-line-face "28.1"))
+  (erc-track-select-mode-line-face (car faces) (cdr faces)))
 
-If `erc-track-faces-normal-list' is non-nil, use it to produce a
-blinking effect that indicates channel activity when the first
-element in FACES and the highest-ranking face among the rest of
-FACES are both members of `erc-track-faces-normal-list'.
+(defun erc-track-select-mode-line-face (cur-face new-faces)
+  "Return the face to use in the mode line.
 
-If one of the faces is a list, then it will be ranked according
-to its highest-tanking face member.  A list of faces including
-that member will take priority over just the single member
-element."
+CUR-FACE is the face currently used in the mode line (for the
+current buffer).  NEW-FACES is the list of new faces that have
+just been seen (in the current buffer).
+
+Initially, the selected face is the one with highest priority in
+`erc-track-faces-priority-list' (i.e., the one closest to the
+front of the list) among CUR-FACE and NEW-FACES.  If nothing
+matches (including if `erc-track-faces-priority-list' is not
+set), the default mode-line faces will be used (NIL is returned).
+
+If the selected face is still CUR-FACE (highest priority), and
+the highest priority face in NEW-FACES alone is different (which
+necessarily means it has lower priority than CUR-FACE), and both
+are in `erc-track-faces-normal-list', then the latter is selected
+instead.  This has the effect of allowing the current mode line
+face, if a member of `erc-track-faces-normal-list', to be
+replaced with another with lower priority face from NEW-FACES, if
+that face with highest priority in NEW-FACES is also a member of
+`erc-track-faces-normal-list'."
   (let ((choice (catch 'face
-		  (dolist (candidate erc-track-faces-priority-list)
-		    (when (member candidate faces)
-		      (throw 'face candidate)))))
-	(no-first (and erc-track-faces-normal-list
-		       (catch 'face
-			 (dolist (candidate erc-track-faces-priority-list)
-			   (when (member candidate (cdr faces))
-			     (throw 'face candidate)))))))
-    (cond ((null choice)
-	   nil)
-	  ((and (member choice erc-track-faces-normal-list)
-		(member no-first erc-track-faces-normal-list))
-	   no-first)
-	  (t
-	   choice))))
+                  (dolist (candidate erc-track-faces-priority-list)
+                    (when (or (equal candidate cur-face)
+                              (member candidate new-faces))
+                      (throw 'face candidate))))))
+    (when choice
+      (if (and (equal choice cur-face)
+               (member choice erc-track-faces-normal-list))
+          (let ((only-in-new
+                 (catch 'face
+                   (dolist (candidate erc-track-faces-priority-list)
+                     (when (member candidate new-faces)
+                       (throw 'face candidate))))))
+            (if (member only-in-new erc-track-faces-normal-list)
+                only-in-new
+              choice))
+        choice))))
 
 (defun erc-track-modified-channels ()
-  "Hook function for `erc-insert-post-hook' to check if the current
-buffer should be added to the mode line as a hidden, modified
-channel.  Assumes it will only be called when current-buffer
-is in `erc-mode'."
+  "Hook function for `erc-insert-post-hook'.
+Check if the current buffer should be added to the mode line as a
+hidden, modified channel.  Assumes it will only be called when
+the current buffer is in `erc-mode'."
   (let ((this-channel (or (erc-default-target)
 			  (buffer-name (current-buffer)))))
     (if (and (not (erc-buffer-visible (current-buffer)))
@@ -790,17 +812,17 @@ is in `erc-mode'."
 		;; Add buffer, faces and counts
 		(setq erc-modified-channels-alist
 		      (cons (cons (current-buffer)
-				  (cons 1 (erc-track-find-face faces)))
+				  (cons
+                                   1 (erc-track-select-mode-line-face
+                                      nil faces)))
 			    erc-modified-channels-alist))
 	      ;; Else modify the face for the buffer, if necessary.
 	      (when faces
 		(let* ((cell (assq (current-buffer)
 				   erc-modified-channels-alist))
 		       (old-face (cddr cell))
-		       (new-face (erc-track-find-face
-				  (if old-face
-				      (cons old-face faces)
-				    faces))))
+		       (new-face (erc-track-select-mode-line-face
+                                  old-face faces)))
 		  (setcdr cell (cons (1+ (cadr cell)) new-face)))))
 	    ;; And display it
 	    (erc-modified-channels-display)))
@@ -832,8 +854,7 @@ is in `erc-mode'."
 ;;; Buffer switching
 
 (defvar erc-track-last-non-erc-buffer nil
-  "Stores the name of the last buffer you were in before activating
-`erc-track-switch-buffer'.")
+  "Name of the last buffer before activating `erc-track-switch-buffer'.")
 
 (defun erc-track-sort-by-activest ()
   "Sort erc-modified-channels-alist by activity.
@@ -843,9 +864,8 @@ That means the number of unseen messages in a channel."
 	      (lambda (a b) (> (nth 1 a) (nth 1 b))))))
 
 (defun erc-track-face-priority (face)
-  "Return a number indicating the priority of FACE in
-`erc-track-faces-priority-list'.  Lower number means higher
-priority.
+  "Return priority (a number) of FACE in `erc-track-faces-priority-list'.
+Lower number means higher priority.
 
 If face is not in `erc-track-faces-priority-list', it will have a
 higher number than any other face in that list."

@@ -154,6 +154,22 @@ point in the distant past, and is still broken in perl-mode. "
     (should (equal (get-text-property (match-beginning 0) 'face)
                    'font-lock-keyword-face))))
 
+(ert-deftest cperl-test-fontify-special-variables ()
+  "Test fontification of variables like $^T or ${^ENCODING}.
+These can occur as \"local\" aliases."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (with-temp-buffer
+    (insert "local ($^I, ${^UNICODE});\n")
+    (goto-char (point-min))
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (search-forward "$")
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-variable-name-face))
+    (search-forward "$")
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-variable-name-face))))
+
 (ert-deftest cperl-test-identify-heredoc ()
   "Test whether a construct containing \"<<\" followed by a
   bareword is properly identified for a here-document if
@@ -297,6 +313,7 @@ the whole string."
 
 (ert-deftest cperl-test-ws-rx ()
   "Tests capture of very simple regular expressions (yawn)."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((valid
 	 '(" " "\t" "\n"))
 	(invalid
@@ -306,6 +323,7 @@ the whole string."
 
 (ert-deftest cperl-test-ws+-rx ()
   "Tests sequences of whitespace and comment lines."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((valid
 	 `(" " "\t#\n" "\n# \n"
 	   ,(concat "# comment\n" "# comment\n" "\n" "#comment\n")))
@@ -316,6 +334,7 @@ the whole string."
 
 (ert-deftest cperl-test-version-regexp ()
   "Tests the regexp for recommended syntax of versions in Perl."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((valid
 	 '("1" "1.1" "1.1_1" "5.032001"
 	   "v120.100.103"))
@@ -331,6 +350,7 @@ the whole string."
 (ert-deftest cperl-test-package-regexp ()
   "Tests the regular expression of Perl package names with versions.
 Also includes valid cases with whitespace in strange places."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((valid
 	 '("package Foo"
 	   "package Foo::Bar"
@@ -345,6 +365,284 @@ Also includes valid cases with whitespace in strange places."
 	   "class O3D::Sphere")))  ; class not yet supported
     (cperl-test--validate-regexp (rx (eval cperl--package-rx))
 				 valid invalid)))
+
+(ert-deftest cperl-test-identifier-rx ()
+  "Test valid and invalid identifiers (no sigils)."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((valid
+         '("foo" "FOO" "f_oo" "a123"
+           "manĝis"))                   ; Unicode is allowed!
+        (invalid
+         '("$foo"                       ; no sigils allowed (yet)
+           "Foo::bar"                   ; no package qualifiers allowed
+           "lots_of_€")))               ; € is not alphabetic
+    (cperl-test--validate-regexp (rx (eval cperl--basic-identifier-rx))
+                                 valid invalid)))
+
+;;; Test unicode identifier in various places
+
+(defun cperl--test-unicode-setup (code string)
+  "Insert CODE, prepare it for tests, and find STRING.
+Invoke the appropriate major mode, ensure fontification, and set
+point after the first occurrence of STRING (no regexp!)."
+  (insert code)
+  (funcall cperl-test-mode)
+  (font-lock-ensure)
+  (goto-char (point-min))
+  (search-forward string))
+
+(ert-deftest cperl-test-unicode-labels ()
+  "Verify that non-ASCII labels are processed correctly."
+  (with-temp-buffer
+    (cperl--test-unicode-setup "LABEł: for ($manĝi) { say; }" "LAB")
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-constant-face))))
+
+(ert-deftest cperl-test-unicode-sub ()
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     (concat "use strict;\n"            ; distinguish bob from b-o-f
+             "sub ℏ {\n"
+             "  6.62607015e-34\n"
+             "};")
+     "sub ")                            ; point is before "ℏ"
+
+    ;; Testing fontification
+    ;; FIXME 2021-09-10: This tests succeeds because cperl-mode
+    ;; accepts almost anything as a sub name for fontification.  For
+    ;; example, it fontifies "sub @ {...;}" which is a syntax error in
+    ;; Perl.  I let this pass for the moment.
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-function-name-face))
+
+    ;; Testing `beginning-of-defun'.  Not available in perl-mode,
+    ;; where it jumps to the beginning of the buffer.
+    (when (eq cperl-test-mode #'cperl-mode)
+      (goto-char (point-min))
+      (search-forward "-34")
+      (beginning-of-defun)
+     (should (looking-at "sub")))))
+
+(ert-deftest cperl-test-unicode-varname ()
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     (concat "use strict;\n"
+             "my $π = 3.1415926535897932384626433832795028841971;\n"
+             "\n"
+             "my $manĝi = $π;\n"
+             "__END__\n")
+     "my $") ; perl-mode doesn't fontify the sigil, so include it here
+
+    ;; Testing fontification
+    ;; FIXME 2021-09-10: This test succeeds in cperl-mode because the
+    ;; π character is "not ASCII alphabetic", so it treats $π as a
+    ;; punctuation variable.  The following two `should' forms with a
+    ;; longer variable name were added for stronger verification.
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-variable-name-face))
+    ;; Test both ends of a longer variable name
+    (search-forward "my $")             ; again skip the sigil
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-variable-name-face))
+    (search-forward "manĝi")
+    (should (equal (get-text-property (1- (match-end 0)) 'face)
+                   'font-lock-variable-name-face))))
+
+(ert-deftest cperl-test-unicode-varname-list ()
+  "Verify that all elements of a variable list are fontified."
+
+  (let ((hash-face (if (eq cperl-test-mode #'perl-mode)
+                       'perl-non-scalar-variable
+                     'cperl-hash-face))
+        (array-face (if (eq cperl-test-mode #'perl-mode)
+                        'perl-non-scalar-variable
+                      'cperl-array-face)))
+    (with-temp-buffer
+      (cperl--test-unicode-setup
+       "my (%äsh,@ärräy,$scâlâr);" "%")
+      (should (equal (get-text-property (point) 'face)
+                     hash-face))
+      (search-forward "@")
+      (should (equal (get-text-property (point) 'face)
+                     array-face))
+      (search-forward "scâlâr")
+      (should (equal (get-text-property (match-beginning 0) 'face)
+                     'font-lock-variable-name-face))
+      (should (equal (get-text-property (1- (match-end 0)) 'face)
+                     'font-lock-variable-name-face)))
+
+      ;; Now with package-qualified variables
+    (with-temp-buffer
+      (cperl--test-unicode-setup
+       "local (%Søme::äsh,@Søme::ärräy,$Søme::scâlâr);" "%")
+      (should (equal (get-text-property (point) 'face)
+                     hash-face))
+      (search-forward "Søme::")         ; test basic identifier
+      (should (equal (get-text-property (point) 'face)
+                     hash-face))
+      (search-forward "@")              ; test package name
+      (should (equal (get-text-property (point) 'face)
+                     array-face))
+      (search-forward "Søme::")         ; test basic identifier
+      (should (equal (get-text-property (point) 'face)
+                     array-face))
+      (search-forward "Søme")           ; test package name
+      (should (equal (get-text-property (match-beginning 0) 'face)
+                     'font-lock-variable-name-face))
+      (should (equal (get-text-property (1- (match-end 0)) 'face)
+                     'font-lock-variable-name-face))
+      (search-forward "scâlâr")         ; test basic identifier
+      (should (equal (get-text-property (match-beginning 0) 'face)
+                     'font-lock-variable-name-face))
+      (should (equal (get-text-property (1- (match-end 0)) 'face)
+                     'font-lock-variable-name-face)))))
+
+(ert-deftest cperl-test-unicode-arrays ()
+  "Test fontification of array access."
+  ;; Perl mode just looks at the sigil, for element access
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  ;; simple array element
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "$ärräy[1] = 7;" "$")
+    (should (equal (get-text-property (point) 'face)
+                   'cperl-array-face)))
+  ;; array slice
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "@ärräy[(1..3)] = (4..6);" "@")
+    (should (equal (get-text-property (point) 'face)
+                     'cperl-array-face)))
+  ;; array max index
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "$#ärräy = 1;" "$")
+    (should (equal (get-text-property (point) 'face)
+                   'cperl-array-face)))
+  ;; array dereference
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "@$ärräy = (1,2,3)" "@")
+    (should (equal (get-text-property (1- (point)) 'face)
+                   'cperl-array-face))
+    (should (equal (get-text-property (1+ (point)) 'face)
+                   'font-lock-variable-name-face))))
+
+(ert-deftest cperl-test-unicode-hashes ()
+  "Test fontification of hash access."
+  ;; Perl mode just looks at the sigil, for element access
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  ;; simple hash element
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "$häsh{'a'} = 7;" "$")
+    (should (equal (get-text-property (point) 'face)
+                   'cperl-hash-face)))
+  ;; hash array slice
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "@häsh{(1..3)} = (4..6);" "@")
+    (should (equal (get-text-property (point) 'face)
+                     'cperl-hash-face)))
+  ;; hash subset
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "my %hash = %häsh{'a',2,3};" "= %")
+    (should (equal (get-text-property (point) 'face)
+                   'cperl-hash-face)))
+  ;; hash dereference
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "%$äsh = (key => 'value');" "%")
+    (should (equal (get-text-property (1- (point)) 'face)
+                   'cperl-hash-face))
+    (should (equal (get-text-property (1+ (point)) 'face)
+                   'font-lock-variable-name-face))))
+
+(ert-deftest cperl-test-unicode-hashref ()
+  "Verify that a hashref access disambiguates {s}.
+CPerl mode takes the token \"s\" as a substitution unless
+detected otherwise.  Not for perl-mode: it doesn't stringify
+bareword hash keys and doesn't recognize a substitution
+\"s}foo}bar}\""
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (with-temp-buffer
+    (cperl--test-unicode-setup "$häshref->{s} # }}" "{")
+    (should (equal (get-text-property (point) 'face)
+            'font-lock-string-face))
+    (should (equal (get-text-property (1+ (point)) 'face)
+            nil))))
+
+(ert-deftest cperl-test-unicode-proto ()
+  ;; perl-mode doesn't fontify prototypes at all
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     (concat "sub prötötyped ($) {\n"
+             "  ...;"
+             "}\n")
+     "prötötyped (")
+
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-string-face))))
+
+(ert-deftest cperl-test-unicode-fhs ()
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     (concat "while (<BAREWÖRD>) {\n"
+             "    ...;)\n"
+             "}\n")
+     "while (<") ; point is before the first char of the handle
+    ;; Testing fontification
+    ;; FIXME 2021-09-10: perl-mode.el and cperl-mode.el handle these
+    ;; completely differently.  perl-mode interprets barewords as
+    ;; constants, cperl-mode does not fontify them.  Both treat
+    ;; non-barewords as globs, which are not fontified by perl-mode,
+    ;; but fontified as strings in cperl-mode.  We keep (and test)
+    ;; that behavior "as is" because both bareword filehandles and
+    ;; <glob> syntax are no longer recommended.
+    (let ((bareword-face
+           (if (equal cperl-test-mode 'perl-mode) 'font-lock-constant-face
+             nil)))
+            (should (equal (get-text-property (point) 'face)
+                     bareword-face)))))
+
+(ert-deftest cperl-test-unicode-hashkeys ()
+  "Test stringification of bareword hash keys.  Not in perl-mode.
+perl-mode generally does not stringify bareword hash keys."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  ;; Plain hash key
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "$häsh { kéy }" "{ ")
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-string-face)))
+  ;; Nested hash key
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "$häsh { kéy } { kèy }" "} { ")
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-string-face)))
+  ;; Key => value
+  (with-temp-buffer
+    (cperl--test-unicode-setup
+     "( kéy => 'value'," "( ")
+    (should (equal (get-text-property (point) 'face)
+                   'font-lock-string-face))))
+
+(ert-deftest cperl-test-word-at-point ()
+  "Test whether the function captures non-ASCII words."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((words '("rôle" "café" "ångström"
+                 "Data::Dump::dump"
+                 "_underscore")))
+    (dolist (word words)
+      (with-temp-buffer
+        (insert " + ")                  ; this will be the suffix
+        (beginning-of-line)
+        (insert ")")                    ; A non-word char
+        (insert word)
+        (should (string= word (cperl-word-at-point-hard)))))))
 
 ;;; Function test: Building an index for imenu
 
@@ -369,7 +667,8 @@ created by CPerl mode, so skip it for Perl mode."
                         "Versioned::Package::outer"
                         "lexical"
                         "Versioned::Block::signatured"
-                        "Package::in_package_again")))
+                        "Package::in_package_again"
+                        "Erdős::Number::erdős_number")))
         (dolist (sub expected)
           (should (assoc-string sub index)))))))
 

@@ -122,4 +122,58 @@ See the comments in Bug#24998."
     (should (looking-at-p "\"baz\")"))
     (should-not (checkdoc-next-docstring))))
 
+(ert-deftest checkdoc-tests-in-abbrevation-p ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "foo bar e.g. baz")
+    (goto-char (point-min))
+    (re-search-forward "e.g")
+    (should (checkdoc-in-abbreviation-p (point)))))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/with-parens ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "foo bar (e.g. baz)")
+    (goto-char (point-min))
+    (re-search-forward "e.g")
+    (should (checkdoc-in-abbreviation-p (point)))))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/with-escaped-parens ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "foo\n\\(e.g. baz)")
+    (goto-char (point-min))
+    (re-search-forward "e.g")
+    (should (checkdoc-in-abbreviation-p (point)))))
+
+(ert-deftest checkdoc-tests-fix-y-or-n-p ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((standard-output (current-buffer))
+          (checkdoc-autofix-flag 'automatic))
+      (prin1 '(y-or-n-p "foo"))         ; "foo"
+      (goto-char (length "(y-or-n-p "))
+      (checkdoc--fix-y-or-n-p)
+      (should (equal (buffer-string) "(y-or-n-p \"foo?\")")))))
+
+(ert-deftest checkdoc-tests-fix-y-or-n-p/no-change ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((standard-output (current-buffer))
+          (checkdoc-autofix-flag 'automatic))
+      (prin1 '(y-or-n-p "foo?"))        ; "foo?"
+      (goto-char (length "(y-or-n-p "))
+      (checkdoc--fix-y-or-n-p)
+      (should (equal (buffer-string) "(y-or-n-p \"foo?\")")))))
+
+(ert-deftest checkdoc-tests-fix-y-or-n-p/with-space ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((standard-output (current-buffer))
+          (checkdoc-autofix-flag 'automatic))
+      (prin1 '(y-or-n-p "foo? "))       ; "foo? "
+      (goto-char (length "(y-or-n-p "))
+      (checkdoc--fix-y-or-n-p)
+      (should (equal (buffer-string) "(y-or-n-p \"foo? \")")))))
+
 ;;; checkdoc-tests.el ends here

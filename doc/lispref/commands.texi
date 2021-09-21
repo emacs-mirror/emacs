@@ -1424,9 +1424,12 @@ binding of the key sequence.
 @subsection Click Events
 @cindex click event
 @cindex mouse click event
+@cindex mouse wheel event
 
 When the user presses a mouse button and releases it at the same
-location, that generates a @dfn{click} event.  All mouse click event
+location, that generates a @dfn{click} event.  Depending on how your
+window-system reports mouse-wheel events, turning the mouse wheel can
+generate either a mouse click or a mouse-wheel event.  All mouse event
 share the same format:
 
 @example
@@ -1437,7 +1440,8 @@ share the same format:
 @item @var{event-type}
 This is a symbol that indicates which mouse button was used.  It is
 one of the symbols @code{mouse-1}, @code{mouse-2}, @dots{}, where the
-buttons are numbered left to right.
+buttons are numbered left to right.  For mouse-wheel event, it can be
+@code{wheel-up} or @code{wheel-down}.
 
 You can also use prefixes @samp{A-}, @samp{C-}, @samp{H-}, @samp{M-},
 @samp{S-} and @samp{s-} for modifiers alt, control, hyper, meta, shift
@@ -1450,19 +1454,20 @@ describe events by their types; thus, if there is a key binding for
 
 @item @var{position}
 @cindex mouse position list
-This is a @dfn{mouse position list} specifying where the mouse click
+This is a @dfn{mouse position list} specifying where the mouse event
 occurred; see below for details.
 
 @item @var{click-count}
 This is the number of rapid repeated presses so far of the same mouse
-button.  @xref{Repeat Events}.
+button or the number of repeated turns of the wheel.  @xref{Repeat
+Events}.
 @end table
 
   To access the contents of a mouse position list in the
-@var{position} slot of a click event, you should typically use the
+@var{position} slot of a mouse event, you should typically use the
 functions documented in @ref{Accessing Mouse}.
 
-The explicit format of the list depends on where the click occurred.
+The explicit format of the list depends on where the event occurred.
 For clicks in the text area, mode line, header line, tab line, or in
 the fringe or marginal areas, the mouse position list has the form
 
@@ -1477,11 +1482,11 @@ The meanings of these list elements are as follows:
 
 @table @asis
 @item @var{window}
-The window in which the click occurred.
+The window in which the mouse event occurred.
 
 @item @var{pos-or-area}
 The buffer position of the character clicked on in the text area; or,
-if the click was outside the text area, the window area where it
+if the event was outside the text area, the window area where it
 occurred.  It is one of the symbols @code{mode-line},
 @code{header-line}, @code{tab-line}, @code{vertical-line},
 @code{left-margin}, @code{right-margin}, @code{left-fringe}, or
@@ -1493,10 +1498,10 @@ happens after the imaginary prefix keys for the event are registered
 by Emacs.  @xref{Key Sequence Input}.
 
 @item @var{x}, @var{y}
-The relative pixel coordinates of the click.  For clicks in the text
+The relative pixel coordinates of the event.  For events in the text
 area of a window, the coordinate origin @code{(0 . 0)} is taken to be
 the top left corner of the text area.  @xref{Window Sizes}.  For
-clicks in a mode line, header line or tab line, the coordinate origin
+events in a mode line, header line or tab line, the coordinate origin
 is the top left corner of the window itself.  For fringes, margins,
 and the vertical border, @var{x} does not have meaningful data.
 For fringes and margins, @var{y} is relative to the bottom edge of the
@@ -1508,9 +1513,9 @@ The time at which the event occurred, as an integer number of
 milliseconds since a system-dependent initial time.
 
 @item @var{object}
-Either @code{nil}, which means the click occurred on buffer text, or a
+Either @code{nil}, which means the event occurred on buffer text, or a
 cons cell of the form @w{(@var{string} . @var{string-pos})} if there
-is a string from a text property or an overlay at the click position.
+is a string from a text property or an overlay at the event position.
 
 @table @asis
 @item @var{string}
@@ -1595,7 +1600,8 @@ handle), @code{up} (the up arrow at one end of the scroll bar), or
 @end table
 
 For clicks on the frame's internal border (@pxref{Frame Layout}),
-@var{position} has this form:
+the frame's tool bar (@pxref{Tool Bar}) or tab bar, @var{position}
+has this form:
 
 @example
  (@var{frame} @var{part} (@var{X} . @var{Y}) @var{timestamp})
@@ -1603,19 +1609,20 @@ For clicks on the frame's internal border (@pxref{Frame Layout}),
 
 @table @asis
 @item @var{frame}
-The frame whose internal border was clicked on.
+The frame whose internal border or tool bar or tab bar was clicked on.
 
 @item @var{part}
-The part of the internal border which was clicked on.  This can be one
+The part of the frame which was clicked on.  This can be one
 of the following:
 
 @table @code
-@item nil
-The frame does not have an internal border.  This usually happens on
-text-mode frames.  This can also happen on GUI frames with internal
-border if the frame doesn't have its @code{drag-internal-border}
-parameter (@pxref{Mouse Dragging Parameters}) set to a non-@code{nil}
-value.
+@cindex tool-bar mouse events
+@item tool-bar
+The frame has a tool bar, and the event was in the tool-bar area.
+
+@cindex tab-bar mouse events
+@item tab-bar
+The frame has a tab bar, and the event was in the tab-bar area.
 
 @item left-edge
 @itemx top-edge
@@ -1629,6 +1636,13 @@ canonical character from the border's nearest corner.
 @itemx bottom-right-corner
 @itemx bottom-left-corner
 The click was on the corresponding corner of the internal border.
+
+@item nil
+The frame does not have an internal border, and the event was not on
+the tab bar or the tool bar.  This usually happens on text-mode
+frames.  This can also happen on GUI frames with internal border if
+the frame doesn't have its @code{drag-internal-border} parameter
+(@pxref{Mouse Dragging Parameters}) set to a non-@code{nil} value.
 @end table
 
 @end table
@@ -3571,17 +3585,19 @@ commands.
 @cindex exit recursive editing
 @cindex aborting
   To invoke a recursive editing level, call the function
-@code{recursive-edit}.  This function contains the command loop; it also
-contains a call to @code{catch} with tag @code{exit}, which makes it
-possible to exit the recursive editing level by throwing to @code{exit}
-(@pxref{Catch and Throw}).  If you throw a @code{nil} value, then
-@code{recursive-edit} returns normally to the function that called it.
-The command @kbd{C-M-c} (@code{exit-recursive-edit}) does this.
-Throwing a @code{t} value causes @code{recursive-edit} to quit, so that
-control returns to the command loop one level up.  This is called
-@dfn{aborting}, and is done by @kbd{C-]} (@code{abort-recursive-edit}).
-You can also throw a function value.  In that case,
+@code{recursive-edit}.  This function contains the command loop; it
+also contains a call to @code{catch} with tag @code{exit}, which makes
+it possible to exit the recursive editing level by throwing to
+@code{exit} (@pxref{Catch and Throw}).  Throwing a @code{t} value
+causes @code{recursive-edit} to quit, so that control returns to the
+command loop one level up.  This is called @dfn{aborting}, and is done
+by @kbd{C-]} (@code{abort-recursive-edit}).  Similarly, you can throw
+a string value to make @code{recursive-edit} signal an error, printing
+this string as the message.  If you throw a function,
 @code{recursive-edit} will call it without arguments before returning.
+Throwing any other value, will make @code{recursive-edit} return
+normally to the function that called it.  The command @kbd{C-M-c}
+(@code{exit-recursive-edit}) does this.
 
   Most applications should not use recursive editing, except as part of
 using the minibuffer.  Usually it is more convenient for the user if you

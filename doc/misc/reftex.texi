@@ -3192,7 +3192,7 @@ with the @kbd{g} key.  To get this behavior, use instead
 
 @AUCTeX{} is without doubt the best major mode for editing @TeX{} and @LaTeX{}
 files with Emacs (@pxref{Top,AUCTeX,,auctex, The AUCTeX User Manual}).
-You can get it from its home page at @value{AUCTEXSITE}, but since
+You can get it from its website at @value{AUCTEXSITE}, but since
 it is available from GNU ELPA, you can simply install it from @kbd{M-x
 list-packages}.
 
@@ -3565,7 +3565,7 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @cindex Acknowledgments
 @cindex Thanks
 @cindex Bug reports
-@cindex @code{http}, @RefTeX{} home page
+@cindex @code{http}, @RefTeX{} website
 @cindex @code{ftp}, @RefTeX{} site
 
 @c dominik@@science.uva.nl

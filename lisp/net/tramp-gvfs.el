@@ -1574,10 +1574,13 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(when (and parents (not (file-directory-p ldir)))
 	  (make-directory ldir parents))
 	;; Just do it.
-	(unless (or (tramp-gvfs-send-command
-		     v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))
-		    (and parents (file-directory-p dir)))
-	  (tramp-error v 'file-error "Couldn't make directory %s" dir))))))
+	(or (when-let ((mkdir-succeeded
+			(tramp-gvfs-send-command
+			 v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))))
+	      (set-file-modes dir (default-file-modes))
+	      mkdir-succeeded)
+	    (and parents (file-directory-p dir))
+	    (tramp-error v 'file-error "Couldn't make directory %s" dir))))))
 
 (defun tramp-gvfs-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -1812,10 +1815,8 @@ a downcased host name only."
 			     (message "%s" message)
 			   (pop-to-buffer (current-buffer)))
 			 (if (yes-or-no-p
-			      (concat
-			       (buffer-substring
-				(line-beginning-position) (point))
-			       " "))
+			      (buffer-substring
+			       (line-beginning-position) (point)))
 			     0 1)))))
 
 		;; When QUIT is raised, we shall return this
@@ -1837,7 +1838,7 @@ a downcased host name only."
   (ignore-errors
     (let ((signal-name (dbus-event-member-name last-input-event))
 	  (elt mount-info))
-      ;; Jump over the first elements of the mount info. Since there
+      ;; Jump over the first elements of the mount info.  Since there
       ;; were changes in the entries, we cannot access dedicated
       ;; elements.
       (while (stringp (car elt)) (setq elt (cdr elt)))
@@ -1933,7 +1934,7 @@ a downcased host name only."
 	      :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
 	      tramp-gvfs-interface-mounttracker tramp-gvfs-listmounts))
 	  nil)
-       ;; Jump over the first elements of the mount info. Since there
+       ;; Jump over the first elements of the mount info.  Since there
        ;; were changes in the entries, we cannot access dedicated
        ;; elements.
        (while (stringp (car elt)) (setq elt (cdr elt)))

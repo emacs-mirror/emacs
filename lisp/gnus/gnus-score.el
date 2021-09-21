@@ -1093,7 +1093,7 @@ EXTRA is the possible non-standard header."
 
 (defun gnus-summary-current-score (arg)
   "Return the score of the current article.
-  With prefix ARG, return the total score of the current (sub)thread."
+With prefix ARG, return the total score of the current (sub)thread."
   (interactive "P" gnus-article-mode gnus-summary-mode)
   (message "%s" (if arg
 		    (gnus-thread-total-score

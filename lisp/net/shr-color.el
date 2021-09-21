@@ -30,7 +30,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (defgroup shr-color nil
-  "Simple HTML Renderer colors"
+  "Simple HTML Renderer colors."
   :group 'shr)
 
 (defcustom shr-color-visible-luminance-min 40

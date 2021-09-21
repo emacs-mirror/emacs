@@ -34,7 +34,7 @@
 ;; A separate file, enriched.txt, contains further documentation and other
 ;; important information about this code.  It also serves as an example
 ;; file in text/enriched format.  It should be in the etc directory of your
-;; emacs distribution.
+;; Emacs distribution.
 
 ;;; Code:
 
@@ -191,6 +191,7 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
     (define-key map "\C-x\t" #'increase-left-margin)
     (define-key map "\C-c[" #'set-left-margin)
     (define-key map "\C-c]" #'set-right-margin)
+    (define-key map "\M-o" #'facemenu-keymap)
     map)
   "Keymap for Enriched mode.")
 

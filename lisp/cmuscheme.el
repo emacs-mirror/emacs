@@ -33,15 +33,15 @@
 ;; merge them into the master source.
 ;;
 ;; NOTE: MIT Cscheme, when invoked with the -emacs flag, has a special user
-;; interface that communicates process state back to the superior emacs by
+;; interface that communicates process state back to the superior Emacs by
 ;; outputting special control sequences.  The Emacs package, xscheme.el, has
 ;; lots and lots of special purpose code to read these control sequences, and
 ;; so is very tightly integrated with the cscheme process.  The cscheme
 ;; interrupt handler and debugger read single character commands in cbreak
 ;; mode; when this happens, xscheme.el switches to special keymaps that bind
-;; the single letter command keys to emacs functions that directly send the
+;; the single letter command keys to Emacs functions that directly send the
 ;; character to the scheme process.  Cmuscheme mode does *not* provide this
-;; functionality. If you are a cscheme user, you may prefer to use the
+;; functionality.  If you are a cscheme user, you may prefer to use the
 ;; xscheme.el/cscheme -emacs interaction.
 ;;
 ;; Here's a summary of the pros and cons, as I see them.
@@ -159,7 +159,7 @@
 The following commands are available:
 \\{inferior-scheme-mode-map}
 
-A Scheme process can be fired up with M-x run-scheme.
+A Scheme process can be fired up with \\[run-scheme].
 
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
 `inferior-scheme-mode-hook' (in that order).

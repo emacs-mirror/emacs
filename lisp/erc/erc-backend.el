@@ -233,8 +233,7 @@ This is useful for detecting hung connections.")
 This variable is only set in a server buffer.")
 
 (defvar-local erc-server-filter-data nil
-  "The data that arrived from the server
-but has not been processed yet.")
+  "The data that arrived from the server but has not been processed yet.")
 
 (defvar-local erc-server-duplicates (make-hash-table :test 'equal)
   "Internal variable used to track duplicate messages.")
@@ -278,16 +277,15 @@ Reconnection will happen automatically for any unexpected disconnection."
   :type 'boolean)
 
 (defcustom erc-server-reconnect-attempts 2
-  "The number of times that ERC will attempt to reestablish a
-broken connection, or t to always attempt to reconnect.
+  "Number of times that ERC will attempt to reestablish a broken connection.
+If t, always attempt to reconnect.
 
 This only has an effect if `erc-server-auto-reconnect' is non-nil."
   :type '(choice (const :tag "Always reconnect" t)
                  integer))
 
 (defcustom erc-server-reconnect-timeout 1
-  "The amount of time, in seconds, that ERC will wait between
-successive reconnect attempts.
+  "Number of seconds to wait between successive reconnect attempts.
 
 If a key is pressed while ERC is waiting, it will stop waiting."
   :type 'number)
@@ -446,7 +444,7 @@ Currently this is called by `erc-send-input'."
 
 (defun erc-forward-word ()
   "Move forward one word, ignoring any subword settings.
-If no subword-mode is active, then this is (forward-word)."
+If no `subword-mode' is active, then this is (forward-word)."
   (skip-syntax-forward "^w")
   (> (skip-syntax-forward "w") 0))
 
@@ -460,7 +458,7 @@ If POS is out of range, the value is nil."
 
 (defun erc-bounds-of-word-at-point ()
   "Return the bounds of word at point, or nil if we're not at a word.
-If no subword-mode is active, then this is
+If no `subword-mode' is active, then this is
 \(bounds-of-thing-at-point 'word)."
   (if (or (erc-word-at-arg-p (point))
           (erc-word-at-arg-p (1- (point))))
@@ -950,15 +948,22 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
   (unless (string= string "") ;; Ignore empty strings
     (save-match-data
       (let* ((tag-list (when (eq (aref string 0) ?@)
-                         (substring string 1 (string-search " " string))))
+                         (substring string 1
+                                    (if (>= emacs-major-version 28)
+                                        (string-search " " string)
+                                      (string-match " " string)))))
              (msg (make-erc-response :unparsed string :tags (when tag-list
                                                               (erc-parse-tags
                                                                tag-list))))
              (string (if tag-list
-                         (substring string (+ 1 (string-search " " string)))
+                         (substring string (+ 1 (if (>= emacs-major-version 28)
+                                                    (string-search " " string)
+                                                  (string-match " " string))))
                        string))
              (posn (if (eq (aref string 0) ?:)
-                       (string-search " " string)
+                       (if (>= emacs-major-version 28)
+                           (string-search " " string)
+                         (string-match " " string))
                      0)))
 
         (setf (erc-response.sender msg)
@@ -968,7 +973,9 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
 
         (setf (erc-response.command msg)
               (let* ((bposn (string-match "[^ \n]" string posn))
-                     (eposn (string-search " " string bposn)))
+                     (eposn (if (>= emacs-major-version 28)
+                                (string-search " " string bposn)
+                              (string-match " " string bposn))))
                 (setq posn (and eposn
                                 (string-match "[^ \n]" string eposn)))
                 (substring string bposn eposn)))
@@ -976,7 +983,9 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
         (while (and posn
                     (not (eq (aref string posn) ?:)))
           (push (let* ((bposn posn)
-                       (eposn (string-search " " string bposn)))
+                       (eposn (if (>= emacs-major-version 28)
+                                  (string-search " " string bposn)
+                                (string-match " " string bposn))))
                   (setq posn (and eposn
                                   (string-match "[^ \n]" string eposn)))
                   (substring string bposn eposn))

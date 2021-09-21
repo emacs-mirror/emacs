@@ -1,11 +1,11 @@
-# BidiBrackets-13.0.0.txt
-# Date: 2019-09-09, 19:31:00 GMT [AG, LI, KW]
-# © 2019 Unicode®, Inc.
+# BidiBrackets-14.0.0.txt
+# Date: 2021-06-30, 23:59:00 GMT [AG, LI, KW]
+# © 2021 Unicode®, Inc.
 # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
-# For terms of use, see http://www.unicode.org/terms_of_use.html
+# For terms of use, see https://www.unicode.org/terms_of_use.html
 #
 # Unicode Character Database
-# For documentation, see http://www.unicode.org/reports/tr44/
+# For documentation, see https://www.unicode.org/reports/tr44/
 #
 # Bidi_Paired_Bracket and Bidi_Paired_Bracket_Type Properties
 #
@@ -56,7 +56,7 @@
 # of each line.
 #
 # For information on bidirectional paired brackets, see UAX #9: Unicode
-# Bidirectional Algorithm, at http://www.unicode.org/unicode/reports/tr9/
+# Bidirectional Algorithm, at https://www.unicode.org/reports/tr9/
 #
 # This file was originally created by Andrew Glass and Laurentiu Iancu
 # for Unicode 6.3.
@@ -147,6 +147,14 @@
 2E27; 2E26; c # RIGHT SIDEWAYS U BRACKET
 2E28; 2E29; o # LEFT DOUBLE PARENTHESIS
 2E29; 2E28; c # RIGHT DOUBLE PARENTHESIS
+2E55; 2E56; o # LEFT SQUARE BRACKET WITH STROKE
+2E56; 2E55; c # RIGHT SQUARE BRACKET WITH STROKE
+2E57; 2E58; o # LEFT SQUARE BRACKET WITH DOUBLE STROKE
+2E58; 2E57; c # RIGHT SQUARE BRACKET WITH DOUBLE STROKE
+2E59; 2E5A; o # TOP HALF LEFT PARENTHESIS
+2E5A; 2E59; c # TOP HALF RIGHT PARENTHESIS
+2E5B; 2E5C; o # BOTTOM HALF LEFT PARENTHESIS
+2E5C; 2E5B; c # BOTTOM HALF RIGHT PARENTHESIS
 3008; 3009; o # LEFT ANGLE BRACKET
 3009; 3008; c # RIGHT ANGLE BRACKET
 300A; 300B; o # LEFT DOUBLE ANGLE BRACKET

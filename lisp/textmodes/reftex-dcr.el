@@ -42,7 +42,7 @@ which uses this KEY. When on an `\\index', show other locations marked
 by the same index entry.
 To define additional cross referencing items, use the option
 `reftex-view-crossref-extra'.  See also `reftex-view-crossref-from-bibtex'.
-With one or two C-u prefixes, enforce rescanning of the document.
+With one or two \\[universal-argument] prefixes, enforce rescanning of the document.
 With argument 2, select the window showing the cross reference.
 AUTO-HOW is only for the automatic crossref display and is handed through
 to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."

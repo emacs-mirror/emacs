@@ -70,7 +70,8 @@
     ["Customize" help-customize
      :help "Customize variable or face"]))
 
-(defun help-mode-context-menu (menu)
+(defun help-mode-context-menu (menu click)
+  "Populate MENU with Help mode commands at CLICK."
   (define-key menu [help-mode-separator] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Help-Mode")))
     (easy-menu-define nil easy-menu nil
@@ -85,12 +86,7 @@
       (when (consp item)
         (define-key menu (vector (car item)) (cdr item)))))
 
-  (when (and
-         ;; First check if `help-fns--list-local-commands'
-         ;; used `where-is-internal' to call this function
-         ;; with wrong `last-input-event'.
-         (eq (current-buffer) (window-buffer (posn-window (event-start last-input-event))))
-         (mouse-posn-property (event-start last-input-event) 'mouse-face))
+  (when (mouse-posn-property (event-start click) 'mouse-face)
     (define-key menu [help-mode-push-button]
       '(menu-item "Follow Link" (lambda (event)
                                   (interactive "e")
@@ -815,7 +811,7 @@ See `help-make-xrefs'."
 
 (defun help-do-xref (_pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.
-Things are set up properly so that the resulting help-buffer has
+Things are set up properly so that the resulting help buffer has
 a proper [back] button."
   ;; There is a reference at point.  Follow it.
   (let ((help-xref-following t))

@@ -547,8 +547,7 @@ found tag to be loaded."
 (cl-defmethod semanticdb-typecache-for-database ((db semanticdb-project-database)
 					      &optional mode)
   "Return the typecache for the project database DB.
-If there isn't one, create it.
-"
+If there isn't one, create it."
   (let ((lmode (or mode major-mode))
 	(cache (semanticdb-get-typecache db))
 	(stream nil)

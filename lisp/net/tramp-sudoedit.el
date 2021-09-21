@@ -190,7 +190,7 @@ arguments to pass to the OPERATION."
 		  (and (numberp ok-if-already-exists)
 		       (not (yes-or-no-p
 			     (format
-			      "File %s already exists; make it a link anyway? "
+			      "File %s already exists; make it a link anyway?"
 			      v2-localname)))))
 	      (tramp-error v2 'file-already-exists newname)
 	    (delete-file newname)))
@@ -597,6 +597,7 @@ the result will be a local, non-Tramp, file name."
      v (if parents "/" (file-name-directory localname)))
     (unless (tramp-sudoedit-send-command
 	     v (if parents '("mkdir" "-p") "mkdir")
+	     "-m" (format "%#o" (default-file-modes))
 	     (tramp-compat-file-name-unquote localname))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
@@ -631,7 +632,7 @@ component is used as the target of the symlink."
 		       (not
 			(yes-or-no-p
 			 (format
-			  "File %s already exists; make it a link anyway? "
+			  "File %s already exists; make it a link anyway?"
 			  localname)))))
 	      (tramp-error v 'file-already-exists localname)
 	    (delete-file linkname)))

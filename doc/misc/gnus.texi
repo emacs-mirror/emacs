@@ -21898,7 +21898,7 @@ bound to mairix searches and are automatically updated.
 Mairix is a tool for indexing and searching words in locally stored
 mail.  It was written by Richard Curnow and is licensed under the
 GPL@.  Mairix comes with most popular GNU/Linux distributions, but it also
-runs under Windows (with cygwin), macOS and Solaris.  The homepage can
+runs under Windows (with cygwin), macOS and Solaris.  The website can
 be found at
 @uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
 
@@ -22726,6 +22726,13 @@ things like @code{gnus-group-line-format} and
 output lines in the various buffers.  There's quite a lot of them.
 Fortunately, they all use the same syntax, so there's not that much to
 be annoyed by.
+
+Gnus does not use the font locking machinery used by most modes in
+Emacs, so switching @code{font-lock-mode} on in the Gnus
+group/summary/article buffers usually doesn't do anything
+useful---instead it'll just mess up the faces that Gnus has already
+put in the buffer.  (This is also the case for other minor modes that
+use the font locking machinery, like @code{whitespace-mode}.)
 
 Here's an example format spec (from the group buffer): @samp{%M%S%5y:
 %(%g%)\n}.  We see that it is indeed extremely ugly, and that there are

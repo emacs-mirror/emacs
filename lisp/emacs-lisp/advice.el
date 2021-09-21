@@ -36,12 +36,12 @@
 ;; @ Introduction:
 ;; ===============
 ;; This package implements a full-fledged Lisp-style advice mechanism
-;; for Emacs Lisp. Advice is a clean and efficient way to modify the
+;; for Emacs Lisp.  Advice is a clean and efficient way to modify the
 ;; behavior of Emacs Lisp functions without having to keep  personal
-;; modified copies of such functions around. A great number of such
+;; modified copies of such functions around.  A great number of such
 ;; modifications can be achieved by treating the original function as a
 ;; black box and specifying a different execution environment for it
-;; with a piece of advice. Think of a piece of advice as a kind of fancy
+;; with a piece of advice.  Think of a piece of advice as a kind of fancy
 ;; hook that you can attach to any function/macro/subr.
 
 ;; @ Highlights:
@@ -95,7 +95,7 @@
 ;; @ Restrictions:
 ;; ===============
 ;; - Advised functions/macros/subrs will only exhibit their advised behavior
-;;   when they are invoked via their function cell. This means that advice will
+;;   when they are invoked via their function cell.  This means that advice will
 ;;   not work for the following:
 ;;   + advised subrs that are called directly from other subrs or C-code
 ;;   + advised subrs that got replaced with their byte-code during
@@ -107,7 +107,7 @@
 ;; ==========
 ;; This package is an extension and generalization of packages such as
 ;; insert-hooks.el written by Noah S. Friedman, and advise.el written by
-;; Raul J. Acevedo. Some ideas used in here come from these packages,
+;; Raul J. Acevedo.  Some ideas used in here come from these packages,
 ;; others come from the various Lisp advice mechanisms I've come across
 ;; so far, and a few are simply mine.
 
@@ -235,10 +235,10 @@
 ;; found in the list of before/around/after advices will be used.
 
 ;; <flags> is a list of symbols that specify further information about the
-;; advice. All flags can be specified with unambiguous initial substrings.
+;; advice.  All flags can be specified with unambiguous initial substrings.
 ;;   `activate': Specifies that the advice information of the advised
 ;;              function should be activated right after this advice has been
-;;              defined. In forward advices `activate' will be ignored.
+;;              defined.  In forward advices `activate' will be ignored.
 ;;   `protect': Specifies that this advice should be protected against
 ;;              non-local exits and errors in preceding code/advices.
 ;;   `compile': Specifies that the advised function should be byte-compiled.
@@ -347,7 +347,7 @@
 ;; argument list redefinition given in a piece of advice.  While this simple
 ;; method might be sufficient in many cases, it has the disadvantage that it
 ;; is not very portable because it hardcodes the argument names into the
-;; advice. If the definition of the original function changes the advice
+;; advice.  If the definition of the original function changes the advice
 ;; might break even though the code might still be correct.  Situations like
 ;; that arise, for example, if one advises a subr like `eval-region' which
 ;; gets redefined in a non-advice style into a function by the edebug
@@ -443,7 +443,7 @@
 ;; of the advised function we need a mapping mechanism that maps this
 ;; argument list onto that of the original function.  Hence SYM and
 ;; NEWDEF have to be properly mapped onto the &rest variable when the
-;; original definition is called. Advice automatically takes care of
+;; original definition is called.  Advice automatically takes care of
 ;; that mapping, hence, the advice programmer can specify an argument
 ;; list without having to know about the exact structure of the
 ;; original argument list as long as the new argument list takes a
@@ -467,7 +467,7 @@
 ;; The advised definition will get compiled either if `ad-activate' was called
 ;; interactively with a prefix argument, or called explicitly with its second
 ;; argument as t, or, if `ad-default-compilation-action' justifies it according
-;; to the current system state. If the advised definition was
+;; to the current system state.  If the advised definition was
 ;; constructed during "preactivation" (see below) then that definition will
 ;; be already compiled because it was constructed during byte-compilation of
 ;; the file that contained the `defadvice' with the `preactivate' flag.
@@ -707,7 +707,7 @@
 ;; @@ Adding a piece of advice with `ad-add-advice':
 ;; =================================================
 ;; The non-interactive function `ad-add-advice' can be used to add a piece of
-;; advice to some function without using `defadvice'. This is useful if advice
+;; advice to some function without using `defadvice'.  This is useful if advice
 ;; has to be added somewhere by a function (also look at `ad-make-advice').
 
 ;; @@ Activation/deactivation advices, file load hooks:
@@ -739,7 +739,7 @@
 ;;     A piece of advice gets defined with `defadvice' and added to the
 ;;     `advice-info' property of a function.
 ;; - Enablement:
-;;     Every piece of advice has an enablement flag associated with it. Only
+;;     Every piece of advice has an enablement flag associated with it.  Only
 ;;     enabled advices are considered during construction of an advised
 ;;     definition.
 ;; - Activation:
@@ -808,9 +808,9 @@
 ;;                     argument access text macros to get/set the values of
 ;;                     actual arguments at a certain position
 ;;   ad-arg-bindings   text macro that returns the actual names, values
-;;                     and types of the arguments as a list of bindings. The
+;;                     and types of the arguments as a list of bindings.  The
 ;;                     order of the bindings corresponds to the order of the
-;;                     arguments. The individual fields of every binding (name,
+;;                     arguments.  The individual fields of every binding (name,
 ;;                     value and type) can be accessed with the function
 ;;                     `ad-arg-binding-field' (see example above).
 ;;   ad-do-it          text macro that identifies the place where the original
@@ -839,20 +839,20 @@
 ;; use the macro `defadvice' which takes a function name, a list of advice
 ;; specifiers and a list of body forms as arguments.  The first element of
 ;; the advice specifiers is the class of the advice, the second is its name,
-;; the third its position and the rest are some flags. The class of our
+;; the third its position and the rest are some flags.  The class of our
 ;; first advice is `before', its name is `fg-add2', its position among the
 ;; currently defined before advices (none so far) is `first', and the advice
-;; will be `activate'ed immediately. Advice names are global symbols, hence,
-;; the name space conventions used for function names should be applied. All
+;; will be `activate'ed immediately.  Advice names are global symbols, hence,
+;; the name space conventions used for function names should be applied.  All
 ;; advice names in this tutorial will be prefixed with `fg' for `Foo Games'
 ;; (because everybody has the right to be inconsistent all the function names
 ;; used in this tutorial do NOT follow this convention).
 ;;
 ;; In the body of an advice we can refer to the argument variables of the
-;; original function by name. Here we add 1 to X so the effect of calling
+;; original function by name.  Here we add 1 to X so the effect of calling
 ;; `foo' will be to actually add 2. All of the advice definitions below only
 ;; have one body form for simplicity, but there is no restriction to that
-;; extent. Every piece of advice can have a documentation string which will
+;; extent.  Every piece of advice can have a documentation string which will
 ;; be combined with the documentation of the original function.
 ;;
 ;; (defadvice foo (before fg-add2 first activate)
@@ -866,11 +866,11 @@
 ;; @@ Specifying the position of an advice:
 ;; ========================================
 ;; Now we define the second before advice which will cancel the effect of
-;; the previous advice. This time we specify the position as 0 which is
-;; equivalent to `first'. A number can be used to specify the zero-based
-;; position of an advice among the list of advices in the same class. This
+;; the previous advice.  This time we specify the position as 0 which is
+;; equivalent to `first'.  A number can be used to specify the zero-based
+;; position of an advice among the list of advices in the same class.  This
 ;; time we already have one before advice hence the position specification
-;; actually has an effect. So, after the following definition the position
+;; actually has an effect.  So, after the following definition the position
 ;; of the previous advice will be 1 even though we specified it with `first'
 ;; above, the reason for this is that the position argument is relative to
 ;; the currently defined pieces of advice which by now has changed.
@@ -886,7 +886,7 @@
 ;; @@ Redefining a piece of advice:
 ;; ================================
 ;; Now we define an advice with the same class and same name but with a
-;; different position. Defining an advice in a class in which an advice with
+;; different position.  Defining an advice in a class in which an advice with
 ;; that name already exists is interpreted as a redefinition of that
 ;; particular advice, in which case the position argument will be ignored
 ;; and the previous position of the redefined piece of advice is used.
@@ -919,7 +919,7 @@
 ;; =================================
 ;; We can make a function interactive (or change its interactive behavior)
 ;; by specifying an interactive form in one of the before or around
-;; advices (there could also be body forms in this advice). The particular
+;; advices (there could also be body forms in this advice).  The particular
 ;; definition always assigns 5 as an argument to X which gives us 6 as a
 ;; result when we call foo interactively:
 ;;
@@ -945,13 +945,13 @@
 ;;
 ;; @@ Around advices:
 ;; ==================
-;; Now we'll try some `around' advices. An around advice is a wrapper around
-;; the original definition. It can shadow or establish bindings for the
+;; Now we'll try some `around' advices.  An around advice is a wrapper around
+;; the original definition.  It can shadow or establish bindings for the
 ;; original definition, and it can look at and manipulate the value returned
-;; by the original function. The position of the special keyword `ad-do-it'
-;; specifies where the code of the original function will be executed. The
+;; by the original function.  The position of the special keyword `ad-do-it'
+;; specifies where the code of the original function will be executed.  The
 ;; keyword can appear multiple times which will result in multiple calls of
-;; the original function in the resulting advised code. Note, that if we don't
+;; the original function in the resulting advised code.  Note, that if we don't
 ;; specify a position argument (i.e., `first', `last' or a number), then
 ;; `first' (or 0) is the default):
 ;;
@@ -967,7 +967,7 @@
 ;; Around advices are assembled like onion skins where the around advice
 ;; with position 0 is the outermost skin and the advice at the last position
 ;; is the innermost skin which is directly wrapped around the call of the
-;; original definition of the function. Hence, after the next `defadvice' we
+;; original definition of the function.  Hence, after the next `defadvice' we
 ;; will first multiply X by 2 then add 1 and then call the original
 ;; definition (i.e., add 1 again):
 ;;
@@ -984,8 +984,8 @@
 ;; =================================
 ;; In every `defadvice' so far we have used the flag `activate' to activate
 ;; the advice immediately after its definition, and that's what we want in
-;; most cases. However, if we define multiple pieces of advice for a single
-;; function then activating every advice immediately is inefficient. A
+;; most cases.  However, if we define multiple pieces of advice for a single
+;; function then activating every advice immediately is inefficient.  A
 ;; better way to do this is to only activate the last defined advice.
 ;; For example:
 ;;
@@ -1033,7 +1033,7 @@
 ;;
 ;; To make sure a certain piece of advice gets executed even if some error or
 ;; non-local exit occurred in any preceding code, we can protect it by using
-;; the `protect' keyword. (if any of the around advices is protected then the
+;; the `protect' keyword (if any of the around advices is protected then the
 ;; whole around advice onion will be protected):
 ;;
 ;; (defadvice foo (after fg-cleanup prot act)
@@ -1077,7 +1077,7 @@
 ;; neutralize the effect of the advice of one of the packages.
 ;;
 ;; The following disables the after advice `fg-times-x' in the function `foo'.
-;; All that does is to change a flag for this particular advice. All the
+;; All that does is to change a flag for this particular advice.  All the
 ;; other information defining it will be left unchanged (e.g., its relative
 ;; position in this advice class, etc.).
 ;;
@@ -1094,9 +1094,9 @@
 ;; 24
 ;;
 ;; If we want to disable all multiplication advices in `foo' we can use a
-;; regular expression that matches the names of such advices. Actually, any
+;; regular expression that matches the names of such advices.  Actually, any
 ;; advice name that contains a match for the regular expression will be
-;; called a match. A special advice class `any' can be used to consider
+;; called a match.  A special advice class `any' can be used to consider
 ;; all advice classes:
 ;;
 ;; (ad-disable-advice 'foo 'any "^fg-.*times")
@@ -1122,7 +1122,7 @@
 ;; 9
 ;;
 ;; The following will activate all currently active advised functions that
-;; contain some advice matched by the regular expression. This is a save
+;; contain some advice matched by the regular expression.  This is a save
 ;; way to update the activation of advised functions whose advice changed
 ;; in some way or other without accidentally also activating currently
 ;; inactive functions:
@@ -1136,7 +1136,7 @@
 ;;
 ;; Another use for the dis/enablement mechanism is to define a piece of advice
 ;; and keep it "dormant" until a particular condition is satisfied, i.e., until
-;; then the advice will not be used during activation. The `disable' flag lets
+;; then the advice will not be used during activation.  The `disable' flag lets
 ;; one do that with `defadvice':
 ;;
 ;; (defadvice foo (before fg-1-more dis)
@@ -1165,7 +1165,7 @@
 ;; ===========
 ;; Advised definitions get cached to allow efficient activation/deactivation
 ;; without having to reconstruct them if nothing in the advice-info of a
-;; function has changed. The following idiom can be used to temporarily
+;; function has changed.  The following idiom can be used to temporarily
 ;; deactivate functions that have a piece of advice defined by a certain
 ;; package (we save the old definition to check out caching):
 ;;
@@ -1350,9 +1350,9 @@
 ;; @@ Portable argument access:
 ;; ============================
 ;; So far, we always used the actual argument variable names to access an
-;; argument in a piece of advice. For many advice applications this is
-;; perfectly ok and keeps advices simple. However, it decreases portability
-;; of advices because it assumes specific argument variable names. For example,
+;; argument in a piece of advice.  For many advice applications this is
+;; perfectly ok and keeps advices simple.  However, it decreases portability
+;; of advices because it assumes specific argument variable names.  For example,
 ;; if one advises a subr such as `eval-region' which then gets redefined by
 ;; some package (e.g., edebug) into a function with different argument names,
 ;; then a piece of advice written for `eval-region' that was written with
@@ -1360,7 +1360,7 @@
 ;;
 ;; Argument access text macros allow one to access arguments of an advised
 ;; function in a portable way without having to worry about all these
-;; possibilities. These macros will be translated into the proper access forms
+;; possibilities.  These macros will be translated into the proper access forms
 ;; at activation time, hence, argument access will be as efficient as if
 ;; the arguments had been used directly in the definition of the advice.
 ;;
@@ -1386,7 +1386,7 @@
 ;; (fuu 1 1 1)
 ;; 6
 ;;
-;; Now suppose somebody redefines `fuu' with a rest argument. Our advice
+;; Now suppose somebody redefines `fuu' with a rest argument.  Our advice
 ;; will still work because we used access macros (note, that automatic
 ;; advice activation is still in effect, hence, the redefinition of `fuu'
 ;; will automatically activate all its advice):
@@ -1444,9 +1444,9 @@
 ;; give it an extra argument that controls the advised code, for example, one
 ;; might want to make an interactive function sensitive to a prefix argument.
 ;; For such cases `defadvice' allows the specification of an argument list
-;; for the advised function. Similar to the redefinition of interactive
+;; for the advised function.  Similar to the redefinition of interactive
 ;; behavior, the first argument list specification found in the list of before/
-;; around/after advices will be used. Of course, the specified argument list
+;; around/after advices will be used.  Of course, the specified argument list
 ;; should be downward compatible with the original argument list, otherwise
 ;; functions that call the advised function with the original argument list
 ;; in mind will break.
@@ -1457,9 +1457,9 @@
 ;; fii
 ;;
 ;; Now we advise `fii' to use an optional second argument that controls the
-;; amount of incrementing. A list following the (optional) position
+;; amount of incrementing.  A list following the (optional) position
 ;; argument of the advice will be interpreted as an argument list
-;; specification. This means you cannot specify an empty argument list, and
+;; specification.  This means you cannot specify an empty argument list, and
 ;; why would you want to anyway?
 ;;
 ;; (defadvice fii (before fg-inc-x (x &optional incr) act)
@@ -1476,22 +1476,22 @@
 ;; @@ Advising interactive subrs:
 ;; ==============================
 ;; For the most part there is no difference between advising functions and
-;; advising subrs. There is one situation though where one might have to write
-;; slightly different advice code for subrs than for functions. This case
+;; advising subrs.  There is one situation though where one might have to write
+;; slightly different advice code for subrs than for functions.  This case
 ;; arises when one wants to access subr arguments in a before/around advice
 ;; when the arguments were determined by an interactive call to the subr.
 ;; Advice cannot determine what `interactive' form determines the interactive
 ;; behavior of the subr, hence, when it calls the original definition in an
 ;; interactive subr invocation it has to use `call-interactively' to generate
-;; the proper interactive behavior. Thus up to that call the arguments of the
-;; interactive subr will be nil. For example, the following advice for
+;; the proper interactive behavior.  Thus up to that call the arguments of the
+;; interactive subr will be nil.  For example, the following advice for
 ;; `kill-buffer' will not work in an interactive invocation...
 ;;
 ;; (defadvice kill-buffer (before fg-kill-buffer-hook first act preact comp)
 ;;   (my-before-kill-buffer-hook (ad-get-arg 0)))
 ;; kill-buffer
 ;;
-;; ...because the buffer argument will be nil in that case. The way out of
+;; ...because the buffer argument will be nil in that case.  The way out of
 ;; this dilemma is to provide an `interactive' specification that mirrors
 ;; the interactive behavior of the unadvised subr, for example, the following
 ;; will do the right thing even when `kill-buffer' is called interactively:
@@ -1508,10 +1508,10 @@
 ;; For an advised macro instead of evaluating the original definition we
 ;; use `macroexpand', that is, changing argument values and binding
 ;; environments by pieces of advice has an affect during macro expansion
-;; but not necessarily during evaluation. In particular, any side effects
+;; but not necessarily during evaluation.  In particular, any side effects
 ;; of pieces of advice will occur during macro expansion.  To also affect
 ;; the behavior during evaluation time one has to change the value of
-;; `ad-return-value' in a piece of after advice. For example:
+;; `ad-return-value' in a piece of after advice.  For example:
 ;;
 ;; (defmacro foom (x)
 ;;   `(list ,x))
@@ -1562,7 +1562,7 @@
 ;; because it allows one to influence macro expansion as well as evaluation.
 ;; In general, advising macros should be a rather rare activity anyway, in
 ;; particular, because compile-time macro expansion takes away a lot of the
-;; flexibility and effectiveness of the advice mechanism. Macros that were
+;; flexibility and effectiveness of the advice mechanism.  Macros that were
 ;; compile-time expanded before the advice was activated will of course never
 ;; exhibit the advised behavior.
 
@@ -3105,7 +3105,7 @@ The syntax of `defadvice' is as follows:
 FUNCTION ::= Name of the function to be advised.
 CLASS ::= `before' | `around' | `after' | `activation' | `deactivation'.
 NAME ::= Non-nil symbol that names this piece of advice.
-POSITION ::= `first' | `last' | NUMBER. Optional, defaults to `first',
+POSITION ::= `first' | `last' | NUMBER.  Optional, defaults to `first',
     see also `ad-add-advice'.
 ARGLIST ::= An optional argument list to be used for the advised function
     instead of the argument list of the original.  The first one found in

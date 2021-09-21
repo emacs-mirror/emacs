@@ -377,7 +377,7 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
     ("XdndActionMove" . move)
     ("XdndActionLink" . link)
     ("XdndActionAsk" . ask))
-  "Mapping from XDND action types to lisp symbols.")
+  "Mapping from XDND action types to Lisp symbols.")
 
 (declare-function x-change-window-property "xfns.c"
 		  (prop value &optional frame type format outer-P))

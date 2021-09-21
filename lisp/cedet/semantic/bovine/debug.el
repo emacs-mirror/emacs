@@ -113,7 +113,7 @@ LEXTOKEN, is a token returned by the lexer which is being matched."
 	      :documentation
 	      "An error condition caught in an action.")
    )
-  "Debugger frame representation of a lisp error thrown during parsing.")
+  "Debugger frame representation of a Lisp error thrown during parsing.")
 
 (defun semantic-create-bovine-debug-error-frame (condition)
   "Create an error frame for bovine debugger.

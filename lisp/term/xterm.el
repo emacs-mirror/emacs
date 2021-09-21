@@ -394,6 +394,9 @@ Return the pasted text as a string."
     (define-key map "\eOx" [kp-8])
     (define-key map "\eOy" [kp-9])
 
+    ;; Some keypads have an equal key (for instance, most Apple keypads).
+    (define-key map "\eOX" [kp-equal])
+
     (define-key map "\eO2j" [S-kp-multiply])
     (define-key map "\eO2k" [S-kp-add])
     (define-key map "\eO2l" [S-kp-separator])
@@ -787,14 +790,13 @@ Return the pasted text as a string."
 Can be nil to mean \"no timeout\".")
 
 (defvar xterm-query-redisplay-timeout 0.2
-  "Seconds to wait before allowing redisplay during terminal
-  query." )
+  "Seconds to wait before allowing redisplay during terminal query." )
 
 (defun xterm--read-event-for-query ()
-  "Like read-event, but inhibit redisplay.
+  "Like `read-event', but inhibit redisplay.
 
 By not redisplaying right away for xterm queries, we can avoid
-unsightly flashing during initialization. Give up and redisplay
+unsightly flashing during initialization.  Give up and redisplay
 anyway if we've been waiting a little while."
   (let ((start-time (current-time)))
     (or (let ((inhibit-redisplay t))

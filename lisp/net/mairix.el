@@ -24,7 +24,7 @@
 
 ;; This is an interface to the mairix mail search engine.  Mairix is
 ;; written by Richard Curnow and is licensed under the GPL.  See the
-;; home page for details:
+;; Mairix website for details:
 ;;
 ;; http://www.rpcurnow.force9.co.uk/mairix/
 ;;

@@ -36,7 +36,7 @@
 (eval-when-compile (require 'subr-x))
 
 (defgroup eww nil
-  "Emacs Web Wowser"
+  "Emacs Web Wowser."
   :version "25.1"
   :link '(custom-manual "(eww) Top")
   :group 'web
@@ -57,7 +57,7 @@
   :type 'string)
 
 (defcustom eww-use-browse-url "\\`mailto:"
-  "eww will use `browse-url' when following links that match this regexp.
+  "EWW will use `browse-url' when following links that match this regexp.
 The action to be taken can be further customized via
 `browse-url-handlers'."
   :version "28.1"
@@ -143,11 +143,13 @@ The string will be passed through `substitute-command-keys'."
 
 (defcustom eww-retrieve-command nil
   "Command to retrieve an URL via an external program.
-If nil, `url-retrieve' is used to download the data.  If non-nil,
-this should be a list where the first item is the program, and
-the rest are the arguments."
+If nil, `url-retrieve' is used to download the data.
+If `sync', `url-retrieve-synchronously' is used.
+For other non-nil values, this should be a list where the first item
+is the program, and the rest are the arguments."
   :version "28.1"
   :type '(choice (const :tag "Use `url-retrieve'" nil)
+                 (const :tag "Use `url-retrieve-synchronously'" sync)
                  (repeat string)))
 
 (defcustom eww-use-external-browser-for-content-type
@@ -366,9 +368,16 @@ killed after rendering."
                     (list url nil (current-buffer))))))
 
 (defun eww-retrieve (url callback cbargs)
-  (if (null eww-retrieve-command)
-      (url-retrieve url #'eww-render
-                    (list url nil (current-buffer)))
+  (cond
+   ((null eww-retrieve-command)
+    (url-retrieve url #'eww-render
+                  (list url nil (current-buffer))))
+   ((eq eww-retrieve-command 'sync)
+    (let ((orig-buffer (current-buffer))
+          (data-buffer (url-retrieve-synchronously url)))
+      (with-current-buffer data-buffer
+        (eww-render nil url nil orig-buffer))))
+   (t
     (let ((buffer (generate-new-buffer " *eww retrieve*"))
           (error-buffer (generate-new-buffer " *eww error*")))
       (with-current-buffer buffer
@@ -388,7 +397,7 @@ killed after rendering."
                          (with-current-buffer buffer
                            (goto-char (point-min))
                            (insert "Content-type: text/html; charset=utf-8\n\n")
-                           (apply #'funcall callback nil cbargs))))))))))
+                           (apply #'funcall callback nil cbargs)))))))))))
 
 (function-put 'eww 'browse-url-browser-kind 'internal)
 
@@ -668,9 +677,12 @@ Currently this means either text/html or application/xhtml+xml."
 		   ("home" . :home)
 		   ("contents" . :contents)
 		   ("up" . :up)))))
-    (and href
-	 where
-	 (plist-put eww-data (cdr where) href))))
+    (when (and href where)
+      (when (memq (cdr where) '(:next :previous))
+        ;; Multi-page isearch support.
+        (setq-local multi-isearch-next-buffer-function
+                    #'eww-isearch-next-buffer))
+      (plist-put eww-data (cdr where) href))))
 
 (defvar eww-redirect-level 1)
 
@@ -840,6 +852,8 @@ Currently this means either text/html or application/xhtml+xml."
     (remove-overlays)
     (erase-buffer))
   (setq bidi-paragraph-direction nil)
+  ;; May be set later if there's a next/prev link.
+  (setq-local multi-isearch-next-buffer-function nil)
   (unless (eq major-mode 'eww-mode)
     (eww-mode)))
 
@@ -1021,7 +1035,8 @@ the like."
         ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
     map))
 
-(defun eww-context-menu (menu)
+(defun eww-context-menu (menu click)
+  "Populate MENU with eww commands at CLICK."
   (define-key menu [eww-separator] menu-bar-separator)
   (let ((easy-menu (make-sparse-keymap "Eww")))
     (easy-menu-define nil easy-menu nil
@@ -1035,8 +1050,8 @@ the like."
       (when (consp item)
         (define-key menu (vector (car item)) (cdr item)))))
 
-  (when (or (mouse-posn-property (event-start last-input-event) 'shr-url)
-            (mouse-posn-property (event-start last-input-event) 'image-url))
+  (when (or (mouse-posn-property (event-start click) 'shr-url)
+            (mouse-posn-property (event-start click) 'image-url))
     (define-key menu [shr-mouse-browse-url-new-window]
       `(menu-item "Follow URL in new window" ,(if browse-url-new-window-flag
                                                   'shr-mouse-browse-url
@@ -1080,8 +1095,6 @@ the like."
     (setq-local tool-bar-map eww-tool-bar-map))
   ;; desktop support
   (setq-local desktop-save-buffer #'eww-desktop-misc-data)
-  ;; multi-page isearch support
-  (setq-local multi-isearch-next-buffer-function #'eww-isearch-next-buffer)
   (setq truncate-lines t)
   (setq-local thing-at-point-provider-alist
               (append thing-at-point-provider-alist
@@ -2394,13 +2407,14 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 
 (defun eww-isearch-next-buffer (&optional _buffer wrap)
   "Go to the next page to search using `rel' attribute for navigation."
-  (if wrap
-      (condition-case nil
-	  (eww-top-url)
-	(error nil))
-    (if isearch-forward
-	(eww-next-url)
-      (eww-previous-url)))
+  (let ((eww-retrieve-command 'sync))
+    (if wrap
+        (condition-case nil
+	    (eww-top-url)
+	  (error nil))
+      (if isearch-forward
+	  (eww-next-url)
+        (eww-previous-url))))
   (current-buffer))
 
 (provide 'eww)
