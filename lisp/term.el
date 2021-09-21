@@ -4322,8 +4322,7 @@ Try to be nice by providing useful defaults and history."
                     "Speed (default nil = set by port): ")
                    (h
                     (format-prompt "Speed" (format "%s b/s" h)))
-                   (t
-		    (format "Speed (b/s): ")))
+                   (t "Speed (b/s): "))
              nil nil nil '(history . 1) nil nil)))
     (when (or (null x) (and (stringp x) (zerop (length x))))
       (setq x h))

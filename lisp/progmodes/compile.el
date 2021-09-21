@@ -2260,7 +2260,7 @@ by replacing the first word, e.g., `compilation-scroll-output' from
   (if buffer-file-name
       (let (revert-buffer-function)
 	(revert-buffer ignore-auto noconfirm))
-    (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
+    (if (or noconfirm (yes-or-no-p "Restart compilation? "))
 	(apply #'compilation-start compilation-arguments))))
 
 (defvar compilation-current-error nil

@@ -2182,8 +2182,7 @@ written into the buffer `*icalendar-errors*'."
               (setq diary-string "")
               (mapc (lambda (_datestring)
 		      (setq diary-string
-			    (concat diary-string
-				    (format "......"))))
+			    (concat diary-string "......")))
 		    (icalendar--split-value rdate)))
              ;; non-recurring event
              ;; all-day event
@@ -2528,7 +2527,7 @@ the entry."
                                       summary)))
     (when summary
       (setq non-marking
-            (y-or-n-p (format "Make appointment non-marking? "))))
+            (y-or-n-p "Make appointment non-marking? ")))
     (unless diary-filename
       (setq diary-filename
             (read-file-name "Add appointment to this diary file: ")))

@@ -829,15 +829,15 @@ Returns an error if the server cannot be contacted."
 
 	    (when (or (member 'onex supported-extensions)
 		      (member 'xone supported-extensions))
-	      (smtpmail-command-or-throw process (format "ONEX")))
+	      (smtpmail-command-or-throw process "ONEX"))
 
 	    (when (and smtpmail-debug-verb
 		       (or (member 'verb supported-extensions)
 			   (member 'xvrb supported-extensions)))
-	      (smtpmail-command-or-throw process (format "VERB")))
+	      (smtpmail-command-or-throw process "VERB"))
 
 	    (when (member 'xusr supported-extensions)
-	      (smtpmail-command-or-throw process (format "XUSR")))
+	      (smtpmail-command-or-throw process "XUSR"))
 
 	    ;; MAIL FROM:<sender>
 	    (let ((size-part

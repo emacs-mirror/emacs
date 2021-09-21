@@ -3563,7 +3563,7 @@ either is ok to parse as a non-comment, or `verilog-insert' was used."
 (defun verilog-scan-debug ()
   "For debugging, show with display face results of `verilog-scan'."
   (font-lock-mode 0)
-  ;;(if dbg (setq dbg (concat dbg (format "verilog-scan-debug\n"))))
+  ;;(if dbg (setq dbg (concat dbg "verilog-scan-debug\n")))
   (save-excursion
     (goto-char (point-min))
     (remove-text-properties (point-min) (point-max) '(face nil))

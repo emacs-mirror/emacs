@@ -218,7 +218,7 @@ URL can be a URL string, or a URL record of the type returned by
 				    "</td></tr>\n")
 			  ;; Multiple matches, slightly uglier
 			  (insert "   <tr>\n"
-				  (format "    <td valign=top>")
+				  "    <td valign=top>"
 				  (url-ldap-attribute-pretty-name (car attr)) "</td><td>"
 				  (mapconcat (lambda (x)
 					       (url-ldap-attribute-pretty-desc (car attr) x))

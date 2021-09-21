@@ -798,7 +798,7 @@ be used directly.")
 	       (goto-char (point-min))
                t)))
     (insert
-     (format "
+     "
 	  _    ___ _             _
 	  _ ___ __ ___  __    _ ___
 	  __   _     ___    __  ___
@@ -817,7 +817,7 @@ be used directly.")
 	    _
 	  __
 
-"))
+")
     ;; And then hack it.
     (gnus-indent-rigidly (point-min) (point-max)
 			 (/ (max (- (window-width) (or x 46)) 0) 2))

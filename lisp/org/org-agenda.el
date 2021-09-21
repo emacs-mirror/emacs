@@ -4531,7 +4531,7 @@ is active."
 		      'org-todo-regexp org-todo-regexp
 		      'org-complex-heading-regexp org-complex-heading-regexp
 		      'mouse-face 'highlight
-		      'help-echo (format "mouse-2 or RET jump to location")))
+		      'help-echo "mouse-2 or RET jump to location"))
 	 (full-words org-agenda-search-view-force-full-words)
 	 (org-agenda-text-search-extra-files org-agenda-text-search-extra-files)
 	 regexp rtn rtnall files file pos inherited-tags

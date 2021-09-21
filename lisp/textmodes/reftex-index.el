@@ -1666,7 +1666,7 @@ this function repeatedly."
          (repeat
           (princ (format "  Index entry:  %s\n" phrase)))
          (t
-          (princ (format "    Index key:  <<Given by the match>>\n"))))
+          (princ "    Index key:  <<Given by the match>>\n")))
         (princ (format "      Example:  %s\n" example))
         (terpri)
         (princ (format "Total matches:  %s in %s\n"

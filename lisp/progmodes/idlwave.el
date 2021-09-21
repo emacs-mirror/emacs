@@ -7786,7 +7786,7 @@ force class query for object methods."
 		(if (or (not this-buffer)
 			(assoc default list))
 		    (format-prompt "Module" default)
-		  (format "Module in this file: "))
+		  "Module in this file: ")
 		list))
 	 type class)
     (if (string-match "\\`\\s-*\\'" name)

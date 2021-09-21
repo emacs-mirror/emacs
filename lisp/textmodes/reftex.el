@@ -1208,7 +1208,7 @@ Valid actions are: readable, restore, read, kill, write."
         (if (file-writable-p file)
             (with-temp-file file
               (message "Writing parse file %s" (abbreviate-file-name file))
-              (insert (format ";; RefTeX parse info file\n"))
+              (insert ";; RefTeX parse info file\n")
               (insert (format ";; File: %s\n" master))
               (insert (format ";; User: %s (%s)\n\n"
                               (user-login-name) (user-full-name)))
