@@ -679,6 +679,20 @@ list are in the same order as in @var{tree}.
     @result{}(1 2 3 4 5 6 7)
 @end example
 
+@defun ensure-list object
+Ensure that we have a list.  If @var{object} is already a list, it is
+returned.  If @var{object} isn't a list, a one-element list containing
+@var{object} is returned.
+
+This is usually useful if you have a variable that may or may not be a
+list, and you can then say, for instance:
+
+@lisp
+(dolist (elem (ensure-list foo))
+  (princ elem))
+@end lisp
+@end defun
+
 @defun number-sequence from &optional to separation
 This function returns a list of numbers starting with @var{from} and
 incrementing by @var{separation}, and ending at or just before

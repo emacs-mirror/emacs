@@ -3826,6 +3826,11 @@ it matches on fixed strings instead of regexps, and does not change
 the global match state.
 
 +++
+** New function 'ensure-list'.
+This function makes a list of its object if it's not a list already.
+If it's already a list, the list is returned as is.
+
++++
 ** New function 'split-string-shell-command'.
 This splits a shell command string into separate components,
 respecting quoting with single ('like this') and double ("like this")

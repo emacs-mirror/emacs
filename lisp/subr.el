@@ -6426,4 +6426,12 @@ This is intended for internal use only."
          (:success t)
          (json-unavailable nil))))
 
+(defun ensure-list (object)
+  "Ensure that we have a list.
+If OBJECT is already a list, OBJECT is returned.  If it's
+not a list, a one-element list containing OBJECT is returned."
+  (if (listp object)
+      object
+    (list object)))
+
 ;;; subr.el ends here

@@ -767,5 +767,10 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
       (should-not (equal dir default-directory))
       (should (file-exists-p default-directory)))))
 
+(ert-deftest test-ensure-list ()
+  (should (equal (ensure-list nil) nil))
+  (should (equal (ensure-list :foo) '(:foo)))
+  (should (equal (ensure-list '(1 2 3)) '(1 2 3))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
