@@ -680,9 +680,9 @@ list are in the same order as in @var{tree}.
 @end example
 
 @defun ensure-list object
-Ensure that we have a list.  If @var{object} is already a list, it is
-returned.  If @var{object} isn't a list, a one-element list containing
-@var{object} is returned.
+This function returns @var{object} as a list.  If @var{object} is
+already a list, the function returns it; otherwise, the function
+returns a one-element list containing @var{object}.
 
 This is usually useful if you have a variable that may or may not be a
 list, and you can then say, for instance:
