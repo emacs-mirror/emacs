@@ -331,6 +331,35 @@ See Info node `(elisp) Documentation Tips' for background."
   :type 'boolean
   :version "28.1")
 
+;; This is how you can use checkdoc to make mass fixes on the Emacs
+;; source tree:
+;;
+;; (setq checkdoc--argument-missing-flag nil)      ; optional
+;; (setq checkdoc--disambiguate-symbol-flag nil)   ; optional
+;; (setq checkdoc--interactive-docstring-flag nil) ; optional
+;; Then use `M-x find-dired' ("-name '*.el'") and `M-x checkdoc-dired'
+
+(defvar checkdoc--argument-missing-flag t
+  "Non-nil means warn if arguments are missing from docstring.
+This variable is intended for use on Emacs itself, where the
+large number of libraries means it is impractical to fix all
+of these warnings en masse.  In almost any other case, setting
+this to anything but t is likely to be counter-productive.")
+
+(defvar checkdoc--disambiguate-symbol-flag t
+  "Non-nil means ask to disambiguate Lisp symbol.
+This variable is intended for use on Emacs itself, where the
+large number of libraries means it is impractical to fix all
+of these warnings masse.  In almost any other case, setting
+this to anything but t is likely to be counter-productive.")
+
+(defvar checkdoc--interactive-docstring-flag t
+  "Non-nil means warn if interactive function has no docstring.
+This variable is intended for use on Emacs itself, where the
+large number of libraries means it is impractical to fix all
+of these warnings masse.  In almost any other case, setting
+this to anything but t is likely to be counter-productive.")
+
 ;;;###autoload
 (defun checkdoc-list-of-strings-p (obj)
   "Return t when OBJ is a list of strings."
@@ -1416,12 +1445,13 @@ buffer, otherwise stop after the first error."
 		 (checkdoc-create-error
 		  "You should convert this comment to documentation"
 		  (point) (line-end-position)))
-	     (checkdoc-create-error
-	      (if (nth 2 fp)
-		  "All interactive functions should have documentation"
-		"All variables and subroutines might as well have a \
+             (when checkdoc--interactive-docstring-flag
+               (checkdoc-create-error
+                (if (nth 2 fp)
+                    "All interactive functions should have documentation"
+                  "All variables and subroutines might as well have a \
 documentation string")
-	      (point) (+ (point) 1) t)))))
+                (point) (+ (point) 1) t))))))
     (if (and (not err) (= (following-char) ?\"))
         (with-syntax-table checkdoc-syntax-table
           (checkdoc-this-string-valid-engine fp take-notes))
@@ -1621,6 +1651,7 @@ mouse-[0-3]\\)\\)\\>"))
 	     (setq mb (match-beginning 1)
 		   me (match-end 1))
 	     (if (and sym (boundp sym) (fboundp sym)
+                      checkdoc--disambiguate-symbol-flag
 		      (save-excursion
 			(goto-char mb)
 			(forward-word-strictly -1)
@@ -1798,11 +1829,12 @@ function,command,variable,option or symbol." ms1))))))
 						  (looking-at "[.?!]")))
 			     (insert "."))
 			 nil)
-		     (checkdoc-create-error
-		      (format-message
-		       "Argument `%s' should appear (as %s) in the doc string"
-		       (car args) (upcase (car args)))
-		      s (marker-position e)))
+                     (when checkdoc--argument-missing-flag
+                       (checkdoc-create-error
+                        (format-message
+                         "Argument `%s' should appear (as %s) in the doc string"
+                         (car args) (upcase (car args)))
+                        s (marker-position e))))
 		 (if (or (and order (eq order 'yes))
 			 (and (not order) checkdoc-arguments-in-order-flag))
 		     (if (< found last-pos)
