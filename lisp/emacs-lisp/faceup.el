@@ -795,7 +795,7 @@ See `faceup-properties' for a list of tracked properties."
       nil
     (if (and (null pos)
              (faceup-has-any-text-property (point-min)))
-        ;; `pos' is `nil' and the character at `point-min' contains a
+        ;; `pos' is nil and the character at `point-min' contains a
         ;; tracked property, return `point-min'.
         (point-min)
       (unless pos

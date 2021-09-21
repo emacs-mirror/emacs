@@ -901,8 +901,8 @@ non local exit (ends with an `unreachable' insn)."))
   (lap () :type list
        :documentation "LAP assembly representation.")
   (ssa-status nil :type symbol
-       :documentation "SSA status either: 'nil', 'dirty' or 't'.
-Once in SSA form this *must* be set to 'dirty' every time the topology of the
+       :documentation "SSA status either: nil, `dirty' or t.
+Once in SSA form this *must* be set to `dirty' every time the topology of the
 CFG is mutated by a pass.")
   (frame-size nil :type integer)
   (vframe-size 0 :type integer)

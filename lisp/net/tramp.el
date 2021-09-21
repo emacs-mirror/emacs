@@ -183,7 +183,7 @@ See the variable `tramp-encoding-shell' for more information."
   :version "24.1"
   :type '(choice (const nil) string))
 
-;; Since Emacs 26.1, `system-name' can return `nil' at build time if
+;; Since Emacs 26.1, `system-name' can return nil at build time if
 ;; Emacs is compiled with "--no-build-details".  We do expect it to be
 ;; a string.  (Bug#44481)
 (defconst tramp-system-name (or (system-name) "")

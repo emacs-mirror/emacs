@@ -492,11 +492,11 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal subr-tests--hook '(f5 f2 f1 f4 f3)))
   (add-hook 'subr-tests--hook 'f6)
   (should (equal subr-tests--hook '(f5 f6 f2 f1 f4 f3)))
-  ;; Make sure `t' is equivalent to 90.
+  ;; Make sure t is equivalent to 90.
   (add-hook 'subr-tests--hook 'f7 90)
   (add-hook 'subr-tests--hook 'f8 t)
   (should (equal subr-tests--hook '(f5 f6 f2 f1 f4 f3 f7 f8)))
-  ;; Make sure `nil' is equivalent to 0.
+  ;; Make sure nil is equivalent to 0.
   (add-hook 'subr-tests--hook 'f9 0)
   (add-hook 'subr-tests--hook 'f10)
   (should (equal subr-tests--hook '(f5 f10 f9 f6 f2 f1 f4 f3 f7 f8)))

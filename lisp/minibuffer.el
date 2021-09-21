@@ -848,7 +848,7 @@ via `set-message-function'."
                 (run-with-timer minibuffer-message-clear-timeout nil
                                 #'clear-minibuffer-message)))
 
-        ;; Return `t' telling the caller that the message
+        ;; Return t telling the caller that the message
         ;; was handled specially by this function.
         t))))
 

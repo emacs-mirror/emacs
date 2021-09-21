@@ -96,7 +96,7 @@
      (should (equal (get-text-property (point) 'tabulated-list-column-name)
                     "name-2"))
      (tabulated-list-sort)
-     ;; Check a `t' as the sorting predicate.
+     ;; Check a t as the sorting predicate.
      (should (string= text (buffer-substring-no-properties (point-min) (point-max))))
      ;; Invert.
      (tabulated-list-sort 1)

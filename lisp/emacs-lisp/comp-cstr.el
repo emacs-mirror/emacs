@@ -134,7 +134,7 @@ Integer values are handled in the `range' slot.")
                     :neg (neg cstr))))
 
 (defsubst comp-cstr-empty-p (cstr)
-  "Return t if CSTR is equivalent to the `nil' type specifier or nil otherwise."
+  "Return t if CSTR is equivalent to the nil type specifier or nil otherwise."
   (with-comp-cstr-accessors
     (and (null (typeset cstr))
          (null (valset cstr))

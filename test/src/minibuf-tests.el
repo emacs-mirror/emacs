@@ -406,7 +406,7 @@
     (should (equal (try-completion "bar" '("bArfoo" "barbaz"))
                    (try-completion "bar" '("barbaz" "bArfoo"))))
     ;; bug#11339
-    (should (equal (try-completion "baz" '("baz" "bAz")) "baz")) ;And not `t'!
+    (should (equal (try-completion "baz" '("baz" "bAz")) "baz")) ;And not t!
     (should (equal (try-completion "baz" '("bAz" "baz"))
                    (try-completion "baz" '("baz" "bAz"))))))
 

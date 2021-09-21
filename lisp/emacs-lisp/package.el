@@ -1586,7 +1586,7 @@ If the archive version is too new, signal an error."
         (if package
             (package--add-to-archive-contents package archive)
           (lwarn '(package refresh) :warning
-                 "Ignoring `nil' package on `%s' package archive" archive))))))
+                 "Ignoring nil package on `%s' package archive" archive))))))
 
 (defvar package--old-archive-priorities nil
   "Store currently used `package-archive-priorities'.

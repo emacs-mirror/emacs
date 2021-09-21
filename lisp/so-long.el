@@ -1686,7 +1686,7 @@ File-local header comments are currently an exception, and are processed by
 `so-long--check-header-modes' (see which for details)."
   ;; The first arg to `hack-local-variables' is HANDLE-MODE since Emacs 26.1,
   ;; and MODE-ONLY in earlier versions.  In either case we are interested in
-  ;; whether it has the value `t'.
+  ;; whether it has the value t.
   (let ((retval (apply orig-fun handle-mode args)))
     (and (eq handle-mode t)
          retval ; A file-local mode was set.

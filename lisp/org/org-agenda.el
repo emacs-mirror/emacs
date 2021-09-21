@@ -8842,7 +8842,7 @@ Point is in the buffer where the item originated.")
 
 (defun org-agenda-do-in-region (beg end cmd &optional arg force-arg delete)
   "Between region BEG and END, call agenda command CMD.
-When optional argument ARG is non-nil or FORCE-ARG is `t', pass
+When optional argument ARG is non-nil or FORCE-ARG is t, pass
 ARG to CMD.  When optional argument DELETE is non-nil, assume CMD
 deletes the agenda entry and don't move to the next entry."
   (save-excursion

@@ -990,7 +990,7 @@ namespace but with lower confidence."
               ;; First call to find-lisp-object-file-name for an object
               ;; defined in C; the doc strings from the C source have
               ;; not been loaded yet.  Second call will return "src/*.c"
-              ;; in file; handled by 't' case below.
+              ;; in file; handled by t case below.
               (push (elisp--xref-make-xref nil symbol (help-C-file-name (symbol-function symbol) 'subr)) xrefs))
 
              ((and (setq doc (documentation symbol t))
@@ -1034,7 +1034,7 @@ namespace but with lower confidence."
                                   specializers))
                        (file (find-lisp-object-file-name met-name 'cl-defmethod)))
                   (dolist (item specializers)
-                    ;; default method has all 't' in specializers
+                    ;; Default method has all t in specializers.
                     (setq non-default (or non-default (not (equal t item)))))
 
                   (when (and file
