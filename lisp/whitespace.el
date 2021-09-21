@@ -1836,12 +1836,13 @@ cleaning up these problems."
 
 
 (defun whitespace-display-window (buffer)
-  "Display BUFFER in a new window."
   (goto-char (point-min))
   (set-buffer-modified-p nil)
-  (pop-to-buffer buffer)
-  (shrink-window-if-larger-than-buffer))
-
+  (let ((window (display-buffer
+	         buffer
+	         `((display-buffer-reuse-window
+		    display-buffer-below-selected)))))
+    (shrink-window-if-larger-than-buffer window)))
 
 (defun whitespace-kill-buffer (buffer-name)
   "Kill buffer BUFFER-NAME and windows related with it."
