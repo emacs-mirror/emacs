@@ -87,7 +87,11 @@ See also `etc-authors-mode'."
   (narrow-to-region (point-min)
                     (save-excursion
                       (goto-char (point-min))
-                      (if (re-search-forward "^Local Variables:$" nil t)
+                      (if (re-search-forward
+                           ;; Obfuscate to avoid this being interpreted
+                           ;; as a local variable section itself.
+                           (concat "^Local " "Variables:$")
+                           nil t)
                           (progn (forward-line -1) (point))
                         (point-max)))))
 
