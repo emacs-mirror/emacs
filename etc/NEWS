@@ -1191,6 +1191,9 @@ keys, add the following to your init file:
 Using it instead of 'read-char-choice' allows using 'C-x o'
 to switch to the help window displayed after typing 'C-h'.
 
+---
+*** 'dired-compress-file' now queries for a directory to uncompress to.
+
 +++
 ** New user option 'isearch-allow-motion'.
 When 'isearch-allow-motion' is set, the commands 'beginning-of-buffer',

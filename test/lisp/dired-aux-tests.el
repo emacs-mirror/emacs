@@ -158,5 +158,59 @@
     (should (string-match (regexp-quote command) (nth 0 lines)))
     (dired-test--check-highlighting (nth 0 lines) '(8))))
 
+(ert-deftest dired-test-bug47058-tar ()
+  "test for https://debbugs.gnu.org/47058 ."
+  (dired-test-bug47058-fn "tar -cf - %i | gzip -c9 > %o"
+                           "gzip -dc %i | tar -xf - -C %c"
+                           ".tar.gz"))
+
+(ert-deftest dired-test-bug47058-zip ()
+  "test for https://debbugs.gnu.org/47058 ."
+  (dired-test-bug47058-fn "zip %o -r --filesync %i"
+                           "unzip -o -d %o %i"
+                           ".zip"))
+
+(defun dired-test-bug47058-fn (compress-cmd uncompress-cmd extension)
+  "helper fn for testing https://debbugs.gnu.org/47058 ."
+  (let* ((base-file (make-temp-file "dired-test-47058-"))
+         (archive-file (concat base-file extension))
+         (file1 (make-temp-file "a"))
+         (file2 (make-temp-file "b"))
+         (file3 (make-temp-file "c"))
+         (filelist (list file1 file2 file3))
+         (comprcmd (replace-regexp-in-string
+                  "%c" (shell-quote-argument temporary-file-directory)
+                  (replace-regexp-in-string
+                   "%i" (mapconcat 'identity filelist " ")
+                   (replace-regexp-in-string
+                    "%o" (shell-quote-argument archive-file)
+                    compress-cmd)))))
+    (cl-letf (((symbol-function 'read-file-name)
+               (lambda (&rest _) base-file)))
+      (dired-delete-file base-file)
+      (should-not (file-exists-p base-file))
+      (should-not (file-exists-p archive-file))
+      (dired-shell-command comprcmd)
+      (should (file-exists-p archive-file))
+      (mapcar (lambda (f) (should (file-exists-p f)))
+              filelist)
+      (mapcar (lambda (f) (delete-file f))
+              filelist)
+      (mapcar (lambda (f) (should-not (file-exists-p f)))
+              filelist)
+      (should (string-equal
+               (dired-uncompress-file archive-file
+                                      base-file
+                                      uncompress-cmd)
+               (file-name-as-directory base-file)))
+      (mapcar (lambda (f)
+                (should (file-exists-p
+                         (concat (file-name-as-directory base-file) f))))
+              filelist)
+      (dired-delete-file base-file 'always' nil)
+      (dired-delete-file archive-file 'always' nil)
+      (should-not (file-exists-p base-file))
+      (should-not (file-exists-p archive-file)))))
+
 (provide 'dired-aux-tests)
 ;; dired-aux-tests.el ends here

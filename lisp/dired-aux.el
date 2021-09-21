@@ -1134,9 +1134,10 @@ present.  A FMT of \"\" will suppress the messaging."
     ;; "tar -zxf" isn't used because it's not available on the
     ;; Solaris 10 version of tar (obsolete in 2024?).
     ;; Same thing on AIX 7.1 (obsolete 2023?) and 7.2 (obsolete 2022?).
-    ("\\.tar\\.gz\\'" "" "gzip -dc %i | tar -xf -")
-    ("\\.tar\\.xz\\'" "" "xz -dc %i | tar -xf -")
-    ("\\.tgz\\'" "" "gzip -dc %i | tar -xf -")
+    ("\\.tar\\.gz\\'" "" "gzip -dc %i | tar -xf - -C %c")
+    ("\\.tar\\.xz\\'" "" "xz -dc %i | tar -xf - -C %c")
+    ("\\.tgz\\'" "" "gzip -dc %i | tar -xf - -C %c")
+    ("\\.tar\\.bz2\\'" "" "bunzip2 -c %i | tar -xf - -C %c")
     ("\\.gz\\'" "" "gzip -d")
     ("\\.lz\\'" "" "lzip -d")
     ("\\.Z\\'" "" "uncompress")
@@ -1148,8 +1149,8 @@ present.  A FMT of \"\" will suppress the messaging."
     ("\\.bz2\\'" "" "bunzip2")
     ("\\.xz\\'" "" "unxz")
     ("\\.zip\\'" "" "unzip -o -d %o %i")
-    ("\\.tar\\.zst\\'" "" "unzstd -c %i | tar -xf -")
-    ("\\.tzst\\'" "" "unzstd -c %i | tar -xf -")
+    ("\\.tar\\.zst\\'" "" "unzstd -c %i | tar -xf - -C %c")
+    ("\\.tzst\\'" "" "unzstd -c %i | tar -xf - -C %c")
     ("\\.zst\\'" "" "unzstd --rm")
     ("\\.7z\\'" "" "7z x -aoa -o%o %i")
     ;; This item controls naming for compression.
@@ -1254,6 +1255,42 @@ and `dired-compress-files-alist'."
                       (file-name-nondirectory out-file)))))))
 
 ;;;###autoload
+(defun dired-uncompress-file (file dirname command)
+  "Uncompress FILE using COMMAND.
+If file is a tar archive or some other format that supports
+output directory in its parameters, ask user the target directory
+to extract it (defaults to DIRNAME).  Returns the directory or
+filename produced after the uncompress operation."
+  (if (string-match "%[ioc]" command)
+      (let ((extractdir (expand-file-name
+                         (read-file-name
+                          (format "Extract file to (default %s): " dirname)
+                          dirname))))
+        (prog1
+            (file-name-as-directory extractdir)
+          (unless (file-directory-p extractdir)
+            (dired-create-directory extractdir))
+          (dired-shell-command
+           (replace-regexp-in-string
+            "%[oc]" (shell-quote-argument extractdir)
+            (replace-regexp-in-string
+             "%i" (shell-quote-argument file)
+             command
+             nil t)
+            nil t))))
+    ;; We found an uncompression rule without output dir argument
+    (let ((match (string-search " " command))
+          (msg (concat "Uncompressing " file)))
+      (unless (if match
+                  (dired-check-process
+                   msg
+                   (substring command 0 match)
+                   (substring command (1+ match))
+                   file)
+                (dired-check-process msg command file))
+        dirname))))
+
+;;;###autoload
 (defun dired-compress-file (file)
   "Compress or uncompress FILE.
 Return the name of the compressed or uncompressed file.
@@ -1277,28 +1314,7 @@ Return nil if no change in files."
           ((file-symlink-p file)
            nil)
           ((and suffix (setq command (nth 2 suffix)))
-           (if (string-match "%[io]" command)
-               (prog1 (setq newname (file-name-as-directory newname))
-                 (dired-shell-command
-                  (replace-regexp-in-string
-                   "%o" (shell-quote-argument newname)
-                   (replace-regexp-in-string
-                    "%i" (shell-quote-argument file)
-                    command
-                    nil t)
-                   nil t)))
-             ;; We found an uncompression rule.
-             (let ((match (string-search " " command))
-                   (msg (concat "Uncompressing " file)))
-               (unless (if match
-                           (dired-check-process msg
-                                                (substring command 0 match)
-                                                (substring command (1+ match))
-                                                file)
-                         (dired-check-process msg
-                                              command
-                                              file))
-                 newname))))
+           (dired-uncompress-file file newname command))
           (t
            ;; We don't recognize the file as compressed, so compress it.
            ;; Try gzip; if we don't have that, use compress.
