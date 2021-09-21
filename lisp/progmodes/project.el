@@ -674,7 +674,8 @@ DIRS must contain directory names."
     (define-key map "F" 'project-or-external-find-file)
     (define-key map "b" 'project-switch-to-buffer)
     (define-key map "s" 'project-shell)
-    (define-key map "d" 'project-dired)
+    (define-key map "d" 'project-find-dir)
+    (define-key map "D" 'project-dired)
     (define-key map "v" 'project-vc-dir)
     (define-key map "c" 'project-compile)
     (define-key map "e" 'project-eshell)
@@ -929,6 +930,26 @@ is used as part of \"future history\"."
                      collection predicate 'confirm
                      nil
                      hist)))
+
+;;;###autoload
+(defun project-find-dir ()
+  "Start Dired in a directory inside the current project."
+  (interactive)
+  (let* ((project (project-current t))
+         (all-files (project-files project))
+         (completion-ignore-case read-file-name-completion-ignore-case)
+         ;; FIXME: This misses directories without any files directly
+         ;; inside.  Consider DIRS-ONLY as an argument for
+         ;; `project-files-filtered', and see
+         ;; https://stackoverflow.com/a/50685235/615245 for possible
+         ;; implementation.
+         (all-dirs (mapcar #'file-name-directory all-files))
+         (dir (funcall project-read-file-name-function
+                       "Dired"
+                       ;; Some completion UIs show duplicates.
+                       (delete-dups all-dirs)
+                       nil nil)))
+    (dired dir)))
 
 ;;;###autoload
 (defun project-dired ()
@@ -1342,7 +1363,7 @@ It's also possible to enter an arbitrary directory not in the list."
 (defcustom project-switch-commands
   '((project-find-file "Find file")
     (project-find-regexp "Find regexp")
-    (project-dired "Dired")
+    (project-find-dir "Find directory")
     (project-vc-dir "VC-Dir")
     (project-eshell "Eshell"))
   "Alist mapping commands to descriptions.

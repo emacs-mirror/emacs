@@ -1769,8 +1769,13 @@ Replace}), and continues to the next match after you respond.  If your
 response causes Emacs to exit the query-replace loop, you can later
 continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
 
+@findex project-find-dir
+  The command @kbd{C-x p d} (@code{project-find-dir}) prompts you to
+choose a directory inside the current project, with completion.
+And opens a Dired buffer (@pxref{Dired}) listing the files in it.
+
 @findex project-dired
-  The command @kbd{C-x p d} (@code{project-dired}) opens a Dired
+  The command @kbd{C-x p D} (@code{project-dired}) opens a Dired
 buffer (@pxref{Dired}) listing the files in the current project's root
 directory.
 
