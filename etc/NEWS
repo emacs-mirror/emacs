@@ -3080,7 +3080,7 @@ complex menus take advantage of infix arguments, which are somewhat
 similar to prefix arguments, but are more flexible and discoverable.
 
 ** hierarchy.el
-It's a library to create, query, navigate and display hierarchical
+This library can create, query, navigate and display hierarchical
 structures.
 
 ---
