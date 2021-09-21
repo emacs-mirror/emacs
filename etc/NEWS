@@ -382,6 +382,7 @@ This is like 'display-buffer-use-some-window', but won't reuse the
 current window, and when called repeatedly will try not to reuse a
 previously selected window.
 
++++
 *** New function 'window-bump-use-time'.
 This updates the use time of a window.
 
