@@ -19,6 +19,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'url-vars)
@@ -458,8 +460,7 @@ information associated with them.")
 
 ;;;###autoload
 (defun url-get-authentication (url realm type prompt &optional args)
-  "Return an authorization string suitable for use in the WWW-Authenticate
-header in an HTTP/1.0 request.
+  "Return authorization string for the WWW-Authenticate header in HTTP/1.0 request.
 
 URL    is the url you are requesting authorization to.  This can be either a
        string representing the URL, or the parsed representation returned by
