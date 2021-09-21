@@ -2404,6 +2404,9 @@ sub-directory.
 *** 'project-find-file' doesn't use the string at point as default input.
 Now it's only suggested as part of the "future history".
 
++++
+*** New command 'project-find-dir' runs Dired in a directory inside project.
+
 ** Xref
 
 ---
