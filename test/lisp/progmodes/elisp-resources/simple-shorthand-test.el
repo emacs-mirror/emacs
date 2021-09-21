@@ -14,6 +14,8 @@
   (let ((elisp-shorthands '(("foo-" . "bar-"))))
     (intern "foo-bar")))
 
+(defvar f-test-complete-me 42)
+
 (when nil
   (f-test3)
   (f-test2)

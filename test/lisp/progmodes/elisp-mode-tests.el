@@ -1080,5 +1080,21 @@ evaluation of BODY."
     (should (intern-soft "elisp--foo-test"))
     (should-not (intern-soft "f-test"))))
 
+(ert-deftest elisp-shorthand-completion-at-point ()
+  (let ((test-file (expand-file-name "simple-shorthand-test.el"
+                                     elisp--test-resources-dir)))
+    (load test-file)
+    (with-current-buffer (find-file-noselect test-file)
+      (revert-buffer t t)
+      (goto-char (point-min))
+      (insert "f-test-compl")
+      (completion-at-point)
+      (goto-char (point-min))
+      (should (search-forward "f-test-complete-me" (line-end-position) t))
+      (goto-char (point-min))
+      (should (string= (symbol-name (read (current-buffer)))
+                       "elisp--foo-test-complete-me"))
+      (revert-buffer t t))))
+
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here
