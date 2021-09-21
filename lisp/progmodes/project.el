@@ -1315,7 +1315,7 @@ passed to `message' as its first argument."
     (project--write-project-list)))
 
 ;;;###autoload
-(defun project-remove-known-project (project-root)
+(defun project-forget-project (project-root)
   "Remove directory PROJECT-ROOT from the project list.
 PROJECT-ROOT is the root directory of a known project listed in
 the project list."

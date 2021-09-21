@@ -2397,7 +2397,7 @@ project's root directory, respectively.
 This specifies the file in which to save the list of known projects.
 
 +++
-*** New command 'project-remove-known-project'.
+*** New command 'project-forget-project'.
 This command lets you interactively remove an entry from the list of projects
 in 'project-list-file'.
 

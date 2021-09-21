@@ -26590,7 +26590,7 @@ Save the result in `project-list-file' if the list of projects has changed.
 
 \(fn PR)" nil nil)
 
-(autoload 'project-remove-known-project "project" "\
+(autoload 'project-forget-project "project" "\
 Remove directory PROJECT-ROOT from the project list.
 PROJECT-ROOT is the root directory of a known project listed in
 the project list.
