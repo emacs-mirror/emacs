@@ -160,12 +160,16 @@
 
 (ert-deftest dired-test-bug47058-tar ()
   "test for https://debbugs.gnu.org/47058 ."
+  (skip-unless (and (executable-find "tar")
+                    (executable-find "gzip")))
   (dired-test-bug47058-fn "tar -cf - %i | gzip -c9 > %o"
                            "gzip -dc %i | tar -xf - -C %c"
                            ".tar.gz"))
 
 (ert-deftest dired-test-bug47058-zip ()
   "test for https://debbugs.gnu.org/47058 ."
+  (skip-unless (and (executable-find "zip")
+                    (executable-find "unzip")))
   (dired-test-bug47058-fn "zip %o -r --filesync %i"
                            "unzip -o -d %o %i"
                            ".zip"))
