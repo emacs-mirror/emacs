@@ -228,18 +228,6 @@ END {
     ## can change the font used for a codepoint based on whether it's
     ## followed by a VS (usually VS-16)
     idx = 0
-    override_start[idx] = "261D"
-    override_end[idx] = "261D"
-    idx++
-    override_start[idx] = "26F9"
-    override_end[idx] = "26F9"
-    idx++
-    override_start[idx] = "270C"
-    override_end[idx] = "270D"
-    idx++
-    override_start[idx] = "2764"
-    override_end[idx] = "2764"
-    idx++
     override_start[idx] = "1F3CB"
     override_end[idx] = "1F3CC"
     idx++
