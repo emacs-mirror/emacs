@@ -1839,13 +1839,8 @@ cleaning up these problems."
   "Display BUFFER in a new window."
   (goto-char (point-min))
   (set-buffer-modified-p nil)
-  (when (< (window-height) (* 2 window-min-height))
-    (kill-buffer buffer)
-    (error "Window height is too small; \
-can't split window to display whitespace toggle options"))
-  (let ((win (split-window)))
-    (set-window-buffer win buffer)
-    (shrink-window-if-larger-than-buffer win)))
+  (pop-to-buffer buffer)
+  (shrink-window-if-larger-than-buffer))
 
 
 (defun whitespace-kill-buffer (buffer-name)
