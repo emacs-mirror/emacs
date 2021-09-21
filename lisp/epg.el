@@ -433,7 +433,11 @@ callback data (if any)."
      (and user-id
 	  (concat " "
 		  (if (stringp user-id)
-		      (rfc6068-unhexify-string user-id)
+                      (if (= (length user-id) (string-bytes user-id))
+                          ;; This is ASCII, possibly %-encoded.
+		          (rfc6068-unhexify-string user-id)
+                        ;; Non-ASCII, return as is.
+                        user-id)
 		    (epg-decode-dn user-id))))
      (and (epg-signature-validity signature)
 	  (format " (trust %s)"  (epg-signature-validity signature)))
