@@ -1273,7 +1273,7 @@ connection if a previous connection has died for some reason."
 			   (list "-s" device "shell")
 			 (list "shell")))
 		 (p (let ((default-directory
-			    (tramp-compat-temporary-file-directory)))
+			    tramp-compat-temporary-file-directory))
 		      (apply #'start-process (tramp-get-connection-name vec) buf
 			     tramp-adb-program args)))
 		 (prompt (md5 (concat (prin1-to-string process-environment)
