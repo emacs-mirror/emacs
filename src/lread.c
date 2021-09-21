@@ -4356,6 +4356,7 @@ intern_sym (Lisp_Object sym, Lisp_Object obarray, Lisp_Object index)
 Lisp_Object
 intern_driver (Lisp_Object string, Lisp_Object obarray, Lisp_Object index)
 {
+  SET_SYMBOL_VAL (XSYMBOL (Qobarray_cache), Qnil);
   return intern_sym (Fmake_symbol (string), obarray, index);
 }
 
@@ -5428,4 +5429,5 @@ that are loaded before your customizations are read!  */);
           doc: /* Alist of known symbol name shorthands*/);
   Velisp_shorthands = Qnil;
   DEFSYM (Qelisp_shorthands, "elisp-shorthands");
+  DEFSYM (Qobarray_cache, "obarray-cache");
 }

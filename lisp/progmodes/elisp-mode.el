@@ -535,6 +535,45 @@ It can be quoted, or be inside a quoted form."
             0))
      ((facep sym) (find-definition-noselect sym 'defface)))))
 
+(defun elisp--completion-local-symbols ()
+  "Compute list all Elisp symbols for completion purposes."
+  (let* ((calculate
+          (lambda ()
+            (let (retval)
+              (mapatoms (lambda (s)
+                          (push s retval)
+                          (cl-loop for (shorthand . longhand) in elisp-shorthands
+                                   for full-name = (symbol-name s)
+                                   when (string-prefix-p longhand full-name)
+                                   do (let ((sym (make-symbol
+                                                  (concat shorthand
+                                                          (substring full-name
+                                                                     (length longhand))))))
+                                        (put sym 'shorthand t)
+                                        (push sym retval)
+                                        retval))))
+              retval)))
+         (probe
+          (and obarray-cache
+               (gethash (cons (current-buffer) elisp-shorthands)
+                        obarray-cache))))
+    (cond (probe)
+          (obarray-cache
+           (puthash (cons (current-buffer) elisp-shorthands)
+                    (funcall calculate)
+                    obarray-cache))
+          (t
+           (setq obarray-cache (make-hash-table :test #'equal))
+           (puthash (cons (current-buffer) elisp-shorthands)
+                    (funcall calculate)
+                    obarray-cache)))))
+
+(defun elisp--shorthand-aware-fboundp (sym)
+  (fboundp (intern-soft (symbol-name sym))))
+
+(defun elisp--shorthand-aware-boundp (sym)
+  (boundp (intern-soft (symbol-name sym))))
+
 (defun elisp-completion-at-point ()
   "Function used for `completion-at-point-functions' in `emacs-lisp-mode'.
 If the context at point allows only a certain category of
@@ -582,24 +621,27 @@ functions are annotated with \"<f>\" via the
                     ;; the current form and use it to provide a more
                     ;; specific completion table in more cases.
                     ((eq fun-sym 'ignore-error)
-                     (list t obarray
+                     (list t (elisp--completion-local-symbols)
                            :predicate (lambda (sym)
                                         (get sym 'error-conditions))))
                     ((elisp--expect-function-p beg)
-                     (list nil obarray
-                           :predicate #'fboundp
+                     (list nil (elisp--completion-local-symbols)
+                           :predicate
+                           #'elisp--shorthand-aware-fboundp
                            :company-kind #'elisp--company-kind
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
                            :company-location #'elisp--company-location))
                     (quoted
-                     (list nil obarray
+                     (list nil (elisp--completion-local-symbols)
                            ;; Don't include all symbols (bug#16646).
                            :predicate (lambda (sym)
-                                        (or (boundp sym)
-                                            (fboundp sym)
-                                            (featurep sym)
-                                            (symbol-plist sym)))
+                                        ;; shorthand-aware
+                                        (let ((sym (intern-soft (symbol-name sym))))
+                                          (or (boundp sym)
+                                              (fboundp sym)
+                                              (featurep sym)
+                                              (symbol-plist sym))))
                            :annotation-function
                            (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
                            :company-kind #'elisp--company-kind
@@ -610,8 +652,8 @@ functions are annotated with \"<f>\" via the
                      (list nil (completion-table-merge
                                 elisp--local-variables-completion-table
                                 (apply-partially #'completion-table-with-predicate
-                                                 obarray
-                                                 #'boundp
+                                                 (elisp--completion-local-symbols)
+                                                 #'elisp--shorthand-aware-boundp
                                                  'strict))
                            :company-kind
                            (lambda (s)
@@ -648,11 +690,11 @@ functions are annotated with \"<f>\" via the
                                       (ignore-errors
                                         (forward-sexp 2)
                                         (< (point) beg)))))
-                        (list t obarray
+                        (list t (elisp--completion-local-symbols)
                               :predicate (lambda (sym) (get sym 'error-conditions))))
                        ;; `ignore-error' with a list CONDITION parameter.
                        ('ignore-error
-                        (list t obarray
+                        (list t (elisp--completion-local-symbols)
                               :predicate (lambda (sym)
                                            (get sym 'error-conditions))))
                        ((and (or ?\( 'let 'let*)
@@ -662,14 +704,14 @@ functions are annotated with \"<f>\" via the
                                         (up-list -1))
                                       (forward-symbol -1)
                                       (looking-at "\\_<let\\*?\\_>"))))
-                        (list t obarray
-                              :predicate #'boundp
+                        (list t (elisp--completion-local-symbols)
+                              :predicate #'elisp--shorthand-aware-boundp
                               :company-kind (lambda (_) 'variable)
                               :company-doc-buffer #'elisp--company-doc-buffer
                               :company-docsig #'elisp--company-doc-string
                               :company-location #'elisp--company-location))
-                       (_ (list nil obarray
-                                :predicate #'fboundp
+                       (_ (list nil (elisp--completion-local-symbols)
+                                :predicate #'elisp--shorthand-aware-fboundp
                                 :company-kind #'elisp--company-kind
                                 :company-doc-buffer #'elisp--company-doc-buffer
                                 :company-docsig #'elisp--company-doc-string
@@ -685,6 +727,9 @@ functions are annotated with \"<f>\" via the
                       (apply-partially 'completion-table-with-terminator
                                        " " (cadr table-etc)))
                     (cddr table-etc)))))))))
+
+(defun elisp--fboundp-considering-shorthands (sym)
+  (fboundp (intern-soft (symbol-name sym))))
 
 (defun elisp--company-kind (str)
   (let ((sym (intern-soft str)))
