@@ -700,7 +700,6 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (defvar epg-user-id-alist)
 (defvar epg-digest-algorithm-alist)
 (defvar epg-gpg-program)
-(defvar inhibit-redisplay)
 
 (autoload 'epg-make-context "epg")
 (autoload 'epg-context-set-armor "epg")
@@ -773,8 +772,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defun mml2015-epg-decrypt (handle _ctl)
   (catch 'error
-    (let ((inhibit-redisplay t)
-	  context plain child handles) ;; decrypt-status result
+    (let (context plain child handles) ;; decrypt-status result
       (unless (setq child (mm-find-part-by-type
 			   (cdr handle)
 			   "application/octet-stream" nil t))
@@ -818,8 +816,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	  (list handles)))))
 
 (defun mml2015-epg-clear-decrypt ()
-  (let ((inhibit-redisplay t)
-	(context (epg-make-context))
+  (let ((context (epg-make-context))
 	plain)
     (if (or mml2015-cache-passphrase mml-secure-cache-passphrase)
 	(epg-context-set-passphrase-callback
@@ -851,8 +848,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defun mml2015-epg-verify (handle ctl)
   (catch 'error
-    (let ((inhibit-redisplay t)
-	  context part signature) ;; plain signature-file
+    (let (context part signature) ;; plain signature-file
       (when (or (null (setq part (mm-find-raw-part-by-type
 				  ctl (or (mm-handle-multipart-ctl-parameter
 					   ctl 'protocol)
@@ -881,8 +877,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
       handle)))
 
 (defun mml2015-epg-clear-verify ()
-  (let ((inhibit-redisplay t)
-	(context (epg-make-context))
+  (let ((context (epg-make-context))
 	(signature (encode-coding-string (buffer-string)
 					 coding-system-for-write))
 	plain)
@@ -904,8 +899,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
       (mml2015-extract-cleartext-signature))))
 
 (defun mml2015-epg-sign (cont)
-  (let ((inhibit-redisplay t)
-	(boundary (mml-compute-boundary cont)))
+  (let ((boundary (mml-compute-boundary cont)))
     ;; Signed data must end with a newline (RFC 3156, 5).
     (goto-char (point-max))
     (unless (bolp)
@@ -934,8 +928,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
       (goto-char (point-max)))))
 
 (defun mml2015-epg-encrypt (cont &optional sign)
-  (let* ((inhibit-redisplay t)
-	 (boundary (mml-compute-boundary cont))
+  (let* ((boundary (mml-compute-boundary cont))
 	 (cipher (mml-secure-epg-encrypt 'OpenPGP cont sign)))
     (delete-region (point-min) (point-max))
     (goto-char (point-min))

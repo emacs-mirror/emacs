@@ -259,8 +259,7 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'epg-expand-group "epg-config")
 
 (defun mml1991-epg-sign (_cont)
-  (let ((inhibit-redisplay t)
-	headers cte)
+  (let (headers cte)
     ;; Don't sign headers.
     (goto-char (point-min))
     (when (re-search-forward "^$" nil t)
