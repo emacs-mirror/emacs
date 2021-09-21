@@ -94,7 +94,7 @@ END {
      print "(set-char-table-range composition-function-table"
      print "                      #x1F3F4"
      print "                      (nconc (char-table-range composition-function-table #x1F3F4)"
-     print "                             (list (vector \"\\U0001F3F4\\U000E0067\\U000E0062\\(?:\\U000E0065\\U000E006E\\U000E0067\\|\\U000E0073\\U000E0063\\U000E0074\\|\\U000E0077\\U000E006C\\U000E0073\\)\\U000E007F\""
+     print "                             (list (vector \"\\U0001F3F4\\U000E0067\\U000E0062\\\\(?:\\U000E0065\\U000E006E\\U000E0067\\\\|\\U000E0073\\U000E0063\\U000E0074\\\\|\\U000E0077\\U000E006C\\U000E0073\\\\)\\U000E007F\""
      print "                                           0"
      print "                                    'compose-gstring-for-graphic))))"
 
