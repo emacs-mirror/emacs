@@ -1245,7 +1245,7 @@ and `dired-compress-files-alist'."
                                   (?i . ,(mapconcat
                                           (lambda (in-file)
                                             (shell-quote-argument
-                                             (file-name-nondirectory in-file)))
+                                             (file-relative-name in-file)))
                                           in-files " "))))))
              (message (ngettext "Compressed %d file to %s"
 			        "Compressed %d files to %s"
