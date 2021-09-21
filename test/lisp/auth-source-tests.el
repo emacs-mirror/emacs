@@ -376,7 +376,8 @@
                   (md5 (concat (prin1-to-string process-environment) passwd))
                   auth-info
                   (car (auth-source-search
-                        :max 1 :host host :require '(:user :secret) :create t))
+                        :max 1 :host host :require '(:user :secret) :create t
+                        :type 'netrc))
 	          auth-passwd (plist-get auth-info :secret)
 	          auth-passwd (if (functionp auth-passwd)
 			          (funcall auth-passwd)
