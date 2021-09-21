@@ -579,7 +579,7 @@ apply the face `mm-uu-extract'."
 	(list (mm-make-handle buf '("application/pgp-encrypted")))))))
 
 (defun mm-uu-pgp-encrypted-extract ()
-  (let ((mm-security-handle (list (format "multipart/encrypted"))))
+  (let ((mm-security-handle (list (substring "multipart/encrypted"))))
     (mm-set-handle-multipart-parameter
      mm-security-handle 'protocol "application/x-gnus-pgp-encrypted")
     (save-restriction
