@@ -777,6 +777,13 @@ is used to limit the scan."
           ((null string-start)
            ;; This set of quotes delimit the start of a string.  Put
            ;; string fence syntax on last quote. (bug#49518)
+           ;; FIXME: This makes sexp-movement a bit suboptimal since """a"""
+           ;; is now treated as 3 strings.
+           ;; We could probably have our cake and eat it too by
+           ;; putting the string fence on the first quote and then
+           ;; convincing `syntax-ppss-flush-cache' to flush to before
+           ;; that fence when any char of the 3-char delimiter
+           ;; is modified.
            (put-text-property (1- quote-ending-pos) quote-ending-pos
                               'syntax-table (string-to-syntax "|")))
           (t
