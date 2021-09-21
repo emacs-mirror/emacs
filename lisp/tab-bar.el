@@ -902,7 +902,8 @@ on the tab bar instead."
                 (if (consp current)
                     (seq-reduce (lambda (current param)
                                   (assq-delete-all param current))
-                                '(wc wc-point wc-bl wc-bbl wc-history-back wc-history-forward)
+                                '(wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward)
                                 (copy-sequence current))
                   current))
               current)
@@ -914,8 +915,10 @@ on the tab bar instead."
   (let* ((tab (tab-bar--current-tab-find nil frame))
          (tab-explicit-name (alist-get 'explicit-name tab))
          (tab-group (alist-get 'group tab))
-         (bl  (seq-filter #'buffer-live-p (frame-parameter frame 'buffer-list)))
-         (bbl (seq-filter #'buffer-live-p (frame-parameter frame 'buried-buffer-list))))
+         (bl  (seq-filter #'buffer-live-p (frame-parameter
+                                           frame 'buffer-list)))
+         (bbl (seq-filter #'buffer-live-p (frame-parameter
+                                           frame 'buried-buffer-list))))
     `(tab
       (name . ,(if tab-explicit-name
                    (alist-get 'name tab)
@@ -929,8 +932,18 @@ on the tab bar instead."
       (wc-point . ,(point-marker))
       (wc-bl . ,bl)
       (wc-bbl . ,bbl)
-      (wc-history-back . ,(gethash (or frame (selected-frame)) tab-bar-history-back))
-      (wc-history-forward . ,(gethash (or frame (selected-frame)) tab-bar-history-forward)))))
+      (wc-history-back . ,(gethash (or frame (selected-frame))
+                                   tab-bar-history-back))
+      (wc-history-forward . ,(gethash (or frame (selected-frame))
+                                      tab-bar-history-forward))
+      ;; Copy other possible parameters
+      ,@(mapcan (lambda (param)
+                  (unless (memq (car param)
+                                '(name explicit-name group time
+                                  ws wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward))
+                    (list param)))
+                (cdr tab)))))
 
 (defun tab-bar--current-tab (&optional tab frame)
   (tab-bar--current-tab-make (or tab (tab-bar--current-tab-find nil frame))))
@@ -950,7 +963,15 @@ on the tab bar instead."
                    (alist-get 'name tab)
                  (funcall tab-bar-tab-name-function)))
       (explicit-name . ,tab-explicit-name)
-      ,@(if tab-group `((group . ,tab-group))))))
+      ,@(if tab-group `((group . ,tab-group)))
+      ;; Copy other possible parameters
+      ,@(mapcan (lambda (param)
+                  (unless (memq (car param)
+                                '(name explicit-name group time
+                                  ws wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward))
+                    (list param)))
+                (cdr tab)))))
 
 (defun tab-bar--current-tab-find (&optional tabs frame)
   (assq 'current-tab (or tabs (funcall tab-bar-tabs-function frame))))
