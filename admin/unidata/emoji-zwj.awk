@@ -76,7 +76,7 @@ END {
      print "                        (nconc (char-table-range composition-function-table (car elt))"
      print "                               (list (vector (cdr elt)"
      print "                                             0"
-     print "                                             'compose-gstring-for-graphic))))"
+     print "                                             'compose-gstring-for-graphic)))))"
 
      print ";; The following three blocks are derived by hand from emoji-sequences.txt"
      print ";; FIXME: add support for Emoji_Keycap_Sequence once we learn how to respect FE0F/VS-16"
@@ -104,7 +104,7 @@ END {
      print "                      (nconc (char-table-range composition-function-table '(#x1F3FB . #x1F3FF))"
      print "                             (list (vector \".[\\U0001F3FB-\\U0001F3FF]\""
      print "                                           1"
-     print "                                    'compose-gstring-for-graphic)))))"
+     print "                                    'compose-gstring-for-graphic))))"
 
      print "\n"
      print "(provide 'emoji-zwj)"
