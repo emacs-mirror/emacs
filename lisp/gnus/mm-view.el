@@ -271,13 +271,14 @@ This is only used if `mm-inline-large-images' is set to
     (delete-region (match-beginning 0) (match-end 0))))
 
 (defun mm-inline-wash-with-file (post-func cmd &rest args)
-  (let ((file (make-temp-file
-	       (expand-file-name "mm" mm-tmp-directory))))
+  (dlet ((file (make-temp-file
+	        (expand-file-name "mm" mm-tmp-directory))))
     (let ((coding-system-for-write 'binary))
       (write-region (point-min) (point-max) file nil 'silent))
     (delete-region (point-min) (point-max))
     (unwind-protect
-	(apply #'call-process cmd nil t nil (mapcar (lambda (e) (eval e t)) args))
+	(apply #'call-process cmd nil t nil
+               (mapcar (lambda (e) (eval e t)) args))
       (delete-file file))
     (and post-func (funcall post-func))))
 
