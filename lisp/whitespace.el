@@ -1722,30 +1722,32 @@ cleaning up these problems."
               (ws-tab-width tab-width))
           (with-current-buffer (get-buffer-create
                                 whitespace-report-buffer-name)
-            (erase-buffer)
-            (insert (if ws-indent-tabs-mode
-                        (car whitespace-report-text)
-                      (cdr whitespace-report-text)))
-            (goto-char (point-min))
-            (forward-line 3)
-            (dolist (option whitespace-report-list)
+            (let ((inhibit-read-only t))
+              (special-mode)
+              (erase-buffer)
+              (insert (if ws-indent-tabs-mode
+                          (car whitespace-report-text)
+                        (cdr whitespace-report-text)))
+              (goto-char (point-min))
+              (forward-line 3)
+              (dolist (option whitespace-report-list)
+                (forward-line 1)
+                (whitespace-mark-x
+                 27 (memq (car option) style))
+                (whitespace-mark-x 7 (car bogus-list))
+                (setq bogus-list (cdr bogus-list)))
               (forward-line 1)
-              (whitespace-mark-x
-               27 (memq (car option) style))
-              (whitespace-mark-x 7 (car bogus-list))
-              (setq bogus-list (cdr bogus-list)))
-            (forward-line 1)
-            (whitespace-insert-value ws-indent-tabs-mode)
-            (whitespace-insert-value ws-tab-width)
-            (when has-bogus
-              (goto-char (point-max))
-              (insert (substitute-command-keys
-                       " Type `\\[whitespace-cleanup]'")
-                      " to cleanup the buffer.\n\n"
-                      (substitute-command-keys
-                       " Type `\\[whitespace-cleanup-region]'")
-                      " to cleanup a region.\n\n"))
-            (whitespace-display-window (current-buffer)))))
+              (whitespace-insert-value ws-indent-tabs-mode)
+              (whitespace-insert-value ws-tab-width)
+              (when has-bogus
+                (goto-char (point-max))
+                (insert (substitute-command-keys
+                         " Type `\\[whitespace-cleanup]'")
+                        " to cleanup the buffer.\n\n"
+                        (substitute-command-keys
+                         " Type `\\[whitespace-cleanup-region]'")
+                        " to cleanup a region.\n\n"))
+              (whitespace-display-window (current-buffer))))))
       has-bogus)))
 
 
