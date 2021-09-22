@@ -48,27 +48,26 @@
   (require 'xref)
   (define-key-after menu [prog-separator] menu-bar-separator
     'middle-separator)
-  (when (not (xref-marker-stack-empty-p))
+
+  (unless (xref-marker-stack-empty-p)
     (define-key-after menu [xref-pop]
       '(menu-item "Back Definition" xref-pop-marker-stack
                   :help "Back to the position of the last search")
       'prog-separator))
-  (when (save-excursion
-          (mouse-set-point click)
-          (xref-backend-identifier-at-point
-           (xref-find-backend)))
-    (define-key-after menu [xref-find-ref]
-      '(menu-item "Find References" xref-find-references-at-mouse
-                  :help "Find references to identifier")
-      'prog-separator))
-  (when (save-excursion
-          (mouse-set-point click)
-          (xref-backend-identifier-at-point
-           (xref-find-backend)))
-    (define-key-after menu [xref-find-def]
-      '(menu-item "Find Definition" xref-find-definitions-at-mouse
-                  :help "Find definition of identifier")
-      'prog-separator))
+
+  (let ((identifier (save-excursion
+                      (mouse-set-point click)
+                      (xref-backend-identifier-at-point
+                       (xref-find-backend)))))
+    (when identifier
+      (define-key-after menu [xref-find-ref]
+        `(menu-item "Find References" xref-find-references-at-mouse
+                    :help ,(format "Find references to `%s'" identifier))
+        'prog-separator)
+      (define-key-after menu [xref-find-def]
+        `(menu-item "Find Definition" xref-find-definitions-at-mouse
+                    :help ,(format "Find definition of `%s'" identifier))
+        'prog-separator)))
   menu)
 
 (defvar prog-mode-map

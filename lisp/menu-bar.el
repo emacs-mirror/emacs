@@ -1315,6 +1315,11 @@ mail status in mode line"))
                   :visible (and (display-graphic-p) (fboundp 'x-show-tip))
                   :button (:toggle . tooltip-mode)))
 
+    (bindings--define-key menu [showhide-context-menu]
+      '(menu-item "Context Menus" context-menu-mode
+                  :help "Turn mouse-3 context menus on/off"
+                  :button (:toggle . context-menu-mode)))
+
     (bindings--define-key menu [menu-bar-mode]
       '(menu-item "Menu Bar" toggle-menu-bar-mode-from-frame
                   :help "Turn menu bar on/off"

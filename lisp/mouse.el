@@ -418,16 +418,16 @@ Some context functions add menu items below the separator."
                  (listp pending-undo-list)
                (consp buffer-undo-list)))
     (define-key-after menu [undo]
-      '(menu-item "Undo" undo
+      `(menu-item ,(if (region-active-p) "Undo in Region" "Undo") undo
                   :help "Undo last edits")))
   (when (and (not buffer-read-only)
              (undo--last-change-was-undo-p buffer-undo-list))
     (define-key-after menu [undo-redo]
-      '(menu-item "Redo" undo-redo
+      `(menu-item (if undo-in-region "Redo in Region" "Redo") undo-redo
                   :help "Redo last undone edits")))
   menu)
 
-(defun context-menu-region (menu _click)
+(defun context-menu-region (menu click)
   "Populate MENU with region commands."
   (define-key-after menu [separator-region] menu-bar-separator)
   (when (and mark-active (not buffer-read-only))
@@ -455,21 +455,52 @@ Some context functions add menu items below the separator."
       `(menu-item "Paste" mouse-yank-at-click
                   :help "Paste (yank) text most recently cut/copied")))
   (when (and (cdr yank-menu) (not buffer-read-only))
-    (define-key-after menu (if (featurep 'ns) [select-paste]
-                             [paste-from-menu])
-      ;; ns-win.el said: Change text to be more consistent with
-      ;; surrounding menu items `paste', etc."
-      `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
-                  yank-menu
-                  :help "Choose a string from the kill ring and paste it")))
+    (let ((submenu (make-sparse-keymap (propertize "Paste from Kill Menu"))))
+      (dolist (item yank-menu)
+        (when (consp item)
+          (define-key-after submenu (vector (car item))
+            `(menu-item ,(cadr item)
+                        ,(lambda () (interactive)
+                           (mouse-yank-from-menu click (car item)))))))
+      (define-key-after menu (if (featurep 'ns) [select-paste] [paste-from-menu])
+        `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
+                    ,submenu
+                    :help "Choose a string from the kill ring and paste it"))))
   (when (and mark-active (not buffer-read-only))
     (define-key-after menu [clear]
       '(menu-item "Clear" delete-active-region
                   :help
                   "Delete text in region between mark and current position")))
-  (define-key-after menu [mark-whole-buffer]
-    '(menu-item "Select All" mark-whole-buffer
-                :help "Mark the whole buffer for a subsequent cut/copy"))
+
+  (let ((submenu (make-sparse-keymap (propertize "Select"))))
+    (define-key-after submenu [mark-whole-buffer]
+      `(menu-item "All"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'buffer))
+                  :help "Mark the whole buffer for a subsequent cut/copy"))
+    (define-key-after submenu [mark-line]
+      `(menu-item "Line"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'line))
+                  :help "Mark the line at click for a subsequent cut/copy"))
+    (define-key-after submenu [mark-defun]
+      `(menu-item "Defun"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
+                  :help "Mark the defun at click for a subsequent cut/copy"))
+    (define-key-after submenu [mark-list]
+      `(menu-item "List"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list))
+                  :help "Mark the list at click for a subsequent cut/copy"))
+    (define-key-after submenu [mark-symbol]
+      `(menu-item "Symbol"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'symbol))
+                  :help "Mark the symbol at click for a subsequent cut/copy"))
+    (when (region-active-p)
+      (define-key-after submenu [mark-none]
+        `(menu-item "None"
+                    ,(lambda (_e) (interactive "e") (deactivate-mark))
+                    :help "Deactivate the region")))
+
+    (define-key-after menu [select-region]
+      `(menu-item "Select" ,submenu)))
   menu)
 
 (defun context-menu-ffap (menu click)
@@ -516,6 +547,26 @@ This is the keyboard interface to \\[context-menu-map]."
     (popup-menu (context-menu-map) (point))))
 
 (global-set-key [S-f10] 'context-menu-open)
+
+(defun mark-thing-at-mouse (click thing)
+  "Activate the region around THING found near the mouse CLICK."
+  (let ((bounds (bounds-of-thing-at-mouse click thing)))
+    (when bounds
+      (goto-char (if mouse-select-region-move-to-beginning
+                     (car bounds) (cdr bounds)))
+      (push-mark (if mouse-select-region-move-to-beginning
+                     (cdr bounds) (car bounds))
+                 t 'activate))))
+
+(defun mouse-yank-from-menu (click string)
+  "Insert STRING at mouse CLICK."
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
+  (when select-active-regions
+    (deactivate-mark))
+  (or mouse-yank-at-point (mouse-set-point click))
+  (push-mark)
+  (insert string))
 
 
 ;; Commands that operate on windows.

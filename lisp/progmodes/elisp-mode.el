@@ -158,22 +158,13 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (when (thing-at-mouse click 'symbol)
     (define-key-after menu [elisp-separator] menu-bar-separator
       'middle-separator)
-    (define-key-after menu [info-lookup-symbol]
-      '(menu-item "Look up in Manual"
-                  (lambda (click) (interactive "e")
-                    (info-lookup-symbol
-                     (intern (thing-at-mouse click 'symbol t))))
-                  :help "Display definition in relevant manual")
-      'elisp-separator)
+
     (let* ((string (thing-at-mouse click 'symbol t))
            (symbol (when (stringp string) (intern string)))
            (title (cond
                    ((not (symbolp symbol)) nil)
                    ((and (facep symbol) (not (fboundp symbol)))
                     "Face")
-                   ((and (fboundp symbol) (boundp symbol)
-                         (memq symbol minor-mode-list))
-                    "Mode")
                    ((and (fboundp symbol)
                          (not (or (boundp symbol) (facep symbol))))
                     "Function")
@@ -183,11 +174,17 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
                    ((or (fboundp symbol) (boundp symbol) (facep symbol))
                     "Symbol"))))
       (when title
+        (define-key-after menu [info-lookup-symbol]
+          `(menu-item "Look up in Manual"
+                      (lambda (_click) (interactive "e")
+                        (info-lookup-symbol ',symbol))
+                      :help ,(format "Find `%s' in relevant manual" symbol))
+          'elisp-separator)
         (define-key-after menu [describe-symbol]
           `(menu-item (format "Describe %s" ,title)
                       (lambda (_click) (interactive "e")
                         (describe-symbol ',symbol))
-                      :help "Display the full documentation of symbol")
+                      :help ,(format "Display the documentation of `%s'" symbol))
           'elisp-separator))))
   menu)
 
