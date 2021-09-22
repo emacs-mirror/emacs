@@ -4667,13 +4667,23 @@ rather than your caller's match data."
 	      '(set-match-data save-match-data-internal 'evaporate))))
 
 (defun match-string (num &optional string)
-  "Return string of text matched by last search.
+  "Return the string of text matched by the previous search or regexp operation.
 NUM specifies which parenthesized expression in the last regexp.
- Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING.
-If STRING is nil, the current buffer should be the same buffer
-the search/match was performed in."
+
+The return value is nil if NUMth pair didn't match, or there were
+less than NUM pairs.
+
+STRING should be given if the last search was by `string-match'
+on STRING.  If STRING is nil, the current buffer should be the
+same buffer the search/match was performed in.
+
+Note that many functions in Emacs modify the match data, so this
+function should be called \"close\" to the function that did the
+match.  In particular, saying (for instance)
+`M-: (looking-at \"[0-9]\") RET' followed by `M-: (match-string 0) RET'
+interactively is seldom meaningful, since the Emacs command loop
+may modify the match data."
   (declare (side-effect-free t))
   (if (match-beginning num)
       (if string
