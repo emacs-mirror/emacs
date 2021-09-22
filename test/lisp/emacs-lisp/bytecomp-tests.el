@@ -41,6 +41,24 @@
   "Identity, but hidden from some optimisations."
   x)
 
+(defmacro bytecomp-test-loop (outer1 outer2 inner1 inner2)
+  "Exercise constant propagation inside `while' loops.
+OUTER1, OUTER2, INNER1 and INNER2 are forms placed in the outer and
+inner loops respectively."
+  `(let ((x 1) (i 3) (res nil))
+     (while (> i 0)
+       (let ((y 2) (j 2))
+         (setq res (cons (list 'outer x y) res))
+         (while (> j 0)
+           (setq res (cons (list 'inner x y) res))
+           ,inner1
+           ,inner2
+           (setq j (1- j)))
+         ,outer1
+         ,outer2)
+       (setq i (1- i)))
+     res))
+
 (defconst bytecomp-tests--test-cases
   '(
     ;; some functional tests
@@ -453,6 +471,25 @@
        (arith-error (prog1 (lambda (y) (+ y x))
                       (setq x 10))))
      4)
+
+    ;; Loop constprop: set the inner and outer variables in the inner
+    ;; and outer loops, all combinations.
+    (bytecomp-test-loop nil        nil        nil        nil       )
+    (bytecomp-test-loop nil        nil        nil        (setq x 6))
+    (bytecomp-test-loop nil        nil        (setq x 5) nil       )
+    (bytecomp-test-loop nil        nil        (setq x 5) (setq x 6))
+    (bytecomp-test-loop nil        (setq x 4) nil        nil       )
+    (bytecomp-test-loop nil        (setq x 4) nil        (setq x 6))
+    (bytecomp-test-loop nil        (setq x 4) (setq x 5) nil       )
+    (bytecomp-test-loop nil        (setq x 4) (setq x 5) (setq x 6))
+    (bytecomp-test-loop (setq x 3) nil        nil        nil       )
+    (bytecomp-test-loop (setq x 3) nil        nil        (setq x 6))
+    (bytecomp-test-loop (setq x 3) nil        (setq x 5) nil       )
+    (bytecomp-test-loop (setq x 3) nil        (setq x 5) (setq x 6))
+    (bytecomp-test-loop (setq x 3) (setq x 4) nil        nil       )
+    (bytecomp-test-loop (setq x 3) (setq x 4) nil        (setq x 6))
+    (bytecomp-test-loop (setq x 3) (setq x 4) (setq x 5) nil       )
+    (bytecomp-test-loop (setq x 3) (setq x 4) (setq x 5) (setq x 6))
 
     ;; No error, no success handler.
     (condition-case x
