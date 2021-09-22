@@ -61,7 +61,7 @@
 }
 
 END {
-     print ";;; emoji-zwj.el --- emoji zwj character composition table"
+     print ";;; emoji-zwj.el --- emoji zwj character composition table  -*- lexical-binding:t -*-"
      print ";;; Automatically generated from admin/unidata/emoji-zwj-sequences.txt"
      print "(eval-when-compile (require 'regexp-opt))"
      print "(dolist (elt `("
