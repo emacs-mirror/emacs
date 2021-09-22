@@ -8114,7 +8114,7 @@ width is 4, so you would use @samp{(mh-set-cmd-note 4)}.
 @vindex mh-scan-format-nmh
 
 The default setting for @code{mh-scan-format-file} is @samp{Use MH-E
-scan Format}. This means that the format string will be taken from the
+scan Format}. This means that the format string will be taken from
 either @code{mh-scan-format-mh} or @code{mh-scan-format-nmh} depending
 on whether MH or nmh (or GNU mailutils MH) is in use. This setting
 also enables you to turn on the option
