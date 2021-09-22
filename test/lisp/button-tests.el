@@ -59,6 +59,7 @@
   "Test `button--help-echo' with forms."
   (with-temp-buffer
     ;; Test text property buttons with dynamic scoping.
+    (setq lexical-binding nil)
     (let* ((help   (make-symbol "help"))
            (form   `(funcall (let ((,help "lexical form"))
                                (lambda () ,help))))
