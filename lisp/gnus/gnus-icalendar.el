@@ -345,10 +345,16 @@ status will be retrieved from the first matching attendee record."
 
       (mapc #'process-event-line (split-string ical-request "\n"))
 
+      ;; RFC5546 refers to uninvited attendees as "party crashers".
+      ;; This situation is common if the invitation is sent to a group
+      ;; of people via a mailing list.
       (unless (gnus-icalendar-find-if (lambda (x) (string-match "^ATTENDEE" x))
 				      reply-event-lines)
         (lwarn 'gnus-icalendar :warning
-               "Could not find an event attendee matching given identity"))
+               "Could not find an event attendee matching given identity")
+        (push (format "ATTENDEE;RSVP=TRUE;PARTSTAT=%s;CN=%s:MAILTO:%s"
+                      attendee-status user-full-name user-mail-address)
+              reply-event-lines))
 
       (mapconcat #'identity `("BEGIN:VEVENT"
                               ,@(nreverse reply-event-lines)
@@ -902,10 +908,16 @@ These will be used to retrieve the RSVP information from ical events."
   (gnus-icalendar-event:sync-to-org event gnus-icalendar-reply-status))
 
 (cl-defmethod gnus-icalendar-event:inline-reply-buttons ((event gnus-icalendar-event) handle)
-  (when (gnus-icalendar-event:rsvp event)
-    `(("Accept" gnus-icalendar-reply (,handle accepted ,event))
-      ("Tentative" gnus-icalendar-reply (,handle tentative ,event))
-      ("Decline" gnus-icalendar-reply (,handle declined ,event)))))
+  (let ((accept-btn "Accept")
+        (tentative-btn "Tentative")
+        (decline-btn "Decline"))
+    (unless (gnus-icalendar-event:rsvp event)
+      (setq accept-btn "Uninvited Accept"
+            tentative-btn "Uninvited Tentative"
+            decline-btn "Uninvited Decline"))
+    `((,accept-btn gnus-icalendar-reply (,handle accepted ,event))
+      (,tentative-btn gnus-icalendar-reply (,handle tentative ,event))
+      (,decline-btn gnus-icalendar-reply (,handle declined ,event)))))
 
 (cl-defmethod gnus-icalendar-event:inline-reply-buttons ((_event gnus-icalendar-event-reply) _handle)
   "No buttons for REPLY events."
