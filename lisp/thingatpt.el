@@ -189,8 +189,8 @@ a symbol as a valid THING."
 
 ;;;###autoload
 (defun bounds-of-thing-at-mouse (event thing)
-  "Determine the start and end locations for the THING at mouse click.
-Like `bounds-of-thing-at-point', but tries to use the EVENT
+  "Determine start and end locations for THING at mouse click given by EVENT.
+Like `bounds-of-thing-at-point', but tries to use the position in EVENT
 where the mouse button is clicked to find the thing nearby."
   (save-excursion
     (mouse-set-point event)
@@ -198,8 +198,8 @@ where the mouse button is clicked to find the thing nearby."
 
 ;;;###autoload
 (defun thing-at-mouse (event thing &optional no-properties)
-  "Return the THING at mouse click.
-Like `thing-at-point', but tries to use the EVENT
+  "Return the THING at mouse click specified by EVENT.
+Like `thing-at-point', but tries to use the position in EVENT
 where the mouse button is clicked to find the thing nearby."
   (save-excursion
     (mouse-set-point event)
