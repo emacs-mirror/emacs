@@ -2972,6 +2972,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 {
   int c;
   bool uninterned_symbol = false;
+  bool skip_shorthand = false;
   bool multibyte;
   char stackbuf[stackbufsize];
   current_thread->stack_top = stackbuf;
@@ -3367,6 +3368,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
       if (c == ':')
 	{
 	  uninterned_symbol = true;
+	read_hash_prefixed_symbol:
 	  c = READCHAR;
 	  if (!(c > 040
 		&& c != NO_BREAK_SPACE
@@ -3379,6 +3381,12 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      return Fmake_symbol (empty_unibyte_string);
 	    }
 	  goto read_symbol;
+	}
+      /* #/foo is the shorthand-oblivious symbol named foo.  */
+      if (c == '\\')
+	{
+	  skip_shorthand = true;
+	  goto read_hash_prefixed_symbol;
 	}
       /* ## is the empty symbol.  */
       if (c == '#')
@@ -3760,7 +3768,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	ptrdiff_t nbytes = p - read_buffer;
 	UNREAD (c);
 
-	if (!quoted && !uninterned_symbol)
+	if (!quoted && !uninterned_symbol && !skip_shorthand)
 	  {
 	    ptrdiff_t len;
 	    Lisp_Object result = string_to_number (read_buffer, 10, &len);
@@ -3795,10 +3803,14 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      ptrdiff_t longhand_chars = 0;
 	      ptrdiff_t longhand_bytes = 0;
 
-	      Lisp_Object tem
-		= oblookup_considering_shorthand
+	      Lisp_Object tem;
+	      if (skip_shorthand)
+		tem = oblookup (obarray, read_buffer, nchars, nbytes);
+	      else {
+		tem = oblookup_considering_shorthand
 		(obarray, read_buffer, nchars, nbytes,
 		 &longhand, &longhand_chars, &longhand_bytes);
+	      }
 
 	      if (SYMBOLP (tem))
 		result = tem;
