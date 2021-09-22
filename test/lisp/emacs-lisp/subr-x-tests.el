@@ -455,18 +455,18 @@
   "Test `thread-first' wraps single function names."
   (should (equal (macroexpand
                   '(thread-first 5
-                     -))
+                                 -))
                  '(- 5)))
   (should (equal (macroexpand
                   '(thread-first (+ 1 2)
-                     -))
+                                 -))
                  '(- (+ 1 2)))))
 
 (ert-deftest subr-x-test-thread-first-expansion ()
   "Test `thread-first' expands correctly."
   (should (equal
            (macroexpand '(thread-first
-                             5
+                           5
                            (+ 20)
                            (/ 25)
                            -
@@ -477,13 +477,13 @@
   "Test several `thread-first' examples."
   (should (equal (thread-first (+ 40 2)) 42))
   (should (equal (thread-first
-                     5
+                   5
                    (+ 20)
                    (/ 25)
                    -
                    (+ 40)) 39))
   (should (equal (thread-first
-                     "this-is-a-string"
+                   "this-is-a-string"
                    (split-string "-")
                    (nbutlast 2)
                    (append (list "good")))
@@ -500,18 +500,18 @@
   "Test `thread-last' wraps single function names."
   (should (equal (macroexpand
                   '(thread-last 5
-                     -))
+                                -))
                  '(- 5)))
   (should (equal (macroexpand
                   '(thread-last (+ 1 2)
-                     -))
+                                -))
                  '(- (+ 1 2)))))
 
 (ert-deftest subr-x-test-thread-last-expansion ()
   "Test `thread-last' expands correctly."
   (should (equal
            (macroexpand '(thread-last
-                             5
+                           5
                            (+ 20)
                            (/ 25)
                            -
@@ -522,13 +522,13 @@
   "Test several `thread-last' examples."
   (should (equal (thread-last (+ 40 2)) 42))
   (should (equal (thread-last
-                     5
+                   5
                    (+ 20)
                    (/ 25)
                    -
                    (+ 40)) 39))
   (should (equal (thread-last
-                     (list 1 -2 3 -4 5)
+                   (list 1 -2 3 -4 5)
                    (mapcar #'abs)
                    (cl-reduce #'+)
                    (format "abs sum is: %s"))
