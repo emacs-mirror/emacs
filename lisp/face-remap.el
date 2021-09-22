@@ -397,7 +397,7 @@ a top-level keymap, `text-scale-increase' or
 (defcustom buffer-face-mode-face 'variable-pitch
   "The face specification used by `buffer-face-mode'.
 It may contain any value suitable for a `face' text property,
-including a face name, a list of face names, a face-attribute
+including a face name, a list of face names, a face attribute
 plist, etc."
   :type '(choice (face)
 		 (repeat :tag "List of faces" face)

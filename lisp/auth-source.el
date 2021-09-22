@@ -176,7 +176,7 @@ Overrides `password-cache-expiry' through a let-binding."
 ;; TODO: or maybe leave as (setq auth-source-netrc-use-gpg-tokens 'never)
 
 (defcustom auth-source-netrc-use-gpg-tokens 'never
-  "Set this to tell auth-source when to create GPG password
+  "Set this to tell `auth-source' when to create GPG password
 tokens in netrc files.  It's either an alist or `never'.
 Note that if EPA/EPG is not available, this should NOT be used."
   :version "23.2" ;; No Gnus
@@ -503,7 +503,7 @@ soon as a function returns non-nil.")
 (add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-secrets)
 
 (defun auth-source-backend-parse-parameters (entry backend)
-  "Fill in the extra auth-source-backend parameters of ENTRY.
+  "Fill in the extra `auth-source-backend' parameters of ENTRY.
 Using the plist ENTRY, get the :host, :port, and :user search
 parameters."
   (let ((entry (if (stringp entry)
@@ -1227,7 +1227,7 @@ FILE is the file from which we obtained this token."
                                     &key backend require create
                                     type max host user port
                                     &allow-other-keys)
-  "Given a property list SPEC, return search matches from the :backend.
+  "Given a property list SPEC, return search matches from the `:backend'.
 See `auth-source-search' for details on SPEC."
   ;; just in case, check that the type is correct (null or same as the backend)
   (cl-assert (or (null type) (eq type (oref backend type)))
@@ -2274,7 +2274,7 @@ entries for git.gnus.org:
                                     &key backend require
                                     type max host user port
                                     &allow-other-keys)
-  "Given a property list SPEC, return search matches from the :backend.
+  "Given a property list SPEC, return search matches from the `:backend'.
 See `auth-source-search' for details on SPEC."
   ;; just in case, check that the type is correct (null or same as the backend)
   (cl-assert (or (null type) (eq type (oref backend type)))

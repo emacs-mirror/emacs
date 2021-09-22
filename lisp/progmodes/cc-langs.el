@@ -4178,8 +4178,7 @@ aliases in Emacs are resolved."
 	       (cdr c-emacs-variable-inits))))
 
 (defun c-make-init-lang-vars-fun (mode)
-  "Create a function that initializes all the language dependent variables
-for the given mode.
+  "Create a function that initializes all language dependent variables for MODE.
 
 This function should be evaluated at compile time, so that the
 function it returns is byte compiled with all the evaluated results

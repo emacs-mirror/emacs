@@ -501,7 +501,7 @@ saved to the first writable file in `rng-schema-locating-files'."
 	       nil
 	     (error "Buffer does not have a filename")))
 	  ((and prompt
-		(not (y-or-n-p (format "Save %s to %s "
+                (not (y-or-n-p (format "Save %s to %s?"
 				       (if type-id
 					   "type identifier"
 					 "schema location")
@@ -539,7 +539,7 @@ saved to the first writable file in `rng-schema-locating-files'."
 				       locating-file-uri))))))
 	       (indent-according-to-mode)
 	       (when (or (not modified)
-			 (y-or-n-p (format "Save file %s "
+                         (y-or-n-p (format "Save file %s?"
 					   (buffer-file-name))))
 		 (save-buffer))))))))
 

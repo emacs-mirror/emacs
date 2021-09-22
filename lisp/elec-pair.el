@@ -63,7 +63,7 @@ When inserting a closing paren character right before the same character,
 just skip that character instead, so that hitting ( followed by ) results
 in \"()\" rather than \"())\".
 
-This can be convenient for people who find it easier to hit ) than C-f.
+This can be convenient for people who find it easier to hit ) than \\[forward-char].
 
 Can also be a function of one argument (the closer char just
 inserted), in which case that function's return value is

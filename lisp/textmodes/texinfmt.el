@@ -932,9 +932,9 @@ commands."
   "Text of the copyright notice and copying permissions.")
 
 (defun texinfo-copying ()
-  "Copy the copyright notice and copying permissions from the Texinfo file,
-as indicated by the @copying ... @end copying command;
-insert the text with the @insertcopying command."
+  "Copy the copyright notice and copying permissions from Texinfo file.
+This is indicated by the \"@copying ... @end copying\" command;
+insert the text with the \"@insertcopying\" command."
   (let ((beg (progn (beginning-of-line) (point)))
         (end  (progn (re-search-forward "^@end copying[ \t]*\n") (point))))
     (setq texinfo-copying-text
@@ -944,8 +944,8 @@ insert the text with the @insertcopying command."
     (delete-region beg end)))
 
 (defun texinfo-insertcopying ()
-  "Insert the copyright notice and copying permissions from the Texinfo file,
-which are indicated by the @copying ... @end copying command."
+  "Insert the copyright notice and copying permissions from Texinfo file.
+This is indicated by the \"@copying ... @end copying\" command."
   (insert (concat "\n" texinfo-copying-text)))
 
 (put 'begin 'texinfo-format 'texinfo-format-begin)
@@ -2546,7 +2546,9 @@ If used within a line, follow `@bullet' with braces."
    "smalllisp"
    "\\)")
   "Regexp specifying end of environments in which @kbd does not put `...'
-around argument. (See `texinfo-format-kbd-regexp')")
+around argument.
+
+See `texinfo-format-kbd-regexp'.")
 
 (put 'kbd 'texinfo-format 'texinfo-format-kbd)
 (defun texinfo-format-kbd ()

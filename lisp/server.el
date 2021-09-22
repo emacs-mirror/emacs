@@ -1078,7 +1078,7 @@ The following commands are accepted by the client:
 
 `-suspend'
   Suspend this terminal, i.e., stop the client process.
-  Sent when the user presses C-z."
+  Sent when the user presses \\[suspend-frame]."
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)

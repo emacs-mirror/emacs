@@ -760,7 +760,7 @@ references displayed in the current *xref* buffer."
 
 (defun xref--outdated-p (item)
   "Check that the match location at current position is up-to-date.
-ITEMS is an xref item which "
+ITEMS is an xref item which " ; FIXME: Expand documentation.
   ;; FIXME: The check should most likely be a generic function instead
   ;; of the assumption that all matches' summaries relate to the
   ;; buffer text in a particular way.

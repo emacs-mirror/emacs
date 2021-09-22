@@ -147,7 +147,7 @@ Keep the cursor on the screen as needed."
      (= (cdr start-col-row) (cdr end-col-row)))))
 
 (defvar mouse-drag-electric-col-scrolling t
-  "If non-nil, mouse-drag on a long line enables truncate-lines.")
+  "If non-nil, mouse-drag on a long line enables `truncate-lines'.")
 
 (defun mouse-drag-should-do-col-scrolling ()
   "Determine if it's wise to enable col-scrolling for the current window.

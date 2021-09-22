@@ -465,11 +465,11 @@ Returned values:
 			     mesg) nil)
 	      ((string-match "not responding$" mesg) mesg)
 	      ;; v19:
-	      ;; (file-error "connection failed" "permission denied"
+              ;; (file-error "Connection failed" "permission denied"
 	      ;;             "nonesuch" "ffap-machine-p")
-	      ;; (file-error "connection failed" "host is unreachable"
+              ;; (file-error "Connection failed" "host is unreachable"
 	      ;;	     "gopher.house.gov" "ffap-machine-p")
-	      ;; (file-error "connection failed" "address already in use"
+              ;; (file-error "Connection failed" "address already in use"
 	      ;;	     "ftp.uu.net" "ffap-machine-p")
 	      ((equal mesg "connection failed")
 	       (if (string= (downcase (nth 2 error)) "permission denied")
@@ -1088,8 +1088,8 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
     (latex-mode "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     (tex-mode "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     )
-  "Alist of (MODE CHARS BEG END), where MODE is a symbol,
-possibly a major-mode name, or one of the symbols
+  "Alist of (MODE CHARS BEG END), where MODE is a symbol.
+This is possibly a major-mode name, or one of the symbols
 `file', `url', `machine', and `nocolon'.
 Function `ffap-string-at-point' uses the data fields as follows:
 1. find a maximal string of CHARS around point,

@@ -1326,7 +1326,7 @@ Return nil if no change in files."
                        (user-error
                         "No compression rule found for \
 `dired-compress-directory-default-suffix' %s, see `dired-compress-files-alist' for\
- the supported suffixes list."
+ the supported suffixes list"
                         dired-compress-directory-default-suffix)))
                  (let* ((suffix (or dired-compress-file-default-suffix ".gz"))
                         (out-name (concat file suffix))
@@ -1335,7 +1335,7 @@ Return nil if no change in files."
                                dired-compress-file-alist)))
                    (if (not rule)
                        (user-error "No compression rule found for suffix %s, \
-see `dired-compress-file-alist' for the supported suffixes list."
+see `dired-compress-file-alist' for the supported suffixes list"
                                    dired-compress-file-default-suffix)
                      (and (file-exists-p file)
                           (or (not (file-exists-p out-name))

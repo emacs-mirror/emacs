@@ -1033,8 +1033,8 @@ command \\[fileloop-continue]."
 (defun project-query-replace-regexp (from to)
   "Query-replace REGEXP in all the files of the project.
 Stops when a match is found and prompts for whether to replace it.
-If you exit the query-replace, you can later continue the query-replace
-loop using the command \\[fileloop-continue]."
+If you exit the `query-replace', you can later continue the
+`query-replace' loop using the command \\[fileloop-continue]."
   (interactive
    (pcase-let ((`(,from ,to)
                 (query-replace-read-args "Query replace (regexp)" t t)))

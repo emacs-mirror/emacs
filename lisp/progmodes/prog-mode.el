@@ -127,7 +127,7 @@ which case it will be used to compose the new symbol as per the
 third argument of `compose-region'.")
 
 (defun prettify-symbols-default-compose-p (start end _match)
-  "Return true iff the symbol MATCH should be composed.
+  "Return non-nil iff the symbol MATCH should be composed.
 The symbol starts at position START and ends at position END.
 This is the default for `prettify-symbols-compose-predicate'
 which is suitable for most programming languages such as C or Lisp."
@@ -145,7 +145,7 @@ which is suitable for most programming languages such as C or Lisp."
   "A predicate for deciding if the currently matched symbol is to be composed.
 The matched symbol is the car of one entry in `prettify-symbols-alist'.
 The predicate receives the match's start and end positions as well
-as the match-string as arguments.")
+as the `match-string' as arguments.")
 
 (defun prettify-symbols--compose-symbol (alist)
   "Compose a sequence of characters into a symbol.

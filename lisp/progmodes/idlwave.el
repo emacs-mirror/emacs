@@ -5316,7 +5316,7 @@ directories and save the routine info.
 
 (defun idlwave-delete-user-catalog-file (&rest _ignore)
   (if (yes-or-no-p
-       (format "Delete file %s " idlwave-user-catalog-file))
+       (format "Delete file %s?" idlwave-user-catalog-file))
       (progn
 	(delete-file idlwave-user-catalog-file)
 	(message "%s has been deleted" idlwave-user-catalog-file))))

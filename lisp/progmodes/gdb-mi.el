@@ -467,8 +467,8 @@ GDB session needs to be restarted for this setting to take effect."
 ;; TODO Some commands can't be called with --all (give a notice about
 ;; it in setting doc)
 (defcustom gdb-gud-control-all-threads t
-  "When non-nil, GUD execution commands affect all threads when
-in non-stop mode.  Otherwise, only current thread is affected."
+  "When non-nil, GUD execution commands affect all threads when in non-stop mode.
+Otherwise, only current thread is affected."
   :type 'boolean
   :group 'gdb-non-stop
   :version "23.2")
@@ -1483,7 +1483,7 @@ INDENT is the current indentation depth."
 		(expr (nth 1 var)) (children (nth 2 var)))
 	   (if (or (<= (string-to-number children) gdb-max-children)
 		   (y-or-n-p
-		    (format "%s has %s children. Continue? " expr children)))
+                    (format "%s has %s children.  Continue?" expr children)))
 	       (gdb-var-list-children token))))
 	((string-search "-" text)	;contract this node
 	 (dolist (var gdb-var-list)

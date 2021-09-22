@@ -589,7 +589,7 @@ This is useful if you want to peruse and move around in an ls -lR
 output file, for example one you got from an ftp server.  With
 ange-ftp, you can even Dired a directory containing an ls-lR file,
 visit that file and turn on Virtual Dired mode.  But don't try to save
-this file, as dired-virtual indents the listing and thus changes the
+this file, as `dired-virtual' indents the listing and thus changes the
 buffer.
 
 If you have saved a Dired buffer in a file you can use \\[dired-virtual] to
@@ -956,7 +956,7 @@ as the variable `file'.
 
 If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
-with \\[previous-history-element] (M-p) .
+with `previous-history-element' (\\<minibuffer-mode-map>\\[previous-history-element]).
 
 The variable `dired-guess-shell-case-fold-search' controls whether
 REGEXP is matched case-sensitively."

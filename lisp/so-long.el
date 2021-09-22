@@ -492,7 +492,7 @@
   ;; considered internal-use only (with `global-so-long-mode' the interface
   ;; for enabling or disabling the automated behaviour).  FIXME: Establish a
   ;; way to support the original use-case, or rename to `so-long--enabled'.
-  "Internal use.  Non-nil when any so-long functionality has been used.")
+  "Internal use.  Non-nil when any `so-long' functionality has been used.")
 
 (defvar-local so-long--active nil ; internal use
   "Non-nil when `so-long' mitigations are in effect.")
@@ -1100,7 +1100,7 @@ This command calls `so-long' with the selected action as an argument.")
 
 ;;;###autoload
 (defun so-long-commentary ()
-  "View the so-long library's documentation in `outline-mode'."
+  "View the `so-long' library's documentation in `outline-mode'."
   (interactive)
   (let ((buf "*So Long: Commentary*"))
     (when (buffer-live-p (get-buffer buf))
@@ -1862,14 +1862,14 @@ invoked."
 
 ;;;###autoload
 (defun so-long-enable ()
-  "Enable the so-long library's functionality.
+  "Enable the `so-long' library's functionality.
 
 Equivalent to calling (global-so-long-mode 1)"
   (interactive)
   (global-so-long-mode 1))
 
 (defun so-long-disable ()
-  "Disable the so-long library's functionality.
+  "Disable the `so-long' library's functionality.
 
 Equivalent to calling (global-so-long-mode 0)"
   (interactive)

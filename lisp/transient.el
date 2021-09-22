@@ -1289,8 +1289,8 @@ variable instead.")
 
 (defvar transient--exitp nil "Whether to exit the transient.")
 (defvar transient--showp nil "Whether the transient is show in a popup buffer.")
-(defvar transient--helpp nil "Whether help-mode is active.")
-(defvar transient--editp nil "Whether edit-mode is active.")
+(defvar transient--helpp nil "Whether `help-mode' is active.")
+(defvar transient--editp nil "Whether `edit-mode' is active.")
 
 (defvar transient--active-infix nil "The active infix awaiting user input.")
 

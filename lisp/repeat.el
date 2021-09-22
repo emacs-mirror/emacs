@@ -218,7 +218,7 @@ recently executed command not bound to an input event\"."
    ((null last-repeatable-command)
     (error "There is nothing to repeat"))
    ((eq last-repeatable-command 'mode-exit)
-    (error "last-repeatable-command is mode-exit & can't be repeated"))
+    (error "`last-repeatable-command' is `mode-exit' and can't be repeated"))
    ((memq last-repeatable-command repeat-too-dangerous)
     (error "Command %S too dangerous to repeat automatically"
 	   last-repeatable-command)))

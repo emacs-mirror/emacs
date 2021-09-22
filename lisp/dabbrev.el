@@ -568,8 +568,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	major-mode)))
 
 (defun dabbrev--goto-start-of-abbrev ()
-  "Back over all abbrev type characters and then moves forward over
-all skip characters."
+  "Back over all abbrev type characters then move forward over all skip characters."
   ;; Move backwards over abbrev chars
   (save-match-data
     (when (> (point) (minibuffer-prompt-end))

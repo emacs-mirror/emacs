@@ -21,6 +21,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 ;;; Prelude
 
@@ -804,7 +806,7 @@ callback data (if any)."
   (when (and epg-key-id
 	     (string-match "\\`passphrase\\." string))
     (unless (epg-context-passphrase-callback context)
-      (error "passphrase-callback not set"))
+      (error "Variable `passphrase-callback' not set"))
     (let (inhibit-quit
 	  passphrase
 	  passphrase-with-new-line

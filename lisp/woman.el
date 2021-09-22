@@ -1790,7 +1790,7 @@ Argument EVENT is the invoking mouse event."
   ;; That comment was moved after the symbol `woman-menu' to make
   ;; find-function-search-for-symbol work. -- rost
  woman-mode-map
- "WoMan Menu"
+ "WoMan Menu."
  `("WoMan"
    ["WoMan..." woman t]			; [NAME CALLBACK ENABLE]
    "--"
@@ -2182,7 +2182,7 @@ To be called on original buffer and any .so insertions."
 ;; variable.  zsoelim is always run as the very first preprocessor.
 
 (defvar woman-emulate-tbl nil
-  "True if WoMan should emulate the tbl preprocessor.
+  "Non-nil if WoMan should emulate the tbl preprocessor.
 This applies to text between .TE and .TS directives.
 Currently set only from \\='\\\" t in the first line of the source file.")
 

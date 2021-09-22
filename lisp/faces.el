@@ -1796,8 +1796,8 @@ If FRAME is nil, that stands for the selected frame."
 (defalias 'x-defined-colors 'defined-colors)
 
 (defun defined-colors-with-face-attributes (&optional frame foreground)
-  "Return a list of colors supported for a particular frame.
-See `defined-colors' for arguments and return value. In contrast
+  "Return a list of colors supported for a particular FRAME.
+See `defined-colors' for arguments and return value.  In contrast
 to `defined-colors' the elements of the returned list are color
 strings with text properties, that make the color names render
 with the color they represent as background color (if FOREGROUND

@@ -1221,7 +1221,7 @@ is processed.  (It is not called after characters that exit the search.)
 
 When the arg RECURSIVE-EDIT is non-nil, this function behaves modally and
 does not return to the calling function until the search is completed.
-To behave this way it enters a recursive-edit and exits it when done
+To behave this way it enters a recursive edit and exits it when done
 isearching.
 
 The arg REGEXP-FUNCTION, if non-nil, should be a function.  It is

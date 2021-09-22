@@ -299,11 +299,11 @@ Used for listing local printers or renamed cells.")
     ses-center-span ses-dashfill ses-dashfill-span
     ses-tildefill-span
     ses-prin1)
-  "List of print functions to be included in initial history of
-printer functions.  None of these standard-printer functions,
-except function `ses-prin1', is suitable for use as a column
-printer or a global-default printer because they invoke the
-column or default printer and then modify its output.")
+  "List of print functions to be included in initial history of printer functions.
+None of these standard-printer functions, except function
+`ses-prin1', is suitable for use as a column printer or a
+global-default printer because they invoke the column or default
+printer and then modify its output.")
 
 
 ;;----------------------------------------------------------------------------

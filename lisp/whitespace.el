@@ -565,8 +565,8 @@ Used when `whitespace-style' includes the value `space-before-tab'.")
 
 
 (defvar whitespace-indentation 'whitespace-indentation
-  "Symbol face used to visualize `tab-width' or more SPACEs at beginning of
-line.  Used when `whitespace-style' includes the value `indentation'.")
+  "Symbol face used to visualize `tab-width' or more SPACEs at beginning of line.
+Used when `whitespace-style' includes the value `indentation'.")
 (make-obsolete-variable 'whitespace-indentation "use the face instead." "24.4")
 
 (defface whitespace-indentation
@@ -2353,7 +2353,7 @@ Also refontify when necessary."
 
 
 (defun whitespace-display-vector-p (vec)
-  "Return true if every character in vector VEC can be displayed."
+  "Return non-nil if every character in vector VEC can be displayed."
   (let ((i (length vec)))
     (when (> i 0)
       (while (and (>= (setq i (1- i)) 0)

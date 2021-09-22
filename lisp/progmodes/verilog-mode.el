@@ -414,7 +414,7 @@ wherever possible, since it is slow."
 ;;     "----" ["MB" nil :help "Help MB"]))
 
 (defun verilog-define-abbrev-table (tablename definitions &optional docstring &rest props)
-  "Filter `define-abbrev-table' TABLENAME DEFINITIONS
+  "Filter `define-abbrev-table' TABLENAME DEFINITIONS.
 Provides DOCSTRING PROPS in newer Emacs (23.1)."
   (condition-case nil
       (apply #'define-abbrev-table tablename definitions docstring props)
@@ -13380,7 +13380,7 @@ Typing \\[verilog-auto] will call my-verilog-insert-hello and
 expand the above into:
 
            /*AUTOINSERTLISP(my-verilog-insert-hello \"world\")*/
-           // Beginning of automatic insert lisp
+           // Beginning of automatic insert Lisp
            initial $write(\"hello world\");
            // End of automatics
 

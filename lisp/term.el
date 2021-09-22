@@ -340,7 +340,7 @@
 (defvar term-home-marker) ; Marks the "home" position for cursor addressing.
 (defvar term-saved-home-marker nil
   "When using alternate sub-buffer,
-contains saved term-home-marker from original sub-buffer.")
+contains saved `term-home-marker' from original sub-buffer.")
 (defvar term-start-line-column 0
   "(current-column) at start of screen line, or nil if unknown.")
 (defvar term-current-column 0 "If non-nil, is cache for (current-column).")
@@ -377,7 +377,7 @@ are not allowed.")
 (defvar term-scroll-with-delete nil
   "If t, forward scrolling should be implemented by delete to
 top-most line(s); and if nil, scrolling should be implemented
-by moving term-home-marker.  It is set to t if there is a
+by moving `term-home-marker'.  It is set to t if there is a
 \(non-default) scroll-region OR the alternate buffer is used.")
 (defvar term-pending-delete-marker) ; New user input in line mode
        ; needs to be deleted, because it gets echoed by the inferior.
@@ -669,7 +669,7 @@ Do not change it directly; use `term-set-escape-char' instead.")
   "Keymap used in Term pager mode.")
 
 (defvar term-ptyp t
-  "True if communications via pty; false if by pipe.  Buffer local.
+  "Non-nil if communications via pty; false if by pipe.  Buffer local.
 This is to work around a bug in Emacs process signaling.")
 
 (defvar term-last-input-match ""
@@ -1228,8 +1228,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
       (process-send-string proc chars))))
 
 (defun term-send-raw ()
-  "Send the last character typed through the terminal-emulator
-without any interpretation."
+  "Send last typed character to the terminal-emulator without any interpretation."
   (interactive)
   (let ((keys (this-command-keys)))
     (term-send-raw-string (string (aref keys (1- (length keys)))))))
@@ -1401,8 +1400,8 @@ Called as a buffer-local `read-only-mode-hook' function."
   (force-mode-line-update))
 
 (defun term-check-proc (buffer)
-  "True if there is a process associated w/buffer BUFFER, and it
-is alive.  BUFFER can be either a buffer or the name of one."
+  "Non-nil if there is a process associated w/buffer BUFFER, and it is alive.
+BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(run stop open listen connect)))))
 
@@ -1538,7 +1537,7 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
 Some other integer if Bash is new or not in use.
 Nil if unknown.")
 (defun term--bash-needs-EMACSp ()
-  "t if Bash is old, nil if it is new or not in use."
+  "Return t if Bash is old, nil if it is new or not in use."
   (eq 43
       (or term--bash-needs-EMACS-status
           (setf
@@ -2107,17 +2106,17 @@ The values of `term-get-old-input', `term-input-filter-functions', and
 in the buffer.  E.g.,
 
 If the interpreter is the csh,
-    term-get-old-input is the default: take the current line, discard any
-        initial string matching regexp term-prompt-regexp.
-    term-input-filter-functions monitors input for \"cd\", \"pushd\", and
+    `term-get-old-input' is the default: take the current line, discard any
+        initial string matching regexp `term-prompt-regexp'.
+    `term-input-filter-functions' monitors input for \"cd\", \"pushd\", and
 	\"popd\" commands.  When it sees one, it cd's the buffer.
-    term-input-filter is the default: returns t if the input isn't all white
+    `term-input-filter' is the default: returns t if the input isn't all white
 	space.
 
 If the term is Lucid Common Lisp,
-    term-get-old-input snarfs the sexp ending at point.
-    term-input-filter-functions does nothing.
-    term-input-filter returns nil if the input matches input-filter-regexp,
+    `term-get-old-input' snarfs the sexp ending at point.
+    `term-input-filter-functions' does nothing.
+    `term-input-filter' returns nil if the input matches input-filter-regexp,
         which matches (1) all whitespace (2) :a, :c, etc.
 
 Similarly for Soar, Scheme, etc."
@@ -2403,8 +2402,7 @@ Useful if you accidentally suspend the top-level process."
       (kill-region pmark (point)))))
 
 (defun term-delchar-or-maybe-eof (arg)
-  "Delete ARG characters forward, or send an EOF to process if at end of
-buffer."
+  "Delete ARG characters forward, or send an EOF to process if at end of buffer."
   (interactive "p")
   (if (eobp)
       (process-send-eof)
@@ -3171,7 +3169,7 @@ See `term-prompt-regexp'."
 Set in `pre-command-hook' in char mode by `term-set-goto-process-mark'.")
 
 (defun term-set-goto-process-mark ()
-  "Sets `term-goto-process-mark'.
+  "Set `term-goto-process-mark'.
 
 Always set to nil if `term-char-mode-point-at-process-mark' is nil.
 
@@ -3430,7 +3428,7 @@ option is enabled.  See `term-set-goto-process-mark'."
    (t)))
 
 (defun term--reset-scroll-region ()
-  "Sets the scroll region to the full height of the terminal."
+  "Set the scroll region to the full height of the terminal."
   (term-set-scroll-region 0 (term--last-line)))
 
 (defun term-set-scroll-region (top bottom)
@@ -3793,7 +3791,7 @@ all pending output has been dealt with."))
 
 (defun term-erase-in-display (kind)
   "Erase (that is blank out) part of the window.
-If KIND is 0, erase from (point) to (point-max);
+If KIND is 0, erase from point to point-max;
 if KIND is 1, erase from home to point; else erase from home to point-max."
   (term-handle-deferred-scroll)
   (cond ((eq kind 0)

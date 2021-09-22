@@ -820,8 +820,8 @@ If kbd macro currently being defined end it before activating it."
 
 (defun kmacro-bind-to-key (_arg)
   "When not defining or executing a macro, offer to bind last macro to a key.
-The key sequences [C-x C-k 0] through [C-x C-k 9] and [C-x C-k A]
-through [C-x C-k Z] are reserved for user bindings, and to bind to
+The key sequences `C-x C-k 0' through `C-x C-k 9' and `C-x C-k A'
+through `C-x C-k Z' are reserved for user bindings, and to bind to
 one of these sequences, just enter the digit or letter, rather than
 the whole sequence.
 

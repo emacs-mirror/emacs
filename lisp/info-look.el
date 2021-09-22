@@ -262,7 +262,8 @@ system."
 (defun info-lookup-symbol (symbol &optional mode)
   "Display the definition of SYMBOL, as found in the relevant manual.
 When this command is called interactively, it reads SYMBOL from the
-minibuffer.  In the minibuffer, use M-n to yank the default argument
+minibuffer.  In the minibuffer, use \\<minibuffer-local-completion-map>\
+\\[next-history-element] to yank the default argument
 value into the minibuffer so you can edit it.  The default symbol is the
 one found at point.
 
@@ -276,7 +277,8 @@ With prefix arg MODE a query for the symbol help mode is offered."
 (defun info-lookup-file (file &optional mode)
   "Display the documentation of a file.
 When this command is called interactively, it reads FILE from the minibuffer.
-In the minibuffer, use M-n to yank the default file name
+In the minibuffer, use \\<minibuffer-local-completion-map>\
+\\[next-history-element] to yank the default file name
 into the minibuffer so you can edit it.
 The default file name is the one found at point.
 

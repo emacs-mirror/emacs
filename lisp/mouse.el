@@ -46,7 +46,7 @@
   :type 'boolean)
 
 (defcustom mouse-drag-copy-region nil
-  "If non-nil, copy to kill-ring upon mouse adjustments of the region.
+  "If non-nil, copy to kill ring upon mouse adjustments of the region.
 
 This affects `mouse-save-then-kill' (\\[mouse-save-then-kill]) in
 addition to mouse drags.

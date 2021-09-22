@@ -2830,7 +2830,7 @@ if necessary."
     (when (>= count 0) (comint-update-fence))))
 
 (defun comint-kill-region (beg end)
-  "Like `kill-region', but ignores read-only properties, if safe.
+  "Like `kill-region', but ignore read-only properties, if safe.
 This command assumes that the buffer contains read-only
 \"prompts\" which are regions with front-sticky read-only
 properties at the beginning of a line, with the preceding newline

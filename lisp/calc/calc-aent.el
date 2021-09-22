@@ -537,8 +537,7 @@ The value t means abort and give an error message.")
     ("₋"  "-")  ; -
     ("₍"  "(")  ; (
     ("₎"  ")"))  ; )
-  "A list whose elements (old new) indicate replacements to make
-in Calc algebraic input.")
+  "A list indicating replacements to make in Calc algebraic input.")
 
 (defvar math-read-superscripts
   "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ⁿⁱ" ; 0123456789+-()ni
