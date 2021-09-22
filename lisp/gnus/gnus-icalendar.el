@@ -194,7 +194,9 @@
                           (caddr event))))
 
     (cl-labels
-	((attendee-role (prop) (plist-get (cadr prop) 'ROLE))
+	((attendee-role (prop)
+                        ;; RFC5546: default ROLE is REQ-PARTICIPANT
+                        (or (plist-get (cadr prop) 'ROLE) "REQ-PARTICIPANT"))
 	 (attendee-name
 	  (prop)
 	  (or (plist-get (cadr prop) 'CN)
@@ -225,7 +227,8 @@
                      (gnus-icalendar-event--find-attendee
                       ical attendee-name-or-email)))
          (attendee-names (gnus-icalendar-event--get-attendee-names ical))
-         (role (plist-get (cadr attendee) 'ROLE))
+         ;; RFC5546: default ROLE is REQ-PARTICIPANT
+         (role (or (plist-get (cadr attendee) 'ROLE) "REQ-PARTICIPANT"))
          (participation-type (pcase role
                                ("REQ-PARTICIPANT" 'required)
                                ("OPT-PARTICIPANT" 'optional)
