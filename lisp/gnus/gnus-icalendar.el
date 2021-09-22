@@ -847,10 +847,14 @@ These will be used to retrieve the RSVP information from ical events."
        button t
        gnus-data ,data))))
 
-(defun gnus-icalendar-send-buffer-by-mail (buffer-name subject)
+(defun gnus-icalendar-send-buffer-by-mail (buffer-name subject organizer)
   (let ((message-signature nil))
     (with-current-buffer gnus-summary-buffer
       (gnus-summary-reply)
+      ;; Reply to the organizer, not to whoever sent the invitation. person
+      ;; Some calendar systems use specific email address as organizer to
+      ;; receive these responses.
+      (message-replace-header "To" organizer)
       (message-goto-body)
       (mml-insert-multipart "alternative")
       (mml-insert-empty-tag 'part 'type "text/plain")
@@ -866,7 +870,8 @@ These will be used to retrieve the RSVP information from ical events."
          (event (caddr data))
          (reply (gnus-icalendar-with-decoded-handle handle
                   (gnus-icalendar-event-reply-from-buffer
-                   (current-buffer) status (gnus-icalendar-identities)))))
+                   (current-buffer) status (gnus-icalendar-identities))))
+         (organizer (gnus-icalendar-event:organizer event)))
 
     (when reply
       (cl-labels
@@ -883,7 +888,7 @@ These will be used to retrieve the RSVP information from ical events."
             (delete-region (point-min) (point-max))
             (insert reply)
             (fold-icalendar-buffer)
-            (gnus-icalendar-send-buffer-by-mail (buffer-name) subject))
+            (gnus-icalendar-send-buffer-by-mail (buffer-name) subject organizer))
 
           ;; Back in article buffer
           (setq-local gnus-icalendar-reply-status status)
