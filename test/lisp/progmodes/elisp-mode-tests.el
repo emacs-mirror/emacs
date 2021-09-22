@@ -1096,5 +1096,15 @@ evaluation of BODY."
                        "elisp--foo-test-complete-me"))
       (revert-buffer t t))))
 
+(ert-deftest elisp-shorthand-escape ()
+  (let ((test-file (expand-file-name "simple-shorthand-test.el"
+                                     elisp--test-resources-dir)))
+    (load test-file)
+    (should (intern-soft "f-test4---"))
+    (should-not (intern-soft "elisp--foo-test4---"))
+    (should (= 84 (funcall (intern-soft "f-test4---"))))
+    (should (unintern "f-test4---"))))
+
+
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

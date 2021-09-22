@@ -16,10 +16,13 @@
 
 (defvar f-test-complete-me 42)
 
+(defun #_f-test4--- () 84)
+
 (when nil
   (f-test3)
   (f-test2)
-  (f-test))
+  (f-test)
+  (#_f-test4---))
 
 
 ;; Local Variables:
