@@ -887,7 +887,13 @@ by the user at will."
          (prompt (if (zerop cpd-length)
                      prompt
                    (concat prompt (format " in %s" common-parent-directory))))
+         (included-cpd (when (member common-parent-directory all-files)
+                         (setq all-files
+                               (delete common-parent-directory all-files))
+                         t))
          (substrings (mapcar (lambda (s) (substring s cpd-length)) all-files))
+         (_ (when included-cpd
+              (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
          (res (project--completing-read-strict prompt
                                                new-collection
