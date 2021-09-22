@@ -705,6 +705,12 @@ comp_hash_source_file (Lisp_Object filename)
   /* Can't use Finsert_file_contents + Fbuffer_hash as this is called
      by Fcomp_el_to_eln_filename too early during bootstrap.  */
   bool is_gz = suffix_p (filename, ".gz");
+#ifndef HAVE_ZLIB
+  if (is_gz)
+    xsignal2 (Qfile_notify_error,
+	      build_string ("Cannot natively compile compressed *.el files without zlib support"),
+	      filename);
+#endif
   Lisp_Object encoded_filename = ENCODE_FILE (filename);
   FILE *f = emacs_fopen (SSDATA (encoded_filename), is_gz ? "rb" : "r");
 
@@ -713,9 +719,13 @@ comp_hash_source_file (Lisp_Object filename)
 
   Lisp_Object digest = make_uninit_string (MD5_DIGEST_SIZE * 2);
 
+#ifdef HAVE_ZLIB
   int res = is_gz
     ? md5_gz_stream (f, SSDATA (digest))
     : md5_stream (f, SSDATA (digest));
+#else
+  int res = md5_stream (f, SSDATA (digest));
+#endif
   fclose (f);
 
   if (res)

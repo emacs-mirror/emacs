@@ -31,6 +31,11 @@ and also requires GCC and Binutils to be available when Lisp code is
 natively compiled.  See the Info node "(elisp) Native Compilation" for
 more details.
 
+If you build Emacs with native compilation, but without zlib, be sure
+to configure with the '--without-compress-install' option, so that the
+installed *.el files are not compressed; otherwise, you will not be
+able to use JIT native compilation of the installed *.el files.
+
 ** The Cairo graphics library is now used by default if present.
 '--with-cairo' is now the default, if the appropriate development files
 are found by 'configure'.  Note that building with Cairo means using
