@@ -364,9 +364,6 @@ do_debug_on_call (Lisp_Object code, ptrdiff_t count)
   call_debugger (list1 (code));
 }
 
-/* NOTE!!! Every function that can call EVAL must protect its args
-   and temporaries from garbage collection while it needs them.
-   The definition of `For' shows what you have to do.  */
 
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
        doc: /* Eval args until one of them yields non-nil, then return that value.

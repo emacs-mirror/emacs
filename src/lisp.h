@@ -1555,6 +1555,14 @@ STRING_MULTIBYTE (Lisp_Object str)
 
 /* Convenience functions for dealing with Lisp strings.  */
 
+/* WARNING: Use the 'char *' pointers to string data with care in code
+   that could GC: GC can relocate string data, invalidating such
+   pointers.  It is best to use string character or byte index
+   instead, delaying the access through SDATA/SSDATA pointers to the
+   latest possible moment.  If you must use the 'char *' pointers
+   (e.g., for speed), be sure to adjust them after any call that could
+   potentially GC.  */
+
 INLINE unsigned char *
 SDATA (Lisp_Object string)
 {
