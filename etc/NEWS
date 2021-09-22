@@ -1047,7 +1047,8 @@ Set the variable 'auto-save-visited-mode' buffer-locally to nil to
 achieve that.
 
 +++
-** New command 'C-x C-k Q' to force redisplay in keyboard macros.
+** New command 'kdb-macro-redisplay to force redisplay in keyboard macros.
+This command is bound to 'C-x C-k d'.
 
 ---
 ** 'blink-cursor-mode' is now enabled by default regardless of the UI.
