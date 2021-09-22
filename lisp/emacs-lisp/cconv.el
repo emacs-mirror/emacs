@@ -794,6 +794,8 @@ This function does not return anything but instead fills the
     ;; (`(declare . ,_) nil)               ;The args don't contain code.
 
     (`(,_ . ,body-forms)    ; First element is a function or whatever.
+     (unless (listp body-forms)
+       (signal 'wrong-type-argument (list 'proper-list-p form)))
      (dolist (form body-forms) (cconv-analyze-form form env)))
 
     ((pred symbolp)
