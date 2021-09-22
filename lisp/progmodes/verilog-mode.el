@@ -1,4 +1,4 @@
-;;; verilog-mode.el --- major mode for editing verilog source in Emacs
+;;; verilog-mode.el --- major mode for editing verilog source in Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2021.09.16.045775504
+;; Version: 2021.09.22.045357537
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2021-09-16-2ba7a90-vpo-GNU"
+(defconst verilog-mode-version "2021-09-22-2b419e1-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -4759,7 +4759,7 @@ More specifically, after a generate and before an endgenerate."
 	(while (and
 		(/= nest 0)
 		(verilog-re-search-backward
-                "\\<\\(module\\)\\|\\(connectmodule\\)\\|\\(generate\\)\\|\\(endgenerate\\)\\>" nil 'move)
+                "\\<\\(module\\)\\|\\(connectmodule\\)\\|\\(generate\\)\\|\\(endgenerate\\)\\|\\(if\\)\\|\\(case\\)\\|\\(for\\)\\>" nil 'move)
 		(cond
 		 ((match-end 1) ; module - we have crawled out
 		  (throw 'done 1))
@@ -4768,7 +4768,13 @@ More specifically, after a generate and before an endgenerate."
                 ((match-end 3) ; generate
 		  (setq nest (1- nest)))
                 ((match-end 4) ; endgenerate
-		  (setq nest (1+ nest))))))))
+                 (setq nest (1+ nest)))
+                ((match-end 5) ; if
+                 (setq nest (1- nest)))
+                ((match-end 6) ; case
+                 (setq nest (1- nest)))
+                ((match-end 7) ; for
+                 (setq nest (1- nest))))))))
     (= nest 0) )) ; return nest
 
 (defun verilog-in-fork-region-p ()
@@ -6588,7 +6594,7 @@ Return >0 for nested struct."
                        (equal (char-before) ?\;)
                        (equal (char-before) ?\}))
                    ;; skip what looks like bus repetition operator {#{
-                   (not (string-match "^{\\s-*[0-9a-zA-Z_]+\\s-*{" (buffer-substring p (point)))))))))
+                   (not (string-match "^{\\s-*[\\(\\)0-9a-zA-Z_]*\\s-*{" (buffer-substring p (point)))))))))
       (progn
         (let ( (pt (point)) (pass 0))
           (verilog-backward-ws&directives)
@@ -11575,6 +11581,7 @@ See the example in `verilog-auto-inout-modport'."
 (defun verilog-auto-inst-port-map (_port-st)
   nil)
 
+;; These are used by user's AUTO_TEMPLATE Lisp expressions
 (defvar vl-cell-type nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-cell-name nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-memory    nil "See `verilog-auto-inst'.") ; Prevent compile warning
