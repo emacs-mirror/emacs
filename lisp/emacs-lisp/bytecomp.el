@@ -2930,6 +2930,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		   (macroexp--const-symbol-p arg t))
 	       (error "Invalid lambda variable %s" arg))
 	      ((eq arg '&rest)
+               (unless (cdr list)
+                 (error "&rest without variable name"))
 	       (when (cddr list)
 		 (error "Garbage following &rest VAR in lambda-list"))
                (when (memq (cadr list) '(&optional &rest))

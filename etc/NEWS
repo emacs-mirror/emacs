@@ -3273,6 +3273,13 @@ local variable would not be heeded.  This has now changed, and a file
 with a 'lexical-binding' cookie is always heeded.  To revert to the
 old behavior, set 'permanently-enabled-local-variables' to nil.
 
++++
+** '&rest' in argument lists must always be followed by a variable name.
+Omitting the variable name after '&rest' was previously tolerated in
+some cases but not consistently so; it could lead to crashes or
+outright wrong results.  Since the utility was marginal at best, it is
+now an error to omit the variable.
+
 ---
 ** 'kill-all-local-variables' has changed how it handles non-symbol hooks.
 The function is documented to eliminate all buffer-local bindings
