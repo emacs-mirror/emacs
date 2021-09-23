@@ -41,7 +41,8 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure
-RUN make -j4 bootstrap
+# 'make -j4 bootstrap' does not work reliably.
+RUN make bootstrap
 RUN make -j4
 
 FROM emacs-base as emacs-filenotify-gio
@@ -55,7 +56,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
-RUN make -j4 bootstrap
+RUN make bootstrap
 RUN make -j4
 
 FROM emacs-base as emacs-gnustep
