@@ -278,6 +278,15 @@ name is defined as a Lisp function.  Type @kbd{C-g} to cancel the
 @kbd{C-h f} command if you don't really want to view the
 documentation.
 
+@vindex help-enable-symbol-autoload
+  If you request help for an autoloaded function whose @code{autoload}
+form (@pxref{Autoload,,, elisp, The Emacs Lisp Reference Manual})
+doesn't provide a doc string, the @file{*Help*} buffer won't have any
+doc string to display.  In that case, if
+@code{help-enable-symbol-autoload} is non-@code{nil}, Emacs will try
+to load the file in which the function is defined to see whether
+there's a doc string there.
+
 @findex shortdoc-display-group
   You can get an overview of functions relevant for a particular topic
 by using the @kbd{M-x shortdoc-display-group} command.  This will
@@ -309,6 +318,14 @@ manuals, not just the Emacs manual, and finds the right one.
 variable, or a face.  If the symbol has more than one definition, like
 it has both definition as a function and as a variable, this command
 will show the documentation of all of them, one after the other.
+
+@vindex completions-detailed
+  If the @code{completions-detailed} user option is non-@code{nil},
+some commands provide details about the possible values when
+displaying completions.  For instance, @kbd{C-h o TAB} will then
+include the first line of the doc string, and will also say whether
+each symbol is a function or a variable (and so on).  Which details
+are included varies depending on the command used.
 
 @node Apropos
 @section Apropos

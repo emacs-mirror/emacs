@@ -545,6 +545,7 @@ Return a cons (REV . FILENAME)."
 
 (defvar log-view-vc-backend)
 (defvar log-view-vc-fileset)
+(defvar vc-git-print-log-follow)
 
 (defun vc-annotate-show-log-revision-at-line ()
   "Visit the log of the revision at line.
@@ -559,6 +560,8 @@ the file in question, search for the log entry required and move point."
 	  (message "Cannot extract revision number from the current line")
 	(let ((backend vc-annotate-backend)
 	      (log-buf (get-buffer "*vc-change-log*"))
+              ;; No need to follow renames: we specify the historical file name.
+              vc-git-print-log-follow
 	      pos)
 	  (if (and
 	       log-buf

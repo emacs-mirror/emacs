@@ -1762,7 +1762,7 @@ Once the END-TEST becomes true, the RESULT forms are evaluated (with
 the VARs still bound to their values) to produce the result
 returned by `cl-do'.
 
-Note that the entire loop is enclosed in an implicit `nil' block, so
+Note that the entire loop is enclosed in an implicit nil block, so
 that you can use `cl-return' to exit at any time.
 
 Also note that END-TEST is checked before evaluating BODY.  If END-TEST
@@ -1791,7 +1791,7 @@ Once the END-TEST becomes true, the RESULT forms are evaluated (with
 the VARs still bound to their values) to produce the result
 returned by `cl-do*'.
 
-Note that the entire loop is enclosed in an implicit `nil' block, so
+Note that the entire loop is enclosed in an implicit nil block, so
 that you can use `cl-return' to exit at any time.
 
 Also note that END-TEST is checked before evaluating BODY.  If END-TEST
@@ -2071,7 +2071,7 @@ Like `cl-flet' but the definitions can refer to previous ones.
   ;; even handle mutually recursive functions.
   (letrec
       ((done nil) ;; Non-nil if some TCO happened.
-       ;; This var always holds the value `nil' until (just before) we
+       ;; This var always holds the value nil until (just before) we
        ;; exit the loop.
        (retvar (make-symbol "retval"))
        (ofargs (mapcar (lambda (s) (if (memq s cl--lambda-list-keywords) s

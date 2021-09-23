@@ -597,7 +597,7 @@ or a buffer name."
           (let ((inhibit-read-only t))
             (goto-char (point-min))
             (insert (substitute-command-keys
-                     (concat "\\<outline-mode-cycle-map>Type "
+                     (concat "\\<outline-minor-mode-cycle-map>Type "
                              "\\[outline-cycle] or \\[outline-cycle-buffer] "
                              "on headings to cycle their visibility.\n\n")))
             ;; Hide the longest body

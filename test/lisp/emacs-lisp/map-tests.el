@@ -85,11 +85,13 @@ Evaluate BODY for each created map."
     (should (= 5 (map-elt map 0 5)))))
 
 (ert-deftest test-map-elt-testfn ()
-  (let ((map (list (cons "a" 1) (cons "b" 2)))
-        ;; Make sure to use a non-eq "a", even when compiled.
-        (noneq-key (string ?a)))
-    (should-not (map-elt map noneq-key))
-    (should (map-elt map noneq-key nil #'equal))))
+  (let* ((a (string ?a))
+         (map `((,a . 0) (,(string ?b) . 1))))
+    (should (= (map-elt map a) 0))
+    (should (= (map-elt map "a") 0))
+    (should (= (map-elt map (string ?a)) 0))
+    (should (= (map-elt map "b") 1))
+    (should (= (map-elt map (string ?b)) 1))))
 
 (ert-deftest test-map-elt-with-nil-value ()
   (should-not (map-elt '((a . 1) (b)) 'b 2)))
@@ -128,6 +130,19 @@ Evaluate BODY for each created map."
         (should (eq (map-elt map 'k) 'v))
         (setf (map-elt map size) 'v)
         (should (eq (map-elt map size) 'v))))))
+
+(ert-deftest test-map-put!-alist ()
+  "Test `map-put!' test function on alists."
+  (let ((key (string ?a))
+        (val 0)
+        map)
+    (should-error (map-put! map key val) :type 'map-not-inplace)
+    (setq map (list (cons key val)))
+    (map-put! map key (1- val))
+    (should (equal map '(("a" . -1))))
+    (map-put! map (string ?a) (1+ val))
+    (should (equal map '(("a" . 1))))
+    (should-error (map-put! map (string ?a) val #'eq) :type 'map-not-inplace)))
 
 (ert-deftest test-map-put-alist-new-key ()
   "Regression test for Bug#23105."
@@ -196,6 +211,15 @@ Evaluate BODY for each created map."
 (ert-deftest test-map-delete-empty ()
   (with-empty-maps-do map
     (should (eq map (map-delete map t)))))
+
+(ert-deftest test-map-delete-alist ()
+  "Test `map-delete' test function on alists."
+  (let* ((a (string ?a))
+         (map `((,a) (,(string ?b)))))
+    (setq map (map-delete map a))
+    (should (equal map '(("b"))))
+    (setq map (map-delete map (string ?b)))
+    (should-not map)))
 
 (ert-deftest test-map-nested-elt ()
   (let ((vec [a b [c d [e f]]]))

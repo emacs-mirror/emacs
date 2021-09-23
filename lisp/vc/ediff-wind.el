@@ -89,25 +89,25 @@ provided functions are written."
 		 (function :tag "Other function"))
   :version "24.3")
 
-;; indicates if we are in a multiframe setup
-(ediff-defvar-local ediff-multiframe nil "")
+(ediff-defvar-local ediff-multiframe nil
+  "Indicates if we are in a multiframe setup.")
 
-;; Share of the frame occupied by the merge window (buffer C)
-(ediff-defvar-local ediff-merge-window-share 0.45 "")
+(ediff-defvar-local ediff-merge-window-share 0.45
+  "Share of the frame occupied by the merge window (buffer C).")
 
-;; The control window.
-(ediff-defvar-local ediff-control-window nil "")
-;; Official window for buffer A
-(ediff-defvar-local ediff-window-A nil "")
-;; Official window for buffer B
-(ediff-defvar-local ediff-window-B nil "")
-;; Official window for buffer C
-(ediff-defvar-local ediff-window-C nil "")
-;; Official window for buffer Ancestor
-(ediff-defvar-local ediff-window-Ancestor nil "")
-;; Ediff's window configuration.
-;; Used to minimize the need to rearrange windows.
-(ediff-defvar-local ediff-window-config-saved "" "")
+(ediff-defvar-local ediff-control-window nil
+  "The control window.")
+(ediff-defvar-local ediff-window-A nil
+  "Official window for buffer A.")
+(ediff-defvar-local ediff-window-B nil
+  "Official window for buffer B.")
+(ediff-defvar-local ediff-window-C nil
+  "Official window for buffer C.")
+(ediff-defvar-local ediff-window-Ancestor nil
+  "Official window for buffer Ancestor.")
+(ediff-defvar-local ediff-window-config-saved ""
+  "Ediff's window configuration.
+Used to minimize the need to rearrange windows.")
 
 ;; Association between buff-type and ediff-window-*
 (defconst ediff-window-alist
@@ -176,9 +176,9 @@ In this case, Ediff will use those frames to display these buffers."
   "Frame parameters for displaying Ediff Control Panel.
 Used internally---not a user option.")
 
-;; position of the mouse; used to decide whether to warp the mouse into ctl
-;; frame
-(ediff-defvar-local ediff-mouse-pixel-position nil "")
+(ediff-defvar-local ediff-mouse-pixel-position nil
+  "Position of the mouse.
+Used to decide whether to warp the mouse into control frame.")
 
 ;; not used for now
 (defvar ediff-mouse-pixel-threshold 30
@@ -227,12 +227,10 @@ customization of the default."
 
 ;; Wide frame display
 
-;; t means Ediff is using wide display
-(ediff-defvar-local ediff-wide-display-p nil "")
-;; keeps frame config for toggling wide display
+(ediff-defvar-local ediff-wide-display-p nil
+  "If t, Ediff is using wide display.")
 (ediff-defvar-local ediff-wide-display-orig-parameters nil
-  "Frame parameters to be restored when the user wants to toggle the wide
-display off.")
+  "Frame parameters to restore when toggling the wide display off.")
 (ediff-defvar-local ediff-wide-display-frame nil
   "Frame to be used for wide display.")
 (ediff-defvar-local ediff-make-wide-display-function #'ediff-make-wide-display
@@ -243,8 +241,8 @@ frame parameters in `ediff-wide-display-orig-parameters'.
 The variable `ediff-wide-display-frame' should be set to contain
 the frame used for the wide display.")
 
-;; Frame used for the control panel in a windowing system.
-(ediff-defvar-local ediff-control-frame nil "")
+(ediff-defvar-local ediff-control-frame nil
+  "Frame used for the control panel in a windowing system.")
 
 (defcustom ediff-prefer-iconified-control-frame nil
   "If t, keep control panel iconified when help message is off.
@@ -844,7 +842,7 @@ keyboard input to go into icons."
 
 (defun ediff-skip-unsuitable-frames (&optional ok-unsplittable)
   "Skip unsplittable frames and frames that have dedicated windows.
-create a new splittable frame if none is found."
+Create a new splittable frame if none is found."
   (if (ediff-window-display-p)
       (let ((wind-frame (window-frame))
 	     seen-windows)

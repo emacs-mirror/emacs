@@ -225,7 +225,7 @@ request.")
         (os-info (unless (and (listp url-privacy-level)
                               (memq 'os url-privacy-level))
                    (format "(%s; %s)" url-system-type url-os-type)))
-        (url-info (format "URL/Emacs")))
+        (url-info "URL/Emacs"))
     (string-join (delq nil (list package-info url-info
                                  emacs-info os-info))
                  " ")))
@@ -462,53 +462,53 @@ Return the number of characters removed."
     ;; credentials to the server, and they were wrong, so just give
     ;; up.
     (let ((authorization (assoc "Authorization" url-http-extra-headers)))
-      (when (and authorization
-		 (not (string-match "^NTLM " (cdr authorization))))
-	(error "Wrong authorization used for %s" url)))
+      (if (and authorization
+               (not (string-match "^NTLM " (cdr authorization)))) ;Bug#43566
+          t ;; Instruct caller to signal an error.  Bug#50511
+        ;; Find strongest supported auth.
+        (dolist (this-auth auths)
+          (setq this-auth (url-eat-trailing-space
+                           (url-strip-leading-spaces
+                            this-auth)))
+          (let* ((this-type
+                  (downcase (if (string-match "[ \t]" this-auth)
+                                (substring this-auth 0 (match-beginning 0))
+                              this-auth)))
+                 (registered (url-auth-registered this-type))
+                 (this-strength (cddr registered)))
+            (when (and registered (> this-strength strength))
+              (setq auth this-auth
+                    type this-type
+                    strength this-strength))))
 
-    ;; find strongest supported auth
-    (dolist (this-auth auths)
-      (setq this-auth (url-eat-trailing-space
-		       (url-strip-leading-spaces
-			this-auth)))
-      (let* ((this-type
-	      (downcase (if (string-match "[ \t]" this-auth)
-                            (substring this-auth 0 (match-beginning 0))
-                          this-auth)))
-	     (registered (url-auth-registered this-type))
-	     (this-strength (cddr registered)))
-	(when (and registered (> this-strength strength))
-	  (setq auth this-auth
-		type this-type
-		strength this-strength))))
+        (if (not (url-auth-registered type))
+            (progn
+              (widen)
+              (goto-char (point-max))
+              (insert "<hr>Sorry, but I do not know how to handle "
+                      (or type auth url "")
+                      " authentication.  If you'd like to write it,"
+                      " please use M-x report-emacs-bug RET.<hr>")
+              ;; We used to set a `status' var (declared "special") but I can't
+              ;; find the corresponding let-binding, so it's probably an error.
+              ;; FIXME: Maybe it was supposed to set `success', i.e. to return t?
+              ;; (setq status t)
+              nil) ;; Not success yet.
 
-    (if (not (url-auth-registered type))
-	(progn
-	  (widen)
-	  (goto-char (point-max))
-	  (insert "<hr>Sorry, but I do not know how to handle " (or type auth url "")
-		  " authentication.  If you'd like to write it,"
-		  " please use M-x report-emacs-bug RET.<hr>")
-          ;; We used to set a `status' var (declared "special") but I can't
-          ;; find the corresponding let-binding, so it's probably an error.
-          ;; FIXME: Maybe it was supposed to set `success', i.e. to return t?
-          ;; (setq status t)
-          nil) ;; Not success yet.
-
-      (let* ((args (url-parse-args (subst-char-in-string ?, ?\; auth)))
-	     (auth (url-get-authentication auth-url
-					   (cdr-safe (assoc "realm" args))
-					   type t args)))
-	(if (not auth)
-            t                           ;Success.
-	  (push (cons (if proxy "Proxy-Authorization" "Authorization") auth)
-		url-http-extra-headers)
-	  (let ((url-request-method url-http-method)
-		(url-request-data url-http-data)
-		(url-request-extra-headers url-http-extra-headers))
-	    (url-retrieve-internal url url-callback-function
-				   url-callback-arguments))
-          nil))))) ;; Not success yet.
+          (let* ((args (url-parse-args (subst-char-in-string ?, ?\; auth)))
+                 (auth (url-get-authentication auth-url
+                                               (cdr-safe (assoc "realm" args))
+                                               type t args)))
+            (if (not auth)
+                t                           ;Success.
+              (push (cons (if proxy "Proxy-Authorization" "Authorization") auth)
+                    url-http-extra-headers)
+              (let ((url-request-method url-http-method)
+                    (url-request-data url-http-data)
+                    (url-request-extra-headers url-http-extra-headers))
+                (url-retrieve-internal url url-callback-function
+                                       url-callback-arguments))
+              nil))))))) ;; Not success yet.
 
 (defun url-http-parse-response ()
   "Parse just the response code."

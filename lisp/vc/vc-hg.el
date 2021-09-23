@@ -137,8 +137,7 @@ switches."
   :version "25.1")
 
 (defcustom vc-hg-revert-switches nil
-  "String or list of strings specifying switches for hg revert
-under VC."
+  "String or list of strings specifying switches for hg revert under VC."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
@@ -643,8 +642,8 @@ Variable `vc-hg-create-bookmark' controls what kind of branch will be created."
 ;;; Native data structure reading
 
 (defcustom vc-hg-parse-hg-data-structures t
-  "If true, try directly parsing Mercurial data structures
-directly instead of always running Mercurial.  We try to be safe
+  "If true, try parsing Mercurial data structures directly.
+This is done instead of always running Mercurial.  We try to be safe
 against Mercurial data structure format changes and always fall
 back to running Mercurial directly."
   :type 'boolean
@@ -1017,9 +1016,9 @@ FILENAME must be the file's true absolute name."
     "remotefilelog"
     "revlogv1"
     "store")
-  "List of Mercurial repository requirements we understand; if a
-repository requires features not present in this list, we avoid
-attempting to parse Mercurial data structures.")
+  "List of Mercurial repository requirements we understand.
+If a repository requires features not present in this list, we
+avoid attempting to parse Mercurial data structures.")
 
 (defun vc-hg--requirements-understood-p (repo)
   "Check that we understand the format of the given repository.

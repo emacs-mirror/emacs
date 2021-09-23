@@ -141,12 +141,14 @@ Zero means compute the Imenu menu regardless of size."
 		 local-map ,which-func-keymap
 		 face which-func
 		 mouse-face mode-line-highlight
-		 help-echo "mouse-1: go to beginning\n\
-mouse-2: toggle rest visibility\n\
-mouse-3: go to end")
+                 help-echo ,(concat
+                             "Current function\n"
+                             "mouse-1: go to beginning\n"
+                             "mouse-2: toggle rest visibility\n"
+                             "mouse-3: go to end"))
     "]")
   "Format for displaying the function in the mode line."
-  :version "24.2"                  ; added mouse-face; 24point2 is correct
+  :version "28.1"
   :type 'sexp)
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
 

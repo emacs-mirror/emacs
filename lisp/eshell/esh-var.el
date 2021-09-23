@@ -45,7 +45,7 @@
 ;;
 ;;   $(lisp)
 ;;
-;; Returns result of lisp evaluation.  Note: Used alone like this, it
+;; Returns result of Lisp evaluation.  Note: Used alone like this, it
 ;; is identical to just saying (lisp); but with the variable expansion
 ;; form, the result may be interpolated a larger string, such as
 ;; '$(lisp)/other'.

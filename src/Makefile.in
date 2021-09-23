@@ -545,7 +545,13 @@ charscript = ${lispintdir}/charscript.el
 ${charscript}: FORCE
 	$(MAKE) -C ../admin/unidata $(notdir $@)
 
-${lispintdir}/characters.elc: ${charscript:.el=.elc}
+emoji-zwj = ${lispintdir}/emoji-zwj.el
+${emoji-zwj}: FORCE
+	$(MAKE) -C ../admin/unidata $(notdir $@)
+
+${lispintdir}/characters.elc: ${charscript:.el=.elc} ${emoji-zwj:.el=.elc}
+
+SYSTEM_TYPE = @SYSTEM_TYPE@
 
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
@@ -555,6 +561,9 @@ ${lispintdir}/characters.elc: ${charscript:.el=.elc}
 emacs$(EXEEXT): temacs$(EXEEXT) \
                 lisp.mk $(etc)/DOC $(lisp) \
                 $(lispsource)/international/charprop.el ${charsets}
+ifeq ($(SYSTEM_TYPE),cygwin)
+	find ${top_builddir} -name '*.eln' | rebase -v -O -T -
+endif
 ifeq ($(DUMPING),unexec)
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=dump
   ifneq ($(PAXCTL_dumped),)
@@ -629,7 +638,7 @@ endif
 ## This goes on to affect various things, and the emacs binary fails
 ## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
-  $(charsets) $(charscript) $(MAKE_PDUMPER_FINGERPRINT)
+  $(charsets) $(charscript) ${emoji-zwj} $(MAKE_PDUMPER_FINGERPRINT)
 	$(AM_V_CCLD)$(CC) -o $@.tmp \
 	  $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)

@@ -222,6 +222,15 @@ going past the original starting point of the search, it changes to
 @samp{Overwrapped}, which means that you are revisiting matches that
 you have already seen.
 
+@vindex isearch-wrap-pause
+  You can control what happens when there are no more matches by
+customizing the @code{isearch-wrap-pause} user option.  If it is
+@code{t} (the default), signal an error.  (Repeating the search will
+wrap around.)  If @code{no}, issue a @code{ding} and wrap immediately
+after reaching the last match.  If @code{no-ding}, wrap immediately,
+but don't @code{ding}.  Finally, if @code{nil}, never wrap, but just
+stop at the last match.
+
 @cindex search ring
 @findex isearch-ring-advance
 @findex isearch-ring-retreat

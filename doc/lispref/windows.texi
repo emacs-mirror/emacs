@@ -2081,6 +2081,11 @@ windows to search, and have the same meanings as in
 @code{next-window}.
 @end defun
 
+@defun window-bump-use-time window
+This function marks @var{window} as having been recently used.  This
+can be useful when creating certain @code{pop-to-buffer} scenarios.
+@end defun
+
 
 @node Buffers and Windows
 @section Buffers and Windows

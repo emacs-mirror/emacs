@@ -101,7 +101,7 @@
   :type 'boolean)
 
 (defcustom c-macro-prompt-flag nil
-  "Non-nil makes `c-macro-expand' prompt for preprocessor arguments."
+  "Non-nil means `c-macro-expand' will prompt for preprocessor arguments."
   :type 'boolean)
 
 (defcustom c-macro-preprocessor

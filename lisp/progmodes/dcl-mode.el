@@ -494,7 +494,7 @@ Variables controlling indentation style and extra features:
     These variables control the look of expanded templates.
 
  dcl-imenu-generic-expression
-    Default value for imenu-generic-expression.  The default includes
+    Default value for `imenu-generic-expression'.  The default includes
     SUBROUTINE labels in the main listing and sub-listings for
     other labels, CALL, GOTO and GOSUB statements.
 
@@ -1463,7 +1463,7 @@ Inserts continuation marks and splits character strings."
 
 ;;;-------------------------------------------------------------------------
 (defun dcl-delete-indentation (&optional arg)
-  "Join this line to previous like delete-indentation.
+  "Join this line to previous like `delete-indentation'.
 Also remove the continuation mark if easily detected."
   (interactive "*P")
   (delete-indentation arg)

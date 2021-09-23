@@ -66,9 +66,6 @@ is used in preference to the old `idlwave-html-help-location'."
 6.2 or later (see `idlwave-html-system-help-location')."
   :type 'directory)
 
-(defvar idlwave-help-use-hh nil
-  "Obsolete variable.")
-
 (defcustom idlwave-help-use-assistant t
   "Whether to use the IDL Assistant as the help browser."
   :type 'boolean)
@@ -97,9 +94,6 @@ assumed to be local to Emacs.  For other local browsers, this variable
 must be explicitly set non-nil in order for the variable
 `idlwave-help-use-dedicated-frame' to function."
   :type 'boolean)
-
-(defvar idlwave-help-directory ""
-  "Obsolete variable.  See `idlwave-html-help-location'.")
 
 (defcustom idlwave-help-use-dedicated-frame t
   "Non-nil means, use a separate frame for Online Help if possible."
@@ -1348,8 +1342,15 @@ IDL assistant.")
     (setq idlwave-help-assistant-socket nil
 	  idlwave-help-assistant-process nil)))
 
+;;; Obsolete
+
 (defvar idlwave-help-browse-url-available t)
 (make-obsolete-variable 'idlwave-help-browse-url-available nil "28.1")
+(defvar idlwave-help-use-hh nil "Obsolete variable.")
+(make-obsolete-variable 'idlwave-help-use-hh nil "28.1")
+(defvar idlwave-help-directory ""
+  "Obsolete variable.  See `idlwave-html-help-location'.")
+(make-obsolete-variable 'idlwave-help-directory nil "28.1")
 
 (provide 'idlw-help)
 (provide 'idlwave-help)

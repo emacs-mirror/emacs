@@ -34,9 +34,9 @@
   :type '(repeat string))
 
 (defcustom dos-codepage-setup-hook nil
-  "List of functions to be called after the DOS terminal and coding
-systems are set up.  This is the place, e.g., to set specific entries
-in `standard-display-table' as appropriate for your codepage, if
+  "List of functions to call after setting up DOS terminal and coding systems.
+This is the place, e.g., to set specific entries in
+`standard-display-table' as appropriate for your codepage, if
 `IT-display-table-setup' doesn't do a perfect job."
   :type '(hook)
   :version "20.3.3")

@@ -687,10 +687,12 @@ matched file names, and weeding out false positives."
 		    ,(expand-file-name "compilation.txt" data-directory)))
 
 (defvar compilation-error-case-fold-search nil
-  "If non-nil, use case-insensitive matching of compilation errors
-by the regexps of `compilation-error-regexp-alist' and
-`compilation-error-regexp-alist-alist'.
+  "If non-nil, use case-insensitive matching of compilation errors.
 If nil, matching is case-sensitive.
+
+Compilation errors are given by the regexps in
+`compilation-error-regexp-alist' and
+`compilation-error-regexp-alist-alist'.
 
 This variable should only be set for backward compatibility as a temporary
 measure.  The proper solution is to use a regexp that matches the
@@ -2260,7 +2262,7 @@ by replacing the first word, e.g., `compilation-scroll-output' from
   (if buffer-file-name
       (let (revert-buffer-function)
 	(revert-buffer ignore-auto noconfirm))
-    (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
+    (if (or noconfirm (yes-or-no-p "Restart compilation? "))
 	(apply #'compilation-start compilation-arguments))))
 
 (defvar compilation-current-error nil

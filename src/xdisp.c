@@ -4288,11 +4288,16 @@ handle_fontified_prop (struct it *it)
       struct buffer *obuf = current_buffer;
       ptrdiff_t begv = BEGV, zv = ZV;
       bool old_clip_changed = current_buffer->clip_changed;
+      bool saved_inhibit_flag = it->f->inhibit_clear_image_cache;
 
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
 
       eassert (it->end_charpos == ZV);
+
+      /* Don't allow Lisp that runs from 'fontification-functions'
+	 clear our face and image caches behind our back.  */
+      it->f->inhibit_clear_image_cache = true;
 
       if (!CONSP (val) || EQ (XCAR (val), Qlambda))
 	safe_call1 (val, pos);
@@ -4327,6 +4332,7 @@ handle_fontified_prop (struct it *it)
 	    }
 	}
 
+      it->f->inhibit_clear_image_cache = saved_inhibit_flag;
       unbind_to (count, Qnil);
 
       /* Fontification functions routinely call `save-restriction'.

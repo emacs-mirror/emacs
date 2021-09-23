@@ -3838,9 +3838,13 @@ if test "${with_native_compilation}" != "no"; then
 
       if test -n "$HAVE_MACPORTS"; then
         # Determine which gcc version has been installed (gcc11, for
-        # instance).
+        # instance). Use the latest version, if more than one is
+        # available.  (We filter out the gcc4 packages, because they
+        # don't support jit, and they have names like "gcc49" that
+        # sort later than "gcc11".)
         PORT_PACKAGE=$(port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
-                            awk '{ print $1; }')
+                            awk '{ print $1; }' | grep -v 'gcc4@<:@0-9@:>@' | \
+                            sort -V | tail -n 1)
         if test -n "$PORT_PACKAGE"; then
           MAC_CFLAGS="-I$(dirname $(port contents $PORT_PACKAGE | \
                                            grep libgccjit.h))"

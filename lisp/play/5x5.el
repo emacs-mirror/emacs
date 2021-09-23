@@ -387,7 +387,7 @@ Mutate the result."
 (defun 5x5-crack (breeder)
   "Attempt to find a solution for 5x5.
 
-5x5-crack takes the argument BREEDER which should be a function that takes
+`5x5-crack' takes the argument BREEDER which should be a function that takes
 two parameters, the first will be a grid vector array that is the current
 solution and the second will be the best solution so far.  The function
 should return a grid vector array that is the new solution."
@@ -474,8 +474,8 @@ position."
 		grid)))
 
 (defun 5x5-vec-to-grid (grid-matrix)
-  "Convert a grid matrix GRID-MATRIX in Calc format to a grid in
-5x5 format.  See function `5x5-grid-to-vec'."
+  "Convert a grid matrix GRID-MATRIX in Calc format to a grid in 5x5 format.
+See function `5x5-grid-to-vec'."
   (apply
    #'vector
    (mapcar

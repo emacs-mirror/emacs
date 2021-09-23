@@ -3585,17 +3585,19 @@ commands.
 @cindex exit recursive editing
 @cindex aborting
   To invoke a recursive editing level, call the function
-@code{recursive-edit}.  This function contains the command loop; it also
-contains a call to @code{catch} with tag @code{exit}, which makes it
-possible to exit the recursive editing level by throwing to @code{exit}
-(@pxref{Catch and Throw}).  If you throw a @code{nil} value, then
-@code{recursive-edit} returns normally to the function that called it.
-The command @kbd{C-M-c} (@code{exit-recursive-edit}) does this.
-Throwing a @code{t} value causes @code{recursive-edit} to quit, so that
-control returns to the command loop one level up.  This is called
-@dfn{aborting}, and is done by @kbd{C-]} (@code{abort-recursive-edit}).
-You can also throw a function value.  In that case,
+@code{recursive-edit}.  This function contains the command loop; it
+also contains a call to @code{catch} with tag @code{exit}, which makes
+it possible to exit the recursive editing level by throwing to
+@code{exit} (@pxref{Catch and Throw}).  Throwing a @code{t} value
+causes @code{recursive-edit} to quit, so that control returns to the
+command loop one level up.  This is called @dfn{aborting}, and is done
+by @kbd{C-]} (@code{abort-recursive-edit}).  Similarly, you can throw
+a string value to make @code{recursive-edit} signal an error, printing
+this string as the message.  If you throw a function,
 @code{recursive-edit} will call it without arguments before returning.
+Throwing any other value, will make @code{recursive-edit} return
+normally to the function that called it.  The command @kbd{C-M-c}
+(@code{exit-recursive-edit}) does this.
 
   Most applications should not use recursive editing, except as part of
 using the minibuffer.  Usually it is more convenient for the user if you

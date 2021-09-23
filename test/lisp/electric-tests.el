@@ -35,7 +35,8 @@
 (defun call-with-saved-electric-modes (fn)
   (let ((saved-electric (if electric-pair-mode 1 -1))
         (saved-layout (if electric-layout-mode 1 -1))
-        (saved-indent (if electric-indent-mode 1 -1)))
+        (saved-indent (if electric-indent-mode 1 -1))
+        (blink-paren-function nil))
     (electric-pair-mode -1)
     (electric-layout-mode -1)
     (electric-indent-mode -1)
@@ -173,7 +174,7 @@ The buffer's contents should %s:
           expected-string
           expected-point
           bindings
-          (modes '(quote (ruby-mode js-mode)))
+          (modes '(quote (ruby-mode js-mode python-mode)))
           (test-in-comments t)
           (test-in-strings t)
           (test-in-code t)
@@ -296,7 +297,7 @@ The buffer's contents should %s:
 ;;; Quotes
 ;;;
 (define-electric-pair-test pair-some-quotes-skip-others
-  " \"\"      " "-\"\"-----" :skip-pair-string "-ps------"
+  " \"\"      " "-\"\"-\"---" :skip-pair-string "-ps-p----"
   :test-in-strings nil
   :bindings `((electric-pair-text-syntax-table
                . ,prog-mode-syntax-table)))

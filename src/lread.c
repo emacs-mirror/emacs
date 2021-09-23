@@ -192,7 +192,7 @@ static int readbyte_from_string (int, Lisp_Object);
    Qlambda, or a cons, we use this to keep an unread character because
    a file stream can't handle multibyte-char unreading.  The value -1
    means that there's no unread character.  */
-static int unread_char;
+static int unread_char = -1;
 
 static int
 readchar (Lisp_Object readcharfun, bool *multibyte)
@@ -1507,6 +1507,7 @@ Return t if the file exists and loads successfully.  */)
       input.stream = stream;
       input.lookahead = 0;
       infile = &input;
+      unread_char = -1;
     }
 
   if (! NILP (Vpurify_flag))

@@ -551,7 +551,7 @@ has the form (autoload . FILENAME).")
   "Alist of undefined functions to which calls have been compiled.
 Each element in the list has the form (FUNCTION POSITION . CALLS)
 where CALLS is a list whose elements are integers (indicating the
-number of arguments passed in the function call) or the constant `t'
+number of arguments passed in the function call) or the constant t
 if the function is called indirectly.
 This variable is only significant whilst compiling an entire buffer.
 Used for warnings when a function is not known to be defined or is later
@@ -915,7 +915,7 @@ CONST2 may be evaluated multiple times."
 				,bytes ,pc))
 
 (defun byte-compile-lapcode (lap)
-  "Turns lapcode into bytecode.  The lapcode is destroyed."
+  "Turn lapcode LAP into bytecode.  The lapcode is destroyed."
   ;; Lapcode modifications: changes the ID of a tag to be the tag's PC.
   (let ((pc 0)			; Program counter
 	op off			; Operation & offset
@@ -1899,7 +1899,7 @@ also be compiled."
   "Non-nil to prevent byte-compiling of Emacs Lisp code.
 This is normally set in local file variables at the end of the elisp file:
 
-\;; Local Variables:\n;; no-byte-compile: t\n;; End: ") ;Backslash for compile-main.
+\;; Local Variables:\n;; no-byte-compile: t\n;; End:") ;Backslash for compile-main.
 ;;;###autoload(put 'no-byte-compile 'safe-local-variable 'booleanp)
 
 (defun byte-recompile-file (filename &optional force arg load)
@@ -4417,7 +4417,7 @@ Return (TAIL VAR TEST CASES), where:
          (cases (nth 2 switch))
          jump-table test-objects body tag default-tag)
     ;; TODO: Once :linear-search is implemented for `make-hash-table'
-    ;; set it to `t' for cond forms with a small number of cases.
+    ;; set it to t for cond forms with a small number of cases.
     (let ((nvalues (apply #'+ (mapcar (lambda (case) (length (car case)))
                                       cases))))
       (setq jump-table (make-hash-table
@@ -4446,7 +4446,7 @@ Return (TAIL VAR TEST CASES), where:
     (byte-compile-out 'byte-switch)
 
     ;; When the opcode argument is `byte-goto', `byte-compile-goto' sets
-    ;; `byte-compile-depth' to `nil'. However, we need `byte-compile-depth'
+    ;; `byte-compile-depth' to nil. However, we need `byte-compile-depth'
     ;; to be non-nil for generating tags for all cases. Since
     ;; `byte-compile-depth' will increase by at most 1 after compiling
     ;; all of the clause (which is further enforced by cl-assert below)

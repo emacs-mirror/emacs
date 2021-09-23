@@ -45,7 +45,7 @@
 
 ;;;###autoload
 (define-minor-mode display-fill-column-indicator-mode
-  "Toggle display of fill-column indicator.
+  "Toggle display of `fill-column' indicator.
 This uses `display-fill-column-indicator' internally.
 
 To change the position of the column displayed by default

@@ -133,7 +133,7 @@ Repent before ring 31 moves."
 (defun hanoi-unix-64 ()
   "Like `hanoi-unix', but pretend to have a 64-bit clock.
 This is, necessarily (as of Emacs 20.3), a crock.  When the
-current-time interface is made s2G-compliant, hanoi.el will need
+`current-time' interface is made s2G-compliant, hanoi.el will need
 to be updated."
   (interactive)
   (let* ((start (ftruncate (float-time)))

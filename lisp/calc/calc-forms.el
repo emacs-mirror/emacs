@@ -703,16 +703,19 @@ in the Gregorian calendar."
 	  fmt))))
 
 (defconst math-julian-date-beginning '(float 17214245 -1)
-  "The beginning of the Julian date calendar,
-as measured in the number of days before December 31, 1 BC (Gregorian).")
+  "The beginning of the Julian date calendar.
+This is measured in the number of days before December 31, 1
+BC (Gregorian).")
 
 (defconst math-julian-date-beginning-int 1721425
-  "The beginning of the Julian date calendar,
-as measured in the integer number of days before December 31, 1 BC (Gregorian).")
+  "The beginning of the Julian date calendar.
+This is measured in the integer number of days before December
+31, 1 BC (Gregorian).")
 
 (defconst math-unix-epoch 719163
-  "The beginning of Unix time: days from December 31, 1 BC (Gregorian)
-to Jan 1, 1970 AD.")
+  "The beginning of Unix time.
+This is measured in the integer number of days from December 31,
+1 BC (Gregorian) to Jan 1, 1970 AD.")
 
 (defun math-format-date-part (x)
   (cond ((stringp x)

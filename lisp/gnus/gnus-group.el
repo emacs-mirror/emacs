@@ -4398,8 +4398,7 @@ If FORCE, force saving whether it is necessary or not."
 (defun gnus-group-restart (&optional _arg)
   "Force Gnus to read the .newsrc file."
   (interactive nil gnus-group-mode)
-  (when (gnus-yes-or-no-p
-	 (format "Are you sure you want to restart Gnus? "))
+  (when (gnus-yes-or-no-p "Are you sure you want to restart Gnus? ")
     (gnus-save-newsrc-file)
     (gnus-clear-system)
     (gnus)))

@@ -51,7 +51,7 @@
   :group 'languages)
 
 (defconst opascal-debug nil
-  "True if in debug mode.")
+  "Non-nil if in debug mode.")
 
 (define-obsolete-variable-alias
   'delphi-search-path 'opascal-search-path "24.4")
@@ -1732,7 +1732,8 @@ comment block.  If not in a // comment, just does a normal newline."
 (define-obsolete-function-alias 'delphi-mode #'opascal-mode "24.4")
 ;;;###autoload
 (define-derived-mode opascal-mode prog-mode "OPascal"
-  "Major mode for editing OPascal code.\\<opascal-mode-map>
+  "Major mode for editing OPascal code.
+\\<opascal-mode-map>
 \\[opascal-find-unit]\t- Search for a OPascal source file.
 \\[opascal-fill-comment]\t- Fill the current comment.
 \\[opascal-new-comment-line]\t- If in a // comment, do a new comment line.

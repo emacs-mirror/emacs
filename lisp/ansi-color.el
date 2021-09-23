@@ -604,7 +604,7 @@ codes.	Finally, the so changed list of codes is returned."
     codes))
 
 (defun ansi-color-make-color-map ()
-  "Creates a vector of face definitions and returns it.
+  "Create a vector of face definitions and return it.
 
 The index into the vector is an ANSI code.  See the documentation of
 `ansi-color-map' for an example.

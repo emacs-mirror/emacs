@@ -1033,7 +1033,7 @@
 ;;
 ;; To make sure a certain piece of advice gets executed even if some error or
 ;; non-local exit occurred in any preceding code, we can protect it by using
-;; the `protect' keyword. (if any of the around advices is protected then the
+;; the `protect' keyword (if any of the around advices is protected then the
 ;; whole around advice onion will be protected):
 ;;
 ;; (defadvice foo (after fg-cleanup prot act)
@@ -3105,7 +3105,7 @@ The syntax of `defadvice' is as follows:
 FUNCTION ::= Name of the function to be advised.
 CLASS ::= `before' | `around' | `after' | `activation' | `deactivation'.
 NAME ::= Non-nil symbol that names this piece of advice.
-POSITION ::= `first' | `last' | NUMBER. Optional, defaults to `first',
+POSITION ::= `first' | `last' | NUMBER.  Optional, defaults to `first',
     see also `ad-add-advice'.
 ARGLIST ::= An optional argument list to be used for the advised function
     instead of the argument list of the original.  The first one found in

@@ -69,7 +69,8 @@ major mode in effect."
   :group 'viper)
 
 (defcustom viper-want-ctl-h-help nil
-  "If non-nil, bind C-h to help-command; otherwise, C-h gets the usual Vi bindings."
+  "If non-nil, bind C-h to `help-command'.
+If nil, C-h gets the usual Vi bindings."
   :type 'boolean
   :group 'viper)
 
@@ -211,17 +212,17 @@ In insert mode, this key also functions as Meta."
 
 ;; Tells viper-add-local-keys to create a new viper-vi-local-user-map for new
 ;; buffers.  Not a user option.
-(defvar-local viper-need-new-vi-local-map t "")
+(defvar-local viper-need-new-vi-local-map t)
 (put 'viper-need-new-vi-local-map  'permanent-local t)
 
 ;; Tells viper-add-local-keys to create a new viper-insert-local-user-map for
 ;; new buffers.  Not a user option.
-(defvar-local viper-need-new-insert-local-map t "")
+(defvar-local viper-need-new-insert-local-map t)
 (put 'viper-need-new-insert-local-map  'permanent-local t)
 
 ;; Tells viper-add-local-keys to create a new viper-emacs-local-user-map for
 ;; new buffers.  Not a user option.
-(defvar-local viper-need-new-emacs-local-map t "")
+(defvar-local viper-need-new-emacs-local-map t)
 (put 'viper-need-new-emacs-local-map  'permanent-local t)
 
 

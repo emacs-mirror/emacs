@@ -668,7 +668,7 @@ sub-iterator function returns via `iter-end-of-sequence'."
          (iter-close ,valsym)))))
 
 (defmacro iter-defun (name arglist &rest body)
-  "Creates a generator NAME.
+  "Create a generator NAME that accepts ARGLIST as its arguments.
 When called as a function, NAME returns an iterator value that
 encapsulates the state of a computation that produces a sequence
 of values.  Callers can retrieve each value using `iter-next'."

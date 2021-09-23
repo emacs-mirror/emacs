@@ -934,8 +934,8 @@ When index is restricted, select the previous section as restriction criterion."
      (t nil))))
 
 (defun reftex-index-analyze-entry (data)
-  ;; This splits the index context so that key, attribute and visual
-  ;; values are accessible individually.
+  "Split index context so that key, attribute and visual
+values are accessible individually."
   (interactive)
   (let* ((arg (nth 5 data))
          (context (nth 2 data))
@@ -1666,7 +1666,7 @@ this function repeatedly."
          (repeat
           (princ (format "  Index entry:  %s\n" phrase)))
          (t
-          (princ (format "    Index key:  <<Given by the match>>\n"))))
+          (princ "    Index key:  <<Given by the match>>\n")))
         (princ (format "      Example:  %s\n" example))
         (terpri)
         (princ (format "Total matches:  %s in %s\n"

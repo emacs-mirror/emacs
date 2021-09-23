@@ -330,7 +330,8 @@ select the nearest entry with the correct new level."
   "The maximum level of toc entries which will be included in the TOC.
 Section headings with a bigger level will be ignored.  In RefTeX, chapters
 are level 1, sections are level 2 etc.
-This variable can be changed from within the *toc* buffer with the `t' key."
+This variable can be changed from within the *toc* buffer with \
+\\<reftex-toc-mode-map>\\[reftex-toc-max-level]."
   :group 'reftex-table-of-contents-browser
   :type 'integer)
 
@@ -1208,7 +1209,7 @@ path."
   :type '(repeat (file)))
 
 (defcustom reftex-sort-bibtex-matches 'reverse-year
-  "Sorting of the entries found in BibTeX databases by reftex-citation.
+  "Sorting of the entries found in BibTeX databases by `reftex-citation'.
 Possible values:
 nil            Do not sort entries.
 `author'       Sort entries by author name.
@@ -1364,7 +1365,7 @@ should return the string to insert into the buffer."
   :type '(choice (const nil) function))
 
 (defcustom reftex-select-bib-mode-hook nil
-  "Mode hook for reftex-select-bib-mode."
+  "Mode hook for `reftex-select-bib-mode'."
   :group 'reftex-citation-support
   :type 'hook)
 
@@ -1840,7 +1841,7 @@ upon the variable `reftex-initialize-temporary-buffers'."
 
 (defcustom reftex-initialize-temporary-buffers nil
   "Non-nil means do initializations even when visiting file temporarily.
-When nil, RefTeX may turn off find-file hooks and other stuff to briefly
+When nil, RefTeX may turn off `find-file' hooks and other stuff to briefly
 visit a file.
 When t, the full default initializations are done (find-file-hook etc.).
 Instead of t or nil, this variable may also be a list of hook functions to

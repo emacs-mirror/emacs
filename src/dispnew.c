@@ -6704,7 +6704,7 @@ See `buffer-display-table' for more information.  */);
 
   DEFVAR_LISP ("tab-bar-position", Vtab_bar_position,
 	       doc: /* Specify on which side from the tool bar the tab bar shall be.
-Possible values are `t' (below the tool bar), `nil' (above the tool bar).
+Possible values are t (below the tool bar), nil (above the tool bar).
 This option affects only builds where the tool bar is not external.  */);
 
   pdumper_do_now_and_after_load (syms_of_display_for_pdumper);

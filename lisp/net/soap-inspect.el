@@ -124,7 +124,7 @@ This is a specialization of `soap-sample-value' for
          (format "a string between %d and %d chars long" low high))
         (low (format "a string at least %d chars long" low))
         (high (format "a string at most %d chars long" high))
-        (t (format "a string OOPS")))))
+        (t "a string OOPS"))))
     ((soap-xs-simple-type-integer-range type)
      (cl-destructuring-bind (min . max) (soap-xs-simple-type-integer-range type)
        (cond

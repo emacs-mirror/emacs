@@ -50,7 +50,7 @@
 ;; ------------------------------------------------------------------------
 ;; r4622 | ckuethe | 2007-12-23 18:18:01 -0500 (Sun, 23 Dec 2007) | 2 lines
 ;;
-;; uBlox AEK-4T in binary mode. Added to unstable because it breaks gpsfake
+;; uBlox AEK-4T in binary mode.  Added to unstable because it breaks gpsfake
 ;;
 ;; ------------------------------------------------------------------------
 ;; r4621 | ckuethe | 2007-12-23 16:48:11 -0500 (Sun, 23 Dec 2007) | 3 lines

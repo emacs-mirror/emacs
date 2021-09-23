@@ -123,7 +123,7 @@ This is called from a timer set up by `erc-autojoin-channels'."
       (erc-autojoin-channels server nick))))
 
 (defun erc-autojoin-server-match (candidate)
-  "Match the current network or server against CANDIDATE
+  "Match the current network or server against CANDIDATE.
 This should be a key from `erc-autojoin-channels-alist'."
   (or (eq candidate (erc-network))
       (and (stringp candidate)

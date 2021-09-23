@@ -1428,8 +1428,12 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 (if dump-mode
     ;; While dumping, we can't use require, and international is not
     ;; in load-path.
-    (load "international/charscript")
-  (require 'charscript))
+    (progn
+      (load "international/charscript")
+      (load "international/emoji-zwj"))
+  (progn
+    (require 'charscript)
+    (require 'emoji-zwj)))
 
 (map-charset-chars
  (lambda (range _ignore)

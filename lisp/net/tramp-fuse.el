@@ -154,7 +154,7 @@
 	(when (tramp-file-name-user vec)
 	  (concat (tramp-file-name-user-domain vec) "@"))
 	(tramp-file-name-host-port vec))
-       (tramp-compat-temporary-file-directory))))
+       tramp-compat-temporary-file-directory)))
 
 (defun tramp-fuse-mounted-p (vec)
   "Check, whether fuse volume determined by VEC is mounted."
@@ -163,7 +163,7 @@
     ;; to cache a nil result.
     (or (tramp-get-connection-property
          (tramp-get-connection-process vec) "mounted" nil)
-        (let* ((default-directory (tramp-compat-temporary-file-directory))
+        (let* ((default-directory tramp-compat-temporary-file-directory)
                (command (format "mount -t fuse.%s" (tramp-file-name-method vec)))
 	       (mount (shell-command-to-string command)))
           (tramp-message vec 6 "%s\n%s" command mount)
@@ -177,7 +177,7 @@
 
 (defun tramp-fuse-unmount (vec)
   "Unmount fuse volume determined by VEC."
-  (let ((default-directory (tramp-compat-temporary-file-directory))
+  (let ((default-directory tramp-compat-temporary-file-directory)
         (command (format "fusermount3 -u %s" (tramp-fuse-mount-point vec))))
     (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
     (tramp-flush-connection-property

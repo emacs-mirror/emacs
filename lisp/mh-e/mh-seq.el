@@ -187,7 +187,7 @@ MESSAGE appears."
     (message "Message %d%s is in sequences: %s"
              message
              (cond (dest-folder (format " (to be refiled to %s)" dest-folder))
-                   (deleted-flag (format " (to be deleted)"))
+                   (deleted-flag " (to be deleted)")
                    (t ""))
              (mapconcat #'concat
                         (mh-list-to-string (mh-seq-containing-msg message t))

@@ -246,19 +246,19 @@ that deletes a file.")
 
 ;; Some common error messages
 
-(defconst viper-SpuriousText "Spurious text after command"  "")
-(defconst viper-BadExCommand "Not an editor command"   "")
-(defconst viper-InvalidCommandArgument "Invalid command argument"   "")
-(defconst viper-NoPrevSearch "No previous search string"   "")
-(defconst viper-EmptyRegister "`%c': Nothing in this register"   "")
-(defconst viper-InvalidRegister "`%c': Invalid register"   "")
-(defconst viper-EmptyTextmarker "`%c': Text marker doesn't point anywhere"   "")
-(defconst viper-InvalidTextmarker "`%c': Invalid text marker"   "")
-(defconst viper-InvalidViCommand "Invalid command"   "")
-(defconst viper-BadAddress "Ill-formed address"   "")
-(defconst viper-FirstAddrExceedsSecond "First address exceeds second"   "")
-(defconst viper-NoFileSpecified "No file specified"   "")
-(defconst viper-ViperBell "Viper bell"   "")
+(defconst viper-SpuriousText "Spurious text after command")
+(defconst viper-BadExCommand "Not an editor command")
+(defconst viper-InvalidCommandArgument "Invalid command argument")
+(defconst viper-NoPrevSearch "No previous search string")
+(defconst viper-EmptyRegister "`%c': Nothing in this register")
+(defconst viper-InvalidRegister "`%c': Invalid register")
+(defconst viper-EmptyTextmarker "`%c': Text marker doesn't point anywhere")
+(defconst viper-InvalidTextmarker "`%c': Invalid text marker")
+(defconst viper-InvalidViCommand "Invalid command")
+(defconst viper-BadAddress "Ill-formed address")
+(defconst viper-FirstAddrExceedsSecond "First address exceeds second")
+(defconst viper-NoFileSpecified "No file specified")
+(defconst viper-ViperBell "Viper bell")
 
 ;; Is t until viper-mode executes for the very first time.
 ;; Prevents recursive descend into startup messages.
@@ -282,7 +282,7 @@ Use `\\[viper-set-expert-level]' to change this.")
 ;; If non-nil, ISO accents will be turned on in insert/replace emacs states and
 ;; turned off in vi-state.  For some users, this behavior may be too
 ;; primitive.  In this case, use insert/emacs/vi state hooks.
-(defvar-local viper-automatic-iso-accents nil "")
+(defvar-local viper-automatic-iso-accents nil)
 ;; Set iso-accents-mode to ARG.  Check if it is bound first
 (defsubst viper-set-iso-accents-mode (arg)
   (if (boundp 'iso-accents-mode)
@@ -292,7 +292,7 @@ Use `\\[viper-set-expert-level]' to change this.")
 ;; Don't change this!
 (defvar viper-mule-hook-flag t)
 ;; If non-nil, the default intl.  input method is turned on.
-(defvar-local viper-special-input-method nil "")
+(defvar-local viper-special-input-method nil)
 
 ;; viper hook to run on input-method activation
 (defun viper-activate-input-method-action ()
@@ -355,7 +355,7 @@ it better fits your working style."
 ;; Replace mode and changing text
 
 ;; Hack used to pass global states around for short period of time
-(defvar-local viper-intermediate-command nil "")
+(defvar-local viper-intermediate-command nil)
 
 ;; This is used to pass the right Vi command key sequence to
 ;; viper-set-destructive-command whenever (this-command-keys) doesn't give the
@@ -365,7 +365,7 @@ it better fits your working style."
 (defconst viper-this-command-keys nil)
 
 ;; Indicates that the current destructive command has started in replace mode.
-(defvar-local viper-began-as-replace nil "")
+(defvar-local viper-began-as-replace nil)
 
 (defcustom viper-allow-multiline-replace-regions t
   "If non-nil, Viper will allow multi-line replace regions.
@@ -396,7 +396,7 @@ delete the text being replaced, as in standard Vi."
 ;; internal var, used to remember the default cursor color of emacs frames
 (defvar viper-vi-state-cursor-color nil)
 
-(defvar-local viper-replace-overlay nil "")
+(defvar-local viper-replace-overlay nil)
 (put 'viper-replace-overlay 'permanent-local t)
 
 (defcustom viper-replace-region-end-delimiter "$"
@@ -434,18 +434,18 @@ color displays.  By default, the delimiters are used only on TTYs."
 (put 'viper-last-posn-in-replace-region 'permanent-local t)
 (put 'viper-last-posn-while-in-insert-state 'permanent-local t)
 
-(defvar-local viper-sitting-in-replace nil "")
+(defvar-local viper-sitting-in-replace nil)
 (put 'viper-sitting-in-replace 'permanent-local t)
 
 ;; Remember the number of characters that have to be deleted in replace
 ;; mode to compensate for the inserted characters.
-(defvar-local viper-replace-chars-to-delete 0 "")
+(defvar-local viper-replace-chars-to-delete 0)
 ;; This variable is used internally by the before/after changed functions to
 ;; determine how many chars were deleted by the change.  This can't be
 ;; determined inside after-change-functions because those get the length of the
 ;; deleted region, not the number of chars deleted (which are two different
 ;; things under MULE).
-(defvar-local viper-replace-region-chars-deleted 0 "")
+(defvar-local viper-replace-region-chars-deleted 0)
 
 ;; Insertion ring and command ring
 (defcustom viper-insertion-ring-size 14
@@ -494,7 +494,7 @@ will make it hard to use Vi-style timeout macros."
 ;; Autoindent in insert
 
 ;; Variable that keeps track of whether C-t has been pressed.
-(defvar-local viper-cted nil "")
+(defvar-local viper-cted nil)
 
 ;; Preserve the indent value, used by C-d in insert mode.
 (defvar-local viper-current-indent 0)
@@ -502,14 +502,14 @@ will make it hard to use Vi-style timeout macros."
 ;; Whether to preserve the indent, used by C-d in insert mode.
 (defvar-local viper-preserve-indent nil)
 
-(defvar-local viper-auto-indent nil "")
+(defvar-local viper-auto-indent nil)
 (defcustom viper-auto-indent nil
   "Enable autoindent, if t.
 This is a buffer-local variable."
   :type 'boolean
   :group 'viper)
 
-(defvar-local viper-electric-mode t "")
+(defvar-local viper-electric-mode t)
 (defcustom viper-electric-mode t
   "If t, electrify Viper.
 Currently, this only electrifies auto-indentation, making it appropriate to the
@@ -595,7 +595,7 @@ to a new place after repeating previous Vi command."
 ;;; Variables for Moves and Searches
 
 (defgroup viper-search nil
-  "Variables that define the search and query-replace behavior of Viper."
+  "Variables that define the search and `query-replace' behavior of Viper."
   :prefix "viper-"
   :group 'viper)
 
@@ -658,14 +658,14 @@ negative number."
   :type 'boolean
   :group 'viper)
 
-(defvar-local viper-ex-style-motion t "")
+(defvar-local viper-ex-style-motion t)
 (defcustom viper-ex-style-motion t
   "If t, the commands l,h do not cross lines, etc (Ex-style).
 If nil, these commands cross line boundaries."
   :type 'boolean
   :group 'viper)
 
-(defvar-local viper-ex-style-editing t "")
+(defvar-local viper-ex-style-editing t)
 (defcustom viper-ex-style-editing t
   "If t, Ex-style behavior while editing in Vi command and insert states.
 `Backspace' and `Delete' don't cross line boundaries in insert.
@@ -677,14 +677,14 @@ If nil, the above commands can work across lines."
   :type 'boolean
   :group 'viper)
 
-(defvar-local viper-ESC-moves-cursor-back viper-ex-style-editing "")
+(defvar-local viper-ESC-moves-cursor-back viper-ex-style-editing)
 (defcustom viper-ESC-moves-cursor-back nil
   "If t, ESC moves cursor back when changing from insert to vi state.
 If nil, the cursor stays where it was when ESC was hit."
   :type 'boolean
   :group 'viper)
 
-(defvar-local viper-delete-backwards-in-replace nil "")
+(defvar-local viper-delete-backwards-in-replace nil)
 (defcustom viper-delete-backwards-in-replace nil
   "If t, DEL key will delete characters while moving the cursor backwards.
 If nil, the cursor will move backwards without deleting anything."
@@ -702,7 +702,7 @@ If nil, the cursor will move backwards without deleting anything."
   :tag "Search Wraps Around"
   :group 'viper-search)
 
-(defvar-local viper-related-files-and-buffers-ring nil "")
+(defvar-local viper-related-files-and-buffers-ring nil)
 (defcustom viper-related-files-and-buffers-ring nil
   "List of file and buffer names to consider related to the current buffer.
 Related buffers can be cycled through via :R and :P commands."
@@ -839,8 +839,7 @@ to customize the actual face object `viper-minibuffer-vi'
 this variable represents.")
 
 ;; the current face to be used in the minibuffer
-(defvar-local
-  viper-minibuffer-current-face viper-minibuffer-emacs-face "")
+(defvar-local viper-minibuffer-current-face viper-minibuffer-emacs-face)
 
 
 ;;; Miscellaneous

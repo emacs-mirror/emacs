@@ -901,8 +901,8 @@ non local exit (ends with an `unreachable' insn)."))
   (lap () :type list
        :documentation "LAP assembly representation.")
   (ssa-status nil :type symbol
-       :documentation "SSA status either: 'nil', 'dirty' or 't'.
-Once in SSA form this *must* be set to 'dirty' every time the topology of the
+       :documentation "SSA status either: nil, `dirty' or t.
+Once in SSA form this *must* be set to `dirty' every time the topology of the
 CFG is mutated by a pass.")
   (frame-size nil :type integer)
   (vframe-size 0 :type integer)
@@ -3804,8 +3804,9 @@ Return the trampoline if found or nil otherwise."
 
 ;;;###autoload
 (defun comp-clean-up-stale-eln (file)
-  "Given FILE remove all its *.eln files in `native-comp-eln-load-path'
-sharing the original source filename (including FILE)."
+  "Remove all FILE*.eln* files found in `native-comp-eln-load-path'.
+The files to be removed are those produced from the original source
+filename (including FILE)."
   (when (string-match (rx "-" (group-n 1 (1+ hex)) "-" (1+ hex) ".eln" eos)
                       file)
     (cl-loop

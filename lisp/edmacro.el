@@ -108,7 +108,7 @@ With a prefix argument, format the macro in a more concise way."
                  (memq cmd-noremap '(call-last-kbd-macro kmacro-call-macro kmacro-end-or-call-macro kmacro-end-and-call-macro))
 		 (member keys '("\r" [return])))
 	     (or last-kbd-macro
-		 (y-or-n-p "No keyboard macro defined.  Create one? ")
+                 (y-or-n-p "No keyboard macro defined.  Create one?")
 		 (keyboard-quit))
 	     (setq mac (or last-kbd-macro ""))
 	     (setq keys nil)
@@ -244,8 +244,9 @@ or nil, use a compact 80-column format."
 			(and (fboundp cmd) (not (arrayp (symbol-function cmd)))
 			     (not (get cmd 'kmacro))
 			     (not (y-or-n-p
-				   (format "Command %s is already defined; %s"
-					   cmd "proceed? ")))
+                                   (format
+                                    "Command %s is already defined; proceed?"
+                                    cmd)))
 			     (keyboard-quit))))
 		    t)
 		   ((looking-at "Key:\\(.*\\)$")
@@ -264,9 +265,9 @@ or nil, use a compact 80-column format."
 				     (not (or (arrayp (symbol-function b))
 					      (get b 'kmacro))))
 				 (not (y-or-n-p
-				       (format "Key %s is already defined; %s"
-					       (edmacro-format-keys key 1)
-					       "proceed? ")))
+                                       (format
+                                        "Key %s is already defined; proceed?"
+                                        (edmacro-format-keys key 1))))
 				 (keyboard-quit))))))
 		    t)
 		   ((looking-at "Counter:[ \t]*\\([^ \t\n]*\\)[ \t]*$")

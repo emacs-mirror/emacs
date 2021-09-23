@@ -22,6 +22,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 ;; declare-function's args use &rest, not &optional, for compatibility
@@ -166,8 +168,8 @@ variables are literal symbols and should not be quoted.
 
 The second VALUE is not computed until after the first VARIABLE
 is set, and so on; each VALUE can use the new value of variables
-set earlier in the ‘setq-local’.  The return value of the
-‘setq-local’ form is the value of the last VALUE.
+set earlier in the `setq-local'.  The return value of the
+`setq-local' form is the value of the last VALUE.
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
@@ -4665,13 +4667,24 @@ rather than your caller's match data."
 	      '(set-match-data save-match-data-internal 'evaporate))))
 
 (defun match-string (num &optional string)
-  "Return string of text matched by last search.
-NUM specifies which parenthesized expression in the last regexp.
- Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
-Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING.
-If STRING is nil, the current buffer should be the same buffer
-the search/match was performed in."
+  "Return the string of text matched by the previous search or regexp operation.
+NUM specifies the number of the parenthesized sub-expression in the last
+regexp whose match to return.  Zero means return the text matched by the
+entire regexp or the whole string.
+
+The return value is nil if NUMth pair didn't match anything, or if there
+were fewer than NUM sub-expressions in the regexp used in the search.
+
+STRING should be given if the last search was by `string-match'
+on STRING.  If STRING is nil, the current buffer should be the
+same buffer as the one in which the search/match was performed.
+
+Note that many functions in Emacs modify the match data, so this
+function should be called \"close\" to the function that did the
+regexp search.  In particular, saying (for instance)
+`M-: (looking-at \"[0-9]\") RET' followed by `M-: (match-string 0) RET'
+interactively is seldom meaningful, since the Emacs command loop
+may modify the match data."
   (declare (side-effect-free t))
   (if (match-beginning num)
       (if string
@@ -4937,25 +4950,25 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (aset newstr i tochar)))
     newstr))
 
-(defun string-replace (fromstring tostring instring)
-  "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs."
+(defun string-replace (from-string to-string in-string)
+  "Replace FROM-STRING with TO-STRING in IN-STRING each time it occurs."
   (declare (pure t) (side-effect-free t))
-  (when (equal fromstring "")
+  (when (equal from-string "")
     (signal 'wrong-length-argument '(0)))
   (let ((start 0)
         (result nil)
         pos)
-    (while (setq pos (string-search fromstring instring start))
+    (while (setq pos (string-search from-string in-string start))
       (unless (= start pos)
-        (push (substring instring start pos) result))
-      (push tostring result)
-      (setq start (+ pos (length fromstring))))
+        (push (substring in-string start pos) result))
+      (push to-string result)
+      (setq start (+ pos (length from-string))))
     (if (null result)
         ;; No replacements were done, so just return the original string.
-        instring
+        in-string
       ;; Get any remaining bit.
-      (unless (= start (length instring))
-        (push (substring instring start) result))
+      (unless (= start (length in-string))
+        (push (substring in-string start) result))
       (apply #'concat (nreverse result)))))
 
 (defun replace-regexp-in-string (regexp rep string &optional
@@ -5995,7 +6008,7 @@ print the reporter message followed by the word \"done\".
            (,count 0)
            (,list ,(cadr spec)))
        (when (stringp ,prep)
-         (setq ,prep (make-progress-reporter ,prep 0 (1- (length ,list)))))
+         (setq ,prep (make-progress-reporter ,prep 0 (length ,list))))
        (dolist (,(car spec) ,list)
          ,@body
          (progress-reporter-update ,prep (setq ,count (1+ ,count))))
@@ -6425,5 +6438,13 @@ This is intended for internal use only."
            (json-serialize t)
          (:success t)
          (json-unavailable nil))))
+
+(defun ensure-list (object)
+  "Return OBJECT as a list.
+If OBJECT is already a list, return OBJECT itself.  If it's
+not a list, return a one-element list containing OBJECT."
+  (if (listp object)
+      object
+    (list object)))
 
 ;;; subr.el ends here

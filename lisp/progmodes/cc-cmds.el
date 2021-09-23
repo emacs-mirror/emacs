@@ -5113,8 +5113,9 @@ inside a preprocessor directive."
 
 (defun c-context-open-line ()
   "Insert a line break suitable to the context and leave point before it.
-This is the `c-context-line-break' equivalent to `open-line', which is
-normally bound to C-o.  See `c-context-line-break' for the details."
+This is the `c-context-line-break' equivalent to `open-line'
+\(bound to \\[open-line]).  See `c-context-line-break' for the
+details."
   (interactive "*")
   (let ((here (point)))
     (unwind-protect

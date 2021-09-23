@@ -105,8 +105,8 @@
 ;;; Entries
 
 (defun profiler-format-entry (entry)
-  "Format ENTRY in human readable string.  ENTRY would be a
-function name of a function itself."
+  "Format ENTRY in human readable string.
+ENTRY would be a function name of a function itself."
   (cond ((memq (car-safe entry) '(closure lambda))
 	 (format "#<lambda %#x>" (sxhash entry)))
 	((byte-code-function-p entry)
@@ -463,7 +463,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
   "The current profile.")
 
 (defvar-local profiler-report-reversed nil
-  "True if calltree is rendered in bottom-up.
+  "Non-nil if calltree is rendered in bottom-up.
 Do not touch this variable directly.")
 
 (defvar-local profiler-report-order nil

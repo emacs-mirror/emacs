@@ -5,7 +5,7 @@
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, lisp
-;; Version: 3.1
+;; Version: 3.2
 ;; Package-Requires: ((emacs "26"))
 
 ;; This file is part of GNU Emacs.
@@ -103,10 +103,14 @@ Returns the result of evaluating the form associated with MAP-VAR's type."
   (and (consp list) (atom (car list))))
 
 (cl-defgeneric map-elt (map key &optional default testfn)
-  "Lookup KEY in MAP and return its associated value.
+  "Look up KEY in MAP and return its associated value.
 If KEY is not found, return DEFAULT which defaults to nil.
 
-TESTFN is deprecated.  Its default depends on the MAP argument.
+TESTFN is the function to use for comparing keys.  It is
+deprecated because its default and valid values depend on the MAP
+argument.  Generally, alist keys are compared with `equal', plist
+keys with `eq', and hash-table keys with the hash-table's test
+function.
 
 In the base definition, MAP can be an alist, plist, hash-table,
 or array."
@@ -136,7 +140,7 @@ or array."
     :list (if (map--plist-p map)
               (let ((res (plist-member map key)))
                 (if res (cadr res) default))
-            (alist-get key map default nil testfn))
+            (alist-get key map default nil (or testfn #'equal)))
     :hash-table (gethash key map default)
     :array (if (map-contains-key map key)
                (aref map key)
@@ -147,7 +151,7 @@ or array."
 If KEY is already present in MAP, replace the associated value
 with VALUE.
 When MAP is an alist, test equality with TESTFN if non-nil,
-otherwise use `eql'.
+otherwise use `equal'.
 
 MAP can be an alist, plist, hash-table, or array."
   (declare (obsolete "use map-put! or (setf (map-elt ...) ...) instead" "27.1"))
@@ -157,7 +161,7 @@ MAP can be an alist, plist, hash-table, or array."
   (let ((tail map) last)
     (while (consp tail)
       (cond
-       ((not (equal key (car tail)))
+       ((not (eq key (car tail)))
         (setq last tail)
         (setq tail (cddr last)))
        (last
@@ -177,7 +181,7 @@ Keys not present in MAP are ignored.")
   ;; FIXME: Signal map-not-inplace i.s.o returning a different list?
   (if (map--plist-p map)
       (map--plist-delete map key)
-    (setf (alist-get key map nil t) nil)
+    (setf (alist-get key map nil t #'equal) nil)
     map))
 
 (cl-defmethod map-delete ((map hash-table) key)

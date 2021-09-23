@@ -511,7 +511,7 @@ apply the face `mm-uu-extract'."
       (list (mm-make-handle buf mm-uu-text-plain-type)))))
 
 (defun mm-uu-pgp-signed-extract ()
-  (let ((mm-security-handle (list (format "multipart/signed"))))
+  (let ((mm-security-handle (list (substring "multipart/signed"))))
     (mm-set-handle-multipart-parameter
      mm-security-handle 'protocol "application/x-gnus-pgp-signature")
     (save-restriction
@@ -579,7 +579,7 @@ apply the face `mm-uu-extract'."
 	(list (mm-make-handle buf '("application/pgp-encrypted")))))))
 
 (defun mm-uu-pgp-encrypted-extract ()
-  (let ((mm-security-handle (list (format "multipart/encrypted"))))
+  (let ((mm-security-handle (list (substring "multipart/encrypted"))))
     (mm-set-handle-multipart-parameter
      mm-security-handle 'protocol "application/x-gnus-pgp-encrypted")
     (save-restriction

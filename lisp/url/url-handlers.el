@@ -102,6 +102,7 @@
 
 ;;;###autoload
 (define-minor-mode url-handler-mode
+  ;; Can't use "\\[find-file]" below as it produces "[open]":
   "Handle URLs as if they were file names throughout Emacs.
 After switching on this minor mode, Emacs file primitives handle
 URLs.  For instance:

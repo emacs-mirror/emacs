@@ -944,8 +944,8 @@ handled specially by 'dun-describe-room.")
 	(list obj-pc)                          ;; pc-area
 	nil nil nil nil nil nil
 	)
-  "These are objects in a room that are only described in the
-room description.  They are permanent.")
+  "These are objects in a room that are only described in the room description.
+They are permanent.")
 (defvar dun-inventory '(1))
 
 (defconst dun-objects
@@ -1010,8 +1010,7 @@ the inventory.")
     nil nil
     ("There is a bus here.")
     nil nil nil)
-  "These are the descriptions for the negative numbered objects from
-`dun-room-objects'.")
+  "Descriptions for the negative numbered objects from `dun-room-objects'.")
 
 
 (defconst dun-physobj-desc '(
@@ -1216,8 +1215,9 @@ Otherwise short.  Also give long if we were called with negative room number."
 	(dun-mprincl "You are on the bus."))))
 
 (defun dun-special-object ()
-  "There is a special object in the room.  This object's description,
-or lack thereof, depends on certain conditions."
+  "There is a special object in the room.
+This object's description, or lack thereof, depends on certain
+conditions."
   (cond
    ((= dun-current-room computer-room)
     (if dun-computer

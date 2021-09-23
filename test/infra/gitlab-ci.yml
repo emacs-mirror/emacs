@@ -200,7 +200,7 @@ default:
 stages:
   - prep-images
   - build-images
-  - fast
+#  - fast
   - normal
   - platform-images
   - platforms
@@ -221,12 +221,12 @@ build-image-inotify:
   variables:
     target: emacs-inotify
 
-test-fast-inotify:
-  stage: fast
-  extends: [.job-template, .test-template]
-  variables:
-    target: emacs-inotify
-    make_params: "-C test check"
+# test-fast-inotify:
+#   stage: fast
+#   extends: [.job-template, .test-template]
+#   variables:
+#     target: emacs-inotify
+#     make_params: "-C test check"
 
 test-lisp-inotify:
   stage: normal

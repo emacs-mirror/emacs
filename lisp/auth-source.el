@@ -176,7 +176,7 @@ Overrides `password-cache-expiry' through a let-binding."
 ;; TODO: or maybe leave as (setq auth-source-netrc-use-gpg-tokens 'never)
 
 (defcustom auth-source-netrc-use-gpg-tokens 'never
-  "Set this to tell auth-source when to create GPG password
+  "Set this to tell `auth-source' when to create GPG password
 tokens in netrc files.  It's either an alist or `never'.
 Note that if EPA/EPG is not available, this should NOT be used."
   :version "23.2" ;; No Gnus
@@ -503,7 +503,7 @@ soon as a function returns non-nil.")
 (add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-secrets)
 
 (defun auth-source-backend-parse-parameters (entry backend)
-  "Fill in the extra auth-source-backend parameters of ENTRY.
+  "Fill in the extra `auth-source-backend' parameters of ENTRY.
 Using the plist ENTRY, get the :host, :port, and :user search
 parameters."
   (let ((entry (if (stringp entry)
@@ -1227,7 +1227,7 @@ FILE is the file from which we obtained this token."
                                     &key backend require create
                                     type max host user port
                                     &allow-other-keys)
-  "Given a property list SPEC, return search matches from the :backend.
+  "Given a property list SPEC, return search matches from the `:backend'.
 See `auth-source-search' for details on SPEC."
   ;; just in case, check that the type is correct (null or same as the backend)
   (cl-assert (or (null type) (eq type (oref backend type)))
@@ -1282,6 +1282,8 @@ See `auth-source-search' for details on SPEC."
          (required (append base-required create-extra))
          (file (oref backend source))
          (add "")
+         ;; Whether to set save-function.
+         save-function
          ;; `valist' is an alist
          valist
          ;; `artificial' will be returned if no creation is needed
@@ -1411,6 +1413,8 @@ See `auth-source-search' for details on SPEC."
         ;; When r is not an empty string...
         (when (and (stringp data)
                    (< 0 (length data)))
+          (when (eq r 'secret)
+            (setq save-function t))
           ;; this function is not strictly necessary but I think it
           ;; makes the code clearer -tzz
           (let ((printer (lambda ()
@@ -1431,12 +1435,13 @@ See `auth-source-search' for details on SPEC."
                                      data)))))
             (setq add (concat add (funcall printer)))))))
 
-    (plist-put
-     artificial
-     :save-function
-     (let ((file file)
-           (add add))
-       (lambda () (auth-source-netrc-saver file add))))
+    (when save-function
+      (plist-put
+       artificial
+       :save-function
+       (let ((file file)
+             (add add))
+         (lambda () (auth-source-netrc-saver file add)))))
 
     (list artificial)))
 
@@ -1664,6 +1669,8 @@ authentication tokens:
                                                 :port port)))
          (required (append base-required create-extra))
          (collection (oref backend source))
+         ;; Whether to set save-function.
+         save-function
          ;; `args' are the arguments for `secrets-create-item'.
          args
          ;; `valist' is an alist
@@ -1778,21 +1785,24 @@ authentication tokens:
 
         ;; When r is not an empty string...
         (when (and (stringp data)
-                   (< 0 (length data))
-                   (not (member r '(secret label))))
-          ;; append the key (the symbol name of r)
-          ;; and the value in r
-          (setq args (append args (list (auth-source--symbol-keyword r) data))))))
+                   (< 0 (length data)))
+          (if (eq r 'secret)
+              (setq save-function t)
+            (if (not (eq r 'label))
+                ;; append the key (the symbol name of r)
+                ;; and the value in r
+                (setq args (append args (list (auth-source--symbol-keyword r) data))))))))
 
-    (plist-put
-     artificial
-     :save-function
-     (let* ((collection collection)
-            (item (plist-get artificial :label))
-            (secret (plist-get artificial :secret))
-            (secret (if (functionp secret) (funcall secret) secret)))
-       (lambda ()
-	 (auth-source-secrets-saver collection item secret args))))
+    (when save-function
+      (plist-put
+       artificial
+       :save-function
+       (let* ((collection collection)
+              (item (plist-get artificial :label))
+              (secret (plist-get artificial :secret))
+              (secret (if (functionp secret) (funcall secret) secret)))
+         (lambda ()
+	   (auth-source-secrets-saver collection item secret args)))))
 
     (list artificial)))
 
@@ -2264,7 +2274,7 @@ entries for git.gnus.org:
                                     &key backend require
                                     type max host user port
                                     &allow-other-keys)
-  "Given a property list SPEC, return search matches from the :backend.
+  "Given a property list SPEC, return search matches from the `:backend'.
 See `auth-source-search' for details on SPEC."
   ;; just in case, check that the type is correct (null or same as the backend)
   (cl-assert (or (null type) (eq type (oref backend type)))

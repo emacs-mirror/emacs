@@ -340,7 +340,7 @@ usually do not have translators for other languages.\n\n")))
     (insert (format "\nFeatures:\n%s\n" features))
     (fill-region (line-beginning-position 0) (point))
 
-    (insert (format "\nMemory information:\n"))
+    (insert "\nMemory information:\n")
     (pp (garbage-collect) (current-buffer))
 
     ;; This is so the user has to type something in order to send easily.

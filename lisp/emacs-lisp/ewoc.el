@@ -147,7 +147,7 @@ and (ewoc--node-nth dll -1) returns the last node."
   buffer pretty-printer header footer dll last-node hf-pp)
 
 (defmacro ewoc--set-buffer-bind-dll-let* (ewoc varlist &rest forms)
-  "Execute FORMS with ewoc--buffer selected as current buffer,
+  "Execute FORMS with `ewoc--buffer' selected as current buffer,
 `dll' bound to the dll, and VARLIST bound as in a let*.
 `dll' will be bound when VARLIST is initialized, but
 the current buffer will *not* have been changed.

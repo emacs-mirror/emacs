@@ -711,8 +711,8 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
       default))
 
 (defun cpp-choose-default-face (type)
-  ;; Choose default face list for screen of TYPE.
-  ;; Type must be one of the types defined in `cpp-face-type-list'.
+  "Choose default face list for screen of TYPE.
+Type must be one of the types defined in `cpp-face-type-list'."
   (interactive (list (if cpp-button-event
 			 (x-popup-menu cpp-button-event
 				       (list "Screen type"
@@ -789,7 +789,7 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 				 (if data (list 'cpp-data data))))))
 
 (defun cpp-push-button (event)
-  ;; Pushed a CPP button.
+  "Pushed a CPP button."
   (interactive "@e")
   (set-buffer (window-buffer (posn-window (event-start event))))
   (let ((pos (posn-point (event-start event))))

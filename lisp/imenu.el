@@ -829,8 +829,7 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
 (defvar imenu-buffer-menubar nil)
 
 (defvar-local imenu-menubar-modified-tick 0
-  "The value of (buffer-chars-modified-tick) as of the last call
-to `imenu-update-menubar'.")
+  "Value of (buffer-chars-modified-tick) when `imenu-update-menubar' was called.")
 
 (defun imenu-update-menubar ()
   (when (and (current-local-map)

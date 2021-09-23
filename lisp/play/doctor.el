@@ -115,7 +115,7 @@
 (defun doc// (x) x)
 
 (defmacro doc$ (what)
-  "Quoted arg form of doctor-$."
+  "Quoted arg form of `doctor-$'."
   `(doctor-$ ',what))
 
 (defun doctor-$ (what)
@@ -1011,7 +1011,7 @@ Put dialogue in buffer."
 
 (defun doctor-subjsearch (sent key type)
   "Search for the subject of a sentence SENT, looking for the noun closest
-to and preceding KEY by at least TYPE words.  Set global variable doctor-subj to
+to and preceding KEY by at least TYPE words.  Set global variable `doctor-subj' to
 the subject noun, and return the portion of the sentence following it."
   (let ((i (- (length sent) (length (memq key sent)) type)))
     (while (and (> i -1) (not (doctor-nounp (nth i sent))))

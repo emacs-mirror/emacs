@@ -593,8 +593,8 @@ from an input method is converted to the corresponding precomposed glyph.")
       (setq temp (concat temp "\\|" (car (car l))))
       (setq l (cdr l)))
     (concat temp "\\)")))
-  "Regexp string to match a sequence of Tibetan consonantic components, i.e.,
-one base consonant and one or more subjoined consonants.
+  "Regexp string to match a sequence of Tibetan consonantic components.
+That is, one base consonant and one or more subjoined consonants.
 The result of matching is to be used for indexing alist when the component
 sequence is converted to the corresponding precomposed glyph.
 This also matches some punctuation characters which need conversion.")

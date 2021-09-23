@@ -119,7 +119,7 @@ This is to optimize `debugger-make-xrefs'.")
 (defvar debugger-jumping-flag nil
   "Non-nil means that `debug-on-entry' is disabled.
 This variable is used by `debugger-jump', `debugger-step-through',
-and `debugger-reenable' to temporarily disable debug-on-entry.")
+and `debugger-reenable' to temporarily disable `debug-on-entry'.")
 
 (defvar inhibit-trace)                  ;Not yet implemented.
 
@@ -128,7 +128,7 @@ and `debugger-reenable' to temporarily disable debug-on-entry.")
 It is a list expected to take the form (CAUSE . REST)
 where CAUSE can be:
 - debug: called for entry to a flagged function.
-- t: called because of debug-on-next-call.
+- t: called because of `debug-on-next-call'.
 - lambda: same thing but via `funcall'.
 - exit: called because of exit of a flagged function.
 - error: called because of `debug-on-error'.")
@@ -335,7 +335,7 @@ Make functions into cross-reference buttons if DO-XREFS is non-nil."
 
 (defun debugger-setup-buffer (args)
   "Initialize the `*Backtrace*' buffer for entry to the debugger.
-That buffer should be current already and in debugger-mode."
+That buffer should be current already and in `debugger-mode'."
   (setq backtrace-frames (nthcdr
                           ;; Remove debug--implement-debug-on-entry and the
                           ;; advice's `apply' frame.
@@ -454,7 +454,7 @@ will be used, such as in a debug on exit from a frame."
   (exit-recursive-edit))
 
 (defun debugger-jump ()
-  "Continue to exit from this frame, with all debug-on-entry suspended."
+  "Continue to exit from this frame, with all `debug-on-entry' suspended."
   (interactive)
   (debugger-frame)
   (setq debugger-jumping-flag t)
@@ -464,7 +464,7 @@ will be used, such as in a debug on exit from a frame."
   (exit-recursive-edit))
 
 (defun debugger-reenable ()
-  "Turn all debug-on-entry functions back on.
+  "Turn all `debug-on-entry' functions back on.
 This function is put on `post-command-hook' by `debugger-jump' and
 removes itself from that hook."
   (setq debugger-jumping-flag nil)
@@ -695,7 +695,7 @@ Redefining FUNCTION also cancels it."
 ;;;###autoload
 (defun cancel-debug-on-entry (&optional function)
   "Undo effect of \\[debug-on-entry] on FUNCTION.
-If FUNCTION is nil, cancel debug-on-entry for all functions.
+If FUNCTION is nil, cancel `debug-on-entry' for all functions.
 When called interactively, prompt for FUNCTION in the minibuffer.
 To specify a nil argument interactively, exit with an empty minibuffer."
   (interactive
@@ -798,7 +798,7 @@ another symbol also cancels it."
 ;;;###autoload
 (defun cancel-debug-on-variable-change (&optional variable)
   "Undo effect of \\[debug-on-variable-change] on VARIABLE.
-If VARIABLE is nil, cancel debug-on-variable-change for all variables.
+If VARIABLE is nil, cancel `debug-on-variable-change' for all variables.
 When called interactively, prompt for VARIABLE in the minibuffer.
 To specify a nil argument interactively, exit with an empty minibuffer."
   (interactive

@@ -1227,7 +1227,7 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: None.
        ))
 (defcustom c-offsets-alist nil
-  "Association list of syntactic element symbols and indentation offsets.
+  "Alist of syntactic element symbols and indentation offsets.
 As described below, each cons cell in this list has the form:
 
     (SYNTACTIC-SYMBOL . OFFSET)

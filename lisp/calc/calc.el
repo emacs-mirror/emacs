@@ -400,8 +400,7 @@ This is not required to be present for user-written mode annotations."
   :type 'boolean)
 
 (defcustom calc-ensure-consistent-units nil
-  "If non-nil, make sure new units are consistent with current units
-when converting units."
+  "If non-nil, ensure new units are consistent with current units when converting."
   :version "24.3"
   :type 'boolean)
 
@@ -468,11 +467,11 @@ This is 1 unless `calc-truncate-stack' has been used.")
 
 (defvar calc-display-sci-high 0
   "Floating-point numbers with this positive exponent or higher above the
-current precision are displayed in scientific notation in calc-mode.")
+current precision are displayed in scientific notation in `calc-mode'.")
 
 (defvar calc-display-sci-low -3
   "Floating-point numbers with this negative exponent or lower are displayed
-scientific notation in calc-mode.")
+scientific notation in `calc-mode'.")
 
 (defvar calc-digit-after-point nil
   "If t, display at least one digit after the decimal point, as in `12.0'.
@@ -493,8 +492,7 @@ This setting only applies to floats in normal display mode.")
   "List of variables used in customizing GNU Calc.")
 
 (defmacro defcalcmodevar (var defval &optional doc)
-  "Declare VAR as a Calc variable, with default value DEFVAL
-and doc-string DOC.
+  "Declare VAR as a Calc variable, with default value DEFVAL and doc-string DOC.
 The variable VAR will be added to `calc-mode-var-list'."
   `(progn
      (defvar ,var ,defval ,doc)
@@ -912,7 +910,7 @@ Used by `calc-user-invocation'.")
 (defvar calc-trail-pointer nil
   "The \"current\" entry in trail buffer.")
 (defvar calc-trail-overlay nil
-  "The value of overlay-arrow-string.")
+  "The value of `overlay-arrow-string'.")
 (defvar calc-undo-list nil
   "The list of previous operations for undo.")
 (defvar calc-redo-list nil

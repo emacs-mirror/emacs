@@ -182,9 +182,9 @@ or `erc-send-modify-hook'."
 					 (erc-echo-timestamp dir ct))))))))
 
 (defvar-local erc-timestamp-last-window-width nil
-  "Stores the width of the last window that showed the current
-buffer. This is used by `erc-insert-timestamp-right' when the
-current buffer is not shown in any window.")
+  "The width of the last window that showed the current buffer.
+his is used by `erc-insert-timestamp-right' when the current
+buffer is not shown in any window.")
 
 (defvar-local erc-timestamp-last-inserted nil
   "Last timestamp inserted into the buffer.")
@@ -200,7 +200,7 @@ This is used when `erc-insert-timestamp-function' is set to
 `erc-timestamp-left-and-right'")
 
 (defcustom erc-timestamp-only-if-changed-flag t
-  "Insert timestamp only if its value changed since last insertion.
+  "Non-nil means insert timestamp only if its value changed since last insertion.
 If `erc-insert-timestamp-function' is `erc-insert-timestamp-left', a
 string of spaces which is the same size as the timestamp is added to
 the beginning of the line in its place.  If you use
@@ -316,10 +316,10 @@ printed just after each line's text (no alignment)."
 	(erc-put-text-property from (1+ (point)) 'cursor-intangible t)))))
 
 (defun erc-insert-timestamp-left-and-right (_string)
-  "This is another function that can be assigned to
-`erc-insert-timestamp-function'.  If the date is changed, it will
-print a blank line, the date, and another blank line.  If the time is
-changed, it will then print it off to the right."
+  "This is another function that can be used with `erc-insert-timestamp-function'.
+If the date is changed, it will print a blank line, the date, and
+another blank line.  If the time is changed, it will then print
+it off to the right."
   (let* ((ct (current-time))
 	 (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
 	 (ts-right (erc-format-timestamp ct erc-timestamp-format-right)))

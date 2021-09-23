@@ -50,7 +50,7 @@
 ;; from a shell prompt.  GNU locate and BSD find expect the file databases
 ;; to either be in standard places or located via environment variables.
 ;; If the latter, make sure these environment variables are set in
-;; your emacs process.
+;; your Emacs process.
 ;;
 ;; Locate-mode assumes that each line output from the locate-command
 ;; consists exactly of a file name, possibly preceded or trailed by

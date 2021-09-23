@@ -103,8 +103,8 @@ Use `setq-default' if setting it in .emacs")
 GNU diff3 doesn't have such an option."
   :type 'string)
 
-;; the actual options used in comparison
-(ediff-defvar-local ediff-actual-diff-options ediff-diff-options "")
+(ediff-defvar-local ediff-actual-diff-options ediff-diff-options
+  "The actual options used in comparison.")
 
 (defcustom ediff-custom-diff-program ediff-diff-program
   "Program to use for generating custom diff output for saving it in a file.
@@ -123,8 +123,8 @@ This output is not used by Ediff internally."
   :set 'ediff-set-diff-options
   :type 'string)
 
-;; the actual options used in comparison
-(ediff-defvar-local ediff-actual-diff3-options ediff-diff3-options "")
+(ediff-defvar-local ediff-actual-diff3-options ediff-diff3-options
+  "The actual options used in comparison.")
 
 (defcustom ediff-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\|^\C-m$\\)"
@@ -132,16 +132,16 @@ This output is not used by Ediff internally."
 Lines that do not match are assumed to be error messages."
   :type 'regexp)
 
-;; keeps the status of the current diff in 3-way jobs.
-;; the status can be =diff(A), =diff(B), or =diff(A+B)
-(ediff-defvar-local ediff-diff-status "" "")
+(ediff-defvar-local ediff-diff-status ""
+  "Keeps the status of the current diff in 3-way jobs.
+The status can be =diff(A), =diff(B), or =diff(A+B).")
 
 
 ;;; Fine differences
 
 (ediff-defvar-local ediff-auto-refine (if (ediff-has-face-support-p) 'on 'nix)
   "If `on', Ediff auto-highlights fine diffs for the current diff region.
-If `off', auto-highlighting is not used. If `nix', no fine diffs are shown
+If `off', auto-highlighting is not used.  If `nix', no fine diffs are shown
 at all, unless the user force-refines the region by hitting `*'.
 
 This variable can be set either in .emacs or toggled interactively.
@@ -179,12 +179,12 @@ Lines that do not match are assumed to be error messages.")
   "Pattern to match lines produced by diff that describe differences.")
 
 (ediff-defvar-local ediff-setup-diff-regions-function nil
-  "value is a function symbol depending on the kind of job is to be done.
-For 2-way jobs and for ediff-merge, it should be `ediff-setup-diff-regions'.
+  "Value is a function symbol depending on the kind of job is to be done.
+For 2-way jobs and for `ediff-merge', it should be `ediff-setup-diff-regions'.
 For jobs requiring diff3, it should be `ediff-setup-diff-regions3'.
 
 The function should take three mandatory arguments, file-A, file-B, and
-file-C. It may ignore file C for diff2 jobs. It should also take
+file-C.  It may ignore file C for diff2 jobs.  It should also take
 one optional arguments, diff-number to refine.")
 
 
@@ -823,13 +823,10 @@ one optional arguments, diff-number to refine.")
       (setq overlay-list (cons overlay overlay-list))
       (if (> (length diff-list) 1)
 	  (setq diff-list (cdr (cdr diff-list)))
-	(error "ediff-set-fine-overlays-for-combined-merge: corrupt list of
-delimiter regions"))
-      )
+        (error "Corrupt list of delimiter regions")))
     (setq overlay-list (reverse overlay-list))
     (ediff-set-fine-diff-vector
-     reg-num 'C (apply #'vector overlay-list))
-    ))
+     reg-num 'C (apply #'vector overlay-list))))
 
 
 ;; Convert diff list to overlays for a given DIFF-REGION
@@ -1461,8 +1458,7 @@ affects only files whose names match the expression."
 	 (message "Ignoring letter case is not supported by this diff program"))
 	(t
 	 (sit-for 1)
-	 (ediff-update-diffs)))
-  )
+         (ediff-update-diffs))))
 
 (provide 'ediff-diff)
 ;;; ediff-diff.el ends here

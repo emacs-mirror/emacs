@@ -65,8 +65,8 @@
 ;; the variable f90-comment-region in every line of the region.
 
 ;; One common convention for free vs. fixed format is that free format
-;; files have the ending .f90 or .f95 while fixed format files have
-;; the ending .f. Emacs automatically loads Fortran files in the
+;; files have the ending ".f90" or ".f95" while fixed format files have
+;; the ending ".f".  Emacs automatically loads Fortran files in the
 ;; appropriate mode based on extension.  You can modify this by
 ;; adjusting the variable `auto-mode-alist'.
 ;; For example:
@@ -984,7 +984,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
 ;; FIXME trivial to extend this to enum. Worth it?
 (defun f90-imenu-type-matcher ()
   "Search backward for the start of a derived type.
-Set subexpression 1 in the match-data to the name of the type."
+Set subexpression 1 in the `match-data' to the name of the type."
   (let (found)
     (while (and (re-search-backward "^[ \t0-9]*type[ \t]*" nil t)
                 (not (setq found

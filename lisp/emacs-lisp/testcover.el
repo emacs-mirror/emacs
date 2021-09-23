@@ -333,7 +333,7 @@ vectors as well as conses."
 ;;;=========================================================================
 
 (defun testcover-mark (def)
-  "Marks one DEF (a function or macro symbol) to highlight its contained forms
+  "Mark one DEF (a function or macro symbol) to highlight its contained forms
 that did not get completely tested during coverage tests.
   A marking with the face `testcover-nohits' (default = red) indicates that the
 form was never evaluated.  A marking using the `testcover-1value' face

@@ -1798,7 +1798,7 @@ reversed."
 		      set-cmd var auto-cmd-label)))
 
     (if (and ask-if-save
-	     (y-or-n-p (format "Do you want to save this setting in %s "
+             (y-or-n-p (format "Do you want to save this setting in %s?"
 			       viper-custom-file-name)))
 	(progn
 	  (viper-save-string-in-file
@@ -1876,11 +1876,11 @@ reversed."
 	(message "Type `i' to search for a specific topic"))
     (error (beep 1)
 	   (with-output-to-temp-buffer " *viper-info*"
-	     (princ (format "
+	     (princ "
 The Info file for Viper does not seem to be installed.
 
 This file is part of the standard distribution of Emacs.
-Please contact your system administrator. "))))))
+Please contact your system administrator. ")))))
 
 ;; Ex source command.
 ;; Loads the file specified as argument or viper-custom-file-name.

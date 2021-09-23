@@ -180,8 +180,7 @@ If you set this to nil, you may want to enable both
   :type 'boolean)
 
 (defcustom erc-log-write-after-insert nil
-  "If non-nil, write to log file when new text is added to a
-logged ERC buffer.
+  "If non-nil, write to log file when new text is added to a logged ERC buffer.
 
 If you set this to nil, you may want to enable both
 `erc-save-buffer-on-part' and `erc-save-queries-on-quit'."
@@ -195,8 +194,7 @@ This should ideally, be a \"catch-all\" coding system, like
   :type 'coding-system)
 
 (defcustom erc-log-filter-function nil
-  "If non-nil, pass text through the given function before writing it to
-a log file.
+  "If non-nil, pass text to this function before writing it to a log file.
 
 The function should take one argument, which is the text to filter."
   :type '(choice (function "Function")
@@ -361,7 +359,7 @@ function is a possible value for
   (concat (buffer-name buffer) ".txt"))
 
 (defun erc-generate-log-file-name-long (_buffer target nick server port)
-  "Generates a log-file name in the way ERC always did it.
+  "Generate a log-file name in the way ERC always did it.
 This results in a file name of the form #channel!nick@server:port.txt.
 This function is a possible value for `erc-generate-log-file-name-function'."
   (let ((file (concat
@@ -375,7 +373,7 @@ This function is a possible value for `erc-generate-log-file-name-function'."
 (declare-function erc-network-name "erc-networks" ())
 
 (defun erc-generate-log-file-name-network (buffer target nick server _port)
-  "Generates a log-file name using the network name rather than server name.
+  "Generate a log-file name using the network name rather than server name.
 This results in a file name of the form #channel!nick@network.txt.
 This function is a possible value for `erc-generate-log-file-name-function'."
   (require 'erc-networks)

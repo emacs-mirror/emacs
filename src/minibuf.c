@@ -491,8 +491,13 @@ confirm the aborting of the current minibuffer and all contained ones.  */)
       array[1] = make_fixnum (minibuf_level - minibuf_depth + 1);
       if (!NILP (Fyes_or_no_p (Fformat (2, array))))
 	{
-	  minibuffer_quit_level = minibuf_depth;
-	  Fthrow (Qexit, Qt);
+	  /* Due to the above check, the current minibuffer is in the
+	     most nested command loop, which means that we don't have
+	     to abort any extra non-minibuffer recursive edits.  Thus,
+	     the number of recursive edits we have to abort equals the
+	     number of minibuffers we have to abort.  */
+	  CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"),
+		 array[1]);
 	}
     }
   else
@@ -1287,8 +1292,8 @@ Fifth arg HIST, if non-nil, specifies a history list and optionally
   HISTPOS is the initial position for use by the minibuffer history
   commands.  For consistency, you should also specify that element of
   the history as the value of INITIAL-CONTENTS.  Positions are counted
-  starting from 1 at the beginning of the list.  If HIST is the symbol
-  `t', history is not recorded.
+  starting from 1 at the beginning of the list.  If HIST is t, history
+  is not recorded.
 
   If `history-add-new-input' is non-nil (the default), the result will
   be added to the history list using `add-to-history'.
@@ -2032,8 +2037,7 @@ HIST, if non-nil, specifies a history list and optionally the initial
   (This is the only case in which you should use INITIAL-INPUT instead
   of DEF.)  Positions are counted starting from 1 at the beginning of
   the list.  The variable `history-length' controls the maximum length
-  of a history list.  If HIST is the symbol `t', history is not
-  recorded.
+  of a history list.  If HIST is t, history is not recorded.
 
 DEF, if non-nil, is the default value or the list of default values.
 
@@ -2481,7 +2485,7 @@ is added with
   (set minibuffer-history-variable
        (cons STRING (symbol-value minibuffer-history-variable)))
 
- If the variable is the symbol `t', no history is recorded.  */);
+ If the variable is t, no history is recorded.  */);
   XSETFASTINT (Vminibuffer_history_variable, 0);
 
   DEFVAR_LISP ("minibuffer-history-position", Vminibuffer_history_position,

@@ -31,6 +31,11 @@ and also requires GCC and Binutils to be available when Lisp code is
 natively compiled.  See the Info node "(elisp) Native Compilation" for
 more details.
 
+If you build Emacs with native compilation, but without zlib, be sure
+to configure with the '--without-compress-install' option, so that the
+installed *.el files are not compressed; otherwise, you will not be
+able to use JIT native compilation of the installed *.el files.
+
 ** The Cairo graphics library is now used by default if present.
 '--with-cairo' is now the default, if the appropriate development files
 are found by 'configure'.  Note that building with Cairo means using
@@ -145,6 +150,13 @@ Emoji" by default for that script.  Use:
 to change the font used.
 
 +++
+** Zero Width Joiner (ZWJ) and emoji sequences are now composed.
+Emacs can now compose (almost) all the Unicode-14 ZWJ and emoji
+sequences (if a suitable font is installed) so that they are displayed
+as single glyphs instead of multiple ones.  'Noto Color Emoji' is one
+such suitable font.
+
++++
 ** New command 'execute-extended-command-for-buffer'.
 This new command, bound to 'M-S-x', works like
 'execute-extended-command', but limits the set of commands to the
@@ -167,6 +179,7 @@ completion list popped up by 'M-x' shows the key bindings for all the
 commands shown in the list of candidate completions that have a key
 binding.
 
++++
 ** New user option 'completions-detailed'.
 When non-nil, some commands like 'describe-symbol' show more detailed
 completions with more information in completion prefix and suffix.
@@ -240,7 +253,7 @@ the user for whether that file should be deleted.  (Note that
 result in deletion of auto-save files when killing a buffer without
 unsaved changes, but this has apparently not worked for several
 decades, so the documented semantics of this variable has been changed
-to match the behaviour.)
+to match the behavior.)
 
 +++
 ** New user option 'next-error-message-highlight'.
@@ -294,6 +307,17 @@ personalize the uniquified buffer name.
 ---
 ** 'remove-hook' is now an interactive command.
 
+---
+** 'expand-file-name' now checks for null bytes in filenames.
+The function will now check for null bytes in both NAME and
+DEFAULT-DIRECTORY arguments, as well as in the 'default-directory'
+buffer-local variable, when its value is used.  If null bytes are
+found, 'expand-file-name' will signal an error.
+This means that practically all file-related operations will now check
+file names for null bytes, thus avoiding subtle bugs with silently
+using only the part of file name up to the first null byte.
+
+---
 ** Frames
 
 +++
@@ -363,11 +387,13 @@ This is like 'display-buffer-use-some-window', but won't reuse the
 current window, and when called repeatedly will try not to reuse a
 previously selected window.
 
++++
 *** New function 'window-bump-use-time'.
 This updates the use time of a window.
 
 ** Minibuffer
 
++++
 *** Minibuffer scrolling is now conservative by default.
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
 It is t by default; setting it to nil will cause scrolling in the
@@ -419,6 +445,7 @@ both modes are on).
 
 ** Tab Bars and Tab Lines
 
++++
 *** The prefix key 'C-x t t' can be used to display a buffer in a new tab.
 Typing 'C-x t t' before a command will cause the buffer shown by that
 command to be displayed in a new tab.  'C-x t t" is bound to the
@@ -532,6 +559,7 @@ The value is saved in the user option 'mouse-wheel-scroll-amount-horizontal'.
 ---
 *** Customize buffers can now be reverted with 'C-x x g'.
 
+---
 *** Most customize commands now hide obsolete user options.
 Obsolete user options are no longer shown in the listings produced by
 the commands 'customize', 'customize-group', 'customize-apropos' and
@@ -540,6 +568,7 @@ the commands 'customize', 'customize-group', 'customize-apropos' and
 To customize obsolete user options, use 'customize-option' or
 'customize-saved'.
 
+---
 *** New SVG icons for checkboxes and arrows.
 They will be used automatically instead of the old icons.  If Emacs is
 built without SVG support, the old icons will be used instead.
@@ -560,6 +589,7 @@ commands and is globally bound to 'C-h x'.
 +++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
+---
 *** New command 'apropos-function'.
 This works like 'C-u M-x apropos-command' but is more discoverable.
 
@@ -574,6 +604,13 @@ be assumed to be a propertized string.
 
 Note that the new face will also be used in tooltips.  When using the
 GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
+
++++
+*** New user option 'help-enable-symbol-autoload'.
+If non-nil, displaying help for an autoloaded function whose
+'autoload' form provides no documentation string will try to load the
+file it's from.  This will give more extensive help for such
+functions.
 
 ---
 *** The 'help-for-help' ('C-h C-h') screen has been redesigned.
@@ -596,6 +633,7 @@ can provide a better overview in a long list of available bindings.
 It allows users to change the maximum number of keystrokes and
 commands recorded for the purpose of 'view-lossage'.
 
++++
 *** New commands to describe buttons and widgets.
 'widget-describe' (on a widget) will pop up a help buffer and give a
 description of the properties.  Likewise 'button-describe' does the
@@ -607,6 +645,7 @@ Now clicking on the link to find the definition of functions generated
 by 'cl-defstruct', or variables generated by 'define-derived-mode',
 for example, will go to the exact place where they are defined.
 
+---
 *** New commands 'apropos-next-symbol' and 'apropos-previous-symbol'.
 These new navigation commands are bound to 'n' and 'p' in
 'apropos-mode'.
@@ -680,13 +719,14 @@ summary of where Emacs is using memory currently.
 This works like 'report-emacs-bug', but is more geared towards sending
 patches to the Emacs issue tracker.
 
+---
 *** New face 'apropos-button'.
 Applies to buttons that indicate a face.
 
 +++
 *** New face 'font-lock-doc-markup-face'.
 Intended for documentation mark-up syntax and tags inside text that
-uses 'font-lock-doc-face', with which it should harmonise.  It would
+uses 'font-lock-doc-face', with which it should harmonize.  It would
 typically be used in structured documentation comments in program
 source code by language-specific modes, for mark-up conventions like
 Haddock, Javadoc or Doxygen.  By default this face inherits from
@@ -807,11 +847,22 @@ leak information from the reporting user.
 *** Rudimentary support for the 'st' terminal emulator.
 Emacs now supports 256 color display on the 'st' terminal emulator.
 
----
-*** Prefer "chat.freenode.net" to "irc.freenode.net".
-"chat.freenode.net" has been the preferred address for connecting to the
-freenode IRC network for years now.  Occurrences of "irc.freenode.net"
-have been replaced with "chat.freenode.net" throughout Emacs.
++++
+*** Update IRC-related references to point to Libera.Chat.
+The Free Software Foundation and the GNU Project have moved their
+official IRC channels from the Freenode network to Libera.Chat.  For the
+original announcement and the follow-up update, including more details,
+see:
+
+https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html
+https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html
+
+Given the relocation of GNU and FSF's official IRC channels, as well
+as #emacs and various other Emacs-themed channels (see the link below)
+to Libera.Chat, IRC-related references in the Emacs repository have
+now been updated to point to Libera.Chat.
+
+https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html
 
 
 * Editing Changes in Emacs 28.1
@@ -996,12 +1047,15 @@ Set the variable 'auto-save-visited-mode' buffer-locally to nil to
 achieve that.
 
 +++
-** New command 'C-x C-k Q' to force redisplay in keyboard macros.
+** New command 'kdb-macro-redisplay' to force redisplay in keyboard macros.
+This command is bound to 'C-x C-k d'.
 
+---
 ** 'blink-cursor-mode' is now enabled by default regardless of the UI.
 It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.
 
++++
 ** New minor mode 'show-paren-local-mode'.
 It serves as a local counterpart for 'show-paren-mode', allowing you
 to toggle it separately in different buffers.
@@ -1028,6 +1082,7 @@ distinguish between sub-expression highlighting.
 Like 'search-highlight-submatches', this is controlled by the new user option
 'query-replace-highlight-submatches'.
 
++++
 *** New user option 'isearch-wrap-pause' defines how to wrap the search.
 There are choices to disable wrapping completely and to wrap immediately.
 When wrapping immediately, it consistently handles the numeric arguments
@@ -1217,7 +1272,7 @@ Clicking the dictionary name changes the current dictionary.
 ** Package
 
 *** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
-Thus, packages on nonGNU ELPA will appear by default in the list shown
+Thus, packages on NonGNU ELPA will appear by default in the list shown
 by 'list-packages'.
 
 ---
@@ -2273,7 +2328,8 @@ This is a regexp that can be set to alter how links are followed in eww.
 +++
 *** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
-(the default), then 'url-retrieve' is used.
+(the default), then 'url-retrieve' is used.  When 'sync', then
+'url-retrieve-synchronously' is used.
 
 +++
 *** New Emacs command line convenience command.
@@ -2354,9 +2410,20 @@ project's root directory, respectively.
 This specifies the file in which to save the list of known projects.
 
 +++
-*** New command 'project-remove-known-project'.
-This command lets you interactively remove an entry from the list of projects
+*** New command 'project-remember-projects-under'.
+This command can automatically locate and index projects in a
+directory and optionally also its subdirectories, storing them in
+'project-list-file'.
+
++++
+*** New commands 'project-forget-project' and 'project-forget-projects-under'.
+These command lets you interactively remove entries from the list of projects
 in 'project-list-file'.
+
++++
+*** New command 'project-forget-zombie-projects'.
+This command detects indexed projects that have since been deleted,
+and removes them from the list of known projects in 'project-list-file'.
 
 ---
 *** 'project-find-file' now accepts non-existent file names.
@@ -2366,6 +2433,9 @@ sub-directory.
 +++
 *** 'project-find-file' doesn't use the string at point as default input.
 Now it's only suggested as part of the "future history".
+
++++
+*** New command 'project-find-dir' runs Dired in a directory inside project.
 
 ** Xref
 
@@ -2408,10 +2478,12 @@ have been renamed to have "proper" public names and documented
 ('xref-show-definitions-buffer' and
 'xref-show-definitions-buffer-at-bottom').
 
-*** New command 'xref-quit-and-pop-marker-stack' and a binding for it
-in "*xref*" buffers ('M-,').  This combination is easy to press
-semi-accidentally if the user wants to go back in the middle of
-choosing the exact definition to go to, and this should do TRT.
++++
+*** New command 'xref-quit-and-pop-marker-stack'.
+This command is bound to 'M-,' in "*xref*" buffers.  This combination
+is easy to press semi-accidentally if the user wants to go back in the
+middle of choosing the exact definition to go to, and this should do
+TRT.
 
 ---
 *** New value 'project-relative' for 'xref-file-name-display'.
@@ -2430,6 +2502,7 @@ binding in 'xref--xref-buffer-mode-map'.
 When non-nil, matches for identifiers in the file visited by the
 current buffer will be shown first in the "*xref*" buffer.
 
++++
 *** The etags Xref backend now honors 'tags-apropos-additional-actions'.
 You can customize it to augment the output of 'xref-find-apropos',
 like it affected the output of 'tags-apropos', which is obsolete since
@@ -2512,6 +2585,12 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 *** New 'thing-at-point' target: 'existing-filename'.
 This is like 'filename', but is a full path, and is nil if the file
 doesn't exist.
+
+*** New 'thing-at-point' target: 'list-or-string'.
+This is like 'list, but if point is inside a string that's enclosed in
+the list, it returns the enclosed string and not the enclosing list.
+
+This is like 'list', but also prefers to find of any enclosing string.
 
 +++
 *** New variable 'thing-at-point-provider-alist'.
@@ -2682,6 +2761,7 @@ The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
 'erc-dangerous-host-highlight-type' variables now support a 'message'
 type for highlighting the entire message but not the sender's nick.
 
+---
 *** erc-status-sidebar.el is now part of ERC.
 The 'erc-status-sidebar' package which provides a HexChat-like
 activity overview sidebar for joined IRC channels is now part of ERC.
@@ -2703,27 +2783,70 @@ declared obsolete and rewritten as 'erc-track-select-mode-line-face',
 with different expected arguments (the current and old faces are now
 separated) and clearer documentation.
 
+*** Add '/opme' and '/deopme' convenience commands.
+The new '/opme' convenience command asks ChanServ to set the operator
+status for the current nick in the current channel, and '/deopme'
+unsets it.
+
 ** xwidget-webkit mode
 
+---
 *** New xwidget commands.
 'xwidget-webkit-uri' (return the current URL), 'xwidget-webkit-title'
 (return the current title), and 'xwidget-webkit-goto-history' (goto a
 point in history).
 
+---
 *** Pixel-based scrolling.
 The 'xwidget-webkit-scroll-up', 'xwidget-webkit-scroll-down' commands
 now supports scrolling arbitrary pixel values.  It now treats the
 optional 2nd argument as the pixel values to scroll.
 
+---
 *** New commands for scrolling.
 The new commands 'xwidget-webkit-scroll-up-line',
 'xwidget-webkit-scroll-down-line', 'xwidget-webkit-scroll-forward',
 'xwidget-webkit-scroll-backward' can be used to scroll webkit by the
 height of lines or width of chars.
 
+---
 *** New user option 'xwidget-webkit-bookmark-jump-new-session'.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
+
+** Checkdoc
+
+---
+*** No longer warns about command substitutions by default.
+Checkdoc used to warn about "too many command substitutions" (as in
+"\\[foo-command]"), even if you only used ten of them in a docstring.
+On modern machines, you can have hundreds or thousands of command
+substitutions before it becomes a performance issue, so this warning
+is now disabled by default.  To re-enable this warning, customize the
+user option 'checkdoc-max-keyref-before-warn'.
+
+---
+*** New user option 'checkdoc-column-zero-backslash-before-paren'.
+Checkdoc warns if there is a left parenthesis in column zero of a
+documentation string.  That warning can now be disabled by customizing
+this new user option to nil.  This is useful if you don't expect
+your code to be edited with an Emacs older than version 27.1.
+
+---
+*** Now checks the prompt format for 'yes-or-no-p'.
+In addition to verifying the format of the prompt for 'y-or-n-p',
+checkdoc will now check the format of 'yes-or-no-p'.
+
+---
+*** New command 'checkdoc-dired'.
+This can be used to run checkdoc on files from a Dired buffer.
+
+---
+*** No longer checks for "A-" modifiers.
+Checkdoc recommends usage of command substitutions ("\\[foo-command]")
+in favor of writing keybindings like "C-c f".  It now no longer warns
+about the "A-" modifier as it is not used very much in practice, and
+this warning therefore mostly led to false positives.
 
 ** Enriched mode
 
@@ -2867,9 +2990,10 @@ point leaves the text.  If nil, the text is not hidden again.  Instead
 'M-x reveal-hide-revealed' can be used to hide all the revealed text.
 
 ---
-*** New variable 'ffap-file-name-with-spaces'.
+*** New user option 'ffap-file-name-with-spaces'.
 If non-nil, 'find-file-at-point' and friends will try to guess more
-expansively to identify a file name with spaces.
+expansively to identify a file name with spaces.  Default value is
+nil.
 
 ---
 *** Two new commands for centering in 'doc-view-mode'.
@@ -2897,18 +3021,12 @@ or if you would like to attend a virtual meeting scheduled in a
 different timezone causing a difference in the date.
 
 ---
-*** New user option 'checkdoc-column-zero-backslash-before-paren'.
-Checkdoc warns if there is a left parenthesis in column zero of a
-documentation string.  That warning can now be disabled by customizing
-this new user option to nil.  This can be useful if you don't expect
-your code to be edited with an Emacs version older than 27.1.
-
----
 *** The old non-SMIE indentation of 'sh-mode' has been removed.
 
 ---
 *** 'mspools-show' is now autoloaded.
 
+---
 *** Loading dunnet.el in batch mode doesn't start the game any more.
 Instead you need to do "emacs -f dun-batch" to start the game in
 batch mode.
@@ -2952,6 +3070,7 @@ direction with e.g. 'C-x o M-- o o'.  Also it can help to set a new
 step with e.g. 'C-x { C-5 { { {', which will set the window resizing
 step to 5 columns.
 
+---
 ** New themes 'modus-vivendi' and 'modus-operandi'.
 These themes are designed to conform with the highest standard for
 color-contrast accessibility (WCAG AAA).  You can load either of them
@@ -2985,8 +3104,13 @@ complex menus take advantage of infix arguments, which are somewhat
 similar to prefix arguments, but are more flexible and discoverable.
 
 ** hierarchy.el
-It's a library to create, query, navigate and display hierarchical
+This library can create, query, navigate and display hierarchical
 structures.
+
+---
+** New major mode for displaying the "etc/AUTHORS" file.
+This new 'etc-authors-mode' provides font-locking for displaying the
+"etc/AUTHORS" file from the Emacs distribution, and not much else.
 
 
 * Incompatible Editing Changes in Emacs 28.1
@@ -3465,6 +3589,9 @@ still being used by 'find-library' and related commands, so the
 variable has been renamed to 'find-library-source-path', and
 'find-function-source-path' is now an obsolete variable alias.
 
+---
+** The macro 'vc-call' no longer evaluates its second argument twice.
+
 
 * Lisp Changes in Emacs 28.1
 
@@ -3622,6 +3749,12 @@ and well-behaved enough to lose the "internal" marker.
 
 ** map.el
 
+---
+*** Alist keys are now consistently compared with 'equal' by default.
+Until now, 'map-elt' and 'map-delete' compared alist keys with 'eq' by
+default.  They now use 'equal' instead, for consistency with
+'map-put!' and 'map-contains-key'.
+
 *** Pcase 'map' pattern added keyword symbols abbreviation.
 A pattern like '(map :sym)' binds the map's value for ':sym' to 'sym',
 equivalent to '(map (:sym sym))'.
@@ -3723,6 +3856,11 @@ the first instance of the former string in the latter.
 This function works along the line of 'replace-regexp-in-string', but
 it matches on fixed strings instead of regexps, and does not change
 the global match state.
+
++++
+** New function 'ensure-list'.
+This function makes a list of its object if it's not a list already.
+If it's already a list, the list is returned as is.
 
 +++
 ** New function 'split-string-shell-command'.
@@ -4121,8 +4259,9 @@ do not support the old calling conventions any longer.
 
 +++
 ** 'yes-or-no-p' and 'y-or-n-p' PROMPT parameter no longer needs trailing space.
-This has been the case since Emacs 24.4 but was not announced or
-documented until now.
+In other words, the prompt can now end with "?" instead of "? ".  This
+has been the case since Emacs 24.4 but was not announced or documented
+until now.  (Checkdoc has also been updated to accept this convention.)
 
 +++
 ** The 'uniquify' argument in 'auto-save-file-name-transforms' can be a symbol.
@@ -4130,12 +4269,6 @@ If this symbol is one of the members of 'secure-hash-algorithms',
 Emacs constructs the nondirectory part of the auto-save file name by
 applying that 'secure-hash' to the buffer file name.  This avoids any
 risk of excessively long file names.
-
----
-** File names checked for null bytes.
-Functions operating on local file names now check that the file names
-don't contain any NUL bytes.  This avoids subtle bugs caused by
-silently using only the part of the file name until the first NUL byte.
 
 +++
 ** New user option 'process-file-return-signal-string'.

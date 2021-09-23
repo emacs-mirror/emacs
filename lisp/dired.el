@@ -2219,8 +2219,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (defun dired-mode (&optional dirname switches)
-  "\
-Mode for \"editing\" directory listings.
+  "Mode for \"editing\" directory listings.
 In Dired, you are \"editing\" a list of the files in a directory and
   (optionally) its subdirectories, in the format of `ls -lR'.
   Each directory is a page: use \\[backward-page] and \\[forward-page] to move pagewise.
@@ -3697,7 +3696,7 @@ no ARGth marked file is found before this line."
 (defun dired-mark-files-in-region (start end)
   (let ((inhibit-read-only t))
     (if (> start end)
-	(error "start > end"))
+        (error "Start > End"))
     (goto-char start)			; assumed at beginning of line
     (while (< (point) end)
       ;; Skip subdir line and following garbage like the `total' line:

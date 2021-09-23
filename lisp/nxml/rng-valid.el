@@ -962,9 +962,8 @@ Return nil at end of buffer, t otherwise."
     (and type t)))
 
 (defun rng-process-start-tag (tag-type)
-  "TAG-TYPE is `start-tag' for a start-tag, `empty-element' for
-an empty element.  `partial-empty-element' should be passed
-as empty-element."
+  "TAG-TYPE is `start-tag' for a start-tag, `empty-element' for an empty element.
+`partial-empty-element' should be passed as empty-element."
   (and rng-collecting-text (rng-flush-text))
   (setq rng-collecting-text nil)
   (setq rng-pending-contents nil)

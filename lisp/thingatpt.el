@@ -152,15 +152,6 @@ positions of the thing found."
 		    (cons real-beg end))))))))))
 
 ;;;###autoload
-(defun thing-at-mouse (event thing &optional no-properties)
-  "Return the THING at mouse click.
-Like `thing-at-point', but tries to use the event
-where the mouse button is clicked to find a thing nearby."
-  (save-excursion
-    (mouse-set-point event)
-    (thing-at-point thing no-properties)))
-
-;;;###autoload
 (defun thing-at-point (thing &optional no-properties)
   "Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
@@ -195,6 +186,24 @@ a symbol as a valid THING."
       (when (and text no-properties (sequencep text))
         (set-text-properties 0 (length text) nil text))
       text)))
+
+;;;###autoload
+(defun bounds-of-thing-at-mouse (event thing)
+  "Determine start and end locations for THING at mouse click given by EVENT.
+Like `bounds-of-thing-at-point', but tries to use the position in EVENT
+where the mouse button is clicked to find the thing nearby."
+  (save-excursion
+    (mouse-set-point event)
+    (bounds-of-thing-at-point thing)))
+
+;;;###autoload
+(defun thing-at-mouse (event thing &optional no-properties)
+  "Return the THING at mouse click specified by EVENT.
+Like `thing-at-point', but tries to use the position in EVENT
+where the mouse button is clicked to find the thing nearby."
+  (save-excursion
+    (mouse-set-point event)
+    (thing-at-point thing no-properties)))
 
 ;; Go to beginning/end
 
@@ -275,17 +284,28 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 
 (put 'list 'bounds-of-thing-at-point 'thing-at-point-bounds-of-list-at-point)
 
-(defun thing-at-point-bounds-of-list-at-point ()
+(defun thing-at-point-bounds-of-list-at-point (&optional escape-strings no-syntax-crossing)
   "Return the bounds of the list at point.
 Prefer the enclosing list with fallback on sexp at point.
 \[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
-    (if (ignore-errors (up-list -1))
+    (if (ignore-errors (up-list -1 escape-strings no-syntax-crossing))
 	(ignore-errors (cons (point) (progn (forward-sexp) (point))))
       (let ((bound (bounds-of-thing-at-point 'sexp)))
 	(and bound
 	     (<= (car bound) (point)) (< (point) (cdr bound))
 	     bound)))))
+
+(put 'list-or-string 'bounds-of-thing-at-point
+     'thing-at-point-bounds-of-list-or-string-at-point)
+
+(defun thing-at-point-bounds-of-list-or-string-at-point ()
+  "Return the bounds of the list or string at point.
+Like `thing-at-point-bounds-of-list-at-point', but if
+point is inside a string that's enclosed in the list, this
+function will return the enclosed string and not the
+enclosing list."
+  (thing-at-point-bounds-of-list-at-point t t))
 
 ;; Defuns
 

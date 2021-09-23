@@ -1705,7 +1705,7 @@ As a side effect: re-calculates the number of records in the data file."
 ;;; Other commands
 
 (defun forms-toggle-read-only (arg)
-  "Toggles read-only mode of a forms mode buffer.
+  "Toggle read-only mode of a forms mode buffer.
 With an argument, enables read-only mode if the argument is positive.
 Otherwise enables edit mode if the visited file is writable."
 
@@ -1878,7 +1878,7 @@ after the current record."
   (setq forms--search-regexp regexp))
 
 (defun forms-save-buffer (&optional args)
-  "Forms mode replacement for save-buffer.
+  "Forms mode replacement for `save-buffer'.
 It saves the data buffer instead of the forms buffer.
 Calls `forms-write-file-filter' before, and `forms-read-file-filter'
 after writing out the data."

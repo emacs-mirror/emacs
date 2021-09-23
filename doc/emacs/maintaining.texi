@@ -1769,8 +1769,13 @@ Replace}), and continues to the next match after you respond.  If your
 response causes Emacs to exit the query-replace loop, you can later
 continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
 
+@findex project-find-dir
+  The command @kbd{C-x p d} (@code{project-find-dir}) prompts you to
+choose a directory inside the current project, with completion.
+And opens a Dired buffer (@pxref{Dired}) listing the files in it.
+
 @findex project-dired
-  The command @kbd{C-x p d} (@code{project-dired}) opens a Dired
+  The command @kbd{C-x p D} (@code{project-dired}) opens a Dired
 buffer (@pxref{Dired}) listing the files in the current project's root
 directory.
 
@@ -1861,14 +1866,14 @@ records the list of known projects.  It defaults to the file
 @subsection Managing the Project List File
 
 @table @kbd
-@item M-x project-remove-known-project
+@item M-x project-forget-project
 Remove a known project from the @code{project-list-file}.
 @end table
 
-@findex project-remove-known-project
+@findex project-forget-project
   Normally Emacs automatically adds and removes projects to and from the
 @code{project-list-file}, but sometimes you may want to manually edit
-the available projects.  @kbd{M-x project-remove-known-project}
+the available projects.  @kbd{M-x project-forget-project}
 prompts you to choose one of the available projects, and then removes
 it from the file.
 
@@ -2279,6 +2284,11 @@ the match with @var{replacement}.  @xref{Identifier Search}.
 @findex xref-revert-buffer
 Refresh the contents of the @file{*xref*} buffer
 (@code{xref-revert-buffer}.
+
+@item M-,
+@findex xref-quit-and-pop-marker-stack
+Quit the window showing the @file{*xref*} buffer, and then jump to the
+previous Xref stack location (@code{xref-quit-and-pop-marker-stack}.
 
 @item q
 @findex xref-quit

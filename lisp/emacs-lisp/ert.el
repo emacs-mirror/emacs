@@ -1958,9 +1958,9 @@ non-nil, returns the face for expected results.."
   nil)
 
 (defun ert--results-font-lock-function (enabledp)
-  "Redraw the ERT results buffer after font-lock-mode was switched on or off.
+  "Redraw the ERT results buffer after `font-lock-mode' was switched on or off.
 
-ENABLEDP is true if font-lock-mode is switched on, false
+ENABLEDP is true if `font-lock-mode' is switched on, false
 otherwise."
   (ert--results-update-ewoc-hf ert--results-ewoc ert--results-stats)
   (ewoc-refresh ert--results-ewoc)

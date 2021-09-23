@@ -139,7 +139,7 @@ KEYWORD-ARGS:
                    A nil value means to simply use the same abbrev-table
                    as the parent.
            :after-hook FORM
-                   A single lisp form which is evaluated after the mode
+                   A single Lisp form which is evaluated after the mode
                    hooks have been run.  It should not be quoted.
            :interactive BOOLEAN
                    Whether the derived mode should be `interactive' or not.

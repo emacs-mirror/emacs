@@ -266,7 +266,7 @@ it finishes, type \\[kill-find]."
 
 ;;;###autoload
 (defun find-name-dired (dir pattern)
-  "Search DIR recursively for files matching the globbing pattern PATTERN,
+  "Search DIR recursively for files matching the globbing PATTERN,
 and run Dired on those files.
 PATTERN is a shell wildcard (not an Emacs regexp) and need not be quoted.
 The default command run (after changing into DIR) is

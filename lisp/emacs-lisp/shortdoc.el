@@ -495,6 +495,9 @@ There can be any number of :example/:result elements."
    :eval (list 1 2 3))
   (number-sequence
    :eval (number-sequence 5 8))
+  (ensure-list
+   :eval (ensure-list "foo")
+   :eval (ensure-list '(1 2 3)))
   "Operations on Lists"
   (append
    :eval (append '("foo" "bar") '("zot")))

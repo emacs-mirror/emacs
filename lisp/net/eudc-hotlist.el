@@ -174,9 +174,8 @@ These are the special commands of this mode:
     ["Save and Quit" eudc-hotlist-quit-edit t]
     ["Exit without Saving" kill-this-buffer t]))
 
-(easy-menu-define eudc-hotlist-emacs-menu
-    eudc-hotlist-mode-map
-    ""
+(easy-menu-define eudc-hotlist-emacs-menu eudc-hotlist-mode-map
+    "EUDC hotlist Menu."
     eudc-hotlist-menu)
 
 ;;; eudc-hotlist.el ends here

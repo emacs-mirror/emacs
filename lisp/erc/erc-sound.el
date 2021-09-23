@@ -128,7 +128,7 @@ See also `play-sound-file'."
     (erc-log (format "Playing sound file %S" filepath))))
 
 (defun erc-toggle-sound (&optional arg)
-  "Toggles playing sounds on and off.
+  "Toggle playing sounds on and off.
 With positive argument, turns them on.  With any other argument
 turns sounds off."
   (interactive "P")

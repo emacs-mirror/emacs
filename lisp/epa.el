@@ -20,8 +20,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
-;;; Dependencies
 
 (require 'epg)
 (eval-when-compile (require 'subr-x))
@@ -461,7 +462,7 @@ q  trust status questionable.  -  trust status unspecified.
 ;;;###autoload
 (defun epa-select-keys (context prompt &optional names secret)
   "Display a user's keyring and ask him to select keys.
-CONTEXT is an epg-context.
+CONTEXT is an `epg-context'.
 PROMPT is a string to prompt with.
 NAMES is a list of strings to be matched with keys.  If it is nil, all
 the keys are listed.
@@ -968,8 +969,7 @@ For example:
 
 ;;;###autoload
 (defun epa-verify-cleartext-in-region (start end)
-  "Verify OpenPGP cleartext signed messages in the current region
-between START and END.
+  "Verify OpenPGP cleartext signed messages in current region from START to END.
 
 Don't use this command in Lisp programs!
 See the reason described in the `epa-verify-region' documentation."
@@ -1202,8 +1202,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 
 ;;;###autoload
 (defun epa-import-armor-in-region (start end)
-  "Import keys in the OpenPGP armor format in the current region
-between START and END."
+  "Import keys in the OpenPGP armor format in the current region from START to END."
   (interactive "r")
   (save-excursion
     (save-restriction

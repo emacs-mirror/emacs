@@ -492,11 +492,11 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal subr-tests--hook '(f5 f2 f1 f4 f3)))
   (add-hook 'subr-tests--hook 'f6)
   (should (equal subr-tests--hook '(f5 f6 f2 f1 f4 f3)))
-  ;; Make sure `t' is equivalent to 90.
+  ;; Make sure t is equivalent to 90.
   (add-hook 'subr-tests--hook 'f7 90)
   (add-hook 'subr-tests--hook 'f8 t)
   (should (equal subr-tests--hook '(f5 f6 f2 f1 f4 f3 f7 f8)))
-  ;; Make sure `nil' is equivalent to 0.
+  ;; Make sure nil is equivalent to 0.
   (add-hook 'subr-tests--hook 'f9 0)
   (add-hook 'subr-tests--hook 'f10)
   (should (equal subr-tests--hook '(f5 f10 f9 f6 f2 f1 f4 f3 f7 f8)))
@@ -766,6 +766,11 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
     (with-existing-directory
       (should-not (equal dir default-directory))
       (should (file-exists-p default-directory)))))
+
+(ert-deftest test-ensure-list ()
+  (should (equal (ensure-list nil) nil))
+  (should (equal (ensure-list :foo) '(:foo)))
+  (should (equal (ensure-list '(1 2 3)) '(1 2 3))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

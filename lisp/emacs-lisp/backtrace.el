@@ -868,7 +868,7 @@ commands.
 \\{backtrace-mode-map}
 
 A mode which inherits from Backtrace mode, or a command which
-creates a backtrace-mode buffer, should usually do the following:
+creates a `backtrace-mode' buffer, should usually do the following:
 
  - Set `backtrace-revert-hook', if the buffer contents need
    to be specially recomputed prior to `revert-buffer'.

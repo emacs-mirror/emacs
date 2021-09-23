@@ -158,26 +158,33 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (when (thing-at-mouse click 'symbol)
     (define-key-after menu [elisp-separator] menu-bar-separator
       'middle-separator)
-    (define-key-after menu [info-lookup-symbol]
-      '(menu-item "Look up in Manual"
-                  (lambda (click) (interactive "e")
-                    (info-lookup-symbol
-                     (intern (thing-at-mouse click 'symbol t))))
-                  :help "Display definition in relevant manual")
-      'elisp-separator)
+
     (let* ((string (thing-at-mouse click 'symbol t))
            (symbol (when (stringp string) (intern string)))
            (title (cond
                    ((not (symbolp symbol)) nil)
-                   ((fboundp symbol) "Function")
-                   ((and (boundp symbol) (not (keywordp symbol))) "Variable")
-                   ((facep symbol) "Face"))))
+                   ((and (facep symbol) (not (fboundp symbol)))
+                    "Face")
+                   ((and (fboundp symbol)
+                         (not (or (boundp symbol) (facep symbol))))
+                    "Function")
+                   ((and (boundp symbol)
+                         (not (or (fboundp symbol) (facep symbol))))
+                    "Variable")
+                   ((or (fboundp symbol) (boundp symbol) (facep symbol))
+                    "Symbol"))))
       (when title
+        (define-key-after menu [info-lookup-symbol]
+          `(menu-item "Look up in Manual"
+                      (lambda (_click) (interactive "e")
+                        (info-lookup-symbol ',symbol))
+                      :help ,(format "Find `%s' in relevant manual" symbol))
+          'elisp-separator)
         (define-key-after menu [describe-symbol]
           `(menu-item (format "Describe %s" ,title)
                       (lambda (_click) (interactive "e")
                         (describe-symbol ',symbol))
-                      :help "Display the full documentation of symbol")
+                      :help ,(format "Display the documentation of `%s'" symbol))
           'elisp-separator))))
   menu)
 
@@ -980,7 +987,7 @@ namespace but with lower confidence."
               ;; First call to find-lisp-object-file-name for an object
               ;; defined in C; the doc strings from the C source have
               ;; not been loaded yet.  Second call will return "src/*.c"
-              ;; in file; handled by 't' case below.
+              ;; in file; handled by t case below.
               (push (elisp--xref-make-xref nil symbol (help-C-file-name (symbol-function symbol) 'subr)) xrefs))
 
              ((and (setq doc (documentation symbol t))
@@ -1024,7 +1031,7 @@ namespace but with lower confidence."
                                   specializers))
                        (file (find-lisp-object-file-name met-name 'cl-defmethod)))
                   (dolist (item specializers)
-                    ;; default method has all 't' in specializers
+                    ;; Default method has all t in specializers.
                     (setq non-default (or non-default (not (equal t item)))))
 
                   (when (and file

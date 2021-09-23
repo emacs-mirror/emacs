@@ -352,7 +352,9 @@ When you set this variable to nil, consider further customization with
   :type 'boolean)
 
 (defun xwidget-webkit-bookmark-make-record ()
-  "Create bookmark record in webkit xwidget."
+  "Create bookmark record in webkit xwidget.
+See `xwidget-webkit-bookmark-jump-new-session' for whether this
+should create a new session or not."
   (nconc (bookmark-make-record-default t t)
          `((page . ,(xwidget-webkit-uri (xwidget-webkit-current-session)))
            (handler  . (lambda (bmk)

@@ -827,9 +827,9 @@ right side of it."
 ;; impossible to get a feel for how that function works.
 
 (defmacro c-go-list-forward (&optional pos limit)
-  "Move forward across one balanced group of parentheses starting at POS or
-point.  Return POINT when we succeed, NIL when we fail.  In the latter case,
-leave point unmoved.
+  "Move forward across one balanced group of parentheses starting at POS or point.
+Return POINT when we succeed, NIL when we fail.  In the latter
+case, leave point unmoved.
 
 A LIMIT for the search may be given.  The start position is assumed to be
 before it."
@@ -838,9 +838,9 @@ before it."
      (when dest (goto-char dest) dest)))
 
 (defmacro c-go-list-backward (&optional pos limit)
-  "Move backward across one balanced group of parentheses starting at POS or
-point.  Return POINT when we succeed, NIL when we fail.  In the latter case,
-leave point unmoved.
+  "Move backward across one balanced group of parentheses starting at POS or point.
+Return POINT when we succeed, NIL when we fail.  In the latter
+case, leave point unmoved.
 
 A LIMIT for the search may be given.  The start position is assumed to be
 after it."
@@ -2593,7 +2593,7 @@ quoted."
 (defvar c-lang-constants-under-evaluation nil
   "Alist of constants in the process of being evaluated.
 The `cdr' of each entry indicates how far we've looked in the list
-of definitions, so that the def for var FOO in c-mode can be defined in
+of definitions, so that the def for var FOO in `c-mode' can be defined in
 terms of the def for that same var FOO (which will then rely on the
 fallback definition for all modes, to break the cycle).")
 
