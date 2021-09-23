@@ -218,7 +218,11 @@ it has to be wrapped in `(eval (quote ...))'.
                             `(:expected-result-type ,expected-result))
                         ,@(when tags-supplied-p
                             `(:tags ,tags))
-                        :body (lambda () ,@body)))
+                        :body (lambda ()
+                                ;; Use the value of `lexical-binding' in
+                                ;; the source file when evaluating the body.
+                                (let ((lexical-binding ,lexical-binding))
+                                  ,@body))))
          ',name))))
 
 (defvar ert--find-test-regexp

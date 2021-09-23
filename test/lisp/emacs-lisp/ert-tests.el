@@ -816,6 +816,10 @@ This macro is used to test if macroexpansion in `should' works."
     (should (equal (ert-test-failed-condition result)
                    '(ert-test-failed "Boo")))))
 
+(ert-deftest ert-test-deftest-lexical-binding-t ()
+  "Check that `lexical-binding' in `ert-deftest' has the file value."
+  (should (equal lexical-binding t)))
+
 
 (provide 'ert-tests)
 
