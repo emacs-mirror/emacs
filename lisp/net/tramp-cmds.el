@@ -131,6 +131,8 @@ When called interactively, a Tramp connection has to be selected."
 	(buf (list (get-buffer (tramp-buffer-name vec))
 		   (unless keep-debug
 		     (get-buffer (tramp-debug-buffer-name vec)))
+		   (unless keep-debug
+		     (get-buffer (tramp-trace-buffer-name vec)))
 		   (tramp-get-connection-property vec "process-buffer" nil)))
       (when (bufferp buf) (kill-buffer buf)))
 
