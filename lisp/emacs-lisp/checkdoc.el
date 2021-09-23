@@ -2093,7 +2093,7 @@ The text checked is between START and LIMIT."
 
 (defun checkdoc-in-abbreviation-p (begin)
   "Return non-nil if point is at an abbreviation.
-Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
+Examples of recognized abbreviations: \"e.g.\", \"i.e.\", \"cf.\"."
   (save-excursion
     (goto-char begin)
     (condition-case nil
@@ -2120,7 +2120,7 @@ Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
                   "etc"                           ; etc.
                   "vs"                            ; vs.
                   ;; Some non-standard or less common ones that we
-                  ;; might as well ignore.
+                  ;; might as well accept.
                   "Inc" "Univ" "misc" "resp")
                  "."))))
       (error t))))
