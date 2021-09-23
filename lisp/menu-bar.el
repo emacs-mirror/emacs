@@ -1960,6 +1960,9 @@ key, a click, or a menu-item"))
                   :help "Find commands whose names match a regexp"))
     (bindings--define-key menu [sep1]
       menu-bar-separator)
+    (bindings--define-key menu [lookup-symbol-in-manual]
+      '(menu-item "Look Up Symbol in Manual..." info-lookup-symbol
+                  :help "Display manual section that describes a symbol"))
     (bindings--define-key menu [lookup-command-in-manual]
       '(menu-item "Look Up Command in User Manual..." Info-goto-emacs-command-node
                   :help "Display manual section that describes a command"))
