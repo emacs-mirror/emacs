@@ -1836,6 +1836,7 @@ cleaning up these problems."
 
 
 (defun whitespace-display-window (buffer)
+  "Display BUFFER, preferably below the selected window."
   (goto-char (point-min))
   (set-buffer-modified-p nil)
   (let ((window (display-buffer
