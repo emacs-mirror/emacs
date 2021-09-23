@@ -3907,6 +3907,17 @@ It can be used to create Lisp strings with arbitrary byte sequences
 (a.k.a. "raw bytes").
 
 +++
+** Shorthands
+Shorthands are a general purpose namespacing system to make Emacs
+Lisp's symbol-naming etiquette easier to manage.  Also known as a
+"renamed symbol", a shorthand is any symbolic form found in Lisp
+source that abbreviates a symbol with a different and longer print
+name.  Among other applications, it facilitates the importation of
+popular libraries such as 's.el' without the polution associated of
+very short prefixes.  For details, see the manual section "(elisp)
+Shorthands".
+
++++
 ** New function 'string-search'.
 This function takes two string parameters and returns the position of
 the first instance of the former string in the latter.
