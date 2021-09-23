@@ -1147,6 +1147,14 @@ This prompts for a branch to merge from."
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
 
+;; It's a weird option due to how Git handles '--follow', and it can
+;; hide certain (usually merge) commits in the `vc-print-log' buffers.
+;;
+;; (setq vc-git-log-switches '("-m")) can fix that, but at the cost of
+;; duplicating many merge commits in the log.
+;;
+;; Long explanation here:
+;; https://stackoverflow.com/questions/46487476/git-log-follow-graph-skips-commits
 (defcustom vc-git-print-log-follow nil
   "If true, follow renames in Git logs for a single file."
   :type 'boolean
