@@ -727,7 +727,15 @@ Buffer local variable.")
    term-color-blue
    term-color-magenta
    term-color-cyan
-   term-color-white])
+   term-color-white
+   term-color-bright-black
+   term-color-bright-red
+   term-color-bright-green
+   term-color-bright-yellow
+   term-color-bright-blue
+   term-color-bright-magenta
+   term-color-bright-cyan
+   term-color-bright-white])
 
 (defcustom term-default-fg-color nil
   "If non-nil, default color for foreground in Term mode."
@@ -752,54 +760,112 @@ Buffer local variable.")
   :group 'term)
 
 (defface term-bold
-  '((t :bold t))
+  '((t :inherit ansi-color-bold))
   "Default face to use for bold text."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-underline
-  '((t :underline t))
+  '((t :inherit ansi-color-underline))
   "Default face to use for underlined text."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-black
-  '((t :foreground "black" :background "black"))
+  '((t :inherit ansi-color-black))
   "Face used to render black color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-red
-  '((t :foreground "red3" :background "red3"))
+  '((t :inherit ansi-color-red))
   "Face used to render red color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-green
-  '((t :foreground "green3" :background "green3"))
+  '((t :inherit ansi-color-green))
   "Face used to render green color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-yellow
-  '((t :foreground "yellow3" :background "yellow3"))
+  '((t :inherit ansi-color-yellow))
   "Face used to render yellow color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-blue
-  '((t :foreground "blue2" :background "blue2"))
+  '((t :inherit ansi-color-blue))
   "Face used to render blue color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-magenta
-  '((t :foreground "magenta3" :background "magenta3"))
+  '((t :inherit ansi-color-magenta))
   "Face used to render magenta color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-cyan
-  '((t :foreground "cyan3" :background "cyan3"))
+  '((t :inherit ansi-color-cyan))
   "Face used to render cyan color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-white
-  '((t :foreground "white" :background "white"))
+  '((t :inherit ansi-color-white))
   "Face used to render white color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-black
+  '((t :inherit ansi-color-bright-black))
+  "Face used to render bright black color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-red
+  '((t :inherit ansi-color-bright-red))
+  "Face used to render bright red color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-green
+  '((t :inherit ansi-color-bright-green))
+  "Face used to render bright green color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-yellow
+  '((t :inherit ansi-color-bright-yellow))
+  "Face used to render bright yellow color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-blue
+  '((t :inherit ansi-color-bright-blue))
+  "Face used to render bright blue color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-magenta
+  '((t :inherit ansi-color-bright-magenta))
+  "Face used to render bright magenta color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-cyan
+  '((t :inherit ansi-color-bright-cyan))
+  "Face used to render bright cyan color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-white
+  '((t :inherit ansi-color-bright-white))
+  "Face used to render bright white color code."
+  :group 'term
+  :version "28.1")
 
 (defcustom term-buffer-maximum-size 8192
   "The maximum size in lines for term buffers.
@@ -3223,6 +3289,15 @@ option is enabled.  See `term-set-goto-process-mark'."
   ;; FIXME: No idea why this is here, it looks wrong.  --Stef
   (setq term-ansi-face-already-done nil))
 
+(defun term--maybe-brighten-color (color bold)
+  "Possibly convert COLOR to its bright variant.
+COLOR is an index into `ansi-term-color-vector'.  If BOLD and
+`ansi-color-bold-is-bright' are non-nil and COLOR is a regular color,
+return the bright version of COLOR; otherwise, return COLOR."
+  (if (and ansi-color-bold-is-bright bold (<= 1 color 8))
+      (+ color 8)
+    color))
+
 ;; New function to deal with ansi colorized output, as you can see you can
 ;; have any bold/underline/fg/bg/reverse combination. -mm
 
@@ -3262,6 +3337,10 @@ option is enabled.  See `term-set-goto-process-mark'."
    ((and (>= parameter 30) (<= parameter 37))
     (setq term-ansi-current-color (- parameter 29)))
 
+   ;; Bright foreground
+   ((and (>= parameter 90) (<= parameter 97))
+    (setq term-ansi-current-color (- parameter 81)))
+
    ;; Reset foreground
    ((eq parameter 39)
     (setq term-ansi-current-color 0))
@@ -3269,6 +3348,10 @@ option is enabled.  See `term-set-goto-process-mark'."
    ;; Background
    ((and (>= parameter 40) (<= parameter 47))
     (setq term-ansi-current-bg-color (- parameter 39)))
+
+   ;; Bright foreground
+   ((and (>= parameter 100) (<= parameter 107))
+    (setq term-ansi-current-bg-color (- parameter 91)))
 
    ;; Reset background
    ((eq parameter 49)
@@ -3288,37 +3371,43 @@ option is enabled.  See `term-set-goto-process-mark'."
   ;;          term-ansi-current-bg-color)
 
   (unless term-ansi-face-already-done
-    (if term-ansi-current-invisible
-        (let ((color
-               (if term-ansi-current-reverse
-                   (face-foreground
-                    (elt ansi-term-color-vector term-ansi-current-color)
-                    nil 'default)
-                 (face-background
-                  (elt ansi-term-color-vector term-ansi-current-bg-color)
-                  nil 'default))))
+    (let ((current-color (term--maybe-brighten-color
+                          term-ansi-current-color
+                          term-ansi-current-bold))
+          (current-bg-color (term--maybe-brighten-color
+                             term-ansi-current-bg-color
+                             term-ansi-current-bold)))
+      (if term-ansi-current-invisible
+          (let ((color
+                 (if term-ansi-current-reverse
+                     (face-foreground
+                      (elt ansi-term-color-vector current-color)
+                      nil 'default)
+                   (face-background
+                    (elt ansi-term-color-vector current-bg-color)
+                    nil 'default))))
+            (setq term-current-face
+                  (list :background color
+                        :foreground color))
+            ) ;; No need to bother with anything else if it's invisible.
+        (setq term-current-face
+              (list :foreground
+                    (face-foreground
+                     (elt ansi-term-color-vector current-color)
+                     nil 'default)
+                    :background
+                    (face-background
+                     (elt ansi-term-color-vector current-bg-color)
+                     nil 'default)
+                    :inverse-video term-ansi-current-reverse))
+
+        (when term-ansi-current-bold
           (setq term-current-face
-                (list :background color
-                      :foreground color))
-          ) ;; No need to bother with anything else if it's invisible.
-      (setq term-current-face
-            (list :foreground
-                  (face-foreground
-                   (elt ansi-term-color-vector term-ansi-current-color)
-                   nil 'default)
-                  :background
-                  (face-background
-                   (elt ansi-term-color-vector term-ansi-current-bg-color)
-                   nil 'default)
-                  :inverse-video term-ansi-current-reverse))
+                `(,term-current-face :inherit term-bold)))
 
-      (when term-ansi-current-bold
-        (setq term-current-face
-              `(,term-current-face :inherit term-bold)))
-
-      (when term-ansi-current-underline
-        (setq term-current-face
-              `(,term-current-face :inherit term-underline)))))
+        (when term-ansi-current-underline
+          (setq term-current-face
+                `(,term-current-face :inherit term-underline))))))
 
   ;;	(message "Debug %S" term-current-face)
   ;; FIXME: shouldn't we set term-ansi-face-already-done to t here?  --Stef
