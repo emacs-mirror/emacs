@@ -147,7 +147,7 @@ the manpage buffer."
 
 (defvar Man-ansi-color-map
   (with-no-warnings
-    (let ((ansi-color-faces-vector Man-ansi-color-basic-faces-vector))
+    (let ((ansi-color-faces-vector
            [ default Man-overstrike default Man-underline
              Man-underline default default Man-reverse ]))
       (ansi-color-make-color-map)))
