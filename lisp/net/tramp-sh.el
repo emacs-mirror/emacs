@@ -2883,10 +2883,14 @@ implementation will be used."
 
 	    ;; Handle error buffer.
 	    (when (bufferp stderr)
+	      (unless (tramp-get-remote-mknod-or-mkfifo v)
+		(tramp-error
+		 v 'file-error "Stderr buffer `%s' not supported" stderr))
 	      (with-current-buffer stderr
 		(setq buffer-read-only nil))
 	      ;; Create named pipe.
-	      (tramp-send-command v (format "mknod %s p" tmpstderr))
+	      (tramp-send-command
+	       v (format (tramp-get-remote-mknod-or-mkfifo v) tmpstderr))
 	      ;; Create stderr process.
 	      (make-process
 	       :name (buffer-name stderr)
@@ -2963,7 +2967,7 @@ implementation will be used."
 			(ignore-errors
 			  (set-process-query-on-exit-flag p (null noquery))
 			  (set-marker (process-mark p) (point)))
-			;; Kill stderr process delete and named pipe.
+			;; Kill stderr process and delete named pipe.
 			(when (bufferp stderr)
 			  (add-function
 			   :after (process-sentinel p)
@@ -5794,6 +5798,23 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	   (format
 	    "ln -s foo %s && chmod -h %s 0777"
 	    (tramp-file-local-name tmpfile) (tramp-file-local-name tmpfile)))
+	(delete-file tmpfile)))))
+
+(defun tramp-get-remote-mknod-or-mkfifo (vec)
+  "Determine remote `mknod' or `mkfifo' command."
+  (with-tramp-connection-property vec "mknod-or-mkfifo"
+    (tramp-message vec 5 "Finding a suitable `mknod' or `mkfifo' command")
+    (let ((tmpfile (tramp-make-tramp-temp-name vec))
+	  command)
+      (prog1
+	  (or (and (setq command "mknod %s p")
+		   (tramp-send-command-and-check
+		    vec (format command (tramp-file-local-name tmpfile)))
+		   command)
+	      (and (setq command "mkfifo %s")
+		   (tramp-send-command-and-check
+		    vec (format command (tramp-file-local-name tmpfile)))
+		   command))
 	(delete-file tmpfile)))))
 
 ;; Some predefined connection properties.
