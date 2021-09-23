@@ -301,8 +301,10 @@ Prefer the enclosing list with fallback on sexp at point.
 
 (defun thing-at-point-bounds-of-list-or-string-at-point ()
   "Return the bounds of the list or string at point.
-Like `thing-at-point-bounds-of-list-at-point', but also
-prefer to find of any enclosing string."
+Like `thing-at-point-bounds-of-list-at-point', but if
+point is inside a string that's enclosed in the list, this
+function will return the enclosed string and not the
+enclosing list."
   (thing-at-point-bounds-of-list-at-point t t))
 
 ;; Defuns
