@@ -2973,9 +2973,10 @@ point leaves the text.  If nil, the text is not hidden again.  Instead
 'M-x reveal-hide-revealed' can be used to hide all the revealed text.
 
 ---
-*** New variable 'ffap-file-name-with-spaces'.
+*** New user option 'ffap-file-name-with-spaces'.
 If non-nil, 'find-file-at-point' and friends will try to guess more
-expansively to identify a file name with spaces.
+expansively to identify a file name with spaces.  Default value is
+nil.
 
 ---
 *** Two new commands for centering in 'doc-view-mode'.
