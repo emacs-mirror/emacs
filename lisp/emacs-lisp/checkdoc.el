@@ -2097,27 +2097,31 @@ Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
   (save-excursion
     (goto-char begin)
     (condition-case nil
-        (progn
-          (forward-sexp -1)
+        (let ((single-letter t))
+          (forward-word -1)
+          ;; Skip over all dots backwards, as `forward-word' will only
+          ;; go one dot at a time in a string like "e.g.".
+          (while (save-excursion (forward-char -1)
+                                 (looking-at (rx ".")))
+            (setq single-letter nil)
+            (forward-word -1))
           ;; Piece of an abbreviation.
           (looking-at
-           (rx (or letter     ; single letter, as in "a."
-                   (seq
-                    ;; There might exist an escaped parenthesis, as
-                    ;; this is often used in docstrings.  In this
-                    ;; case, `forward-sexp' will have skipped over it,
-                    ;; so we need to skip it here too.
-                    (? "\\(")
-                    ;; The abbreviations:
-                    (or (seq (any "cC") "f")              ; cf.
-                        (seq (any "eE") ".g")             ; e.g.
-                        (seq (any "iI") "." (any "eE")))) ; i.e.
-                   "etc"                                  ; etc.
-                   "vs"                                   ; vs.
-                   ;; Some non-standard or less common ones that we
-                   ;; might as well ignore.
-                   "Inc" "Univ" "misc" "resp")
-               ".")))
+           (if single-letter
+               ;; Handle a single letter, as in "a.", as this might be
+               ;; a part of a list.
+               (rx letter ".")
+             (rx (or
+                  ;; The abbreviations:
+                  (seq (or (seq (any "cC") "f")              ; cf.
+                           (seq (any "eE") ".g")             ; e.g.
+                           (seq (any "iI") "." (any "eE")))) ; i.e.
+                  "etc"                                      ; etc.
+                  "vs"                                       ; vs.
+                  ;; Some non-standard or less common ones that we
+                  ;; might as well ignore.
+                  "Inc" "Univ" "misc" "resp")
+                 "."))))
       (error t))))
 
 (defun checkdoc-proper-noun-region-engine (begin end)

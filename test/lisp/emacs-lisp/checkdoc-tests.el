@@ -122,29 +122,31 @@ See the comments in Bug#24998."
     (should (looking-at-p "\"baz\")"))
     (should-not (checkdoc-next-docstring))))
 
-(ert-deftest checkdoc-tests-in-abbrevation-p ()
+(defun checkdoc-tests--abbrev-test (buffer-contents goto-string)
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "foo bar e.g. baz")
+    (insert buffer-contents)
     (goto-char (point-min))
-    (re-search-forward "e.g")
-    (should (checkdoc-in-abbreviation-p (point)))))
+    (re-search-forward goto-string)
+    (checkdoc-in-abbreviation-p (point))))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/basic-case ()
+  (should (checkdoc-tests--abbrev-test "foo bar e.g. baz" "e.g")))
 
 (ert-deftest checkdoc-tests-in-abbrevation-p/with-parens ()
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (insert "foo bar (e.g. baz)")
-    (goto-char (point-min))
-    (re-search-forward "e.g")
-    (should (checkdoc-in-abbreviation-p (point)))))
+  (should (checkdoc-tests--abbrev-test "foo bar (e.g. baz)" "e.g")))
 
 (ert-deftest checkdoc-tests-in-abbrevation-p/with-escaped-parens ()
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (insert "foo\n\\(e.g. baz)")
-    (goto-char (point-min))
-    (re-search-forward "e.g")
-    (should (checkdoc-in-abbreviation-p (point)))))
+  (should (checkdoc-tests--abbrev-test "foo\n\\(e.g. baz)" "e.g")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/single-char ()
+  (should (checkdoc-tests--abbrev-test "a. foo bar" "a")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/with-em-dash ()
+  (should (checkdoc-tests--abbrev-test "foo bar baz---e.g." "e.g")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/incorrect-abbreviation ()
+  (should-not (checkdoc-tests--abbrev-test "foo bar a.b.c." "a.b.c")))
 
 (ert-deftest checkdoc-tests-fix-y-or-n-p ()
   (with-temp-buffer
