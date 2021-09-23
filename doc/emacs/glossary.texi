@@ -1334,6 +1334,12 @@ allowed as well.
 @item String Substitution
 @xref{Glossary---Global Substitution}.
 
+@item Symbol
+A symbol in Emacs Lisp is an object with a name.  The
+symbol name serves as the printed representation of the symbol.
+@xref{Symbol Type,, Symbol Type, elisp, The Emacs Lisp Reference
+Manual}.
+
 @item Syntax Highlighting
 @xref{Glossary---Font Lock}.
 
