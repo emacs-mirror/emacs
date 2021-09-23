@@ -307,20 +307,19 @@ recognize and then delegate the work to an external process."
 
 
 ;;; misc utilities
-(defun xref--alistify (list key test)
+(defun xref--alistify (list key)
   "Partition the elements of LIST into an alist.
-KEY extracts the key from an element and TEST is used to compare
-keys."
-  (let ((alist '()))
+KEY extracts the key from an element."
+  (let ((table (make-hash-table :test #'equal)))
     (dolist (e list)
       (let* ((k (funcall key e))
-             (probe (cl-assoc k alist :test test)))
+             (probe (gethash k table)))
         (if probe
-            (setcdr probe (cons e (cdr probe)))
-          (push (cons k (list e)) alist))))
+            (puthash k (cons e probe) table)
+          (puthash k (list e) table))))
     ;; Put them back in order.
-    (cl-loop for (key . value) in (reverse alist)
-             collect (cons key (reverse value)))))
+    (cl-loop for key being hash-keys of table using (hash-values value)
+             collect (cons key (nreverse value)))))
 
 (defun xref--insert-propertized (props &rest strings)
   "Insert STRINGS with text properties PROPS."
@@ -1046,8 +1045,7 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
   (let* ((alist
           (xref--alistify xrefs
                           (lambda (x)
-                            (xref-location-group (xref-item-location x)))
-                          #'equal))
+                            (xref-location-group (xref-item-location x)))))
          (project (and
                    (eq xref-file-name-display 'project-relative)
                    (project-current)))
@@ -1622,11 +1620,11 @@ IGNORES is a list of glob patterns for files to ignore."
   '((grep
      .
      ;; '-s' because 'git ls-files' can output broken symlinks.
-     "xargs -0 grep <C> -snHE -e <R>")
+     "xargs -0 grep <C> --null -snHE -e <R>")
     (ripgrep
      .
      ;; '!*/' is there to filter out dirs (e.g. submodules).
-     "xargs -0 rg <C> -nH --no-messages -g '!*/' -e <R>"
+     "xargs -0 rg <C> --null -nH --no-messages -g '!*/' -e <R>"
      ))
   "Associative list mapping program identifiers to command templates.
 
