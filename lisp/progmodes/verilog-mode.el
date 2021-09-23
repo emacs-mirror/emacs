@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2021.09.22.045357537
+;; Version: 2021.09.23.139584433
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2021-09-22-2b419e1-vpo-GNU"
+(defconst verilog-mode-version "2021-09-23-851e3b1-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -13380,7 +13380,7 @@ Typing \\[verilog-auto] will call my-verilog-insert-hello and
 expand the above into:
 
            /*AUTOINSERTLISP(my-verilog-insert-hello \"world\")*/
-           // Beginning of automatic insert Lisp
+           // Beginning of automatic insert lisp
            initial $write(\"hello world\");
            // End of automatics
 
