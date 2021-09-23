@@ -25,17 +25,58 @@
 ;;; Code:
 
 (require 'ansi-color)
+(eval-when-compile (require 'cl-lib))
 
-(defvar test-strings '(("\e[33mHello World\e[0m" . "Hello World")
-                       ("\e[1m\e[3m\e[5mbold italics blink\e[0m" . "bold italics blink")))
+(defvar yellow (face-foreground 'ansi-color-yellow nil 'default))
+(defvar bright-yellow (face-foreground 'ansi-color-bright-yellow nil 'default))
+
+(defvar test-strings
+  `(("Hello World" "Hello World")
+    ("\e[33mHello World\e[0m" "Hello World"
+     (:foreground ,yellow))
+    ("\e[43mHello World\e[0m" "Hello World"
+     (:background ,yellow))
+    ("\e[93mHello World\e[0m" "Hello World"
+     (:foreground ,bright-yellow))
+    ("\e[103mHello World\e[0m" "Hello World"
+     (:background ,bright-yellow))
+    ("\e[1;33mHello World\e[0m" "Hello World"
+     (ansi-color-bold (:foreground ,yellow))
+     (ansi-color-bold (:foreground ,bright-yellow)))
+    ("\e[33;1mHello World\e[0m" "Hello World"
+     (ansi-color-bold (:foreground ,yellow))
+     (ansi-color-bold (:foreground ,bright-yellow)))
+    ("\e[1m\e[33mHello World\e[0m" "Hello World"
+     (ansi-color-bold (:foreground ,yellow))
+     (ansi-color-bold (:foreground ,bright-yellow)))
+    ("\e[33m\e[1mHello World\e[0m" "Hello World"
+     (ansi-color-bold (:foreground ,yellow))
+     (ansi-color-bold (:foreground ,bright-yellow)))
+    ("\e[1m\e[3m\e[5mbold italics blink\e[0m" "bold italics blink"
+     (ansi-color-bold ansi-color-italic ansi-color-slow-blink))
+    ("\e[10munrecognized\e[0m" "unrecognized")))
 
 (ert-deftest ansi-color-apply-on-region-test ()
-    (dolist (pair test-strings)
-      (with-temp-buffer
-        (insert (car pair))
+  (pcase-dolist (`(,input ,text ,face) test-strings)
+    (with-temp-buffer
+      (insert input)
+      (ansi-color-apply-on-region (point-min) (point-max))
+      (should (equal (buffer-string) text))
+      (should (equal (get-char-property (point-min) 'face) face))
+      (when face
+        (should (not (equal (overlays-at (point-min)) nil)))))))
+
+(ert-deftest ansi-color-apply-on-region-bold-is-bright-test ()
+  (pcase-dolist (`(,input ,text ,normal-face ,bright-face) test-strings)
+    (with-temp-buffer
+      (let ((ansi-color-bold-is-bright t)
+            (face (or bright-face normal-face)))
+        (insert input)
         (ansi-color-apply-on-region (point-min) (point-max))
-        (should (equal (buffer-string) (cdr pair)))
-        (should (not (equal (overlays-at (point-min)) nil))))))
+        (should (equal (buffer-string) text))
+        (should (equal (get-char-property (point-min) 'face) face))
+        (when face
+          (should (not (equal (overlays-at (point-min)) nil))))))))
 
 (ert-deftest ansi-color-apply-on-region-preserving-test ()
     (dolist (pair test-strings)

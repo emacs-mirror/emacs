@@ -90,36 +90,215 @@ as a PDF file."
   :version "21.1"
   :group 'processes)
 
+(defface ansi-color-bold
+  '((t :inherit 'bold))
+  "Face used to render bold text."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-faint
+  '((t :weight light))
+  "Face used to render faint text."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-italic
+  '((t :inherit 'italic))
+  "Face used to render italic text."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-underline
+  '((t :inherit 'underline))
+  "Face used to render underlined text."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-slow-blink
+  '((t :box (:line-width -1)))
+  "Face used to render slowly blinking text."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-fast-blink
+  '((t :box (:line-width -1)))
+  "Face used to render rapidly blinking text."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-inverse
+  '((t :inverse-video t))
+  "Face used to render inverted video text."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-black
+  '((t :foreground "black" :background "black"))
+  "Face used to render black color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-red
+  '((t :foreground "red3" :background "red3"))
+  "Face used to render red color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-green
+  '((t :foreground "green3" :background "green3"))
+  "Face used to render green color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-yellow
+  '((t :foreground "yellow3" :background "yellow3"))
+  "Face used to render yellow color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-blue
+  '((t :foreground "blue2" :background "blue2"))
+  "Face used to render blue color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-magenta
+  '((t :foreground "magenta3" :background "magenta3"))
+  "Face used to render magenta color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-cyan
+  '((t :foreground "cyan3" :background "cyan3"))
+  "Face used to render cyan color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-white
+  '((t :foreground "grey90" :background "gray90"))
+  "Face used to render white color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-bright-black
+  '((t :foreground "gray30" :background "gray30"))
+  "Face used to render bright black color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-bright-red
+  '((t :foreground "red2" :background "red2"))
+  "Face used to render bright red color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-bright-green
+  '((t :foreground "green2" :background "green2"))
+  "Face used to render bright green color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-bright-yellow
+  '((t :foreground "yellow2" :background "yellow2"))
+  "Face used to render bright yellow color code."
+  :group 'ansi-colors)
+
+(defface ansi-color-bright-blue
+  '((t :foreground "blue1" :background "blue1"))
+  "Face used to render bright blue color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-bright-magenta
+  '((t :foreground "magenta2" :background "magenta2"))
+  "Face used to render bright magenta color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-bright-cyan
+  '((t :foreground "cyan2" :background "cyan2"))
+  "Face used to render bright cyan color code."
+  :group 'ansi-colors
+  :version "28.1")
+
+(defface ansi-color-bright-white
+  '((t :foreground "white" :background "white"))
+  "Face used to render bright white color code."
+  :group 'ansi-colors
+  :version "28.1")
+
 (defcustom ansi-color-faces-vector
   [default bold default italic underline success warning error]
   "Faces used for SGR control sequences determining a face.
 This vector holds the faces used for SGR control sequence parameters 0
 to 7.
 
-Parameter  Description        Face used by default
-  0        default            default
-  1        bold               bold
-  2        faint              default
-  3        italic             italic
-  4        underlined         underline
-  5        slowly blinking    success
-  6        rapidly blinking   warning
-  7        negative image     error
-
-Note that the symbol `default' is special: It will not be combined
-with the current face.
-
-This vector is used by `ansi-color-make-color-map' to create a color
-map.  This color map is stored in the variable `ansi-color-map'."
+This variable is obsolete.  To customize the display of faces used by
+ansi-color, change 'ansi-color-FACE', e.g. `ansi-color-bold'.  To
+customize the actual faces used (e.g. to temporarily display SGR
+control sequences differently), use `ansi-color-basic-faces-vector'."
   :type '(vector face face face face face face face face)
-  :set 'ansi-color-map-update
-  :initialize 'custom-initialize-default
   :group 'ansi-colors)
+(make-obsolete-variable 'ansi-color-faces-vector 'ansi-color-basic-faces-vector
+                        "28.1")
 
 (defcustom ansi-color-names-vector
   ["black" "red3" "green3" "yellow3" "blue2" "magenta3" "cyan3" "gray90"]
   "Colors used for SGR control sequences determining a color.
-This vector holds the colors used for SGR control sequences parameters
+This vector holds the colors used for SGR control sequence parameters
+30 to 37 (foreground colors) and 40 to 47 (background colors).
+
+This variable is obsolete.  To customize the display of colors used by
+ansi-color, change 'ansi-color-COLOR', e.g. `ansi-color-red'.  To
+customize the actual faces used (e.g. to temporarily display SGR
+control sequences differently), use `ansi-color-normal-colors-vector'."
+  :type '(vector (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color)))
+  :version "24.4" ; default colors copied from `xterm-standard-colors'
+  :group 'ansi-colors)
+(make-obsolete-variable 'ansi-color-faces-vector
+                        'ansi-color-normal-colors-vector "28.1")
+
+(defvar ansi-color-basic-faces-vector
+  [nil
+   ansi-color-bold
+   ansi-color-faint
+   ansi-color-italic
+   ansi-color-underline
+   ansi-color-slow-blink
+   ansi-color-fast-blink
+   ansi-color-inverse]
+  "Faces used for SGR control sequences determining a face.
+This vector holds the faces used for SGR control sequence parameters 0
+to 7.
+
+Parameter  Description
+  0        default
+  1        bold
+  2        faint
+  3        italic
+  4        underlined
+  5        slowly blinking
+  6        rapidly blinking
+  7        negative image")
+
+(defvar ansi-color-normal-colors-vector
+  [ansi-color-black
+   ansi-color-red
+   ansi-color-green
+   ansi-color-yellow
+   ansi-color-blue
+   ansi-color-magenta
+   ansi-color-cyan
+   ansi-color-white]
+  "Faces used for SGR control sequences determining a color.
+This vector holds the faces used for SGR control sequence parameters
 30 to 37 (foreground colors) and 40 to 47 (background colors).
 
 Parameter  Color
@@ -130,24 +309,37 @@ Parameter  Color
   34  44   blue
   35  45   magenta
   36  46   cyan
-  37  47   white
+  37  47   white")
 
-This vector is used by `ansi-color-make-color-map' to create a color
-map.  This color map is stored in the variable `ansi-color-map'.
+(defvar ansi-color-bright-colors-vector
+  [ansi-color-bright-black
+   ansi-color-bright-red
+   ansi-color-bright-green
+   ansi-color-bright-yellow
+   ansi-color-bright-blue
+   ansi-color-bright-magenta
+   ansi-color-bright-cyan
+   ansi-color-bright-white]
+  "Faces used for SGR control sequences determining a \"bright\" color.
+This vector holds the faces used for SGR control sequence parameters
+90 to 97 (bright foreground colors) and 100 to 107 (bright background
+colors).
 
-Each element may also be a cons cell where the car and cdr specify the
-foreground and background colors, respectively."
-  :type '(vector (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color))
-                 (choice color (cons color color)))
-  :set 'ansi-color-map-update
-  :initialize 'custom-initialize-default
-  :version "24.4" ; default colors copied from `xterm-standard-colors'
+Parameter   Color
+  90  100   bright black
+  91  101   bright red
+  92  102   bright green
+  93  103   bright yellow
+  94  104   bright blue
+  95  105   bright magenta
+  96  106   bright cyan
+  97  107   bright white")
+
+(defcustom ansi-color-bold-is-bright nil
+  "If set to non-nil, combining ANSI bold and a color produces the bright
+version of that color."
+  :type 'boolean
+  :version "28.1"
   :group 'ansi-colors)
 
 (defconst ansi-color-control-seq-regexp
@@ -304,13 +496,15 @@ This function can be added to `comint-preoutput-filter-functions'."
 
 (defun ansi-color--find-face (codes)
   "Return the face corresponding to CODES."
-  (let (faces)
+  ;; Sort the codes in ascending order to guarantee that "bold" comes before
+  ;; any of the colors.  This ensures that `ansi-color-bold-is-bright' is
+  ;; applied correctly.
+  (let (faces bright (codes (sort (copy-sequence codes) #'<)))
     (while codes
-      (let ((face (ansi-color-get-face-1 (pop codes))))
-	;; In the (default underline) face, say, the value of the
-	;; "underline" attribute of the `default' face wins.
-	(unless (eq face 'default)
-	  (push face faces))))
+      (when-let ((face (ansi-color-get-face-1 (pop codes) bright)))
+        (when (and ansi-color-bold-is-bright (eq face 'ansi-color-bold))
+          (setq bright t))
+        (push face faces)))
     ;; Avoid some long-lived conses in the common case.
     (if (cdr faces)
 	(nreverse faces)
@@ -321,9 +515,8 @@ This function can be added to `comint-preoutput-filter-functions'."
 Delete all other control sequences without processing them.
 
 Applies SGR control sequences setting foreground and background colors
-to STRING using text properties and returns the result.  The colors used
-are given in `ansi-color-faces-vector' and `ansi-color-names-vector'.
-See function `ansi-color-apply-sequence' for details.
+to STRING using text properties and returns the result.  See function
+`ansi-color-apply-sequence' for details.
 
 Every call to this function will set and use the buffer-local variable
 `ansi-color-context' to save partial escape sequences and current ansi codes.
@@ -402,8 +595,7 @@ Delete all other control sequences without processing them.
 SGR control sequences are applied by calling the function
 specified by `ansi-color-apply-face-function'.  The default
 function sets foreground and background colors to the text
-between BEGIN and END, using overlays.  The colors used are given
-in `ansi-color-faces-vector' and `ansi-color-names-vector'.  See
+between BEGIN and END, using overlays.  See function
 `ansi-color-apply-sequence' for details.
 
 Every call to this function will set and use the buffer-local
@@ -570,11 +762,11 @@ ESCAPE-SEQUENCE is an escape sequence parsed by
 
 For each new code, the following happens: if it is 1-7, add it to
 the list of codes; if it is 21-25 or 27, delete appropriate
-parameters from the list of codes; if it is 30-37 resp. 39, the
-foreground color code is replaced or added resp. deleted; if it
-is 40-47 resp. 49, the background color code is replaced or added
-resp. deleted; any other code is discarded together with the old
-codes.	Finally, the so changed list of codes is returned."
+parameters from the list of codes; if it is 30-37 (or 90-97) resp. 39,
+the foreground color code is replaced or added resp. deleted; if it
+is 40-47 (or 100-107) resp. 49, the background color code is replaced
+or added resp. deleted; any other code is discarded together with the
+old codes.  Finally, the so changed list of codes is returned."
   (let ((new-codes (ansi-color-parse-sequence escape-sequence)))
     (while new-codes
       (let* ((new (pop new-codes))
@@ -591,7 +783,7 @@ codes.	Finally, the so changed list of codes is returned."
 					(22 (remq 1 codes))
 					(25 (remq 6 codes))
 					(_ codes)))))
-		((or 3 4) (let ((r (mod new 10)))
+		((or 3 4 9 10) (let ((r (mod new 10)))
 			    (unless (= r 8)
 			      (let (beg)
 				(while (and codes (/= q (/ (car codes) 10)))
@@ -610,7 +802,9 @@ The index into the vector is an ANSI code.  See the documentation of
 `ansi-color-map' for an example.
 
 The face definitions are based upon the variables
-`ansi-color-faces-vector' and `ansi-color-names-vector'."
+`ansi-color-faces-vector' and `ansi-color-names-vector'.
+
+This function is obsolete, and no longer needed to use ansi-color."
   (let ((map (make-vector 50 nil))
         (index 0))
     ;; miscellaneous attributes
@@ -638,34 +832,57 @@ The face definitions are based upon the variables
        (setq index (1+ index)) )
      ansi-color-names-vector)
     map))
+(make-obsolete 'ansi-color-make-color-map "you can remove it." "28.1")
 
-(defvar ansi-color-map (ansi-color-make-color-map)
-  "A brand new color map suitable for `ansi-color-get-face'.
+(defvar ansi-color-map
+  (with-no-warnings (ansi-color-make-color-map))
+  "A brand new color map, formerly suitable for `ansi-color-get-face'.
 
 The value of this variable is usually constructed by
 `ansi-color-make-color-map'.  The values in the array are such that the
 numbers included in an SGR control sequences point to the correct
 foreground or background colors.
 
-Example: The sequence \\033[34m specifies a blue foreground.  Therefore:
-     (aref ansi-color-map 34)
-          => (foreground-color . \"blue\")")
+This variable is obsolete, and no longer needed to use ansi-color.")
+(make-obsolete-variable 'ansi-color-map "you can remove it." "28.1")
 
 (defun ansi-color-map-update (symbol value)
   "Update `ansi-color-map'.
 
-Whenever the vectors used to construct `ansi-color-map' are changed,
-this function is called.  Therefore this function is listed as the :set
-property of `ansi-color-faces-vector' and `ansi-color-names-vector'."
+This function is obsolete, and no longer needed to use ansi-color."
   (set-default symbol value)
-  (setq ansi-color-map (ansi-color-make-color-map)))
+  (with-no-warnings
+    (setq ansi-color-map (ansi-color-make-color-map))))
+(make-obsolete 'ansi-color-map-update "you can remove it." "28.1")
 
-(defun ansi-color-get-face-1 (ansi-code)
-  "Get face definition from `ansi-color-map'.
-ANSI-CODE is used as an index into the vector."
-  (condition-case nil
-      (aref ansi-color-map ansi-code)
-    (args-out-of-range nil)))
+(defun ansi-color-get-face-1 (ansi-code &optional bright)
+  "Get face definition for ANSI-CODE.
+BRIGHT, if non-nil, requests \"bright\" ANSI colors, even if ANSI-CODE
+is a normal-intensity color."
+  (when (and bright (<= 30 ansi-code 49))
+    (setq ansi-code (+ ansi-code 60)))
+  (cond ((<= 0 ansi-code 7)
+         (aref ansi-color-basic-faces-vector ansi-code))
+        ((<= 30 ansi-code 38)
+         (list :foreground
+               (face-foreground
+                (aref ansi-color-normal-colors-vector (- ansi-code 30))
+                nil 'default)))
+        ((<= 40 ansi-code 48)
+         (list :background
+               (face-background
+                (aref ansi-color-normal-colors-vector (- ansi-code 40))
+                nil 'default)))
+        ((<= 90 ansi-code 98)
+         (list :foreground
+               (face-foreground
+                (aref ansi-color-bright-colors-vector (- ansi-code 90))
+                nil 'default)))
+        ((<= 100 ansi-code 108)
+         (list :background
+               (face-background
+                (aref ansi-color-bright-colors-vector (- ansi-code 100))
+                nil 'default)))))
 
 (provide 'ansi-color)
 

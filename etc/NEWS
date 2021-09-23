@@ -2721,6 +2721,21 @@ sequences.
 *** 'comint-delete-output' can now save deleted text in the kill-ring.
 Interactively, 'C-u C-c C-o' triggers this new optional behavior.
 
+** ansi-color.el
+
+---
+*** Colors are now defined by faces.
+ANSI SGR codes now have corresponding faces to describe their
+appearance, e.g. 'ansi-color-bold'.
+
+---
+*** Support for "bright" color codes.
+"Bright" ANSI color codes are now displayed when applying ANSI color
+filters using the color values defined by the faces
+'ansi-color-bright-COLOR'.  In addition, bold text with regular ANSI
+colors can be displayed as "bright" if 'ansi-color-bold-is-bright' is
+non-nil.
+
 ** ERC
 
 ---
