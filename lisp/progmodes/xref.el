@@ -966,20 +966,25 @@ XREF-ALIST is of the form ((GROUP . (XREF ...)) ...), where
 GROUP is a string for decoration purposes and XREF is an
 `xref-item' object."
   (require 'compile) ; For the compilation faces.
-  (cl-loop for ((group . xrefs) . more1) on xref-alist
+  (cl-loop for (group . xrefs) in xref-alist
            for max-line-width =
            (cl-loop for xref in xrefs
                     maximize (let ((line (xref-location-line
                                           (oref xref location))))
-                               (length (and line (format "%d" line)))))
+                               (and line (1+ (floor (log line 10))))))
            for line-format = (and max-line-width
                                   (format "%%%dd: " max-line-width))
+           with item-text-props = (list 'mouse-face 'highlight
+                                        'keymap xref--button-map
+                                        'help-echo
+                                        (concat "mouse-2: display in another window, "
+                                                "RET or mouse-1: follow reference"))
            with prev-group = nil
            with prev-line = nil
            do
            (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
-           (cl-loop for (xref . more2) on xrefs do
+           (cl-loop for xref in xrefs do
                     (with-slots (summary location) xref
                       (let* ((line (xref-location-line location))
                              (prefix
@@ -995,14 +1000,9 @@ GROUP is a string for decoration purposes and XREF is an
                                    (or (null line)
                                        (not (equal prev-line line))))
                           (insert "\n"))
-                        (xref--insert-propertized
-                         (list 'xref-item xref
-                               'mouse-face 'highlight
-                               'keymap xref--button-map
-                               'help-echo
-                               (concat "mouse-2: display in another window, "
-                                       "RET or mouse-1: follow reference"))
-                         prefix summary)
+                        (xref--insert-propertized (nconc (list 'xref-item xref)
+                                                         item-text-props)
+                                                  prefix summary)
                         (setq prev-line line
                               prev-group group))))
            (insert "\n"))
@@ -1084,7 +1084,8 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
 (defun xref--show-common-initialize (xref-alist fetcher alist)
   (setq buffer-undo-list nil)
   (let ((inhibit-read-only t)
-        (buffer-undo-list t))
+        (buffer-undo-list t)
+        (inhibit-modification-hooks t))
     (erase-buffer)
     (setq overlay-arrow-position nil)
     (xref--insert-xrefs xref-alist)
@@ -1098,7 +1099,8 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
   "Refresh the search results in the current buffer."
   (interactive)
   (let ((inhibit-read-only t)
-        (buffer-undo-list t))
+        (buffer-undo-list t)
+        (inhibit-modification-hooks t))
     (save-excursion
       (condition-case err
           (let ((alist (xref--analyze (funcall xref--fetcher))))
