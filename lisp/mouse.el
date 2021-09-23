@@ -483,7 +483,8 @@ Some context functions add menu items below the separator."
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
                   :help "Mark the defun at click for a subsequent cut/copy"))
     (define-key-after submenu [mark-list-or-string]
-      `(menu-item ,(if (nth 8 (syntax-ppss (posn-point (event-end click))))
+      `(menu-item ,(if (nth 8 (save-excursion
+                                (syntax-ppss (posn-point (event-end click)))))
                        "String" "List")
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list-or-string))
                   :help "Mark list or string at click for a subsequent cut/copy"))
