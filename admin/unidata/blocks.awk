@@ -250,7 +250,7 @@ END {
     }
 
     print ";;; charscript.el --- character script table  -*- lexical-binding:t -*-"
-    print ";;; Automatically generated from admin/unidata/Blocks.txt"
+    print ";;; Automatically generated from admin/unidata/{Blocks,emoji-data}.txt"
     print "(let (script-list)"
     print "  (dolist (elt '("
 
