@@ -2113,11 +2113,12 @@ Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
                (rx letter ".")
              (rx (or
                   ;; The abbreviations:
-                  (seq (or (seq (any "cC") "f")              ; cf.
-                           (seq (any "eE") ".g")             ; e.g.
-                           (seq (any "iI") "." (any "eE")))) ; i.e.
-                  "etc"                                      ; etc.
-                  "vs"                                       ; vs.
+                  (seq (any "cC") "f")            ; cf.
+                  (seq (any "eE") ".g")           ; e.g.
+                  (seq (any "iI") "." (any "eE")) ; i.e.
+                  "a.k.a"                         ; a.k.a.
+                  "etc"                           ; etc.
+                  "vs"                            ; vs.
                   ;; Some non-standard or less common ones that we
                   ;; might as well ignore.
                   "Inc" "Univ" "misc" "resp")
