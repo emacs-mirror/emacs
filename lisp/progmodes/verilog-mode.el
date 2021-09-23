@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2021.09.23.139584433
+;; Version: 2021.09.23.089128420
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2021-09-23-851e3b1-vpo-GNU"
+(defconst verilog-mode-version "2021-09-23-54ffde4-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -591,19 +591,19 @@ If `all' is selected, then all line ups described below are done.
 If `declarations', then just declarations are lined up with any
 preceding declarations, taking into account widths and the like,
 so or example the code:
-	reg [31:0] a;
-	reg b;
+        reg [31:0] a;
+        reg b;
 would become
-	reg [31:0] a;
-	reg        b;
+        reg [31:0] a;
+        reg        b;
 
 If `assignment', then assignments are lined up with any preceding
 assignments, so for example the code
-	a_long_variable <= b + c;
-	d = e + f;
+        a_long_variable <= b + c;
+        d = e + f;
 would become
-	a_long_variable <= b + c;
-	d                = e + f;
+        a_long_variable <= b + c;
+        d                = e + f;
 
 In order to speed up editing, large blocks of statements are lined up
 only when a \\[verilog-pretty-expr] is typed; and large blocks of declarations
@@ -641,13 +641,13 @@ Set to 0 to get them list right under containing block."
 (defcustom verilog-indent-declaration-macros nil
   "How to treat macro expansions in a declaration.
 If nil, indent as:
-	input [31:0] a;
-	input        \\=`CP;
-	output       c;
+        input [31:0] a;
+        input        \\=`CP;
+        output       c;
 If non-nil, treat as:
-	input [31:0] a;
-	input \\=`CP    ;
-	output       c;"
+        input [31:0] a;
+        input \\=`CP    ;
+        output       c;"
   :group 'verilog-mode-indent
   :type 'boolean)
 (put 'verilog-indent-declaration-macros 'safe-local-variable #'verilog-booleanp)
@@ -655,12 +655,12 @@ If non-nil, treat as:
 (defcustom verilog-indent-lists t
   "How to treat indenting items in a list.
 If t (the default), indent as:
-	always @( posedge a or
-	          reset ) begin
+        always @( posedge a or
+                  reset ) begin
 
 If nil, treat as:
-	always @( posedge a or
-	   reset ) begin"
+        always @( posedge a or
+           reset ) begin"
   :group 'verilog-mode-indent
   :type 'boolean)
 (put 'verilog-indent-lists 'safe-local-variable #'verilog-booleanp)
@@ -5425,7 +5425,7 @@ Useful for creating tri's and other expanded fields."
 (defun verilog-lint-off ()
   "Convert a Verilog linter warning line into a disable statement.
 For example:
-	pci_bfm_null.v, line  46: Unused input: pci_rst_
+        pci_bfm_null.v, line  46: Unused input: pci_rst_
 becomes a comment for the appropriate tool.
 
 The first word of the `compile-command' or `verilog-linter'
@@ -5449,9 +5449,9 @@ Run from Verilog source window; assumes there is a *compile* buffer
 with point set appropriately.
 
 For example:
-	WARNING [STD-UDDONX]: xx.v, line 8: output out is never assigned.
+        WARNING [STD-UDDONX]: xx.v, line 8: output out is never assigned.
 becomes:
-	// surefire lint_line_off UDDONX"
+        // surefire lint_line_off UDDONX"
   (interactive)
   (let ((buff (if (boundp 'next-error-last-buffer)
                   next-error-last-buffer
@@ -5510,9 +5510,9 @@ becomes:
   "Convert a Verilint warning line into a disable statement.
 
 For example:
-	(W240)  pci_bfm_null.v, line  46: Unused input: pci_rst_
+        (W240)  pci_bfm_null.v, line  46: Unused input: pci_rst_
 becomes:
-	//Verilint 240 off // WARNING: Unused input"
+        //Verilint 240 off // WARNING: Unused input"
   (interactive)
   (save-excursion
     (beginning-of-line)
@@ -9812,11 +9812,11 @@ variable over and over when many modules are compiled together, put a test
 around the inside each include file:
 
 foo.v (an include file):
-	\\=`ifdef _FOO_V	// include if not already included
-	\\=`else
-	\\=`define _FOO_V
-	... contents of file
-	\\=`endif // _FOO_V"
+        \\=`ifdef _FOO_V        // include if not already included
+        \\=`else
+        \\=`define _FOO_V
+        ... contents of file
+        \\=`endif // _FOO_V"
   ;;slow:  (verilog-read-defines nil t)
   (save-excursion
     (verilog-getopt-flags)
@@ -12596,7 +12596,7 @@ You may also provide an optional regular expression, in which case only
 signals matching the regular expression will be included.  For example the
 same expansion will result from only extracting outputs starting with ov:
 
-	   /*AUTOOUTPUT(\"^ov\")*/"
+           /*AUTOOUTPUT(\"^ov\")*/"
   (save-excursion
     ;; Point must be at insertion point.
     (let* ((indent-pt (current-indentation))
@@ -12747,7 +12747,7 @@ included.  or excluded if the regexp begins with
 expansion will result from only extracting inputs starting with
 i:
 
-	   /*AUTOINPUT(\"^i\")*/"
+           /*AUTOINPUT(\"^i\")*/"
   (save-excursion
     (let* ((indent-pt (current-indentation))
 	   (params (verilog-read-auto-params 0 1))
@@ -13461,7 +13461,7 @@ Constant signals:
   is put into the AUTOSENSE list and is not desired, use the AUTO_CONSTANT
   declaration anywhere in the module (parenthesis are required):
 
-	/* AUTO_CONSTANT ( \\=`this_is_really_constant_dont_autosense_it ) */
+        /* AUTO_CONSTANT( \\=`this_is_really_constant_dont_autosense_it ) */
 
   Better yet, use a parameter, which will be understood to be constant
   automatically.
@@ -13477,7 +13477,7 @@ OOps!
 An example:
 
            always @ (/*AS*/) begin
-              /*AUTO_CONSTANT (\\=`constant) */
+              /*AUTO_CONSTANT(\\=`constant) */
               outin = ina | inb | \\=`constant;
               out = outin;
            end
@@ -13485,7 +13485,7 @@ An example:
 Typing \\[verilog-auto] will make this into:
 
            always @ (/*AS*/ina or inb) begin
-              /*AUTO_CONSTANT (\\=`constant) */
+              /*AUTO_CONSTANT(\\=`constant) */
               outin = ina | inb | \\=`constant;
               out = outin;
            end
@@ -14141,14 +14141,14 @@ For example:
         endmodule
 
 You can also update the AUTOs from the shell using:
-	emacs --batch  <filenames.v>  -f verilog-batch-auto
+        emacs --batch  <filenames.v>  -f verilog-batch-auto
 Or fix indentation with:
-	emacs --batch  <filenames.v>  -f verilog-batch-indent
+        emacs --batch  <filenames.v>  -f verilog-batch-indent
 Likewise, you can delete or inject AUTOs with:
-	emacs --batch  <filenames.v>  -f verilog-batch-delete-auto
-	emacs --batch  <filenames.v>  -f verilog-batch-inject-auto
+        emacs --batch  <filenames.v>  -f verilog-batch-delete-auto
+        emacs --batch  <filenames.v>  -f verilog-batch-inject-auto
 Or check if AUTOs have the same expansion
-	emacs --batch  <filenames.v>  -f verilog-batch-diff-auto
+        emacs --batch  <filenames.v>  -f verilog-batch-diff-auto
 
 Using \\[describe-function], see also:
     `verilog-auto-arg'          for AUTOARG module instantiations
