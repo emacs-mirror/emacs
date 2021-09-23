@@ -284,17 +284,26 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 
 (put 'list 'bounds-of-thing-at-point 'thing-at-point-bounds-of-list-at-point)
 
-(defun thing-at-point-bounds-of-list-at-point ()
+(defun thing-at-point-bounds-of-list-at-point (&optional escape-strings no-syntax-crossing)
   "Return the bounds of the list at point.
 Prefer the enclosing list with fallback on sexp at point.
 \[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
-    (if (ignore-errors (up-list -1))
+    (if (ignore-errors (up-list -1 escape-strings no-syntax-crossing))
 	(ignore-errors (cons (point) (progn (forward-sexp) (point))))
       (let ((bound (bounds-of-thing-at-point 'sexp)))
 	(and bound
 	     (<= (car bound) (point)) (< (point) (cdr bound))
 	     bound)))))
+
+(put 'list-or-string 'bounds-of-thing-at-point
+     'thing-at-point-bounds-of-list-or-string-at-point)
+
+(defun thing-at-point-bounds-of-list-or-string-at-point ()
+  "Return the bounds of the list or string at point.
+Like `thing-at-point-bounds-of-list-at-point', but also
+prefer to find of any enclosing string."
+  (thing-at-point-bounds-of-list-at-point t t))
 
 ;; Defuns
 

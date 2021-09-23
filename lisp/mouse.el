@@ -455,10 +455,11 @@ Some context functions add menu items below the separator."
       `(menu-item "Paste" mouse-yank-at-click
                   :help "Paste (yank) text most recently cut/copied")))
   (when (and (cdr yank-menu) (not buffer-read-only))
-    (let ((submenu (make-sparse-keymap (propertize "Paste from Kill Menu"))))
-      (dolist (item yank-menu)
+    (let ((submenu (make-sparse-keymap (propertize "Paste from Kill Menu")))
+          (i 0))
+      (dolist (item (reverse yank-menu))
         (when (consp item)
-          (define-key-after submenu (vector (car item))
+          (define-key submenu (vector (setq i (1+ i)))
             `(menu-item ,(cadr item)
                         ,(lambda () (interactive)
                            (mouse-yank-from-menu click (car item)))))))
@@ -477,18 +478,19 @@ Some context functions add menu items below the separator."
       `(menu-item "All"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'buffer))
                   :help "Mark the whole buffer for a subsequent cut/copy"))
-    (define-key-after submenu [mark-line]
-      `(menu-item "Line"
-                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'line))
-                  :help "Mark the line at click for a subsequent cut/copy"))
     (define-key-after submenu [mark-defun]
       `(menu-item "Defun"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
                   :help "Mark the defun at click for a subsequent cut/copy"))
-    (define-key-after submenu [mark-list]
-      `(menu-item "List"
-                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list))
-                  :help "Mark the list at click for a subsequent cut/copy"))
+    (define-key-after submenu [mark-list-or-string]
+      `(menu-item ,(if (nth 8 (syntax-ppss (posn-point (event-end click))))
+                       "String" "List")
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list-or-string))
+                  :help "Mark list or string at click for a subsequent cut/copy"))
+    (define-key-after submenu [mark-line]
+      `(menu-item "Line"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'line))
+                  :help "Mark the line at click for a subsequent cut/copy"))
     (define-key-after submenu [mark-symbol]
       `(menu-item "Symbol"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'symbol))

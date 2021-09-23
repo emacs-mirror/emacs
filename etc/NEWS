@@ -2586,6 +2586,9 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 This is like 'filename', but is a full path, and is nil if the file
 doesn't exist.
 
+*** New 'thing-at-point' target: 'list-or-string'.
+This is like 'list', but also prefers to find of any enclosing string.
+
 +++
 *** New variable 'thing-at-point-provider-alist'.
 This allows mode-specific alterations to how 'thing-at-point' works.
