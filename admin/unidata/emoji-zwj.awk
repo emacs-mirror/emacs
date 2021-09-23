@@ -39,7 +39,7 @@
 
 ### Code:
 
-/^[0-9A-F]/ {
+/^[0-9A-F].*; RGI_Emoji_(ZWJ|Modifier)_Sequence/ {
     sub(/ *;.*/, "", $0)
     num = split($0, elts)
     if (ch[elts[1]] == "")
@@ -62,7 +62,7 @@
 
 END {
      print ";;; emoji-zwj.el --- emoji zwj character composition table  -*- lexical-binding:t -*-"
-     print ";;; Automatically generated from admin/unidata/emoji-zwj-sequences.txt"
+     print ";;; Automatically generated from admin/unidata/emoji-{zwj-,}sequences.txt"
      print "(eval-when-compile (require 'regexp-opt))"
      print "(dolist (elt `("
 
@@ -78,7 +78,7 @@ END {
      print "                                             0"
      print "                                             'compose-gstring-for-graphic)))))"
 
-     print ";; The following three blocks are derived by hand from emoji-sequences.txt"
+     print ";; The following two blocks are derived by hand from emoji-sequences.txt"
      print ";; FIXME: add support for Emoji_Keycap_Sequence once we learn how to respect FE0F/VS-16"
      print ";; for ASCII characters."
 
@@ -96,14 +96,6 @@ END {
      print "                      (nconc (char-table-range composition-function-table #x1F3F4)"
      print "                             (list (vector \"\\U0001F3F4\\U000E0067\\U000E0062\\\\(?:\\U000E0065\\U000E006E\\U000E0067\\\\|\\U000E0073\\U000E0063\\U000E0074\\\\|\\U000E0077\\U000E006C\\U000E0073\\\\)\\U000E007F\""
      print "                                           0"
-     print "                                    'compose-gstring-for-graphic))))"
-
-     print ";; Skin tones"
-     print "(set-char-table-range composition-function-table"
-     print "                      '(#x1F3FB . #x1F3FF)"
-     print "                      (nconc (char-table-range composition-function-table '(#x1F3FB . #x1F3FF))"
-     print "                             (list (vector \".[\\U0001F3FB-\\U0001F3FF]\""
-     print "                                           1"
      print "                                    'compose-gstring-for-graphic))))"
 
      print "\n"
