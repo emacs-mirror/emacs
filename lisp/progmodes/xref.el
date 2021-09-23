@@ -1831,18 +1831,20 @@ Such as the current syntax table and the applied syntax properties."
 
 (defun xref--convert-hits (hits regexp)
   (let (xref--last-file-buffer
-        (tmp-buffer (generate-new-buffer " *xref-temp*")))
+        (tmp-buffer (generate-new-buffer " *xref-temp*"))
+        (remote-id (file-remote-p default-directory))
+        (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
     (unwind-protect
-        (mapcan (lambda (hit) (xref--collect-matches hit regexp tmp-buffer))
+        (mapcan (lambda (hit)
+                  (xref--collect-matches hit regexp tmp-buffer remote-id syntax-needed))
                 hits)
       (kill-buffer tmp-buffer))))
 
-(defun xref--collect-matches (hit regexp tmp-buffer)
+(defun xref--collect-matches (hit regexp tmp-buffer remote-id syntax-needed)
   (pcase-let* ((`(,line ,file ,text) hit)
-               (remote-id (file-remote-p default-directory))
                (file (and file (concat remote-id file)))
                (buf (xref--find-file-buffer file))
-               (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
+               (inhibit-modification-hooks t))
     (if buf
         (with-current-buffer buf
           (save-excursion
