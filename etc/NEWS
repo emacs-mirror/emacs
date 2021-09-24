@@ -529,12 +529,14 @@ the mouse pointer is in the tab line by scrolling left or right.
 *** New tab-line faces and options.
 The face 'tab-line-tab-special' is used for tabs whose buffers are
 special, i.e. buffers that don't visit a file.  The face
-'tab-line-tab-inactive-alternate' is used to display inactive tabs
-with an alternating background color, making them easier to
-distinguish, especially if the face 'tab-line-tab' is configured to
-not display with a box; this alternate face is only applied when the
-option 'tab-line-tab-face-functions' is so configured.  That option
-may also be used to customize tab-line faces in other ways.
+'tab-line-tab-modified' is used to display modified, file-backed
+buffers.  The face 'tab-line-tab-inactive-alternate' is used to
+display inactive tabs with an alternating background color, making
+them easier to distinguish, especially if the face 'tab-line-tab' is
+configured to not display with a box; this alternate face is only
+applied when the option 'tab-line-tab-face-functions' is so
+configured.  That option may also be used to customize tab-line faces
+in other ways.
 
 ** Mouse wheel
 

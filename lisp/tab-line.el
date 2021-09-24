@@ -36,13 +36,15 @@
   :group 'convenience
   :version "27.1")
 
-(defcustom tab-line-tab-face-functions '(tab-line-tab-face-special)
+(defcustom tab-line-tab-face-functions
+  '(tab-line-tab-face-modified tab-line-tab-face-special)
   "Functions called to modify tab faces.
 Each function is called with five arguments: the tab, a list of
 all tabs, the face returned by the previously called modifier,
 whether the tab is a buffer, and whether the tab is selected."
   :type '(repeat
           (choice (function-item tab-line-tab-face-special)
+                  (function-item tab-line-tab-face-modified)
                   (function-item tab-line-tab-face-inactive-alternating)
                   (function-item tab-line-tab-face-group)
                   (function :tag "Custom function")))
@@ -89,6 +91,14 @@ Applied to alternating tabs when option
   "Face for special (i.e. non-file-backed) tabs.
 Applied when option `tab-line-tab-face-functions' includes
 function `tab-line-tab-face-special'."
+  :version "28.1"
+  :group 'tab-line-faces)
+
+(defface tab-line-tab-modified
+  '((t :inherit font-lock-doc-face))
+  "Face for modified tabs.
+Applied when option `tab-line-tab-face-functions' includes
+function `tab-line-tab-face-modified'."
   :version "28.1"
   :group 'tab-line-faces)
 
@@ -535,6 +545,15 @@ When TAB is a non-file-backed buffer, make FACE inherit from
 `tab-line-tab-face-functions'."
   (when (and buffer-p (not (buffer-file-name tab)))
     (setf face `(:inherit (tab-line-tab-special ,face))))
+  face)
+
+(defun tab-line-tab-face-modified (tab _tabs face buffer-p _selected-p)
+  "Return FACE for TAB according to whether it's modified.
+When TAB is a modified, file-backed buffer, make FACE inherit
+from `tab-line-tab-modified'.  For use in
+`tab-line-tab-face-functions'."
+  (when (and buffer-p (buffer-file-name tab) (buffer-modified-p tab))
+    (setf face `(:inherit (tab-line-tab-modified ,face))))
   face)
 
 (defun tab-line-tab-face-group (tab _tabs face _buffer-p _selected-p)
