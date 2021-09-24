@@ -2700,7 +2700,7 @@ A couple of examples (rounded numbers):
 ;; Pure black with pure green
 (modus-themes-contrast "#000000" "#00ff00")
 ;; => 15.3
-;; That is is a highly accessible combo
+;; That is a highly accessible combo
 #+end_src
 
 It does not matter which color value comes first.  The ratio is always

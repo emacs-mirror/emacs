@@ -680,7 +680,7 @@ A search for this regexp starting at the end of the corresponding
 opener must find the first closer as the first match.
 
 Such a closer must include a \" character.  (match-string 1)
-matches the actual delimiter and and (match-string 2) matches the
+matches the actual delimiter and (match-string 2) matches the
 actual \".  If a delimiter contains several \"s, it is
 recommended to regard the last of them as \"the\" \"."
   t nil

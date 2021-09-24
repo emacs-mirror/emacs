@@ -3681,7 +3681,7 @@ used in.
 ** 'condition-case' now allows for a success handler.
 It is written as '(:success BODY...)' where BODY is executed
 whenever the protected form terminates without error, with the
-specified variable bound to the the value of the protected form.
+specified variable bound to the value of the protected form.
 
 +++
 ** New function 'benchmark-call' to measure the execution time of a function.

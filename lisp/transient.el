@@ -640,7 +640,7 @@ the prototype is stored in the clone's `prototype' slot.")
     :initarg :if-not-derived
     :initform nil
     :documentation "Enable if major-mode does not derive from value."))
-  "Abstract superclass for group and and suffix classes.
+  "Abstract superclass for group and suffix classes.
 
 It is undefined what happens if more than one `if*' predicate
 slot is non-nil."
@@ -729,7 +729,7 @@ slot is non-nil."
 (defclass transient-files (transient-infix) ()
   "Class used for the \"--\" argument.
 All remaining arguments are treated as files.
-They become the value of this this argument.")
+They become the value of this argument.")
 
 ;;;; Group
 
@@ -2736,7 +2736,7 @@ Usually only infixes have a value, but see the method for
 (cl-defmethod transient-infix-value ((_   transient-suffix))
   "Return nil, which means \"no value\".
 
-Infix arguments contribute the the transient's value while suffix
+Infix arguments contribute the transient's value while suffix
 commands consume it.  This function is called for suffixes anyway
 because a command that both contributes to the transient's value
 and also consumes it is not completely unconceivable.

@@ -4473,7 +4473,7 @@ The hook `gnus-suspend-gnus-hook' is called before actually suspending."
 	(gnus-kill-buffer buf)))
     (setq gnus-backlog-articles nil)
     (gnus-kill-gnus-frames)
-    ;; Closing all the backends is useful (for instance) when when the
+    ;; Closing all the backends is useful (for instance) when the
     ;; IP addresses have changed and you need to reconnect.
     (dolist (elem gnus-opened-servers)
       (gnus-close-server (car elem)))

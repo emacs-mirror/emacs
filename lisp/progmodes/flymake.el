@@ -1654,7 +1654,7 @@ buffer."
   "Diagnostics list meant for listing, not highlighting.
 This variable holds an alist ((FILE-NAME . DIAGS) ...) where
 FILE-NAME is a string holding an absolute file name and DIAGS is
-a list of diagnostic objects created with with
+a list of diagnostic objects created with
 `flymake-make-diagnostic'.  These diagnostics are never annotated
 as overlays in actual buffers: they merely serve as temporary
 stand-ins for more accurate diagnostics that are produced once

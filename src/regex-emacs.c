@@ -2407,7 +2407,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 
 		    if (lower_bound == 0)
 		      {
-			/* A succeed_n that starts with 0 is really a
+			/* A succeed_n that starts with 0 is really
 			   a simple on_failure_jump_loop.  */
 			INSERT_JUMP (on_failure_jump_loop, laststart,
 				     b + 3 + nbytes);
@@ -3828,7 +3828,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 /* Matching routines.  */
 
 /* re_match_2 matches the compiled pattern in BUFP against the
-   the (virtual) concatenation of STRING1 and STRING2 (of length SIZE1
+   (virtual) concatenation of STRING1 and STRING2 (of length SIZE1
    and SIZE2, respectively).  We start matching at POS, and stop
    matching at STOP.
 

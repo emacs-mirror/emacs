@@ -1651,7 +1651,7 @@ package prefix to avoid name clashes with definitions elsewhere, as is
 usual when naming non-local variables and functions.
 
 Forms defined this way only perform simple template substitution.
-For arbitrary computations, use them together with with the @code{rx}
+For arbitrary computations, use them together with the @code{rx}
 forms @code{eval}, @code{regexp} or @code{literal}.  Example:
 
 @example

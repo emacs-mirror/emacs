@@ -1018,7 +1018,7 @@ GROUP is a string for decoration purposes and XREF is an
 
 The style is determined by the value of `xref-file-name-display'.
 If GROUP looks like a file name, its value is formatted according
-to that style.  Otherwise it it returned unchanged."
+to that style.  Otherwise it is returned unchanged."
   ;; XXX: The way we verify that it's indeed a file name and not some
   ;; other kind of string, e.g. Java package name or TITLE from
   ;; `tags-apropos-additional-actions', is pretty lax.  But we don't
