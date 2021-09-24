@@ -4208,8 +4208,8 @@ first COUNT file names that match the expression.  The same COUNT
 parameter has been added to 'directory-files-and-attributes'.
 
 +++
-** 'count-lines' now takes an optional parameter to
-ignore invisible lines.
+** 'count-lines' can now ignore invisible lines.
+This is controlled by the optional parameter IGNORE-INVISIBLE-LINES.
 
 ---
 ** 'count-words' now crosses field boundaries.
@@ -4229,7 +4229,7 @@ The new optional "," parameter has been added, and
 
 +++
 ** 'parse-time-string' can now parse ISO 8601 format strings.
-These have the format like "2020-01-15T16:12:21-08:00".
+These have a format like "2020-01-15T16:12:21-08:00".
 
 ---
 ** 'make-network-process', 'make-serial-process' ':coding' behavior change.
