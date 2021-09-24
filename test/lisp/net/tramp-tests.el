@@ -6787,7 +6787,10 @@ process sentinels.  They shall not disturb each other."
                     (let ((time (float-time))
                           (default-directory tmp-name)
                           (file
-                           (buffer-name (seq-random-elt buffers)))
+                           (buffer-name
+                            ;; Use `seq-random-elt' once <26.1 support
+                            ;; is dropped.
+                            (nth (random (length buffers)) buffers)))
 			  ;; A remote operation in a timer could
 			  ;; confuse Tramp heavily.  So we ignore this
 			  ;; error here.
@@ -6852,7 +6855,8 @@ process sentinels.  They shall not disturb each other."
             ;; the buffers.  Mix with regular operation.
             (let ((buffers (copy-sequence buffers)))
               (while buffers
-                (let* ((buf (seq-random-elt buffers))
+                ;; Use `seq-random-elt' once <26.1 support is dropped.
+                (let* ((buf (nth (random (length buffers)) buffers))
                        (proc (get-buffer-process buf))
                        (file (process-get proc 'foo))
                        (count (process-get proc 'bar)))
