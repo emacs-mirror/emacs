@@ -731,7 +731,7 @@ If nil, symbolic math routines make no assumptions about variables.")
   "Initial height of Calculator window.")
 
 (defcalcmodevar calc-display-trail t
-  "If non-nil, M-x calc creates a window to display Calculator trail.")
+  "If non-nil, \\[calc] creates a window to display Calculator trail.")
 
 (defcalcmodevar calc-show-selections t
   "If non-nil, selected sub-formulas are shown by obscuring rest of formula.
@@ -1468,7 +1468,9 @@ See `window-dedicated-p' for what that means."
       (with-current-buffer (calc-trail-buffer)
         (and calc-display-trail
              (calc-trail-display 1 t)))
-      (message "Welcome to the GNU Emacs Calculator!  Press `?' or `h' for help, `q' to quit")
+      (message (substitute-command-keys
+                (concat "Welcome to the GNU Emacs Calculator!  \\<calc-mode-map>"
+                        "Press \\[calc-help] or \\[calc-help-prefix] for help, \\[calc-quit] to quit")))
       (run-hooks 'calc-start-hook)
       (and (windowp full-display)
            (window-point full-display)

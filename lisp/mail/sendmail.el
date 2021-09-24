@@ -1950,7 +1950,8 @@ The seventh argument ACTIONS is a list of actions to take
 	   (setq initialized t)))
     (if (and buffer-auto-save-file-name
 	     (file-exists-p buffer-auto-save-file-name))
-	(message "Auto save file for draft message exists; consider M-x mail-recover"))
+        (message (substitute-command-keys
+                  "Auto save file for draft message exists; consider \\[mail-recover]")))
     initialized))
 
 (declare-function dired-view-file "dired" ())

@@ -2268,7 +2268,9 @@ confirmation to install packages."
                            (mapconcat #'symbol-name available " "))))
           (mapc (lambda (p) (package-install p 'dont-select)) available)))
        ((> difference 0)
-        (message "Packages that are not available: %d (the rest is already installed), maybe you need to `M-x package-refresh-contents'"
+        (message (substitute-command-keys
+                  "Packages that are not available: %d (the rest is already \
+installed), maybe you need to \\[package-refresh-contents]")
                  difference))
        (t
         (message "All your packages are already installed"))))))

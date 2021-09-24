@@ -2490,7 +2490,9 @@ created in the future."
   ;; after this function returns, overwriting any message we do here.
   (when (and (called-interactively-p 'interactive) (not menu-bar-mode))
     (run-with-idle-timer 0 nil 'message
-			 "Menu Bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
+                         (substitute-command-keys
+                          "Menu Bar mode disabled.  \
+Use \\[menu-bar-mode] to make the menu bar appear."))))
 
 ;;;###autoload
 ;; (This does not work right unless it comes after the above definition.)

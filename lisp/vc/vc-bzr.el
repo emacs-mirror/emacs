@@ -1054,7 +1054,8 @@ stream.  Standard error output is discarded."
 	      (vc-bzr-command "info" t 0 dir)
 	      (buffer-string)))
        (shelve (vc-bzr-shelve-list))
-       (shelve-help-echo "Use M-x vc-bzr-shelve to create shelves")
+       (shelve-help-echo (substitute-command-keys
+                          "Use \\[vc-bzr-shelve] to create shelves"))
        (root-dir (vc-bzr-root dir))
        (pending-merge
 	;; FIXME: looking for .bzr/checkout/merge-hashes is not a

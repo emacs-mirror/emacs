@@ -2777,8 +2777,8 @@ up an appropriate window config."
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (run-hooks 'ediff-suspend-hook)
-  (message
-   "To resume, type M-x eregistry and select the desired Ediff session"))
+  (message (substitute-command-keys
+            "To resume, type \\[eregistry] and select the desired Ediff session")))
 
 ;; ediff-barf-if-not-control-buffer ensures only called from ediff.
 (declare-function ediff-version "ediff" ())

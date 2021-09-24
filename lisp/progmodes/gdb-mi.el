@@ -766,7 +766,9 @@ NOARG must be t when this macro is used outside `gud-def'."
       ;; Apparently we're not running with -i=mi (or we're, for
       ;; instance, debugging something inside a Docker instance with
       ;; Emacs on the outside).
-      (let ((msg "Error: Either -i=mi wasn't specified on the GDB command line, or the extra socket couldn't be established.  Consider using `M-x gud-gdb' instead."))
+      (let ((msg (substitute-command-keys
+                  "Error: Either -i=mi wasn't specified on the GDB command line,\
+ or the extra socket couldn't be established.  Consider using \\[gud-gdb] instead.")))
         (message msg)
         (setq string (concat (propertize msg 'font-lock-face 'error)
                              "\n" string)))

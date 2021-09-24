@@ -293,7 +293,7 @@ files"]
   \\[dired-omit-mode]\t-- toggle omitting of files
   \\[dired-mark-sexp]\t-- mark by Lisp expression
 
-To see the options you can set, use M-x customize-group RET dired-x RET.
+To see the options you can set, use \\[customize-group] RET dired-x RET.
 See also the functions:
   `dired-flag-extension'
   `dired-virtual'

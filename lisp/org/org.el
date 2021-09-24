@@ -15215,9 +15215,9 @@ This function is useful in a setup where one tracks Org files
 with a version control system, to revert on one machine after pulling
 changes from another.  I believe the procedure must be like this:
 
-1. M-x org-save-all-org-buffers
+1. \\[org-save-all-org-buffers]
 2. Pull changes from the other machine, resolve conflicts
-3. M-x org-revert-all-org-buffers"
+3. \\[org-revert-all-org-buffers]"
   (interactive)
   (unless (yes-or-no-p "Revert all Org buffers from their files? ")
     (user-error "Abort"))

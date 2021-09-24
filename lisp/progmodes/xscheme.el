@@ -908,8 +908,8 @@ the remaining input.")
 	       xscheme-signal-death-message)
 	  (progn
 	    (beep)
-	    (message
-"The Scheme process has died!  Do M-x reset-scheme to restart it"))))))
+            (message (substitute-command-keys
+"The Scheme process has died!  Type \\[reset-scheme] to restart it")))))))
 
 (defun xscheme-process-filter-initialize (running-p)
   (setq xscheme-process-filter-state 'idle)
