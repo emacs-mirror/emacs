@@ -3889,7 +3889,7 @@ quotes, as well as backslash quoting (like\ this).
 
 +++
 ** New function 'string-clean-whitespace'.
-This removed whitespace from a string
+This removes whitespace from a string.
 
 +++
 ** New function 'string-fill'.
