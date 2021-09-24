@@ -2593,11 +2593,8 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 This is like 'filename', but is a full path, and is nil if the file
 doesn't exist.
 
-*** New 'thing-at-point' target: 'list-or-string'.
-This is like 'list, but if point is inside a string that's enclosed in
-the list, it returns the enclosed string and not the enclosing list.
-
-This is like 'list', but also prefers to find of any enclosing string.
+*** New 'thing-at-point' target: 'string'.
+If point is inside a string, it returns the enclosed string.
 
 +++
 *** New variable 'thing-at-point-provider-alist'.
