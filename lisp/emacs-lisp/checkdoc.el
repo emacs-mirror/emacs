@@ -1653,7 +1653,10 @@ mouse-[0-3]\\)\\)\\>"))
 		   me (match-end 1))
 	     (if (and sym (boundp sym) (fboundp sym)
                       checkdoc--disambiguate-symbol-flag
-		      (save-excursion
+                      ;; Mode names do not need disambiguating.  (Bug#4110)
+                      (not (string-match (rx "-mode" string-end)
+                                         (symbol-name sym)))
+                      (save-excursion
 			(goto-char mb)
 			(forward-word-strictly -1)
 			(not (looking-at
