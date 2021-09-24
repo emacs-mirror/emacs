@@ -1685,20 +1685,28 @@ function,command,variable,option or symbol." ms1))))))
      ;;   first line can be wider if necessary to fit the
      ;;   information that ought to be there.
      (save-excursion
-       (let ((start (point))
-	     (eol nil))
+       (let* ((start (point))
+              (eol nil)
+              ;; Respect this file local variable.
+              (max-column (max 80 byte-compile-docstring-max-column))
+              ;; Allow the first line to be three characters longer, to
+              ;; fit the leading ` "' while still having a docstring
+              ;; shorter than e.g. 80 characters.
+              (first t)
+              (get-max-column (lambda () (+ max-column (if first 3 0)))))
 	 (while (and (< (point) e)
 		     (or (progn (end-of-line) (setq eol (point))
-				(< (current-column) 80))
+                                (< (current-column) (funcall get-max-column)))
 			 (progn (beginning-of-line)
 				(re-search-forward "\\\\\\\\[[<{]"
 						   eol t))
-			 (checkdoc-in-sample-code-p start e)))
+                         (checkdoc-in-sample-code-p start e)))
+           (setq first nil)
 	   (forward-line 1))
 	 (end-of-line)
-	 (if (and (< (point) e) (> (current-column) 80))
+         (if (and (< (point) e) (> (current-column) (funcall get-max-column)))
 	     (checkdoc-create-error
-	      "Some lines are over 80 columns wide"
+              (format "Some lines are over %d columns wide" max-column)
 	      s (save-excursion (goto-char s) (line-end-position))))))
      ;; Here we deviate to tests based on a variable or function.
      ;; We must do this before checking for symbols in quotes because there
