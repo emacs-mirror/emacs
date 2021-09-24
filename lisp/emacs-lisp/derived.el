@@ -321,7 +321,7 @@ No problems result if this variable is not bound.
 	      (format "Major mode derived from `%s' by `define-derived-mode'.
 It inherits all of the parent's attributes, but has its own keymap%s:
 
-  `%s'%s
+%s
 
 which more-or-less shadow%s %s's corresponding table%s."
 		      parent
@@ -330,12 +330,14 @@ which more-or-less shadow%s %s's corresponding table%s."
 			    (abbrev "\nand abbrev table")
 			    (syntax "\nand syntax table")
 			    (t ""))
-		      map
-		      (cond ((and abbrev syntax)
-			     (format ", `%s' and `%s'" abbrev syntax))
-			    ((or abbrev syntax)
-			     (format " and `%s'" (or abbrev syntax)))
-			    (t ""))
+                      (internal--format-docstring-line
+                       "  `%s'%s"
+                       map
+                       (cond ((and abbrev syntax)
+                              (format ", `%s' and `%s'" abbrev syntax))
+                             ((or abbrev syntax)
+                              (format " and `%s'" (or abbrev syntax)))
+                             (t "")))
 		      (if (or abbrev syntax) "" "s")
 		      parent
 		      (if (or abbrev syntax) "s" "")))))

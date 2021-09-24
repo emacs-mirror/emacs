@@ -577,10 +577,11 @@ This routine creates the following functions and variables:"
     `(progn
        (define-minor-mode ,global
 	 ,(concat "Toggle " (symbol-name global) ".
-With ARG, turn the minor mode on if ARG is positive, off otherwise.
-
-When this minor mode is enabled, `" (symbol-name mode) "' is
-turned on in every Semantic-supported buffer.")
+With ARG, turn the minor mode on if ARG is positive, off otherwise.\n\n"
+                  (internal--format-docstring-line
+                   "When this minor mode is enabled, `%s' is \
+turned on in every Semantic-supported buffer."
+                   (symbol-name mode)))
          :global t
 	 :group 'semantic
 	 :group 'semantic-modes
@@ -618,8 +619,9 @@ turned on in every Semantic-supported buffer.")
 				"")	; idle schedulers are quiet?
 
        (defun ,func ()
-	 ,(concat "Perform idle activity for the minor mode `"
-		  (symbol-name mode) "'.")
+         ,(internal--format-docstring-line
+           "Perform idle activity for the minor mode `%s'."
+           (symbol-name mode))
 	 ,@forms))))
 
 ;;; SUMMARY MODE
