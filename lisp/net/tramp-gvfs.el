@@ -1833,8 +1833,9 @@ a downcased host name only."
 	result))))
 
 (defun tramp-gvfs-handler-mounted-unmounted (mount-info)
-  "Signal handler for the \"org.gtk.vfs.MountTracker.mounted\" and \
-\"org.gtk.vfs.MountTracker.unmounted\" signals."
+  "Signal handler for the gvfs \"mounted\" and \"unmounted\" signals.
+Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
+\"org.gtk.vfs.MountTracker.unmounted\"."
   (ignore-errors
     (let ((signal-name (dbus-event-member-name last-input-event))
 	  (elt mount-info))
@@ -2090,8 +2091,10 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
     `(:struct ,(tramp-gvfs-dbus-string-to-byte-array mount-pref) ,mount-spec)))
 
 (defun tramp-gvfs-handler-volumeadded-volumeremoved (_dbus-name _id volume)
-  "Signal handler for the \"org.gtk.Private.RemoteVolumeMonitor.VolumeAdded\" \
-and \"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\" signals."
+  "Signal handler for the gvfs \"VolumeAdded\" and \"VolumeRemoved\" signals.
+Their full names are
+\"org.gtk.Private.RemoteVolumeMonitor.VolumeAdded\" and
+\"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\"."
   (ignore-errors
     (let* ((signal-name (dbus-event-member-name last-input-event))
 	   (uri (url-generic-parse-url (nth 5 volume)))

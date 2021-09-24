@@ -902,7 +902,7 @@ can also be executed interactively independently of
                                      temp-dir))))
 
 (defun flymake-proc--delete-temp-directory (dir-name)
-  "Attempt to delete temp dir created by `flymake-proc-create-temp-with-folder-structure', do not fail on error."
+  "Attempt to delete temp dir DIR-NAME, do not fail on error."
   (let* ((temp-dir    temporary-file-directory)
 	 (suffix      (substring dir-name (1+ (length (directory-file-name temp-dir))))))
 
@@ -919,7 +919,8 @@ can also be executed interactively independently of
 (defvar-local flymake-proc--base-dir nil)
 
 (defun flymake-proc-init-create-temp-buffer-copy (create-temp-f)
-  "Make a temporary copy of the current buffer, save its name in buffer data and return the name."
+  "Make a temporary copy of the current buffer, save its name in buffer data.
+Return the name."
   (let*  ((source-file-name       buffer-file-name)
 	  (temp-source-file-name  (funcall create-temp-f source-file-name "flymake")))
 
@@ -1007,7 +1008,7 @@ Return full-name.  Names are real, not patched."
                       buildfile-name source-file-name)))))
 
 (defun flymake-proc--init-create-temp-source-and-master-buffer-copy (get-incl-dirs-f create-temp-f master-file-masks include-regexp)
-  "Find master file (or buffer), create its copy along with a copy of the source file."
+  "Find master file (or buffer), create its copy and a copy of the source file."
   (let* ((source-file-name       buffer-file-name)
 	 (temp-source-file-name  (flymake-proc-init-create-temp-buffer-copy create-temp-f))
 	 (master-and-temp-master (flymake-proc--create-master-file

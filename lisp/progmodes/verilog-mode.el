@@ -4038,9 +4038,12 @@ Some other functions are:
     \\[verilog-sk-repeat]  Insert a repeat (..) begin .. end block.
     \\[verilog-sk-specify]  Insert a specify .. endspecify block.
     \\[verilog-sk-task]  Insert a task .. begin .. end endtask block.
-    \\[verilog-sk-while]  Insert a while (...) begin .. end block, prompting for details.
-    \\[verilog-sk-casex]  Insert a casex (...) item: begin.. end endcase block, prompting for details.
-    \\[verilog-sk-casez]  Insert a casez (...) item: begin.. end endcase block, prompting for details.
+    \\[verilog-sk-while]  Insert a while (...) begin .. end block,
+                       prompting for details.
+    \\[verilog-sk-casex]  Insert a casex (...) item: begin.. end endcase block,
+                       prompting for details.
+    \\[verilog-sk-casez]  Insert a casez (...) item: begin.. end endcase block,
+                       prompting for details.
     \\[verilog-sk-if]  Insert an if (..) begin .. end block.
     \\[verilog-sk-else-if]  Insert an else if (..) begin .. end block.
     \\[verilog-sk-comment]  Insert a comment block.
@@ -6580,7 +6583,8 @@ Return >0 for nested struct."
 	  nil))))
 
 (defun verilog-at-constraint-p ()
-  "If at the { of a constraint or coverpoint definition, return true, moving point to constraint."
+  "If at the { of a constraint or coverpoint definition, return true.
+Also move point to constraint."
   (if (save-excursion
 	(let ((p (point)))
           (and
@@ -14985,7 +14989,9 @@ but instead, [[Fill in here]] happens!.
 
 (provide 'verilog-mode)
 
+;;TODO: Could `byte-compile-docstring-max-column' be decreased?
 ;; Local Variables:
+;; byte-compile-docstring-max-column: 90
 ;; checkdoc-permit-comma-termination-flag:t
 ;; checkdoc-force-docstrings-flag:nil
 ;; indent-tabs-mode:nil

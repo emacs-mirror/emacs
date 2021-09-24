@@ -2136,7 +2136,8 @@ A return value of N means N more left parentheses than right ones."
                              (line-end-position)))))
 
 (defun prolog-electric--if-then-else ()
-  "Insert spaces after the opening parenthesis, \"then\" (->) and \"else\" (;) branches.
+  "Insert spaces after the opening parenthesis.
+\"then\" (->) and \"else\" (;) branches.
 Spaces are inserted if all preceding objects on the line are
 whitespace characters, parentheses, or then/else branches."
   (when prolog-electric-if-then-else-flag

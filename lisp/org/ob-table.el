@@ -78,7 +78,8 @@ So this `org-sbe' construct
 
 is the equivalent of the following source code block:
 
- #+begin_src emacs-lisp :var results=source-block(n=val_at_col_2, m=3) :results silent
+ #+begin_src emacs-lisp :var results=source-block(n=val_at_col_2, m=3) \\
+     :results silent
  results
  #+end_src
 

@@ -2193,8 +2193,8 @@ resultant list will be returned."
    limit t))
 
 (defun whitespace-empty-at-bob-regexp (limit)
-  "Match spaces at beginning of buffer which do not contain the point at \
-beginning of buffer."
+  "Match spaces at beginning of buffer which do not contain
+the point at beginning of buffer."
   (let ((b (point))
 	r)
     (cond

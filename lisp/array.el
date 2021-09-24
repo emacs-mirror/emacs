@@ -805,8 +805,9 @@ NOT recognized as integers or real numbers.
   The array MUST reside at the top of the buffer.
 
   TABs are not respected, and may be converted into spaces at any time.
-Setting the variable `array-respect-tabs' to non-nil will prevent TAB conversion,
-but will cause many functions to give errors if they encounter one.
+Setting the variable `array-respect-tabs' to non-nil will prevent
+TAB conversion, but will cause many functions to give errors if
+they encounter one.
 
   Upon entering array mode, you will be prompted for the values of
 several variables.  Others will be calculated based on the values you

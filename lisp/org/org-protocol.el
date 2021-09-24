@@ -178,11 +178,11 @@ Possible properties are:
   :working-suffix    - the replacement for online-suffix
   :base-url          - the base URL, e.g. http://www.example.com/project/
                        Last slash required.
-  :working-directory - the local working directory.  This is, what base-url will
-                       be replaced with.
-  :redirects         - A list of cons cells, each of which maps a regular
-                       expression to match to a path relative to
-                       :working-directory.
+  :working-directory - the local working directory.  This is what
+                       base-url will be replaced with.
+  :redirects         - A list of cons cells, each of which maps a
+                       regular expression to match to a path relative
+                       to `:working-directory'.
 
 Example:
 
@@ -216,8 +216,9 @@ Example:
    does not include any suffix properties, allowing local source
    file to be opened as found by OpenGrok.
 
-Consider using the interactive functions `org-protocol-create' and
-`org-protocol-create-for-org' to help you filling this variable with valid contents."
+Consider using the interactive functions `org-protocol-create'
+and `org-protocol-create-for-org' to help you filling this
+variable with valid contents."
   :group 'org-protocol
   :type 'alist)
 

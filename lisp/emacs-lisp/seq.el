@@ -529,7 +529,7 @@ SEQUENCE must be a sequence of numbers or markers."
   (apply #'max (seq-into sequence 'list)))
 
 (defun seq--count-successive (pred sequence)
-  "Return the number of successive elements for which (PRED element) is non-nil in SEQUENCE."
+  "Count successive elements for which (PRED element) is non-nil in SEQUENCE."
   (let ((n 0)
         (len (seq-length sequence)))
     (while (and (< n len)
@@ -538,7 +538,7 @@ SEQUENCE must be a sequence of numbers or markers."
     n))
 
 (defun seq--make-pcase-bindings (args)
-  "Return a list of bindings of the variables in ARGS to the elements of a sequence."
+  "Return list of bindings of the variables in ARGS to the elements of a sequence."
   (let ((bindings '())
         (index 0)
         (rest-marker nil))

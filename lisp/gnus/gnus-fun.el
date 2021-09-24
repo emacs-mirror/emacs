@@ -97,7 +97,8 @@ PNG format."
 
 ;;;###autoload
 (defun gnus--random-face-with-type (dir ext omit fun)
-  "Return file from DIR with extension EXT, omitting matches of OMIT, processed by FUN."
+  "Return file from DIR with extension EXT.
+Omit matches of OMIT, and process them by FUN."
   (when (file-exists-p dir)
     (let* ((files
             (remove nil (mapcar

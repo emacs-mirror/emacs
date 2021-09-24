@@ -1522,7 +1522,8 @@ No spaces before and 1 after a comma
 A minimum of 1 space before and after `=' (see `idlwave-expand-equal').
    (idlwave-action-and-binding \"=\"  (lambda (_) (idlwave-expand-equal -1 -1)))
 Capitalize system variables - action only
-   (idlwave-action-and-binding idlwave-sysvar (lambda (_) (capitalize-word 1) t))"
+   (idlwave-action-and-binding idlwave-sysvar
+                               (lambda (_) (capitalize-word 1) t))"
   (if (not (equal select 'noaction))
       ;; Add action
       (let* ((table (if select 'idlwave-indent-action-table

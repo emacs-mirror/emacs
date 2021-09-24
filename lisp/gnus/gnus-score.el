@@ -3115,7 +3115,9 @@ If ADAPT, return the home adaptive file instead."
 ;;;
 
 (defun gnus-decay-score (score)
-  "Decay SCORE according to `gnus-score-decay-constant' and `gnus-score-decay-scale'."
+  "Decay SCORE according to decay variables.
+The decay variables are `gnus-score-decay-constant' and
+`gnus-score-decay-scale'."
   (floor (- score
 	    (* (if (< score 0) -1 1)
 	       (min (abs score)

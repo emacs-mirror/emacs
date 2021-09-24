@@ -4062,7 +4062,8 @@ of groups killed."
     (if (< (length out) 2) (car out) (nreverse out))))
 
 (defun gnus-group-yank-group (&optional arg)
-  "Yank the last newsgroups killed with \\[gnus-group-kill-group], inserting it before the current newsgroup.
+  "Yank the last newsgroups killed with \\[gnus-group-kill-group], inserting it
+before the current newsgroup.
 The numeric ARG specifies how many newsgroups are to be yanked.  The
 name of the newsgroup yanked is returned, or (if several groups are
 yanked) a list of yanked groups is returned."
@@ -4716,7 +4717,8 @@ or `gnus-group-catchup-group-hook'."
   (gnus-group-get-parameter group 'timestamp t))
 
 (defun gnus-group-timestamp-delta (group)
-  "Return the offset in seconds from the timestamp for GROUP to the current time, as a floating point number."
+  "Return the offset in seconds from the timestamp for GROUP to the current time.
+Return value is a floating point number."
   ;; FIXME: This should return a Lisp integer, not a Lisp float,
   ;; since it is always an integer.
   (let* ((time (or (gnus-group-timestamp group) 0))

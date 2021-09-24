@@ -164,9 +164,8 @@ Looks like:
 ;;; Misc macros and utility functions
 
 (defun erc-dcc-member (&rest args)
-  "Return first matching entry in `erc-dcc-list' satisfying constraints in plist ARGS.
-
-Return nil on no match.
+  "Return first matching entry in `erc-dcc-list' satisfying constraints in ARGS.
+ARGS is a plist.  Return nil on no match.
 
 The property :nick is treated specially, if it contains a `!' character,
 it is treated as a nick!user@host string, and compared with the :nick property

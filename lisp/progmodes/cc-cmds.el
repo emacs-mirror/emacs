@@ -480,7 +480,7 @@ function to control that."
 
 ;; This function is only used in XEmacs.
 (defun c-hungry-delete ()
-  "Delete a non-whitespace char, or all whitespace up to the next non-whitespace char.
+  "Delete non-whitespace char, or all whitespace up to next non-whitespace char.
 The direction of deletion depends on the configuration: If the
 function `delete-forward-p' is defined and returns non-nil, it deletes
 forward using `c-hungry-delete-forward'.  Otherwise it deletes

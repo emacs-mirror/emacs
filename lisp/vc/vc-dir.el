@@ -1015,7 +1015,8 @@ child files."
     (nreverse result)))
 
 (defun vc-dir-child-files-and-states ()
-  "Return the list of conses (FILE . STATE) for child files of the current entry if it's a directory.
+  "Return list of conses for child files of the current entry if it's a directory.
+The conses have the format (FILE . STATE).
 If it is a file, return the corresponding cons for the file itself."
   (let* ((crt (ewoc-locate vc-ewoc))
 	 (crt-data (ewoc-data crt))

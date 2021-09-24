@@ -1007,7 +1007,8 @@ on the tab bar instead."
 When this command is bound to a numeric key (with a prefix or modifier key
 using `tab-bar-select-tab-modifiers'), calling it without an argument
 will translate its bound numeric key to the numeric argument.
-TAB-NUMBER counts from 1.  Negative TAB-NUMBER counts tabs from the end of the tab bar."
+TAB-NUMBER counts from 1.  Negative TAB-NUMBER counts tabs from the end of
+the tab bar."
   (interactive "P")
   (unless (integerp tab-number)
     (let ((key (event-basic-type last-command-event)))
@@ -1908,7 +1909,7 @@ Letters do not insert themselves; instead, they are commands.
   (move-to-column tab-switcher-column))
 
 (defun tab-switcher-unmark (&optional backup)
-  "Cancel all requested operations on window configuration on this line and move down.
+  "Cancel requested operations on window configuration on this line and move down.
 Optional prefix arg means move up."
   (interactive "P")
   (beginning-of-line)
@@ -1920,7 +1921,7 @@ Optional prefix arg means move up."
   (move-to-column tab-switcher-column))
 
 (defun tab-switcher-backup-unmark ()
-  "Move up and cancel all requested operations on window configuration on line above."
+  "Move up one line and cancel requested operations on window configuration there."
   (interactive)
   (forward-line -1)
   (tab-switcher-unmark)

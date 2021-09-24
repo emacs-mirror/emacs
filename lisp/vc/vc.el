@@ -2624,7 +2624,7 @@ with its diffs (if the underlying VCS supports that)."
 
 ;;;###autoload
 (defun vc-log-incoming (&optional remote-location)
-  "Show a log of changes that will be received with a pull operation from REMOTE-LOCATION.
+  "Show log of changes that will be received with pull from REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
   (interactive
    (when current-prefix-arg
@@ -2637,7 +2637,7 @@ When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
 
 ;;;###autoload
 (defun vc-log-outgoing (&optional remote-location)
-  "Show a log of changes that will be sent with a push operation to REMOTE-LOCATION.
+  "Show log of changes that will be sent with a push operation to REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
   (interactive
    (when current-prefix-arg

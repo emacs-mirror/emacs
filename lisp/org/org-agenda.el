@@ -1230,7 +1230,8 @@ For example, 9:30am would become 09:30 rather than  9:30."
      ":" minute ampm)))
 
 (defun org-agenda-time-of-day-to-ampm-maybe (time)
-  "Conditionally convert TIME to AM/PM format based on `org-agenda-timegrid-use-ampm'."
+  "Conditionally convert TIME to AM/PM format.
+This is based on `org-agenda-timegrid-use-ampm'."
   (if org-agenda-timegrid-use-ampm
       (org-agenda-time-of-day-to-ampm time)
     time))

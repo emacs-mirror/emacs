@@ -1532,7 +1532,8 @@ add things to `%s' instead."
        'WALLOPS ?n nick ?m message))))
 
 (define-erc-response-handler (001)
-  "Set `erc-server-current-nick' to reflect server settings and display the welcome message."
+  "Set `erc-server-current-nick' to reflect server settings.
+Then display the welcome message."
   nil
   (erc-set-current-nick (car (erc-response.command-args parsed)))
   (erc-update-mode-line)                ; needed here?

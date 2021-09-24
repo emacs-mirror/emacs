@@ -1323,7 +1323,7 @@ downloaded into the agent."
           (gnus-agent-set-local group agent-min (1- active-min)))))))
 
 (defun gnus-agent-save-group-info (method group active)
-  "Update a single group's active range in the agent's copy of the server's active file."
+  "Update single group's active range in agent's copy of server's active file."
   (when (gnus-agent-method-p method)
     (let* ((gnus-command-method (or method gnus-command-method))
 	   (coding-system-for-write nnheader-file-coding-system)
@@ -1356,7 +1356,7 @@ downloaded into the agent."
 	    (delete-char 1)))))))
 
 (defun gnus-agent-get-group-info (method group)
-  "Get a single group's active range in the agent's copy of the server's active file."
+  "Get single group's active range in agent's copy of server's active file."
   (when (gnus-agent-method-p method)
     (let* ((gnus-command-method (or method gnus-command-method))
 	   (coding-system-for-write nnheader-file-coding-system)
