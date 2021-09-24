@@ -2610,7 +2610,7 @@ where @samp{192.168.0.1} is the remote host IP address
 @node FUSE setup
 @section @acronym{FUSE} setup hints
 
-The @acronym{FUSE} file systems are mounted per default at
+The @acronym{FUSE} file systems are mounted by default at
 @file{/tmp/tramp.method.user@@host#port}.  The user name and port
 number are optional.  If the file system is already mounted, it will
 be used as it is.  If the mount point does not exist yet,
@@ -3741,27 +3741,27 @@ To open @command{powershell} as a remote shell, use this:
 @vindex process-connection-type
 @cindex tramp-process-connection-type
 
-Asynchronous processes differ in the way, whether they use a pseudo
-tty, or not.  This is controlled by the variable
+Asynchronous processes behave differently based on whether they use a
+pseudo tty or not.  This is controlled by the variable
 @code{process-connection-type}, which can be @code{t} or @code{pty}
-(use a pseudo tty), or @code{nil} or @code{pipe} (don't use it).
+(use a pseudo tty), or @code{nil} or @code{pipe} (don't use one).
 @value{tramp} is based on running shells on the remote host, which
-require a pseudo tty.  Therefore, it declares the variable
+requires a pseudo tty.  Therefore, it declares the variable
 @code{tramp-process-connection-type}, which carries this information
-for remote processes.  Per default, its value is @code{t}, and there's
-no need to change it.  The name of the remote pseudo tty is returned
-by the function @code{process-tty-name}.
+for remote processes.  Its default value is @code{t}, and there is no
+need to change it.  The name of the remote pseudo tty is returned by
+the function @code{process-tty-name}.
 
-If a remote process, started by @code{start-file-process}, shouldn't
-use a pseudo tty, this can be indicated by setting
+If a remote process, started by @code{start-file-process}, should
+@emph{not} use a pseudo tty, this can be requested by setting
 @code{process-connection-type} to @code{nil} or @code{pipe}.  There is
 still a pseudo tty for the started process, but some terminal
 properties are changed, like suppressing translation of carriage
 return characters into newline.
 
-The function @code{make-process} allows an explicit setting by the
-@code{:connection-type} keyword.  If this keyword is not used, the
-value of @code{process-connection-type} is applied instead.
+The function @code{make-process} allows controlling this explicitly by
+using the @code{:connection-type} keyword.  If this keyword is not
+used, the value of @code{process-connection-type} is applied instead.
 
 
 @anchor{Improving performance of asynchronous remote processes}
