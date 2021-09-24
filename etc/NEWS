@@ -2594,7 +2594,7 @@ This is like 'filename', but is a full path, and is nil if the file
 doesn't exist.
 
 *** New 'thing-at-point' target: 'string'.
-If point is inside a string, it returns the enclosed string.
+If point is inside a string, it returns that string.
 
 +++
 *** New variable 'thing-at-point-provider-alist'.
