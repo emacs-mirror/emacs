@@ -1470,6 +1470,30 @@ compiled correctly."
     (load-file (concat file "c"))
     (should (equal (bc-test-alpha-f 'a) '(nil a)))))
 
+(ert-deftest bytecomp-tests-byte-compile--wide-docstring-p/func-arg-list ()
+  (should-not (byte-compile--wide-docstring-p "\
+\(dbus-register-property BUS SERVICE PATH INTERFACE PROPERTY ACCESS \
+[TYPE] VALUE &optional EMITS-SIGNAL DONT-REGISTER-SERVICE)" fill-column))
+  (should-not (byte-compile--wide-docstring-p "\
+(fn CMD FLAGS FIS &key (BUF (cvs-temp-buffer)) DONT-CHANGE-DISC CVSARGS \
+POSTPROC)" fill-column))
+  ;; Bug#49007
+  (should-not (byte-compile--wide-docstring-p "\
+(fn (THIS rudel-protocol-backend) TRANSPORT \
+INFO INFO-CALLBACK &optional PROGRESS-CALLBACK)" fill-column))
+  (should-not (byte-compile--wide-docstring-p "\
+\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
+[:tags \\='(TAG...)] BODY...)" fill-column))
+  (should-not (byte-compile--wide-docstring-p "\
+(make-soap-xs-element &key NAME NAMESPACE-TAG ID TYPE^ OPTIONAL\? MULTIPLE\? \
+REFERENCE SUBSTITUTION-GROUP ALTERNATIVES IS-GROUP)" fill-column))
+  (should-not (byte-compile--wide-docstring-p "\
+(fn NAME FIXTURE INPUT &key SKIP-PAIR-STRING EXPECTED-STRING \
+EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
+(TEST-IN-COMMENTS t) (TEST-IN-STRINGS t) (TEST-IN-CODE t) \
+(FIXTURE-FN \\='#\\='electric-pair-mode))" fill-column)))
+
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

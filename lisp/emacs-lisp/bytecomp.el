@@ -1649,14 +1649,22 @@ URLs."
    (replace-regexp-in-string
     (rx (or
          ;; Ignore some URLs.
-         (seq "http" (? "s") "://" (* anychar))
+         (seq "http" (? "s") "://" (* nonl))
          ;; Ignore these `substitute-command-keys' substitutions.
          (seq "\\" (or "="
                        (seq "<" (* (not ">")) ">")
                        (seq "{" (* (not "}")) "}")))
          ;; Ignore the function signature that's stashed at the end of
          ;; the doc string (in some circumstances).
-         (seq bol "(fn (" (* nonl))))
+         (seq bol "(" (+ (any word "-/:[]&"))
+              ;; One or more arguments.
+              (+ " " (or
+                      ;; Arguments.
+                      (+ (or (syntax symbol)
+                             (any word "-/:[]&=().?^\\#'")))
+                      ;; Argument that is a list.
+                      (seq "(" (* (not ")")) ")")))
+              ")")))
     ""
     ;; Heuristic: assume these substitutions are of some length N.
     (replace-regexp-in-string
