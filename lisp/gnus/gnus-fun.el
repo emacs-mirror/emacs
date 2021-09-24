@@ -103,7 +103,7 @@ PNG format."
             (remove nil (mapcar
                          (lambda (f) (unless (string-match (or omit "^$") f) f))
                          (directory-files dir t ext))))
-           (file (nth (random (length files)) files)))
+           (file (and files (seq-random-elt files))))
       (when file
         (funcall fun file)))))
 
@@ -315,7 +315,7 @@ colors of the displayed X-Faces."
   (let* ((possibilities '("%02x0000" "00%02x00" "0000%02x"
 			  "%02x%02x00" "00%02x%02x" "%02x00%02x"))
 	 (format (concat "'#%02x%02x%02x' '#"
-			 (nth (random 6) possibilities)
+                         (seq-random-elt possibilities)
 			 "'"))
 	 (values nil))
   (dotimes (i 255)

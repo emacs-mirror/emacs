@@ -570,6 +570,7 @@ SEQUENCE must be a sequence of numbers or markers."
 If no element is found, return nil."
   (ignore-errors (seq-elt sequence n)))
 
+;;;###autoload
 (cl-defgeneric seq-random-elt (sequence)
   "Return a random element from SEQUENCE.
 Signal an error if SEQUENCE is empty."

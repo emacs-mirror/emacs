@@ -596,7 +596,7 @@ If the element is a function or a list of a function and a number,
          (forward-line -1)
          (delete-region (point) (line-beginning-position 2))
          (goto-char (point-min))
-         (insert (nth (random (length lines)) lines)))
+         (insert (seq-random-elt lines)))
        (message (concat (make-string (random (- (frame-width) 5)) ? ) "grrr"))
        (sit-for 0.1)))))
 
