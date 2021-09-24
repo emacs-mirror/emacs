@@ -6419,12 +6419,19 @@ seconds."
 This is intended for very simple filling while bootstrapping
 Emacs itself, and does not support all the customization options
 of fill.el (for example `fill-region')."
-  (if (< (string-width str) fill-column)
+  (if (< (length str) fill-column)
       str
-    (let ((fst (substring str 0 fill-column))
-          (lst (substring str fill-column)))
-      (if (string-match ".*\\( \\(.+\\)\\)$" fst)
-          (setq fst (replace-match "\n\\2" nil nil fst 1)))
+    (let* ((limit (min fill-column (length str)))
+           (fst (substring str 0 limit))
+           (lst (substring str limit)))
+      (cond ((string-match "\\( \\)$" fst)
+             (setq fst (replace-match "\n" nil nil fst 1)))
+            ((string-match "^ \\(.*\\)" lst)
+             (setq fst (concat fst "\n"))
+             (setq lst (match-string 1 lst)))
+            ((string-match ".*\\( \\(.+\\)\\)$" fst)
+             (setq lst (concat (match-string 2 fst) lst))
+             (setq fst (replace-match "\n" nil nil fst 1))))
       (concat fst (internal--fill-string-single-line lst)))))
 
 (defun internal--format-docstring-line (string &rest objects)
