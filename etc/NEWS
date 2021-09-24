@@ -3738,6 +3738,11 @@ instead of only becoming available after doing (for instance)
 ** ':safe' settings in 'defcustom' are now propagated to the loaddefs files.
 
 +++
+** New ':type' for 'defcustom' for nonnegative integers.
+The new 'natnum' type can be used for options that should be
+nonnegative integers.
+
++++
 ** ERT can now output more verbose test failure reports.
 If the 'EMACS_TEST_VERBOSE' environment variable is set, failure
 summaries will include the failing condition.

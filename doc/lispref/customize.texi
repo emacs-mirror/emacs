@@ -594,6 +594,9 @@ want to take the time to work out a more specific type to use.
 @item integer
 The value must be an integer.
 
+@item natnum
+The value must be a nonnegative integer.
+
 @item number
 The value must be a number (floating point or integer).
 

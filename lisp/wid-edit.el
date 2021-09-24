@@ -3644,6 +3644,13 @@ match-alternatives: %S"
   :type-error "This field should contain an integer"
   :match-alternatives '(integerp))
 
+(define-widget 'natnum 'restricted-sexp
+  "A nonnegative integer."
+  :tag "Integer (positive)"
+  :value 0
+  :type-error "This field should contain a nonnegative integer"
+  :match-alternatives '(natnump))
+
 (define-widget 'number 'restricted-sexp
   "A number (floating point or integer)."
   :tag "Number"
