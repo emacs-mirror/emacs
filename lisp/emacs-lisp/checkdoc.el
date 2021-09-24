@@ -2105,14 +2105,15 @@ Examples of recognized abbreviations: \"e.g.\", \"i.e.\", \"cf.\"."
   (save-excursion
     (goto-char begin)
     (condition-case nil
-        (let ((single-letter t))
+        (let (single-letter)
           (forward-word -1)
           ;; Skip over all dots backwards, as `forward-word' will only
           ;; go one dot at a time in a string like "e.g.".
           (while (save-excursion (forward-char -1)
                                  (looking-at (rx ".")))
-            (setq single-letter nil)
             (forward-word -1))
+          (when (= (point) (1- begin))
+            (setq single-letter t))
           ;; Piece of an abbreviation.
           (looking-at
            (if single-letter

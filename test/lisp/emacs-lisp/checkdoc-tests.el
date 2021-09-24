@@ -131,7 +131,10 @@ See the comments in Bug#24998."
     (checkdoc-in-abbreviation-p (point))))
 
 (ert-deftest checkdoc-tests-in-abbrevation-p/basic-case ()
-  (should (checkdoc-tests--abbrev-test "foo bar e.g. baz" "e.g")))
+  (should (checkdoc-tests--abbrev-test "foo bar e.g. baz" "e.g"))
+  (should (checkdoc-tests--abbrev-test "behavior/errors etc. that" "etc"))
+  (should (checkdoc-tests--abbrev-test "foo vs. bar" "vs"))
+  (should (checkdoc-tests--abbrev-test "spy a.k.a. spy" "a.k.a")))
 
 (ert-deftest checkdoc-tests-in-abbrevation-p/with-parens ()
   (should (checkdoc-tests--abbrev-test "foo bar (e.g. baz)" "e.g")))
