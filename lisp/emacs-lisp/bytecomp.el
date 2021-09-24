@@ -1666,7 +1666,10 @@ URLs."
                       (seq "(" (* (not ")")) ")")))
               ")")))
     ""
-    ;; Heuristic: assume these substitutions are of some length N.
+    ;; Heuristic: We can't reliably do `subsititute-command-keys'
+    ;; substitutions, since the value of a keymap in general can't be
+    ;; known at compile time.  So instead, we assume that these
+    ;; substitutions are of some length N.
     (replace-regexp-in-string
      (rx "\\" (or (seq "[" (* (not "]")) "]")))
      (make-string byte-compile--wide-docstring-substitution-len ?x)
@@ -1686,13 +1689,6 @@ value, it will override this variable."
   "Warn if documentation string of FORM is too wide.
 It is too wide if it has any lines longer than the largest of
 `fill-column' and `byte-compile-docstring-max-column'."
-  ;; This has some limitations that it would be nice to fix:
-  ;; 1. We don't try to handle defuns.  It is somewhat tricky to get
-  ;;    it right since `defun' is a macro.  Also, some macros
-  ;;    themselves produce defuns (e.g. `define-derived-mode').
-  ;; 2. We assume that any `subsititute-command-keys' command replacement has a
-  ;;    given length.  We can't reliably do these replacements, since the value
-  ;;    of the keymaps in general can't be known at compile time.
   (when (byte-compile-warning-enabled-p 'docstrings)
     (let ((col (max byte-compile-docstring-max-column fill-column))
           kind name docs)
@@ -1703,12 +1699,10 @@ It is too wide if it has any lines longer than the largest of
          (setq kind (nth 0 form))
          (setq name (nth 1 form))
          (setq docs (nth 3 form)))
-        ;; Here is how one could add lambda's here:
-        ;; ('lambda
-        ;;   (setq kind "")   ; can't be "function", unfortunately
-        ;;   (setq docs (and (stringp (nth 2 form))
-        ;;                   (nth 2 form))))
-        )
+        ('lambda
+          (setq kind "")          ; can't be "function", unfortunately
+          (setq docs (and (stringp (nth 2 form))
+                          (nth 2 form)))))
       (when (and (consp name) (eq (car name) 'quote))
         (setq name (cadr name)))
       (setq name (if name (format " `%s'" name) ""))
