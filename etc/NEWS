@@ -752,12 +752,14 @@ and other "slow scrolling" situations.  It is hoped it behaves better
 than 'fast-but-imprecise-scrolling' and 'jit-lock-defer-time'.
 It is not enabled by default.
 
+---
 *** Obsolete aliases are no longer hidden from command completion.
 Completion of command names now considers obsolete aliases as
 candidates, if they were marked obsolete in the current major version
 of Emacs.  Invoking a command via an obsolete alias now mentions the
 obsolescence fact and shows the new name of the command.
 
++++
 *** Support for '(box . SIZE)' 'cursor-type'.
 By default, 'box' cursor always has a filled box shape.  But if you
 specify 'cursor-type' to be '(box . SIZE)', the cursor becomes a hollow
