@@ -132,12 +132,12 @@ KEYWORD-ARGS:
                    to this mode.  The command `customize-mode' uses this.
            :syntax-table TABLE
                    Use TABLE instead of the default (CHILD-syntax-table).
-                   TABLE should be an unquoted symbol.  A nil value means
-                   to simply use the same syntax-table as the parent.
+                   A nil value means to simply use the same syntax-table
+                   as the parent.
            :abbrev-table TABLE
                    Use TABLE instead of the default (CHILD-abbrev-table).
-                   TABLE should be an unquoted symbol.  A nil value means
-                   to simply use the same abbrev-table as the parent.
+                   A nil value means to simply use the same abbrev-table
+                   as the parent.
            :after-hook FORM
                    A single Lisp form which is evaluated after the mode
                    hooks have been run.  It should not be quoted.
