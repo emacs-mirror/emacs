@@ -163,8 +163,8 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		Not used if you also specify :variable.
 :lighter SPEC	Text displayed in the mode line when the mode is on.
 :keymap MAP	Keymap bound to the mode keymap.  Defaults to `MODE-map'.
-		If non-nil, it should be a variable name (whose value is
-		a keymap), or an expression that returns either a keymap or
+                If non-nil, it should be an unquoted variable name (whose value
+                is a keymap), or an expression that returns either a keymap or
 		a list of (KEY . BINDING) pairs where KEY and BINDING are
 		suitable for `define-key'.  If you supply a KEYMAP argument
 		that is not a symbol, this macro defines the variable MODE-map
