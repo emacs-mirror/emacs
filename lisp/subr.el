@@ -4636,6 +4636,7 @@ If `default-directory' is already an existing directory, it's not changed."
                                              (file-exists-p dir)))
                                       (list default-directory
                                             (expand-file-name "~/")
+                                            temporary-file-directory
                                             (getenv "TMPDIR")
                                             "/tmp/")
                                       "/")))
