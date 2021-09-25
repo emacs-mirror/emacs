@@ -953,6 +953,9 @@ char_composable_p (int c)
   Lisp_Object val;
   return (c >= ' '
 	  && (c == ZERO_WIDTH_NON_JOINER || c == ZERO_WIDTH_JOINER
+	      /* Per Unicode TR51, these tag characters can be part of
+		 Emoji sequences.  */
+	      || (TAG_SPACE <= c && c <= CANCEL_TAG)
 	      /* unicode-category-table may not be available during
 		 dumping.  */
 	      || (CHAR_TABLE_P (Vunicode_category_table)
