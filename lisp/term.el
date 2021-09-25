@@ -303,6 +303,7 @@
   (require 'ange-ftp)
   (require 'cl-lib))
 (require 'comint) ; Password regexp.
+(require 'ansi-color)
 (require 'ehelp)
 (require 'ring)
 (require 'shell)
@@ -717,6 +718,9 @@ Buffer local variable.")
 (defvar term-ansi-current-reverse nil)
 (defvar term-ansi-current-invisible nil)
 
+(make-obsolete-variable 'term-ansi-face-already-done
+                        "it doesn't have any effect." "28.1")
+
 ;;; Faces
 (defvar ansi-term-color-vector
   [term
@@ -1039,10 +1043,6 @@ is buffer-local."
   (setq term-ansi-current-reverse nil)
   (setq term-ansi-current-color 0)
   (setq term-ansi-current-invisible nil)
-  ;; Stefan thought this should be t, but could not remember why.
-  ;; Setting it to t seems to cause bug#11785.  Setting it to nil
-  ;; again to see if there are other consequences...
-  (setq term-ansi-face-already-done nil)
   (setq term-ansi-current-bg-color 0))
 
 (define-derived-mode term-mode fundamental-mode "Term"
@@ -1584,7 +1584,8 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
 :so=\\E[7m:se=\\E[m:us=\\E[4m:ue=\\E[m:md=\\E[1m:mr=\\E[7m:me=\\E[m\
 :UP=\\E[%%dA:DO=\\E[%%dB:LE=\\E[%%dD:RI=\\E[%%dC\
 :kl=\\EOD:kd=\\EOB:kr=\\EOC:ku=\\EOA:kN=\\E[6~:kP=\\E[5~:@7=\\E[4~:kh=\\E[1~\
-:mk=\\E[8m:cb=\\E[1K:op=\\E[39;49m:Co#8:pa#64:AB=\\E[4%%dm:AF=\\E[3%%dm:cr=^M\
+:mk=\\E[8m:cb=\\E[1K:op=\\E[39;49m:Co#256:pa#32767\
+:AB=\\E[48;5;%%dm:AF=\\E[38;5;%%dm:cr=^M\
 :bl=^G:do=^J:le=^H:ta=^I:se=\\E[27m:ue=\\E[24m\
 :kb=^?:kD=^[[3~:sc=\\E7:rc=\\E8:r1=\\Ec:"
   ;; : -undefine ic
@@ -3285,133 +3286,125 @@ option is enabled.  See `term-set-goto-process-mark'."
   (setq term-current-row 0)
   (setq term-current-column 1)
   (term--reset-scroll-region)
-  (setq term-insert-mode nil)
-  ;; FIXME: No idea why this is here, it looks wrong.  --Stef
-  (setq term-ansi-face-already-done nil))
+  (setq term-insert-mode nil))
 
-(defun term--maybe-brighten-color (color bold)
-  "Possibly convert COLOR to its bright variant.
-COLOR is an index into `ansi-term-color-vector'.  If BOLD and
-`ansi-color-bold-is-bright' are non-nil and COLOR is a regular color,
-return the bright version of COLOR; otherwise, return COLOR."
-  (if (and ansi-color-bold-is-bright bold (<= 1 color 8))
-      (+ color 8)
-    color))
+(defun term--color-as-hex (for-foreground)
+  "Return the current ANSI color as a hexadecimal color string.
+Use the current background color if FOR-FOREGROUND is nil,
+otherwise use the current foreground color."
+  (let ((color (if for-foreground term-ansi-current-color
+                 term-ansi-current-bg-color)))
+    (or (ansi-color--code-as-hex (1- color))
+        (progn
+          (and ansi-color-bold-is-bright term-ansi-current-bold
+               (<= 1 color 8)
+               (setq color (+ color 8)))
+          (if for-foreground
+              (face-foreground (elt ansi-term-color-vector color)
+                               nil 'default)
+            (face-background (elt ansi-term-color-vector color)
+                             nil 'default))))))
 
 ;; New function to deal with ansi colorized output, as you can see you can
 ;; have any bold/underline/fg/bg/reverse combination. -mm
 
 (defun term-handle-colors-array (parameter)
-  (cond
+  (declare (obsolete term--handle-colors-list "28.1"))
+  (term--handle-colors-list (list parameter)))
 
-   ;; Bold  (terminfo: bold)
-   ((eq parameter 1)
-    (setq term-ansi-current-bold t))
+(defun term--handle-colors-list (parameters)
+  (while parameters
+    (pcase (pop parameters)
+      (1 (setq term-ansi-current-bold t))       ; (terminfo: bold)
+      (4 (setq term-ansi-current-underline t))  ; (terminfo: smul)
+      (5 (setq term-ansi-current-bold t))       ; (terminfo: bold)
+      (7 (setq term-ansi-current-reverse t))    ; (terminfo: smso, rev)
+      (8 (setq term-ansi-current-invisible t))  ; (terminfo: invis)
+      (24 (setq term-ansi-current-underline nil)) ; (terminfo: rmul)
+      (27 (setq term-ansi-current-reverse nil)) ; (terminfo: rmso)
 
-   ;; Underline
-   ((eq parameter 4)
-    (setq term-ansi-current-underline t))
+      ;; Foreground (terminfo: setaf)
+      ((and param (guard (<= 30 param 37)))
+       (setq term-ansi-current-color (- param 29)))
 
-   ;; Blink (unsupported by Emacs), will be translated to bold.
-   ;; This may change in the future though.
-   ((eq parameter 5)
-    (setq term-ansi-current-bold t))
+      ;; Bright foreground (terminfo: setaf)
+      ((and param (guard (<= 90 param 97)))
+       (setq term-ansi-current-color (- param 81)))
 
-   ;; Reverse (terminfo: smso)
-   ((eq parameter 7)
-    (setq term-ansi-current-reverse t))
+      ;; Extended foreground (terminfo: setaf)
+      (38
+       (pcase (pop parameters)
+         ;; 256 color
+         (5 (if (setq term-ansi-current-color (pop parameters))
+                (cl-incf term-ansi-current-color)
+              (term-ansi-reset)))
+         ;; Full 24-bit color
+         (2 (cl-loop with color = (1+ 256) ; Base
+                     for i from 16 downto 0 by 8
+                     if (pop parameters)
+                     do (setq color (+ color (ash it i)))
+                     else return (term-ansi-reset)
+                     finally
+                     (if (> color (+ 1 256 #xFFFFFF))
+                         (term-ansi-reset)
+                       (setq term-ansi-current-color color))))
+         (_ (term-ansi-reset))))
 
-   ;; Invisible
-   ((eq parameter 8)
-    (setq term-ansi-current-invisible t))
+      ;; Reset foreground (terminfo: op)
+      (39 (setq term-ansi-current-color 0))
 
-   ;; Reset underline (terminfo: rmul)
-   ((eq parameter 24)
-    (setq term-ansi-current-underline nil))
+      ;; Background (terminfo: setab)
+      ((and param (guard (<= 40 param 47)))
+       (setq term-ansi-current-bg-color (- param 39)))
 
-   ;; Reset reverse (terminfo: rmso)
-   ((eq parameter 27)
-    (setq term-ansi-current-reverse nil))
+      ;; Bright background (terminfo: setab)
+      ((and param (guard (<= 100 param 107)))
+       (setq term-ansi-current-bg-color (- param 91)))
 
-   ;; Foreground
-   ((and (>= parameter 30) (<= parameter 37))
-    (setq term-ansi-current-color (- parameter 29)))
+      ;; Extended background (terminfo: setab)
+      (48
+       (pcase (pop parameters)
+         ;; 256 color
+         (5 (if (setq term-ansi-current-bg-color (pop parameters))
+                (cl-incf term-ansi-current-bg-color)
+              (term-ansi-reset)))
+         ;; Full 24-bit color
+         (2 (cl-loop with color = (1+ 256) ; Base
+                     for i from 16 downto 0 by 8
+                     if (pop parameters)
+                     do (setq color (+ color (ash it i)))
+                     else return (term-ansi-reset)
+                     finally
+                     (if (> color (+ 1 256 #xFFFFFF))
+                         (term-ansi-reset)
+                       (setq term-ansi-current-bg-color color))))
+         (_ (term-ansi-reset))))
 
-   ;; Bright foreground
-   ((and (>= parameter 90) (<= parameter 97))
-    (setq term-ansi-current-color (- parameter 81)))
+      ;; Reset background (terminfo: op)
+      (49 (setq term-ansi-current-bg-color 0))
 
-   ;; Reset foreground
-   ((eq parameter 39)
-    (setq term-ansi-current-color 0))
+      ;; 0 (Reset) (terminfo: sgr0) or unknown (reset anyway)
+      (_ (term-ansi-reset))))
 
-   ;; Background
-   ((and (>= parameter 40) (<= parameter 47))
-    (setq term-ansi-current-bg-color (- parameter 39)))
+  (let (fg bg)
+    (if term-ansi-current-invisible
+        (setq bg (term--color-as-hex term-ansi-current-reverse)
+              fg bg)
+      (setq fg (term--color-as-hex t)
+            bg (term--color-as-hex nil)))
+    (setq term-current-face
+          `( :foreground ,fg
+             :background ,bg
+             ,@(unless term-ansi-current-invisible
+                 (list :inverse-video term-ansi-current-reverse)))))
 
-   ;; Bright foreground
-   ((and (>= parameter 100) (<= parameter 107))
-    (setq term-ansi-current-bg-color (- parameter 91)))
+  (when term-ansi-current-bold
+    (setq term-current-face
+          `(,term-current-face :inherit term-bold)))
 
-   ;; Reset background
-   ((eq parameter 49)
-    (setq term-ansi-current-bg-color 0))
-
-   ;; 0 (Reset) or unknown (reset anyway)
-   (t
-    (term-ansi-reset)))
-
-  ;; (message "Debug: U-%d R-%d B-%d I-%d D-%d F-%d B-%d"
-  ;;          term-ansi-current-underline
-  ;;          term-ansi-current-reverse
-  ;;          term-ansi-current-bold
-  ;;          term-ansi-current-invisible
-  ;;          term-ansi-face-already-done
-  ;;          term-ansi-current-color
-  ;;          term-ansi-current-bg-color)
-
-  (unless term-ansi-face-already-done
-    (let ((current-color (term--maybe-brighten-color
-                          term-ansi-current-color
-                          term-ansi-current-bold))
-          (current-bg-color (term--maybe-brighten-color
-                             term-ansi-current-bg-color
-                             term-ansi-current-bold)))
-      (if term-ansi-current-invisible
-          (let ((color
-                 (if term-ansi-current-reverse
-                     (face-foreground
-                      (elt ansi-term-color-vector current-color)
-                      nil 'default)
-                   (face-background
-                    (elt ansi-term-color-vector current-bg-color)
-                    nil 'default))))
-            (setq term-current-face
-                  (list :background color
-                        :foreground color))
-            ) ;; No need to bother with anything else if it's invisible.
-        (setq term-current-face
-              (list :foreground
-                    (face-foreground
-                     (elt ansi-term-color-vector current-color)
-                     nil 'default)
-                    :background
-                    (face-background
-                     (elt ansi-term-color-vector current-bg-color)
-                     nil 'default)
-                    :inverse-video term-ansi-current-reverse))
-
-        (when term-ansi-current-bold
-          (setq term-current-face
-                `(,term-current-face :inherit term-bold)))
-
-        (when term-ansi-current-underline
-          (setq term-current-face
-                `(,term-current-face :inherit term-underline))))))
-
-  ;;	(message "Debug %S" term-current-face)
-  ;; FIXME: shouldn't we set term-ansi-face-already-done to t here?  --Stef
-  (setq term-ansi-face-already-done nil))
+  (when term-ansi-current-underline
+    (setq term-current-face
+          `(,term-current-face :inherit term-underline))))
 
 
 ;; Handle a character assuming (eq terminal-state 2) -
@@ -3499,7 +3492,7 @@ return the bright version of COLOR; otherwise, return COLOR."
    ;; \E[m - Set/reset modes, set bg/fg
    ;;(terminfo: smso,rmso,smul,rmul,rev,bold,sgr0,invis,op,setab,setaf)
    ((eq char ?m)
-    (mapc #'term-handle-colors-array params))
+    (term--handle-colors-list params))
 
    ;; \E[6n - Report cursor position (terminfo: u7)
    ((eq char ?n)

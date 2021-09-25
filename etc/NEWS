@@ -89,6 +89,13 @@ mode (instead of at load time).
 256-color and 24-bit color codes are now handled by ANSI color
 filters and displayed with the specified color.
 
+** term-mode
+
+---
+*** Support for ANSI 256-color and 24-bit colors.
+256-color and 24-bit color codes are now displayed with the specified
+color.
+
 
 * New Modes and Packages in Emacs 29.1
 

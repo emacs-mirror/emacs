@@ -42,6 +42,9 @@
   `( :foreground "unspecified-fg"
      :background ,(face-background 'term-color-bright-yellow nil 'default)
      :inverse-video nil))
+(defvar custom-color-fg-props
+  `( :foreground "#87FFFF"
+     :background "unspecified-bg" :inverse-video nil))
 
 (defvar ansi-test-strings
   `(("\e[33mHello World\e[0m"
@@ -71,7 +74,18 @@
      ,(propertize "Hello World" 'font-lock-face
                   `(,yellow-fg-props :inherit term-bold))
      ,(propertize "Hello World" 'font-lock-face
-                  `(,bright-yellow-fg-props :inherit term-bold)))))
+                  `(,bright-yellow-fg-props :inherit term-bold)))
+    ("\e[38;5;3;1mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,yellow-fg-props :inherit term-bold))
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,bright-yellow-fg-props :inherit term-bold)))
+    ("\e[38;5;123;1mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,custom-color-fg-props :inherit term-bold)))
+    ("\e[38;2;135;255;255;1mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,custom-color-fg-props :inherit term-bold)))))
 
 (defun term-test-screen-from-input (width height input &optional return-var)
   (with-temp-buffer
