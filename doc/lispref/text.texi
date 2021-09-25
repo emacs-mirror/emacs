@@ -319,7 +319,7 @@ The argument @var{thing} is a symbol which specifies a kind of
 syntactic entity.  Possibilities include @code{symbol}, @code{list},
 @code{sexp}, @code{defun}, @code{filename}, @code{existing-filename},
 @code{url}, @code{word}, @code{sentence}, @code{whitespace},
-@code{line}, @code{page}, and others.
+@code{line}, @code{page}, @code{string}, and others.
 
 When the optional argument @var{no-properties} is non-@code{nil}, this
 function strips text properties from the return value.

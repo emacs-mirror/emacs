@@ -2600,6 +2600,7 @@ This new command (bound to 'C-c C-l') regenerates the current hunk.
 This is like 'filename', but is a full path, and is nil if the file
 doesn't exist.
 
++++
 *** New 'thing-at-point' target: 'string'.
 If point is inside a string, it returns that string.
 
@@ -2809,6 +2810,7 @@ declared obsolete and rewritten as 'erc-track-select-mode-line-face',
 with different expected arguments (the current and old faces are now
 separated) and clearer documentation.
 
+---
 *** Add '/opme' and '/deopme' convenience commands.
 The new '/opme' convenience command asks ChanServ to set the operator
 status for the current nick in the current channel, and '/deopme'
