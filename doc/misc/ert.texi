@@ -273,48 +273,55 @@ point to it and typing @kbd{@key{RET}} jumps to its definition.
 @itemx S-@key{TAB}
 @kindex TAB@r{, in ert results buffer}
 @kindex S-TAB@r{, in ert results buffer}
-Cycle between buttons forward and backward.
+Cycle between buttons forward (@code{forward-button}) and backward
+(@code{backward-button}).
 
 @item r
 @kindex r@r{, in ert results buffer}
 @findex ert-results-rerun-test-at-point
-Re-run the test near point on its own.
+Re-run the test near point on its own
+(@code{ert-results-rerun-test-at-point}).
 
 @item d
 @kindex d@r{, in ert results buffer}
 @findex ert-results-rerun-test-at-point-debugging-errors
-Re-run the test near point on its own with the debugger enabled.
+Re-run the test near point on its own with the debugger enabled
+(@code{ert-results-rerun-test-at-point-debugging-errors}).
 
 @item R
 @kindex R@r{, in ert results buffer}
 @findex ert-results-rerun-all-tests
-Re-run all tests.
+Re-run all tests (@code{ert-results-rerun-all-tests}).
 
 @item .
 @kindex .@r{, in ert results buffer}
 @findex ert-results-find-test-at-point-other-window
-Jump to the definition of the test near point.  This has the same
-effect as @kbd{@key{RET}}, but does not require point to be on the
-name of the test.
+Jump to the definition of the test near point
+(@code{ert-results-find-test-at-point-other-window}).  This has the
+same effect as @kbd{@key{RET}}, but does not require point to be on
+the name of the test.
 
 @item b
 @kindex b@r{, in ert results buffer}
 @findex ert-results-pop-to-backtrace-for-test-at-point
 @cindex backtrace of a failed test
-Show the backtrace of a failed test.  @xref{Debugging,, Backtraces,
-elisp, GNU Emacs Lisp Reference Manual}, for more information about
-backtraces.
+Show the backtrace of a failed test
+(@code{ert-results-pop-to-backtrace-for-test-at-point}).
+@xref{Debugging,, Backtraces, elisp, GNU Emacs Lisp Reference Manual},
+for more information about backtraces.
 
 @item l
 @kindex l@r{, in ert results buffer}
 @findex ert-results-pop-to-should-forms-for-test-at-point
-Show the list of @code{should} forms executed in the test.
+Show the list of @code{should} forms executed in the test
+(@code{ert-results-pop-to-should-forms-for-test-at-point}).
 
 @item m
 @kindex m@r{, in ert results buffer}
 @findex ert-results-pop-to-messages-for-test-at-point
 Show any messages that were generated (with the Lisp function
-@code{message}) in in a test or any of the code that it invoked.
+@code{message}) in in a test or any of the code that it invoked
+(@code{ert-results-pop-to-messages-for-test-at-point}).
 
 @item L
 @kindex L@r{, in ert results buffer}
@@ -322,23 +329,23 @@ Show any messages that were generated (with the Lisp function
 By default, long expressions in the failure details are abbreviated
 using @code{print-length} and @code{print-level}.  Increase the limits
 to show more of the expression by moving point to a test failure with
-this command.
+this command (@code{ert-results-toggle-printer-limits-for-test-at-point}).
 
 @item D
 @kindex D@r{, in ert results buffer}
 @findex ert-delete-test
 @cindex delete test
-Delete a test from the running Emacs session.
+Delete a test from the running Emacs session (@code{ert-delete-test}).
 
 @item h
 @kindex h@r{, in ert results buffer}
 @findex ert-describe-test
-Show the documentation of a test.
+Show the documentation of a test (@code{ert-describe-test}).
 
 @item T
 @kindex T@r{, in ert results buffer}
 @findex ert-results-pop-to-timings
-Display test timings for the last run.
+Display test timings for the last run (@code{ert-results-pop-to-timings}).
 
 @item M-x ert-delete-all-tests
 @findex ert-delete-all-test
