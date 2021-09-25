@@ -851,7 +851,7 @@ If QUIET is non-nil, no not emit a message."
                                  rcirc-failed-attempts
                                  rcirc-reconnect-attempts))
             (setq rcirc-reconnection-timer
-                  (run-at-time rcirc-timeout-seconds nil
+                  (run-at-time rcirc-reconnect-delay nil
                                #'rcirc-reconnect process t))))))))
 
 (defun rcirc-sentinel (process sentinel)
