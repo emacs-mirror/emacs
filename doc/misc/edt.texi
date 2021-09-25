@@ -524,7 +524,7 @@ So, after executing @samp{xmodmap .xmodmaprc}, a press of the physical
 @key{F12} key looks like a Num_Lock keypress to X@.  Also, a press of the
 physical @key{NumLock} key looks like a press of the @key{F12} key to X.
 
-Now, @file{edt-mapper.el} will see @samp{F12} when the physical
+Now, @file{edt-mapper.el} will see @samp{f12} when the physical
 @key{NumLock} key is pressed, allowing the @key{NumLock} key to be used
 as the EDT @key{PF1} (@key{GOLD}) key.
 
