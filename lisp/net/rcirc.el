@@ -840,7 +840,8 @@ If QUIET is non-nil, no not emit a message."
         (dolist (buffer (mapcar #'cdr rcirc-buffer-alist))
 	  (when (buffer-live-p buffer)
             (with-current-buffer buffer
-	      (setq mode-line-process ":connecting"))))
+	      (setq rcirc-joined (current-time)
+                    mode-line-process ":connecting"))))
 	(let ((nprocess (apply #'rcirc-connect conn-info)))
           (when (and (< rcirc-failed-attempts rcirc-reconnect-attempts)
                      (eq (process-status nprocess) 'failed))
