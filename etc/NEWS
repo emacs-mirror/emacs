@@ -745,6 +745,7 @@ Applies to headings of shortdoc sections.
 *** New face 'separator-line'.
 This is used by 'make-separator-line' (see below).
 
++++
 *** 'redisplay-skip-fontification-on-input' helps Emacs keep up with fast input.
 This is another attempt to solve the problem of handling high key repeat rate
 and other "slow scrolling" situations.  It is hoped it behaves better
