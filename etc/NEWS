@@ -1703,8 +1703,10 @@ work as before.
 
 ** Emacs Lisp mode
 
+---
 *** The mode-line now indicates whether we're using lexical or dynamic scoping.
 
++++
 *** A space between an open paren and a symbol changes the indentation rule.
 The presence of a space between an open paren and a symbol now is
 taken as a statement by the programmer that this should be indented
