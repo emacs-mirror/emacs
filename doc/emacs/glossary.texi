@@ -1113,7 +1113,7 @@ Emacs.  @xref{Query Replace}.
 @anchor{Glossary---Quitting}
 @item Quitting
 Quitting means canceling a partially typed command or a running
-command, using @kbd{C-g} (or @kbd{C-@key{BREAK}} on MS-DOS).  @xref{Quitting}.
+command, using @kbd{C-g} (or @kbd{C-@key{Break}} on MS-DOS).  @xref{Quitting}.
 
 @item Quoting
 Quoting means depriving a character of its usual special significance.

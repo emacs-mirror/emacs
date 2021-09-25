@@ -2602,7 +2602,7 @@ invoked @code{hexl-mode}.
 @noindent
 Other Hexl commands let you insert strings (sequences) of binary
 bytes, move by @code{short}s or @code{int}s, etc.; type @kbd{C-h a
-hexl-@key{RET}} for details.
+hexl- @key{TAB}} for details.
 
   Hexl mode can also be used for editing text files.  This could come
 in handy if the text file includes unusual characters or uses unusual
