@@ -227,3 +227,5 @@
   (when noninteractive
     (kill-buffer "*erc-protocol*")
     (should-not erc-debug-irc-protocol)))
+
+;;; erc-tests.el ends here

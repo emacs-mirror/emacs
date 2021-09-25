@@ -48,4 +48,4 @@
          (should (equal (calculator-string-to-number str) expected)))))))
 
 (provide 'calculator-tests)
-;; calculator-tests.el ends here
+;;; calculator-tests.el ends here

@@ -241,3 +241,5 @@ a fixed place on the right and are padded on the left."
         (let ((xdiv (/ x divisor)))
           (should (= xdiv (float-time (time-convert xdiv t))))))
       (setq x (* x 2)))))
+
+;;; timefns-tests.el ends here

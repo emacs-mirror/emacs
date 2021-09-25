@@ -32,4 +32,4 @@
      'rmail-edit-current-message))))
 
 (provide 'rmail-tests)
-;; rmail-tests.el ends here
+;;; rmail-tests.el ends here

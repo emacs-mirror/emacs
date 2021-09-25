@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Code:
+
 (require 'ert)
 
 (ert-deftest divide-extreme-sign ()
@@ -125,3 +127,5 @@
              (ash (1- (ash 1 53)) 2045))))
 
 (provide 'floatfns-tests)
+
+;;; floatfns-tests.el ends here

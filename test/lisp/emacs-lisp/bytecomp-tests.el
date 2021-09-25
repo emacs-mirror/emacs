@@ -1,4 +1,4 @@
-;;; bytecomp-tests.el  -*- lexical-binding:t -*-
+;;; bytecomp-tests.el --- Tests for bytecomp.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -1498,4 +1498,4 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
 ;; End:
 
 (provide 'bytecomp-tests)
-;; bytecomp-tests.el ends here.
+;;; bytecomp-tests.el ends here

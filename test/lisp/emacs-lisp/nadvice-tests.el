@@ -208,4 +208,4 @@ function being an around advice."
 ;; no-byte-compile: t
 ;; End:
 
-;;; advice-tests.el ends here.
+;;; nadvice-tests.el ends here

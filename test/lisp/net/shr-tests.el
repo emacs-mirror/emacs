@@ -67,4 +67,4 @@
 
 (require 'shr)
 
-;;; shr-stream-tests.el ends here
+;;; shr-tests.el ends here

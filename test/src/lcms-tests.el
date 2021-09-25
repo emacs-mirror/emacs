@@ -95,7 +95,7 @@ B is considered the exact value."
     '(0.29902 0.31485 1.0))))
 
 (ert-deftest lcms-roundtrip ()
-  "Test accuracy of converting to and from different color spaces"
+  "Test accuracy of converting to and from different color spaces."
   (skip-unless (featurep 'lcms2))
   (should
    (let ((color '(.5 .3 .7)))
@@ -109,7 +109,7 @@ B is considered the exact value."
                            0.0001))))
 
 (ert-deftest lcms-ciecam02-gold ()
-  "Test CIE CAM02 JCh gold values"
+  "Test CIE CAM02 JCh gold values."
   (skip-unless (featurep 'lcms2))
   (should
    (lcms-triple-approx-p

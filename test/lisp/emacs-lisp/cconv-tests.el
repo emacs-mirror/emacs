@@ -1,4 +1,4 @@
-;;; cconv-tests.el -*- lexical-binding: t -*-
+;;; cconv-tests.el --- Tests for cconv.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
@@ -18,6 +18,8 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;;; Code:
 
 (require 'ert)
 (require 'cl-lib)
@@ -204,4 +206,4 @@
           42)))
 
 (provide 'cconv-tests)
-;; cconv-tests.el ends here.
+;;; cconv-tests.el ends here

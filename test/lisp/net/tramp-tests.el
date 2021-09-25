@@ -6071,7 +6071,7 @@ This requires restrictions of file name syntax."
    'tramp-ftp-file-name-handler))
 
 (defun tramp--test-crypt-p ()
-  "Check, whether the remote directory is crypted"
+  "Check, whether the remote directory is crypted."
   (tramp-crypt-file-name-p tramp-test-temporary-file-directory))
 
 (defun tramp--test-docker-p ()

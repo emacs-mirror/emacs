@@ -22,7 +22,7 @@
 ;;; Code:
 
 (deftheme faces-test-dark
-  "")
+  "Dark test theme.")
 
 (custom-theme-set-faces
  'faces-test-dark

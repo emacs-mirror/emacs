@@ -161,4 +161,4 @@ text.
                                                (line-end-position)))))))
 
 
-;;; info-xref.el ends here
+;;; info-xref-tests.el ends here

@@ -1,4 +1,4 @@
-;;; comint-tests.el  -*- lexical-binding:t -*-
+;;; comint-tests.el --- Tests for comint.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -94,4 +94,4 @@ password flow if it returns a nil value."
 ;; no-byte-compile: t
 ;; End:
 
-;;; comint-testsuite.el ends here
+;;; comint-tests.el ends here

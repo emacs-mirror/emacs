@@ -57,3 +57,5 @@
       (move-to-column 12 t)
       (buffer-substring-no-properties 1 14))
     "\txxx    \tLine")))
+
+;;; indent-tests.el ends here

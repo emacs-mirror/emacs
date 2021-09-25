@@ -77,12 +77,12 @@
 "Testcover doesn't prevent testing of defcustom values."
 ;; ====
 (defgroup testcover-testcase nil
-  "Test case for testcover"
+  "Test case for testcover."
   :group 'lisp
   :prefix "testcover-testcase-"
   :version "26.0")
 (defcustom testcover-testcase-flag t
-  "Test value used by testcover-tests.el"
+  "Test value used by testcover-tests.el."
   :type 'boolean
   :group 'testcover-testcase)
 (defun testcover-testcase-get-flag ()
@@ -111,7 +111,7 @@
 "Wrapping a form with noreturn prevents splotching."
 ;; ====
 (defun testcover-testcase-cancel (spacecraft)
-  (error "no destination for %s" spacecraft))
+  (error "No destination for %s" spacecraft))
 (defun testcover-testcase-launch (spacecraft planet)
   (if (null planet)
       (noreturn (testcover-testcase-cancel spacecraft%%%))
@@ -220,7 +220,7 @@
 (defun testcover-testcase-cc (arg)
   (condition-case nil
       (if (null arg%%%)%%%
-        (error "foo")
+        (error "Foo")
         "0")!!!
         (error nil)))
 (should-not (testcover-testcase-cc nil))
@@ -510,4 +510,4 @@ regarding the odd-looking coverage result for the quoted form."
 (testcover-testcase-cyc2 1 2)
 (testcover-testcase-cyc2 1 4)
 
-;; testcases.el ends here.
+;;; testcases.el ends here

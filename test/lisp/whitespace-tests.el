@@ -51,7 +51,7 @@
 ;; We cannot call whitespace-mode because it will do nothing in batch
 ;; mode.  So we call its innards instead.
 (defun whitespace-tests-whitespace-mode-on ()
-  "Turn whitespace-mode on even in batch mode."
+  "Turn `whitespace-mode' on even in batch mode."
   (whitespace-turn-on)
   (whitespace-action-when-on)
   (setq whitespace-mode t))

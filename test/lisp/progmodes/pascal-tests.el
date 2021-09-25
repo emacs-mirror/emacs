@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Code:
+
 (require 'ert)
 (require 'pascal)
 
@@ -61,3 +63,5 @@
     (should (equal (point) 15))))
 
 (provide 'pascal-tests)
+
+;;; pascal-tests.el ends here

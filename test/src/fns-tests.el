@@ -1114,3 +1114,5 @@
     (should (= (line-number-at-pos nil) 11))
     (should-error (line-number-at-pos -1))
     (should-error (line-number-at-pos 100))))
+
+;;; fns-tests.el ends here

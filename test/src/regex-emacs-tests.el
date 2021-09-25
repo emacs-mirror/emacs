@@ -279,11 +279,11 @@ on success"
 
 (defconst regex-tests-re-even-escapes
   "\\(?:^\\|[^\\]\\)\\(?:\\\\\\\\\\)*"
-  "Regex that matches an even number of \\ characters")
+  "Regex that matches an even number of \\ characters.")
 
 (defconst regex-tests-re-odd-escapes
   (concat regex-tests-re-even-escapes "\\\\")
-  "Regex that matches an odd number of \\ characters")
+  "Regex that matches an odd number of \\ characters.")
 
 
 (defun regex-tests-unextend (pattern)
@@ -396,9 +396,9 @@ pattern)"
    ;; emacs matches non-greedy regex ab.*? non-greedily
    639 677 712
    ]
-  "Line numbers in the boost test that should be skipped.  These
-are false-positive test failures that represent known/benign
-differences in behavior.")
+  "Line numbers in the boost test that should be skipped.
+These are false-positive test failures that represent
+known/benign differences in behavior.")
 
 ;; - Format
 ;;   - Comments are lines starting with ;
@@ -480,9 +480,9 @@ differences in behavior.")
    ;; ambiguous groupings are ambiguous
    610 611 1154 1157 1160 1168 1171 1176 1179 1182 1185 1188 1193 1196 1203
   ]
-  "Line numbers in the PCRE test that should be skipped.  These
-are false-positive test failures that represent known/benign
-differences in behavior.")
+  "Line numbers in the PCRE test that should be skipped.
+These are false-positive test failures that represent
+known/benign differences in behavior.")
 
 ;; - Format
 ;;
@@ -562,9 +562,9 @@ differences in behavior.")
    ;; fails to match
    168
   ]
-  "Line numbers in the PTESTS test that should be skipped.  These
-are false-positive test failures that represent known/benign
-differences in behavior.")
+  "Line numbers in the PTESTS test that should be skipped.
+These are false-positive test failures that represent
+known/benign differences in behavior.")
 
 ;; - Format
 ;;   - fields separated by ¦ (note: this is not a |)
@@ -621,9 +621,9 @@ differences in behavior.")
    ;; emacs is more stringent with regexes involving unbalanced )
    67
   ]
-  "Line numbers in the TESTS test that should be skipped.  These
-are false-positive test failures that represent known/benign
-differences in behavior.")
+  "Line numbers in the TESTS test that should be skipped.
+These are false-positive test failures that represent
+known/benign differences in behavior.")
 
 ;; - Format
 ;;   - fields separated by :. Watch for [\[:xxx:]]

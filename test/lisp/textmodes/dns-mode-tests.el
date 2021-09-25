@@ -77,3 +77,5 @@
       (insert " ")
       (dns-mode-ipv6-to-nibbles nil)
       (should (equal (buffer-string) "8.b.d.0.1.0.0.2.ip6.arpa.  ")))))
+
+;;; dns-mode-tests.el ends here

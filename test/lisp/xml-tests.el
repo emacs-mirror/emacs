@@ -78,7 +78,7 @@
     ;; Bug#16344
     "<!----><x>< /x>"
     "<a>< b/></a>")
-  "List of XML strings that should signal an error in the parser")
+  "List of XML strings that should signal an error in the parser.")
 
 (defvar xml-parse-tests--qnames
   '( ;; Test data for name expansion
@@ -199,4 +199,4 @@ Parser is called with and without 'symbol-qnames argument.")
 ;; no-byte-compile: t
 ;; End:
 
-;;; xml-parse-tests.el ends here.
+;;; xml-tests.el ends here

@@ -97,4 +97,4 @@
                      "more bits"))))
 
 (provide 'gnus-search-tests)
-;;; search-tests.el ends here
+;;; gnus-search-tests.el ends here

@@ -262,4 +262,4 @@ chars"
 
 (provide 'eshell-tests)
 
-;;; tests/eshell-tests.el ends here
+;;; eshell-tests.el ends here

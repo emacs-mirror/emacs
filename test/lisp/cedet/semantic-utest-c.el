@@ -60,7 +60,7 @@
 	      (semantic-fetch-tags))))
       (when (or (not tags-expected) (not tags-actual))
         (message "Tried to find test files in: %s" semantic-utest-c-test-directory)
-        (error "Failed:  Discovered no tags in test files or test file not found."))
+        (error "Failed:  Discovered no tags in test files or test file not found"))
 
       ;; Now that we have the tags, compare them for SPP accuracy.
       (dolist (tag tags-actual)

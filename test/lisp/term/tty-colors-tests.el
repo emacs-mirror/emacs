@@ -35,4 +35,4 @@
 
 (provide 'term-tests)
 
-;;; term-tests.el ends here
+;;; tty-colors-tests.el ends here

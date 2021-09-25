@@ -19,7 +19,7 @@
 
 ;;; Commentary:
 
-;; This file runs for all libraries with autoloads separate emacs
+;; This file runs for all libraries with autoloads separate Emacs
 ;; processes of the form "emacs -batch -l LIB".
 
 ;;; Code:
@@ -45,4 +45,4 @@
   (cus-test-libs t)
   (should-not cus-test-libs-errors))
 
-;;; test-custom-deps.el ends here
+;;; test-custom-libs.el ends here

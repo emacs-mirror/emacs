@@ -1,4 +1,4 @@
-;;; newcomment-tests.el  -*- lexical-binding:t -*-
+;;; newcomment-tests.el --- Tests for newcomment.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2021 Free Software Foundation, Inc.
 
@@ -36,4 +36,4 @@
               (uncomment-region (point-min) (point-max))
               (buffer-string))))))
 
-;;; newcomment-testsuite.el ends here
+;;; newcomment-tests.el ends here

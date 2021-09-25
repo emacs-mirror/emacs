@@ -7,14 +7,14 @@
 ;;; Commentary:
 
 ;; This package provides a minor mode to frobnicate and/or bifurcate
-;; any flanges you desire. To activate it, type "C-M-r M-3 butterfly"
+;; any flanges you desire.  To activate it, type "C-M-r M-3 butterfly"
 ;; and all your dreams will come true.
 ;;
 ;; This is a new, updated version.
 
 ;;; Code:
 
-(defgroup simple-single nil "Simply a file"
+(defgroup simple-single nil "Simply a file."
   :group 'lisp)
 
 (defcustom simple-single-super-sunday nil
@@ -29,7 +29,7 @@ Default changed to nil."
 
 ;;;###autoload
 (define-minor-mode simple-single-mode
-  "It does good things to stuff")
+  "It does good things to stuff.")
 
 (provide 'simple-single)
 

@@ -35,7 +35,7 @@
   "Todo Archive mode test file.")
 
 (defmacro with-todo-test (&rest body)
-  "Set up an isolated todo-mode test environment."
+  "Set up an isolated `todo-mode' test environment."
   (declare (debug (body)))
   `(let* ((todo-test-home (make-temp-file "todo-test-home-" t))
           ;; Since we change HOME, clear this to avoid a conflict

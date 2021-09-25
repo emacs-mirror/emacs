@@ -153,4 +153,4 @@
                          t)))
       (delete-directory homedir t))))
 
-;;; vc-bzr.el ends here
+;;; vc-bzr-tests.el ends here

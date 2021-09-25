@@ -429,7 +429,7 @@ to (xref-elisp-test-descr-to-target xref)."
   slot-1)
 
 (cl-defgeneric xref-elisp-generic-no-methods (arg1 arg2)
-  "doc string generic no-methods"
+  "Doc string generic no-methods."
   ;; No default implementation, no methods, but fboundp is true for
   ;; this symbol; it calls cl-no-applicable-method
   )
@@ -440,44 +440,44 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; ‘this’. It passes in interactive tests, so I haven't been able to
 ;; track down the problem.
 (cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type) arg2)
-  "doc string generic no-default xref-elisp-root-type"
+  "Doc string generic no-default xref-elisp-root-type."
   "non-default for no-default")
 
 ;; defgeneric after defmethod in file to ensure the fallback search
 ;; method of just looking for the function name will fail.
 (cl-defgeneric xref-elisp-generic-no-default (arg1 arg2)
-  "doc string generic no-default generic"
+  "Doc string generic no-default generic."
   ;; No default implementation; this function calls the cl-generic
   ;; dispatching code.
   )
 
 (cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
-  "doc string generic co-located-default"
+  "Doc string generic co-located-default."
   "co-located default")
 
 (cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
-  "doc string generic co-located-default xref-elisp-root-type"
+  "Doc string generic co-located-default xref-elisp-root-type."
   "non-default for co-located-default")
 
 (cl-defgeneric xref-elisp-generic-separate-default (arg1 arg2)
-  "doc string generic separate-default"
+  "Doc string generic separate-default."
   ;; default implementation provided separately
   )
 
 (cl-defmethod xref-elisp-generic-separate-default (arg1 arg2)
-  "doc string generic separate-default default"
+  "Doc string generic separate-default default."
   "separate default")
 
 (cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type) arg2)
-  "doc string generic separate-default xref-elisp-root-type"
+  "Doc string generic separate-default xref-elisp-root-type."
   "non-default for separate-default")
 
 (cl-defmethod xref-elisp-generic-implicit-generic (arg1 arg2)
-  "doc string generic implicit-generic default"
+  "Doc string generic implicit-generic default."
   "default for implicit generic")
 
 (cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type) arg2)
-  "doc string generic implicit-generic xref-elisp-root-type"
+  "Doc string generic implicit-generic xref-elisp-root-type."
   "non-default for implicit generic")
 
 
@@ -623,35 +623,35 @@ to (xref-elisp-test-descr-to-target xref)."
 (declare-function xref-elisp-overloadable-no-default-default "elisp-mode-tests")
 
 (define-overloadable-function xref-elisp-overloadable-no-methods ()
-  "doc string overloadable no-methods")
+  "Doc string overloadable no-methods.")
 
 (define-overloadable-function xref-elisp-overloadable-no-default ()
-  "doc string overloadable no-default")
+  "Doc string overloadable no-default.")
 
 (define-mode-local-override xref-elisp-overloadable-no-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable no-default c-mode."
+  "Doc string overloadable no-default c-mode."
   "result overloadable no-default c-mode.")
 
 (define-overloadable-function xref-elisp-overloadable-co-located-default ()
-  "doc string overloadable co-located-default"
+  "Doc string overloadable co-located-default."
   "result overloadable co-located-default.")
 
 (define-mode-local-override xref-elisp-overloadable-co-located-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable co-located-default c-mode."
+  "Doc string overloadable co-located-default c-mode."
   "result overloadable co-located-default c-mode.")
 
 (define-overloadable-function xref-elisp-overloadable-separate-default ()
-  "doc string overloadable separate-default.")
+  "Doc string overloadable separate-default.")
 
 (defun xref-elisp-overloadable-separate-default-default ()
-  "doc string overloadable separate-default default"
+  "Doc string overloadable separate-default default."
   "result overloadable separate-default.")
 
 (define-mode-local-override xref-elisp-overloadable-separate-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable separate-default c-mode."
+  "Doc string overloadable separate-default c-mode."
   "result overloadable separate-default c-mode.")
 
 (xref-elisp-deftest find-defs-define-overload-no-methods

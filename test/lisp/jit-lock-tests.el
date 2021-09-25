@@ -58,3 +58,5 @@
     (with-silent-modifications
       (put-text-property (point-min) (point-max) 'fontified t))
     (jit-lock-fontify-now (point-min) (point-max))))
+
+;;; jit-lock-tests.el ends here

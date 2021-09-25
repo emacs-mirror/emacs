@@ -34,3 +34,5 @@
    (autoloadp
     (symbol-function
      'ps-mule-initialize))))
+
+;;; ps-print-tests.el ends here

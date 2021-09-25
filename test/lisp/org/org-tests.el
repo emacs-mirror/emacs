@@ -29,3 +29,5 @@ Ref <https://debbugs.gnu.org/30310>."
   (should (require 'org-version nil t))
   (should (equal (version-to-list (org-release))
                  (cdr (assq 'org package--builtin-versions)))))
+
+;;; org-tests.el ends here

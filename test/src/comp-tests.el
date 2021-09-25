@@ -1167,7 +1167,7 @@ Return a list of results."
 
       ;; 49
       ((defun comp-tests-ret-type-spec-f ()
-         (error "foo"))
+         (error "Foo"))
        nil)
 
       ;; 50
@@ -1373,7 +1373,7 @@ Return a list of results."
 
 (defun comp-tests-pure-checker-1 (_)
   "Check that inside `comp-tests-pure-caller-f' `comp-tests-pure-callee-f' is
- folded."
+folded."
   (should
    (cl-notany
     #'identity

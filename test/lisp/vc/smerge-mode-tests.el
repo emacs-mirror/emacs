@@ -34,3 +34,5 @@
     (should (equal (buffer-substring (point-min) (point-max)) ""))))
 
 (provide 'smerge-mode-tests)
+
+;;; smerge-mode-tests.el ends here

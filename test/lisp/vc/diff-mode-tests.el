@@ -481,3 +481,4 @@ baz"))))
                    '("/tmp/ange-ftp1351895K.el" "/tmp/ange-ftp13518wvE.el")))))
 
 (provide 'diff-mode-tests)
+;;; diff-mode-tests.el ends here

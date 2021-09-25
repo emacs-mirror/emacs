@@ -871,7 +871,7 @@ baz\"\""
     (local-set-key (vector key) 'self-insert-command)))
 
 (defun electric-layout-for-c-style-du-jour (inserted)
-  "A function to use in `electric-layout-rules'"
+  "A function to use in `electric-layout-rules'."
   (when (memq inserted '(?\{ ?\}))
     (save-excursion
       (backward-char 2) (c-point-syntax) (forward-char) ; silly, but needed

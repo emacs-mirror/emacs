@@ -132,4 +132,4 @@
   (should (equal '("1") (gnus-setdiff '(2 "1" 2) '(2))))
   (should (equal '("1" "1") (gnus-setdiff '(2 "1" 2 "1") '(2)))))
 
-;;; gnustest-gnus-util.el ends here
+;;; gnus-util-tests.el ends here

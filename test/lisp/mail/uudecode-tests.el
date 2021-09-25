@@ -35,11 +35,11 @@
 
 (defvar uudecode-tests-encoded-str
   (uudecode-tests-read-file (ert-resource-file "uuencoded.txt"))
-  "Uuencoded data for bookmark-tests.el
+  "Uuencoded data for bookmark-tests.el.
 Same as `uudecode-tests-decoded-str' but uuencoded.")
 (defvar uudecode-tests-decoded-str
   (uudecode-tests-read-file (ert-resource-file "uudecoded.txt"))
-  "Plain text data for bookmark-tests.el
+  "Plain text data for bookmark-tests.el.
 Same as `uudecode-tests-encoded-str' but plain text.")
 
 (ert-deftest uudecode-tests-decode-region-internal ()

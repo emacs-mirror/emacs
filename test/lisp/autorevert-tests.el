@@ -688,4 +688,4 @@ This expects `auto-revert--messages' to be bound by
     (ert-run-tests-batch "^auto-revert-")))
 
 (provide 'auto-revert-tests)
-;;; auto-revert-tests.el ends here
+;;; autorevert-tests.el ends here

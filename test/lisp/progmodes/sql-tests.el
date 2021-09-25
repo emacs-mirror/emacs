@@ -50,7 +50,7 @@
         (lambda (_command) t))
        ((symbol-function 'process-lines)
         (lambda (_program &rest _args)
-          (error "some error"))))
+          (error "Some error"))))
     (should-not (sql-postgres-list-databases))))
 
 ;;; Check Connection Password Handling/Wallet

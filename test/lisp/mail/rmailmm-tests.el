@@ -114,4 +114,4 @@ This is the epilogue.  It is also to be ignored."))
 
 (provide 'rmailmm-tests)
 
-;; rmailmm-tests.el ends here
+;;; rmailmm-tests.el ends here

@@ -100,4 +100,4 @@ See Bug#24641."
                    `[,(+ .a) ,(+ .a .b .b)])
                  [1 5])))
 
-;;; let-alist.el ends here
+;;; let-alist-tests.el ends here

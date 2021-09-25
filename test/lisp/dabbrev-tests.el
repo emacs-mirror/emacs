@@ -70,3 +70,5 @@ multiple expansions."
         ;; C-u C-u C-M-/
         (execute-kbd-macro [21 21 201326639]))
       (should (string= (buffer-string) "abc\na")))))
+
+;;; dabbrev-tests.el ends here

@@ -972,4 +972,4 @@ See Bug#21722."
     (should (= (length (delq nil (undo-make-selective-list 6 9))) 0))))
 
 (provide 'simple-test)
-;;; simple-test.el ends here
+;;; simple-tests.el ends here

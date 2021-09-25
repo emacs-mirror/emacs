@@ -57,4 +57,4 @@
     (set-marker marker-2 marker-1)
     (should (goto-char marker-2))))
 
-;;; marker-tests.el ends here.
+;;; marker-tests.el ends here

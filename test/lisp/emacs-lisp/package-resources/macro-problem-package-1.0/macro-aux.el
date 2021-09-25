@@ -5,7 +5,7 @@
 ;;; Code:
 
 (defun macro-aux-1 ( &rest forms)
-  "Description"
+  "Description."
   `(progn ,@forms))
 
 (provide 'macro-aux)

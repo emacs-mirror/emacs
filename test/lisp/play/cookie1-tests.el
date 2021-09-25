@@ -37,4 +37,4 @@
     (should (= (length (cookie-apropos "false" fortune-file)) 1))))
 
 (provide 'fortune-tests)
-;;; fortune-tests.el ends here
+;;; cookie1-tests.el ends here

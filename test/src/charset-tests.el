@@ -22,7 +22,9 @@
 (require 'ert)
 
 (ert-deftest charset-decode-char ()
-  "Test decode-char."
+  "Test `decode-char'."
   (should-error (decode-char 'ascii 0.5)))
 
 (provide 'charset-tests)
+
+;;; charset-tests.el ends here

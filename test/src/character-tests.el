@@ -43,3 +43,5 @@
   (should (= (string-width "áëòç" nil 4) 2))
   (should (= (string-width "הַרְבֵּה אַהֲבָה") 9))
   (should (= (string-width "הַרְבֵּה אַהֲבָה" nil 8) 4)))
+
+;;; character-tests.el ends here

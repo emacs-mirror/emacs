@@ -70,7 +70,7 @@
     ;; UUID, only hex is allowed
     ("01234567-89ab-cdef-ABCD-EF0123456789" 1 uuid "01234567-89ab-cdef-ABCD-EF0123456789")
     ("01234567-89ab-cdef-ABCD-EF012345678G" 1 uuid nil))
-  "List of thing-at-point tests.
+  "List of `thing-at-point' tests.
 Each list element should have the form
 
   (STRING POS THING RESULT)
@@ -231,4 +231,4 @@ position to retrieve THING.")
     (goto-char 5)
     (should (eq (symbol-at-point) 'bar))))
 
-;;; thingatpt.el ends here
+;;; thingatpt-tests.el ends here

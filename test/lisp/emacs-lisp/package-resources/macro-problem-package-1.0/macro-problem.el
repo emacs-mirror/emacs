@@ -9,11 +9,11 @@
 (require 'macro-aux)
 
 (defmacro macro-problem-1 ( &rest forms)
-  "Description"
+  "Description."
   `(progn ,@forms))
 
 (defun macro-problem-func ()
-  ""
+  "Description."
   (macro-problem-1 'a 'b)
   (macro-aux-1 'a 'b))
 

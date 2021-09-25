@@ -69,4 +69,4 @@
 		 (null stack)))))
 
 (provide 'textprop-tests)
-;; textprop-tests.el ends here.
+;;; textprop-tests.el ends here

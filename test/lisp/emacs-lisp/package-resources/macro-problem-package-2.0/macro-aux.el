@@ -5,11 +5,11 @@
 ;;; Code:
 
 (defmacro macro-aux-1 ( &rest forms)
-  "Description"
+  "Description."
   `(progn ,@forms))
 
 (defmacro macro-aux-3 ( &rest _)
-  "Description"
+  "Description."
   90)
 
 (provide 'macro-aux)

@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Support file for `faceup-test-basics.el'. This file is used to test
+;; Support file for `faceup-test-basics.el'.  This file is used to test
 ;; `faceup-this-file-directory' in various contexts.
 
 ;;; Code:

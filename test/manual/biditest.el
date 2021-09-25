@@ -121,3 +121,5 @@ BidiCharacterTest.txt file."
   (message "%s" (bidi-resolved-levels)))
 
 (define-key global-map [f8] #'bidi-levels)
+
+;;; biditest.el ends here

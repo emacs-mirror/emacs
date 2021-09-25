@@ -22,7 +22,7 @@
 ;;; Code:
 
 (deftheme faces-test-light
-  "")
+  "Light test theme.")
 
 (custom-theme-set-faces
  'faces-test-light

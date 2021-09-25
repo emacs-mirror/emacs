@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Code:
+
 (require 'ert)
 (require 'gdb-mi)
 
@@ -44,3 +46,5 @@
   )
 
 (provide 'gdb-mi-tests)
+
+;;; gdb-mi-tests.el ends here

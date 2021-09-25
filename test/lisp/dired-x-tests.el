@@ -63,4 +63,4 @@
                    nil))))
 
 (provide 'dired-x-tests)
-;; dired-x-tests.el ends here
+;;; dired-x-tests.el ends here

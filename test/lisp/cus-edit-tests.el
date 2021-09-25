@@ -37,7 +37,7 @@
 
 ;;;; showing/hiding obsolete options
 
-(defgroup cus-edit-tests nil "test"
+(defgroup cus-edit-tests nil "Test."
   :group 'test-group)
 
 (defcustom cus-edit-tests--obsolete-option-tag nil
