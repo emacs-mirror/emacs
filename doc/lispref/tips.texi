@@ -760,8 +760,14 @@ man page, preceded by @samp{Man page}, @samp{man page}, or @samp{man
 page for}.  For example,
 
 @smallexample
-See the man page `chmod' for details.
+See the man page `chmod(1)' for details.
 @end smallexample
+
+@noindent
+The Info documentation is always preferable to man pages, so be sure
+to link to an Info manual where available.  For example,
+@command{chmod} is documented in the GNU Coreutils manual, so it is
+better to link to that instead of the man page.
 
 To link to a customization group, write the single-quoted name of the
 group, preceded by @samp{customization group} (the first character in

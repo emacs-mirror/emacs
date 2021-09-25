@@ -3710,7 +3710,7 @@ customization group.
 
 +++
 ** Doc strings can now link to man pages.
-Text like "man page `chmod'" will be made into a button.  When
+Text like "man page `chmod(1)'" will be made into a button.  When
 clicked, it will open a Man mode buffer displaying that man page.
 
 +++
