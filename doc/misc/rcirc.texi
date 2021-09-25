@@ -976,9 +976,6 @@ displayed. A simple configuration to fix the above example might be:
       rcirc-channel-filter #'local/rcirc-soju-suffix)
 @end smallexample
 
-The effect is that buffer names, nicks in messages, nick-completion
-all strip away the suffix introduced by the bouncer.
-
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
