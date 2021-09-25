@@ -5756,7 +5756,7 @@ be saved."
   :version "26.1")
 
 (defun save-some-buffers-root ()
-  "A predicate to check whether the buffer is under the root directory.
+  "A predicate to check whether the buffer is under the project root directory.
 Can be used as a value of `save-some-buffers-default-predicate'
 to save buffers only under the project root or in subdirectories
 of the directory that was default during command invocation."

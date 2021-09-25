@@ -1001,10 +1001,10 @@ If nil, Emacs does not prompt, but instead shows the buffer with its
 contents before the change, and provides instructions how to revert
 the buffer.
 
+---
 ** New value 'save-some-buffers-root' of 'save-some-buffers-default-predicate'.
-They allow to ask about saving only those files that are under the
-project root or in subdirectories of the directory that was default
-during command invocation.
+When using this predicate, only buffers under the current project root
+will be considered when saving buffers with 'save-some-buffers'.
 
 ---
 ** New user option 'save-place-abbreviate-file-names'.
