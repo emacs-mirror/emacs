@@ -1648,7 +1648,11 @@ The template should have the following fields:
 (defcustom xref-search-program 'grep
   "The program to use for regexp search inside files.
 
-This must reference a corresponding entry in `xref-search-program-alist'."
+This must reference a corresponding entry in `xref-search-program-alist'.
+
+This variable is used in `xref-matches-in-files', which is the
+utility function used by commands like `dired-do-find-regexp' and
+`project-find-regexp'."
   :type '(choice
           (const :tag "Use Grep" grep)
           (const :tag "Use ripgrep" ripgrep)
@@ -1660,7 +1664,10 @@ This must reference a corresponding entry in `xref-search-program-alist'."
 (defun xref-matches-in-files (regexp files)
   "Find all matches for REGEXP in FILES.
 Return a list of xref values.
-FILES must be a list of absolute file names."
+FILES must be a list of absolute file names.
+
+See `xref-search-program' and `xref-search-program-alist' for how
+to control which program to use when looking for matches."
   (cl-assert (consp files))
   (require 'grep)
   (defvar grep-highlight-matches)
