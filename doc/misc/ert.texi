@@ -264,13 +264,13 @@ The following key bindings are available in the ERT results buffer:
 
 @table @kbd
 
-@item RET
+@item @key{RET}
 @kindex RET@r{, in ert results buffer}
 Each name of a function or macro in this buffer is a button; moving
 point to it and typing @kbd{@key{RET}} jumps to its definition.
 
-@item TAB
-@itemx S-TAB
+@item @key{TAB}
+@itemx S-@key{TAB}
 @kindex TAB@r{, in ert results buffer}
 @kindex S-TAB@r{, in ert results buffer}
 Cycle between buttons forward and backward.
