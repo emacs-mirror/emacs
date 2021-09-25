@@ -26324,7 +26324,7 @@ Fortunately, setting up the Gnus registry is pretty easy:
 @end lisp
 
 This adds registry saves to Gnus newsrc saves (which happen on exit
-and when you press @kbd{s} from the @file{*Group*} buffer.  It also
+and when you press @kbd{s} from the @file{*Group*} buffer).  It also
 adds registry calls to article actions in Gnus (copy, move, etc.)@: so
 it's not easy to undo the initialization.  See
 @code{gnus-registry-initialize} for the gory details.
