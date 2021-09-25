@@ -573,6 +573,14 @@ inner loops respectively."
     (let ((_a 1)
           (_b 2))
       'z)
+    (let (x y)
+      y)
+    (let* (x y)
+      y)
+    (let (x y)
+      'a)
+    (let* (x y)
+      'a)
 
     ;; Check empty-list optimisations.
     (mapcar (lambda (x) (member x nil)) '("a" 2 nil))

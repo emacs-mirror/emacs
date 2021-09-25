@@ -1367,17 +1367,24 @@ See Info node `(elisp) Integer Basics'."
                              (and (consp binding) (cadr binding)))
                            bindings)
                  ,const)
-       `(let* ,(butlast bindings) ,(cadar (last bindings)) ,const)))
+       `(let* ,(butlast bindings)
+          ,@(and (consp (car (last bindings)))
+                 (cdar (last bindings)))
+          ,const)))
 
     ;; Body is last variable.
-    (`(,head ,bindings ,(and var (pred symbolp) (pred (not keywordp))
-                             (pred (not booleanp))
-                             (guard (eq var (caar (last bindings))))))
+    (`(,head ,(and bindings
+                   (let last-var (let ((last (car (last bindings))))
+                                   (if (consp last) (car last) last))))
+             ,(and last-var             ; non-linear pattern
+                   (pred symbolp) (pred (not keywordp)) (pred (not booleanp))))
      (if (eq head 'let)
          `(progn ,@(mapcar (lambda (binding)
                              (and (consp binding) (cadr binding)))
                            bindings))
-       `(let* ,(butlast bindings) ,(cadar (last bindings)))))
+       `(let* ,(butlast bindings)
+          ,@(and (consp (car (last bindings)))
+                 (cdar (last bindings))))))
 
     (_ form)))
 
