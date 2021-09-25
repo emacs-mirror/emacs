@@ -2485,9 +2485,11 @@ searches.
 These commands are bound respectively to 'P' and 'N', and navigate to
 the first item of the previous or next group in the "*xref*" buffer.
 
+---
 *** New alternative value for 'xref-show-definitions-function':
 'xref-show-definitions-completing-read'.
 
+---
 *** The two existing alternatives for 'xref-show-definitions-function'
 have been renamed to have "proper" public names and documented
 ('xref-show-definitions-buffer' and
