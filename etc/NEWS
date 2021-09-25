@@ -1256,6 +1256,10 @@ These arguments default to active region when used interactively.
 +++
 *** New command 'ispell-comment-or-string-at-point'.
 
+---
+*** New user option 'ispell-help-timeout'.
+This controls how long the ispell help (on the '?' key) is displayed.
+
 ** Flyspell mode
 
 +++
