@@ -4,7 +4,8 @@
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
-;;		Leo Liu <sdl.web@gmail.com>
+;;		Leo Liu <sdl.web@gmail.com>,
+;;              Philip Kaludercic <philipk@posteo.net>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
