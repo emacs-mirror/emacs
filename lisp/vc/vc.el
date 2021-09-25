@@ -1216,7 +1216,11 @@ For old-style locking-based version control systems, like RCS:
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system"))
      ((or (null state) (eq state 'unregistered))
-      (vc-register vc-fileset))
+      (cond (verbose
+             (let ((backend (vc-read-backend "Backend to register to: ")))
+               (vc-register (cons backend (cdr vc-fileset)))))
+            (t
+             (vc-register vc-fileset))))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
