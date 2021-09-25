@@ -94,19 +94,19 @@
 ;;; PRIVATE: defsubst must be defined before they are first used
 
 (defsubst derived-mode-hook-name (mode)
-  "Construct a mode-hook name based on a MODE name."
+  "Construct a mode-hook name based on the symbol MODE."
   (intern (concat (symbol-name mode) "-hook")))
 
 (defsubst derived-mode-map-name (mode)
-  "Construct a map name based on a MODE name."
+  "Construct a map name based on the symbol MODE."
   (intern (concat (symbol-name mode) "-map")))
 
 (defsubst derived-mode-syntax-table-name (mode)
-  "Construct a syntax-table name based on a MODE name."
+  "Construct a syntax-table name based on the symbol MODE."
   (intern (concat (symbol-name mode) "-syntax-table")))
 
 (defsubst derived-mode-abbrev-table-name (mode)
-  "Construct an abbrev-table name based on a MODE name."
+  "Construct an abbrev-table name based on the symbol MODE."
   (intern (concat (symbol-name mode) "-abbrev-table")))
 
 ;; PUBLIC: define a new major mode which inherits from an existing one.
@@ -120,7 +120,7 @@ The arguments are as follows:
 CHILD:     the name of the command for the derived mode.
 PARENT:    the name of the command for the parent mode (e.g. `text-mode')
            or nil if there is no parent.
-NAME:      a string which will appear in the status line (e.g. \"Hypertext\")
+NAME:      a string that will appear in the mode line (e.g. \"HTML\")
 DOCSTRING: an optional documentation string--if you do not supply one,
            the function will attempt to invent something useful.
 KEYWORD-ARGS:
@@ -132,12 +132,12 @@ KEYWORD-ARGS:
                    to this mode.  The command `customize-mode' uses this.
            :syntax-table TABLE
                    Use TABLE instead of the default (CHILD-syntax-table).
-                   A nil value means to simply use the same syntax-table
-                   as the parent.
+                   TABLE should be an unquoted symbol.  A nil value means
+                   to simply use the same syntax-table as the parent.
            :abbrev-table TABLE
                    Use TABLE instead of the default (CHILD-abbrev-table).
-                   A nil value means to simply use the same abbrev-table
-                   as the parent.
+                   TABLE should be an unquoted symbol.  A nil value means
+                   to simply use the same abbrev-table as the parent.
            :after-hook FORM
                    A single Lisp form which is evaluated after the mode
                    hooks have been run.  It should not be quoted.
@@ -166,8 +166,8 @@ the parent, and then sets the variable `case-fold-search' to nil:
 Note that if the documentation string had been left out, it would have
 been generated automatically, with a reference to the keymap.
 
-The new mode runs the hook constructed by the function
-`derived-mode-hook-name'.
+The new mode runs the hook named MODE-hook.  For `foo-mode',
+the hook will be named `foo-mode-hook'.
 
 See Info node `(elisp)Derived Modes' for more details.
 
