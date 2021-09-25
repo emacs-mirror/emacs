@@ -1352,8 +1352,8 @@ downloaded the repository source, you should read the file
 from a normal build).
 
 If you would like to make more extensive contributions, see the
-@file{CONTRIBUTE} file in the Emacs distribution for information on
-how to be an Emacs developer.
+@file{CONTRIBUTE} file in the development version of Emacs for
+information on how to be an Emacs developer.
 
 For documentation on Emacs (to understand how to implement your
 desired change), refer to:
