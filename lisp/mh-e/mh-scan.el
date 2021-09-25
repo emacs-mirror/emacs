@@ -173,7 +173,7 @@ is done with the face `mh-folder-deleted'.  This regular
 expression should be correct as it is needed by non-fontification
 functions.  See also `mh-note-deleted'.")
 
-(defvar mh-scan-good-msg-regexp  "^\\( *[0-9]+\\)[^^DBW0-9]"
+(defvar mh-scan-good-msg-regexp  "^\\( *[0-9]+\\)[^^DBA0-9]"
   "This regular expression matches \"good\" messages.
 
 It must match from the beginning of the line.  Note that the
@@ -181,7 +181,7 @@ default setting of `mh-folder-font-lock-keywords' expects this
 expression to contain at least one parenthesized expression which
 matches the message number as in the default of
 
-  \"^\\\\( *[0-9]+\\\\)[^^DBW0-9]\".
+  \"^\\\\( *[0-9]+\\\\)[^^DBA0-9]\".
 
 This expression includes the leading space within the parenthesis
 since it looks better to highlight it as well.  The highlighting
@@ -328,7 +328,7 @@ Note that columns in Emacs start with 0.")
 (defvar mh-scan-cmd-note-width 1
   "Number of columns consumed by the cmd-note field in `mh-scan-format'.
 
-This column will have one of the values: \" \", \"^\", \"D\", \"B\", \"W\", \"+\", where
+This column will have one of the values: \" \", \"^\", \"D\", \"B\", \"A\", \"+\", where
 
   \" \" is the default value,
   \"^\" is the `mh-note-refiled' character,
