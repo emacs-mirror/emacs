@@ -330,5 +330,16 @@ Expected initialization file: `%s'\"
       (faceup-clean-buffer)
       (should (faceup-test-font-lock-buffer 'emacs-lisp-mode faceup)))))
 
+(ert-deftest test-cl-flet-indentation ()
+  (should (equal
+           (with-temp-buffer
+             (lisp-mode)
+             (insert "(cl-flet ((bla (x)\n(* x x)))\n(bla 42))")
+             (indent-region (point-min) (point-max))
+             (buffer-string))
+            "(cl-flet ((bla (x)
+	       (* x x)))
+  (bla 42))")))
+
 (provide 'lisp-mode-tests)
 ;;; lisp-mode-tests.el ends here
