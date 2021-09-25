@@ -1142,7 +1142,7 @@ either by calling
 @end example
 
 @noindent
-or by setting @code{viper-buffer-search-char} to, say, @kbd{f3}:
+or by setting @code{viper-buffer-search-char} to, say, @kbd{F3}:
 @example
 (setq viper-buffer-search-char ?g)
 @end example
@@ -2763,7 +2763,7 @@ Second, Viper macros are defined in a WYSIWYG style.  This means that
 commands are executed as you type them, so you can see precisely what is
 being defined.  Third, macros can be bound to arbitrary sequences of keys,
 not just to printable keys.  For instance, one can define a macro that will
-be invoked by hitting @kbd{f3} then @kbd{f2} function keys.  (The keys
+be invoked by hitting @kbd{F3} then @kbd{F2} function keys.  (The keys
 @kbd{delete} and @kbd{backspace} are excluded; also, a macro invocation
 sequence can't start with @key{ESC}.  Some other keys, such as @kbd{f1} and
 @kbd{help}, can't be bound to macros under Emacs, since they
@@ -2816,7 +2816,7 @@ To do the same for Vi state and all buffers with the major mode
 Both macro names and macro definitions are vectors of symbols that denote
 keys on the keyboard.  Some keys, like @kbd{\}, @kbd{ }, or digit-keys must
 be escaped with a backslash.  Modified keys are represented as lists.  For
-instance, holding Meta and Control and pressing @kbd{f4} is represented as
+instance, holding Meta and Control and pressing @kbd{F4} is represented as
 @kbd{(control meta f4)}.
 If all members of a vectors are printable characters (or sequences, such as
 @kbd{\e}, @kbd{\t}, for @key{ESC} and @key{TAB}), then they can also be represented as
@@ -2915,7 +2915,7 @@ in that file:
 
 To illustrate the above point, Viper provides two canned macros, which, by
 default, are bound to @kbd{[f12 \1]} and @kbd{[f12 \2]} (invoked by typing
-@kbd{f12} then @kbd{1} and @kbd{2}, respectively).  These macros are useful
+@kbd{F12} then @kbd{1} and @kbd{2}, respectively).  These macros are useful
 shortcuts to Viper's command ring history.  The first macro will execute the
 second-last destructive command (the last one is executed by @kbd{.}, as
 usual).  The second macro executes the third-last command.
@@ -2931,7 +2931,7 @@ say, @kbd{f12 \3} like this:
 @end example
 
 
-Note that even though the macro uses the function key @kbd{f12}, the key is
+Note that even though the macro uses the function key @kbd{F12}, the key is
 actually free and can still be bound to some Emacs function via
 @code{define-key} or @code{global-set-key}.
 
@@ -2950,7 +2950,7 @@ twice and then the remaining keys, @kbd{t e x t}, will be processed.
 
 When defining macros using @kbd{:map} or @kbd{:map!}, the user enters
 the actually keys to be used to invoke the macro.  For instance, you
-should hit the actual key @kbd{f6} if it is to be part of a macro
+should hit the actual key @kbd{F6} if it is to be part of a macro
 name; you do @emph{not} write @kbd{f 6}.  When entering keys, Viper
 displays them as strings or vectors (e.g., @code{"abc"} or @code{[f6
 f7 a]}).  The same holds for unmapping.  Hitting @key{TAB} while

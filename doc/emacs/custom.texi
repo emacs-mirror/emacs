@@ -2009,7 +2009,7 @@ Other cursor repositioning keys.
 @itemx @code{insertline}, @code{deleteline}, @code{insertchar}, @code{deletechar}
 Miscellaneous function keys.
 
-@item @code{f1}, @code{f2}, @dots{} @code{f35}
+@item @code{F1}, @code{F2}, @dots{} @code{F35}
 Numbered function keys (across the top of the keyboard).
 
 @item @code{kp-add}, @code{kp-subtract}, @code{kp-multiply}, @code{kp-divide}

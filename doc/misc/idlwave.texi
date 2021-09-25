@@ -3259,10 +3259,10 @@ Both functions take a single string argument sharing the syntax of the
                                         "help,___,/STRUCTURE"))))
 @end lisp
 
-@noindent Now pressing @key{f9}, or middle-mouse dragging with the
+@noindent Now pressing @key{F9}, or middle-mouse dragging with the
 @key{SUPER} key depressed, will print the dimensions of the nearby or
-highlighted expression.  Pressing @key{f10} will give the type string,
-and @key{f11} will show the contents of a nearby structure.  As you can
+highlighted expression.  Pressing @key{F10} will give the type string,
+and @key{F11} will show the contents of a nearby structure.  As you can
 see, the possibilities are only marginally finite.
 
 @defopt idlwave-shell-examine-alist
