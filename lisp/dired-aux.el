@@ -493,7 +493,7 @@ are supported.  Type M-n to pull the file attributes of the file
 at point into the minibuffer.
 
 See Info node `(coreutils)File permissions' for more information.
-Alternatively, see the man page for \"chmod\".
+Alternatively, see the man page for \"chmod(1)\".
 
 Note that on MS-Windows only the `w' (write) bit is meaningful:
 resetting it makes the file read-only.  Changing any other bit
