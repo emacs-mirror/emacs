@@ -164,6 +164,7 @@
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
+(require 'lisp-mode) ;; for lisp-mode-symbol-regexp
 (require 'dired)     ;; for dired-get-filename and dired-map-over-marks
 (require 'lisp-mnt)
 
@@ -2575,6 +2576,30 @@ Argument END is the maximum bounds to search in."
 	  (setq return type))))
     return))
 
+(defun checkdoc--error-bad-format-p ()
+  "Return non-nil if the start of error message at point has the wrong format.
+The correct format is \"Foo\" or \"some-symbol: Foo\".  See also
+`error' and Info node `(elisp) Documentation Tips'."
+  (save-excursion
+    ;; Skip the first quote character in string.
+    (forward-char 1)
+    ;; A capital letter is always okay.
+    (unless (let ((case-fold-search nil))
+              (looking-at (rx (or upper-case "%s"))))
+      ;; A defined Lisp symbol is always okay.
+      (unless (and (looking-at (rx (group (regexp lisp-mode-symbol-regexp))))
+                   (or (fboundp (intern (match-string 1)))
+                       (boundp (intern (match-string 1)))))
+        ;; Other Lisp symbols are sometimes okay.
+        (rx-let ((c (? "\\\n")))        ; `c' is for a continued line
+          (let ((case-fold-search nil)
+                (some-symbol (rx (regexp lisp-mode-symbol-regexp)
+                                 c ":" c (+ (any " \t\n"))))
+                (lowercase-str (rx c (group (any "a-z") (+ wordchar)))))
+            (if (looking-at some-symbol)
+                (looking-at (concat some-symbol lowercase-str))
+              (looking-at lowercase-str))))))))
+
 (defun checkdoc--fix-y-or-n-p ()
   "Fix `y-or-n-p' prompt to end with \"?\" or \"? \".
 The space is technically redundant, but also more compatible with
@@ -2622,16 +2647,14 @@ Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
      ;; In Emacs, the convention is that error messages start with a capital
      ;; letter but *do not* end with a period.  Please follow this convention
      ;; for the sake of consistency.
-     (if (and (save-excursion (forward-char 1)
-			      (looking-at "[a-z]\\w+"))
+     (if (and (checkdoc--error-bad-format-p)
 	      (not (checkdoc-autofix-ask-replace
-		    (match-beginning 0) (match-end 0)
+                    (match-beginning 1) (match-end 1)
                     "Capitalize your message text?"
-		    (capitalize (match-string 0))
+                    (capitalize (match-string 1))
 		    t)))
-	 (checkdoc-create-error
-	  "Messages should start with a capital letter"
-	  (match-beginning 0) (match-end 0))
+         (checkdoc-create-error "Messages should start with a capital letter"
+          (match-beginning 1) (match-end 1))
        nil)
      ;; In general, sentences should have two spaces after the period.
      (checkdoc-sentencespace-region-engine (point)
