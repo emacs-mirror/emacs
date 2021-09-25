@@ -348,7 +348,7 @@ Show the documentation of a test (@code{ert-describe-test}).
 Display test timings for the last run (@code{ert-results-pop-to-timings}).
 
 @item M-x ert-delete-all-tests
-@findex ert-delete-all-test
+@findex ert-delete-all-tests
 @cindex delete all tests
 Delete all tests from the running session.
 
