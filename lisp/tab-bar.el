@@ -1244,7 +1244,8 @@ After the tab is created, the hooks in
       ;; Handle the case when it's called in the active minibuffer.
       (when (minibuffer-selected-window)
         (select-window (minibuffer-selected-window)))
-      (delete-other-windows)
+      (let ((ignore-window-parameters t))
+        (delete-other-windows))
       ;; Create a new window to get rid of old window parameters
       ;; (e.g. prev/next buffers) of old window.
       (split-window) (delete-window)
