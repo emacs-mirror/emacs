@@ -3646,7 +3646,7 @@ match-alternatives: %S"
 
 (define-widget 'natnum 'restricted-sexp
   "A nonnegative integer."
-  :tag "Integer (positive)"
+  :tag "Integer (positive or zero)"
   :value 0
   :type-error "This field should contain a nonnegative integer"
   :match-alternatives '(natnump))
