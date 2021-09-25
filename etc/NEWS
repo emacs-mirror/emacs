@@ -3698,8 +3698,13 @@ initial frame used in batch mode.
 +++
 ** Doc strings can now link to customization groups.
 Text like "customization group `whitespace'" will be made into a
-button.  When clicked, it'll take the user to a Custom buffer
-displaying that customization group.
+button.  When clicked, it will open a Custom buffer displaying that
+customization group.
+
++++
+** Doc strings can now link to man pages.
+Text like "man page `chmod'" will be made into a button.  When
+clicked, it will open a Man mode buffer displaying that man page.
 
 +++
 ** Buffers can now be created with certain hooks disabled.
