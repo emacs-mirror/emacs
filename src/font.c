@@ -3866,6 +3866,9 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
    If STRING is not nil, it is the string to check instead of the current
    buffer.  In that case, FACE must be not NULL.
 
+   CH is the character that actually caused the composition
+   process to start, it may be different from the character at POS.
+
    The return value is the font-object for the character at POS.
    *LIMIT is set to the position where that font can't be used.
 
@@ -3873,15 +3876,16 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 
 Lisp_Object
 font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
-	    struct window *w, struct face *face, Lisp_Object string)
+	    struct window *w, struct face *face, Lisp_Object string,
+	    int ch)
 {
   ptrdiff_t ignore;
   int c;
   Lisp_Object font_object = Qnil;
+  struct frame *f = XFRAME (w->frame);
 
   if (!face)
     {
-      struct frame *f = XFRAME (w->frame);
       int face_id;
 
       if (NILP (string))
@@ -3898,6 +3902,24 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
 	                                     face_id, false, 0);
 	}
       face = FACE_FROM_ID (f, face_id);
+    }
+
+  /* If the composition was triggered by an emoji, use a character
+     from 'script-representative-chars', rather than the first
+     character in the string, to determine the font to use.  */
+  if (EQ (CHAR_TABLE_REF (Vchar_script_table, ch),
+	  Qemoji))
+    {
+      Lisp_Object val = assq_no_quit (Qemoji, Vscript_representative_chars);
+      if (CONSP (val))
+	{
+	  val = XCDR (val);
+	  if (CONSP (val))
+	    val = XCAR (val);
+	  else if (VECTORP (val))
+	    val = AREF (val, 0);
+	  font_object = font_for_char (face, XFIXNAT (val), pos - 1, string);
+	}
     }
 
   while (pos < *limit)
@@ -5423,6 +5445,7 @@ syms_of_font (void)
   DEFSYM (Qiso8859_1, "iso8859-1");
   DEFSYM (Qiso10646_1, "iso10646-1");
   DEFSYM (Qunicode_bmp, "unicode-bmp");
+  DEFSYM (Qemoji, "emoji");
 
   /* Symbols representing keys of font extra info.  */
   DEFSYM (QCotf, ":otf");

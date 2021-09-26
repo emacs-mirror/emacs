@@ -885,7 +885,7 @@ valid_font_driver (struct font_driver const *d)
 extern Lisp_Object font_update_drivers (struct frame *f, Lisp_Object list);
 extern Lisp_Object font_range (ptrdiff_t, ptrdiff_t, ptrdiff_t *,
 			       struct window *, struct face *,
-			       Lisp_Object);
+			       Lisp_Object, int);
 extern void font_fill_lglyph_metrics (Lisp_Object, struct font *, unsigned int);
 
 extern Lisp_Object font_put_extra (Lisp_Object font, Lisp_Object prop,

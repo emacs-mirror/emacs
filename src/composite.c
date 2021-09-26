@@ -882,14 +882,15 @@ fill_gstring_body (Lisp_Object gstring)
 /* Try to compose the characters at CHARPOS according to composition
    rule RULE ([PATTERN PREV-CHARS FUNC]).  LIMIT limits the characters
    to compose.  STRING, if not nil, is a target string.  WIN is a
-   window where the characters are being displayed.  If characters are
+   window where the characters are being displayed.  CH is the
+   character that triggered the composition check.  If characters are
    successfully composed, return the composition as a glyph-string
    object.  Otherwise return nil.  */
 
 static Lisp_Object
 autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       ptrdiff_t limit, struct window *win, struct face *face,
-	       Lisp_Object string, Lisp_Object direction)
+	       Lisp_Object string, Lisp_Object direction, int ch)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object pos = make_fixnum (charpos);
@@ -920,7 +921,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
   struct frame *f = XFRAME (font_object);
   if (FRAME_WINDOW_P (f))
     {
-      font_object = font_range (charpos, bytepos, &to, win, face, string);
+      font_object = font_range (charpos, bytepos, &to, win, face, string, ch);
       if (! FONT_OBJECT_P (font_object)
 	  || (! NILP (re)
 	      && to < limit
@@ -1272,7 +1273,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	      if (XFIXNAT (AREF (elt, 1)) != cmp_it->lookback)
 		goto no_composition;
 	      lgstring = autocmp_chars (elt, charpos, bytepos, endpos,
-					w, face, string, direction);
+					w, face, string, direction, cmp_it->ch);
 	      if (composition_gstring_p (lgstring))
 		break;
 	      lgstring = Qnil;
@@ -1310,7 +1311,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	  else
 	    direction = QR2L;
 	  lgstring = autocmp_chars (elt, cpos, bpos, charpos + 1, w, face,
-				    string, direction);
+				    string, direction, cmp_it->ch);
 	  if (! composition_gstring_p (lgstring)
 	      || cpos + LGSTRING_CHAR_LEN (lgstring) - 1 != charpos)
 	    /* Composition failed or didn't cover the current
@@ -1679,7 +1680,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
 		  for (check = cur; check_pos < check.pos; )
 		    BACKWARD_CHAR (check, stop);
 		  *gstring = autocmp_chars (elt, check.pos, check.pos_byte,
-					    tail, w, NULL, string, Qnil);
+					    tail, w, NULL, string, Qnil, c);
 		  need_adjustment = 1;
 		  if (NILP (*gstring))
 		    {
