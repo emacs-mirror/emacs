@@ -636,7 +636,7 @@ but with a different end of line convention (bug#48137)."
      (save-excursion (should (re-search-forward "Status: Installed in ['`‘]simple-single-1.3/['’] (unsigned)." nil t)))
      (save-excursion (should (search-forward "Version: 1.3" nil t)))
      (save-excursion (should (search-forward "Summary: A single-file package with no dependencies" nil t)))
-     (save-excursion (should (search-forward "Homepage: http://doodles.au" nil t)))
+     (save-excursion (should (search-forward "Website: http://doodles.au" nil t)))
      (save-excursion (should (re-search-forward "Keywords: \\[?frobnicate\\]?" nil t)))
      (save-excursion (should (search-forward "This package provides a minor mode to frobnicate"
                                              nil t)))
@@ -652,7 +652,7 @@ but with a different end of line convention (bug#48137)."
     (with-fake-help-buffer
      (describe-package 'multi-file)
      (goto-char (point-min))
-     (should (search-forward "Homepage: http://puddles.li" nil t))
+     (should (search-forward "Website: http://puddles.li" nil t))
      (should (search-forward "This is a bare-bones readme file for the multi-file"
                              nil t)))))
 
@@ -665,7 +665,7 @@ but with a different end of line convention (bug#48137)."
     (with-fake-help-buffer
      (describe-package 'simple-single)
      (goto-char (point-min))
-     (should (search-forward "Homepage: http://doodles.au" nil t))
+     (should (search-forward "Website: http://doodles.au" nil t))
      (should (search-forward "This package provides a minor mode to frobnicate"
                              nil t)))))
 
@@ -678,7 +678,7 @@ but with a different end of line convention (bug#48137)."
     (with-fake-help-buffer
      (describe-package 'multi-file)
      (goto-char (point-min))
-     (should (search-forward "Homepage: http://puddles.li" nil t))
+     (should (search-forward "Website: http://puddles.li" nil t))
      (should (search-forward "This is a bare-bones readme file for the multi-file"
                              nil t)))))
 
