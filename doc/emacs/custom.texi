@@ -1084,8 +1084,9 @@ first line:
 @noindent
 You can specify any number of variable/value pairs in this way, each
 pair with a colon and semicolon.  The special variable/value pair
-@code{mode: @var{modename};}, if present, specifies a major mode.  The
-@var{value}s are used literally, and not evaluated.
+@code{mode: @var{modename};}, if present, specifies a major mode
+(without the ``-mode'' suffix).  The @var{value}s are used literally,
+and not evaluated.
 
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
