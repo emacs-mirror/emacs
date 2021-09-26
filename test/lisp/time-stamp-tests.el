@@ -141,9 +141,9 @@
                            ts-format _format-lines _end-lines)
               ;; Verify that time-stamp parsed time-stamp-pattern and
               ;; called us with the correct pieces.
-              (let ((limit-number (string-to-number line-limit1)))
-                (if (equal line-limit1 "")
-                    (setq limit-number time-stamp-line-limit))
+              (let ((limit-number (if (equal line-limit1 "")
+                                      time-stamp-line-limit
+                                    (string-to-number line-limit1))))
                 (goto-char (point-min))
                 (if (> limit-number 0)
                     (should (= search-limit (line-beginning-position

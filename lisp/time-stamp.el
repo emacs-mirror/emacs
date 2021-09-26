@@ -41,6 +41,7 @@
   :group 'data
   :group 'extensions)
 
+
 (defcustom time-stamp-format "%Y-%02m-%02d %02H:%02M:%02S %l"
   "Format of the string inserted by \\[time-stamp].
 This is a string, used verbatim except for character sequences beginning
@@ -92,6 +93,7 @@ edited by older versions of Emacs also, do not use this format yet."
   :version "27.1")
 ;;;###autoload(put 'time-stamp-format 'safe-local-variable 'stringp)
 
+
 (defcustom time-stamp-active t
   "Non-nil to enable time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active].
@@ -109,6 +111,7 @@ line to a local variables list near the end of the file:
 See also the variable `time-stamp-warn-inactive'."
   :type 'boolean)
 
+
 (defcustom time-stamp-warn-inactive t
   "Have \\[time-stamp] warn if a buffer did not get time-stamped.
 If non-nil, a warning is displayed if `time-stamp-active' has
@@ -116,6 +119,7 @@ deactivated time stamping and the buffer contains a template that
 otherwise would have been updated."
   :type 'boolean
   :version "19.29")
+
 
 (defcustom time-stamp-time-zone nil
   "The time zone to be used by \\[time-stamp].
@@ -131,6 +135,7 @@ Its format is that of the ZONE argument of the `format-time-string' function."
   :version "20.1")
 ;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable 'time-stamp-zone-type-p)
 
+
 ;;;###autoload
 (defun time-stamp-zone-type-p (zone)
   "Return whether or not ZONE is of the correct type for a timezone rule.
@@ -142,6 +147,7 @@ Valid ZONE values are described in the documentation of `format-time-string'."
            (consp (cdr zone))
            (stringp (cadr zone)))
       (integerp zone)))
+
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start,
 ;;; time-stamp-end, time-stamp-pattern, time-stamp-inserts-lines,
@@ -167,6 +173,7 @@ If you were to change `time-stamp-line-limit', `time-stamp-start',
 would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-line-limit 'safe-local-variable 'integerp)
 
+
 (defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
   "Regexp after which the time stamp is written by \\[time-stamp].
 
@@ -180,6 +187,7 @@ If you were to change `time-stamp-line-limit', `time-stamp-start',
 would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-start 'safe-local-variable 'stringp)
 
+
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
   "Regexp marking the text after the time stamp.
 \\[time-stamp] deletes the text between the first match of `time-stamp-start'
@@ -192,8 +200,8 @@ or `time-stamp-format'.
 
 The end text normally starts on the same line as the start text ends,
 but if there are any newlines in `time-stamp-format', the same number
-of newlines must separate the start and end.  \\[time-stamp] tries
-to not change the number of lines in the buffer.  `time-stamp-inserts-lines'
+of newlines must separate the start and end.  Thus \\[time-stamp] tries
+to not change the number of lines in the buffer; `time-stamp-inserts-lines'
 controls this behavior.
 
 These variables are best changed with file-local variables.
@@ -469,9 +477,8 @@ normally the current time is used."
 (defconst time-stamp-no-file "(no file)"
   "String to use when the buffer is not associated with a file.")
 
-;;; time-stamp is transitioning to be compatible with format-time-string.
-;;; During the process, this function implements
-;;; intermediate, compatible formats.
+;;; time-stamp is transitioning to be more compatible with format-time-string.
+;;; This function implements the differences.
 ;;;      At all times, all the formats recommended in the doc string
 ;;; of time-stamp-format will work not only in the current version of
 ;;; Emacs, but in all versions that have been released within the past
@@ -713,6 +720,7 @@ This is an internal helper for `time-stamp-string-preprocess'."
 	""				;discourage "%:2d" and the like
       (string-to-number (time-stamp--format format-string time)))))
 
+
 (defvar time-stamp-conversion-warn t
   "Enable warnings about soon-to-be-unsupported forms in `time-stamp-format'.
 If nil, these warnings are disabled, which would be a bad idea!
@@ -739,6 +747,7 @@ Suggests replacing OLD-FORM with NEW-FORM."
 	     "The following obsolescent time-stamp-format construct(s) were found:\n\n")))
       (insert "\"" old-form "\" -- use " new-form "\n"))
     (display-buffer "*Time-stamp-compatibility*"))))
+
 
 ;;; A principled, expressive implementation of time zone offset
 ;;; formatting ("%z" and variants).
@@ -816,15 +825,13 @@ Suggests replacing OLD-FORM with NEW-FORM."
 
 ;;; * ABNF syntax of the offset string produced by %z
 
-;; offset = sign hours [minutes [seconds]] padding /
-;;          sign hours [colonminutes [colonseconds]] padding /
-;;          sign bighours colonminutes [colonseconds] padding
+;; offset = sign ( hours [minutes [seconds]] /
+;;                 hours [":" minutes [":" seconds]] /
+;;                 bighours ":" minutes [":" seconds] ) padding
 ;; sign = "+" / "-"
 ;; hours = digitpair
 ;; minutes = digitpair
 ;; seconds = digitpair
-;; colonminutes = ":" minutes
-;; colonseconds = ":" seconds
 ;; digitpair = digit digit
 ;; digit = "0" / "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
 ;; bighours = 1*digit digitpair
@@ -837,8 +844,6 @@ Suggests replacing OLD-FORM with NEW-FORM."
                                                field-width
                                                offset-secs)
   "Formats a time offset according to a %z variation.
-The caller of this function must have already parsed the %z format
-string; this function accepts just the parts of the format.
 
 With no flags, the output includes hours and minutes: +-HHMM
 unless there is a non-zero seconds part, in which case the seconds
@@ -865,7 +870,14 @@ added on the right if necessary.  The added characters will be spaces
 unless FLAG-PAD-ZEROS-FIRST is non-nil.
 
 OFFSET-SECS is the time zone offset (in seconds east of UTC) to be
-formatted according to the preceding parameters."
+formatted according to the preceding parameters.
+
+This is an internal function used by `time-stamp'."
+  ;; The caller of this function must have already parsed the %z
+  ;; format string; this function accepts just the parts of the format.
+  ;; `time-stamp-string-preprocess' is the full-fledged parser normally
+  ;; used.  The unit test (in time-stamp-tests.el) defines the simpler
+  ;; parser `format-time-offset'.
   (let ((hrs (/ (abs offset-secs) 3600))
         (mins (/ (% (abs offset-secs) 3600) 60))
         (secs (% (abs offset-secs) 60))
