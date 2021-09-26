@@ -1996,16 +1996,19 @@ xg_set_no_focus_on_map (struct frame *f, Lisp_Object no_focus_on_map)
 void
 xg_set_no_accept_focus (struct frame *f, Lisp_Object no_accept_focus)
 {
+  gboolean g_no_accept_focus = NILP (no_accept_focus) ? TRUE : FALSE;
 #ifdef HAVE_PGTK
   if (!FRAME_GTK_OUTER_WIDGET (f))
-    return;
+    {
+      if (FRAME_WIDGET(f))
+	gtk_widget_set_can_focus (FRAME_WIDGET(f), g_no_accept_focus);
+      return;
+    }
 #endif
   block_input ();
   if (FRAME_GTK_WIDGET (f))
     {
       GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
-      gboolean g_no_accept_focus = NILP (no_accept_focus) ? TRUE : FALSE;
-
       gtk_window_set_accept_focus (gwin, g_no_accept_focus);
     }
   unblock_input ();

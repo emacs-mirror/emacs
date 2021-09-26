@@ -4702,12 +4702,12 @@ pgtk_focus_frame (struct frame *f, bool noactivate)
 {
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  GtkWidget *wid = FRAME_GTK_OUTER_WIDGET (f);
+  GtkWidget *wid = FRAME_WIDGET (f);
 
   if (dpyinfo->x_focus_frame != f && wid != NULL)
     {
       block_input ();
-      gtk_window_present (GTK_WINDOW (wid));
+      gtk_widget_grab_focus(wid);
       unblock_input ();
     }
 }
@@ -6460,12 +6460,11 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  if (FRAME_PARENT_FRAME (f) || (hf && frame_ancestor_p (f, hf)))
 	    {
 	      block_input ();
-#if 0
-	      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			      RevertToParent, CurrentTime);
-	      if (FRAME_PARENT_FRAME (f))
-		XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
-#endif
+	      gtk_widget_grab_focus(FRAME_GTK_WIDGET(f));
+	      if (FRAME_GTK_OUTER_WIDGET (f))
+		{
+		  gtk_window_present (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+		}
 	      unblock_input ();
 	    }
 	}
