@@ -1060,7 +1060,8 @@ customization.
 
 The various forms in @code{rx} regexps are described below.  The
 shorthand @var{rx} represents any @code{rx} form, and @var{rx}@dots{}
-means zero or more @code{rx} forms.  Where the corresponding string
+means zero or more @code{rx} forms.  These are all valid arguments to
+the @code{rx} macro.  Where the corresponding string
 regexp syntax is given, @var{A}, @var{B}, @dots{} are string regexp
 subexpressions.
 
@@ -1356,7 +1357,8 @@ names:
 For details, @pxref{Syntax Class Table}.  Please note that
 @code{(syntax punctuation)} is @emph{not} equivalent to the character class
 @code{punctuation}.@*
-Corresponding string regexp: @samp{\s@var{code}}
+Corresponding string regexp: @samp{\s@var{char}} where @var{char} is the
+syntax character.
 
 @item @code{(category @var{category})}
 @cindex @code{category} in rx
@@ -1413,7 +1415,8 @@ the names below or its category character.
 For more information about currently defined categories, run the
 command @kbd{M-x describe-categories @key{RET}}.  For how to define
 new categories, @pxref{Categories}.@*
-Corresponding string regexp: @samp{\c@var{code}}
+Corresponding string regexp: @samp{\c@var{char}} where @var{char} is the
+category character.
 @end table
 
 @subsubheading Zero-width assertions
@@ -1543,11 +1546,18 @@ in the current global environment.
 @node Rx Functions
 @subsubsection Functions and macros using @code{rx} regexps
 
-@defmac rx rx-expr@dots{}
-Translate the @var{rx-expr}s to a string regexp, as if they were the
+@defmac rx rx-form@dots{}
+Translate the @var{rx-form}s to a string regexp, as if they were the
 body of a @code{(seq @dots{})} form.  The @code{rx} macro expands to a
 string constant, or, if @code{literal} or @code{regexp} forms are
-used, a Lisp expression that evaluates to a string.
+used, a Lisp expression that evaluates to a string.  Example:
+
+@example
+@group
+(rx (+ alpha) "=" (+ digit))
+  @result{} "[[:alpha:]]+=[[:digit:]]+"
+@end group
+@end example
 @end defmac
 
 @defun rx-to-string rx-expr &optional no-group
@@ -1555,6 +1565,14 @@ Translate @var{rx-expr} to a string regexp which is returned.
 If @var{no-group} is absent or nil, bracket the result in a
 non-capturing group, @samp{\(?:@dots{}\)}, if necessary to ensure that
 a postfix operator appended to it will apply to the whole expression.
+Example:
+
+@example
+@group
+(rx-to-string '(seq (+ alpha) "=" (+ digit)) t)
+  @result{} "[[:alpha:]]+=[[:digit:]]+"
+@end group
+@end example
 
 Arguments to @code{literal} and @code{regexp} forms in @var{rx-expr}
 must be string literals.
