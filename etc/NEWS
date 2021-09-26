@@ -4417,6 +4417,11 @@ obsoletes the old data layout specifications.  It supports
 arbitrary-size integers, recursive types, and more.  See the Info node
 "(elisp) Byte Packing" in the ELisp manual for more details.
 
++++
+** New macro 'with-environment-variables'.
+This macro allows setting environment variables temporarily when
+executing a form.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
