@@ -2620,12 +2620,17 @@ Helper function for `describe-package'."
                                      (package-desc-name pkg))))
         (insert "\n")))
     (when homepage
-      ;; Prefer https for the homepage of packages on gnu.org.
-      (if (string-match-p "^http://\\(elpa\\|www\\)\\.gnu\\.org/" homepage)
-          (let ((gnu (cdr (assoc "gnu" package-archives))))
-            (and gnu (string-match-p "^https" gnu)
-                 (setq homepage
-                       (replace-regexp-in-string "^http" "https" homepage)))))
+      ;; Prefer https for the homepage of packages on common domains.
+      (when (string-match-p (rx bol "http://" (or "elpa." "www." "git." "")
+                                (or "nongnu.org" "gnu.org" "sr.ht"
+                                    "emacswiki.org" "gitlab.com" "github.com")
+                                "/")
+                            homepage)
+        ;; But only if the user has "https" in `package-archives'.
+        (let ((gnu (cdr (assoc "gnu" package-archives))))
+          (and gnu (string-match-p "^https" gnu)
+               (setq homepage
+                     (replace-regexp-in-string "^http" "https" homepage)))))
       (package--print-help-section "Homepage")
       (help-insert-xref-button homepage 'help-url homepage)
       (insert "\n"))
