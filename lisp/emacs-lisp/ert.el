@@ -543,9 +543,11 @@ Returns nil if they are."
 (defun ert--explain-string-equal (a b)
   "Explainer function for `string-equal'."
   ;; Convert if they are symbols.
-  (let ((as (if (symbolp a) (symbol-name a) a))
-        (bs (if (symbolp b) (symbol-name b) b)))
-    (ert--explain-equal-rec as bs)))
+  (if (string-equal a b)
+      nil
+    (let ((as (if (symbolp a) (symbol-name a) a))
+          (bs (if (symbolp b) (symbol-name b) b)))
+      (ert--explain-equal-rec as bs))))
 (put 'string-equal 'ert-explainer 'ert--explain-string-equal)
 
 (defun ert--significant-plist-keys (plist)
