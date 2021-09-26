@@ -32,5 +32,13 @@
                  '(("Bob Weiner" . "rsw@gnu.org")
                    ("Mats Lidell" . "matsl@gnu.org")))))
 
+(ert-deftest lm--tests-lm-website ()
+  (with-temp-buffer
+    (insert ";; URL: https://example.org/foo")
+    (should (string= (lm-website) "https://example.org/foo")))
+  (with-temp-buffer
+    (insert  ";; X-URL: <https://example.org/foo>")
+    (should (string= (lm-website) "https://example.org/foo"))))
+
 (provide 'lisp-mnt-tests)
 ;;; lisp-mnt-tests.el ends here
