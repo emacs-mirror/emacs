@@ -1628,9 +1628,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		 ;; On BSD-derived systems files always inherit the
                  ;; parent directory's group, so skip the group-gid
                  ;; test.
-		 (string-match-p
-		  "BSD\\|DragonFly\\|Darwin"
-		  (tramp-get-connection-property v "uname" ""))
+                 (tramp-check-remote-uname v "BSD\\|DragonFly\\|Darwin")
 		 (= (tramp-compat-file-attribute-group-id attributes)
 		    (tramp-get-remote-gid v 'integer)))))))))
 
@@ -2937,8 +2935,11 @@ implementation will be used."
 			    (setq p (tramp-get-connection-process v))
 			    (process-put p 'remote-pid pid)
 			    (tramp-set-connection-property p "remote-pid" pid))
-			  ;; Disable carriage return to newline translation.
-			  (when (memq connection-type '(nil pipe))
+			  ;; Disable carriage return to newline
+			  ;; translation.  This does not work on
+			  ;; macOS, see Bug#50748.
+			  (when (and (memq connection-type '(nil pipe))
+                                     (not (tramp-check-remote-uname v "Darwin")))
 			    (tramp-send-command v "stty -icrnl"))
 			  ;; `tramp-maybe-open-connection' and
 			  ;; `tramp-send-command-and-read' could have
@@ -4008,10 +4009,7 @@ This function expects to be in the right *tramp* buffer."
       ;; number of words it returns.  "SunOS 5.10" (and maybe "SunOS
       ;; 5.11") have problems with this command, we disable the call
       ;; therefore.
-      (unless (or ignore-path
-		  (string-match-p
-		   tramp-sunos-unames
-		   (tramp-get-connection-property vec "uname" "")))
+      (unless (or ignore-path (tramp-check-remote-uname vec tramp-sunos-unames))
 	(tramp-send-command vec (format "which \\%s | wc -w" progname))
 	(goto-char (point-min))
 	(if (looking-at-p "^\\s-*1$")
@@ -4221,9 +4219,7 @@ file exists and nonzero exit status otherwise."
 			;; The default shell (ksh93) of OpenSolaris
 			;; and Solaris is buggy.  We've got reports
 			;; for "SunOS 5.10" and "SunOS 5.11" so far.
-			(string-match-p
-			 tramp-sunos-unames
-			 (tramp-get-connection-property vec "uname" "")))
+                        (tramp-check-remote-uname vec tramp-sunos-unames))
 
 		    (or (tramp-find-executable
 			 vec "bash" (tramp-get-remote-path vec) t t)
@@ -5340,6 +5336,10 @@ Return ATTR."
 
 ;; Variables local to connection.
 
+(defun tramp-check-remote-uname (vec regexp)
+  "Check whether REGEXP matches the connection property \"uname\"."
+  (string-match-p regexp (tramp-get-connection-property vec "uname" "")))
+
 (defun tramp-get-remote-path (vec)
   "Compile list of remote directories for PATH.
 Nonexistent directories are removed from spec."
@@ -5564,8 +5564,7 @@ Nonexistent directories are removed from spec."
   (with-tramp-connection-property vec "stat"
     ;; stat on Solaris is buggy.  We've got reports for "SunOS 5.10"
     ;; and "SunOS 5.11" so far.
-    (unless (string-match-p
-	     tramp-sunos-unames (tramp-get-connection-property vec "uname" ""))
+    (unless (tramp-check-remote-uname vec tramp-sunos-unames)
       (tramp-message vec 5 "Finding a suitable `stat' command")
       (let ((result (tramp-find-executable
 		     vec "stat" (tramp-get-remote-path vec)))

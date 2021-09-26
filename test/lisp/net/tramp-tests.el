@@ -52,6 +52,7 @@
 (require 'vc-git)
 (require 'vc-hg)
 
+(declare-function tramp-check-remote-uname "tramp-sh")
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-chmod-h "tramp-sh")
 (declare-function tramp-get-remote-gid "tramp-sh")
@@ -4585,6 +4586,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (while (< (- (point-max) (point-min))
 			    (length "66\n6F\n6F\n0D\n0A\n"))
 		    (while (accept-process-output proc 0 nil t))))
+                (if (tramp--test-macos-p)
+                  (tramp--test-message
+                   "process-connection-type %s\n%s"
+                     process-connection-type (pp-to-string (buffer-string)))
 		(should
 		 (string-match-p
 		  (if (memq process-connection-type '(nil pipe))
@@ -4592,7 +4597,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		      ;; flag is FALSE.  See telnet(1) man page.
 		      "66\n6F\n6F\n0D\\(\n00\\)?\n0A\n"
 		    "66\n6F\n6F\n0A\\(\n00\\)?\n0A\n")
-		  (buffer-string))))
+		  (buffer-string)))))
 
 	    ;; Cleanup.
 	    (ignore-errors (delete-process proc)))))
@@ -4850,6 +4855,10 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		    (while (< (- (point-max) (point-min))
 			      (length "66\n6F\n6F\n0D\n0A\n"))
 		      (while (accept-process-output proc 0 nil t))))
+                  (if (tramp--test-macos-p)
+                    (tramp--test-message
+                     "process-connection-type %s\n%s"
+                     process-connection-type (pp-to-string (buffer-string)))
 		  (should
 		   (string-match-p
 		    (if (memq (or connection-type process-connection-type)
@@ -4858,7 +4867,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 			;; flag is FALSE.  See telnet(1) man page.
 			"66\n6F\n6F\n0D\\(\n00\\)?\n0A\n"
 		      "66\n6F\n6F\n0A\\(\n00\\)?\n0A\n")
-		    (buffer-string))))
+		    (buffer-string)))))
 
 	      ;; Cleanup.
 	      (ignore-errors (delete-process proc)))))))))
@@ -6099,8 +6108,7 @@ If optional METHOD is given, it is checked first."
 Several special characters do not work properly there."
   ;; We must refill the cache.  `file-truename' does it.
   (file-truename tramp-test-temporary-file-directory)
-  (string-match-p
-   "^HP-UX" (tramp-get-connection-property tramp-test-vec "uname" "")))
+  (tramp-check-remote-uname tramp-test-vec "^HP-UX"))
 
 (defun tramp--test-ksh-p ()
   "Check, whether the remote shell is ksh.
@@ -6110,6 +6118,12 @@ a $'' syntax."
   (file-truename tramp-test-temporary-file-directory)
   (string-match-p
    "ksh$" (tramp-get-connection-property tramp-test-vec "remote-shell" "")))
+
+(defun tramp--test-macos-p ()
+  "Check, whether the remote host runs macOS."
+  ;; We must refill the cache.  `file-truename' does it.
+  (file-truename tramp-test-temporary-file-directory)
+  (tramp-check-remote-uname tramp-test-vec "Darwin"))
 
 (defun tramp--test-mock-p ()
   "Check, whether the mock method is used.
