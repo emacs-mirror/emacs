@@ -540,6 +540,14 @@ Returns nil if they are."
     (ert--explain-equal-rec a b)))
 (put 'equal 'ert-explainer 'ert--explain-equal)
 
+(defun ert--explain-string-equal (a b)
+  "Explainer function for `string-equal'."
+  ;; Convert if they are symbols.
+  (let ((as (if (symbolp a) (symbol-name a) a))
+        (bs (if (symbolp b) (symbol-name b) b)))
+    (ert--explain-equal-rec as bs)))
+(put 'string-equal 'ert-explainer 'ert--explain-string-equal)
+
 (defun ert--significant-plist-keys (plist)
   "Return the keys of PLIST that have non-null values, in order."
   (cl-assert (zerop (mod (length plist) 2)) t)
