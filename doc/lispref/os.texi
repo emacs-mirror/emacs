@@ -1043,9 +1043,12 @@ if it removed @var{variable} from the environment.
 @end deffn
 
 @defmac with-environment-variables variables body@dots{}
-This macro sets the environment variables in @var{variables}
+This macro sets the environment variables according to @var{variables}
 temporarily when executing @var{body}.  The previous values are
-restored when the form finishes.
+restored when the form finishes.  The argument @var{variables} should
+be a list of pairs of strings of the form
+@w{@code{(@var{var} @var{value})}}, where @var{var} is the name of the
+environment variable and @var{value} is that variable's value.
 
 @lisp
 (with-environment-variables (("LANG" "C")

@@ -221,9 +221,9 @@ in the environment list of the selected frame."
 ;;;###autoload
 (defmacro with-environment-variables (variables &rest body)
   "Set VARIABLES in the environent and execute BODY.
-VARIABLES is a list of variable settings where first element
-should be the name of the variable and the second element should
-be the value.
+VARIABLES is a list of variable settings of the form (VAR VALUE),
+where VAR is the name of the variable (a string) and VALUE
+is its value (also a string).
 
 The previous values will be be restored upon exit."
   (declare (indent 1) (debug (sexp body)))
