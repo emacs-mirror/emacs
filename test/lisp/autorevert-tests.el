@@ -528,7 +528,7 @@ This expects `auto-revert--messages' to be bound by
            (auto-revert-test--wait-for-buffer-text
             buf-1 "1-b" (auto-revert--timeout))
            ;; On emba, `buf-1' is a killed buffer.
-           (message "Hallo1 %s %s %s" file-1 buf-1 (get-file-buffer file-1))
+           (message "Hallo1 %s %s %s %s %s %s %s" buf-1 (buffer-name buf-1) (buffer-live-p buf-1) file-1 (get-file-buffer file-1) (buffer-name (get-file-buffer file-1)) (buffer-live-p (get-file-buffer file-1)))
            (should
             (buffer-local-value
              'auto-revert-notify-watch-descriptor (get-file-buffer file-1)))
