@@ -995,25 +995,24 @@ free_frame_tool_bar (struct frame *f)
   /* Note: This triggers an animation, which calls windowDidResize
      repeatedly.  */
   f->output_data.ns->in_animation = 1;
-  [[[view window] toolbar] setVisible: NO];
+  [[[view window] toolbar] setVisible:NO];
   f->output_data.ns->in_animation = 0;
+
+  [[view window] setToolbar:nil];
 
   unblock_input ();
 }
 
 void
-update_frame_tool_bar (struct frame *f)
+update_frame_tool_bar_1 (struct frame *f, EmacsToolbar *toolbar)
 /* --------------------------------------------------------------------------
     Update toolbar contents.
    -------------------------------------------------------------------------- */
 {
   int i, k = 0;
-  NSWindow *window = [FRAME_NS_VIEW (f) window];
-  EmacsToolbar *toolbar = (EmacsToolbar *)[window toolbar];
 
   NSTRACE ("update_frame_tool_bar");
 
-  if (window == nil || toolbar == nil) return;
   block_input ();
 
 #ifdef NS_IMPL_COCOA
@@ -1094,13 +1093,6 @@ update_frame_tool_bar (struct frame *f)
 #undef TOOLPROP
     }
 
-  if (![toolbar isVisible] != !FRAME_EXTERNAL_TOOL_BAR (f))
-    {
-      f->output_data.ns->in_animation = 1;
-      [toolbar setVisible: FRAME_EXTERNAL_TOOL_BAR (f)];
-      f->output_data.ns->in_animation = 0;
-    }
-
 #ifdef NS_IMPL_COCOA
   if ([toolbar changed])
     {
@@ -1124,7 +1116,26 @@ update_frame_tool_bar (struct frame *f)
       [newDict release];
     }
 #endif
+
+  [toolbar setVisible:YES];
   unblock_input ();
+}
+
+void
+update_frame_tool_bar (struct frame *f)
+{
+  EmacsWindow *window = (EmacsWindow *)[FRAME_NS_VIEW (f) window];
+  EmacsToolbar *toolbar = (EmacsToolbar *)[window toolbar];
+
+  if (!toolbar)
+    {
+      [window createToolbar:f];
+      return;
+    }
+
+  if (window == nil || toolbar == nil) return;
+
+  update_frame_tool_bar_1 (f, toolbar);
 }
 
 

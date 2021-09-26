@@ -1021,15 +1021,6 @@ ns_update_begin (struct frame *f)
 
   ns_update_auto_hide_menu_bar ();
 
-  NSToolbar *toolbar = [[FRAME_NS_VIEW (f) window] toolbar];
-  if (toolbar)
-  {
-    /* Ensure the toolbars visibility is set correctly.  */
-    BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (f) ? YES : NO;
-    if (! tbar_visible != ! [toolbar isVisible])
-      [toolbar setVisible: tbar_visible];
-  }
-
   ns_updating_frame = f;
   [view lockFocus];
 }
@@ -7401,7 +7392,6 @@ not_in_argv (NSString *arg)
     }
   else
     {
-      BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (emacsframe) ? YES : NO;
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070 \
   && MAC_OS_X_VERSION_MIN_REQUIRED <= 1070
       unsigned val = (unsigned)[NSApp presentationOptions];
@@ -7419,7 +7409,6 @@ not_in_argv (NSString *arg)
           [NSApp setPresentationOptions: options];
         }
 #endif
-      [[[self window]toolbar] setVisible:tbar_visible];
     }
 }
 
@@ -7460,14 +7449,6 @@ not_in_argv (NSString *arg)
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
   [self updateCollectionBehavior];
 #endif
-  if (FRAME_EXTERNAL_TOOL_BAR (emacsframe))
-    {
-      [[[self window] toolbar] setVisible:YES];
-      update_frame_tool_bar (emacsframe);
-      [[self window] display];
-    }
-  else
-    [[[self window] toolbar] setVisible:NO];
 
   if (next_maximized != -1)
     [[self window] performZoom:self];
@@ -8298,8 +8279,7 @@ not_in_argv (NSString *arg)
         [self setOpaque:NO];
 
       /* toolbar support */
-      if (! FRAME_UNDECORATED (f))
-        [self createToolbar:f];
+      [self createToolbar:f];
 
       /* macOS Sierra automatically enables tabbed windows.  We can't
          allow this to be enabled until it's available on a Free system.
@@ -8316,13 +8296,17 @@ not_in_argv (NSString *arg)
 
 - (void)createToolbar: (struct frame *)f
 {
+  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f))
+    return;
+
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
 
   EmacsToolbar *toolbar = [[EmacsToolbar alloc]
                             initForView:view
                             withIdentifier:[NSString stringWithLispString:f->name]];
-  [toolbar setVisible:NO];
+
   [self setToolbar:toolbar];
+  update_frame_tool_bar_1 (f, toolbar);
 
 #ifdef NS_IMPL_COCOA
   {
