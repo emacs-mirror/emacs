@@ -677,7 +677,7 @@ The character information includes:
                   (let ((display (describe-char-display pos char)))
                     (if (display-graphic-p (selected-frame))
                         (if display
-                            (concat "by this font (glyph code)\n    " display)
+                            (concat "by this font (glyph code):\n    " display)
                           "no font available")
                       (if display
                           (format "terminal code %s" display)
