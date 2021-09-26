@@ -1,4 +1,4 @@
-;;; tabulated-list-test.el --- Tests for emacs-lisp/tabulated-list.el  -*- lexical-binding: t; -*-
+;;; tabulated-list-tests.el --- Tests for emacs-lisp/tabulated-list.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
@@ -115,5 +115,4 @@
    (should-error (tabulated-list-sort) :type 'user-error)
    (should-error (tabulated-list-sort 4) :type 'user-error)))
 
-(provide 'tabulated-list-test)
-;;; tabulated-list-test.el ends here
+;;; tabulated-list-tests.el ends here
