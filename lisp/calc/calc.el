@@ -494,6 +494,7 @@ This setting only applies to floats in normal display mode.")
 (defmacro defcalcmodevar (var defval &optional doc)
   "Declare VAR as a Calc variable, with default value DEFVAL and doc-string DOC.
 The variable VAR will be added to `calc-mode-var-list'."
+  (declare (doc-string 3))
   `(progn
      (defvar ,var ,defval ,doc)
      (add-to-list 'calc-mode-var-list (list (quote ,var) ,defval))))
