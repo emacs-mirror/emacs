@@ -382,8 +382,10 @@ It is computed from the marks of individual component groups.")
 
 
 (defun nnvirtual-update-xref-header (group article prefix sysname)
-  "Edit current NOV header in current buffer to have an xref to the component
-group, and also server prefix any existing xref lines."
+  "Edit current NOV header to have xref to component group and correct prefix.
+This function edits the current NOV header in current buffer so that it
+has an xref to the component group, and also ensures any existing xref
+lines have the correct component server prefix."
   ;; Move to beginning of Xref field, creating a slot if needed.
   (beginning-of-line)
   (looking-at
@@ -570,7 +572,8 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 ;; unique reverse mapping.
 
 (defun nnvirtual-map-article (article)
-  "Return a cons of the component group and article corresponding to the given
+  "Return the component group and article corresponding to virtual ARTICLE.
+Value is a cons of the component group and article corresponding to the given
 virtual ARTICLE."
   (let ((table nnvirtual-mapping-table)
 	entry group-pos)

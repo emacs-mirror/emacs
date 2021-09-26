@@ -1600,8 +1600,7 @@ With optional NODE, goes to that node."
 
 ;;;###autoload
 (defun ediff-merge-with-ancestor-command ()
-  "Call `ediff-merge-files-with-ancestor' with the next three command line
-arguments."
+  "Call `ediff-merge-files-with-ancestor' with next three command line arguments."
   (let ((file-a (nth 0 command-line-args-left))
 	(file-b (nth 1 command-line-args-left))
 	(ancestor (nth 2 command-line-args-left)))
