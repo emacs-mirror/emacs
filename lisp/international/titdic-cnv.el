@@ -627,8 +627,8 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
      py-converter
      "\
 ;; \"pinyin.map\" is included in a free package called CCE.  It is
-;; available at:
-;;	http://ftp.debian.org/debian/dists/potato/main
+;; available at: [link needs updating  -- SK 2021-09-27]
+;;	https://ftp.debian.org/debian/dists/potato/main
 ;;		/source/utils/cce_0.36.orig.tar.gz
 ;; This package contains the following copyright notice.
 ;;
@@ -655,8 +655,8 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
      ziranma-converter
      "\
 ;; \"ziranma.cin\" is included in a free package called CCE.  It is
-;; available at:
-;;	http://ftp.debian.org/debian/dists/potato/main
+;; available at: [link needs updating  -- SK 2021-09-27]
+;;	https://ftp.debian.org/debian/dists/potato/main
 ;;		/source/utils/cce_0.36.orig.tar.gz
 ;; This package contains the following copyright notice.
 ;;
