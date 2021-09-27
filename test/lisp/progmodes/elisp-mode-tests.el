@@ -1105,6 +1105,16 @@ evaluation of BODY."
     (should (= 84 (funcall (intern-soft "f-test4---"))))
     (should (unintern "f-test4---"))))
 
+(ert-deftest test-cl-flet-indentation ()
+  (should (equal
+           (with-temp-buffer
+             (emacs-lisp-mode)
+             (insert "(cl-flet ((bla (x)\n(* x x)))\n(bla 42))")
+             (indent-region (point-min) (point-max))
+             (buffer-string))
+           "(cl-flet ((bla (x)
+	    (* x x)))
+  (bla 42))")))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here
