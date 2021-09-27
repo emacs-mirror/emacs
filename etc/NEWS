@@ -3921,13 +3921,13 @@ It can be used to create Lisp strings with arbitrary byte sequences
 +++
 ** Shorthands for Lisp symbols.
 Shorthands are a general purpose namespacing system to make Emacs
-Lisp's symbol-naming etiquette easier to use.  Also known as a
-"renamed symbol", a shorthand is any symbolic form found in Lisp
-source that "abbreviates" a symbol's print name with.  Usually, the
-abbreviated name will be shorter, but that is not necessarily so; this
-feature could also be used for providing namespace prefixes to
-symbols, in order to avoid name clashes and namespace pollution.  For
-details, see the manual section "(elisp) Shorthands".
+Lisp's symbol-naming etiquette easier to use.  A shorthand is any
+symbolic form found in Lisp source that "abbreviates" a symbol's print
+name.  Among other applications, this feature can be used to avoid
+name clashes and namespace pollution by renaming an entire file's
+worth of symbols with proper and longer prefixes, without actually
+touching the Lisp source.  For details, see the manual section
+"(elisp) Shorthands".
 
 +++
 ** New function 'string-search'.
