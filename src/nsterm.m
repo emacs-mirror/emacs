@@ -6974,13 +6974,18 @@ not_in_argv (NSString *arg)
   if (! FRAME_LIVE_P (emacsframe))
     return;
 
-  frame = [self frame];
+  frame = [[self superview] bounds];
   width = (int)NSWidth (frame);
   height = (int)NSHeight (frame);
 
   NSTRACE_SIZE ("New size", NSMakeSize (width, height));
   NSTRACE_SIZE ("Original size", size);
 
+  /* Reset the frame size to match the bounds of the superview (the
+     NSWindow's contentView).  We need to do this as sometimes the
+     view's frame isn't resized correctly, or can end up with the
+     wrong origin.  */
+  [self setFrame:frame];
   change_frame_size (emacsframe, width, height, false, YES, false);
 
   SET_FRAME_GARBAGED (emacsframe);
