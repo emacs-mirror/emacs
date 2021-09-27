@@ -199,7 +199,7 @@ default:
   timeout: 8 hours
 
 stages:
-  - prep-images
+#  - prep-images
   - build-images
 #  - fast
   - normal
@@ -209,16 +209,16 @@ stages:
   - native-comp
   - slow
 
-prep-image-base:
-  stage: prep-images
-  extends: [.job-template, .build-template]
-  variables:
-    target: emacs-base
+# prep-image-base:
+#   stage: prep-images
+#   extends: [.job-template, .build-template]
+#   variables:
+#     target: emacs-base
 
 build-image-inotify:
   stage: build-images
   extends: [.job-template, .build-template]
-  needs: [prep-image-base]
+#  needs: [prep-image-base]
   variables:
     target: emacs-inotify
 
@@ -246,14 +246,14 @@ test-lisp-net-inotify:
 build-image-filenotify-gio:
   stage: platform-images
   extends: [.job-template, .build-template, .filenotify-gio-template]
-  needs: [prep-image-base]
+#  needs: [prep-image-base]
   variables:
     target: emacs-filenotify-gio
 
 build-image-gnustep:
   stage: platform-images
   extends: [.job-template, .build-template, .gnustep-template]
-  needs: [prep-image-base]
+#  needs: [prep-image-base]
   variables:
     target: emacs-gnustep
 
@@ -278,7 +278,7 @@ test-gnustep:
 build-native-bootstrap-speed0:
   stage: native-comp-images
   extends: [.job-template, .build-template, .native-comp-template]
-  needs: [prep-image-base]
+#  needs: [prep-image-base]
   variables:
     target: emacs-native-comp-speed0
 

@@ -28,13 +28,15 @@ FROM debian:stretch as emacs-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev git texinfo \
+      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
+      libdbus-1-dev libacl1-dev git texinfo \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-base as emacs-inotify
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 inotify-tools \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      inotify-tools \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout
@@ -62,7 +64,8 @@ RUN make -j4
 FROM emacs-base as emacs-gnustep
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 gnustep-devel \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      gnustep-devel \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout
@@ -75,7 +78,8 @@ RUN make -j4
 FROM emacs-base as emacs-native-comp-speed0
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 libgccjit-6-dev \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      libgccjit-6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ARG make_bootstrap_params=""
@@ -84,5 +88,6 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
-RUN make bootstrap -j2 NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"'
+RUN make bootstrap -j2 \
+      NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"'
 RUN make -j4
