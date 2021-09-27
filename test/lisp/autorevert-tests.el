@@ -530,7 +530,6 @@ This expects `auto-revert--messages' to be bound by
             (lambda () (buffer-local-value
                         'auto-revert-notify-watch-descriptor buf-3))
             (auto-revert--timeout))
-           (message "Hallo0")
            (should (buffer-local-value
                     'auto-revert-notify-watch-descriptor buf-3))
            (auto-revert-test--write-file "3-a" file-3)
@@ -538,22 +537,28 @@ This expects `auto-revert--messages' to be bound by
            (should (equal (auto-revert-test--buffer-string buf-3) "3-a"))
 
            ;; Delete a visited file, and re-create it with new contents.
+           (when auto-revert-debug (message "Hallo0"))
            (delete-file file-1)
+           (when auto-revert-debug (message "Hallo1"))
            (should (equal (auto-revert-test--buffer-string buf-1) "1-a"))
+           (when auto-revert-debug (message "Hallo2"))
            (auto-revert-test--write-file "1-b" file-1)
+           (when auto-revert-debug (message "Hallo3"))
            (auto-revert-test--wait-for-buffer-text
             buf-1 "1-b" (auto-revert--timeout))
            ;; On emba, `buf-1' is a killed buffer.
            (when auto-revert-debug
              (message
-              "Hallo1 %s %s %s %s %s %s %s"
+              "Hallo4 %s %s %s %s %s %s %s"
               buf-1 (buffer-name buf-1) (buffer-live-p buf-1)
               file-1 (get-file-buffer file-1)
               (buffer-name (get-file-buffer file-1))
-              (buffer-live-p (get-file-buffer file-1))))
-           (should
-            (buffer-local-value
-             'auto-revert-notify-watch-descriptor (get-file-buffer file-1)))
+              (buffer-live-p (get-file-buffer file-1)))
+             (with-current-buffer buf-1
+               (message "Hallo5\n%s" (buffer-local-variables))))
+           (should (buffer-local-value
+                    'auto-revert-notify-watch-descriptor buf-1))
+           (when auto-revert-debug (message "Hallo6"))
 
            ;; Write a buffer to a new file, then modify the new file on disk.
            (with-current-buffer buf-2
@@ -562,7 +567,6 @@ This expects `auto-revert--messages' to be bound by
            (auto-revert-test--write-file "2-b" file-2b)
            (auto-revert-test--wait-for-buffer-text
             buf-2 "2-b" (auto-revert--timeout))
-           (message "Hallo2")
            (should (buffer-local-value
                     'auto-revert-notify-watch-descriptor buf-2)))
 
@@ -573,8 +577,7 @@ This expects `auto-revert--messages' to be bound by
          (with-current-buffer buf (setq-local kill-buffer-hook nil))
          (ignore-errors (kill-buffer buf)))
        (dolist (file (list file-1 file-2 file-2b file-3))
-         (ignore-errors (delete-file file)))
-       ))))
+         (ignore-errors (delete-file file)))))))
 
 (auto-revert--deftest-remote auto-revert-test05-global-notify
   "Test `global-auto-revert-mode' without polling for remote buffers.")
