@@ -497,7 +497,7 @@ the tab bar displays tab groups.
 
 ---
 *** New optional key binding for 'tab-last'.
-If you customize the variable 'tab-bar-select-tab-modifiers' for
+If you customize the user option 'tab-bar-select-tab-modifiers' for
 selecting tabs using its index numbers, the '<MODIFIER>-9' key is
 bound to 'tab-last', and switches to the last tab.  Here <MODIFIER> is
 any of the modifiers in the list that is the value of
@@ -634,7 +634,7 @@ functions.
 New command 'help-view-source' ('s') will view the source file (if
 any) of the current help topic.  New command 'help-goto-info' ('i')
 will look up the current symbol (if any) in Info.  New command
-'help-customize' ('c') will customize the variable or the face
+'help-customize' ('c') will customize the user option or the face
 (if any) whose doc string is being shown in the Help buffer.
 
 ---
@@ -808,7 +808,7 @@ user-visible changes for normal usage.
 *** 'global-display-fill-column-indicator-mode' skips some buffers.
 By default, turning on 'global-display-fill-column-indicator-mode'
 doesn't turn on 'display-fill-column-indicator-mode' in special-mode
-buffers.  This can be controlled by customizing the variable
+buffers.  This can be controlled by customizing the user option
 'global-display-fill-column-indicator-modes'.
 
 +++
@@ -995,7 +995,7 @@ Revert a buffer trying to be as non-destructive as possible,
 preserving markers, properties and overlays.  The new variable
 'revert-buffer-with-fine-grain-max-seconds' specifies the maximum
 number of seconds that 'revert-buffer-with-fine-grain' should spend
-trying to be non-destructive.
+trying to be non-destructive, with a default value of 2 seconds.
 
 +++
 ** New command 'revert-buffer-quick'.
@@ -1453,7 +1453,7 @@ default predicate (replacing 'so-long-detected-long-line-p').
 
 ---
 *** Default values 'so-long-threshold' and 'so-long-max-lines' increased.
-The values of these variables have been raised to 10000 bytes and 500
+The values of these user options have been raised to 10000 bytes and 500
 lines respectively, to reduce the likelihood of false-positives when
 'global-so-long-mode' is enabled.  The latter value is now only used
 by the old predicate, as the new predicate knows the longest line in
@@ -1492,7 +1492,7 @@ skipped.
 This is because the default value of 'grep-find-template' now includes
 the 'find' option '-H'.  Commands that use that variable, including
 indirectly via a call to 'xref-matches-in-directory', might be
-affected.  In particular, there should be no need anymore to ensure
+OAaffected.  In particular, there should be no need anymore to ensure
 any directory names on the 'find' command lines end in a slash.
 This change is for better compatibility with old versions of non-GNU
 'find', such as the one used on macOS.
@@ -1951,7 +1951,8 @@ This is used when forwarding messages as MIME, but not using MML.
 *** Message now supports the OpenPGP header.
 To generate these headers, add the new function
 'message-add-openpgp-header' to 'message-send-hook'.  The header will
-be generated according to the new 'message-openpgp-header' variable.
+be generated according to the new 'message-openpgp-header' user
+option.
 
 ---
 *** A change to how "Mail-Copies-To: never" is handled.
@@ -2145,7 +2146,7 @@ This function is meant to be used in 'compilation-filter-hook'.
 This controls what 'ansi-color-compilation-filter' does.
 
 *** Regexp matching of messages is now case-sensitive by default.
-The variable 'compilation-error-case-fold-search' can be set for
+The user option 'compilation-error-case-fold-search' can be set for
 case-insensitive matching of messages when the old behavior is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
@@ -2153,7 +2154,7 @@ regexp instead.
 ---
 *** New user option 'compilation-search-all-directories'.
 When doing parallel builds, directories and compilation errors may
-arrive in the "*compilation*" buffer out-of-order.  If this variable is
+arrive in the "*compilation*" buffer out-of-order.  If this option is
 non-nil (the default), Emacs will now search backwards in the buffer
 for any directory the file with errors may be in.  If nil, this won't
 be done (and this restores how this previously worked).
@@ -2394,9 +2395,9 @@ If this user option is non-nil, and 'shr-width' is nil, then SHR will
 use the value of 'shr-max-width' to limit the width of the rendered
 HTML.  The default is 120 characters, so even if you have very wide
 frames, HTML text will be rendered more narrowly, which usually leads
-to a more readable text.  Set this user option to nil to get the
-previous behavior of rendering as wide as the 'window-width' allows.
-If 'shr-width' is non-nil, it overrides this variable.
+to a more readable text.  Customize it to nil to get the previous
+behavior of rendering as wide as the 'window-width' allows.  If
+'shr-width' is non-nil, it overrides this option.
 
 ---
 *** New faces for heading elements.
@@ -2566,9 +2567,9 @@ truncation, amongst other things.
 ---
 *** Bug reference mode uses auto-setup.
 If 'bug-reference-mode' or 'bug-reference-prog-mode' have been
-activated, their respective hook has been run and still
-'bug-reference-bug-regexp' and 'bug-reference-url-format' aren't both
-set, it tries to guess appropriate values for those two variables.
+activated, their respective hook has been run, and both
+'bug-reference-bug-regexp' and 'bug-reference-url-format' are still
+not set, it tries to guess appropriate values for those two variables.
 There are three guessing mechanisms so far: based on version control
 information of the current buffer's file, based on
 newsgroup/mail-folder name and several news and mail message headers
@@ -2804,8 +2805,9 @@ which is no longer needed.
 *** erc-match.el now supports 'message' highlight type (not including the nick).
 The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
 'erc-fool-highlight-type', 'erc-keyword-highlight-type', and
-'erc-dangerous-host-highlight-type' variables now support a 'message'
-type for highlighting the entire message but not the sender's nick.
+'erc-dangerous-host-highlight-type' user options now support a
+'message' type for highlighting the entire message but not the
+sender's nick.
 
 ---
 *** erc-status-sidebar.el is now part of ERC.
@@ -2929,8 +2931,8 @@ The old binding is supported but warns that it is obsolete.
 'mh-blacklist-msg-hook' is renamed 'mh-blocklist-msg-hook'.
 
 +++
-*** New names for some variables.
-Variable 'mh-whitelist-preserves-sequences-flag' is renamed
+*** New names for some user options.
+User option 'mh-whitelist-preserves-sequences-flag' is renamed
 'mh-allowlist-preserves-sequences-flag'.
 
 +++
@@ -3096,7 +3098,7 @@ in Ruby).
 +++
 *** New user option 'imenu-max-index-time'.
 If creating the imenu index takes longer than specified by this
-variable (default 5 seconds), imenu indexing is stopped.
+option (default 5 seconds), imenu indexing is stopped.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -4487,7 +4489,7 @@ instances of xwidget webkit is not supported.
 
 ---
 *** Downloading files from xwidget-webkit is now supported.
-The new variable 'xwidget-webkit-download-dir' says where to download to.
+The new user option 'xwidget-webkit-download-dir' says where to download to.
 
 ---
 *** New command 'xwidget-webkit-clone-and-split-below'.
@@ -4498,7 +4500,7 @@ Open a new window below displaying the current URL.
 Open a new window to the right displaying the current URL.
 
 ---
-*** New variable 'xwidget-webkit-enable-plugins'.
+*** New user option 'xwidget-webkit-enable-plugins'.
 If non-nil, enable plugins in xwidget.  (This is only available on
 macOS.)
 
