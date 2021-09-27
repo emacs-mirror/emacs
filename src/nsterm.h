@@ -489,7 +489,7 @@ typedef id instancetype;
 - (void)lockFocus;
 - (void)unlockFocus;
 #endif
-- (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
+- (void)copyRect:(NSRect)srcRect to:(NSPoint)dest;
 
 /* Non-notification versions of NSView methods. Used for direct calls.  */
 - (void)windowWillEnterFullScreen;

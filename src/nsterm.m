@@ -2701,10 +2701,10 @@ ns_scroll_run (struct window *w, struct run *run)
 
   {
     NSRect srcRect = NSMakeRect (x, from_y, width, height);
-    NSRect dstRect = NSMakeRect (x, to_y, width, height);
+    NSPoint dest = NSMakePoint (x, to_y);
     EmacsView *view = FRAME_NS_VIEW (f);
 
-    [view copyRect:srcRect to:dstRect];
+    [view copyRect:srcRect to:dest];
 #ifdef NS_IMPL_COCOA
     [view setNeedsDisplayInRect:srcRect];
 #endif
@@ -2826,11 +2826,11 @@ ns_shift_glyphs_for_insert (struct frame *f,
    -------------------------------------------------------------------------- */
 {
   NSRect srcRect = NSMakeRect (x, y, width, height);
-  NSRect dstRect = NSMakeRect (x+shift_by, y, width, height);
+  NSPoint dest = NSMakePoint (x+shift_by, y);
 
   NSTRACE ("ns_shift_glyphs_for_insert");
 
-  [FRAME_NS_VIEW (f) copyRect:srcRect to:dstRect];
+  [FRAME_NS_VIEW (f) copyRect:srcRect to:dest];
 }
 
 
@@ -7854,17 +7854,39 @@ not_in_argv (NSString *arg)
 #endif /* NS_IMPL_COCOA */
 
 
-- (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect
+- (void)copyRect:(NSRect)srcRect to:(NSPoint)dest
 {
   NSTRACE ("[EmacsView copyRect:To:]");
   NSTRACE_RECT ("Source", srcRect);
-  NSTRACE_RECT ("Destination", dstRect);
+  NSTRACE_POINT ("Destination", dest);
+
+  NSRect dstRect = NSMakeRect (dest.x, dest.y, NSWidth (srcRect),
+                               NSHeight (srcRect));
+  NSRect frame = [self frame];
+
+  /* TODO: This check is an attempt to debug a rare graphical glitch
+     on macOS and should be removed before the Emacs 28 release.  */
+  if (!NSContainsRect (frame, srcRect)
+      || !NSContainsRect (frame, dstRect))
+    {
+      NSLog (@"[EmacsView copyRect:to:] Attempting to copy to or "
+             "from an area outside the graphics buffer.");
+      NSLog (@"  Frame: (%f, %f) %f×%f",
+             NSMinX (frame), NSMinY (frame),
+             NSWidth (frame), NSHeight (frame));
+      NSLog (@"  Source: (%f, %f) %f×%f",
+             NSMinX (srcRect), NSMinY (srcRect),
+             NSWidth (srcRect), NSHeight (srcRect));
+      NSLog (@"  Destination: (%f, %f) %f×%f",
+             NSMinX (dstRect), NSMinY (dstRect),
+             NSWidth (dstRect), NSHeight (dstRect));
+    }
 
 #ifdef NS_IMPL_COCOA
   if ([self wantsLayer])
     {
       double scale = [[self window] backingScaleFactor];
-      CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
+      CGContextRef context = [(EmacsLayer *)[self layer] getContext];
       int bpp = CGBitmapContextGetBitsPerPixel (context) / 8;
       void *pixels = CGBitmapContextGetData (context);
       int rowSize = CGBitmapContextGetBytesPerRow (context);
@@ -7873,8 +7895,8 @@ not_in_argv (NSString *arg)
                         + (int) (NSMinY (srcRect) * scale * rowSize
                                  + NSMinX (srcRect) * scale * bpp);
       void *dstPixels = (char *) pixels
-                        + (int) (NSMinY (dstRect) * scale * rowSize
-                                 + NSMinX (dstRect) * scale * bpp);
+                        + (int) (dest.y * scale * rowSize
+                                 + dest.x * scale * bpp);
 
       if (NSIntersectsRect (srcRect, dstRect)
           && NSMinY (srcRect) < NSMinY (dstRect))
