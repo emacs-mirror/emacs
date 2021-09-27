@@ -711,10 +711,14 @@ Buffer local variable.")
 (defvar term-ansi-at-save-pwd nil)
 (defvar term-ansi-at-save-anon nil)
 (defvar term-ansi-current-bold nil)
+(defvar term-ansi-current-faint nil)
+(defvar term-ansi-current-italic nil)
+(defvar term-ansi-current-underline nil)
+(defvar term-ansi-current-slow-blink nil)
+(defvar term-ansi-current-fast-blink nil)
 (defvar term-ansi-current-color 0)
 (defvar term-ansi-face-already-done nil)
 (defvar term-ansi-current-bg-color 0)
-(defvar term-ansi-current-underline nil)
 (defvar term-ansi-current-reverse nil)
 (defvar term-ansi-current-invisible nil)
 
@@ -769,9 +773,33 @@ Buffer local variable.")
   :group 'term
   :version "28.1")
 
+(defface term-faint
+  '((t :inherit ansi-color-faint))
+  "Default face to use for faint text."
+  :group 'term
+  :version "28.1")
+
+(defface term-italic
+  '((t :inherit ansi-color-italic))
+  "Default face to use for italic text."
+  :group 'term
+  :version "28.1")
+
 (defface term-underline
   '((t :inherit ansi-color-underline))
   "Default face to use for underlined text."
+  :group 'term
+  :version "28.1")
+
+(defface term-slow-blink
+  '((t :inherit ansi-color-slow-blink))
+  "Default face to use for slowly blinking text."
+  :group 'term
+  :version "28.1")
+
+(defface term-fast-blink
+  '((t :inherit ansi-color-fast-blink))
+  "Default face to use for rapidly blinking text."
   :group 'term
   :version "28.1")
 
@@ -1038,8 +1066,12 @@ is buffer-local."
 
 (defun term-ansi-reset ()
   (setq term-current-face 'term)
-  (setq term-ansi-current-underline nil)
   (setq term-ansi-current-bold nil)
+  (setq term-ansi-current-faint nil)
+  (setq term-ansi-current-italic nil)
+  (setq term-ansi-current-underline nil)
+  (setq term-ansi-current-slow-blink nil)
+  (setq term-ansi-current-fast-blink nil)
   (setq term-ansi-current-reverse nil)
   (setq term-ansi-current-color 0)
   (setq term-ansi-current-invisible nil)
@@ -1581,6 +1613,7 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
 :nd=\\E[C:up=\\E[A:ce=\\E[K:ho=\\E[H:pt\
 :al=\\E[L:dl=\\E[M:DL=\\E[%%dM:AL=\\E[%%dL:cs=\\E[%%i%%d;%%dr:sf=^J\
 :dc=\\E[P:DC=\\E[%%dP:IC=\\E[%%d@:im=\\E[4h:ei=\\E[4l:mi:\
+:mb=\\E[5m:mh=\\E[2m:ZR=\\E[23m:ZH=\\E[3m\
 :so=\\E[7m:se=\\E[m:us=\\E[4m:ue=\\E[m:md=\\E[1m:mr=\\E[7m:me=\\E[m\
 :UP=\\E[%%dA:DO=\\E[%%dB:LE=\\E[%%dD:RI=\\E[%%dC\
 :kl=\\EOD:kd=\\EOB:kr=\\EOC:ku=\\EOA:kN=\\E[6~:kP=\\E[5~:@7=\\E[4~:kh=\\E[1~\
@@ -3105,30 +3138,34 @@ See `term-prompt-regexp'."
                                   (term-horizontal-column)
                                   term-ansi-current-bg-color
                                   term-ansi-current-bold
+                                  term-ansi-current-faint
+                                  term-ansi-current-italic
+                                  term-ansi-current-underline
+                                  term-ansi-current-slow-blink
+                                  term-ansi-current-fast-blink
                                   term-ansi-current-color
                                   term-ansi-current-invisible
                                   term-ansi-current-reverse
-                                  term-ansi-current-underline
                                   term-current-face)))
                      (?8 ;; Restore cursor (terminfo: rc, [ctlseqs]
                       ;; "DECRC").
                       (when term-saved-cursor
                         (term-goto (nth 0 term-saved-cursor)
                                    (nth 1 term-saved-cursor))
-                        (setq term-ansi-current-bg-color
-                              (nth 2 term-saved-cursor)
-                              term-ansi-current-bold
-                              (nth 3 term-saved-cursor)
-                              term-ansi-current-color
-                              (nth 4 term-saved-cursor)
-                              term-ansi-current-invisible
-                              (nth 5 term-saved-cursor)
-                              term-ansi-current-reverse
-                              (nth 6 term-saved-cursor)
-                              term-ansi-current-underline
-                              (nth 7 term-saved-cursor)
-                              term-current-face
-                              (nth 8 term-saved-cursor))))
+                        (pcase-setq
+                         `( ,_ ,_
+                            ,term-ansi-current-bg-color
+                            ,term-ansi-current-bold
+                            ,term-ansi-current-faint
+                            ,term-ansi-current-italic
+                            ,term-ansi-current-underline
+                            ,term-ansi-current-slow-blink
+                            ,term-ansi-current-fast-blink
+                            ,term-ansi-current-color
+                            ,term-ansi-current-invisible
+                            ,term-ansi-current-reverse
+                            ,term-current-face)
+                         term-saved-cursor)))
                      (?c ;; \Ec - Reset (terminfo: rs1, [ctlseqs] "RIS").
                       ;; This is used by the "clear" program.
                       (term-reset-terminal))
@@ -3316,11 +3353,20 @@ otherwise use the current foreground color."
   (while parameters
     (pcase (pop parameters)
       (1 (setq term-ansi-current-bold t))       ; (terminfo: bold)
+      (2 (setq term-ansi-current-faint t))      ; (terminfo: dim)
+      (3 (setq term-ansi-current-italic t))     ; (terminfo: sitm)
       (4 (setq term-ansi-current-underline t))  ; (terminfo: smul)
-      (5 (setq term-ansi-current-bold t))       ; (terminfo: bold)
+      (5 (setq term-ansi-current-slow-blink t)) ; (terminfo: blink)
+      (6 (setq term-ansi-current-fast-blink t))
       (7 (setq term-ansi-current-reverse t))    ; (terminfo: smso, rev)
       (8 (setq term-ansi-current-invisible t))  ; (terminfo: invis)
+      (21 (setq term-ansi-current-bold nil))
+      (22 (setq term-ansi-current-bold nil)
+          (setq term-ansi-current-faint nil))
+      (23 (setq term-ansi-current-italic nil))    ; (terminfo: ritm)
       (24 (setq term-ansi-current-underline nil)) ; (terminfo: rmul)
+      (25 (setq term-ansi-current-slow-blink nil)
+          (setq term-ansi-current-fast-blink nil))
       (27 (setq term-ansi-current-reverse nil)) ; (terminfo: rmso)
 
       ;; Foreground (terminfo: setaf)
@@ -3398,13 +3444,20 @@ otherwise use the current foreground color."
              ,@(unless term-ansi-current-invisible
                  (list :inverse-video term-ansi-current-reverse)))))
 
-  (when term-ansi-current-bold
-    (setq term-current-face
-          `(,term-current-face :inherit term-bold)))
-
-  (when term-ansi-current-underline
-    (setq term-current-face
-          `(,term-current-face :inherit term-underline))))
+  (setq term-current-face
+        `(,term-current-face
+          ,@(when term-ansi-current-bold
+              '(term-bold))
+          ,@(when term-ansi-current-faint
+              '(term-faint))
+          ,@(when term-ansi-current-italic
+              '(term-italic))
+          ,@(when term-ansi-current-underline
+              '(term-underline))
+          ,@(when term-ansi-current-slow-blink
+              '(term-slow-blink))
+          ,@(when term-ansi-current-fast-blink
+              '(term-fast-blink)))))
 
 
 ;; Handle a character assuming (eq terminal-state 2) -
@@ -3490,7 +3543,7 @@ otherwise use the current foreground color."
 
    ;; Modified to allow ansi coloring -mm
    ;; \E[m - Set/reset modes, set bg/fg
-   ;;(terminfo: smso,rmso,smul,rmul,rev,bold,sgr0,invis,op,setab,setaf)
+   ;;(terminfo: smso,rmso,smul,rmul,rev,bold,dim,sitm,ritm,blink,sgr0,invis,op,setab,setaf)
    ((eq char ?m)
     (term--handle-colors-list params))
 

@@ -92,9 +92,11 @@ filters and displayed with the specified color.
 ** term-mode
 
 ---
-*** Support for ANSI 256-color and 24-bit colors.
-256-color and 24-bit color codes are now displayed with the specified
-color.
+*** Support for ANSI 256-color and 24-bit colors, italic and other fonts.
+Term-mode can now display 256-color and 24-bit color codes.  It can
+also handle ANSI codes for faint, italic and blinking text, displaying
+it with new 'ansi-term-faint/italic/slow-blinking/fast-blinking'
+faces.
 
 
 * New Modes and Packages in Emacs 29.1

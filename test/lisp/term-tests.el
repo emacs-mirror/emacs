@@ -48,44 +48,44 @@
 
 (defvar ansi-test-strings
   `(("\e[33mHello World\e[0m"
-     ,(propertize "Hello World" 'font-lock-face yellow-fg-props))
+     ,(propertize "Hello World" 'font-lock-face `(,yellow-fg-props)))
     ("\e[43mHello World\e[0m"
-     ,(propertize "Hello World" 'font-lock-face yellow-bg-props))
+     ,(propertize "Hello World" 'font-lock-face `(,yellow-bg-props)))
     ("\e[93mHello World\e[0m"
-     ,(propertize "Hello World" 'font-lock-face bright-yellow-fg-props))
+     ,(propertize "Hello World" 'font-lock-face `(,bright-yellow-fg-props)))
     ("\e[103mHello World\e[0m"
-     ,(propertize "Hello World" 'font-lock-face bright-yellow-bg-props))
+     ,(propertize "Hello World" 'font-lock-face `(,bright-yellow-bg-props)))
     ("\e[1;33mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face
-                  `(,yellow-fg-props :inherit term-bold))
+                  `(,yellow-fg-props term-bold))
      ,(propertize "Hello World" 'font-lock-face
-                  `(,bright-yellow-fg-props :inherit term-bold)))
+                  `(,bright-yellow-fg-props term-bold)))
     ("\e[33;1mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face
-                  `(,yellow-fg-props :inherit term-bold))
+                  `(,yellow-fg-props term-bold))
      ,(propertize "Hello World" 'font-lock-face
-                  `(,bright-yellow-fg-props :inherit term-bold)))
+                  `(,bright-yellow-fg-props term-bold)))
     ("\e[1m\e[33mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face
-                  `(,yellow-fg-props :inherit term-bold))
+                  `(,yellow-fg-props term-bold))
      ,(propertize "Hello World" 'font-lock-face
-                  `(,bright-yellow-fg-props :inherit term-bold)))
+                  `(,bright-yellow-fg-props term-bold)))
     ("\e[33m\e[1mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face
-                  `(,yellow-fg-props :inherit term-bold))
+                  `(,yellow-fg-props term-bold))
      ,(propertize "Hello World" 'font-lock-face
-                  `(,bright-yellow-fg-props :inherit term-bold)))
+                  `(,bright-yellow-fg-props term-bold)))
     ("\e[38;5;3;1mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face
-                  `(,yellow-fg-props :inherit term-bold))
+                  `(,yellow-fg-props term-bold))
      ,(propertize "Hello World" 'font-lock-face
-                  `(,bright-yellow-fg-props :inherit term-bold)))
+                  `(,bright-yellow-fg-props term-bold)))
     ("\e[38;5;123;1mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face
-                  `(,custom-color-fg-props :inherit term-bold)))
+                  `(,custom-color-fg-props term-bold)))
     ("\e[38;2;135;255;255;1mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face
-                  `(,custom-color-fg-props :inherit term-bold)))))
+                  `(,custom-color-fg-props term-bold)))))
 
 (defun term-test-screen-from-input (width height input &optional return-var)
   (with-temp-buffer
