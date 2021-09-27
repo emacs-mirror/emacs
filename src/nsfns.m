@@ -1966,12 +1966,14 @@ is layered in front of the windows of other applications.  */)
       [NSApp unhide: NSApp];
       [NSApp activateIgnoringOtherApps: YES];
     }
+#if GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION >= 27
   else if (EQ (on, intern ("activate-front")))
     {
       [NSApp unhide: NSApp];
       [[NSRunningApplication currentApplication]
         activateWithOptions: NSApplicationActivateIgnoringOtherApps];
     }
+#endif
   else if (NILP (on))
     [NSApp unhide: NSApp];
   else
