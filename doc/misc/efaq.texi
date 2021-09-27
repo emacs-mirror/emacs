@@ -816,7 +816,7 @@ Emacs news, a history of recent user-visible changes
 
 More GNU and FSF information is available at
 
-@uref{https://www.gnu.org} and @uref{http://www.fsf.org}
+@uref{https://www.gnu.org} and @uref{https://www.fsf.org}
 
 @node Help installing Emacs
 @section Where can I get help in installing Emacs?

@@ -2247,7 +2247,7 @@ implementation is only available in UNICOWS.DLL, which implements the
 Microsoft Layer for Unicode on Windows 9X, or "MSLU".  This article on
 MSDN:
 
-  http://msdn.microsoft.com/en-us/goglobal/bb688166.aspx
+  https://web.archive.org/web/20151224032644/https://msdn.microsoft.com/en-us/goglobal/bb688166.aspx
 
 includes a short description of MSLU and a link where it can be
 downloaded.
@@ -2314,7 +2314,7 @@ dialogs introduced in Windows 7.  It is explicitly described in the
 MSDN documentation of the GetOpenFileName API used by Emacs to pop up
 the file selection dialog.  For the details, see
 
-  http://msdn.microsoft.com/en-us/library/windows/desktop/ms646839%28v=vs.85%29.aspx
+  https://msdn.microsoft.com/en-us/library/windows/desktop/ms646839%28v=vs.85%29.aspx
 
 The dialog shows the last directory in which the user selected a file
 in a previous invocation of the dialog with the same initial

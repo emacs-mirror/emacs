@@ -694,7 +694,7 @@ As can be seen, it's quite tedious to read or develop this code since
 the symbol names to type are so long.  We can use shorthands to
 alleviate that.
 
-@lisp1
+@lisp
 (defun snu-split (separator s &optional omit-nulls)
   "A match-data saving variation on `split-string'."
   (save-match-data (split-string s separator omit-nulls)))

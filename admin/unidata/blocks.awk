@@ -243,6 +243,12 @@ END {
     override_start[idx] = "1F590"
     override_end[idx] = "1F590"
 
+    ## These are here so that font_range can choose Emoji presentation
+    ## for the preceding codepoint when it encounters a VS
+    idx++
+    override_start[idx] = "FE00"
+    override_end[idx] = "FE0F"
+
     for (k in override_start)
     {
         i++

@@ -767,6 +767,18 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
       (should-not (equal dir default-directory))
       (should (file-exists-p default-directory)))))
 
+(ert-deftest subr-test-internal--format-docstring-line ()
+  (should
+   (string= (let ((fill-column 60))
+              (internal--format-docstring-line
+               "Emacs is the advanced, extensible, customizable, \
+self-documenting editor.  This manual describes how to edit with Emacs and \
+some of the ways to customize it; it corresponds to GNU Emacs version 28.1."))
+            "Emacs is the advanced, extensible, customizable,
+self-documenting editor.  This manual describes how to edit
+with Emacs and some of the ways to customize it; it
+corresponds to GNU Emacs version 28.1.")))
+
 (ert-deftest test-ensure-list ()
   (should (equal (ensure-list nil) nil))
   (should (equal (ensure-list :foo) '(:foo)))
