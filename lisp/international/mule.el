@@ -296,11 +296,10 @@ attribute."
 
 (defun hack-elisp-shorthands (fullname)
   "Return value of the `elisp-shorthands' file-local variable in FULLNAME.
-FULLNAME is the absolute file name of an Elisp file which
+FULLNAME is the absolute file name of an Elisp .el file which
 potentially specifies a file-local value for `elisp-shorthands'.
-The Elisp code isn't read or evaluated in any way, we merely
-extract what the buffer-local value of `elisp-shorthands' would
-be if the file had been found by `find-file'."
+The Elisp code in FULLNAME isn't read or evaluated in any way, except
+for extraction of the buffer-local value of `elisp-shorthands'."
   (let ((size (nth 7 (file-attributes fullname))))
     (with-temp-buffer
       (insert-file-contents fullname nil (max 0 (- size 3000)) size)
@@ -380,7 +379,9 @@ Return t if file exists."
       t)))
 
 (defun load-with-shorthands-and-code-conversion (fullname file noerror nomessage)
-  "As `load-with-code-conversion', also considering Elisp shorthands."
+  "Like `load-with-code-conversion', but also consider Elisp shorthands.
+This function uses shorthands defined in the file FULLNAME's local
+value of `elisp-shorthands', when it processes that file's Elisp code."
   (let ((elisp-shorthands (hack-elisp-shorthands fullname)))
     (load-with-code-conversion fullname file noerror nomessage)))
 

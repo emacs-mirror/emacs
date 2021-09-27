@@ -533,14 +533,13 @@ It can be quoted, or be inside a quoted form."
      ((facep sym) (find-definition-noselect sym 'defface)))))
 
 (defvar obarray-cache nil
-  "Hash table of obarray-related cache, or nil.
-If non-nil this variable is a hash-table holding information
-specific to the current state of the Elisp obarray.  If the
-obarray changes by any means (interning or uninterning a symbol),
-the variable is immediately set to nil.")
+  "If non-nil, a hash table of cached obarray-related information.
+The cache holds information specific to the current state of the
+Elisp obarray.  If the obarray is modified by any means (such as
+interning or uninterning a symbol), this variable is set to nil.")
 
 (defun elisp--completion-local-symbols ()
-  "Compute collections all Elisp symbols for completion purposes.
+  "Compute collections of all Elisp symbols for completion purposes.
 The return value is compatible with the COLLECTION form described
 in `completion-at-point-functions' (which see)."
   (cl-flet ((obarray-plus-shorthands ()
