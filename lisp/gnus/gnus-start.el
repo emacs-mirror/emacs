@@ -2934,7 +2934,7 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
     (nreverse olist)))
 
 (defun gnus-gnus-to-newsrc-format (&optional foreign-ok)
-  (interactive (list (gnus-y-or-n-p "write foreign groups too? ")))
+  (interactive (list (gnus-y-or-n-p "Write foreign groups too?")))
   ;; Generate and save the .newsrc file.
   (with-current-buffer (create-file-buffer gnus-current-startup-file)
     (let ((standard-output (current-buffer))

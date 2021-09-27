@@ -220,7 +220,7 @@ to its sub elements.  If ELEMENT is the WSDL document itself, the
 entire WSDL can be inspected."
   (let ((inspect (get (soap-type-of element) 'soap-inspect)))
     (unless inspect
-      (error "Soap-inspect: no inspector for element"))
+      (error "soap-inspect: No inspector for element"))
 
     (with-current-buffer (get-buffer-create "*soap-inspect*")
       (setq buffer-read-only t)

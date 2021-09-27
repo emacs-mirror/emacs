@@ -1210,7 +1210,7 @@ Interactively, prompt for NAME, and use the current filters."
     (_
      (let ((type (assq (car qualifier) ibuffer-filtering-alist)))
        (unless qualifier
-         (error "Ibuffer: bad qualifier %s" qualifier))
+         (error "Ibuffer: Bad qualifier %s" qualifier))
        (concat " [" (cadr type) ": " (format "%s]" (cdr qualifier)))))))
 
 (defun ibuffer-list-buffer-modes (&optional include-parents)

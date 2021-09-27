@@ -1677,7 +1677,7 @@ With prefix arg UNHIDE, unhide instead."
 		(setq custom-diff-buf ediff-custom-diff-buffer)))))
 
     (or (ediff-buffer-live-p meta-diff-buff)
-	(user-error "Ediff: something wrong--killed multiple diff's buffer"))
+        (user-error "Ediff: Something wrong--killed multiple diff's buffer"))
 
     (cond ((ediff-buffer-live-p custom-diff-buf)
 	   ;; for live session buffers we do them first because the user may

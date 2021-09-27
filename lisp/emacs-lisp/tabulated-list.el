@@ -256,7 +256,7 @@ Populated by `tabulated-list-init-header'.")
 (defvar tabulated-list--header-overlay nil)
 
 (defun tabulated-list-line-number-width ()
-  "Return the width taken by display-line-numbers in the current buffer."
+  "Return the width taken by `display-line-numbers' in the current buffer."
   ;; line-number-display-width returns the value for the selected
   ;; window, which might not be the window in which the current buffer
   ;; is displayed.

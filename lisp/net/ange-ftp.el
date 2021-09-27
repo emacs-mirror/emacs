@@ -4723,7 +4723,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; by using the ftp chmod command.
 (defun ange-ftp-call-chmod (args)
   (if (< (length args) 2)
-      (error "ange-ftp-call-chmod: missing mode and/or filename: %s" args))
+      (error "ange-ftp-call-chmod: Missing mode and/or filename: %s" args))
   (let ((mode (car args))
 	(rest (cdr args)))
     (if (equal "--" (car rest))

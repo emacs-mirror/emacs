@@ -715,7 +715,7 @@ Read the file and attempt to subscribe to each Feed in the file."
        (when (and xmlurl
 		  (not (string-match "\\`[\t ]*\\'" xmlurl))
 		  (prog1
-		      (y-or-n-p (format "Subscribe to %s " xmlurl))
+                      (y-or-n-p (format "Subscribe to %s?" xmlurl))
 		    (message "")))
 	 (condition-case err
 	     (progn

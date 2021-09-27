@@ -891,7 +891,7 @@ name or time."
 Actually, the narrowed region doesn't include the date line.
 A \"page\" in a ChangeLog file is the area between two dates."
   (or (eq major-mode 'change-log-mode)
-      (error "log-edit-narrow-changelog: current buffer isn't a ChangeLog"))
+      (error "log-edit-narrow-changelog: Current buffer isn't a ChangeLog"))
 
   (goto-char (point-min))
 

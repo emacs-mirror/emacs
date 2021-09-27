@@ -3220,7 +3220,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
       (if (buffer-modified-p)
 	  ;; If buffer is not obsolete and is modified, offer to save
 	  (if (yes-or-no-p
-	       (format "Buffer %s has been modified. Save it in file %s? "
+               (format "Buffer %s has been modified.  Save it in file %s?"
 		       (buffer-name)
 		       buffer-file-name))
 	      (condition-case nil

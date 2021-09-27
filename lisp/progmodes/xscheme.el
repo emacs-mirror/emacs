@@ -562,7 +562,7 @@ The strings are concatenated and terminated by a newline."
 
 (defun xscheme-yank (&optional arg)
   "Insert the most recent expression at point.
-With just C-U as argument, same but put point in front (and mark at end).
+With just \\[universal-argument] as argument, same but put point in front (and mark at end).
 With argument n, reinsert the nth most recently sent expression.
 See also the commands \\[xscheme-yank-pop] and \\[xscheme-yank-push]."
   (interactive "*P")

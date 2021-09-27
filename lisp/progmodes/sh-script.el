@@ -2522,7 +2522,7 @@ overwritten if
 		      sh-styles-alist nil t)))
   (let ((sl (assoc name  sh-styles-alist)))
     (if (null sl)
-	(error "sh-load-style - style %s not known" name)
+        (error "sh-load-style: Style %s not known" name)
       (dolist (var (cdr sl))
 	(set (car var) (cdr var))))))
 

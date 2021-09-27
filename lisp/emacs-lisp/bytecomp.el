@@ -1082,7 +1082,7 @@ If STR is something like \"Buffer foo.el\", return #<buffer foo.el>
 (defconst emacs-lisp-compilation-parse-errors-filename-function
   #'emacs-lisp-compilation-file-name-or-buffer
   "The value for `compilation-parse-errors-filename-function' for when
-we go into emacs-lisp-compilation-mode.")
+we go into `emacs-lisp-compilation-mode'.")
 
 (defcustom emacs-lisp-compilation-search-path '(nil)
   "Directories to search for files named in byte-compile error messages.
@@ -2810,8 +2810,8 @@ not to take responsibility for the actual compilation of the code."
           t)))))
 
 (defun byte-compile-output-as-comment (exp quoted)
-  "Print Lisp object EXP in the output file, inside a comment,
-and return the file (byte) position it will have.
+  "Print Lisp object EXP in the output file, inside a comment.
+Return the file (byte) position it will have.
 If QUOTED is non-nil, print with quoting; otherwise, print without quoting."
   (with-current-buffer byte-compile--outbuffer
     (let ((position (point)))

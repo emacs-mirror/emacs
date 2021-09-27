@@ -245,7 +245,7 @@ would yield:
   :type 'boolean)
 
 (defcustom idlwave-indent-parens-nested nil
-  "Non-nil means, indent continuation lines with parens by nesting
+  "Non-nil means indent continuation lines with parens by nesting
 lines at consecutively deeper levels."
  :group 'idlwave-code-formatting
   :type 'boolean)
@@ -7286,8 +7286,7 @@ The list is cached in `idlwave-class-info' for faster access."
 				   inherits))
 	    (if (> (cdr cl) 999)
 	      (error
-	       "Class scan: inheritance depth exceeded. Circular inheritance?")
-	      ))
+               "Class scan: inheritance depth exceeded.  Circular inheritance?")))
 	  (setq all-inherits (nreverse rtn))
 	  (nconc info (list (cons 'all-inherits all-inherits)))
 	  all-inherits))))))

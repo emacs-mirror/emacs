@@ -2020,7 +2020,7 @@ backup file names and the like)."
 		    ;; if can't find EOH, this is no message!
 		    (unless (feedmail-find-eoh t)
 		      (feedmail-say-chatter "Skipping %s; no mail-header-separator" maybe-file)
-		      (error "FQM: you should never see this message"))
+                      (error "FQM: You should never see this message"))
 		    (feedmail-say-debug "Prepping %s" maybe-file)
 		    ;; the catch is a way out for users to voluntarily skip sending a message
 		    (catch 'skip-me-q (funcall feedmail-queue-runner-message-sender arg))

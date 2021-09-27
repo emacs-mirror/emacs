@@ -507,9 +507,9 @@ Currently used with `cperl-check-syntax' only."
   :group 'cperl-help-system)
 
 (defcustom cperl-indent-region-fix-constructs 1
-  "Amount of space to insert between `}' and `else' or `elsif'
-in `cperl-indent-region'.  Set to nil to leave as is.  Values other
-than 1 and nil will probably not work."
+  "Amount of space to insert between `}' and `else' or `elsif'.
+Used by `cperl-indent-region'.  Set to nil to leave as is.
+Values other than 1 and nil will probably not work."
   :type '(choice (const nil) (const 1))
   :group 'cperl-indentation-details)
 

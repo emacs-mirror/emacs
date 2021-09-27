@@ -62,7 +62,7 @@
 ;;
 ;;    Document authors are encouraged to avoid "compatibility characters", as
 ;;    defined in section 6.8 of [Unicode] (see also D21 in section 3.6 of
-;;    [Unicode3]). The characters defined in the following ranges are also
+;;    [Unicode3]).  The characters defined in the following ranges are also
 ;;    discouraged.  They are either control characters or permanently undefined
 ;;    Unicode characters:
 ;;
