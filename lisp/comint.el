@@ -372,6 +372,7 @@ This variable is buffer-local."
    "\\(^ *\\|"
    (regexp-opt
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
+      "Current"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
       "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")

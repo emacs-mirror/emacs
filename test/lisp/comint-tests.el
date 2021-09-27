@@ -43,6 +43,7 @@
     "PIN for user:"        ; Bug#35523
     "Password (again):"
     "Enter password:"
+    "Current password:"    ; "passwd" (to change password) in Debian.
     "Enter Auth Password:" ; OpenVPN (Bug#35724)
     "Verify password: "    ; zip -e zipfile.zip ... (Bug#47209)
     "Mot de Passe :" ; localized (Bug#29729)
