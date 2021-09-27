@@ -1497,7 +1497,7 @@ skipped.
 This is because the default value of 'grep-find-template' now includes
 the 'find' option '-H'.  Commands that use that variable, including
 indirectly via a call to 'xref-matches-in-directory', might be
-OAaffected.  In particular, there should be no need anymore to ensure
+affected.  In particular, there should be no need anymore to ensure
 any directory names on the 'find' command lines end in a slash.
 This change is for better compatibility with old versions of non-GNU
 'find', such as the one used on macOS.
@@ -2151,7 +2151,7 @@ This function is meant to be used in 'compilation-filter-hook'.
 This controls what 'ansi-color-compilation-filter' does.
 
 *** Regexp matching of messages is now case-sensitive by default.
-The user option 'compilation-error-case-fold-search' can be set for
+The variable 'compilation-error-case-fold-search' can be set for
 case-insensitive matching of messages when the old behavior is
 required, but the recommended solution is to use a correctly matching
 regexp instead.
