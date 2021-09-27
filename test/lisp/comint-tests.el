@@ -44,6 +44,9 @@
     "Password (again):"
     "Enter password:"
     "Current password:"    ; "passwd" (to change password) in Debian.
+    "Enter encryption key: " ; ccrypt
+    "Enter decryption key: " ; ccrypt
+    "Enter encryption key: (repeat) " ; ccrypt
     "Enter Auth Password:" ; OpenVPN (Bug#35724)
     "Verify password: "    ; zip -e zipfile.zip ... (Bug#47209)
     "Mot de Passe :" ; localized (Bug#29729)
