@@ -478,8 +478,9 @@
 	      (eq family 'unspecified))
       family)))
 
+;; This function doesn't have a doc string on purpose.
 (defun comp-test-46670-1-f (_)
-  "Foo.")
+  "foo")
 
 (defun comp-test-46670-2-f (s)
   (and (equal (comp-test-46670-1-f (length s)) s)
