@@ -1334,7 +1334,7 @@ default) no filter is applied."
     [ "Go to next problem"      flymake-goto-next-error t ]
     [ "Go to previous problem"  flymake-goto-prev-error t ]
     [ "Check now"               flymake-start t ]
-    [ "List all problems"       flymake-show-diagnostics-buffer t ]
+    [ "List all problems"       flymake-show-buffer-diagnostics t ]
     "--"
     [ "Go to log buffer"        flymake-switch-to-log-buffer t ]
     [ "Turn off Flymake"        flymake-mode t ]))
@@ -1599,7 +1599,7 @@ buffer."
   ;; been set to a valid buffer.  This could happen when this function
   ;; is called too early.  For example 'global-display-line-numbers-mode'
   ;; calls us from its mode hook, when the diagnostic buffer has just
-  ;; been created by 'flymake-show-diagnostics-buffer', but is not yet
+  ;; been created by 'flymake-show-buffer-diagnostics', but is not yet
   ;; set up properly (Bug#40529).
   (when (bufferp flymake--diagnostics-buffer-source)
     (with-current-buffer flymake--diagnostics-buffer-source
