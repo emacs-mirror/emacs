@@ -76,16 +76,17 @@ struct.")
   "Remove DESCRIPTOR from `file-notify-descriptors'.
 DESCRIPTOR should be an object returned by `file-notify-add-watch'.
 If it is registered in `file-notify-descriptors', a `stopped' event is sent."
-  (when-let* ((watch (gethash descriptor file-notify-descriptors)))
-    (let ((callback (file-notify--watch-callback watch)))
-      ;; Make sure this is the last time the callback is invoked.
+  (when-let ((watch (gethash descriptor file-notify-descriptors)))
+    (unwind-protect
+        ;; Send `stopped' event.
+        (file-notify-handle-event
+         (make-file-notify
+          :-event `(,descriptor stopped
+                    ,(file-notify--watch-absolute-filename watch))
+          :-callback (file-notify--watch-callback watch)))
+      ;; Make sure this is the last time the callback was invoked.
       (setf (file-notify--watch-callback watch) nil)
-      ;; Send `stopped' event.
-      (unwind-protect
-          (funcall
-           callback
-           `(,descriptor stopped ,(file-notify--watch-absolute-filename watch)))
-        (remhash descriptor file-notify-descriptors)))))
+      (remhash descriptor file-notify-descriptors))))
 
 (cl-defstruct (file-notify (:type list) :named)
   "A file system monitoring event, coming from the backends."
