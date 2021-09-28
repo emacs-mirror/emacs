@@ -409,9 +409,11 @@ decoration API found in this library."
        ;; Create an override method to specify if a given tag belongs
        ;; to this type of decoration
        (define-overloadable-function ,predicate (tag)
-         ,(internal--format-docstring-line
-           "Return non-nil to decorate TAG with `%s' style.\n%s"
-           name doc))
+         ,(concat
+           (internal--format-docstring-line
+            "Return non-nil to decorate TAG with `%s' style."
+            name)
+           "\n" doc))
        ;; Create an override method that will perform the highlight
        ;; operation if the -p method returns non-nil.
        (define-overloadable-function ,highlighter (tag)

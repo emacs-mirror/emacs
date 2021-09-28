@@ -6435,8 +6435,11 @@ of fill.el (for example `fill-region')."
       (concat fst (internal--fill-string-single-line lst)))))
 
 (defun internal--format-docstring-line (string &rest objects)
-  "Format a documentation string out of STRING and OBJECTS.
+  "Format a single line from a documentation string out of STRING and OBJECTS.
+Signal an error if STRING contains a newline.
 This is intended for internal use only."
+  (when (string-match "\n" string)
+    (error "Unable to fill string containing newline: %S" string))
   (internal--fill-string-single-line (apply #'format string objects)))
 
 (defun json-available-p ()
