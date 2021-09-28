@@ -695,7 +695,7 @@ Returns a list of the form (BRIEF-DESC DEFN EVENT MOUSE-MSG)."
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
 			    (memq 'drag modifiers))
                         " at that spot" ""))
-	 (defn (key-binding key t)))
+	 (defn (save-excursion (mouse-set-point event) (key-binding key t))))
     ;; Handle the case where we faked an entry in "Select and Paste" menu.
     (when (and (eq defn nil)
 	       (stringp (aref key (1- (length key))))

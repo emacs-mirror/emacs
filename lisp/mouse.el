@@ -328,7 +328,7 @@ the function `context-menu-filter-function'."
 
     ;; Remove duplicate separators
     (let ((l menu))
-      (while l
+      (while (consp l)
         (when (and (equal (cdr-safe (car l)) menu-bar-separator)
                    (equal (cdr-safe (cadr l)) menu-bar-separator))
           (setcdr l (cddr l)))
