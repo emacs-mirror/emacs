@@ -4192,10 +4192,11 @@ form, return the compiled function."
 
 ;;;###autoload
 (defun batch-native-compile ()
-  "Perform native compilation on remaining command-line arguments.
-Use this from the command line, with ‘-batch’;
-it won’t work in an interactive Emacs.
-Native compilation equivalent to `batch-byte-compile'."
+  "Perform batch native compilation of remaining command-line arguments.
+
+Native compilation equivalent of `batch-byte-compile'.
+Use this from the command line, with ‘-batch’; it won’t work
+in an interactive Emacs session."
   (comp-ensure-native-compiler)
   (cl-loop for file in command-line-args-left
            if (or (null byte+native-compile)
