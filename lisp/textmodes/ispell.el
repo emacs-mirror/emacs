@@ -253,7 +253,8 @@ Should probably be \"-Ei\"."
 (defcustom ispell-look-command (executable-find "look")
   "Name of the look command for search processes.
 This must be an absolute file name."
-  :type 'file
+  :type '(choice (const :tag "None" nil)
+                 file)
   :version "28.1")
 
 (defcustom ispell-look-p (and ispell-look-command
