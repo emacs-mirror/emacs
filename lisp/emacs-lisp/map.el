@@ -5,7 +5,7 @@
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, lisp
-;; Version: 3.2
+;; Version: 3.2.1
 ;; Package-Requires: ((emacs "26"))
 
 ;; This file is part of GNU Emacs.
@@ -427,15 +427,15 @@ See `map-into' for all supported values of TYPE."
   "Convert MAP into a map of TYPE.")
 
 ;; FIXME: I wish there was a way to avoid this η-redex!
-(cl-defmethod map-into (map (_type (eql 'list)))
+(cl-defmethod map-into (map (_type (eql list)))
   "Convert MAP into an alist."
   (map-pairs map))
 
-(cl-defmethod map-into (map (_type (eql 'alist)))
+(cl-defmethod map-into (map (_type (eql alist)))
   "Convert MAP into an alist."
   (map-pairs map))
 
-(cl-defmethod map-into (map (_type (eql 'plist)))
+(cl-defmethod map-into (map (_type (eql plist)))
   "Convert MAP into a plist."
   (let (plist)
     (map-do (lambda (k v) (setq plist `(,v ,k ,@plist))) map)
@@ -530,7 +530,7 @@ KEYWORD-ARGS are forwarded to `make-hash-table'."
             map)
     ht))
 
-(cl-defmethod map-into (map (_type (eql 'hash-table)))
+(cl-defmethod map-into (map (_type (eql hash-table)))
   "Convert MAP into a hash-table with keys compared with `equal'."
   (map--into-hash map (list :size (map-length map) :test #'equal)))
 
