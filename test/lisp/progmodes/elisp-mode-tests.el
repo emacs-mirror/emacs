@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'xref)
 (eval-when-compile (require 'cl-lib))
 
@@ -1047,15 +1048,8 @@ evaluation of BODY."
                    expected))
     (should (not (intern-soft shorthand-sname)))))
 
-(defvar elisp--test-resources-dir
-  (expand-file-name "elisp-resources/"
-                    (file-name-directory
-                     (or load-file-name
-                         (error "this file needs to be loaded")))))
-
 (ert-deftest elisp-shorthand-load-a-file ()
-  (let ((test-file (expand-file-name "simple-shorthand-test.el"
-                                     elisp--test-resources-dir)))
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
     (mapatoms (lambda (s)
                 (when (string-match "^elisp--foo-" (symbol-name s))
                   (unintern s obarray))))
@@ -1065,10 +1059,8 @@ evaluation of BODY."
 
 (ert-deftest elisp-shorthand-byte-compile-a-file ()
 
-  (let ((test-file (expand-file-name "simple-shorthand-test.el"
-                                     elisp--test-resources-dir))
-        (byte-compiled (expand-file-name "simple-shorthand-test.elc"
-                                         elisp--test-resources-dir)))
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el"))
+        (byte-compiled (ert-resource-file "simple-shorthand-test.elc")))
     (mapatoms (lambda (s)
                 (when (string-match "^elisp--foo-" (symbol-name s))
                   (unintern s obarray))))
@@ -1081,8 +1073,7 @@ evaluation of BODY."
     (should-not (intern-soft "f-test"))))
 
 (ert-deftest elisp-shorthand-completion-at-point ()
-  (let ((test-file (expand-file-name "simple-shorthand-test.el"
-                                     elisp--test-resources-dir)))
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
     (load test-file)
     (with-current-buffer (find-file-noselect test-file)
       (revert-buffer t t)
@@ -1097,8 +1088,7 @@ evaluation of BODY."
       (revert-buffer t t))))
 
 (ert-deftest elisp-shorthand-escape ()
-  (let ((test-file (expand-file-name "simple-shorthand-test.el"
-                                     elisp--test-resources-dir)))
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
     (load test-file)
     (should (intern-soft "f-test4---"))
     (should-not (intern-soft "elisp--foo-test4---"))
