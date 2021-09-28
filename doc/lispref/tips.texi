@@ -396,9 +396,9 @@ An error message should start with a capital letter but should not end
 with a period or other punctuation.
 
 It is occasionally useful to tell the user where an error originated,
-even if @code{debug-on-error} is nil.  In such cases, a lower-case
-Lisp symbol can be prepended to the error message.  For example, the
-error message ``Invalid input'' could be extended to say
+even if @code{debug-on-error} is @code{nil}.  In such cases, a
+lower-case Lisp symbol can be prepended to the error message.  For
+example, the error message ``Invalid input'' could be extended to say
 ``some-function: Invalid input''.
 
 @item
