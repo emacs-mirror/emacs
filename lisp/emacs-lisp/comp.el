@@ -4195,7 +4195,7 @@ form, return the compiled function."
   "Perform batch native compilation of remaining command-line arguments.
 
 Native compilation equivalent of `batch-byte-compile'.
-Use this from the command line, with ‘-batch’; it won’t work
+Use this from the command line, with `-batch'; it won't work
 in an interactive Emacs session.
 Optional argument FOR-TARBALL non-nil means the file being compiled
 as part of building the source tarball, in which case the .eln file
