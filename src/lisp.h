@@ -2827,9 +2827,8 @@ enum Lisp_Compiled
   };
 
 /* Flag bits in a character.  These also get used in termhooks.h.
-   Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
-   (MUlti-Lingual Emacs) might need 22 bits for the character value
-   itself, so we probably shouldn't use any bits lower than 0x0400000.  */
+   Emacs needs 22 bits for the character value itself, see MAX_CHAR,
+   so we shouldn't use any bits lower than 0x0400000.  */
 enum char_bits
   {
     CHAR_ALT = 0x0400000,
