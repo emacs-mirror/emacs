@@ -1083,7 +1083,9 @@ the like."
 ;; Autoload cookie needed by desktop.el.
 ;;;###autoload
 (define-derived-mode eww-mode special-mode "eww"
-  "Mode for browsing the web."
+  "Mode for browsing the web.
+
+\\{eww-mode-map}"
   :interactive nil
   (setq-local eww-data (list :title ""))
   (setq-local browse-url-browser-function #'eww-browse-url)
