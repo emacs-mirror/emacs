@@ -2888,6 +2888,9 @@ Supported keywords for slots are:
 - `:documentation': this is a docstring describing the slot.
 - `:type': the type of the field; currently only used for documentation.
 
+To see the documentation for a defined struct type, use
+\\[cl-describe-type].
+
 \(fn NAME &optional DOCSTRING &rest SLOTS)"
   (declare (doc-string 2) (indent 1)
            (debug
