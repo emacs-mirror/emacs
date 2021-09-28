@@ -4586,18 +4586,16 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (while (< (- (point-max) (point-min))
 			    (length "66\n6F\n6F\n0D\n0A\n"))
 		    (while (accept-process-output proc 0 nil t))))
-                (if (tramp--test-macos-p)
-                  (tramp--test-message
-                   "process-connection-type %s\n%s"
-                     process-connection-type (pp-to-string (buffer-string)))
 		(should
 		 (string-match-p
-		  (if (memq process-connection-type '(nil pipe))
+		  (if (and (memq process-connection-type '(nil pipe))
+                           (not (tramp--test-macos-p)))
+                      ;; On macOS, there is always newline conversion.
 		      ;; `telnet' converts \r to <CR><NUL> if `crlf'
 		      ;; flag is FALSE.  See telnet(1) man page.
 		      "66\n6F\n6F\n0D\\(\n00\\)?\n0A\n"
 		    "66\n6F\n6F\n0A\\(\n00\\)?\n0A\n")
-		  (buffer-string)))))
+		  (buffer-string))))
 
 	    ;; Cleanup.
 	    (ignore-errors (delete-process proc)))))
@@ -4855,19 +4853,17 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		    (while (< (- (point-max) (point-min))
 			      (length "66\n6F\n6F\n0D\n0A\n"))
 		      (while (accept-process-output proc 0 nil t))))
-                  (if (tramp--test-macos-p)
-                    (tramp--test-message
-                     "process-connection-type %s\n%s"
-                     process-connection-type (pp-to-string (buffer-string)))
 		  (should
 		   (string-match-p
-		    (if (memq (or connection-type process-connection-type)
-			      '(nil pipe))
+		    (if (and (memq (or connection-type process-connection-type)
+			           '(nil pipe))
+                             (not (tramp--test-macos-p)))
+                        ;; On macOS, there is always newline conversion.
 			;; `telnet' converts \r to <CR><NUL> if `crlf'
 			;; flag is FALSE.  See telnet(1) man page.
 			"66\n6F\n6F\n0D\\(\n00\\)?\n0A\n"
 		      "66\n6F\n6F\n0A\\(\n00\\)?\n0A\n")
-		    (buffer-string)))))
+		    (buffer-string))))
 
 	      ;; Cleanup.
 	      (ignore-errors (delete-process proc)))))))))
