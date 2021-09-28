@@ -1,0 +1,15 @@
+* The icons in this directory are from "Material design icons".
+They are not part of Emacs, but are distributed and used by Emacs.
+They are licensed under the Apache License Version 2.0.
+You can find that license in the LICENSE file, or at this URL:
+
+    https://www.apache.org/licenses/LICENSE-2.0.txt
+
+You can find the latest version of Material design icons here:
+
+    https://github.com/google/material-design-icons/releases
+
+To update these files, download the latest release from the above
+link, and then use the function `admin-icons-update-material-icons' in
+admin/admin.el.  That takes care of some necessary transformations,
+that makes them work well with the way we use them in Emacs.
