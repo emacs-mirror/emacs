@@ -448,7 +448,15 @@ FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
 ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
+ifeq ($(HAVE_NATIVE_COMP),yes)
+ifeq ($(NATIVE_DISABLED),)
+all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES) ../native-lisp
+else
 all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
+endif
+else
+all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
+endif
 .PHONY: all
 
 dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h \
@@ -774,6 +782,38 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 %.elc: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
 		THEFILE=$< $<c
+
+ifeq ($(HAVE_NATIVE_COMP),yes)
+ifeq ($(NATIVE_DISABLED),)
+## The following rules are used only when building a source tarball
+## for the first time, when the native-lisp/ directory doesn't yet
+## exist and needs to be created and populated with the preloaded
+## *.eln files.
+
+## List of *.eln files we need to produce in addition to the preloaded
+## ones in $(lisp).
+elnlisp := \
+	emacs-lisp/autoload.eln \
+	emacs-lisp/byte-opt.eln \
+	emacs-lisp/bytecomp.eln \
+	emacs-lisp/cconv.eln \
+	international/charscript.eln \
+	emacs-lisp/comp.eln \
+	emacs-lisp/comp-cstr.eln \
+	international/emoji-zwj.eln
+elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
+
+%.eln: %.el | emacs$(EXEEXT) $(pdmp)
+	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="../src/emacs$(EXEEXT)"\
+		THEFILE=$< $<n
+
+../native-lisp: | $(pdmp)
+	mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp)
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
+	cp -f $@ $(bootstrap_pdmp)
+endif
+endif
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
 ## We use it as a heuristic to decide when to rebuild loaddefs.el.

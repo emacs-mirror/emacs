@@ -281,6 +281,14 @@ else
 		-f batch-byte-compile $(THEFILE)
 endif
 
+ifeq ($(HAVE_NATIVE_COMP),yes)
+.PHONY: $(THEFILE)n
+$(THEFILE)n:
+	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-l comp -f byte-compile-refresh-preloaded \
+		--eval '(batch-native-compile t)' $(THEFILE)
+endif
+
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
 # the compilation environment is clean.  We also set the load-path of

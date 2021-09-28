@@ -4191,20 +4191,27 @@ form, return the compiled function."
   (comp--native-compile function-or-file nil output))
 
 ;;;###autoload
-(defun batch-native-compile ()
+(defun batch-native-compile (&optional for-tarball)
   "Perform batch native compilation of remaining command-line arguments.
 
 Native compilation equivalent of `batch-byte-compile'.
 Use this from the command line, with ‘-batch’; it won’t work
-in an interactive Emacs session."
+in an interactive Emacs session.
+Optional argument FOR-TARBALL non-nil means the file being compiled
+as part of building the source tarball, in which case the .eln file
+will be placed under the native-lisp/ directory (actually, in the
+last directory in `native-comp-eln-load-path')."
   (comp-ensure-native-compiler)
-  (cl-loop for file in command-line-args-left
-           if (or (null byte+native-compile)
-                  (cl-notany (lambda (re) (string-match re file))
-                             native-comp-bootstrap-deny-list))
-           do (comp--native-compile file)
-           else
-           do (byte-compile-file file)))
+  (let ((native-compile-target-directory
+         (if for-tarball
+             (car (last native-comp-eln-load-path)))))
+    (cl-loop for file in command-line-args-left
+             if (or (null byte+native-compile)
+                    (cl-notany (lambda (re) (string-match re file))
+                               native-comp-bootstrap-deny-list))
+             do (comp--native-compile file)
+             else
+             do (byte-compile-file file))))
 
 ;;;###autoload
 (defun batch-byte+native-compile ()
