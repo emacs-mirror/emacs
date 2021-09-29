@@ -3577,7 +3577,7 @@ Prefix arg means justify as well."
         ;; case, the trailing space is commonly not present, so look
         ;; around for other lines that have some data.
         (when (looking-at-p "\n")
-          (let ((regexp (concat "^" message-cite-prefix-regexp ".")))
+          (let ((regexp (concat "^" message-cite-prefix-regexp "[ \t]")))
             (when (or (re-search-backward regexp nil t)
                       (re-search-forward regexp nil t))
               (goto-char (1- (match-end 0))))))
