@@ -8590,9 +8590,8 @@ If UNREPLIED (the prefix), limit to unreplied articles."
   (interactive "P" gnus-summary-mode)
   (if unreplied
       (gnus-summary-limit
-       (seq-difference gnus-newsgroup-articles
-                       gnus-newsgroup-replied
-                       #'eq))
+       (gnus-set-difference gnus-newsgroup-articles
+	gnus-newsgroup-replied))
     (gnus-summary-limit gnus-newsgroup-replied))
   (gnus-summary-position-point))
 

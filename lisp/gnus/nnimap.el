@@ -1638,15 +1638,13 @@ If LIMIT, first try to limit the search to the N last articles."
 	      (setq start-article 1))
 	    (let* ((unread
 		    (gnus-compress-sequence
-                     (seq-difference
-                      (seq-difference
+		     (gnus-set-difference
+		      (gnus-set-difference
 		       existing
 		       (gnus-sorted-union
 			(cdr (assoc '%Seen flags))
-                        (cdr (assoc '%Deleted flags)))
-                       #'eq)
-                      (cdr (assoc '%Flagged flags))
-                      #'eq)))
+			(cdr (assoc '%Deleted flags))))
+		      (cdr (assoc '%Flagged flags)))))
 		   (read (gnus-range-difference
 			  (cons start-article high) unread)))
 	      (when (> start-article 1)
