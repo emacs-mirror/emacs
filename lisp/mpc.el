@@ -1881,7 +1881,8 @@ A value of t means the main playlist.")
     (when (buffer-live-p status-buf)
       (with-current-buffer status-buf (force-mode-line-update)))))
 
-(defvar mpc-volume-step 5)
+(defvar mpc-volume-step 5
+  "Change volume in increments of this integer.")
 
 (defun mpc-volume-mouse-set (&optional event)
   "Change volume setting."
@@ -1895,7 +1896,7 @@ A value of t means the main playlist.")
                     '(?◁ ?<))
               (- mpc-volume-step) mpc-volume-step))
          (curvol (string-to-number (cdr (assq 'volume mpc-status))))
-         (newvol (max 0 (min 100 (+ curvol diff)))))
+         (newvol (max 0 (min 100 (+ (- curvol (mod curvol diff)) diff)))))
     (if (= newvol curvol)
         (progn
           (message "MPD volume already at %s%%" newvol)
