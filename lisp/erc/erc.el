@@ -3301,10 +3301,13 @@ a script after exceeding the flood threshold."
 (defun erc-cmd-WHOIS (user &optional server)
   "Display whois information for USER.
 
-If SERVER is non-nil, use that, rather than the current server."
-  ;; FIXME: is the above docstring correct?  -- Lawrence 2004-01-08
+If SERVER is non-nil, use that, rather than the current server.
+This is useful for getting the time USER has been idle for, if
+USER is on a different server of the network than the current
+user, since only the server the user is connected to knows this
+information."
   (let ((send (if server
-                  (format "WHOIS %s %s" user server)
+                  (format "WHOIS %s %s" server user)
                 (format "WHOIS %s" user))))
     (erc-log (format "cmd: %s" send))
     (erc-server-send send)
