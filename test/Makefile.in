@@ -167,7 +167,7 @@ lisp/net/tramp-tests.log \
 : WRITE_LOG = 2>&1 | tee $@
 endif
 ifdef EMACS_EMBA_CI
-lisp/filenotify-tests.log lisp/net/tramp-tests.log \
+lisp/filenotify-tests.log lisp/net/tramp-tests.log src/emacs-module-tests.el \
 : WRITE_LOG = 2>&1 | tee $@
 endif
 
