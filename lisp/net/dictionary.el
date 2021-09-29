@@ -1375,16 +1375,18 @@ any buffer where (dictionary-tooltip-mode 1) has been called."
 		  (current-word)))))
     (dictionary-search word)))
 
+;;;###autoload
 (defun context-menu-dictionary (menu click)
-  "Populate MENU with dictionary commands at CLICK."
+  "Populate MENU with dictionary commands at CLICK.
+When you add this function to `context-menu-functions',
+the context menu will contain an item that searches
+the word at mouse click."
   (when (thing-at-mouse click 'word)
     (define-key menu [dictionary-separator] menu-bar-separator)
     (define-key menu [dictionary-search-word-at-mouse]
       '(menu-item "Dictionary Search" dictionary-search-word-at-mouse
                   :help "Search the word at mouse click in dictionary")))
   menu)
-
-(add-hook 'context-menu-functions 'context-menu-dictionary 15)
 
 (provide 'dictionary)
 ;;; dictionary.el ends here
