@@ -3026,6 +3026,11 @@ See 'rcirc-reconnect-attempts'.
 ** MPC
 
 ---
+*** New command 'mpc-goto-playing-song'.
+This command, bound to 'o' in any 'mpc-mode' buffer, moves point to
+the currently playing song in the "*Songs*" buffer.
+
+---
 *** New user option 'mpc-cover-image-re'.
 If non-nil, it is a regexp that should match a valid cover image.
 

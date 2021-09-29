@@ -1150,6 +1150,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
     (define-key map ">" #'mpc-next)
     (define-key map "<" #'mpc-prev)
     (define-key map "g" #'mpc-seek-current)
+    (define-key map "o" #'mpc-goto-playing-song)
     map))
 
 (easy-menu-define mpc-mode-menu mpc-mode-map
@@ -2669,6 +2670,18 @@ If stopped, start playback."
   (interactive (list last-nonmenu-event))
   (mpc-select event)
   (mpc-play))
+
+(defun mpc-goto-playing-song ()
+  "Move point to the currently playing song in the \"*Songs*\" buffer."
+  (interactive)
+  (let* ((buf (mpc-proc-buffer (mpc-proc) 'songs))
+         (win (get-buffer-window buf)))
+    (when (and (buffer-live-p buf) win)
+      (select-window win)
+      (with-current-buffer buf
+        (when (and overlay-arrow-position
+                   (eq (marker-buffer overlay-arrow-position) buf))
+          (goto-char (marker-position overlay-arrow-position)))))))
 
 ;; (defun mpc-play-tagval ()
 ;;   "Play all the songs of the tag at point."
