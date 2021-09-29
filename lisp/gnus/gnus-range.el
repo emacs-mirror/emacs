@@ -40,6 +40,8 @@ If RANGE is a single range, return (RANGE).  Otherwise, return RANGE."
 
 (define-obsolete-function-alias 'gnus-copy-sequence 'copy-tree "27.1")
 
+;;; We could be using `seq-difference' here, but it's much slower
+;;; on these data sets.  See bug#50877.
 (defun gnus-set-difference (list1 list2)
   "Return a list of elements of LIST1 that do not appear in LIST2."
   (let ((hash2 (make-hash-table :test 'eq))
