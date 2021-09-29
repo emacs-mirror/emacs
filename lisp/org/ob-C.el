@@ -4,6 +4,7 @@
 
 ;; Author: Eric Schulte
 ;;      Thierry Banel
+;; Maintainer: Thierry Banel
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
 
@@ -94,8 +95,7 @@ This function calls `org-babel-execute:C++'."
   (org-babel-execute:C++ body params))
 
 (defun org-babel-expand-body:cpp (body params)
-  "Expand a block of C++ code with org-babel according to its
-header arguments."
+  "Expand a block of C++ code with org-babel according to its header arguments."
   (org-babel-expand-body:C++ body params))
 
 (defun org-babel-execute:C++ (body params)
@@ -104,8 +104,7 @@ This function is called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'cpp)) (org-babel-C-execute body params)))
 
 (defun org-babel-expand-body:C++ (body params)
-  "Expand a block of C++ code with org-babel according to its
-header arguments."
+  "Expand a block of C++ code with org-babel according to its header arguments."
   (let ((org-babel-c-variant 'cpp)) (org-babel-C-expand-C++ body params)))
 
 (defun org-babel-execute:D (body params)
@@ -114,8 +113,7 @@ This function is called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'd)) (org-babel-C-execute body params)))
 
 (defun org-babel-expand-body:D (body params)
-  "Expand a block of D code with org-babel according to its
-header arguments."
+  "Expand a block of D code with org-babel according to its header arguments."
   (let ((org-babel-c-variant 'd)) (org-babel-C-expand-D body params)))
 
 (defun org-babel-execute:C (body params)
@@ -124,8 +122,7 @@ This function is called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'c)) (org-babel-C-execute body params)))
 
 (defun org-babel-expand-body:C (body params)
-  "Expand a block of C code with org-babel according to its
-header arguments."
+  "Expand a block of C code with org-babel according to its header arguments."
   (let ((org-babel-c-variant 'c)) (org-babel-C-expand-C body params)))
 
 (defun org-babel-C-execute (body params)
@@ -196,13 +193,11 @@ or `org-babel-execute:C++' or `org-babel-execute:D'."
       )))
 
 (defun org-babel-C-expand-C++ (body params)
-  "Expand a block of C or C++ code with org-babel according to
-its header arguments."
+  "Expand a block of C/C++ code with org-babel according to its header arguments."
   (org-babel-C-expand-C body params))
 
 (defun org-babel-C-expand-C (body params)
-  "Expand a block of C or C++ code with org-babel according to
-its header arguments."
+  "Expand a block of C/C++ code with org-babel according to its header arguments."
   (let ((vars (org-babel--get-vars params))
 	(colnames (cdr (assq :colname-names params)))
 	(main-p (not (string= (cdr (assq :main params)) "no")))
@@ -257,15 +252,21 @@ its header arguments."
 		(when colnames
 		  (org-babel-C-utility-header-to-C))
 		;; tables headers
-		(mapconcat 'org-babel-C-header-to-C colnames "\n")
+		(mapconcat (lambda (head)
+                             (let* ((tblnm (car head))
+                                    (tbl (cdr (car (let* ((el vars))
+                                                     (while (not (or (equal tblnm (caar el)) (not el)))
+                                                       (setq el (cdr el)))
+                                                     el))))
+                                    (type (org-babel-C-val-to-base-type tbl)))
+                               (org-babel-C-header-to-C head type))) colnames "\n")
 		;; body
 		(if main-p
 		    (org-babel-C-ensure-main-wrap body)
 		  body) "\n") "\n")))
 
 (defun org-babel-C-expand-D (body params)
-  "Expand a block of D code with org-babel according to
-its header arguments."
+  "Expand a block of D code with org-babel according to its header arguments."
   (let ((vars (org-babel--get-vars params))
 	(colnames (cdr (assq :colname-names params)))
 	(main-p (not (string= (cdr (assq :main params)) "no")))
@@ -289,7 +290,14 @@ its header arguments."
 		(when colnames
 		  (org-babel-C-utility-header-to-C))
 		;; tables headers
-		(mapconcat 'org-babel-C-header-to-C colnames "\n")
+		(mapconcat (lambda (head)
+                             (let* ((tblnm (car head))
+                                    (tbl (cdr (car (let* ((el vars))
+                                                     (while (not (or (equal tblnm (caar el)) (not el)))
+                                                       (setq el (cdr el)))
+                                                     el))))
+                                    (type (org-babel-C-val-to-base-type tbl)))
+                               (org-babel-C-header-to-C head type))) colnames "\n")
 		;; body
 		(if main-p
 		    (org-babel-C-ensure-main-wrap body)
@@ -333,7 +341,7 @@ FORMAT can be either a format string or a function which is called with VAL."
 	     (list
 	      (if (eq org-babel-c-variant 'd) "string" "const char*")
 	      "\"%s\""))
-	    (_ (error "unknown type %S" basetype)))))
+            (_ (error "Unknown type %S" basetype)))))
     (cond
      ((integerp val) type) ;; an integer declared in the #+begin_src line
      ((floatp val) type) ;; a numeric declared in the #+begin_src line
@@ -341,7 +349,9 @@ FORMAT can be either a format string or a function which is called with VAL."
       `(,(car type)
 	(lambda (val)
 	  (cons
-	   (format "[%d][%d]" (length val) (length (car val)))
+           (pcase org-babel-c-variant
+             ((or `c `cpp) (format "[%d][%d]" (length val) (length (car val))))
+             (`d           (format "[%d][%d]" (length (car val)) (length val))))
 	   (concat
 	    (if (eq org-babel-c-variant 'd) "[\n" "{\n")
 	    (mapconcat
@@ -388,8 +398,7 @@ FORMAT can be either a format string or a function which is called with VAL."
    (t 'stringp)))
 
 (defun org-babel-C-var-to-C (pair)
-  "Convert an elisp val into a string of C code specifying a var
-of the same value."
+  "Convert an elisp val into a string of C code specifying a var of the same value."
   ;; TODO list support
   (let ((var (car pair))
 	(val (cdr pair)))
@@ -402,11 +411,19 @@ of the same value."
 	   (formatted (org-babel-C-format-val type-data val))
 	   (suffix (car formatted))
 	   (data (cdr formatted)))
-      (format "%s %s%s = %s;"
-	      type
-	      var
-	      suffix
-	      data))))
+      (pcase org-babel-c-variant
+        ((or `c `cpp)
+         (format "%s %s%s = %s;"
+	         type
+	         var
+	         suffix
+	         data))
+        (`d
+         (format "%s%s %s = %s;"
+	         type
+	         suffix
+	         var
+	         data))))))
 
 (defun org-babel-C-table-sizes-to-C (pair)
   "Create constants of table dimensions, if PAIR is a table."
@@ -421,11 +438,15 @@ of the same value."
       (format "const int %s_cols = %d;" (car pair) (length (cdr pair)))))))
 
 (defun org-babel-C-utility-header-to-C ()
-  "Generate a utility function to convert a column name
-into a column number."
+  "Generate a utility function to convert a column name into a column number."
   (pcase org-babel-c-variant
     ((or `c `cpp)
-     "int get_column_num (int nbcols, const char** header, const char* column)
+     (concat
+      "
+#ifndef _STRING_H
+#include <string.h>
+#endif
+int get_column_num (int nbcols, const char** header, const char* column)
 {
   int c;
   for (c=0; c<nbcols; c++)
@@ -433,7 +454,7 @@ into a column number."
       return c;
   return -1;
 }
-")
+"))
     (`d
      "int get_column_num (string[] header, string column)
 {
@@ -444,29 +465,40 @@ into a column number."
 }
 ")))
 
-(defun org-babel-C-header-to-C (head)
+(defun org-babel-C-header-to-C (head type)
   "Convert an elisp list of header table into a C or D vector
 specifying a variable with the name of the table."
+  (message "%S" type)
   (let ((table (car head))
-        (headers (cdr head)))
+        (headers (cdr head))
+        (typename (pcase type
+                    (`integerp "int")
+                    (`floatp "double")
+                    (`stringp (pcase org-babel-c-variant
+                                ((or `c `cpp) "const char*")
+                                (`d "string"))))))
     (concat
-     (format
-      (pcase org-babel-c-variant
-	((or `c `cpp) "const char* %s_header[%d] = {%s};")
-	(`d "string %s_header[%d] = [%s];"))
-      table
-      (length headers)
-      (mapconcat (lambda (h) (format "%S" h)) headers ","))
+     (pcase org-babel-c-variant
+       ((or `c `cpp)
+        (format "const char* %s_header[%d] = {%s};"
+                table
+                (length headers)
+                (mapconcat (lambda (h) (format "\"%s\"" h)) headers ",")))
+       (`d
+        (format "string[%d] %s_header = [%s];"
+                (length headers)
+                table
+                (mapconcat (lambda (h) (format "\"%s\"" h)) headers ","))))
      "\n"
      (pcase org-babel-c-variant
        ((or `c `cpp)
 	(format
-	 "const char* %s_h (int row, const char* col) { return %s[row][get_column_num(%d,%s_header,col)]; }"
-	 table table (length headers) table))
+	 "%s %s_h (int row, const char* col) { return %s[row][get_column_num(%d,%s_header,col)]; }"
+	 typename table table (length headers) table))
        (`d
 	(format
-	 "string %s_h (size_t row, string col) { return %s[row][get_column_num(%s_header,col)]; }"
-	 table table table))))))
+	 "%s %s_h (size_t row, string col) { return %s[row][get_column_num(%s_header,col)]; }"
+         typename table table table))))))
 
 (provide 'ob-C)
 

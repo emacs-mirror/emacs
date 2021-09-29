@@ -21,6 +21,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; Org-Babel support for evaluating lua source code.
+
 ;; Requirements:
 ;; for session support, lua-mode is needed.
 ;; lua-mode is not part of GNU Emacs/orgmode, but can be obtained
@@ -29,8 +33,6 @@
 ;; https://github.com/immerrr/lua-mode
 
 ;; However, sessions are not yet working.
-
-;; Org-Babel support for evaluating lua source code.
 
 ;;; Code:
 (require 'ob)

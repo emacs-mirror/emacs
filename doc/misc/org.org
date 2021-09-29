@@ -82,11 +82,8 @@ probably do not need to install it.  Most users will simply activate
 Org and begin exploring its many features.
 
 If, for one reason or another, you want to install Org on top of this
-pre-packaged version, there are three ways to do it:
-
-- by using the Emacs package system;
-- by downloading Org as an archive; or
-- by using Org's git repository.
+pre-packaged version, you can use the Emacs package system or clone
+Org's git repository.
 
 We *strongly recommend* sticking to a single installation method.
 
@@ -106,32 +103,6 @@ visited, i.e., where no Org built-in function have been loaded.
 Otherwise autoload Org functions will mess up the installation.
 #+end_quote
 
-If you want to use Org's package repository, check out the [[https://orgmode.org/elpa.html][Org ELPA
-page]].
-
-*** Downloading Org as an archive
-:PROPERTIES:
-:UNNUMBERED: notoc
-:END:
-
-You can download Org latest release from [[https://orgmode.org/][Org's website]].  In this case,
-make sure you set the load path correctly in your Emacs init file:
-
-#+begin_src emacs-lisp
-(add-to-list 'load-path "~/path/to/orgdir/lisp")
-#+end_src
-
-The downloaded archive contains contributed libraries that are not
-included in Emacs.  If you want to use them, add the =contrib/=
-directory to your load path:
-
-#+begin_src emacs-lisp
-(add-to-list 'load-path "~/path/to/orgdir/contrib/lisp" t)
-#+end_src
-
-Optionally, you can compile the files and/or install them in your
-system.  Run =make help= to list compilation and installation options.
-
 *** Using Org's git repository
 :PROPERTIES:
 :UNNUMBERED: notoc
@@ -141,7 +112,7 @@ You can clone Org's repository and install Org like this:
 
 #+begin_example
 $ cd ~/src/
-$ git clone https://code.orgmode.org/bzg/org-mode.git
+$ git clone https://git.savannah.gnu.org/git/emacs/org-mode.git
 $ cd org-mode/
 $ make autoloads
 #+end_example
@@ -160,6 +131,16 @@ list of compilation/installation options.
 
 For more detailed explanations on Org's build system, please check the
 Org Build System page on [[https://orgmode.org/worg/dev/org-build-system.html][Worg]].
+
+*** Installing Org's contributed packages
+:PROPERTIES:
+:UNNUMBERED: notoc
+:END:
+
+Org's repository used to contain =contrib/= directory for add-ons
+contributed by others.  As of Org 9.5, the directory has bee moved to
+this new dedicated [[https://git.sr.ht/~bzg/org-contrib][org-contrib]] repository, which you can install
+separately.
 
 ** Activation
 :PROPERTIES:
@@ -189,9 +170,9 @@ to globally available keys, like the ones reserved for users (see
 please modify the keys to your own liking.
 
 #+begin_src emacs-lisp
-(global-set-key (kbd "C-c l") 'org-store-link)
-(global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c c") 'org-capture)
+(global-set-key (kbd "C-c l") #'org-store-link)
+(global-set-key (kbd "C-c a") #'org-agenda)
+(global-set-key (kbd "C-c c") #'org-capture)
 #+end_src
 
 #+cindex: Org mode, turning on
@@ -273,7 +254,6 @@ shown below.
 
 ;; Add latest Org mode to load path.
 (add-to-list 'load-path (expand-file-name "/path/to/org-mode/lisp"))
-(add-to-list 'load-path (expand-file-name "/path/to/org-mode/contrib/lisp" t))
 #+end_src
 
 If an error occurs, a "backtrace" can be very useful---see below on
@@ -344,7 +324,7 @@ conventions:
 
 - =boss=, =ARCHIVE= ::
 
-  Tags are case-sensitive.  User-defined tags are written in
+  Tags are case-sensitive.  User-defined tags are usually written in
   lowercase; built-in tags with special meaning are written as they
   should appear in the document, usually with all capitals.
 
@@ -577,6 +557,10 @@ buffer:
 ,#+STARTUP: overview
 ,#+STARTUP: content
 ,#+STARTUP: showall
+,#+STARTUP: show2levels
+,#+STARTUP: show3levels
+,#+STARTUP: show4levels
+,#+STARTUP: show5levels
 ,#+STARTUP: showeverything
 #+end_example
 
@@ -656,10 +640,10 @@ The following commands jump to other headlines in the buffer.
   where you can use the following keys to find your destination:
 
   #+attr_texinfo: :columns 0.3 0.7
-  | {{{kbd(TAB)}}}                  | Cycle visibility.               |
+  | {{{kbd(TAB)}}}            | Cycle visibility.               |
   | {{{kbd(DOWN)}}} / {{{kbd(UP)}}} | Next/previous visible headline. |
-  | {{{kbd(RET)}}}                  | Select this location.           |
-  | {{{kbd(/)}}}                    | Do a Sparse-tree search         |
+  | {{{kbd(RET)}}}            | Select this location.           |
+  | {{{kbd(/)}}}              | Do a Sparse-tree search         |
 
   #+texinfo: @noindent
   The following keys work if you turn off ~org-goto-auto-isearch~
@@ -667,9 +651,9 @@ The following commands jump to other headlines in the buffer.
   #+attr_texinfo: :columns 0.3 0.7
   | {{{kbd(n)}}} / {{{kbd(p)}}}   | Next/previous visible headline.    |
   | {{{kbd(f)}}} / {{{kbd(b)}}}   | Next/previous headline same level. |
-  | {{{kbd(u)}}}                  | One level up.                      |
+  | {{{kbd(u)}}}            | One level up.                      |
   | {{{kbd(0)}}} ... {{{kbd(9)}}} | Digit argument.                    |
-  | {{{kbd(q)}}}                  | Quit.                              |
+  | {{{kbd(q)}}}            | Quit.                              |
 
   #+vindex: org-goto-interface
   #+texinfo: @noindent
@@ -932,16 +916,16 @@ commands can be accessed through a dispatcher:
   #+kindex: C-c / /
   #+findex: org-occur
   #+vindex: org-remove-highlights-with-change
-  Prompts for a regexp and shows a sparse tree with all matches.  If
-  the match is in a headline, the headline is made visible.  If the
-  match is in the body of an entry, headline and body are made
-  visible.  In order to provide minimal context, also the full
-  hierarchy of headlines above the match is shown, as well as the
-  headline following the match.  Each match is also highlighted; the
-  highlights disappear when the buffer is changed by an editing
-  command, or by pressing {{{kbd(C-c C-c)}}}[fn:8].  When called with
-  a {{{kbd(C-u)}}} prefix argument, previous highlights are kept, so
-  several calls to this command can be stacked.
+  Prompts for a regexp (see [[*Regular Expressions]]) and shows a sparse
+  tree with all matches.  If the match is in a headline, the headline
+  is made visible.  If the match is in the body of an entry, headline
+  and body are made visible.  In order to provide minimal context,
+  also the full hierarchy of headlines above the match is shown, as
+  well as the headline following the match.  Each match is also
+  highlighted; the highlights disappear when the buffer is changed by
+  an editing command, or by pressing {{{kbd(C-c C-c)}}}[fn:8].  When
+  called with a {{{kbd(C-u)}}} prefix argument, previous highlights
+  are kept, so several calls to this command can be stacked.
 
 - {{{kbd(M-g n)}}} or {{{kbd(M-g M-n)}}} (~next-error~) ::
 
@@ -1805,7 +1789,7 @@ mode with {{{kbd(M-x orgtbl-mode)}}}.  To turn it on by default, for
 example in Message mode, use
 
 #+begin_src emacs-lisp
-(add-hook 'message-mode-hook 'turn-on-orgtbl)
+(add-hook 'message-mode-hook #'turn-on-orgtbl)
 #+end_src
 
 Furthermore, with some special setup, it is possible to maintain
@@ -2074,6 +2058,14 @@ variable ~org-calc-default-modes~.
 
   Fraction and symbolic modes of Calc.
 
+- =u= ::
+
+  Units simplification mode of Calc.  Calc is also a symbolic
+  calculator and is capable of working with values having a unit,
+  represented with numerals followed by a unit string in Org table
+  cells.  This mode instructs Calc to simplify the units in the
+  computed expression before returning the result.
+
 - =T=, =t=, =U= ::
 
   Duration computations in Calc or Lisp, [[*Durations and time values]].
@@ -2169,38 +2161,54 @@ It is also possible to write a formula in Emacs Lisp.  This can be
 useful for string manipulation and control structures, if Calc's
 functionality is not enough.
 
-If a formula starts with a single-quote followed by an opening
-parenthesis, then it is evaluated as a Lisp form.  The evaluation
-should return either a string or a number.  Just as with Calc
-formulas, you can specify modes and a ~printf~ format after
-a semicolon.
+A formula is evaluated as a Lisp form when it starts with a
+single-quote followed by an opening parenthesis.  Cell table
+references are interpolated into the Lisp form before execution.  The
+evaluation should return either a string or a number.  Evaluation
+modes and a ~printf~ format used to render the returned values can be
+specified after a semicolon.
 
-With Emacs Lisp forms, you need to be conscious about the way field
-references are interpolated into the form.  By default, a reference is
-interpolated as a Lisp string (in double-quotes) containing the field.
-If you provide the =N= mode switch, all referenced elements are
-numbers---non-number fields will be zero---and interpolated as Lisp
-numbers, without quotes.  If you provide the =L= flag, all fields are
-interpolated literally, without quotes.  For example, if you want a
-reference to be interpreted as a string by the Lisp form, enclose the
-reference operator itself in double-quotes, like ="$3"=.  Ranges are
-inserted as space-separated fields, so you can embed them in list or
-vector syntax.
+By default, references are interpolated as literal Lisp strings: the
+field content is replaced in the Lisp form stripped of leading and
+trailing white space and surrounded in double-quotes.  For example:
 
-Here are a few examples---note how the =N= mode is used when we do
-computations in Lisp:
+: '(concat $1 $2)
 
-- ='(concat (substring $1 1 2) (substring $1 0 1) (substring $1 2))= ::
+#+texinfo: @noindent
+concatenates the content of columns 1 and column 2.
 
-  Swap the first two characters of the content of column 1.
+When the =N= flag is used, all referenced elements are parsed as
+numbers and interpolated as Lisp numbers, without quotes.  Fields that
+cannot be parsed as numbers are interpolated as zeros.  For example:
 
-- ='(+ $1 $2);N= ::
+: '(+ $1 $2);N
 
-  Add columns 1 and 2, equivalent to Calc's =$1+$2=.
+#+texinfo: @noindent
+adds columns 1 and 2, equivalent to Calc's =$1+$2=.  Ranges are
+inserted as space-separated fields, so they can be embedded in list or
+vector syntax.  For example:
 
-- ='(apply '+ '($1..$4));N= ::
+: '(apply '+ '($1..$4));N
 
-  Compute the sum of columns 1 to 4, like Calc's =vsum($1..$4)=.
+#+texinfo: @noindent
+computes the sum of columns 1 to 4, like Calc's =vsum($1..$4)=.
+
+When the =L= flag is used, all fields are interpolated literally: the
+cell content is replaced in the Lisp form stripped of leading and
+trailing white space and without quotes.  If a reference is intended
+to be interpreted as a string by the Lisp form, the reference operator
+itself should be enclosed in double-quotes, like ="$3"=.  The =L= flag
+is useful when strings and numbers are used in the same Lisp form.  For
+example:
+
+: '(substring "$1" $2 $3);L
+
+#+texinfo: @noindent
+extracts the part of the string in column 1 between the character
+positions specified in the integers in column 2 and 3 and it is easier
+to read than the equivalent:
+
+: '(substring $1 (string-to-number $2) (string-to-number $3))
 
 *** Durations and time values
 :PROPERTIES:
@@ -2797,7 +2805,7 @@ either graphically or in ASCII art.
 
 #+cindex: @samp{PLOT}, keyword
 Org Plot can produce 2D and 3D graphs of information stored in Org
-tables using [[http://www.gnuplot.info/][Gnuplot]] and [[http://cars9.uchicago.edu/~ravel/software/gnuplot-mode.html][Gnuplot mode]].  To see this in action, ensure
+tables using [[https://www.gnuplot.info/][Gnuplot]] and [[http://cars9.uchicago.edu/~ravel/software/gnuplot-mode.html][Gnuplot mode]].  To see this in action, ensure
 that you have both Gnuplot and Gnuplot mode installed on your system,
 then call {{{kbd(C-c \quot g)}}} or {{{kbd(M-x org-plot/gnuplot)}}} on the
 following table.
@@ -2811,6 +2819,19 @@ following table.
 | Sao Paolo |     71.00 |   11.50 |
 | Stockholm |    134.19 |   14.33 |
 | Morelia   |    257.56 |   17.67 |
+#+end_example
+
+Org Plot supports a range of plot types, and provides the ability to add more.
+For example, a radar plot can be generated like so:
+#+begin_example
+,#+PLOT: title:"An evaluation of plaintext document formats" transpose:yes type:radar min:0 max:4
+| Format            | Fine-grained-control | Initial Effort | Syntax simplicity | Editor Support | Integrations | Ease-of-referencing | Versatility |
+|-------------------+----------------------+----------------+-------------------+----------------+--------------+---------------------+-------------|
+| Word              |                    2 |              4 |                 4 |              2 |            3 |                   2 |           2 |
+| LaTeX             |                    4 |              1 |                 1 |              3 |            2 |                   4 |           3 |
+| Org Mode          |                    4 |              2 |               3.5 |              1 |            4 |                   4 |           4 |
+| Markdown          |                    1 |              3 |                 3 |              4 |            3 |                   3 |           1 |
+| Markdown + Pandoc |                  2.5 |            2.5 |               2.5 |              3 |            3 |                   3 |           2 |
 #+end_example
 
 Notice that Org Plot is smart enough to apply the table's headers as
@@ -2843,9 +2864,15 @@ For more information and examples see the [[https://orgmode.org/worg/org-tutoria
   the third and fourth columns.  Defaults to graphing all other
   columns aside from the =ind= column.
 
+- transpose ::
+
+  When =y=, =yes=, or =t= attempt to transpose the table data before
+  plotting.  Also recognises the shorthand option =trans=.
+
 - =type= ::
 
-  Specify whether the plot is =2d=, =3d=, or =grid=.
+  Specify the type of the plot, by default one of  =2d=, =3d=, =radar=, or =grid=.
+  Available types can be customised with ~org-plot/preset-plot-types~.
 
 - =with= ::
 
@@ -2871,6 +2898,27 @@ For more information and examples see the [[https://orgmode.org/worg/org-tutoria
 
   When plotting =3d= or =grid= types, set this to =t= to graph a flat
   mapping rather than a =3d= slope.
+
+- min ::
+
+  Provides a minimum axis value that may be used by a plot type.
+  Implicitly assumes the =y= axis is being referred to.  Can
+  explicitly provide a value for a either the =x= or =y= axis with
+  =xmin= and =ymin=.
+
+- max ::
+
+  Provides a maximum axis value that may be used by a plot type.
+  Implicitly assumes the =y= axis is being referred to.  Can
+  explicitly provide a value for a either the =x= or =y= axis with
+  =xmax= and =ymax=.
+
+- ticks ::
+
+  Provides a desired number of axis ticks to display, that may be used
+  by a plot type.  If none is given a plot type that requires ticks
+  will use ~org--plot/sensible-tick-num~ to try to determine a good
+  value.
 
 - =timefmt= ::
 
@@ -3113,14 +3161,14 @@ Here is the full set of built-in link types:
 
 - =file= ::
 
-   File links.  File name may be remote, absolute, or relative.
+  File links.  File name may be remote, absolute, or relative.
 
-   Additionally, you can specify a line number, or a text search.
-   In Org files, you may link to a headline name, a custom ID, or a
-   code reference instead.
+  Additionally, you can specify a line number, or a text search.
+  In Org files, you may link to a headline name, a custom ID, or a
+  code reference instead.
 
-   As a special case, "file" prefix may be omitted if the file name
-   is complete, e.g., it starts with =./=, or =/=.
+  As a special case, "file" prefix may be omitted if the file name
+  is complete, e.g., it starts with =./=, or =/=.
 
 - =attachment= ::
 
@@ -3224,9 +3272,10 @@ options:
 #+cindex: VM links
 #+cindex: Wanderlust links
 On top of these built-in link types, additional ones are available
-through the =contrib/= directory (see [[*Installation]]).  For example,
-these links to VM or Wanderlust messages are available when you load
-the corresponding libraries from the =contrib/= directory:
+through the =org-contrib= repository (see [[*Installation]]).  For
+example, these links to VM or Wanderlust messages are available when
+you load the corresponding libraries from the =org-contrib=
+repository:
 
 | =vm:folder=                            | VM folder link          |
 | =vm:folder#id=                         | VM message link         |
@@ -3291,8 +3340,9 @@ current buffer:
   =ID= property for the link[fn:29].  So using this command in Org
   buffers potentially creates two links: a human-readable link from
   the custom ID, and one that is globally unique and works even if the
-  entry is moved from file to file.  Later, when inserting the link,
-  you need to decide which one to use.
+  entry is moved from file to file.  The =ID= property can be either a
+  UUID (default) or a timestamp, depending on ~org-id-method~.  Later,
+  when inserting the link, you need to decide which one to use.
 
 - /Email/News clients: VM, Rmail, Wanderlust, MH-E, Gnus/ ::
 
@@ -3474,8 +3524,8 @@ generally, act on links.
 
   #+begin_src emacs-lisp
   (with-eval-after-load 'org
-    (define-key org-mode-map (kbd "M-n") 'org-next-link)
-    (define-key org-mode-map (kbd "M-p") 'org-previous-link))
+    (define-key org-mode-map (kbd "M-n") #'org-next-link)
+    (define-key org-mode-map (kbd "M-p") #'org-previous-link))
   #+end_src
 
 ** Using Links Outside Org
@@ -3516,7 +3566,7 @@ replacement text.  Here is an example:
 #+begin_src emacs-lisp
 (setq org-link-abbrev-alist
       '(("bugzilla"        . "http://10.1.2.9/bugzilla/show_bug.cgi?id=")
-        ("Nu Html Checker" . "https://validator.w3.org/nu/?doc=%h") 
+        ("Nu Html Checker" . "https://validator.w3.org/nu/?doc=%h")
 	("duckduckgo"      . "https://duckduckgo.com/?q=%s")
         ("omap"            . "http://nominatim.openstreetmap.org/search?q=%s&polygon=1")
         ("ads"             . "https://ui.adsabs.harvard.edu/search/q=%20author%3A\"%s\"")))
@@ -3616,10 +3666,10 @@ link, together with explanations for each:
 
 - =/REGEXP/= ::
 
-  Do a regular expression search for {{{var(REGEXP)}}}.  This uses the
-  Emacs command ~occur~ to list all matches in a separate window.  If
-  the target file is in Org mode, ~org-occur~ is used to create
-  a sparse tree with the matches.
+  Do a regular expression search for {{{var(REGEXP)}}} (see [[*Regular
+  Expressions]]).  This uses the Emacs command ~occur~ to list all
+  matches in a separate window.  If the target file is in Org mode,
+  ~org-occur~ is used to create a sparse tree with the matches.
 
 As a degenerate case, a file link with an empty file name can be used
 to search the current file.  For example, =[[file:::find me]]= does
@@ -3944,9 +3994,9 @@ interpretation, but it means the same as =#+TODO=, or
 A setup for using several sets in parallel would be:
 
 #+begin_example
-,#+TODO: TODO | DONE
-,#+TODO: REPORT BUG KNOWNCAUSE | FIXED
-,#+TODO: | CANCELED
+,#+TODO: TODO(t) | DONE(d)
+,#+TODO: REPORT(r) BUG(b) KNOWNCAUSE(k) | FIXED(f)
+,#+TODO: | CANCELED(c)
 #+end_example
 
 #+cindex: completion, of option keywords
@@ -4070,7 +4120,7 @@ checkboxes is blocked from switching to DONE.
 
 If you need more complex dependency structures, for example
 dependencies between entries in different trees or files, check out
-the contributed module =org-depend.el=.
+the module =org-depend.el= in the =org-contrib= repository.
 
 ** Progress Logging
 :PROPERTIES:
@@ -4158,10 +4208,6 @@ example, with the setting
       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
 #+end_src
 
-#+texinfo: @noindent
-To record a timestamp without a note for TODO keywords configured with
-=@=, just type {{{kbd(C-c C-c)}}} to enter a blank note when prompted.
-
 #+vindex: org-log-done
 You not only define global TODO keywords and fast access keys, but
 also request that a time is recorded when the entry is set to =DONE=,
@@ -4180,6 +4226,9 @@ You can use the exact same syntax for setting logging preferences local
 to a buffer:
 
 : #+TODO: TODO(t) WAIT(w@/!) | DONE(d!) CANCELED(c@)
+
+To record a timestamp without a note for TODO keywords configured with
+=@=, just type {{{kbd(C-c C-c)}}} to enter a blank note when prompted.
 
 #+cindex: @samp{LOGGING}, property
 In order to define logging settings that are local to a subtree or
@@ -4443,7 +4492,7 @@ all children are done, you can use the following setup:
   (let (org-log-done org-log-states)   ; turn off logging
     (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 
-(add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
+(add-hook 'org-after-todo-statistics-hook #'org-summary-todo)
 #+end_src
 
 Another possibility is the use of checkboxes to identify (a hierarchy
@@ -4794,9 +4843,10 @@ In this interface, you can also use the following special keys:
 
   #+kindex: TAB
   Enter a tag in the minibuffer, even if the tag is not in the
-  predefined list.  You can complete on all tags present in the
-  buffer.  You can also add several tags: just separate them with
-  a comma.
+  predefined list.  You can complete on all tags present in the buffer
+  and globally pre-defined tags from ~org-tag-alist~ and
+  ~org-tag-persistent-alist~.  You can also add several tags: just
+  separate them with a comma.
 
 - {{{kbd(SPC)}}} ::
 
@@ -4931,8 +4981,9 @@ mutually exclusive.
 
 Furthermore, the members of a group tag can also be regular
 expressions, creating the possibility of a more dynamic and rule-based
-tag structure.  The regular expressions in the group must be specified
-within curly brackets.  Here is an expanded example:
+tag structure (see [[*Regular Expressions]]).  The regular expressions in
+the group must be specified within curly brackets.  Here is an
+expanded example:
 
 #+begin_example
 ,#+TAGS: [ Vision : {V@.+} ]
@@ -5274,7 +5325,7 @@ single property:
   tree is created with all entries that define this property with the
   given value.  If you enclose the value in curly braces, it is
   interpreted as a regular expression and matched against the property
-  values.
+  values (see [[*Regular Expressions]]).
 
 ** Property Inheritance
 :PROPERTIES:
@@ -5737,8 +5788,8 @@ block.  If there is a =TBLFM= keyword after the table, the table is
 recalculated automatically after an update.
 
 An alternative way to capture and process property values into a table
-is provided by Eric Schulte's =org-collector.el=, which is
-a contributed package[fn:58].  It provides a general API to collect
+is provided by Eric Schulte's =org-collector.el=, which is a package
+in =org-contrib=[fn:58].  It provides a general API to collect
 properties from entries in a certain scope, and arbitrary Lisp
 expressions to process these values before inserting them into a table
 or a dynamic block.
@@ -6022,6 +6073,7 @@ dash(es) as the separator in the former case and use =+= as the
 separator in the latter case, e.g.:
 
 | =11am-1:15pm=  | \rArr{} 11:00-13:15   |
+| =11h-13h15=    | \rArr{} same as above |
 | =11am--1:15pm= | \rArr{} same as above |
 | =11am+2:15=    | \rArr{} same as above |
 
@@ -7197,6 +7249,16 @@ special command:
   Copying works like refiling, except that the original note is not
   deleted.
 
+- {{{kbd(C-c C-M-w)}}} (~org-refile-reverse~) ::
+
+  #+kindex: C-c C-M-w
+  #+findex: org-refile-reverse
+  Works like refiling, except that it temporarily toggles how the
+  value of ~org-reverse-note-order~ applies to the current buffer.  So
+  if ~org-refile~ would append the entry as the last entry under the
+  target header, ~org-refile-reverse~ will prepend it as the first
+  entry, and vice-versa.
+
 ** Archiving
 :PROPERTIES:
 :DESCRIPTION: What to do with finished products.
@@ -7746,6 +7808,9 @@ Now lets look at the elements of a template definition.  Each entry in
 
     Do not save the target file after finishing the capture.
 
+  - ~:refile-targets :: Temporarily set ~org-refile-targets~ to the
+    value of this property.
+
 **** Template expansion
 :PROPERTIES:
 :DESCRIPTION: Filling in information about time and context.
@@ -7804,6 +7869,10 @@ here:
 
   Like =%a=, but only insert the literal link.
 
+- =%L= ::
+
+  Like =%l=, but without brackets (the link content itself).
+
 - =%c= ::
 
   Current kill ring head.
@@ -7859,7 +7928,8 @@ here:
 
 - =%^{PROP}p= ::
 
-  Prompt the user for a value for property {{{var(PROP)}}}.
+  Prompt the user for a value for property {{{var(PROP)}}}.  You may
+  specify a default value with =%^{PROP|default}=.
 
 - =%^{PROMPT}= ::
 
@@ -8199,7 +8269,7 @@ To make Org mode take care of versioning of attachments for you, add
 the following to your Emacs config:
 
 #+begin_src emacs-lisp
-  (require 'org-attach-git)
+(require 'org-attach-git)
 #+end_src
 
 *** Attach from Dired
@@ -8259,7 +8329,7 @@ variable has detailed information.  With the following
 #+begin_src emacs-lisp
 (setq org-feed-alist
       '(("Slashdot"
-         "http://rss.slashdot.org/Slashdot/slashdot"
+         "https://rss.slashdot.org/Slashdot/slashdot"
          "~/txt/org/feeds.org" "Slashdot Entries")))
 #+end_src
 
@@ -8847,8 +8917,9 @@ only tags.
 
 #+cindex: regular expressions, with tags search
 Instead of a tag, you may also specify a regular expression enclosed
-in curly braces.  For example, =work+{^boss.*}= matches headlines that
-contain the tag =:work:= and any tag /starting/ with =boss=.
+in curly braces (see [[*Regular Expressions]]).  For example,
+=work+{^boss.*}= matches headlines that contain the tag =:work:= and
+any tag /starting/ with =boss=.
 
 #+cindex: group tags, as regular expressions
 Group tags (see [[*Tag Hierarchy]]) are expanded as regular expressions.
@@ -8888,7 +8959,7 @@ to test the value of a property.  Here is a complex example:
 
 #+begin_example
 +work-boss+PRIORITY="A"+Coffee="unlimited"+Effort<2
-         +With={Sarah|Denny}+SCHEDULED>="<2008-10-11>"
+         +With={Sarah\|Denny}+SCHEDULED>="<2008-10-11>"
 #+end_example
 
 #+texinfo: @noindent
@@ -8918,7 +8989,7 @@ So the search string in the example finds entries tagged =work= but
 not =boss=, which also have a priority value =A=, a =Coffee= property
 with the value =unlimited=, an =EFFORT= property that is numerically
 smaller than 2, a =With= property that is matched by the regular
-expression =Sarah|Denny=, and that are scheduled on or after October
+expression =Sarah\|Denny=, and that are scheduled on or after October
 11, 2008.
 
 You can configure Org mode to use property inheritance during
@@ -9296,16 +9367,16 @@ filter elements are accumulated.
 
   selects entries with category =work= and effort estimates below 10
   minutes, and deselects entries with tag =John= or matching the
-  regexp =plot=.  You can leave =+= out if that does not lead to
-  ambiguities.  The sequence of elements is arbitrary.  The filter
-  syntax assumes that there is no overlap between categories and tags.
-  Otherwise, tags take priority.  If you reply to the prompt with the
-  empty string, all filtering is removed.  If a filter is specified,
-  it replaces all current filters.  But if you call the command with
-  a double prefix argument, or if you add an additional =+= (e.g.,
-  =++work=) to the front of the string, the new filter elements are
-  added to the active ones.  A single prefix argument applies the
-  entire filter in a negative sense.
+  regexp =plot= (see [[*Regular Expressions]]).  You can leave =+= out if
+  that does not lead to ambiguities.  The sequence of elements is
+  arbitrary.  The filter syntax assumes that there is no overlap
+  between categories and tags.  Otherwise, tags take priority.  If you
+  reply to the prompt with the empty string, all filtering is removed.
+  If a filter is specified, it replaces all current filters.  But if
+  you call the command with a double prefix argument, or if you add an
+  additional =+= (e.g., =++work=) to the front of the string, the new
+  filter elements are added to the active ones.  A single prefix
+  argument applies the entire filter in a negative sense.
 
 - {{{kbd(|)}}} (~org-agenda-filter-remove-all~) ::
 
@@ -10863,7 +10934,7 @@ pretty output for a number of export back-ends.
 Org mode can contain LaTeX math fragments, and it supports ways to
 process these for several export back-ends.  When exporting to LaTeX,
 the code is left as it is.  When exporting to HTML, Org can use either
-[[http://www.mathjax.org][MathJax]] (see [[*Math formatting in HTML export]]) or transcode the math
+[[https://www.mathjax.org][MathJax]] (see [[*Math formatting in HTML export]]) or transcode the math
 into images (see [[*Previewing LaTeX fragments]]).
 
 LaTeX fragments do not need any special marking at all.  The following
@@ -10968,7 +11039,7 @@ current buffer with {{{kbd(M-x org-cdlatex-mode)}}}, or for all Org
 files with
 
 #+begin_src emacs-lisp
-(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+(add-hook 'org-mode-hook #'turn-on-org-cdlatex)
 #+end_src
 
 When this mode is enabled, the following features are present (for
@@ -11304,7 +11375,7 @@ The following command handles footnotes:
   #+attr_texinfo: :columns 0.1 0.9
   | {{{kbd(s)}}} | Sort the footnote definitions by reference sequence.               |
   | {{{kbd(r)}}} | Renumber the simple =fn:N= footnotes.                              |
-  | {{{kbd(S)}}} | Short for first {{{kbd(r)}}}, then {{{kbd(s)}}} action.            |
+  | {{{kbd(S)}}} | Short for first {{{kbd(r)}}}, then {{{kbd(s)}}} action.                        |
   | {{{kbd(n)}}} | Rename all footnotes into a =fn:1= ... =fn:n= sequence.            |
   | {{{kbd(d)}}} | Delete the footnote at point, including definition and references. |
 
@@ -11361,7 +11432,7 @@ Users can install libraries for additional formats from the Emacs
 packaging system.  For easy discovery, these packages have a common
 naming scheme: ~ox-NAME~, where {{{var(NAME)}}} is a format.  For
 example, ~ox-koma-letter~ for /koma-letter/ back-end.  More libraries
-can be found in the =contrib/= directory (see [[*Installation]]).
+can be found in the =org-contrib= repository (see [[*Installation]]).
 
 #+vindex: org-export-backends
 Org only loads back-ends for the following formats by default: ASCII,
@@ -11452,7 +11523,7 @@ further alter what is exported, and how.
 
   Toggle visible-only export.  This is useful for exporting only
   certain parts of an Org document by adjusting the visibility of
-  particular headings.
+  particular headings.  See also [[*Sparse Trees]].
 
 ** Export Settings
 :PROPERTIES:
@@ -11961,7 +12032,7 @@ example
 #+texinfo: @noindent
 becomes
 
-: Rose is red, violet's blue. Life's ordered: Org assists you.
+: Rose is red, violet's blue.  Life's ordered: Org assists you.
 
 As a special case, Org parses any replacement text starting with
 =(eval= as an Emacs Lisp expression and evaluates it accordingly.
@@ -12527,7 +12598,7 @@ compatible with XHTML 1.0 strict standard.
   #+findex: org-html-export-to-html
 
   Export as HTML file with a =.html= extension.  For =myfile.org=, Org
-  exports to =myfile.html=, overwriting without warning.  {{{kbd{C-c
+  exports to =myfile.html=, overwriting without warning.  {{{kbd(C-c
   C-e h o)}}} exports to HTML and opens it in a web browser.
 
 - {{{kbd(C-c C-e h H)}}} (~org-html-export-as-html~) ::
@@ -12551,6 +12622,9 @@ settings described in [[*Export Settings]].
   it as a HTML meta tag in the HTML file.  For long descriptions, use
   multiple =DESCRIPTION= lines.  The exporter takes care of wrapping
   the lines properly.
+
+  The exporter includes a number of other meta tags, which can be customized
+  by modifying ~org-html-meta-tags~.
 
 - =HTML_DOCTYPE= ::
 
@@ -12693,8 +12767,8 @@ exports to:
 #+begin_src html
 <video controls="controls" width="350">
   <source src="movie.mp4" type="video/mp4">
-    <source src="movie.ogg" type="video/ogg">
-      <p>Your browser does not support the video tag.</p>
+  <source src="movie.ogg" type="video/ogg">
+  <p>Your browser does not support the video tag.</p>
 </video>
 #+end_src
 
@@ -12925,7 +12999,7 @@ as-is.
 
 #+vindex: org-html-mathjax-options~
 LaTeX math snippets (see [[*LaTeX fragments]]) can be displayed in two
-different ways on HTML pages.  The default is to use the [[http://www.mathjax.org][MathJax]],
+different ways on HTML pages.  The default is to use the [[https://www.mathjax.org][MathJax]],
 which should work out of the box with Org[fn:129][fn:130].  Some MathJax
 display options can be configured via ~org-html-mathjax-options~, or
 in the buffer.  For example, with the following settings,
@@ -13621,7 +13695,7 @@ placement.
 #+cindex: image, centering in LaTeX export
 The LaTeX export back-end centers all images by default.  Setting
 =:center= to =nil= disables centering.  To disable centering globally,
-set ~org-latex-images-centered~ to =t=.
+set ~org-latex-images-centered~ to =nil=.
 
 Set the =:comment-include= attribute to non-~nil~ value for the LaTeX
 export back-end to comment out the =\includegraphics= macro.
@@ -13698,7 +13772,7 @@ objects through the attributes =:float= and =:options=.  For =:float=:
 The LaTeX export back-end passes string values in =:options= to LaTeX
 packages for customization of that specific source block.  In the
 example below, the =:options= are set for Minted.  Minted is a source
-code highlighting LaTeX package with many configurable options.
+code highlighting LaTeX package with many configurable options[fn:134].
 
 #+begin_example
 ,#+ATTR_LATEX: :options commentstyle=\bfseries
@@ -13801,6 +13875,95 @@ The LaTeX export back-end converts horizontal rules by the specified
 -----
 #+end_example
 
+*** Verse blocks in LaTeX export
+:PROPERTIES:
+:DESCRIPTION: Attributes specific to special blocks.
+:END:
+
+#+cindex: verse blocks, in @LaTeX{} export
+#+cindex: @samp{ATTR_LATEX}, keyword
+
+The LaTeX export back-end accepts four attributes for verse blocks:
+=:lines=, =:center=, =:versewidth= and =:latexcode=.  The three first
+require the external LaTeX package =verse.sty=, which is an extension
+of the standard LaTeX environment.
+
+- =:lines= :: To add marginal verse numbering.  Its value is an
+  integer, the sequence in which the verses should be numbered.
+- =:center= :: With value =t= all the verses on the page are optically
+  centered (a typographic convention for poetry), taking as a
+  reference the longest verse, which must be indicated by the
+  attribute =:versewidth=.
+- =:versewidth= :: Its value is a literal text string with the longest
+  verse.
+- =:latexcode= :: It accepts any arbitrary LaTeX code that can be
+  included within a LaTeX =verse= environment.
+
+A complete example with Shakespeare's first sonnet:
+
+#+begin_src org
+,#+ATTR_LATEX: :center t :latexcode \color{red} :lines 5
+,#+ATTR_LATEX: :versewidth Feed’st thy light’s flame with self-substantial fuel,
+,#+BEGIN_VERSE
+From fairest creatures we desire increase,
+That thereby beauty’s rose might never die,
+But as the riper should by time decease
+His tender heir might bear his memory
+But thou, contracted to thine own bright eyes,
+Feed’st thy light’s flame with self-substantial fuel,
+Making a famine where abundance lies,
+Thyself thy foe, to thy sweet self too cruel.
+Thou that art now the world’s fresh ornament,
+And only herald to the gaudy spring,
+Within thine own bud buriest thy content,
+And, tender churl, mak’st waste in niggardly.
+Pity the world, or else this glutton be,
+To eat the world’s due, by the grave and thee.
+,#+END_VERSE
+#+end_src
+
+*** Quote blocks in LaTeX export
+:PROPERTIES:
+:DESCRIPTION: Attributes specific to quote blocks.
+:END:
+
+#+cindex: quote blocks, in @LaTeX{} export
+#+cindex: @samp{ATTR_LATEX}, keyword
+#+cindex: org-latex-default-quote-environment
+
+The LaTeX export back-end accepts two attributes for quote blocks:
+=:environment=, for an arbitrary quoting environment (the default
+value is that of ~org-latex-default-quote-environment~: ~"quote"~) and
+=:options=.  For example, to choose the environment =quotation=,
+included as an alternative to =quote= in standard LaTeX classes:
+
+#+begin_example
+,#+ATTR_LATEX: :environment quotation
+,#+BEGIN_QUOTE
+some text...
+,#+END_QUOTE
+#+end_example
+
+To choose the =foreigndisplayquote= environment, included in the LaTeX
+package =csquotes=, with the =german= option, use this syntax:
+
+#+begin_example
+,#+LATEX_HEADER:\usepackage[autostyle=true]{csquotes}
+,#+ATTR_LATEX: :environment foreigndisplayquote :options {german}
+,#+BEGIN_QUOTE
+some text in German...
+,#+END_QUOTE
+#+end_example
+
+#+texinfo: @noindent
+which is exported to LaTeX as
+
+#+begin_example
+\begin{foreigndisplayquote}{german}
+some text in German...
+\end{foreigndisplayquote}
+#+end_example
+
 ** Markdown Export
 :PROPERTIES:
 :DESCRIPTION: Exporting to Markdown.
@@ -13860,7 +14023,7 @@ a limit to a level before the absolute limit (see [[*Export Settings]]).
 
 The ODT export back-end handles creating of OpenDocument Text (ODT)
 format.  Documents created by this exporter use the
-{{{cite(OpenDocument-v1.2 specification)}}}[fn:134] and are compatible
+{{{cite(OpenDocument-v1.2 specification)}}}[fn:135] and are compatible
 with LibreOffice 3.4.
 
 *** Pre-requisites for ODT export
@@ -14261,7 +14424,7 @@ document in one of the following ways:
   variables ~org-latex-to-mathml-convert-command~ and
   ~org-latex-to-mathml-jar-file~.
 
-  If you prefer to use MathToWeb[fn:135] as your converter, you can
+  If you prefer to use MathToWeb[fn:136] as your converter, you can
   configure the above variables as shown below.
 
   #+begin_src emacs-lisp
@@ -14272,7 +14435,7 @@ document in one of the following ways:
   #+end_src
 
   #+texinfo: @noindent
-  or, to use LaTeX​ML[fn:136] instead,
+  or, to use LaTeX​ML[fn:137] instead,
 
   #+begin_src emacs-lisp
   (setq org-latex-to-mathml-convert-command
@@ -14591,7 +14754,7 @@ with the =#+ATTR_ODT= line.  For a discussion on default formatting of
 tables, see [[*Tables in ODT export]].
 
 This feature closely mimics the way table templates are defined in the
-OpenDocument-v1.2 specification[fn:137].
+OpenDocument-v1.2 specification[fn:138].
 
 #+vindex: org-odt-table-styles
 For quick preview of this feature, install the settings below and export the
@@ -14625,7 +14788,7 @@ templates, define new styles there.
 
 To use this feature proceed as follows:
 
-1. Create a table template[fn:138].
+1. Create a table template[fn:139].
 
    A table template is set of =table-cell= and =paragraph= styles for
    each of the following table cell categories:
@@ -14664,7 +14827,7 @@ To use this feature proceed as follows:
    =</office:automatic-styles>= element of the content template file
    (see [[x-orgodtcontenttemplate-xml][Factory styles]]).
 
-2. Define a table style[fn:139].
+2. Define a table style[fn:140].
 
    #+vindex: org-odt-table-styles
    To define a table style, create an entry for the style in the
@@ -15159,7 +15322,7 @@ To specify the author of the quotation, use the =:author= attribute.
 ,#+BEGIN_QUOTE
 The Lady of the Lake, her arm clad in the purest shimmering samite,
 held aloft Excalibur from the bosom of the water, signifying by divine
-providence that I, Arthur, was to carry Excalibur. That is why I am
+providence that I, Arthur, was to carry Excalibur.  That is why I am
 your king.
 ,#+END_QUOTE
 #+end_example
@@ -15422,7 +15585,7 @@ BACKEND is the export back-end being used, as a symbol."
   (org-map-entries
    (lambda () (delete-region (point) (line-beginning-position 2)))))
 
-(add-hook 'org-export-before-parsing-hook 'my-headline-removal)
+(add-hook 'org-export-before-parsing-hook #'my-headline-removal)
 #+end_src
 
 *** Filters
@@ -15768,17 +15931,17 @@ following properties
 Publishing means that a file is copied to the destination directory
 and possibly transformed in the process.  The default transformation
 is to export Org files as HTML files, and this is done by the function
-~org-publish-org-to-html~ which calls the HTML exporter (see [[*HTML
+~org-html-publish-to-html~ which calls the HTML exporter (see [[*HTML
 Export]]).  But you can also publish your content as PDF files using
-~org-publish-org-to-pdf~, or as ASCII, Texinfo, etc., using the
+~org-latex-publish-to-pdf~, or as ASCII, Texinfo, etc., using the
 corresponding functions.
 
 If you want to publish the Org file as an =.org= file but with
 /archived/, /commented/, and /tag-excluded/ trees removed, use
-~org-publish-org-to-org~.  This produces =file.org= and put it in the
+~org-org-publish-to-org~.  This produces =file.org= and puts it in the
 publishing directory.  If you want a htmlized version of this file,
 set the parameter ~:htmlized-source~ to ~t~.  It produces
-=file.org.html= in the publishing directory[fn:140].
+=file.org.html= in the publishing directory[fn:141].
 
 Other files like images only need to be copied to the publishing
 destination; for this you can use ~org-publish-attachment~.  For
@@ -16247,12 +16410,13 @@ directory on the local machine.
 (setq org-publish-project-alist
       '(("org"
          :base-directory "~/org/"
+         :publishing-function org-html-publish-to-html
          :publishing-directory "~/public_html"
          :section-numbers nil
-         :table-of-contents nil
-         :style "<link rel=\"stylesheet\"
-                href=\"../other/mystyle.css\"
-                type=\"text/css\"/>")))
+         :with-toc nil
+         :html-head "<link rel=\"stylesheet\"
+                    href=\"../other/mystyle.css\"
+                    type=\"text/css\"/>")))
 #+end_src
 
 *** Example: complex publishing configuration
@@ -16347,6 +16511,129 @@ of the commands above, or by customizing the variable
 particular if files include other files via =SETUPFILE= or =INCLUDE=
 keywords.
 
+* Citation handling
+:PROPERTIES:
+:DESCRIPTION: create, follow and export citations.
+:END:
+#+cindex: citation
+
+As of Org 9.5, a new library =oc.el= provides tooling to handle
+citations in Org via "citation processors" that offer some or all of
+the following capabilities:
+
+- "activate" :: Fontification, tooltip preview, etc.
+- "follow" :: At-point actions on citations via ~org-open-at-point~.
+- "insert" :: Add and edit citations via ~org-cite-insert~.
+- "export" :: Via different libraries for different target formats.
+
+The user can configure these with ~org-cite-active-processor~,
+~org-cite-follow-processor~, ~org-cite-insert-processor~, and
+~org-cite-export-processors~ respectively.
+
+The included "basic" processor provides all four capabilities.
+
+** Citations
+
+Before adding citations, first set one-or-more bibliographies, either
+globally with ~org-cite-global-bibliography~, or locally using one or
+more "bibliography" keywords.
+
+#+begin_example
+#+bibliography: SomeFile.bib
+#+bibliography: /some/other/file.json
+#+bibliography: "/some/file/with spaces/in its name.bib"
+#+end_example
+
+One can then insert and edit citations using ~org-cite-insert~, called
+with {{{kbd(M-x org-cite-insert)}}}.
+
+A /citation/ requires one or more citation /key(s)/, elements
+identifying a reference in the bibliography.
+
+- Each citation is surrounded by brackets and uses the =cite= type.
+
+- Each key starts with the character =@=.
+
+- Each key can be qualified by a /prefix/ (e.g. "see ") and/or a
+  /suffix/ (e.g. "p. 123"), giving informations useful or necessary fo
+  the comprehension of the citation but not included in the reference.
+
+- A single citation can cite more than one reference ; the keys are
+  separated by semicolons ; the formatting of such citation groups is
+  specified by the style.
+
+- One can also specify a stylistic variation for the citations by
+  inserting a =/= and a style name between the =cite= keyword and the
+  colon ; this usially makes sense only for the author-year styles.
+
+#+begin_example
+[cite/style:common prefix ;prefix @key suffix; ... ; common suffix]
+#+end_example
+
+The only mandatory elements are:
+
+- The =cite= keyword and the colon.
+- The =@= character immediately preceding each key.
+- The brackets surrounding the citation(s) (group).
+
+** Citation export processors
+
+Org currently includes the following export processors:
+
+- Two processors can export to a variety of formats, including =latex=
+  (and therefore =pdf=), =html=, =odt= and plain (UTF8) text:
+
+  - basic :: a basic export processors, well adapted to situations
+    where backward compatibility is not a requirement and formatting
+    needs are minimal;
+
+  - csl :: this export processor uses format files written in [[https://en.wikipedia.org/wiki/Citation_Style_Language][Citation
+    Style Language]] via [[https://github.com/andras-simonyi/citeproc-el][citeproc-el]];
+
+- In contrast, two other processors target LaTeX and LaTeX-derived
+  formats exclusively:
+
+  - natbib :: this export processor uses =bibtex=, the historical
+    bibliographic processor used with LaTeX, thus allowing the use of
+    data and style files compatible with this processor (including a
+    large number of publishers' styles).  It uses citation commands
+    implemented in the LaTeX package =natbib=, allowing more stylistic
+    variants that LaTeX's =\cite= command.
+
+  - biblatex :: this backend allows the use of data and formats
+    prepared for =biblatex=, an alternate bibliographic processor used
+    with LaTeX, which overcomes some serious =bibtex= limitations, but
+    has not (yet?) been widely adopted by publishers.
+
+The =#+cite_export:= keyword specifies the export processor and the
+citation (and possibly reference) style(s); for example (all arguments
+are optional)
+
+#+begin_example
+#+cite_export: basic author author-year
+#+end_example
+
+specifies the "basic" export processor with citations inserted as
+author's name and references indexed by author's names and year;
+
+#+begin_example
+#+cite_export: csl /some/path/to/vancouver-brackets.csl
+#+end_example
+
+specifies the "csl" processor and CSL style, which in this case
+defines numeric citations and numeric references according to the
+=Vancouver= specification (as style used in many medical journals),
+following a typesetting variation putting citations between brackets;
+
+#+begin_example
+#+cite_export: natbib kluwer
+#+end_example
+
+specifies the "natbib" export processor with a label citation style
+conformant to the Harvard style and the specification of the
+Wolkers-Kluwer publisher; since it relies on the =bibtex= processor of
+your LaTeX installation, it won't export to anything but PDF.
+
 * Working with Source Code
 :PROPERTIES:
 :DESCRIPTION: Export, evaluate, and tangle code blocks.
@@ -16393,7 +16680,7 @@ extract, export, and publish source code blocks.  Org can also compile
 and execute a source code block, then capture the results.  The Org
 mode literature sometimes refers to source code blocks as /live code/
 blocks because they can alter the content of the Org document or the
-material that it exports.  Users can control how live they want each
+material that it exports.  Users can control the "liveliness" of each
 source code block by tweaking the header arguments (see [[*Using Header
 Arguments]]) for compiling, execution, extraction, and exporting.
 
@@ -16736,7 +17023,11 @@ the =var= header argument.
 body.  {{{var(ASSIGN)}}} is a literal value, such as a string,
 a number, a reference to a table, a list, a literal example, another
 code block---with or without arguments---or the results of evaluating
-a code block.
+a code block.  {{{var(ASSIGN)}}} may specify a filename for references
+to elements in a different file, using a =:= to separate the filename
+from the reference.
+
+: :var NAME=FILE:REFERENCE
 
 Here are examples of passing values by reference:
 
@@ -16814,6 +17105,9 @@ Here are examples of passing values by reference:
   | one | 11 | 12 | 13 | 14 | 15 |
   | two | 16 | 17 | 18 | 19 | 20 |
   #+end_example
+
+To refer to a table in another file, join the filename and table name with
+a colon, for example: =:var table=other-file.org:example-table=.
 
 - list ::
 
@@ -17156,13 +17450,13 @@ See [[*Languages]] to enable other languages.
 #+kindex: C-c C-v e
 #+findex: org-babel-execute-src-block
 Org provides many ways to execute code blocks.  {{{kbd(C-c C-c)}}} or
-{{{kbd(C-c C-v e)}}} with the point on a code block[fn:141] calls the
+{{{kbd(C-c C-v e)}}} with the point on a code block[fn:142] calls the
 ~org-babel-execute-src-block~ function, which executes the code in the
 block, collects the results, and inserts them in the buffer.
 
 #+cindex: @samp{CALL}, keyword
 #+vindex: org-babel-inline-result-wrap
-By calling a named code block[fn:142] from an Org mode buffer or
+By calling a named code block[fn:143] from an Org mode buffer or
 a table.  Org can call the named code blocks from the current Org mode
 buffer or from the "Library of Babel" (see [[*Library of Babel]]).
 
@@ -17363,7 +17657,7 @@ they are mutually exclusive.
 
 - =value= ::
 
-  Default for most Babel libraries[fn:142].  Functional mode.  Org
+  Default for most Babel libraries[fn:143].  Functional mode.  Org
   gets the value by wrapping the code in a function definition in the
   language of the source block.  That is why when using =:results
   value=, code should execute like a function and return a value.  For
@@ -17488,10 +17782,12 @@ default behavior is to automatically determine the result type.
   #+end_example
 
   #+cindex: @samp{file-desc}, header argument
-  The =file-desc= header argument defines the description (see
-  [[*Link Format]]) for the link.  If =file-desc= is present but has no value,
+  The =file-desc= header argument defines the description (see [[*Link
+  Format]]) for the link.  If =file-desc= is present but has no value,
   the =file= value is used as the link description.  When this
-  argument is not present, the description is omitted.
+  argument is not present, the description is omitted.  If you want to
+  provide the =file-desc= argument but omit the description, you can
+  provide it with an empty vector (i.e., :file-desc []).
 
   #+cindex: @samp{sep}, header argument
   By default, Org assumes that a table written to a file has
@@ -17549,7 +17845,7 @@ follows from the type specified above.
 
   #+begin_example
   ,#+begin_src shell :results file link :file "download.tar.gz"
-  wget -c "http://example.com/download.tar.gz"
+  wget -c "https://example.com/download.tar.gz"
   ,#+end_src
   #+end_example
 
@@ -17595,15 +17891,20 @@ value listed above.  E.g.,
 
 Handling options after collecting the results.
 
+- =replace= ::
+
+  Default.  Insert results in the Org buffer.  Remove previous
+  results.  Usage example: =:results output replace=.
+
 - =silent= ::
 
   Do not insert results in the Org mode buffer, but echo them in the
   minibuffer.  Usage example: =:results output silent=.
 
-- =replace= ::
+- =none= ::
 
-  Default.  Insert results in the Org buffer.  Remove previous
-  results.  Usage example: =:results output replace=.
+  Do not process results at all.  No inserting in the Org mode buffer
+  nor echo them in the minibuffer.  Usage example: =:results none=.
 
 - =append= ::
 
@@ -17929,35 +18230,8 @@ code block header arguments:
 #+cindex: source code, languages
 #+cindex: code block, languages
 
-Code blocks in the following languages are supported.
-
-#+attr_texinfo: :columns 0.25 0.25 0.25 0.20
-| Language   | Identifier    | Language       | Identifier   |
-|------------+---------------+----------------+--------------|
-| Asymptote  | =asymptote=   | Lisp           | =lisp=       |
-| Awk        | =awk=         | Lua            | =lua=        |
-| C          | =C=           | MATLAB         | =matlab=     |
-| C++        | =C++=[fn:143] | Mscgen         | =mscgen=     |
-| Clojure    | =clojure=     | Objective Caml | =ocaml=      |
-| CSS        | =css=         | Octave         | =octave=     |
-| D          | =D=[fn:144]   | Org mode       | =org=        |
-| ditaa      | =ditaa=       | Oz             | =oz=         |
-| Emacs Calc | =calc=        | Perl           | =perl=       |
-| Emacs Lisp | =emacs-lisp=  | Plantuml       | =plantuml=   |
-| Eshell     | =eshell=      | Processing.js  | =processing= |
-| Fortran    | =fortran=     | Python         | =python=     |
-| Gnuplot    | =gnuplot=     | R              | =R=          |
-| GNU Screen | =screen=      | Ruby           | =ruby=       |
-| Graphviz   | =dot=         | Sass           | =sass=       |
-| Haskell    | =haskell=     | Scheme         | =scheme=     |
-| Java       | =java=        | Sed            | =sed=        |
-| Javascript | =js=          | shell          | =sh=         |
-| LaTeX      | =latex=       | SQL            | =sql=        |
-| Ledger     | =ledger=      | SQLite         | =sqlite=     |
-| Lilypond   | =lilypond=    | Vala           | =vala=       |
-
-Additional documentation for some languages is at
-https://orgmode.org/worg/org-contrib/babel/languages.html.
+Code blocks in dozens of languages are supported.  See Worg for
+[[https://orgmode.org/worg/org-contrib/babel/languages/index.html][language specific documentation]].
 
 #+vindex: org-babel-load-languages
 By default, only Emacs Lisp is enabled for evaluation.  To enable or
@@ -18071,7 +18345,7 @@ for Python and Emacs Lisp languages.
 
 #+cindex: @samp{noweb-ref}, header argument
 Source code blocks can include references to other source code blocks,
-using a noweb[fn:145] style syntax:
+using a noweb[fn:144] style syntax:
 
 : <<CODE-BLOCK-ID>>
 
@@ -18582,14 +18856,14 @@ Org Tempo expands snippets to structures defined in
 ~org-structure-template-alist~ and ~org-tempo-keywords-alist~.  For
 example, {{{kbd(< s TAB)}}} creates a code block.  Enable it by
 customizing ~org-modules~ or add =(require 'org-tempo)= to your Emacs
-init file[fn:146].
+init file[fn:145].
 
 #+attr_texinfo: :columns 0.1 0.9
 | {{{kbd(a)}}} | =#+BEGIN_EXPORT ascii= ... =#+END_EXPORT= |
 | {{{kbd(c)}}} | =#+BEGIN_CENTER= ... =#+END_CENTER=       |
 | {{{kbd(C)}}} | =#+BEGIN_COMMENT= ... =#+END_COMMENT=     |
 | {{{kbd(e)}}} | =#+BEGIN_EXAMPLE= ... =#+END_EXAMPLE=     |
-| {{{kbd(E)}}} | =#+BEGIN_EXPORT= ... =#+END_EXPORT= |
+| {{{kbd(E)}}} | =#+BEGIN_EXPORT= ... =#+END_EXPORT=       |
 | {{{kbd(h)}}} | =#+BEGIN_EXPORT html= ... =#+END_EXPORT=  |
 | {{{kbd(l)}}} | =#+BEGIN_EXPORT latex= ... =#+END_EXPORT= |
 | {{{kbd(q)}}} | =#+BEGIN_QUOTE= ... =#+END_QUOTE=         |
@@ -18616,14 +18890,14 @@ the variable ~org-use-speed-commands~ to a non-~nil~ value.  To
 trigger a Speed Key, point must be at the beginning of an Org
 headline, before any of the stars.
 
-#+vindex: org-speed-commands-user
+#+vindex: org-speed-commands
 #+findex: org-speed-command-help
 Org comes with a pre-defined list of Speed Keys.  To add or modify
-Speed Keys, customize the variable, ~org-speed-commands-user~.  For
-more details, see the variable's docstring.  With Speed Keys
-activated, {{{kbd(M-x org-speed-command-help)}}}, or {{{kbd(?)}}} when
-point is at the beginning of an Org headline, shows currently active
-Speed Keys, including the user-defined ones.
+Speed Keys, customize the option ~org-speed-commands~.  For more
+details, see the variable's docstring.  With Speed Keys activated,
+{{{kbd(M-x org-speed-command-help)}}}, or {{{kbd(?)}}} when point is at the
+beginning of an Org headline, shows currently active Speed Keys,
+including the user-defined ones.
 
 ** A Cleaner Outline View
 :PROPERTIES:
@@ -18662,7 +18936,7 @@ in the desired amount with hard spaces and hiding leading stars.
 To display the buffer in the indented view, activate Org Indent minor
 mode, using {{{kbd(M-x org-indent-mode)}}}.  Text lines that are not
 headlines are prefixed with virtual spaces to vertically align with
-the headline text[fn:147].
+the headline text[fn:146].
 
 #+vindex: org-indent-indentation-per-level
 To make more horizontal space, the headlines are shifted by two
@@ -18690,15 +18964,15 @@ use =STARTUP= keyword as follows:
 
 It is possible to use hard spaces to achieve the indentation instead,
 if the bare ASCII file should have the indented look also outside
-Emacs[fn:148].  With Org's support, you have to indent all lines to
+Emacs[fn:147].  With Org's support, you have to indent all lines to
 line up with the outline headers.  You would use these
-settings[fn:149]:
+settings[fn:148]:
 
-  #+begin_src emacs-lisp
-  (setq org-adapt-indentation t
-        org-hide-leading-stars t
-        org-odd-levels-only t)
-  #+end_src
+#+begin_src emacs-lisp
+(setq org-adapt-indentation t
+      org-hide-leading-stars t
+      org-odd-levels-only t)
+#+end_src
 
 - /Indentation of text below headlines/ (~org-adapt-indentation~) ::
 
@@ -18955,11 +19229,15 @@ changes.
   | =overview=       | Top-level headlines only.  |
   | =content=        | All headlines.             |
   | =showall=        | No folding on any entry.   |
+  | =show2levels=    | Headline levels 1-2.       |
+  | =show3levels=    | Headline levels 1-3.       |
+  | =show4levels=    | Headline levels 1-4.       |
+  | =show5levels=    | Headline levels 1-5.       |
   | =showeverything= | Show even drawer contents. |
 
   #+vindex: org-startup-indented
   Dynamic virtual indentation is controlled by the variable
-  ~org-startup-indented~[fn:150].
+  ~org-startup-indented~[fn:149].
 
   | =indent=   | Start with Org Indent mode turned on.  |
   | =noindent= | Start with Org Indent mode turned off. |
@@ -19094,6 +19372,22 @@ changes.
   #+vindex: org-todo-keywords
   These lines set the TODO keywords and their interpretation in the
   current file.  The corresponding variable is ~org-todo-keywords~.
+
+** Regular Expressions
+:PROPERTIES:
+:DESCRIPTION: Elisp regular expressions.
+:END:
+#+cindex: regular expressions syntax
+#+cindex: regular expressions, in searches
+
+Org, as an Emacs mode, makes use of Elisp regular expressions for
+searching, matching and filtering.  Elisp regular expressions have a
+somewhat different syntax then some common standards.  Most notably,
+alternation is indicated using =\|= and matching groups are denoted by
+=\(...\)=.  For example the string =home\|work= matches either =home=
+or =work=.
+
+For more information, see [[info:emacs::Regexps][Regular Expressions in Emacs]].
 
 ** Org Syntax
 :PROPERTIES:
@@ -19533,7 +19827,7 @@ passed to Emacs through the =emacsclient= command, so you also need to
 ensure an Emacs server is running.  More precisely, when the
 application calls
 
-: emacsclient org-protocol://PROTOCOL?key1=val1&key2=val2
+: emacsclient "org-protocol://PROTOCOL?key1=val1&key2=val2"
 
 #+texinfo: @noindent
 Emacs calls the handler associated to {{{var(PROTOCOL)}}} with
@@ -19556,7 +19850,7 @@ Using the ~store-link~ handler, you can copy links, to that they can
 be inserted using {{{kbd(M-x org-insert-link)}}} or yanking.  More
 precisely, the command
 
-: emacsclient org-protocol://store-link?url=URL&title=TITLE
+: emacsclient "org-protocol://store-link?url=URL&title=TITLE"
 
 #+texinfo: @noindent
 stores the following link:
@@ -19571,9 +19865,18 @@ To use this feature from a browser, add a bookmark with an arbitrary
 name, e.g., =Org: store-link= and enter this as /Location/:
 
 #+begin_example
+javascript:location.href='org-protocol://store-link?' +
+      new URLSearchParams({url:location.href, title:document.title});
+#+end_example
+
+Title is an optional parameter.  Another expression was recommended earlier:
+
+#+begin_example
 javascript:location.href='org-protocol://store-link?url='+
       encodeURIComponent(location.href);
 #+end_example
+
+The latter form is compatible with older Org versions from 9.0 to 9.4.
 
 *** The ~capture~ protocol
 :PROPERTIES:
@@ -19585,10 +19888,19 @@ javascript:location.href='org-protocol://store-link?url='+
 Activating the "capture" handler pops up a =Capture= buffer in Emacs,
 using acapture template.
 
-: emacsclient org-protocol://capture?template=X?url=URL?title=TITLE?body=BODY
+: emacsclient "org-protocol://capture?template=X&url=URL&title=TITLE&body=BODY"
 
 To use this feature, add a bookmark with an arbitrary name, e.g.,
 =Org: capture=, and enter this as =Location=:
+
+#+begin_example
+javascript:location.href='org-protocol://capture?' +
+      new URLSearchParams({
+            template: 'x', url: window.location.href,
+            title: document.title, body: window.getSelection()});
+#+end_example
+
+You might have seen another expression:
 
 #+begin_example
 javascript:location.href='org-protocol://capture?template=x'+
@@ -19596,6 +19908,10 @@ javascript:location.href='org-protocol://capture?template=x'+
       '&title='+encodeURIComponent(document.title)+
       '&body='+encodeURIComponent(window.getSelection());
 #+end_example
+
+It is a bit more cluttered than the former one, but it is compatible
+with previous Org versions 9.0-9.4.  In these versions encoding of
+space as "+" character was not supported by URI decoder.
 
 #+vindex: org-protocol-default-template-key
 The capture template to be used can be specified in the bookmark (like
@@ -19652,13 +19968,13 @@ click the bookmark and start editing.
 #+cindex: rewritten URL in open-source protocol
 #+cindex: protocol, open-source rewritten URL
 However, such mapping may not always yield the desired results.
-Suppose you maintain an online store located at =http://example.com/=.
+Suppose you maintain an online store located at =https://example.com/=.
 The local sources reside in =/home/user/example/=.  It is common
 practice to serve all products in such a store through one file and
 rewrite URLs that do not match an existing file on the server.  That
-way, a request to =http://example.com/print/posters.html= might be
+way, a request to =https://example.com/print/posters.html= might be
 rewritten on the server to something like
-=http://example.com/shop/products.php/posters.html.php=.  The
+=https://example.com/shop/products.php/posters.html.php=.  The
 ~open-source~ handler probably cannot find a file named
 =/home/user/example/print/posters.html.php= and fails.
 
@@ -19673,7 +19989,7 @@ adding ~:rewrites~ rules like this:
 #+begin_src emacs-lisp
 (setq org-protocol-project-alist
       '(("example.com"
-         :base-url "http://example.com/"
+         :base-url "https://example.com/"
          :working-directory "/home/user/example/"
          :online-suffix ".php"
          :working-suffix ".php"
@@ -19704,8 +20020,8 @@ an Org file that is part of a publishing project.
 :END:
 
 Org Crypt encrypts the text of an entry, but not the headline, or
-properties.  Behind the scene, it uses the Emacs EasyPG library to
-encrypt and decrypt files.
+properties.  Behind the scene, it uses the [[info:epa][Emacs EasyPG Library]] to
+encrypt and decrypt files, and EasyPG needs a correct [[info:gnupg][GnuPG]] setup.
 
 #+vindex: org-crypt-tag-matcher
 Any text below a headline that has a =crypt= tag is automatically
@@ -19778,7 +20094,7 @@ Tags]]) only for those set in these variables.
 
 #+vindex: org-mobile-directory
 The mobile application needs access to a file directory on
-a server[fn:151] to interact with Emacs.  Pass its location through
+a server[fn:150] to interact with Emacs.  Pass its location through
 the ~org-mobile-directory~ variable.  If you can mount that directory
 locally just set the variable to point to that directory:
 
@@ -19799,7 +20115,7 @@ With a public server, consider encrypting the files.  Org also
 requires OpenSSL installed on the local computer.  To turn on
 encryption, set the same password in the mobile application and in
 Emacs.  Set the password in the variable
-~org-mobile-use-encryption~[fn:152].  Note that even after the mobile
+~org-mobile-use-encryption~[fn:151].  Note that even after the mobile
 application encrypts the file contents, the file name remains visible
 on the file systems of the local computer, the server, and the mobile
 device.
@@ -19815,15 +20131,15 @@ The command ~org-mobile-push~ copies files listed in
 ~org-mobile-files~ into the staging area.  Files include agenda files
 (as listed in ~org-agenda-files~).  Customize ~org-mobile-files~ to
 add other files.  File names are staged with paths relative to
-~org-directory~, so all files should be inside this directory[fn:153].
+~org-directory~, so all files should be inside this directory[fn:152].
 
 Push creates a special Org file =agendas.org= with custom agenda views
-defined by the user[fn:154].
+defined by the user[fn:153].
 
 Finally, Org writes the file =index.org=, containing links to other
 files.  The mobile application reads this file first from the server
 to determine what other files to download for agendas.  For faster
-downloads, it is expected to only read files whose checksums[fn:155]
+downloads, it is expected to only read files whose checksums[fn:154]
 have changed.
 
 *** Pulling from the mobile application
@@ -19840,7 +20156,7 @@ data in an inbox file format, through the following steps:
 
 1.
    #+vindex: org-mobile-inbox-for-pull
-   Org moves all entries found in =mobileorg.org=[fn:156] and appends
+   Org moves all entries found in =mobileorg.org=[fn:155] and appends
    them to the file pointed to by the variable
    ~org-mobile-inbox-for-pull~.  It should reside neither in the
    staging area nor on the server.  Each captured entry and each
@@ -19904,12 +20220,10 @@ https://orgmode.org/worg/doc.html#hooks.
 :END:
 #+cindex: add-on packages
 
-Various authors wrote a large number of add-on packages for Org.
-
-These packages are not part of Emacs, but they are distributed as
-contributed packages with the separate release available at
-https://orgmode.org.  See the =contrib/README= file in the source code
-directory for a list of contributed files.  Worg page with more
+Various authors wrote a large number of add-on packages for Org.  Some
+of these packages used to be part of the =org-mode= repository but are
+now hosted in a separate =org-contrib= repository
+[[https://git.sr.ht/~bzg/org-contrib][here]].  A Worg page with more
 information is at: https://orgmode.org/worg/org-contrib/.
 
 ** Adding Hyperlink Types
@@ -20136,9 +20450,9 @@ of these strategies:
 #+cindex: @LaTeX{}, and Orgtbl mode
 
 To wrap a source table in LaTeX, use the =comment= environment
-provided by =comment.sty=[fn:157].  To activate it, put
+provided by =comment.sty=[fn:156].  To activate it, put
 ~\usepackage{comment}~ in the document header.  Orgtbl mode inserts
-a radio table skeleton[fn:158] with the command {{{kbd(M-x
+a radio table skeleton[fn:157] with the command {{{kbd(M-x
 orgtbl-insert-radio-table)}}}, which prompts for a table name.  For
 example, if =salesfigures= is the name, the template inserts:
 
@@ -20157,7 +20471,7 @@ The line =#+ORGTBL: SEND= tells Orgtbl mode to use the function
 ~orgtbl-to-latex~ to convert the table to LaTeX format, then insert
 the table at the target (receive) location named =salesfigures=.  Now
 the table is ready for data entry.  It can even use spreadsheet
-features[fn:159]:
+features[fn:158]:
 
 #+begin_example
 % BEGIN RECEIVE ORGTBL salesfigures
@@ -20373,7 +20687,7 @@ Dynamic blocks, like any other block, can be narrowed with
 #+vindex: org-agenda-skip-function
 #+vindex: org-agenda-skip-function-global
 Org provides a special hook to further limit items in agenda views:
-~agenda~, ~agenda*~[fn:160], ~todo~, ~alltodo~, ~tags~, ~tags-todo~,
+~agenda~, ~agenda*~[fn:159], ~todo~, ~alltodo~, ~tags~, ~tags-todo~,
 ~tags-tree~.  Specify a custom function that tests inclusion of every
 matched item in the view.  This function can also skip as much as is
 needed.
@@ -20416,7 +20730,7 @@ meaningful string suitable for the agenda view.
 #+vindex: org-agenda-skip-function
 Search for entries with a limit set on levels for the custom search.
 This is a general approach to creating custom searches in Org.  To
-include all levels, use =LEVEL>0=[fn:161].  Then to selectively pick
+include all levels, use =LEVEL>0=[fn:160].  Then to selectively pick
 the matched entries, use ~org-agenda-skip-function~, which also
 accepts Lisp forms, such as ~org-agenda-skip-entry-if~ and
 ~org-agenda-skip-subtree-if~.  For example:
@@ -21017,6 +21331,9 @@ be complete if the ones above were not mentioned in this manual.
 - Charles Cave's suggestion sparked the implementation of templates
   for Remember, which are now templates for capture.
 
+- Timothy E Chapman worked on a complete overhaul of the orgmode.org
+  website in 2020 and helped fixing various bugs.
+
 - Pavel Chalmoviansky influenced the agenda treatment of items with
   specified time.
 
@@ -21106,6 +21423,9 @@ be complete if the ones above were not mentioned in this manual.
 
 - Jason\nbsp{}F.\nbsp{}McBrayer suggested agenda export to CSV format.
 
+- Kyle Meyer helped setting up the [[https://public-inbox.org/][public-inbox]] archive of the [[https://orgmode.org/list/][Org
+  mailing list]] and has been fixing many bugs.
+
 - Max Mikhanosha came up with the idea of refiling.
 
 - Dmitri Minaev sent a patch to set priority limits on a per-file
@@ -21143,6 +21463,9 @@ be complete if the ones above were not mentioned in this manual.
 - Martin Pohlack provided the code snippet to bundle character
   insertion into bundles of 20 for undo.
 
+- Ihor Radchenko helped with fixing bugs and improving the user
+  experience regarding Org's speed.
+
 - T.\nbsp{}V.\nbsp{}Raman reported bugs and suggested improvements.
 
 - Matthias Rempe (Oelde) provided ideas, Windows support, and quality
@@ -21173,7 +21496,7 @@ be complete if the ones above were not mentioned in this manual.
   literal examples, and remote highlighting for referenced code lines.
 
 - Stathis Sideris wrote the =ditaa.jar= ASCII to PNG converter that is
-  now packaged into Org's =contrib/= directory.
+  now packaged into the [[https://git.sr.ht/~bzg/org-contrib][org-contrib]] repository.
 
 - Daniel Sinder came up with the idea of internal archiving by locking
   subtrees.
@@ -21296,7 +21619,7 @@ modify this GNU manual."
 * Footnotes
 
 [fn:1] If you do not use Font Lock globally turn it on in Org buffer
-with =(add-hook 'org-mode-hook 'turn-on-font-lock)=.
+with =(add-hook 'org-mode-hook #'turn-on-font-lock)=.
 
 [fn:2] Please consider subscribing to the mailing list in order to
 minimize the work the mailing list moderators have to do.
@@ -21597,12 +21920,12 @@ lognoteclock-out=.
 line---the line is broken here only to fit it into the manual.
 
 [fn:81] On computers using macOS, idleness is based on actual user
-idleness, not just Emacs' idle time.  For X11, you can install
-a utility program =x11idle.c=, available in the =contrib/scripts/=
-directory of the Org Git distribution, or install the xprintidle
-package and set it to the variable ~org-clock-x11idle-program-name~ if
-you are running Debian, to get the same general treatment of idleness.
-On other systems, idle time refers to Emacs idle time only.
+idleness, not just Emacs' idle time.  For X11, you can install a
+utility program =x11idle.c=, available in the =org-contrib/=
+repository, or install the xprintidle package and set it to the
+variable ~org-clock-x11idle-program-name~ if you are running Debian,
+to get the same general treatment of idleness.  On other systems, idle
+time refers to Emacs idle time only.
 
 [fn:82] Please note the pitfalls of summing hierarchical data in
 a flat list (see [[*Using Column View in the Agenda]]).
@@ -21733,7 +22056,7 @@ a fragment, see the documentation of the function
 version 1.34 of the =htmlize.el= package, which you need to install).
 Fontified code chunks in LaTeX can be achieved using either the
 [[https://www.ctan.org/pkg/listings][listings]] package or the [[https://www.ctan.org/pkg/minted][minted]] package.  Refer to
-~org-export-latex-listings~ for details.
+~org-latex-listings~ for details.
 
 [fn:115] Source code in code blocks may also be evaluated either
 interactively or on export.  See [[*Working with Source Code]] for more
@@ -21762,7 +22085,9 @@ and =#+STARTUP: nofnadjust=.
 [fn:122] The variable ~org-export-date-timestamp-format~ defines how
 this timestamp are exported.
 
-[fn:123] DEFINITION NOT FOUND.
+[fn:123] For export to LaTeX format---or LaTeX-related formats such as
+Beamer---, the =org-latex-package-alist= variable needs further
+configuration.  See [[LaTeX specific export settings]].
 
 [fn:124] At the moment, some export back-ends do not obey this
 specification.  For example, LaTeX export excludes every unnumbered
@@ -21785,7 +22110,7 @@ to make it visible.  The tag serves as a visual aid and has no
 semantic relevance.
 
 [fn:129] By default Org loads MathJax from [[https://cdnjs.com][cdnjs.com]] as recommended by
-[[http://www.mathjax.org][MathJax]].
+[[https://www.mathjax.org][MathJax]].
 
 [fn:130] Please note that exported formulas are part of an HTML
 document, and that signs such as =<=, =>=, or =&= have special
@@ -21802,93 +22127,89 @@ use the variables ~org-html-todo-kwd-class-prefix~ and
 for different files.  However, "smart" LaTeX compilation systems, such
 as latexmk, can select the correct bibliography compiler.
 
-[fn:134] See [[http://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.html][Open Document Format for Office Applications
+[fn:134] Minted uses an external Python package for code highlighting,
+which requires the flag =-shell-escape= to be added to
+~org-latex-pdf-process~.
+
+[fn:135] See [[http://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.html][Open Document Format for Office Applications
 (OpenDocument) Version 1.2]].
 
-[fn:135] See [[http://www.mathtoweb.com/cgi-bin/mathtoweb_home.pl][MathToWeb]].
+[fn:136] See [[http://www.mathtoweb.com/cgi-bin/mathtoweb_home.pl][MathToWeb]].
 
-[fn:136] See [[http://dlmf.nist.gov/LaTeXML/]].
+[fn:137] See [[http://dlmf.nist.gov/LaTeXML/]].
 
-[fn:137] [[http://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.html][OpenDocument-v1.2 Specification]]
+[fn:138] [[http://docs.oasis-open.org/office/v1.2/OpenDocument-v1.2.html][OpenDocument-v1.2 Specification]]
 
-[fn:138] See the =<table:table-template>= element of the
+[fn:139] See the =<table:table-template>= element of the
 OpenDocument-v1.2 specification.
 
-[fn:139] See the attributes =table:template-name=,
+[fn:140] See the attributes =table:template-name=,
 =table:use-first-row-styles=, =table:use-last-row-styles=,
 =table:use-first-column-styles=, =table:use-last-column-styles=,
 =table:use-banding-rows-styles=, and =table:use-banding-column-styles=
 of the =<table:table>= element in the OpenDocument-v1.2 specification.
 
-[fn:140] If the publishing directory is the same as the source
+[fn:141] If the publishing directory is the same as the source
 directory, =file.org= is exported as =file.org.org=, so you probably
 do not want to do this.
 
-[fn:141] The option ~org-babel-no-eval-on-ctrl-c-ctrl-c~ can be used
+[fn:142] The option ~org-babel-no-eval-on-ctrl-c-ctrl-c~ can be used
 to remove code evaluation from the {{{kbd(C-c C-c)}}} key binding.
 
-[fn:142] Actually, the constructs =call_<name>()= and =src_<lang>{}=
+[fn:143] Actually, the constructs =call_<name>()= and =src_<lang>{}=
 are not evaluated when they appear in a keyword (see [[*Summary of
 In-Buffer Settings]]).
 
-[fn:143] C++ language is handled in =ob-C.el=.  Even though the
-identifier for such source blocks is =C++=, you activate it by loading
-the C language.
-
-[fn:144] D language is handled in =ob-C.el=.  Even though the
-identifier for such source blocks is =D=, you activate it by loading
-the C language.
-
-[fn:145] For noweb literate programming details, see
+[fn:144] For noweb literate programming details, see
 http://www.cs.tufts.edu/~nr/noweb/.
 
-[fn:146] For more information, please refer to the commentary section
+[fn:145] For more information, please refer to the commentary section
 in =org-tempo.el=.
 
-[fn:147] Org Indent mode also sets ~wrap-prefix~ correctly for
+[fn:146] Org Indent mode also sets ~wrap-prefix~ correctly for
 indenting and wrapping long lines of headlines or text.  This minor
 mode also handles Visual Line mode and directly applied settings
 through ~word-wrap~.
 
-[fn:148] This works, but requires extra effort.  Org Indent mode is
+[fn:147] This works, but requires extra effort.  Org Indent mode is
 more convenient for most applications.
 
-[fn:149] ~org-adapt-indentation~ can also be set to ='headline-data=,
+[fn:148] ~org-adapt-indentation~ can also be set to ='headline-data=,
 in which case only data lines below the headline will be indented.
 
-[fn:150] Note that Org Indent mode also sets the ~wrap-prefix~
+[fn:149] Note that Org Indent mode also sets the ~wrap-prefix~
 property, such that Visual Line mode (or purely setting ~word-wrap~)
 wraps long lines, including headlines, correctly indented.
 
-[fn:151] For a server to host files, consider using a WebDAV server,
+[fn:150] For a server to host files, consider using a WebDAV server,
 such as [[https://nextcloud.com][Nextcloud]].  Additional help is at this [[https://orgmode.org/worg/org-faq.html#mobileorg_webdav][FAQ entry]].
 
-[fn:152] If Emacs is configured for safe storing of passwords, then
+[fn:151] If Emacs is configured for safe storing of passwords, then
 configure the variable ~org-mobile-encryption-password~; please read
 the docstring of that variable.
 
-[fn:153] Symbolic links in ~org-directory~ need to have the same name
+[fn:152] Symbolic links in ~org-directory~ need to have the same name
 as their targets.
 
-[fn:154] While creating the agendas, Org mode forces =ID= properties
+[fn:153] While creating the agendas, Org mode forces =ID= properties
 on all referenced entries, so that these entries can be uniquely
 identified if Org Mobile flags them for further action.  To avoid
 setting properties configure the variable
 ~org-mobile-force-id-on-agenda-items~ to ~nil~.  Org mode then relies
 on outline paths, assuming they are unique.
 
-[fn:155] Checksums are stored automatically in the file
+[fn:154] Checksums are stored automatically in the file
 =checksums.dat=.
 
-[fn:156] The file will be empty after this operation.
+[fn:155] The file will be empty after this operation.
 
-[fn:157] https://www.ctan.org/pkg/comment
+[fn:156] https://www.ctan.org/pkg/comment
 
-[fn:158] By default this works only for LaTeX, HTML, and Texinfo.
+[fn:157] By default this works only for LaTeX, HTML, and Texinfo.
 Configure the variable ~orgtbl-radio-table-templates~ to install
 templates for other modes.
 
-[fn:159] If the =TBLFM= keyword contains an odd number of dollar
+[fn:158] If the =TBLFM= keyword contains an odd number of dollar
 characters, this may cause problems with Font Lock in LaTeX mode.  As
 shown in the example you can fix this by adding an extra line inside
 the =comment= environment that is used to balance the dollar
@@ -21896,9 +22217,9 @@ expressions.  If you are using AUCTeX with the font-latex library,
 a much better solution is to add the =comment= environment to the
 variable ~LaTeX-verbatim-environments~.
 
-[fn:160] The ~agenda*~ view is the same as ~agenda~ except that it
+[fn:159] The ~agenda*~ view is the same as ~agenda~ except that it
 only considers /appointments/, i.e., scheduled and deadline items that
 have a time specification =[h]h:mm= in their time-stamps.
 
-[fn:161] Note that, for ~org-odd-levels-only~, a level number
+[fn:160] Note that, for ~org-odd-levels-only~, a level number
 corresponds to order in the hierarchy, not to the number of stars.

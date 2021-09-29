@@ -4,6 +4,7 @@
 
 ;; Author: Eric Schulte
 ;;	Dan Davison
+;; Maintainer: Jeremie Juste
 ;; Keywords: literate programming, reproducible research, R, statistics
 ;; Homepage: https://orgmode.org
 
@@ -38,6 +39,13 @@
 (declare-function ess-eval-buffer "ext:ess-inf" (vis))
 (declare-function ess-wait-for-process "ext:ess-inf"
 		  (&optional proc sec-prompt wait force-redisplay))
+
+;; FIXME: Temporary declaration to silence the byte-compiler
+(defvar user-inject-src-param)
+(defvar ess-eval-visibly-tmp)
+(defvar ess-eval-visibly)
+(defvar ess-inject-source)
+(defvar user-inject-src-param)
 
 (defconst org-babel-header-args:R
   '((width		 . :any)
@@ -157,6 +165,7 @@ This function is called by `org-babel-execute-src-block'."
   (save-excursion
     (let* ((result-params (cdr (assq :result-params params)))
 	   (result-type (cdr (assq :result-type params)))
+           (async (org-babel-comint-use-async params))
            (session (org-babel-R-initiate-session
 		     (cdr (assq :session params)) params))
 	   (graphics-file (and (member "graphics" (assq :result-params params))
@@ -183,7 +192,8 @@ This function is called by `org-babel-execute-src-block'."
 		  (cdr (assq :colname-names params)) colnames-p))
 	     (or (equal "yes" rownames-p)
 		 (org-babel-pick-name
-		  (cdr (assq :rowname-names params)) rownames-p)))))
+		  (cdr (assq :rowname-names params)) rownames-p))
+             async)))
       (if graphics-file nil result))))
 
 (defun org-babel-prep-session:R (session params)
@@ -321,7 +331,7 @@ Each member of this list is a list with three members:
 	 (device-info (or (assq (intern (concat ":" device))
 				org-babel-R-graphics-devices)
                           (assq :png org-babel-R-graphics-devices)))
-        (extra-args (cdr (assq :R-dev-args params))) filearg args)
+         (extra-args (cdr (assq :R-dev-args params))) filearg args)
     (setq device (nth 1 device-info))
     (setq filearg (nth 2 device-info))
     (setq args (mapconcat
@@ -348,7 +358,7 @@ Each member of this list is a list with three members:
                         {
                             tfile<-tempfile()
                             write.table(object, file=tfile, sep=\"\\t\",
-                                        na=\"nil\",row.names=%s,col.names=%s,
+                                        na=\"\",row.names=%s,col.names=%s,
                                         quote=FALSE)
                             file.rename(tfile,transfer.file)
                         },
@@ -370,11 +380,14 @@ Has four %s escapes to be filled in:
 4. The name of the file to write to")
 
 (defun org-babel-R-evaluate
-  (session body result-type result-params column-names-p row-names-p)
+    (session body result-type result-params column-names-p row-names-p async)
   "Evaluate R code in BODY."
   (if session
-      (org-babel-R-evaluate-session
-       session body result-type result-params column-names-p row-names-p)
+      (if async
+          (ob-session-async-org-babel-R-evaluate-session
+           session body result-type result-params column-names-p row-names-p)
+        (org-babel-R-evaluate-session
+         session body result-type result-params column-names-p row-names-p))
     (org-babel-R-evaluate-external-process
      body result-type result-params column-names-p row-names-p)))
 
@@ -450,11 +463,13 @@ last statement in BODY, as elisp."
 		      (car (split-string line "\n")))
 		     (substring line (match-end 1))
 		   line))
-	       (org-babel-comint-with-output (session org-babel-R-eoe-output)
-		 (insert (mapconcat 'org-babel-chomp
-				    (list body org-babel-R-eoe-indicator)
-				    "\n"))
-		 (inferior-ess-send-input)))))) "\n"))))
+	       (with-current-buffer session
+		 (let ((comint-prompt-regexp (concat "^" comint-prompt-regexp)))
+		   (org-babel-comint-with-output (session org-babel-R-eoe-output)
+		     (insert (mapconcat 'org-babel-chomp
+					(list body org-babel-R-eoe-indicator)
+					"\n"))
+		     (inferior-ess-send-input)))))))) "\n"))))
 
 (defun org-babel-R-process-value-result (result column-names-p)
   "R-specific processing of return value.
@@ -464,6 +479,91 @@ Insert hline if column names in output have been requested."
 	  (cons (car result) (cons 'hline (cdr result)))
 	(error "Could not parse R result"))
     result))
+
+
+;;; async evaluation
+
+(defconst ob-session-async-R-indicator "'ob_comint_async_R_%s_%s'")
+
+(defun ob-session-async-org-babel-R-evaluate-session
+    (session body result-type _ column-names-p row-names-p)
+  "Asynchronously evaluate BODY in SESSION.
+Returns a placeholder string for insertion, to later be replaced
+by `org-babel-comint-async-filter'."
+  (org-babel-comint-async-register
+   session (current-buffer)
+   "^\\(?:[>.+] \\)*\\[1\\] \"ob_comint_async_R_\\(.+?\\)_\\(.+\\)\"$"
+   'org-babel-chomp
+   'ob-session-async-R-value-callback)
+  (cl-case result-type
+    (value
+     (let ((tmp-file (org-babel-temp-file "R-")))
+       (with-temp-buffer
+         (insert
+          (org-babel-chomp body))
+         (let ((ess-local-process-name
+                (process-name (get-buffer-process session))))
+           (ess-eval-buffer nil)))
+       (with-temp-buffer
+	 (insert
+	  (mapconcat
+           'org-babel-chomp
+           (list (format org-babel-R-write-object-command
+                         (if row-names-p "TRUE" "FALSE")
+                         (if column-names-p
+                             (if row-names-p "NA" "TRUE")
+                           "FALSE")
+                         ".Last.value"
+                         (org-babel-process-file-name tmp-file 'noquote))
+                 (format ob-session-async-R-indicator
+                         "file" tmp-file))
+           "\n"))
+	 (let ((ess-local-process-name
+		(process-name (get-buffer-process session))))
+	   (ess-eval-buffer nil)))
+       tmp-file))
+    (output
+     (let ((uuid (md5 (number-to-string (random 100000000))))
+           (ess-local-process-name
+            (process-name (get-buffer-process session))))
+       (with-temp-buffer
+         (insert (format ob-session-async-R-indicator
+			 "start" uuid))
+         (insert "\n")
+         (insert body)
+         (insert "\n")
+         (insert (format ob-session-async-R-indicator
+			 "end" uuid))
+         (setq ess-eval-visibly-tmp ess-eval-visibly)
+         (setq user-inject-src-param ess-inject-source)
+         (setq ess-eval-visibly nil)
+         (setq ess-inject-source 'function-and-buffer)
+         (ess-eval-buffer nil))
+       (setq ess-eval-visibly ess-eval-visibly-tmp)
+       (setq ess-inject-source user-inject-src-param)
+       uuid))))
+
+(defun ob-session-async-R-value-callback (params tmp-file)
+  "Callback for async value results.
+Assigned locally to `ob-session-async-file-callback' in R
+comint buffers used for asynchronous Babel evaluation."
+  (let* ((graphics-file (and (member "graphics" (assq :result-params params))
+			     (org-babel-graphical-output-file params)))
+	 (colnames-p (unless graphics-file (cdr (assq :colnames params)))))
+    (org-babel-R-process-value-result
+     (org-babel-result-cond (assq :result-params params)
+       (with-temp-buffer
+         (insert-file-contents tmp-file)
+         (org-babel-chomp (buffer-string) "\n"))
+       (org-babel-import-elisp-from-file tmp-file '(16)))
+     (or (equal "yes" colnames-p)
+	 (org-babel-pick-name
+	  (cdr (assq :colname-names params)) colnames-p)))))
+
+
+
+;;; ob-session-async-R.el ends here
+
 
 (provide 'ob-R)
 

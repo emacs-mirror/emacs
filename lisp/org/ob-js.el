@@ -158,8 +158,8 @@ specifying a variable of the same value."
    (org-babel--get-vars params)))
 
 (defun org-babel-js-initiate-session (&optional session _params)
-  "If there is not a current inferior-process-buffer in `SESSION'
-then create.  Return the initialized session."
+  "If there is not a current inferior-process-buffer in `SESSION' then create.
+Return the initialized session."
   (cond
    ((string= session "none")
     (warn "Session evaluation of ob-js is not supported"))

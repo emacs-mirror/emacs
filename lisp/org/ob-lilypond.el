@@ -27,9 +27,9 @@
 ;; https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-lilypond.html
 ;;
 ;; Lilypond documentation can be found at
-;; http://lilypond.org/manuals.html
+;; https://lilypond.org/manuals.html
 ;;
-;; This depends on epstopdf --- See http://www.ctan.org/pkg/epstopdf.
+;; This depends on epstopdf --- See https://www.ctan.org/pkg/epstopdf.
 
 ;;; Code:
 (require 'ob)
@@ -43,6 +43,15 @@
 (defvar org-babel-default-header-args:lilypond '()
   "Default header arguments for lilypond code blocks.
 NOTE: The arguments are determined at lilypond compile time.
+See `org-babel-lilypond-set-header-args'
+To configure, see `ob-lilypond-header-args'
+.")
+
+(defvar ob-lilypond-header-args
+  '((:results . "file") (:exports . "results"))
+  "User-configurable header arguments for lilypond code blocks.
+NOTE: The final value used by org-babel is computed at compile-time
+and stored in  `org-babel-default-header-args:lilypond'
 See `org-babel-lilypond-set-header-args'.")
 
 (defvar org-babel-lilypond-compile-post-tangle t
@@ -196,9 +205,9 @@ specific arguments to =org-babel-tangle=."
 If error in compilation, attempt to mark the error in lilypond org file."
   (when org-babel-lilypond-compile-post-tangle
     (let ((org-babel-lilypond-tangled-file (org-babel-lilypond-switch-extension
-                            (buffer-file-name) ".lilypond"))
+                                            (buffer-file-name) ".lilypond"))
           (org-babel-lilypond-temp-file (org-babel-lilypond-switch-extension
-                         (buffer-file-name) ".ly")))
+                                         (buffer-file-name) ".ly")))
       (if (not (file-exists-p org-babel-lilypond-tangled-file))
 	  (error "Error: Tangle Failed!")
 	(when (file-exists-p org-babel-lilypond-temp-file)
@@ -328,7 +337,9 @@ If TEST is non-nil, the shell command is returned and is not run."
 FILE-NAME is full path to lilypond file.
 If TEST is non-nil, the shell command is returned and is not run."
   (when org-babel-lilypond-play-midi-post-tangle
-    (let ((midi-file (org-babel-lilypond-switch-extension file-name ".midi")))
+    (let* ((ext (if (eq system-type 'windows-nt)
+                    ".mid" ".midi"))
+           (midi-file (org-babel-lilypond-switch-extension file-name ext)))
       (if (file-exists-p midi-file)
           (let ((cmd-string
                  (concat org-babel-lilypond-midi-command " " midi-file)))
@@ -392,7 +403,7 @@ If TEST is non-nil, the shell command is returned and is not run."
   "Utility command to swap current FILE-NAME extension with EXT."
   (concat (file-name-sans-extension
            file-name)
-	 ext))
+	  ext))
 
 (defun org-babel-lilypond-get-header-args (mode)
   "Default arguments to use when evaluating a lilypond source block.
@@ -404,8 +415,7 @@ These depend upon whether we are in Arrange mode i.e. MODE is t."
            (:cache . "yes")
            (:comments . "yes")))
         (t
-         '((:results . "file")
-           (:exports . "results")))))
+         ob-lilypond-header-args)))
 
 (defun org-babel-lilypond-set-header-args (mode)
   "Set org-babel-default-header-args:lilypond

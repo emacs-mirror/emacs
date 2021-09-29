@@ -47,7 +47,7 @@
 ;;; Requirements:
 
 ;; - processing2-emacs mode :: https://github.com/ptrv/processing2-emacs
-;; - Processing.js module :: http://processingjs.org/
+;; - Processing.js module :: https://processingjs.org/
 
 ;;; Code:
 (require 'ob)

@@ -66,7 +66,46 @@
   "LaTeX-specific header arguments.")
 
 (defcustom org-babel-latex-htlatex "htlatex"
-  "The htlatex command to enable conversion of latex to SVG or HTML."
+  "The htlatex command to enable conversion of LaTeX to SVG or HTML."
+  :group 'org-babel
+  :type 'string)
+
+(defcustom org-babel-latex-preamble
+  (lambda (_)
+    "\\documentclass[preview]{standalone}
+\\def\\pgfsysdriver{pgfsys-tex4ht.def}
+")
+  "Closure which evaluates at runtime to the LaTeX preamble.
+
+It takes 1 argument which is the parameters of the source block."
+  :group 'org-babel
+  :type 'function)
+
+(defcustom org-babel-latex-begin-env
+  (lambda (_)
+    "\\begin{document}")
+  "Function that evaluates to the begin part of the document environment.
+
+It takes 1 argument which is the parameters of the source block.
+This allows adding additional code that will be ignored when
+exporting the literal LaTeX source."
+  :group 'org-babel
+  :type 'function)
+
+(defcustom org-babel-latex-end-env
+  (lambda (_)
+    "\\end{document}")
+  "Closure which evaluates at runtime to the end part of the document environment.
+
+It takes 1 argument which is the parameters of the source block.
+This allows adding additional code that will be ignored when
+exporting the literal LaTeX source."
+  :group 'org-babel
+  :type 'function)
+
+(defcustom org-babel-latex-pdf-svg-process
+  "inkscape --pdf-poppler %f -T -l -o %O"
+  "Command to convert a PDF file to an SVG file."
   :group 'org-babel
   :type 'string)
 
@@ -112,14 +151,28 @@ This function is called by `org-babel-execute-src-block'."
           (let ((org-format-latex-header
 		 (concat org-format-latex-header "\n"
 			 (mapconcat #'identity headers "\n"))))
-	   (org-create-formula-image
-            body out-file org-format-latex-options in-buffer)))
+	    (org-create-formula-image
+             body out-file org-format-latex-options in-buffer)))
+	 ((string= "svg" extension)
+	  (with-temp-file tex-file
+	    (insert (concat (funcall org-babel-latex-preamble params)
+			    (mapconcat #'identity headers "\n")
+			    (funcall org-babel-latex-begin-env params)
+			    body
+			    (funcall org-babel-latex-end-env params))))
+	  (let ((tmp-pdf (org-babel-latex-tex-to-pdf tex-file)))
+            (let* ((log-buf (get-buffer-create "*Org Babel LaTeX Output*"))
+                   (err-msg "org babel latex failed")
+                   (img-out (org-compile-file
+	                     tmp-pdf
+                             (list org-babel-latex-pdf-svg-process)
+                             extension err-msg log-buf)))
+              (shell-command (format "mv %s %s" img-out out-file)))))
          ((string-suffix-p ".tikz" out-file)
 	  (when (file-exists-p out-file) (delete-file out-file))
 	  (with-temp-file out-file
 	    (insert body)))
-	 ((and (or (string= "svg" extension)
-		   (string= "html" extension))
+	 ((and (string= "html" extension)
 	       (executable-find org-babel-latex-htlatex))
 	  ;; TODO: this is a very different way of generating the
 	  ;; frame latex document than in the pdf case.  Ideally, both

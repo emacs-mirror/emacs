@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 ;;
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: https://orgmode.org
 
@@ -131,7 +131,7 @@ If there is a region wrap it inside the inline task."
   ;; before this one.
   (when (and (org-inlinetask-in-task-p)
 	     (not (and (org-inlinetask-at-task-p) (bolp))))
-    (error "Cannot nest inline tasks"))
+    (user-error "Cannot nest inline tasks"))
   (or (bolp) (newline))
   (let* ((indent (if org-odd-levels-only
 		     (1- (* 2 org-inlinetask-min-level))
@@ -189,7 +189,7 @@ The number of levels is controlled by `org-inlinetask-min-level'."
 
 (defun org-inlinetask-goto-end ()
   "Go to the end of the inline task at point.
-    Return point."
+Return point."
   (save-match-data
     (beginning-of-line)
     (let ((case-fold-search t)
@@ -225,7 +225,7 @@ If the task has an end part, promote it.  Also, prevents level from
 going below `org-inlinetask-min-level'."
   (interactive)
   (if (not (org-inlinetask-in-task-p))
-      (error "Not in an inline task")
+      (user-error "Not in an inline task")
     (save-excursion
       (let* ((lvl (org-inlinetask-get-task-level))
 	     (next-lvl (org-get-valid-level lvl -1))
@@ -233,15 +233,18 @@ going below `org-inlinetask-min-level'."
 	     (down-task (concat (make-string next-lvl ?*)))
 	     beg)
 	(if (< next-lvl org-inlinetask-min-level)
-	    (error "Cannot promote an inline task at minimum level")
+	    (user-error "Cannot promote an inline task at minimum level")
 	  (org-inlinetask-goto-beginning)
 	  (setq beg (point))
 	  (replace-match down-task nil t nil 1)
 	  (org-inlinetask-goto-end)
-	  (if (eobp) (beginning-of-line) (forward-line -1))
+	  (if (and (eobp) (looking-back "END\\s-*" (point-at-bol)))
+              (beginning-of-line)
+            (forward-line -1))
 	  (unless (= (point) beg)
+            (looking-at (org-inlinetask-outline-regexp))
 	    (replace-match down-task nil t nil 1)
-	    (when org-adapt-indentation
+	    (when (eq org-adapt-indentation t)
 	      (goto-char beg)
 	      (org-fixup-indentation diff))))))))
 
@@ -250,7 +253,7 @@ going below `org-inlinetask-min-level'."
 If the task has an end part, also demote it."
   (interactive)
   (if (not (org-inlinetask-in-task-p))
-      (error "Not in an inline task")
+      (user-error "Not in an inline task")
     (save-excursion
       (let* ((lvl (org-inlinetask-get-task-level))
 	     (next-lvl (org-get-valid-level lvl 1))
@@ -261,10 +264,13 @@ If the task has an end part, also demote it."
 	(setq beg (point))
 	(replace-match down-task nil t nil 1)
 	(org-inlinetask-goto-end)
-	(if (eobp) (beginning-of-line) (forward-line -1))
+        (if (and (eobp) (looking-back "END\\s-*" (point-at-bol)))
+            (beginning-of-line)
+          (forward-line -1))
 	(unless (= (point) beg)
+          (looking-at (org-inlinetask-outline-regexp))
 	  (replace-match down-task nil t nil 1)
-	  (when org-adapt-indentation
+	  (when (eq org-adapt-indentation t)
 	    (goto-char beg)
 	    (org-fixup-indentation diff)))))))
 

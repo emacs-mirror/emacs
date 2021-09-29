@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: https://orgmode.org
 ;;
@@ -56,7 +56,7 @@
 			"#" Info-current-node)))
       (org-link-store-props :type "info" :file Info-current-file
 			    :node Info-current-node
-			    :link link :desc desc)
+			    :link link :description desc)
       link)))
 
 (defun org-info-open (path _)
@@ -91,7 +91,7 @@
     "pgg" "rcirc" "reftex" "remember" "sasl" "sc" "semantic" "ses" "sieve"
     "smtpmail" "speedbar" "srecode" "todo-mode" "tramp" "url" "vip" "viper"
     "widget" "wisent" "woman")
-  "List of emacs documents available.
+  "List of Emacs documents available.
 Taken from <https://www.gnu.org/software/emacs/manual/html_mono/.>")
 
 (defconst org-info-other-documents
