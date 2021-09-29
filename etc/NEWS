@@ -3011,10 +3011,6 @@ This includes support for the capabilities: 'server-time', 'batch',
 ---
 *** Check 'auth-sources' for server passwords.
 
----
-*** Allow for channels to hide certain message types right after connecting.
-Set 'rcirc-omit-responses-after-join' analogously to 'rcirc-omit-responses'.
-
 +++
 *** Implement repeated reconnection strategy.
 See 'rcirc-reconnect-attempts'.

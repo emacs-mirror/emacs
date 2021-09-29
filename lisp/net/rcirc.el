@@ -195,16 +195,6 @@ If nil, no maximum is applied."
   "Responses which will be hidden when `rcirc-omit-mode' is enabled."
   :type '(repeat string))
 
-(defcustom rcirc-omit-responses-after-join '()
-  "Types of messages to hide right after joining a channel."
-  :type '(repeat string)
-  :version "28.1")
-
-(defvar-local rcirc-joined nil
-  "Non-nil means we have just connected.
-This is used to hide the message types enumerated in
-`rcirc-omit-responses-after-join'.")
-
 (defvar-local rcirc-prompt-start-marker nil
   "Marker indicating the beginning of the message prompt.")
 
@@ -841,8 +831,7 @@ If QUIET is non-nil, no not emit a message."
         (dolist (buffer (mapcar #'cdr rcirc-buffer-alist))
 	  (when (buffer-live-p buffer)
             (with-current-buffer buffer
-	      (setq rcirc-joined (current-time)
-                    mode-line-process ":connecting"))))
+	      (setq mode-line-process ":connecting"))))
 	(let ((nprocess (apply #'rcirc-connect conn-info)))
           (when (and (< rcirc-failed-attempts rcirc-reconnect-attempts)
                      (eq (process-status nprocess) 'failed))
@@ -1568,8 +1557,7 @@ Create the buffer if it doesn't exist."
 	  (with-current-buffer new-buffer
             (unless (eq major-mode 'rcirc-mode)
 	      (rcirc-mode process target))
-            (setq mode-line-process nil)
-            (setq rcirc-joined (current-time)))
+            (setq mode-line-process nil))
 	  (rcirc-put-nick-channel process (rcirc-nick process) target
 				  rcirc-current-line)
 	  new-buffer)))))
@@ -1970,10 +1958,7 @@ connection."
               ;; make text omittable
 	      (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
 		(if (and (not (string= (rcirc-nick process) sender))
-			 (or (member response rcirc-omit-responses)
-                             (and (member response rcirc-omit-responses-after-join)
-                                  (< (time-to-seconds (time-since rcirc-joined))
-                                     1)))
+			 (member response rcirc-omit-responses)
 			 (or (not last-activity-lines)
 			     (< rcirc-omit-threshold last-activity-lines)))
                   (put-text-property (point-min) (point-max)
