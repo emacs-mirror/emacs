@@ -1565,6 +1565,10 @@ This allows users to use (define-key eshell-mode-map ...) as usual.
 Some modules have their own minor mode now to account for these
 changes.
 
+*** Support for bookmark.el.
+The command `bookmark-set' (bound to `C-x r m') is now supported, and
+will create a bookmark that opens the current directory in Eshell.
+
 ** Archive mode
 
 ---

@@ -993,8 +993,6 @@ This function could be in the list `eshell-output-filter-functions'."
 
 ;;; Bookmark support:
 
-(declare-function bookmark-make-record-default
-                  "bookmark" (&optional no-file no-context posn))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 
 (defun eshell-bookmark-name ()
