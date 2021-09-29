@@ -45,7 +45,6 @@ RUN ./autogen.sh autoconf
 RUN ./configure
 # 'make -j4 bootstrap' does not work reliably.
 RUN make bootstrap
-RUN make -j4
 
 FROM emacs-base as emacs-filenotify-gio
 
@@ -59,7 +58,6 @@ WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
 RUN make bootstrap
-RUN make -j4
 
 FROM emacs-base as emacs-gnustep
 
@@ -73,7 +71,6 @@ WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
 RUN make bootstrap
-RUN make -j4
 
 FROM emacs-base as emacs-native-comp-speed0
 
@@ -90,4 +87,3 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
 RUN make bootstrap -j2 \
       NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"'
-RUN make -j4

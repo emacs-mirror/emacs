@@ -147,6 +147,7 @@ default:
     - if: '$CI_JOB_STAGE =~ "fast|normal" && $CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - when: always
+      allow_failure: true
   artifacts:
     name: ${test_name}
     public: true
@@ -199,7 +200,6 @@ default:
   timeout: 8 hours
 
 stages:
-#  - prep-images
   - build-images
 #  - fast
   - normal
@@ -209,16 +209,9 @@ stages:
   - native-comp
   - slow
 
-# prep-image-base:
-#   stage: prep-images
-#   extends: [.job-template, .build-template]
-#   variables:
-#     target: emacs-base
-
 build-image-inotify:
   stage: build-images
   extends: [.job-template, .build-template]
-#  needs: [prep-image-base]
   variables:
     target: emacs-inotify
 
@@ -246,14 +239,12 @@ test-lisp-net-inotify:
 build-image-filenotify-gio:
   stage: platform-images
   extends: [.job-template, .build-template, .filenotify-gio-template]
-#  needs: [prep-image-base]
   variables:
     target: emacs-filenotify-gio
 
 build-image-gnustep:
   stage: platform-images
   extends: [.job-template, .build-template, .gnustep-template]
-#  needs: [prep-image-base]
   variables:
     target: emacs-gnustep
 
@@ -278,7 +269,6 @@ test-gnustep:
 build-native-bootstrap-speed0:
   stage: native-comp-images
   extends: [.job-template, .build-template, .native-comp-template]
-#  needs: [prep-image-base]
   variables:
     target: emacs-native-comp-speed0
 
@@ -317,6 +307,7 @@ build-native-bootstrap-speed0:
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
   stage: slow
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     # note there's no "changes" section, so this always runs on a schedule
