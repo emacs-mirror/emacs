@@ -1444,6 +1444,13 @@ is t by default; set to nil to get back the old behavior.
 If 'numeric', calendar functions (eg 'calendar-sunrise-sunset') that display
 time zones will use a form like "+0100" instead of "CET".
 
+** Imenu
+
++++
+*** New user option 'imenu-max-index-time'.
+If creating the imenu index takes longer than specified by this
+option (default 5 seconds), imenu indexing is stopped.
+
 ** ido
 
 ---
@@ -1636,28 +1643,6 @@ at the left hand side followed by the function name.  This is intended
 to make better use of the horizontal space, in particular eliminating
 the truncation of function names.  There is no way to get the former
 layout back.
-
-** Python mode
-
----
-*** New user option 'python-forward-sexp-function'.
-This allows the user easier customization of whether to use block-based
-navigation or not.
-
----
-*** 'python-shell-interpreter' now defaults to python3 on systems with python3.
-
----
-*** 'C-c C-r' can now be used on arbitrary regions.
-The command previously extended the start of the region to the start
-of the line, but will now actually send the marked region, as
-documented.
-
-** Perl mode
-
----
-*** New face 'perl-non-scalar-variable'.
-This is used to fontify non-scalar variables.
 
 ** Icomplete
 
@@ -2719,6 +2704,35 @@ The old names are now obsolete.
 *** 'world-clock-mode' can no longer be turned on interactively.
 Use 'world-clock' to turn on that mode.
 
+** Python mode
+
+---
+*** New user option 'python-forward-sexp-function'.
+This allows the user easier customization of whether to use block-based
+navigation or not.
+
+---
+*** 'python-shell-interpreter' now defaults to python3 on systems with python3.
+
+---
+*** 'C-c C-r' can now be used on arbitrary regions.
+The command previously extended the start of the region to the start
+of the line, but will now actually send the marked region, as
+documented.
+
+** Ruby Mode
+
+---
+*** 'ruby-use-smie' is declared obsolete.
+SMIE is now always enabled and 'ruby-use-smie' only controls whether
+indentation is done using SMIE or with the old ad-hoc code.
+
+---
+*** Indentation has changed when 'ruby-align-chained-calls' is non-nil.
+This previously used to align subsequent lines with the last sibling,
+but it now aligns with the first sibling (which is the preferred style
+in Ruby).
+
 ** CPerl Mode
 
 ---
@@ -2729,6 +2743,12 @@ Use 'world-clock' to turn on that mode.
 This value customizes Emacs to use the style recommended in Damian
 Conway's book "Perl Best Practices" for indentation and formatting
 of conditionals.
+
+** Perl mode
+
+---
+*** New face 'perl-non-scalar-variable'.
+This is used to fontify non-scalar variables.
 
 ** Octave Mode
 
@@ -2967,37 +2987,37 @@ Face 'mh-folder-whitelisted' is renamed 'mh-folder-allowlisted'.
 *** rcirc now supports SASL authentication.
 
 ---
-*** rcirc connects asynchronously
+*** rcirc connects asynchronously.
 
 ---
-*** Integrate formatting into rcirc-send-string
+*** Integrate formatting into 'rcirc-send-string'.
 The function now accepts a variable number of arguments.
 
 +++
-*** Deprecate defun-rcirc-command in favour of rcirc-define-command
+*** Deprecate 'defun-rcirc-command' in favour of 'rcirc-define-command'.
 The new macro handles multiple and optional arguments.
 
 ---
-*** Add basic IRCv3 support
-This includes support for the capabilities: server-time, batch,
-message-ids, invite-notify, multi-prefix and standard-replies.
+*** Add basic IRCv3 support.
+This includes support for the capabilities: 'server-time', 'batch',
+'message-ids', 'invite-notify', 'multi-prefix' and 'standard-replies'.
 
 ---
-*** Add mouse property support to rcirc-track-minor-mode
+*** Add mouse property support to 'rcirc-track-minor-mode'.
 
 ---
-*** Improve support for IRC markup codes
+*** Improve support for IRC markup codes.
 
 ---
-*** Check auth-sources for server passwords
+*** Check 'auth-sources' for server passwords.
 
 ---
 *** Allow for channels to hide certain message types right after connecting.
-Set rcirc-omit-responses-after-join analogously to rcirc-omit-responses.
+Set 'rcirc-omit-responses-after-join' analogously to 'rcirc-omit-responses'.
 
 +++
-*** Implement repeated reconnection strategy
-See rcirc-reconnect-attempts.
+*** Implement repeated reconnection strategy.
+See 'rcirc-reconnect-attempts'.
 
 ** MPC
 
@@ -3106,26 +3126,6 @@ different timezone causing a difference in the date.
 *** Loading dunnet.el in batch mode doesn't start the game any more.
 Instead you need to do "emacs -f dun-batch" to start the game in
 batch mode.
-
-** Ruby Mode
-
----
-** 'ruby-use-smie' is declared obsolete.
-SMIE is now always enabled and 'ruby-use-smie' only controls whether
-indentation is done using SMIE or with the old ad-hoc code.
-
----
-** Indentation has changed when 'ruby-align-chained-calls' is non-nil.
-This previously used to align subsequent lines with the last sibling,
-but it now aligns with the first sibling (which is the preferred style
-in Ruby).
-
-** Imenu
-
-+++
-*** New user option 'imenu-max-index-time'.
-If creating the imenu index takes longer than specified by this
-option (default 5 seconds), imenu indexing is stopped.
 
 
 * New Modes and Packages in Emacs 28.1
