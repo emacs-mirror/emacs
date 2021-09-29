@@ -5,9 +5,9 @@
 #+options: ':t toc:nil author:t email:t num:t
 #+startup: content
 
-#+macro: stable-version 1.5.0
-#+macro: release-date 2021-07-15
-#+macro: development-version 1.6.0-dev
+#+macro: stable-version 1.6.0
+#+macro: release-date 2021-09-29
+#+macro: development-version 1.7.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -383,6 +383,7 @@ this manual.
       modus-themes-no-mixed-fonts nil
       modus-themes-subtle-line-numbers nil
       modus-themes-success-deuteranopia t
+      modus-themes-tabs-accented t
       modus-themes-inhibit-reload t ; only applies to `customize-set-variable' and related
 
       modus-themes-fringes nil ; {nil,'subtle,'intense}
@@ -395,9 +396,8 @@ this manual.
 
       ;; Options for `modus-themes-mode-line' are either nil, or a list
       ;; that can combine any of `3d' OR `moody', `borderless',
-      ;; `accented'.  The variable's doc string shows all possible
-      ;; combinations.
-      modus-themes-mode-line '(3d accented)
+      ;; `accented', `padded'.
+      modus-themes-mode-line '(padded accented borderless)
 
       ;; Options for `modus-themes-syntax' are either nil (the default),
       ;; or a list of properties that may include any of those symbols:
@@ -443,6 +443,7 @@ this manual.
       modus-themes-org-agenda ; this is an alist: read the manual or its doc string
       '((header-block . (variable-pitch scale-title))
         (header-date . (grayscale workaholic bold-today))
+        (event . (accented scale-small))
         (scheduled . uniform)
         (habit . traffic-light-deuteranopia))
 
@@ -473,7 +474,7 @@ Symbol: ~modus-themes-inhibit-reload~
 
 Possible values:
 
-1. ~nil~ 
+1. ~nil~
 2. ~t~ (default)
 
 By default, customizing a theme-related user option through the Custom
@@ -803,6 +804,7 @@ effect, color, and border visibility:
   - ~moody~
 + ~accented~
 + ~borderless~
++ ~padded~
 
 The default (a nil value or an empty list) is a two-dimensional
 rectangle with a border around it.  The active and the inactive
@@ -829,6 +831,13 @@ the same as the background, effectively creating some padding.
 The ~accented~ property ensures that the active mode line uses a
 colored background instead of the standard shade of gray.
 
+The ~padded~ property increases the apparent height of the mode line.
+This is done by applying box effects and combining them with an
+underline and overline.  To ensure that the underline is placed at the
+bottom, set ~x-underline-at-descent-line~ to non-nil.  The ~padded~ property
+has no effect when the ~moody~ property is also used, because Moody
+already applies its own padding.
+
 Combinations of any of those properties are expressed as a list,
 like in these examples:
 
@@ -843,7 +852,7 @@ The order in which the properties are set is not significant.
 In user configuration files the form may look like this:
 
 #+begin_src emacs-lisp
-(setq modus-themes-prompts '(borderless accented))
+(setq modus-themes-mode-line '(borderless accented))
 #+end_src
 
 Note that Moody does not expose any faces that the themes could style
@@ -867,6 +876,27 @@ colors (which have been carefully designed to be highly accessible).
 Furthermore, because Moody expects an underline and overline instead of
 a box style, it is advised to set ~x-underline-at-descent-line~ to a
 non-nil value.
+
+** Option for accented background in tab interfaces
+:properties:
+:alt_title: Tab style
+:description: Toggle accented background for tabs
+:custom_id: h:27cef8f5-dc4e-4c93-ba41-b899e650d936
+:end:
+#+vindex: modus-themes-tabs-accented
+
+Symbol: ~modus-themes-tabs-accented~
+
+Possible values:
+
++ ~nil~ (default)
++ ~t~
+
+By default, all tab interfaces use backgrounds which are shades of gray.
+When this option is set to non-nil, the backgrounds become colorful.
+
+This affects the built-in ~tab-bar-mode~ and ~tab-line-mode~, as well as the
+Centaur tabs package.
 
 ** Option for completion framework aesthetics
 :properties:
@@ -1305,6 +1335,7 @@ all possible combinations:
 (setq modus-themes-org-agenda
       '((header-block . (variable-pitch scale-title))
         (header-date . (grayscale workaholic bold-today))
+        (event . (accented scale-small))
         (scheduled . uniform)
         (habit . traffic-light)))
 #+end_src
@@ -1346,6 +1377,11 @@ the following properties:
 - ~bold-today~ to apply a bold typographic weight to the current
   date;
 - ~bold-all~ to render all date headings in a bold weight.
+- ~scale-heading~ increases the height of the date headings to the value
+  of ~modus-themes-scale-1~ (which is the first step in the scale for
+  regular headings).
+- ~underline-today~ applies an underline to the current date while
+  removing the background it has by default.
 
 For example:
 
@@ -1355,6 +1391,31 @@ For example:
 (header-date . (grayscale bold-all))
 (header-date . (grayscale workaholic))
 (header-date . (grayscale workaholic bold-today))
+(header-date . (grayscale workaholic bold-today scale-heading))
+#+end_src
+
+An ~event~ key covers events from the diary and other entries that derive
+from a symbolic expression or sexp (e.g. phases of the moon, holidays).
+This key accepts a list of values.  By default (a nil value or an empty
+list) those have a gray foreground, while sexp events are additionally
+presented using slanted text (italics).  The properties that can form a
+list of possible values are:
+
+- ~scale-small~ reduces the height of the entries to the value of the user
+  option ~modus-themes-scale-small~ (0.9 the height of the main font size
+  by default).
+- ~accented~ applies an accent value to the event's foreground, replacing
+  the original gray.
+- ~italic~ adds a slant to the font's forms (italic or oblique forms,
+  depending on the typeface).
+
+For example:
+
+#+begin_src emacs-lisp
+(event . nil)
+(event . (scale-small))
+(event . (scale-small accented))
+(event . (scale-small accented italic))
 #+end_src
 
 A ~scheduled~ key applies to tasks with a scheduled date.  By default (a
@@ -1416,6 +1477,7 @@ Putting it all together, the alist can look like this:
 #+begin_src emacs-lisp
 '((header-block . (scale-title variable-pitch))
   (header-date . (grayscale workaholic bold-today))
+  (event . (accented scale-small))
   (scheduled . uniform)
   (habit . traffic-light))
 
@@ -1423,6 +1485,7 @@ Putting it all together, the alist can look like this:
 (setq modus-themes-org-agenda
       '((header-block . (scale-title variable-pitch))
         (header-date . (grayscale workaholic bold-today))
+        (event . (accented scale-small))
         (scheduled . uniform)
         (habit . traffic-light)))
 #+end_src
@@ -1574,7 +1637,8 @@ resource for finding a consistent scale:
       modus-themes-scale-2 1.1
       modus-themes-scale-3 1.15
       modus-themes-scale-4 1.2
-      modus-themes-scale-title 1.3)
+      modus-themes-scale-title 1.3
+      modus-themes-scale-small 0.9)
 #+end_src
 
 As for the application of that scale, the variables that range from
@@ -1592,6 +1656,11 @@ datum is not part of the eight levels of headings in an Org file, yet is
 supposed to signify the primary header.  Similarly, the Org Agenda's
 structure headings are not part of a recognisable scale and so they also
 get ~modus-themes-scale-title~ ([[#h:68f481bc-5904-4725-a3e6-d7ecfa7c3dbc][Option for Org agenda constructs]]).
+
+Similarly ~modus-themes-scale-small~ is not applied to regular headings,
+but reserved for special contexts where the user is presented with an
+option to use a smaller font height than the base size.  It is only
+implemented for the Org agenda.
 
 Users who wish to maintain scaled headings for the normal syntax while
 preventing special headings from standing out, can assign a value of =1.0=
@@ -2321,8 +2390,8 @@ Using the above has an immediate effect, as it reloads the active Modus
 theme.
 
 The =my-modus-themes-saturate= function stores new color values in the
-variables =modus-themes-operandi-color-overrides= and
-=modus-themes-vivendi-color-overrides=, meaning that it undoes changes
+variables ~modus-themes-operandi-color-overrides~ and
+~modus-themes-vivendi-color-overrides~, meaning that it undoes changes
 implemented by the user on individual colors.  To have both automatic
 saturation adjustment across the board and retain per-case edits to the
 palette, some tweaks to the above function are required.  For example:
@@ -2574,9 +2643,9 @@ two):
 
 #+begin_src emacs-lisp
 (setq org-todo-keyword-faces
-      '(("MEET" . '(font-lock-preprocessor-face org-todo))
-        ("STUDY" . '(font-lock-variable-name-face org-todo))
-        ("WRITE" . '(font-lock-type-face org-todo))))
+      '(("MEET" . '(bold org-todo))
+        ("STUDY" . '(warning org-todo))
+        ("WRITE" . '(shadow org-todo))))
 #+end_src
 
 This will refashion the keywords you specify, while letting the other
@@ -2607,7 +2676,7 @@ configuration of the priority cookies:
 
 #+begin_src emacs-lisp
 (setq org-priority-faces
-      '((?A . '(org-scheduled-today org-priority))
+      '((?A . '(bold org-priority))
         (?B . org-priority)
         (?C . '(shadow org-priority))))
 #+end_src
@@ -2904,6 +2973,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + alert
 + all-the-icons
 + annotate
++ ansi-color
 + anzu
 + apropos
 + apt-sources-list
@@ -2943,6 +3013,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + css-mode
 + csv-mode
 + ctrlf
++ cursor-flash
 + custom (what you get with {{{kbd(M-x customize)}}})
 + dap-mode
 + dashboard (emacs-dashboard)
@@ -2977,6 +3048,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + eldoc-box
 + elfeed
 + elfeed-score
++ elpher
 + embark
 + emms
 + enh-ruby-mode (enhanced-ruby-mode)
@@ -3033,6 +3105,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + highlight-escape-sequences (~hes-mode~)
 + highlight-indentation
 + highlight-numbers
++ highlight-parentheses ([[#h:24bab397-dcb2-421d-aa6e-ec5bd622b913][Note on highlight-parentheses.el]])
 + highlight-symbol
 + highlight-tail
 + highlight-thing
@@ -3225,6 +3298,7 @@ These do not require any extra styles because they are configured to
 inherit from some basic faces or their dependencies which are directly
 supported by the themes.
 
++ bufler
 + counsel-notmuch
 + edit-indirect
 + evil-owl
@@ -3234,8 +3308,13 @@ supported by the themes.
 + perl-mode
 + php-mode
 + rjsx-mode
++ side-hustle
 + swift-mode
 + tab-bar-echo-area
++ tide
++ vertico-indexed
++ vertico-mouse
++ vertico-quick
 
 * Notes on individual packages
 :properties:
@@ -3415,6 +3494,135 @@ and have the foreground be indistinguishable from it.  For example:
 
 [[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]].
 
+** Note on highlight-parentheses.el
+:PROPERTIES:
+:CUSTOM_ID: h:24bab397-dcb2-421d-aa6e-ec5bd622b913
+:END:
+
+The =highlight-parentheses= package provides contextual coloration of
+surrounding parentheses, highlighting only those which are around the
+point.  The package expects users to customize the applicable colors on
+their own by configuring certain variables.
+
+To make the Modus themes work as expected with this, we need to use some
+of the techniques that are discussed at length in the various
+"Do-It-Yourself" (DIY) sections, which provide insight into the more
+advanced customization options of the themes.
+
+[[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization (do-it-yourself)]].
+
+In the following example, we are assuming that the user wants to (i)
+re-use color variables provided by the themes, (ii) be able to retain
+their tweaks while switching between ~modus-operandi~ and ~modus-vivendi~,
+and (iii) have the option to highlight either the foreground of the
+parentheses or the background as well.
+
+We start by defining our own variable, which will serve as a toggle
+between foreground and background coloration styles:
+
+#+begin_src emacs-lisp
+(defvar my-highlight-parentheses-use-background t
+  "Prefer `highlight-parentheses-background-colors'.")
+#+end_src
+
+Then we can update our preference with this:
+
+#+begin_src emacs-lisp
+;; Set to nil to disable backgrounds.
+(setq my-highlight-parentheses-use-background nil)
+#+end_src
+
+To re-use colors from the themes, we must wrap our code in the
+~modus-themes-with-colors~ macro.  Our implementation must interface with
+the variables ~highlight-parentheses-background-colors~ and/or
+~highlight-parentheses-colors~.
+
+So we can have something like this (the doc string of
+~modus-themes-with-colors~ explains where the names of the colors can be
+found):
+
+#+begin_src emacs-lisp
+(modus-themes-with-colors
+    ;; Our preference for setting either background or foreground
+    ;; styles, depending on `my-highlight-parentheses-use-background'.
+    (if my-highlight-parentheses-use-background
+
+        ;; Here we set color combinations that involve both a background
+        ;; and a foreground value.
+        (setq highlight-parentheses-background-colors (list cyan-refine-bg
+                                                            magenta-refine-bg
+                                                            green-refine-bg
+                                                            yellow-refine-bg)
+              highlight-parentheses-colors (list cyan-refine-fg
+                                                 magenta-refine-fg
+                                                 green-refine-fg
+                                                 yellow-refine-fg))
+
+      ;; And here we pass only foreground colors while disabling any
+      ;; backgrounds.
+      (setq highlight-parentheses-colors (list green-intense
+                                               magenta-intense
+                                               blue-intense
+                                               red-intense)
+            highlight-parentheses-background-colors nil)))
+
+;; Include this if you also want to make the parentheses bold:
+(set-face-attribute 'highlight-parentheses-highlight nil :inherit 'bold)
+
+;; Our changes must be evaluated before enabling the relevant mode, so
+;; this comes last.
+(global-highlight-parentheses-mode 1)
+#+end_src
+
+For our changes to persist while switching between the Modus themes, we
+need to include them in a function which can then get passed to
+~modus-themes-after-load-theme-hook~.  This is the complete
+implementation:
+
+#+begin_src emacs-lisp
+;; Configurations for `highlight-parentheses':
+(require 'highlight-parentheses)
+
+(defvar my-highlight-parentheses-use-background t
+  "Prefer `highlight-parentheses-background-colors'.")
+
+(setq my-highlight-parentheses-use-background nil) ; Set to nil to disable backgrounds
+
+(defun my-modus-themes-highlight-parentheses ()
+  (modus-themes-with-colors
+    ;; Our preference for setting either background or foreground
+    ;; styles, depending on `my-highlight-parentheses-use-background'.
+    (if my-highlight-parentheses-use-background
+
+        ;; Here we set color combinations that involve both a background
+        ;; and a foreground value.
+        (setq highlight-parentheses-background-colors (list cyan-refine-bg
+                                                            magenta-refine-bg
+                                                            green-refine-bg
+                                                            yellow-refine-bg)
+              highlight-parentheses-colors (list cyan-refine-fg
+                                                 magenta-refine-fg
+                                                 green-refine-fg
+                                                 yellow-refine-fg))
+
+      ;; And here we pass only foreground colors while disabling any
+      ;; backgrounds.
+      (setq highlight-parentheses-colors (list green-intense
+                                               magenta-intense
+                                               blue-intense
+                                               red-intense)
+            highlight-parentheses-background-colors nil)))
+
+  ;; Include this if you also want to make the parentheses bold:
+  (set-face-attribute 'highlight-parentheses-highlight nil :inherit 'bold)
+
+  ;; Our changes must be evaluated before enabling the relevant mode, so
+  ;; this comes last.
+  (global-highlight-parentheses-mode 1))
+
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-highlight-parentheses)
+#+end_src
+
 ** Note on mmm-mode.el background colors
 :properties:
 :custom_id: h:99cf0d6c-e478-4e26-9932-3bf3427d13f6
@@ -3520,7 +3728,7 @@ With 8 colors:
   :desaturations '(0) ; do not change---may lower the contrast ratio
   :lightens '(0)      ; same
   :colors (modus-themes-with-colors
-            (list fg-special-cold
+            (list blue
                   magenta
                   magenta-alt-other
                   cyan-alt-other
@@ -3540,10 +3748,10 @@ to the themes' default aesthetic:
   :desaturations '(0) ; do not change---may lower the contrast ratio
   :lightens '(0)      ; same
   :colors (modus-themes-with-colors
-            (list fg-main
-                  cyan-alt-other
+            (list blue
+                  magenta
                   magenta-alt-other
-                  magenta)))
+                  green-alt)))
 #+end_src
 
 If you need to apply desaturation and lightening, you can use what the
@@ -3958,7 +4166,7 @@ latter case.
 ~modus-operandi~ is best used outdoors or in a room that either gets
 direct sunlight or has plenty of light.  Whereas ~modus-vivendi~ works
 better when there is not a lot of sunshine or the room has a source of
-light, preferably a faint or warm one.  It is possible to use
+light that is preferably a faint and/or warm one.  It is possible to use
 ~modus-operandi~ at night and ~modus-vivendi~ during the day, though that
 will depend on several variables, such as one's overall perception of
 color, the paint on the walls and how that contributes to the impression
@@ -4005,9 +4213,7 @@ in which you can contribute to their ongoing development.
 :end:
 #+cindex: Sources of the themes
 
-The ~modus-operandi~ and ~modus-vivendi~ themes are built into Emacs.
-Currently they are in Emacs' git main branch (trunk), which is tracking
-the next development release target.
+The ~modus-operandi~ and ~modus-vivendi~ themes are built into Emacs 28.
 
 The source code of the themes is [[https://gitlab.com/protesilaos/modus-themes/][available on Gitlab]], for the time
 being.  A [[https://github.com/protesilaos/modus-themes/][mirror on Github]] is also on offer.
@@ -4118,31 +4324,31 @@ The Modus themes are a collective effort.  Every bit of work matters.
 
 + Contributions to code or documentation :: Anders Johansson, Basil
   L.{{{space()}}} Contovounesios, Carlo Zancanaro, Eli Zaretskii, Fritz Grabo,
-  Kostadin Ninev, Madhavan Krishnan, Markus Beppler, Matthew Stevenson,
-  Mauro Aranda, Nicolas De Jaeghere, Philip Kaludercic, Rudolf
-  Adamkovič, Shreyas Ragavan, Stefan Kangas, Vincent Murphy, Xinglu
-  Chen.
+  Kévin Le Gouguec, Kostadin Ninev, Madhavan Krishnan, Markus Beppler,
+  Matthew Stevenson, Mauro Aranda, Nicolas De Jaeghere, Philip
+  Kaludercic, Rudolf Adamkovič, Stephen Gildea, Shreyas Ragavan, Stefan
+  Kangas, Vincent Murphy, Xinglu Chen.
 
-+ Ideas and user feedback :: Aaron Jensen, Adam Spiers, Adrian Manea,
-  Alex Griffin, Alex Peitsinis, Alexey Shmalko, Alok Singh, Anders
-  Johansson, André Alexandre Gomes, Arif Rezai, Basil L.{{{space()}}}
-  Contovounesios, Burgess Chang, Christian Tietze, Christopher Dimech,
-  Damien Cassou, Daniel Mendler, Dario Gjorgjevski, David Edmondson,
-  Davor Rotim, Divan Santana, Emanuele Michele Alberto Monterosso,
-  Farasha Euker, Gautier Ponsinet, Gerry Agbobada, Gianluca Recchia,
-  Gustavo Barros, Hörmetjan Yiltiz, Ilja Kocken, Iris Garcia, Jeremy
-  Friesen, Jerry Zhang, John Haman, Joshua O'Connor, Kevin Fleming,
-  Kévin Le Gouguec, Kostadin Ninev, Len Trigg, Manuel Uberti, Mark
-  Burton, Markus Beppler, Mauro Aranda, Michael Goldenberg, Morgan
-  Smith, Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Paul
-  Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic,
-  Pierre Téchoueyres, Roman Rudakov, Ryan Phillips, Rudolf Adamkovič,
-  Sam Kleinman, Shreyas Ragavan, Simon Pugnet, Tassilo Horn, Thibaut
-  Verron, Thomas Heartman, Trey Merkley, Togan Muftuoglu, Toon Claes,
-  Uri Sharf, Utkarsh Singh, Vincent Foley.  As well as users: Ben,
-  CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux, Fredrik, Moesasji,
-  Nick, TheBlob42, Trey, bepolymathe, doolio, fleimgruber, iSeeU,
-  jixiuf, okamsn, pRot0ta1p.
++ Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
+  Adrian Manea, Alex Griffin, Alex Peitsinis, Alexey Shmalko, Alok
+  Singh, Anders Johansson, André Alexandre Gomes, Arif Rezai, Basil
+  L.{{{space()}}} Contovounesios, Burgess Chang, Christian Tietze, Christopher
+  Dimech, Damien Cassou, Daniel Mendler, Dario Gjorgjevski, David
+  Edmondson, Davor Rotim, Divan Santana, Eliraz Kedmi, Emanuele Michele
+  Alberto Monterosso, Farasha Euker, Feng Shu, Gautier Ponsinet, Gerry
+  Agbobada, Gianluca Recchia, Gustavo Barros, Hörmetjan Yiltiz, Ilja
+  Kocken, Iris Garcia, Jeremy Friesen, Jerry Zhang, John Haman, Joshua
+  O'Connor, Kevin Fleming, Kévin Le Gouguec, Kostadin Ninev, Len Trigg,
+  Manuel Uberti, Mark Burton, Markus Beppler, Mauro Aranda, Michael
+  Goldenberg, Morgan Smith, Murilo Pereira, Nicky van Foreest, Nicolas
+  De Jaeghere, Paul Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu,
+  Philip Kaludercic, Pierre Téchoueyres, Roman Rudakov, Ryan Phillips,
+  Rudolf Adamkovič, Sam Kleinman, Shreyas Ragavan, Simon Pugnet, Tassilo
+  Horn, Thibaut Verron, Thomas Heartman, Trey Merkley, Togan Muftuoglu,
+  Toon Claes, Uri Sharf, Utkarsh Singh, Vincent Foley.  As well as
+  users: Ben, CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux, Fredrik,
+  Moesasji, Nick, TheBlob42, Trey, bepolymathe, doolio, fleimgruber,
+  iSeeU, jixiuf, okamsn, pRot0ta1p.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii, Glenn
   Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core Emacs),
@@ -4178,6 +4384,7 @@ of this sort):
 + [[https://protesilaos.com/codelog/2020-12-27-modus-themes-review-rainbow-delimiters/][Modus themes: review rainbow-delimiters faces]] (2020-12-27)
 + [[https://protesilaos.com/codelog/2021-01-11-modus-themes-review-select-faint-colours/][Modus themes: review of select "faint" colours]] (2021-01-11)
 + [[https://protesilaos.com/codelog/2021-02-25-modus-themes-diffs-deuteranopia/][The Modus themes now cover deuteranopia in diffs]] (2021-02-25)
++ [[https://protesilaos.com/codelog/2021-06-02-modus-themes-org-agenda/][Introducing the variable modus-themes-org-agenda]] (2021-06-02)
 
 And here are the canonical sources of this project's documentation:
 
