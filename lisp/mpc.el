@@ -962,6 +962,11 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 
 ;;; Formatter ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defcustom mpc-cover-image-re nil ; (rx (or ".jpg" ".jpeg" ".png") string-end)
+  "If non-nil, it is a regexp that should match a valid cover image."
+  :type '(regexp)
+  :version "28.1")
+
 (defun mpc-secs-to-time (secs)
   ;; We could use `format-seconds', but it doesn't seem worth the trouble
   ;; because we'd still need to check (>= secs (* 60 100)) since the special
@@ -1034,15 +1039,18 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                  (and (funcall oldpred info)
                                       (equal dir (file-name-directory
                                                   (cdr (assq 'file info))))))))
-                       (if-let* ((covers '(".folder.png" "cover.jpg" "folder.jpg"))
+                       (if-let* ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg"))
                                  (cover (cl-loop for file in (directory-files (mpc-file-local-copy dir))
-                                                 if (member (downcase file) covers)
+                                                 if (or (member (downcase file) covers)
+                                                        (and mpc-cover-image-re
+                                                             (string-match mpc-cover-image-re file)))
                                                  return (concat dir file)))
                                  (file (with-demoted-errors "MPC: %s"
                                          (mpc-file-local-copy cover))))
                            (let (image)
                              (if (null size) (setq image (create-image file))
                                (let ((tempfile (make-temp-file "mpc" nil ".jpg")))
+                                 ;; FIXME: Use native image scaling instead.
                                  (call-process "convert" nil nil nil
                                                "-scale" size file tempfile)
                                  (setq image (create-image tempfile))

@@ -2999,6 +2999,12 @@ Set rcirc-omit-responses-after-join analogously to rcirc-omit-responses.
 *** Implement repeated reconnection strategy
 See rcirc-reconnect-attempts.
 
+** MPC
+
+---
+*** New user option 'mpc-cover-image-re'.
+If non-nil, it is a regexp that should match a valid cover image.
+
 ** Miscellaneous
 
 ---
