@@ -1184,45 +1184,6 @@ Instead, if B has not been customized it should be re-initialized
 See the places where we manually call custom-reevaluate-setting,
 such as for mail-host-address and user-mail-address in startup.el.
 
-** ImageMagick support
-
-*** Image priority
-'image-type-header-regexps' prioritizes the jpeg loader over the
-ImageMagick one.  This is not wrong, but how should a user go about
-preferring the ImageMagick loader?  The user might like zooming etc in jpegs.
-
-Try (setq image-type-header-regexps nil) for a quick hack to prefer
-ImageMagick over the jpg loader.
-
-*** Slow display
-For some reason it's unbearably slow to look at a page in a large
-image bundle using the :index feature.  The ImageMagick "display"
-command is also a bit slow, but nowhere near as slow as the Emacs
-code.  It seems ImageMagick tries to unpack every page when loading the
-bundle.  This feature is not the primary usecase in Emacs though.
-
-ImageMagick 6.6.2-9 introduced a bugfix for single page djvu load.  It
-is now much faster to use the :index feature, but still not very fast.
-
-*** Try to cache the num pages calculation
-It can take a while to calculate the number of pages, and if you need
-to do it for each page view, page-flipping becomes uselessly slow.
-
-*** Integrate with image-dired
-
-*** Integrate with docview
-
-*** Integrate with image-mode
-Some work has been done, e.g. "M-x image-transform-fit-to-height" will
-fit the image to the height of the Emacs window.
-
-*** Look for optimizations for handling images with low depth
-Currently the code seems to default to 24 bit RGB which is costly for
-images with lower bit depth.
-
-*** Decide what to do with some uncommitted imagemagick support
-Functions for image size etc.
-
 ** nxml mode
 
 *** High priority
