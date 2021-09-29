@@ -2818,11 +2818,6 @@ Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
 Italic text is displayed in the new 'erc-italic-face'.
 
 ---
-*** The erc-compat.el library is now marked obsolete.
-This file contained ERC compatibility code for Emacs 21 and XEmacs
-which is no longer needed.
-
----
 *** erc-match.el now supports 'message' highlight type (not including the nick).
 The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
 'erc-fool-highlight-type', 'erc-keyword-highlight-type', and
