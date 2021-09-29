@@ -1111,6 +1111,9 @@ If PLAYLIST is t or nil or missing, use the main playlist."
           (if (null size) (setq col (+ col textwidth postwidth))
             (insert space)
             (setq col (+ col size))))))
+    ;; Print the rest of format-spec, in case there is text after the
+    ;; last actual format specifier.
+    (insert (substring format-spec pos))
     (put-text-property start (point) 'mpc--uptodate-p pred)))
 
 ;;; The actual UI code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
