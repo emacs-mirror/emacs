@@ -1201,6 +1201,7 @@ Interactively, ARG selects the ARGth different frame to move to."
                   (nthcdr to-index to-tabs))
       (with-selected-frame from-frame
         (let ((inhibit-message t) ; avoid message about deleted tab
+              (tab-bar-close-last-tab-choice 'delete-frame)
               tab-bar-closed-tabs)
           (tab-bar-close-tab from-number)))
       (tab-bar-tabs-set to-tabs to-frame)
