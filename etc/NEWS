@@ -1206,6 +1206,7 @@ If set to non-nil, Dired will dereference symbolic links when copying.
 This can be switched off on a per-usage basis by providing
 'dired-do-copy' with a 'C-u' prefix.
 
+---
 *** New user option 'dired-do-revert-buffer'.
 Non-nil reverts the destination Dired buffer after performing one
 of these operations: 'dired-do-copy', 'dired-do-rename',
