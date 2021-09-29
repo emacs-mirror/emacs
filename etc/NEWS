@@ -2391,6 +2391,11 @@ The function that is invoked when clicking on or otherwise following a
 'mailto:' link in an EWW buffer can now be customized.  For more
 information, see the related entry about 'shr-browse-url' above.
 
+---
+*** Support for bookmark.el.
+The command `bookmark-set' (bound to `C-x r m') is now supported, and
+will create a bookmark that opens the current URL in EWW.
+
 ** SHR
 
 ---

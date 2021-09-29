@@ -1101,6 +1101,7 @@ the like."
   (setq-local thing-at-point-provider-alist
               (append thing-at-point-provider-alist
                       '((url . eww--url-at-point))))
+  (setq-local bookmark-make-record-function #'eww-bookmark-make-record)
   (buffer-disable-undo)
   (setq buffer-read-only t))
 
@@ -2418,6 +2419,28 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 	  (eww-next-url)
         (eww-previous-url))))
   (current-buffer))
+
+;;; bookmark.el support
+
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+
+(defun eww-bookmark-name ()
+  "Create a default bookmark name for the current EWW buffer."
+  (plist-get eww-data :title))
+
+(defun eww-bookmark-make-record ()
+  "Create a bookmark for the current EWW buffer."
+  `(,(eww-bookmark-name)
+    ,@(bookmark-make-record-default t)
+    (location . ,(plist-get eww-data :url))
+    (handler . eww-bookmark-jump)))
+
+;;;###autoload
+(defun eww-bookmark-jump (bookmark)
+  "Default bookmark handler for EWW buffers."
+  (eww (bookmark-prop-get bookmark 'location)))
 
 (provide 'eww)
 
