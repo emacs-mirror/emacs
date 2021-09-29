@@ -957,7 +957,11 @@ for CJK text mixed with Latin text.
 +++
 ** New command 'undo-redo'.
 It undoes previous undo commands, but doesn't record itself as an
-undoable command.
+undoable command.  It is bound to 'C-?' and 'C-M-_', the first binding
+works well in graphical mode, and the second one is easy to hit on tty.
+
+For full conventional undo/redo behavior, you can also customize the
+user option 'undo-no-redo' to t.
 
 +++
 ** New commands 'copy-matching-lines' and 'kill-matching-lines'.

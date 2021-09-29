@@ -994,6 +994,9 @@ if `inhibit-field-text-motion' is non-nil."
   "Keymap to repeat undo key sequences `C-x u u'.  Used in `repeat-mode'.")
 (put 'undo 'repeat-map 'undo-repeat-map)
 
+(define-key global-map (kbd "C-?") 'undo-redo)
+(define-key global-map [?\C-\M-_] 'undo-redo)
+
 (define-key esc-map "!" 'shell-command)
 (define-key esc-map "|" 'shell-command-on-region)
 (define-key esc-map "&" 'async-shell-command)
