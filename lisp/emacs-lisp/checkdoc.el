@@ -254,7 +254,7 @@ with these words enabled."
 (defcustom checkdoc-max-keyref-before-warn nil
   "If non-nil, number of \\\\=[command-to-keystroke] tokens allowed in a doc string.
 Any more than this and a warning is generated suggesting that the construct
-\\\\={keymap} be used instead.  If the value is nil, never warn.
+\\\\={mapvar} be used instead.  If the value is nil, never warn.
 
 It used to not be practical to use `\\\\=[...]' very many times,
 because display of the documentation string would become slow.
@@ -1626,7 +1626,7 @@ mouse-[0-3]\\)\\)\\>"))
 	     (checkdoc-create-error
 	      (concat
 	       "Keycode " (match-string 1)
-	       " embedded in doc string.  Use \\\\<keymap> & \\\\[function] "
+	       " embedded in doc string.  Use \\\\<mapvar> & \\\\[command] "
 	       "instead")
 	      (match-beginning 1) (match-end 1) t))))
      ;; Optionally warn about too many command substitutions.
@@ -1636,7 +1636,7 @@ mouse-[0-3]\\)\\)\\>"))
                                      (1+ checkdoc-max-keyref-before-warn))
                   (not (re-search-forward "\\\\\\\\{\\w+}" e t)))
              (checkdoc-create-error
-              "Too many occurrences of \\[function].  Use \\{keymap} instead"
+              "Too many occurrences of \\[command].  Use \\{mapvar} instead"
               s (marker-position e)))))
      ;; Ambiguous quoted symbol.  When a symbol is both bound and fbound,
      ;; and is referred to in documentation, it should be prefixed with
