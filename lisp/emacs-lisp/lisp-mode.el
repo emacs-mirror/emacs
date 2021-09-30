@@ -1106,8 +1106,8 @@ is the buffer position of the start of the containing expression."
               (t
                normal-indent))))))
 
-(defun lisp--local-defform-body (state)
-  "Return non-nil if at local definition body according to STATE.
+(defun lisp--local-defform-body-p (state)
+  "Return non-nil when at local definition body according to STATE.
 STATE is the `parse-partial-sexp' state for current position."
   (when-let ((start-of-innermost-containing-list (nth 1 state)))
     (let* ((parents (nth 9 state))
@@ -1121,11 +1121,42 @@ STATE is the `parse-partial-sexp' state for current position."
                 second-cons-after nil))
         (pop second-cons-after)
         (pop parents))
-      (and second-order-parent
-           (save-excursion
-             (goto-char (1+ second-order-parent))
-             (memq (read (current-buffer))
-                   '(cl-flet cl-labels)))))))
+      (when second-order-parent
+        (save-excursion
+          (goto-char (1+ second-order-parent))
+          (and (memq (read (current-buffer))
+                     '( cl-flet cl-labels cl-macrolet cl-flet*
+                        cl-symbol-macrolet))
+               ;; Now we must check that we are
+               ;; in the second element of the flet-like form.
+               ;; It would be easier if `parse-partial-sexp' also recorded
+               ;; relative positions of subsexps in supersexps
+               ;; but it doesn't so we check manually.
+               ;;
+               ;; First, we must be looking at list now.
+               (ignore-errors (when (= (scan-lists (point) 1 0)
+                                       (scan-sexps (point) 1))
+                                ;; Looking at list; descend into it:
+                                (down-list 1)
+                                t))
+               ;; In Wishful Lisp, the following form would be
+               ;; (cl-member start-of-innermost-containing-list
+               ;;            (points-at-beginning-of-lists-at-this-level)
+               ;;            :test #'=)
+               (cl-loop
+                with pos = (ignore-errors
+                             ;; The first local definition may be indented
+                             ;; with whitespace following open paren.
+                             (goto-char (scan-lists (point) 1 0))
+                             (goto-char (scan-lists (point) -1 0))
+                             (point))
+                while pos
+                do (if (= start-of-innermost-containing-list pos)
+                       (cl-return t)
+                     (setq pos (ignore-errors
+                                 (goto-char (scan-lists (point) 2 0))
+                                 (goto-char (scan-lists (point) -1 0))
+                                 (point)))))))))))
 
 (defun lisp-indent-function (indent-point state)
   "This function is the normal value of the variable `lisp-indent-function'.
@@ -1160,7 +1191,9 @@ Lisp function does not specify a special indentation."
     (if (and (elt state 2)
              (not (looking-at "\\sw\\|\\s_")))
         ;; car of form doesn't seem to be a symbol
-        (if (lisp--local-defform-body state)
+        (if (lisp--local-defform-body-p state)
+            ;; We nevertheless check whether we are in flet-like form
+            ;; as we presume local function names could be non-symbols.
             (lisp-indent-defform state indent-point)
           (if (not (> (save-excursion (forward-line 1) (point))
                       calculate-lisp-indent-last-sexp))
@@ -1184,8 +1217,8 @@ Lisp function does not specify a special indentation."
 		   (and (null method)
 			(> (length function) 3)
 			(string-match "\\`def" function))
-                   ;; Check whether we are in flet or labels.
-                   (lisp--local-defform-body state))
+                   ;; Check whether we are in flet-like form.
+                   (lisp--local-defform-body-p state))
 	       (lisp-indent-defform state indent-point))
 	      ((integerp method)
 	       (lisp-indent-specform method state

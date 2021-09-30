@@ -3298,6 +3298,9 @@ These forms now indent like this:
 		(* x x)))
       (bla 42))
 
+This change also affects 'cl-macrolet', 'cl-flet*' and
+'cl-symbol-macrolet'.
+
 
 * Incompatible Lisp Changes in Emacs 28.1
 
