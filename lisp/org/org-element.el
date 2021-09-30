@@ -1024,7 +1024,7 @@ Assume point is at beginning of the headline."
 	   (title-start (prog1 (point)
                           (unless (or todo priority commentedp)
                             ;; Headline like "* :tag:"
-                            (skip-syntax-backward " \t"))))
+                            (skip-chars-backward " \t"))))
 	   (tags (when (re-search-forward
 			"[ \t]+\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$"
 			(line-end-position)
