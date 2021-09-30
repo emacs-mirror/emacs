@@ -1096,6 +1096,7 @@ evaluation of BODY."
     (should (unintern "f-test4---"))))
 
 (ert-deftest test-cl-flet-indentation ()
+  :expected-result :failed              ; FIXME: bug#9622
   (should (equal
            (with-temp-buffer
              (emacs-lisp-mode)
