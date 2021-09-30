@@ -1,3 +1,4 @@
+/* -*- objc -*- */
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
    Copyright (C) 1989, 1993, 2005, 2008-2021 Free Software Foundation,
    Inc.
