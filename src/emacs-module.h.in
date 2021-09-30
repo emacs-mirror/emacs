@@ -169,6 +169,19 @@ struct emacs_env_28
 @module_env_snippet_28@
 };
 
+struct emacs_env_29
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+
+@module_env_snippet_28@
+
+@module_env_snippet_29@
+};
+
 /* Every module should define a function as follows.  */
 extern int emacs_module_init (struct emacs_runtime *runtime)
   EMACS_NOEXCEPT
