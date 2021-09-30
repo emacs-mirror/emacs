@@ -1484,7 +1484,7 @@ INFO INFO-CALLBACK &optional PROGRESS-CALLBACK)" fill-column))
 \(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] BODY...)" fill-column))
   (should-not (byte-compile--wide-docstring-p "\
-(make-soap-xs-element &key NAME NAMESPACE-TAG ID TYPE^ OPTIONAL\? MULTIPLE\? \
+(make-soap-xs-element &key NAME NAMESPACE-TAG ID TYPE^ OPTIONAL? MULTIPLE? \
 REFERENCE SUBSTITUTION-GROUP ALTERNATIVES IS-GROUP)" fill-column))
   (should-not (byte-compile--wide-docstring-p "\
 (fn NAME FIXTURE INPUT &key SKIP-PAIR-STRING EXPECTED-STRING \
