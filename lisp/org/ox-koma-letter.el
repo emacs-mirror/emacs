@@ -1,4 +1,4 @@
-;;; ox-koma-letter.el --- KOMA Scrlttr2 Back-End for Org Export Engine
+;;; ox-koma-letter.el --- KOMA Scrlttr2 Back-End for Org Export Engine  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021  Free Software Foundation, Inc.
 
@@ -184,7 +184,6 @@
 (defcustom org-koma-letter-class-option-file "NF"
   "Letter Class Option File.
 This option can also be set with the LCO keyword."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-author 'user-full-name
@@ -196,7 +195,6 @@ Alternatively a string, nil or a function may be given.
 Functions must return a string.
 
 This option can also be set with the AUTHOR keyword."
-  :group 'org-export-koma-letter
   :type '(radio (function-item user-full-name)
                 (string)
                 (function)
@@ -210,7 +208,6 @@ returns `user-mail-address'.  Alternatively a string, nil or
 a function may be given.  Functions must return a string.
 
 This option can also be set with the EMAIL keyword."
-  :group 'org-export-koma-letter
   :type '(radio (function-item org-koma-letter-email)
                 (string)
                 (function)
@@ -220,33 +217,28 @@ This option can also be set with the EMAIL keyword."
   "Sender's address, as a string.
 This option can also be set with one or more FROM_ADDRESS
 keywords."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-phone-number ""
   "Sender's phone number, as a string.
 This option can also be set with the PHONE_NUMBER keyword."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-url ""
   "Sender's URL, e. g., the URL of her homepage.
 This option can also be set with the URL keyword."
-  :group 'org-export-koma-letter
   :type 'string
   :safe #'stringp)
 
 (defcustom org-koma-letter-from-logo ""
   "Commands for inserting the sender's logo, e. g., \\includegraphics{logo}.
 This option can also be set with the FROM_LOGO keyword."
-  :group 'org-export-koma-letter
   :type 'string
   :safe #'stringp)
 
 (defcustom org-koma-letter-place ""
   "Place from which the letter is sent, as a string.
 This option can also be set with the PLACE keyword."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-location ""
@@ -264,7 +256,6 @@ special heading.
 
 The location field is typically printed right of the address
 field (See Figure 4.9. in the English manual of 2015-10-03)."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-opening ""
@@ -278,7 +269,6 @@ when:
   (3) the letter contains a headline without a special
       tag (e.g. \"to\" or \"ps\");
 then the opening will be implicitly set as the untagged headline title."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-closing ""
@@ -292,7 +282,6 @@ when:
       tag \"closing\";
 then the opening will be set as the title of the closing special
 heading title."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-signature ""
@@ -308,14 +297,12 @@ then the signature will be  set as the content of the
 closing special heading.
 
 Note if the content is empty the signature will not be set."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-prefer-special-headings nil
   "Non-nil means prefer headlines over keywords for TO and FROM.
 This option can also be set with the OPTIONS keyword, e.g.:
 \"special-headings:t\"."
-  :group 'org-export-koma-letter
   :type 'boolean)
 
 (defcustom org-koma-letter-subject-format t
@@ -353,14 +340,12 @@ This option can also be set with the OPTIONS keyword, e.g.:
          (const :tag "Subject right-justified" right)
          (const :tag "Add title or description to subject" underlined)
          (const :tag "Set subject underlined" titled)
-         (const :tag "Do not add title or description to subject" untitled)))
-  :group 'org-export-koma-letter)
+         (const :tag "Do not add title or description to subject" untitled))))
 
 (defcustom org-koma-letter-use-backaddress nil
   "Non-nil prints return address in line above to address.
 This option can also be set with the OPTIONS keyword, e.g.:
 \"backaddress:t\"."
-  :group 'org-export-koma-letter
   :type 'boolean)
 
 (defcustom org-koma-letter-use-foldmarks t
@@ -393,7 +378,6 @@ following ones:
 
 This option can also be set with the OPTIONS keyword, e.g.:
 \"foldmarks:(b l m t)\"."
-  :group 'org-export-koma-letter
   :type '(choice
           (const :tag "Activate default folding marks" t)
           (const :tag "Deactivate folding marks" nil)
@@ -418,14 +402,12 @@ This option can also be set with the OPTIONS keyword, e.g.:
   "Non-nil prints sender's phone number.
 This option can also be set with the OPTIONS keyword, e.g.:
 \"phone:t\"."
-  :group 'org-export-koma-letter
   :type 'boolean)
 
 (defcustom org-koma-letter-use-url nil
   "Non-nil prints sender's URL.
 This option can also be set with the OPTIONS keyword, e.g.:
 \"url:t\"."
-  :group 'org-export-koma-letter
   :type 'boolean
   :safe #'booleanp)
 
@@ -433,7 +415,6 @@ This option can also be set with the OPTIONS keyword, e.g.:
   "Non-nil prints sender's FROM_LOGO.
 This option can also be set with the OPTIONS keyword, e.g.:
 \"from-logo:t\"."
-  :group 'org-export-koma-letter
   :type 'boolean
   :safe #'booleanp)
 
@@ -441,34 +422,29 @@ This option can also be set with the OPTIONS keyword, e.g.:
   "Non-nil prints sender's email address.
 This option can also be set with the OPTIONS keyword, e.g.:
 \"email:t\"."
-  :group 'org-export-koma-letter
   :type 'boolean)
 
 (defcustom org-koma-letter-use-place t
   "Non-nil prints the letter's place next to the date.
 This option can also be set with the OPTIONS keyword, e.g.:
 \"place:nil\"."
-  :group 'org-export-koma-letter
   :type 'boolean)
 
 (defcustom org-koma-letter-default-class "default-koma-letter"
   "Default class for `org-koma-letter'.
 The value must be a member of `org-latex-classes'."
-  :group 'org-export-koma-letter
   :type 'string)
 
 (defcustom org-koma-letter-headline-is-opening-maybe t
   "Non-nil means a headline may be used as an opening and closing.
 See also `org-koma-letter-opening' and
 `org-koma-letter-closing'."
-  :group 'org-export-koma-letter
   :type 'boolean)
 
 (defcustom org-koma-letter-prefer-subject nil
   "Non-nil means title should be interpreted as subject if subject is missing.
 This option can also be set with the OPTIONS keyword,
 e.g. \"title-subject:t\"."
-  :group 'org-export-koma-letter
   :type 'boolean)
 
 (defconst org-koma-letter-special-tags-in-letter '(to from closing location)
