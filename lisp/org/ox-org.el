@@ -141,7 +141,7 @@ CONTENTS and INFO are ignored."
 CONTENTS is its contents, as a string or nil.  INFO is ignored."
   (let ((case-fold-search t))
     (replace-regexp-in-string
-     "^[ \t]*#\\+attr_[-_a-za-z0-9]+:\\(?: .*\\)?\n" ""
+     "^[ \t]*#\\+attr_[-_a-z0-9]+:\\(?: .*\\)?\n" ""
      (org-export-expand blob contents t))))
 
 (defun org-org-headline (headline contents info)

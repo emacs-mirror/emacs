@@ -118,7 +118,7 @@
 ;; to current setup.
 
 (defconst org-element-citation-key-re
-  (rx "@" (group (one-or-more (any word "-.:?!`'/*@+|(){}<>&_^$#%&~"))))
+  (rx "@" (group (one-or-more (any word "-.:?!`'/*@+|(){}<>&_^$#%~"))))
   "Regexp matching a citation key.
 Key is located in match group 1.")
 
