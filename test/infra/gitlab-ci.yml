@@ -48,10 +48,12 @@ variables:
   # # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
   # DOCKER_HOST: tcp://docker:2376
   # DOCKER_TLS_CERTDIR: "/certs"
-  # Put the configuration for each run in a separate directory to avoid conflicts
+  # Put the configuration for each run in a separate directory to
+  # avoid conflicts.
   DOCKER_CONFIG: "/.docker-config-${CI_COMMIT_SHA}"
   DOCKER_BUILDKIT: 1
-  # We don't use ${CI_COMMIT_SHA} to be able to do one bootstrap across multiple builds
+  # We don't use ${CI_COMMIT_SHA} to be able to do one bootstrap
+  # across multiple builds.
   BUILD_TAG: ${CI_COMMIT_REF_SLUG}
 
 default:
@@ -90,19 +92,20 @@ default:
         - src/ns*.{h,m}
         - src/macfont.{h,m}
       when: never
-  # these will be cached across builds
+  # These will be cached across builds.
   cache:
     key: ${CI_COMMIT_SHA}
     paths: []
     policy: pull-push
-  # these will be saved for followup builds
+  # These will be saved for followup builds.
   artifacts:
     expire_in: 24 hrs
     paths: []
-  # using the variables for each job
+  # Using the variables for each job.
   script:
     - docker pull ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
-    # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
+    # TODO: with make -j4 several of the tests were failing, for
+    # example shadowfile-tests, but passed without it.
     - 'export PWD=$(pwd)'
     - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
   after_script:
@@ -142,12 +145,13 @@ default:
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
 
 .test-template:
-  # Do not run fast and normal test jobs when scheduled
+  # Do not block later stages.
+  allow_failure: true
+  # Do not run fast and normal test jobs when scheduled.
   rules:
     - if: '$CI_JOB_STAGE =~ "fast|normal" && $CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - when: always
-      allow_failure: true
   artifacts:
     name: ${test_name}
     public: true
@@ -258,7 +262,7 @@ test-filenotify-gio:
     make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
 
 test-gnustep:
-  # This tests the GNUstep build process
+  # This tests the GNUstep build process.
   stage: platforms
   needs: [build-image-gnustep]
   extends: [.job-template, .gnustep-template]
@@ -310,7 +314,7 @@ test-all-inotify:
   needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
-    # note there's no "changes" section, so this always runs on a schedule
+    # Note there's no "changes" section, so this always runs on a schedule.
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
   variables:
