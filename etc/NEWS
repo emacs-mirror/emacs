@@ -2881,11 +2881,6 @@ The new '/opme' convenience command asks ChanServ to set the operator
 status for the current nick in the current channel, and '/deopme'
 unsets it.
 
----
-*** Fix the order of '/whois' arguments sent to the server.
-Per RFC 1459 and RFC 2812, when given, the optional 'server' argument
-for the WHOIS command must come before the 'user' argument, not after.
-
 ** xwidget-webkit mode
 
 ---
