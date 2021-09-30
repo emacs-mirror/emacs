@@ -1257,6 +1257,10 @@ during I-search by using their 'isearch-motion' property.  The
 option 'isearch-motion-changes-direction' controls whether the
 direction of the search changes after a motion command.
 
++++
+** Emacs 28.1 comes with Org v9.5.
+See the file ORG-NEWS for user-visible changes in Org.
+
 ** Outline
 
 +++
