@@ -3321,6 +3321,18 @@ the idle time of that user."
     t))
 (defalias 'erc-cmd-WI #'erc-cmd-WHOIS)
 
+(defun erc-cmd-WII (nick)
+  "Display whois information for NICK, including idle time.
+
+This is a convenience function which calls `erc-cmd-WHOIS' with
+the given NICK for both arguments.  Using NICK in place of the
+server argument -- effectively delegating to the IRC network the
+looking up of the server to which NICK is connected -- is not
+standardized, but is widely supported across IRC networks.
+
+See `erc-cmd-WHOIS' for more details."
+  (erc-cmd-WHOIS nick nick))
+
 (defun erc-cmd-WHOAMI ()
   "Display whois information about yourself."
   (erc-cmd-WHOIS (erc-current-nick))
