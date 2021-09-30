@@ -33,7 +33,7 @@
 ;; Requires SLY (Sylvester the Cat's Common Lisp IDE) or SLIME
 ;; (Superior Lisp Interaction Mode for Emacs).  See:
 ;; - https://github.com/capitaomorte/sly
-;; - http://common-lisp.net/project/slime/
+;; - https://common-lisp.net/project/slime/
 
 ;;; Code:
 (require 'ob)

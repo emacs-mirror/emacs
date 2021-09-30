@@ -3,6 +3,7 @@
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
+;; Maintainer: Justin Abrahms
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
 
@@ -25,7 +26,7 @@
 
 ;; Org-Babel support for evaluating dot source code.
 ;;
-;; For information on dot see http://www.graphviz.org/
+;; For information on dot see https://www.graphviz.org/
 ;;
 ;; This differs from most standard languages in that
 ;;

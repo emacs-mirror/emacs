@@ -93,12 +93,7 @@ or user `keyboard-quit' during execution of body."
 			       (regexp-quote ,eoe-indicator) nil t)
 			      (re-search-forward
 			       comint-prompt-regexp nil t)))))
-	   (accept-process-output (get-buffer-process (current-buffer)))
-	   ;; thought the following this would allow async
-	   ;; background running, but I was wrong...
-	   ;; (run-with-timer .5 .5 'accept-process-output
-	   ;; 		 (get-buffer-process (current-buffer)))
-	   )
+	   (accept-process-output (get-buffer-process (current-buffer))))
 	 ;; replace cut dangling text
 	 (goto-char (process-mark (get-buffer-process (current-buffer))))
 	 (insert dangling-text)
@@ -135,7 +130,7 @@ statement (not large blocks of code)."
       (accept-process-output (get-buffer-process buffer)))))
 
 (defun org-babel-comint-eval-invisibly-and-wait-for-file
-  (buffer file string &optional period)
+    (buffer file string &optional period)
   "Evaluate STRING in BUFFER invisibly.
 Don't return until FILE exists.  Code in STRING must ensure that
 FILE exists at end of evaluation."
@@ -147,6 +142,171 @@ FILE exists at end of evaluation."
    (if (= (aref string (1- (length string))) ?\n) string (concat string "\n")))
   (while (not (file-exists-p file)) (sit-for (or period 0.25))))
 
+
+;;; Async evaluation
+
+(defvar-local org-babel-comint-async-indicator nil
+  "Regular expression that `org-babel-comint-async-filter' scans for.
+It should have 2 parenthesized expressions,
+e.g. \"org_babel_async_\\(start\\|end\\|file\\)_\\(.*\\)\".  The
+first parenthesized expression determines whether the token is
+delimiting a result block, or whether the result is in a file.
+If delimiting a block, the second expression gives a UUID for the
+location to insert the result.  Otherwise, the result is in a tmp
+file, and the second expression gives the file name.")
+
+(defvar-local org-babel-comint-async-buffers nil
+  "List of Org mode buffers to check for Babel async output results.")
+
+(defvar-local org-babel-comint-async-file-callback nil
+  "Callback to clean and insert Babel async results from a temp file.
+The callback function takes two arguments: the alist of params of the Babel
+source block, and the name of the temp file.")
+
+(defvar-local org-babel-comint-async-chunk-callback nil
+  "Callback function to clean Babel async output results before insertion.
+Its single argument is a string consisting of output from the
+comint process.  It should return a string that will be be passed
+to `org-babel-insert-result'.")
+
+(defvar-local org-babel-comint-async-dangling nil
+  "Dangling piece of the last process output, in case
+`org-babel-comint-async-indicator' is spread across multiple
+comint outputs due to buffering.")
+
+(defun org-babel-comint-use-async (params)
+  "Determine whether to use session async evaluation.
+PARAMS are the header arguments as passed to
+`org-babel-execute:lang'."
+  (let ((async (assq :async params))
+        (session (assq :session params)))
+    (and async
+	 (not org-babel-exp-reference-buffer)
+         (not (equal (cdr async) "no"))
+         (not (equal (cdr session) "none")))))
+
+(defun org-babel-comint-async-filter (string)
+  "Captures Babel async output from comint buffer back to Org mode buffers.
+This function is added as a hook to `comint-output-filter-functions'.
+STRING contains the output originally inserted into the comint buffer."
+  ;; Remove outdated Org mode buffers
+  (setq org-babel-comint-async-buffers
+	(cl-loop for buf in org-babel-comint-async-buffers
+	         if (buffer-live-p buf)
+	         collect buf))
+  (let* ((indicator org-babel-comint-async-indicator)
+	 (org-buffers org-babel-comint-async-buffers)
+	 (file-callback org-babel-comint-async-file-callback)
+	 (combined-string (concat org-babel-comint-async-dangling string))
+	 (new-dangling combined-string)
+	 ;; list of UUID's matched by `org-babel-comint-async-indicator'
+	 uuid-list)
+    (with-temp-buffer
+      (insert combined-string)
+      (goto-char (point-min))
+      (while (re-search-forward indicator nil t)
+	;; update dangling
+	(setq new-dangling (buffer-substring (point) (point-max)))
+	(cond ((equal (match-string 1) "end")
+	       ;; save UUID for insertion later
+	       (push (match-string 2) uuid-list))
+	      ((equal (match-string 1) "file")
+	       ;; insert results from tmp-file
+	       (let ((tmp-file (match-string 2)))
+		 (cl-loop for buf in org-buffers
+		          until
+		          (with-current-buffer buf
+			    (save-excursion
+			      (goto-char (point-min))
+			      (when (search-forward tmp-file nil t)
+			        (org-babel-previous-src-block)
+                                (let* ((info (org-babel-get-src-block-info))
+                                       (params (nth 2 info))
+                                       (result-params
+                                        (cdr (assq :result-params params))))
+                                  (org-babel-insert-result
+                                   (funcall file-callback
+                                            (nth
+                                             2 (org-babel-get-src-block-info))
+                                            tmp-file)
+                                   result-params info))
+			        t))))))))
+      ;; Truncate dangling to only the most recent output
+      (when (> (length new-dangling) (length string))
+	(setq new-dangling string)))
+    (setq-local org-babel-comint-async-dangling new-dangling)
+    (when uuid-list
+      ;; Search for results in the comint buffer
+      (save-excursion
+	(goto-char (point-max))
+	(while uuid-list
+	  (re-search-backward indicator)
+	  (when (equal (match-string 1) "end")
+	    (let* ((uuid (match-string-no-properties 2))
+		   (res-str-raw
+		    (buffer-substring
+		     ;; move point to beginning of indicator
+                     (- (match-beginning 0) 1)
+		     ;; find the matching start indicator
+		     (cl-loop
+                      do (re-search-backward indicator)
+		      until (and (equal (match-string 1) "start")
+				 (equal (match-string 2) uuid))
+		      finally return (+ 1 (match-end 0)))))
+		   ;; Apply callback to clean up the result
+		   (res-str (funcall org-babel-comint-async-chunk-callback
+                                     res-str-raw)))
+	      ;; Search for uuid in associated org-buffers to insert results
+	      (cl-loop for buf in org-buffers
+		       until (with-current-buffer buf
+			       (save-excursion
+			         (goto-char (point-min))
+			         (when (search-forward uuid nil t)
+				   (org-babel-previous-src-block)
+                                   (let* ((info (org-babel-get-src-block-info))
+                                          (params (nth 2 info))
+                                          (result-params
+                                           (cdr (assq :result-params params))))
+				     (org-babel-insert-result
+                                      res-str result-params info))
+				   t))))
+	      ;; Remove uuid from the list to search for
+	      (setq uuid-list (delete uuid uuid-list)))))))))
+
+(defun org-babel-comint-async-register
+    (session-buffer org-buffer indicator-regexp
+		    chunk-callback file-callback)
+  "Set local org-babel-comint-async variables in SESSION-BUFFER.
+ORG-BUFFER is added to `org-babel-comint-async-buffers' if not
+present.  `org-babel-comint-async-indicator',
+`org-babel-comint-async-chunk-callback', and
+`org-babel-comint-async-file-callback' are set to
+INDICATOR-REGEXP, CHUNK-CALLBACK, and FILE-CALLBACK
+respectively."
+  (org-babel-comint-in-buffer session-buffer
+    (setq org-babel-comint-async-indicator indicator-regexp
+	  org-babel-comint-async-chunk-callback chunk-callback
+	  org-babel-comint-async-file-callback file-callback)
+    (unless (memq org-buffer org-babel-comint-async-buffers)
+      (setq org-babel-comint-async-buffers
+	    (cons org-buffer org-babel-comint-async-buffers)))
+    (add-hook 'comint-output-filter-functions
+	      'org-babel-comint-async-filter nil t)))
+
+(defmacro org-babel-comint-async-delete-dangling-and-eval
+    (session-buffer &rest body)
+  "Remove dangling text in SESSION-BUFFER and evaluate BODY.
+This is analogous to `org-babel-comint-with-output', but meant
+for asynchronous output, and much shorter because inserting the
+result is delegated to `org-babel-comint-async-filter'."
+  (declare (indent 1) (debug t))
+  `(org-babel-comint-in-buffer ,session-buffer
+     (goto-char (process-mark (get-buffer-process (current-buffer))))
+     (delete-region (point) (point-max))
+     ,@body))
+
 (provide 'ob-comint)
+
+
 
 ;;; ob-comint.el ends here

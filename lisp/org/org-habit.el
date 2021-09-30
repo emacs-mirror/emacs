@@ -90,7 +90,7 @@ It will be green even if it was done after the deadline."
   :type 'boolean)
 
 (defcustom org-habit-scheduled-past-days nil
-"Value to use instead of `org-scheduled-past-days', for habits only.
+  "Value to use instead of `org-scheduled-past-days', for habits only.
 
 If nil, `org-scheduled-past-days' is used.
 

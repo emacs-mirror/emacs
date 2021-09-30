@@ -81,15 +81,20 @@ This function is called by `org-babel-execute-src-block'."
 		   (cdr (assq :session params))))
          (result-params (cdr (assq :result-params params)))
          (result-type (cdr (assq :result-type params)))
-	 (return-val (when (and (eq result-type 'value) (not session))
+	 (return-val (when (eq result-type 'value)
 		       (cdr (assq :return params))))
 	 (preamble (cdr (assq :preamble params)))
+	 (async (org-babel-comint-use-async params))
          (full-body
-	  (org-babel-expand-body:generic
-	   (concat body (if return-val (format "\nreturn %s" return-val) ""))
-	   params (org-babel-variable-assignments:python params)))
+	  (concat
+	   (org-babel-expand-body:generic
+	    body params
+	    (org-babel-variable-assignments:python params))
+	   (when return-val
+	     (format (if session "\n%s" "\nreturn %s") return-val))))
          (result (org-babel-python-evaluate
-		  session full-body result-type result-params preamble)))
+		  session full-body result-type
+		  result-params preamble async)))
     (org-babel-reassemble-table
      result
      (org-babel-pick-name (cdr (assq :colname-names params))
@@ -149,7 +154,7 @@ Emacs-lisp table, otherwise return the results as a string."
   (let ((res (org-babel-script-escape results)))
     (if (listp res)
         (mapcar (lambda (el) (if (eq el 'None)
-                            org-babel-python-None-to el))
+                                 org-babel-python-None-to el))
                 res)
       res)))
 
@@ -275,11 +280,14 @@ else:
 	  (if (member "pp" result-params) "True" "False")))
 
 (defun org-babel-python-evaluate
-  (session body &optional result-type result-params preamble)
+    (session body &optional result-type result-params preamble async)
   "Evaluate BODY as Python code."
   (if session
-      (org-babel-python-evaluate-session
-       session body result-type result-params)
+      (if async
+	  (org-babel-python-async-evaluate-session
+	   session body result-type result-params)
+	(org-babel-python-evaluate-session
+	 session body result-type result-params))
     (org-babel-python-evaluate-external-process
      body result-type result-params preamble)))
 
@@ -387,6 +395,49 @@ last statement in BODY, as elisp."
 	   (string-suffix-p "'" string))
       (substring string 1 -1)
     string))
+
+;; Async session eval
+
+(defconst org-babel-python-async-indicator "print ('ob_comint_async_python_%s_%s')")
+
+(defun org-babel-python-async-value-callback (params tmp-file)
+  (let ((result-params (cdr (assq :result-params params)))
+	(results (org-babel-eval-read-file tmp-file)))
+    (org-babel-result-cond result-params
+      results
+      (org-babel-python-table-or-string results))))
+
+(defun org-babel-python-async-evaluate-session
+    (session body &optional result-type result-params)
+  "Asynchronously evaluate BODY in SESSION.
+Returns a placeholder string for insertion, to later be replaced
+by `org-babel-comint-async-filter'."
+  (org-babel-comint-async-register
+   session (current-buffer)
+   "ob_comint_async_python_\\(.+\\)_\\(.+\\)"
+   'org-babel-chomp 'org-babel-python-async-value-callback)
+  (let ((python-shell-buffer-name (org-babel-python-without-earmuffs session)))
+    (pcase result-type
+      (`output
+       (let ((uuid (md5 (number-to-string (random 100000000)))))
+         (with-temp-buffer
+           (insert (format org-babel-python-async-indicator "start" uuid))
+           (insert "\n")
+           (insert body)
+           (insert "\n")
+           (insert (format org-babel-python-async-indicator "end" uuid))
+           (python-shell-send-buffer))
+         uuid))
+      (`value
+       (let ((tmp-results-file (org-babel-temp-file "python-"))
+             (tmp-src-file (org-babel-temp-file "python-")))
+         (with-temp-file tmp-src-file (insert body))
+         (with-temp-buffer
+           (insert (org-babel-python-format-session-value tmp-src-file tmp-results-file result-params))
+           (insert "\n")
+           (insert (format org-babel-python-async-indicator "file" tmp-results-file))
+           (python-shell-send-buffer))
+         tmp-results-file)))))
 
 (provide 'ob-python)
 

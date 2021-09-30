@@ -3,6 +3,7 @@
 ;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
+;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: org, wp
 
 ;; This file is part of GNU Emacs.
@@ -140,7 +141,7 @@ CONTENTS and INFO are ignored."
 CONTENTS is its contents, as a string or nil.  INFO is ignored."
   (let ((case-fold-search t))
     (replace-regexp-in-string
-     "^[ \t]*#\\+ATTR_[-_A-Za-z0-9]+:\\(?: .*\\)?\n" ""
+     "^[ \t]*#\\+attr_[-_a-za-z0-9]+:\\(?: .*\\)?\n" ""
      (org-export-expand blob contents t))))
 
 (defun org-org-headline (headline contents info)
@@ -184,26 +185,26 @@ as a communication channel."
 	       (org-element-map (plist-get info :parse-tree) 'keyword
 		 (lambda (k)
 		   (and (string-equal (org-element-property :key k) "OPTIONS")
-			(concat "#+OPTIONS: "
+			(concat "#+options: "
 				(org-element-property :value k)))))
 	       "\n"))
    (and (plist-get info :with-title)
-	(format "#+TITLE: %s\n" (org-export-data (plist-get info :title) info)))
+	(format "#+title: %s\n" (org-export-data (plist-get info :title) info)))
    (and (plist-get info :with-date)
 	(let ((date (org-export-data (org-export-get-date info) info)))
 	  (and (org-string-nw-p date)
-	       (format "#+DATE: %s\n" date))))
+	       (format "#+date: %s\n" date))))
    (and (plist-get info :with-author)
 	(let ((author (org-export-data (plist-get info :author) info)))
 	  (and (org-string-nw-p author)
-	       (format "#+AUTHOR: %s\n" author))))
+	       (format "#+author: %s\n" author))))
    (and (plist-get info :with-email)
 	(let ((email (org-export-data (plist-get info :email) info)))
 	  (and (org-string-nw-p email)
-	       (format "#+EMAIL: %s\n" email))))
+	       (format "#+email: %s\n" email))))
    (and (plist-get info :with-creator)
 	(org-string-nw-p (plist-get info :creator))
-	(format "#+CREATOR: %s\n" (plist-get info :creator)))
+	(format "#+creator: %s\n" (plist-get info :creator)))
    contents))
 
 (defun org-org-timestamp (timestamp _contents _info)
@@ -238,7 +239,7 @@ a communication channel."
 
 ;;;###autoload
 (defun org-org-export-as-org
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to an Org buffer.
 
 If narrowing is active in the current buffer, only export its
@@ -273,7 +274,7 @@ non-nil."
 
 ;;;###autoload
 (defun org-org-export-to-org
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to an Org file.
 
 If narrowing is active in the current buffer, only export its

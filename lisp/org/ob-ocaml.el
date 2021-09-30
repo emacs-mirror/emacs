@@ -32,7 +32,7 @@
 
 ;;; Requirements:
 
-;; - tuareg-mode :: https://www-rocq.inria.fr/~acohen/tuareg/
+;; - tuareg-mode :: https://elpa.nongnu.org/nongnu/tuareg.html
 
 ;;; Code:
 (require 'ob)
@@ -112,8 +112,8 @@
                                             session
                                           tuareg-interactive-buffer-name)))
     (save-window-excursion (if (fboundp 'tuareg-run-process-if-needed)
-	 (tuareg-run-process-if-needed org-babel-ocaml-command)
-       (tuareg-run-caml)))
+	                       (tuareg-run-process-if-needed org-babel-ocaml-command)
+                             (tuareg-run-caml)))
     (get-buffer tuareg-interactive-buffer-name)))
 
 (defun org-babel-variable-assignments:ocaml (params)

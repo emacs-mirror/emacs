@@ -41,20 +41,22 @@
     (display-buffer buf))
   (message "Babel evaluation exited with code %S" exit-code))
 
-(defun org-babel-eval (cmd body)
-  "Run CMD on BODY.
-If CMD succeeds then return its results, otherwise display
-STDERR with `org-babel-eval-error-notify'."
-  (let ((err-buff (get-buffer-create " *Org-Babel Error*")) exit-code)
-    (with-current-buffer err-buff (erase-buffer))
+(defun org-babel-eval (command query)
+  "Run COMMAND on QUERY.
+Writes QUERY into a temp-buffer that is processed with
+`org-babel--shell-command-on-region'.  If COMMAND succeeds then return
+its results, otherwise display STDERR with
+`org-babel-eval-error-notify'."
+  (let ((error-buffer (get-buffer-create " *Org-Babel Error*")) exit-code)
+    (with-current-buffer error-buffer (erase-buffer))
     (with-temp-buffer
-      (insert body)
+      (insert query)
       (setq exit-code
 	    (org-babel--shell-command-on-region
-	     (point-min) (point-max) cmd err-buff))
+	     command error-buffer))
       (if (or (not (numberp exit-code)) (> exit-code 0))
 	  (progn
-	    (with-current-buffer err-buff
+	    (with-current-buffer error-buffer
 	      (org-babel-eval-error-notify exit-code (buffer-string)))
 	    (save-excursion
 	      (when (get-buffer org-babel-error-buffer-name)
@@ -71,26 +73,19 @@ STDERR with `org-babel-eval-error-notify'."
   (with-temp-buffer (insert-file-contents file)
 		    (buffer-string)))
 
-(defun org-babel--shell-command-on-region (start end command error-buffer)
+(defun org-babel--shell-command-on-region (command error-buffer)
   "Execute COMMAND in an inferior shell with region as input.
+Stripped down version of `shell-command-on-region' for internal use in
+Babel only.  This lets us work around errors in the original function
+in various versions of Emacs.  This expects the query to be run to be
+in the current temp buffer.  This is written into
+input-file.  ERROR-BUFFER is the name of the file which
+`org-babel-eval' has created to use for any error messages that are
+returned."
 
-Stripped down version of shell-command-on-region for internal use
-in Babel only.  This lets us work around errors in the original
-function in various versions of Emacs.
-"
   (let ((input-file (org-babel-temp-file "ob-input-"))
 	(error-file (if error-buffer (org-babel-temp-file "ob-error-") nil))
-	;; Unfortunately, `executable-find' does not support file name
-	;; handlers.  Therefore, we could use it in the local case
-	;; only.
-	(shell-file-name
-	 (cond ((and (not (file-remote-p default-directory))
-		     (executable-find shell-file-name))
-		shell-file-name)
-	       ((file-executable-p
-		 (concat (file-remote-p default-directory) shell-file-name))
-		shell-file-name)
-	       ("/bin/sh")))
+	(shell-file-name (org-babel--get-shell-file-name))
 	exit-status)
     ;; There is an error in `process-file' when `error-file' exists.
     ;; This is fixed in Emacs trunk as of 2012-12-21; let's use this
@@ -99,18 +94,13 @@ function in various versions of Emacs.
       (delete-file error-file))
     ;; we always call this with 'replace, remove conditional
     ;; Replace specified region with output from command.
-    (let ((swap (< start end)))
-      (goto-char start)
-      (push-mark (point) 'nomsg)
-      (write-region start end input-file)
-      (delete-region start end)
-      (setq exit-status
-	    (process-file shell-file-name input-file
-			  (if error-file
-			      (list t error-file)
-			    t)
-			  nil shell-command-switch command))
-      (when swap (exchange-point-and-mark)))
+    (org-babel--write-temp-buffer-input-file input-file)
+    (setq exit-status
+	  (process-file shell-file-name input-file
+			(if error-file
+			    (list t error-file)
+			  t)
+			nil shell-command-switch command))
 
     (when (and input-file (file-exists-p input-file)
 	       ;; bind org-babel--debug-input around the call to keep
@@ -135,12 +125,35 @@ function in various versions of Emacs.
       (delete-file error-file))
     exit-status))
 
+(defun org-babel--write-temp-buffer-input-file (input-file)
+  "Write the contents of the current temp buffer into INPUT-FILE."
+  (let ((start (point-min))
+        (end (point-max)))
+    (goto-char start)
+    (push-mark (point) 'nomsg)
+    (write-region start end input-file)
+    (delete-region start end)
+    (exchange-point-and-mark)))
+
 (defun org-babel-eval-wipe-error-buffer ()
   "Delete the contents of the Org code block error buffer.
 This buffer is named by `org-babel-error-buffer-name'."
   (when (get-buffer org-babel-error-buffer-name)
     (with-current-buffer org-babel-error-buffer-name
       (delete-region (point-min) (point-max)))))
+
+(defun org-babel--get-shell-file-name ()
+  "Return system `shell-file-name', defaulting to /bin/sh.
+Unfortunately, `executable-find' does not support file name
+handlers.  Therefore, we could use it in the local case only."
+  ;; FIXME: This is generic enough that it should probably be in emacs, not org-mode
+  (cond ((and (not (file-remote-p default-directory))
+	      (executable-find shell-file-name))
+	 shell-file-name)
+	((file-executable-p
+	  (concat (file-remote-p default-directory) shell-file-name))
+	 shell-file-name)
+	("/bin/sh")))
 
 (provide 'ob-eval)
 
