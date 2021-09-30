@@ -823,6 +823,19 @@ active and only omits a message if the nick has not been active.  The
 window @code{rcirc} considers is controlled by the
 @code{rcirc-omit-threshold} variable.
 
+@vindex rcirc-omit-unless-requested
+Certain messages can be omitted by default, unless the user manual
+requests them. For example, if you don't want to display @code{TOPIC}
+and @code{NAMES} messages, after reconnecting, you can configure
+@code{rcirc-omit-unless-requested} to hide:
+
+@example
+(setq rcirc-omit-unless-requested '("TOPIC" "NAMES"))
+@end example
+
+Now NAMES will only be displayed, after it has been requested via the
+@code{rcirc-cmd-name} command.
+
 @node Hacking and Tweaking
 @chapter Hacking and Tweaking
 @cindex hacking and tweaking

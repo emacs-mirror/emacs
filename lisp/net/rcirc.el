@@ -190,6 +190,19 @@ If nil, no maximum is applied."
 (defvar-local rcirc-low-priority-flag nil
   "Non-nil means activity in this buffer is considered low priority.")
 
+(defvar-local rcirc-pending-requests '()
+  "List of pending requests.
+See `rcirc-omit-unless-requested'.")
+
+(defcustom rcirc-omit-unless-requested '()
+  "List of commands to only be requested if preceded by a command.
+For example, if \"TOPIC\" is added to this list, TOPIC commands
+will only be displayed if `rcirc-cmd-TOPIC' was previously
+invoked.  Commands will only be hidden if `rcirc-omit-mode' is
+enabled."
+  :version "28.1"
+  :type '(repeat string))
+
 (defcustom rcirc-omit-responses
   '("JOIN" "PART" "QUIT" "NICK")
   "Responses which will be hidden when `rcirc-omit-mode' is enabled."
@@ -1958,9 +1971,15 @@ connection."
               ;; make text omittable
 	      (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
 		(if (and (not (string= (rcirc-nick process) sender))
-			 (member response rcirc-omit-responses)
-			 (or (not last-activity-lines)
-			     (< rcirc-omit-threshold last-activity-lines)))
+                         (or (member response rcirc-omit-responses)
+                             (and (member response rcirc-omit-unless-requested)
+                                  (if (member response rcirc-pending-requests)
+                                      (ignore (setq rcirc-pending-requests
+                                                    (delete response rcirc-pending-requests)))
+                                    t)))
+                         (or (member response rcirc-omit-unless-requested)
+                             (not last-activity-lines)
+                             (< rcirc-omit-threshold last-activity-lines)))
                   (put-text-property (point-min) (point-max)
 				       'invisible 'rcirc-omit)
 		  ;; otherwise increment the line count
@@ -2569,6 +2588,7 @@ that, an interactive form can specified."
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))
            (user-error "Malformed input (%s): %S" ',command ,argument))
+         (push ,(upcase (symbol-name command)) rcirc-pending-requests)
          (let ((process (or process (rcirc-buffer-process)))
 	       (target (or target rcirc-target)))
            (ignore target process)
