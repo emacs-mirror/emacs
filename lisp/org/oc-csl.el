@@ -123,7 +123,7 @@ If nil then only the fallback en-US locale will be available."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice
-          (dir :tag "Locales directory")
+          (directory :tag "Locales directory")
           (const :tag "Use en-US locale only" nil))
   :safe t)
 
@@ -134,7 +134,7 @@ directory.  This variable is ignored when style file is absolute."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice
-          (dir :tag "Styles directory")
+          (directory :tag "Styles directory")
           (const :tag "Use absolute file names" nil))
   :safe t)
 

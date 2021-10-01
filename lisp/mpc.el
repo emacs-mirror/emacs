@@ -964,7 +964,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 
 (defcustom mpc-cover-image-re nil ; (rx (or ".jpg" ".jpeg" ".png") string-end)
   "If non-nil, it is a regexp that should match a valid cover image."
-  :type '(regexp)
+  :type '(choice (const nil) regexp)
   :version "28.1")
 
 (defun mpc-secs-to-time (secs)
