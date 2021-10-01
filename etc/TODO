@@ -829,11 +829,6 @@ gametree, page-ext, refbib, refer, scribe, texinfo, underline,
 cmacexp, hideif, pcomplete, xml, cvs-status (should be described in
 PCL-CVS manual); other progmodes, probably in separate manual.
 
-** Deprecate and remove XPM icons
-Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
-the XPMs so that the color versions work generally.  (Requires care
-with the color used for the transparent regions.)
-
 ** Convenient access to the 'values' variable
 It would be nice to have an interface that would show you the printed
 reps of the elements of the list in a menu, let you select one of the
