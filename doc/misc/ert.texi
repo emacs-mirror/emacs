@@ -873,6 +873,10 @@ make @code{ert-test-erts-file} place point where @samp{|} is in the
 where the @samp{|} character is in the ``after'' form (and issue a
 test failure if that isn't the case).  (This is used in all subsequent
 tests, unless overridden by a new @samp{Point-Char} spec.)
+
+@item Skip
+If this is present and value is a form that evaluates to a
+non-@code{nil} value, the test will be skipped.
 @end table
 
 If you need to use the literal line single line @samp{=-=} in a test
