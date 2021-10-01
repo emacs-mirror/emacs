@@ -2391,7 +2391,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	      color = s->xgcv.foreground;
 	    }
 	  else
-	    color = s->face->foreground;
+	    color = s->face->background;
 
 	  cairo_t *cr = pgtk_begin_cr_clip (s->f);
 
