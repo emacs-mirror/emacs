@@ -99,7 +99,7 @@ When it is a file name, it should be the \"expanded\" version.")
   "Return the length of the match."
   nil)
 
-;;;; Commonly needed location classes are defined here:
+;;;; Commonly needed location types are defined here:
 
 (defcustom xref-file-name-display 'project-relative
   "Style of file name display in *xref* buffers.
@@ -999,7 +999,7 @@ to that style.  Otherwise it is returned unchanged."
   ;; `tags-apropos-additional-actions', is pretty lax.  But we don't
   ;; want to use `file-exists-p' for performance reasons.  If this
   ;; ever turns out to be a problem, some other alternatives are to
-  ;; either have every location class which uses file names format the
+  ;; either have every location type which uses file names format the
   ;; values themselves (e.g. by piping through some public function),
   ;; or adding a new accessor to locations, like GROUP-TYPE.
   (cl-ecase xref-file-name-display
