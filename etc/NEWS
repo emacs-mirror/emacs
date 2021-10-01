@@ -61,6 +61,10 @@ This change also affects 'cl-macrolet', 'cl-flet*' and
 The new command 'image-dired-unmark-all-marks' has been added with a
 binding in the menu.
 
+
+** subr-x
+*** New macro 'with-memoization' provides a very primitive form of memoization
+
 
 * New Modes and Packages in Emacs 29.1
 
