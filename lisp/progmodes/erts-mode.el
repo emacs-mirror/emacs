@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defgroup erts-mode nil
   "Major mode for editing Emacs test files."
   :group 'lisp)
@@ -64,6 +66,7 @@
 (defvar erts-mode-map
   (let ((map (make-keymap)))
     (set-keymap-parent map prog-mode-map)
+    (define-key map "\C-c\C-r" 'erts-tag-region)
     map))
 
 (defvar erts-mode-font-lock-keywords
@@ -100,7 +103,8 @@
     (beginning-of-line)
     (if (looking-at "=-=\\(-=\\)?$")
         t
-      (let ((test-start (re-search-backward "^=-=\n" nil t)))
+      (let ((test-start (save-excursion
+                          (re-search-backward "^=-=\n" nil t))))
         ;; Before the first test.
         (and test-start
              (let ((test-end (re-search-backward "^=-=-=\n" nil t)))
@@ -111,8 +115,41 @@
 ;;;###autoload
 (define-derived-mode erts-mode prog-mode "erts"
   "Major mode for editing erts (Emacs testing) files.
-This mode mainly provides some font locking."
+This mode mainly provides some font locking.
+
+\\{erts-mode-map}"
   (setq-local font-lock-defaults '(erts-mode-font-lock-keywords t)))
+
+(defun erts-tag-region (start end name)
+  "Tag the region between START and END as a test.
+Interactively, this is the region.
+
+NAME should be a string appropriate for output by ert if the test fails.
+If NAME is nil or the empty string, a name will be auto-generated."
+  (interactive "r\nsTest name: ")
+  ;; Automatically make a name.
+  (when (zerop (length name))
+    (save-excursion
+      (goto-char (point-min))
+      (let ((names nil))
+        (while (re-search-forward "^Name:[ \t]*\\(.*\\)" nil t)
+          (let ((name (match-string 1)))
+            (unless (erts-mode--in-test-p (point))
+              (push name names))))
+        (setq name
+              (cl-loop with base = (file-name-sans-extension (buffer-name))
+                       for i from 1
+                       for name = (format "%s%d" base i)
+                       unless (member name names)
+                       return name)))))
+  (save-excursion
+    (goto-char end)
+    (unless (bolp)
+      (insert "\n"))
+    (insert "=-=-=\n")
+    (goto-char start)
+    (insert "Name: " name "\n\n")
+    (insert "=-=\n")))
 
 (provide 'erts-mode)
 
