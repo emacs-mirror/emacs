@@ -317,27 +317,27 @@
            (expected (pop expected-xrefs))
            (expected-xref (or (when (consp expected) (car expected)) expected))
            (expected-source (when (consp expected) (cdr expected)))
-           (xref-file (xref-elisp-location-file (oref xref location)))
+           (xref-file (xref-elisp-location-file (xref-item-location xref)))
            (expected-file (xref-elisp-location-file
-                           (oref expected-xref location))))
+                           (xref-item-location expected-xref))))
 
       ;; Make sure file names compare as strings.
       (when (file-name-absolute-p xref-file)
-        (setf (xref-elisp-location-file (oref xref location))
-              (file-truename (xref-elisp-location-file (oref xref location)))))
+        (setf (xref-elisp-location-file (xref-item-location xref))
+              (file-truename (xref-elisp-location-file (xref-item-location xref)))))
       (when (file-name-absolute-p expected-file)
-        (setf (xref-elisp-location-file (oref expected-xref location))
+        (setf (xref-elisp-location-file (xref-item-location expected-xref))
               (file-truename (xref-elisp-location-file
-                              (oref expected-xref location)))))
+                              (xref-item-location expected-xref)))))
 
       ;; Downcase the filenames for case-insensitive file systems.
       (when xref--case-insensitive
-        (setf (xref-elisp-location-file (oref xref location))
-              (downcase (xref-elisp-location-file (oref xref location))))
+        (setf (xref-elisp-location-file (xref-item-location xref))
+              (downcase (xref-elisp-location-file (xref-item-location xref))))
 
-        (setf (xref-elisp-location-file (oref expected-xref location))
+        (setf (xref-elisp-location-file (xref-item-location expected-xref))
               (downcase (xref-elisp-location-file
-                         (oref expected-xref location)))))
+                         (xref-item-location expected-xref)))))
 
       (should (equal xref expected-xref))
 
@@ -417,8 +417,6 @@ to (xref-elisp-test-descr-to-target xref)."
                                  emacs-test-dir)))))
 
 ;; FIXME: defconst
-
-;; FIXME: eieio defclass
 
 ;; Possible ways of defining the default method implementation for a
 ;; generic function. We declare these here, so we know we cover all

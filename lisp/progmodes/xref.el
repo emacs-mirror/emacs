@@ -46,9 +46,9 @@
 ;;
 ;; One would usually call `make-xref' and `xref-make-file-location',
 ;; `xref-make-buffer-location' or `xref-make-bogus-location' to create
-;; them.  More generally, a location must be an instance of an EIEIO
-;; class inheriting from `xref-location' and implementing
-;; `xref-location-group' and `xref-location-marker'.
+;; them.  More generally, a location must be an instance of a type for
+;; which methods `xref-location-group' and `xref-location-marker' are
+;; implemented.
 ;;
 ;; There's a special kind of xrefs we call "match xrefs", which
 ;; correspond to search results.  For these values,
@@ -62,12 +62,15 @@
 ;; distinct, because the user can't see the properties when making the
 ;; choice.
 ;;
+;; Older versions of Xref used EIEIO for implementation of the
+;; built-in types, and included a class called `xref-location' which
+;; was supposed to be inherited from.  Neither is true anymore.
+;;
 ;; See the etags and elisp-mode implementations for full examples.
 
 ;;; Code:
 
 (require 'cl-lib)
-(require 'eieio)
 (require 'ring)
 (require 'project)
 
@@ -77,9 +80,6 @@
 
 
 ;;; Locations
-
-(defclass xref-location () ()
-  :documentation "A location represents a position in a file or buffer.")
 
 (cl-defgeneric xref-location-marker (location)
   "Return the marker for LOCATION.")
@@ -99,7 +99,7 @@ When it is a file name, it should be the \"expanded\" version.")
   "Return the length of the match."
   nil)
 
-;;;; Commonly needed location classes are defined here:
+;;;; Commonly needed location types are defined here:
 
 (defcustom xref-file-name-display 'project-relative
   "Style of file name display in *xref* buffers.
@@ -121,19 +121,20 @@ in its full absolute form."
 
 ;; FIXME: might be useful to have an optional "hint" i.e. a string to
 ;; search for in case the line number is slightly out of date.
-(defclass xref-file-location (xref-location)
-  ((file :type string :initarg :file :reader xref-location-group)
-   (line :type fixnum :initarg :line :reader xref-location-line)
-   (column :type fixnum :initarg :column :reader xref-file-location-column))
-  :documentation "A file location is a file/line/column triple.
-Line numbers start from 1 and columns from 0.")
+(cl-defstruct (xref-file-location
+               (:constructor xref-make-file-location (file line column)))
+  "A file location is a file/line/column triple.
+Line numbers start from 1 and columns from 0."
+  file line column)
 
-(defun xref-make-file-location (file line column)
-  "Create and return a new `xref-file-location'."
-  (make-instance 'xref-file-location :file file :line line :column column))
+(cl-defmethod xref-location-group ((l xref-file-location))
+  (xref-file-location-file l))
+
+(cl-defmethod xref-location-line ((l xref-file-location))
+  (xref-file-location-line l))
 
 (cl-defmethod xref-location-marker ((l xref-file-location))
-  (with-slots (file line column) l
+  (pcase-let (((cl-struct xref-file-location file line column) l))
     (with-current-buffer
         (or (get-file-buffer file)
             (let ((find-file-suppress-same-file-warnings t))
@@ -151,77 +152,51 @@ Line numbers start from 1 and columns from 0.")
             (forward-char column))
           (point-marker))))))
 
-(defclass xref-buffer-location (xref-location)
-  ((buffer :type buffer :initarg :buffer)
-   (position :type fixnum :initarg :position)))
-
-(defun xref-make-buffer-location (buffer position)
-  "Create and return a new `xref-buffer-location'."
-  (make-instance 'xref-buffer-location :buffer buffer :position position))
+(cl-defstruct (xref-buffer-location
+               (:constructor xref-make-buffer-location (buffer position)))
+  buffer position)
 
 (cl-defmethod xref-location-marker ((l xref-buffer-location))
-  (with-slots (buffer position) l
+  (pcase-let (((cl-struct xref-buffer-location buffer position) l))
     (let ((m (make-marker)))
       (move-marker m position buffer))))
 
 (cl-defmethod xref-location-group ((l xref-buffer-location))
-  (with-slots (buffer) l
+  (pcase-let (((cl-struct xref-buffer-location buffer) l))
     (or (buffer-file-name buffer)
         (format "(buffer %s)" (buffer-name buffer)))))
 
-(defclass xref-bogus-location (xref-location)
-  ((message :type string :initarg :message
-            :reader xref-bogus-location-message))
-  :documentation "Bogus locations are sometimes useful to
-indicate errors, e.g. when we know that a function exists but the
-actual location is not known.")
-
-(defun xref-make-bogus-location (message)
-  "Create and return a new `xref-bogus-location'."
-  (make-instance 'xref-bogus-location :message message))
+(cl-defstruct (xref-bogus-location
+               (:constructor xref-make-bogus-location (message)))
+  "Bogus locations are sometimes useful to indicate errors,
+e.g. when we know that a function exists but the actual location
+is not known."
+  message)
 
 (cl-defmethod xref-location-marker ((l xref-bogus-location))
-  (user-error "%s" (oref l message)))
+  (user-error "%s" (xref-bogus-location-message l)))
 
 (cl-defmethod xref-location-group ((_ xref-bogus-location)) "(No location)")
 
 
 ;;; Cross-reference
 
-(defclass xref-item ()
-  ((summary :type string :initarg :summary
-            :reader xref-item-summary
-            :documentation "One line which will be displayed for
-this item in the output buffer.")
-   (location :initarg :location
-             :reader xref-item-location
-             :documentation "An object describing how to navigate
-to the reference's target."))
-  :comment "An xref item describes a reference to a location
-somewhere.")
+(cl-defstruct (xref-item
+               (:constructor xref-make (summary location))
+               (:noinline t))
+  "An xref item describes a reference to a location somewhere."
+  summary location)
 
-(defun xref-make (summary location)
-  "Create and return a new `xref-item'.
-SUMMARY is a short string to describe the xref.
-LOCATION is an `xref-location'."
-  (make-instance 'xref-item :summary summary :location location))
+(cl-defstruct (xref-match-item
+               (:include xref-item)
+               (:constructor xref-make-match (summary location length))
+               (:noinline t))
+  "A match xref item describes a search result."
+  length)
 
-(defclass xref-match-item ()
-  ((summary :type string :initarg :summary
-            :reader xref-item-summary)
-   (location :initarg :location
-             :type xref-location
-             :reader xref-item-location)
-   (length :initarg :length :reader xref-match-length))
-  :comment "A match xref item describes a search result.")
-
-(defun xref-make-match (summary location length)
-  "Create and return a new `xref-match-item'.
-SUMMARY is a short string to describe the xref.
-LOCATION is an `xref-location'.
-LENGTH is the match length, in characters."
-  (make-instance 'xref-match-item :summary summary
-                 :location location :length length))
+(cl-defgeneric xref-match-length ((item xref-match-item))
+  "Return the length of the match."
+  (xref-match-item-length item))
 
 
 ;;; API
@@ -970,7 +945,7 @@ GROUP is a string for decoration purposes and XREF is an
            for max-line-width =
            (cl-loop for xref in xrefs
                     maximize (let ((line (xref-location-line
-                                          (oref xref location))))
+                                          (xref-item-location xref))))
                                (and line (1+ (floor (log line 10))))))
            for line-format = (and max-line-width
                                   (format "%%%dd: " max-line-width))
@@ -985,7 +960,7 @@ GROUP is a string for decoration purposes and XREF is an
            (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
            (cl-loop for xref in xrefs do
-                    (with-slots (summary location) xref
+                    (pcase-let (((cl-struct xref-item summary location) xref))
                       (let* ((line (xref-location-line location))
                              (prefix
                               (cond
@@ -1024,7 +999,7 @@ to that style.  Otherwise it is returned unchanged."
   ;; `tags-apropos-additional-actions', is pretty lax.  But we don't
   ;; want to use `file-exists-p' for performance reasons.  If this
   ;; ever turns out to be a problem, some other alternatives are to
-  ;; either have every location class which uses file names format the
+  ;; either have every location type which uses file names format the
   ;; values themselves (e.g. by piping through some public function),
   ;; or adding a new accessor to locations, like GROUP-TYPE.
   (cl-ecase xref-file-name-display
@@ -1206,22 +1181,23 @@ between them by typing in the minibuffer with completion."
     (cl-loop for ((group . xrefs) . more1) on xref-alist
              do
              (cl-loop for (xref . more2) on xrefs do
-                      (with-slots (summary location) xref
-                        (let* ((line (xref-location-line location))
-                               (line-fmt
-                                (if line
-                                    (format #("%d:" 0 2 (face xref-line-number))
-                                            line)
-                                  ""))
-                               (group-prefix
-                                (substring group group-prefix-length))
-                               (group-fmt
-                                (propertize group-prefix
-                                            'face 'xref-file-header
-                                            'xref--group group-prefix))
-                               (candidate
-                                (format "%s:%s%s" group-fmt line-fmt summary)))
-                          (push (cons candidate xref) xref-alist-with-line-info)))))
+                      (let* ((summary (xref-item-summary xref))
+                             (location (xref-item-location xref))
+                             (line (xref-location-line location))
+                             (line-fmt
+                              (if line
+                                  (format #("%d:" 0 2 (face xref-line-number))
+                                          line)
+                                ""))
+                             (group-prefix
+                              (substring group group-prefix-length))
+                             (group-fmt
+                              (propertize group-prefix
+                                          'face 'xref-file-header
+                                          'xref--group group-prefix))
+                             (candidate
+                              (format "%s:%s%s" group-fmt line-fmt summary)))
+                        (push (cons candidate xref) xref-alist-with-line-info))))
 
     (setq xref (if (not (cdr xrefs))
                    (car xrefs)

@@ -3298,24 +3298,22 @@ a script after exceeding the flood threshold."
     t)
    (t nil)))
 
-(defun erc-cmd-WHOIS (nick-or-server &optional nick-if-server)
+(defun erc-cmd-WHOIS (first &optional second)
   "Display whois information for the given user.
 
-If NICK-IF-SERVER is nil, NICK-OR-SERVER should be the nick of
-the user about whom the whois information is to be requested.
-Otherwise, if NICK-IF-SERVER is non-nil, NICK-OR-SERVER should be
-the server to which the user with the nick NICK-IF-USER is
-connected to.
+With one argument, FIRST is the nickname of the user to request
+whois information for.
 
-Specifying the server NICK-OR-SERVER that the nick NICK-IF-SERVER
-is connected to is useful for getting the time the NICK-IF-SERVER
-user has been idle for, when the user NICK-IF-SERVER is connected
-to a different server of the network than the one current user is
-connected to, since only the server a user is connected to knows
-the idle time of that user."
-  (let ((send (if nick-if-server
-                  (format "WHOIS %s %s" nick-or-server nick-if-server)
-                (format "WHOIS %s" nick-or-server))))
+With two arguments, FIRST is the server, and SECOND is the user
+nickname.
+
+Specifying the server is useful for getting the time the user has
+been idle for, when the user is connected to a different server
+on the same IRC network.  (Only the server a user is connected to
+knows how long the user has been idle for.)"
+  (let ((send (if second
+                  (format "WHOIS %s %s" first second)
+                (format "WHOIS %s" first))))
     (erc-log (format "cmd: %s" send))
     (erc-server-send send)
     t))

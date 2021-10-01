@@ -2161,18 +2161,16 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
          (nreverse res))))
    tags-apropos-additional-actions))
 
-(defclass xref-etags-location (xref-location)
-  ((tag-info :type list   :initarg :tag-info)
-   (file     :type string :initarg :file
-             :reader xref-location-group))
-  :documentation "Location of an etags tag.")
+(cl-defstruct (xref-etags-location
+               (:constructor xref-make-etags-location (tag-info file)))
+  "Location of an etags tag."
+  tag-info file)
 
-(defun xref-make-etags-location (tag-info file)
-  (make-instance 'xref-etags-location :tag-info tag-info
-                 :file (expand-file-name file)))
+(cl-defmethod xref-location-group ((l xref-etags-location))
+  (xref-etags-location-file l))
 
 (cl-defmethod xref-location-marker ((l xref-etags-location))
-  (with-slots (tag-info file) l
+  (pcase-let (((cl-struct xref-etags-location tag-info file) l))
     (let ((buffer (find-file-noselect file)))
       (with-current-buffer buffer
         (save-excursion
@@ -2182,25 +2180,20 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
             (point-marker)))))))
 
 (cl-defmethod xref-location-line ((l xref-etags-location))
-  (with-slots (tag-info) l
+  (pcase-let (((cl-struct xref-etags-location tag-info) l))
     (nth 1 tag-info)))
 
-(defclass xref-etags-apropos-location (xref-location)
-  ((symbol :type symbol :initarg :symbol)
-   (goto-fun :type function :initarg :goto-fun)
-   (group :type string :initarg :group
-          :reader xref-location-group))
-  :documentation "Location of an additional apropos etags symbol.")
+(cl-defstruct (xref-etags-apropos-location
+               (:constructor xref-make-etags-apropos-location (symbol goto-fun group)))
+  "Location of an additional apropos etags symbol."
+  symbol goto-fun group)
 
-(defun xref-make-etags-apropos-location (symbol goto-fun group)
-  (make-instance 'xref-etags-apropos-location
-                 :symbol symbol
-                 :goto-fun goto-fun
-                 :group group))
+(cl-defmethod xref-location-group ((l xref-etags-apropos-location))
+  (xref-etags-apropos-location-group l))
 
 (cl-defmethod xref-location-marker ((l xref-etags-apropos-location))
   (save-window-excursion
-    (with-slots (goto-fun symbol) l
+    (pcase-let (((cl-struct xref-etags-apropos-location goto-fun symbol) l))
       (funcall goto-fun symbol)
       (point-marker))))
 
