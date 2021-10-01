@@ -46,6 +46,12 @@ buffer is already open.  Now, the old point is pushed to mark ring.
 
 * New Modes and Packages in Emacs 29.1
 
++++
+** New mode 'erts-mode'
+This mode is used to edit files geared towards testing actions in
+Emacs buffers, like indentation and the like.  The new ert function
+'ert-test-erts-file' is used to parse these files.
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 

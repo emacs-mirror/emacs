@@ -486,6 +486,7 @@ to find where a test was defined if the test was loaded from a file.
 * Expected Failures::           Tests for known bugs.
 * Tests and Their Environment:: Don't depend on customizations; no side effects.
 * Useful Techniques::           Some examples.
+* erts files::                  Files containing many buffer tests.
 @end menu
 
 @node The @code{should} Macro
@@ -767,6 +768,115 @@ code is to restructure the code slightly to provide better interfaces
 for testing.  Usually, this makes the interfaces easier to use as
 well.
 
+@node erts files
+@section erts files
+
+@findex ert-test-erts-file
+Many relevant Emacs tests depend on comparing the contents of a buffer
+before and after executing a particular function.  These tests can be
+written the normal way---making a temporary buffer, inserting the
+``before'' text, running the function, and then comparing with the
+expected ``after'' text.  However, this often leads to test code
+that's pretty difficult to read and write, especially when the text in
+question is multi-line.
+
+So ert provides a function called @code{ert-test-erts-file} that takes
+two parameters: The name of a specially-formatted @dfn{erts} file, and
+(optionally) a function that performs the transform.
+
+@findex erts-mode
+These erts files can be edited with the @code{erts-mode} major mode.
+
+An erts file is divided into sections by the (@samp{=-=}) separator.
+
+Here's an example file containing two tests:
+
+@example
+Name: flet
+
+=-=
+(cl-flet ((bla (x)
+(* x x)))
+(bla 42))
+=-=
+(cl-flet ((bla (x)
+	    (* x x)))
+  (bla 42))
+=-=-=
+
+Name: defun
+
+=-=
+(defun x ()
+  (print (quote ( thingy great
+		  stuff))))
+=-=-=
+@end example
+
+A test starts with a line containing just @samp{=-=} and ends with a
+line containing just just @samp{=-=-=}.  The test may be preceded by
+freeform text (for instance, comments), and also name/value pairs (see
+below for a list of them).
+
+If there is a line with @samp{=-=} inside the test, that designates
+the start of the ``after'' text.  Otherwise, the ``before'' and
+``after'' texts are assumed to be identical, which you typically see
+when writing indentation tests.
+
+@code{ert-test-erts-file} puts the ``before'' section into a temporary
+buffer, calls the transform function, and then compares with the
+``after'' section.
+
+Here's an example usage:
+
+@lisp
+(ert-test-erts-file "elisp.erts"
+                    (lambda ()
+                      (emacs-lisp-mode)
+                      (indent-region (point-min) (point-max))))
+@end lisp
+
+A list of the name/value specifications that can appear before a test
+follows.  The general syntax is @samp{Name: Value}, but continuation
+lines can be used (along the same lines as in mail -- subsequent lines
+that start with a space are part of the value).
+
+@example
+Name: foo
+Code: (indent-region
+        (point-min) (point-max))
+@end example
+
+@table @samp
+@item Name
+All tests should have a name.  This name will appear in the output
+from ert if the test fails, and helps identifying the failing test.
+
+@item Code
+This is the code that will be run to do the transform.  This can also
+be passed in via the @code{ert-test-erts-file} call, but @samp{Code}
+overrides that.  It's used not only in the following test, but in all
+subsequent tests in the file (until overridden by another @samp{Code}
+specification).
+
+@item No-Before-Newline
+@itemx No-After-Newline
+These specifications say whether the ``before'' or ``after'' portions
+have a newline at the end.  (This would otherwise be impossible to
+specify.)
+
+@item Point-Char
+Sometimes it's useful to be able to put point at a specific place
+before executing the transform character.  @samp{Point-Char: |} will
+make @code{ert-test-erts-file} place point where @samp{|} is in the
+``before'' form (and remove that character), and will check that it's
+where the @samp{|} character is in the ``after'' form (and issue a
+test failure if that isn't the case).  (This is used in all subsequent
+tests, unless overridden by a new @samp{Point-Char} spec.)
+@end table
+
+If you need to use the literal line single line @samp{=-=} in a test
+section, you can quote it with a @samp{\} character.
 
 @node How to Debug Tests
 @chapter How to Debug Tests
