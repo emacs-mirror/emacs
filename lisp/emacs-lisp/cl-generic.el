@@ -636,6 +636,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       ;; overkill: better just use a `cl-typep' test.
       (byte-compile
        `(lambda (generic dispatches-left methods)
+          (eval-when-compile (require 'subr-x))
           (let ((method-cache (make-hash-table :test #'eql)))
             (lambda (,@fixedargs &rest args)
               (let ,bindings
