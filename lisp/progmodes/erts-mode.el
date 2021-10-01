@@ -24,6 +24,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'ert)
 
 (defgroup erts-mode nil
   "Major mode for editing Emacs test files."
@@ -67,6 +68,7 @@
   (let ((map (make-keymap)))
     (set-keymap-parent map prog-mode-map)
     (define-key map "\C-c\C-r" 'erts-tag-region)
+    (define-key map "\C-c\C-c" 'erts-run-test)
     map))
 
 (defvar erts-mode-font-lock-keywords
@@ -126,7 +128,7 @@ Interactively, this is the region.
 
 NAME should be a string appropriate for output by ert if the test fails.
 If NAME is nil or the empty string, a name will be auto-generated."
-  (interactive "r\nsTest name: ")
+  (interactive "r\nsTest name: " erts-mode)
   ;; Automatically make a name.
   (when (zerop (length name))
     (save-excursion
@@ -150,6 +152,40 @@ If NAME is nil or the empty string, a name will be auto-generated."
     (goto-char start)
     (insert "Name: " name "\n\n")
     (insert "=-=\n")))
+
+(defun erts-run-test (test-function)
+  "Run the current test.
+If the current erts file doesn't define a test function, the user
+will be prompted for one."
+  (interactive
+   (list (save-excursion
+           ;; Find the preceding Code spec.
+           (while (and (re-search-backward "^Code:" nil t)
+                       (erts-mode--in-test-p (point))))
+           (if (and (not (erts-mode--in-test-p (point)))
+                    (re-search-forward "^=-=$" nil t))
+               (progn
+                 (goto-char (match-beginning 0))
+                 (cdr (assq 'code (ert--erts-specifications (point)))))
+             (read-string "Transformation function: "))))
+   erts-mode)
+  (save-excursion
+    (erts-mode--goto-start-of-test)
+    (condition-case arg
+        (ert-test--erts-test
+         (list (cons 'dummy t) (cons 'code test-function))
+         (buffer-file-name))
+      (:success (message "Test successful"))
+      (ert-test-failed (message "Test failure; expected text: \n%s"
+                                (substring-no-properties (cadr (cadr arg))))))))
+
+(defun erts-mode--goto-start-of-test ()
+  (if (not (erts-mode--in-test-p (point)))
+      (re-search-forward "^=-=\n" nil t)
+    (re-search-backward "^=-=\n" nil t)
+    (when (save-match-data (erts-mode--in-test-p (point)))
+      (re-search-backward "^=-=\n" nil t))
+    (goto-char (match-end 0))))
 
 (provide 'erts-mode)
 
