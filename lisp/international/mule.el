@@ -294,31 +294,6 @@ attribute."
 
     (apply 'define-charset-internal name (mapcar 'cdr attrs))))
 
-(defun hack-elisp-shorthands (fullname)
-  "Return value of the `elisp-shorthands' file-local variable in FULLNAME.
-FULLNAME is the absolute file name of an Elisp .el file which
-potentially specifies a file-local value for `elisp-shorthands'.
-The Elisp code in FULLNAME isn't read or evaluated in any way, except
-for extraction of the buffer-local value of `elisp-shorthands'."
-  (let ((size (nth 7 (file-attributes fullname))))
-    (with-temp-buffer
-      (insert-file-contents fullname nil (max 0 (- size 3000)) size)
-      (goto-char (point-max))
-      (let* ((found (search-backward-regexp "elisp-shorthands:[ \t]*" 0 t))
-             (val (and found
-                       (goto-char (match-end 0))
-                       (ignore-errors (read (current-buffer)))))
-             (probe val)
-             aux)
-        (catch 'done
-          (when (consp probe)
-            (while (setq aux (pop probe))
-              (unless (and (consp aux)
-                           (stringp (car aux))
-                           (stringp (cdr aux)))
-                (throw 'done nil)))
-            val))))))
-
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
   "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
 The file contents are decoded before evaluation if necessary.
@@ -377,13 +352,6 @@ Return t if file exists."
 	    (message "Loading %s (source)...done" file)
 	  (message "Loading %s...done" file)))
       t)))
-
-(defun load-with-shorthands-and-code-conversion (fullname file noerror nomessage)
-  "Like `load-with-code-conversion', but also consider Elisp shorthands.
-This function uses shorthands defined in the file FULLNAME's local
-value of `elisp-shorthands', when it processes that file's Elisp code."
-  (let ((elisp-shorthands (hack-elisp-shorthands fullname)))
-    (load-with-code-conversion fullname file noerror nomessage)))
 
 (defun charset-info (charset)
   "Return a vector of information of CHARSET.
