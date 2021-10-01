@@ -144,8 +144,8 @@ their treatment.  Which codepoints are treated as emoji is derived
 from the Unicode specifications.  Also, Emacs will now use "Noto Color
 Emoji" by default for that script.  Use:
 
-(set-fontset-font t 'emoji
-                  '("My New Emoji Font" . "iso10646-1") nil 'prepend)
+    (set-fontset-font t 'emoji
+                      '("My New Emoji Font" . "iso10646-1") nil 'prepend)
 
 to change the font used.
 
@@ -153,7 +153,7 @@ to change the font used.
 ** Zero Width Joiner (ZWJ) and emoji sequences are now composed.
 Emacs can now compose (almost) all the Unicode-14 ZWJ and emoji
 sequences (if a suitable font is installed) so that they are displayed
-as single glyphs instead of multiple ones.  'Noto Color Emoji' is one
+as single glyphs instead of multiple ones.  "Noto Color Emoji" is one
 such suitable font.
 
 +++
@@ -163,7 +163,7 @@ font is now used to check if composition can be performed, rather than
 the font of the first character of the string being composed.  This
 allows e.g.
 
-'Emoji codepoint' + VS-16
+    'Emoji codepoint' + VS-16
 
 to be displayed using the emoji font even if 'Emoji codepoint' does
 not have emoji presentation by default.
@@ -543,7 +543,7 @@ If your mouse or trackpad supports it, you can now scroll tabs when
 the mouse pointer is in the tab line by scrolling left or right.
 
 ---
-*** New tab-line faces and options.
+*** New tab-line faces and user options.
 The face 'tab-line-tab-special' is used for tabs whose buffers are
 special, i.e. buffers that don't visit a file.  The face
 'tab-line-tab-modified' is used to display modified, file-backed
@@ -551,7 +551,7 @@ buffers.  The face 'tab-line-tab-inactive-alternate' is used to
 display inactive tabs with an alternating background color, making
 them easier to distinguish, especially if the face 'tab-line-tab' is
 configured to not display with a box; this alternate face is only
-applied when the option 'tab-line-tab-face-functions' is so
+applied when the user option 'tab-line-tab-face-functions' is so
 configured.  That option may also be used to customize tab-line faces
 in other ways.
 
@@ -595,7 +595,7 @@ built without SVG support, the old icons will be used instead.
 ** Help
 
 ---
-*** The order things are displayed in the *Help* buffer has been changed.
+*** The order things are displayed in the "*Help*" buffer has been changed.
 The indented "administrative" block (containing the "probably
 introduced" and "other relevant functions" (and similar things) has
 been moved to after the doc string.
@@ -1091,7 +1091,7 @@ It serves as a local counterpart for 'show-paren-mode', allowing you
 to toggle it separately in different buffers.  To use it only in
 programming modes, for example, add the following to your init file:
 
-(add-hook 'prog-mode-hook #'show-paren-local-mode)
+    (add-hook 'prog-mode-hook #'show-paren-local-mode)
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
@@ -1237,8 +1237,8 @@ The commands are now bound to 'C-x C-j' and 'C-x 4 C-j' by default.
 To get the old behavior of 'dired-bind-jump' back and unbind the above
 keys, add the following to your init file:
 
-(global-set-key "\C-x\C-j" nil)
-(global-set-key "\C-x4\C-j" nil)
+    (global-set-key "\C-x\C-j" nil)
+    (global-set-key "\C-x4\C-j" nil)
 
 ---
 *** 'dired-query' now uses 'read-char-from-minibuffer'.
@@ -1253,7 +1253,7 @@ invoked during I-search, move respectively to the first occurrence of
 the current search string in the buffer, the last one, the first one
 after the current window, and the last one before the current window.
 Additionally, users can change the meaning of other motion commands
-during I-search by using their 'isearch-motion' property.  The
+during I-search by using their 'isearch-motion' property.  The user
 option 'isearch-motion-changes-direction' controls whether the
 direction of the search changes after a motion command.
 
@@ -1583,7 +1583,7 @@ Some modules have their own minor mode now to account for these
 changes.
 
 *** Support for bookmark.el.
-The command `bookmark-set' (bound to `C-x r m') is now supported, and
+The command 'bookmark-set' (bound to 'C-x r m') is now supported, and
 will create a bookmark that opens the current directory in Eshell.
 
 ** Archive mode
@@ -2394,14 +2394,14 @@ information, see the related entry about 'shr-browse-url' above.
 
 ---
 *** Support for bookmark.el.
-The command `bookmark-set' (bound to `C-x r m') is now supported, and
+The command 'bookmark-set' (bound to 'C-x r m') is now supported, and
 will create a bookmark that opens the current URL in EWW.
 
 ** SHR
 
 ---
 *** The command 'shr-browse-url' now supports custom mailto handlers.
-Clicking on or otherwise following a 'mailto:' link in a HTML buffer
+Clicking on or otherwise following a 'mailto:' link in an HTML buffer
 rendered by SHR previously invoked the command 'browse-url-mailto'.
 This is still the case by default, but if you customize
 'browse-url-mailto-function' or 'browse-url-handlers' to call some
@@ -2441,8 +2441,7 @@ a project's root directory, respectively.
 
 +++
 *** New command 'project-compile'.
-This command runs compilation in the current project's root
-directory.
+This command runs compilation in the current project's root directory.
 
 +++
 *** New command 'project-switch-project'.
@@ -2466,7 +2465,7 @@ directory and optionally also its subdirectories, storing them in
 
 +++
 *** New commands 'project-forget-project' and 'project-forget-projects-under'.
-These command lets you interactively remove entries from the list of projects
+These commands let you interactively remove entries from the list of projects
 in 'project-list-file'.
 
 +++
@@ -2505,7 +2504,7 @@ The new user option 'xref-auto-jump-to-first-xref' changes the
 behavior of Xref commands such as 'xref-find-references',
 'xref-find-apropos', and 'project-find-regexp', which are expected to
 display many matches that the user would like to
-visit. 'xref-auto-jump-to-first-xref' changes their behavior much in
+visit.  'xref-auto-jump-to-first-xref' changes their behavior much in
 the same way as 'xref-auto-jump-to-first-definition' affects the
 "find-definitions" commands.
 
@@ -2670,7 +2669,7 @@ images are marked.
 ** Flymake mode
 
 +++
-*** New command 'flymake-show-project-diagnostics'
+*** New command 'flymake-show-project-diagnostics'.
 This lists all diagnostics for buffers in the currently active
 project.  The listing is similar to the one obtained by
 'flymake-show-buffer-diagnostics', but adds a column for the
@@ -2948,10 +2947,10 @@ checkdoc will now check the format of 'yes-or-no-p'.
 This can be used to run checkdoc on files from a Dired buffer.
 
 ---
-*** No longer checks for "A-" modifiers.
+*** No longer checks for 'A-' modifiers.
 Checkdoc recommends usage of command substitutions ("\\[foo-command]")
-in favor of writing keybindings like "C-c f".  It now no longer warns
-about the "A-" modifier as it is not used very much in practice, and
+in favor of writing keybindings like 'C-c f'.  It now no longer warns
+about the 'A-' modifier as it is not used very much in practice, and
 this warning therefore mostly led to false positives.
 
 ** Enriched mode
@@ -3010,7 +3009,7 @@ Face 'mh-folder-whitelisted' is renamed 'mh-folder-allowlisted'.
 The function now accepts a variable number of arguments.
 
 +++
-*** Deprecate 'defun-rcirc-command' in favour of 'rcirc-define-command'.
+*** Deprecate 'rcirc-command' in favor of 'rcirc-define-command'.
 The new macro handles multiple and optional arguments.
 
 ---
@@ -3533,7 +3532,7 @@ by mistake and were not useful to Lisp code.
 The former is now declared obsolete.
 
 +++
-** 'facemenu.el' is no longer preloaded.
+** facemenu.el is no longer preloaded.
 To use functions/variables from the package, you now have to say
 '(require 'facemenu)' or similar.
 
@@ -3698,9 +3697,9 @@ objects in files specified by that variable.  It's unclear when this
 actually changed, but at some point (perhaps decades ago) these
 commands started using 'load-history' to determine where symbols had
 been defined (which is much faster).  The doc strings of all the
-affected function has been updated.  'find-function-source-path' was
+affected function have been updated.  'find-function-source-path' was
 still being used by 'find-library' and related commands, so the
-variable has been renamed to 'find-library-source-path', and
+user option has been renamed to 'find-library-source-path', and
 'find-function-source-path' is now an obsolete variable alias.
 
 ---
