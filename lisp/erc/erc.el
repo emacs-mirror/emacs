@@ -3311,7 +3311,7 @@ Specifying the server is useful for getting the time the user has
 been idle for, when the user is connected to a different server
 on the same IRC network.  (Only the server a user is connected to
 knows how long the user has been idle for.)"
-  (let ((send (if nick-if-server
+  (let ((send (if second
                   (format "WHOIS %s %s" first second)
                 (format "WHOIS %s" first))))
     (erc-log (format "cmd: %s" send))
