@@ -176,7 +176,7 @@ will be prompted for one."
          (list (cons 'dummy t) (cons 'code test-function))
          (buffer-file-name))
       (:success (message "Test successful"))
-      (ert-test-failed (message "Test failure; expected text: \n%s"
+      (ert-test-failed (message "Test failure; result: \n%s"
                                 (substring-no-properties (cadr (cadr arg))))))))
 
 (defun erts-mode--goto-start-of-test ()
