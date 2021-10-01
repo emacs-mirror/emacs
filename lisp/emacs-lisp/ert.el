@@ -2672,83 +2672,88 @@ TRANSFORM will be called to get from before to after."
       ;; The start of the "before" part starts with a form feed and then
       ;; the name of the test.
       (while (re-search-forward "^=-=\n" nil t)
-        (let* ((file-buffer (current-buffer))
-               (specs (ert--erts-specifications (match-beginning 0)))
-               (name (cdr (assq 'name specs)))
-               (start-before (point))
-               (end-after (if (re-search-forward "^=-=-=\n" nil t)
-                              (match-beginning 0)
-                            (point-max)))
-               (skip (cdr (assq 'skip specs)))
-               end-before start-after
-               after after-point)
-          (unless name
-            (error "No name for test case"))
-          (if (and skip
-                   (eval (car (read-from-string skip))))
-              ;; Skipping this test.
-              ()
-            ;; Do the test.
-            (goto-char end-after)
-            ;; We have a separate after section.
-            (if (re-search-backward "^=-=\n" start-before t)
-                (setq end-before (match-beginning 0)
-                      start-after (match-end 0))
-              (setq end-before end-after
-                    start-after start-before))
-            ;; Update persistent specs.
-            (when-let ((point-char (assq 'point-char specs)))
-              (setq gen-specs
-                    (map-insert gen-specs 'point-char (cdr point-char))))
-            (when-let ((code (cdr (assq 'code specs))))
-              (setq gen-specs
-                    (map-insert gen-specs 'code (car (read-from-string code)))))
-            ;; Get the "after" strings.
-            (with-temp-buffer
-              (insert-buffer-substring file-buffer start-after end-after)
-              (ert--erts-unquote)
-              ;; Remove the newline at the end of the buffer.
-              (when-let ((no-newline (cdr (assq 'no-after-newline specs))))
-                (goto-char (point-min))
-                (when (re-search-forward "\n\\'" nil t)
-                  (delete-region (match-beginning 0) (match-end 0))))
-              ;; Get the expected "after" point.
-              (when-let ((point-char (cdr (assq 'point-char gen-specs))))
-                (goto-char (point-min))
-                (when (search-forward point-char nil t)
-                  (delete-region (match-beginning 0) (match-end 0))
-                  (setq after-point (point))))
-              (setq after (buffer-string)))
-            ;; Do the test.
-            (with-temp-buffer
-              (insert-buffer-substring file-buffer start-before end-before)
-              (ert--erts-unquote)
-              ;; Remove the newline at the end of the buffer.
-              (when-let ((no-newline (cdr (assq 'no-before-newline specs))))
-                (goto-char (point-min))
-                (when (re-search-forward "\n\\'" nil t)
-                  (delete-region (match-beginning 0) (match-end 0))))
-              (goto-char (point-min))
-              ;; Place point in the specified place.
-              (when-let ((point-char (cdr (assq 'point-char gen-specs))))
-                (when (search-forward point-char nil t)
-                  (delete-region (match-beginning 0) (match-end 0))))
-              (let ((code (cdr (assq 'code gen-specs))))
-                (unless code
-                  (error "No code to run the transform"))
-                (funcall code))
-              (unless (equal (buffer-string) after)
-                (ert-fail (list (format "Mismatch in test \"%s\", file %s"
-                                        name file)
-                                (buffer-string)
-                                after)))
-              (when (and after-point
-                         (not (= after-point (point))))
-                (ert-fail (list (format "Point wrong in test \"%s\", expected point %d, actual %d, file %s"
-                                        name
-                                        after-point (point)
-                                        file)
-                                (buffer-string)))))))))))
+        (setq gen-specs (ert-test--erts-test gen-specs file))))))
+
+(defun ert-test--erts-test (gen-specs file)
+  (let* ((file-buffer (current-buffer))
+         (specs (ert--erts-specifications (match-beginning 0)))
+         (name (cdr (assq 'name specs)))
+         (start-before (point))
+         (end-after (if (re-search-forward "^=-=-=\n" nil t)
+                        (match-beginning 0)
+                      (point-max)))
+         (skip (cdr (assq 'skip specs)))
+         end-before start-after
+         after after-point)
+    (unless name
+      (error "No name for test case"))
+    (if (and skip
+             (eval (car (read-from-string skip))))
+        ;; Skipping this test.
+        ()
+      ;; Do the test.
+      (goto-char end-after)
+      ;; We have a separate after section.
+      (if (re-search-backward "^=-=\n" start-before t)
+          (setq end-before (match-beginning 0)
+                start-after (match-end 0))
+        (setq end-before end-after
+              start-after start-before))
+      ;; Update persistent specs.
+      (when-let ((point-char (assq 'point-char specs)))
+        (setq gen-specs
+              (map-insert gen-specs 'point-char (cdr point-char))))
+      (when-let ((code (cdr (assq 'code specs))))
+        (setq gen-specs
+              (map-insert gen-specs 'code (car (read-from-string code)))))
+      ;; Get the "after" strings.
+      (with-temp-buffer
+        (insert-buffer-substring file-buffer start-after end-after)
+        (ert--erts-unquote)
+        ;; Remove the newline at the end of the buffer.
+        (when-let ((no-newline (cdr (assq 'no-after-newline specs))))
+          (goto-char (point-min))
+          (when (re-search-forward "\n\\'" nil t)
+            (delete-region (match-beginning 0) (match-end 0))))
+        ;; Get the expected "after" point.
+        (when-let ((point-char (cdr (assq 'point-char gen-specs))))
+          (goto-char (point-min))
+          (when (search-forward point-char nil t)
+            (delete-region (match-beginning 0) (match-end 0))
+            (setq after-point (point))))
+        (setq after (buffer-string)))
+      ;; Do the test.
+      (with-temp-buffer
+        (insert-buffer-substring file-buffer start-before end-before)
+        (ert--erts-unquote)
+        ;; Remove the newline at the end of the buffer.
+        (when-let ((no-newline (cdr (assq 'no-before-newline specs))))
+          (goto-char (point-min))
+          (when (re-search-forward "\n\\'" nil t)
+            (delete-region (match-beginning 0) (match-end 0))))
+        (goto-char (point-min))
+        ;; Place point in the specified place.
+        (when-let ((point-char (cdr (assq 'point-char gen-specs))))
+          (when (search-forward point-char nil t)
+            (delete-region (match-beginning 0) (match-end 0))))
+        (let ((code (cdr (assq 'code gen-specs))))
+          (unless code
+            (error "No code to run the transform"))
+          (funcall code))
+        (unless (equal (buffer-string) after)
+          (ert-fail (list (format "Mismatch in test \"%s\", file %s"
+                                  name file)
+                          (buffer-string)
+                          after)))
+        (when (and after-point
+                   (not (= after-point (point))))
+          (ert-fail (list (format "Point wrong in test \"%s\", expected point %d, actual %d, file %s"
+                                  name
+                                  after-point (point)
+                                  file)
+                          (buffer-string)))))))
+  ;; Return the new value of the general specifications.
+  gen-specs)
 
 (defun ert--erts-unquote ()
   (goto-char (point-min))
