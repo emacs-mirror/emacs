@@ -1085,7 +1085,11 @@ evaluation of BODY."
     (should (unintern "f-test4---"))))
 
 (ert-deftest test-indentation ()
-  (ert-test-erts-file (ert-resource-file "elisp-indents.erts")))
+  (ert-test-erts-file (ert-resource-file "elisp-indents.erts"))
+  (ert-test-erts-file (ert-resource-file "flet.erts")
+                      (lambda ()
+                        (emacs-lisp-mode)
+                        (indent-region (point-min) (point-max)))))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

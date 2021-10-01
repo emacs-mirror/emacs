@@ -1,0 +1,222 @@
+Name: flet1
+
+=-=
+(cl-flet ()
+  (a (dangerous-position
+      b)))
+=-=-=
+
+Name: flet2
+
+=-=
+(cl-flet wrong-syntax-but-should-not-obstruct-indentation
+  (a (dangerous-position
+      b)))
+=-=-=
+
+Name: flet3
+
+=-=
+(cl-flet ((a (arg-of-flet-a)
+            b
+            c)))
+=-=-=
+
+Name: flet4
+
+=-=
+(cl-flet ((a (arg-of-flet-a)
+            b
+            c
+            (if d
+                e
+              f))
+          (irregular-local-def (form
+                                returning
+                                lambda))
+          (g (arg-of--flet-g)
+            h
+            i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+Name: flet5
+
+=-=
+(cl-flet ((a (arg-of-flet-a)
+            b
+            c
+            (if d
+                e
+              f))
+          (irregular-local-def (form
+                                returning
+                                lambda))
+          (g (arg-of--flet-g)
+            h
+            i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+Name: flet6
+
+=-=
+(cl-flet ((a (arg-of-flet-a)
+            b
+            c
+            (if d
+                e
+              f))
+          (irregular-local-def (form
+                                returning
+                                lambda))
+          (irregular-local-def (form returning
+                                     lambda))
+          wrong-syntax-but-should-not-osbtruct-indentation
+          (g (arg-of--flet-g)
+            h
+            i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+Name: flet7
+
+=-=
+(cl-flet ((a (arg-of-flet-a)
+            b
+            c
+            (if d
+                e
+              f))
+          (irregular-local-def (form
+                                returning
+                                lambda))
+          wrong-syntax-but-should-not-osbtruct-indentation
+          (g (arg-of--flet-g)
+            h
+            i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+Name: flet8
+
+=-=
+(cl-flet (wrong-syntax-but-should-not-obstruct-indentation
+          (g (arg-of--flet-g)
+            h
+            i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+;; (setf _) not yet supported but looks like it will be
+Name: flet9
+
+=-=
+(cl-flet (((setf a) (new value)
+            stuff)
+          wrong-syntax-but-should-not-obstruct-indentation
+          (g (arg-of--flet-g)
+            h
+            i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+Name: flet10
+
+=-=
+(cl-flet (   (a (arg-of-flet-a)
+               b
+               c
+               (if d
+                   e
+                 f))
+             (irregular-local-def (form
+                                   returning
+                                   lambda))
+             (g (arg-of--flet-g)
+               h
+               i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+Name: flet11
+
+=-=
+(cl-flet (   wrong-syntax-but-should-not-obstruct-indentation
+             (g (arg-of--flet-g)
+               h
+               i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+Name: flet12
+
+=-=
+(cl-flet (   wrong-syntax-but-should-not-obstruct-indentation
+             (g (arg-of--flet-g)
+               h
+               i))
+  (let ((j k))
+    (if dangerous-position
+        l
+      m)))
+=-=-=
+
+Name: flet13
+
+=-=
+(cl-flet (wrong-syntax-but-should-not-obstruct-indentation
+          (g (arg-of--flet-g)
+            h
+            i)
+          wrong-syntax-but-should-not-obstruct-indentation
+          (g (arg-of--flet-g)
+            h
+            i)))
+=-=-=
+
+Name: flet14
+
+=-=
+(cl-flet (wrong-syntax-but-should-not-obstruct-indentation
+          wrong-syntax-but-should-not-obstruct-indentation
+          (g (arg-of--flet-g)
+            h
+            i)
+          wrong-syntax-but-should-not-obstruct-indentation))
+=-=-=
+
+Name: flet15
+
+=-=
+(cl-flet (wrong-syntax-but-should-not-obstruct-indentation
+          wrong-syntax-but-should-not-obstruct-indentation
+          wrong-syntax-but-should-not-obstruct-indentation
+          (g (arg-of--flet-g)
+            h
+            i)))
+=-=-=

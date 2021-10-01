@@ -40,6 +40,17 @@ buffer is already open.  Now, the old point is pushed to mark ring.
 
 * Editing Changes in Emacs 29.1
 
+---
+** Indentation of 'cl-flet' and 'cl-labels' has changed.
+These forms now indent like this:
+
+    (cl-flet ((bla (x)
+		(* x x)))
+      (bla 42))
+
+This change also affects 'cl-macrolet', 'cl-flet*' and
+'cl-symbol-macrolet'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

@@ -29,6 +29,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 (defvar font-lock-comment-face)
 (defvar font-lock-doc-face)
@@ -1105,6 +1106,62 @@ is the buffer position of the start of the containing expression."
               (t
                normal-indent))))))
 
+(defun lisp--local-defform-body-p (state)
+  "Return non-nil when at local definition body according to STATE.
+STATE is the `parse-partial-sexp' state for current position."
+  (when-let ((start-of-innermost-containing-list (nth 1 state)))
+    (let* ((parents (nth 9 state))
+           (second-cons-after (cddr parents))
+           second-order-parent)
+      (while second-cons-after
+        (when (= start-of-innermost-containing-list
+                 (car second-cons-after))
+          (setq second-order-parent (car parents)
+                ;; Leave the loop.
+                second-cons-after nil))
+        (pop second-cons-after)
+        (pop parents))
+      (when second-order-parent
+        (save-excursion
+          (goto-char (1+ second-order-parent))
+          (and (when-let ((head (ignore-errors
+                                  ;; FIXME: This does not distinguish
+                                  ;; between reading nil and a read error.
+                                  ;; We don't care but still, better fix this.
+                                  (read (current-buffer)))))
+                 (memq head '( cl-flet cl-labels cl-macrolet cl-flet*
+                               cl-symbol-macrolet)))
+               ;; Now we must check that we are
+               ;; in the second element of the flet-like form.
+               ;; It would be easier if `parse-partial-sexp' also recorded
+               ;; relative positions of subsexps in supersexps
+               ;; but it doesn't so we check manually.
+               ;;
+               ;; First, we must be looking at list now.
+               (ignore-errors (when (= (scan-lists (point) 1 0)
+                                       (scan-sexps (point) 1))
+                                ;; Looking at list; descend into it:
+                                (down-list 1)
+                                t))
+               ;; In Wishful Lisp, the following form would be
+               ;; (cl-member start-of-innermost-containing-list
+               ;;            (points-at-beginning-of-lists-at-this-level)
+               ;;            :test #'=)
+               (cl-loop
+                with pos = (ignore-errors
+                             ;; The first local definition may be indented
+                             ;; with whitespace following open paren.
+                             (goto-char (scan-lists (point) 1 0))
+                             (goto-char (scan-lists (point) -1 0))
+                             (point))
+                while pos
+                do (if (= start-of-innermost-containing-list pos)
+                       (cl-return t)
+                     (setq pos (ignore-errors
+                                 (goto-char (scan-lists (point) 2 0))
+                                 (goto-char (scan-lists (point) -1 0))
+                                 (point)))))))))))
+
 (defun lisp-indent-function (indent-point state)
   "This function is the normal value of the variable `lisp-indent-function'.
 The function `calculate-lisp-indent' calls this to determine
@@ -1138,16 +1195,19 @@ Lisp function does not specify a special indentation."
     (if (and (elt state 2)
              (not (looking-at "\\sw\\|\\s_")))
         ;; car of form doesn't seem to be a symbol
-        (progn
+        (if (lisp--local-defform-body-p state)
+            ;; We nevertheless check whether we are in flet-like form
+            ;; as we presume local function names could be non-symbols.
+            (lisp-indent-defform state indent-point)
           (if (not (> (save-excursion (forward-line 1) (point))
                       calculate-lisp-indent-last-sexp))
-		(progn (goto-char calculate-lisp-indent-last-sexp)
-		       (beginning-of-line)
-		       (parse-partial-sexp (point)
-					   calculate-lisp-indent-last-sexp 0 t)))
-	    ;; Indent under the list or under the first sexp on the same
-	    ;; line as calculate-lisp-indent-last-sexp.  Note that first
-	    ;; thing on that line has to be complete sexp since we are
+	      (progn (goto-char calculate-lisp-indent-last-sexp)
+		     (beginning-of-line)
+		     (parse-partial-sexp (point)
+					 calculate-lisp-indent-last-sexp 0 t)))
+	  ;; Indent under the list or under the first sexp on the same
+	  ;; line as calculate-lisp-indent-last-sexp.  Note that first
+	  ;; thing on that line has to be complete sexp since we are
           ;; inside the innermost containing sexp.
           (backward-prefix-chars)
           (current-column))
@@ -1160,13 +1220,15 @@ Lisp function does not specify a special indentation."
 	(cond ((or (eq method 'defun)
 		   (and (null method)
 			(> (length function) 3)
-			(string-match "\\`def" function)))
+			(string-match "\\`def" function))
+                   ;; Check whether we are in flet-like form.
+                   (lisp--local-defform-body-p state))
 	       (lisp-indent-defform state indent-point))
 	      ((integerp method)
 	       (lisp-indent-specform method state
 				     indent-point normal-indent))
 	      (method
-		(funcall method indent-point state)))))))
+	       (funcall method indent-point state)))))))
 
 (defcustom lisp-body-indent 2
   "Number of columns to indent the second line of a `(def...)' form."
