@@ -392,7 +392,7 @@ be set.
    Accepts string, nil, or lambda function which returns string
    or nil.  Defaults to nil."
   :group 'org-plot
-  :type '(alist :value-type (symbol group)))
+  :type 'alist)
 
 (defvar org--plot/radar-template
   "### spider plot/chart with gnuplot
