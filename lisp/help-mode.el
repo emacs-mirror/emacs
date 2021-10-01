@@ -273,6 +273,10 @@ The format is (FUNCTION ARGS...).")
             (when (or (< position (point-min))
                       (> position (point-max)))
               (widen))
+            ;; Save mark for the old location, unless the point is not
+            ;; actually going to move.
+            (unless (= (point) position)
+              (push-mark nil t))
             (goto-char position))
         (message "Unable to find location in file")))))
 

@@ -30,6 +30,13 @@ applies, and please also update docstrings as needed.
 
 * Changes in Emacs 29.1
 
+** Help
+
+---
+*** Jumping to function/variable source now saves mark before moving point.
+Jumping to source from "*Help*" buffer moves the point when the source
+buffer is already open.  Now, the old point is pushed to mark ring.
+
 
 * Editing Changes in Emacs 29.1
 
