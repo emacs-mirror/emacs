@@ -173,7 +173,8 @@ will be prompted for one."
     (erts-mode--goto-start-of-test)
     (condition-case arg
         (ert-test--erts-test
-         (list (cons 'dummy t) (cons 'code test-function))
+         (list (cons 'dummy t)
+               (cons 'code (car (read-from-string test-function))))
          (buffer-file-name))
       (:success (message "Test successful"))
       (ert-test-failed (message "Test failure; result: \n%s"
@@ -183,9 +184,17 @@ will be prompted for one."
   (if (not (erts-mode--in-test-p (point)))
       (re-search-forward "^=-=\n" nil t)
     (re-search-backward "^=-=\n" nil t)
-    (when (save-match-data (erts-mode--in-test-p (point)))
-      (re-search-backward "^=-=\n" nil t))
-    (goto-char (match-end 0))))
+    (let ((potential-start (match-end 0)))
+      ;; See if we're in a two-clause ("before" and "after") test or not.
+      (if-let ((start (and (save-excursion (re-search-backward "^=-=\n" nil t))
+                           (match-end 0))))
+          (let ((end (save-excursion (re-search-backward "^=-=-=\n" nil t))))
+            (if (or (not end)
+                    (> start end))
+                ;; We are, so go to the real start.
+                (goto-char start)
+              (goto-char potential-start)))
+        (goto-char potential-start)))))
 
 (provide 'erts-mode)
 
