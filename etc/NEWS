@@ -54,6 +54,13 @@ This change also affects 'cl-macrolet', 'cl-flet*' and
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** image-dired
+
+---
+*** New command for the thumbnail buffer.
+The new command 'image-dired-unmark-all-marks' has been added with a
+binding in the menu.
+
 
 * New Modes and Packages in Emacs 29.1
 
