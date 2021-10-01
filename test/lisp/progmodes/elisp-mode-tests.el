@@ -26,6 +26,7 @@
 (require 'ert-x)
 (require 'xref)
 (eval-when-compile (require 'cl-lib))
+(require 'ert-x)
 
 ;;; Completion
 
@@ -843,18 +844,6 @@ to (xref-elisp-test-descr-to-target xref)."
     (insert "?\\N{HEAVY CHECK MARK}")
     (should (equal (elisp--preceding-sexp) ?\N{HEAVY CHECK MARK}))))
 
-(ert-deftest elisp-indent-basic ()
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (let ((orig "(defun x ()
-  (print (quote ( thingy great
-		  stuff)))
-  (print (quote (thingy great
-			stuff))))"))
-      (insert orig)
-      (indent-region (point-min) (point-max))
-      (should (equal (buffer-string) orig)))))
-
 (defun test--font (form search)
   (with-temp-buffer
     (emacs-lisp-mode)
@@ -1095,17 +1084,8 @@ evaluation of BODY."
     (should (= 84 (funcall (intern-soft "f-test4---"))))
     (should (unintern "f-test4---"))))
 
-(ert-deftest test-cl-flet-indentation ()
-  :expected-result :failed              ; FIXME: bug#9622
-  (should (equal
-           (with-temp-buffer
-             (emacs-lisp-mode)
-             (insert "(cl-flet ((bla (x)\n(* x x)))\n(bla 42))")
-             (indent-region (point-min) (point-max))
-             (buffer-string))
-           "(cl-flet ((bla (x)
-	    (* x x)))
-  (bla 42))")))
+(ert-deftest test-indentation ()
+  (ert-test-erts-file (ert-resource-file "elisp-indents.erts")))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

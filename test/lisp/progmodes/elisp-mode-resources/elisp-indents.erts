@@ -1,0 +1,50 @@
+Code:
+  (lambda ()
+    (emacs-lisp-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: defun
+
+=-=
+(defun foo ()
+"doc"
+(+ 1 2))
+=-=
+(defun foo ()
+  "doc"
+  (+ 1 2))
+=-=-=
+
+Name: function call
+
+=-=
+(foo zot
+bar
+(zot bar))
+=-=
+(foo zot
+     bar
+     (zot bar))
+=-=-=
+
+Name: lisp data
+
+=-=
+( foo zot
+bar
+(zot bar))
+=-=
+( foo zot
+  bar
+  (zot bar))
+=-=-=
+
+Name: defun-space
+
+=-=
+(defun x ()
+  (print (quote ( thingy great
+		  stuff)))
+  (print (quote (thingy great
+			stuff))))
+=-=-=
