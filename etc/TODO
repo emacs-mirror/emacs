@@ -30,7 +30,7 @@ difficult to fix.  Bugs with severity "minor" may be simpler, but this
 is not always true.
 
 * Simple tasks
-These don't require much Emacs knowledge, they are suitable for anyone
+These don't require much Emacs knowledge and are suitable for anyone
 from beginners to experts.
 
 ** Convert modes that use view-mode to be derived from special-mode instead
@@ -51,6 +51,13 @@ expecting such variables to always be defined, eg when they modify
 things in their .emacs.
 
 ** See if other files can use generated-autoload-file (see eg ps-print)
+
+** Do interactive mode tagging for commands
+Change "(interactive)" to "(interactive nil foo-mode)" for command
+completion purposes.  Pick a major mode or ELisp library, and check
+all interactive commands to see if they are only relevant in one
+particular mode.  This requires care as some commands might be useful
+outside of the mode they were written for.
 
 ** Write more tests
 Pick a fixed bug from the database, write a test case to make sure it
