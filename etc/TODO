@@ -109,6 +109,7 @@ It would make it easy to add (and remove) mappings like
 ** Move idlwave to elpa.gnu.org
 Need to sync up the Emacs and external versions.
 See <https://lists.gnu.org/r/emacs-devel/2014-07/msg00008.html>
+<https://debbugs.gnu.org/39992>
 
 ** Move Org mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2014-08/msg00300.html>
