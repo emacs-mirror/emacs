@@ -440,7 +440,8 @@ These have to be run via `sgml-syntax-propertize'"))
 
 ;; internal
 (defvar sgml-face-tag-alist ()
-  "Alist of face and tag name for facemenu.")
+  "Alist of face and tag name for facemenu.
+The tag name can be a string or a list of strings.")
 
 (defvar sgml-tag-face-alist ()
   "Tag names and face or list of faces to fontify with when invisible.
@@ -528,11 +529,13 @@ an optional alist of possible values."
     (comment-indent-new-line soft)))
 
 (defun sgml-mode-facemenu-add-face-function (face _end)
-  (let ((tag-face (cdr (assq face sgml-face-tag-alist))))
+  "Add \"face\" tags with `facemenu-keymap' commands."
+  (let ((tag-face (ensure-list (cdr (assq face sgml-face-tag-alist)))))
     (cond (tag-face
 	   (setq tag-face (funcall skeleton-transformation-function tag-face))
-	   (setq facemenu-end-add-face (concat "</" tag-face ">"))
-	   (concat "<" tag-face ">"))
+           (setq facemenu-end-add-face
+                 (mapconcat (lambda (f) (concat "</" f ">")) (reverse tag-face) ""))
+           (mapconcat (lambda (f) (concat "<" f ">")) tag-face ""))
 	  ((and (consp face)
 		(consp (car face))
 		(null  (cdr face))
@@ -1868,6 +1871,7 @@ This takes effect when first loading the library.")
 (defvar html-face-tag-alist
   '((bold . "strong")
     (italic . "em")
+    (bold-italic . ("strong" "em"))
     (underline . "u")
     (mode-line . "rev"))
   "Value of `sgml-face-tag-alist' for HTML mode.")
