@@ -413,7 +413,7 @@ to \"\\autoref{%s}\" or \"\\cref{%s}\" for example."
   :group 'org-export-latex
   :type 'string
   :package-version '(Org . "9.5")
-  :safe t)
+  :safe #'stringp)
 
 ;;;; Preamble
 
@@ -793,7 +793,7 @@ default we use here encompasses both."
   :group 'org-export-latex
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 (defcustom org-latex-default-table-mode 'table
   "Default mode for tables.

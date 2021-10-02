@@ -795,7 +795,7 @@ Most common values are:
   :group 'org-export-html
   :package-version '(Org . "9.4")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 (defcustom org-html-with-latex org-export-with-latex
   "Non-nil means process LaTeX math snippets.
@@ -903,7 +903,7 @@ numbers are enabled."
   :group 'org-export-html
   :package-version '(Org . "9.3")
   :type 'boolean
-  :safe t)
+  :safe #'booleanp)
 
 ;;;; Table
 

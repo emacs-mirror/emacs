@@ -234,7 +234,7 @@ When nil, the note number is not moved."
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "Automatic note number location" t)
                  (const :tag "Place note numbers manually" nil))
-  :safe t)
+  :safe #'booleanp)
 
 (defcustom org-cite-note-rules
   '(("en-us" inside outside after)

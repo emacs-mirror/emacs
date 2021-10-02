@@ -146,7 +146,7 @@ directory.  This variable is ignored when style file is absolute."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'boolean
-  :safe t)
+  :safe #'booleanp)
 
 (defcustom org-cite-csl-no-citelinks-backends '(ascii)
   "List of export back-ends for which cite linking is disabled.
@@ -163,7 +163,7 @@ is also disabled."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 (defcustom org-cite-csl-html-label-width-per-char "0.6em"
   "Character width in CSS units for calculating entry label widths.
@@ -171,14 +171,14 @@ Used only when `second-field-align' is activated by the used CSL style."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 (defcustom org-cite-csl-latex-hanging-indent "1.5em"
   "Size of hanging-indent for LaTeX output in valid LaTeX units."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 
 ;;; Internal variables

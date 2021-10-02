@@ -80,7 +80,7 @@ If \"biblatex\" package is already required in the document, e.g., through
   :type '(choice
           (string :tag "Options (key=value,key2=value2...)")
           (const :tag "No option" nil))
-  :safe t)
+  :safe #'string-or-null-p)
 
 
 ;;; Internal functions

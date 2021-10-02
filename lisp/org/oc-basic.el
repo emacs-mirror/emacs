@@ -89,42 +89,42 @@
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'symbol
-  :safe t)
+  :safe #'symbolp)
 
 (defcustom org-cite-basic-author-year-separator ", "
   "String used to separate cites in an author-year configuration."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 (defcustom org-cite-basic-max-key-distance 2
   "Maximum (Levenshtein) distance between a wrong key and its suggestions."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'integer
-  :safe t)
+  :safe #'integerp)
 
 (defcustom org-cite-basic-author-column-end 25
   "Column where author field ends in completion table, as an integer."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'integer
-  :safe t)
+  :safe #'integerp)
 
 (defcustom org-cite-basic-column-separator "  "
   "Column separator in completion table, as a string."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 (defcustom org-cite-basic-mouse-over-key-face 'highlight
   "Face used when mouse is over a citation key."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'face
-  :safe t)
+  :safe #'facep)
 
 
 ;;; Internal variables

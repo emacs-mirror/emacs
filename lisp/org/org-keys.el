@@ -300,7 +300,7 @@ implementation is bad."
 In tables, the special behavior of RET has precedence."
   :group 'org-link-follow
   :type 'boolean
-  :safe t)
+  :safe #'booleanp)
 
 
 ;;; Functions

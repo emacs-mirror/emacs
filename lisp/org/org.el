@@ -3630,7 +3630,7 @@ When this is non-nil, the headline after the keyword is set to the
   :group 'org-appearance
   :package-version '(Org . "9.4")
   :type 'boolean
-  :safe t)
+  :safe #'booleanp)
 
 (defcustom org-fontify-done-headline t
   "Non-nil means change the face of a headline if it is marked DONE.

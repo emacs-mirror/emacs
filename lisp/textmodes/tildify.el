@@ -67,7 +67,7 @@ matching the white space).  The pattern is matched case-sensitive regardless of
 the value of `case-fold-search' setting."
   :version "25.1"
   :type 'regexp
-  :safe t)
+  :safe #'stringp)
 
 (defcustom tildify-pattern-alist ()
   "Alist specifying where to insert hard spaces.
@@ -112,7 +112,7 @@ If nil, current major mode has no way to represent a hard space."
                         " ")
                  (const :tag "No-break space (U+00A0)" "\u00A0")
                  (string :tag "Custom string"))
-  :safe t)
+  :safe #'string-or-null-p)
 
 (defcustom tildify-string-alist ()
   "Alist specifying what is a hard space in the current major mode.
