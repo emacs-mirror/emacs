@@ -186,15 +186,21 @@ Used only when `second-field-align' is activated by the used CSL style."
 
 ;;; Internal variables
 (defconst org-cite-csl--etc-dir
-  (let* ((oc-root (file-name-directory (locate-library "oc")))
-         (oc-etc-dir-1 (expand-file-name "../etc/csl/" oc-root)))
-    ;; package.el and straight will put all of org-mode/lisp/ in org-mode/.
-    ;; This will cause .. to resolve to the directory above Org.
-    ;; To make life easier for people using package.el or straight, we can
-    ;; check to see if ../etc/csl exists, and if it doesn't try ./etc/csl.
-    (if (file-exists-p oc-etc-dir-1) oc-etc-dir-1
-      (expand-file-name "etc/csl/" oc-root)))
-  "Directory \"etc/\" from repository.")
+  (let ((oc-root (file-name-directory (locate-library "oc"))))
+    (cond
+     ;; First check whether it looks like we're running from the main
+     ;; Org repository.
+     ((let ((csl-org (expand-file-name "../etc/csl/" oc-root)))
+        (and (file-directory-p csl-org) csl-org)))
+     ;; Next look for the directory alongside oc.el because package.el
+     ;; and straight will put all of org-mode/lisp/ in org-mode/.
+     ((let ((csl-pkg (expand-file-name "etc/csl/" oc-root)))
+        (and (file-directory-p csl-pkg) csl-pkg)))
+     ;; Finally fall back the location used by shared system installs
+     ;; and when running directly from Emacs repository.
+     (t
+      (expand-file-name "org/csl/" data-directory))))
+  "Directory containing CSL-related data files.")
 
 (defconst org-cite-csl--fallback-locales-dir org-cite-csl--etc-dir
   "Fallback CSL locale files directory.")

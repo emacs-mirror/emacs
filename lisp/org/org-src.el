@@ -38,6 +38,7 @@
 (require 'org-keys)
 
 (declare-function org-mode "org" ())
+(declare-function org--get-expected-indentation "org" (element contentsp))
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-class "org-element" (datum &optional parent))
 (declare-function org-element-context "org-element" (&optional element))
@@ -327,7 +328,8 @@ a cons cell (LINE . COLUMN) or symbol `end'.  See also
   (if (>= pos end) 'end
     (org-with-wide-buffer
      (goto-char (max beg pos))
-     (cons (count-lines beg (line-beginning-position))
+     (cons (count-lines (save-excursion (goto-char beg) (line-beginning-position))
+                        (line-beginning-position))
 	   ;; Column is relative to the end of line to avoid problems of
 	   ;; comma escaping or colons appended in front of the line.
 	   (- (point) (min end (line-end-position)))))))
@@ -445,6 +447,7 @@ Assume point is in the corresponding edit buffer."
 		  org-src--content-indentation
 		0))))
 	(use-tabs? (and (> org-src--tab-width 0) t))
+        (preserve-fl (eq org-src--source-type 'latex-fragment))
 	(source-tab-width org-src--tab-width)
 	(contents (org-with-wide-buffer
                    (let ((eol (line-end-position)))
@@ -466,7 +469,8 @@ Assume point is in the corresponding edit buffer."
       ;; Add INDENTATION-OFFSET to every line in buffer,
       ;; unless indentation is meant to be preserved.
       (when (> indentation-offset 0)
-	(while (not (eobp))
+	(when preserve-fl (forward-line))
+        (while (not (eobp))
 	  (skip-chars-forward " \t")
           (when (or (not (eolp))                               ; not a blank line
                     (and (eq (point) (marker-position marker)) ; current line
@@ -518,7 +522,13 @@ Leave point in edit buffer."
 	     (source-tab-width (if indent-tabs-mode tab-width 0))
 	     (type (org-element-type datum))
 	     (block-ind (org-with-point-at (org-element-property :begin datum)
-			  (current-indentation)))
+                          (cond
+                           ((save-excursion (skip-chars-backward " \t") (bolp))
+			    (current-indentation))
+                           ((org-element-property :parent datum)
+                            (org--get-expected-indentation
+                             (org-element-property :parent datum) nil))
+                           (t (current-indentation)))))
 	     (content-ind org-edit-src-content-indentation)
              (blank-line (save-excursion (beginning-of-line)
                                          (looking-at-p "^[[:space:]]*$")))
@@ -548,7 +558,8 @@ Leave point in edit buffer."
 	(insert contents)
 	(remove-text-properties (point-min) (point-max)
 				'(display nil invisible nil intangible nil))
-	(unless preserve-ind (org-do-remove-indentation))
+	(let ((lf (eq type 'latex-fragment)))
+          (unless preserve-ind (org-do-remove-indentation (and lf block-ind) lf)))
 	(set-buffer-modified-p nil)
 	(setq buffer-file-name nil)
 	;; Initialize buffer.
