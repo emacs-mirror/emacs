@@ -352,6 +352,7 @@
 (load "vc/ediff-hook")
 (load "uniquify")
 (load "electric")
+(load "paren")
 
 (load "shorthands")
 (setq load-source-file-function #'load-with-shorthands-and-code-conversion)
