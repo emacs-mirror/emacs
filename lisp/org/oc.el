@@ -135,8 +135,7 @@ File names must be absolute."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "Default fontification" nil)
-                 (symbol :tag "Citation processor"))
-  :safe nil)
+                 (symbol :tag "Citation processor")))
 
 (defcustom org-cite-export-processors '((t basic))
   "Processor used for exporting citations, as a triplet, or nil.
@@ -200,24 +199,21 @@ back-end."
                                (string :tag "Use specific bibliography style"))
                               (choice
                                (const :tag "Default citation style" nil)
-                               (string :tag "Use specific citation style")))))
-  :safe nil)
+                               (string :tag "Use specific citation style"))))))
 
 (defcustom org-cite-follow-processor 'basic
   "Processor used for following citations, as a symbol."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "No following" nil)
-                 (symbol :tag "Citation processor"))
-  :safe nil)
+                 (symbol :tag "Citation processor")))
 
 (defcustom org-cite-insert-processor 'basic
   "Processor used for inserting citations, as a symbol."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "No insertion" nil)
-                 (symbol :tag "Citation processor"))
-  :safe nil)
+                 (symbol :tag "Citation processor")))
 
 (defcustom org-cite-adjust-note-numbers t
   "When non-nil, allow process to modify location of note numbers.
