@@ -3087,6 +3087,14 @@ To see the documentation for a defined struct type, use
 	      ;; and pred-check, so changing it is not straightforward.
 	      (push `(,defsym ,accessor (cl-x)
                        ,(concat
+                         ;; NB.  This will produce incorrect results
+                         ;; in some cases, as our coding conventions
+                         ;; says that the first line must be a full
+                         ;; sentence.  However, if we don't word wrap
+                         ;; we will have byte-compiler warnings about
+                         ;; overly long docstrings.  So we can't have
+                         ;; a perfect result here, and choose to avoid
+                         ;; the byte-compiler warnings.
                          (internal--format-docstring-line
                           "Access slot \"%s\" of `%s' struct CL-X." slot name)
                          (if doc (concat "\n" doc) ""))

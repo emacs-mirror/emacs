@@ -769,15 +769,14 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
 
 (ert-deftest subr-test-internal--format-docstring-line ()
   (should
-   (string= (let ((fill-column 60))
+   (string= (let ((fill-column 70))
               (internal--format-docstring-line
-               "Emacs is the advanced, extensible, customizable, \
-self-documenting editor.  This manual describes how to edit with Emacs and \
-some of the ways to customize it; it corresponds to GNU Emacs version 28.1."))
-            "Emacs is the advanced, extensible, customizable,
-self-documenting editor.  This manual describes how to edit
-with Emacs and some of the ways to customize it; it
-corresponds to GNU Emacs version 28.1.")))
+               "In addition to any hooks its parent mode might have run, this \
+mode runs the hook ‘foo-bar-baz-very-long-name-indeed-mode-hook’, as the final \
+or penultimate step during initialization."))
+            "In addition to any hooks its parent mode might have run, this mode
+runs the hook ‘foo-bar-baz-very-long-name-indeed-mode-hook’, as the
+final or penultimate step during initialization.")))
 
 (ert-deftest test-ensure-list ()
   (should (equal (ensure-list nil) nil))
