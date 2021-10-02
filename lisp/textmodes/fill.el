@@ -768,7 +768,7 @@ space does not end a sentence, so don't break a line there."
               (setq first nil
                     linebeg (+ (point) (length actual-fill-prefix))))
 	    (move-to-column (current-fill-column))
-	    (if (when (< (point) to)
+	    (if (when (and (< (point) to) (< linebeg to))
 		  ;; Find the position where we'll break the line.
 		  ;; Use an immediately following space, if any.
 		  ;; However, note that `move-to-column' may overshoot
