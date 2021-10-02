@@ -127,7 +127,9 @@ If nil then only the fallback en-US locale will be available."
   :type '(choice
           (directory :tag "Locales directory")
           (const :tag "Use en-US locale only" nil))
-  :safe t)
+  ;; It's not obvious to me that arbitrary locations are safe.
+;;;  :safe #'string-or-null-p
+  )
 
 (defcustom org-cite-csl-styles-dir nil
   "Directory of CSL style files.
@@ -138,7 +140,9 @@ directory.  This variable is ignored when style file is absolute."
   :type '(choice
           (directory :tag "Styles directory")
           (const :tag "Use absolute file names" nil))
-  :safe t)
+  ;; It's not obvious to me that arbitrary locations are safe.
+;;;  :safe #'string-or-null-p
+  )
 
 ;;;; Citelinks
 (defcustom org-cite-csl-link-cites t
@@ -154,8 +158,7 @@ Cite linking for export back-ends derived from any of the back-ends listed here,
 is also disabled."
   :group 'org-cite
   :package-version '(Org . "9.5")
-  :type '(repeat symbol)
-  :safe t)
+  :type '(repeat symbol))
 
 ;;;; Output-specific variables
 (defcustom org-cite-csl-html-hanging-indent "1.5em"

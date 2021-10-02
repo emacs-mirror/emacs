@@ -71,8 +71,7 @@ If \"natbib\" package is already required in the document, e.g., through
     (const :tag "order as above, but numerical citations are compressed if possible" sort&compress)
     (const :tag "display full author list on first citation, abbreviate the others" longnamesfirst)
     (const :tag "redefine \\thebibliography to issue \\section* instead of \\chapter*" sectionbib)
-    (const :tag "keep all the authors' names in a citation on one line" nonamebreak))
-  :safe t)
+    (const :tag "keep all the authors' names in a citation on one line" nonamebreak)))
 
 
 ;;; Internal functions

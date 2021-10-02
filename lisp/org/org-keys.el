@@ -279,8 +279,7 @@ before org.el is loaded."
   :type '(choice
 	  (const :tag "A double click follows the link" double)
 	  (const :tag "Unconditionally follow the link with mouse-1" t)
-	  (integer :tag "mouse-1 click does not follow the link if longer than N ms" 450))
-  :safe t)
+	  (integer :tag "mouse-1 click does not follow the link if longer than N ms" 450)))
 
 (defcustom org-tab-follows-link nil
   "Non-nil means on links TAB will follow the link.
