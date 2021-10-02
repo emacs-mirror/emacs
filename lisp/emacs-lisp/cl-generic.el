@@ -631,14 +631,13 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
         (setq dispatch-idx 0))
       (dotimes (i dispatch-idx)
         (push (make-symbol (format "arg%d" (- dispatch-idx i 1))) fixedargs))
-      ;; FIXME: We should find a way to expand `with-memoize' once and forall
-      ;; so we don't need `subr-x' when we get here.
-      (require 'subr-x)
       ;; FIXME: For generic functions with a single method (or with 2 methods,
       ;; one of which always matches), using a tagcode + hash-table is
       ;; overkill: better just use a `cl-typep' test.
       (byte-compile
        `(lambda (generic dispatches-left methods)
+          ;; FIXME: We should find a way to expand `with-memoize' once
+          ;; and forall so we don't need `subr-x' when we get here.
           (eval-when-compile (require 'subr-x))
           (let ((method-cache (make-hash-table :test #'eql)))
             (lambda (,@fixedargs &rest args)
