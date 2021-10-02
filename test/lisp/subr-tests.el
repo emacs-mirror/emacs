@@ -777,7 +777,8 @@ some of the ways to customize it; it corresponds to GNU Emacs version 28.1."))
             "Emacs is the advanced, extensible, customizable,
 self-documenting editor.  This manual describes how to edit
 with Emacs and some of the ways to customize it; it
-corresponds to GNU Emacs version 28.1.")))
+corresponds to GNU Emacs version 28.1."))
+  (should-error (internal--format-docstring-line "foo\nbar")))
 
 (ert-deftest test-ensure-list ()
   (should (equal (ensure-list nil) nil))
