@@ -371,6 +371,7 @@ connection if a previous connection has died for some reason."
 	   vec 'file-error "Error mounting %s" (tramp-fuse-mount-spec vec))))
 
       ;; Mark it as connected.
+      (add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec))
       (tramp-set-connection-property
        (tramp-get-connection-process vec) "connected" t)))
 
