@@ -16,7 +16,15 @@
 
 (defvar f-test-complete-me 42)
 
+(elisp--foo-test3)
+
 (defun #_f-test4--- () 84)
+
+(defmacro f-define-test-5 ())
+
+;; should be font locked with both shorthand
+;; highlighting _and_ macro highlighting.
+(f-define-test-5)
 
 (when nil
   (f-test3)

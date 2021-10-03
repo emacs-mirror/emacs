@@ -26,6 +26,7 @@
 
 ;;; Code:
 (require 'files)
+(eval-when-compile (require 'cl-lib))
 
 (defun hack-elisp-shorthands (fullname)
   "Return value of `elisp-shorthands' file-local variable in FULLNAME.
@@ -56,5 +57,43 @@ This function uses shorthands defined in the file FULLNAME's local
 value of `elisp-shorthands', when it processes that file's Elisp code."
   (let ((elisp-shorthands (hack-elisp-shorthands fullname)))
     (load-with-code-conversion fullname file noerror nomessage)))
+
+
+;; FIXME: move this all to progmodes/elisp-mode.el?  OTOH it'd make
+;; more sense there, OTOH all the elisp font-lock stuff is actually in
+;; lisp/emacs-lisp/lisp-mode.el, which isn't right either.  So
+;; shorthand font-locking logic is probably better here for now.
+
+(defface elisp-shorthand-font-lock-face
+  '((t :inherit font-lock-keyword-face :foreground "cyan"))
+  "Face for highlighting shorthands in Emacs Lisp."
+  :version "28.1"
+  :group 'font-lock-faces)
+
+(defun shorthands--mismatch-from-end (str1 str2)
+  (cl-loop with l1 = (length str1) with l2 = (length str2)
+           for i from 1
+           for i1 = (- l1 i) for i2 = (- l2 i)
+           while (and (>= i1 0) (>= i2 0) (eq (aref str1 i1) (aref str2 i2)))
+           finally (return (1- i))))
+
+(defun shorthands-font-lock-shorthands (limit)
+  (when elisp-shorthands
+    (while (re-search-forward
+            (eval-when-compile
+              (concat "\\_<\\(" lisp-mode-symbol-regexp "\\)\\_>"))
+            limit t)
+      (let* ((existing (get-text-property (match-beginning 1) 'face))
+             (probe (and (not (memq existing '(font-lock-comment-face
+                                               font-lock-string-face)))
+                         (intern-soft (match-string 1))))
+             (sname (and probe (symbol-name probe)))
+             (mm (and sname (shorthands--mismatch-from-end
+                             (match-string 1) sname))))
+        (unless (or (null mm) (= mm (length sname)))
+          (add-face-text-property (match-beginning 1) (1+ (- (match-end 1) mm))
+                                  'elisp-shorthand-font-lock-face))))))
+
+(font-lock-add-keywords 'emacs-lisp-mode '((shorthands-font-lock-shorthands)) t)
 
 ;;; shorthands.el ends here
