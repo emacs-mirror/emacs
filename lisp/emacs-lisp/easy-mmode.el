@@ -93,7 +93,7 @@ Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `%S'.
+evaluate `%s'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.")
@@ -109,7 +109,9 @@ it is disabled.")
              (docs-fc (bound-and-true-p emacs-lisp-docstring-fill-column))
              (fill-column (if (integerp docs-fc) docs-fc 65))
              (argdoc (format easy-mmode--arg-docstring mode-pretty-name
-                             getter))
+                             ;; Avoid having quotes turn into pretty quotes.
+                             (string-replace "'" "\\\\='"
+                                             (format "%S" getter))))
              (filled (if (fboundp 'fill-region)
                          (with-temp-buffer
                            (insert argdoc)
