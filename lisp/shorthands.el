@@ -28,13 +28,13 @@
 (require 'files)
 (eval-when-compile (require 'cl-lib))
 
-(defun hack-elisp-shorthands (fullname)
-  "Return value of `elisp-shorthands' file-local variable in FULLNAME.
+(defun hack-read-symbol-shorthands (fullname)
+  "Return value of `read-symbol-shorthands' file-local variable in FULLNAME.
 FULLNAME is the absolute file name of an Elisp .el file which
-potentially specifies a file-local value for `elisp-shorthands'.
-The Elisp code in FULLNAME isn't read or evaluated in any way,
-except for extraction of the buffer-local value of
-`elisp-shorthands'."
+potentially specifies a file-local value for
+`read-symbol-shorthands'.  The Elisp code in FULLNAME isn't read
+or evaluated in any way, except for extraction of the
+buffer-local value of `read-symbol-shorthands'."
   (let* ((size (nth 7 (file-attributes fullname)))
          (from (max 0 (- size 3000)))
          (to size))
@@ -49,13 +49,13 @@ except for extraction of the buffer-local value of
       ;; detail of files.el.  That function should be exported,
       ;; possibly be refactored into two parts, since we're only
       ;; interested in basic "Local Variables" parsing.
-      (alist-get 'elisp-shorthands (hack-local-variables--find-variables)))))
+      (alist-get 'read-symbol-shorthands (hack-local-variables--find-variables)))))
 
 (defun load-with-shorthands-and-code-conversion (fullname file noerror nomessage)
   "Like `load-with-code-conversion', but also consider Elisp shorthands.
 This function uses shorthands defined in the file FULLNAME's local
-value of `elisp-shorthands', when it processes that file's Elisp code."
-  (let ((elisp-shorthands (hack-elisp-shorthands fullname)))
+value of `read-symbol-shorthands', when it processes that file's Elisp code."
+  (let ((read-symbol-shorthands (hack-read-symbol-shorthands fullname)))
     (load-with-code-conversion fullname file noerror nomessage)))
 
 
@@ -78,7 +78,7 @@ value of `elisp-shorthands', when it processes that file's Elisp code."
            finally (return (1- i))))
 
 (defun shorthands-font-lock-shorthands (limit)
-  (when elisp-shorthands
+  (when read-symbol-shorthands
     (while (re-search-forward
             (eval-when-compile
               (concat "\\_<\\(" lisp-mode-symbol-regexp "\\)\\_>"))
