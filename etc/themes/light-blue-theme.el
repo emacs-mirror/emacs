@@ -28,6 +28,8 @@
 (deftheme light-blue
   "Face colors utilizing a light blue background.")
 
+(make-obsolete 'light-blue nil "29.1")
+
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces
    'light-blue
