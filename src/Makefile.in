@@ -55,6 +55,8 @@ lwlibdir = ../lwlib
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+
 ## ns-app if NS self contained app, else empty.
 OTHER_FILES = @OTHER_FILES@
 
