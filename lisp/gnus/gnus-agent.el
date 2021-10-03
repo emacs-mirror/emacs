@@ -3553,32 +3553,13 @@ articles in every agentized group? "))
       (when (and to-remove
                  (or gnus-expert-user
                      (gnus-y-or-n-p
-                      "gnus-agent-expire has identified local directories that are\
- not currently required by any agentized group.  Do you wish to consider\
- deleting them?")))
-        (while to-remove
-          (let ((dir (pop to-remove)))
-            (if (or gnus-expert-user
+                      "gnus-agent-expire has identified local directories that are
+not currently required by any agentized group.  Do you wish to consider
+deleting them?")))
+        (dolist (dir to-remove)
+          (when (or gnus-expert-user
 		    (gnus-y-or-n-p (format "Delete %s? " dir)))
-                (let* (delete-recursive
-		       files f
-                       (delete-recursive
-                        (lambda (f-or-d)
-                          (ignore-errors
-                            (if (file-directory-p f-or-d)
-                                (condition-case nil
-                                    (delete-directory f-or-d)
-                                  (file-error
-                                   (setq files (directory-files f-or-d))
-                                   (while files
-                                     (setq f (pop files))
-                                     (or (member f '("." ".."))
-                                         (funcall delete-recursive
-                                                  (nnheader-concat
-                                                   f-or-d f))))
-                                   (delete-directory f-or-d)))
-                              (delete-file f-or-d))))))
-                  (funcall delete-recursive dir)))))))))
+            (delete-directory dir t)))))))
 
 ;;;###autoload
 (defun gnus-agent-batch ()
