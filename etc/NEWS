@@ -80,6 +80,11 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 * Lisp Changes in Emacs 29.1
 
+---
+** Themes can now be made obsolete.
+Using 'make-obsolete' on a theme is now supported.  This will make
+'load-theme' issue a warning when loading the theme.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
