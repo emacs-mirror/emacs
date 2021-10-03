@@ -290,6 +290,7 @@ and should return the same menu with changes such as added new menu items."
   :type '(repeat
           (choice (function-item context-menu-undo)
                   (function-item context-menu-region)
+                  (function-item context-menu-middle-separator)
                   (function-item context-menu-toolbar)
                   (function-item context-menu-global)
                   (function-item context-menu-local)
@@ -478,14 +479,6 @@ Some context functions add menu items below the separator."
       `(menu-item "All"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'buffer))
                   :help "Mark the whole buffer for a subsequent cut/copy"))
-    (define-key-after submenu [mark-defun]
-      `(menu-item "Defun"
-                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
-                  :help "Mark the defun at click for a subsequent cut/copy"))
-    (define-key-after submenu [mark-list]
-      `(menu-item "List"
-                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list))
-                  :help "Mark the list at click for a subsequent cut/copy"))
     (when (let* ((pos (posn-point (event-end click)))
                  (char (when pos (char-after pos))))
             (or (and char (eq (char-syntax char) ?\"))
@@ -498,10 +491,6 @@ Some context functions add menu items below the separator."
       `(menu-item "Line"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'line))
                   :help "Mark the line at click for a subsequent cut/copy"))
-    (define-key-after submenu [mark-symbol]
-      `(menu-item "Symbol"
-                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'symbol))
-                  :help "Mark the symbol at click for a subsequent cut/copy"))
     (when (region-active-p)
       (define-key-after submenu [mark-none]
         `(menu-item "None"
