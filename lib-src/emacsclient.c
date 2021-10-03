@@ -80,9 +80,6 @@ char *w32_getenv (const char *);
 #include <sys/stat.h>
 #include <unistd.h>
 
-#ifndef WINDOWSNT
-# include <acl.h>
-#endif
 #include <filename.h>
 #include <intprops.h>
 #include <min-max.h>
@@ -92,10 +89,6 @@ char *w32_getenv (const char *);
 /* Work around GCC bug 88251.  */
 #if GNUC_PREREQ (7, 0, 0)
 # pragma GCC diagnostic ignored "-Wformat-truncation=2"
-#endif
-
-#if !defined O_PATH && !defined WINDOWSNT
-# define O_PATH O_SEARCH
 #endif
 
 
@@ -1134,6 +1127,12 @@ process_grouping (void)
 }
 
 #ifdef SOCKETS_IN_FILE_SYSTEM
+
+# include <acl.h>
+
+# ifndef O_PATH
+#  define O_PATH O_SEARCH
+# endif
 
 /* A local socket address.  The union avoids the need to cast.  */
 union local_sockaddr
