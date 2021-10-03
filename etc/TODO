@@ -74,10 +74,6 @@ Including it as an "experimental" compile-time option sounds good.  Of
 course there might still be big questions around "which form of
 concurrency" we'll want.
 
-** Better support for dynamic embedded graphics
-I like this idea (my mpc.el code could use it for the volume widget),
-though I wonder if the resulting efficiency will be sufficient.
-
 ** Spread Semantic
 
 ** Improve the "code snippets" support
@@ -395,6 +391,11 @@ instead of calling the 'encode_char' method of the font driver, we
 should invoke the 'shape' method.  'hbfont_shape' should be extended
 to pass to 'hb_shape_full' the required array of features, as
 mentioned in the above HarfBuzz discussion.
+
+** Better support for displaying Emoji
+Emacs is capable of displaying Emoji and some of the Emoji sequences,
+provided that its fontsets are configured with a suitable font.  To
+make this easier out of the box, the following should be done:
 
 *** Populate composition-function-table with Emoji rules
 The Unicode Character Database (UCD) includes several data files that
