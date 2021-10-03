@@ -1211,12 +1211,25 @@ Interactively, ARG selects the ARGth different frame to move to."
   "Detach tab number FROM-NUMBER to a new frame.
 Interactively or without argument, detach current tab."
   (interactive (list (1+ (tab-bar--current-tab-index))))
-  (let* ((tab (nth (1- (or from-number 1)) (funcall tab-bar-tabs-function)))
-         (tab-name (alist-get 'name tab))
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (tab-index (1- (or from-number (1+ (tab-bar--current-tab-index tabs)))))
+         (tab-name (alist-get 'name (nth tab-index tabs)))
+         ;; On some window managers, `make-frame' selects the new frame,
+         ;; so previously selected frame is saved to `from-frame'.
+         (from-frame (selected-frame))
          (new-frame (make-frame `((name . ,tab-name)))))
-    (tab-bar-move-tab-to-frame nil nil from-number new-frame nil)
+    (tab-bar-move-tab-to-frame nil from-frame from-number new-frame nil)
     (with-selected-frame new-frame
       (tab-bar-close-tab))))
+
+(defun tab-bar-move-window-to-tab ()
+  "Detach the selected window to a new tab."
+  (interactive)
+  (let ((tab-bar-new-tab-choice 'window))
+    (tab-bar-new-tab))
+  (tab-bar-switch-to-recent-tab)
+  (delete-window)
+  (tab-bar-switch-to-recent-tab))
 
 
 (defcustom tab-bar-new-tab-to 'right
@@ -1264,9 +1277,10 @@ After the tab is created, the hooks in
         (select-window (minibuffer-selected-window)))
       (let ((ignore-window-parameters t))
         (delete-other-windows))
-      ;; Create a new window to get rid of old window parameters
-      ;; (e.g. prev/next buffers) of old window.
-      (split-window) (delete-window)
+      (unless (eq tab-bar-new-tab-choice 'window)
+        ;; Create a new window to get rid of old window parameters
+        ;; (e.g. prev/next buffers) of old window.
+        (split-window) (delete-window))
       (let ((buffer
              (if (functionp tab-bar-new-tab-choice)
                  (funcall tab-bar-new-tab-choice)
