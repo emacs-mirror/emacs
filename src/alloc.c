@@ -988,7 +988,8 @@ record_xmalloc (size_t size)
 
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
-   allocated memory block (for strings, for conses, ...).  */
+   allocated memory block (for strings, for conses, ...).
+   NBYTES must be positive.  */
 
 #if ! USE_LSB_TAG
 void *lisp_malloc_loser EXTERNALLY_VISIBLE;
@@ -1030,7 +1031,7 @@ lisp_malloc (size_t nbytes, bool clearit, enum mem_type type)
 #endif
 
   MALLOC_UNBLOCK_INPUT;
-  if (!val && nbytes)
+  if (!val)
     memory_full (nbytes);
   MALLOC_PROBE (nbytes);
   return val;
