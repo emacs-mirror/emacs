@@ -84,7 +84,7 @@ generate a new report.  The only time to send mail to the bug list
 address is to create a new report.
 
 Gnus users can add the following to message-dont-reply-to-names;
-similarly with Rmail and rmail-dont-reply-to-names:
+similarly with Rmail and mail-dont-reply-to-names:
 
 "\\(emacs-pretest-bug\\|bug-gnu-emacs\\|bug-\\(e\\|gnu\\)macs\\)@gnu\\.org\\|\
 \\(submit\\|control\\|owner\\)@debbugs\\.gnu\\.org"

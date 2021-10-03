@@ -13875,11 +13875,9 @@ present in this hook.
 @item nntp-authinfo-function
 @vindex nntp-authinfo-function
 @findex nntp-send-authinfo
-@vindex nntp-authinfo-file
 This function will be used to send @samp{AUTHINFO} to the @acronym{NNTP}
 server.  The default function is @code{nntp-send-authinfo}, which looks
-through your @file{~/.authinfo} (or whatever you've set the
-@code{nntp-authinfo-file} variable to) for applicable entries.  If none
+through your @file{~/.authinfo} for applicable entries.  If none
 are found, it will prompt you for a login name and a password.  The
 format of the @file{~/.authinfo} file is (almost) the same as the
 @code{ftp} @file{~/.netrc} file, which is defined in the @code{ftp}
