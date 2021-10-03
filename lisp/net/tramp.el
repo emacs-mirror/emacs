@@ -3743,7 +3743,8 @@ User is always nil."
     (with-parsed-tramp-file-name filename nil
       (unwind-protect
 	  (if (not (file-exists-p filename))
-	      (tramp-compat-file-missing v filename)
+              (let ((tramp-verbose (if visit 0 tramp-verbose)))
+	        (tramp-compat-file-missing v filename))
 
 	    (with-tramp-progress-reporter
 		v 3 (format-message "Inserting `%s'" filename)
@@ -3920,7 +3921,8 @@ Return nil when there is no lockfile."
 	    (tramp-error v 'file-error "Unsafe lock file name")))
 
 	;; Do the lock.
-        (let (create-lockfiles signal-hook-function)
+        (let ((tramp-verbose 0)
+              create-lockfiles signal-hook-function)
 	  (condition-case nil
 	      (make-symbolic-link info lockname 'ok-if-already-exists)
 	    (error

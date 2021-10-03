@@ -222,9 +222,10 @@ arguments to pass to the OPERATION."
 (defun tramp-sshfs-handle-insert-file-contents
   (filename &optional visit beg end replace)
   "Like `insert-file-contents' for Tramp files."
-  (let ((result
-	 (insert-file-contents
-	  (tramp-fuse-local-file-name filename) visit beg end replace)))
+  (let* (signal-hook-function
+         (result
+	  (insert-file-contents
+	   (tramp-fuse-local-file-name filename) visit beg end replace)))
     (when visit (setq buffer-file-name filename))
     (cons (expand-file-name filename) (cdr result))))
 
