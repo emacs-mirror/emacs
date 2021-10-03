@@ -26,37 +26,18 @@
 
 ;;; Code:
 (require 'files)
+(require 'mule)
 (eval-when-compile (require 'cl-lib))
 
-(defun hack-read-symbol-shorthands (fullname)
-  "Return value of `read-symbol-shorthands' file-local variable in FULLNAME.
-FULLNAME is the absolute file name of an Elisp .el file which
-potentially specifies a file-local value for
-`read-symbol-shorthands'.  The Elisp code in FULLNAME isn't read
-or evaluated in any way, except for extraction of the
-buffer-local value of `read-symbol-shorthands'."
-  (let* ((size (nth 7 (file-attributes fullname)))
-         (from (max 0 (- size 3000)))
-         (to size))
-    (with-temp-buffer
-      (while (and (< (buffer-size) 3000) (>= from 0))
-        (insert-file-contents fullname nil from to)
-        (setq to from
-              from (cond
-                    ((= from 0) -1)
-                    (t (max 0 (- from 100))))))
-      ;; FIXME: relies on the `hack-local-variables--find-variables'
-      ;; detail of files.el.  That function should be exported,
-      ;; possibly be refactored into two parts, since we're only
-      ;; interested in basic "Local Variables" parsing.
-      (alist-get 'read-symbol-shorthands (hack-local-variables--find-variables)))))
+(defun hack-read-symbol-shorthands ()
+  "Compute `read-symbol-shorthands' from Local Variables section."
+  ;; FIXME: relies on the `hack-local-variables--find-variables'
+  ;; detail of files.el.  That function should be exported,
+  ;; possibly be refactored into two parts, since we're only
+  ;; interested in basic "Local Variables" parsing.
+  (alist-get 'read-symbol-shorthands (hack-local-variables--find-variables)))
 
-(defun load-with-shorthands-and-code-conversion (fullname file noerror nomessage)
-  "Like `load-with-code-conversion', but also consider Elisp shorthands.
-This function uses shorthands defined in the file FULLNAME's local
-value of `read-symbol-shorthands', when it processes that file's Elisp code."
-  (let ((read-symbol-shorthands (hack-read-symbol-shorthands fullname)))
-    (load-with-code-conversion fullname file noerror nomessage)))
+(setq hack-read-symbol-shorthands-function #'hack-read-symbol-shorthands)
 
 
 ;; FIXME: move this all to progmodes/elisp-mode.el?  OTOH it'd make
