@@ -40,7 +40,10 @@ except for extraction of the buffer-local value of
     (with-temp-buffer
       (while (and (< (buffer-size) 3000) (>= from 0))
         (insert-file-contents fullname nil from to)
-        (setq to from from (- from 100)))
+        (setq to from
+              from (cond
+                    ((= from 0) -1)
+                    (t (max 0 (- from 100))))))
       ;; FIXME: relies on the `hack-local-variables--find-variables'
       ;; detail of files.el.  That function should be exported,
       ;; possibly be refactored into two parts, since we're only
