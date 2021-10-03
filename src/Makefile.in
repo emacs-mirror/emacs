@@ -804,10 +804,12 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 		THEFILE=$< $<n
 
 ../native-lisp: | $(pdmp)
-	mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp)
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
-		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
-	cp -f $@ $(bootstrap_pdmp)
+	if test ! -d $@; then \
+	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
+	  LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR); \
+	  cp -f $@ $(bootstrap_pdmp); \
+	fi
 endif
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
