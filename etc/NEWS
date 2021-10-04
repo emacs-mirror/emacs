@@ -82,6 +82,11 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 * Incompatible Lisp Changes in Emacs 29.1
 
+---
+** MozRepl has been removed from js.el.
+MozRepl was removed from Firefox in 2017, so this code doesn't work
+with recent versions of Firefox.
+
 
 * Lisp Changes in Emacs 29.1
 
