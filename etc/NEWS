@@ -2424,8 +2424,10 @@ Those are 'shr-h1', 'shr-h2', 'shr-h3', 'shr-h4', 'shr-h5', 'shr-h6'.
 
 ** Project
 
+---
 *** New user option 'project-vc-merge-submodules'.
 
+---
 *** Project commands now have their own history.
 Previously used project directories are now suggested by all commands
 that prompt for a project directory.
