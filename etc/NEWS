@@ -61,6 +61,11 @@ This change also affects 'cl-macrolet', 'cl-flet*' and
 The new command 'image-dired-unmark-all-marks' has been added with a
 binding in the menu.
 
+---
+*** info-look specs can now be expanded at run time instead of a load time.
+The new ':doc-spec-function' element can be used to compute the
+':doc-spec' element when the user asks for info on that particular
+mode (instead of at load time).
 
 ** subr-x
 *** New macro 'with-memoization' provides a very primitive form of memoization

@@ -124,6 +124,14 @@ OTHER-MODES is a list of cross references to other help modes.")
 (defsubst info-lookup->mode-value (topic mode)
   (assoc mode (info-lookup->topic-value topic)))
 
+(defun info-lookup--expand-info (info)
+  ;; We have a dynamic doc-spec function.
+  (when (and (null (nth 3 info))
+             (nth 6 info))
+    (setf (nth 3 info) (funcall (nth 6 info))
+          (nth 6 info) nil))
+  info)
+
 (defsubst info-lookup->regexp (topic mode)
   (nth 1 (info-lookup->mode-value topic mode)))
 
@@ -146,7 +154,11 @@ Function arguments are specified as keyword/argument pairs:
     (KEYWORD . ARGUMENT)
 
 KEYWORD is either `:topic', `:mode', `:regexp', `:ignore-case',
- `:doc-spec', `:parse-rule', or `:other-modes'.
+ `:doc-spec', `:parse-rule', `:other-modes' or `:doc-spec-function'.
+  `:doc-spec-function' is used to compute a `:doc-spec', but instead of
+  doing so at load time, this is done when the user asks for info on
+  the mode in question.
+
 ARGUMENT has a value as explained in the documentation of the
  variable `info-lookup-alist'.
 
@@ -162,7 +174,8 @@ for more details."
 
 (defun info-lookup-add-help* (maybe &rest arg)
   (let (topic mode regexp ignore-case doc-spec
-	      parse-rule other-modes keyword value)
+	      parse-rule other-modes keyword value
+              doc-spec-function)
     (setq topic 'symbol
 	  mode major-mode
 	  regexp "\\w+")
@@ -185,6 +198,8 @@ for more details."
 	     (setq ignore-case value))
 	    ((eq keyword :doc-spec)
 	     (setq doc-spec value))
+	    ((eq keyword :doc-spec-function)
+	     (setq doc-spec-function value))
 	    ((eq keyword :parse-rule)
 	     (setq parse-rule value))
 	    ((eq keyword :other-modes)
@@ -192,7 +207,8 @@ for more details."
 	    (t
 	     (error "Unknown keyword \"%S\"" keyword))))
     (or (and maybe (info-lookup->mode-value topic mode))
-	(let* ((data (list regexp ignore-case doc-spec parse-rule other-modes))
+	(let* ((data (list regexp ignore-case doc-spec parse-rule other-modes
+                           doc-spec-function))
 	       (topic-cell (or (assoc topic info-lookup-alist)
 			       (car (setq info-lookup-alist
 					  (cons (cons topic nil)
@@ -345,8 +361,9 @@ If optional argument QUERY is non-nil, query for the help mode."
 (defun info-lookup (topic item mode)
   "Display the documentation of a help item."
   (or mode (setq mode (info-lookup-select-mode)))
-  (or (info-lookup->mode-value topic mode)
-      (error "No %s help available for `%s'" topic mode))
+  (if-let ((info (info-lookup->mode-value topic mode)))
+      (info-lookup--expand-info info)
+    (error "No %s help available for `%s'" topic mode))
   (let* ((completions (info-lookup->completions topic mode))
          (ignore-case (info-lookup->ignore-case topic mode))
          (entry (or (assoc (if ignore-case (downcase item) item) completions)
@@ -725,6 +742,8 @@ Return nil if there is nothing appropriate in the buffer near point."
 (defun info-complete (topic mode)
   "Try to complete a help item."
   (barf-if-buffer-read-only)
+  (when-let ((info (info-lookup->mode-value topic mode)))
+    (info-lookup--expand-info info))
   (let ((data (info-lookup-completions-at-point topic mode)))
     (if (null data)
         (error "No %s completion available for `%s' at point" topic mode)
@@ -907,11 +926,14 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'python-mode
  ;; Debian includes Python info files, but they're version-named
  ;; instead of having a symlink.
- :doc-spec `((,(cl-loop for version from 20 downto 7
-                        for name = (format "python3.%d" version)
-                        if (Info-find-file name t)
-                        return (format "(%s)Index" name)
-                        finally return "(python)Index"))))
+ :doc-spec-function (lambda ()
+                      (list
+                       (list
+                        (cl-loop for version from 20 downto 7
+                                 for name = (format "python3.%d" version)
+                                 if (Info-find-file name t)
+                                 return (format "(%s)Index" name)
+                                 finally return "(python)Index")))))
 
 (info-lookup-maybe-add-help
  :mode 'cperl-mode
