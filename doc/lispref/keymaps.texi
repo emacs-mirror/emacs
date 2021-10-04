@@ -1442,10 +1442,6 @@ If non-@code{nil}, the keymap will be suppressed with
 @code{suppress-keymap} (@pxref{Changing Key Bindings}).  If
 @code{nodigits}, treat digits like other chars.
 
-@item :copy
-If non-@code{nil}, copy this keymap and use it as the basis
-(@pxref{Creating Keymaps}).
-
 @item :name
 If non-@code{nil}, this should be a string to use as the menu for the
 keymap if you use it as a menu with @code{x-popup-menu} (@pxref{Pop-Up

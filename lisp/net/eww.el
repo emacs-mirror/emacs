@@ -271,10 +271,10 @@ See also `eww-form-checkbox-selected-symbol'."
   "text/html, text/plain, text/sgml, text/css, application/xhtml+xml, */*;q=0.01"
   "Value used for the HTTP 'Accept' header.")
 
-(defvar-keymap eww-link-keymap (:copy shr-map)
+(defvar-keymap eww-link-keymap (:parent shr-map)
   "\r" #'eww-follow-link)
 
-(defvar-keymap eww-image-link-keymap (:copy shr-map)
+(defvar-keymap eww-image-link-keymap (:parent shr-map)
   "\r" #'eww-follow-link)
 
 (defun eww-suggested-uris nil
