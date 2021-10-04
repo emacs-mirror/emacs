@@ -529,19 +529,16 @@ Other major modes are defined by comparison with this one."
 
 ;; Special major modes to view specially formatted data rather than files.
 
-(defvar special-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (define-key map "q" 'quit-window)
-    (define-key map " " 'scroll-up-command)
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map "\C-?" 'scroll-down-command)
-    (define-key map "?" 'describe-mode)
-    (define-key map "h" 'describe-mode)
-    (define-key map ">" 'end-of-buffer)
-    (define-key map "<" 'beginning-of-buffer)
-    (define-key map "g" 'revert-buffer)
-    map))
+(defvar-keymap special-mode-map (:suppress t)
+  "q" #'quit-window
+  " " #'scroll-up-command
+  [?\S-\ ] #'scroll-down-command
+  "\C-?" #'scroll-down-command
+  "?" #'describe-mode
+  "h" #'describe-mode
+  ">" #'end-of-buffer
+  "<" #'beginning-of-buffer
+  "g" #'revert-buffer)
 
 (put 'special-mode 'mode-class 'special)
 (define-derived-mode special-mode nil "Special"

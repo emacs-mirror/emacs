@@ -271,15 +271,11 @@ See also `eww-form-checkbox-selected-symbol'."
   "text/html, text/plain, text/sgml, text/css, application/xhtml+xml, */*;q=0.01"
   "Value used for the HTTP 'Accept' header.")
 
-(defvar eww-link-keymap
-  (let ((map (copy-keymap shr-map)))
-    (define-key map "\r" 'eww-follow-link)
-    map))
+(defvar-keymap eww-link-keymap (:copy shr-map)
+  "\r" #'eww-follow-link)
 
-(defvar eww-image-link-keymap
-  (let ((map (copy-keymap shr-image-map)))
-    (define-key map "\r" 'eww-follow-link)
-    map))
+(defvar-keymap eww-image-link-keymap (:copy shr-map)
+  "\r" #'eww-follow-link)
 
 (defun eww-suggested-uris nil
   "Return the list of URIs to suggest at the `eww' prompt.
@@ -973,67 +969,64 @@ the like."
 	  (setq result highest))))
     result))
 
-(defvar eww-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "g" 'eww-reload) ;FIXME: revert-buffer-function instead!
-    (define-key map "G" 'eww)
-    (define-key map [?\M-\r] 'eww-open-in-new-buffer)
-    (define-key map [?\t] 'shr-next-link)
-    (define-key map [?\M-\t] 'shr-previous-link)
-    (define-key map [backtab] 'shr-previous-link)
-    (define-key map [delete] 'scroll-down-command)
-    (define-key map "l" 'eww-back-url)
-    (define-key map "r" 'eww-forward-url)
-    (define-key map "n" 'eww-next-url)
-    (define-key map "p" 'eww-previous-url)
-    (define-key map "u" 'eww-up-url)
-    (define-key map "t" 'eww-top-url)
-    (define-key map "&" 'eww-browse-with-external-browser)
-    (define-key map "d" 'eww-download)
-    (define-key map "w" 'eww-copy-page-url)
-    (define-key map "C" 'url-cookie-list)
-    (define-key map "v" 'eww-view-source)
-    (define-key map "R" 'eww-readable)
-    (define-key map "H" 'eww-list-histories)
-    (define-key map "E" 'eww-set-character-encoding)
-    (define-key map "s" 'eww-switch-to-buffer)
-    (define-key map "S" 'eww-list-buffers)
-    (define-key map "F" 'eww-toggle-fonts)
-    (define-key map "D" 'eww-toggle-paragraph-direction)
-    (define-key map [(meta C)] 'eww-toggle-colors)
-    (define-key map [(meta I)] 'eww-toggle-images)
+(defvar-keymap eww-mode-map ()
+  "g" #'eww-reload             ;FIXME: revert-buffer-function instead!
+  "G" #'eww
+  [?\M-\r] #'eww-open-in-new-buffer
+  [?\t] #'shr-next-link
+  [?\M-\t] #'shr-previous-link
+  [backtab] #'shr-previous-link
+  [delete] #'scroll-down-command
+  "l" #'eww-back-url
+  "r" #'eww-forward-url
+  "n" #'eww-next-url
+  "p" #'eww-previous-url
+  "u" #'eww-up-url
+  "t" #'eww-top-url
+  "&" #'eww-browse-with-external-browser
+  "d" #'eww-download
+  "w" #'eww-copy-page-url
+  "C" #'url-cookie-list
+  "v" #'eww-view-source
+  "R" #'eww-readable
+  "H" #'eww-list-histories
+  "E" #'eww-set-character-encoding
+  "s" #'eww-switch-to-buffer
+  "S" #'eww-list-buffers
+  "F" #'eww-toggle-fonts
+  "D" #'eww-toggle-paragraph-direction
+  [(meta C)] #'eww-toggle-colors
+  [(meta I)] #'eww-toggle-images
 
-    (define-key map "b" 'eww-add-bookmark)
-    (define-key map "B" 'eww-list-bookmarks)
-    (define-key map [(meta n)] 'eww-next-bookmark)
-    (define-key map [(meta p)] 'eww-previous-bookmark)
+  "b" #'eww-add-bookmark
+  "B" #'eww-list-bookmarks
+  [(meta n)] #'eww-next-bookmark
+  [(meta p)] #'eww-previous-bookmark
 
-    (easy-menu-define nil map ""
-      '("Eww"
-	["Exit" quit-window t]
-	["Close browser" quit-window t]
-	["Reload" eww-reload t]
-	["Follow URL in new buffer" eww-open-in-new-buffer]
-	["Back to previous page" eww-back-url
-	 :active (not (zerop (length eww-history)))]
-	["Forward to next page" eww-forward-url
-	 :active (not (zerop eww-history-position))]
-	["Browse with external browser" eww-browse-with-external-browser t]
-	["Download" eww-download t]
-	["View page source" eww-view-source]
-	["Copy page URL" eww-copy-page-url t]
-	["List histories" eww-list-histories t]
-	["Switch to buffer" eww-switch-to-buffer t]
-	["List buffers" eww-list-buffers t]
-	["Add bookmark" eww-add-bookmark t]
-	["List bookmarks" eww-list-bookmarks t]
-	["List cookies" url-cookie-list t]
-	["Toggle fonts" eww-toggle-fonts t]
-	["Toggle colors" eww-toggle-colors t]
-	["Toggle images" eww-toggle-images t]
-        ["Character Encoding" eww-set-character-encoding]
-        ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
-    map))
+  :menu '("Eww"
+          ["Exit" quit-window t]
+          ["Close browser" quit-window t]
+          ["Reload" eww-reload t]
+          ["Follow URL in new buffer" eww-open-in-new-buffer]
+          ["Back to previous page" eww-back-url
+           :active (not (zerop (length eww-history)))]
+          ["Forward to next page" eww-forward-url
+           :active (not (zerop eww-history-position))]
+          ["Browse with external browser" eww-browse-with-external-browser t]
+          ["Download" eww-download t]
+          ["View page source" eww-view-source]
+          ["Copy page URL" eww-copy-page-url t]
+          ["List histories" eww-list-histories t]
+          ["Switch to buffer" eww-switch-to-buffer t]
+          ["List buffers" eww-list-buffers t]
+          ["Add bookmark" eww-add-bookmark t]
+          ["List bookmarks" eww-list-bookmarks t]
+          ["List cookies" url-cookie-list t]
+          ["Toggle fonts" eww-toggle-fonts t]
+          ["Toggle colors" eww-toggle-colors t]
+          ["Toggle images" eww-toggle-images t]
+          ["Character Encoding" eww-set-character-encoding]
+          ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
 
 (defun eww-context-menu (menu click)
   "Populate MENU with eww commands at CLICK."
@@ -1230,54 +1223,40 @@ just re-display the HTML already fetched."
 
 (defvar eww-form nil)
 
-(defvar eww-submit-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'eww-submit)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    map))
+(defvar-keymap eww-submit-map ()
+  "\r" #'eww-submit
+  [(control c) (control c)] #'eww-submit)
 
-(defvar eww-submit-file
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'eww-select-file)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    map))
+(defvar-keymap eww-submit-file ()
+  "\r" #'eww-select-file
+  [(control c) (control c)] #'eww-submit)
 
-(defvar eww-checkbox-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " " 'eww-toggle-checkbox)
-    (define-key map "\r" 'eww-toggle-checkbox)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    map))
+(defvar-keymap eww-checkbox-map ()
+  " " #'eww-toggle-checkbox
+  "\r" #'eww-toggle-checkbox
+  [(control c) (control c)] #'eww-submit)
 
-(defvar eww-text-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\r" 'eww-submit)
-    (define-key map [(control a)] 'eww-beginning-of-text)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    (define-key map [(control e)] 'eww-end-of-text)
-    (define-key map [?\t] 'shr-next-link)
-    (define-key map [?\M-\t] 'shr-previous-link)
-    (define-key map [backtab] 'shr-previous-link)
-    map))
+(defvar-keymap eww-text-map (:full t :parent text-mode-map)
+  "\r" #'eww-submit
+  [(control a)] #'eww-beginning-of-text
+  [(control c) (control c)] #'eww-submit
+  [(control e)] #'eww-end-of-text
+  [?\t] #'shr-next-link
+  [?\M-\t] #'shr-previous-link
+  [backtab] #'shr-previous-link)
 
-(defvar eww-textarea-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\r" 'forward-line)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    (define-key map [?\t] 'shr-next-link)
-    (define-key map [?\M-\t] 'shr-previous-link)
-    (define-key map [backtab] 'shr-previous-link)
-    map))
+(defvar-keymap eww-textarea-map  (:full t :parent text-mode-map)
+  "\r" #'forward-line
+  [(control c) (control c)] #'eww-submit
+  [?\t] #'shr-next-link
+  [?\M-\t] #'shr-previous-link
+  [backtab] #'shr-previous-link)
 
-(defvar eww-select-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'eww-change-select)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'eww-change-select)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    map))
+(defvar-keymap eww-select-map (:doc "Map for select buttons")
+  "\r" #'eww-change-select
+  [follow-link] 'mouse-face
+  [mouse-2] #'eww-change-select
+  [(control c) (control c)] #'eww-submit)
 
 (defun eww-beginning-of-text ()
   "Move to the start of the input field."
@@ -2100,23 +2079,18 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 					'eww-bookmark)))
     (eww-browse-url (plist-get bookmark :url))))
 
-(defvar eww-bookmark-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control k)] 'eww-bookmark-kill)
-    (define-key map [(control y)] 'eww-bookmark-yank)
-    (define-key map "\r" 'eww-bookmark-browse)
-
-    (easy-menu-define nil map
-      "Menu for `eww-bookmark-mode-map'."
-      '("Eww Bookmark"
-        ["Exit" quit-window t]
-        ["Browse" eww-bookmark-browse
-         :active (get-text-property (line-beginning-position) 'eww-bookmark)]
-        ["Kill" eww-bookmark-kill
-         :active (get-text-property (line-beginning-position) 'eww-bookmark)]
-        ["Yank" eww-bookmark-yank
-         :active eww-bookmark-kill-ring]))
-    map))
+(defvar-keymap eww-bookmark-mode-map ()
+  [(control k)] #'eww-bookmark-kill
+  [(control y)] #'eww-bookmark-yank
+  "\r" #'eww-bookmark-browse
+  :menu '("Eww Bookmark"
+          ["Exit" quit-window t]
+          ["Browse" eww-bookmark-browse
+           :active (get-text-property (line-beginning-position) 'eww-bookmark)]
+          ["Kill" eww-bookmark-kill
+           :active (get-text-property (line-beginning-position) 'eww-bookmark)]
+          ["Yank" eww-bookmark-yank
+           :active eww-bookmark-kill-ring]))
 
 (define-derived-mode eww-bookmark-mode special-mode "eww bookmarks"
   "Mode for listing bookmarks.
@@ -2181,19 +2155,15 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 	(pop-to-buffer-same-window buffer)))
     (eww-restore-history history)))
 
-(defvar eww-history-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'eww-history-browse)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-
-    (easy-menu-define nil map
-      "Menu for `eww-history-mode-map'."
-      '("Eww History"
-        ["Exit" quit-window t]
-        ["Browse" eww-history-browse
-         :active (get-text-property (line-beginning-position) 'eww-history)]))
-    map))
+(defvar-keymap eww-history-mode-map ()
+  "\r" #'eww-history-browse
+  "n" #'next-line
+  "p" #'previous-line
+  :menu '("Eww History"
+          ["Exit" quit-window t]
+          ["Browse" eww-history-browse
+           :active (get-text-property (line-beginning-position)
+                                      'eww-history)]))
 
 (define-derived-mode eww-history-mode special-mode "eww history"
   "Mode for listing eww-histories.
@@ -2304,22 +2274,18 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
     (forward-line -1))
   (eww-buffer-show))
 
-(defvar eww-buffers-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control k)] 'eww-buffer-kill)
-    (define-key map "\r" 'eww-buffer-select)
-    (define-key map "n" 'eww-buffer-show-next)
-    (define-key map "p" 'eww-buffer-show-previous)
-
-    (easy-menu-define nil map
-      "Menu for `eww-buffers-mode-map'."
-      '("Eww Buffers"
-        ["Exit" quit-window t]
-        ["Select" eww-buffer-select
-         :active (get-text-property (line-beginning-position) 'eww-buffer)]
-        ["Kill" eww-buffer-kill
-         :active (get-text-property (line-beginning-position) 'eww-buffer)]))
-    map))
+(defvar-keymap eww-buffers-mode-map ()
+  [(control k)] #'eww-buffer-kill
+  "\r" #'eww-buffer-select
+  "n" #'eww-buffer-show-next
+  "p" #'eww-buffer-show-previous
+  :menu '("Eww Buffers"
+          ["Exit" quit-window t]
+          ["Select" eww-buffer-select
+           :active (get-text-property (line-beginning-position) 'eww-buffer)]
+          ["Kill" eww-buffer-kill
+           :active (get-text-property (line-beginning-position)
+                                      'eww-buffer)]))
 
 (define-derived-mode eww-buffers-mode special-mode "eww buffers"
   "Mode for listing buffers.

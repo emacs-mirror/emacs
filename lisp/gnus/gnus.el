@@ -2537,7 +2537,7 @@ are always t.")
      ;; Only used in gnus-util, which has an autoload.
      ("rmailsum" rmail-update-summary)
      ("gnus-xmas" gnus-xmas-splash)
-     ("score-mode" :interactive t gnus-score-mode)
+     ("score-mode" :interactive t gnus-score-mode gnus-score-edit-all-score)
      ("gnus-mh" gnus-summary-save-article-folder
       gnus-Folder-save-name gnus-folder-save-name)
      ("gnus-mh" :interactive (gnus-summary-mode) gnus-summary-save-in-folder)

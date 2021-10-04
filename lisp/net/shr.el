@@ -247,23 +247,21 @@ and other things:
 (defvar shr-target-id nil
   "Target fragment identifier anchor.")
 
-(defvar shr-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" #'shr-show-alt-text)
-    (define-key map "i" #'shr-browse-image)
-    (define-key map "z" #'shr-zoom-image)
-    (define-key map [?\t] #'shr-next-link)
-    (define-key map [?\M-\t] #'shr-previous-link)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] #'shr-browse-url)
-    (define-key map [C-down-mouse-1] #'shr-mouse-browse-url-new-window)
-    (define-key map "I" #'shr-insert-image)
-    (define-key map "w" #'shr-maybe-probe-and-copy-url)
-    (define-key map "u" #'shr-maybe-probe-and-copy-url)
-    (define-key map "v" #'shr-browse-url)
-    (define-key map "O" #'shr-save-contents)
-    (define-key map "\r" #'shr-browse-url)
-    map))
+(defvar-keymap shr-map ()
+  "a" #'shr-show-alt-text
+  "i" #'shr-browse-image
+  "z" #'shr-zoom-image
+  [?\t] #'shr-next-link
+  [?\M-\t] #'shr-previous-link
+  [follow-link] 'mouse-face
+  [mouse-2] #'shr-browse-url
+  [C-down-mouse-1] #'shr-mouse-browse-url-new-window
+  "I" #'shr-insert-image
+  "w" #'shr-maybe-probe-and-copy-url
+  "u" #'shr-maybe-probe-and-copy-url
+  "v" #'shr-browse-url
+  "O" #'shr-save-contents
+  "\r" #'shr-browse-url)
 
 (defvar shr-image-map
   (let ((map (copy-keymap shr-map)))
