@@ -4671,7 +4671,10 @@ See `python-check-command' for the default."
                 target = obj
                 objtype = 'def'
             if target:
-                args = inspect.formatargspec(*argspec_function(target))
+                if hasattr(inspect, 'signature'):
+                    args = str(inspect.signature(target))
+                else:
+                    args = inspect.formatargspec(*argspec_function(target))
                 name = obj.__name__
                 doc = '{objtype} {name}{args}'.format(
                     objtype=objtype, name=name, args=args
