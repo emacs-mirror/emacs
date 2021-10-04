@@ -29,95 +29,25 @@ are the ones we consider more important, but these also may be
 difficult to fix.  Bugs with severity "minor" may be simpler, but this
 is not always true.
 
-* Speed up Elisp execution
+* High Priority Items
 
-** Speed up function calls
-Change src/bytecode.c so that calls from byte-code functions to byte-code
-functions don't go through Ffuncall/funcall_lambda/exec_byte_code but instead
-stay within exec_byte_code.
-
-** Improve the byte-compiler to recognize immutable bindings
-Recognize immutable (lexical) bindings and get rid of them if they're
-used only once and/or they're bound to a constant expression.
-
-Such things aren't present in hand-written code, but macro expansion and
-defsubst can often end up generating things like
-(funcall (lambda (arg) (body)) actual) which then get optimized to
-(let ((arg actual)) (body)) but should additionally get optimized further
-when 'actual' is a constant/copyable expression.
-
-** Add an "indirect goto" byte-code
-Such a byte-code can be used for local lambda expressions.
-E.g. when you have code like
-
-   (let ((foo (lambda (x) bar)))
-     (dosomething
-      (funcall foo toto)
-      (blabla (funcall foo titi))))
-
-turn those 'funcalls' into jumps and their return into indirect jumps back.
-
-** Compile efficiently local recursive functions
-Similar to the previous point, we should be able to handle something like
-
-   (letrec ((loop () (blabla) (if (toto) (loop))))
-     (loop))
-
-which ideally should generate the same byte-code as
-
-   (while (progn (blabla) (toto)))
-
-* Things that were planned for Emacs-24
-
-** Concurrency
-Including it as an "experimental" compile-time option sounds good.  Of
-course there might still be big questions around "which form of
-concurrency" we'll want.
-
-** Spread Semantic
-
-** Improve the "code snippets" support
-Consolidate skeleton.el, tempo.el, and expand.el (any other?) and then
-advertise/use/improve it.
-
-** Improve VC
-Yes, there's a lot of work to be done there :-(
-
-** Random things that cross my mind right now that I'd like to see
-Some of them from my local hacks, but it's not obvious at all whether
-they'll make it.
-
-*** Prog-mode could/should provide a better fill-paragraph default
-That default should use syntax-tables to recognize string/comment
-boundaries.
-
-*** Provide more completion-at-point-functions
-Make existing in-buffer completion use completion-at-point.
-
-*** "Functional" function-key-map
-It would make it easy to add (and remove) mappings like
-"FOO-mouse-4 -> FOO-scroll-down",   "FOO-tab -> ?\FOO-\t",
-"uppercase -> lowercase", "[fringe KEY...] -> [KEY]",
-"H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
-
-* Things related to elpa.gnu.org.
-
+** Things related to elpa.gnu.org.
 We need to figure out how to best include GNU ELPA packages in the
 Emacs tarball before doing any of the items below.
 
-** Move idlwave to elpa.gnu.org
+*** Move idlwave to elpa.gnu.org
 Need to sync up the Emacs and external versions.
 See <https://lists.gnu.org/r/emacs-devel/2014-07/msg00008.html>
 <https://debbugs.gnu.org/39992>
 
-** Move Org mode to elpa.gnu.org
+*** Move Org mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2014-08/msg00300.html>
 <https://lists.gnu.org/r/emacs-devel/2014-11/msg00257.html>
 
-** Move verilog-mode to elpa.gnu.org
+*** Move verilog-mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
-** Move vhdl-mode to elpa.gnu.org
+*** Move vhdl-mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
 * Simple tasks
@@ -241,6 +171,44 @@ Needed for dired buffers and DTRT WRT 'auto-revert-mode'.
 https://lists.gnu.org/r/emacs-devel/2008-08/msg00456.html
 
 * Important features
+
+** Speed up Elisp execution
+
+*** Speed up function calls
+Change src/bytecode.c so that calls from byte-code functions to byte-code
+functions don't go through Ffuncall/funcall_lambda/exec_byte_code but instead
+stay within exec_byte_code.
+
+*** Improve the byte-compiler to recognize immutable bindings
+Recognize immutable (lexical) bindings and get rid of them if they're
+used only once and/or they're bound to a constant expression.
+
+Such things aren't present in hand-written code, but macro expansion and
+defsubst can often end up generating things like
+(funcall (lambda (arg) (body)) actual) which then get optimized to
+(let ((arg actual)) (body)) but should additionally get optimized further
+when 'actual' is a constant/copyable expression.
+
+** Add an "indirect goto" byte-code
+Such a byte-code can be used for local lambda expressions.
+E.g. when you have code like
+
+   (let ((foo (lambda (x) bar)))
+     (dosomething
+      (funcall foo toto)
+      (blabla (funcall foo titi))))
+
+turn those 'funcalls' into jumps and their return into indirect jumps back.
+
+*** Compile efficiently local recursive functions
+Similar to the previous point, we should be able to handle something like
+
+   (letrec ((loop () (blabla) (if (toto) (loop))))
+     (loop))
+
+which ideally should generate the same byte-code as
+
+   (while (progn (blabla) (toto)))
 
 ** "Emacs as word processor"
 https://lists.gnu.org/r/emacs-devel/2013-11/msg00515.html
@@ -391,6 +359,11 @@ instead of calling the 'encode_char' method of the font driver, we
 should invoke the 'shape' method.  'hbfont_shape' should be extended
 to pass to 'hb_shape_full' the required array of features, as
 mentioned in the above HarfBuzz discussion.
+
+** Concurrency
+Stefan Monnier writes: "Including it as an 'experimental' compile-time
+option sounds good.  Of course there might still be big questions
+around 'which form of concurrency' we'll want."
 
 ** Better support for displaying Emoji
 Emacs is capable of displaying Emoji and some of the Emoji sequences,
@@ -669,6 +642,13 @@ could also be a button that you could use to view the advice.
 
 ** Add a function to get the insertion-type of the markers in an overlay
 
+** Improve VC
+Yes, there's a lot of work to be done there :-(
+
+** Improve the "code snippets" support
+Consolidate skeleton.el, tempo.el, and expand.el (any other?) and then
+advertise/use/improve it.
+
 ** ange-ftp
 
 *** Make ange-ftp understand sftp
@@ -905,6 +885,25 @@ See thread <https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html>.
 The idea is to add an "X" of some kind, that when clicked deletes the
 window associated with that modeline.
 https://lists.gnu.org/r/emacs-devel/2007-09/msg02416.html
+
+** Random things that were planned for Emacs-24
+
+Stefan Monnier writes: "Random things that cross my mind right now
+that I'd like to see.  Some of them from my local hacks, but it's not
+obvious at all whether they'll make it."
+
+*** Prog-mode could/should provide a better fill-paragraph default
+That default should use syntax-tables to recognize string/comment
+boundaries.
+
+*** Provide more completion-at-point-functions
+Make existing in-buffer completion use completion-at-point.
+
+*** "Functional" function-key-map
+It would make it easy to add (and remove) mappings like
+"FOO-mouse-4 -> FOO-scroll-down",   "FOO-tab -> ?\FOO-\t",
+"uppercase -> lowercase", "[fringe KEY...] -> [KEY]",
+"H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
 
 * Things to be done for specific packages or features
 
