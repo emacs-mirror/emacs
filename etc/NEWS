@@ -2652,7 +2652,9 @@ This allows mode-specific alterations to how 'thing-at-point' works.
 'symbol-at-point') will narrow to the current field (if any) before
 trying to identify the thing at point.
 
+---
 *** New function 'thing-at-mouse'.
+This is like 'thing-at-point', but uses the mouse event position instead.
 
 ** image-dired
 
