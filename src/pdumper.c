@@ -799,31 +799,13 @@ dump_tailq_length (const struct dump_tailq *tailq)
   return tailq->length;
 }
 
-static void ATTRIBUTE_UNUSED
+static void
 dump_tailq_prepend (struct dump_tailq *tailq, Lisp_Object value)
 {
   Lisp_Object link = Fcons (value, tailq->head);
   tailq->head = link;
   if (NILP (tailq->tail))
     tailq->tail = link;
-  tailq->length += 1;
-}
-
-static void ATTRIBUTE_UNUSED
-dump_tailq_append (struct dump_tailq *tailq, Lisp_Object value)
-{
-  Lisp_Object link = Fcons (value, Qnil);
-  if (NILP (tailq->head))
-    {
-      eassert (NILP (tailq->tail));
-      tailq->head = tailq->tail = link;
-    }
-  else
-    {
-      eassert (!NILP (tailq->tail));
-      XSETCDR (tailq->tail, link);
-      tailq->tail = link;
-    }
   tailq->length += 1;
 }
 
