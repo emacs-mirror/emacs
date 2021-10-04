@@ -3918,7 +3918,7 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
 	    val = XCAR (val);
 	  else if (VECTORP (val))
 	    val = AREF (val, 0);
-	  font_object = font_for_char (face, XFIXNAT (val), pos - 1, string);
+	  font_object = font_for_char (face, XFIXNAT (val), pos, string);
 	}
     }
 
