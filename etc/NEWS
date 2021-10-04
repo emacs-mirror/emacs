@@ -85,6 +85,14 @@ Emacs buffers, like indentation and the like.  The new ert function
 Using 'make-obsolete' on a theme is now supported.  This will make
 'load-theme' issue a warning when loading the theme.
 
++++
+** New function 'define-keymap'.
+This function allows defining a number of keystrokes with one form.
+
++++
+** New macro 'defvar-keymap'.
+This macro allows defining keymap variables more conveniently.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
