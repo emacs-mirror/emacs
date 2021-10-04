@@ -3653,6 +3653,9 @@ Prepare every function for final compilation and drive the C back-end."
 (defvar comp-async-compilation nil
   "Non-nil while executing an asynchronous native compilation.")
 
+(defvar comp-running-batch-compilation nil
+  "Non-nil when compilation is driven by any `batch-*-compile' function.")
+
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
   (maphash #'comp-compute-function-type (comp-ctxt-funcs-h comp-ctxt))
@@ -3661,7 +3664,7 @@ Prepare every function for final compilation and drive the C back-end."
     ;; unless during bootstrap or async compilation (bug#45056).  GCC
     ;; leaks memory but also interfere with the ability of Emacs to
     ;; detect when a sub-process completes (TODO understand why).
-    (if (or byte+native-compile comp-async-compilation)
+    (if (or comp-running-batch-compilation comp-async-compilation)
 	(comp-final1)
       ;; Call comp-final1 in a child process.
       (let* ((output (comp-ctxt-output comp-ctxt))
@@ -4202,9 +4205,10 @@ as part of building the source tarball, in which case the .eln file
 will be placed under the native-lisp/ directory (actually, in the
 last directory in `native-comp-eln-load-path')."
   (comp-ensure-native-compiler)
-  (let ((native-compile-target-directory
-         (if for-tarball
-             (car (last native-comp-eln-load-path)))))
+  (let ((comp-running-batch-compilation t)
+        (native-compile-target-directory
+            (if for-tarball
+                (car (last native-comp-eln-load-path)))))
     (cl-loop for file in command-line-args-left
              if (or (null byte+native-compile)
                     (cl-notany (lambda (re) (string-match re file))
