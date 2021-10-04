@@ -1639,8 +1639,9 @@ If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
 See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
-`ffap-url-unwrap-local', `ffap-url-unwrap-remote', and the functions
-`ffap-file-at-point' and `ffap-url-at-point'."
+`ffap-url-unwrap-local', `ffap-url-unwrap-remote',
+`ffap-file-name-with-spaces', and the functions `ffap-file-at-point'
+and `ffap-url-at-point'."
   (interactive)
   (if (and (called-interactively-p 'interactive)
 	   (if ffap-require-prefix (not current-prefix-arg)
