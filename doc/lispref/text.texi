@@ -599,6 +599,19 @@ This command indents to the left margin if that is not zero.
 The value returned is @code{nil}.
 @end deffn
 
+@deffn Command ensure-empty-lines &optional number-of-empty-lines
+This command can be used to ensure that you have a specific number of
+empty lines before point.  (An ``empty line'' is here defined as a
+line with no characters on it---a line with space characters isn't an
+empty line.)  It defaults to ensuring that there's a single empty line
+before point.
+
+If point isn't at the beginning of a line, a newline character is
+inserted first.  If there's more empty lines before point than
+specified, the number of empty lines is reduced.  Otherwise it's
+increased to the specified number.
+@end deffn
+
 @defvar overwrite-mode
 This variable controls whether overwrite mode is in effect.  The value
 should be @code{overwrite-mode-textual}, @code{overwrite-mode-binary},

@@ -412,6 +412,32 @@ and return the value found in PLACE instead."
                ,(funcall setter val)
                ,val)))))
 
+;;;###autoload
+(defun ensure-empty-lines (&optional lines)
+  "Ensure that there's LINES number of empty lines before point.
+If LINES is nil or missing, a this ensures that there's a single
+empty line before point.
+
+Interactively, this command uses the numerical prefix for LINES.
+
+If there's already more empty lines before point than LINES, the
+number of blank lines will be reduced.
+
+If point is not at the beginning of a line, a newline character
+is inserted before adjusting the number of empty lines."
+  (interactive "p")
+  (unless (bolp)
+    (insert "\n"))
+  (let ((lines (or lines 1))
+        (start (save-excursion
+                 (if (re-search-backward "[^\n]" nil t)
+                     (+ (point) 2)
+                   (point-min)))))
+    (cond
+     ((> (- (point) start) lines)
+      (delete-region (point) (- (point) (- (point) start lines))))
+     ((< (- (point) start) lines)
+      (insert (make-string (- lines (- (point) start)) ?\n))))))
 
 (provide 'subr-x)
 

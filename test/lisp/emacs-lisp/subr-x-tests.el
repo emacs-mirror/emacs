@@ -638,5 +638,43 @@
   (should (equal (string-chop-newline "foo\nbar\n") "foo\nbar"))
   (should (equal (string-chop-newline "foo\nbar") "foo\nbar")))
 
+(ert-deftest subr-ensure-empty-lines ()
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo")
+      (goto-char (point-min))
+      (ensure-empty-lines 2)
+      (buffer-string))
+    "\n\nfoo"))
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo")
+      (ensure-empty-lines 2)
+      (buffer-string))
+    "foo\n\n\n"))
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo\n")
+      (ensure-empty-lines 2)
+      (buffer-string))
+    "foo\n\n\n"))
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo\n\n\n\n\n")
+      (ensure-empty-lines 2)
+      (buffer-string))
+    "foo\n\n\n"))
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo\n\n\n")
+      (ensure-empty-lines 0)
+      (buffer-string))
+    "foo\n")))
+
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

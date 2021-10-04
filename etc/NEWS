@@ -56,6 +56,11 @@ This change also affects 'cl-macrolet', 'cl-flet*' and
 This can be set to nil to inhibit translating upper case keys to lower
 case keys.
 
++++
+** New command 'ensure-empty-lines'.
+This command increases (or decreases) the number of empty lines before
+point.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
