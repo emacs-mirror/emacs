@@ -78,6 +78,8 @@ The new ':doc-spec-function' element can be used to compute the
 mode (instead of at load time).
 
 ** subr-x
+
++++
 *** New macro 'with-memoization' provides a very primitive form of memoization
 
 
