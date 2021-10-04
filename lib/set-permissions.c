@@ -775,7 +775,7 @@ chmod_or_fchmod (const char *name, int desc, mode_t mode)
 int
 set_permissions (struct permission_context *ctx, const char *name, int desc)
 {
-  bool acls_set _GL_UNUSED = false;
+  _GL_UNUSED bool acls_set = false;
   bool early_chmod;
   bool must_chmod = false;
   int ret = 0;

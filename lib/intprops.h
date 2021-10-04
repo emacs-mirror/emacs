@@ -3,19 +3,18 @@
    Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published
-   by the Free Software Foundation; either version 3 of the License, or
+   under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Written by Paul Eggert.  */
 
 #ifndef _GL_INTPROPS_H
 #define _GL_INTPROPS_H
@@ -133,7 +132,8 @@
    operators might not yield numerically correct answers due to
    arithmetic overflow.  They do not rely on undefined or
    implementation-defined behavior.  Their implementations are simple
-   and straightforward, but they are a bit harder to use than the
+   and straightforward, but they are harder to use and may be less
+   efficient than the INT_<op>_WRAPV, INT_<op>_OK, and
    INT_<op>_OVERFLOW macros described below.
 
    Example usage:
@@ -157,6 +157,9 @@
    integer type after the usual arithmetic conversions, and the type
    must have minimum value MIN and maximum MAX.  Unsigned types should
    use a zero MIN of the proper type.
+
+   Because all arguments are subject to integer promotions, these
+   macros typically do not work on types narrower than 'int'.
 
    These macros are tuned for constant MIN and MAX.  For commutative
    operations such as A + B, they are also tuned for constant B.  */
@@ -339,9 +342,15 @@
    arguments should not have side effects.
 
    The WRAPV macros are not constant expressions.  They support only
-   +, binary -, and *.  Because the WRAPV macros convert the result,
-   they report overflow in different circumstances than the OVERFLOW
-   macros do.
+   +, binary -, and *.
+
+   Because the WRAPV macros convert the result, they report overflow
+   in different circumstances than the OVERFLOW macros do.  For
+   example, in the typical case with 16-bit 'short' and 32-bit 'int',
+   if A, B and R are all of type 'short' then INT_ADD_OVERFLOW (A, B)
+   returns false because the addition cannot overflow after A and B
+   are converted to 'int', whereas INT_ADD_WRAPV (A, B, &R) returns
+   true or false depending on whether the sum fits into 'short'.
 
    These macros are tuned for their last input argument being a constant.
 

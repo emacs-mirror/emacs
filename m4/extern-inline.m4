@@ -17,7 +17,8 @@ AC_DEFUN([gl_EXTERN_INLINE],
    mishandles inline functions that call each other.  E.g., for 'inline void f
    (void) { } inline void g (void) { f (); }', c99 incorrectly complains
    'reference to static identifier "f" in extern inline function'.
-   This bug was observed with Sun C 5.12 SunOS_i386 2011/11/16.
+   This bug was observed with Oracle Developer Studio 12.6
+   (Sun C 5.15 SunOS_sparc 2017/05/30).
 
    Suppress extern inline (with or without __attribute__ ((__gnu_inline__)))
    on configurations that mistakenly use 'static inline' to implement
@@ -83,8 +84,8 @@ AC_DEFUN([gl_EXTERN_INLINE],
 # define _GL_EXTERN_INLINE extern
 # define _GL_EXTERN_INLINE_IN_USE
 #else
-# define _GL_INLINE static _GL_UNUSED
-# define _GL_EXTERN_INLINE static _GL_UNUSED
+# define _GL_INLINE _GL_UNUSED static
+# define _GL_EXTERN_INLINE _GL_UNUSED static
 #endif
 
 /* In GCC 4.6 (inclusive) to 5.1 (exclusive),

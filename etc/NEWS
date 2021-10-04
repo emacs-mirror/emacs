@@ -80,6 +80,14 @@ This was only ever relevant when building from a repository checkout.
 This now requires makeinfo, which is part of the texinfo package.
 
 ---
+** There is a new configure option '--disable-year2038' to cause
+Emacs to use only 32-bit time_t on platforms that have both 32- and
+64-bit time_t.  This may help link Emacs to a library with ABI
+requiring traditional 32-bit time_t.  This option currently affects
+only 32-bit ARM and x86 running GNU/Linux with glibc 2.34 and later.
+Emacs now defaults to 64-bit time_t on these platforms.
+
+---
 ** Support for building with '-fcheck-pointer-bounds' has been removed.
 GCC has withdrawn the '-fcheck-pointer-bounds' option and support for
 its implementation has been removed from the Linux kernel.

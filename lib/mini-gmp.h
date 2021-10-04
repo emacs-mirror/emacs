@@ -1,20 +1,20 @@
 /* mini-gmp, a minimalistic implementation of a GNU GMP subset.
 
-Copyright 2011-2015, 2017, 2019-2020 Free Software Foundation, Inc.
+Copyright 2011-2015, 2017, 2019-2021 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
 The GNU MP Library is free software; you can redistribute it and/or modify
 it under the terms of either:
 
-  * the GNU General Public License as published by the Free
+  * the GNU Lesser General Public License as published by the Free
     Software Foundation; either version 3 of the License, or (at your
     option) any later version.
 
 or
 
   * the GNU General Public License as published by the Free Software
-    Foundation; either version 3 of the License, or (at your option) any
+    Foundation; either version 2 of the License, or (at your option) any
     later version.
 
 or both in parallel, as here.
@@ -25,7 +25,7 @@ or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
 
 You should have received copies of the GNU General Public License and the
-GNU General Public License along with the GNU MP Library.  If not,
+GNU Lesser General Public License along with the GNU MP Library.  If not,
 see https://www.gnu.org/licenses/.  */
 
 /* About mini-gmp: This is a minimal implementation of a subset of the
@@ -296,6 +296,7 @@ int mpz_init_set_str (mpz_t, const char *, int);
   || defined (_STDIO_H_INCLUDED)      /* QNX4 */		\
   || defined (_ISO_STDIO_ISO_H)       /* Sun C++ */		\
   || defined (__STDIO_LOADED)         /* VMS */			\
+  || defined (_STDIO)                 /* HPE NonStop */         \
   || defined (__DEFINED_FILE)         /* musl */
 size_t mpz_out_str (FILE *, int, const mpz_t);
 #endif

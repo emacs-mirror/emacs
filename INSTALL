@@ -322,8 +322,11 @@ Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 Use --without-xim to inhibit the default use of X Input Methods.
 In this case, the X resource useXIM can be used to turn on use of XIM.
 
-Use --disable-largefile to omit support for files larger than 2GB on
-systems which support that.
+Use --disable-largefile to omit support for files larger than 2GB, and
+--disable-year2038 to omit support for timestamps past the year 2038,
+on systems which allow omitting such support.  This may help when
+linking Emacs to a library with an ABI that requires a particular
+width for off_t or for time_t.
 
 Use --without-sound to disable sound support.
 

@@ -2,17 +2,17 @@
 
    Copyright (C) 2005-2006, 2009-2021 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert, Bruno Haible, and Jim Meyering.  */
@@ -25,7 +25,7 @@
    works as per C11.  This is supported by GCC 4.6.0+ and by clang 4+.
 
    Define _GL_HAVE__STATIC_ASSERT1 to 1 if _Static_assert (R) works as
-   per C2X.  This is supported by GCC 9.1+.
+   per C2x.  This is supported by GCC 9.1+.
 
    Support compilers claiming conformance to the relevant standard,
    and also support GCC when not pedantic.  If we were willing to slow
@@ -202,7 +202,7 @@ template <int w>
 
    This macro requires three or more arguments but uses at most the first
    two, so that the _Static_assert macro optionally defined below supports
-   both the C11 two-argument syntax and the C2X one-argument syntax.
+   both the C11 two-argument syntax and the C2x one-argument syntax.
 
    Unfortunately, unlike C11, this implementation must appear as an
    ordinary declaration, and cannot appear inside struct { ... }.  */
