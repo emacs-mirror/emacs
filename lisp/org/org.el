@@ -3630,7 +3630,7 @@ When this is non-nil, the headline after the keyword is set to the
   :group 'org-appearance
   :package-version '(Org . "9.4")
   :type 'boolean
-  :safe t)
+  :safe #'booleanp)
 
 (defcustom org-fontify-done-headline t
   "Non-nil means change the face of a headline if it is marked DONE.
@@ -5113,6 +5113,7 @@ stacked delimiters is N.  Escaping delimiters is not possible."
 				     '(invisible t))
 		(add-text-properties (match-beginning 3) (match-end 3)
 				     '(invisible t)))
+              (goto-char (match-end 0))
 	      (throw :exit t))))))))
 
 (defun org-emphasize (&optional char)

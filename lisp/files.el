@@ -3897,7 +3897,7 @@ inhibited."
           (hack-local-variables-apply))))))
 
 (defun hack-local-variables--find-variables (&optional handle-mode)
-  "Return all local variables in the ucrrent buffer.
+  "Return all local variables in the current buffer.
 If HANDLE-MODE is nil, we gather all the specified local
 variables.  If HANDLE-MODE is neither nil nor t, we do the same,
 except that any settings of `mode' are ignored.

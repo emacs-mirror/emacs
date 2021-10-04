@@ -69,6 +69,7 @@
 (defvar tramp-connection-properties)
 (defvar tramp-copy-size-limit)
 (defvar tramp-display-escape-sequence-regexp)
+(defvar tramp-fuse-unmount-on-cleanup)
 (defvar tramp-inline-compress-start-size)
 (defvar tramp-persistency-file-name)
 (defvar tramp-remote-path)
@@ -5884,10 +5885,7 @@ Use direct async.")
 	  tramp-allow-unsafe-temporary-files
           (inhibit-message t)
 	  ;; tramp-rclone.el and tramp-sshfs.el cache the mounted files.
-	  (tramp-cleanup-connection-hook
-	   (append
-	    (and (tramp--test-fuse-p) '(tramp-fuse-unmount))
-	    tramp-cleanup-connection-hook))
+	  (tramp-fuse-unmount-on-cleanup t)
           auto-save-default
 	  noninteractive)
 

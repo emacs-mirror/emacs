@@ -294,30 +294,8 @@ attribute."
 
     (apply 'define-charset-internal name (mapcar 'cdr attrs))))
 
-(defun hack-elisp-shorthands (fullname)
-  "Return value of the `elisp-shorthands' file-local variable in FULLNAME.
-FULLNAME is the absolute file name of an Elisp .el file which
-potentially specifies a file-local value for `elisp-shorthands'.
-The Elisp code in FULLNAME isn't read or evaluated in any way, except
-for extraction of the buffer-local value of `elisp-shorthands'."
-  (let ((size (nth 7 (file-attributes fullname))))
-    (with-temp-buffer
-      (insert-file-contents fullname nil (max 0 (- size 3000)) size)
-      (goto-char (point-max))
-      (let* ((found (search-backward-regexp "elisp-shorthands:[ \t]*" 0 t))
-             (val (and found
-                       (goto-char (match-end 0))
-                       (ignore-errors (read (current-buffer)))))
-             (probe val)
-             aux)
-        (catch 'done
-          (when (consp probe)
-            (while (setq aux (pop probe))
-              (unless (and (consp aux)
-                           (stringp (car aux))
-                           (stringp (cdr aux)))
-                (throw 'done nil)))
-            val))))))
+(defvar hack-read-symbol-shorthands-function nil
+  "Holds function to compute `read-symbol-shorthands'.")
 
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
   "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
@@ -344,7 +322,8 @@ Return t if file exists."
 	  (let ((load-true-file-name fullname)
                 (load-file-name fullname)
                 (set-auto-coding-for-load t)
-		(inhibit-file-name-operation nil))
+		(inhibit-file-name-operation nil)
+                shorthands)
 	    (with-current-buffer buffer
               ;; So that we don't get completely screwed if the
               ;; file is encoded in some complicated character set,
@@ -353,6 +332,13 @@ Return t if file exists."
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
+              (setq shorthands
+                    ;; We need this indirection because hacking local
+                    ;; variables in too early seems to have cause
+                    ;; recursive load loops (bug#50946).  Thus it
+                    ;; remains nil until it is save to do so.
+                    (and hack-read-symbol-shorthands-function
+                         (funcall hack-read-symbol-shorthands-function)))
 	      ;; If the loaded file was inserted with no-conversion or
 	      ;; raw-text coding system, make the buffer unibyte.
 	      ;; Otherwise, eval-buffer might try to interpret random
@@ -363,11 +349,13 @@ Return t if file exists."
 		  (set-buffer-multibyte nil))
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
-	    ;; Have the original buffer current while we eval.
-	    (eval-buffer buffer nil
-			 ;; This is compatible with what `load' does.
-                         (if dump-mode file fullname)
-			 nil t))
+	    ;; Have the original buffer current while we eval,
+            ;; but consider shorthands of the eval'ed one.
+	    (let ((read-symbol-shorthands shorthands))
+              (eval-buffer buffer nil
+			   ;; This is compatible with what `load' does.
+                           (if dump-mode file fullname)
+			   nil t)))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (do-after-load-evaluation fullname)
@@ -377,13 +365,6 @@ Return t if file exists."
 	    (message "Loading %s (source)...done" file)
 	  (message "Loading %s...done" file)))
       t)))
-
-(defun load-with-shorthands-and-code-conversion (fullname file noerror nomessage)
-  "Like `load-with-code-conversion', but also consider Elisp shorthands.
-This function uses shorthands defined in the file FULLNAME's local
-value of `elisp-shorthands', when it processes that file's Elisp code."
-  (let ((elisp-shorthands (hack-elisp-shorthands fullname)))
-    (load-with-code-conversion fullname file noerror nomessage)))
 
 (defun charset-info (charset)
   "Return a vector of information of CHARSET.

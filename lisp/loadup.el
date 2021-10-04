@@ -151,7 +151,7 @@
 ;; variable its advertised default value (it starts as nil, see
 ;; xdisp.c).
 (setq resize-mini-windows 'grow-only)
-(setq load-source-file-function #'load-with-shorthands-and-code-conversion)
+(setq load-source-file-function #'load-with-code-conversion)
 (load "files")
 
 ;; Load-time macro-expansion can only take effect after setting
@@ -352,6 +352,10 @@
 (load "vc/ediff-hook")
 (load "uniquify")
 (load "electric")
+(load "paren")
+
+(load "shorthands")
+
 (load "emacs-lisp/eldoc")
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
 (if (not (eq system-type 'ms-dos))

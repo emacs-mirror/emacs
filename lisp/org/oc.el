@@ -4,18 +4,20 @@
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -125,16 +127,14 @@ File names must be absolute."
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "No global bibliography" nil)
 		 (repeat :tag "List of bibliography files"
-                         (file :tag "Bibliography")))
-  :safe t)
+                         (file :tag "Bibliography"))))
 
 (defcustom org-cite-activate-processor 'basic
   "Processor used for activating citations, as a symbol."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "Default fontification" nil)
-                 (symbol :tag "Citation processor"))
-  :safe nil)
+                 (symbol :tag "Citation processor")))
 
 (defcustom org-cite-export-processors '((t basic))
   "Processor used for exporting citations, as a triplet, or nil.
@@ -198,24 +198,21 @@ back-end."
                                (string :tag "Use specific bibliography style"))
                               (choice
                                (const :tag "Default citation style" nil)
-                               (string :tag "Use specific citation style")))))
-  :safe nil)
+                               (string :tag "Use specific citation style"))))))
 
 (defcustom org-cite-follow-processor 'basic
   "Processor used for following citations, as a symbol."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "No following" nil)
-                 (symbol :tag "Citation processor"))
-  :safe nil)
+                 (symbol :tag "Citation processor")))
 
 (defcustom org-cite-insert-processor 'basic
   "Processor used for inserting citations, as a symbol."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "No insertion" nil)
-                 (symbol :tag "Citation processor"))
-  :safe nil)
+                 (symbol :tag "Citation processor")))
 
 (defcustom org-cite-adjust-note-numbers t
   "When non-nil, allow process to modify location of note numbers.
@@ -232,7 +229,7 @@ When nil, the note number is not moved."
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "Automatic note number location" t)
                  (const :tag "Place note numbers manually" nil))
-  :safe t)
+  :safe #'booleanp)
 
 (defcustom org-cite-note-rules
   '(("en-us" inside outside after)
@@ -297,8 +294,7 @@ This roughly follows the Oxford Guide to Style recommendations."
                   (const :tag "Citation next to punctuation" same))
           (choice :tag "Order of citation and punctuation"
                   (const :tag "Citation first" before)
-                  (const :tag "Citation last" after))))
-  :safe t)
+                  (const :tag "Citation last" after)))))
 
 (defcustom org-cite-punctuation-marks '("." "," ";" ":" "!" "?")
   "List of strings that can be moved around when placing note numbers.
@@ -308,8 +304,7 @@ allowed to shuffle punctuation marks specified in this list in order to
 place note numbers according to rules defined in `org-cite-note-rules'."
   :group 'org-cite
   :package-version '(Org . "9.5")
-  :type '(repeat string)
-  :safe t)
+  :type '(repeat string))
 
 
 ;;; Citation processors

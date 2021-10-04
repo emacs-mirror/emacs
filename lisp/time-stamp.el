@@ -59,7 +59,7 @@ with %, as follows.
 %#p  `am' or `pm'                       %P  gives uppercase: `AM' or `PM'
 %02S seconds
 %w   day number of week, Sunday is 0
-%02y 2-digit year: `03'                 %Y  4-digit year: `2003'
+%02y 2-digit year                       %Y  4-digit year
 %Z   time zone name: `EST'              %#Z gives lowercase: `est'
 %5z  time zone offset: `-0500' (since Emacs 27; see note below)
 

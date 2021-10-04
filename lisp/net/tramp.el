@@ -1450,16 +1450,24 @@ If nil, return `tramp-default-port'."
 
 (put #'tramp-file-name-port-or-default 'tramp-suppress-trace t)
 
+(defun tramp-file-name-unify (vec)
+  "Unify VEC by removing localname and hop from `tramp-file-name' structure.
+Objects returned by this function compare `equal' if they refer to the
+same connection.  Make a copy in order to avoid side effects."
+  (when (tramp-file-name-p vec)
+    (setq vec (copy-tramp-file-name vec))
+    (setf (tramp-file-name-localname vec) nil
+	  (tramp-file-name-hop vec) nil))
+  vec)
+
+(put #'tramp-file-name-unify 'tramp-suppress-trace t)
+
 ;; Comparison of file names is performed by `tramp-equal-remote'.
 (defun tramp-file-name-equal-p (vec1 vec2)
   "Check, whether VEC1 and VEC2 denote the same `tramp-file-name'."
   (and (tramp-file-name-p vec1) (tramp-file-name-p vec2)
-       (string-equal (tramp-file-name-method vec1)
-		     (tramp-file-name-method vec2))
-       (string-equal (tramp-file-name-user-domain vec1)
-		     (tramp-file-name-user-domain vec2))
-       (string-equal (tramp-file-name-host-port vec1)
-		     (tramp-file-name-host-port vec2))))
+       (equal (tramp-file-name-unify vec1)
+	      (tramp-file-name-unify vec2))))
 
 (defun tramp-get-method-parameter (vec param)
   "Return the method parameter PARAM.
@@ -3743,7 +3751,8 @@ User is always nil."
     (with-parsed-tramp-file-name filename nil
       (unwind-protect
 	  (if (not (file-exists-p filename))
-	      (tramp-compat-file-missing v filename)
+              (let ((tramp-verbose (if visit 0 tramp-verbose)))
+	        (tramp-compat-file-missing v filename))
 
 	    (with-tramp-progress-reporter
 		v 3 (format-message "Inserting `%s'" filename)
@@ -3845,7 +3854,7 @@ User is always nil."
 	  (delete-file (tramp-make-tramp-file-name v remote-copy 'nohop))))
 
       ;; Result.
-      (cons (expand-file-name filename) (cdr result)))))
+      (cons filename (cdr result)))))
 
 (defun tramp-get-lock-file (file)
   "Read lockfile info of FILE.
@@ -3920,7 +3929,8 @@ Return nil when there is no lockfile."
 	    (tramp-error v 'file-error "Unsafe lock file name")))
 
 	;; Do the lock.
-        (let (create-lockfiles signal-hook-function)
+        (let ((tramp-verbose 0)
+              create-lockfiles signal-hook-function)
 	  (condition-case nil
 	      (make-symbolic-link info lockname 'ok-if-already-exists)
 	    (error

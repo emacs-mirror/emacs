@@ -3,7 +3,8 @@ Instructions for cutting the Emacs release branch
 1.  In the clone of the Emacs Git repository, switch to the 'master'
     branch, "git pull", and build it (using 'make bootstrap') to make
     sure it's not broken.  Run 'make check-expensive' and ensure all
-    tests pass.
+    tests pass.  (Alternatively, verify that the automated build
+    servers are showing success for the latest revision.)
 
 2.  Create the release branch and switch to it.  Assuming that it is
     for releasing Emacs versions XY.1, XY.2, etc., the command is:

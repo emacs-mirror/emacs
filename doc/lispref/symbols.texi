@@ -666,7 +666,7 @@ different things.  However, this practice commonly originates very
 long symbols names, which are inconvenient to type and read after a
 while.  Shorthands solve these issues in a clean way.
 
-@defvar elisp-shorthands
+@defvar read-symbol-shorthands
 This variable's value is an alist whose elements have the form
 @code{(@var{shorthand-prefix} . @var{longhand-prefix})}.  Each element
 instructs the Lisp reader to read every symbol form which starts with
@@ -704,7 +704,7 @@ alleviate that.
   (snu-split "\\(\r\n\\|[\n\r]\\)" s))
 
 ;; Local Variables:
-;; elisp-shorthands: (("snu-" . "some-nice-string-utils-"))
+;; read-symbol-shorthands: (("snu-" . "some-nice-string-utils-"))
 ;; End:
 @end lisp
 
@@ -719,19 +719,19 @@ waiting for ElDoc (@pxref{Lisp Doc, , Local Variables in Files, emacs,
 The GNU Emacs Manual}) to hint at the true full name of the symbol
 under point in the echo area.
 
-Since @code{elisp-shorthands} is a file-local variable, it is possible
-that multiple libraries depending on
+Since @code{read-symbol-shorthands} is a file-local variable, it is
+possible that multiple libraries depending on
 @file{some-nice-string-utils-lines.el} refer to the same symbols under
 @emph{different} shorthands, or not using shorthands at all.  In the
-next example, the @file{my-tricks.el} library refers to the
-symbol @code{some-nice-string-utils-lines} using the
-@code{sns-} prefix instead of @code{snu-}.
+next example, the @file{my-tricks.el} library refers to the symbol
+@code{some-nice-string-utils-lines} using the @code{sns-} prefix
+instead of @code{snu-}.
 
 @example
 (defun t-reverse-lines (s) (string-join (reverse (sns-lines s)) "\n")
 
 ;; Local Variables:
-;; elisp-shorthands: (("t-" . "my-tricks-")
-;;                    ("sns-" . "some-nice-string-utils-"))
+;; read-symbol-shorthands: (("t-" . "my-tricks-")
+;;                          ("sns-" . "some-nice-string-utils-"))
 ;; End:
 @end example

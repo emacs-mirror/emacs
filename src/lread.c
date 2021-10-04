@@ -4626,29 +4626,29 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   return tem;
 }
 
-/* Like 'oblookup', but considers 'Velisp_shorthands', potentially
-   recognizing that IN is shorthand for some other longhand name,
-   which is then then placed in OUT.  In that case, memory is
-   malloc'ed for OUT (which the caller must free) while SIZE_OUT and
-   SIZE_BYTE_OUT respectively hold the character and byte sizes of the
-   transformed symbol name.  If IN is not recognized shorthand for any
-   other symbol, OUT is set to point to NULL and 'oblookup' is
-   called.  */
+/* Like 'oblookup', but considers 'Vread_symbol_shorthands',
+   potentially recognizing that IN is shorthand for some other
+   longhand name, which is then then placed in OUT.  In that case,
+   memory is malloc'ed for OUT (which the caller must free) while
+   SIZE_OUT and SIZE_BYTE_OUT respectively hold the character and byte
+   sizes of the transformed symbol name.  If IN is not recognized
+   shorthand for any other symbol, OUT is set to point to NULL and
+   'oblookup' is called.  */
 
 Lisp_Object
 oblookup_considering_shorthand (Lisp_Object obarray, const char *in,
 				ptrdiff_t size, ptrdiff_t size_byte, char **out,
 				ptrdiff_t *size_out, ptrdiff_t *size_byte_out)
 {
-  Lisp_Object tail = Velisp_shorthands;
+  Lisp_Object tail = Vread_symbol_shorthands;
 
   /* First, assume no transformation will take place.  */
   *out = NULL;
-  /* Then, iterate each pair in Velisp_shorthands.  */
+  /* Then, iterate each pair in Vread_symbol_shorthands.  */
   FOR_EACH_TAIL_SAFE (tail)
     {
       Lisp_Object pair = XCAR (tail);
-      /* Be lenient to 'elisp-shorthands': if some element isn't a
+      /* Be lenient to 'read-symbol-shorthands': if some element isn't a
 	 cons, or some member of that cons isn't a string, just skip
 	 to the next element.  */
       if (!CONSP (pair))
@@ -5446,10 +5446,10 @@ that are loaded before your customizations are read!  */);
 
   DEFSYM (Qchar_from_name, "char-from-name");
 
-  DEFVAR_LISP ("elisp-shorthands", Velisp_shorthands,
+  DEFVAR_LISP ("read-symbol-shorthands", Vread_symbol_shorthands,
           doc: /* Alist of known symbol-name shorthands.
 This variable's value can only be set via file-local variables.
 See Info node `(elisp)Shorthands' for more details.  */);
-  Velisp_shorthands = Qnil;
+  Vread_symbol_shorthands = Qnil;
   DEFSYM (Qobarray_cache, "obarray-cache");
 }

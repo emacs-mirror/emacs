@@ -319,12 +319,7 @@ KEY identifies the connection, it is either a process or a
 used to cache connection properties of the local machine.
 If KEY is `tramp-cache-undefined', or if the value is not set for
 the connection, return DEFAULT."
-  ;; Unify key by removing localname and hop from `tramp-file-name'
-  ;; structure.  Work with a copy in order to avoid side effects.
-  (when (tramp-file-name-p key)
-    (setq key (copy-tramp-file-name key))
-    (setf (tramp-file-name-localname key) nil
-	  (tramp-file-name-hop key) nil))
+  (setq key (tramp-file-name-unify key))
   (let* ((hash (tramp-get-hash-table key))
 	 (cached (if (hash-table-p hash)
 		     (gethash property hash tramp-cache-undefined)
@@ -350,12 +345,7 @@ used to cache connection properties of the local machine.  If KEY
 is `tramp-cache-undefined', nothing is set.
 PROPERTY is set persistent when KEY is a `tramp-file-name' structure.
 Return VALUE."
-  ;; Unify key by removing localname and hop from `tramp-file-name'
-  ;; structure.  Work with a copy in order to avoid side effects.
-  (when (tramp-file-name-p key)
-    (setq key (copy-tramp-file-name key))
-    (setf (tramp-file-name-localname key) nil
-	  (tramp-file-name-hop key) nil))
+  (setq key (tramp-file-name-unify key))
   (when-let ((hash (tramp-get-hash-table key)))
     (puthash property value hash))
   (setq tramp-cache-data-changed
@@ -379,12 +369,7 @@ KEY identifies the connection, it is either a process or a
 `tramp-file-name' structure.  A special case is nil, which is
 used to cache connection properties of the local machine.
 PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
-  ;; Unify key by removing localname and hop from `tramp-file-name'
-  ;; structure.  Work with a copy in order to avoid side effects.
-  (when (tramp-file-name-p key)
-    (setq key (copy-tramp-file-name key))
-    (setf (tramp-file-name-localname key) nil
-	  (tramp-file-name-hop key) nil))
+  (setq key (tramp-file-name-unify key))
   (when-let ((hash (tramp-get-hash-table key)))
     (remhash property hash))
   (setq tramp-cache-data-changed
@@ -397,12 +382,7 @@ PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
 KEY identifies the connection, it is either a process or a
 `tramp-file-name' structure.  A special case is nil, which is
 used to cache connection properties of the local machine."
-  ;; Unify key by removing localname and hop from `tramp-file-name'
-  ;; structure.  Work with a copy in order to avoid side effects.
-  (when (tramp-file-name-p key)
-    (setq key (copy-tramp-file-name key))
-    (setf (tramp-file-name-localname key) nil
-	  (tramp-file-name-hop key) nil))
+  (setq key (tramp-file-name-unify key))
   (tramp-message
    key 7 "%s %s" key
    (when-let ((hash (gethash key tramp-cache-data)))

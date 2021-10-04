@@ -989,11 +989,12 @@ further tweak whether to complete or indent.
 ---
 ** 'indent-tabs-mode' is now a global minor mode instead of just a variable.
 
----
++++
 ** New choice 'permanent' for 'shift-select-mode'.
 When the mark was activated by shifted motion keys, non-shifted motion
 keys don't deactivate the mark after customizing 'shift-select-mode'
-to 'permanent'.
+to 'permanent'.  Similarly, the active mark will not be deactivated by
+typing shifted motion keys.
 
 +++
 ** The "Edit => Clear" menu item now obeys a rectangular region.

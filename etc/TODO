@@ -29,6 +29,27 @@ are the ones we consider more important, but these also may be
 difficult to fix.  Bugs with severity "minor" may be simpler, but this
 is not always true.
 
+* High Priority Items
+
+** Things related to elpa.gnu.org.
+We need to figure out how to best include GNU ELPA packages in the
+Emacs tarball before doing any of the items below.
+
+*** Move idlwave to elpa.gnu.org
+Need to sync up the Emacs and external versions.
+See <https://lists.gnu.org/r/emacs-devel/2014-07/msg00008.html>
+<https://debbugs.gnu.org/39992>
+
+*** Move Org mode to elpa.gnu.org
+See <https://lists.gnu.org/r/emacs-devel/2014-08/msg00300.html>
+<https://lists.gnu.org/r/emacs-devel/2014-11/msg00257.html>
+
+*** Move verilog-mode to elpa.gnu.org
+See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
+
+*** Move vhdl-mode to elpa.gnu.org
+See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
+
 * Simple tasks
 These don't require much Emacs knowledge and are suitable for anyone
 from beginners to experts.
@@ -168,7 +189,7 @@ defsubst can often end up generating things like
 (let ((arg actual)) (body)) but should additionally get optimized further
 when 'actual' is a constant/copyable expression.
 
-*** Add an "indirect goto" byte-code
+** Add an "indirect goto" byte-code
 Such a byte-code can be used for local lambda expressions.
 E.g. when you have code like
 
@@ -339,6 +360,11 @@ should invoke the 'shape' method.  'hbfont_shape' should be extended
 to pass to 'hb_shape_full' the required array of features, as
 mentioned in the above HarfBuzz discussion.
 
+** Concurrency
+Stefan Monnier writes: "Including it as an 'experimental' compile-time
+option sounds good.  Of course there might still be big questions
+around 'which form of concurrency' we'll want."
+
 ** Better support for displaying Emoji
 Emacs is capable of displaying Emoji and some of the Emoji sequences,
 provided that its fontsets are configured with a suitable font.  To
@@ -445,15 +471,6 @@ the old fields, the overlays_before etc...).  This way, you can add
 consistency checks that make sure the new code computes the same results
 as the old code.  And once that works well, we can remove the old code
 and old fields.
-
-** Better support for dynamic embedded graphics
-I like this idea (my mpc.el code could use it for the volume widget),
-though I wonder if the resulting efficiency will be sufficient.
-
-** Concurrency
-Including it as an "experimental" compile-time option sounds good.  Of
-course there might still be big questions around "which form of
-concurrency" we'll want.
 
 ** FFI (foreign function interface)
 See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
@@ -624,6 +641,13 @@ might look like (defun foo [Function has advice] (x y) The overlay
 could also be a button that you could use to view the advice.
 
 ** Add a function to get the insertion-type of the markers in an overlay
+
+** Improve VC
+Yes, there's a lot of work to be done there :-(
+
+** Improve the "code snippets" support
+Consolidate skeleton.el, tempo.el, and expand.el (any other?) and then
+advertise/use/improve it.
 
 ** ange-ftp
 
@@ -862,17 +886,10 @@ The idea is to add an "X" of some kind, that when clicked deletes the
 window associated with that modeline.
 https://lists.gnu.org/r/emacs-devel/2007-09/msg02416.html
 
-** Improve the "code snippets" support
-Consolidate skeleton.el, tempo.el, and expand.el (any other?) and then
-advertise/use/improve it.
+** Random things that were planned for Emacs-24
 
-** Improve VC
-Yes, there's a lot of work to be done there :-(
-
-** Spread Semantic
-
-** Random things that crossed Stefan Monnier's mind for Emacs 24
-Stefan Monnier writes: "Some of them from my local hacks, but it's not
+Stefan Monnier writes: "Random things that cross my mind right now
+that I'd like to see.  Some of them from my local hacks, but it's not
 obvious at all whether they'll make it."
 
 *** Prog-mode could/should provide a better fill-paragraph default
@@ -1740,26 +1757,6 @@ lisp-mode, haskell-mode, tuareg-mode, ...
 Add a standard button-class named "link", and make all other link-like
 button classes inherit from it.  Set the default face of the "link"
 button class to the standard "link" face.
-
-* Things related to elpa.gnu.org.
-
-We need to figure out how to best include GNU ELPA packages in the
-Emacs tarball before doing any of the items below.
-
-** Move idlwave to elpa.gnu.org
-Need to sync up the Emacs and external versions.
-See <https://lists.gnu.org/r/emacs-devel/2014-07/msg00008.html>
-<https://debbugs.gnu.org/39992>
-
-** Move Org mode to elpa.gnu.org
-See <https://lists.gnu.org/r/emacs-devel/2014-08/msg00300.html>
-<https://lists.gnu.org/r/emacs-devel/2014-11/msg00257.html>
-
-** Move verilog-mode to elpa.gnu.org
-See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
-
-** Move vhdl-mode to elpa.gnu.org
-See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
 * Wishlist items
 

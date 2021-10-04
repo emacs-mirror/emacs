@@ -4004,7 +4004,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   if (!NILP (host))
     {
-      ptrdiff_t portstringlen ATTRIBUTE_UNUSED;
+      MAYBE_UNUSED ptrdiff_t portstringlen;
 
       /* SERVICE can either be a string or int.
 	 Convert to a C string for later use by getaddrinfo.  */

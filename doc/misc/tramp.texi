@@ -2629,6 +2629,11 @@ Example:
 @end group
 @end lisp
 
+@vindex tramp-fuse-unmount-on-cleanup
+The user option @code{tramp-fuse-unmount-on-cleanup}, when set to
+non-@code{nil}, controls, whether a mount point is unmounted on
+connection cleanup or on Emacs exiting.
+
 
 @anchor{Setup of rclone method}
 @subsection @option{rclone} setup

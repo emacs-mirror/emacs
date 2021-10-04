@@ -55,6 +55,8 @@ lwlibdir = ../lwlib
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+
 ## ns-app if NS self contained app, else empty.
 OTHER_FILES = @OTHER_FILES@
 
@@ -448,14 +450,9 @@ FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
 ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
-ifeq ($(HAVE_NATIVE_COMP),yes)
-ifeq ($(NATIVE_DISABLED),)
-all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES) ../native-lisp
-else
 all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
-endif
-else
-all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
+ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
+all: ../native-lisp
 endif
 .PHONY: all
 
@@ -783,8 +780,7 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
 		THEFILE=$< $<c
 
-ifeq ($(HAVE_NATIVE_COMP),yes)
-ifeq ($(NATIVE_DISABLED),)
+ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
 ## The following rules are used only when building a source tarball
 ## for the first time, when the native-lisp/ directory doesn't yet
 ## exist and needs to be created and populated with the preloaded
@@ -808,11 +804,12 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 		THEFILE=$< $<n
 
 ../native-lisp: | $(pdmp)
-	mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp)
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
-		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
-	cp -f $@ $(bootstrap_pdmp)
-endif
+	if test ! -d $@; then \
+	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
+	  LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR); \
+	  cp -f $@ $(bootstrap_pdmp); \
+	fi
 endif
 
 ## VCSWITNESS points to the file that holds info about the current checkout.

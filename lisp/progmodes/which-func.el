@@ -185,7 +185,8 @@ and you want to simplify them for the mode line
 
 (defvar-local which-func-mode nil
   "Non-nil means display current function name in mode line.
-This makes a difference only if `which-function-mode' is non-nil.")
+This makes a difference only if variable `which-function-mode' is
+non-nil.")
 
 (add-hook 'after-change-major-mode-hook #'which-func-ff-hook t)
 

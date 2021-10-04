@@ -175,15 +175,30 @@
 	          mount)
              (match-string 1 mount)))))))
 
+(defun tramp-fuse-get-fusermount ()
+  "Determine the local `fusermount' command."
+  ;; We use key nil for local connection properties.
+  (with-tramp-connection-property nil "fusermount"
+    (or (executable-find "fusermount3")
+	(executable-find "fusermount"))))
+
+(defvar tramp-fuse-mount-points nil
+  "List of fuse volume determined by a VEC.")
+
 (defun tramp-fuse-unmount (vec)
   "Unmount fuse volume determined by VEC."
-  (let ((default-directory tramp-compat-temporary-file-directory)
-        (command (format "fusermount3 -u %s" (tramp-fuse-mount-point vec))))
+  (let* ((default-directory tramp-compat-temporary-file-directory)
+	 (mount-point (tramp-fuse-mount-point vec))
+         (command (format "%s -u %s" (tramp-fuse-get-fusermount) mount-point)))
     (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
     (tramp-flush-connection-property
      (tramp-get-connection-process vec) "mounted")
+    (setq tramp-fuse-mount-points
+	  (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
     ;; Give the caches a chance to expire.
-    (sleep-for 1)))
+    (sleep-for 1)
+    (when (tramp-compat-directory-empty-p mount-point)
+      (delete-directory mount-point))))
 
 (defun tramp-fuse-local-file-name (filename)
   "Return local mount name of FILENAME."
@@ -204,6 +219,36 @@
 	  (if (file-name-absolute-p localname)
 	      (substring localname 1) localname)
 	  (tramp-fuse-mount-point v)))))))
+
+(defcustom tramp-fuse-unmount-on-cleanup nil
+  "Whether fuse volumes shall be unmounted on cleanup."
+  :group 'tramp
+  :version "28.1"
+  :type 'boolean)
+
+(defun tramp-fuse-cleanup (vec)
+  "Cleanup fuse volume determined by VEC."
+  (and tramp-fuse-unmount-on-cleanup
+       (member (tramp-file-name-unify vec) tramp-fuse-mount-points)
+       (tramp-fuse-unmount vec)))
+
+(defun tramp-fuse-cleanup-all ()
+  "Unmount all fuse volumes used by Tramp."
+  (and tramp-fuse-unmount-on-cleanup
+       (mapc #'tramp-fuse-unmount tramp-fuse-mount-points)))
+
+;; Add cleanup hooks.
+(add-hook 'tramp-cleanup-connection-hook #'tramp-fuse-cleanup)
+(add-hook 'tramp-cleanup-all-connections-hook #'tramp-fuse-cleanup-all)
+(add-hook 'kill-emacs-hook #'tramp-fuse-cleanup-all)
+(add-hook 'tramp-fuse-unload-hook
+	  (lambda ()
+	    (remove-hook 'tramp-cleanup-connection-hook
+			 #'tramp-fuse-cleanup)
+	    (remove-hook 'tramp-cleanup-all-connections-hook
+			 #'tramp-fuse-cleanup-all)
+	    (remove-hook 'kill-emacs-hook
+			 #'tramp-fuse-cleanup-all)))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

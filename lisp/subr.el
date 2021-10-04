@@ -6437,7 +6437,9 @@ of fill.el (for example `fill-region')."
 (defun internal--format-docstring-line (string &rest objects)
   "Format a single line from a documentation string out of STRING and OBJECTS.
 Signal an error if STRING contains a newline.
-This is intended for internal use only."
+This is intended for internal use only.  Avoid using this for the
+first line of a docstring; the first line should be a complete
+sentence (see Info node `(elisp) Documentation Tips')."
   (when (string-match "\n" string)
     (error "Unable to fill string containing newline: %S" string))
   (internal--fill-string-single-line (apply #'format string objects)))

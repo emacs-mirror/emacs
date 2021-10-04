@@ -290,7 +290,7 @@ Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
 	      (orgtbl-to-generic
 	       table
 	       (org-combine-plists
-		'(:sep "\t" :fmt org-babel-gnuplot-quote-tsv-field)
+		'(:sep "\t" :fmt org-babel-gnuplot-quote-tsv-field :raw t :backend ascii)
 		params)))))
   data-file)
 

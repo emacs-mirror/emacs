@@ -326,17 +326,19 @@ it for output."
 
 ;;; Indentation
 
-(defun org-do-remove-indentation (&optional n)
+(defun org-do-remove-indentation (&optional n skip-fl)
   "Remove the maximum common indentation from the buffer.
 When optional argument N is a positive integer, remove exactly
-that much characters from indentation, if possible.  Return nil
-if it fails."
+that much characters from indentation, if possible.  When
+optional argument SKIP-FL is non-nil, skip the first
+line.  Return nil if it fails."
   (catch :exit
     (goto-char (point-min))
     ;; Find maximum common indentation, if not specified.
     (let ((n (or n
 		 (let ((min-ind (point-max)))
 		   (save-excursion
+                     (when skip-fl (forward-line))
 		     (while (re-search-forward "^[ \t]*\\S-" nil t)
 		       (let ((ind (current-indentation)))
 			 (if (zerop ind) (throw :exit nil)
@@ -344,6 +346,7 @@ if it fails."
 		   min-ind))))
       (if (zerop n) (throw :exit nil)
 	;; Remove exactly N indentation, but give up if not possible.
+        (when skip-fl (forward-line))
 	(while (not (eobp))
 	  (let ((ind (progn (skip-chars-forward " \t") (current-column))))
 	    (cond ((eolp) (delete-region (line-beginning-position) (point)))

@@ -99,8 +99,7 @@ Any `face' text property on the returned string overrides
 `org-num-face'."
   :group 'org-appearance
   :package-version '(Org . "9.3")
-  :type 'function
-  :safe nil)
+  :type 'function)
 
 (defcustom org-num-max-level nil
   "Level below which headlines are not numbered.

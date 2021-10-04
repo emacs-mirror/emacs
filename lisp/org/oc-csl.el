@@ -4,18 +4,20 @@
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -125,7 +127,9 @@ If nil then only the fallback en-US locale will be available."
   :type '(choice
           (directory :tag "Locales directory")
           (const :tag "Use en-US locale only" nil))
-  :safe t)
+  ;; It's not obvious to me that arbitrary locations are safe.
+;;;  :safe #'string-or-null-p
+  )
 
 (defcustom org-cite-csl-styles-dir nil
   "Directory of CSL style files.
@@ -136,7 +140,9 @@ directory.  This variable is ignored when style file is absolute."
   :type '(choice
           (directory :tag "Styles directory")
           (const :tag "Use absolute file names" nil))
-  :safe t)
+  ;; It's not obvious to me that arbitrary locations are safe.
+;;;  :safe #'string-or-null-p
+  )
 
 ;;;; Citelinks
 (defcustom org-cite-csl-link-cites t
@@ -144,7 +150,7 @@ directory.  This variable is ignored when style file is absolute."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'boolean
-  :safe t)
+  :safe #'booleanp)
 
 (defcustom org-cite-csl-no-citelinks-backends '(ascii)
   "List of export back-ends for which cite linking is disabled.
@@ -152,8 +158,7 @@ Cite linking for export back-ends derived from any of the back-ends listed here,
 is also disabled."
   :group 'org-cite
   :package-version '(Org . "9.5")
-  :type '(repeat symbol)
-  :safe t)
+  :type '(repeat symbol))
 
 ;;;; Output-specific variables
 (defcustom org-cite-csl-html-hanging-indent "1.5em"
@@ -161,7 +166,7 @@ is also disabled."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 (defcustom org-cite-csl-html-label-width-per-char "0.6em"
   "Character width in CSS units for calculating entry label widths.
@@ -169,27 +174,33 @@ Used only when `second-field-align' is activated by the used CSL style."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 (defcustom org-cite-csl-latex-hanging-indent "1.5em"
   "Size of hanging-indent for LaTeX output in valid LaTeX units."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type 'string
-  :safe t)
+  :safe #'stringp)
 
 
 ;;; Internal variables
 (defconst org-cite-csl--etc-dir
-  (let* ((oc-root (file-name-directory (locate-library "oc")))
-         (oc-etc-dir-1 (expand-file-name "../etc/csl/" oc-root)))
-    ;; package.el and straight will put all of org-mode/lisp/ in org-mode/.
-    ;; This will cause .. to resolve to the directory above Org.
-    ;; To make life easier for people using package.el or straight, we can
-    ;; check to see if ../etc/csl exists, and if it doesn't try ./etc/csl.
-    (if (file-exists-p oc-etc-dir-1) oc-etc-dir-1
-      (expand-file-name "etc/csl/" oc-root)))
-  "Directory \"etc/\" from repository.")
+  (let ((oc-root (file-name-directory (locate-library "oc"))))
+    (cond
+     ;; First check whether it looks like we're running from the main
+     ;; Org repository.
+     ((let ((csl-org (expand-file-name "../etc/csl/" oc-root)))
+        (and (file-directory-p csl-org) csl-org)))
+     ;; Next look for the directory alongside oc.el because package.el
+     ;; and straight will put all of org-mode/lisp/ in org-mode/.
+     ((let ((csl-pkg (expand-file-name "etc/csl/" oc-root)))
+        (and (file-directory-p csl-pkg) csl-pkg)))
+     ;; Finally fall back the location used by shared system installs
+     ;; and when running directly from Emacs repository.
+     (t
+      (expand-file-name "org/csl/" data-directory))))
+  "Directory containing CSL-related data files.")
 
 (defconst org-cite-csl--fallback-locales-dir org-cite-csl--etc-dir
   "Fallback CSL locale files directory.")

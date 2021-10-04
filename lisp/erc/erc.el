@@ -188,10 +188,12 @@ parameters and authentication."
 It is not strictly necessary to provide this, since ERC will
 prompt you for it.")
 
-(defcustom erc-user-mode nil
+(defcustom erc-user-mode "+i"
+  ;; +i "Invisible".  Hides user from global /who and /names.
   "Initial user modes to be set after a connection is established."
   :group 'erc
-  :type '(choice (const nil) string function))
+  :type '(choice (const nil) string function)
+  :version "28.1")
 
 
 (defcustom erc-prompt-for-password t

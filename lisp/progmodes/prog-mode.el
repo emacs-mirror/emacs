@@ -68,6 +68,28 @@
         `(menu-item "Find Definition" xref-find-definitions-at-mouse
                     :help ,(format "Find definition of `%s'" identifier))
         'prog-separator)))
+
+  (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [select-region mark-symbol]
+      `(menu-item "Symbol"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'symbol))
+                  :help "Mark the symbol at click for a subsequent cut/copy")
+      'mark-whole-buffer))
+  (define-key-after menu [select-region mark-list]
+    `(menu-item "List"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list))
+                :help "Mark the list at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+  (define-key-after menu [select-region mark-defun]
+    `(menu-item "Defun"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
+                :help "Mark the defun at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+
+  ;; Include text-mode select menu only in strings and comments.
+  (when (nth 8 (save-excursion (syntax-ppss (posn-point (event-end click)))))
+    (text-mode-menu menu click))
+
   menu)
 
 (defvar prog-mode-map

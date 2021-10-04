@@ -11,12 +11,12 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -594,7 +594,7 @@ such as the one tagged with PS."
 
 ;;;; Export Block
 
-(defun org-koma-letter-export-block (export-block contents info)
+(defun org-koma-letter-export-block (export-block _contents _info)
   "Transcode an EXPORT-BLOCK element into KOMA Scrlttr2 code.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
@@ -604,7 +604,7 @@ channel."
 
 ;;;; Export Snippet
 
-(defun org-koma-letter-export-snippet (export-snippet contents info)
+(defun org-koma-letter-export-snippet (export-snippet _contents _info)
   "Transcode an EXPORT-SNIPPET object into KOMA Scrlttr2 code.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."

@@ -178,8 +178,7 @@ link.
   :group 'org-link
   :package-version '(Org . "9.1")
   :type '(alist :tag "Link display parameters"
-		:value-type plist)
-  :safe nil)
+		:value-type plist))
 
 (defcustom org-link-descriptive t
   "Non-nil means Org displays descriptive links.
@@ -335,8 +334,7 @@ another window."
 	  (cons (const wl)
 		(choice
 		 (const wl)
-		 (const wl-other-frame))))
-  :safe nil)
+		 (const wl-other-frame)))))
 
 (defcustom org-link-search-must-match-exact-headline 'query-to-create
   "Non-nil means internal fuzzy links can only match headlines.
@@ -385,15 +383,13 @@ single keystroke rather than having to type \"yes\"."
   :type '(choice
 	  (const :tag "with yes-or-no (safer)" yes-or-no-p)
 	  (const :tag "with y-or-n (faster)" y-or-n-p)
-	  (const :tag "no confirmation (dangerous)" nil))
-  :safe nil)
+	  (const :tag "no confirmation (dangerous)" nil)))
 
 (defcustom org-link-shell-skip-confirm-regexp ""
   "Regexp to skip confirmation for shell links."
   :group 'org-link-follow
   :version "24.1"
-  :type 'regexp
-  :safe nil)
+  :type 'regexp)
 
 (defcustom org-link-elisp-confirm-function 'yes-or-no-p
   "Non-nil means ask for confirmation before executing Emacs Lisp links.
@@ -410,15 +406,13 @@ single keystroke rather than having to type \"yes\"."
   :type '(choice
 	  (const :tag "with yes-or-no (safer)" yes-or-no-p)
 	  (const :tag "with y-or-n (faster)" y-or-n-p)
-	  (const :tag "no confirmation (dangerous)" nil))
-  :safe nil)
+	  (const :tag "no confirmation (dangerous)" nil)))
 
 (defcustom org-link-elisp-skip-confirm-regexp ""
   "A regexp to skip confirmation for Elisp links."
   :group 'org-link-follow
   :version "24.1"
-  :type 'regexp
-  :safe nil)
+  :type 'regexp)
 
 (defgroup org-link-store nil
   "Options concerning storing links in Org mode."

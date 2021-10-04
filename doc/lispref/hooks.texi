@@ -262,7 +262,6 @@ after-set-visited-file-name-hook
 auto-coding-functions
 choose-completion-string-functions
 completing-read-function
-completion-annotate-function
 completion-at-point-functions
 completion-list-insert-choice-function
 deactivate-current-input-method-function

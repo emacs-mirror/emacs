@@ -4049,7 +4049,7 @@ x_delete_glyphs (struct frame *f, int n)
 /* Like XClearArea, but check that WIDTH and HEIGHT are reasonable.
    If they are <= 0, this is probably an error.  */
 
-static ATTRIBUTE_UNUSED void
+MAYBE_UNUSED static void
 x_clear_area1 (Display *dpy, Window window,
                int x, int y, int width, int height, int exposures)
 {
@@ -10133,8 +10133,9 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
          frame on it. */
       dpyinfo->reference_count++;
       dpyinfo->terminal->reference_count++;
+      if (ioerror)
+	dpyinfo->display = 0;
     }
-  if (ioerror) dpyinfo->display = 0;
 
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */

@@ -157,7 +157,9 @@
 	(armenian #x531)
 	(hebrew #x5D0)
 	(vai #xA500)
-	(arabic #x628)
+        ;; U+06C1 prevents us from using bad fonts, like DejaVu Sans,
+        ;; for Arabic text.
+	(arabic #x628 #x6C1)
 	(syriac #x710)
 	(thaana #x78C)
 	(devanagari #x915)

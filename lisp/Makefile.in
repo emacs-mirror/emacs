@@ -91,8 +91,19 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/byte-opt.elc \
 	$(lisp)/emacs-lisp/bytecomp.elc
 ifeq ($(HAVE_NATIVE_COMP),yes)
-COMPILE_FIRST += $(lisp)/emacs-lisp/comp.elc
-COMPILE_FIRST += $(lisp)/emacs-lisp/comp-cstr.elc
+COMPILE_FIRST += \
+	$(lisp)/emacs-lisp/comp.elc \
+	$(lisp)/emacs-lisp/comp-cstr.elc \
+	$(lisp)/emacs-lisp/cl-macs.elc \
+	$(lisp)/emacs-lisp/rx.elc \
+	$(lisp)/emacs-lisp/cl-seq.elc \
+	$(lisp)/help-mode.elc \
+	$(lisp)/emacs-lisp/cl-extra.elc \
+	$(lisp)/emacs-lisp/gv.elc \
+	$(lisp)/emacs-lisp/seq.elc \
+	$(lisp)/emacs-lisp/cl-lib.elc \
+	$(lisp)/emacs-lisp/warnings.elc \
+	$(lisp)/emacs-lisp/subr-x.elc
 endif
 COMPILE_FIRST += $(lisp)/emacs-lisp/autoload.elc
 
