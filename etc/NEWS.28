@@ -2424,8 +2424,10 @@ Those are 'shr-h1', 'shr-h2', 'shr-h3', 'shr-h4', 'shr-h5', 'shr-h6'.
 
 ** Project
 
+---
 *** New user option 'project-vc-merge-submodules'.
 
+---
 *** Project commands now have their own history.
 Previously used project directories are now suggested by all commands
 that prompt for a project directory.
@@ -2652,7 +2654,9 @@ This allows mode-specific alterations to how 'thing-at-point' works.
 'symbol-at-point') will narrow to the current field (if any) before
 trying to identify the thing at point.
 
+---
 *** New function 'thing-at-mouse'.
+This is like 'thing-at-point', but uses the mouse event position instead.
 
 ** image-dired
 
