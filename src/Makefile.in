@@ -806,6 +806,9 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 ../native-lisp: | $(pdmp)
 	if test ! -d $@; then \
 	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
+	  if test $(SYSTEM_TYPE) = cygwin; then \
+	    find $@ -name '*.eln' | rebase -v -O -T -; \
+	  fi; \
 	  LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
 		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR) \
 	  && cp -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT) \
