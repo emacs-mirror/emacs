@@ -10133,8 +10133,9 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
          frame on it. */
       dpyinfo->reference_count++;
       dpyinfo->terminal->reference_count++;
+      if (ioerror)
+	dpyinfo->display = 0;
     }
-  if (ioerror) dpyinfo->display = 0;
 
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */
