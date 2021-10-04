@@ -718,46 +718,46 @@ simple manner."
         "l" #'gnus-group-list-level
         "c" #'gnus-group-list-cached
         "?" #'gnus-group-list-dormant
-        "!" #'gnus-group-list-ticked)
+        "!" #'gnus-group-list-ticked
 
-  "/" (define-keymap :prefix 'gnus-group-list-limit-map
-        "k" #'gnus-group-list-limit
-        "z" #'gnus-group-list-limit
-        "s" #'gnus-group-list-limit
-        "u" #'gnus-group-list-limit
-        "A" #'gnus-group-list-limit
-        "m" #'gnus-group-list-limit
-        "M" #'gnus-group-list-limit
-        "l" #'gnus-group-list-limit
-        "c" #'gnus-group-list-limit
-        "?" #'gnus-group-list-limit
-        "!" #'gnus-group-list-limit)
+        "/" (define-keymap :prefix 'gnus-group-list-limit-map
+              "k" #'gnus-group-list-limit
+              "z" #'gnus-group-list-limit
+              "s" #'gnus-group-list-limit
+              "u" #'gnus-group-list-limit
+              "A" #'gnus-group-list-limit
+              "m" #'gnus-group-list-limit
+              "M" #'gnus-group-list-limit
+              "l" #'gnus-group-list-limit
+              "c" #'gnus-group-list-limit
+              "?" #'gnus-group-list-limit
+              "!" #'gnus-group-list-limit)
 
-  "f" (define-keymap :prefix 'gnus-group-list-flush-map
-        "k" #'gnus-group-list-flush
-        "z" #'gnus-group-list-flush
-        "s" #'gnus-group-list-flush
-        "u" #'gnus-group-list-flush
-        "A" #'gnus-group-list-flush
-        "m" #'gnus-group-list-flush
-        "M" #'gnus-group-list-flush
-        "l" #'gnus-group-list-flush
-        "c" #'gnus-group-list-flush
-        "?" #'gnus-group-list-flush
-        "!" #'gnus-group-list-flush)
+        "f" (define-keymap :prefix 'gnus-group-list-flush-map
+              "k" #'gnus-group-list-flush
+              "z" #'gnus-group-list-flush
+              "s" #'gnus-group-list-flush
+              "u" #'gnus-group-list-flush
+              "A" #'gnus-group-list-flush
+              "m" #'gnus-group-list-flush
+              "M" #'gnus-group-list-flush
+              "l" #'gnus-group-list-flush
+              "c" #'gnus-group-list-flush
+              "?" #'gnus-group-list-flush
+              "!" #'gnus-group-list-flush)
 
-  "p" (define-keymap :prefix 'gnus-group-list-plus-map
-        "k" #'gnus-group-list-plus
-        "z" #'gnus-group-list-plus
-        "s" #'gnus-group-list-plus
-        "u" #'gnus-group-list-plus
-        "A" #'gnus-group-list-plus
-        "m" #'gnus-group-list-plus
-        "M" #'gnus-group-list-plus
-        "l" #'gnus-group-list-plus
-        "c" #'gnus-group-list-plus
-        "?" #'gnus-group-list-plus
-        "!" #'gnus-group-list-plus)
+        "p" (define-keymap :prefix 'gnus-group-list-plus-map
+              "k" #'gnus-group-list-plus
+              "z" #'gnus-group-list-plus
+              "s" #'gnus-group-list-plus
+              "u" #'gnus-group-list-plus
+              "A" #'gnus-group-list-plus
+              "m" #'gnus-group-list-plus
+              "M" #'gnus-group-list-plus
+              "l" #'gnus-group-list-plus
+              "c" #'gnus-group-list-plus
+              "?" #'gnus-group-list-plus
+              "!" #'gnus-group-list-plus))
 
   "W" (define-keymap :prefix 'gnus-group-score-map
         "f" #'gnus-score-flush-cache
