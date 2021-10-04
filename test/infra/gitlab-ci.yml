@@ -295,7 +295,7 @@ test-native-comp-speed0:
   extends: [.job-template, .test-template, .native-comp-template]
   variables:
     target: emacs-native-comp-speed0
-    make_params: "-C test native-comp.log"
+    make_params: "-C test comp-tests.log"
 
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
