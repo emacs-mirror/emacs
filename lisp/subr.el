@@ -6458,4 +6458,119 @@ not a list, return a one-element list containing OBJECT."
       object
     (list object)))
 
+(defun define-keymap (&rest definitions)
+  "Create a new keymap and define KEY/DEFEFINITION pairs as key sequences.
+The new keymap is returned.
+
+Options can be given as keywords before the KEY/DEFEFINITION
+pairs.  Available keywords are:
+
+:full      If non-nil, create a chartable alist (see `make-keymap').
+             If nil (i.e., the default), create a sparse keymap (see
+             `make-sparse-keymap').
+
+:suppress  If non-nil, the keymap will be suppressed (see `suppress-keymap').
+             If `nodigits', treat digits like other chars.
+
+:parent    If non-nil, this should be a keymap to use as the parent
+             (see `set-keymap-parent').
+
+:keymap    If non-nil, instead of creating a new keymap, the given keymap
+             will be destructively modified instead.
+
+:copy      If non-nil, copy this keymap and use it as the basis
+             (see `copy-keymap').
+
+:name      If non-nil, this should be a string to use as the menu for
+             the keymap in case you use it as a menu with `x-popup-menu'.
+
+:prefix    If non-nil, this should be a symbol to be used as a prefix
+             command (see `define-prefix-command').  If this is the case,
+             this symbol is returned instead of the map itself.
+
+KEY/DEFINITION pairs are as KEY and DEF in `define-key'.  KEY can
+also be the special symbol `:menu', in which case DEFINITION
+should be a MENU form as accepted by `easy-menu-define'.
+
+\n(fn [&key FULL PARENT SUPPRESS NAME PREFIX KEYMAP COPY] [KEY DEFINITION] ...)"
+  ;; Handle keywords.
+  (let ((options nil))
+    (while (and definitions
+                (keywordp (car definitions)))
+      (let ((keyword (pop definitions)))
+        (unless definitions
+          (error "Missing keyword value for %s" keyword))
+        (push keyword options)
+        (push (pop definitions) options)))
+    (define-keymap--define (nreverse options) definitions)))
+
+(defun define-keymap--define (options definitions)
+  (let (full suppress parent name prefix copy keymap)
+    (while options
+      (let ((keyword (pop options))
+            (value (pop options)))
+        (pcase keyword
+          (:full (setq full value))
+          (:keymap (setq keymap value))
+          (:parent (setq parent value))
+          (:copy (setq copy value))
+          (:suppress (setq suppress value))
+          (:name (setq name value))
+          (:prefix (setq prefix value)))))
+
+    (when (and prefix
+               (or full parent suppress keymap))
+      (error "A prefix keymap can't be defined with :full/:parent/:suppress/:keymap keywords"))
+
+    (when (and full copy)
+      (error "Invalid combination: :full/:copy"))
+
+    (when (and keymap (or full copy))
+      (error "Invalid combination: :keymap with :full/:copy"))
+
+    (let ((keymap (cond
+                   (keymap keymap)
+                   (prefix (define-prefix-command prefix nil name))
+                   (copy (copy-keymap copy))
+                   (full (make-keymap name))
+                   (t (make-sparse-keymap name)))))
+      (when suppress
+        (suppress-keymap keymap (eq suppress 'nodigits)))
+      (when parent
+        (set-keymap-parent keymap parent))
+
+      ;; Do the bindings.
+      (while definitions
+        (let ((key (pop definitions)))
+          (unless definitions
+            (error "Uneven number of key/definition pairs"))
+          (let ((def (pop definitions)))
+            (if (eq key :menu)
+                (easy-menu-define nil keymap "" def)
+              (define-key keymap key def)))))
+      keymap)))
+
+(defmacro defvar-keymap (name options &rest defs)
+  "Define NAME as a variable with a keymap definition.
+See `define-keymap' for an explanation of OPTIONS.  In addition,
+the :doc keyword can be used in OPTIONS to add a doc string to NAME.
+
+DEFS is passed to `define-keymap' and should be a plist of
+key/definition pairs."
+  (let ((opts nil)
+        doc)
+    (while options
+      (let ((keyword (pop options)))
+        (unless options
+          (error "Uneven number of options"))
+        (if (eq keyword :doc)
+            (setq doc (pop options))
+          (push keyword opts)
+          (push (pop options) opts))))
+    (unless (zerop (% (length defs) 2))
+      (error "Uneven number of key definitions: %s" defs))
+    `(defvar ,name
+       (define-keymap--define (list ,@(nreverse opts)) (list ,@defs))
+       ,@(and doc (list doc)))))
+
 ;;; subr.el ends here

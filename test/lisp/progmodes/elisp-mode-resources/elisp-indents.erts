@@ -48,3 +48,11 @@ Name: defun-space
   (print (quote (thingy great
 			stuff))))
 =-=-=
+
+Name: defvar-keymap
+
+=-=
+(defvar-keymap eww-link-keymap (:copy shr-map
+				:foo bar)
+  "\r" #'eww-follow-link)
+=-=-=
