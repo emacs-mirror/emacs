@@ -2617,10 +2617,14 @@ returns the key sequence as a vector, never as a string.
 @cindex upper case key sequence
 @cindex downcasing in @code{lookup-key}
 @cindex shift-translation
+@vindex translate-upper-case-key-bindings
 If an input character is upper-case (or has the shift modifier) and
 has no key binding, but its lower-case equivalent has one, then
-@code{read-key-sequence} converts the character to lower case.  Note
-that @code{lookup-key} does not perform case conversion in this way.
+@code{read-key-sequence} converts the character to lower case.  (This
+behaviour can be disabled by setting the
+@code{translate-upper-case-key-bindings} user option to @code{nil}.)
+Note that @code{lookup-key} does not perform case conversion in this
+way.
 
 @vindex this-command-keys-shift-translated
 When reading input results in such a @dfn{shift-translation}, Emacs

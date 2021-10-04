@@ -51,6 +51,11 @@ These forms now indent like this:
 This change also affects 'cl-macrolet', 'cl-flet*' and
 'cl-symbol-macrolet'.
 
++++
+** New user option 'translate-upper-case-key-bindings'.
+This can be set to nil to inhibit translating upper case keys to lower
+case keys.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

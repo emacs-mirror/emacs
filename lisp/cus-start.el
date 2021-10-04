@@ -386,7 +386,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                      (const :tag "When sent SIGUSR1" sigusr1)
                                      (const :tag "When sent SIGUSR2" sigusr2))
                              "24.1")
-
+             (translate-upper-case-key-bindings keyboard boolean "29.1")
              ;; This is not good news because it will use the wrong
              ;; version-specific directories when you upgrade.  We need
              ;; customization of the front of the list, maintaining the
