@@ -807,8 +807,9 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 	if test ! -d $@; then \
 	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
 	  LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
-		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR); \
-	  cp -f $@ $(bootstrap_pdmp); \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR) \
+	  && cp -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT) \
+	  && cp -f $(pdmp) $(bootstrap_pdmp); \
 	fi
 endif
 
