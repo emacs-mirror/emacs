@@ -6491,7 +6491,7 @@ KEY/DEFINITION pairs are as KEY and DEF in `define-key'.  KEY can
 also be the special symbol `:menu', in which case DEFINITION
 should be a MENU form as accepted by `easy-menu-define'.
 
-\n(fn [&key FULL PARENT SUPPRESS NAME PREFIX KEYMAP] [KEY DEFINITION] ...)"
+\(fn (&key FULL PARENT SUPPRESS NAME PREFIX KEYMAP) &rest [KEY DEFINITION]...)"
   ;; Handle keywords.
   (let ((options nil))
     (while (and definitions
