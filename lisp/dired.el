@@ -247,7 +247,7 @@ This is similar to the \"-L\" option for the \"cp\" shell command."
   :type 'boolean
   :group 'dired)
 
-;; These variables were deleted and the replacements are on files.el.
+;; These variables were deleted and the replacements are in files.el.
 ;; We leave aliases behind for back-compatibility.
 (define-obsolete-variable-alias 'dired-free-space-program
   'directory-free-space-program "27.1")
