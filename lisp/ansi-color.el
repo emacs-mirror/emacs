@@ -458,11 +458,18 @@ variable, and is meant to be used in `compilation-filter-hook'."
 ;; Working with strings
 (defvar-local ansi-color-context nil
   "Context saved between two calls to `ansi-color-apply'.
-This is a list of the form (CODES FRAGMENT) or nil.  CODES
+This is a list of the form (FACE-VEC FRAGMENT) or nil.  FACE-VEC
 represents the state the last call to `ansi-color-apply' ended
-with, currently a list of ansi codes, and FRAGMENT is a string
-starting with an escape sequence, possibly the start of a new
-escape sequence.")
+with, currently a list of the form:
+
+  (BASIC-FACES FG BG)
+
+BASIC-FACES is a bool-vector that specifies which basic faces
+from `ansi-color-basic-faces-vector' to apply.  FG and BG are
+ANSI color codes for the foreground and background color.
+
+FRAGMENT is a string starting with an escape sequence, possibly
+the start of a new escape sequence.")
 
 (defun ansi-color-filter-apply (string)
   "Filter out all ANSI control sequences from STRING.
@@ -473,17 +480,17 @@ will be used for the next call to `ansi-color-apply'.  Set
 `ansi-color-context' to nil if you don't want this.
 
 This function can be added to `comint-preoutput-filter-functions'."
-  (let ((start 0) end result)
+  (let ((context (ansi-color--ensure-context 'ansi-color-context nil))
+        (start 0) end result)
     ;; if context was saved and is a string, prepend it
-    (if (cadr ansi-color-context)
-        (setq string (concat (cadr ansi-color-context) string)
-              ansi-color-context nil))
+    (setq string (concat (cadr context) string))
+    (setcar (cdr context) "")
     ;; find the next escape sequence
     (while (setq end (string-match ansi-color-control-seq-regexp string start))
       (push (substring string start end) result)
       (setq start (match-end 0)))
     ;; save context, add the remainder of the string to the result
-    (let (fragment)
+    (let ((fragment ""))
       (push (substring string start
                        (if (string-match "\033" string start)
                            (let ((pos (match-beginning 0)))
@@ -491,24 +498,8 @@ This function can be added to `comint-preoutput-filter-functions'."
                              pos)
                          nil))
             result)
-      (setq ansi-color-context (if fragment (list nil fragment))))
+      (setcar (cdr context) fragment))
     (apply #'concat (nreverse result))))
-
-(defun ansi-color--find-face (codes)
-  "Return the face corresponding to CODES."
-  ;; Sort the codes in ascending order to guarantee that "bold" comes before
-  ;; any of the colors.  This ensures that `ansi-color-bold-is-bright' is
-  ;; applied correctly.
-  (let (faces bright (codes (sort (copy-sequence codes) #'<)))
-    (while codes
-      (when-let ((face (ansi-color-get-face-1 (pop codes) bright)))
-        (when (and ansi-color-bold-is-bright (eq face 'ansi-color-bold))
-          (setq bright t))
-        (push face faces)))
-    ;; Avoid some long-lived conses in the common case.
-    (if (cdr faces)
-	(nreverse faces)
-      (car faces))))
 
 (defun ansi-color-apply (string)
   "Translates SGR control sequences into text properties.
@@ -524,49 +515,129 @@ This information will be used for the next call to `ansi-color-apply'.
 Set `ansi-color-context' to nil if you don't want this.
 
 This function can be added to `comint-preoutput-filter-functions'."
-  (let ((codes (car ansi-color-context))
-	(start 0) end result)
+  (let* ((context
+          (ansi-color--ensure-context 'ansi-color-context nil))
+         (face-vec (car context))
+         (start 0)
+         end result)
     ;; If context was saved and is a string, prepend it.
-    (if (cadr ansi-color-context)
-        (setq string (concat (cadr ansi-color-context) string)
-              ansi-color-context nil))
+    (setq string (concat (cadr context) string))
+    (setcar (cdr context) "")
     ;; Find the next escape sequence.
     (while (setq end (string-match ansi-color-control-seq-regexp string start))
       (let ((esc-end (match-end 0)))
         ;; Colorize the old block from start to end using old face.
-        (when codes
+        (when-let ((face (ansi-color--face-vec-face face-vec)))
           (put-text-property start end 'font-lock-face
-                             (ansi-color--find-face codes) string))
+                             face string))
         (push (substring string start end) result)
         (setq start (match-end 0))
         ;; If this is a color escape sequence,
         (when (eq (aref string (1- esc-end)) ?m)
           ;; create a new face from it.
-          (setq codes (ansi-color-apply-sequence
-                       (substring string end esc-end) codes)))))
+          (let ((cur-pos end))
+            (ansi-color--update-face-vec
+             face-vec
+             (lambda ()
+               (when (string-match ansi-color-parameter-regexp
+                                   string cur-pos)
+                 (setq cur-pos (match-end 0))
+                 (when (<= cur-pos esc-end)
+                   (string-to-number (match-string 1 string))))))))))
     ;; if the rest of the string should have a face, put it there
-    (when codes
+    (when-let ((face (ansi-color--face-vec-face face-vec)))
       (put-text-property start (length string)
-                         'font-lock-face (ansi-color--find-face codes) string))
+                         'font-lock-face face string))
     ;; save context, add the remainder of the string to the result
-    (let (fragment)
-      (if (string-match "\033" string start)
-	  (let ((pos (match-beginning 0)))
-	    (setq fragment (substring string pos))
-	    (push (substring string start pos) result))
-	(push (substring string start) result))
-      (setq ansi-color-context (if (or codes fragment) (list codes fragment))))
+    (if (string-match "\033" string start)
+        (let ((pos (match-beginning 0)))
+          (setcar (cdr context) (substring string pos))
+          (push (substring string start pos) result))
+      (push (substring string start) result))
     (apply 'concat (nreverse result))))
+
+(defun ansi-color--ensure-context (context-sym position)
+  "Return CONTEXT-SYM's value as a valid context.
+If it is nil, set CONTEXT-SYM's value to a new context and return
+it. Context is a list of the form as described in
+`ansi-color-context' if POSITION is nil, or
+`ansi-color-context-region' if POSITION is non-nil.
+
+If CONTEXT-SYM's value is already non-nil, return it. If its
+marker doesn't point anywhere yet, position it before character
+number POSITION, if non-nil."
+  (let ((context (symbol-value context-sym)))
+    (if context
+        (if position
+            (let ((marker (cadr context)))
+              (unless (marker-position marker)
+                (set-marker marker position))
+              context)
+          context)
+      (set context-sym
+           (list (list (make-bool-vector 8 nil)
+                       nil nil)
+                 (if position
+                     (copy-marker position)
+                   ""))))))
+
+(defun ansi-color--face-vec-face (face-vec)
+  "Return the face corresponding to FACE-VEC.
+FACE-VEC is a list containing information about the ANSI sequence
+code.  It is usually stored as the car of the variable
+`ansi-color-context-region'."
+  (let* ((basic-faces (car face-vec))
+         (colors (cdr face-vec))
+         (bright (and ansi-color-bold-is-bright (aref basic-faces 1)))
+         (faces nil))
+
+    (when-let ((fg (car colors)))
+      (push
+       `(:foreground
+         ,(face-foreground
+           (aref (if (or bright (>= fg 8))
+                     ansi-color-bright-colors-vector
+                   ansi-color-normal-colors-vector)
+                 (mod fg 8))
+           nil 'default))
+       faces))
+    (when-let ((bg (cadr colors)))
+      (push
+       `(:background
+         ,(face-background
+           (aref (if (or bright (>= bg 8))
+                     ansi-color-bright-colors-vector
+                   ansi-color-normal-colors-vector)
+                 (mod bg 8))
+           nil 'default))
+       faces))
+
+    (let ((i 8))
+      (while (> i 0)
+        (setq i (1- i))
+        (when (aref basic-faces i)
+          (push (aref ansi-color-basic-faces-vector i) faces))))
+    ;; Avoid some long-lived conses in the common case.
+    (if (cdr faces)
+        faces
+      (car faces))))
 
 ;; Working with regions
 
 (defvar-local ansi-color-context-region nil
   "Context saved between two calls to `ansi-color-apply-on-region'.
-This is a list of the form (CODES MARKER) or nil.  CODES
+This is a list of the form (FACE-VEC MARKER) or nil.  FACE-VEC
 represents the state the last call to `ansi-color-apply-on-region'
-ended with, currently a list of ansi codes, and MARKER is a
-buffer position within an escape sequence or the last position
-processed.")
+ended with, currently a list of the form
+
+(BASIC-FACES FG BG).
+
+BASIC-FACES is a bool-vector that specifies which basic faces
+from `ansi-color-basic-faces-vector' to apply.  FG and BG are
+ANSI color codes for the foreground and background color.
+
+MARKER is a buffer position within an escape sequence or the last
+position processed.")
 
 (defun ansi-color-filter-region (begin end)
   "Filter out all ANSI control sequences from region BEGIN to END.
@@ -576,8 +647,10 @@ Every call to this function will set and use the buffer-local variable
 used for the next call to `ansi-color-apply-on-region'.  Specifically,
 it will override BEGIN, the start of the region.  Set
 `ansi-color-context-region' to nil if you don't want this."
-  (let ((end-marker (copy-marker end))
-	(start (or (cadr ansi-color-context-region) begin)))
+  (let* ((end-marker (copy-marker end))
+         (context (ansi-color--ensure-context
+                   'ansi-color-context-region begin))
+         (start (cadr context)))
     (save-excursion
       (goto-char start)
       ;; Delete escape sequences.
@@ -585,8 +658,8 @@ it will override BEGIN, the start of the region.  Set
         (delete-region (match-beginning 0) (match-end 0)))
       ;; save context, add the remainder of the string to the result
       (if (re-search-forward "\033" end-marker t)
-	  (setq ansi-color-context-region (list nil (match-beginning 0)))
-	(setq ansi-color-context-region nil)))))
+	  (set-marker start (match-beginning 0))
+        (set-marker start nil)))))
 
 (defun ansi-color-apply-on-region (begin end &optional preserve-sequences)
   "Translates SGR control sequences into overlays or extents.
@@ -608,58 +681,58 @@ this.
 
 If PRESERVE-SEQUENCES is t, the sequences are hidden instead of
 being deleted."
-  (let ((codes (car ansi-color-context-region))
-        (start-marker (or (cadr ansi-color-context-region)
-                          (copy-marker begin)))
-        (end-marker (copy-marker end)))
+  (let* ((context (ansi-color--ensure-context
+                   'ansi-color-context-region begin))
+         (face-vec (car context))
+         (start-marker (cadr context))
+         (end-marker (copy-marker end)))
     (save-excursion
       (goto-char start-marker)
       ;; Find the next escape sequence.
       (while (re-search-forward ansi-color-control-seq-regexp end-marker t)
         ;; Extract escape sequence.
-        (let ((esc-seq (buffer-substring
-                        (match-beginning 0) (point))))
-          (if preserve-sequences
-              ;; Make the escape sequence transparent.
-              (overlay-put (make-overlay (match-beginning 0) (point))
-                           'invisible t)
-            ;; Otherwise, strip.
-            (delete-region (match-beginning 0) (point)))
-
+        (let ((esc-beg (match-beginning 0))
+              (esc-end (point)))
           ;; Colorize the old block from start to end using old face.
           (funcall ansi-color-apply-face-function
                    (prog1 (marker-position start-marker)
                      ;; Store new start position.
-                     (set-marker start-marker (point)))
-                   (match-beginning 0) (ansi-color--find-face codes))
+                     (set-marker start-marker esc-end))
+                   esc-beg (ansi-color--face-vec-face face-vec))
           ;; If this is a color sequence,
-          (when (eq (aref esc-seq (1- (length esc-seq))) ?m)
-            ;; update the list of ansi codes.
-            (setq codes (ansi-color-apply-sequence esc-seq codes)))))
+          (when (eq (char-before esc-end) ?m)
+            (goto-char esc-beg)
+            (ansi-color--update-face-vec
+             face-vec (lambda ()
+                        (when (re-search-forward ansi-color-parameter-regexp
+                                                 esc-end t)
+                          (string-to-number (match-string 1))))))
+
+          (if preserve-sequences
+              ;; Make the escape sequence transparent.
+              (overlay-put (make-overlay esc-beg esc-end) 'invisible t)
+            ;; Otherwise, strip.
+            (delete-region esc-beg esc-end))))
       ;; search for the possible start of a new escape sequence
       (if (re-search-forward "\033" end-marker t)
-	  (progn
-	    ;; if the rest of the region should have a face, put it there
-	    (funcall ansi-color-apply-face-function
-		     start-marker (point) (ansi-color--find-face codes))
-	    ;; save codes and point
-	    (setq ansi-color-context-region
-		  (list codes (copy-marker (match-beginning 0)))))
-	;; if the rest of the region should have a face, put it there
-	(funcall ansi-color-apply-face-function
-		 start-marker end-marker (ansi-color--find-face codes))
-        ;; Save a restart position when there are codes active. It's
-        ;; convenient for man.el's process filter to pass `begin'
-        ;; positions that overlap regions previously colored; these
-        ;; `codes' should not be applied to that overlap, so we need
-        ;; to know where they should really start.
-	(setq ansi-color-context-region
-              (if codes (list codes (copy-marker (point)))))))
-    ;; Clean up our temporary markers.
-    (unless (eq start-marker (cadr ansi-color-context-region))
-      (set-marker start-marker nil))
-    (unless (eq end-marker (cadr ansi-color-context-region))
-      (set-marker end-marker nil))))
+          (progn
+            (while (re-search-forward "\033" end-marker t))
+            (backward-char)
+            (funcall ansi-color-apply-face-function
+                     start-marker (point)
+                     (ansi-color--face-vec-face face-vec))
+            (set-marker start-marker (point)))
+        (let ((faces (ansi-color--face-vec-face face-vec)))
+          (funcall ansi-color-apply-face-function
+                   start-marker end-marker faces)
+          ;; Save a restart position when there are codes active. It's
+          ;; convenient for man.el's process filter to pass `begin'
+          ;; positions that overlap regions previously colored; these
+          ;; `codes' should not be applied to that overlap, so we need
+          ;; to know where they should really start.
+          (set-marker start-marker (when faces end-marker)))))
+    ;; Clean up our temporary marker.
+    (set-marker end-marker nil)))
 
 (defun ansi-color-apply-overlay-face (beg end face)
   "Make an overlay from BEG to END, and apply face FACE.
@@ -767,6 +840,7 @@ the foreground color code is replaced or added resp. deleted; if it
 is 40-47 (or 100-107) resp. 49, the background color code is replaced
 or added resp. deleted; any other code is discarded together with the
 old codes.  Finally, the so changed list of codes is returned."
+  (declare (obsolete ansi-color--update-face-vec "29.1"))
   (let ((new-codes (ansi-color-parse-sequence escape-sequence)))
     (while new-codes
       (let* ((new (pop new-codes))
@@ -794,6 +868,56 @@ old codes.  Finally, the so changed list of codes is returned."
 				  (cons new codes))))))
 		(_ nil)))))
     codes))
+
+(defun ansi-color--update-face-vec (face-vec iterator)
+  "Apply escape sequences to FACE-VEC.
+
+Destructively modify FACE-VEC, which should be a list containing
+face information.  It is described in
+`ansi-color-context-region'.  ITERATOR is a function which is
+called repeatedly with zero arguments and should return either
+the next ANSI code in the current sequence as a number or nil if
+there are no more ANSI codes left.
+
+For each new code, the following happens: if it is 1-7, set the
+corresponding properties; if it is 21-25 or 27, unset appropriate
+properties; if it is 30-37 (or 90-97) or resp. 39, set the
+foreground color or resp. unset it; if it is 40-47 (or 100-107)
+resp. 49, set the background color or resp. unset it; if it is 38
+or 48, the following codes are used to set the foreground or
+background color and the correct color mode; any other code will
+unset all properties and colors."
+  (let ((basic-faces (car face-vec))
+        (colors (cdr face-vec))
+        new q do-clear)
+    (while (setq new (funcall iterator))
+      (setq q (/ new 10))
+      (pcase q
+        (0 (if (memq new '(0 8 9))
+               (setq do-clear t)
+             (aset basic-faces new t)))
+        (2 (if (memq new '(20 26 28 29))
+               (setq do-clear t)
+             ;; The standard says `21 doubly underlined' while
+             ;; https://en.wikipedia.org/wiki/ANSI_escape_code claims
+             ;; `21 Bright/Bold: off or Underline: Double'.
+             (aset basic-faces (- new 20) nil)
+             (aset basic-faces (pcase new (22 1) (25 6) (_ 0)) nil)))
+        ((or 3 4 9 10)
+         (let ((r (mod new 10))
+               (cell (if (memq q '(3 9)) colors (cdr colors))))
+           (pcase r
+             (8 (setq do-clear t))
+             (9 (setcar cell nil))
+             (_ (setcar cell (+ (if (memq q '(3 4)) 0 8) r))))))
+        (_ (setq do-clear t)))
+
+      (when do-clear
+        (setq do-clear nil)
+        ;; Zero out our bool vector without any allocation.
+        (bool-vector-intersection basic-faces #&8"\0" basic-faces)
+        (setcar colors nil)
+        (setcar (cdr colors) nil)))))
 
 (defun ansi-color-make-color-map ()
   "Create a vector of face definitions and return it.
@@ -859,6 +983,7 @@ This function is obsolete, and no longer needed to use ansi-color."
   "Get face definition for ANSI-CODE.
 BRIGHT, if non-nil, requests \"bright\" ANSI colors, even if ANSI-CODE
 is a normal-intensity color."
+  (declare (obsolete ansi-color--face-vec-face "29.1"))
   (when (and bright (<= 30 ansi-code 49))
     (setq ansi-code (+ ansi-code 60)))
   (cond ((<= 0 ansi-code 7)
