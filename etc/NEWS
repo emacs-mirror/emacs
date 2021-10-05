@@ -3048,7 +3048,7 @@ See 'rcirc-reconnect-attempts'.
 ---
 *** New command 'mpc-goto-playing-song'.
 This command, bound to 'o' in any 'mpc-mode' buffer, moves point to
-the currently playing song in the "*Songs*" buffer.
+the currently playing song in the "*MPC-Songs*" buffer.
 
 ---
 *** New user option 'mpc-cover-image-re'.
