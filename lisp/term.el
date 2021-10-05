@@ -723,7 +723,7 @@ Buffer local variable.")
 (defvar term-ansi-current-invisible nil)
 
 (make-obsolete-variable 'term-ansi-face-already-done
-                        "it doesn't have any effect." "28.1")
+                        "it doesn't have any effect." "29.1")
 
 ;;; Faces
 (defvar ansi-term-color-vector
@@ -3346,7 +3346,7 @@ otherwise use the current foreground color."
 ;; have any bold/underline/fg/bg/reverse combination. -mm
 
 (defun term-handle-colors-array (parameter)
-  (declare (obsolete term--handle-colors-list "28.1"))
+  (declare (obsolete term--handle-colors-list "29.1"))
   (term--handle-colors-list (list parameter)))
 
 (defun term--handle-colors-list (parameters)

@@ -656,9 +656,9 @@ COLOR is less than 16."
   "Context saved between two calls to `ansi-color-apply-on-region'.
 This is a list of the form (FACE-VEC MARKER) or nil.  FACE-VEC
 represents the state the last call to `ansi-color-apply-on-region'
-ended with, currently a list of the form
+ended with, currently a list of the form:
 
-(BASIC-FACES FG BG).
+  (BASIC-FACES FG BG).
 
 BASIC-FACES is a bool-vector that specifies which basic faces
 from `ansi-color-basic-faces-vector' to apply.  FG and BG are
