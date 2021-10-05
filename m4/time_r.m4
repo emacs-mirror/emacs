@@ -12,7 +12,7 @@ AC_DEFUN([gl_TIME_R],
   dnl Persuade glibc and Solaris <time.h> to declare localtime_r.
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
 
-  AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
+  AC_REQUIRE([gl_TIME_H_DEFAULTS])
   AC_REQUIRE([AC_C_RESTRICT])
 
   dnl Some systems don't declare localtime_r() and gmtime_r() if _REENTRANT is

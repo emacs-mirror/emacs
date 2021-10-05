@@ -1302,7 +1302,7 @@ Only meaningful when called from within `smie-rules-function'."
                     (let ((tok (funcall smie-forward-token-function)))
                       (unless tok
                         (with-demoted-errors
-                          (error "smie-rule-separator: can't skip token %s"
+                          (error "smie-rule-separator: Can't skip token %s"
                                  smie--token))))
                     (skip-chars-forward " ")
                     (unless (eolp) (point)))))

@@ -643,11 +643,11 @@ See `custom-format' for the details."
 
    (let ((print-circle t))
      (or (equal (prin1-to-string circ-list) "#1=(a b [1 2 #1# 4] #1# e f)")
-	 (error "circular object with array printing")))
+         (error "Circular object with array printing")))
 
    (let ((print-circle t))
      (or (equal (prin1-to-string dotted-circ-list) "#1=(a b c . #1#)")
-	 (error "circular object with array printing")))
+         (error "Circular object with array printing")))
 
    (let* ((print-circle t)
 	  (x (list 'p 'q))
@@ -655,16 +655,16 @@ See `custom-format' for the details."
      (setcdr (cdr (cdr (cdr y))) (cdr y))
      (or (equal (prin1-to-string y) "((a b) . #1=(#2=(p q) foo #2# . #1#))"
 		)
-	 (error "circular list example from CL manual")))
+         (error "Circular list example from CL manual")))
 
    (let ((print-circle nil))
      ;; cl-packages.el is required to print uninterned symbols like #:FOO.
      ;; (require 'cl-packages)
      (or (equal (prin1-to-string circ-sym) "(#:FOO #:FOO)")
-	 (error "uninterned symbols in list")))
+         (error "Uninterned symbols in list")))
    (let ((print-circle t))
      (or (equal (prin1-to-string circ-sym) "(#1=FOO #1#)")
-	 (error "circular uninterned symbols in list")))
+         (error "Circular uninterned symbols in list")))
 
    (uninstall-custom-print)
    )

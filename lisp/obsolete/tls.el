@@ -260,14 +260,14 @@ Fourth arg PORT is an integer specifying a port to connect to."
 NOT trusted." host))
 			(not (yes-or-no-p
 			      (format-message "\
-The certificate presented by `%s' is NOT trusted. Accept anyway? " host)))))
+The certificate presented by `%s' is NOT trusted.  Accept anyway?" host)))))
 		  (and tls-hostmismatch
 		       (save-excursion
 			 (goto-char (point-min))
 			 (re-search-forward tls-hostmismatch nil t))
 		       (not (yes-or-no-p
 			     (format "Host name in certificate doesn't \
-match `%s'. Connect anyway? " host))))))
+match `%s'.  Connect anyway?" host))))))
 	(setq done nil)
 	(delete-process process))
       ;; Delete all the informational messages that could confuse

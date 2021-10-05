@@ -1,4 +1,4 @@
-# memmem.m4 serial 27
+# memmem.m4 serial 29
 dnl Copyright (C) 2002-2004, 2007-2021 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -10,7 +10,7 @@ AC_DEFUN([gl_FUNC_MEMMEM_SIMPLE],
   dnl Persuade glibc <string.h> to declare memmem().
   AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
 
-  AC_REQUIRE([gl_HEADER_STRING_H_DEFAULTS])
+  AC_REQUIRE([gl_STRING_H_DEFAULTS])
   AC_CHECK_FUNCS([memmem])
   if test $ac_cv_func_memmem = yes; then
     HAVE_MEMMEM=1
@@ -50,6 +50,7 @@ AC_DEFUN([gl_FUNC_MEMMEM_SIMPLE],
          dnl Assume that it works on all other platforms (even if not linear).
          AC_EGREP_CPP([Lucky user],
            [
+#include <string.h> /* for __GNU_LIBRARY__ */
 #ifdef __GNU_LIBRARY__
  #include <features.h>
  #if ((__GLIBC__ == 2 && ((__GLIBC_MINOR > 0 && __GLIBC_MINOR__ < 9) \

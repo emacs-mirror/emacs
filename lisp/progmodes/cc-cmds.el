@@ -64,7 +64,6 @@ point is used to decide where the old indentation is on a lines that
 is otherwise empty (ignoring any line continuation backslash), but
 that's not done if IGNORE-POINT-POS is non-nil.  Returns the amount of
 indentation change \(in columns)."
-
   (let ((line-cont-backslash (save-excursion
 			       (end-of-line)
 			       (eq (char-before) ?\\)))
@@ -2058,9 +2057,9 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
       (= arg 0))))
 
 (defun c-defun-name-1 ()
-  "Return the name of the current defun, at the current narrowing,
-or nil if there isn't one.  \"Defun\" here means a function, or
-other top level construct with a brace block."
+  "Return name of current defun, at current narrowing, or nil if there isn't one.
+\"Defun\" here means a function, or other top level construct
+with a brace block."
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
        where pos decl0 decl type-pos tag-pos case-fold-search)
@@ -3655,9 +3654,9 @@ continuation backslashes, unless `c-auto-align-backslashes' is nil."
       (set-marker here nil))))
 
 (defun c-indent-region (start end &optional quiet)
-  "Indent syntactically every line whose first char is between START
-and END inclusive.  If the optional argument QUIET is non-nil then no
-syntactic errors are reported, even if `c-report-syntactic-errors' is
+  "Indent syntactically lines whose first char is between START and END inclusive.
+If the optional argument QUIET is non-nil then no syntactic
+errors are reported, even if `c-report-syntactic-errors' is
 non-nil."
   (save-excursion
     (goto-char end)

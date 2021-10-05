@@ -349,31 +349,31 @@ connection if a previous connection has died for some reason."
       (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
 
       ;; Set connection-local variables.
-      (tramp-set-connection-local-variables vec)
+      (tramp-set-connection-local-variables vec)))
 
-      ;; Create directory.
-      (unless (file-directory-p (tramp-fuse-mount-point vec))
-	(make-directory (tramp-fuse-mount-point vec) 'parents))
+  ;; Create directory.
+  (unless (file-directory-p (tramp-fuse-mount-point vec))
+    (make-directory (tramp-fuse-mount-point vec) 'parents))
 
-      (unless
-	  (or (tramp-fuse-mounted-p vec)
-	      (with-temp-buffer
-		(zerop
-		 (apply
-		  #'tramp-call-process
-		  vec tramp-sshfs-program nil t nil
-		  (tramp-fuse-mount-spec vec)
-		  (tramp-fuse-mount-point vec)
-		  (tramp-expand-args
-		   vec 'tramp-mount-args
-		   ?p (or (tramp-file-name-port vec) "")))))
-	  (tramp-error
-	   vec 'file-error "Error mounting %s" (tramp-fuse-mount-spec vec))))
+  (unless
+      (or (tramp-fuse-mounted-p vec)
+	  (with-temp-buffer
+	    (zerop
+	     (apply
+	      #'tramp-call-process
+	      vec tramp-sshfs-program nil t nil
+	      (tramp-fuse-mount-spec vec)
+	      (tramp-fuse-mount-point vec)
+	      (tramp-expand-args
+	       vec 'tramp-mount-args
+	       ?p (or (tramp-file-name-port vec) ""))))))
+    (tramp-error
+     vec 'file-error "Error mounting %s" (tramp-fuse-mount-spec vec)))
 
-      ;; Mark it as connected.
-      (add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec))
-      (tramp-set-connection-property
-       (tramp-get-connection-process vec) "connected" t)))
+  ;; Mark it as connected.
+  (add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec))
+  (tramp-set-connection-property
+   (tramp-get-connection-process vec) "connected" t)
 
   ;; In `tramp-check-cached-permissions', the connection properties
   ;; "{uid,gid}-{integer,string}" are used.  We set them to proper values.

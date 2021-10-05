@@ -3,17 +3,17 @@
    Copyright (C) 2001, 2003-2004, 2007, 2009-2021 Free Software Foundation,
    Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert, Bruno Haible, and Jim Meyering.  */
@@ -21,6 +21,9 @@
 #include <config.h>
 
 #include "careadlinkat.h"
+
+#include "idx.h"
+#include "minmax.h"
 
 #include <errno.h>
 #include <limits.h>
@@ -65,11 +68,6 @@ readlink_stk (int fd, char const *filename,
               ssize_t (*preadlinkat) (int, char const *, char *, size_t),
               char stack_buf[STACK_BUF_SIZE])
 {
-  char *buf;
-  size_t buf_size;
-  size_t buf_size_max =
-    SSIZE_MAX < SIZE_MAX ? (size_t) SSIZE_MAX + 1 : SIZE_MAX;
-
   if (! alloc)
     alloc = &stdlib_allocator;
 
@@ -79,14 +77,14 @@ readlink_stk (int fd, char const *filename,
       buffer_size = STACK_BUF_SIZE;
     }
 
-  buf = buffer;
-  buf_size = buffer_size;
+  char *buf = buffer;
+  idx_t buf_size_max = MIN (IDX_MAX, MIN (SSIZE_MAX, SIZE_MAX));
+  idx_t buf_size = MIN (buffer_size, buf_size_max);
 
   while (buf)
     {
       /* Attempt to read the link into the current buffer.  */
-      ssize_t link_length = preadlinkat (fd, filename, buf, buf_size);
-      size_t link_size;
+      idx_t link_length = preadlinkat (fd, filename, buf, buf_size);
       if (link_length < 0)
         {
           if (buf != buffer)
@@ -98,7 +96,7 @@ readlink_stk (int fd, char const *filename,
           return NULL;
         }
 
-      link_size = link_length;
+      idx_t link_size = link_length;
 
       if (link_size < buf_size)
         {
@@ -127,17 +125,13 @@ readlink_stk (int fd, char const *filename,
       if (buf != buffer)
         alloc->free (buf);
 
-      if (buf_size < buf_size_max / 2)
-        buf_size = 2 * buf_size + 1;
-      else if (buf_size < buf_size_max)
-        buf_size = buf_size_max;
-      else if (buf_size_max < SIZE_MAX)
+      if (buf_size_max / 2 <= buf_size)
         {
           errno = ENAMETOOLONG;
           return NULL;
         }
-      else
-        break;
+
+      buf_size = 2 * buf_size + 1;
       buf = alloc->allocate (buf_size);
     }
 

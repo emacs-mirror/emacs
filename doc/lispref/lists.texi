@@ -1227,13 +1227,13 @@ this is not guaranteed to happen):
 @cindex lists as sets
 @cindex sets
 
-  A list can represent an unordered mathematical set---simply consider a
-value an element of a set if it appears in the list, and ignore the
-order of the list.  To form the union of two sets, use @code{append} (as
-long as you don't mind having duplicate elements).  You can remove
-@code{equal} duplicates using @code{delete-dups}.  Other useful
-functions for sets include @code{memq} and @code{delq}, and their
-@code{equal} versions, @code{member} and @code{delete}.
+  A list can represent an unordered mathematical set---simply consider
+a value an element of a set if it appears in the list, and ignore the
+order of the list.  To form the union of two sets, use @code{append}
+(as long as you don't mind having duplicate elements).  You can remove
+@code{equal} duplicates using @code{delete-dups} or @code{seq-uniq}.
+Other useful functions for sets include @code{memq} and @code{delq},
+and their @code{equal} versions, @code{member} and @code{delete}.
 
 @cindex CL note---lack @code{union}, @code{intersection}
 @quotation
@@ -1489,7 +1489,8 @@ comparison.
 This function destructively removes all @code{equal} duplicates from
 @var{list}, stores the result in @var{list} and returns it.  Of
 several @code{equal} occurrences of an element in @var{list},
-@code{delete-dups} keeps the first one.
+@code{delete-dups} keeps the first one.  See @code{seq-uniq} for
+non-destructive operation (@pxref{Sequence Functions}).
 @end defun
 
   See also the function @code{add-to-list}, in @ref{List Variables},

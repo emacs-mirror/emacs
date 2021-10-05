@@ -107,6 +107,15 @@ install an MH variant and test it interactively."
        (if temp-home-dir (delete-directory temp-home-dir t))
        (setenv "MH" original-mh-envvar))))
 
+(defun mh-ensure-native-trampolines ()
+  "Build head of time the trampolines we'll need.
+As `call-process'' and `file-directory-p' will be redefined, the
+native compiler will invoke `call-process' to compile the
+respective trampolines.  To avoid interferences with the
+`call-process' mocking we build these AOT."
+  (when (featurep 'native-compile)
+    (mapc #'comp-subr-trampoline-install '(call-process file-directory-p))))
+
 (defun mh-test-utils-setup-with-mocks ()
   "Set dynamically bound variables so that MH programs are mocked out.
 The tests use this method if no configured MH variant is found."
@@ -116,6 +125,7 @@ The tests use this method if no configured MH variant is found."
   (mh-populate-sub-folders-cache "+rela-folder/bar")
   (mh-populate-sub-folders-cache "+rela-folder/foo")
   (mh-populate-sub-folders-cache "+rela-folder/food")
+  (mh-ensure-native-trampolines)
   (fset 'call-process #'mh-test-utils-mock-call-process)
   (fset 'file-directory-p #'mh-test-utils-mock-file-directory-p))
 
@@ -205,6 +215,7 @@ The tests use this method if a configured MH variant is found."
     (make-directory (expand-file-name "foo" abso-folder) t)
     (make-directory (expand-file-name "food" abso-folder) t)
     (setq mh-test-abs-folder abso-folder)
+    (mh-ensure-native-trampolines)
     (fset 'call-process #'mh-test-utils-log-call-process)
     (fset 'file-directory-p #'mh-test-utils-log-file-directory-p)
     temp-home-dir))

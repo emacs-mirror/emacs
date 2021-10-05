@@ -1540,7 +1540,7 @@ If no extension is specified, .pas is assumed.  Creates a buffer for the unit."
 (defun opascal-find-current-def ()
   "Find the definition of the identifier under the current point."
   (interactive)
-  (error "opascal-find-current-def: not implemented yet"))
+  (error "opascal-find-current-def: Not implemented yet"))
 
 (defun opascal-find-current-xdef ()
   "Find the definition of the identifier under the current point, searching
@@ -1548,13 +1548,13 @@ in external units if necessary (as listed in the current unit's use clause).
 The set of directories to search for a unit is specified by the global variable
 `opascal-search-path'."
   (interactive)
-  (error "opascal-find-current-xdef: not implemented yet"))
+  (error "opascal-find-current-xdef: Not implemented yet"))
 
 (defun opascal-find-current-body ()
   "Find the body of the identifier under the current point, assuming
 it is a routine."
   (interactive)
-  (error "opascal-find-current-body: not implemented yet"))
+  (error "opascal-find-current-body: Not implemented yet"))
 
 (defun opascal-fill-comment ()
   "Fill the text of the current comment, according to `fill-column'.

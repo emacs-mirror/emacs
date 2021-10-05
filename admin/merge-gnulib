@@ -50,7 +50,7 @@ GNULIB_MODULES='
 
 AVOIDED_MODULES='
   btowc close dup fchdir fstat langinfo lock
-  malloc-posix mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
+  mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
   save-cwd select setenv sigprocmask stat stdarg stdbool
   threadlib tzset unsetenv utime utime-h
@@ -118,5 +118,8 @@ cp -- "$gnulib_srcdir"/build-aux/config.guess \
       "$gnulib_srcdir"/build-aux/install-sh \
       "$gnulib_srcdir"/build-aux/move-if-change \
    "$src"build-aux &&
+cp -- "$gnulib_srcdir"/lib/af_alg.h \
+      "$gnulib_srcdir"/lib/save-cwd.h \
+   "$src"lib &&
 { test -z "$src" || cd "$src"; } &&
 ./autogen.sh

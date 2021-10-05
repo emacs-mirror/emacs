@@ -615,11 +615,11 @@ obtained so far, and COM is the command part obtained so far."
        (cond ((null arg) nil)
 	     ((consp arg) (car arg))
 	     ((numberp arg) arg)
-	     (t (error "strange arg")))
+             (t (error "Strange arg")))
        (cond ((null arg) nil)
 	     ((consp arg) (cdr arg))
 	     ((numberp arg) nil)
-	     (t (error "strange arg"))))
+             (t (error "Strange arg"))))
     (quit
      (setq vip-use-register nil)
      (signal 'quit nil))))
@@ -2248,7 +2248,7 @@ a token has type \(command, address, end-mark) and value."
 	   (setq ex-token-type "end-mark")
 	   (setq ex-token "goto"))
 	  (t
-	   (error "invalid token")))))
+           (error "Invalid token")))))
 
 (defun vip-ex (&optional string)
   "ex commands within VIP."
@@ -2333,7 +2333,7 @@ a token has type \(command, address, end-mark) and value."
     (cond ((looking-at "[a-z]")
 	   (vip-get-ex-com-subr)
 	   (if (string= ex-token-type "non-command")
-	       (error "%s: not an editor command" ex-token)))
+               (error "%s: Not an editor command" ex-token)))
 	  ((looking-at "[!=><&~]")
 	   (setq ex-token (char-to-string (following-char)))
 	   (forward-char 1))
@@ -2378,7 +2378,7 @@ a token has type \(command, address, end-mark) and value."
 		 (progn
 		   (setq ex-flag t)
 		   (setq cont nil))
-	     (error "address expected")))
+             (error "Address expected")))
 	    ((string= ex-token-type "end-mark")
 	     (setq cont nil))
 	    ((string= ex-token-type "whole")
@@ -2568,7 +2568,7 @@ a token has type \(command, address, end-mark) and value."
 	     (string= ex-token "insert")
 	     (string= ex-token "open")
 	     )
-	 (error "%s: no such command from VIP" ex-token))
+         (error "%s: No such command from VIP" ex-token))
 	((or (string= ex-token "abbreviate")
 	     (string= ex-token "list")
 	     (string= ex-token "next")
@@ -2581,7 +2581,7 @@ a token has type \(command, address, end-mark) and value."
 	     (string= ex-token "xit")
 	     (string= ex-token "z")
 	     )
-	 (error "%s: not implemented in VIP" ex-token))
+         (error "%s: Not implemented in VIP" ex-token))
 	(t (error "%s: Not an editor command" ex-token))))
 
 (defun ex-goto ()

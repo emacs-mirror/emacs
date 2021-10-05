@@ -80,6 +80,14 @@ This was only ever relevant when building from a repository checkout.
 This now requires makeinfo, which is part of the texinfo package.
 
 ---
+** There is a new configure option '--disable-year2038' to cause
+Emacs to use only 32-bit time_t on platforms that have both 32- and
+64-bit time_t.  This may help link Emacs to a library with ABI
+requiring traditional 32-bit time_t.  This option currently affects
+only 32-bit ARM and x86 running GNU/Linux with glibc 2.34 and later.
+Emacs now defaults to 64-bit time_t on these platforms.
+
+---
 ** Support for building with '-fcheck-pointer-bounds' has been removed.
 GCC has withdrawn the '-fcheck-pointer-bounds' option and support for
 its implementation has been removed from the Linux kernel.
@@ -820,7 +828,24 @@ buffers.  This can be controlled by customizing the user option
 *** 'nobreak-char-display' now also affects all non-ASCII space characters.
 Previously, this was limited only to 'NO-BREAK SPACE' and hyphen
 characters.  Now it also covers the rest of the non-ASCII Unicode
-space characters.
+space characters.  Also, unlike in previous versions of Emacs, the
+non-ASCII characters are displayed as themselves when
+'nobreak-char-display' is t, i.e. they are not replaced on display
+with the ASCII space and hyphen characters.
+
+---
+*** New backward compatibility variable 'nobreak-char-ascii-display'.
+This variable is nil by default, and non-ASCII space and hyphen
+characters are displayed as themselves, even if 'nobreak-char-display'
+is non-nil.  If 'nobreak-char-ascii-display' is set to a non-nil
+value, the non-ASCII space and hyphen characters are instead displayed
+as their ASCII counterparts: spaces and ASCII hyphen (a.k.a. "dash")
+characters.  This provides backward compatibility feature for the
+change described above, where the non-ASCII characters are no longer
+replaced with their ASCII counterparts when 'nobreak-char-display' is
+t.  You may need this on text-mode terminals that produce messed up
+display when non-ASCII spaces and hyphens are written to the display.
+(This variable is only effective when 'nobreak-char-display' is t.)
 
 +++
 *** Improved support for terminal emulators that encode the Meta flag.
@@ -3040,7 +3065,7 @@ See 'rcirc-reconnect-attempts'.
 ---
 *** New command 'mpc-goto-playing-song'.
 This command, bound to 'o' in any 'mpc-mode' buffer, moves point to
-the currently playing song in the "*Songs*" buffer.
+the currently playing song in the "*MPC-Songs*" buffer.
 
 ---
 *** New user option 'mpc-cover-image-re'.

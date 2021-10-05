@@ -2,16 +2,16 @@
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   version 2.1 of the License, or (at your option) any later version.
 
    The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
@@ -181,13 +181,13 @@ try_file (char *tmpl, void *flags)
 }
 
 static int
-try_dir (char *tmpl, void *flags _GL_UNUSED)
+try_dir (char *tmpl, _GL_UNUSED void *flags)
 {
   return __mkdir (tmpl, S_IRUSR | S_IWUSR | S_IXUSR);
 }
 
 static int
-try_nocreate (char *tmpl, void *flags _GL_UNUSED)
+try_nocreate (char *tmpl, _GL_UNUSED void *flags)
 {
   struct_stat64 st;
 

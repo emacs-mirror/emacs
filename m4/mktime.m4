@@ -1,4 +1,4 @@
-# serial 35
+# serial 36
 dnl Copyright (C) 2002-2003, 2005-2007, 2009-2021 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -255,7 +255,7 @@ main ()
 dnl Main macro of module 'mktime'.
 AC_DEFUN([gl_FUNC_MKTIME],
 [
-  AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
+  AC_REQUIRE([gl_TIME_H_DEFAULTS])
   AC_REQUIRE([AC_CANONICAL_HOST])
   AC_REQUIRE([gl_FUNC_MKTIME_WORKS])
 

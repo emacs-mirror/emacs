@@ -3878,7 +3878,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 	(with-temp-buffer
 	  (insert-file-contents filename)
 	  (buffer-string))
-      (error "ps-print PostScript prologue `%s' file was not found"
+      (error "ps-print: PostScript prologue `%s' file was not found"
 	     filename))))
 
 

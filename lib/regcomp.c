@@ -4,16 +4,16 @@
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
    The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   version 2.1 of the License, or (at your option) any later version.
 
    The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
@@ -1695,11 +1695,13 @@ calc_eclosure_iter (re_node_set *new_set, re_dfa_t *dfa, Idx node, bool root)
   reg_errcode_t err;
   Idx i;
   re_node_set eclosure;
-  bool ok;
   bool incomplete = false;
   err = re_node_set_alloc (&eclosure, dfa->edests[node].nelem + 1);
   if (__glibc_unlikely (err != REG_NOERROR))
     return err;
+
+  /* An epsilon closure includes itself.  */
+  eclosure.elems[eclosure.nelem++] = node;
 
   /* This indicates that we are calculating this node now.
      We reference this value to avoid infinite loop.  */
@@ -1753,10 +1755,6 @@ calc_eclosure_iter (re_node_set *new_set, re_dfa_t *dfa, Idx node, bool root)
 	  }
       }
 
-  /* An epsilon closure includes itself.  */
-  ok = re_node_set_insert (&eclosure, node);
-  if (__glibc_unlikely (! ok))
-    return REG_ESPACE;
   if (incomplete && !root)
     dfa->eclosures[node].nelem = 0;
   else

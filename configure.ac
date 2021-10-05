@@ -877,6 +877,9 @@ ac_func_list=$funcs
 AC_DEFUN([gt_TYPE_WINT_T],
   [GNULIB_OVERRIDES_WINT_T=0
    AC_SUBST([GNULIB_OVERRIDES_WINT_T])])
+AC_DEFUN([gt_TYPE_WINT_T],
+  [GNULIBHEADERS_OVERRIDE_WINT_T=0
+   AC_SUBST([GNULIBHEADERS_OVERRIDE_WINT_T])])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.

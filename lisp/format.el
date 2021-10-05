@@ -519,7 +519,7 @@ the value of `foo'."
       (cdr list)
     (let ((p list))
       (while (not (eq (cdr p) cons))
-	(if (null p) (error "format-delq-cons: not an element"))
+        (if (null p) (error "format-delq-cons: Not an element"))
 	(setq p (cdr p)))
       ;; Now (cdr p) is the cons to delete
       (setcdr p (cdr cons))

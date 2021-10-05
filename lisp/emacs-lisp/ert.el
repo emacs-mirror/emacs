@@ -259,7 +259,7 @@ DATA is displayed to the user and should state the reason for skipping."
 ;; See Bug#24402 for why this exists
 (defun ert--should-signal-hook (error-symbol data)
   "Stupid hack to stop `condition-case' from catching ert signals.
-It should only be stopped when ran from inside ert--run-test-internal."
+It should only be stopped when ran from inside `ert--run-test-internal'."
   (when (and (not (symbolp debugger))   ; only run on anonymous debugger
              (memq error-symbol '(ert-test-failed ert-test-skipped)))
     (funcall debugger 'error (cons error-symbol data))))

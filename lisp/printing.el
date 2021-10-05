@@ -5133,7 +5133,7 @@ If menu binding was not done, calls `pr-menu-bind'."
   (and (eq (symbol-value infile-sym) t)
        (set infile-sym (pr-ps-infile-preprint prompt)))
   (or (symbol-value infile-sym)
-      (error "%s: input PostScript file name is missing" prompt))
+      (error "%s: Input PostScript file name is missing" prompt))
   ;; output file
   (and (eq (symbol-value outfile-sym) t)
        (set outfile-sym (and current-prefix-arg

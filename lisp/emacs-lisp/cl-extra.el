@@ -336,7 +336,7 @@ non-nil value.
 
 ;;;###autoload
 (defun cl-isqrt (x)
-  "Return the integer square root of the (integer) argument."
+  "Return the integer square root of the (integer) argument X."
   (if (and (integerp x) (> x 0))
       (let ((g (ash 2 (/ (logb x) 2)))
 	    g2)

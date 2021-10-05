@@ -348,7 +348,7 @@ Also checks if buffers visiting the files are in read-only mode."
                  (with-current-buffer buf
                    buffer-read-only))
         (ding)
-        (or (y-or-n-p (format "Buffer %s is read-only. Continue?"
+        (or (y-or-n-p (format "Buffer %s is read-only.  Continue?"
                               (buffer-name buf)))
             (error "Abort"))))))
 
