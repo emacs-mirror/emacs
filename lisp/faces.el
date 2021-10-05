@@ -861,8 +861,8 @@ is specified, `:italic' is ignored."
 (defun make-face-bold (face &optional frame _noerror)
   "Make the font of FACE be bold, if possible.
 FRAME nil or not specified means change face on all frames.
-Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of the font weight."
+  (declare (advertised-calling-convention (face &optional frame) "29.1"))
   (interactive (list (read-face-name "Make which face bold"
                                      (face-at-point t))))
   (set-face-attribute face frame :weight 'bold))
@@ -870,8 +870,8 @@ Use `set-face-attribute' for finer control of the font weight."
 
 (defun make-face-unbold (face &optional frame _noerror)
   "Make the font of FACE be non-bold, if possible.
-FRAME nil or not specified means change face on all frames.
-Argument NOERROR is ignored and retained for compatibility."
+FRAME nil or not specified means change face on all frames."
+  (declare (advertised-calling-convention (face &optional frame) "29.1"))
   (interactive (list (read-face-name "Make which face non-bold"
                                      (face-at-point t))))
   (set-face-attribute face frame :weight 'normal))
@@ -880,8 +880,8 @@ Argument NOERROR is ignored and retained for compatibility."
 (defun make-face-italic (face &optional frame _noerror)
   "Make the font of FACE be italic, if possible.
 FRAME nil or not specified means change face on all frames.
-Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of the font slant."
+  (declare (advertised-calling-convention (face &optional frame) "29.1"))
   (interactive (list (read-face-name "Make which face italic"
                                      (face-at-point t))))
   (set-face-attribute face frame :slant 'italic))
@@ -889,8 +889,8 @@ Use `set-face-attribute' for finer control of the font slant."
 
 (defun make-face-unitalic (face &optional frame _noerror)
   "Make the font of FACE be non-italic, if possible.
-FRAME nil or not specified means change face on all frames.
-Argument NOERROR is ignored and retained for compatibility."
+FRAME nil or not specified means change face on all frames."
+  (declare (advertised-calling-convention (face &optional frame) "29.1"))
   (interactive (list (read-face-name "Make which face non-italic"
                                      (face-at-point t))))
   (set-face-attribute face frame :slant 'normal))
@@ -899,8 +899,8 @@ Argument NOERROR is ignored and retained for compatibility."
 (defun make-face-bold-italic (face &optional frame _noerror)
   "Make the font of FACE be bold and italic, if possible.
 FRAME nil or not specified means change face on all frames.
-Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of font weight and slant."
+  (declare (advertised-calling-convention (face &optional frame) "29.1"))
   (interactive (list (read-face-name "Make which face bold-italic"
                                      (face-at-point t))))
   (set-face-attribute face frame :weight 'bold :slant 'italic))
