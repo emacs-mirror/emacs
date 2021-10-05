@@ -663,13 +663,13 @@ order for SpamAssassin to recognize the new registered spam."
 
 ;;; Key bindings for spam control.
 
-(gnus-define-keys gnus-summary-mode-map
-  "St" spam-generic-score
-  "Sx" gnus-summary-mark-as-spam
-  "Mst" spam-generic-score
-  "Msx" gnus-summary-mark-as-spam
-  "\M-d" gnus-summary-mark-as-spam
-  "$" gnus-summary-mark-as-spam)
+(define-keymap :keymap gnus-summary-mode-map
+  "St" #'spam-generic-score
+  "Sx" #'gnus-summary-mark-as-spam
+  "Mst" #'spam-generic-score
+  "Msx" #'gnus-summary-mark-as-spam
+  "\M-d" #'gnus-summary-mark-as-spam
+  "$" #'gnus-summary-mark-as-spam)
 
 (defvar spam-cache-lookups t
   "Whether spam.el will try to cache lookups using `spam-caches'.")

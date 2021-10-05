@@ -502,19 +502,20 @@ of the last successful match.")
 
 ;;; Summary mode score maps.
 
-(gnus-define-keys (gnus-summary-score-map "V" gnus-summary-mode-map)
-  "s" gnus-summary-set-score
-  "S" gnus-summary-current-score
-  "c" gnus-score-change-score-file
-  "C" gnus-score-customize
-  "m" gnus-score-set-mark-below
-  "x" gnus-score-set-expunge-below
-  "R" gnus-summary-rescore
-  "e" gnus-score-edit-current-scores
-  "f" gnus-score-edit-file
-  "F" gnus-score-flush-cache
-  "t" gnus-score-find-trace
-  "w" gnus-score-find-favorite-words)
+(define-key gnus-summary-mode-map "V"
+  (define-keymap :prefix 'gnus-summary-score-map
+    "s" #'gnus-summary-set-score
+    "S" #'gnus-summary-current-score
+    "c" #'gnus-score-change-score-file
+    "C" #'gnus-score-customize
+    "m" #'gnus-score-set-mark-below
+    "x" #'gnus-score-set-expunge-below
+    "R" #'gnus-summary-rescore
+    "e" #'gnus-score-edit-current-scores
+    "f" #'gnus-score-edit-file
+    "F" #'gnus-score-flush-cache
+    "t" #'gnus-score-find-trace
+    "w" #'gnus-score-find-favorite-words))
 
 ;; Summary score file commands
 

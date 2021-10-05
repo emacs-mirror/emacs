@@ -475,17 +475,16 @@ manipulated as follows:
     (gnus-run-hooks 'gnus-agent-mode-hook
 		    (intern (format "gnus-agent-%s-mode-hook" buffer)))))
 
-(defvar gnus-agent-group-mode-map (make-sparse-keymap))
-(gnus-define-keys gnus-agent-group-mode-map
-  "Ju" gnus-agent-fetch-groups
-  "Jc" gnus-enter-category-buffer
-  "Jj" gnus-agent-toggle-plugged
-  "Js" gnus-agent-fetch-session
-  "JY" gnus-agent-synchronize-flags
-  "JS" gnus-group-send-queue
-  "Ja" gnus-agent-add-group
-  "Jr" gnus-agent-remove-group
-  "Jo" gnus-agent-toggle-group-plugged)
+(defvar-keymap gnus-agent-group-mode-map
+  "Ju" #'gnus-agent-fetch-groups
+  "Jc" #'gnus-enter-category-buffer
+  "Jj" #'gnus-agent-toggle-plugged
+  "Js" #'gnus-agent-fetch-session
+  "JY" #'gnus-agent-synchronize-flags
+  "JS" #'gnus-group-send-queue
+  "Ja" #'gnus-agent-add-group
+  "Jr" #'gnus-agent-remove-group
+  "Jo" #'gnus-agent-toggle-group-plugged)
 
 (defun gnus-agent-group-make-menu-bar ()
   (unless (boundp 'gnus-agent-group-menu)
@@ -504,16 +503,15 @@ manipulated as follows:
        ["Synchronize flags" gnus-agent-synchronize-flags t]
        ))))
 
-(defvar gnus-agent-summary-mode-map (make-sparse-keymap))
-(gnus-define-keys gnus-agent-summary-mode-map
-  "Jj" gnus-agent-toggle-plugged
-  "Ju" gnus-agent-summary-fetch-group
-  "JS" gnus-agent-fetch-group
-  "Js" gnus-agent-summary-fetch-series
-  "J#" gnus-agent-mark-article
-  "J\M-#" gnus-agent-unmark-article
-  "@" gnus-agent-toggle-mark
-  "Jc" gnus-agent-catchup)
+(defvar-keymap gnus-agent-summary-mode-map
+  "Jj" #'gnus-agent-toggle-plugged
+  "Ju" #'gnus-agent-summary-fetch-group
+  "JS" #'gnus-agent-fetch-group
+  "Js" #'gnus-agent-summary-fetch-series
+  "J#" #'gnus-agent-mark-article
+  "J\M-#" #'gnus-agent-unmark-article
+  "@" #'gnus-agent-toggle-mark
+  "Jc" #'gnus-agent-catchup)
 
 (defun gnus-agent-summary-make-menu-bar ()
   (unless (boundp 'gnus-agent-summary-menu)
@@ -527,11 +525,10 @@ manipulated as follows:
        ["Fetch downloadable" gnus-agent-summary-fetch-group t]
        ["Catchup undownloaded" gnus-agent-catchup t]))))
 
-(defvar gnus-agent-server-mode-map (make-sparse-keymap))
-(gnus-define-keys gnus-agent-server-mode-map
-  "Jj" gnus-agent-toggle-plugged
-  "Ja" gnus-agent-add-server
-  "Jr" gnus-agent-remove-server)
+(defvar-keymap gnus-agent-server-mode-map
+  "Jj" #'gnus-agent-toggle-plugged
+  "Ja" #'gnus-agent-add-server
+  "Jr" #'gnus-agent-remove-server)
 
 (defun gnus-agent-server-make-menu-bar ()
   (unless (boundp 'gnus-agent-server-menu)
@@ -2597,25 +2594,20 @@ General format specifiers can also be used.  See Info node
 (defvar gnus-category-line-format-spec nil)
 (defvar gnus-category-mode-line-format-spec nil)
 
-(defvar gnus-category-mode-map nil)
+(defvar-keymap gnus-category-mode-map
+  :suppress t
+  "q" #'gnus-category-exit
+  "k" #'gnus-category-kill
+  "c" #'gnus-category-copy
+  "a" #'gnus-category-add
+  "e" #'gnus-agent-customize-category
+  "p" #'gnus-category-edit-predicate
+  "g" #'gnus-category-edit-groups
+  "s" #'gnus-category-edit-score
+  "l" #'gnus-category-list
 
-(unless gnus-category-mode-map
-  (setq gnus-category-mode-map (make-sparse-keymap))
-  (suppress-keymap gnus-category-mode-map)
-
-  (gnus-define-keys gnus-category-mode-map
-    "q" gnus-category-exit
-    "k" gnus-category-kill
-    "c" gnus-category-copy
-    "a" gnus-category-add
-    "e" gnus-agent-customize-category
-    "p" gnus-category-edit-predicate
-    "g" gnus-category-edit-groups
-    "s" gnus-category-edit-score
-    "l" gnus-category-list
-
-    "\C-c\C-i" gnus-info-find-node
-    "\C-c\C-b" gnus-bug))
+  "\C-c\C-i" #'gnus-info-find-node
+  "\C-c\C-b" #'gnus-bug)
 
 (defcustom gnus-category-menu-hook nil
   "Hook run after the creation of the menu."
