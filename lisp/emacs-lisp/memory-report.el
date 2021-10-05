@@ -31,7 +31,7 @@
 (require 'subr-x)
 (require 'cl-lib)
 
-(defvar memory-report--type-size (make-hash-table))
+(defvar memory-report--type-size nil)
 
 ;;;###autoload
 (defun memory-report ()
@@ -84,6 +84,7 @@ by counted more than once."
       (gethash 'object memory-report--type-size)))
 
 (defun memory-report--set-size (elems)
+  (setq memory-report--type-size (make-hash-table))
   (setf (gethash 'string memory-report--type-size)
         (cadr (assq 'strings elems)))
   (setf (gethash 'cons memory-report--type-size)
