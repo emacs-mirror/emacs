@@ -1942,6 +1942,71 @@ To avoid it, set xterm-extra-capabilities to a value other than
 'check' (the default).  See that variable's documentation (in
 term/xterm.el) for more details.
 
+** Incorrect or corrupted display of some Unicode characters
+
+*** Linux console problems with double-width characters
+
+The Linux console declares UTF-8 encoding, but supports only a limited
+number of Unicode characters, and can cause Emacs produce corrupted or
+garbled display with some unusual characters and sequences.  Emacs 28
+and later by default disables 'auto-composition-mode' on this console,
+for that reason, but this might not be enough.  One known problem with
+this console is that zero-width and double-width characters are
+displayed incorrectly (as a single-column characters), and that causes
+the cursor to be out of sync with the actual display.
+
+One way of working around this is to use the display-table feature to
+display the problematic characters as some other, less problematic
+ones.  Here's an example of setting up the standard display table to
+show the U+01F64F PERSON WITH FOLDED HANDS character as a diamond with
+a special face:
+
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
+  (aset standard-display-table
+	#x1f64f (vector (make-glyph-code #xFFFD 'escape-glyph)))
+
+Similar setup can be done with any other problematic character.  If
+the console cannot even display the U+FFFD REPLACEMENT CHARACTER, you
+can use some ASCII character instead, like '?'; it will stand out due
+to the 'escape-glyph' face.  The disadvantage of this method is that
+all such characters will look the same on display, and the only way of
+knowing what is the real codepoint in the buffer is to go to the
+character and type "C-u C-x =".
+
+*** Messed-up display on the Kitty text terminal
+
+This terminal has its own peculiar ideas about display of unusual
+characters.  For example, it hides the U+00AD SOFT HYPHEN characters
+on display, which messes up Emacs cursor addressing, since Emacs
+doesn't know these characters are effectively treated as zero-width
+characters.
+
+One way of working around such "hidden" characters is to tell Emacs to
+display them as zero-width:
+
+  (aset glyphless-char-display #xAD 'zero-width)
+
+Another possibility is to use display-table to display SOFT HYPHEN as
+a regular ASCII dash character '-':
+
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
+  (aset standard-display-table
+        #xAD (vector (make-glyph-code ?- 'escape-glyph)))
+
+Kitty also differs from many other character terminals in how it
+handles character compositions.  As one example, Emoji sequences that
+begin with a non-Emoji character and end in U+FE0F VARIATION SELECTOR
+16 should be composed into an Emoji glyph; Kitty assumes that all such
+Emoji glyphs have 2-column width, whereas Emacs and many other text
+terminals display them as 1-column glyphs.  Again, this causes cursor
+addressing to get out of sync and eventually messes up the display.
+
+One possible workaround for problems caused by character composition
+is to turn off 'auto-composition-mode' on Kitty terminals.
+
+
 * Runtime problems specific to individual Unix variants
 
 ** GNU/Linux

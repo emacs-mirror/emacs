@@ -22,6 +22,10 @@ following tags are recognized:
   to run on a regular basis by users.  Instead, it runs on demand
   only, or during regression tests.
 
+* :nativecomp
+  The test runs only if Emacs is configured with Lisp native compiler
+  support.
+
 * :unstable
   The test is under development.  It shall run on demand only.
 
