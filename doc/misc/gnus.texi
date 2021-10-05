@@ -7130,20 +7130,15 @@ as 10, you might consider setting this variable to something sensible:
 (setq gnus-simplify-ignored-prefixes
       (concat
        "\\`\\[?\\("
-       (mapconcat
-        'identity
-        '("looking"
-          "wanted" "followup" "summary\\( of\\)?"
-          "help" "query" "problem" "question"
-          "answer" "reference" "announce"
-          "How can I" "How to" "Comparison of"
-          ;; ...
-          )
-        "\\|")
+       (regexp-opt '("looking"
+                     "wanted" "followup" "summary" "summary of"
+                     "help" "query" "problem" "question"
+                     "answer" "reference" "announce"
+                     "How can I" "How to" "Comparison of"
+                     ;; ...
+                     ))
        "\\)\\s *\\("
-       (mapconcat 'identity
-                  '("for" "for reference" "with" "about")
-                  "\\|")
+       (regexp-opt '("for" "for reference" "with" "about"))
        "\\)?\\]?:?[ \t]*"))
 @end lisp
 
