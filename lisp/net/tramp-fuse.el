@@ -156,19 +156,27 @@
 	(tramp-file-name-host-port vec))
        tramp-compat-temporary-file-directory)))
 
+(defconst tramp-fuse-mount-timeout
+  (eval (car (get 'remote-file-name-inhibit-cache 'standard-value)) t)
+  "Time period to check whether the mount point still exists.
+It has the same meaning as `remote-file-name-inhibit-cache'.")
+
 (defun tramp-fuse-mounted-p (vec)
   "Check, whether fuse volume determined by VEC is mounted."
-  (when (tramp-get-connection-process vec)
-    ;; We cannot use `with-connection-property', because we don't want
-    ;; to cache a nil result.
-    (or (tramp-get-connection-property
-         (tramp-get-connection-process vec) "mounted" nil)
+  ;; Remember the mount status by using a file property on "/",
+  ;; instead of using a connection property, because a file property
+  ;; has a timeout.  Having a timeout lets us regularly recheck the
+  ;; mount status, as requested by `tramp-fuse-mount-timeout'.  We
+  ;; cannot use `with-tramp-file-property', because we don't want to
+  ;; cache a nil result.
+  (let ((remote-file-name-inhibit-cache tramp-fuse-mount-timeout))
+    (or (tramp-get-file-property vec "/" "mounted" nil)
         (let* ((default-directory tramp-compat-temporary-file-directory)
                (command (format "mount -t fuse.%s" (tramp-file-name-method vec)))
 	       (mount (shell-command-to-string command)))
           (tramp-message vec 6 "%s\n%s" command mount)
-          (tramp-set-connection-property
-           (tramp-get-connection-process vec) "mounted"
+          (tramp-set-file-property
+	   vec "/" "mounted"
            (when (string-match
 	          (format
                    "^\\(%s\\)\\s-" (regexp-quote (tramp-fuse-mount-spec vec)))
@@ -191,8 +199,7 @@
 	 (mount-point (tramp-fuse-mount-point vec))
          (command (format "%s -u %s" (tramp-fuse-get-fusermount) mount-point)))
     (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
-    (tramp-flush-connection-property
-     (tramp-get-connection-process vec) "mounted")
+    (tramp-flush-file-property vec "/" "mounted")
     (setq tramp-fuse-mount-points
 	  (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
     ;; Give the caches a chance to expire.
