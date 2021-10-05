@@ -1863,13 +1863,10 @@ Return t if the buffer had changes, nil otherwise."
                                             (vc-working-revision first))))
       (when (string= rev1-default "") (setq rev1-default nil))))
     ;; construct argument list
-    (let* ((rev1-prompt (if rev1-default
-                            (concat "Older revision (default "
-                                    rev1-default "): ")
-                          "Older revision: "))
-           (rev2-prompt (concat "Newer revision (default "
-                                ;; (or rev2-default
-                                "current source): "))
+    (let* ((rev1-prompt (format-prompt "Older revision" rev1-default))
+           (rev2-prompt (format-prompt "Newer revision"
+                                       ;; (or rev2-default
+                                       "current source"))
            (rev1 (vc-read-revision rev1-prompt files backend rev1-default))
            (rev2 (vc-read-revision rev2-prompt files backend nil))) ;; rev2-default
       (when (string= rev1 "") (setq rev1 nil))
@@ -2082,7 +2079,7 @@ If `F.~REV~' already exists, use it instead of checking it out again."
    (with-current-buffer (or (buffer-base-buffer) (current-buffer))
      (vc-ensure-vc-buffer)
      (list
-      (vc-read-revision "Revision to visit (default is working revision): "
+      (vc-read-revision (format-prompt "Revision to visit" "working revision")
                         (list buffer-file-name)))))
   (set-buffer (or (buffer-base-buffer) (current-buffer)))
   (vc-ensure-vc-buffer)
@@ -2378,7 +2375,7 @@ This function runs the hook `vc-retrieve-tag-hook' when finished."
              (read-directory-name "Directory: " default-directory nil t))))
      (list
       dir
-      (vc-read-revision "Tag name to retrieve (default latest revisions): "
+      (vc-read-revision (format-prompt "Tag name to retrieve" "latest revisions")
                         (list dir)
                         (vc-responsible-backend dir)))))
   (let* ((backend (vc-responsible-backend dir))

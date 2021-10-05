@@ -1133,7 +1133,7 @@ for the MODE to customize."
 
 (defun customize-read-group ()
   (let ((completion-ignore-case t))
-    (completing-read "Customize group (default emacs): "
+    (completing-read (format-prompt "Customize group" "emacs")
                      obarray
                      (lambda (symbol)
                        (or (and (get symbol 'custom-loads)

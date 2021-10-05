@@ -444,10 +444,10 @@ List has a form of (file-name full-file-name (attribute-list))."
 			  ((eq op-symbol 'chgrp)
 			   (file-attribute-group-id
 			    (file-attributes default-file 'string))))))
-	 (prompt (concat "Change " attribute-name " of %s to"
-			 (if (eq op-symbol 'touch)
-			     " (default now): "
-			   ": ")))
+         (prompt (format-prompt "Change %s of %%s to"
+                                (when (eq op-symbol 'touch)
+                                    "now")
+                                attribute-name))
 	 (new-attribute (dired-mark-read-string prompt nil op-symbol
 						arg files default
 						(cond ((eq op-symbol 'chown)

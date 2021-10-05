@@ -5478,8 +5478,11 @@ becomes:
                     (let* ((pop-up-windows t))
                       (let ((name (expand-file-name
                                    (read-file-name
-                                    (format "Find this error in: (default %s) "
-                                            file)
+                                    ;; `format-prompt' is new in Emacs 28.1.
+                                    (if (fboundp 'format-prompt)
+                                        (format-prompt "Find this error in" file)
+                                      (format "Find this error in (default %s): "
+                                              file))
                                     nil ;; dir
                                     file t))))
                         (setq buffer
@@ -7863,14 +7866,14 @@ If search fails, other files are checked based on
   (let* ((default (verilog-get-default-symbol))
 	 ;; The following variable is used in verilog-comp-function
 	 (verilog-buffer-to-use (current-buffer))
-	 (label (if (not (string= default ""))
-		    ;; Do completion with default
-		    (completing-read (concat "Goto-Label: (default "
-					     default ") ")
-                                    #'verilog-comp-defun nil nil "")
-		  ;; There is no default value. Complete without it
-		  (completing-read "Goto-Label: "
-                                  #'verilog-comp-defun nil nil "")))
+         (label
+          (completing-read (cond ((fboundp 'format-prompt)
+                                  ;; `format-prompt' is new in Emacs 28.1.
+                                  (format-prompt "Goto-Label" default))
+                                 ((not (string= default ""))
+                                  (concat "Goto-Label (default " default "): "))
+                                 (t "Goto-Label: "))
+                           #'verilog-comp-defun nil nil ""))
 	 pt)
     ;; Make sure library paths are correct, in case need to resolve module
     (verilog-auto-reeval-locals)

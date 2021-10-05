@@ -3774,7 +3774,9 @@ function is redefined."
      (setq name (intern name))
      (let* ((cur-printer (gethash name ses--local-printer-hashmap))
             (default (and cur-printer (ses--locprn-def cur-printer))))
-            (setq def (ses-read-printer (format "Enter definition of printer %S" name)
+            (setq def (ses-read-printer (format-prompt
+                                         "Enter definition of printer %S"
+                                         default name)
                                         default)))
             (list name def)))
 

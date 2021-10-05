@@ -96,15 +96,15 @@ Non-interactively, OLD and NEW may each be a file or a buffer."
   (interactive
    (let* ((newf (if (and buffer-file-name (file-exists-p buffer-file-name))
 		    (read-file-name
-		     (concat "Diff new file (default "
-			     (file-name-nondirectory buffer-file-name) "): ")
+                     (format-prompt "Diff new file"
+                                    (file-name-nondirectory buffer-file-name))
 		     nil buffer-file-name t)
 		  (read-file-name "Diff new file: " nil nil t)))
           (oldf (file-newest-backup newf)))
      (setq oldf (if (and oldf (file-exists-p oldf))
 		    (read-file-name
-		     (concat "Diff original file (default "
-			     (file-name-nondirectory oldf) "): ")
+                     (format-prompt "Diff original file"
+                                    (file-name-nondirectory oldf))
 		     (file-name-directory oldf) oldf t)
 		  (read-file-name "Diff original file: "
 				  (file-name-directory newf) nil t)))

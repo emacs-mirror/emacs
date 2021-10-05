@@ -701,7 +701,8 @@ To specify a nil argument interactively, exit with an empty minibuffer."
   (interactive
    (list (let ((name
 		(completing-read
-		 "Cancel debug on entry to function (default all functions): "
+                 (format-prompt "Cancel debug on entry to function"
+                                "all functions")
 		 (mapcar #'symbol-name (debug--function-list)) nil t)))
 	   (when name
 	     (unless (string= name "")
@@ -804,7 +805,8 @@ To specify a nil argument interactively, exit with an empty minibuffer."
   (interactive
    (list (let ((name
                 (completing-read
-                 "Cancel debug on set for variable (default all variables): "
+                 (format-prompt "Cancel debug on set for variable"
+                                "all variables")
                  (mapcar #'symbol-name (debug--variable-list)) nil t)))
            (when name
              (unless (string= name "")

@@ -1100,7 +1100,7 @@ returned.  Otherwise, DEFAULT is returned verbatim."
   ;; prompt.  If so, remove it.
   (setq prompt (replace-regexp-in-string ": ?\\'" "" prompt))
   (let ((prompt (if default
-                    (format-message "%s (default `%s'): " prompt default)
+                    (format-prompt prompt default)
                   (format "%s: " prompt)))
         aliasfaces nonaliasfaces faces)
     ;; Build up the completion tables.

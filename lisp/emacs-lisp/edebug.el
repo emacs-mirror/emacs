@@ -3519,7 +3519,8 @@ The removes the effect of `edebug-on-entry'.  If FUNCTION is
 nil, remove `edebug-on-entry' on all functions."
   (interactive
    (list (let ((name (completing-read
-                      "Cancel edebug on entry to (default all functions): "
+                      (format-prompt "Cancel edebug on entry to"
+                                     "all functions")
                       (let ((functions (edebug--edebug-on-entry-functions)))
                         (unless functions
                           (user-error "No functions have `edebug-on-entry'"))
@@ -4548,7 +4549,8 @@ instrumentation for, defaulting to all functions."
         (user-error "Found no functions to remove instrumentation from"))
       (let ((name
              (completing-read
-              "Remove instrumentation from (default all functions): "
+              (format-prompt "Remove instrumentation from"
+                             "all functions")
               functions)))
         (if (and name
                  (not (equal name "")))

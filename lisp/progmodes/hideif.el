@@ -2456,7 +2456,7 @@ This allows #ifdef VAR to be hidden."
                            (t
                             nil))))
           (var (read-minibuffer "Define what? " default))
-          (val (read-from-minibuffer (format "Set %s to? (default 1): " var)
+          (val (read-from-minibuffer (format-prompt "Set %s to?" "1" var)
                                      nil nil t nil "1")))
      (list var val)))
   (hif-set-var var (or val 1))

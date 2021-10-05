@@ -1357,9 +1357,7 @@ The default is a name found in the buffer around point."
 		      default ""))
 	 (label
           ;; Do completion with default.
-          (completing-read (if (not (string= default ""))
-                               (concat "Label (default " default "): ")
-                             "Label: ")
+          (completing-read (format-prompt "Label" default)
                            ;; Complete with the defuns found in the
                            ;; current-buffer.
                            (let ((buf (current-buffer)))

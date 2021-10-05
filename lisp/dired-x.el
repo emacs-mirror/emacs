@@ -554,7 +554,7 @@ If the region is active in Transient Mark mode, operate only on
 files in the active region if `dired-mark-region' is non-nil."
   (interactive
    (list (read-regexp
-	  "Mark unmarked files matching regexp (default all): "
+          (format-prompt "Mark unmarked files matching regexp" "all")
           nil 'dired-regexp-history)
 	 nil current-prefix-arg nil))
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))

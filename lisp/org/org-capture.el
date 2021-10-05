@@ -1815,10 +1815,13 @@ by their respective `org-store-link-plist' properties if present."
 		     ;; Load history list for current prompt.
 		     (setq org-capture--prompt-history
 			   (gethash prompt org-capture--prompt-history-table))
-		     (push (org-completing-read
-			    (concat (or prompt "Enter string")
-				    (and default (format " [%s]" default))
-				    ": ")
+                     (push (org-completing-read
+                            ;; `format-prompt' is new in Emacs 28.1.
+                            (if (fboundp 'format-prompt)
+                                (format-prompt (or prompt "Enter string") default)
+                              (concat (or prompt "Enter string")
+                                      (and default (format " [%s]" default))
+                                      ": "))
 			    completions
 			    nil nil nil 'org-capture--prompt-history default)
 			   strings)

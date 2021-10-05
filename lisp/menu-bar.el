@@ -1918,10 +1918,7 @@ key, a click, or a menu-item"))
   (let* ((default (thing-at-point 'sexp))
          (topic
           (read-from-minibuffer
-           (format "Subject to look up%s: "
-                   (if default
-                       (format " (default \"%s\")" default)
-                     ""))
+           (format-prompt "Subject to look up" default)
            nil nil nil nil default)))
     (list (if (zerop (length topic))
               default

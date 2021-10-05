@@ -648,7 +648,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
   (setq input (file-name-sans-extension (expand-file-name input)))
   (expand-file-name
    (read-file-name
-    (concat "To file (default " (file-name-nondirectory input) ") ")
+    (format-prompt "To file" (file-name-nondirectory input))
     (file-name-directory input)
     input)))
 
@@ -1236,9 +1236,7 @@ If no one is selected, symmetric encryption will be performed.  ")
      (list keys
 	   (expand-file-name
 	    (read-file-name
-	     (concat "To file (default "
-		     (file-name-nondirectory default-name)
-		     ") ")
+             (format-prompt "To file" (file-name-nondirectory default-name))
 	     (file-name-directory default-name)
 	     default-name)))))
   (let ((context (epg-make-context epa-protocol)))

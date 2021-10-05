@@ -3219,14 +3219,7 @@ For both `:file' and `:completion', there can also be a
    symbol
    (let* ((default (plist-get plist :default))
           (last-value (sql-default-value symbol))
-          (prompt-def
-           (if default
-               (if (string-match "\\(\\):[ \t]*\\'" prompt)
-                   (replace-match (format " (default \"%s\")" default) t t prompt 1)
-                 (replace-regexp-in-string "[ \t]*\\'"
-                                           (format " (default \"%s\") " default)
-                                           prompt t t))
-             prompt))
+          (prompt-def (format-prompt prompt default))
           (use-dialog-box nil))
      (cond
       ((plist-member plist :file)
@@ -3311,7 +3304,7 @@ function like this: (sql-get-login \\='user \\='password \\='database)."
     (let ((plist (cdr-safe w)))
       (pcase (or (car-safe w) w)
         ('user
-         (sql-get-login-ext 'sql-user "User: " 'sql-user-history plist))
+         (sql-get-login-ext 'sql-user "User" 'sql-user-history plist))
 
         ('password
          (setq-default sql-password
@@ -3330,14 +3323,14 @@ function like this: (sql-get-login \\='user \\='password \\='database)."
                          (read-passwd "Password: " nil (sql-default-value 'sql-password)))))
 
         ('server
-         (sql-get-login-ext 'sql-server "Server: " 'sql-server-history plist))
+         (sql-get-login-ext 'sql-server "Server" 'sql-server-history plist))
 
         ('database
-         (sql-get-login-ext 'sql-database "Database: "
+         (sql-get-login-ext 'sql-database "Database"
                             'sql-database-history plist))
 
         ('port
-         (sql-get-login-ext 'sql-port "Port: "
+         (sql-get-login-ext 'sql-port "Port"
                             nil (append '(:number t) plist)))))))
 
 (defun sql-find-sqli-buffer (&optional product connection)

@@ -1310,12 +1310,17 @@ definitions."
                (xref--prompt-p this-command))
            (let ((id
                   (completing-read
-                   (if def
-                       (format "%s (default %s): "
-                               (substring prompt 0 (string-match
-                                                    "[ :]+\\'" prompt))
-                               def)
-                     prompt)
+                   ;; `format-prompt' is new in Emacs 28.1
+                   (if (fboundp 'format-prompt)
+                       (format-prompt (substring prompt 0 (string-match
+                                                           "[ :]+\\'" prompt))
+                                      def)
+                     (if def
+                         (format "%s (default %s): "
+                                 (substring prompt 0 (string-match
+                                                      "[ :]+\\'" prompt))
+                                 def)
+                       prompt))
                    (xref-backend-identifier-completion-table backend)
                    nil nil nil
                    'xref--read-identifier-history def)))

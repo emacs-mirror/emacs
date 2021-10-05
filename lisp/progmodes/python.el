@@ -4773,10 +4773,14 @@ Interactively, prompt for symbol."
   (interactive
    (let ((symbol (python-eldoc--get-symbol-at-point))
          (enable-recursive-minibuffers t))
-     (list (read-string (if symbol
-                            (format "Describe symbol (default %s): " symbol)
-                          "Describe symbol: ")
-                        nil nil symbol))))
+     (list (read-string
+            ;; `format-prompt' is new in Emacs 28.1.
+            (if (fboundp 'format-prompt)
+                (format-prompt "Describe symbol" symbol)
+              (if symbol
+                  (format "Describe symbol (default %s): " symbol)
+                "Describe symbol: "))
+            nil nil symbol))))
   (message (python-eldoc--get-doc-at-point symbol)))
 
 (defun python-describe-at-point (symbol process)

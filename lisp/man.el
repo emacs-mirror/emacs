@@ -1786,7 +1786,7 @@ Returns t if section is found, nil otherwise."
                        Man--last-section
                      (car Man--sections)))
           (completion-ignore-case t)
-          (prompt (concat "Go to section (default " default "): "))
+          (prompt (format-prompt "Go to section" default))
           (chosen (completing-read prompt Man--sections
                                    nil nil nil nil default)))
      (list chosen))
@@ -1850,7 +1850,7 @@ Specify which REFERENCE to use; default is based on word at point."
 	     (defaults
 	       (mapcar 'substring-no-properties
                        (cons default Man--refpages)))
-	     (prompt (concat "Refer to (default " default "): "))
+             (prompt (format-prompt "Refer to" default))
 	     (chosen (completing-read prompt Man--refpages
 				      nil nil nil nil defaults)))
         chosen)))

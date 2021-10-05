@@ -2840,9 +2840,8 @@ Returns a list of strings."
           (if (memq system-type '(windows-nt ms-dos))
               (artist-figlet-get-font-list-windows)
             (artist-figlet-get-font-list)))
-	 (font (completing-read (concat "Select font (default "
-					artist-figlet-default-font
-					"): ")
+         (font (completing-read (format-prompt "Select font"
+                                               artist-figlet-default-font)
 				(mapcar
 				 (lambda (font) (cons font font))
 				 avail-fonts))))

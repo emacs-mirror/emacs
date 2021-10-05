@@ -586,7 +586,7 @@
 (defun calc-permanent-variable (&optional var)
   (interactive)
   (calc-wrapper
-   (or var (setq var (calc-read-var-name "Save variable (default all): ")))
+   (or var (setq var (calc-read-var-name (format-prompt "Save variable" "all"))))
    (let (calc-pv-pos)
      (and var (or (and (boundp var) (symbol-value var))
 		  (error "No such variable")))

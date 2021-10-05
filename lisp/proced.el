@@ -1772,8 +1772,8 @@ supported but discouraged.  It will be removed in a future version of Emacs."
            `(:annotation-function
              ,(lambda (s) (cdr (assoc s proced-signal-list))))))
      (proced-with-processes-buffer process-alist
-       (list (completing-read (concat "Send signal [" pnum
-                                      "] (default TERM): ")
+       (list (completing-read (format-prompt "Send signal [%s]"
+                                             "TERM" pnum)
                               proced-signal-list
                               nil nil nil nil "TERM")
              process-alist))))
@@ -1797,8 +1797,8 @@ supported but discouraged.  It will be removed in a future version of Emacs."
              `(:annotation-function
                ,(lambda (s) (cdr (assoc s proced-signal-list))))))
         (proced-with-processes-buffer process-alist
-          (setq signal (completing-read (concat "Send signal [" pnum
-                                                "] (default TERM): ")
+          (setq signal (completing-read (format-prompt "Send signal [%s]"
+                                                       "TERM" pnum)
                                         proced-signal-list
                                         nil nil nil nil "TERM"))))))
 

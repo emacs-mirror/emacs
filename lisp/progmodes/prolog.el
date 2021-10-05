@@ -2484,11 +2484,8 @@ Interaction supports completion."
     (if (eq (try-completion default prolog-info-alist) nil)
         (setq default nil))
     ;; Read the PredSpec from the user
-    (completing-read
-     (if (zerop (length default))
-         "Help on predicate: "
-       (concat "Help on predicate (default " default "): "))
-     prolog-info-alist nil t nil nil default)))
+    (completing-read (format-prompt "Help on predicate" default)
+                     prolog-info-alist nil t nil nil default)))
 
 (defun prolog-build-info-alist (&optional verbose)
   "Build an alist of all builtins and library predicates.

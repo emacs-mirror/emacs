@@ -1284,8 +1284,7 @@ marked instead.  A directory can never be marked."
       (intern
        (upcase
 	(completing-read
-	 (concat
-	  "Mark files in state" (if default (concat " [" default "]")) ": ")
+         (format-prompt "Mark files in state" default)
 	 (mapcar (lambda (x)
 		   (list (downcase (symbol-name (car x)))))
 		 cvs-states)

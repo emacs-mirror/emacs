@@ -1310,9 +1310,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                                     initial-input history def)
   "Call `gnus-completing-read-function'."
   (funcall gnus-completing-read-function
-           (concat prompt (when def
-                            (concat " (default " def ")"))
-                   ": ")
+           (format-prompt prompt def)
            collection require-match initial-input history def))
 
 (defun gnus-emacs-completing-read (prompt collection &optional require-match

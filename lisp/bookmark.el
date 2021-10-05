@@ -498,11 +498,8 @@ If DEFAULT is nil then return empty string for empty input."
 						'string-lessp)
 					(bookmark-all-names)))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
-           (default (unless (equal "" default) default))
-	   (prompt (concat prompt (if default
-                                      (format " (%s): " default)
-                                    ": "))))
-      (completing-read prompt
+           (default (unless (equal "" default) default)))
+      (completing-read (format-prompt prompt default)
                        (lambda (string pred action)
                          (if (eq action 'metadata)
                              '(metadata (category . bookmark))

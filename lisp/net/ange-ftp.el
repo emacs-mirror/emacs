@@ -1230,8 +1230,9 @@ only return the directory part of FILE."
 			    ;; found another machine with the same user.
 			    ;; Try that account.
 			    (read-passwd
-			     (format "passwd for %s@%s (default same as %s@%s): "
-				     user host user other)
+                             (format-prompt "passwd for %s@%s"
+                                            (format "same as %s@%s" user other)
+                                            user host)
 			     nil
 			     (ange-ftp-lookup-passwd other user))
 
