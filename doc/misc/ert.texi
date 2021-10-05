@@ -800,7 +800,7 @@ Name: flet
 (bla 42))
 =-=
 (cl-flet ((bla (x)
-	    (* x x)))
+            (* x x)))
   (bla 42))
 =-=-=
 
@@ -809,12 +809,12 @@ Name: defun
 =-=
 (defun x ()
   (print (quote ( thingy great
-		  stuff))))
+                  stuff))))
 =-=-=
 @end example
 
 A test starts with a line containing just @samp{=-=} and ends with a
-line containing just just @samp{=-=-=}.  The test may be preceded by
+line containing just @samp{=-=-=}.  The test may be preceded by
 freeform text (for instance, comments), and also name/value pairs (see
 below for a list of them).
 
@@ -838,7 +838,7 @@ Here's an example usage:
 
 A list of the name/value specifications that can appear before a test
 follows.  The general syntax is @samp{Name: Value}, but continuation
-lines can be used (along the same lines as in mail -- subsequent lines
+lines can be used (along the same lines as in mail---subsequent lines
 that start with a space are part of the value).
 
 @example
@@ -849,8 +849,8 @@ Code: (indent-region
 
 @table @samp
 @item Name
-All tests should have a name.  This name will appear in the output
-from ert if the test fails, and helps identifying the failing test.
+All tests should have a name.  This name will appear in ERT output if
+the test fails, and helps to identify the failing test.
 
 @item Code
 This is the code that will be run to do the transform.  This can also
@@ -867,7 +867,7 @@ specify.)
 
 @item Point-Char
 Sometimes it's useful to be able to put point at a specific place
-before executing the transform character.  @samp{Point-Char: |} will
+before executing the transform function.  @samp{Point-Char: |} will
 make @code{ert-test-erts-file} place point where @samp{|} is in the
 ``before'' form (and remove that character), and will check that it's
 where the @samp{|} character is in the ``after'' form (and issue a
