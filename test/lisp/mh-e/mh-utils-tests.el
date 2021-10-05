@@ -113,7 +113,7 @@ As `call-process'' and `file-directory-p' will be redefined, the
 native compiler will invoke `call-process' to compile the
 respective trampolines.  To avoid interferences with the
 `call-process' mocking we build these AOT."
-  (when (featurep 'native-compile)
+  (when (native-comp-available-p)
     (mapc #'comp-subr-trampoline-install '(call-process file-directory-p))))
 
 (defun mh-test-utils-setup-with-mocks ()
