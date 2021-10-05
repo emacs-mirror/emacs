@@ -734,7 +734,9 @@ You can add or remove colons and then do \\<edit-tab-stops-map>\\[edit-tab-stops
     (while (> count 0)
       (insert "0123456789")
       (setq count (1- count))))
-  (insert "\nTo install changes, type C-c C-c")
+  (insert (substitute-command-keys
+           (concat "\nTo install changes, type \\<edit-tab-stops-map>"
+                   "\\[edit-tab-stops-note-changes]")))
   (goto-char (point-min)))
 
 (defun edit-tab-stops-note-changes ()

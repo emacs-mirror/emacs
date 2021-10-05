@@ -8535,8 +8535,8 @@ POS defaults to the point."
   (let ((p (cperl-get-here-doc-region pos)))
     (or p (error "Not inside a HERE document"))
     (narrow-to-region (car p) (cdr p))
-    (message
-     "When you are finished with narrow editing, type C-x n w")))
+    (message (substitute-command-keys
+              "When you are finished with narrow editing, type \\[widen]"))))
 
 (defun cperl-select-this-pod-or-here-doc (&optional pos)
   "Select the HERE-DOC (or POD section) at POS.

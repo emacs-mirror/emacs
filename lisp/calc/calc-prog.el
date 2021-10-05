@@ -1447,7 +1447,8 @@ Redefine the corresponding command."
 	   (let ((calc-kbd-push-level 0))
 	     (execute-kbd-macro (substring body 0 -2))))
        (let ((calc-kbd-push-level (1+ calc-kbd-push-level)))
-	 (message "%s" "Saving modes; type Z' to restore")
+         ;; Avoid substituting the "'" character:
+         (message "%s" "Saving modes; type Z' to restore")
 	 (recursive-edit))))))
 
 (defun calc-kbd-pop ()
