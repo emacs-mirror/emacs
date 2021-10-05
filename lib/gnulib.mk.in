@@ -36,6 +36,7 @@
 #  --no-vc-files \
 #  --avoid=btowc \
 #  --avoid=close \
+#  --avoid=crypto/af_alg \
 #  --avoid=dup \
 #  --avoid=fchdir \
 #  --avoid=fstat \
@@ -79,6 +80,7 @@
 #  count-leading-zeros \
 #  count-one-bits \
 #  count-trailing-zeros \
+#  crypto/md5 \
 #  crypto/md5-buffer \
 #  crypto/sha1-buffer \
 #  crypto/sha256-buffer \
@@ -544,8 +546,8 @@ GL_GNULIB_WRITE = @GL_GNULIB_WRITE@
 GL_GNULIB__EXIT = @GL_GNULIB__EXIT@
 GMALLOC_OBJ = @GMALLOC_OBJ@
 GMP_H = @GMP_H@
-GNULIB_GETTIMEOFDAY = @GNULIB_GETTIMEOFDAY@
 GNULIBHEADERS_OVERRIDE_WINT_T = @GNULIBHEADERS_OVERRIDE_WINT_T@
+GNULIB_GETTIMEOFDAY = @GNULIB_GETTIMEOFDAY@
 GNULIB_WARN_CFLAGS = @GNULIB_WARN_CFLAGS@
 GNUSTEP_CFLAGS = @GNUSTEP_CFLAGS@
 GNU_OBJC_CFLAGS = @GNU_OBJC_CFLAGS@
@@ -1472,6 +1474,14 @@ EXTRA_DIST += count-trailing-zeros.h
 
 endif
 ## end   gnulib module count-trailing-zeros
+
+## begin gnulib module crypto/md5
+ifeq (,$(OMIT_GNULIB_MODULE_crypto/md5))
+
+libgnu_a_SOURCES += md5-stream.c
+
+endif
+## end   gnulib module crypto/md5
 
 ## begin gnulib module crypto/md5-buffer
 ifeq (,$(OMIT_GNULIB_MODULE_crypto/md5-buffer))
