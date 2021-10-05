@@ -1079,7 +1079,8 @@ a new window in the current frame, splitting vertically."
   ;; Make sure that redisplay is performed, otherwise there can be a
   ;; bad interaction with code in the window-scroll-functions hook
   (redisplay t)
-  (when (buffer-local-value 'ibuffer-auto-mode (window-buffer))
+  (when (and (boundp 'ibuffer-auto-mode) ; ibuf-ext.el might not be loaded yet
+             (buffer-local-value 'ibuffer-auto-mode (window-buffer)))
     (fit-window-to-buffer
      nil (and owin
               (/ (frame-height)
