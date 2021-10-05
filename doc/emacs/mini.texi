@@ -41,11 +41,14 @@ Alternatively, you can type @kbd{C-g} to exit the minibuffer by
 canceling the command asking for the argument (@pxref{Quitting}).
 
 @cindex default argument
+@vindex minibuffer-default-prompt-format
   Sometimes, the prompt shows a @dfn{default argument}, inside
 parentheses before the colon.  This default will be used as the
 argument if you just type @key{RET}.  For example, commands that read
 buffer names usually show a buffer name as the default; you can type
-@key{RET} to operate on that default buffer.
+@key{RET} to operate on that default buffer.  You can customize how
+the default argument is shown with the user option
+@code{minibuffer-default-prompt-format}.
 
 @cindex Minibuffer Electric Default mode
 @cindex mode, Minibuffer Electric Default
