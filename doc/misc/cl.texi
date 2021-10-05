@@ -5030,7 +5030,7 @@ The above @code{incf} example could be written using
 @ignore
 (defmacro concatf (place &rest args)
   (gv-letplace (getter setter) place
-    (macroexp-let2 nil v (mapconcat 'identity args "")
+    (macroexp-let2 nil v (mapconcat 'identity args)
       (funcall setter `(concat ,getter ,v)))))
 @end ignore
 @end defmac

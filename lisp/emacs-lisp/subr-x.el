@@ -208,7 +208,9 @@ The variable list SPEC is the same as in `if-let'."
   (string= string ""))
 
 (defsubst string-join (strings &optional separator)
-  "Join all STRINGS using SEPARATOR."
+  "Join all STRINGS using SEPARATOR.
+Optional argument SEPARATOR must be a string, a vector, or a list of
+characters; nil stands for the empty string."
   (mapconcat #'identity strings separator))
 
 (define-obsolete-function-alias 'string-reverse 'reverse "25.1")

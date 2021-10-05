@@ -430,6 +430,23 @@
                    (buffer-hash))
                  (sha1 "foo"))))
 
+(ert-deftest fns-tests-mapconcat ()
+  (should (string= (mapconcat #'identity '()) ""))
+  (should (string= (mapconcat #'identity '("a" "b")) "ab"))
+  (should (string= (mapconcat #'identity '() "_") ""))
+  (should (string= (mapconcat #'identity '("A") "_") "A"))
+  (should (string= (mapconcat #'identity '("A" "B") "_") "A_B"))
+  (should (string= (mapconcat #'identity '("A" "B" "C") "_") "A_B_C"))
+  ;; non-ASCII strings
+  (should (string= (mapconcat #'identity '("Ä" "ø" "☭" "தமிழ்") "_漢字_")
+                   "Ä_漢字_ø_漢字_☭_漢字_தமிழ்"))
+  ;; vector
+  (should (string= (mapconcat #'identity ["a" "b"] "") "ab"))
+  ;; bool-vector
+  (should (string= (mapconcat #'identity [nil nil] "") ""))
+  (should-error (mapconcat #'identity [nil nil t])
+                :type 'wrong-type-argument))
+
 (ert-deftest fns-tests-mapcan ()
   (should-error (mapcan))
   (should-error (mapcan #'identity))

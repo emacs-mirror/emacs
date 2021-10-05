@@ -961,14 +961,14 @@ side-effects only---the values it returns are ignored, not collected
 into a list.  @code{mapc} always returns @var{sequence}.
 @end defun
 
-@defun mapconcat function sequence separator
+@defun mapconcat function sequence &optional separator
 @code{mapconcat} applies @var{function} to each element of
 @var{sequence}; the results, which must be sequences of characters
 (strings, vectors, or lists), are concatenated into a single string
 return value.  Between each pair of result sequences, @code{mapconcat}
 inserts the characters from @var{separator}, which also must be a
-string, or a vector or list of characters.  @xref{Sequences Arrays
-Vectors}.
+string, or a vector or list of characters; a @code{nil} value is
+treated as the empty string.  @xref{Sequences Arrays Vectors}.
 
 The argument @var{function} must be a function that can take one
 argument and returns a sequence of characters: a string, a vector, or
@@ -986,8 +986,7 @@ string.
 
 @group
 (mapconcat (lambda (x) (format "%c" (1+ x)))
-           "HAL-8000"
-           "")
+           "HAL-8000")
      @result{} "IBM.9111"
 @end group
 @end example

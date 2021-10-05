@@ -2852,12 +2852,16 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
   return leni;
 }
 
-DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
+DEFUN ("mapconcat", Fmapconcat, Smapconcat, 2, 3, 0,
        doc: /* Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
 In between each pair of results, stick in SEPARATOR.  Thus, " " as
   SEPARATOR results in spaces between the values returned by FUNCTION.
+
 SEQUENCE may be a list, a vector, a bool-vector, or a string.
-SEPARATOR must be a string, a vector, or a list of characters.
+
+Optional argument SEPARATOR must be a string, a vector, or a list of
+characters; nil stands for the empty string.
+
 FUNCTION must be a function of one argument, and must return a value
   that is a sequence of characters: either a string, or a vector or
   list of numbers that are valid character codepoints.  */)
