@@ -40,8 +40,11 @@
 (require 'org-id)
 
 (declare-function dired-dwim-target-directory "dired-aux")
+(declare-function dired-get-marked-files "dired" (&optional localp arg filter distinguish-one-marked error))
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-element-type "org-element" (element))
+(declare-function org-inlinetask-goto-beginning "org-inlinetask" ())
+(declare-function org-inlinetask-in-task-p "org-inlinetask" ())
 
 (defgroup org-attach nil
   "Options concerning attachments in Org mode."
@@ -118,7 +121,7 @@ lns   create a symbol link.  Note that this is not supported
 (defcustom org-attach-use-inheritance 'selective
   "Attachment inheritance for the outline.
 
-Enabling inheritance for org-attach implies two things.  First,
+Enabling inheritance for `org-attach' implies two things.  First,
 that attachment links will look through all parent headings until
 it finds the linked attachment.  Second, that running org-attach
 inside a node without attachments will make org-attach operate on
@@ -243,6 +246,17 @@ Each entry in this list is a list of three elements:
 		       (function :tag "Command")
 		       (string :tag "Docstring"))))
 
+(defcustom org-attach-sync-delete-empty-dir 'query
+  "Determine what to do with an empty attachment directory on sync.
+When set to nil, don't touch the directory.  When set to `query',
+ask the user instead, else remove without asking."
+  :group 'org-attach
+  :package-version '(Org . "9.5")
+  :type '(choice
+	  (const :tag "Never delete" nil)
+	  (const :tag "Always delete" t)
+	  (const :tag "Query the user" query)))
+
 ;;;###autoload
 (defun org-attach ()
   "The dispatcher for attachment commands.
@@ -256,38 +270,45 @@ Shows a list of commands and prompts for another key to execute a command."
       (unless marker
 	(error "No item in current line")))
     (org-with-point-at marker
-      (org-back-to-heading-or-point-min t)
+      (if (and (featurep 'org-inlinetask)
+	       (not (org-inlinetask-in-task-p)))
+	  (org-with-limited-levels
+	   (org-back-to-heading-or-point-min t))
+        (if (and (featurep 'org-inlinetask)
+		 (org-inlinetask-in-task-p))
+            (org-inlinetask-goto-beginning)
+          (org-back-to-heading-or-point-min t)))
       (save-excursion
 	(save-window-excursion
 	  (unless org-attach-expert
 	    (org-switch-to-buffer-other-window "*Org Attach*")
 	    (erase-buffer)
 	    (setq cursor-type nil
-	      header-line-format "Use C-v, M-v, C-n or C-p to navigate.")
+	          header-line-format "Use C-v, M-v, C-n or C-p to navigate.")
 	    (insert
-               (concat "Attachment folder:\n"
-		       (or dir
-			   "Can't find an existing attachment-folder")
-		       (unless (and dir (file-directory-p dir))
-			 "\n(Not yet created)")
-		       "\n\n"
-	               (format "Select an Attachment Command:\n\n%s"
-		               (mapconcat
-		                (lambda (entry)
-		                  (pcase entry
-		                    (`((,key . ,_) ,_ ,docstring)
-		                     (format "%c       %s"
-			                     key
-			                     (replace-regexp-in-string "\n\\([\t ]*\\)"
-							               "        "
-							               docstring
-							               nil nil 1)))
-		                    (_
-		                     (user-error
-			              "Invalid `org-attach-commands' item: %S"
-			              entry))))
-		                org-attach-commands
-		                "\n")))))
+             (concat "Attachment folder:\n"
+		     (or dir
+			 "Can't find an existing attachment-folder")
+		     (unless (and dir (file-directory-p dir))
+		       "\n(Not yet created)")
+		     "\n\n"
+	             (format "Select an Attachment Command:\n\n%s"
+		             (mapconcat
+		              (lambda (entry)
+		                (pcase entry
+		                  (`((,key . ,_) ,_ ,docstring)
+		                   (format "%c       %s"
+			                   key
+			                   (replace-regexp-in-string "\n\\([\t ]*\\)"
+							             "        "
+							             docstring
+							             nil nil 1)))
+		                  (_
+		                   (user-error
+			            "Invalid `org-attach-commands' item: %S"
+			            entry))))
+		              org-attach-commands
+		              "\n")))))
 	  (org-fit-window-to-buffer (get-buffer-window "*Org Attach*"))
 	  (let ((msg (format "Select command: [%s]"
 			     (concat (mapcar #'caar org-attach-commands)))))
@@ -365,7 +386,7 @@ If the attachment by some reason cannot be created an error will be raised."
     attach-dir))
 
 (defun org-attach-dir-from-id (id  &optional try-all)
-  "Returns a folder path based on `org-attach-id-dir' and ID.
+  "Return a folder path based on `org-attach-id-dir' and ID.
 If TRY-ALL is non-nil, try all id-to-path functions in
 `org-attach-id-to-path-function-list' and return the first path
 that exist in the filesystem, or the first one if none exist.
@@ -426,7 +447,7 @@ Return the directory."
     new))
 
 (defun org-attach-unset-directory ()
-  "Removes DIR node property.
+  "Remove DIR node property.
 If attachment folder is changed due to removal of DIR-property
 ask to move attachments to new location and ask to delete old
 attachment-folder.
@@ -591,14 +612,22 @@ with no prompts."
 
 (defun org-attach-sync ()
   "Synchronize the current outline node with its attachments.
-This can be used after files have been added externally."
+Useful after files have been added/removed externally.  Option
+`org-attach-sync-delete-empty-dir' controls the behavior for
+empty attachment directories."
   (interactive)
   (let ((attach-dir (org-attach-dir)))
-    (when attach-dir
+    (if (not attach-dir)
+        (org-attach-tag 'off)
       (run-hook-with-args 'org-attach-after-change-hook attach-dir)
       (let ((files (org-attach-file-list attach-dir)))
-	(org-attach-tag (not files))))
-    (unless attach-dir (org-attach-tag t))))
+	(org-attach-tag (not files)))
+      (when org-attach-sync-delete-empty-dir
+        (when (and (org-directory-empty-p attach-dir)
+                   (if (eq 'query org-attach-sync-delete-empty-dir)
+                       (yes-or-no-p "Attachment directory is empty.  Delete?")
+                     t))
+          (delete-directory attach-dir))))))
 
 (defun org-attach-file-list (dir)
   "Return a list of files in the attachment directory.

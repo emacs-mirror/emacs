@@ -294,6 +294,8 @@ attribute."
 
     (apply 'define-charset-internal name (mapcar 'cdr attrs))))
 
+(defvar hack-read-symbol-shorthands-function nil
+  "Holds function to compute `read-symbol-shorthands'.")
 
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
   "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
@@ -320,7 +322,8 @@ Return t if file exists."
 	  (let ((load-true-file-name fullname)
                 (load-file-name fullname)
                 (set-auto-coding-for-load t)
-		(inhibit-file-name-operation nil))
+		(inhibit-file-name-operation nil)
+                shorthands)
 	    (with-current-buffer buffer
               ;; So that we don't get completely screwed if the
               ;; file is encoded in some complicated character set,
@@ -329,6 +332,13 @@ Return t if file exists."
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
+              (setq shorthands
+                    ;; We need this indirection because hacking local
+                    ;; variables in too early seems to have cause
+                    ;; recursive load loops (bug#50946).  Thus it
+                    ;; remains nil until it is save to do so.
+                    (and hack-read-symbol-shorthands-function
+                         (funcall hack-read-symbol-shorthands-function)))
 	      ;; If the loaded file was inserted with no-conversion or
 	      ;; raw-text coding system, make the buffer unibyte.
 	      ;; Otherwise, eval-buffer might try to interpret random
@@ -339,11 +349,13 @@ Return t if file exists."
 		  (set-buffer-multibyte nil))
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
-	    ;; Have the original buffer current while we eval.
-	    (eval-buffer buffer nil
-			 ;; This is compatible with what `load' does.
-                         (if dump-mode file fullname)
-			 nil t))
+	    ;; Have the original buffer current while we eval,
+            ;; but consider shorthands of the eval'ed one.
+	    (let ((read-symbol-shorthands shorthands))
+              (eval-buffer buffer nil
+			   ;; This is compatible with what `load' does.
+                           (if dump-mode file fullname)
+			   nil t)))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (do-after-load-evaluation fullname)

@@ -113,7 +113,7 @@
 ;;; YACC-Code = "any C definition".
 
 (defun ebnf-yac-parser (start)
-  "yacc/Bison parser."
+  "Yacc/Bison parser."
   (let ((total (+ (- ebnf-limit start) 1))
 	(bias (1- start))
 	(origin (point))

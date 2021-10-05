@@ -597,7 +597,7 @@ or a buffer name."
           (let ((inhibit-read-only t))
             (goto-char (point-min))
             (insert (substitute-command-keys
-                     (concat "\\<outline-mode-cycle-map>Type "
+                     (concat "\\<outline-minor-mode-cycle-map>Type "
                              "\\[outline-cycle] or \\[outline-cycle-buffer] "
                              "on headings to cycle their visibility.\n\n")))
             ;; Hide the longest body
@@ -695,7 +695,11 @@ Returns a list of the form (BRIEF-DESC DEFN EVENT MOUSE-MSG)."
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
 			    (memq 'drag modifiers))
                         " at that spot" ""))
-	 (defn (key-binding key t)))
+         ;; Use mouse-set-point to handle the case when a menu item
+         ;; is selected from the context menu that should describe KEY
+         ;; at the position of mouse click that opened the context menu.
+         ;; When no mouse was involved, it defaults to window-point.
+	 (defn (save-excursion (mouse-set-point event) (key-binding key t))))
     ;; Handle the case where we faked an entry in "Select and Paste" menu.
     (when (and (eq defn nil)
 	       (stringp (aref key (1- (length key))))
@@ -952,8 +956,11 @@ current buffer."
 	    (describe-function-1 defn)))))))
 
 (defun search-forward-help-for-help ()
-  "Search forward \"help window\"."
+  "Search forward in the help-for-help window.
+This command is meant to be used after issuing the `C-h C-h' command."
   (interactive)
+  (unless (get-buffer help-for-help-buffer-name)
+    (error "No %s buffer; use `C-h C-h' first" help-for-help-buffer-name))
   ;; Move cursor to the "help window".
   (pop-to-buffer help-for-help-buffer-name)
   ;; Do incremental search forward.

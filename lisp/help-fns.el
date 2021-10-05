@@ -1181,7 +1181,7 @@ it is displayed along with the global value."
                 (princ (format "Local in buffer %s; "
                                (buffer-name buffer))))
                ((terminal-live-p locus)
-                (princ (format "It is a terminal-local variable; ")))
+                (princ "It is a terminal-local variable; "))
                (t
                 (princ (format "It is local to %S" locus))))
 	      (if (not (default-boundp variable))

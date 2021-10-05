@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 ;;
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: https://orgmode.org
 ;;
@@ -126,31 +126,32 @@ useful to make it ever so slightly different."
 	(make-vector org-indent--deepest-level nil))
   (setq org-indent--text-line-prefixes
 	(make-vector org-indent--deepest-level nil))
-  (dotimes (n org-indent--deepest-level)
-    (let ((indentation (if (<= n 1) 0
-			 (* (1- org-indent-indentation-per-level)
-			    (1- n)))))
-      ;; Headlines line prefixes.
-      (let ((heading-prefix (make-string indentation ?*)))
-	(aset org-indent--heading-line-prefixes
+  (when (> org-indent-indentation-per-level 0)
+    (dotimes (n org-indent--deepest-level)
+      (let ((indentation (if (<= n 1) 0
+			   (* (1- org-indent-indentation-per-level)
+			      (1- n)))))
+        ;; Headlines line prefixes.
+        (let ((heading-prefix (make-string indentation ?*)))
+	  (aset org-indent--heading-line-prefixes
+	        n
+	        (org-add-props heading-prefix nil 'face 'org-indent))
+	  ;; Inline tasks line prefixes
+	  (aset org-indent--inlinetask-line-prefixes
+	        n
+	        (cond ((<= n 1) "")
+		      ((bound-and-true-p org-inlinetask-show-first-star)
+		       (concat org-indent-inlinetask-first-star
+			       (substring heading-prefix 1)))
+		      (t (org-add-props heading-prefix nil 'face 'org-indent)))))
+        ;; Text line prefixes.
+        (aset org-indent--text-line-prefixes
 	      n
-	      (org-add-props heading-prefix nil 'face 'org-indent))
-	;; Inline tasks line prefixes
-	(aset org-indent--inlinetask-line-prefixes
-	      n
-	      (cond ((<= n 1) "")
-		    ((bound-and-true-p org-inlinetask-show-first-star)
-		     (concat org-indent-inlinetask-first-star
-			     (substring heading-prefix 1)))
-		    (t (org-add-props heading-prefix nil 'face 'org-indent)))))
-      ;; Text line prefixes.
-      (aset org-indent--text-line-prefixes
-	    n
-	    (org-add-props
-		(concat (make-string (+ n indentation) ?\s)
-			(and (> n 0)
-			     (char-to-string org-indent-boundary-char)))
-		nil 'face 'org-indent)))))
+	      (org-add-props
+	          (concat (make-string (+ n indentation) ?\s)
+		          (and (> n 0)
+			       (char-to-string org-indent-boundary-char)))
+	          nil 'face 'org-indent))))))
 
 (defsubst org-indent-remove-properties (beg end)
   "Remove indentations between BEG and END."

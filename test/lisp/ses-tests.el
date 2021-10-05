@@ -175,3 +175,5 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
 
 
 (provide 'ses-tests)
+
+;;; ses-tests.el ends here

@@ -551,7 +551,7 @@ has the form (autoload . FILENAME).")
   "Alist of undefined functions to which calls have been compiled.
 Each element in the list has the form (FUNCTION POSITION . CALLS)
 where CALLS is a list whose elements are integers (indicating the
-number of arguments passed in the function call) or the constant `t'
+number of arguments passed in the function call) or the constant t
 if the function is called indirectly.
 This variable is only significant whilst compiling an entire buffer.
 Used for warnings when a function is not known to be defined or is later
@@ -1649,16 +1649,27 @@ URLs."
    (replace-regexp-in-string
     (rx (or
          ;; Ignore some URLs.
-         (seq "http" (? "s") "://" (* anychar))
+         (seq "http" (? "s") "://" (* nonl))
          ;; Ignore these `substitute-command-keys' substitutions.
          (seq "\\" (or "="
                        (seq "<" (* (not ">")) ">")
                        (seq "{" (* (not "}")) "}")))
          ;; Ignore the function signature that's stashed at the end of
          ;; the doc string (in some circumstances).
-         (seq bol "(fn (" (* nonl))))
+         (seq bol "(" (+ (any word "-/:[]&"))
+              ;; One or more arguments.
+              (+ " " (or
+                      ;; Arguments.
+                      (+ (or (syntax symbol)
+                             (any word "-/:[]&=().?^\\#'")))
+                      ;; Argument that is a list.
+                      (seq "(" (* (not ")")) ")")))
+              ")")))
     ""
-    ;; Heuristic: assume these substitutions are of some length N.
+    ;; Heuristic: We can't reliably do `subsititute-command-keys'
+    ;; substitutions, since the value of a keymap in general can't be
+    ;; known at compile time.  So instead, we assume that these
+    ;; substitutions are of some length N.
     (replace-regexp-in-string
      (rx "\\" (or (seq "[" (* (not "]")) "]")))
      (make-string byte-compile--wide-docstring-substitution-len ?x)
@@ -1678,13 +1689,6 @@ value, it will override this variable."
   "Warn if documentation string of FORM is too wide.
 It is too wide if it has any lines longer than the largest of
 `fill-column' and `byte-compile-docstring-max-column'."
-  ;; This has some limitations that it would be nice to fix:
-  ;; 1. We don't try to handle defuns.  It is somewhat tricky to get
-  ;;    it right since `defun' is a macro.  Also, some macros
-  ;;    themselves produce defuns (e.g. `define-derived-mode').
-  ;; 2. We assume that any `subsititute-command-keys' command replacement has a
-  ;;    given length.  We can't reliably do these replacements, since the value
-  ;;    of the keymaps in general can't be known at compile time.
   (when (byte-compile-warning-enabled-p 'docstrings)
     (let ((col (max byte-compile-docstring-max-column fill-column))
           kind name docs)
@@ -1695,12 +1699,10 @@ It is too wide if it has any lines longer than the largest of
          (setq kind (nth 0 form))
          (setq name (nth 1 form))
          (setq docs (nth 3 form)))
-        ;; Here is how one could add lambda's here:
-        ;; ('lambda
-        ;;   (setq kind "")   ; can't be "function", unfortunately
-        ;;   (setq docs (and (stringp (nth 2 form))
-        ;;                   (nth 2 form))))
-        )
+        ('lambda
+          (setq kind "")          ; can't be "function", unfortunately
+          (setq docs (and (stringp (nth 2 form))
+                          (nth 2 form)))))
       (when (and (consp name) (eq (car name) 'quote))
         (setq name (cadr name)))
       (setq name (if name (format " `%s'" name) ""))
@@ -2930,6 +2932,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		   (macroexp--const-symbol-p arg t))
 	       (error "Invalid lambda variable %s" arg))
 	      ((eq arg '&rest)
+               (unless (cdr list)
+                 (error "&rest without variable name"))
 	       (when (cddr list)
 		 (error "Garbage following &rest VAR in lambda-list"))
                (when (memq (cadr list) '(&optional &rest))
@@ -4417,7 +4421,7 @@ Return (TAIL VAR TEST CASES), where:
          (cases (nth 2 switch))
          jump-table test-objects body tag default-tag)
     ;; TODO: Once :linear-search is implemented for `make-hash-table'
-    ;; set it to `t' for cond forms with a small number of cases.
+    ;; set it to t for cond forms with a small number of cases.
     (let ((nvalues (apply #'+ (mapcar (lambda (case) (length (car case)))
                                       cases))))
       (setq jump-table (make-hash-table
@@ -4446,7 +4450,7 @@ Return (TAIL VAR TEST CASES), where:
     (byte-compile-out 'byte-switch)
 
     ;; When the opcode argument is `byte-goto', `byte-compile-goto' sets
-    ;; `byte-compile-depth' to `nil'. However, we need `byte-compile-depth'
+    ;; `byte-compile-depth' to nil. However, we need `byte-compile-depth'
     ;; to be non-nil for generating tags for all cases. Since
     ;; `byte-compile-depth' will increase by at most 1 after compiling
     ;; all of the clause (which is further enforced by cl-assert below)

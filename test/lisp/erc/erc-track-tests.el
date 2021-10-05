@@ -119,3 +119,5 @@
                        '(bold erc-current-nick-face) str1)
     (should (erc-faces-in str0))
     (should (erc-faces-in str1)) ))
+
+;;; erc-track-tests.el ends here

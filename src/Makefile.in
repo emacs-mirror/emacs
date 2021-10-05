@@ -55,6 +55,8 @@ lwlibdir = ../lwlib
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+
 ## ns-app if NS self contained app, else empty.
 OTHER_FILES = @OTHER_FILES@
 
@@ -452,6 +454,9 @@ ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
 all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
+ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
+all: ../native-lisp
+endif
 .PHONY: all
 
 dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h \
@@ -777,6 +782,42 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 %.elc: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
 		THEFILE=$< $<c
+
+ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
+## The following rules are used only when building a source tarball
+## for the first time, when the native-lisp/ directory doesn't yet
+## exist and needs to be created and populated with the preloaded
+## *.eln files.
+
+## List of *.eln files we need to produce in addition to the preloaded
+## ones in $(lisp).
+elnlisp := \
+	emacs-lisp/autoload.eln \
+	emacs-lisp/byte-opt.eln \
+	emacs-lisp/bytecomp.eln \
+	emacs-lisp/cconv.eln \
+	international/charscript.eln \
+	emacs-lisp/comp.eln \
+	emacs-lisp/comp-cstr.eln \
+	international/emoji-zwj.eln
+elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
+
+%.eln: %.el | emacs$(EXEEXT) $(pdmp)
+	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="../src/emacs$(EXEEXT)"\
+		THEFILE=$< $<n
+
+../native-lisp: | $(pdmp)
+	if test ! -d $@; then \
+	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
+	  if test $(SYSTEM_TYPE) = cygwin; then \
+	    find $@ -name '*.eln' | rebase -v -O -T -; \
+	  fi; \
+	  LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR) \
+	  && cp -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT) \
+	  && cp -f $(pdmp) $(bootstrap_pdmp); \
+	fi
+endif
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
 ## We use it as a heuristic to decide when to rebuild loaddefs.el.

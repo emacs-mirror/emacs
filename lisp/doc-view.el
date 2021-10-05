@@ -727,7 +727,7 @@ It's a subdirectory of `doc-view-cache-directory'."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (concat (thread-last
-                        (file-name-nondirectory doc-view--buffer-file-name)
+                      (file-name-nondirectory doc-view--buffer-file-name)
                       ;; bug#13679
                       (subst-char-in-string ?% ?_)
                       ;; arc-mode concatenates archive name and file name

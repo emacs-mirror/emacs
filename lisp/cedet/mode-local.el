@@ -600,16 +600,17 @@ BODY is the implementation of this function."
     `(progn
        (eval-and-compile
 	 (defun ,newname ,args
-	   ,(format "%s\n\nOverride %s in `%s' buffers."
-		    docstring name mode)
+           ,(concat docstring "\n"
+                    (internal--format-docstring-line
+                     "Override `%s' in `%s' buffers."
+                     name mode))
 	   ;; The body for this implementation
 	   ,@body)
          ;; For find-func to locate the definition of NEWNAME.
          (put ',newname 'definition-name ',name))
        (mode-local-bind '((,name . ,newname))
                         '(override-flag t)
-                        ',mode))
-    ))
+                        ',mode))))
 
 ;;; Read/Query Support
 (defun mode-local-read-function (prompt &optional initial hist default)

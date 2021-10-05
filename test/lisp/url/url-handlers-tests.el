@@ -1,4 +1,4 @@
-;;; url-handlers-test.el --- Test suite for url-handlers.el  -*- lexical-binding: t; -*-
+;;; url-handlers-tests.el --- Test suite for url-handlers.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
@@ -73,5 +73,4 @@
     (should (equal (file-name-directory "https://foo.org/")
                    "https://foo.org/"))))
 
-(provide 'url-handlers-test)
-;;; url-handlers-test.el ends here
+;;; url-handlers-tests.el ends here

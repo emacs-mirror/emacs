@@ -241,7 +241,7 @@ all other buffers."
 (defun next-error-buffer-on-selected-frame (&optional _avoid-current
                                                       extra-test-inclusive
                                                       extra-test-exclusive)
-  "Return a single visible next-error buffer on the selected frame."
+  "Return a single visible `next-error' buffer on the selected frame."
   (let ((window-buffers
          (delete-dups
           (delq nil (mapcar (lambda (w)
@@ -589,6 +589,9 @@ text-property `hard'.
 A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
   (interactive "*P\np")
   (barf-if-buffer-read-only)
+  (when (and arg
+             (< arg 0))
+    (error "Repetition argument has to be non-negative"))
   ;; Call self-insert so that auto-fill, abbrev expansion etc. happen.
   ;; Set last-command-event to tell self-insert what to insert.
   (let* ((was-page-start (and (bolp) (looking-at page-delimiter)))
@@ -2133,21 +2136,23 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
      command-names)))
 
 (defcustom suggest-key-bindings t
-  "Non-nil means show the equivalent key-binding when M-x command has one.
+  "Non-nil means show the equivalent keybinding when \
+\\[execute-extended-command] has one.
 The value can be a length of time to show the message for.
 If the value is non-nil and not a number, we wait 2 seconds.
 
 Also see `extended-command-suggest-shorter'.
 
 Equivalent key-bindings are also shown in the completion list of
-M-x for all commands that have them."
+\\[execute-extended-command] for all commands that have them."
   :group 'keyboard
   :type '(choice (const :tag "off" nil)
-                 (integer :tag "time" 2)
+                 (natnum :tag "time" 2)
                  (other :tag "on")))
 
 (defcustom extended-command-suggest-shorter t
-  "If non-nil, show a shorter M-x invocation when there is one.
+  "If non-nil, show a shorter \\[execute-extended-command] invocation \
+when there is one.
 
 Also see `suggest-key-bindings'."
   :group 'keyboard
@@ -2940,8 +2945,9 @@ undo record: if we undo from 4, `pending-undo-list' will be at 3,
 (defvar undo-in-region nil
   "Non-nil if `pending-undo-list' is not just a tail of `buffer-undo-list'.")
 
-(defvar undo-no-redo nil
-  "If t, `undo' doesn't go through redo entries.")
+(defcustom undo-no-redo nil
+  "If t, `undo' doesn't go through redo entries."
+  :type 'boolean)
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.
@@ -3522,7 +3528,7 @@ with < or <= based on USE-<."
 ;; called or in some cases on a timer called after a change is made in
 ;; any buffer.
 (defvar-local undo-auto--last-boundary-cause nil
-  "Describe the cause of the last undo-boundary.
+  "Describe the cause of the last `undo-boundary'.
 
 If `explicit', the last boundary was caused by an explicit call to
 `undo-boundary', that is one not called by the code in this
@@ -9817,11 +9823,13 @@ warning using STRING as the message.")
 
 The argument `COMMAND' should be a symbol.
 
-Running `M-x COMMAND RET' for the first time prompts for which
+Running `\\[execute-extended-command] COMMAND RET' for \
+the first time prompts for which
 alternative to use and records the selected command as a custom
 variable.
 
-Running `C-u M-x COMMAND RET' prompts again for an alternative
+Running `\\[universal-argument] \\[execute-extended-command] COMMAND RET' \
+prompts again for an alternative
 and overwrites the previous choice.
 
 The variable `COMMAND-alternatives' contains an alist with

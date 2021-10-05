@@ -184,8 +184,8 @@ mouse-3: Remove current window from display"))
 (defvar mode-line-front-space '(:eval (if (display-graphic-p) " " "-"))
   "Mode line construct to put at the front of the mode line.
 By default, this construct is displayed right at the beginning of
-the mode line, except that if there is a memory-full message, it
-is displayed first.")
+the mode line, except that if there is a \"memory full\" message,
+it is displayed first.")
 (put 'mode-line-front-space 'risky-local-variable t)
 
 (defun mode-line-mule-info-help-echo (window _object _point)
@@ -994,6 +994,9 @@ if `inhibit-field-text-motion' is non-nil."
   "Keymap to repeat undo key sequences `C-x u u'.  Used in `repeat-mode'.")
 (put 'undo 'repeat-map 'undo-repeat-map)
 
+(define-key global-map '[(control ??)] 'undo-redo)
+(define-key global-map [?\C-\M-_] 'undo-redo)
+
 (define-key esc-map "!" 'shell-command)
 (define-key esc-map "|" 'shell-command-on-region)
 (define-key esc-map "&" 'async-shell-command)
@@ -1086,7 +1089,7 @@ if `inhibit-field-text-motion' is non-nil."
     (define-key map    "p" 'previous-error)
     (define-key map "\M-p" 'previous-error)
     map)
-  "Keymap to repeat next-error key sequences.  Used in `repeat-mode'.")
+  "Keymap to repeat `next-error' key sequences.  Used in `repeat-mode'.")
 (put 'next-error 'repeat-map 'next-error-repeat-map)
 (put 'previous-error 'repeat-map 'next-error-repeat-map)
 

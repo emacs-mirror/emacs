@@ -402,7 +402,7 @@ Remove the trailing text that matches @var{regexp} from @var{string}.
 
 @defun string-trim string &optional trim-left trim-right
 Remove the leading text that matches @var{trim-left} and trailing text
-that matches @var{trim-right} from from @var{string}.  Both regexps
+that matches @var{trim-right} from @var{string}.  Both regexps
 default to @samp{[ \t\n\r]+}.
 @end defun
 

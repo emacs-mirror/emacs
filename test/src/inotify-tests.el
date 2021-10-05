@@ -70,4 +70,4 @@
 
 (provide 'inotify-tests)
 
-;;; inotify-tests.el ends here.
+;;; inotify-tests.el ends here

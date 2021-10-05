@@ -276,8 +276,7 @@ this robin package will be the following.
        (?c \"AC\"
 	   (?d \"ACD\")
 	   (?e \"ACE\")))
-   (?b \"B\"))
-")
+   (?b \"B\"))")
 
 ;;;###autoload
 (defmacro robin-define-package (name docstring &rest rules)

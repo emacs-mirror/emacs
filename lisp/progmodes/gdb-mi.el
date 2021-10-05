@@ -467,8 +467,8 @@ GDB session needs to be restarted for this setting to take effect."
 ;; TODO Some commands can't be called with --all (give a notice about
 ;; it in setting doc)
 (defcustom gdb-gud-control-all-threads t
-  "When non-nil, GUD execution commands affect all threads when
-in non-stop mode.  Otherwise, only current thread is affected."
+  "When non-nil, GUD execution commands affect all threads when in non-stop mode.
+Otherwise, only current thread is affected."
   :type 'boolean
   :group 'gdb-non-stop
   :version "23.2")
@@ -766,7 +766,9 @@ NOARG must be t when this macro is used outside `gud-def'."
       ;; Apparently we're not running with -i=mi (or we're, for
       ;; instance, debugging something inside a Docker instance with
       ;; Emacs on the outside).
-      (let ((msg "Error: Either -i=mi wasn't specified on the GDB command line, or the extra socket couldn't be established.  Consider using `M-x gud-gdb' instead."))
+      (let ((msg (substitute-command-keys
+                  "Error: Either -i=mi wasn't specified on the GDB command line,\
+ or the extra socket couldn't be established.  Consider using \\[gud-gdb] instead.")))
         (message msg)
         (setq string (concat (propertize msg 'font-lock-face 'error)
                              "\n" string)))
@@ -1483,7 +1485,7 @@ INDENT is the current indentation depth."
 		(expr (nth 1 var)) (children (nth 2 var)))
 	   (if (or (<= (string-to-number children) gdb-max-children)
 		   (y-or-n-p
-		    (format "%s has %s children. Continue? " expr children)))
+                    (format "%s has %s children.  Continue?" expr children)))
 	       (gdb-var-list-children token))))
 	((string-search "-" text)	;contract this node
 	 (dolist (var gdb-var-list)

@@ -1636,7 +1636,7 @@ SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
     (format-time-string "%FT%T%z" (encode-time time) 0)))
 
 (defun icalendar-tests--decode-isodatetime (_ical-string)
-  "Test icalendar--decode-isodatetime."
+  "Test `icalendar--decode-isodatetime'."
   (should (equal (icalendar-test--format "20040917T050910-0200")
                  "2004-09-17T03:09:10+0000"))
   (should (equal (icalendar-test--format "20040917T050910")

@@ -1122,8 +1122,9 @@ IGNORE arguments."
     (setq-local recentf-edit-list nil)
     (widget-insert
      (format-message
-      "Click on OK to delete selected files from the recent list.
-Click on Cancel or type `q' to cancel.\n"))
+      (substitute-command-keys
+       "Click on OK to delete selected files from the recent list.
+Click on Cancel or type \\[recentf-cancel-dialog] to cancel.\n")))
     ;; Insert the list of files as checkboxes
     (dolist (item recentf-list)
       (widget-create 'checkbox
@@ -1221,7 +1222,8 @@ use for the dialog.  It defaults to \"*`recentf-menu-title'*\"."
                        ", or type the corresponding digit key,"
                      "")
                    " to open it.\n"
-                   (format-message "Click on Cancel or type `q' to cancel.\n"))
+                   (substitute-command-keys
+                    "Click on Cancel or type \\[recentf-cancel-dialog] to cancel.\n"))
     ;; Use a L&F that looks like the recentf menu.
     (tree-widget-set-theme "folder")
     (apply #'widget-create

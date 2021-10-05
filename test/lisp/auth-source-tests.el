@@ -389,6 +389,7 @@
 
             ;; Check, that the item has been created indeed.
             (auth-source-forget+ :host t)
+            (setq auth-source-netrc-cache nil)
             (setq auth-info (car (auth-source-search :host host))
 	          auth-passwd (plist-get auth-info :secret)
 	          auth-passwd (if (functionp auth-passwd)

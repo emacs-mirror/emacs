@@ -213,8 +213,7 @@ proper index number for SYMBOL.  PROP should be
   (ccl-embed-data (cons symbol prop)))
 
 (defun ccl-embed-string (len str)
-  "Embed string STR of length LEN in `ccl-program-vector' at
-`ccl-current-ic'."
+  "Embed string STR of length LEN in `ccl-program-vector' at `ccl-current-ic'."
   (if (> len #xFFFFF)
       (error "CCL: String too long: %d" len))
   (if (> (string-bytes str) len)
@@ -282,8 +281,7 @@ changed to a relative jump address."
 (defvar ccl-loop-head nil
   "If non-nil, index of the start of the current loop.")
 (defvar ccl-breaks nil
-  "If non-nil, list of absolute addresses of the breaking points of
-the current loop.")
+  "If non-nil, list of absolute addresses of breaking points of the current loop.")
 
 ;;;###autoload
 (defun ccl-compile (ccl-program)
@@ -568,8 +566,8 @@ If READ-FLAG is non-nil, this statement has the form
 			     (cdr (cdr cmd))))
 
 (defun ccl-compile-branch-expression (expr cmd)
-  "Compile EXPRESSION part of BRANCH statement and return register
-which holds a value of the expression."
+  "Compile EXPRESSION part of BRANCH statement.
+Return register which holds a value of the expression."
   (if (listp expr)
       ;; EXPR has the form `(EXPR2 OP ARG)'.  Compile it as SET
       ;; statement of the form `(r7 = (EXPR2 OP ARG))'.
@@ -1554,8 +1552,7 @@ MAP :=
 
 MAP-IDs := MAP-ID ...
 MAP-SET := MAP-IDs | (MAP-IDs) MAP-SET
-MAP-ID := integer
-"
+MAP-ID := integer"
   (declare (doc-string 3))
   `(let ((prog ,(unwind-protect
 		    (progn

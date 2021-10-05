@@ -348,7 +348,7 @@ nothing is dragged.")
 (defun ruler-mode-text-scaled-width (width)
   "Compute scaled text width according to current font scaling.
 Convert a width of char units into a text-scaled char width units,
-Ex. `window-hscroll'."
+for example `window-hscroll'."
   (/ (* width (frame-char-width)) (default-font-width)))
 
 (defun ruler-mode-text-scaled-window-hscroll ()

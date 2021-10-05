@@ -52,6 +52,7 @@
 (require 'vc-git)
 (require 'vc-hg)
 
+(declare-function tramp-check-remote-uname "tramp-sh")
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-chmod-h "tramp-sh")
 (declare-function tramp-get-remote-gid "tramp-sh")
@@ -68,6 +69,7 @@
 (defvar tramp-connection-properties)
 (defvar tramp-copy-size-limit)
 (defvar tramp-display-escape-sequence-regexp)
+(defvar tramp-fuse-unmount-on-cleanup)
 (defvar tramp-inline-compress-start-size)
 (defvar tramp-persistency-file-name)
 (defvar tramp-remote-path)
@@ -4587,7 +4589,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (while (accept-process-output proc 0 nil t))))
 		(should
 		 (string-match-p
-		  (if (memq process-connection-type '(nil pipe))
+		  (if (and (memq process-connection-type '(nil pipe))
+                           (not (tramp--test-macos-p)))
+                      ;; On macOS, there is always newline conversion.
 		      ;; `telnet' converts \r to <CR><NUL> if `crlf'
 		      ;; flag is FALSE.  See telnet(1) man page.
 		      "66\n6F\n6F\n0D\\(\n00\\)?\n0A\n"
@@ -4852,8 +4856,10 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		      (while (accept-process-output proc 0 nil t))))
 		  (should
 		   (string-match-p
-		    (if (memq (or connection-type process-connection-type)
-			      '(nil pipe))
+		    (if (and (memq (or connection-type process-connection-type)
+			           '(nil pipe))
+                             (not (tramp--test-macos-p)))
+                        ;; On macOS, there is always newline conversion.
 			;; `telnet' converts \r to <CR><NUL> if `crlf'
 			;; flag is FALSE.  See telnet(1) man page.
 			"66\n6F\n6F\n0D\\(\n00\\)?\n0A\n"
@@ -5879,10 +5885,7 @@ Use direct async.")
 	  tramp-allow-unsafe-temporary-files
           (inhibit-message t)
 	  ;; tramp-rclone.el and tramp-sshfs.el cache the mounted files.
-	  (tramp-cleanup-connection-hook
-	   (append
-	    (and (tramp--test-fuse-p) '(tramp-fuse-unmount))
-	    tramp-cleanup-connection-hook))
+	  (tramp-fuse-unmount-on-cleanup t)
           auto-save-default
 	  noninteractive)
 
@@ -6062,7 +6065,7 @@ This requires restrictions of file name syntax."
    'tramp-ftp-file-name-handler))
 
 (defun tramp--test-crypt-p ()
-  "Check, whether the remote directory is crypted"
+  "Check, whether the remote directory is crypted."
   (tramp-crypt-file-name-p tramp-test-temporary-file-directory))
 
 (defun tramp--test-docker-p ()
@@ -6099,8 +6102,7 @@ If optional METHOD is given, it is checked first."
 Several special characters do not work properly there."
   ;; We must refill the cache.  `file-truename' does it.
   (file-truename tramp-test-temporary-file-directory)
-  (string-match-p
-   "^HP-UX" (tramp-get-connection-property tramp-test-vec "uname" "")))
+  (tramp-check-remote-uname tramp-test-vec "^HP-UX"))
 
 (defun tramp--test-ksh-p ()
   "Check, whether the remote shell is ksh.
@@ -6110,6 +6112,12 @@ a $'' syntax."
   (file-truename tramp-test-temporary-file-directory)
   (string-match-p
    "ksh$" (tramp-get-connection-property tramp-test-vec "remote-shell" "")))
+
+(defun tramp--test-macos-p ()
+  "Check, whether the remote host runs macOS."
+  ;; We must refill the cache.  `file-truename' does it.
+  (file-truename tramp-test-temporary-file-directory)
+  (tramp-check-remote-uname tramp-test-vec "Darwin"))
 
 (defun tramp--test-mock-p ()
   "Check, whether the mock method is used.
@@ -6788,6 +6796,8 @@ process sentinels.  They shall not disturb each other."
                           (default-directory tmp-name)
                           (file
                            (buffer-name
+                            ;; Use `seq-random-elt' once <26.1 support
+                            ;; is dropped.
                             (nth (random (length buffers)) buffers)))
 			  ;; A remote operation in a timer could
 			  ;; confuse Tramp heavily.  So we ignore this
@@ -6853,6 +6863,7 @@ process sentinels.  They shall not disturb each other."
             ;; the buffers.  Mix with regular operation.
             (let ((buffers (copy-sequence buffers)))
               (while buffers
+                ;; Use `seq-random-elt' once <26.1 support is dropped.
                 (let* ((buf (nth (random (length buffers)) buffers))
                        (proc (get-buffer-process buf))
                        (file (process-get proc 'foo))

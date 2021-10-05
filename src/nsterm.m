@@ -1021,15 +1021,6 @@ ns_update_begin (struct frame *f)
 
   ns_update_auto_hide_menu_bar ();
 
-  NSToolbar *toolbar = [[FRAME_NS_VIEW (f) window] toolbar];
-  if (toolbar)
-  {
-    /* Ensure the toolbars visibility is set correctly.  */
-    BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (f) ? YES : NO;
-    if (! tbar_visible != ! [toolbar isVisible])
-      [toolbar setVisible: tbar_visible];
-  }
-
   ns_updating_frame = f;
   [view lockFocus];
 }
@@ -2710,10 +2701,10 @@ ns_scroll_run (struct window *w, struct run *run)
 
   {
     NSRect srcRect = NSMakeRect (x, from_y, width, height);
-    NSRect dstRect = NSMakeRect (x, to_y, width, height);
+    NSPoint dest = NSMakePoint (x, to_y);
     EmacsView *view = FRAME_NS_VIEW (f);
 
-    [view copyRect:srcRect to:dstRect];
+    [view copyRect:srcRect to:dest];
 #ifdef NS_IMPL_COCOA
     [view setNeedsDisplayInRect:srcRect];
 #endif
@@ -2835,11 +2826,11 @@ ns_shift_glyphs_for_insert (struct frame *f,
    -------------------------------------------------------------------------- */
 {
   NSRect srcRect = NSMakeRect (x, y, width, height);
-  NSRect dstRect = NSMakeRect (x+shift_by, y, width, height);
+  NSPoint dest = NSMakePoint (x+shift_by, y);
 
   NSTRACE ("ns_shift_glyphs_for_insert");
 
-  [FRAME_NS_VIEW (f) copyRect:srcRect to:dstRect];
+  [FRAME_NS_VIEW (f) copyRect:srcRect to:dest];
 }
 
 
@@ -6983,13 +6974,18 @@ not_in_argv (NSString *arg)
   if (! FRAME_LIVE_P (emacsframe))
     return;
 
-  frame = [self frame];
+  frame = [[self superview] bounds];
   width = (int)NSWidth (frame);
   height = (int)NSHeight (frame);
 
   NSTRACE_SIZE ("New size", NSMakeSize (width, height));
   NSTRACE_SIZE ("Original size", size);
 
+  /* Reset the frame size to match the bounds of the superview (the
+     NSWindow's contentView).  We need to do this as sometimes the
+     view's frame isn't resized correctly, or can end up with the
+     wrong origin.  */
+  [self setFrame:frame];
   change_frame_size (emacsframe, width, height, false, YES, false);
 
   SET_FRAME_GARBAGED (emacsframe);
@@ -7401,7 +7397,6 @@ not_in_argv (NSString *arg)
     }
   else
     {
-      BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (emacsframe) ? YES : NO;
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070 \
   && MAC_OS_X_VERSION_MIN_REQUIRED <= 1070
       unsigned val = (unsigned)[NSApp presentationOptions];
@@ -7419,7 +7414,6 @@ not_in_argv (NSString *arg)
           [NSApp setPresentationOptions: options];
         }
 #endif
-      [[[self window]toolbar] setVisible:tbar_visible];
     }
 }
 
@@ -7460,14 +7454,6 @@ not_in_argv (NSString *arg)
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
   [self updateCollectionBehavior];
 #endif
-  if (FRAME_EXTERNAL_TOOL_BAR (emacsframe))
-    {
-      [[[self window] toolbar] setVisible:YES];
-      update_frame_tool_bar (emacsframe);
-      [[self window] display];
-    }
-  else
-    [[[self window] toolbar] setVisible:NO];
 
   if (next_maximized != -1)
     [[self window] performZoom:self];
@@ -7873,17 +7859,39 @@ not_in_argv (NSString *arg)
 #endif /* NS_IMPL_COCOA */
 
 
-- (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect
+- (void)copyRect:(NSRect)srcRect to:(NSPoint)dest
 {
   NSTRACE ("[EmacsView copyRect:To:]");
   NSTRACE_RECT ("Source", srcRect);
-  NSTRACE_RECT ("Destination", dstRect);
+  NSTRACE_POINT ("Destination", dest);
+
+  NSRect dstRect = NSMakeRect (dest.x, dest.y, NSWidth (srcRect),
+                               NSHeight (srcRect));
+  NSRect frame = [self frame];
+
+  /* TODO: This check is an attempt to debug a rare graphical glitch
+     on macOS and should be removed before the Emacs 28 release.  */
+  if (!NSContainsRect (frame, srcRect)
+      || !NSContainsRect (frame, dstRect))
+    {
+      NSLog (@"[EmacsView copyRect:to:] Attempting to copy to or "
+             "from an area outside the graphics buffer.");
+      NSLog (@"  Frame: (%f, %f) %f×%f",
+             NSMinX (frame), NSMinY (frame),
+             NSWidth (frame), NSHeight (frame));
+      NSLog (@"  Source: (%f, %f) %f×%f",
+             NSMinX (srcRect), NSMinY (srcRect),
+             NSWidth (srcRect), NSHeight (srcRect));
+      NSLog (@"  Destination: (%f, %f) %f×%f",
+             NSMinX (dstRect), NSMinY (dstRect),
+             NSWidth (dstRect), NSHeight (dstRect));
+    }
 
 #ifdef NS_IMPL_COCOA
   if ([self wantsLayer])
     {
       double scale = [[self window] backingScaleFactor];
-      CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
+      CGContextRef context = [(EmacsLayer *)[self layer] getContext];
       int bpp = CGBitmapContextGetBitsPerPixel (context) / 8;
       void *pixels = CGBitmapContextGetData (context);
       int rowSize = CGBitmapContextGetBytesPerRow (context);
@@ -7892,8 +7900,8 @@ not_in_argv (NSString *arg)
                         + (int) (NSMinY (srcRect) * scale * rowSize
                                  + NSMinX (srcRect) * scale * bpp);
       void *dstPixels = (char *) pixels
-                        + (int) (NSMinY (dstRect) * scale * rowSize
-                                 + NSMinX (dstRect) * scale * bpp);
+                        + (int) (dest.y * scale * rowSize
+                                 + dest.x * scale * bpp);
 
       if (NSIntersectsRect (srcRect, dstRect)
           && NSMinY (srcRect) < NSMinY (dstRect))
@@ -8298,8 +8306,7 @@ not_in_argv (NSString *arg)
         [self setOpaque:NO];
 
       /* toolbar support */
-      if (! FRAME_UNDECORATED (f))
-        [self createToolbar:f];
+      [self createToolbar:f];
 
       /* macOS Sierra automatically enables tabbed windows.  We can't
          allow this to be enabled until it's available on a Free system.
@@ -8316,13 +8323,17 @@ not_in_argv (NSString *arg)
 
 - (void)createToolbar: (struct frame *)f
 {
+  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f))
+    return;
+
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
 
   EmacsToolbar *toolbar = [[EmacsToolbar alloc]
                             initForView:view
                             withIdentifier:[NSString stringWithLispString:f->name]];
-  [toolbar setVisible:NO];
+
   [self setToolbar:toolbar];
+  update_frame_tool_bar_1 (f, toolbar);
 
 #ifdef NS_IMPL_COCOA
   {

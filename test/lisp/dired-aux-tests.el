@@ -159,4 +159,4 @@
     (dired-test--check-highlighting (nth 0 lines) '(8))))
 
 (provide 'dired-aux-tests)
-;; dired-aux-tests.el ends here
+;;; dired-aux-tests.el ends here

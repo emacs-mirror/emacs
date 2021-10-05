@@ -489,4 +489,4 @@ tag that contains point, and return that."
 
 (provide 'semantic-ia-utest)
 
-;;; semantic-ia-utest.el ends here
+;;; semantic-utest-ia.el ends here

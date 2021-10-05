@@ -848,7 +848,7 @@ via `set-message-function'."
                 (run-with-timer minibuffer-message-clear-timeout nil
                                 #'clear-minibuffer-message)))
 
-        ;; Return `t' telling the caller that the message
+        ;; Return t telling the caller that the message
         ;; was handled specially by this function.
         t))))
 
@@ -1824,8 +1824,9 @@ in one column."
 
 (defcustom completions-detailed nil
   "When non-nil, display completions with details added as prefix/suffix.
-Some commands might provide a detailed view with more information prepended
-or appended to completions."
+This makes some commands (for instance, \\[describe-symbol]) provide a
+detailed view with more information prepended or appended to
+completions."
   :type 'boolean
   :version "28.1")
 

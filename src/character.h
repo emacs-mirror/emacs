@@ -82,6 +82,8 @@ enum
   LEFT_ANGLE_BRACKET = 0x3008,
   RIGHT_ANGLE_BRACKET = 0x3009,
   OBJECT_REPLACEMENT_CHARACTER = 0xFFFC,
+  TAG_SPACE = 0xE0020,
+  CANCEL_TAG = 0xE007F,
 };
 
 extern int char_string (unsigned, unsigned char *);

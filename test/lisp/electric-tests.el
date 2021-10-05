@@ -35,7 +35,8 @@
 (defun call-with-saved-electric-modes (fn)
   (let ((saved-electric (if electric-pair-mode 1 -1))
         (saved-layout (if electric-layout-mode 1 -1))
-        (saved-indent (if electric-indent-mode 1 -1)))
+        (saved-indent (if electric-indent-mode 1 -1))
+        (blink-paren-function nil))
     (electric-pair-mode -1)
     (electric-layout-mode -1)
     (electric-indent-mode -1)
@@ -53,17 +54,18 @@
                                        expected-point mode bindings
                                        fixture-fn &optional doc-string)
   (with-temp-buffer
-    (funcall mode)
-    (insert fixture)
-    (save-electric-modes
-      (let ((last-command-event char)
-            (transient-mark-mode 'lambda))
-        (goto-char where)
-        (funcall fixture-fn)
-        (cl-progv
-            (mapcar #'car bindings)
-            (mapcar #'cdr bindings)
-          (call-interactively (key-binding `[,last-command-event])))))
+    (dlet ((python-indent-guess-indent-offset-verbose nil))
+      (funcall mode)
+      (insert fixture)
+      (save-electric-modes
+       (let ((last-command-event char)
+             (transient-mark-mode 'lambda))
+         (goto-char where)
+         (funcall fixture-fn)
+         (cl-progv
+             (mapcar #'car bindings)
+             (mapcar #'cdr bindings)
+           (call-interactively (key-binding `[,last-command-event]))))))
     (when
         (and doc-string
              (not
@@ -97,21 +99,22 @@
                       ;; FIXME: avoid `eval'
                       (mapcar #'car (eval bindings))
                       (mapcar #'cdr (eval bindings))
-                    (funcall mode)
-                    (insert fixture)
-                    (goto-char (1+ pos))
-                    (insert char)
-                    (cond ((eq (aref skip-pair-string pos)
-                               ?p)
-                           (insert (cadr (electric-pair-syntax-info char)))
-                           (backward-char 1))
-                          ((eq (aref skip-pair-string pos)
-                               ?s)
-                           (delete-char -1)
-                           (forward-char 1)))
-                    (list
-                     (buffer-substring-no-properties (point-min) (point-max))
-                     (point))))
+                    (dlet ((python-indent-guess-indent-offset-verbose nil))
+                      (funcall mode)
+                      (insert fixture)
+                      (goto-char (1+ pos))
+                      (insert char)
+                      (cond ((eq (aref skip-pair-string pos)
+                                 ?p)
+                             (insert (cadr (electric-pair-syntax-info char)))
+                             (backward-char 1))
+                            ((eq (aref skip-pair-string pos)
+                                 ?s)
+                             (delete-char -1)
+                             (forward-char 1)))
+                      (list
+                       (buffer-substring-no-properties (point-min) (point-max))
+                       (point)))))
               (list expected-string expected-point)))
            (expected-string (car expected-string-and-point))
            (expected-point (cadr expected-string-and-point))
@@ -173,7 +176,7 @@ The buffer's contents should %s:
           expected-string
           expected-point
           bindings
-          (modes '(quote (ruby-mode js-mode)))
+          (modes '(quote (ruby-mode js-mode python-mode)))
           (test-in-comments t)
           (test-in-strings t)
           (test-in-code t)
@@ -190,11 +193,13 @@ The buffer's contents should %s:
          for (prefix suffix extra-desc) in
          (append (if test-in-comments
                      `((,(with-temp-buffer
-                           (funcall mode)
-                           (insert "z")
-                           (comment-region (point-min) (point-max))
-                           (buffer-substring-no-properties (point-min)
-                                                           (1- (point-max))))
+                           (dlet ((python-indent-guess-indent-offset-verbose
+                                   nil))
+                             (funcall mode)
+                             (insert "z")
+                             (comment-region (point-min) (point-max))
+                             (buffer-substring-no-properties (point-min)
+                                                             (1- (point-max)))))
                         ""
                         "-in-comments")))
                  (if test-in-strings
@@ -296,7 +301,7 @@ The buffer's contents should %s:
 ;;; Quotes
 ;;;
 (define-electric-pair-test pair-some-quotes-skip-others
-  " \"\"      " "-\"\"-----" :skip-pair-string "-ps------"
+  " \"\"      " "-\"\"-\"---" :skip-pair-string "-ps-p----"
   :test-in-strings nil
   :bindings `((electric-pair-text-syntax-table
                . ,prog-mode-syntax-table)))
@@ -870,7 +875,7 @@ baz\"\""
     (local-set-key (vector key) 'self-insert-command)))
 
 (defun electric-layout-for-c-style-du-jour (inserted)
-  "A function to use in `electric-layout-rules'"
+  "A function to use in `electric-layout-rules'."
   (when (memq inserted '(?\{ ?\}))
     (save-excursion
       (backward-char 2) (c-point-syntax) (forward-char) ; silly, but needed

@@ -378,7 +378,7 @@ keyword @code{&rest} before one final argument.
 @group
 (@var{required-vars}@dots{}
  @r{[}&optional @r{[}@var{optional-vars}@dots{}@r{]}@r{]}
- @r{[}&rest @r{[}@var{rest-var}@r{]}@r{]})
+ @r{[}&rest @var{rest-var}@r{]})
 @end group
 @end example
 

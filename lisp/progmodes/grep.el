@@ -72,7 +72,7 @@ SYMBOL should be one of `grep-command', `grep-template',
 Some grep programs are able to surround matches with special
 markers in grep output.  Such markers can be used to highlight
 matches in grep mode.  This requires `font-lock-mode' to be active
-in grep buffers, so if you have globally disabled font-lock-mode,
+in grep buffers, so if you have globally disabled `font-lock-mode',
 you will not get highlighting.
 
 This option sets the environment variable GREP_COLORS to specify
@@ -137,7 +137,7 @@ The following place holders should be present in the string:
  <F> - file names and wildcards to search.
  <X> - file names and wildcards to exclude.
  <R> - the regular expression searched for.
- <N> - place to insert null-device.
+ <N> - place to insert `null-device'.
 
 In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults'; to change the default value, use

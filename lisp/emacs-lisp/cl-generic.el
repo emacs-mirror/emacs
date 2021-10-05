@@ -1026,7 +1026,10 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
     (when generic
       (require 'help-mode)              ;Needed for `help-function-def' button!
       (save-excursion
-        (insert "\n\nThis is a generic function.\n\n")
+        ;; Ensure that we have two blank lines (but not more).
+        (unless (looking-back "\n\n" (- (point) 2))
+          (insert "\n"))
+        (insert "This is a generic function.\n\n")
         (insert (propertize "Implementations:\n\n" 'face 'bold))
         ;; Loop over fanciful generics
         (dolist (method (cl--generic-method-table generic))

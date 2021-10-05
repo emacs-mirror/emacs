@@ -260,36 +260,103 @@ unexpected result.  In the example above, there are two failures, both
 due to failed @code{should} forms.  @xref{Understanding Explanations},
 for more details.
 
+The following key bindings are available in the ERT results buffer:
+
+@table @kbd
+
+@item @key{RET}
+@kindex RET@r{, in ert results buffer}
+Each name of a function or macro in this buffer is a button; moving
+point to it and typing @kbd{@key{RET}} jumps to its definition.
+
+@item @key{TAB}
+@itemx S-@key{TAB}
 @kindex TAB@r{, in ert results buffer}
 @kindex S-TAB@r{, in ert results buffer}
-In the ERT results buffer, @kbd{@key{TAB}} and @kbd{S-@key{TAB}} cycle between
-buttons.  Each name of a function or macro in this buffer is a button;
-moving point to it and typing @kbd{@key{RET}} jumps to its definition.
+Cycle between buttons forward (@code{forward-button}) and backward
+(@code{backward-button}).
 
+@item r
 @kindex r@r{, in ert results buffer}
+@findex ert-results-rerun-test-at-point
+Re-run the test near point on its own
+(@code{ert-results-rerun-test-at-point}).
+
+@item d
 @kindex d@r{, in ert results buffer}
+@findex ert-results-rerun-test-at-point-debugging-errors
+Re-run the test near point on its own with the debugger enabled
+(@code{ert-results-rerun-test-at-point-debugging-errors}).
+
+@item R
+@kindex R@r{, in ert results buffer}
+@findex ert-results-rerun-all-tests
+Re-run all tests (@code{ert-results-rerun-all-tests}).
+
+@item .
 @kindex .@r{, in ert results buffer}
+@findex ert-results-find-test-at-point-other-window
+Jump to the definition of the test near point
+(@code{ert-results-find-test-at-point-other-window}).  This has the
+same effect as @kbd{@key{RET}}, but does not require point to be on
+the name of the test.
+
+@item b
 @kindex b@r{, in ert results buffer}
+@findex ert-results-pop-to-backtrace-for-test-at-point
 @cindex backtrace of a failed test
-Pressing @kbd{r} re-runs the test near point on its own.  Pressing
-@kbd{d} re-runs it with the debugger enabled.  @kbd{.} jumps to the
-definition of the test near point (@kbd{@key{RET}} has the same effect
-if point is on the name of the test).  On a failed test, @kbd{b} shows
-the backtrace of the failure.  @xref{Debugging,, Backtraces, elisp,
-GNU Emacs Lisp Reference Manual}, for more information about
-backtraces.
+Show the backtrace of a failed test
+(@code{ert-results-pop-to-backtrace-for-test-at-point}).
+@xref{Debugging,, Backtraces, elisp, GNU Emacs Lisp Reference Manual},
+for more information about backtraces.
 
+@item l
 @kindex l@r{, in ert results buffer}
-@kbd{l} shows the list of @code{should} forms executed in the test.
-If any messages were generated (with the Lisp function @code{message})
-in a test or any of the code that it invoked, @kbd{m} will show them.
+@findex ert-results-pop-to-should-forms-for-test-at-point
+Show the list of @code{should} forms executed in the test
+(@code{ert-results-pop-to-should-forms-for-test-at-point}).
 
+@item m
+@kindex m@r{, in ert results buffer}
+@findex ert-results-pop-to-messages-for-test-at-point
+Show any messages that were generated (with the Lisp function
+@code{message}) in in a test or any of the code that it invoked
+(@code{ert-results-pop-to-messages-for-test-at-point}).
+
+@item L
 @kindex L@r{, in ert results buffer}
+@findex ert-results-toggle-printer-limits-for-test-at-point
 By default, long expressions in the failure details are abbreviated
-using @code{print-length} and @code{print-level}.  Pressing @kbd{L}
-while point is on a test failure will increase the limits to show more
-of the expression.
+using @code{print-length} and @code{print-level}.  Increase the limits
+to show more of the expression by moving point to a test failure with
+this command (@code{ert-results-toggle-printer-limits-for-test-at-point}).
 
+@item D
+@kindex D@r{, in ert results buffer}
+@findex ert-delete-test
+@cindex delete test
+Delete a test from the running Emacs session (@code{ert-delete-test}).
+
+@item h
+@kindex h@r{, in ert results buffer}
+@findex ert-describe-test
+Show the documentation of a test (@code{ert-describe-test}).
+
+@item T
+@kindex T@r{, in ert results buffer}
+@findex ert-results-pop-to-timings
+Display test timings for the last run (@code{ert-results-pop-to-timings}).
+
+@item M-x ert-delete-all-tests
+@findex ert-delete-all-tests
+@cindex delete all tests
+Delete all tests from the running session.
+
+@item M-x ert-describe-test
+@findex ert-results-describe-test-at-point
+Prompt for a test and then show its documentation.
+
+@end table
 
 @node Running Tests in Batch Mode
 @section Running Tests in Batch Mode

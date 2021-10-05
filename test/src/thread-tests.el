@@ -70,12 +70,12 @@
    (thread-live-p (make-thread #'ignore))))
 
 (ert-deftest threads-all-threads ()
-  "Simple test for all-threads."
+  "Simple test for `all-threads'."
   (skip-unless (featurep 'threads))
   (should (listp (all-threads))))
 
 (ert-deftest threads-main-thread ()
-  "Simple test for all-threads."
+  "Simple test for `all-threads'."
   (skip-unless (featurep 'threads))
   (should (eq main-thread (car (all-threads)))))
 
@@ -155,7 +155,7 @@
   (should (eq (type-of (make-mutex)) 'mutex)))
 
 (ert-deftest threads-mutex-lock-unlock ()
-  "Test mutex-lock and unlock."
+  "Test `mutex-lock' and unlock."
   (skip-unless (featurep 'threads))
   (should
    (let ((mx (make-mutex)))
@@ -392,4 +392,4 @@
   (let ((th (make-thread 'ignore)))
     (should-not (equal th main-thread))))
 
-;;; threads.el ends here
+;;; thread-tests.el ends here

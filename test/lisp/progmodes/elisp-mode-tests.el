@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'xref)
 (eval-when-compile (require 'cl-lib))
 
@@ -315,27 +316,27 @@
            (expected (pop expected-xrefs))
            (expected-xref (or (when (consp expected) (car expected)) expected))
            (expected-source (when (consp expected) (cdr expected)))
-           (xref-file (xref-elisp-location-file (oref xref location)))
+           (xref-file (xref-elisp-location-file (xref-item-location xref)))
            (expected-file (xref-elisp-location-file
-                           (oref expected-xref location))))
+                           (xref-item-location expected-xref))))
 
       ;; Make sure file names compare as strings.
       (when (file-name-absolute-p xref-file)
-        (setf (xref-elisp-location-file (oref xref location))
-              (file-truename (xref-elisp-location-file (oref xref location)))))
+        (setf (xref-elisp-location-file (xref-item-location xref))
+              (file-truename (xref-elisp-location-file (xref-item-location xref)))))
       (when (file-name-absolute-p expected-file)
-        (setf (xref-elisp-location-file (oref expected-xref location))
+        (setf (xref-elisp-location-file (xref-item-location expected-xref))
               (file-truename (xref-elisp-location-file
-                              (oref expected-xref location)))))
+                              (xref-item-location expected-xref)))))
 
       ;; Downcase the filenames for case-insensitive file systems.
       (when xref--case-insensitive
-        (setf (xref-elisp-location-file (oref xref location))
-              (downcase (xref-elisp-location-file (oref xref location))))
+        (setf (xref-elisp-location-file (xref-item-location xref))
+              (downcase (xref-elisp-location-file (xref-item-location xref))))
 
-        (setf (xref-elisp-location-file (oref expected-xref location))
+        (setf (xref-elisp-location-file (xref-item-location expected-xref))
               (downcase (xref-elisp-location-file
-                         (oref expected-xref location)))))
+                         (xref-item-location expected-xref)))))
 
       (should (equal xref expected-xref))
 
@@ -416,8 +417,6 @@ to (xref-elisp-test-descr-to-target xref)."
 
 ;; FIXME: defconst
 
-;; FIXME: eieio defclass
-
 ;; Possible ways of defining the default method implementation for a
 ;; generic function. We declare these here, so we know we cover all
 ;; cases, and we don't rely on other code not changing.
@@ -429,7 +428,7 @@ to (xref-elisp-test-descr-to-target xref)."
   slot-1)
 
 (cl-defgeneric xref-elisp-generic-no-methods (arg1 arg2)
-  "doc string generic no-methods"
+  "Doc string generic no-methods."
   ;; No default implementation, no methods, but fboundp is true for
   ;; this symbol; it calls cl-no-applicable-method
   )
@@ -440,44 +439,44 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; ‘this’. It passes in interactive tests, so I haven't been able to
 ;; track down the problem.
 (cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type) arg2)
-  "doc string generic no-default xref-elisp-root-type"
+  "Doc string generic no-default xref-elisp-root-type."
   "non-default for no-default")
 
 ;; defgeneric after defmethod in file to ensure the fallback search
 ;; method of just looking for the function name will fail.
 (cl-defgeneric xref-elisp-generic-no-default (arg1 arg2)
-  "doc string generic no-default generic"
+  "Doc string generic no-default generic."
   ;; No default implementation; this function calls the cl-generic
   ;; dispatching code.
   )
 
 (cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
-  "doc string generic co-located-default"
+  "Doc string generic co-located-default."
   "co-located default")
 
 (cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
-  "doc string generic co-located-default xref-elisp-root-type"
+  "Doc string generic co-located-default xref-elisp-root-type."
   "non-default for co-located-default")
 
 (cl-defgeneric xref-elisp-generic-separate-default (arg1 arg2)
-  "doc string generic separate-default"
+  "Doc string generic separate-default."
   ;; default implementation provided separately
   )
 
 (cl-defmethod xref-elisp-generic-separate-default (arg1 arg2)
-  "doc string generic separate-default default"
+  "Doc string generic separate-default default."
   "separate default")
 
 (cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type) arg2)
-  "doc string generic separate-default xref-elisp-root-type"
+  "Doc string generic separate-default xref-elisp-root-type."
   "non-default for separate-default")
 
 (cl-defmethod xref-elisp-generic-implicit-generic (arg1 arg2)
-  "doc string generic implicit-generic default"
+  "Doc string generic implicit-generic default."
   "default for implicit generic")
 
 (cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type) arg2)
-  "doc string generic implicit-generic xref-elisp-root-type"
+  "Doc string generic implicit-generic xref-elisp-root-type."
   "non-default for implicit generic")
 
 
@@ -623,35 +622,35 @@ to (xref-elisp-test-descr-to-target xref)."
 (declare-function xref-elisp-overloadable-no-default-default "elisp-mode-tests")
 
 (define-overloadable-function xref-elisp-overloadable-no-methods ()
-  "doc string overloadable no-methods")
+  "Doc string overloadable no-methods.")
 
 (define-overloadable-function xref-elisp-overloadable-no-default ()
-  "doc string overloadable no-default")
+  "Doc string overloadable no-default.")
 
 (define-mode-local-override xref-elisp-overloadable-no-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable no-default c-mode."
+  "Doc string overloadable no-default c-mode."
   "result overloadable no-default c-mode.")
 
 (define-overloadable-function xref-elisp-overloadable-co-located-default ()
-  "doc string overloadable co-located-default"
+  "Doc string overloadable co-located-default."
   "result overloadable co-located-default.")
 
 (define-mode-local-override xref-elisp-overloadable-co-located-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable co-located-default c-mode."
+  "Doc string overloadable co-located-default c-mode."
   "result overloadable co-located-default c-mode.")
 
 (define-overloadable-function xref-elisp-overloadable-separate-default ()
-  "doc string overloadable separate-default.")
+  "Doc string overloadable separate-default.")
 
 (defun xref-elisp-overloadable-separate-default-default ()
-  "doc string overloadable separate-default default"
+  "Doc string overloadable separate-default default."
   "result overloadable separate-default.")
 
 (define-mode-local-override xref-elisp-overloadable-separate-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable separate-default c-mode."
+  "Doc string overloadable separate-default c-mode."
   "result overloadable separate-default c-mode.")
 
 (xref-elisp-deftest find-defs-define-overload-no-methods
@@ -1020,6 +1019,91 @@ evaluation of BODY."
     (should (equal (elisp--xref-infer-namespace p2) 'any))
     (should (equal (elisp--xref-infer-namespace p3) 'any))
     (should (equal (elisp--xref-infer-namespace p4) 'any))))
+
+
+(ert-deftest elisp-shorthand-read-buffer ()
+  (let* ((gsym (downcase (symbol-name (cl-gensym "sh-"))))
+         (shorthand-sname (format "s-%s" gsym))
+         (expected (intern (format "shorthand-longhand-%s" gsym))))
+    (cl-assert (not (intern-soft shorthand-sname)))
+    (should (equal (let ((read-symbol-shorthands
+                          '(("s-" . "shorthand-longhand-"))))
+                     (with-temp-buffer
+                       (insert shorthand-sname)
+                       (goto-char (point-min))
+                       (read (current-buffer))))
+                   expected))
+    (should (not (intern-soft shorthand-sname)))))
+
+(ert-deftest elisp-shorthand-read-from-string ()
+  (let* ((gsym (downcase (symbol-name (cl-gensym "sh-"))))
+         (shorthand-sname (format "s-%s" gsym))
+         (expected (intern (format "shorthand-longhand-%s" gsym))))
+    (cl-assert (not (intern-soft shorthand-sname)))
+    (should (equal (let ((read-symbol-shorthands
+                          '(("s-" . "shorthand-longhand-"))))
+                     (car (read-from-string shorthand-sname)))
+                   expected))
+    (should (not (intern-soft shorthand-sname)))))
+
+(ert-deftest elisp-shorthand-load-a-file ()
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
+    (mapatoms (lambda (s)
+                (when (string-match "^elisp--foo-" (symbol-name s))
+                  (unintern s obarray))))
+    (load test-file)
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (intern-soft "f-test"))))
+
+(ert-deftest elisp-shorthand-byte-compile-a-file ()
+
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el"))
+        (byte-compiled (ert-resource-file "simple-shorthand-test.elc")))
+    (mapatoms (lambda (s)
+                (when (string-match "^elisp--foo-" (symbol-name s))
+                  (unintern s obarray))))
+    (byte-compile-file test-file)
+    (should-not (intern-soft "f-test"))
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (fboundp (intern-soft "elisp--foo-test")))
+    (load byte-compiled)
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (intern-soft "f-test"))))
+
+(ert-deftest elisp-shorthand-completion-at-point ()
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
+    (load test-file)
+    (with-current-buffer (find-file-noselect test-file)
+      (revert-buffer t t)
+      (goto-char (point-min))
+      (insert "f-test-compl")
+      (completion-at-point)
+      (goto-char (point-min))
+      (should (search-forward "f-test-complete-me" (line-end-position) t))
+      (goto-char (point-min))
+      (should (string= (symbol-name (read (current-buffer)))
+                       "elisp--foo-test-complete-me"))
+      (revert-buffer t t))))
+
+(ert-deftest elisp-shorthand-escape ()
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
+    (load test-file)
+    (should (intern-soft "f-test4---"))
+    (should-not (intern-soft "elisp--foo-test4---"))
+    (should (= 84 (funcall (intern-soft "f-test4---"))))
+    (should (unintern "f-test4---"))))
+
+(ert-deftest test-cl-flet-indentation ()
+  :expected-result :failed              ; FIXME: bug#9622
+  (should (equal
+           (with-temp-buffer
+             (emacs-lisp-mode)
+             (insert "(cl-flet ((bla (x)\n(* x x)))\n(bla 42))")
+             (indent-region (point-min) (point-max))
+             (buffer-string))
+           "(cl-flet ((bla (x)
+	    (* x x)))
+  (bla 42))")))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

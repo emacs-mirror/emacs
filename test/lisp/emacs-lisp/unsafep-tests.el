@@ -105,7 +105,7 @@
       . (variable (x)))
     ( (let (1) 2)
       . (variable 1))
-    ( (error "asdf")
+    ( (error "Asdf")
       . #'error)
     ( (signal 'error "asdf")
       . #'signal)

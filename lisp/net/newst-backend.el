@@ -2183,7 +2183,7 @@ FEED is a symbol!"
       (progn
         (when (y-or-n-p "Old newsticker cache file exists.  Read it? ")
           (newsticker--cache-read-version1))
-        (when (y-or-n-p (format "Delete old newsticker cache file? "))
+        (when (y-or-n-p "Delete old newsticker cache file? ")
           (delete-file newsticker-cache-filename)))
     (dolist (f (append newsticker-url-list-defaults newsticker-url-list))
       (newsticker--cache-read-feed (car f)))))

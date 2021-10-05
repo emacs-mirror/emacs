@@ -21,6 +21,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 ;;; Prelude
 
@@ -433,7 +435,11 @@ callback data (if any)."
      (and user-id
 	  (concat " "
 		  (if (stringp user-id)
-		      (rfc6068-unhexify-string user-id)
+                      (if (= (length user-id) (string-bytes user-id))
+                          ;; This is ASCII, possibly %-encoded.
+		          (rfc6068-unhexify-string user-id)
+                        ;; Non-ASCII, return as is.
+                        user-id)
 		    (epg-decode-dn user-id))))
      (and (epg-signature-validity signature)
 	  (format " (trust %s)"  (epg-signature-validity signature)))
@@ -800,7 +806,7 @@ callback data (if any)."
   (when (and epg-key-id
 	     (string-match "\\`passphrase\\." string))
     (unless (epg-context-passphrase-callback context)
-      (error "passphrase-callback not set"))
+      (error "Variable `passphrase-callback' not set"))
     (let (inhibit-quit
 	  passphrase
 	  passphrase-with-new-line

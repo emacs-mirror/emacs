@@ -1470,7 +1470,7 @@ push him out of it."
   (mapc
    (lambda (direction) (put direction 'y_t 0))
    landmark-directions)
-  (dolist (direction (nth (random 8) landmark-8-directions))
+  (dolist (direction (seq-random-elt landmark-8-directions))
     (put direction 'y_t 1.0))
   (landmark-move))
 

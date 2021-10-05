@@ -962,6 +962,11 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 
 ;;; Formatter ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defcustom mpc-cover-image-re nil ; (rx (or ".jpg" ".jpeg" ".png") string-end)
+  "If non-nil, it is a regexp that should match a valid cover image."
+  :type '(choice (const nil) regexp)
+  :version "28.1")
+
 (defun mpc-secs-to-time (secs)
   ;; We could use `format-seconds', but it doesn't seem worth the trouble
   ;; because we'd still need to check (>= secs (* 60 100)) since the special
@@ -1034,15 +1039,18 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                  (and (funcall oldpred info)
                                       (equal dir (file-name-directory
                                                   (cdr (assq 'file info))))))))
-                       (if-let* ((covers '(".folder.png" "cover.jpg" "folder.jpg"))
+                       (if-let* ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg"))
                                  (cover (cl-loop for file in (directory-files (mpc-file-local-copy dir))
-                                                 if (member (downcase file) covers)
+                                                 if (or (member (downcase file) covers)
+                                                        (and mpc-cover-image-re
+                                                             (string-match mpc-cover-image-re file)))
                                                  return (concat dir file)))
                                  (file (with-demoted-errors "MPC: %s"
                                          (mpc-file-local-copy cover))))
                            (let (image)
                              (if (null size) (setq image (create-image file))
                                (let ((tempfile (make-temp-file "mpc" nil ".jpg")))
+                                 ;; FIXME: Use native image scaling instead.
                                  (call-process "convert" nil nil nil
                                                "-scale" size file tempfile)
                                  (setq image (create-image tempfile))
@@ -1111,6 +1119,9 @@ If PLAYLIST is t or nil or missing, use the main playlist."
           (if (null size) (setq col (+ col textwidth postwidth))
             (insert space)
             (setq col (+ col size))))))
+    ;; Print the rest of format-spec, in case there is text after the
+    ;; last actual format specifier.
+    (insert (substring format-spec pos))
     (put-text-property start (point) 'mpc--uptodate-p pred)))
 
 ;;; The actual UI code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1139,6 +1150,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
     (define-key map ">" #'mpc-next)
     (define-key map "<" #'mpc-prev)
     (define-key map "g" #'mpc-seek-current)
+    (define-key map "o" #'mpc-goto-playing-song)
     map))
 
 (easy-menu-define mpc-mode-menu mpc-mode-map
@@ -1870,7 +1882,8 @@ A value of t means the main playlist.")
     (when (buffer-live-p status-buf)
       (with-current-buffer status-buf (force-mode-line-update)))))
 
-(defvar mpc-volume-step 5)
+(defvar mpc-volume-step 5
+  "Change volume in increments of this integer.")
 
 (defun mpc-volume-mouse-set (&optional event)
   "Change volume setting."
@@ -1884,7 +1897,7 @@ A value of t means the main playlist.")
                     '(?◁ ?<))
               (- mpc-volume-step) mpc-volume-step))
          (curvol (string-to-number (cdr (assq 'volume mpc-status))))
-         (newvol (max 0 (min 100 (+ curvol diff)))))
+         (newvol (max 0 (min 100 (+ (- curvol (mod curvol diff)) diff)))))
     (if (= newvol curvol)
         (progn
           (message "MPD volume already at %s%%" newvol)
@@ -2657,6 +2670,18 @@ If stopped, start playback."
   (interactive (list last-nonmenu-event))
   (mpc-select event)
   (mpc-play))
+
+(defun mpc-goto-playing-song ()
+  "Move point to the currently playing song in the \"*Songs*\" buffer."
+  (interactive)
+  (let* ((buf (mpc-proc-buffer (mpc-proc) 'songs))
+         (win (get-buffer-window buf)))
+    (when (and (buffer-live-p buf) win)
+      (select-window win)
+      (with-current-buffer buf
+        (when (and overlay-arrow-position
+                   (eq (marker-buffer overlay-arrow-position) buf))
+          (goto-char (marker-position overlay-arrow-position)))))))
 
 ;; (defun mpc-play-tagval ()
 ;;   "Play all the songs of the tag at point."

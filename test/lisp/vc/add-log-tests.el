@@ -29,8 +29,8 @@
 					      content marker expected-defun)
   "Generate an ert test for mode-own `add-log-current-defun-function'.
 Run `add-log-current-defun' at the point where MARKER specifies
-in a buffer which content is CONTENT under major mode MODE. Then
-it compares the result with EXPECTED-DEFUN."
+in a buffer which content is CONTENT under major mode MODE.
+Then it compares the result with EXPECTED-DEFUN."
   (let ((xname (intern (concat "add-log-current-defun-test-"
 			       (symbol-name name)
 			       ))))

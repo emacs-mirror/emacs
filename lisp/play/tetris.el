@@ -620,7 +620,7 @@ Shapes drop from the top of the screen, and the user has to move and
 rotate the shape to fit in with those at the bottom of the screen so
 as to form complete rows.
 
-tetris-mode keybindings:
+`tetris-mode' keybindings:
 \\<tetris-mode-map>
 \\[tetris-start-game]	Start a new game of Tetris
 \\[tetris-end-game]	Terminate the current game

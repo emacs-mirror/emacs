@@ -2073,7 +2073,8 @@ either a method name, a signal name, or an error name."
     (goto-char point)))
 
 (defun dbus-monitor-handler (&rest _args)
-  "Default handler for the \"org.freedesktop.DBus.Monitoring.BecomeMonitor\" interface.
+  "Default handler for the \"Monitoring.BecomeMonitor\" interface.
+Its full name is \"org.freedesktop.DBus.Monitoring.BecomeMonitor\".
 It will be applied for all objects created by `dbus-register-monitor'
 which don't declare an own handler.  The printed timestamps do
 not reflect the time the D-Bus message has passed the D-Bus

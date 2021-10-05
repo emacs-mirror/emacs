@@ -193,7 +193,7 @@ SEVERITY-PREDICATE is used to setup
 
 (defun flymake-tests--diagnose-words
     (report-fn type words)
-  "Helper. Call REPORT-FN with diagnostics for WORDS in buffer."
+  "Helper.  Call REPORT-FN with diagnostics for WORDS in buffer."
   (funcall report-fn
            (cl-loop
             for word in words

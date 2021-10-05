@@ -1165,7 +1165,7 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 
 ;; startup stuff.
 
-(easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu"
+(easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu."
   '("Hexl"
     :help "Hexl-specific Features"
 

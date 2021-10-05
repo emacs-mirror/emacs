@@ -356,7 +356,7 @@ Variables of interest include:
    List of functions to be called if the other file has been created."
   (interactive (list current-prefix-arg nil last-nonmenu-event))
   ;; We want to preserve point in the current buffer. But the point of
-  ;; ff-find-the-other-file is to make the the other file buffer
+  ;; ff-find-the-other-file is to make the other file buffer
   ;; current, so we can't use save-excursion here (see bug 48535).
   (let ((start-buffer (current-buffer))
         (start-point (point)))

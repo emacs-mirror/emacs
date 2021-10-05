@@ -340,7 +340,7 @@
 (defvar term-home-marker) ; Marks the "home" position for cursor addressing.
 (defvar term-saved-home-marker nil
   "When using alternate sub-buffer,
-contains saved term-home-marker from original sub-buffer.")
+contains saved `term-home-marker' from original sub-buffer.")
 (defvar term-start-line-column 0
   "(current-column) at start of screen line, or nil if unknown.")
 (defvar term-current-column 0 "If non-nil, is cache for (current-column).")
@@ -377,7 +377,7 @@ are not allowed.")
 (defvar term-scroll-with-delete nil
   "If t, forward scrolling should be implemented by delete to
 top-most line(s); and if nil, scrolling should be implemented
-by moving term-home-marker.  It is set to t if there is a
+by moving `term-home-marker'.  It is set to t if there is a
 \(non-default) scroll-region OR the alternate buffer is used.")
 (defvar term-pending-delete-marker) ; New user input in line mode
        ; needs to be deleted, because it gets echoed by the inferior.
@@ -669,7 +669,7 @@ Do not change it directly; use `term-set-escape-char' instead.")
   "Keymap used in Term pager mode.")
 
 (defvar term-ptyp t
-  "True if communications via pty; false if by pipe.  Buffer local.
+  "Non-nil if communications via pty; false if by pipe.  Buffer local.
 This is to work around a bug in Emacs process signaling.")
 
 (defvar term-last-input-match ""
@@ -727,7 +727,15 @@ Buffer local variable.")
    term-color-blue
    term-color-magenta
    term-color-cyan
-   term-color-white])
+   term-color-white
+   term-color-bright-black
+   term-color-bright-red
+   term-color-bright-green
+   term-color-bright-yellow
+   term-color-bright-blue
+   term-color-bright-magenta
+   term-color-bright-cyan
+   term-color-bright-white])
 
 (defcustom term-default-fg-color nil
   "If non-nil, default color for foreground in Term mode."
@@ -752,54 +760,112 @@ Buffer local variable.")
   :group 'term)
 
 (defface term-bold
-  '((t :bold t))
+  '((t :inherit ansi-color-bold))
   "Default face to use for bold text."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-underline
-  '((t :underline t))
+  '((t :inherit ansi-color-underline))
   "Default face to use for underlined text."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-black
-  '((t :foreground "black" :background "black"))
+  '((t :inherit ansi-color-black))
   "Face used to render black color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-red
-  '((t :foreground "red3" :background "red3"))
+  '((t :inherit ansi-color-red))
   "Face used to render red color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-green
-  '((t :foreground "green3" :background "green3"))
+  '((t :inherit ansi-color-green))
   "Face used to render green color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-yellow
-  '((t :foreground "yellow3" :background "yellow3"))
+  '((t :inherit ansi-color-yellow))
   "Face used to render yellow color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-blue
-  '((t :foreground "blue2" :background "blue2"))
+  '((t :inherit ansi-color-blue))
   "Face used to render blue color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-magenta
-  '((t :foreground "magenta3" :background "magenta3"))
+  '((t :inherit ansi-color-magenta))
   "Face used to render magenta color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-cyan
-  '((t :foreground "cyan3" :background "cyan3"))
+  '((t :inherit ansi-color-cyan))
   "Face used to render cyan color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
 
 (defface term-color-white
-  '((t :foreground "white" :background "white"))
+  '((t :inherit ansi-color-white))
   "Face used to render white color code."
-  :group 'term)
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-black
+  '((t :inherit ansi-color-bright-black))
+  "Face used to render bright black color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-red
+  '((t :inherit ansi-color-bright-red))
+  "Face used to render bright red color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-green
+  '((t :inherit ansi-color-bright-green))
+  "Face used to render bright green color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-yellow
+  '((t :inherit ansi-color-bright-yellow))
+  "Face used to render bright yellow color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-blue
+  '((t :inherit ansi-color-bright-blue))
+  "Face used to render bright blue color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-magenta
+  '((t :inherit ansi-color-bright-magenta))
+  "Face used to render bright magenta color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-cyan
+  '((t :inherit ansi-color-bright-cyan))
+  "Face used to render bright cyan color code."
+  :group 'term
+  :version "28.1")
+
+(defface term-color-bright-white
+  '((t :inherit ansi-color-bright-white))
+  "Face used to render bright white color code."
+  :group 'term
+  :version "28.1")
 
 (defcustom term-buffer-maximum-size 8192
   "The maximum size in lines for term buffers.
@@ -1228,8 +1294,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
       (process-send-string proc chars))))
 
 (defun term-send-raw ()
-  "Send the last character typed through the terminal-emulator
-without any interpretation."
+  "Send last typed character to the terminal-emulator without any interpretation."
   (interactive)
   (let ((keys (this-command-keys)))
     (term-send-raw-string (string (aref keys (1- (length keys)))))))
@@ -1401,8 +1466,8 @@ Called as a buffer-local `read-only-mode-hook' function."
   (force-mode-line-update))
 
 (defun term-check-proc (buffer)
-  "True if there is a process associated w/buffer BUFFER, and it
-is alive.  BUFFER can be either a buffer or the name of one."
+  "Non-nil if there is a process associated w/buffer BUFFER, and it is alive.
+BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(run stop open listen connect)))))
 
@@ -1538,7 +1603,7 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
 Some other integer if Bash is new or not in use.
 Nil if unknown.")
 (defun term--bash-needs-EMACSp ()
-  "t if Bash is old, nil if it is new or not in use."
+  "Return t if Bash is old, nil if it is new or not in use."
   (eq 43
       (or term--bash-needs-EMACS-status
           (setf
@@ -2107,17 +2172,17 @@ The values of `term-get-old-input', `term-input-filter-functions', and
 in the buffer.  E.g.,
 
 If the interpreter is the csh,
-    term-get-old-input is the default: take the current line, discard any
-        initial string matching regexp term-prompt-regexp.
-    term-input-filter-functions monitors input for \"cd\", \"pushd\", and
+    `term-get-old-input' is the default: take the current line, discard any
+        initial string matching regexp `term-prompt-regexp'.
+    `term-input-filter-functions' monitors input for \"cd\", \"pushd\", and
 	\"popd\" commands.  When it sees one, it cd's the buffer.
-    term-input-filter is the default: returns t if the input isn't all white
+    `term-input-filter' is the default: returns t if the input isn't all white
 	space.
 
 If the term is Lucid Common Lisp,
-    term-get-old-input snarfs the sexp ending at point.
-    term-input-filter-functions does nothing.
-    term-input-filter returns nil if the input matches input-filter-regexp,
+    `term-get-old-input' snarfs the sexp ending at point.
+    `term-input-filter-functions' does nothing.
+    `term-input-filter' returns nil if the input matches input-filter-regexp,
         which matches (1) all whitespace (2) :a, :c, etc.
 
 Similarly for Soar, Scheme, etc."
@@ -2403,8 +2468,7 @@ Useful if you accidentally suspend the top-level process."
       (kill-region pmark (point)))))
 
 (defun term-delchar-or-maybe-eof (arg)
-  "Delete ARG characters forward, or send an EOF to process if at end of
-buffer."
+  "Delete ARG characters forward, or send an EOF to process if at end of buffer."
   (interactive "p")
   (if (eobp)
       (process-send-eof)
@@ -3171,7 +3235,7 @@ See `term-prompt-regexp'."
 Set in `pre-command-hook' in char mode by `term-set-goto-process-mark'.")
 
 (defun term-set-goto-process-mark ()
-  "Sets `term-goto-process-mark'.
+  "Set `term-goto-process-mark'.
 
 Always set to nil if `term-char-mode-point-at-process-mark' is nil.
 
@@ -3225,6 +3289,15 @@ option is enabled.  See `term-set-goto-process-mark'."
   ;; FIXME: No idea why this is here, it looks wrong.  --Stef
   (setq term-ansi-face-already-done nil))
 
+(defun term--maybe-brighten-color (color bold)
+  "Possibly convert COLOR to its bright variant.
+COLOR is an index into `ansi-term-color-vector'.  If BOLD and
+`ansi-color-bold-is-bright' are non-nil and COLOR is a regular color,
+return the bright version of COLOR; otherwise, return COLOR."
+  (if (and ansi-color-bold-is-bright bold (<= 1 color 8))
+      (+ color 8)
+    color))
+
 ;; New function to deal with ansi colorized output, as you can see you can
 ;; have any bold/underline/fg/bg/reverse combination. -mm
 
@@ -3264,6 +3337,10 @@ option is enabled.  See `term-set-goto-process-mark'."
    ((and (>= parameter 30) (<= parameter 37))
     (setq term-ansi-current-color (- parameter 29)))
 
+   ;; Bright foreground
+   ((and (>= parameter 90) (<= parameter 97))
+    (setq term-ansi-current-color (- parameter 81)))
+
    ;; Reset foreground
    ((eq parameter 39)
     (setq term-ansi-current-color 0))
@@ -3271,6 +3348,10 @@ option is enabled.  See `term-set-goto-process-mark'."
    ;; Background
    ((and (>= parameter 40) (<= parameter 47))
     (setq term-ansi-current-bg-color (- parameter 39)))
+
+   ;; Bright foreground
+   ((and (>= parameter 100) (<= parameter 107))
+    (setq term-ansi-current-bg-color (- parameter 91)))
 
    ;; Reset background
    ((eq parameter 49)
@@ -3290,37 +3371,43 @@ option is enabled.  See `term-set-goto-process-mark'."
   ;;          term-ansi-current-bg-color)
 
   (unless term-ansi-face-already-done
-    (if term-ansi-current-invisible
-        (let ((color
-               (if term-ansi-current-reverse
-                   (face-foreground
-                    (elt ansi-term-color-vector term-ansi-current-color)
-                    nil 'default)
-                 (face-background
-                  (elt ansi-term-color-vector term-ansi-current-bg-color)
-                  nil 'default))))
+    (let ((current-color (term--maybe-brighten-color
+                          term-ansi-current-color
+                          term-ansi-current-bold))
+          (current-bg-color (term--maybe-brighten-color
+                             term-ansi-current-bg-color
+                             term-ansi-current-bold)))
+      (if term-ansi-current-invisible
+          (let ((color
+                 (if term-ansi-current-reverse
+                     (face-foreground
+                      (elt ansi-term-color-vector current-color)
+                      nil 'default)
+                   (face-background
+                    (elt ansi-term-color-vector current-bg-color)
+                    nil 'default))))
+            (setq term-current-face
+                  (list :background color
+                        :foreground color))
+            ) ;; No need to bother with anything else if it's invisible.
+        (setq term-current-face
+              (list :foreground
+                    (face-foreground
+                     (elt ansi-term-color-vector current-color)
+                     nil 'default)
+                    :background
+                    (face-background
+                     (elt ansi-term-color-vector current-bg-color)
+                     nil 'default)
+                    :inverse-video term-ansi-current-reverse))
+
+        (when term-ansi-current-bold
           (setq term-current-face
-                (list :background color
-                      :foreground color))
-          ) ;; No need to bother with anything else if it's invisible.
-      (setq term-current-face
-            (list :foreground
-                  (face-foreground
-                   (elt ansi-term-color-vector term-ansi-current-color)
-                   nil 'default)
-                  :background
-                  (face-background
-                   (elt ansi-term-color-vector term-ansi-current-bg-color)
-                   nil 'default)
-                  :inverse-video term-ansi-current-reverse))
+                `(,term-current-face :inherit term-bold)))
 
-      (when term-ansi-current-bold
-        (setq term-current-face
-              `(,term-current-face :inherit term-bold)))
-
-      (when term-ansi-current-underline
-        (setq term-current-face
-              `(,term-current-face :inherit term-underline)))))
+        (when term-ansi-current-underline
+          (setq term-current-face
+                `(,term-current-face :inherit term-underline))))))
 
   ;;	(message "Debug %S" term-current-face)
   ;; FIXME: shouldn't we set term-ansi-face-already-done to t here?  --Stef
@@ -3430,7 +3517,7 @@ option is enabled.  See `term-set-goto-process-mark'."
    (t)))
 
 (defun term--reset-scroll-region ()
-  "Sets the scroll region to the full height of the terminal."
+  "Set the scroll region to the full height of the terminal."
   (term-set-scroll-region 0 (term--last-line)))
 
 (defun term-set-scroll-region (top bottom)
@@ -3793,7 +3880,7 @@ all pending output has been dealt with."))
 
 (defun term-erase-in-display (kind)
   "Erase (that is blank out) part of the window.
-If KIND is 0, erase from (point) to (point-max);
+If KIND is 0, erase from point to point-max;
 if KIND is 1, erase from home to point; else erase from home to point-max."
   (term-handle-deferred-scroll)
   (cond ((eq kind 0)
@@ -4322,8 +4409,7 @@ Try to be nice by providing useful defaults and history."
                     "Speed (default nil = set by port): ")
                    (h
                     (format-prompt "Speed" (format "%s b/s" h)))
-                   (t
-		    (format "Speed (b/s): ")))
+                   (t "Speed (b/s): "))
              nil nil nil '(history . 1) nil nil)))
     (when (or (null x) (and (stringp x) (zerop (length x))))
       (setq x h))

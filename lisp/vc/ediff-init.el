@@ -490,11 +490,11 @@ set local variables that determine how the display looks like."
 (defconst ediff-BAD-DIFF-NUMBER
   ;; %S stands for this-command, %d - diff number, %d - max diff
   "%S: Bad diff region number, %d.  Valid numbers are 1 to %d")
-(defconst ediff-BAD-INFO (format "
+(defconst ediff-BAD-INFO "
 *** The Info file for Ediff, a part of the standard distribution
 *** of Emacs, does not seem to be properly installed.
 ***
-*** Please contact your system administrator. "))
+*** Please contact your system administrator. ")
 
 ;; Selective browsing
 

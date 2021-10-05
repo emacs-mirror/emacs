@@ -1205,7 +1205,7 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "26.3"
+(defvar customize-changed-options-previous-release "27.2"
   "Version for `customize-changed' to refer back to by default.")
 
 ;; Packages will update this variable, so make it available.
@@ -5127,8 +5127,8 @@ If several parents are listed, go to the first of them."
 The following commands are available:
 
 \\<widget-keymap>\
-Move to next button, link or editable field.     \\[widget-forward]
-Move to previous button, link or editable field. \\[widget-backward]
+Move to next button, link or editable field.      \\[widget-forward]
+Move to previous button, link or editable field.  \\[widget-backward]
 \\<custom-field-keymap>\
 Complete content of editable text field.   \\[widget-complete]
 \\<custom-mode-map>\

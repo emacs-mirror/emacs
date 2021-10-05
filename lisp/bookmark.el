@@ -905,7 +905,9 @@ others are still there, should the user decide to delete the most
 recent one.
 
 To yank words from the text of the buffer and use them as part of the
-bookmark name, type C-w while setting a bookmark.  Successive C-w's
+bookmark name, type \\<bookmark-minibuffer-read-name-map>\
+\\[bookmark-yank-word] while setting a bookmark.  Successive \
+\\[bookmark-yank-word]'s
 yank successive words.
 
 Typing \\[universal-argument] inserts (at the bookmark name prompt) the name of the last
@@ -938,7 +940,9 @@ Otherwise, if a bookmark named NAME already exists but PUSH-BOOKMARK
 is nil, raise an error.
 
 To yank words from the text of the buffer and use them as part of the
-bookmark name, type C-w while setting a bookmark.  Successive C-w's
+bookmark name, type \\<bookmark-minibuffer-read-name-map>\
+\\[bookmark-yank-word] while setting a bookmark.  Successive \
+\\[bookmark-yank-word]'s
 yank successive words.
 
 Typing \\[universal-argument] inserts (at the bookmark name prompt) the name of the last
@@ -1361,7 +1365,8 @@ If called from Lisp, prompt for NEW-NAME if only OLD-NAME was passed
 as an argument.  If called with two strings, then no prompting is done.
 You must pass at least OLD-NAME when calling from Lisp.
 
-While you are entering the new name, consecutive C-w's insert
+While you are entering the new name, consecutive \
+\\<bookmark-minibuffer-read-name-map>\\[bookmark-yank-word]'s insert
 consecutive words from the text of the buffer into the new bookmark
 name."
   (interactive (list (bookmark-completing-read "Old bookmark name")))
@@ -1734,8 +1739,8 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
     (define-key map [mouse-2] 'bookmark-bmenu-other-window-with-mouse)
     map))
 
-(easy-menu-define
-  bookmark-menu bookmark-bmenu-mode-map "Bookmark Menu"
+(easy-menu-define bookmark-menu bookmark-bmenu-mode-map
+  "Menu for `bookmark-bmenu'."
   '("Bookmark"
     ["Select Bookmark in This Window" bookmark-bmenu-this-window  t]
     ["Select Bookmark in Full-Frame Window" bookmark-bmenu-1-window  t]
@@ -2062,7 +2067,7 @@ You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mar
 
 (defun bookmark-bmenu-save ()
   "Save the current list into a bookmark file.
-With a prefix arg, prompts for a file to save them in.
+With a prefix arg, prompt for a file to save them in.
 
 See also the related behaviors of `bookmark-load' and
 `bookmark-bmenu-load'."

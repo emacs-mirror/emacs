@@ -314,7 +314,6 @@ Whether the passphrase is cached at all is controlled by
 
 (defvar epg-user-id-alist)
 (defvar epg-digest-algorithm-alist)
-(defvar inhibit-redisplay)
 (defvar password-cache-expiry)
 
 (eval-when-compile
@@ -369,9 +368,7 @@ Content-Disposition: attachment; filename=smime.p7s
       (goto-char (point-max)))))
 
 (defun mml-smime-epg-encrypt (cont)
-  (let* ((inhibit-redisplay t)        ;FIXME: Why?
-	 ;; (boundary (mml-compute-boundary cont))
-	 (cipher (mml-secure-epg-encrypt 'CMS cont)))
+  (let* ((cipher (mml-secure-epg-encrypt 'CMS cont)))
     (delete-region (point-min) (point-max))
     (goto-char (point-min))
     (insert "\
@@ -387,8 +384,7 @@ Content-Disposition: attachment; filename=smime.p7m
 
 (defun mml-smime-epg-verify (handle ctl)
   (catch 'error
-    (let ((inhibit-redisplay t)
-	  context part signature) ;; plain signature-file
+    (let (context part signature) ;; plain signature-file
       (when (or (null (setq part (mm-find-raw-part-by-type
 				  ctl (or (mm-handle-multipart-ctl-parameter
 					   ctl 'protocol)

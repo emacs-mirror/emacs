@@ -116,7 +116,7 @@ Do NOT set the value of this variable.  Instead, customize
   "Create the allout keymap according to the keybinding specs, and set it.
 
 Useful standalone or to effect customizations of the
-respective allout-mode keybinding variables, `allout-command-prefix',
+respective `allout-mode' keybinding variables, `allout-command-prefix',
 `allout-prefixed-keybindings', and `allout-unprefixed-keybindings'"
   ;; Set the customization variable, if any:
   (when varname
@@ -145,7 +145,7 @@ respective allout-mode keybinding variables, `allout-command-prefix',
     (allout-institute-keymap map)))
 ;;;_  > allout-institute-keymap (map)
 (defun allout-institute-keymap (map)
-  "Associate allout-mode bindings with allout as a minor mode."
+  "Associate `allout-mode' bindings with allout as a minor mode."
   ;; Architecture:
   ;; allout-mode-map var is a keymap by virtue of being a defalias for
   ;; allout-mode-map-value, which has the actual keymap value.
@@ -358,7 +358,7 @@ Examples:
 See `allout-expose-topic' for more about the exposure process.
 
 Also, allout's mode-specific provisions will make topic prefixes default
-to the comment-start string, if any, of the language of the file.  This
+to the `comment-start' string, if any, of the language of the file.  This
 is modulo the setting of `allout-use-mode-specific-leader', which see."
   :type 'allout-layout-type
   :group 'allout)
@@ -429,8 +429,7 @@ those that do not have the variable `comment-start' set.  A value of
 
 ;;;_  = allout-show-bodies
 (defcustom allout-show-bodies nil
-  "If non-nil, show entire body when exposing a topic, rather than
-just the header."
+  "If non-nil, show entire body when exposing a topic, rather than just the header."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-show-bodies)
@@ -596,16 +595,16 @@ strings."
   "When non-nil, use mode-specific topic-header prefixes.
 
 Allout outline mode will use the mode-specific `allout-mode-leaders' or
-comment-start string, if any, to lead the topic prefix string, so topic
+`comment-start' string, if any, to lead the topic prefix string, so topic
 headers look like comments in the programming language.  It will also use
-the comment-start string, with an `_' appended, for `allout-primary-bullet'.
+the `comment-start' string, with an `_' appended, for `allout-primary-bullet'.
 
 String values are used as literals, not regular expressions, so
 do not escape any regular-expression characters.
 
 Value t means to first check for assoc value in `allout-mode-leaders'
-alist, then use comment-start string, if any, then use default (`.').
-\(See note about use of comment-start strings, below.)
+alist, then use `comment-start' string, if any, then use default (`.').
+\(See note about use of `comment-start' strings, below.)
 
 Set to the symbol for either of `allout-mode-leaders' or
 `comment-start' to use only one of them, respectively.
@@ -613,9 +612,9 @@ Set to the symbol for either of `allout-mode-leaders' or
 Value nil means to always use the default (`.') and leave
 `allout-primary-bullet' unaltered.
 
-comment-start strings that do not end in spaces are tripled in
+`comment-start' strings that do not end in spaces are tripled in
 the header-prefix, and an `_' underscore is tacked on the end, to
-distinguish them from regular comment strings.  comment-start
+distinguish them from regular comment strings.  `comment-start'
 strings that do end in spaces are not tripled, but an underscore
 is substituted for the space.  [This presumes that the space is
 for appearance, not comment syntax.  You can use
@@ -633,8 +632,8 @@ undesired.]"
 (defvar allout-mode-leaders '()
   "Specific allout-prefix leading strings per major modes.
 
-Use this if the mode's comment-start string isn't what you
-prefer, or if the mode lacks a comment-start string.  See
+Use this if the mode's `comment-start' string isn't what you
+prefer, or if the mode lacks a `comment-start' string.  See
 `allout-use-mode-specific-leader' for more details.
 
 If you're constructing a string that will comment-out outline
@@ -860,7 +859,7 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version "2.3"
-  "Version of currently loaded outline package.  (allout.el)")
+  "Version of currently loaded allout.el package.")
 ;;;_   > allout-version
 (defun allout-version (&optional here)
   "Return string describing the loaded outline version."
@@ -1509,7 +1508,7 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
   'allout-mode)
 ;;;_   > allout-write-contents-hook-handler ()
 (defun allout-write-contents-hook-handler ()
-  "Implement `allout-encrypt-unencrypted-on-saves' for file writes
+  "Implement `allout-encrypt-unencrypted-on-saves' for file writes.
 
 Return nil if all goes smoothly, or else return an informative
 message if an error is encountered.  The message will serve as a
@@ -3998,8 +3997,7 @@ With repeat count, shift topic depth by that amount."
                                                index
                                                do-successors
                                                sans-offspring)
-  "Like `allout-rebullet-topic', but on nearest containing topic
-\(visible or not).
+  "Like `allout-rebullet-topic', but on nearest containing topic (visible or not).
 
 See `allout-rebullet-heading' for rebulleting behavior.
 
@@ -5056,8 +5054,7 @@ Examples:
       max-pos)))
 ;;;_   > allout-old-expose-topic (spec &rest followers)
 (defun allout-old-expose-topic (spec &rest followers)
-  "Deprecated.  Use `allout-expose-topic' (with different schema
-format) instead.
+  "Deprecated.  Use `allout-expose-topic' (with different schema format) instead.
 
 Dictate wholesale exposure scheme for current topic, according to SPEC.
 

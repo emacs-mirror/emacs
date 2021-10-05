@@ -1352,8 +1352,13 @@ downloaded the repository source, you should read the file
 from a normal build).
 
 If you would like to make more extensive contributions, see the
-@file{CONTRIBUTE} file in the Emacs distribution for information on
-how to be an Emacs developer.
+@file{CONTRIBUTE} file in the Emacs source tree for information on how
+to be an Emacs developer.  That file is distributed as part of the source
+tarball of every released Emacs version, and can also be found on-line
+in the @url{https://git.savannah.gnu.org/cgit/emacs.git/tree/CONTRIBUTE,
+Emacs on-line source repository}.  If you cloned the Emacs repository,
+per the instructions in @url{https://savannah.gnu.org/projects/emacs/},
+you will find this file in the top directory of the source Emacs tree.
 
 For documentation on Emacs (to understand how to implement your
 desired change), refer to:

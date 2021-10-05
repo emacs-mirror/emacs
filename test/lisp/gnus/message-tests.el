@@ -185,4 +185,4 @@ Hello.
 
 (provide 'message-mode-tests)
 
-;;; message-mode-tests.el ends here
+;;; message-tests.el ends here

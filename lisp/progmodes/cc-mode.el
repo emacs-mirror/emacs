@@ -1648,7 +1648,7 @@ Note that the style variables are always made local to the buffer."
 	     (and (memq (char-before) c-string-delims)
 		  (not (nth 4 s)))))	; Check we're actually out of the
 					; comment. not stuck at EOB
-	(unless 
+	(unless
 	    (and c-ml-string-opener-re
 		 (c-maybe-re-mark-ml-string))
 	  (if (c-unescaped-nls-in-string-p (1- (point)))

@@ -887,7 +887,13 @@ by the user at will."
          (prompt (if (zerop cpd-length)
                      prompt
                    (concat prompt (format " in %s" common-parent-directory))))
+         (included-cpd (when (member common-parent-directory all-files)
+                         (setq all-files
+                               (delete common-parent-directory all-files))
+                         t))
          (substrings (mapcar (lambda (s) (substring s cpd-length)) all-files))
+         (_ (when included-cpd
+              (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
          (res (project--completing-read-strict prompt
                                                new-collection
@@ -1027,8 +1033,8 @@ command \\[fileloop-continue]."
 (defun project-query-replace-regexp (from to)
   "Query-replace REGEXP in all the files of the project.
 Stops when a match is found and prompts for whether to replace it.
-If you exit the query-replace, you can later continue the query-replace
-loop using the command \\[fileloop-continue]."
+If you exit the `query-replace', you can later continue the
+`query-replace' loop using the command \\[fileloop-continue]."
   (interactive
    (pcase-let ((`(,from ,to)
                 (query-replace-read-args "Query replace (regexp)" t t)))
@@ -1290,9 +1296,10 @@ With some possible metadata (to be decided).")
       (write-region nil nil filename nil 'silent))))
 
 ;;;###autoload
-(defun project-remember-project (pr)
+(defun project-remember-project (pr &optional no-write)
   "Add project PR to the front of the project list.
-Save the result in `project-list-file' if the list of projects has changed."
+Save the result in `project-list-file' if the list of projects
+has changed, and NO-WRITE is nil."
   (project--ensure-read-project-list)
   (let ((dir (project-root pr)))
     (unless (equal (caar project--list) dir)
@@ -1300,7 +1307,8 @@ Save the result in `project-list-file' if the list of projects has changed."
         (when (equal dir (car ent))
           (setq project--list (delq ent project--list))))
       (push (list dir) project--list)
-      (project--write-project-list))))
+      (unless no-write
+        (project--write-project-list)))))
 
 (defun project--remove-from-project-list (project-root report-message)
   "Remove directory PROJECT-ROOT of a missing project from the project list.
@@ -1315,7 +1323,7 @@ passed to `message' as its first argument."
     (project--write-project-list)))
 
 ;;;###autoload
-(defun project-remove-known-project (project-root)
+(defun project-forget-project (project-root)
   "Remove directory PROJECT-ROOT from the project list.
 PROJECT-ROOT is the root directory of a known project listed in
 the project list."
@@ -1356,6 +1364,70 @@ It's also possible to enter an arbitrary directory not in the list."
   (interactive)
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'execute-extended-command)))
+
+(defun project-remember-projects-under (dir &optional recursive)
+  "Index all projects below a directory DIR.
+If RECURSIVE is non-nil, recurse into all subdirectories to find
+more projects.  After finishing, a message is printed summarizing
+the progress.  The function returns the number of detected
+projects."
+  (interactive "DDirectory: \nP")
+  (project--ensure-read-project-list)
+  (let ((queue (directory-files dir t nil t)) (count 0)
+        (known (make-hash-table
+                :size (* 2 (length project--list))
+                :test #'equal )))
+    (dolist (project (mapcar #'car project--list))
+      (puthash project t known))
+    (while queue
+      (when-let ((subdir (pop queue))
+                 ((file-directory-p subdir))
+                 ((not (gethash subdir known))))
+        (when-let (pr (project--find-in-directory subdir))
+          (project-remember-project pr t)
+          (message "Found %s..." (project-root pr))
+          (setq count (1+ count)))
+        (when (and recursive (file-symlink-p subdir))
+          (setq queue (nconc (directory-files subdir t nil t) queue))
+          (puthash subdir t known))))
+    (unless (eq recursive 'in-progress)
+      (if (zerop count)
+          (message "No projects were found")
+        (project--write-project-list)
+        (message "%d project%s were found"
+                 count (if (= count 1) "" "s"))))
+    count))
+
+(defun project-forget-zombie-projects ()
+  "Forget all known projects that don't exist any more."
+  (interactive)
+  (dolist (proj (project-known-project-roots))
+    (unless (file-exists-p proj)
+      (project-forget-project proj))))
+
+(defun project-forget-projects-under (dir &optional recursive)
+  "Forget all known projects below a directory DIR.
+If RECURSIVE is non-nil, recurse into all subdirectories to
+remove all known projects.  After finishing, a message is printed
+summarizing the progress.  The function returns the number of
+forgotten projects."
+  (interactive "DDirectory: \nP")
+  (let ((count 0))
+    (if recursive
+        (dolist (proj (project-known-project-roots))
+          (when (file-in-directory-p proj dir)
+            (project-forget-project proj)
+            (setq count (1+ count))))
+      (dolist (proj (project-known-project-roots))
+        (when (file-equal-p (file-name-directory proj) dir)
+          (project-forget-project proj)
+          (setq count (1+ count)))))
+    (if (zerop count)
+        (message "No projects were forgotten")
+      (project--write-project-list)
+      (message "%d project%s were forgotten"
+               count (if (= count 1) "" "s")))
+    count))
 
 
 ;;; Project switching

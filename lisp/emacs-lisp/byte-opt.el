@@ -317,6 +317,10 @@ occur an indeterminate number of times and thus have effect on code
 sequentially preceding the mutation itself.
 Same format as `byte-optimize--lexvars', with shared structure and contents.")
 
+(defvar byte-optimize--inhibit-outside-loop-constprop nil
+  "If t, don't propagate values for variables declared outside the inner loop.
+This indicates the loop discovery phase.")
+
 (defvar byte-optimize--dynamic-vars nil
   "List of variables declared as dynamic during optimisation.")
 
@@ -402,15 +406,13 @@ for speeding up processing.")
            (cond
             ((not lexvar) form)
             (for-effect nil)
-            ((cddr lexvar)            ; Value available?
-             (if (assq form byte-optimize--vars-outside-loop)
-                 ;; Cannot substitute; mark for retention to avoid the
-                 ;; variable being eliminated.
-                 (progn
-                   (setcar (cdr lexvar) t)
-                   form)
-               ;; variable value to use
-               (caddr lexvar)))
+            ((and (cddr lexvar)         ; substitution available
+                  ;; Perform substitution, except during the loop mutation
+                  ;; discovery phase if the variable was bound outside the
+                  ;; innermost loop.
+                  (not (and byte-optimize--inhibit-outside-loop-constprop
+                            (assq form byte-optimize--vars-outside-loop))))
+             (caddr lexvar))
             (t form))))
         (t form)))
       (`(quote . ,v)
@@ -488,14 +490,26 @@ for speeding up processing.")
          (cons fn (nreverse args))))
 
       (`(while ,exp . ,exps)
-       ;; FIXME: We conservatively prevent the substitution of any variable
-       ;; bound outside the loop in case it is mutated later in the loop,
-       ;; but this misses many opportunities: variables not mutated in the
-       ;; loop at all, and variables affecting the initial condition (which
-       ;; is always executed unconditionally).
+       ;; FIXME: If the loop condition is statically nil after substitution
+       ;; of surrounding variables then we can eliminate the whole loop,
+       ;; even if those variables are mutated inside the loop.
+       ;; We currently don't perform this important optimisation.
        (let* ((byte-optimize--vars-outside-loop byte-optimize--lexvars)
-              (condition (byte-optimize-form exp nil))
-              (body (byte-optimize-body exps t)))
+              (condition-body
+               (if byte-optimize--inhibit-outside-loop-constprop
+                   ;; We are already inside the discovery phase of an outer
+                   ;; loop so there is no need for traversing this loop twice.
+                   (cons exp exps)
+                 ;; Discovery phase: run optimisation without substitution
+                 ;; of variables bound outside this loop.
+                 (let ((byte-optimize--inhibit-outside-loop-constprop t))
+                   (cons (byte-optimize-form exp nil)
+                         (byte-optimize-body exps t)))))
+              ;; Optimise again, this time with constprop enabled (unless
+              ;; we are in discovery of an outer loop),
+              ;; as mutated variables have been marked as non-substitutable.
+              (condition (byte-optimize-form (car condition-body) nil))
+              (body (byte-optimize-body (cdr condition-body) t)))
          `(while ,condition . ,body)))
 
       (`(interactive . ,_)
@@ -793,8 +807,10 @@ for speeding up processing.")
                (bindings nil))
           (dolist (var let-vars)
             ;; VAR is (NAME EXPR [KEEP [VALUE]])
-            (when (or (not (nthcdr 3 var)) (nth 2 var))
-              ;; Value not present, or variable marked to be kept.
+            (when (or (not (nthcdr 3 var)) (nth 2 var)
+                      byte-optimize--inhibit-outside-loop-constprop)
+              ;; Value not present, or variable marked to be kept,
+              ;; or we are in the loop discovery phase: keep the binding.
               (push (list (nth 0 var) (nth 1 var)) bindings)))
           (cons bindings opt-body)))
 
@@ -1351,17 +1367,24 @@ See Info node `(elisp) Integer Basics'."
                              (and (consp binding) (cadr binding)))
                            bindings)
                  ,const)
-       `(let* ,(butlast bindings) ,(cadar (last bindings)) ,const)))
+       `(let* ,(butlast bindings)
+          ,@(and (consp (car (last bindings)))
+                 (cdar (last bindings)))
+          ,const)))
 
     ;; Body is last variable.
-    (`(,head ,bindings ,(and var (pred symbolp) (pred (not keywordp))
-                             (pred (not booleanp))
-                             (guard (eq var (caar (last bindings))))))
+    (`(,head ,(and bindings
+                   (let last-var (let ((last (car (last bindings))))
+                                   (if (consp last) (car last) last))))
+             ,(and last-var             ; non-linear pattern
+                   (pred symbolp) (pred (not keywordp)) (pred (not booleanp))))
      (if (eq head 'let)
          `(progn ,@(mapcar (lambda (binding)
                              (and (consp binding) (cadr binding)))
                            bindings))
-       `(let* ,(butlast bindings) ,(cadar (last bindings)))))
+       `(let* ,(butlast bindings)
+          ,@(and (consp (car (last bindings)))
+                 (cdar (last bindings))))))
 
     (_ form)))
 

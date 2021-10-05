@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; For more information on sass see http://sass-lang.com/
+;; For more information on sass see https://sass-lang.com/
 ;;
 ;; This accepts a 'file' header argument which is the target of the
 ;; compiled sass.  The default output type for sass evaluation is

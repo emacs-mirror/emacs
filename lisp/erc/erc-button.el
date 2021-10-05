@@ -130,7 +130,7 @@ longer than `erc-fill-column'."
     ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url-button-open-url 1)
 ;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
     ;; emacs internal
-    ("[`]\\([a-zA-Z][-a-zA-Z_0-9!*<=>+]+\\)[']"
+    ("[`‘]\\([a-zA-Z][-a-zA-Z_0-9!*<=>+]+\\)['’]"
      1 t erc-button-describe-symbol 1)
     ;; pseudo links
     ("\\bInfo:[\"]\\([^\"]+\\)[\"]" 0 t Info-goto-node 1)

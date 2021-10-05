@@ -1216,7 +1216,11 @@ For old-style locking-based version control systems, like RCS:
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system"))
      ((or (null state) (eq state 'unregistered))
-      (vc-register vc-fileset))
+      (cond (verbose
+             (let ((backend (vc-read-backend "Backend to register to: ")))
+               (vc-register (cons backend (cdr vc-fileset)))))
+            (t
+             (vc-register vc-fileset))))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
@@ -2620,7 +2624,7 @@ with its diffs (if the underlying VCS supports that)."
 
 ;;;###autoload
 (defun vc-log-incoming (&optional remote-location)
-  "Show a log of changes that will be received with a pull operation from REMOTE-LOCATION.
+  "Show log of changes that will be received with pull from REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
   (interactive
    (when current-prefix-arg
@@ -2633,7 +2637,7 @@ When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
 
 ;;;###autoload
 (defun vc-log-outgoing (&optional remote-location)
-  "Show a log of changes that will be sent with a push operation to REMOTE-LOCATION.
+  "Show log of changes that will be sent with a push operation to REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
   (interactive
    (when current-prefix-arg

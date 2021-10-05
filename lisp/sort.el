@@ -507,7 +507,8 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-start (min col-beg1 col-end1))
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
-	  (error "sort-columns does not work with tabs -- use M-x untabify"))
+          (error (substitute-command-keys
+                  "sort-columns does not work with tabs -- use \\[untabify]")))
       (if (not (or (memq system-type '(windows-nt))
 		   (let ((pos beg1) plist fontified)
 		     (catch 'found

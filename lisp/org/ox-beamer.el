@@ -4,6 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>
+;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: org, wp, tex
 
 ;; This file is part of GNU Emacs.
@@ -149,7 +150,7 @@ which is replaced with the subtitle."
 
 (defconst org-beamer-column-widths
   "0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.0 :ETC"
-"The column widths that should be installed as allowed property values.")
+  "The column widths that should be installed as allowed property values.")
 
 (defconst org-beamer-environments-special
   '(("againframe"     "A")
@@ -379,13 +380,12 @@ used as a communication channel."
 	   :parent 'latex
 	   :transcoders
 	   (let ((protected-output
-		  (function
-		   (lambda (object contents info)
-		     (let ((code (org-export-with-backend
-				  'beamer object contents info)))
-		       (if (org-string-nw-p code) (concat "\\protect" code)
-			 code))))))
-	     (mapcar #'(lambda (type) (cons type protected-output))
+		  (lambda (object contents info)
+		    (let ((code (org-export-with-backend
+				 'beamer object contents info)))
+		      (if (org-string-nw-p code) (concat "\\protect" code)
+			code)))))
+             (mapcar (lambda (type) (cons type protected-output))
 		     '(bold footnote-reference italic strike-through timestamp
 			    underline))))
 	  headline
@@ -426,16 +426,16 @@ used as a communication channel."
 		    ;; Collect nonempty options from default value and
 		    ;; headline's properties.
 		    (cl-remove-if-not #'org-string-nw-p
-		     (append
-		      (org-split-string
-		       (plist-get info :beamer-frame-default-options) ",")
-		      (and beamer-opt
-			   (org-split-string
-			    ;; Remove square brackets if user provided
-			    ;; them.
-			    (and (string-match "^\\[?\\(.*\\)\\]?$" beamer-opt)
-				 (match-string 1 beamer-opt))
-			    ",")))))
+		                      (append
+		                       (org-split-string
+		                        (plist-get info :beamer-frame-default-options) ",")
+		                       (and beamer-opt
+			                    (org-split-string
+			                     ;; Remove square brackets if user provided
+			                     ;; them.
+			                     (and (string-match "^\\[?\\(.*\\)\\]?$" beamer-opt)
+				                  (match-string 1 beamer-opt))
+			                     ",")))))
 		   (fragile
 		    ;; Add "fragile" option if necessary.
 		    (and fragilep
@@ -812,17 +812,16 @@ holding export options."
      (org-latex-make-preamble info)
      ;; Insert themes.
      (let ((format-theme
-	    (function
-	     (lambda (prop command)
-	       (let ((theme (plist-get info prop)))
-		 (when theme
-		   (concat command
-			   (if (not (string-match "\\[.*\\]" theme))
-			       (format "{%s}\n" theme)
-			     (format "%s{%s}\n"
-				     (match-string 0 theme)
-				     (org-trim
-				      (replace-match "" nil nil theme)))))))))))
+	    (lambda (prop command)
+	      (let ((theme (plist-get info prop)))
+		(when theme
+		  (concat command
+			  (if (not (string-match "\\[.*\\]" theme))
+			      (format "{%s}\n" theme)
+			    (format "%s{%s}\n"
+				    (match-string 0 theme)
+				    (org-trim
+				     (replace-match "" nil nil theme))))))))))
        (mapconcat (lambda (args) (apply format-theme args))
 		  '((:beamer-theme "\\usetheme")
 		    (:beamer-color-theme "\\usecolortheme")
@@ -960,7 +959,7 @@ value."
 
 ;;;###autoload
 (defun org-beamer-export-as-latex
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer as a Beamer buffer.
 
 If narrowing is active in the current buffer, only export its
@@ -995,7 +994,7 @@ is non-nil."
 
 ;;;###autoload
 (defun org-beamer-export-to-latex
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer as a Beamer presentation (tex).
 
 If narrowing is active in the current buffer, only export its
@@ -1029,7 +1028,7 @@ Return output file's name."
 
 ;;;###autoload
 (defun org-beamer-export-to-pdf
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer as a Beamer presentation (PDF).
 
 If narrowing is active in the current buffer, only export its
@@ -1080,7 +1079,7 @@ aid, but the tag does not have any semantic meaning."
 	 (org-current-tag-alist
 	  (append '((:startgroup))
 		  (mapcar (lambda (e) (cons (concat "B_" (car e))
-				       (string-to-char (nth 1 e))))
+				            (string-to-char (nth 1 e))))
 			  envs)
 		  '((:endgroup))
 		  '(("BMCOL" . ?|))))

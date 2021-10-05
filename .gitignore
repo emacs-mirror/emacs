@@ -143,6 +143,7 @@ src/gl-stamp
 core
 core.*[0-9]
 gmon.out
+native-lisp/
 oo/
 oo-spd/
 src/*.map

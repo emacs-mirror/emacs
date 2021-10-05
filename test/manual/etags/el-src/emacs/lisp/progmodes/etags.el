@@ -732,7 +732,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
   "Return the file name of the file whose tags point is within.
 Assumes the tags table is the current buffer.
 If RELATIVE is non-nil, file name returned is relative to tags
-table file's directory. If RELATIVE is nil, file name returned
+table file's directory.  If RELATIVE is nil, file name returned
 is complete."
   (funcall file-of-tag-function relative))
 

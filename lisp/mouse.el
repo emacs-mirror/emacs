@@ -46,7 +46,7 @@
   :type 'boolean)
 
 (defcustom mouse-drag-copy-region nil
-  "If non-nil, copy to kill-ring upon mouse adjustments of the region.
+  "If non-nil, copy to kill ring upon mouse adjustments of the region.
 
 This affects `mouse-save-then-kill' (\\[mouse-save-then-kill]) in
 addition to mouse drags.
@@ -290,6 +290,7 @@ and should return the same menu with changes such as added new menu items."
   :type '(repeat
           (choice (function-item context-menu-undo)
                   (function-item context-menu-region)
+                  (function-item context-menu-middle-separator)
                   (function-item context-menu-toolbar)
                   (function-item context-menu-global)
                   (function-item context-menu-local)
@@ -328,7 +329,7 @@ the function `context-menu-filter-function'."
 
     ;; Remove duplicate separators
     (let ((l menu))
-      (while l
+      (while (consp l)
         (when (and (equal (cdr-safe (car l)) menu-bar-separator)
                    (equal (cdr-safe (cadr l)) menu-bar-separator))
           (setcdr l (cddr l)))
@@ -418,16 +419,16 @@ Some context functions add menu items below the separator."
                  (listp pending-undo-list)
                (consp buffer-undo-list)))
     (define-key-after menu [undo]
-      '(menu-item "Undo" undo
+      `(menu-item ,(if (region-active-p) "Undo in Region" "Undo") undo
                   :help "Undo last edits")))
   (when (and (not buffer-read-only)
              (undo--last-change-was-undo-p buffer-undo-list))
     (define-key-after menu [undo-redo]
-      '(menu-item "Redo" undo-redo
+      `(menu-item (if undo-in-region "Redo in Region" "Redo") undo-redo
                   :help "Redo last undone edits")))
   menu)
 
-(defun context-menu-region (menu _click)
+(defun context-menu-region (menu click)
   "Populate MENU with region commands."
   (define-key-after menu [separator-region] menu-bar-separator)
   (when (and mark-active (not buffer-read-only))
@@ -455,21 +456,49 @@ Some context functions add menu items below the separator."
       `(menu-item "Paste" mouse-yank-at-click
                   :help "Paste (yank) text most recently cut/copied")))
   (when (and (cdr yank-menu) (not buffer-read-only))
-    (define-key-after menu (if (featurep 'ns) [select-paste]
-                             [paste-from-menu])
-      ;; ns-win.el said: Change text to be more consistent with
-      ;; surrounding menu items `paste', etc."
-      `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
-                  yank-menu
-                  :help "Choose a string from the kill ring and paste it")))
+    (let ((submenu (make-sparse-keymap (propertize "Paste from Kill Menu")))
+          (i 0))
+      (dolist (item (reverse yank-menu))
+        (when (consp item)
+          (define-key submenu (vector (setq i (1+ i)))
+            `(menu-item ,(cadr item)
+                        ,(lambda () (interactive)
+                           (mouse-yank-from-menu click (car item)))))))
+      (define-key-after menu (if (featurep 'ns) [select-paste] [paste-from-menu])
+        `(menu-item ,(if (featurep 'ns) "Select and Paste" "Paste from Kill Menu")
+                    ,submenu
+                    :help "Choose a string from the kill ring and paste it"))))
   (when (and mark-active (not buffer-read-only))
     (define-key-after menu [clear]
       '(menu-item "Clear" delete-active-region
                   :help
                   "Delete text in region between mark and current position")))
-  (define-key-after menu [mark-whole-buffer]
-    '(menu-item "Select All" mark-whole-buffer
-                :help "Mark the whole buffer for a subsequent cut/copy"))
+
+  (let ((submenu (make-sparse-keymap (propertize "Select"))))
+    (define-key-after submenu [mark-whole-buffer]
+      `(menu-item "All"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'buffer))
+                  :help "Mark the whole buffer for a subsequent cut/copy"))
+    (when (let* ((pos (posn-point (event-end click)))
+                 (char (when pos (char-after pos))))
+            (or (and char (eq (char-syntax char) ?\"))
+                (nth 3 (save-excursion (syntax-ppss pos)))))
+      (define-key-after submenu [mark-string]
+        `(menu-item "String"
+                    ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'string))
+                    :help "Mark the string at click for a subsequent cut/copy")))
+    (define-key-after submenu [mark-line]
+      `(menu-item "Line"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'line))
+                  :help "Mark the line at click for a subsequent cut/copy"))
+    (when (region-active-p)
+      (define-key-after submenu [mark-none]
+        `(menu-item "None"
+                    ,(lambda (_e) (interactive "e") (deactivate-mark))
+                    :help "Deactivate the region")))
+
+    (define-key-after menu [select-region]
+      `(menu-item "Select" ,submenu)))
   menu)
 
 (defun context-menu-ffap (menu click)
@@ -516,6 +545,26 @@ This is the keyboard interface to \\[context-menu-map]."
     (popup-menu (context-menu-map) (point))))
 
 (global-set-key [S-f10] 'context-menu-open)
+
+(defun mark-thing-at-mouse (click thing)
+  "Activate the region around THING found near the mouse CLICK."
+  (let ((bounds (bounds-of-thing-at-mouse click thing)))
+    (when bounds
+      (goto-char (if mouse-select-region-move-to-beginning
+                     (car bounds) (cdr bounds)))
+      (push-mark (if mouse-select-region-move-to-beginning
+                     (cdr bounds) (car bounds))
+                 t 'activate))))
+
+(defun mouse-yank-from-menu (click string)
+  "Insert STRING at mouse CLICK."
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
+  (when select-active-regions
+    (deactivate-mark))
+  (or mouse-yank-at-point (mouse-set-point click))
+  (push-mark)
+  (insert string))
 
 
 ;; Commands that operate on windows.

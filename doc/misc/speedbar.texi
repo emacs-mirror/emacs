@@ -896,7 +896,7 @@ augmented with speedbar.
 
 @enumerate
 @item
-Create the keymap variable @code{@var{name}-speedbar-key-map}.
+Create the keymap variable @code{@var{name}-speedbar-mode-map}.
 
 @item
 Create a function, named whatever you like, which assigns values into your
@@ -904,7 +904,7 @@ keymap.  Use this command to create the keymap before assigning
 bindings:
 
 @smallexample
-    (setq @var{name}-speedbar-key-map (speedbar-make-specialized-keymap))
+    (setq @var{name}-speedbar-mode-map (speedbar-make-specialized-keymap))
 @end smallexample
 
 This function creates a special keymap for use in speedbar.
@@ -977,7 +977,7 @@ Next, register your extension like this;
 @example
   (speedbar-add-expansion-list '("MyExtension"
                                  MyExtension-speedbar-menu-items
-                                 MyExtension-speedbar-key-map
+                                 MyExtension-speedbar-mode-map
                                  MyExtension-speedbar-buttons))
 @end example
 

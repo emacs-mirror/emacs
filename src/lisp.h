@@ -1555,6 +1555,14 @@ STRING_MULTIBYTE (Lisp_Object str)
 
 /* Convenience functions for dealing with Lisp strings.  */
 
+/* WARNING: Use the 'char *' pointers to string data with care in code
+   that could GC: GC can relocate string data, invalidating such
+   pointers.  It is best to use string character or byte index
+   instead, delaying the access through SDATA/SSDATA pointers to the
+   latest possible moment.  If you must use the 'char *' pointers
+   (e.g., for speed), be sure to adjust them after any call that could
+   potentially GC.  */
+
 INLINE unsigned char *
 SDATA (Lisp_Object string)
 {
@@ -2819,9 +2827,8 @@ enum Lisp_Compiled
   };
 
 /* Flag bits in a character.  These also get used in termhooks.h.
-   Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
-   (MUlti-Lingual Emacs) might need 22 bits for the character value
-   itself, so we probably shouldn't use any bits lower than 0x0400000.  */
+   Emacs needs 22 bits for the character value itself, see MAX_CHAR,
+   so we shouldn't use any bits lower than 0x0400000.  */
 enum char_bits
   {
     CHAR_ALT = 0x0400000,

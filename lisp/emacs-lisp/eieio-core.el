@@ -953,7 +953,7 @@ need be... May remove that later...)"
        class))
 
 (defun eieio--c3-merge-lists (reversed-partial-result remaining-inputs)
-  "Merge REVERSED-PARTIAL-RESULT REMAINING-INPUTS in a consistent order, if possible.
+  "Try to merge REVERSED-PARTIAL-RESULT REMAINING-INPUTS in a consistent order.
 If a consistent order does not exist, signal an error."
   (setq remaining-inputs (delq nil remaining-inputs))
   (if (null remaining-inputs)

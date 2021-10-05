@@ -361,14 +361,14 @@ Affects: `cperl-font-lock', `cperl-electric-lbrace-space',
 ;;   :group 'cperl)
 
 (defcustom cperl-info-on-command-no-prompt nil
-  "Not-nil (and non-null) means not to prompt on C-h f.
+  "Not-nil (and non-null) means not to prompt on \\[cperl-info-on-command].
 The opposite behavior is always available if prefixed with C-c.
 Can be overwritten by `cperl-hairy' if nil."
   :type '(choice (const null) boolean)
   :group 'cperl-affected-by-hairy)
 
 (defcustom cperl-clobber-lisp-bindings nil
-  "Not-nil (and non-null) means not overwrite C-h f.
+  "Not-nil (and non-null) means not overwrite \\[describe-function].
 The function is available on \\[cperl-info-on-command], \\[cperl-get-help].
 Can be overwritten by `cperl-hairy' if nil."
   :type '(choice (const null) boolean)

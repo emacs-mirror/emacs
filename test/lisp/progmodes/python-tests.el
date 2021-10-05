@@ -193,7 +193,6 @@ aliqua."
 
 (ert-deftest python-syntax-after-python-backspace ()
   ;; `python-indent-dedent-line-backspace' garbles syntax
-  :expected-result :failed
   (python-tests-with-temp-buffer
       "\"\"\""
     (goto-char (point-max))
@@ -5283,7 +5282,7 @@ urlpatterns = patterns('',
            (should (= (current-indentation) 23))))
       (or eim (electric-indent-mode -1)))))
 
-(ert-deftest python-triple-quote-pairing ()
+(ert-deftest python-triple-double-quote-pairing ()
   (let ((epm electric-pair-mode))
     (unwind-protect
         (progn
@@ -5308,6 +5307,33 @@ urlpatterns = patterns('',
            (should (= (point) (1- (point-max))))
            (should (string= (buffer-string)
                             "\"\n\"\"\"\n"))))
+      (or epm (electric-pair-mode -1)))))
+
+(ert-deftest python-triple-single-quote-pairing ()
+  (let ((epm electric-pair-mode))
+    (unwind-protect
+        (progn
+          (python-tests-with-temp-buffer
+           "''\n"
+           (or epm (electric-pair-mode 1))
+           (goto-char (1- (point-max)))
+           (python-tests-self-insert ?')
+           (should (string= (buffer-string)
+                            "''''''\n"))
+           (should (= (point) 4)))
+          (python-tests-with-temp-buffer
+           "\n"
+           (python-tests-self-insert (list ?' ?' ?'))
+           (should (string= (buffer-string)
+                            "''''''\n"))
+           (should (= (point) 4)))
+          (python-tests-with-temp-buffer
+           "'\n''\n"
+           (goto-char (1- (point-max)))
+           (python-tests-self-insert ?')
+           (should (= (point) (1- (point-max))))
+           (should (string= (buffer-string)
+                            "'\n'''\n"))))
       (or epm (electric-pair-mode -1)))))
 
 

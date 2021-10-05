@@ -701,9 +701,8 @@ Return nil if we don't know how to interpret DISPLAY."
   "Make a frame on display DISPLAY.
 The optional argument PARAMETERS specifies additional frame parameters."
   (interactive (if (fboundp 'x-display-list)
-                   (list (completing-read
-                          (format "Make frame on display: ")
-                          (x-display-list)))
+                   (list (completing-read "Make frame on display: "
+                                          (x-display-list)))
                  (user-error "This Emacs build does not support X displays")))
   (make-frame (cons (cons 'display display) parameters)))
 

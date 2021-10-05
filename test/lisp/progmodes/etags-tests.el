@@ -111,3 +111,5 @@
             (should (visit-tags-table-buffer))
             (should (equal tags-file-name (car tag-tables)))))
       (delete-file file))))
+
+;;; etags-tests.el ends here

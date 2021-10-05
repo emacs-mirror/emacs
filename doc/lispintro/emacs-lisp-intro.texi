@@ -4201,7 +4201,7 @@ times.
 
 The part of the buffer between point and mark is called @dfn{the
 region}.  Numerous commands work on the region, including
-@code{center-region}, @code{count-lines-region}, @code{kill-region}, and
+@code{center-region}, @code{count-words-region}, @code{kill-region}, and
 @code{print-region}.
 
 The @code{save-excursion} special form saves the location of point and
@@ -4214,7 +4214,7 @@ evaluated.
 
 In Emacs, a function frequently moves point as part of its internal
 workings even though a user would not expect this.  For example,
-@code{count-lines-region} moves point.  To prevent the user from being
+@code{count-words-region} moves point.  To prevent the user from being
 bothered by jumps that are both unexpected and (from the user's point of
 view) unnecessary, @code{save-excursion} is often used to keep point in
 the location expected by the user.  The use of
@@ -13473,8 +13473,7 @@ The template for an interactive function definition is, as always:
 
 What we need to do is fill in the slots.
 
-The name of the function should be self-explanatory and similar to the
-existing @code{count-lines-region} name.  This makes the name easier
+The name of the function should be self-explanatory and easy
 to remember.  @code{count-words-region} is the obvious choice.  Since
 that name is now used for the standard Emacs command to count words, we
 will name our implementation @code{@value{COUNT-WORDS}}.

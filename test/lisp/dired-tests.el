@@ -518,4 +518,4 @@
         (delete-directory testdir t)))))
 
 (provide 'dired-tests)
-;; dired-tests.el ends here
+;;; dired-tests.el ends here

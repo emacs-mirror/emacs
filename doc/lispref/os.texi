@@ -1042,6 +1042,21 @@ that variable with @code{let} is also reasonable practice.
 if it removed @var{variable} from the environment.
 @end deffn
 
+@defmac with-environment-variables variables body@dots{}
+This macro sets the environment variables according to @var{variables}
+temporarily when executing @var{body}.  The previous values are
+restored when the form finishes.  The argument @var{variables} should
+be a list of pairs of strings of the form
+@w{@code{(@var{var} @var{value})}}, where @var{var} is the name of the
+environment variable and @var{value} is that variable's value.
+
+@lisp
+(with-environment-variables (("LANG" "C")
+                             ("LANGUAGE" "en_US:en"))
+  (call-process "ls" nil t))
+@end lisp
+@end defmac
+
 @defvar process-environment
 This variable is a list of strings, each describing one environment
 variable.  The functions @code{getenv} and @code{setenv} work by means

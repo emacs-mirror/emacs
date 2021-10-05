@@ -1,3 +1,4 @@
+/* -*- objc -*- */
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
    Copyright (C) 1989, 1993, 2005, 2008-2021 Free Software Foundation,
    Inc.
@@ -418,6 +419,7 @@ typedef id instancetype;
 
 - (instancetype)initWithEmacsFrame:(struct frame *)f;
 - (instancetype)initWithEmacsFrame:(struct frame *)f fullscreen:(BOOL)fullscreen screen:(NSScreen *)screen;
+- (void)createToolbar:(struct frame *)f;
 - (void)setParentChildRelationships;
 - (NSInteger)borderWidth;
 - (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
@@ -488,7 +490,7 @@ typedef id instancetype;
 - (void)lockFocus;
 - (void)unlockFocus;
 #endif
-- (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
+- (void)copyRect:(NSRect)srcRect to:(NSPoint)dest;
 
 /* Non-notification versions of NSView methods. Used for direct calls.  */
 - (void)windowWillEnterFullScreen;
@@ -1148,6 +1150,10 @@ extern void ns_init_locale (void);
 
 /* in nsmenu */
 extern void update_frame_tool_bar (struct frame *f);
+#ifdef __OBJC__
+extern void update_frame_tool_bar_1 (struct frame *f, EmacsToolbar *toolbar);
+#endif
+
 extern void free_frame_tool_bar (struct frame *f);
 extern Lisp_Object find_and_return_menu_selection (struct frame *f,
                                                    bool keymaps,

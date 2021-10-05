@@ -3572,8 +3572,18 @@ Prefix arg means justify as well."
     (when (looking-at message-cite-prefix-regexp)
       (setq quoted (match-string 0))
       (goto-char (match-end 0))
-      (looking-at "[ \t]*")
-      (setq leading-space (match-string 0)))
+      (let ((after (point)))
+        ;; This is a line with no text after the cite prefix.  In that
+        ;; case, the trailing space is commonly not present, so look
+        ;; around for other lines that have some data.
+        (when (looking-at-p "\n")
+          (let ((regexp (concat "^" message-cite-prefix-regexp "[ \t]")))
+            (when (or (re-search-backward regexp nil t)
+                      (re-search-forward regexp nil t))
+              (goto-char (1- (match-end 0))))))
+        (looking-at "[ \t]*")
+        (setq leading-space (match-string 0))
+        (goto-char after)))
     (if (and quoted
 	     (not not-break)
 	     (not bolp)
@@ -3590,7 +3600,7 @@ Prefix arg means justify as well."
 		      (equal quoted (match-string 0)))
 	    (goto-char (match-end 0))
 	    (looking-at "[ \t]*")
-	    (when (< (length leading-space) (length (match-string 0)))
+	    (when (> (length leading-space) (length (match-string 0)))
 	      (setq leading-space (match-string 0)))
 	    (forward-line 1))
 	  (setq end (point))

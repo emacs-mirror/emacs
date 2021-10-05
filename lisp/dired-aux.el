@@ -493,8 +493,7 @@ are supported.  Type M-n to pull the file attributes of the file
 at point into the minibuffer.
 
 See Info node `(coreutils)File permissions' for more information.
-Alternatively, see the man page for \"chmod\", using the command
-\\[man] in Emacs.
+Alternatively, see the man page for \"chmod(1)\".
 
 Note that on MS-Windows only the `w' (write) bit is meaningful:
 resetting it makes the file read-only.  Changing any other bit
@@ -1245,7 +1244,7 @@ and `dired-compress-files-alist'."
                                   (?i . ,(mapconcat
                                           (lambda (in-file)
                                             (shell-quote-argument
-                                             (file-name-nondirectory in-file)))
+                                             (file-relative-name in-file)))
                                           in-files " "))))))
              (message (ngettext "Compressed %d file to %s"
 			        "Compressed %d files to %s"
@@ -1326,7 +1325,7 @@ Return nil if no change in files."
                        (user-error
                         "No compression rule found for \
 `dired-compress-directory-default-suffix' %s, see `dired-compress-files-alist' for\
- the supported suffixes list."
+ the supported suffixes list"
                         dired-compress-directory-default-suffix)))
                  (let* ((suffix (or dired-compress-file-default-suffix ".gz"))
                         (out-name (concat file suffix))
@@ -1335,7 +1334,7 @@ Return nil if no change in files."
                                dired-compress-file-alist)))
                    (if (not rule)
                        (user-error "No compression rule found for suffix %s, \
-see `dired-compress-file-alist' for the supported suffixes list."
+see `dired-compress-file-alist' for the supported suffixes list"
                                    dired-compress-file-default-suffix)
                      (and (file-exists-p file)
                           (or (not (file-exists-p out-name))
@@ -2399,7 +2398,9 @@ But if `dired-copy-dereference' is non-nil, the symbolic
 links are dereferenced and then copied, similar to the \"-L\"
 option for the \"cp\" shell command.  If ARG is a cons with
 element 4 (`\\[universal-argument]'), the inverted value of
-`dired-copy-dereference' will be used."
+`dired-copy-dereference' will be used.
+
+Also see `dired-do-revert-buffer'."
   (interactive "P")
   (let ((dired-recursive-copies dired-recursive-copies)
         (dired-copy-dereference (if (equal arg '(4))
@@ -2420,7 +2421,9 @@ with the same names that the files currently have.  The default
 suggested for the target directory depends on the value of
 `dired-dwim-target', which see.
 
-For relative symlinks, use \\[dired-do-relsymlink]."
+For relative symlinks, use \\[dired-do-relsymlink].
+
+Also see `dired-do-revert-buffer'."
   (interactive "P")
   (dired-do-create-files 'symlink #'make-symbolic-link
                          "Symlink" arg dired-keep-marker-symlink))
@@ -2433,7 +2436,9 @@ When operating on multiple or marked files, you specify a directory
 and new hard links are made in that directory
 with the same names that the files currently have.  The default
 suggested for the target directory depends on the value of
-`dired-dwim-target', which see."
+`dired-dwim-target', which see.
+
+Also see `dired-do-revert-buffer'."
   (interactive "P")
   (dired-do-create-files 'hardlink #'dired-hardlink
                          "Hardlink" arg dired-keep-marker-hardlink))
@@ -2452,7 +2457,9 @@ When renaming just the current file, you specify the new name.
 When renaming multiple or marked files, you specify a directory.
 This command also renames any buffers that are visiting the files.
 The default suggested for the target directory depends on the value
-of `dired-dwim-target', which see."
+of `dired-dwim-target', which see.
+
+Also see `dired-do-revert-buffer'."
   (interactive "P")
   (dired-do-create-files 'move #'dired-rename-file
 			 "Move" arg dired-keep-marker-rename "Rename"))

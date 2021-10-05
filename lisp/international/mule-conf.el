@@ -1679,6 +1679,7 @@ for decoding and encoding files, process I/O, etc."
 
 (defcustom password-word-equivalents
   '("password" "passcode" "passphrase" "pass phrase" "pin"
+    "decryption key" "encryption key" ; From ccrypt.
     ; These are sorted according to the GNU en_US locale.
     "암호"		; ko
     "パスワード"	; ja

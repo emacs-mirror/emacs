@@ -6222,7 +6222,7 @@ Otherwise, the return value is a vector with the following fields:
 static void compute_tip_xy (struct frame *, Lisp_Object, Lisp_Object,
 			    Lisp_Object, int, int, int *, int *);
 
-/* The frame of the currently visible tooltip.  */
+/* The frame of the currently visible tooltip, or nil if none.  */
 static Lisp_Object tip_frame;
 
 /* The window-system window corresponding to the frame of the
@@ -6710,7 +6710,7 @@ x_hide_tip (bool delete)
   if ((NILP (tip_last_frame) && NILP (tip_frame))
       || (!x_gtk_use_system_tooltips
 	  && !delete
-	  && FRAMEP (tip_frame)
+	  && !NILP (tip_frame)
 	  && FRAME_LIVE_P (XFRAME (tip_frame))
 	  && !FRAME_VISIBLE_P (XFRAME (tip_frame))))
     /* Either there's no tooltip to hide or it's an already invisible
@@ -6727,7 +6727,7 @@ x_hide_tip (bool delete)
       specbind (Qinhibit_quit, Qt);
 
       /* Try to hide the GTK+ system tip first.  */
-      if (FRAMEP (tip_last_frame))
+      if (!NILP (tip_last_frame))
 	{
 	  struct frame *f = XFRAME (tip_last_frame);
 
@@ -6745,7 +6745,7 @@ x_hide_tip (bool delete)
 	tip_last_frame = Qnil;
 
       /* Now look whether there's an Emacs tip around.  */
-      if (FRAMEP (tip_frame))
+      if (!NILP (tip_frame))
 	{
 	  struct frame *f = XFRAME (tip_frame);
 
@@ -6775,7 +6775,7 @@ x_hide_tip (bool delete)
 #else /* not USE_GTK */
   if (NILP (tip_frame)
       || (!delete
-	  && FRAMEP (tip_frame)
+	  && !NILP (tip_frame)
 	  && FRAME_LIVE_P (XFRAME (tip_frame))
 	  && !FRAME_VISIBLE_P (XFRAME (tip_frame))))
     return Qnil;
@@ -6788,7 +6788,7 @@ x_hide_tip (bool delete)
       specbind (Qinhibit_redisplay, Qt);
       specbind (Qinhibit_quit, Qt);
 
-      if (FRAMEP (tip_frame))
+      if (!NILP (tip_frame))
 	{
 	  struct frame *f = XFRAME (tip_frame);
 
@@ -6931,7 +6931,7 @@ Text larger than the specified size is clipped.  */)
     }
 #endif /* USE_GTK */
 
-  if (FRAMEP (tip_frame) && FRAME_LIVE_P (XFRAME (tip_frame)))
+  if (!NILP (tip_frame) && FRAME_LIVE_P (XFRAME (tip_frame)))
     {
       if (FRAME_VISIBLE_P (XFRAME (tip_frame))
 	  && EQ (frame, tip_last_frame)
@@ -7016,7 +7016,7 @@ Text larger than the specified size is clipped.  */)
   tip_last_string = string;
   tip_last_parms = parms;
 
-  if (!FRAMEP (tip_frame) || !FRAME_LIVE_P (XFRAME (tip_frame)))
+  if (NILP (tip_frame) || !FRAME_LIVE_P (XFRAME (tip_frame)))
     {
       /* Add default values to frame parameters.  */
       if (NILP (Fassq (Qname, parms)))

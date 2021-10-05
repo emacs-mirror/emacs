@@ -107,7 +107,7 @@ rejecting one login and prompting again for a username and password.")
       (let (revert-buffer-function)
         (revert-buffer ignore-auto noconfirm))
     (if (or noconfirm
-            (yes-or-no-p (format "Restart connection? ")))
+            (yes-or-no-p "Restart connection? "))
         (apply telnet-connect-command))))
 
 (defun telnet-c-z ()

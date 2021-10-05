@@ -250,16 +250,15 @@ Always stores Fcc copy of message when nil."
 Should probably be \"-Ei\"."
   :type 'string)
 
-(defcustom ispell-look-command
-  (cond ((file-exists-p "/bin/look") "/bin/look")
-	((file-exists-p "/usr/local/bin/look") "/usr/local/bin/look")
-	((file-exists-p "/usr/bin/look") "/usr/bin/look")
-	(t "look"))
+(defcustom ispell-look-command (executable-find "look")
   "Name of the look command for search processes.
 This must be an absolute file name."
-  :type 'file)
+  :type '(choice (const :tag "None" nil)
+                 file)
+  :version "28.1")
 
-(defcustom ispell-look-p (file-exists-p ispell-look-command)
+(defcustom ispell-look-p (and ispell-look-command
+                              (file-exists-p ispell-look-command))
   "Non-nil means use `look' rather than `grep'.
 Default is based on whether `look' seems to be available."
   :type 'boolean)
@@ -398,6 +397,10 @@ re-start Emacs."
  			       (const :tag "default" nil))
                        (coding-system :tag "Coding System"))))
 
+(defcustom ispell-help-timeout 5
+  "The number of seconds to display the help text."
+  :type 'number
+  :version "28.1")
 
 (defvar ispell-dictionary-base-alist
   '((nil                                ; default
@@ -758,8 +761,7 @@ See `ispell-buffer-with-debug' for an example of use."
   (let ((ispell-debug-buffer (get-buffer-create "*ispell-debug*")))
     (with-current-buffer ispell-debug-buffer
       (if append
-	  (insert
-	   (format "-----------------------------------------------\n"))
+	  (insert "-----------------------------------------------\n")
 	(erase-buffer)))
     ispell-debug-buffer))
 
@@ -2461,7 +2463,7 @@ SPC:   Accept word this time.
 	      (with-current-buffer buffer
 		(insert (concat help-1 "\n" help-2 "\n" help-3)))
 	      (ispell-display-buffer buffer)
-	      (sit-for 5)
+	      (sit-for ispell-help-timeout)
 	      (kill-buffer "*Ispell Help*"))
 	  (unwind-protect
 	      (let ((resize-mini-windows 'grow-only))
@@ -2471,7 +2473,7 @@ SPC:   Accept word this time.
 		;;(set-minibuffer-window (selected-window))
 		(enlarge-window 2)
 		(insert (concat help-1 "\n" help-2 "\n" help-3))
-		(sit-for 5))
+		(sit-for ispell-help-timeout))
 	    (erase-buffer)))))))
 
 (define-obsolete-function-alias 'lookup-words 'ispell-lookup-words "24.4")

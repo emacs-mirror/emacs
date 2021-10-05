@@ -455,8 +455,9 @@ reference.")
   ;; because Emacs turns C-c C-i into C-c TAB which is hard to type and
   ;; not mnemonic.
   "Major mode for editing XML.
-
+\\<nxml-mode-map>
 \\[nxml-finish-element] finishes the current element by inserting an end-tag.
+
 C-c C-i closes a start-tag with `>' and then inserts a balancing end-tag
 leaving point between the start-tag and end-tag.
 \\[nxml-balanced-close-start-tag-block] is similar but for block rather than inline elements:

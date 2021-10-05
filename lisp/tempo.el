@@ -445,7 +445,7 @@ never prompted."
 ;;; tempo-is-user-element
 
 (defun tempo-is-user-element (element)
-  "Tries all the user-defined element handlers in `tempo-user-elements'."
+  "Try all the user-defined element handlers in `tempo-user-elements'."
   ;; Sigh... I need (some list)
   (catch 'found
     (mapc (lambda (handler)

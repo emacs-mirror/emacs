@@ -393,7 +393,13 @@ Don't use @code{message}, @code{throw}, @code{sleep-for}, or
 
 @item
 An error message should start with a capital letter but should not end
-with a period.
+with a period or other punctuation.
+
+It is occasionally useful to tell the user where an error originated,
+even if @code{debug-on-error} is @code{nil}.  In such cases, a
+lower-case Lisp symbol can be prepended to the error message.  For
+example, the error message ``Invalid input'' could be extended to say
+``some-function: Invalid input''.
 
 @item
 A question asked in the minibuffer with @code{yes-or-no-p} or
@@ -754,6 +760,20 @@ anchor}.  The Info file name defaults to @samp{emacs}.  For example,
 @smallexample
 See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.
 @end smallexample
+
+To make a hyperlink to a man page, write the single-quoted name of the
+man page, preceded by @samp{Man page}, @samp{man page}, or @samp{man
+page for}.  For example,
+
+@smallexample
+See the man page `chmod(1)' for details.
+@end smallexample
+
+@noindent
+The Info documentation is always preferable to man pages, so be sure
+to link to an Info manual where available.  For example,
+@command{chmod} is documented in the GNU Coreutils manual, so it is
+better to link to that instead of the man page.
 
 To link to a customization group, write the single-quoted name of the
 group, preceded by @samp{customization group} (the first character in

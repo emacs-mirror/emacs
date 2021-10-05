@@ -176,11 +176,11 @@ command history."
 
 (defcustom isearch-wrap-pause t
   "Define the behavior of wrapping when there are no more matches.
-When `t' (by default), signal an error when no more matches are found.
+When t (by default), signal an error when no more matches are found.
 Then after repeating the search, wrap with `isearch-wrap-function'.
 When `no', wrap immediately after reaching the last match.
 When `no-ding', wrap immediately without flashing the screen.
-When `nil', never wrap, just stop at the last match."
+When nil, never wrap, just stop at the last match."
   :type '(choice (const :tag "Pause before wrapping" t)
                  (const :tag "No pause before wrapping" no)
                  (const :tag "No pause and no flashing" no-ding)
@@ -189,9 +189,9 @@ When `nil', never wrap, just stop at the last match."
 
 (defcustom isearch-repeat-on-direction-change nil
   "Whether a direction change should move to another match.
-When `nil', the default, a direction change moves point to the other
+When nil, the default, a direction change moves point to the other
 end of the current search match.
-When `t', a direction change moves to another search match, if there
+When t, a direction change moves to another search match, if there
 is one."
   :type '(choice (const :tag "Remain on the same match" nil)
                  (const :tag "Move to another match" t))
@@ -1096,7 +1096,8 @@ as a regexp.  See the command `isearch-forward' for more information.
 In incremental searches, a space or spaces normally matches any
 whitespace defined by the variable `search-whitespace-regexp'.
 To search for a literal space and nothing else, enter C-q SPC.
-To toggle whitespace matching, use `isearch-toggle-lax-whitespace'.
+To toggle whitespace matching, use `isearch-toggle-lax-whitespace',
+usually bound to `M-s SPC' during isearch.
 This command does not support character folding."
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
@@ -1221,7 +1222,7 @@ is processed.  (It is not called after characters that exit the search.)
 
 When the arg RECURSIVE-EDIT is non-nil, this function behaves modally and
 does not return to the calling function until the search is completed.
-To behave this way it enters a recursive-edit and exits it when done
+To behave this way it enters a recursive edit and exits it when done
 isearching.
 
 The arg REGEXP-FUNCTION, if non-nil, should be a function.  It is

@@ -501,9 +501,9 @@ absent, return nil."
 (defun lm-website (&optional file)
   "Return the website in file FILE, or current buffer if FILE is nil."
   (let ((page (lm-with-file file
-                (lm-header "\\(?:x-\\)?\\(?:url\\|homepage\\)"))))
-    (if (and page (string-match "^<.+>$" page))
-	(substring page 1 -1)
+                (lm-header (rx (? "x-") (or "url" "homepage"))))))
+    (if (and page (string-match (rx bol "<" (+ nonl) ">" eol) page))
+        (substring page 1 -1)
       page)))
 (defalias 'lm-homepage 'lm-website) ; for backwards-compatibility
 

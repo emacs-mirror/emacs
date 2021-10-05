@@ -1866,14 +1866,14 @@ records the list of known projects.  It defaults to the file
 @subsection Managing the Project List File
 
 @table @kbd
-@item M-x project-remove-known-project
+@item M-x project-forget-project
 Remove a known project from the @code{project-list-file}.
 @end table
 
-@findex project-remove-known-project
+@findex project-forget-project
   Normally Emacs automatically adds and removes projects to and from the
 @code{project-list-file}, but sometimes you may want to manually edit
-the available projects.  @kbd{M-x project-remove-known-project}
+the available projects.  @kbd{M-x project-forget-project}
 prompts you to choose one of the available projects, and then removes
 it from the file.
 

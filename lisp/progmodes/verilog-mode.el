@@ -1,4 +1,4 @@
-;;; verilog-mode.el --- major mode for editing verilog source in Emacs
+;;; verilog-mode.el --- major mode for editing verilog source in Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2021.09.16.045775504
+;; Version: 2021.09.23.089128420
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2021-09-16-2ba7a90-vpo-GNU"
+(defconst verilog-mode-version "2021-09-23-54ffde4-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -414,7 +414,7 @@ wherever possible, since it is slow."
 ;;     "----" ["MB" nil :help "Help MB"]))
 
 (defun verilog-define-abbrev-table (tablename definitions &optional docstring &rest props)
-  "Filter `define-abbrev-table' TABLENAME DEFINITIONS
+  "Filter `define-abbrev-table' TABLENAME DEFINITIONS.
 Provides DOCSTRING PROPS in newer Emacs (23.1)."
   (condition-case nil
       (apply #'define-abbrev-table tablename definitions docstring props)
@@ -591,19 +591,19 @@ If `all' is selected, then all line ups described below are done.
 If `declarations', then just declarations are lined up with any
 preceding declarations, taking into account widths and the like,
 so or example the code:
-	reg [31:0] a;
-	reg b;
+        reg [31:0] a;
+        reg b;
 would become
-	reg [31:0] a;
-	reg        b;
+        reg [31:0] a;
+        reg        b;
 
 If `assignment', then assignments are lined up with any preceding
 assignments, so for example the code
-	a_long_variable <= b + c;
-	d = e + f;
+        a_long_variable <= b + c;
+        d = e + f;
 would become
-	a_long_variable <= b + c;
-	d                = e + f;
+        a_long_variable <= b + c;
+        d                = e + f;
 
 In order to speed up editing, large blocks of statements are lined up
 only when a \\[verilog-pretty-expr] is typed; and large blocks of declarations
@@ -641,13 +641,13 @@ Set to 0 to get them list right under containing block."
 (defcustom verilog-indent-declaration-macros nil
   "How to treat macro expansions in a declaration.
 If nil, indent as:
-	input [31:0] a;
-	input        \\=`CP;
-	output       c;
+        input [31:0] a;
+        input        \\=`CP;
+        output       c;
 If non-nil, treat as:
-	input [31:0] a;
-	input \\=`CP    ;
-	output       c;"
+        input [31:0] a;
+        input \\=`CP    ;
+        output       c;"
   :group 'verilog-mode-indent
   :type 'boolean)
 (put 'verilog-indent-declaration-macros 'safe-local-variable #'verilog-booleanp)
@@ -655,12 +655,12 @@ If non-nil, treat as:
 (defcustom verilog-indent-lists t
   "How to treat indenting items in a list.
 If t (the default), indent as:
-	always @( posedge a or
-	          reset ) begin
+        always @( posedge a or
+                  reset ) begin
 
 If nil, treat as:
-	always @( posedge a or
-	   reset ) begin"
+        always @( posedge a or
+           reset ) begin"
   :group 'verilog-mode-indent
   :type 'boolean)
 (put 'verilog-indent-lists 'safe-local-variable #'verilog-booleanp)
@@ -3563,7 +3563,7 @@ either is ok to parse as a non-comment, or `verilog-insert' was used."
 (defun verilog-scan-debug ()
   "For debugging, show with display face results of `verilog-scan'."
   (font-lock-mode 0)
-  ;;(if dbg (setq dbg (concat dbg (format "verilog-scan-debug\n"))))
+  ;;(if dbg (setq dbg (concat dbg "verilog-scan-debug\n")))
   (save-excursion
     (goto-char (point-min))
     (remove-text-properties (point-min) (point-max) '(face nil))
@@ -4038,9 +4038,12 @@ Some other functions are:
     \\[verilog-sk-repeat]  Insert a repeat (..) begin .. end block.
     \\[verilog-sk-specify]  Insert a specify .. endspecify block.
     \\[verilog-sk-task]  Insert a task .. begin .. end endtask block.
-    \\[verilog-sk-while]  Insert a while (...) begin .. end block, prompting for details.
-    \\[verilog-sk-casex]  Insert a casex (...) item: begin.. end endcase block, prompting for details.
-    \\[verilog-sk-casez]  Insert a casez (...) item: begin.. end endcase block, prompting for details.
+    \\[verilog-sk-while]  Insert a while (...) begin .. end block,
+                       prompting for details.
+    \\[verilog-sk-casex]  Insert a casex (...) item: begin.. end endcase block,
+                       prompting for details.
+    \\[verilog-sk-casez]  Insert a casez (...) item: begin.. end endcase block,
+                       prompting for details.
     \\[verilog-sk-if]  Insert an if (..) begin .. end block.
     \\[verilog-sk-else-if]  Insert an else if (..) begin .. end block.
     \\[verilog-sk-comment]  Insert a comment block.
@@ -4759,7 +4762,7 @@ More specifically, after a generate and before an endgenerate."
 	(while (and
 		(/= nest 0)
 		(verilog-re-search-backward
-                "\\<\\(module\\)\\|\\(connectmodule\\)\\|\\(generate\\)\\|\\(endgenerate\\)\\>" nil 'move)
+                "\\<\\(module\\)\\|\\(connectmodule\\)\\|\\(generate\\)\\|\\(endgenerate\\)\\|\\(if\\)\\|\\(case\\)\\|\\(for\\)\\>" nil 'move)
 		(cond
 		 ((match-end 1) ; module - we have crawled out
 		  (throw 'done 1))
@@ -4768,7 +4771,13 @@ More specifically, after a generate and before an endgenerate."
                 ((match-end 3) ; generate
 		  (setq nest (1- nest)))
                 ((match-end 4) ; endgenerate
-		  (setq nest (1+ nest))))))))
+                 (setq nest (1+ nest)))
+                ((match-end 5) ; if
+                 (setq nest (1- nest)))
+                ((match-end 6) ; case
+                 (setq nest (1- nest)))
+                ((match-end 7) ; for
+                 (setq nest (1- nest))))))))
     (= nest 0) )) ; return nest
 
 (defun verilog-in-fork-region-p ()
@@ -5419,7 +5428,7 @@ Useful for creating tri's and other expanded fields."
 (defun verilog-lint-off ()
   "Convert a Verilog linter warning line into a disable statement.
 For example:
-	pci_bfm_null.v, line  46: Unused input: pci_rst_
+        pci_bfm_null.v, line  46: Unused input: pci_rst_
 becomes a comment for the appropriate tool.
 
 The first word of the `compile-command' or `verilog-linter'
@@ -5443,9 +5452,9 @@ Run from Verilog source window; assumes there is a *compile* buffer
 with point set appropriately.
 
 For example:
-	WARNING [STD-UDDONX]: xx.v, line 8: output out is never assigned.
+        WARNING [STD-UDDONX]: xx.v, line 8: output out is never assigned.
 becomes:
-	// surefire lint_line_off UDDONX"
+        // surefire lint_line_off UDDONX"
   (interactive)
   (let ((buff (if (boundp 'next-error-last-buffer)
                   next-error-last-buffer
@@ -5504,9 +5513,9 @@ becomes:
   "Convert a Verilint warning line into a disable statement.
 
 For example:
-	(W240)  pci_bfm_null.v, line  46: Unused input: pci_rst_
+        (W240)  pci_bfm_null.v, line  46: Unused input: pci_rst_
 becomes:
-	//Verilint 240 off // WARNING: Unused input"
+        //Verilint 240 off // WARNING: Unused input"
   (interactive)
   (save-excursion
     (beginning-of-line)
@@ -6574,7 +6583,8 @@ Return >0 for nested struct."
 	  nil))))
 
 (defun verilog-at-constraint-p ()
-  "If at the { of a constraint or coverpoint definition, return true, moving point to constraint."
+  "If at the { of a constraint or coverpoint definition, return true.
+Also move point to constraint."
   (if (save-excursion
 	(let ((p (point)))
           (and
@@ -6588,7 +6598,7 @@ Return >0 for nested struct."
                        (equal (char-before) ?\;)
                        (equal (char-before) ?\}))
                    ;; skip what looks like bus repetition operator {#{
-                   (not (string-match "^{\\s-*[0-9a-zA-Z_]+\\s-*{" (buffer-substring p (point)))))))))
+                   (not (string-match "^{\\s-*[\\(\\)0-9a-zA-Z_]*\\s-*{" (buffer-substring p (point)))))))))
       (progn
         (let ( (pt (point)) (pass 0))
           (verilog-backward-ws&directives)
@@ -9806,11 +9816,11 @@ variable over and over when many modules are compiled together, put a test
 around the inside each include file:
 
 foo.v (an include file):
-	\\=`ifdef _FOO_V	// include if not already included
-	\\=`else
-	\\=`define _FOO_V
-	... contents of file
-	\\=`endif // _FOO_V"
+        \\=`ifdef _FOO_V        // include if not already included
+        \\=`else
+        \\=`define _FOO_V
+        ... contents of file
+        \\=`endif // _FOO_V"
   ;;slow:  (verilog-read-defines nil t)
   (save-excursion
     (verilog-getopt-flags)
@@ -11575,6 +11585,7 @@ See the example in `verilog-auto-inout-modport'."
 (defun verilog-auto-inst-port-map (_port-st)
   nil)
 
+;; These are used by user's AUTO_TEMPLATE Lisp expressions
 (defvar vl-cell-type nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-cell-name nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-memory    nil "See `verilog-auto-inst'.") ; Prevent compile warning
@@ -12589,7 +12600,7 @@ You may also provide an optional regular expression, in which case only
 signals matching the regular expression will be included.  For example the
 same expansion will result from only extracting outputs starting with ov:
 
-	   /*AUTOOUTPUT(\"^ov\")*/"
+           /*AUTOOUTPUT(\"^ov\")*/"
   (save-excursion
     ;; Point must be at insertion point.
     (let* ((indent-pt (current-indentation))
@@ -12740,7 +12751,7 @@ included.  or excluded if the regexp begins with
 expansion will result from only extracting inputs starting with
 i:
 
-	   /*AUTOINPUT(\"^i\")*/"
+           /*AUTOINPUT(\"^i\")*/"
   (save-excursion
     (let* ((indent-pt (current-indentation))
 	   (params (verilog-read-auto-params 0 1))
@@ -13454,7 +13465,7 @@ Constant signals:
   is put into the AUTOSENSE list and is not desired, use the AUTO_CONSTANT
   declaration anywhere in the module (parenthesis are required):
 
-	/* AUTO_CONSTANT ( \\=`this_is_really_constant_dont_autosense_it ) */
+        /* AUTO_CONSTANT( \\=`this_is_really_constant_dont_autosense_it ) */
 
   Better yet, use a parameter, which will be understood to be constant
   automatically.
@@ -13470,7 +13481,7 @@ OOps!
 An example:
 
            always @ (/*AS*/) begin
-              /*AUTO_CONSTANT (\\=`constant) */
+              /*AUTO_CONSTANT(\\=`constant) */
               outin = ina | inb | \\=`constant;
               out = outin;
            end
@@ -13478,7 +13489,7 @@ An example:
 Typing \\[verilog-auto] will make this into:
 
            always @ (/*AS*/ina or inb) begin
-              /*AUTO_CONSTANT (\\=`constant) */
+              /*AUTO_CONSTANT(\\=`constant) */
               outin = ina | inb | \\=`constant;
               out = outin;
            end
@@ -14134,14 +14145,14 @@ For example:
         endmodule
 
 You can also update the AUTOs from the shell using:
-	emacs --batch  <filenames.v>  -f verilog-batch-auto
+        emacs --batch  <filenames.v>  -f verilog-batch-auto
 Or fix indentation with:
-	emacs --batch  <filenames.v>  -f verilog-batch-indent
+        emacs --batch  <filenames.v>  -f verilog-batch-indent
 Likewise, you can delete or inject AUTOs with:
-	emacs --batch  <filenames.v>  -f verilog-batch-delete-auto
-	emacs --batch  <filenames.v>  -f verilog-batch-inject-auto
+        emacs --batch  <filenames.v>  -f verilog-batch-delete-auto
+        emacs --batch  <filenames.v>  -f verilog-batch-inject-auto
 Or check if AUTOs have the same expansion
-	emacs --batch  <filenames.v>  -f verilog-batch-diff-auto
+        emacs --batch  <filenames.v>  -f verilog-batch-diff-auto
 
 Using \\[describe-function], see also:
     `verilog-auto-arg'          for AUTOARG module instantiations
@@ -14978,7 +14989,9 @@ but instead, [[Fill in here]] happens!.
 
 (provide 'verilog-mode)
 
+;;TODO: Could `byte-compile-docstring-max-column' be decreased?
 ;; Local Variables:
+;; byte-compile-docstring-max-column: 90
 ;; checkdoc-permit-comma-termination-flag:t
 ;; checkdoc-force-docstrings-flag:nil
 ;; indent-tabs-mode:nil

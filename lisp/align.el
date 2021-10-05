@@ -897,22 +897,24 @@ align them so that the opening parentheses would line up:
     Mary-Anne (123) 456-7890
     Joe (123) 456-7890
 
-There is no predefined rule to handle this, but you could easily do it
-using a REGEXP like \"(\".  Interactively, all you would have to do is
-to mark the region, call `align-regexp' and enter that regular expression.
+There is no predefined rule to handle this, but interactively,
+all you would have to do is to mark the region, call `align-regexp'
+and enter \"(\".
 
-REGEXP must contain at least one parenthesized subexpression, typically
-whitespace of the form \"\\\\(\\\\s-*\\\\)\".  In normal interactive use,
-this is automatically added to the start of your regular expression after
-you enter it.  You only need to supply the characters to be lined up, and
-any preceding whitespace is replaced.
+REGEXP must contain at least one parenthesized subexpression,
+typically whitespace of the form \"\\\\(\\\\s-*\\\\)\", but in
+interactive use, this is automatically added to the start of your
+regular expression after you enter it.  Interactively, you only
+need to supply the characters to be lined up, and any preceding
+whitespace is replaced.
 
-If you specify a prefix argument (or use this function non-interactively),
-you must enter the full regular expression, including the subexpression.
-The function also then prompts for which subexpression parenthesis GROUP
-\(default 1) within REGEXP to modify, the amount of SPACING (default
-`align-default-spacing') to use, and whether or not to REPEAT the rule
-throughout the line.
+Non-interactively (or if you specify a prefix argument), you must
+enter the full regular expression, including the subexpression.
+Interactively, the function also then prompts for which
+subexpression parenthesis GROUP (default 1) within REGEXP to
+modify, the amount of SPACING (default `align-default-spacing')
+to use, and whether or not to REPEAT the rule throughout the
+line.
 
 See `align-rules-list' for more information about these options.
 

@@ -201,13 +201,10 @@ really edit the buffer? (%s, %s, %s or %s) "
 
 (defun ask-user-about-supersession-help ()
   (with-output-to-temp-buffer "*Help*"
-    (let ((revert-buffer-binding
-           ;; This takes place in the original buffer.
-           (substitute-command-keys "\\[revert-buffer]")))
-      (with-current-buffer standard-output
-        (insert
-         (format
-          "You want to modify a buffer whose disk file has changed
+    (with-current-buffer standard-output
+      (insert
+       (format
+        "You want to modify a buffer whose disk file has changed
 since you last read it in or saved it with this buffer.
 
 If you say %s to go ahead and modify this buffer,
@@ -216,14 +213,13 @@ If you say %s to revert, the contents of the buffer are refreshed
 from the file on disk.
 If you say %s, the change you started to make will be aborted.
 
-Usually, you should type %s and then %s,
-to get the latest version of the file, then make the change again."
-          (userlock--fontify-key "y")
-          (userlock--fontify-key "r")
-          (userlock--fontify-key "n")
-          (userlock--fontify-key "n")
-          revert-buffer-binding))
-        (help-mode)))))
+Usually, you should type %s to get the latest version of the
+file, then make the change again."
+        (userlock--fontify-key "y")
+        (userlock--fontify-key "r")
+        (userlock--fontify-key "n")
+        (userlock--fontify-key "r")))
+      (help-mode))))
 
 ;;;###autoload
 (defun userlock--handle-unlock-error (error)

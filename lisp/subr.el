@@ -22,6 +22,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 ;; declare-function's args use &rest, not &optional, for compatibility
@@ -4634,6 +4636,7 @@ If `default-directory' is already an existing directory, it's not changed."
                                              (file-exists-p dir)))
                                       (list default-directory
                                             (expand-file-name "~/")
+                                            temporary-file-directory
                                             (getenv "TMPDIR")
                                             "/tmp/")
                                       "/")))
@@ -4665,13 +4668,24 @@ rather than your caller's match data."
 	      '(set-match-data save-match-data-internal 'evaporate))))
 
 (defun match-string (num &optional string)
-  "Return string of text matched by last search.
-NUM specifies which parenthesized expression in the last regexp.
- Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
-Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING.
-If STRING is nil, the current buffer should be the same buffer
-the search/match was performed in."
+  "Return the string of text matched by the previous search or regexp operation.
+NUM specifies the number of the parenthesized sub-expression in the last
+regexp whose match to return.  Zero means return the text matched by the
+entire regexp or the whole string.
+
+The return value is nil if NUMth pair didn't match anything, or if there
+were fewer than NUM sub-expressions in the regexp used in the search.
+
+STRING should be given if the last search was by `string-match'
+on STRING.  If STRING is nil, the current buffer should be the
+same buffer as the one in which the search/match was performed.
+
+Note that many functions in Emacs modify the match data, so this
+function should be called \"close\" to the function that did the
+regexp search.  In particular, saying (for instance)
+`M-: (looking-at \"[0-9]\") RET' followed by `M-: (match-string 0) RET'
+interactively is seldom meaningful, since the Emacs command loop
+may modify the match data."
   (declare (side-effect-free t))
   (if (match-beginning num)
       (if string
@@ -6405,17 +6419,29 @@ seconds."
 This is intended for very simple filling while bootstrapping
 Emacs itself, and does not support all the customization options
 of fill.el (for example `fill-region')."
-  (if (< (string-width str) fill-column)
+  (if (< (length str) fill-column)
       str
-    (let ((fst (substring str 0 fill-column))
-          (lst (substring str fill-column)))
-      (if (string-match ".*\\( \\(.+\\)\\)$" fst)
-          (setq fst (replace-match "\n\\2" nil nil fst 1)))
+    (let* ((limit (min fill-column (length str)))
+           (fst (substring str 0 limit))
+           (lst (substring str limit)))
+      (cond ((string-match "\\( \\)$" fst)
+             (setq fst (replace-match "\n" nil nil fst 1)))
+            ((string-match "^ \\(.*\\)" lst)
+             (setq fst (concat fst "\n"))
+             (setq lst (match-string 1 lst)))
+            ((string-match ".*\\( \\(.+\\)\\)$" fst)
+             (setq lst (concat (match-string 2 fst) lst))
+             (setq fst (replace-match "\n" nil nil fst 1))))
       (concat fst (internal--fill-string-single-line lst)))))
 
 (defun internal--format-docstring-line (string &rest objects)
-  "Format a documentation string out of STRING and OBJECTS.
-This is intended for internal use only."
+  "Format a single line from a documentation string out of STRING and OBJECTS.
+Signal an error if STRING contains a newline.
+This is intended for internal use only.  Avoid using this for the
+first line of a docstring; the first line should be a complete
+sentence (see Info node `(elisp) Documentation Tips')."
+  (when (string-match "\n" string)
+    (error "Unable to fill string containing newline: %S" string))
   (internal--fill-string-single-line (apply #'format string objects)))
 
 (defun json-available-p ()
@@ -6425,5 +6451,13 @@ This is intended for internal use only."
            (json-serialize t)
          (:success t)
          (json-unavailable nil))))
+
+(defun ensure-list (object)
+  "Return OBJECT as a list.
+If OBJECT is already a list, return OBJECT itself.  If it's
+not a list, return a one-element list containing OBJECT."
+  (if (listp object)
+      object
+    (list object)))
 
 ;;; subr.el ends here

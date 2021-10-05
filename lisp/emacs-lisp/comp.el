@@ -901,8 +901,8 @@ non local exit (ends with an `unreachable' insn)."))
   (lap () :type list
        :documentation "LAP assembly representation.")
   (ssa-status nil :type symbol
-       :documentation "SSA status either: 'nil', 'dirty' or 't'.
-Once in SSA form this *must* be set to 'dirty' every time the topology of the
+       :documentation "SSA status either: nil, `dirty' or t.
+Once in SSA form this *must* be set to `dirty' every time the topology of the
 CFG is mutated by a pass.")
   (frame-size nil :type integer)
   (vframe-size 0 :type integer)
@@ -3653,6 +3653,9 @@ Prepare every function for final compilation and drive the C back-end."
 (defvar comp-async-compilation nil
   "Non-nil while executing an asynchronous native compilation.")
 
+(defvar comp-running-batch-compilation nil
+  "Non-nil when compilation is driven by any `batch-*-compile' function.")
+
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
   (maphash #'comp-compute-function-type (comp-ctxt-funcs-h comp-ctxt))
@@ -3661,7 +3664,7 @@ Prepare every function for final compilation and drive the C back-end."
     ;; unless during bootstrap or async compilation (bug#45056).  GCC
     ;; leaks memory but also interfere with the ability of Emacs to
     ;; detect when a sub-process completes (TODO understand why).
-    (if (or byte+native-compile comp-async-compilation)
+    (if (or comp-running-batch-compilation comp-async-compilation)
 	(comp-final1)
       ;; Call comp-final1 in a child process.
       (let* ((output (comp-ctxt-output comp-ctxt))
@@ -4191,19 +4194,28 @@ form, return the compiled function."
   (comp--native-compile function-or-file nil output))
 
 ;;;###autoload
-(defun batch-native-compile ()
-  "Perform native compilation on remaining command-line arguments.
-Use this from the command line, with ‘-batch’;
-it won’t work in an interactive Emacs.
-Native compilation equivalent to `batch-byte-compile'."
+(defun batch-native-compile (&optional for-tarball)
+  "Perform batch native compilation of remaining command-line arguments.
+
+Native compilation equivalent of `batch-byte-compile'.
+Use this from the command line, with `-batch'; it won't work
+in an interactive Emacs session.
+Optional argument FOR-TARBALL non-nil means the file being compiled
+as part of building the source tarball, in which case the .eln file
+will be placed under the native-lisp/ directory (actually, in the
+last directory in `native-comp-eln-load-path')."
   (comp-ensure-native-compiler)
-  (cl-loop for file in command-line-args-left
-           if (or (null byte+native-compile)
-                  (cl-notany (lambda (re) (string-match re file))
-                             native-comp-bootstrap-deny-list))
-           do (comp--native-compile file)
-           else
-           do (byte-compile-file file)))
+  (let ((comp-running-batch-compilation t)
+        (native-compile-target-directory
+            (if for-tarball
+                (car (last native-comp-eln-load-path)))))
+    (cl-loop for file in command-line-args-left
+             if (or (null byte+native-compile)
+                    (cl-notany (lambda (re) (string-match re file))
+                               native-comp-bootstrap-deny-list))
+             do (comp--native-compile file)
+             else
+             do (byte-compile-file file))))
 
 ;;;###autoload
 (defun batch-byte+native-compile ()

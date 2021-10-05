@@ -229,7 +229,7 @@
               ((obsolete run-window-configuration-change-hook))
             (run-window-configuration-change-hook)))))
     (so-long-tests-assert-and-revert 'so-long-mode))
-  ;; `so-long-invisible-buffer-function' is `nil'.
+  ;; `so-long-invisible-buffer-function' is nil.
   (with-temp-buffer
     (insert "#!emacs\n")
     (normal-mode)

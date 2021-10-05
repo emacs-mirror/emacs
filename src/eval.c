@@ -364,9 +364,6 @@ do_debug_on_call (Lisp_Object code, ptrdiff_t count)
   call_debugger (list1 (code));
 }
 
-/* NOTE!!! Every function that can call EVAL must protect its args
-   and temporaries from garbage collection while it needs them.
-   The definition of `For' shows what you have to do.  */
 
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
        doc: /* Eval args until one of them yields non-nil, then return that value.
@@ -3248,6 +3245,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     emacs_abort ();
 
   i = optional = rest = 0;
+  bool previous_rest = false;
   for (; CONSP (syms_left); syms_left = XCDR (syms_left))
     {
       maybe_quit ();
@@ -3258,13 +3256,14 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 
       if (EQ (next, Qand_rest))
         {
-          if (rest)
+          if (rest || previous_rest)
             xsignal1 (Qinvalid_function, fun);
           rest = 1;
+	  previous_rest = true;
         }
       else if (EQ (next, Qand_optional))
         {
-          if (optional || rest)
+          if (optional || rest || previous_rest)
             xsignal1 (Qinvalid_function, fun);
           optional = 1;
         }
@@ -3290,10 +3289,11 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	  else
 	    /* Dynamically bind NEXT.  */
 	    specbind (next, arg);
+	  previous_rest = false;
 	}
     }
 
-  if (!NILP (syms_left))
+  if (!NILP (syms_left) || previous_rest)
     xsignal1 (Qinvalid_function, fun);
   else if (i < nargs)
     xsignal2 (Qwrong_number_of_arguments, fun, make_fixnum (nargs));
@@ -4311,13 +4311,19 @@ syms_of_eval (void)
 {
   DEFVAR_INT ("max-specpdl-size", max_specpdl_size,
 	      doc: /* Limit on number of Lisp variable bindings and `unwind-protect's.
-If Lisp code tries to increase the total number past this amount,
-an error is signaled.
-You can safely use a value considerably larger than the default value,
-if that proves inconveniently small.  However, if you increase it too far,
-Emacs could run out of memory trying to make the stack bigger.
-Note that this limit may be silently increased by the debugger
-if `debug-on-error' or `debug-on-quit' is set.  */);
+
+If Lisp code tries to use more bindings than this amount, an error is
+signaled.
+
+You can safely increase this variable substantially if the default
+value proves inconveniently small.  However, if you increase it too
+much, Emacs could run out of memory trying to make the stack bigger.
+Note that this limit may be silently increased by the debugger if
+`debug-on-error' or `debug-on-quit' is set.
+
+\"spec\" is short for \"special variables\", i.e., dynamically bound
+variables.  \"PDL\" is short for \"push-down list\", which is an old
+term for \"stack\".  */);
 
   DEFVAR_INT ("max-lisp-eval-depth", max_lisp_eval_depth,
 	      doc: /* Limit on depth in `eval', `apply' and `funcall' before error.

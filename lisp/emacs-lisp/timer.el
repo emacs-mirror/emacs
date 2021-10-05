@@ -49,7 +49,7 @@
   function args                         ;What to do when triggered.
   idle-delay                            ;If non-nil, this is an idle-timer.
   psecs
-  ;; A timer may be created with `t' as the TIME, which means that we
+  ;; A timer may be created with t as the TIME, which means that we
   ;; want to run at specific integral multiples of `repeat-delay'.  We
   ;; then have to recompute this (because the machine may have gone to
   ;; sleep, etc).

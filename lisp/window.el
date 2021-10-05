@@ -1212,7 +1212,8 @@ it is found."
      ((setq state (frame-parameter frame 'window-state))
       ;; A window state was saved for FRAME.  Restore it and put the
       ;; current root window into its main window.
-      (let ((main-state (window-state-get (frame-root-window frame))))
+      (let ((window-combination-resize t)
+            (main-state (window-state-get (frame-root-window frame))))
         (window-state-put state (frame-root-window frame) t)
         (window-state-put main-state (window-main-window frame)))
       (window--sides-reverse-frame frame))

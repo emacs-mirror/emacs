@@ -372,6 +372,7 @@ This variable is buffer-local."
    "\\(^ *\\|"
    (regexp-opt
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
+      "Current"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
       "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")
@@ -381,7 +382,10 @@ This variable is buffer-local."
    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
-   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:space:]]*\\'")
+   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:space:]]*\\'"
+   ;; The ccrypt encryption dialogue doesn't end with a colon, so
+   ;; treat it specially.
+   "\\|^Enter encryption key: (repeat) *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :version "28.1"
@@ -2830,7 +2834,7 @@ if necessary."
     (when (>= count 0) (comint-update-fence))))
 
 (defun comint-kill-region (beg end)
-  "Like `kill-region', but ignores read-only properties, if safe.
+  "Like `kill-region', but ignore read-only properties, if safe.
 This command assumes that the buffer contains read-only
 \"prompts\" which are regions with front-sticky read-only
 properties at the beginning of a line, with the preceding newline

@@ -251,7 +251,7 @@ Use `org-odt-add-automatic-style' to add update this variable.'")
 
 (defvar org-odt-object-counters nil
   "Running counters for various OBJECT-TYPEs.
-Use this to generate automatic names and style-names. See
+Use this to generate automatic names and style-names.  See
 `org-odt-add-automatic-style'.")
 
 (defvar org-odt-src-block-paragraph-format
@@ -277,8 +277,7 @@ according to the default face identified by the `htmlfontify'.")
 (defvar org-odt-default-image-sizes-alist
   '(("as-char" . (5 . 0.4))
     ("paragraph" . (5 . 5)))
-  "Hardcoded image dimensions one for each of the anchor
-  methods.")
+  "Hardcoded image dimensions one for each of the anchor methods.")
 
 ;; A4 page size is 21.0 by 29.7 cms
 ;; The default page settings has 2cm margin on each of the sides. So
@@ -450,7 +449,7 @@ Valid values are one of:
 4. list of the form (ODT-OR-OTT-FILE (FILE-MEMBER-1 FILE-MEMBER-2
 ...))
 
-In case of option 1, an in-built styles.xml is used. See
+In case of option 1, an in-built styles.xml is used.  See
 `org-odt-styles-dir' for more information.
 
 In case of option 3, the specified file is unzipped and the
@@ -982,7 +981,7 @@ See `org-odt--build-date-styles' for implementation details."
 ;;;; Frame
 
 (defun org-odt--frame (text width height style &optional extra
-			      anchor-type &rest title-and-desc)
+			    anchor-type &rest title-and-desc)
   (let ((frame-attrs
 	 (concat
 	  (if width (format " svg:width=\"%0.2fcm\"" width) "")
@@ -1044,7 +1043,7 @@ See `org-odt--build-date-styles' for implementation details."
 ;;;; Textbox
 
 (defun org-odt--textbox (text width height style &optional
-				extra anchor-type)
+			      extra anchor-type)
   (org-odt--frame
    (format "\n<draw:text-box %s>%s\n</draw:text-box>"
 	   (concat (format " fo:min-height=\"%0.2fcm\"" (or height .2))
@@ -1778,8 +1777,8 @@ INFO is a plist holding contextual information."
 	  (if (functionp format-function) format-function
 	    (cl-function
 	     (lambda (todo todo-type priority text tags
-		      &key _level _section-number _headline-label
-		      &allow-other-keys)
+		           &key _level _section-number _headline-label
+		           &allow-other-keys)
 	       (funcall (plist-get info :odt-format-headline-function)
 			todo todo-type priority text tags))))))
     (apply format-function
@@ -1852,7 +1851,7 @@ holding contextual information."
 	 contents))))))
 
 (defun org-odt-format-headline-default-function
-  (todo todo-type priority text tags)
+    (todo todo-type priority text tags)
   "Default format function for a headline.
 See `org-odt-format-headline-function' for details."
   (concat
@@ -1930,7 +1929,7 @@ holding contextual information."
 	     todo todo-type priority text tags contents)))
 
 (defun org-odt-format-inlinetask-default-function
-  (todo todo-type priority name tags contents)
+    (todo todo-type priority name tags contents)
   "Default format function for inlinetasks.
 See `org-odt-format-inlinetask-function' for details."
   (format "\n<text:p text:style-name=\"%s\">%s</text:p>"
@@ -2176,7 +2175,7 @@ SHORT-CAPTION are strings."
 ;;;; Links :: Inline Images
 
 (defun org-odt--copy-image-file (path)
-  "Return the internal name of the file"
+  "Return the internal name of the file."
   (let* ((image-type (file-name-extension path))
 	 (media-type (format "image/%s" image-type))
 	 (target-dir "Images/")
@@ -2199,7 +2198,7 @@ SHORT-CAPTION are strings."
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun org-odt--image-size
-  (file info &optional user-width user-height scale dpi embed-as)
+    (file info &optional user-width user-height scale dpi embed-as)
   (let* ((--pixels-to-cms
           (lambda (pixels dpi)
             (let ((cms-per-inch 2.54)
@@ -2380,7 +2379,7 @@ used as a communication channel."
 	(concat equation "<text:tab/>" label))))))
 
 (defun org-odt--copy-formula-file (src-file)
-  "Return the internal name of the file"
+  "Return the internal name of the file."
   (let* ((target-dir (format "Formula-%04d/"
 			     (cl-incf org-odt-embedded-formulas-count)))
 	 (target-file (concat target-dir "content.xml")))
@@ -2400,7 +2399,7 @@ used as a communication channel."
        ;; Case 2: OpenDocument formula.
        ((string= ext "odf")
 	(org-odt--zip-extract src-file "content.xml"
-				(concat org-odt-zip-dir target-dir)))
+			      (concat org-odt-zip-dir target-dir)))
        (t (error "%s is not a formula file" src-file))))
     ;; Enter the formula file in to manifest.
     (org-odt-create-manifest-file-entry "text/xml" target-file)
@@ -2468,15 +2467,14 @@ used as a communication channel."
 	 (outer (nth 2 frame-cfg))
 	 ;; User-specified frame params (from #+ATTR_ODT spec)
 	 (user user-frame-params)
-	 (--merge-frame-params (function
-				(lambda (default user)
-				  "Merge default and user frame params."
-				  (if (not user) default
-				    (cl-assert (= (length default) 3))
-				    (cl-assert (= (length user) 3))
-				    (cl-loop for u in user
-					     for d in default
-					     collect (or u d)))))))
+	 (--merge-frame-params (lambda (default user)
+				 "Merge default and user frame params."
+				 (if (not user) default
+				   (cl-assert (= (length default) 3))
+				   (cl-assert (= (length user) 3))
+				   (cl-loop for u in user
+					    for d in default
+					    collect (or u d))))))
     (cond
      ;; Case 1: Image/Formula has no caption.
      ;;         There is only one frame, one that surrounds the image
@@ -2652,7 +2650,7 @@ Return nil, otherwise."
 	   (format "<text:bookmark-ref text:reference-format=\"number-all-superior\" text:ref-name=\"%s\">%s</text:bookmark-ref>"
 		   label
 		   (mapconcat (lambda (n) (if (not n) " "
-				       (concat (number-to-string n) ".")))
+				            (concat (number-to-string n) ".")))
 			      item-numbers "")))))
      ;; Case 2: Locate a regular and numbered headline in the
      ;; hierarchy.  Display its section number.
@@ -3032,7 +3030,7 @@ holding contextual information."
 	    (anchor (plist-get attributes :anchor)))
 	(format "\n<text:p text:style-name=\"%s\">%s</text:p>"
 		"Text_20_body" (org-odt--textbox contents width height
-						   style extra anchor))))
+						 style extra anchor))))
      (t contents))))
 
 
@@ -3773,13 +3771,13 @@ contextual information."
 		       ;; paragraph.
 		       (latex-environment
 			(org-element-adopt-elements
-			 (list 'paragraph
-			       (list :style "OrgFormula"
-				     :name
-				     (org-element-property :name latex-*)
-				     :caption
-				     (org-element-property :caption latex-*)))
-			 link))
+			    (list 'paragraph
+			          (list :style "OrgFormula"
+				        :name
+				        (org-element-property :name latex-*)
+				        :caption
+				        (org-element-property :caption latex-*)))
+			  link))
 		       ;; LaTeX fragment.  No special action.
 		       (latex-fragment link))))
 		;; Note down the object that link replaces.
@@ -3842,15 +3840,15 @@ contextual information."
 		(mapcar
 		 (lambda (item)
 		   (org-element-adopt-elements
-		    (list 'item (list :checkbox (org-element-property
-						 :checkbox item)))
-		    (list 'paragraph (list :style "Text_20_body_20_bold")
-			  (or (org-element-property :tag item) "(no term)"))
-		    (org-element-adopt-elements
-		     (list 'plain-list (list :type 'descriptive-2))
-		     (apply 'org-element-adopt-elements
-			    (list 'item nil)
-			    (org-element-contents item)))))
+		       (list 'item (list :checkbox (org-element-property
+						    :checkbox item)))
+		     (list 'paragraph (list :style "Text_20_body_20_bold")
+			   (or (org-element-property :tag item) "(no term)"))
+		     (org-element-adopt-elements
+		         (list 'plain-list (list :type 'descriptive-2))
+		       (apply 'org-element-adopt-elements
+			      (list 'item nil)
+			      (org-element-contents item)))))
 		 (org-element-contents el)))))
       nil)
     info)

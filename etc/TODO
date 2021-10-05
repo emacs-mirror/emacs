@@ -29,99 +29,29 @@ are the ones we consider more important, but these also may be
 difficult to fix.  Bugs with severity "minor" may be simpler, but this
 is not always true.
 
-* Speed up Elisp execution
+* High Priority Items
 
-** Speed up function calls
-Change src/bytecode.c so that calls from byte-code functions to byte-code
-functions don't go through Ffuncall/funcall_lambda/exec_byte_code but instead
-stay within exec_byte_code.
+** Things related to elpa.gnu.org.
+We need to figure out how to best include GNU ELPA packages in the
+Emacs tarball before doing any of the items below.
 
-** Improve the byte-compiler to recognize immutable bindings
-Recognize immutable (lexical) bindings and get rid of them if they're
-used only once and/or they're bound to a constant expression.
-
-Such things aren't present in hand-written code, but macro expansion and
-defsubst can often end up generating things like
-(funcall (lambda (arg) (body)) actual) which then get optimized to
-(let ((arg actual)) (body)) but should additionally get optimized further
-when 'actual' is a constant/copyable expression.
-
-** Add an "indirect goto" byte-code
-Such a byte-code can be used for local lambda expressions.
-E.g. when you have code like
-
-   (let ((foo (lambda (x) bar)))
-     (dosomething
-      (funcall foo toto)
-      (blabla (funcall foo titi))))
-
-turn those 'funcalls' into jumps and their return into indirect jumps back.
-
-** Compile efficiently local recursive functions
-Similar to the previous point, we should be able to handle something like
-
-   (letrec ((loop () (blabla) (if (toto) (loop))))
-     (loop))
-
-which ideally should generate the same byte-code as
-
-   (while (progn (blabla) (toto)))
-
-* Things that were planned for Emacs-24
-
-** concurrency
-Including it as an "experimental" compile-time option sounds good.  Of
-course there might still be big questions around "which form of
-concurrency" we'll want.
-
-** better support for dynamic embedded graphics
-I like this idea (my mpc.el code could use it for the volume widget),
-though I wonder if the resulting efficiency will be sufficient.
-
-** Spread Semantic
-
-** Improve the "code snippets" support
-Consolidate skeleton.el, tempo.el, and expand.el (any other?) and then
-advertise/use/improve it.
-
-** Improve VC
-Yes, there's a lot of work to be done there :-(
-
-** Random things that cross my mind right now that I'd like to see
-Some of them from my local hacks, but it's not obvious at all whether
-they'll make it.
-
-*** Prog-mode could/should provide a better fill-paragraph default
-That default should use syntax-tables to recognize string/comment
-boundaries.
-
-*** Provide more completion-at-point-functions
-Make existing in-buffer completion use completion-at-point.
-
-*** "Functional" function-key-map
-It would make it easy to add (and remove) mappings like
-"FOO-mouse-4 -> FOO-scroll-down",   "FOO-tab -> ?\FOO-\t",
-"uppercase -> lowercase", "[fringe KEY...] -> [KEY]",
-"H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
-
-* Things related to elpa.gnu.org.
-
-** Move idlwave to elpa.gnu.org
+*** Move idlwave to elpa.gnu.org
 Need to sync up the Emacs and external versions.
 See <https://lists.gnu.org/r/emacs-devel/2014-07/msg00008.html>
+<https://debbugs.gnu.org/39992>
 
-** Move Org mode to elpa.gnu.org
+*** Move Org mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2014-08/msg00300.html>
 <https://lists.gnu.org/r/emacs-devel/2014-11/msg00257.html>
 
-** Move verilog-mode to elpa.gnu.org
+*** Move verilog-mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
-** Move vhdl-mode to elpa.gnu.org
+*** Move vhdl-mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
 * Simple tasks
-These don't require much Emacs knowledge, they are suitable for anyone
+These don't require much Emacs knowledge and are suitable for anyone
 from beginners to experts.
 
 ** Convert modes that use view-mode to be derived from special-mode instead
@@ -142,6 +72,13 @@ expecting such variables to always be defined, eg when they modify
 things in their .emacs.
 
 ** See if other files can use generated-autoload-file (see eg ps-print)
+
+** Do interactive mode tagging for commands
+Change "(interactive)" to "(interactive nil foo-mode)" for command
+completion purposes.  Pick a major mode or ELisp library, and check
+all interactive commands to see if they are only relevant in one
+particular mode.  This requires care as some commands might be useful
+outside of the mode they were written for.
 
 ** Write more tests
 Pick a fixed bug from the database, write a test case to make sure it
@@ -234,6 +171,44 @@ Needed for dired buffers and DTRT WRT 'auto-revert-mode'.
 https://lists.gnu.org/r/emacs-devel/2008-08/msg00456.html
 
 * Important features
+
+** Speed up Elisp execution
+
+*** Speed up function calls
+Change src/bytecode.c so that calls from byte-code functions to byte-code
+functions don't go through Ffuncall/funcall_lambda/exec_byte_code but instead
+stay within exec_byte_code.
+
+*** Improve the byte-compiler to recognize immutable bindings
+Recognize immutable (lexical) bindings and get rid of them if they're
+used only once and/or they're bound to a constant expression.
+
+Such things aren't present in hand-written code, but macro expansion and
+defsubst can often end up generating things like
+(funcall (lambda (arg) (body)) actual) which then get optimized to
+(let ((arg actual)) (body)) but should additionally get optimized further
+when 'actual' is a constant/copyable expression.
+
+** Add an "indirect goto" byte-code
+Such a byte-code can be used for local lambda expressions.
+E.g. when you have code like
+
+   (let ((foo (lambda (x) bar)))
+     (dosomething
+      (funcall foo toto)
+      (blabla (funcall foo titi))))
+
+turn those 'funcalls' into jumps and their return into indirect jumps back.
+
+*** Compile efficiently local recursive functions
+Similar to the previous point, we should be able to handle something like
+
+   (letrec ((loop () (blabla) (if (toto) (loop))))
+     (loop))
+
+which ideally should generate the same byte-code as
+
+   (while (progn (blabla) (toto)))
 
 ** "Emacs as word processor"
 https://lists.gnu.org/r/emacs-devel/2013-11/msg00515.html
@@ -385,38 +360,15 @@ should invoke the 'shape' method.  'hbfont_shape' should be extended
 to pass to 'hb_shape_full' the required array of features, as
 mentioned in the above HarfBuzz discussion.
 
+** Concurrency
+Stefan Monnier writes: "Including it as an 'experimental' compile-time
+option sounds good.  Of course there might still be big questions
+around 'which form of concurrency' we'll want."
+
 ** Better support for displaying Emoji
 Emacs is capable of displaying Emoji and some of the Emoji sequences,
 provided that its fontsets are configured with a suitable font.  To
 make this easier out of the box, the following should be done:
-
-*** Populate composition-function-table with Emoji rules
-The Unicode Character Database (UCD) includes several data files that
-define the valid Emoji sequences.  These files should be imported into
-the Emacs tree, and should be converted by some script at Emacs build
-time to Lisp code that populates composition-function-table with the
-corresponding composition rules.
-
-*** Augment the default fontsets with Emoji-capable fonts
-The default fontsets set up by fontest.el should include known free
-fonts that provide good support for displaying Emoji sequences.  In
-addition, the rule that the default face's font is used for symbol and
-punctuation characters, disregarding the fontsets, should be modified
-to exempt Emoji from this rule (since Emoji characters belong to the
-'symbol' script in Emacs), so that use-default-font-for-symbols would
-not have to be tweaked to have Emoji display by default with a capable
-font. (This has now been implemented, but only one font is currently
-considered, please augment the list).
-
-*** Consider changing the default display of Variation Selectors
-Emacs by default displays the Variation Selector (VS) codepoints not
-composed with base characters as hex codes in a box.  The Unicode FAQ
-says that if variation sequences cannot be supported, the VS
-characters should not be shown, leaving just the base character of the
-sequence visible.  This could be handled via glyphless-char-display,
-by changing the entries for VS codepoints to 'zero-width'.  Or we
-could display them as a thin 1-pixel space, as we do with format
-control characters, by using 'thin-space' there.
 
 *** Special face for displaying text presentation of Emoji
 Emoji-capable fonts support Emoji sequences with the U+FE0F VARIATION
@@ -662,6 +614,13 @@ could also be a button that you could use to view the advice.
 
 ** Add a function to get the insertion-type of the markers in an overlay
 
+** Improve VC
+Yes, there's a lot of work to be done there :-(
+
+** Improve the "code snippets" support
+Consolidate skeleton.el, tempo.el, and expand.el (any other?) and then
+advertise/use/improve it.
+
 ** ange-ftp
 
 *** Make ange-ftp understand sftp
@@ -829,11 +788,6 @@ gametree, page-ext, refbib, refer, scribe, texinfo, underline,
 cmacexp, hideif, pcomplete, xml, cvs-status (should be described in
 PCL-CVS manual); other progmodes, probably in separate manual.
 
-** Deprecate and remove XPM icons
-Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
-the XPMs so that the color versions work generally.  (Requires care
-with the color used for the transparent regions.)
-
 ** Convenient access to the 'values' variable
 It would be nice to have an interface that would show you the printed
 reps of the elements of the list in a menu, let you select one of the
@@ -903,6 +857,25 @@ See thread <https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html>.
 The idea is to add an "X" of some kind, that when clicked deletes the
 window associated with that modeline.
 https://lists.gnu.org/r/emacs-devel/2007-09/msg02416.html
+
+** Random things that were planned for Emacs-24
+
+Stefan Monnier writes: "Random things that cross my mind right now
+that I'd like to see.  Some of them from my local hacks, but it's not
+obvious at all whether they'll make it."
+
+*** Prog-mode could/should provide a better fill-paragraph default
+That default should use syntax-tables to recognize string/comment
+boundaries.
+
+*** Provide more completion-at-point-functions
+Make existing in-buffer completion use completion-at-point.
+
+*** "Functional" function-key-map
+It would make it easy to add (and remove) mappings like
+"FOO-mouse-4 -> FOO-scroll-down",   "FOO-tab -> ?\FOO-\t",
+"uppercase -> lowercase", "[fringe KEY...] -> [KEY]",
+"H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
 
 * Things to be done for specific packages or features
 
@@ -1183,45 +1156,6 @@ Instead, if B has not been customized it should be re-initialized
 (on the assumption that the default value depends on A).
 See the places where we manually call custom-reevaluate-setting,
 such as for mail-host-address and user-mail-address in startup.el.
-
-** ImageMagick support
-
-*** Image priority
-'image-type-header-regexps' prioritizes the jpeg loader over the
-ImageMagick one.  This is not wrong, but how should a user go about
-preferring the ImageMagick loader?  The user might like zooming etc in jpegs.
-
-Try (setq image-type-header-regexps nil) for a quick hack to prefer
-ImageMagick over the jpg loader.
-
-*** Slow display
-For some reason it's unbearably slow to look at a page in a large
-image bundle using the :index feature.  The ImageMagick "display"
-command is also a bit slow, but nowhere near as slow as the Emacs
-code.  It seems ImageMagick tries to unpack every page when loading the
-bundle.  This feature is not the primary usecase in Emacs though.
-
-ImageMagick 6.6.2-9 introduced a bugfix for single page djvu load.  It
-is now much faster to use the :index feature, but still not very fast.
-
-*** Try to cache the num pages calculation
-It can take a while to calculate the number of pages, and if you need
-to do it for each page view, page-flipping becomes uselessly slow.
-
-*** Integrate with image-dired
-
-*** Integrate with docview
-
-*** Integrate with image-mode
-Some work has been done, e.g. "M-x image-transform-fit-to-height" will
-fit the image to the height of the Emacs window.
-
-*** Look for optimizations for handling images with low depth
-Currently the code seems to default to 24 bit RGB which is costly for
-images with lower bit depth.
-
-*** Decide what to do with some uncommitted imagemagick support
-Functions for image size etc.
 
 ** nxml mode
 

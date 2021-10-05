@@ -228,18 +228,6 @@ END {
     ## can change the font used for a codepoint based on whether it's
     ## followed by a VS (usually VS-16)
     idx = 0
-    override_start[idx] = "261D"
-    override_end[idx] = "261D"
-    idx++
-    override_start[idx] = "26F9"
-    override_end[idx] = "26F9"
-    idx++
-    override_start[idx] = "270C"
-    override_end[idx] = "270D"
-    idx++
-    override_start[idx] = "2764"
-    override_end[idx] = "2764"
-    idx++
     override_start[idx] = "1F3CB"
     override_end[idx] = "1F3CC"
     idx++
@@ -249,8 +237,17 @@ END {
     override_start[idx] = "1F441"
     override_end[idx] = "1F441"
     idx++
-    override_start[idx] = "1F575"
+    override_start[idx] = "1F574"
     override_end[idx] = "1F575"
+    idx++
+    override_start[idx] = "1F590"
+    override_end[idx] = "1F590"
+
+    ## These are here so that font_range can choose Emoji presentation
+    ## for the preceding codepoint when it encounters a VS
+    idx++
+    override_start[idx] = "FE00"
+    override_end[idx] = "FE0F"
 
     for (k in override_start)
     {
@@ -262,7 +259,7 @@ END {
     }
 
     print ";;; charscript.el --- character script table  -*- lexical-binding:t -*-"
-    print ";;; Automatically generated from admin/unidata/Blocks.txt"
+    print ";;; Automatically generated from admin/unidata/{Blocks,emoji-data}.txt"
     print "(let (script-list)"
     print "  (dolist (elt '("
 

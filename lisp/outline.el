@@ -175,23 +175,45 @@ in the file it applies to.")
 				   outline-mode-menu-bar-map))))))
     map))
 
-(defvar outline-mode-cycle-map
+(defcustom outline-minor-mode-cycle-filter nil
+  "Filter out positions on the heading available for cycling."
+  :type '(choice (const :tag "Everywhere" nil)
+                 (const :tag "At line beginning" bolp)
+                 (const :tag "Not at line beginning"
+                        (lambda () (not (bolp))))
+                 (const :tag "At line end" eolp)
+                 (function :tag "Custom filter"))
+  :version "28.1")
+
+(defun outline-minor-mode-cycle--bind (map key binding &optional filter)
+  (define-key map key
+    `(menu-item
+      "" ,binding
+      ;; Filter out specific positions on the heading.
+      :filter
+      ,(or filter
+           (lambda (cmd)
+             (when (or (not (functionp outline-minor-mode-cycle-filter))
+                       (funcall outline-minor-mode-cycle-filter))
+               cmd))))))
+
+(defvar outline-minor-mode-cycle-map
   (let ((map (make-sparse-keymap)))
-    (let ((tab-binding `(menu-item
-                         "" outline-cycle
-                         ;; Only takes effect if point is on a heading.
-                         :filter ,(lambda (cmd)
-                                    (when (outline-on-heading-p) cmd)))))
-      (define-key map (kbd "TAB") tab-binding)
-      (define-key map (kbd "<backtab>") #'outline-cycle-buffer))
+    (outline-minor-mode-cycle--bind map (kbd "TAB") #'outline-cycle)
+    (outline-minor-mode-cycle--bind map (kbd "<backtab>") #'outline-cycle-buffer)
     map)
-  "Keymap used by `outline-mode-map' and `outline-minor-mode-cycle'.")
+  "Keymap used by `outline-minor-mode-cycle'.")
 
 (defvar outline-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map outline-mode-cycle-map)
     (define-key map "\C-c" outline-mode-prefix-map)
     (define-key map [menu-bar] outline-mode-menu-bar-map)
+    ;; Only takes effect if point is on a heading.
+    (define-key map (kbd "TAB")
+      `(menu-item "" outline-cycle
+                  :filter ,(lambda (cmd)
+                             (when (outline-on-heading-p) cmd))))
+    (define-key map (kbd "<backtab>") #'outline-cycle-buffer)
     map))
 
 (defvar outline-font-lock-keywords
@@ -202,9 +224,9 @@ in the file it applies to.")
                          (if outline-minor-mode-cycle
                              (if outline-minor-mode-highlight
                                  (list 'face (outline-font-lock-face)
-                                       'keymap outline-mode-cycle-map)
+                                       'keymap outline-minor-mode-cycle-map)
                                (list 'face nil
-                                     'keymap outline-mode-cycle-map))
+                                     'keymap outline-minor-mode-cycle-map))
                            (if outline-minor-mode-highlight
                                (list 'face (outline-font-lock-face))))
                        (outline-font-lock-face))
@@ -367,7 +389,7 @@ faces to major mode's faces."
                          (not (get-text-property (point) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
           (when outline-minor-mode-cycle
-            (overlay-put overlay 'keymap outline-mode-cycle-map)))
+            (overlay-put overlay 'keymap outline-minor-mode-cycle-map)))
         (goto-char (match-end 0))))))
 
 ;;;###autoload

@@ -611,7 +611,7 @@
   (skip-unless (gnutls-available-p))
   (let ((server (make-tls-server 44667))
         (times 0)
-        nowait
+        (nowait nil) ; Workaround Bug#47080
         proc status)
     (unwind-protect
         (progn

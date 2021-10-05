@@ -60,6 +60,14 @@ enum { BEG = 1, BEG_BYTE = BEG };
 
 /* Macros for the addresses of places in the buffer.  */
 
+/* WARNING: Use the 'char *' pointers to buffer text with care in code
+   that could GC: GC can relocate buffer text, invalidating such
+   pointers.  It is best to use character or byte position instead,
+   delaying the access through BYTE_POS_ADDR etc. pointers to the
+   latest possible moment.  If you must use the 'char *' pointers
+   (e.g., for speed), be sure to adjust them after any call that could
+   potentially GC.  */
+
 /* Address of beginning of buffer.  */
 #define BEG_ADDR (current_buffer->text->beg)
 
@@ -1001,6 +1009,9 @@ SET_BUF_PT_BOTH (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t byte)
 /* Functions to access a character or byte in the current buffer,
    or convert between a byte position and an address.
    These functions do not check that the position is in range.  */
+
+/* See the important WARNING above about using the 'char *' pointers
+   returned by these functions.  */
 
 /* Return the address of byte position N in current buffer.  */
 

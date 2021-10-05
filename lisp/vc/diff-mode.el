@@ -1355,7 +1355,11 @@ else cover the whole buffer."
 	      (pcase (char-after)
 		(?\s (cl-incf space))
 		(?+ (cl-incf plus))
-		(?- (cl-incf minus))
+		(?- (unless ;; In git format-patch "^-- $" signifies
+                            ;; the end of the patch.
+			(and (eq diff-buffer-type 'git)
+			     (looking-at "^-- $"))
+		      (cl-incf minus)))
 		(?! (cl-incf bang))
 		((or ?\\ ?#) nil)
 		(?\n (if diff-valid-unified-empty-line

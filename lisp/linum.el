@@ -28,6 +28,9 @@
 ;;
 ;; Toggle display of line numbers with M-x linum-mode.  To enable
 ;; line numbering in all buffers, use M-x global-linum-mode.
+;;
+;; Consider using native line numbers instead:
+;;   M-x display-line-numbers-mode
 
 ;;; Code:
 

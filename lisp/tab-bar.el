@@ -312,6 +312,11 @@ that closes only when clicked on the close button."
                                   (tab-bar-duplicate-tab
                                    nil ,tab-number))
                     :help "Duplicate the tab"))
+      (define-key-after menu [detach-tab]
+        `(menu-item "Detach" (lambda () (interactive)
+                               (tab-bar-detach-tab
+                                ,tab-number))
+                    :help "Detach the tab to new frame"))
       (define-key-after menu [close]
         `(menu-item "Close" (lambda () (interactive)
                               (tab-bar-close-tab ,tab-number))
@@ -902,7 +907,8 @@ on the tab bar instead."
                 (if (consp current)
                     (seq-reduce (lambda (current param)
                                   (assq-delete-all param current))
-                                '(wc wc-point wc-bl wc-bbl wc-history-back wc-history-forward)
+                                '(wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward)
                                 (copy-sequence current))
                   current))
               current)
@@ -914,8 +920,10 @@ on the tab bar instead."
   (let* ((tab (tab-bar--current-tab-find nil frame))
          (tab-explicit-name (alist-get 'explicit-name tab))
          (tab-group (alist-get 'group tab))
-         (bl  (seq-filter #'buffer-live-p (frame-parameter frame 'buffer-list)))
-         (bbl (seq-filter #'buffer-live-p (frame-parameter frame 'buried-buffer-list))))
+         (bl  (seq-filter #'buffer-live-p (frame-parameter
+                                           frame 'buffer-list)))
+         (bbl (seq-filter #'buffer-live-p (frame-parameter
+                                           frame 'buried-buffer-list))))
     `(tab
       (name . ,(if tab-explicit-name
                    (alist-get 'name tab)
@@ -929,8 +937,18 @@ on the tab bar instead."
       (wc-point . ,(point-marker))
       (wc-bl . ,bl)
       (wc-bbl . ,bbl)
-      (wc-history-back . ,(gethash (or frame (selected-frame)) tab-bar-history-back))
-      (wc-history-forward . ,(gethash (or frame (selected-frame)) tab-bar-history-forward)))))
+      (wc-history-back . ,(gethash (or frame (selected-frame))
+                                   tab-bar-history-back))
+      (wc-history-forward . ,(gethash (or frame (selected-frame))
+                                      tab-bar-history-forward))
+      ;; Copy other possible parameters
+      ,@(mapcan (lambda (param)
+                  (unless (memq (car param)
+                                '(name explicit-name group time
+                                  ws wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward))
+                    (list param)))
+                (cdr tab)))))
 
 (defun tab-bar--current-tab (&optional tab frame)
   (tab-bar--current-tab-make (or tab (tab-bar--current-tab-find nil frame))))
@@ -950,7 +968,15 @@ on the tab bar instead."
                    (alist-get 'name tab)
                  (funcall tab-bar-tab-name-function)))
       (explicit-name . ,tab-explicit-name)
-      ,@(if tab-group `((group . ,tab-group))))))
+      ,@(if tab-group `((group . ,tab-group)))
+      ;; Copy other possible parameters
+      ,@(mapcan (lambda (param)
+                  (unless (memq (car param)
+                                '(name explicit-name group time
+                                  ws wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward))
+                    (list param)))
+                (cdr tab)))))
 
 (defun tab-bar--current-tab-find (&optional tabs frame)
   (assq 'current-tab (or tabs (funcall tab-bar-tabs-function frame))))
@@ -986,7 +1012,8 @@ on the tab bar instead."
 When this command is bound to a numeric key (with a prefix or modifier key
 using `tab-bar-select-tab-modifiers'), calling it without an argument
 will translate its bound numeric key to the numeric argument.
-TAB-NUMBER counts from 1.  Negative TAB-NUMBER counts tabs from the end of the tab bar."
+TAB-NUMBER counts from 1.  Negative TAB-NUMBER counts tabs from the end of
+the tab bar."
   (interactive "P")
   (unless (integerp tab-number)
     (let ((key (event-basic-type last-command-event)))
@@ -1174,10 +1201,35 @@ Interactively, ARG selects the ARGth different frame to move to."
                   (nthcdr to-index to-tabs))
       (with-selected-frame from-frame
         (let ((inhibit-message t) ; avoid message about deleted tab
+              (tab-bar-close-last-tab-choice 'delete-frame)
               tab-bar-closed-tabs)
           (tab-bar-close-tab from-number)))
       (tab-bar-tabs-set to-tabs to-frame)
       (force-mode-line-update t))))
+
+(defun tab-bar-detach-tab (&optional from-number)
+  "Detach tab number FROM-NUMBER to a new frame.
+Interactively or without argument, detach current tab."
+  (interactive (list (1+ (tab-bar--current-tab-index))))
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (tab-index (1- (or from-number (1+ (tab-bar--current-tab-index tabs)))))
+         (tab-name (alist-get 'name (nth tab-index tabs)))
+         ;; On some window managers, `make-frame' selects the new frame,
+         ;; so previously selected frame is saved to `from-frame'.
+         (from-frame (selected-frame))
+         (new-frame (make-frame `((name . ,tab-name)))))
+    (tab-bar-move-tab-to-frame nil from-frame from-number new-frame nil)
+    (with-selected-frame new-frame
+      (tab-bar-close-tab))))
+
+(defun tab-bar-move-window-to-tab ()
+  "Detach the selected window to a new tab."
+  (interactive)
+  (let ((tab-bar-new-tab-choice 'window))
+    (tab-bar-new-tab))
+  (tab-bar-switch-to-recent-tab)
+  (delete-window)
+  (tab-bar-switch-to-recent-tab))
 
 
 (defcustom tab-bar-new-tab-to 'right
@@ -1223,10 +1275,12 @@ After the tab is created, the hooks in
       ;; Handle the case when it's called in the active minibuffer.
       (when (minibuffer-selected-window)
         (select-window (minibuffer-selected-window)))
-      (delete-other-windows)
-      ;; Create a new window to get rid of old window parameters
-      ;; (e.g. prev/next buffers) of old window.
-      (split-window) (delete-window)
+      (let ((ignore-window-parameters t))
+        (delete-other-windows))
+      (unless (eq tab-bar-new-tab-choice 'window)
+        ;; Create a new window to get rid of old window parameters
+        ;; (e.g. prev/next buffers) of old window.
+        (split-window) (delete-window))
       (let ((buffer
              (if (functionp tab-bar-new-tab-choice)
                  (funcall tab-bar-new-tab-choice)
@@ -1886,7 +1940,7 @@ Letters do not insert themselves; instead, they are commands.
   (move-to-column tab-switcher-column))
 
 (defun tab-switcher-unmark (&optional backup)
-  "Cancel all requested operations on window configuration on this line and move down.
+  "Cancel requested operations on window configuration on this line and move down.
 Optional prefix arg means move up."
   (interactive "P")
   (beginning-of-line)
@@ -1898,7 +1952,7 @@ Optional prefix arg means move up."
   (move-to-column tab-switcher-column))
 
 (defun tab-switcher-backup-unmark ()
-  "Move up and cancel all requested operations on window configuration on line above."
+  "Move up one line and cancel requested operations on window configuration there."
   (interactive)
   (forward-line -1)
   (tab-switcher-unmark)

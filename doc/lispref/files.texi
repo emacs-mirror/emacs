@@ -563,7 +563,17 @@ In this case, @var{visit} must be @code{nil}.  For example,
 @end example
 
 @noindent
-inserts the first 500 characters of a file.
+inserts the characters coded by the first 500 bytes of a file.
+
+If @var{beg} or @var{end} happens to be in the middle of a character's
+multibyte sequence, Emacs's character code conversion will insert one
+or more eight-bit characters (a.k.a.@: ``raw bytes'')
+(@pxref{Character Sets}) into the buffer.  If you want to read part of
+a file this way, we recommend to bind @code{coding-system-for-read} to
+a suitable value around the call to this function (@pxref{Specifying
+Coding Systems}), and to write Lisp code which will check for raw
+bytes at the boundaries, read the entire sequence of these bytes, and
+convert them back to valid characters.
 
 If the argument @var{replace} is non-@code{nil}, it means to replace the
 contents of the buffer (actually, just the accessible portion) with the
@@ -577,10 +587,11 @@ with @code{insert-file-contents}, as long as @var{replace} and
 @end defun
 
 @defun insert-file-contents-literally filename &optional visit beg end replace
-This function works like @code{insert-file-contents} except that it
-does not run @code{after-insert-file-functions}, and does not do
-format decoding, character code conversion, automatic uncompression,
-and so on.
+This function works like @code{insert-file-contents} except that each
+byte in the file is handled separately, being converted into an
+eight-bit character if needed.  It does not run
+@code{after-insert-file-functions}, and does not do format decoding,
+character code conversion, automatic uncompression, and so on.
 @end defun
 
 If you want to pass a file name to another process so that another

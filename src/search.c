@@ -2387,6 +2387,13 @@ since only regular expressions have distinguished subexpressions.  */)
   if (! NILP (string))
     CHECK_STRING (string);
 
+  /* Most replacement texts don't contain any backslash directives in
+     the replacements.  Check whether that's the case, which will
+     enable us to take the fast path later.  */
+  if (NILP (literal)
+      && !memchr (SSDATA (newtext), '\\', SBYTES (newtext)))
+    literal = Qt;
+
   case_action = nochange;	/* We tried an initialization */
 				/* but some C compilers blew it */
 

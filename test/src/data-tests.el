@@ -26,10 +26,10 @@
 (defconst data-tests--float-greater-than-fixnums (+ 1.0 most-positive-fixnum)
   "A floating-point value that is greater than all fixnums.
 It is also as small as conveniently possible, to make the tests sharper.
-Adding 1.0 to most-positive-fixnum should suffice on all
+Adding 1.0 to `most-positive-fixnum' should suffice on all
 practical Emacs platforms, since the result is a power of 2 and
 this is exactly representable and is greater than
-most-positive-fixnum, which is just less than a power of 2.")
+`most-positive-fixnum', which is just less than a power of 2.")
 
 (ert-deftest data-tests-= ()
   (should-error (=))
@@ -204,11 +204,11 @@ most-positive-fixnum, which is just less than a power of 2.")
                "")))
 
 (defun test-bool-vector-count-consecutive-tc (desc)
-  "Run a test case for bool-vector-count-consecutive.
+  "Run a test case for `bool-vector-count-consecutive'.
 DESC is a string describing the test.  It is a sequence of
 hexadecimal digits describing the bool vector.  We exhaustively
 test all counts at all possible positions in the vector by
-comparing the subr with a much slower lisp implementation."
+comparing the subr with a much slower Lisp implementation."
   (let ((bv (test-bool-vector-bv-from-hex-string desc)))
     (cl-loop
      for lf in '(nil t)
@@ -338,7 +338,7 @@ comparing the subr with a much slower lisp implementation."
     (should (eq binding-test-some-local 'local))))
 
 (ert-deftest binding-test-setq-default ()
-  "Test that a setq-default has no effect when there is a local binding."
+  "Test that a `setq-default' has no effect when there is a local binding."
   (with-current-buffer binding-test-buffer-B
     ;; This variable is not local in this buffer.
     (let ((binding-test-some-local 'something-else))
@@ -399,28 +399,28 @@ comparing the subr with a much slower lisp implementation."
 		   (eq binding-test-some-local 'outer))))))
 
 (ert-deftest binding-test-defvar-bool ()
-  "Test DEFVAR_BOOL"
+  "Test DEFVAR_BOOL."
   (let ((display-hourglass 5))
     (should (eq display-hourglass t))))
 
 (ert-deftest binding-test-defvar-int ()
-  "Test DEFVAR_INT"
+  "Test DEFVAR_INT."
   (should-error (setq gc-cons-threshold 5.0) :type 'wrong-type-argument))
 
 (ert-deftest binding-test-set-constant-t ()
-  "Test setting the constant t"
+  "Test setting the constant t."
   (with-no-warnings (should-error (setq t 'bob) :type 'setting-constant)))
 
 (ert-deftest binding-test-set-constant-nil ()
-  "Test setting the constant nil"
+  "Test setting the constant nil."
   (with-no-warnings (should-error (setq nil 'bob) :type 'setting-constant)))
 
 (ert-deftest binding-test-set-constant-keyword ()
-  "Test setting a keyword constant"
+  "Test setting a keyword constant."
   (with-no-warnings (should-error (setq :keyword 'bob) :type 'setting-constant)))
 
 (ert-deftest binding-test-set-constant-nil ()
-  "Test setting a keyword to itself"
+  "Test setting a keyword to itself."
   (with-no-warnings (should (setq :keyword :keyword))))
 
 (ert-deftest data-tests--set-default-per-buffer ()

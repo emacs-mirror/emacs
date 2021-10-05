@@ -43,6 +43,7 @@
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
 (declare-function org-in-archived-heading-p "org" (&optional no-inheritance))
 (declare-function outline-previous-heading "outline" ())
+(defvar org-id-link-to-org-use-id nil) ; Dynamically scoped
 
 (defcustom org-babel-tangle-lang-exts
   '(("emacs-lisp" . "el")
@@ -169,11 +170,14 @@ evaluating BODY."
 (defun org-babel-tangle-file (file &optional target-file lang-re)
   "Extract the bodies of source code blocks in FILE.
 Source code blocks are extracted with `org-babel-tangle'.
+
 Optional argument TARGET-FILE can be used to specify a default
-export file for all source blocks.  Optional argument LANG-RE can
-be used to limit the exported source code blocks by languages
-matching a regular expression.  Return a list whose CAR is the
-tangled file name."
+export file for all source blocks.
+
+Optional argument LANG-RE can be used to limit the exported
+source code blocks by languages matching a regular expression.
+
+Return a list whose CAR is the tangled file name."
   (interactive "fFile to tangle: \nP")
   (let ((visited-p (find-buffer-visiting (expand-file-name file)))
 	to-be-removed)
@@ -225,67 +229,55 @@ matching a regular expression."
 	       (or (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'light))))
 		   (user-error "Point is not in a source code block"))))
 	    path-collector)
-	(mapc ;; map over all languages
-	 (lambda (by-lang)
-	   (let* ((lang (car by-lang))
-		  (specs (cdr by-lang))
-		  (ext (or (cdr (assoc lang org-babel-tangle-lang-exts)) lang))
-		  (lang-f (org-src-get-lang-mode lang))
-		  she-banged)
-	     (mapc
-	      (lambda (spec)
-		(let ((get-spec (lambda (name) (cdr (assoc name (nth 4 spec))))))
-		  (let* ((tangle (funcall get-spec :tangle))
-			 (she-bang (let ((sheb (funcall get-spec :shebang)))
-                                     (when (> (length sheb) 0) sheb)))
-			 (tangle-mode (funcall get-spec :tangle-mode))
-			 (base-name (cond
-				     ((string= "yes" tangle)
-				      (file-name-sans-extension
-				       (nth 1 spec)))
-				     ((string= "no" tangle) nil)
-				     ((> (length tangle) 0) tangle)))
-			 (file-name (when base-name
-				      ;; decide if we want to add ext to base-name
-				      (if (and ext (string= "yes" tangle))
-					  (concat base-name "." ext) base-name))))
-		    (when file-name
-		      ;; Possibly create the parent directories for file.
-		      (let ((m (funcall get-spec :mkdirp))
-			    (fnd (file-name-directory file-name)))
-			(and m fnd (not (string= m "no"))
-			     (make-directory fnd 'parents)))
-		      ;; delete any old versions of file
-		      (and (file-exists-p file-name)
-			   (not (member file-name (mapcar #'car path-collector)))
-			   (delete-file file-name))
-		      ;; drop source-block to file
-		      (with-temp-buffer
-			(when (fboundp lang-f) (ignore-errors (funcall lang-f)))
-			(when (and she-bang (not (member file-name she-banged)))
+	(mapc ;; map over file-names
+	 (lambda (by-fn)
+	   (let ((file-name (car by-fn)))
+	     (when file-name
+               (let ((lspecs (cdr by-fn))
+		     (fnd (file-name-directory file-name))
+		     modes make-dir she-banged lang)
+	         ;; drop source-blocks to file
+	         ;; We avoid append-to-file as it does not work with tramp.
+	         (with-temp-buffer
+		   (mapc
+		    (lambda (lspec)
+		      (let* ((block-lang (car lspec))
+			     (spec (cdr lspec))
+			     (get-spec (lambda (name) (cdr (assq name (nth 4 spec)))))
+			     (she-bang (let ((sheb (funcall get-spec :shebang)))
+				         (when (> (length sheb) 0) sheb)))
+			     (tangle-mode (funcall get-spec :tangle-mode)))
+		        (unless (string-equal block-lang lang)
+			  (setq lang block-lang)
+			  (let ((lang-f (org-src-get-lang-mode lang)))
+			    (when (fboundp lang-f) (ignore-errors (funcall lang-f)))))
+		        ;; if file contains she-bangs, then make it executable
+		        (when she-bang
+			  (unless tangle-mode (setq tangle-mode #o755)))
+		        (when tangle-mode
+			  (add-to-list 'modes tangle-mode))
+		        ;; Possibly create the parent directories for file.
+		        (let ((m (funcall get-spec :mkdirp)))
+			  (and m fnd (not (string= m "no"))
+			       (setq make-dir t)))
+		        ;; Handle :padlines unless first line in file
+		        (unless (or (string= "no" (funcall get-spec :padline))
+				    (= (point) (point-min)))
+			  (insert "\n"))
+		        (when (and she-bang (not she-banged))
 			  (insert (concat she-bang "\n"))
-			  (setq she-banged (cons file-name she-banged)))
-			(org-babel-spec-to-string spec)
-			;; We avoid append-to-file as it does not work with tramp.
-			(let ((content (buffer-string)))
-			  (with-temp-buffer
-			    (when (file-exists-p file-name)
-			      (insert-file-contents file-name))
-			    (goto-char (point-max))
-			    ;; Handle :padlines unless first line in file
-			    (unless (or (string= "no" (cdr (assq :padline (nth 4 spec))))
-					(= (point) (point-min)))
-			      (insert "\n"))
-			    (insert content)
-			    (write-region nil nil file-name))))
-		      ;; if files contain she-bangs, then make the executable
-		      (when she-bang
-			(unless tangle-mode (setq tangle-mode #o755)))
-		      ;; update counter
-		      (setq block-counter (+ 1 block-counter))
-		      (unless (assoc file-name path-collector)
-			(push (cons file-name tangle-mode) path-collector))))))
-	      specs)))
+			  (setq she-banged t))
+		        (org-babel-spec-to-string spec)
+		        (setq block-counter (+ 1 block-counter))))
+		    lspecs)
+		   (when make-dir
+		     (make-directory fnd 'parents))
+                   ;; erase previous file
+                   (when (file-exists-p file-name)
+                     (delete-file file-name))
+		   (write-region nil nil file-name)
+		   (mapc (lambda (mode) (set-file-modes file-name mode)) modes)
+                   (push file-name path-collector))))))
 	 (if (equal arg '(4))
 	     (org-babel-tangle-single-block 1 t)
 	   (org-babel-tangle-collect-blocks lang-re tangle-file)))
@@ -293,19 +285,18 @@ matching a regular expression."
 		 (if (= block-counter 1) "" "s")
 		 (file-name-nondirectory
 		  (buffer-file-name
-		   (or (buffer-base-buffer) (current-buffer)))))
+		   (or (buffer-base-buffer)
+                       (current-buffer)
+                       (and (org-src-edit-buffer-p)
+                            (org-src-source-buffer))))))
 	;; run `org-babel-post-tangle-hook' in all tangled files
 	(when org-babel-post-tangle-hook
 	  (mapc
 	   (lambda (file)
 	     (org-babel-with-temp-filebuffer file
 	       (run-hooks 'org-babel-post-tangle-hook)))
-	   (mapcar #'car path-collector)))
-	;; set permissions on tangled files
-	(mapc (lambda (pair)
-		(when (cdr pair) (set-file-modes (car pair) (cdr pair))))
-	      path-collector)
-	(mapcar #'car path-collector)))))
+	   path-collector))
+	path-collector))))
 
 (defun org-babel-tangle-clean ()
   "Remove comments inserted by `org-babel-tangle'.
@@ -366,12 +357,32 @@ that the appropriate major-mode is set.  SPEC has the form:
 	       (org-fill-template
 		org-babel-tangle-comment-format-end link-data)))))
 
+(defun org-babel-effective-tangled-filename (buffer-fn src-lang src-tfile)
+  "Return effective tangled filename of a source-code block.
+BUFFER-FN is the name of the buffer, SRC-LANG the language of the
+block and SRC-TFILE is the value of the :tangle header argument,
+as computed by `org-babel-tangle-single-block'."
+  (let ((base-name (cond
+                    ((string= "yes" src-tfile)
+                     ;; Use the buffer name
+                     (file-name-sans-extension buffer-fn))
+                    ((string= "no" src-tfile) nil)
+                    ((> (length src-tfile) 0) src-tfile)))
+        (ext (or (cdr (assoc src-lang org-babel-tangle-lang-exts)) src-lang)))
+    (when base-name
+      ;; decide if we want to add ext to base-name
+      (if (and ext (string= "yes" src-tfile))
+          (concat base-name "." ext) base-name))))
+
 (defun org-babel-tangle-collect-blocks (&optional lang-re tangle-file)
   "Collect source blocks in the current Org file.
-Return an association list of source-code block specifications of
-the form used by `org-babel-spec-to-string' grouped by language.
+Return an association list of language and source-code block
+specifications of the form used by `org-babel-spec-to-string'
+grouped by tangled file name.
+
 Optional argument LANG-RE can be used to limit the collected
 source code blocks by languages matching a regular expression.
+
 Optional argument TANGLE-FILE can be used to limit the collected
 code blocks by target file."
   (let ((counter 0) last-heading-pos blocks)
@@ -390,12 +401,15 @@ code blocks by target file."
 	  (unless (or (string= src-tfile "no")
 		      (and tangle-file (not (equal tangle-file src-tfile)))
 		      (and lang-re (not (string-match-p lang-re src-lang))))
-	    ;; Add the spec for this block to blocks under its
-	    ;; language.
-	    (let ((by-lang (assoc src-lang blocks))
-		  (block (org-babel-tangle-single-block counter)))
-	      (if by-lang (setcdr by-lang (cons block (cdr by-lang)))
-		(push (cons src-lang (list block)) blocks)))))))
+	    ;; Add the spec for this block to blocks under its tangled
+	    ;; file name.
+	    (let* ((block (org-babel-tangle-single-block counter))
+                   (src-tfile (cdr (assq :tangle (nth 4 block))))
+		   (file-name (org-babel-effective-tangled-filename
+                               (nth 1 block) src-lang src-tfile))
+		   (by-fn (assoc file-name blocks)))
+	      (if by-fn (setcdr by-fn (cons (cons src-lang block) (cdr by-fn)))
+		(push (cons file-name (list (cons src-lang block))) blocks)))))))
     ;; Ensure blocks are in the correct order.
     (mapcar (lambda (b) (cons (car b) (nreverse (cdr b))))
 	    (nreverse blocks))))
@@ -414,10 +428,16 @@ non-nil, return the full association list to be used by
 	 (src-lang (nth 0 info))
 	 (params (nth 2 info))
 	 (extra (nth 3 info))
-	 (cref-fmt (or (and (string-match "-l \"\\(.+\\)\"" extra)
-			    (match-string 1 extra))
-		       org-coderef-label-format))
-	 (link (let ((l (org-no-properties (org-store-link nil))))
+         (coderef (nth 6 info))
+	 (cref-regexp (org-src-coderef-regexp coderef))
+	 (link (let* (
+                      ;; The created link is transient.  Using ID is
+                      ;; not necessary, but could have side-effects if
+                      ;; used.  An ID property may be added to
+                      ;; existing entries thus creatin unexpected file
+                      ;; modifications.
+                      (org-id-link-to-org-use-id nil)
+                      (l (org-no-properties (org-store-link nil))))
                  (and (string-match org-link-bracket-re l)
                       (match-string 1 l))))
 	 (source-name
@@ -445,8 +465,7 @@ non-nil, return the full association list to be used by
 					(funcall assignments-cmd params))))))
 	      (when (string-match "-r" extra)
 		(goto-char (point-min))
-		(while (re-search-forward
-			(replace-regexp-in-string "%s" ".+" cref-fmt) nil t)
+		(while (re-search-forward cref-regexp nil t)
 		  (replace-match "")))
 	      (run-hooks 'org-babel-tangle-body-hook)
 	      (buffer-string))))
@@ -488,7 +507,10 @@ non-nil, return the full association list to be used by
 		  (org-trim (org-remove-indentation body)))
 		comment)))
     (if only-this-block
-	(list (cons src-lang (list result)))
+        (let* ((src-tfile (cdr (assq :tangle (nth 4 result))))
+               (file-name (org-babel-effective-tangled-filename
+                           (nth 1 result) src-lang src-tfile)))
+          (list (cons file-name (list (cons src-lang result)))))
       result)))
 
 (defun org-babel-tangle-comment-links (&optional info)
@@ -501,7 +523,13 @@ by `org-babel-get-src-block-info'."
 					   (number-to-string
 					    (line-number-at-pos))))
 			("file" . ,(buffer-file-name))
-			("link" . ,(org-no-properties (org-store-link nil)))
+			("link" . ,(let (;; The created link is transient.  Using ID is
+                                         ;; not necessary, but could have side-effects if
+                                         ;; used.  An ID property may be added to
+                                         ;; existing entries thus creatin unexpected file
+                                         ;; modifications.
+                                         (org-id-link-to-org-use-id nil))
+                                     (org-no-properties (org-store-link nil))))
 			("source-name" . ,name))))))
     (list (org-fill-template org-babel-tangle-comment-format-beg link-data)
 	  (org-fill-template org-babel-tangle-comment-format-end link-data))))

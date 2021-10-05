@@ -1962,7 +1962,7 @@ If ARGUMENT is non-nil, use it as argument for
     ;; Otherwise, we must delete the connection cache, because
     ;; capabilities might have changed.
     (unless (or argument (processp p))
-      (let ((default-directory (tramp-compat-temporary-file-directory))
+      (let ((default-directory tramp-compat-temporary-file-directory)
 	    (command (concat tramp-smb-program " -V")))
 
 	(unless tramp-smb-version
@@ -2049,7 +2049,7 @@ If ARGUMENT is non-nil, use it as argument for
 	    (let* ((coding-system-for-read nil)
 		   (process-connection-type tramp-process-connection-type)
 		   (p (let ((default-directory
-			      (tramp-compat-temporary-file-directory))
+			      tramp-compat-temporary-file-directory)
 			    (process-environment
 			     (cons (concat "TERM=" tramp-terminal-type)
 				   process-environment)))

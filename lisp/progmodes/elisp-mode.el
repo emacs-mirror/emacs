@@ -158,22 +158,13 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (when (thing-at-mouse click 'symbol)
     (define-key-after menu [elisp-separator] menu-bar-separator
       'middle-separator)
-    (define-key-after menu [info-lookup-symbol]
-      '(menu-item "Look up in Manual"
-                  (lambda (click) (interactive "e")
-                    (info-lookup-symbol
-                     (intern (thing-at-mouse click 'symbol t))))
-                  :help "Display definition in relevant manual")
-      'elisp-separator)
+
     (let* ((string (thing-at-mouse click 'symbol t))
            (symbol (when (stringp string) (intern string)))
            (title (cond
                    ((not (symbolp symbol)) nil)
                    ((and (facep symbol) (not (fboundp symbol)))
                     "Face")
-                   ((and (fboundp symbol) (boundp symbol)
-                         (memq symbol minor-mode-list))
-                    "Mode")
                    ((and (fboundp symbol)
                          (not (or (boundp symbol) (facep symbol))))
                     "Function")
@@ -183,11 +174,17 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
                    ((or (fboundp symbol) (boundp symbol) (facep symbol))
                     "Symbol"))))
       (when title
+        (define-key-after menu [info-lookup-symbol]
+          `(menu-item "Look up in Manual"
+                      (lambda (_click) (interactive "e")
+                        (info-lookup-symbol ',symbol))
+                      :help ,(format "Find `%s' in relevant manual" symbol))
+          'elisp-separator)
         (define-key-after menu [describe-symbol]
           `(menu-item (format "Describe %s" ,title)
                       (lambda (_click) (interactive "e")
                         (describe-symbol ',symbol))
-                      :help "Display the full documentation of symbol")
+                      :help ,(format "Display the documentation of `%s'" symbol))
           'elisp-separator))))
   menu)
 
@@ -535,6 +532,53 @@ It can be quoted, or be inside a quoted form."
             0))
      ((facep sym) (find-definition-noselect sym 'defface)))))
 
+(defvar obarray-cache nil
+  "If non-nil, a hash table of cached obarray-related information.
+The cache holds information specific to the current state of the
+Elisp obarray.  If the obarray is modified by any means (such as
+interning or uninterning a symbol), this variable is set to nil.")
+
+(defun elisp--completion-local-symbols ()
+  "Compute collections of all Elisp symbols for completion purposes.
+The return value is compatible with the COLLECTION form described
+in `completion-at-point-functions' (which see)."
+  (cl-flet ((obarray-plus-shorthands ()
+              (let (retval)
+                (mapatoms
+                 (lambda (s)
+                   (push s retval)
+                   (cl-loop
+                    for (shorthand . longhand) in read-symbol-shorthands
+                    for full-name = (symbol-name s)
+                    when (string-prefix-p longhand full-name)
+                    do (let ((sym (make-symbol
+                                   (concat shorthand
+                                           (substring full-name
+                                                      (length longhand))))))
+                         (put sym 'shorthand t)
+                         (push sym retval)
+                         retval))))
+                retval)))
+    (cond ((null read-symbol-shorthands) obarray)
+          ((and obarray-cache
+                (gethash (cons (current-buffer) read-symbol-shorthands)
+                         obarray-cache)))
+          (obarray-cache
+            (puthash (cons (current-buffer) read-symbol-shorthands)
+                     (obarray-plus-shorthands)
+                     obarray-cache))
+          (t
+            (setq obarray-cache (make-hash-table :test #'equal))
+            (puthash (cons (current-buffer) read-symbol-shorthands)
+                     (obarray-plus-shorthands)
+                     obarray-cache)))))
+
+(defun elisp--shorthand-aware-fboundp (sym)
+  (fboundp (intern-soft (symbol-name sym))))
+
+(defun elisp--shorthand-aware-boundp (sym)
+  (boundp (intern-soft (symbol-name sym))))
+
 (defun elisp-completion-at-point ()
   "Function used for `completion-at-point-functions' in `emacs-lisp-mode'.
 If the context at point allows only a certain category of
@@ -582,24 +626,27 @@ functions are annotated with \"<f>\" via the
                     ;; the current form and use it to provide a more
                     ;; specific completion table in more cases.
                     ((eq fun-sym 'ignore-error)
-                     (list t obarray
+                     (list t (elisp--completion-local-symbols)
                            :predicate (lambda (sym)
                                         (get sym 'error-conditions))))
                     ((elisp--expect-function-p beg)
-                     (list nil obarray
-                           :predicate #'fboundp
+                     (list nil (elisp--completion-local-symbols)
+                           :predicate
+                           #'elisp--shorthand-aware-fboundp
                            :company-kind #'elisp--company-kind
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
                            :company-location #'elisp--company-location))
                     (quoted
-                     (list nil obarray
+                     (list nil (elisp--completion-local-symbols)
                            ;; Don't include all symbols (bug#16646).
                            :predicate (lambda (sym)
-                                        (or (boundp sym)
-                                            (fboundp sym)
-                                            (featurep sym)
-                                            (symbol-plist sym)))
+                                        ;; shorthand-aware
+                                        (let ((sym (intern-soft (symbol-name sym))))
+                                          (or (boundp sym)
+                                              (fboundp sym)
+                                              (featurep sym)
+                                              (symbol-plist sym))))
                            :annotation-function
                            (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
                            :company-kind #'elisp--company-kind
@@ -610,8 +657,8 @@ functions are annotated with \"<f>\" via the
                      (list nil (completion-table-merge
                                 elisp--local-variables-completion-table
                                 (apply-partially #'completion-table-with-predicate
-                                                 obarray
-                                                 #'boundp
+                                                 (elisp--completion-local-symbols)
+                                                 #'elisp--shorthand-aware-boundp
                                                  'strict))
                            :company-kind
                            (lambda (s)
@@ -648,11 +695,11 @@ functions are annotated with \"<f>\" via the
                                       (ignore-errors
                                         (forward-sexp 2)
                                         (< (point) beg)))))
-                        (list t obarray
+                        (list t (elisp--completion-local-symbols)
                               :predicate (lambda (sym) (get sym 'error-conditions))))
                        ;; `ignore-error' with a list CONDITION parameter.
                        ('ignore-error
-                        (list t obarray
+                        (list t (elisp--completion-local-symbols)
                               :predicate (lambda (sym)
                                            (get sym 'error-conditions))))
                        ((and (or ?\( 'let 'let*)
@@ -662,14 +709,14 @@ functions are annotated with \"<f>\" via the
                                         (up-list -1))
                                       (forward-symbol -1)
                                       (looking-at "\\_<let\\*?\\_>"))))
-                        (list t obarray
-                              :predicate #'boundp
+                        (list t (elisp--completion-local-symbols)
+                              :predicate #'elisp--shorthand-aware-boundp
                               :company-kind (lambda (_) 'variable)
                               :company-doc-buffer #'elisp--company-doc-buffer
                               :company-docsig #'elisp--company-doc-string
                               :company-location #'elisp--company-location))
-                       (_ (list nil obarray
-                                :predicate #'fboundp
+                       (_ (list nil (elisp--completion-local-symbols)
+                                :predicate #'elisp--shorthand-aware-fboundp
                                 :company-kind #'elisp--company-kind
                                 :company-doc-buffer #'elisp--company-doc-buffer
                                 :company-docsig #'elisp--company-doc-string
@@ -990,7 +1037,7 @@ namespace but with lower confidence."
               ;; First call to find-lisp-object-file-name for an object
               ;; defined in C; the doc strings from the C source have
               ;; not been loaded yet.  Second call will return "src/*.c"
-              ;; in file; handled by 't' case below.
+              ;; in file; handled by t case below.
               (push (elisp--xref-make-xref nil symbol (help-C-file-name (symbol-function symbol) 'subr)) xrefs))
 
              ((and (setq doc (documentation symbol t))
@@ -1034,7 +1081,7 @@ namespace but with lower confidence."
                                   specializers))
                        (file (find-lisp-object-file-name met-name 'cl-defmethod)))
                   (dolist (item specializers)
-                    ;; default method has all 't' in specializers
+                    ;; Default method has all t in specializers.
                     (setq non-default (or non-default (not (equal t item)))))
 
                   (when (and file
@@ -2077,6 +2124,9 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (prin1 :elisp-flymake-output-start)
     (terpri)
     (pp collected)))
+
+
+(put 'read-symbol-shorthands 'safe-local-variable #'consp)
 
 (provide 'elisp-mode)
 ;;; elisp-mode.el ends here

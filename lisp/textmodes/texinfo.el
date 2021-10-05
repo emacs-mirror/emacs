@@ -806,7 +806,8 @@ temporary file before the region itself.  The buffer's header is all lines
 between the strings defined by `tex-start-of-header' and `tex-end-of-header'
 inclusive.  The header must start in the first 100 lines.
 
-The value of `texinfo-tex-trailer' is appended to the temporary file after the region."
+The value of `texinfo-tex-trailer' is appended to the temporary
+file after the region."
   (interactive "r")
   (require 'tex-mode)
   (let ((tex-command texinfo-tex-command)

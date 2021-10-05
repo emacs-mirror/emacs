@@ -48,27 +48,48 @@
   (require 'xref)
   (define-key-after menu [prog-separator] menu-bar-separator
     'middle-separator)
-  (when (not (xref-marker-stack-empty-p))
+
+  (unless (xref-marker-stack-empty-p)
     (define-key-after menu [xref-pop]
       '(menu-item "Back Definition" xref-pop-marker-stack
                   :help "Back to the position of the last search")
       'prog-separator))
-  (when (save-excursion
-          (mouse-set-point click)
-          (xref-backend-identifier-at-point
-           (xref-find-backend)))
-    (define-key-after menu [xref-find-ref]
-      '(menu-item "Find References" xref-find-references-at-mouse
-                  :help "Find references to identifier")
-      'prog-separator))
-  (when (save-excursion
-          (mouse-set-point click)
-          (xref-backend-identifier-at-point
-           (xref-find-backend)))
-    (define-key-after menu [xref-find-def]
-      '(menu-item "Find Definition" xref-find-definitions-at-mouse
-                  :help "Find definition of identifier")
-      'prog-separator))
+
+  (let ((identifier (save-excursion
+                      (mouse-set-point click)
+                      (xref-backend-identifier-at-point
+                       (xref-find-backend)))))
+    (when identifier
+      (define-key-after menu [xref-find-ref]
+        `(menu-item "Find References" xref-find-references-at-mouse
+                    :help ,(format "Find references to `%s'" identifier))
+        'prog-separator)
+      (define-key-after menu [xref-find-def]
+        `(menu-item "Find Definition" xref-find-definitions-at-mouse
+                    :help ,(format "Find definition of `%s'" identifier))
+        'prog-separator)))
+
+  (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [select-region mark-symbol]
+      `(menu-item "Symbol"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'symbol))
+                  :help "Mark the symbol at click for a subsequent cut/copy")
+      'mark-whole-buffer))
+  (define-key-after menu [select-region mark-list]
+    `(menu-item "List"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list))
+                :help "Mark the list at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+  (define-key-after menu [select-region mark-defun]
+    `(menu-item "Defun"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
+                :help "Mark the defun at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+
+  ;; Include text-mode select menu only in strings and comments.
+  (when (nth 8 (save-excursion (syntax-ppss (posn-point (event-end click)))))
+    (text-mode-menu menu click))
+
   menu)
 
 (defvar prog-mode-map
@@ -128,7 +149,7 @@ which case it will be used to compose the new symbol as per the
 third argument of `compose-region'.")
 
 (defun prettify-symbols-default-compose-p (start end _match)
-  "Return true iff the symbol MATCH should be composed.
+  "Return non-nil iff the symbol MATCH should be composed.
 The symbol starts at position START and ends at position END.
 This is the default for `prettify-symbols-compose-predicate'
 which is suitable for most programming languages such as C or Lisp."
@@ -146,7 +167,7 @@ which is suitable for most programming languages such as C or Lisp."
   "A predicate for deciding if the currently matched symbol is to be composed.
 The matched symbol is the car of one entry in `prettify-symbols-alist'.
 The predicate receives the match's start and end positions as well
-as the match-string as arguments.")
+as the `match-string' as arguments.")
 
 (defun prettify-symbols--compose-symbol (alist)
   "Compose a sequence of characters into a symbol.

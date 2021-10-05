@@ -111,3 +111,4 @@
     (should (equal (calendar-french-date-string (list m d y)) str))))
 
 (provide 'cal-french-tests)
+;;; cal-french-tests.el ends here

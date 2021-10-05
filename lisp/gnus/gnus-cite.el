@@ -839,7 +839,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 		 (setq current (car loop)
 		       loop (cdr loop))
 		 (setcdr current
-                         (seq-difference (cdr current) numbers #'eq)))))))))
+			 (gnus-set-difference (cdr current) numbers)))))))))
 
 (defun gnus-cite-parse-attributions ()
   (let (al-alist)
@@ -999,7 +999,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 		    loop (cdr loop))
 	      (if (eq current best)
 		  ()
-                (setcdr current (seq-difference (cdr current) numbers #'eq))
+		(setcdr current (gnus-set-difference (cdr current) numbers))
 		(when (null (cdr current))
 		  (setq gnus-cite-loose-prefix-alist
 			(delq current gnus-cite-loose-prefix-alist)

@@ -86,7 +86,7 @@
       (should (equal (time-stamp-string "%H %Z" ref-time1) "15 GMT")))))
 
 (iter-defun time-stamp-test-pattern-sequential ()
-  "Iterate through each possibility for a part of time-stamp-pattern."
+  "Iterate through each possibility for a part of `time-stamp-pattern'."
   (let ((pattern-value-parts
          '(("4/" "10/" "-4/" "0/" "")                     ;0: line limit
            ("stamp<" "")                                  ;1: start
@@ -115,7 +115,7 @@
                                     (extract-part 5))))))))))
 
 (iter-defun time-stamp-test-pattern-multiply ()
-  "Iterate through every combination of parts of time-stamp-pattern."
+  "Iterate through every combination of parts of `time-stamp-pattern'."
   (let ((line-limit-values '("" "4/"))
         (start-values '("" "stamp<"))
         (format-values '("%%" "%m"))
@@ -141,9 +141,9 @@
                            ts-format _format-lines _end-lines)
               ;; Verify that time-stamp parsed time-stamp-pattern and
               ;; called us with the correct pieces.
-              (let ((limit-number (string-to-number line-limit1)))
-                (if (equal line-limit1 "")
-                    (setq limit-number time-stamp-line-limit))
+              (let ((limit-number (if (equal line-limit1 "")
+                                      time-stamp-line-limit
+                                    (string-to-number line-limit1))))
                 (goto-char (point-min))
                 (if (> limit-number 0)
                     (should (= search-limit (line-beginning-position
@@ -871,7 +871,7 @@ The functions in `pattern-mod' are composed left to right."
 
 (defmacro formatz-generate-tests
     (form-strings hour-mod mins-mod secs-mod big-mod secbig-mod)
-  "Defines ert-deftest tests for time formats FORM-STRINGS.
+  "Defines tests for time formats FORM-STRINGS.
 FORM-STRINGS is a list of formats, each \"%z\" or some variation thereof.
 
 Each of the remaining arguments is an unquoted list of the form

@@ -63,7 +63,7 @@ it will match any sequence matched by the regexp `search-whitespace-regexp'."
   :version "24.3")
 
 (defvar query-replace-history nil
-  "Default history list for query-replace commands.
+  "Default history list for `query-replace' commands.
 See `query-replace-from-history-variable' and
 `query-replace-to-history-variable'.")
 
@@ -202,7 +202,7 @@ by this function to the end of values available via
                   (car (symbol-value query-replace-from-history-variable)))))
 
 (defun query-replace-read-from (prompt regexp-flag)
-  "Query and return the `from' argument of a query-replace operation.
+  "Query and return the `from' argument of a `query-replace' operation.
 Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should be a regexp.
 The return value can also be a pair (FROM . TO) indicating that the user
 wants to replace FROM with TO."
@@ -326,8 +326,9 @@ the original string if not."
 
 
 (defun query-replace-read-to (from prompt regexp-flag)
-  "Query and return the `to' argument of a query-replace operation.
-Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should a regexp."
+  "Query and return the `to' argument of a `query-replace' operation.
+Prompt with PROMPT.  REGEXP-FLAG non-nil means the response
+should a regexp."
   (query-replace-compile-replacement
    (save-excursion
      (let* ((history-add-new-input nil)
@@ -1300,7 +1301,7 @@ See `occur-revert-function'.")
 (defcustom occur-mode-find-occurrence-hook nil
   "Hook run by Occur after locating an occurrence.
 This will be called with the cursor position at the occurrence.  An application
-for this is to reveal context in an outline-mode when the occurrence is hidden."
+for this is to reveal context in an outline mode when the occurrence is hidden."
   :type 'hook
   :group 'matching)
 
@@ -2606,7 +2607,7 @@ passed in.  If LITERAL is set, no checking is done, anyway."
   noedit)
 
 (defvar replace-update-post-hook nil
-  "Function(s) to call after query-replace has found a match in the buffer.")
+  "Function(s) to call after `query-replace' has found a match in the buffer.")
 
 (defvar replace-search-function nil
   "Function to use when searching for strings to replace.

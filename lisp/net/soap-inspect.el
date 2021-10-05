@@ -114,7 +114,7 @@ This is a specialization of `soap-sample-value' for
    (cond
     ((soap-xs-simple-type-enumeration type)
      (let ((enumeration (soap-xs-simple-type-enumeration type)))
-       (nth (random (length enumeration)) enumeration)))
+       (and enumeration (seq-random-elt enumeration))))
     ((soap-xs-simple-type-pattern type)
      (format "a string matching %s" (soap-xs-simple-type-pattern type)))
     ((soap-xs-simple-type-length-range type)
@@ -124,7 +124,7 @@ This is a specialization of `soap-sample-value' for
          (format "a string between %d and %d chars long" low high))
         (low (format "a string at least %d chars long" low))
         (high (format "a string at most %d chars long" high))
-        (t (format "a string OOPS")))))
+        (t "a string OOPS"))))
     ((soap-xs-simple-type-integer-range type)
      (cl-destructuring-bind (min . max) (soap-xs-simple-type-integer-range type)
        (cond
@@ -134,7 +134,7 @@ This is a specialization of `soap-sample-value' for
         (t (random 100)))))
     ((consp (soap-xs-simple-type-base type)) ; an union of values
      (let ((base (soap-xs-simple-type-base type)))
-       (soap-sample-value (nth (random (length base)) base))))
+       (soap-sample-value (and base (seq-random-elt base)))))
     ((soap-xs-basic-type-p (soap-xs-simple-type-base type))
      (soap-sample-value (soap-xs-simple-type-base type))))))
 

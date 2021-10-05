@@ -826,4 +826,4 @@
   (should (equal (ibuffer-unary-operand '(not . a)) 'a)))
 
 (provide 'ibuffer-tests)
-;; ibuffer-tests.el ends here
+;;; ibuffer-tests.el ends here

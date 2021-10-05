@@ -62,7 +62,7 @@ Is equivalent to:
     (+ (- (/ (+ 5 20) 25)) 40)
 Note how the single `-' got converted into a list before
 threading."
-  (declare (indent 1)
+  (declare (indent 0)
            (debug (form &rest [&or symbolp (sexp &rest form)])))
   `(internal--thread-argument t ,@forms))
 
@@ -79,7 +79,7 @@ Is equivalent to:
     (+ 40 (- (/ 25 (+ 20 5))))
 Note how the single `-' got converted into a list before
 threading."
-  (declare (indent 1) (debug thread-first))
+  (declare (indent 0) (debug thread-first))
   `(internal--thread-argument nil ,@forms))
 
 (defsubst internal--listify (elt)
@@ -107,7 +107,7 @@ If ELT is of the form ((EXPR)), listify (EXPR) with a dummy symbol."
 (defun internal--build-binding (binding prev-var)
   "Check and build a single BINDING with PREV-VAR."
   (thread-first
-      binding
+    binding
     internal--listify
     internal--check-binding
     (internal--build-binding-value-form prev-var)))

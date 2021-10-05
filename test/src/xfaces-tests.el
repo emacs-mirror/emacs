@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Code:
+
 (require 'ert)
 
 (ert-deftest xfaces-color-distance ()
@@ -48,3 +50,5 @@
   (should (equal (color-values-from-color-spec "rgbi:0/0.5/10") nil)))
 
 (provide 'xfaces-tests)
+
+;;; xfaces-tests.el ends here

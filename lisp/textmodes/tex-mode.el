@@ -3454,7 +3454,7 @@ There might be text before point."
     ("\\varprime" . ?′)
     ("\\varpropto" . ?∝)
     ("\\varrho" . ?ϱ)
-    ("\\varsigma" ?ς)
+    ("\\varsigma" . ?ς)
     ("\\vartriangleleft" . ?⊲)
     ("\\vartriangleright" . ?⊳)
     ("\\vdash" . ?⊢)

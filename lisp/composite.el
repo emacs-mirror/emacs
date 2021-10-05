@@ -815,6 +815,28 @@ prepending a space before it."
 	      (setq i (1+ i)))))))
     gstring))
 
+(defun compose-gstring-for-variation-glyph (gstring _direction)
+  "Compose glyph-string GSTRING for graphic display.
+GSTRING must have two glyphs; the first is a glyph for a han character,
+and the second is a glyph for a variation selector."
+  (let* ((font (lgstring-font gstring))
+	 (han (lgstring-char gstring 0))
+	 (vs (lgstring-char gstring 1))
+	 (glyphs (font-variation-glyphs font han))
+	 (g0 (lgstring-glyph gstring 0))
+	 (g1 (lgstring-glyph gstring 1)))
+    (catch 'tag
+      (dolist (elt glyphs)
+	(if (= (car elt) vs)
+	    (progn
+	      (lglyph-set-code g0 (cdr elt))
+	      (lglyph-set-from-to g0 (lglyph-from g0) (lglyph-to g1))
+	      (lgstring-set-glyph gstring 1 nil)
+	      (throw 'tag gstring)))))))
+
+(let ((elt '([".." 1 compose-gstring-for-variation-glyph])))
+  (set-char-table-range composition-function-table '(#xFE00 . #xFE0F) elt)
+  (set-char-table-range composition-function-table '(#xE0100 . #xE01EF) elt))
 
 (defun auto-compose-chars (func from to font-object string direction)
   "Compose the characters at FROM by FUNC.

@@ -1,4 +1,4 @@
-;;; shell-tests.el  -*- lexical-binding:t -*-
+;;; shell-tests.el --- Tests for shell.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 

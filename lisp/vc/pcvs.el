@@ -1144,7 +1144,8 @@ Full documentation is in the Texinfo file."
 				      ("->" cvs-secondary-branch-prefix))))
 	  " " cvs-mode-line-process))
   (if buffer-file-name
-      (error "Use M-x cvs-quickdir to get a *cvs* buffer"))
+      (error (substitute-command-keys
+              "Use \\[cvs-quickdir] to get a *cvs* buffer")))
   (buffer-disable-undo)
   ;;(setq-local goal-column cvs-cursor-column)
   (setq-local revert-buffer-function 'cvs-mode-revert-buffer)

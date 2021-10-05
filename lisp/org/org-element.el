@@ -117,6 +117,19 @@
 ;; `org-element-update-syntax' builds proper syntax regexps according
 ;; to current setup.
 
+(defconst org-element-citation-key-re
+  (rx "@" (group (one-or-more (any word "-.:?!`'/*@+|(){}<>&_^$#%~"))))
+  "Regexp matching a citation key.
+Key is located in match group 1.")
+
+(defconst org-element-citation-prefix-re
+  (rx "[cite"
+      (opt "/" (group (one-or-more (any "/_-" alnum)))) ;style
+      ":"
+      (zero-or-more (any "\t\n ")))
+  "Regexp matching a citation prefix.
+Style, if any, is located in match group 1.")
+
 (defvar org-element-paragraph-separate nil
   "Regexp to separate paragraphs in an Org buffer.
 In the case of lines starting with \"#\" and \":\", this regexp
@@ -182,15 +195,17 @@ specially in `org-element--object-lex'.")
 				      (nth 2 org-emphasis-regexp-components)))
 		      ;; Plain links.
 		      (concat "\\<" link-types ":")
-		      ;; Objects starting with "[": regular link,
+		      ;; Objects starting with "[": citations,
 		      ;; footnote reference, statistics cookie,
-		      ;; timestamp (inactive).
-		      (concat "\\[\\(?:"
-			      "fn:" "\\|"
-			      "\\[" "\\|"
-			      "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" "\\|"
-			      "[0-9]*\\(?:%\\|/[0-9]*\\)\\]"
-			      "\\)")
+		      ;; timestamp (inactive) and regular link.
+		      (format "\\[\\(?:%s\\)"
+			      (mapconcat
+			       #'identity
+			       (list "cite[:/]"
+				     "fn:"
+				     "\\(?:[0-9]\\|\\(?:%\\|/[0-9]*\\)\\]\\)"
+				     "\\[")
+			       "\\|"))
 		      ;; Objects starting with "@": export snippets.
 		      "@@"
 		      ;; Objects starting with "{": macro.
@@ -234,15 +249,15 @@ specially in `org-element--object-lex'.")
   "List of recursive element types aka Greater Elements.")
 
 (defconst org-element-all-objects
-  '(bold code entity export-snippet footnote-reference inline-babel-call
-	 inline-src-block italic line-break latex-fragment link macro
-	 radio-target statistics-cookie strike-through subscript superscript
-	 table-cell target timestamp underline verbatim)
+  '(bold citation citation-reference code entity export-snippet
+	 footnote-reference inline-babel-call inline-src-block italic line-break
+	 latex-fragment link macro radio-target statistics-cookie strike-through
+	 subscript superscript table-cell target timestamp underline verbatim)
   "Complete list of object types.")
 
 (defconst org-element-recursive-objects
-  '(bold footnote-reference italic link subscript radio-target strike-through
-	 superscript table-cell underline)
+  '(bold citation footnote-reference italic link subscript radio-target
+	 strike-through superscript table-cell underline)
   "List of recursive object types.")
 
 (defconst org-element-object-containers
@@ -331,9 +346,12 @@ Don't modify it, set `org-element-affiliated-keywords' instead.")
 (defconst org-element-object-restrictions
   (let* ((minimal-set '(bold code entity italic latex-fragment strike-through
 			     subscript superscript underline verbatim))
-	 (standard-set (remq 'table-cell org-element-all-objects))
+	 (standard-set
+	  (remq 'citation-reference (remq 'table-cell org-element-all-objects)))
 	 (standard-set-no-line-break (remq 'line-break standard-set)))
     `((bold ,@standard-set)
+      (citation citation-reference)
+      (citation-reference ,@minimal-set)
       (footnote-reference ,@standard-set)
       (headline ,@standard-set-no-line-break)
       (inlinetask ,@standard-set-no-line-break)
@@ -354,8 +372,8 @@ Don't modify it, set `org-element-affiliated-keywords' instead.")
       ;; Ignore inline babel call and inline source block as formulas
       ;; are possible.  Also ignore line breaks and statistics
       ;; cookies.
-      (table-cell export-snippet footnote-reference link macro radio-target
-		  target timestamp ,@minimal-set)
+      (table-cell citation export-snippet footnote-reference link macro
+                  radio-target target timestamp ,@minimal-set)
       (table-row table-cell)
       (underline ,@standard-set)
       (verse-block ,@standard-set)))
@@ -370,9 +388,11 @@ This alist also applies to secondary string.  For example, an
 still has an entry since one of its properties (`:title') does.")
 
 (defconst org-element-secondary-value-alist
-  '((headline :title)
+  '((citation :prefix :suffix)
+    (headline :title)
     (inlinetask :title)
-    (item :tag))
+    (item :tag)
+    (citation-reference :prefix :suffix))
   "Alist between element types and locations of secondary values.")
 
 (defconst org-element--pair-round-table
@@ -737,7 +757,9 @@ Return a list whose CAR is `drawer' and CDR is a plist containing
 
 Assume point is at beginning of drawer."
   (let ((case-fold-search t))
-    (if (not (save-excursion (re-search-forward "^[ \t]*:END:[ \t]*$" limit t)))
+    (if (not (save-excursion
+               (goto-char (min limit (line-end-position)))
+               (re-search-forward "^[ \t]*:END:[ \t]*$" limit t)))
 	;; Incomplete drawer: parse it as a paragraph.
 	(org-element-paragraph-parser limit affiliated)
       (save-excursion
@@ -999,7 +1021,10 @@ Assume point is at beginning of the headline."
 	   (commentedp
 	    (and (let (case-fold-search) (looking-at org-comment-string))
 		 (goto-char (match-end 0))))
-	   (title-start (point))
+	   (title-start (prog1 (point)
+                          (unless (or todo priority commentedp)
+                            ;; Headline like "* :tag:"
+                            (skip-chars-backward " \t"))))
 	   (tags (when (re-search-forward
 			"[ \t]+\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$"
 			(line-end-position)
@@ -2751,6 +2776,129 @@ CONTENTS is the contents of the object."
   (format "*%s*" contents))
 
 
+;;;; Citation
+
+(defun org-element-citation-parser ()
+  "Parse citation object at point, if any.
+
+When at a citation object, return a list whose car is `citation'
+and cdr is a plist with `:style', `:prefix', `:suffix', `:begin',
+`:end', `:contents-begin', `:contents-end', and `:post-blank'
+keywords.  Otherwise, return nil.
+
+Assume point is at the beginning of the citation."
+  (when (looking-at org-element-citation-prefix-re)
+    (let* ((begin (point))
+	   (style (and (match-end 1)
+		       (match-string-no-properties 1)))
+	   ;; Ignore blanks between cite type and prefix or key.
+	   (start (match-end 0))
+	   (closing (with-syntax-table org-element--pair-square-table
+		      (ignore-errors (scan-lists begin 1 0)))))
+      (save-excursion
+	(when (and closing
+		   (re-search-forward org-element-citation-key-re closing t))
+	  ;; Find prefix, if any.
+	  (let ((first-key-end (match-end 0))
+		(types (org-element-restriction 'citation-reference))
+                (cite
+		 (list 'citation
+		       (list :style style
+			     :begin begin
+			     :post-blank (progn
+					   (goto-char closing)
+					   (skip-chars-forward " \t"))
+			     :end (point)))))
+	    ;; `:contents-begin' depends on the presence of
+	    ;; a non-empty common prefix.
+	    (goto-char first-key-end)
+	    (if (not (search-backward ";" start t))
+		(org-element-put-property cite :contents-begin start)
+	      (when (< start (point))
+		(org-element-put-property
+                 cite :prefix
+                 (org-element--parse-objects start (point) nil types cite)))
+	      (forward-char)
+	      (org-element-put-property cite :contents-begin (point)))
+	    ;; `:contents-end' depends on the presence of a non-empty
+	    ;; common suffix.
+	    (goto-char (1- closing))
+	    (skip-chars-backward " \r\t\n")
+	    (let ((end (point)))
+	      (if (or (not (search-backward ";" first-key-end t))
+		      (re-search-forward org-element-citation-key-re end t))
+		  (org-element-put-property cite :contents-end end)
+                (forward-char)
+		(when (< (point) end)
+		  (org-element-put-property
+                   cite :suffix
+                   (org-element--parse-objects (point) end nil types cite)))
+		(org-element-put-property cite :contents-end (point))))
+	    cite))))))
+
+(defun org-element-citation-interpreter (citation contents)
+  "Interpret CITATION object as Org syntax.
+CONTENTS is the contents of the object, as a string."
+  (let ((prefix (org-element-property :prefix citation))
+        (suffix (org-element-property :suffix citation))
+        (style (org-element-property :style citation)))
+    (concat "[cite"
+            (and style (concat "/" style))
+            ":"
+            (and prefix (concat (org-element-interpret-data prefix) ";"))
+            (if suffix
+                (concat contents (org-element-interpret-data suffix))
+              ;; Remove spurious semicolon.
+              (substring contents nil -1))
+            "]")))
+
+
+;;;; Citation Reference
+
+(defun org-element-citation-reference-parser ()
+  "Parse citation reference object at point, if any.
+
+When at a reference, return a list whose car is
+`citation-reference', and cdr is a plist with `:key',
+`:prefix', `:suffix', `:begin', `:end', and `:post-blank' keywords.
+
+Assume point is at the beginning of the reference."
+  (save-excursion
+    (let ((begin (point)))
+      (when (re-search-forward org-element-citation-key-re nil t)
+        (let* ((key (match-string-no-properties 1))
+	       (key-start (match-beginning 0))
+	       (key-end (match-end 0))
+	       (separator (search-forward ";" nil t))
+               (end (or separator (point-max)))
+               (suffix-end (if separator (1- end) end))
+               (types (org-element-restriction 'citation-reference))
+	       (reference
+	        (list 'citation-reference
+		      (list :key key
+			    :begin begin
+			    :end end
+			    :post-blank 0))))
+	  (when (< begin key-start)
+	    (org-element-put-property
+	     reference :prefix
+             (org-element--parse-objects begin key-start nil types reference)))
+	  (when (< key-end suffix-end)
+	    (org-element-put-property
+	     reference :suffix
+             (org-element--parse-objects key-end suffix-end nil types reference)))
+	  reference)))))
+
+(defun org-element-citation-reference-interpreter (citation-reference _)
+  "Interpret CITATION-REFERENCE object as Org syntax."
+  (concat (org-element-interpret-data
+           (org-element-property :prefix citation-reference))
+	  "@" (org-element-property :key citation-reference)
+	  (org-element-interpret-data
+           (org-element-property :suffix citation-reference))
+          ";"))
+
+
 ;;;; Code
 
 (defun org-element-code-parser ()
@@ -3951,14 +4099,36 @@ element it has to parse."
 		  ;; There is no strict definition of a table.el
 		  ;; table.  Try to prevent false positive while being
 		  ;; quick.
-		  (let ((rule-regexp "[ \t]*\\+\\(-+\\+\\)+[ \t]*$")
+		  (let ((rule-regexp
+			 (rx (zero-or-more (any " \t"))
+			     "+"
+			     (one-or-more (one-or-more "-") "+")
+			     (zero-or-more (any " \t"))
+			     eol))
+			(non-table.el-line
+			 (rx bol
+			     (zero-or-more (any " \t"))
+			     (or eol (not (any "+| \t")))))
 			(next (line-beginning-position 2)))
-		    (and (looking-at rule-regexp)
-			 (save-excursion
-			   (forward-line)
-			   (re-search-forward "^[ \t]*\\($\\|[^|]\\)" limit t)
-			   (and (> (line-beginning-position) next)
-				(org-match-line rule-regexp))))))
+		    ;; Start with a full rule.
+		    (and
+		     (looking-at rule-regexp)
+		     (< next limit)	;no room for a table.el table
+		     (save-excursion
+		       (end-of-line)
+		       (cond
+			;; Must end with a full rule.
+			((not (re-search-forward non-table.el-line limit 'move))
+			 (if (bolp) (forward-line -1) (beginning-of-line))
+			 (looking-at rule-regexp))
+			;; Ignore pseudo-tables with a single
+			;; rule.
+			((= next (line-beginning-position))
+			 nil)
+			;; Must end with a full rule.
+			(t
+			 (forward-line -1)
+			 (looking-at rule-regexp)))))))
 	      (org-element-table-parser limit affiliated))
 	     ;; List.
 	     ((looking-at (org-item-re))
@@ -4322,7 +4492,7 @@ element or object.  Meaningful values are `first-section',
 TYPE is the type of the current element or object.
 
 If PARENT? is non-nil, assume the next element or object will be
-located inside the current one.  "
+located inside the current one."
   (if parent?
       (pcase type
 	(`headline 'section)
@@ -4413,7 +4583,11 @@ Elements are accumulated into ACC."
 RESTRICTION is a list of object types, as symbols, that should be
 looked after.  This function assumes that the buffer is narrowed
 to an appropriate container (e.g., a paragraph)."
-  (if (memq 'table-cell restriction) (org-element-table-cell-parser)
+  (cond
+   ((memq 'table-cell restriction) (org-element-table-cell-parser))
+   ((memq 'citation-reference restriction)
+    (org-element-citation-reference-parser))
+   (t
     (let* ((start (point))
 	   (limit
 	    ;; Object regexp sometimes needs to have a peek at
@@ -4501,6 +4675,9 @@ to an appropriate container (e.g., a paragraph)."
 			 ((and ?f
 			       (guard (memq 'footnote-reference restriction)))
 			  (org-element-footnote-reference-parser))
+			 ((and ?c
+			       (guard (memq 'citation restriction)))
+			  (org-element-citation-parser))
 			 ((and (or ?% ?/)
 			       (guard (memq 'statistics-cookie restriction)))
 			  (org-element-statistics-cookie-parser))
@@ -4515,8 +4692,8 @@ to an appropriate container (e.g., a paragraph)."
 	    (or (eobp) (forward-char))))
 	(cond (found)
 	      (limit (forward-char -1)
-		     (org-element-link-parser)) ;radio link
-	      (t nil))))))
+		     (org-element-link-parser))	;radio link
+	      (t nil)))))))
 
 (defun org-element--parse-objects (beg end acc restriction &optional parent)
   "Parse objects between BEG and END and return recursive structure.
@@ -4640,7 +4817,7 @@ to interpret.  Return Org syntax as a string."
 				   (eq (org-element-property :pre-blank parent)
 				       0)))))
 			  ""))))))
-		(if (memq type '(org-data plain-text nil)) results
+		(if (memq type '(org-data nil)) results
 		  ;; Build white spaces.  If no `:post-blank' property
 		  ;; is specified, assume its value is 0.
 		  (let ((blank (or (org-element-property :post-blank data) 0)))
@@ -4655,19 +4832,18 @@ to interpret.  Return Org syntax as a string."
   "Return ELEMENT's affiliated keywords as Org syntax.
 If there is no affiliated keyword, return the empty string."
   (let ((keyword-to-org
-	 (function
-	  (lambda (key value)
-	    (let (dual)
-	      (when (member key org-element-dual-keywords)
-		(setq dual (cdr value) value (car value)))
-	      (concat "#+" (downcase key)
-		      (and dual
-			   (format "[%s]" (org-element-interpret-data dual)))
-		      ": "
-		      (if (member key org-element-parsed-keywords)
-			  (org-element-interpret-data value)
-			value)
-		      "\n"))))))
+	 (lambda (key value)
+	   (let (dual)
+	     (when (member key org-element-dual-keywords)
+	       (setq dual (cdr value) value (car value)))
+	     (concat "#+" (downcase key)
+		     (and dual
+			  (format "[%s]" (org-element-interpret-data dual)))
+		     ": "
+		     (if (member key org-element-parsed-keywords)
+			 (org-element-interpret-data value)
+		       value)
+		     "\n")))))
     (mapconcat
      (lambda (prop)
        (let ((value (org-element-property prop element))

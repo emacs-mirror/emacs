@@ -19,6 +19,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'url-parse)
@@ -47,7 +49,7 @@ Used by the function `url-cache-expired'."
          (file-directory-p (file-name-directory file)))))
 
 (defun url-cache-prepare (file)
-  "Makes it possible to cache data in FILE.
+  "Make it possible to cache data in FILE.
 Creates any necessary parent directories, deleting any non-directory files
 that would stop this.  Returns nil if parent directories can not be
 created.  If FILE already exists as a non-directory, it changes

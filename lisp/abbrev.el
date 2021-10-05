@@ -973,11 +973,11 @@ full text instead of the abbrevs that expand into that text."
 	(buf (get-buffer-create "*abbrev-suggest*")))
     (set-buffer buf)
     (erase-buffer)
-        (insert "** Abbrev expansion usage **
+        (insert (substitute-command-keys "** Abbrev expansion usage **
 
 Below is a list of expansions for which abbrevs are defined, and
 the number of times the expansion was typed manually.  To display
-and edit all abbrevs, type `M-x edit-abbrevs RET'\n\n")
+and edit all abbrevs, type \\[edit-abbrevs].\n\n"))
 	(dolist (expansion totals)
 	  (insert (format " %s: %d\n" (car expansion) (cdr expansion))))
 	(display-buffer buf)))

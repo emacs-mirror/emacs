@@ -119,7 +119,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 ;; Some variables for game tracking
 ;;---------------------------------
 (defvar mpuz-in-progress nil
-  "True if a game is currently in progress.")
+  "Non-nil if a game is currently in progress.")
 
 (defvar mpuz-found-digits (make-bool-vector 10 nil)
   "A vector recording which digits have been decrypted.")
@@ -153,7 +153,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	(index 10)
 	elem)
     (while letters
-      (setq elem    (nth (random index) letters)
+      (setq elem    (seq-random-elt letters)
 	    letters (delq elem letters)
 	    index   (1- index))
       (aset mpuz-digit-to-letter index elem)

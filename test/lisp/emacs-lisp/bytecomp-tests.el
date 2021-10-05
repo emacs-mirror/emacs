@@ -1,4 +1,4 @@
-;;; bytecomp-tests.el  -*- lexical-binding:t -*-
+;;; bytecomp-tests.el --- Tests for bytecomp.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -40,6 +40,24 @@
 (defun bytecomp-test-identity (x)
   "Identity, but hidden from some optimisations."
   x)
+
+(defmacro bytecomp-test-loop (outer1 outer2 inner1 inner2)
+  "Exercise constant propagation inside `while' loops.
+OUTER1, OUTER2, INNER1 and INNER2 are forms placed in the outer and
+inner loops respectively."
+  `(let ((x 1) (i 3) (res nil))
+     (while (> i 0)
+       (let ((y 2) (j 2))
+         (setq res (cons (list 'outer x y) res))
+         (while (> j 0)
+           (setq res (cons (list 'inner x y) res))
+           ,inner1
+           ,inner2
+           (setq j (1- j)))
+         ,outer1
+         ,outer2)
+       (setq i (1- i)))
+     res))
 
 (defconst bytecomp-tests--test-cases
   '(
@@ -454,6 +472,25 @@
                       (setq x 10))))
      4)
 
+    ;; Loop constprop: set the inner and outer variables in the inner
+    ;; and outer loops, all combinations.
+    (bytecomp-test-loop nil        nil        nil        nil       )
+    (bytecomp-test-loop nil        nil        nil        (setq x 6))
+    (bytecomp-test-loop nil        nil        (setq x 5) nil       )
+    (bytecomp-test-loop nil        nil        (setq x 5) (setq x 6))
+    (bytecomp-test-loop nil        (setq x 4) nil        nil       )
+    (bytecomp-test-loop nil        (setq x 4) nil        (setq x 6))
+    (bytecomp-test-loop nil        (setq x 4) (setq x 5) nil       )
+    (bytecomp-test-loop nil        (setq x 4) (setq x 5) (setq x 6))
+    (bytecomp-test-loop (setq x 3) nil        nil        nil       )
+    (bytecomp-test-loop (setq x 3) nil        nil        (setq x 6))
+    (bytecomp-test-loop (setq x 3) nil        (setq x 5) nil       )
+    (bytecomp-test-loop (setq x 3) nil        (setq x 5) (setq x 6))
+    (bytecomp-test-loop (setq x 3) (setq x 4) nil        nil       )
+    (bytecomp-test-loop (setq x 3) (setq x 4) nil        (setq x 6))
+    (bytecomp-test-loop (setq x 3) (setq x 4) (setq x 5) nil       )
+    (bytecomp-test-loop (setq x 3) (setq x 4) (setq x 5) (setq x 6))
+
     ;; No error, no success handler.
     (condition-case x
         (list 42)
@@ -536,6 +573,14 @@
     (let ((_a 1)
           (_b 2))
       'z)
+    (let (x y)
+      y)
+    (let* (x y)
+      y)
+    (let (x y)
+      'a)
+    (let* (x y)
+      'a)
 
     ;; Check empty-list optimisations.
     (mapcar (lambda (x) (member x nil)) '("a" 2 nil))
@@ -892,10 +937,9 @@ byte-compiled.  Run with dynamic binding."
  "warn-wide-docstring-define-obsolete-variable-alias.el"
  "defvaralias .foo. docstring wider than .* characters")
 
-;; TODO: We don't yet issue warnings for defuns.
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defun.el"
- "wider than .* characters" 'reverse)
+ "wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defvar.el"
@@ -1425,9 +1469,33 @@ compiled correctly."
     (load-file (concat file "c"))
     (should (equal (bc-test-alpha-f 'a) '(nil a)))))
 
+(ert-deftest bytecomp-tests-byte-compile--wide-docstring-p/func-arg-list ()
+  (should-not (byte-compile--wide-docstring-p "\
+\(dbus-register-property BUS SERVICE PATH INTERFACE PROPERTY ACCESS \
+[TYPE] VALUE &optional EMITS-SIGNAL DONT-REGISTER-SERVICE)" fill-column))
+  (should-not (byte-compile--wide-docstring-p "\
+(fn CMD FLAGS FIS &key (BUF (cvs-temp-buffer)) DONT-CHANGE-DISC CVSARGS \
+POSTPROC)" fill-column))
+  ;; Bug#49007
+  (should-not (byte-compile--wide-docstring-p "\
+(fn (THIS rudel-protocol-backend) TRANSPORT \
+INFO INFO-CALLBACK &optional PROGRESS-CALLBACK)" fill-column))
+  (should-not (byte-compile--wide-docstring-p "\
+\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
+[:tags \\='(TAG...)] BODY...)" fill-column))
+  (should-not (byte-compile--wide-docstring-p "\
+(make-soap-xs-element &key NAME NAMESPACE-TAG ID TYPE^ OPTIONAL? MULTIPLE? \
+REFERENCE SUBSTITUTION-GROUP ALTERNATIVES IS-GROUP)" fill-column))
+  (should-not (byte-compile--wide-docstring-p "\
+(fn NAME FIXTURE INPUT &key SKIP-PAIR-STRING EXPECTED-STRING \
+EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
+(TEST-IN-COMMENTS t) (TEST-IN-STRINGS t) (TEST-IN-CODE t) \
+(FIXTURE-FN \\='#\\='electric-pair-mode))" fill-column)))
+
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
 
 (provide 'bytecomp-tests)
-;; bytecomp-tests.el ends here.
+;;; bytecomp-tests.el ends here

@@ -285,7 +285,7 @@ Check that the resulting binaries do not differ."
   (should (string= (comp-tests-condition-case-0-f)
                    "arith-error Arithmetic error catched"))
   (should (string= (comp-tests-condition-case-1-f)
-                   "error foo catched"))
+                   "error Foo catched"))
   (should (= (comp-tests-catch-f
               (lambda () (throw 'foo 3)))
              3))
@@ -333,7 +333,7 @@ Check that the resulting binaries do not differ."
 
 (comp-deftest doc ()
   (should (string= (documentation #'comp-tests-doc-f)
-                   "A nice docstring"))
+                   "A nice docstring."))
   ;; Check a preloaded function, we can't use `comp-tests-doc-f' now
   ;; as this is loaded manually with no .elc.
   (should (string-match "\\.*.elc\\'" (symbol-file #'error))))
@@ -1167,7 +1167,7 @@ Return a list of results."
 
       ;; 49
       ((defun comp-tests-ret-type-spec-f ()
-         (error "foo"))
+         (error "Foo"))
        nil)
 
       ;; 50
@@ -1373,7 +1373,7 @@ Return a list of results."
 
 (defun comp-tests-pure-checker-1 (_)
   "Check that inside `comp-tests-pure-caller-f' `comp-tests-pure-callee-f' is
- folded."
+folded."
   (should
    (cl-notany
     #'identity

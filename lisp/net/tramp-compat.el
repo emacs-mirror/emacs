@@ -63,25 +63,24 @@
   `(when (functionp ,function)
      (with-no-warnings (funcall ,function ,@arguments))))
 
-(defsubst tramp-compat-temporary-file-directory ()
-  "Return name of directory for temporary files.
-It is the default value of `temporary-file-directory'."
-  ;; We must return a local directory.  If it is remote, we could run
-  ;; into an infloop.
-  (eval (car (get 'temporary-file-directory 'standard-value)) t))
+;; We must use a local directory.  If it is remote, we could run into
+;; an infloop.
+(defconst tramp-compat-temporary-file-directory
+  (eval (car (get 'temporary-file-directory 'standard-value)) t)
+  "The default value of `temporary-file-directory'.")
 
 (defsubst tramp-compat-make-temp-name ()
   "Generate a local temporary file name (compat function)."
   (make-temp-name
    (expand-file-name
-    tramp-temp-name-prefix (tramp-compat-temporary-file-directory))))
+    tramp-temp-name-prefix tramp-compat-temporary-file-directory)))
 
 (defsubst tramp-compat-make-temp-file (f &optional dir-flag)
   "Create a local temporary file (compat function).
 Add the extension of F, if existing."
   (make-temp-file
    (expand-file-name
-    tramp-temp-name-prefix (tramp-compat-temporary-file-directory))
+    tramp-temp-name-prefix tramp-compat-temporary-file-directory)
    dir-flag (file-name-extension f t)))
 
 ;; `temporary-file-directory' as function is introduced with Emacs 26.1.

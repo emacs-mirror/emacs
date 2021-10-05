@@ -1584,7 +1584,7 @@ Signals a `file-already-exists' error if a file of the new name
 already exists unless optional fourth argument OK-IF-ALREADY-EXISTS
 is non-nil.  A number as fourth arg means request confirmation if
 the new name already exists.  This is what happens in interactive
-use with M-x."
+use with \\[execute-extended-command]."
   (interactive
    (let ((default-coding (or file-name-coding-system
 			     default-file-name-coding-system))
@@ -2520,7 +2520,7 @@ Do you want to revisit the file normally now? ")))
       (current-buffer))))
 
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
-  "Like `insert-file-contents', but only reads in the file literally.
+  "Like `insert-file-contents', but only read in the file literally.
 See `insert-file-contents' for an explanation of the parameters.
 A buffer may be modified in several ways after reading into the buffer,
 due to Emacs features such as format decoding, character code
@@ -3896,7 +3896,7 @@ inhibited."
           (hack-local-variables-apply))))))
 
 (defun hack-local-variables--find-variables (&optional handle-mode)
-  "Return all local variables in the ucrrent buffer.
+  "Return all local variables in the current buffer.
 If HANDLE-MODE is nil, we gather all the specified local
 variables.  If HANDLE-MODE is neither nil nor t, we do the same,
 except that any settings of `mode' are ignored.
@@ -5756,7 +5756,7 @@ be saved."
   :version "26.1")
 
 (defun save-some-buffers-root ()
-  "A predicate to check whether the buffer is under the root directory.
+  "A predicate to check whether the buffer is under the project root directory.
 Can be used as a value of `save-some-buffers-default-predicate'
 to save buffers only under the project root or in subdirectories
 of the directory that was default during command invocation."

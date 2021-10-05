@@ -471,7 +471,8 @@ conversion region is active.  It is an alist of single key character
 vs. corresponding command to be called.
 
 If SIMPLE is non-nil, then we do not alter the meanings of
-commands such as C-f, C-b, C-n, C-p and TAB; they are treated as
+commands such as \\[forward-char], \\[backward-char], \\[next-line], \
+\\[previous-line] and \\[indent-for-tab-command]; they are treated as
 non-Quail commands."
   (let (translation-keymap conversion-keymap)
     (if deterministic (setq forget-last-selection t))

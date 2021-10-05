@@ -188,10 +188,12 @@ parameters and authentication."
 It is not strictly necessary to provide this, since ERC will
 prompt you for it.")
 
-(defcustom erc-user-mode nil
+(defcustom erc-user-mode "+i"
+  ;; +i "Invisible".  Hides user from global /who and /names.
   "Initial user modes to be set after a connection is established."
   :group 'erc
-  :type '(choice (const nil) string function))
+  :type '(choice (const nil) string function)
+  :version "28.1")
 
 
 (defcustom erc-prompt-for-password t
@@ -3298,18 +3300,38 @@ a script after exceeding the flood threshold."
     t)
    (t nil)))
 
-(defun erc-cmd-WHOIS (user &optional server)
-  "Display whois information for USER.
+(defun erc-cmd-WHOIS (first &optional second)
+  "Display whois information for the given user.
 
-If SERVER is non-nil, use that, rather than the current server."
-  ;; FIXME: is the above docstring correct?  -- Lawrence 2004-01-08
-  (let ((send (if server
-                  (format "WHOIS %s %s" user server)
-                (format "WHOIS %s" user))))
+With one argument, FIRST is the nickname of the user to request
+whois information for.
+
+With two arguments, FIRST is the server, and SECOND is the user
+nickname.
+
+Specifying the server is useful for getting the time the user has
+been idle for, when the user is connected to a different server
+on the same IRC network.  (Only the server a user is connected to
+knows how long the user has been idle for.)"
+  (let ((send (if second
+                  (format "WHOIS %s %s" first second)
+                (format "WHOIS %s" first))))
     (erc-log (format "cmd: %s" send))
     (erc-server-send send)
     t))
 (defalias 'erc-cmd-WI #'erc-cmd-WHOIS)
+
+(defun erc-cmd-WII (nick)
+  "Display whois information for NICK, including idle time.
+
+This is a convenience function which calls `erc-cmd-WHOIS' with
+the given NICK for both arguments.  Using NICK in place of the
+server argument -- effectively delegating to the IRC network the
+looking up of the server to which NICK is connected -- is not
+standardized, but is widely supported across IRC networks.
+
+See `erc-cmd-WHOIS' for more details."
+  (erc-cmd-WHOIS nick nick))
 
 (defun erc-cmd-WHOAMI ()
   "Display whois information about yourself."

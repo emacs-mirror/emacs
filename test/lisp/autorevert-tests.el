@@ -469,6 +469,17 @@ This expects `auto-revert--messages' to be bound by
    (lambda () (string-equal (auto-revert-test--buffer-string buffer) string))
    max-wait))
 
+(defun auto-revert-test--instrument-kill-buffer-hook (buffer)
+  "Instrument local `kill-buffer-hook' with messages."
+  (when auto-revert-debug
+    (with-current-buffer buffer
+      (add-hook
+       'kill-buffer-hook
+       (lambda ()
+         (message
+          "%s killed\n%s" (current-buffer) (with-output-to-string (backtrace))))
+       nil 'local))))
+
 (ert-deftest auto-revert-test05-global-notify ()
   "Test `global-auto-revert-mode' without polling."
   (skip-unless (or file-notify--library
@@ -476,6 +487,8 @@ This expects `auto-revert--messages' to be bound by
   (with-auto-revert-test
    (let* ((auto-revert-use-notify t)
           (auto-revert-avoid-polling t)
+          (auto-revert-debug (getenv "EMACS_EMBA_CI"))
+          (file-notify-debug (getenv "EMACS_EMBA_CI"))
           (was-in-global-auto-revert-mode global-auto-revert-mode)
           (file-1 (make-temp-file "global-auto-revert-test-1"))
           (file-2 (make-temp-file "global-auto-revert-test-2"))
@@ -485,7 +498,9 @@ This expects `auto-revert--messages' to be bound by
      (unwind-protect
          (progn
            (setq buf-1 (find-file-noselect file-1))
+           (auto-revert-test--instrument-kill-buffer-hook buf-1)
            (setq buf-2 (find-file-noselect file-2))
+           (auto-revert-test--instrument-kill-buffer-hook buf-2)
            (auto-revert-test--write-file "1-a" file-1)
            (should (equal (auto-revert-test--buffer-string buf-1) ""))
 
@@ -508,11 +523,12 @@ This expects `auto-revert--messages' to be bound by
 
            ;; Visit a file, and modify it on disk.
            (setq buf-3 (find-file-noselect file-3))
+           (auto-revert-test--instrument-kill-buffer-hook buf-3)
            ;; Newly opened buffers won't be use notification until the
            ;; first poll cycle; wait for it.
            (auto-revert-test--wait-for
             (lambda () (buffer-local-value
-                   'auto-revert-notify-watch-descriptor buf-3))
+                        'auto-revert-notify-watch-descriptor buf-3))
             (auto-revert--timeout))
            (should (buffer-local-value
                     'auto-revert-notify-watch-descriptor buf-3))
@@ -521,15 +537,28 @@ This expects `auto-revert--messages' to be bound by
            (should (equal (auto-revert-test--buffer-string buf-3) "3-a"))
 
            ;; Delete a visited file, and re-create it with new contents.
+           (when auto-revert-debug (message "Hallo0"))
            (delete-file file-1)
+           (when auto-revert-debug (message "Hallo1"))
            (should (equal (auto-revert-test--buffer-string buf-1) "1-a"))
+           (when auto-revert-debug (message "Hallo2"))
            (auto-revert-test--write-file "1-b" file-1)
+           (when auto-revert-debug (message "Hallo3"))
            (auto-revert-test--wait-for-buffer-text
             buf-1 "1-b" (auto-revert--timeout))
            ;; On emba, `buf-1' is a killed buffer.
-           (when (buffer-live-p buf-1)
-             (should (buffer-local-value
-                      'auto-revert-notify-watch-descriptor buf-1)))
+           (when auto-revert-debug
+             (message
+              "Hallo4 %s %s %s %s %s %s %s"
+              buf-1 (buffer-name buf-1) (buffer-live-p buf-1)
+              file-1 (get-file-buffer file-1)
+              (buffer-name (get-file-buffer file-1))
+              (buffer-live-p (get-file-buffer file-1)))
+             (with-current-buffer buf-1
+               (message "Hallo5\n%s" (buffer-local-variables))))
+           (should (buffer-local-value
+                    'auto-revert-notify-watch-descriptor buf-1))
+           (when auto-revert-debug (message "Hallo6"))
 
            ;; Write a buffer to a new file, then modify the new file on disk.
            (with-current-buffer buf-2
@@ -545,10 +574,10 @@ This expects `auto-revert--messages' to be bound by
        (unless was-in-global-auto-revert-mode
          (global-auto-revert-mode 0))    ; Turn it off.
        (dolist (buf (list buf-1 buf-2 buf-3))
+         (with-current-buffer buf (setq-local kill-buffer-hook nil))
          (ignore-errors (kill-buffer buf)))
        (dolist (file (list file-1 file-2 file-2b file-3))
-         (ignore-errors (delete-file file)))
-       ))))
+         (ignore-errors (delete-file file)))))))
 
 (auto-revert--deftest-remote auto-revert-test05-global-notify
   "Test `global-auto-revert-mode' without polling for remote buffers.")
@@ -685,4 +714,4 @@ This expects `auto-revert--messages' to be bound by
     (ert-run-tests-batch "^auto-revert-")))
 
 (provide 'auto-revert-tests)
-;;; auto-revert-tests.el ends here
+;;; autorevert-tests.el ends here

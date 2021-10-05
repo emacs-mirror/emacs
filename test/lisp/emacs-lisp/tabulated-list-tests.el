@@ -1,4 +1,4 @@
-;;; tabulated-list-test.el --- Tests for emacs-lisp/tabulated-list.el  -*- lexical-binding: t; -*-
+;;; tabulated-list-tests.el --- Tests for emacs-lisp/tabulated-list.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
@@ -56,10 +56,10 @@
   (tabulated-list--test-with-buffer
    ;; Basic printing.
    (should (string= (buffer-substring-no-properties (point-min) (point-max))
-                    "       zzzz-game  zzzz-game  2113      installed   play zzzz in Emacs
-       4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions
-       abc-mode   abc-mode   944       available   Major mode for editing abc music files
-       mode       mode       1128      installed   A simple mode for editing Actionscript 3 files\n"))
+                  "       zzzz-game          zzzz-game          2113         installed           play zzzz in Emacs
+       4clojure          4clojure          1507         obsolete           Open and evaluate 4clojure.com questions
+       abc-mode          abc-mode          944         available           Major mode for editing abc music files
+       mode          mode          1128         installed           A simple mode for editing Actionscript 3 files\n"))
    ;; Preserve position.
    (forward-line 3)
    (let ((pos (thing-at-point 'line)))
@@ -67,16 +67,16 @@
      (tabulated-list-print t)
      (should (equal (thing-at-point 'line) pos))
      (should (string= (buffer-substring-no-properties (point-min) (point-max))
-                      "       4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions
-       abc-mode   abc-mode   944       available   Major mode for editing abc music files
-       mode       mode       1128      installed   A simple mode for editing Actionscript 3 files\n"))
+                      "       4clojure          4clojure          1507         obsolete           Open and evaluate 4clojure.com questions
+       abc-mode          abc-mode          944         available           Major mode for editing abc music files
+       mode          mode          1128         installed           A simple mode for editing Actionscript 3 files\n"))
      ;; Check the UPDATE argument
      (pop tabulated-list-entries)
      (setf (cdr (car tabulated-list-entries)) (list ["x" "x" "944" "available" " XX"]))
      (tabulated-list-print t t)
      (should (string= (buffer-substring-no-properties (point-min) (point-max))
-                      "       x          x          944       available   XX
-       mode       mode       1128      installed   A simple mode for editing Actionscript 3 files\n"))
+                      "       x          x          944         available           XX
+       mode          mode          1128         installed           A simple mode for editing Actionscript 3 files\n"))
      (should (equal (thing-at-point 'line) pos)))))
 
 (ert-deftest tabulated-list-sort ()
@@ -86,25 +86,26 @@
    (skip-chars-forward "[:blank:]")
    (tabulated-list-sort)
    (let ((text (buffer-substring-no-properties (point-min) (point-max))))
-     (should (string= text "       4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions
-       abc-mode   abc-mode   944       available   Major mode for editing abc music files
-       mode       mode       1128      installed   A simple mode for editing Actionscript 3 files
-       zzzz-game  zzzz-game  2113      installed   play zzzz in Emacs\n"))
+     (should (string= text
+                      "       4clojure          4clojure          1507         obsolete           Open and evaluate 4clojure.com questions
+       abc-mode          abc-mode          944         available           Major mode for editing abc music files
+       mode          mode          1128         installed           A simple mode for editing Actionscript 3 files
+       zzzz-game          zzzz-game          2113         installed           play zzzz in Emacs\n"))
 
      (skip-chars-forward "^[:blank:]")
      (skip-chars-forward "[:blank:]")
      (should (equal (get-text-property (point) 'tabulated-list-column-name)
                     "name-2"))
      (tabulated-list-sort)
-     ;; Check a `t' as the sorting predicate.
+     ;; Check a t as the sorting predicate.
      (should (string= text (buffer-substring-no-properties (point-min) (point-max))))
      ;; Invert.
      (tabulated-list-sort 1)
      (should (string= (buffer-substring-no-properties (point-min) (point-max))
-                      "       zzzz-game  zzzz-game  2113      installed   play zzzz in Emacs
-       mode       mode       1128      installed   A simple mode for editing Actionscript 3 files
-       abc-mode   abc-mode   944       available   Major mode for editing abc music files
-       4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions\n"))
+                      "       zzzz-game          zzzz-game          2113         installed           play zzzz in Emacs
+       mode          mode          1128         installed           A simple mode for editing Actionscript 3 files
+       abc-mode          abc-mode          944         available           Major mode for editing abc music files
+       4clojure          4clojure          1507         obsolete           Open and evaluate 4clojure.com questions\n"))
      ;; Again
      (tabulated-list-sort 1)
      (should (string= text (buffer-substring-no-properties (point-min) (point-max)))))
@@ -114,5 +115,4 @@
    (should-error (tabulated-list-sort) :type 'user-error)
    (should-error (tabulated-list-sort 4) :type 'user-error)))
 
-(provide 'tabulated-list-test)
-;;; tabulated-list-test.el ends here
+;;; tabulated-list-tests.el ends here

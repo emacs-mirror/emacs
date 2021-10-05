@@ -786,7 +786,15 @@
   ;; string containing hanzi character, compare by character
   (should (equal 2 (string-distance "ab" "ab我她")))
   (should (equal 1 (string-distance "ab" "a我b")))
-  (should (equal 1 (string-distance "我" "她"))))
+  (should (equal 1 (string-distance "我" "她")))
+
+  ;; correct behaviour with empty strings
+  (should (equal 0 (string-distance "" "")))
+  (should (equal 0 (string-distance "" "" t)))
+  (should (equal 1 (string-distance "x" "")))
+  (should (equal 1 (string-distance "x" "" t)))
+  (should (equal 1 (string-distance "" "x")))
+  (should (equal 1 (string-distance "" "x" t))))
 
 (ert-deftest test-bignum-eql ()
   "Test that `eql' works for bignums."
@@ -1106,3 +1114,5 @@
     (should (= (line-number-at-pos nil) 11))
     (should-error (line-number-at-pos -1))
     (should-error (line-number-at-pos 100))))
+
+;;; fns-tests.el ends here

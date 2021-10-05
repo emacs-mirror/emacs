@@ -557,7 +557,7 @@ Likewise, it makes no sense to bind keyword symbols
 
 @item (cl-type @var{type})
 Matches if @var{expval} is of type @var{type}, which is a type
-descriptor as accepted by @code{cl-typep} (@pxref{cl-typep,,,cl,Common
+descriptor as accepted by @code{cl-typep} (@pxref{Type Predicates,,,cl,Common
 Lisp Extensions}).  Examples:
 
 @lisp

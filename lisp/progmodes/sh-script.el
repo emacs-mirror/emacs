@@ -1396,8 +1396,15 @@ If FORCE is non-nil and no process found, create one."
             (or found
                 (and force
                      (get-buffer-process
-                      (let ((explicit-shell-file-name sh-shell-file))
-                        (shell)))))))))
+                      (let ((explicit-shell-file-name sh-shell-file)
+                            (display-buffer-overriding-action
+                             '(nil . ((inhibit-same-window . t)))))
+                        ;; We must prevent this `(shell)' call from
+                        ;; switching buffers, so that the variable
+                        ;; `sh-shell-process' is set locally in the
+                        ;; correct buffer.
+                        (save-current-buffer
+                          (shell))))))))))
 
 (defun sh-show-shell ()
   "Pop the shell interaction buffer."

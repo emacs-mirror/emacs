@@ -1323,7 +1323,7 @@ downloaded into the agent."
           (gnus-agent-set-local group agent-min (1- active-min)))))))
 
 (defun gnus-agent-save-group-info (method group active)
-  "Update a single group's active range in the agent's copy of the server's active file."
+  "Update single group's active range in agent's copy of server's active file."
   (when (gnus-agent-method-p method)
     (let* ((gnus-command-method (or method gnus-command-method))
 	   (coding-system-for-write nnheader-file-coding-system)
@@ -1356,7 +1356,7 @@ downloaded into the agent."
 	    (delete-char 1)))))))
 
 (defun gnus-agent-get-group-info (method group)
-  "Get a single group's active range in the agent's copy of the server's active file."
+  "Get single group's active range in agent's copy of server's active file."
   (when (gnus-agent-method-p method)
     (let* ((gnus-command-method (or method gnus-command-method))
 	   (coding-system-for-write nnheader-file-coding-system)
@@ -3553,32 +3553,13 @@ articles in every agentized group? "))
       (when (and to-remove
                  (or gnus-expert-user
                      (gnus-y-or-n-p
-                      "gnus-agent-expire has identified local directories that are\
- not currently required by any agentized group.  Do you wish to consider\
- deleting them?")))
-        (while to-remove
-          (let ((dir (pop to-remove)))
-            (if (or gnus-expert-user
+                      "gnus-agent-expire has identified local directories that are
+not currently required by any agentized group.  Do you wish to consider
+deleting them?")))
+        (dolist (dir to-remove)
+          (when (or gnus-expert-user
 		    (gnus-y-or-n-p (format "Delete %s? " dir)))
-                (let* (delete-recursive
-		       files f
-                       (delete-recursive
-                        (lambda (f-or-d)
-                          (ignore-errors
-                            (if (file-directory-p f-or-d)
-                                (condition-case nil
-                                    (delete-directory f-or-d)
-                                  (file-error
-                                   (setq files (directory-files f-or-d))
-                                   (while files
-                                     (setq f (pop files))
-                                     (or (member f '("." ".."))
-                                         (funcall delete-recursive
-                                                  (nnheader-concat
-                                                   f-or-d f))))
-                                   (delete-directory f-or-d)))
-                              (delete-file f-or-d))))))
-                  (funcall delete-recursive dir)))))))))
+            (delete-directory dir t)))))))
 
 ;;;###autoload
 (defun gnus-agent-batch ()

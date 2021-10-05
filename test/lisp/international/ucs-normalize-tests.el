@@ -123,9 +123,9 @@ The following invariants must be true for all conformant implementations..."
 
 (defsubst ucs-normalize-tests--rule2-holds-p (X)
  "Check 2nd conformance rule.
-For every code point X assigned in this version of Unicode that is not specifically
-listed in Part 1, the following invariants must be true for all conformant
-implementations:
+For every code point X assigned in this version of Unicode that
+is not specifically listed in Part 1, the following invariants
+must be true for all conformant implementations:
 
   X == toNFC(X) == toNFD(X) == toNFKC(X) == toNFKD(X)"
  (and (ucs-normalize-tests--normalization-chareq-p NFC X X)

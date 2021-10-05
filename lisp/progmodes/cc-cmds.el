@@ -480,7 +480,7 @@ function to control that."
 
 ;; This function is only used in XEmacs.
 (defun c-hungry-delete ()
-  "Delete a non-whitespace char, or all whitespace up to the next non-whitespace char.
+  "Delete non-whitespace char, or all whitespace up to next non-whitespace char.
 The direction of deletion depends on the configuration: If the
 function `delete-forward-p' is defined and returns non-nil, it deletes
 forward using `c-hungry-delete-forward'.  Otherwise it deletes
@@ -5113,8 +5113,9 @@ inside a preprocessor directive."
 
 (defun c-context-open-line ()
   "Insert a line break suitable to the context and leave point before it.
-This is the `c-context-line-break' equivalent to `open-line', which is
-normally bound to C-o.  See `c-context-line-break' for the details."
+This is the `c-context-line-break' equivalent to `open-line'
+\(bound to \\[open-line]).  See `c-context-line-break' for the
+details."
   (interactive "*")
   (let ((here (point)))
     (unwind-protect

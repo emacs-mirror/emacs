@@ -4279,7 +4279,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 	    (insert "Version: " (car items) "\n\n")
 	    (insert (mapconcat #'identity (cddr items) "\n"))
 	    (insert "\n-----END PGP SIGNATURE-----\n")
-	    (let ((mm-security-handle (list (format "multipart/signed"))))
+	    (let ((mm-security-handle (list (substring "multipart/signed"))))
 	      (mml2015-clean-buffer)
 	      (let ((coding-system-for-write (or gnus-newsgroup-charset
 						 'iso-8859-1)))

@@ -1484,7 +1484,7 @@
 		      h (cdr h)))
 	    (setq curh (math-div-float curh '(float 9 0))))
 	  ss
-	  (math-reject-arg nil (format "*Integral failed to converge"))))))
+	  (math-reject-arg nil "*Integral failed to converge")))))
 
 
 (defun math-ninteg-evaluate (expr x mode)
