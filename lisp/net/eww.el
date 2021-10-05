@@ -271,10 +271,12 @@ See also `eww-form-checkbox-selected-symbol'."
   "text/html, text/plain, text/sgml, text/css, application/xhtml+xml, */*;q=0.01"
   "Value used for the HTTP 'Accept' header.")
 
-(defvar-keymap eww-link-keymap (:parent shr-map)
+(defvar-keymap eww-link-keymap
+  :parent shr-map
   "\r" #'eww-follow-link)
 
-(defvar-keymap eww-image-link-keymap (:parent shr-map)
+(defvar-keymap eww-image-link-keymap
+  :parent shr-map
   "\r" #'eww-follow-link)
 
 (defun eww-suggested-uris nil
@@ -969,7 +971,7 @@ the like."
 	  (setq result highest))))
     result))
 
-(defvar-keymap eww-mode-map ()
+(defvar-keymap eww-mode-map
   "g" #'eww-reload             ;FIXME: revert-buffer-function instead!
   "G" #'eww
   [?\M-\r] #'eww-open-in-new-buffer
@@ -1223,20 +1225,21 @@ just re-display the HTML already fetched."
 
 (defvar eww-form nil)
 
-(defvar-keymap eww-submit-map ()
+(defvar-keymap eww-submit-map
   "\r" #'eww-submit
   [(control c) (control c)] #'eww-submit)
 
-(defvar-keymap eww-submit-file ()
+(defvar-keymap eww-submit-file
   "\r" #'eww-select-file
   [(control c) (control c)] #'eww-submit)
 
-(defvar-keymap eww-checkbox-map ()
+(defvar-keymap eww-checkbox-map
   " " #'eww-toggle-checkbox
   "\r" #'eww-toggle-checkbox
   [(control c) (control c)] #'eww-submit)
 
-(defvar-keymap eww-text-map (:full t :parent text-mode-map)
+(defvar-keymap eww-text-map
+  :full t :parent text-mode-map
   "\r" #'eww-submit
   [(control a)] #'eww-beginning-of-text
   [(control c) (control c)] #'eww-submit
@@ -1245,14 +1248,16 @@ just re-display the HTML already fetched."
   [?\M-\t] #'shr-previous-link
   [backtab] #'shr-previous-link)
 
-(defvar-keymap eww-textarea-map  (:full t :parent text-mode-map)
+(defvar-keymap eww-textarea-map
+  :full t :parent text-mode-map
   "\r" #'forward-line
   [(control c) (control c)] #'eww-submit
   [?\t] #'shr-next-link
   [?\M-\t] #'shr-previous-link
   [backtab] #'shr-previous-link)
 
-(defvar-keymap eww-select-map (:doc "Map for select buttons")
+(defvar-keymap eww-select-map
+  :doc "Map for select buttons"
   "\r" #'eww-change-select
   [follow-link] 'mouse-face
   [mouse-2] #'eww-change-select
@@ -2079,7 +2084,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 					'eww-bookmark)))
     (eww-browse-url (plist-get bookmark :url))))
 
-(defvar-keymap eww-bookmark-mode-map ()
+(defvar-keymap eww-bookmark-mode-map
   [(control k)] #'eww-bookmark-kill
   [(control y)] #'eww-bookmark-yank
   "\r" #'eww-bookmark-browse
@@ -2155,7 +2160,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 	(pop-to-buffer-same-window buffer)))
     (eww-restore-history history)))
 
-(defvar-keymap eww-history-mode-map ()
+(defvar-keymap eww-history-mode-map
   "\r" #'eww-history-browse
   "n" #'next-line
   "p" #'previous-line
@@ -2274,7 +2279,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
     (forward-line -1))
   (eww-buffer-show))
 
-(defvar-keymap eww-buffers-mode-map ()
+(defvar-keymap eww-buffers-mode-map
   [(control k)] #'eww-buffer-kill
   "\r" #'eww-buffer-select
   "n" #'eww-buffer-show-next

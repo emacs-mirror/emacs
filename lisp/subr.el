@@ -6491,30 +6491,26 @@ KEY/DEFINITION pairs are as KEY and DEF in `define-key'.  KEY can
 also be the special symbol `:menu', in which case DEFINITION
 should be a MENU form as accepted by `easy-menu-define'.
 
-\(fn (&key FULL PARENT SUPPRESS NAME PREFIX KEYMAP) &rest [KEY DEFINITION]...)"
-  ;; Handle keywords.
-  (let ((options nil))
+\(fn &key FULL PARENT SUPPRESS NAME PREFIX KEYMAP &rest [KEY DEFINITION]...)"
+  (define-keymap--define definitions))
+
+(defun define-keymap--define (definitions)
+  (let (full suppress parent name prefix keymap)
+    ;; Handle keywords.
     (while (and definitions
-                (keywordp (car definitions)))
+                (keywordp (car definitions))
+                (not (eq (car definitions) :menu)))
       (let ((keyword (pop definitions)))
         (unless definitions
           (error "Missing keyword value for %s" keyword))
-        (push keyword options)
-        (push (pop definitions) options)))
-    (define-keymap--define (nreverse options) definitions)))
-
-(defun define-keymap--define (options definitions)
-  (let (full suppress parent name prefix keymap)
-    (while options
-      (let ((keyword (pop options))
-            (value (pop options)))
-        (pcase keyword
-          (:full (setq full value))
-          (:keymap (setq keymap value))
-          (:parent (setq parent value))
-          (:suppress (setq suppress value))
-          (:name (setq name value))
-          (:prefix (setq prefix value)))))
+        (let ((value (pop definitions)))
+          (pcase keyword
+            (:full (setq full value))
+            (:keymap (setq keymap value))
+            (:parent (setq parent value))
+            (:suppress (setq suppress value))
+            (:name (setq name value))
+            (:prefix (setq prefix value))))))
 
     (when (and prefix
                (or full parent suppress keymap))
@@ -6544,27 +6540,31 @@ should be a MENU form as accepted by `easy-menu-define'.
               (define-key keymap key def)))))
       keymap)))
 
-(defmacro defvar-keymap (name options &rest defs)
-  "Define NAME as a variable with a keymap definition.
-See `define-keymap' for an explanation of OPTIONS.  In addition,
-the :doc keyword can be used in OPTIONS to add a doc string to NAME.
+(defmacro defvar-keymap (variable-name &rest defs)
+  "Define VARIABLE-NAME as a variable with a keymap definition.
+See `define-keymap' for an explanation of the keywords and KEY/DEFINITION.
 
-DEFS is passed to `define-keymap' and should be a plist of
-key/definition pairs."
+In addition to the keywords accepted by `define-keymap', this
+macro also accepts a `:doc' keyword, which (if present) is used
+as the variable documentation string.
+
+\(fn VARIABLE-NAME &key DOC FULL PARENT SUPPRESS NAME PREFIX KEYMAP &rest [KEY DEFINITION]...)"
   (let ((opts nil)
         doc)
-    (while options
-      (let ((keyword (pop options)))
-        (unless options
-          (error "Uneven number of options"))
+    (while (and defs
+                (keywordp (car defs))
+                (not (eq (car defs) :menu)))
+      (let ((keyword (pop defs)))
+        (unless defs
+          (error "Uneven number of keywords"))
         (if (eq keyword :doc)
-            (setq doc (pop options))
+            (setq doc (pop defs))
           (push keyword opts)
-          (push (pop options) opts))))
+          (push (pop defs) opts))))
     (unless (zerop (% (length defs) 2))
-      (error "Uneven number of key definitions: %s" defs))
-    `(defvar ,name
-       (define-keymap--define (list ,@(nreverse opts)) (list ,@defs))
+      (error "Uneven number of key/definition pairs: %s" defs))
+    `(defvar ,variable-name
+       (define-keymap--define (list ,@(nreverse opts) ,@defs))
        ,@(and doc (list doc)))))
 
 ;;; subr.el ends here

@@ -53,7 +53,7 @@
 (autoload 'message-buffers "message")
 (autoload 'gnus-print-buffer "gnus-sum")
 
-(defvar-keymap gnus-dired-mode-map ()
+(defvar-keymap gnus-dired-mode-map
   "\C-c\C-m\C-a" #'gnus-dired-attach
   "\C-c\C-m\C-l" #'gnus-dired-find-file-mailcap
   "\C-c\C-m\C-p" #'gnus-dired-print)

@@ -48,7 +48,8 @@
 (defvar gnus-edit-form-buffer "*Gnus edit form*")
 (defvar gnus-edit-form-done-function nil)
 
-(defvar-keymap gnus-edit-form-mode-map (:parent emacs-lisp-mode-map)
+(defvar-keymap gnus-edit-form-mode-map
+  :parent emacs-lisp-mode-map
   "\C-c\C-c" #'gnus-edit-form-done
   "\C-c\C-k" #'gnus-edit-form-exit)
 

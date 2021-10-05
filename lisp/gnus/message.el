@@ -2868,8 +2868,9 @@ Consider adding this function to `message-header-setup-hook'"
 
 ;;; Set up keymap.
 
-(defvar-keymap message-mode-map (:full t :parent text-mode-map
-                                 :doc "Message Mode keymap.")
+(defvar-keymap message-mode-map
+  :full t :parent text-mode-map
+  :doc "Message Mode keymap."
   "\C-c?" #'describe-mode
 
   "\C-c\C-f\C-t" #'message-goto-to

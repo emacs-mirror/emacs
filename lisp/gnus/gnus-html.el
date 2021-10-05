@@ -71,12 +71,12 @@ fit these criteria."
   :group 'gnus-art
   :type 'float)
 
-(defvar-keymap gnus-html-image-map ()
+(defvar-keymap gnus-html-image-map
   "u" #'gnus-article-copy-string
   "i" #'gnus-html-insert-image
   "v" #'gnus-html-browse-url)
 
-(defvar-keymap gnus-html-displayed-image-map ()
+(defvar-keymap gnus-html-displayed-image-map
   "a" #'gnus-html-show-alt-text
   "i" #'gnus-html-browse-image
   "\r" #'gnus-html-browse-url

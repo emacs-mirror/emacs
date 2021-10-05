@@ -529,7 +529,8 @@ Other major modes are defined by comparison with this one."
 
 ;; Special major modes to view specially formatted data rather than files.
 
-(defvar-keymap special-mode-map (:suppress t)
+(defvar-keymap special-mode-map
+  :suppress t
   "q" #'quit-window
   " " #'scroll-up-command
   [?\S-\ ] #'scroll-down-command

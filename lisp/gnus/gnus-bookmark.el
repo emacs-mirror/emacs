@@ -419,8 +419,9 @@ That is, all information but the name."
 (defvar gnus-bookmark-bmenu-bookmark-column nil)
 (defvar gnus-bookmark-bmenu-hidden-bookmarks ())
 
-(defvar-keymap gnus-bookmark-bmenu-mode-map (:full t
-                                             :suppress 'nodigits)
+(defvar-keymap gnus-bookmark-bmenu-mode-map
+  :full t
+  :suppress 'nodigits
   "q" #'quit-window
   "\C-m" #'gnus-bookmark-bmenu-select
   "v" #'gnus-bookmark-bmenu-select

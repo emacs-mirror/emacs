@@ -247,7 +247,7 @@ and other things:
 (defvar shr-target-id nil
   "Target fragment identifier anchor.")
 
-(defvar-keymap shr-map ()
+(defvar-keymap shr-map
   "a" #'shr-show-alt-text
   "i" #'shr-browse-image
   "z" #'shr-zoom-image

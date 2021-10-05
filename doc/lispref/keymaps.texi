@@ -1455,13 +1455,13 @@ returned by @code{define-keymap} instead of the map itself.
 
 @end defun
 
-@defmac defvar-keymap name options &rest defs
+@defmac defvar-keymap name &key options... &rest pairs...
 By far, the most common thing to do with a keymap is to bind it to a
 variable.  This is what virtually all modes do---a mode called
 @code{foo} almost always has a variable called @code{foo-mode-map}.
 
 This macro defines @var{name} as a variable, and passes @var{options}
-and @var{defs} to @code{define-keymap}, and uses the result as the
+and @var{pars} to @code{define-keymap}, and uses the result as the
 default value for the variable.
 
 @var{options} is like the keywords in @code{define-keymap}, but adds a
@@ -1471,7 +1471,8 @@ variable should be.
 Here's an example:
 
 @lisp
-(defvar-keymap eww-textarea-map (:parent text-mode-map)
+(defvar-keymap eww-textarea-map
+  :parent text-mode-map
   "\r" #'forward-line
   [?\t] #'shr-next-link)
 @end lisp
