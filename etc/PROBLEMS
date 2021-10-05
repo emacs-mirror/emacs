@@ -1995,6 +1995,10 @@ a regular ASCII dash character '-':
   (aset standard-display-table
         #xAD (vector (make-glyph-code ?- 'escape-glyph)))
 
+Another workaround is to set 'nobreak-char-ascii-display' to a non-nil
+value, which will cause any non-ASCII space and hyphen characters to
+be displayed as their ASCII counterparts, with a special face.
+
 Kitty also differs from many other character terminals in how it
 handles character compositions.  As one example, Emoji sequences that
 begin with a non-Emoji character and end in U+FE0F VARIATION SELECTOR
