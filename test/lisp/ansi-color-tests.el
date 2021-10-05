@@ -27,7 +27,8 @@
 
 (defvar ansi-color-tests--strings
   (let ((bright-yellow (face-foreground 'ansi-color-bright-yellow nil 'default))
-        (yellow (face-foreground 'ansi-color-yellow nil 'default)))
+        (yellow (face-foreground 'ansi-color-yellow nil 'default))
+        (custom-color "#87FFFF"))
     `(("Hello World" "Hello World")
       ("\e[33mHello World\e[0m" "Hello World"
        (:foreground ,yellow))
@@ -51,7 +52,14 @@
        (ansi-color-bold (:foreground ,bright-yellow)))
       ("\e[1m\e[3m\e[5mbold italics blink\e[0m" "bold italics blink"
        (ansi-color-bold ansi-color-italic ansi-color-slow-blink))
-      ("\e[10munrecognized\e[0m" "unrecognized"))))
+      ("\e[10munrecognized\e[0m" "unrecognized")
+      ("\e[38;5;3;1mHello World\e[0m" "Hello World"
+       (ansi-color-bold (:foreground ,yellow))
+       (ansi-color-bold (:foreground ,bright-yellow)))
+      ("\e[48;5;123;1mHello World\e[0m" "Hello World"
+       (ansi-color-bold (:background ,custom-color)))
+      ("\e[48;2;135;255;255;1mHello World\e[0m" "Hello World"
+       (ansi-color-bold (:background ,custom-color))))))
 
 (ert-deftest ansi-color-apply-on-region-test ()
   (pcase-dolist (`(,input ,text ,face) ansi-color-tests--strings)

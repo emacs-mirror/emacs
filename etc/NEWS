@@ -82,6 +82,13 @@ mode (instead of at load time).
 +++
 *** New macro 'with-memoization' provides a very primitive form of memoization
 
+** ansi-color.el
+
+---
+*** Support for ANSI 256-color and 24-bit colors.
+256-color and 24-bit color codes are now handled by ANSI color
+filters and displayed with the specified color.
+
 
 * New Modes and Packages in Emacs 29.1
 

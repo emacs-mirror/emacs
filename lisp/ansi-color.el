@@ -594,22 +594,24 @@ code.  It is usually stored as the car of the variable
     (when-let ((fg (car colors)))
       (push
        `(:foreground
-         ,(face-foreground
-           (aref (if (or bright (>= fg 8))
-                     ansi-color-bright-colors-vector
-                   ansi-color-normal-colors-vector)
-                 (mod fg 8))
-           nil 'default))
+         ,(or (ansi-color--code-as-hex fg)
+              (face-foreground
+               (aref (if (or bright (>= fg 8))
+                         ansi-color-bright-colors-vector
+                       ansi-color-normal-colors-vector)
+                     (mod fg 8))
+               nil 'default)))
        faces))
     (when-let ((bg (cadr colors)))
       (push
        `(:background
-         ,(face-background
-           (aref (if (or bright (>= bg 8))
-                     ansi-color-bright-colors-vector
-                   ansi-color-normal-colors-vector)
-                 (mod bg 8))
-           nil 'default))
+         ,(or (ansi-color--code-as-hex bg)
+              (face-background
+               (aref (if (or bright (>= bg 8))
+                         ansi-color-bright-colors-vector
+                       ansi-color-normal-colors-vector)
+                     (mod bg 8))
+               nil 'default)))
        faces))
 
     (let ((i 8))
@@ -621,6 +623,32 @@ code.  It is usually stored as the car of the variable
     (if (cdr faces)
         faces
       (car faces))))
+
+(defun ansi-color--code-as-hex (color)
+  "Convert COLOR to hexadecimal string representation.
+COLOR is an ANSI color code.  If it is between 16 and 255
+inclusive, it corresponds to a color from an 8-bit color cube.
+If it is greater or equal than 256, it is subtracted by 256 to
+directly specify a 24-bit color.
+
+Return a hexadecimal string, specifying the color, or nil, if
+COLOR is less than 16."
+  (cond
+   ((< color 16) nil)
+   ((>= color 256) (format "#%06X" (- color 256)))
+   ((>= color 232) ;; Grayscale
+    (format "#%06X" (* #x010101 (+ 8 (* 10 (- color 232))))))
+   (t ;; 6x6x6 color cube
+    (setq color (- color 16))
+    (let ((res 0)
+          (frac (* 6 6)))
+      (while (<= 1 frac)                ; Repeat 3 times
+        (setq res (* res #x000100))
+        (let ((color-num (mod (/ color frac) 6)))
+          (unless (zerop color-num)
+            (setq res (+ res #x37 (* #x28 color-num)))))
+        (setq frac (/ frac 6)))
+      (format "#%06X" res)))))
 
 ;; Working with regions
 
@@ -907,7 +935,23 @@ unset all properties and colors."
          (let ((r (mod new 10))
                (cell (if (memq q '(3 9)) colors (cdr colors))))
            (pcase r
-             (8 (setq do-clear t))
+             (8
+              (pcase (funcall iterator)
+                (5 (setq new (setcar cell (funcall iterator)))
+                   (setq do-clear (or (null new) (>= new 256))))
+                (2
+                 (let ((red (funcall iterator))
+                       (green (funcall iterator))
+                       (blue (funcall iterator)))
+                   (if (and red green blue
+                            (progn
+                              (setq new (+ (* #x010000 red)
+                                           (* #x000100 green)
+                                           (* #x000001 blue)))
+                              (<= new #xFFFFFF)))
+                       (setcar cell (+ 256 new))
+                     (setq do-clear t))))
+                (_ (setq do-clear t))))
              (9 (setcar cell nil))
              (_ (setcar cell (+ (if (memq q '(3 4)) 0 8) r))))))
         (_ (setq do-clear t)))
