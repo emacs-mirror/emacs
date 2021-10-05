@@ -1142,7 +1142,7 @@ non-nil."
            entry)
       (while (car-safe old)
         (cl-incf count)
-        ;; don't use progress reporters for backwards compatibility
+        ;; todo: use progress reporters.
         (when (and (< 0 expected)
                    (= 0 (mod count 100)))
           (message "importing: %d of %d (%.2f%%)"
