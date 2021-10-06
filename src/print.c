@@ -564,7 +564,7 @@ temp_output_buffer_setup (const char *bufname)
 
   Fset_buffer (Fget_buffer_create (build_string (bufname), Qnil));
 
-  Fkill_all_local_variables ();
+  Fkill_all_local_variables (Qnil);
   delete_all_overlays (current_buffer);
   bset_directory (current_buffer, BVAR (old, directory));
   bset_read_only (current_buffer, Qnil);

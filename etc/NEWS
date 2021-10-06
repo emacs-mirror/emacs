@@ -126,6 +126,11 @@ with recent versions of Firefox.
 * Lisp Changes in Emacs 29.1
 
 +++
+** 'kill-all-local-variables' can now kill all local variables.
+If given the new optional KILL-PERMANENT argument, also kill permanent
+local variables.
+
++++
 ** Third 'mapconcat' argument 'separator' is now optional.
 An explicit nil always meant the empty string, now it can be left out.
 

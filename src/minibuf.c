@@ -1005,7 +1005,7 @@ set_minibuffer_mode (Lisp_Object buf, EMACS_INT depth)
       if (!NILP (Ffboundp (Qminibuffer_inactive_mode)))
 	call0 (Qminibuffer_inactive_mode);
       else
-	Fkill_all_local_variables ();
+	Fkill_all_local_variables (Qnil);
     }
   buf = unbind_to (count, buf);
 }
