@@ -61,6 +61,13 @@ case keys.
 This command increases (or decreases) the number of empty lines before
 point.
 
+---
+*** Improved mouse behavior with auto-scrolling modes.
+When clicking inside the `scroll-margin' or `hscroll-margin' region
+the point is now moved only when releasing the mouse button.  This no
+longer results in a bogus selection, unless the mouse has been
+effectively dragged.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
