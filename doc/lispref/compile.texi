@@ -811,8 +811,7 @@ for you to be able to native-compile Lisp code.
 
 @vindex native-compile@r{, a Lisp feature}
   To determine whether the current Emacs process can produce and load
-natively-compiled Lisp code, test whether the @code{native-compile}
-feature is available (@pxref{Named Features}).  Alternatively, call
+natively-compiled Lisp code, call
 @code{native-comp-available-p} (@pxref{Native-Compilation Functions}).
 
   Unlike byte-compiled code, natively-compiled Lisp code is executed

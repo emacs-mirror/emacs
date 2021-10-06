@@ -63,6 +63,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module count-leading-zeros:
   # Code from module count-one-bits:
   # Code from module count-trailing-zeros:
+  # Code from module crypto/md5:
   # Code from module crypto/md5-buffer:
   # Code from module crypto/sha1-buffer:
   # Code from module crypto/sha256-buffer:
@@ -1207,6 +1208,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/malloc/scratch_buffer_grow.c
   lib/malloc/scratch_buffer_grow_preserve.c
   lib/malloc/scratch_buffer_set_array_size.c
+  lib/md5-stream.c
   lib/md5.c
   lib/md5.h
   lib/memmem.c

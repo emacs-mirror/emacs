@@ -1168,7 +1168,7 @@ search string is at least this long.  'lazy-highlight-initial-delay'
 still applies for shorter search strings, which avoids flicker in the
 search buffer due to too many matches being highlighted.
 
----
++++
 *** The default 'search-whitespace-regexp' value has changed.
 This used to be "\\s-+", which meant that it was mode-dependent whether
 newlines were included in the whitespace set.  This has now been
@@ -3030,6 +3030,9 @@ Face 'mh-folder-whitelisted' is renamed 'mh-folder-allowlisted'.
 
 +++
 *** rcirc now supports SASL authentication.
+
+---
+*** #emacs on Libera.chat has been added to 'rcirc-server-alist'.
 
 ---
 *** rcirc connects asynchronously.

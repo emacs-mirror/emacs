@@ -8429,11 +8429,16 @@ presented."
 
 (defcustom blink-matching-paren t
   "Non-nil means show matching open-paren when close-paren is inserted.
-If t, highlight the paren.  If `jump', briefly move cursor to its
-position.  If `jump-offscreen', move cursor there even if the
-position is off screen.  With any other non-nil value, the
-off-screen position of the opening paren will be shown in the
-echo area."
+In addition, if the opening paren is not visible on screen, show
+its position in the echo area.
+
+The valid values are:
+
+  nil               Disable.
+  non-nil           Highlight the opening paren.
+  `jump'            Briefly move cursor to its position.
+  `jump-offscreen'  Briefly move cursor to its position,
+                    even if the opening paren is not on screen."
   :type '(choice
           (const :tag "Disable" nil)
           (const :tag "Highlight" t)

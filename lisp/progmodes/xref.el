@@ -1025,7 +1025,7 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
                    (eq xref-file-name-display 'project-relative)
                    (project-current)))
          (project-root (and project
-                            (expand-file-name (project-root project)))))
+                            (expand-file-name (xref--project-root project)))))
     (mapcar
      (lambda (pair)
        (cons (xref--group-name-for-display (car pair) project-root)

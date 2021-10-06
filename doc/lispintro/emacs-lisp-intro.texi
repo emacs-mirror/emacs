@@ -13475,7 +13475,7 @@ What we need to do is fill in the slots.
 
 The name of the function should be self-explanatory and easy
 to remember.  @code{count-words-region} is the obvious choice.  Since
-that name is now used for the standard Emacs command to count words, we
+that name is used for the standard Emacs command to count words, we
 will name our implementation @code{@value{COUNT-WORDS}}.
 
 The function counts words within a region.  This means that the
