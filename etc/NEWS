@@ -3032,6 +3032,9 @@ Face 'mh-folder-whitelisted' is renamed 'mh-folder-allowlisted'.
 *** rcirc now supports SASL authentication.
 
 ---
+*** #emacs on Libera.chat has been added to rcirc-server-alist
+
+---
 *** rcirc connects asynchronously.
 
 ---
