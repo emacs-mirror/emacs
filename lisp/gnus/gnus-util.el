@@ -315,7 +315,7 @@ Symbols are also allowed; their print names are used instead."
 
 (defmacro gnus-define-keymap (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 ,keymap (quote ,plist)))
 
 (defun gnus-define-keys-1 (keymap plist &optional safe)
