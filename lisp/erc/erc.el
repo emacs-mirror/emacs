@@ -393,18 +393,30 @@ erc-channel-user struct.")
   "Hash table of users on the current server.
 It associates nicknames with `erc-server-user' struct instances.")
 
+(defconst erc--casemapping-rfc1459
+  (make-translation-table
+   '((?\[ . ?\{) (?\] . ?\}) (?\\ . ?\|) (?~  . ?^))
+   (mapcar (lambda (c) (cons c (+ c 32))) "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
+
+(defconst erc--casemapping-rfc1459-strict
+  (make-translation-table
+   '((?\[ . ?\{) (?\] . ?\}) (?\\ . ?\|))
+   (mapcar (lambda (c) (cons c (+ c 32))) "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
+
 (defun erc-downcase (string)
-  "Convert STRING to IRC standard conforming downcase."
-  (let ((s (downcase string))
-        (c '((?\[ . ?\{)
-             (?\] . ?\})
-             (?\\ . ?\|)
-             (?~  . ?^))))
-    (save-match-data
-      (while (string-match "[]\\[~]" s)
-        (aset s (match-beginning 0)
-              (cdr (assq (aref s (match-beginning 0)) c)))))
-    s))
+  "Return a downcased copy of STRING with properties.
+Use the CASEMAPPING ISUPPORT parameter to determine the style."
+  (let* ((mapping (erc--get-isupport-entry 'CASEMAPPING 'single))
+         (inhibit-read-only t))
+    (if (equal mapping "ascii")
+        (downcase string)
+      (with-temp-buffer
+        (insert string)
+        (translate-region (point-min) (point-max)
+                          (if (equal mapping "rfc1459-strict")
+                              erc--casemapping-rfc1459-strict
+                            erc--casemapping-rfc1459))
+        (buffer-string)))))
 
 (defmacro erc-with-server-buffer (&rest body)
   "Execute BODY in the current ERC server buffer.
