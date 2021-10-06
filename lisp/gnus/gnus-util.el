@@ -310,7 +310,7 @@ Symbols are also allowed; their print names are used instead."
 
 (defmacro gnus-define-keys-safe (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP without overwriting previous definitions."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 (quote ,keymap) (quote ,plist) t))
 
 (defmacro gnus-define-keymap (keymap &rest plist)
