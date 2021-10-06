@@ -64,15 +64,12 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 
 ;;; Internal variables.
 
-(defvar gnus-pick-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-      " " gnus-pick-next-page
-      "u" gnus-pick-unmark-article-or-thread
-      "." gnus-pick-article-or-thread
-      [down-mouse-2] gnus-pick-mouse-pick-region
-      "\r" gnus-pick-start-reading)
-    map))
+(defvar-keymap gnus-pick-mode-map
+  " " #'gnus-pick-next-page
+  "u" #'gnus-pick-unmark-article-or-thread
+  "." #'gnus-pick-article-or-thread
+  [down-mouse-2] #'gnus-pick-mouse-pick-region
+  "\r" #'gnus-pick-start-reading)
 
 (defun gnus-pick-make-menu-bar ()
   (unless (boundp 'gnus-pick-menu)
@@ -315,11 +312,8 @@ This must be bound to a button-down mouse event."
 (defvar gnus-binary-mode-hook nil
   "Hook run in summary binary mode buffers.")
 
-(defvar gnus-binary-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-      "g" gnus-binary-show-article)
-    map))
+(defvar-keymap gnus-binary-mode-map
+  "g" #'gnus-binary-show-article)
 
 (defun gnus-binary-make-menu-bar ()
   (unless (boundp 'gnus-binary-menu)
@@ -424,21 +418,17 @@ Two predefined functions are available:
 (defvar gnus-tree-displayed-thread nil)
 (defvar gnus-tree-inhibit nil)
 
-(defvar gnus-tree-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (gnus-define-keys
-        map
-      "\r" gnus-tree-select-article
-      [mouse-2] gnus-tree-pick-article
-      "\C-?" gnus-tree-read-summary-keys
-      "h" gnus-tree-show-summary
+(defvar-keymap gnus-tree-mode-map
+  :full t :suppress t
+  "\r" #'gnus-tree-select-article
+  [mouse-2] #'gnus-tree-pick-article
+  "\C-?" #'gnus-tree-read-summary-keys
+  "h" #'gnus-tree-show-summary
 
-      "\C-c\C-i" gnus-info-find-node)
+  "\C-c\C-i" #'gnus-info-find-node)
 
-    (substitute-key-definition
-     'undefined 'gnus-tree-read-summary-keys map)
-    map))
+(substitute-key-definition 'undefined #'gnus-tree-read-summary-keys
+                           gnus-tree-mode-map)
 
 (defun gnus-tree-make-menu-bar ()
   (unless (boundp 'gnus-tree-menu)

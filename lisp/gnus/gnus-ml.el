@@ -31,16 +31,13 @@
 
 ;;; Mailing list minor mode
 
-(defvar gnus-mailing-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-      "\C-c\C-nh" gnus-mailing-list-help
-      "\C-c\C-ns" gnus-mailing-list-subscribe
-      "\C-c\C-nu" gnus-mailing-list-unsubscribe
-      "\C-c\C-np" gnus-mailing-list-post
-      "\C-c\C-no" gnus-mailing-list-owner
-      "\C-c\C-na" gnus-mailing-list-archive)
-    map))
+(defvar-keymap gnus-mailing-list-mode-map
+  "\C-c\C-nh" #'gnus-mailing-list-help
+  "\C-c\C-ns" #'gnus-mailing-list-subscribe
+  "\C-c\C-nu" #'gnus-mailing-list-unsubscribe
+  "\C-c\C-np" #'gnus-mailing-list-post
+  "\C-c\C-no" #'gnus-mailing-list-owner
+  "\C-c\C-na" #'gnus-mailing-list-archive)
 
 (defvar gnus-mailing-list-menu)
 

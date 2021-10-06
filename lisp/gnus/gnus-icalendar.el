@@ -1062,13 +1062,14 @@ These will be used to retrieve the RSVP information from ical events."
   (add-to-list 'mm-automatic-display "text/calendar")
   (add-to-list 'mm-inline-media-tests '("text/calendar" gnus-icalendar-mm-inline identity))
 
-  (gnus-define-keys (gnus-summary-calendar-map "i" gnus-summary-mode-map)
-    "a" gnus-icalendar-reply-accept
-    "t" gnus-icalendar-reply-tentative
-    "d" gnus-icalendar-reply-decline
-    "c" gnus-icalendar-event-check-agenda
-    "e" gnus-icalendar-event-export
-    "s" gnus-icalendar-event-show)
+  (define-key gnus-summary-mode-map "i"
+    (define-keymap :prefix 'gnus-summary-calendar-map
+      "a" #'gnus-icalendar-reply-accept
+      "t" #'gnus-icalendar-reply-tentative
+      "d" #'gnus-icalendar-reply-decline
+      "c" #'gnus-icalendar-event-check-agenda
+      "e" #'gnus-icalendar-event-export
+      "s" #'gnus-icalendar-event-show))
 
   (require 'gnus-art)
   (add-to-list 'gnus-mime-action-alist

@@ -349,39 +349,39 @@ only affect the Gcc copy, but not the original message."
 ;;; Gnus Posting Functions
 ;;;
 
-(gnus-define-keys (gnus-summary-send-map "S" gnus-summary-mode-map)
-  "p" gnus-summary-post-news
-  "i" gnus-summary-news-other-window
-  "f" gnus-summary-followup
-  "F" gnus-summary-followup-with-original
-  "c" gnus-summary-cancel-article
-  "s" gnus-summary-supersede-article
-  "r" gnus-summary-reply
-  "y" gnus-summary-yank-message
-  "R" gnus-summary-reply-with-original
-  "L" gnus-summary-reply-to-list-with-original
-  "w" gnus-summary-wide-reply
-  "W" gnus-summary-wide-reply-with-original
-  "v" gnus-summary-very-wide-reply
-  "V" gnus-summary-very-wide-reply-with-original
-  "n" gnus-summary-followup-to-mail
-  "N" gnus-summary-followup-to-mail-with-original
-  "m" gnus-summary-mail-other-window
-  "u" gnus-uu-post-news
-  "A" gnus-summary-attach-article
-  "\M-c" gnus-summary-mail-crosspost-complaint
-  "Br" gnus-summary-reply-broken-reply-to
-  "BR" gnus-summary-reply-broken-reply-to-with-original
-  "om" gnus-summary-mail-forward
-  "op" gnus-summary-post-forward
-  "Om" gnus-uu-digest-mail-forward
-  "Op" gnus-uu-digest-post-forward)
+(define-keymap :prefix 'gnus-summary-send-map
+  "p" #'gnus-summary-post-news
+  "i" #'gnus-summary-news-other-window
+  "f" #'gnus-summary-followup
+  "F" #'gnus-summary-followup-with-original
+  "c" #'gnus-summary-cancel-article
+  "s" #'gnus-summary-supersede-article
+  "r" #'gnus-summary-reply
+  "y" #'gnus-summary-yank-message
+  "R" #'gnus-summary-reply-with-original
+  "L" #'gnus-summary-reply-to-list-with-original
+  "w" #'gnus-summary-wide-reply
+  "W" #'gnus-summary-wide-reply-with-original
+  "v" #'gnus-summary-very-wide-reply
+  "V" #'gnus-summary-very-wide-reply-with-original
+  "n" #'gnus-summary-followup-to-mail
+  "N" #'gnus-summary-followup-to-mail-with-original
+  "m" #'gnus-summary-mail-other-window
+  "u" #'gnus-uu-post-news
+  "A" #'gnus-summary-attach-article
+  "\M-c" #'gnus-summary-mail-crosspost-complaint
+  "Br" #'gnus-summary-reply-broken-reply-to
+  "BR" #'gnus-summary-reply-broken-reply-to-with-original
+  "om" #'gnus-summary-mail-forward
+  "op" #'gnus-summary-post-forward
+  "Om" #'gnus-uu-digest-mail-forward
+  "Op" #'gnus-uu-digest-post-forward
 
-(gnus-define-keys (gnus-send-bounce-map "D" gnus-summary-send-map)
-  "b" gnus-summary-resend-bounced-mail
-  ;; "c" gnus-summary-send-draft
-  "r" gnus-summary-resend-message
-  "e" gnus-summary-resend-message-edit)
+  "D" (define-keymap :prefix 'gnus-send-bounce-map
+        "b" #'gnus-summary-resend-bounced-mail
+        ;; "c" gnus-summary-send-draft
+        "r" #'gnus-summary-resend-message
+        "e" #'gnus-summary-resend-message-edit))
 
 ;;; Internal functions.
 
