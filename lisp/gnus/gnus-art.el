@@ -4389,6 +4389,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 (defvar gnus-article-send-map nil)
 
 (define-keymap :keymap gnus-article-mode-map :suppress t
+  :parent button-buffer-map
   " " #'gnus-article-goto-next-page
   [?\S-\ ] #'gnus-article-goto-prev-page
   "\177" #'gnus-article-goto-prev-page
