@@ -707,6 +707,7 @@ the first newsgroup."
 	gnus-current-select-method nil
 	nnmail-split-history nil
 	gnus-extended-servers nil
+        gnus-save-newsrc-file-last-timestamp nil
 	gnus-ephemeral-servers nil)
   (gnus-shutdown 'gnus)
   ;; Kill the startup file.
