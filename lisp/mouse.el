@@ -1568,8 +1568,7 @@ The region will be defined with mark and point."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
   (deactivate-mark)
-  (let* ((scroll-margin 0) ; Avoid margin scrolling (Bug#9541).
-	 (start-posn (event-start start-event))
+  (let* ((start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
 	 (_ (with-current-buffer (window-buffer start-window)
@@ -1591,12 +1590,20 @@ The region will be defined with mark and point."
 		   ;; Don't count the mode line.
 		   (1- (nth 3 bounds))))
 	 (click-count (1- (event-click-count start-event)))
-	 ;; Suppress automatic hscrolling, because that is a nuisance
-	 ;; when setting point near the right fringe (but see below).
+         ;; Save original automatic scrolling behavior (see below).
 	 (auto-hscroll-mode-saved auto-hscroll-mode)
+	 (scroll-margin-saved scroll-margin)
          (old-track-mouse track-mouse))
 
     (setq mouse-selection-click-count click-count)
+
+    ;; Suppress automatic scrolling near the edges while tracking
+    ;; movement, as it interferes with the natural dragging behavior
+    ;; (point will unexpectedly be moved beneath the pointer, making
+    ;; selections in auto-scrolling margins impossible).
+    (setq auto-hscroll-mode nil)
+    (setq scroll-margin 0)
+
     ;; In case the down click is in the middle of some intangible text,
     ;; use the end of that text, and put it in START-POINT.
     (if (< (point) start-point)
@@ -1615,7 +1622,6 @@ The region will be defined with mark and point."
 
     (setf (terminal-parameter nil 'mouse-drag-start) start-event)
     (setq track-mouse t)
-    (setq auto-hscroll-mode nil)
 
     (set-transient-map
      (let ((map (make-sparse-keymap)))
@@ -1626,8 +1632,6 @@ The region will be defined with mark and point."
            (let* ((end (event-end event))
                   (end-point (posn-point end)))
              (unless (eq end-point start-point)
-               ;; As soon as the user moves, we can re-enable auto-hscroll.
-               (setq auto-hscroll-mode auto-hscroll-mode-saved)
                ;; And remember that we have moved, so mouse-set-region can know
                ;; its event is really a drag event.
                (setcar start-event 'mouse-movement))
@@ -1648,6 +1652,7 @@ The region will be defined with mark and point."
      t (lambda ()
          (setq track-mouse old-track-mouse)
          (setq auto-hscroll-mode auto-hscroll-mode-saved)
+         (setq scroll-margin scroll-margin-saved)
          ;; Don't deactivate the mark when the context menu was invoked
          ;; by down-mouse-3 immediately after down-mouse-1 and without
          ;; releasing the mouse button with mouse-1. This allows to use
