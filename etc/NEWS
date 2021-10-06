@@ -352,8 +352,8 @@ of the next command to be displayed in a new frame.
 
 +++
 *** New command 'clone-frame' (bound to 'C-x 5 c').
-This is like 'C-x 5 2', but uses the frame parameters of the current
-frame instead of 'default-frame-alist'.
+This is like 'C-x 5 2', but uses the window configuration and frame
+parameters of the current frame instead of 'default-frame-alist'.
 
 ---
 *** Default values of 'frame-title-format' and 'icon-title-format' have changed.
