@@ -31,20 +31,26 @@ The Emacs jobset is defined in the Emacs source tree, file
 '.gitlab-ci.yml'.  It could be adapted for every Emacs branch, see
 <https://emba.gnu.org/help/ci/yaml/README.md>.
 
+A jobset on Gitlab is called pipeline.  Emacs pipelines run through
+the stages 'build-images', 'platform-images' and 'native-comp-images'
+(create an Emacs instance by 'make bootstrap' with different
+configuration parameters) as well as 'normal', 'slow', 'platforms' and
+'native-comp' (run respective test jobs based on the produced images).
+
 Every job runs in a Debian docker container.  It uses the local clone
 of the Emacs git repository to perform a bootstrap and test of Emacs.
 This could happen for several jobs with changed configuration, compile
 and test parameters.
 
-There are different types of jobs: 'prep-image-base' is responsible to
-prepare the environment for the following jobs.  'build-image-*' jobs
-are responsible to compile Emacs in different configuration.  The
-corresponding 'test-*' jobs run the ert tests.
+The 'build-image-*' jobs of the different '*-images' stages run only
+if there are severe changes in the Emacs sources, like in Makefiles
+etc.  Otherwise they are skipped, and the corresponding 'test-*' jobs
+run just 'make -C test ...' in the respective Docker image from a
+previous build run.
 
-A special job is 'test-all-inotify', which runs 'make check-expensive'.
-While most of the jobs run as soon as a respective file has been
-committed into the Emacs git repository, this test job runs scheduled,
-every 8 hours.
+Jobs in the 'build-images' and 'normal' stages are triggered by
+changes of respective files in the Emacs git repository.  All other
+jobs run scheduled in a pipeline every 8 hours.
 
 The log files for every test job are kept on the server for a week.
 They can be downloaded from the server, visiting the URL
