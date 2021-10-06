@@ -527,6 +527,18 @@ Other major modes are defined by comparison with this one."
   (kill-all-local-variables)
   (run-mode-hooks))
 
+(define-derived-mode clean-mode fundamental-mode "Clean"
+  "A mode that removes all overlays and text properties."
+  (kill-all-local-variables t)
+  (let ((inhibit-read-only t))
+    (dolist (overlay (overlays-in (point-min) (point-max)))
+      (delete-overlay overlay))
+    (set-text-properties (point-min) (point-max) nil)
+    (setq-local after-change-functions
+                (list
+                 (lambda (begin end _length)
+                   (set-text-properties begin end nil))))))
+
 ;; Special major modes to view specially formatted data rather than files.
 
 (defvar-keymap special-mode-map

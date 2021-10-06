@@ -126,6 +126,11 @@ with recent versions of Firefox.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New major mode 'clean-mode'.
+This is a new major mode meant for debugging.  It kills absolutely all
+local variables and removes overlays and text properties.
+
++++
 ** 'kill-all-local-variables' can now kill all local variables.
 If given the new optional KILL-PERMANENT argument, also kill permanent
 local variables.
