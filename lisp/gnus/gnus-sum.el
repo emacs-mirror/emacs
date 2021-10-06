@@ -2032,8 +2032,6 @@ increase the score of each group you read."
   "b" #'gnus-article-view-part
   "\M-t" #'gnus-summary-toggle-display-buttonized
 
-  "V" #'gnus-summary-score-map
-  "X" #'gnus-uu-extract-map
   "S" #'gnus-summary-send-map
 
   ;; Sort of orthogonal keymaps.
@@ -2058,13 +2056,32 @@ increase the score of each group you read."
         "\C-c" #'gnus-summary-catchup-all
         "k" #'gnus-summary-kill-same-subject-and-select
         "K" #'gnus-summary-kill-same-subject
-        "P" #'gnus-uu-mark-map)
 
-  "V" (define-keymap :prefix 'gnus-summary-mscore-map
-        "c" #'gnus-summary-clear-above
-        "u" #'gnus-summary-tick-above
-        "m" #'gnus-summary-mark-above
-        "k" #'gnus-summary-kill-below)
+        "P" (define-keymap :prefix 'gnus-uu-mark-map
+              "p" #'gnus-summary-mark-as-processable
+              "u" #'gnus-summary-unmark-as-processable
+              "U" #'gnus-summary-unmark-all-processable
+              "v" #'gnus-uu-mark-over
+              "s" #'gnus-uu-mark-series
+              "r" #'gnus-uu-mark-region
+              "g" #'gnus-uu-unmark-region
+              "R" #'gnus-uu-mark-by-regexp
+              "G" #'gnus-uu-unmark-by-regexp
+              "t" #'gnus-uu-mark-thread
+              "T" #'gnus-uu-unmark-thread
+              "a" #'gnus-uu-mark-all
+              "b" #'gnus-uu-mark-buffer
+              "S" #'gnus-uu-mark-sparse
+              "k" #'gnus-summary-kill-process-mark
+              "y" #'gnus-summary-yank-process-mark
+              "w" #'gnus-summary-save-process-mark
+              "i" #'gnus-uu-invert-processable)
+
+        "V" (define-keymap :prefix 'gnus-summary-mscore-map
+              "c" #'gnus-summary-clear-above
+              "u" #'gnus-summary-tick-above
+              "m" #'gnus-summary-mark-above
+              "k" #'gnus-summary-kill-below))
 
   "/" (define-keymap :prefix 'gnus-summary-limit-map
         "/" #'gnus-summary-limit-to-subject
@@ -2339,26 +2356,6 @@ increase the score of each group you read."
         "E" #'gnus-article-encrypt-body
         "i" #'gnus-article-inline-part
         "|" #'gnus-article-pipe-part)
-
-  "P" (define-keymap :prefix 'gnus-uu-mark-map
-        "p" #'gnus-summary-mark-as-processable
-        "u" #'gnus-summary-unmark-as-processable
-        "U" #'gnus-summary-unmark-all-processable
-        "v" #'gnus-uu-mark-over
-        "s" #'gnus-uu-mark-series
-        "r" #'gnus-uu-mark-region
-        "g" #'gnus-uu-unmark-region
-        "R" #'gnus-uu-mark-by-regexp
-        "G" #'gnus-uu-unmark-by-regexp
-        "t" #'gnus-uu-mark-thread
-        "T" #'gnus-uu-unmark-thread
-        "a" #'gnus-uu-mark-all
-        "b" #'gnus-uu-mark-buffer
-        "S" #'gnus-uu-mark-sparse
-        "k" #'gnus-summary-kill-process-mark
-        "y" #'gnus-summary-yank-process-mark
-        "w" #'gnus-summary-save-process-mark
-        "i" #'gnus-uu-invert-processable)
 
   "X" (define-keymap :prefix 'gnus-uu-extract-map
         ;;"x" gnus-uu-extract-any
