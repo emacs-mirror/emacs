@@ -300,7 +300,7 @@ Symbols are also allowed; their print names are used instead."
 
 (defmacro gnus-local-set-keys (&rest plist)
   "Set the keys in PLIST in the current keymap."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 (current-local-map) ',plist))
 
 (defmacro gnus-define-keys (keymap &rest plist)
