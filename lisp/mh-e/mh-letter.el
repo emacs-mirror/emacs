@@ -253,7 +253,7 @@ searching for `mh-mail-header-separator' in the buffer."
     (goto-char (point-min))
     (cond ((equal mh-mail-header-separator "") (point-min))
           ((search-forward (format "\n%s\n" mh-mail-header-separator) nil t)
-           (mh-line-beginning-position 0))
+           (line-beginning-position 0))
           (t (point-min)))))
 
 
@@ -301,7 +301,7 @@ order).
   (set (make-local-variable 'mh-mail-header-separator)
        (save-excursion
          (goto-char (mh-mail-header-end))
-         (buffer-substring-no-properties (point) (mh-line-end-position))))
+         (buffer-substring-no-properties (point) (line-end-position))))
   (make-local-variable 'mail-header-separator)
   (setq mail-header-separator mh-mail-header-separator) ;override sendmail.el
   (mh-set-help mh-letter-mode-help-messages)
@@ -826,7 +826,7 @@ body."
           ((< (point) (progn
                         (beginning-of-line)
                         (re-search-forward mh-letter-header-field-regexp
-                                           (mh-line-end-position) t)
+                                           (line-end-position) t)
                         (point)))
            (beginning-of-line))
           (t (end-of-line)))

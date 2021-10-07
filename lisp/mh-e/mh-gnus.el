@@ -29,11 +29,11 @@
 (require 'mh-e)
 
 (eval-and-compile
-  (mh-require 'gnus-util nil t)
-  (mh-require 'mm-bodies nil t)
-  (mh-require 'mm-decode nil t)
-  (mh-require 'mm-view nil t)
-  (mh-require 'mml nil t))
+  (require 'gnus-util nil t)
+  (require 'mm-bodies nil t)
+  (require 'mm-decode nil t)
+  (require 'mm-view nil t)
+  (require 'mml nil t))
 
 ;; Copy of function from gnus-util.el.
 ;; TODO This is not in Gnus 5.11.

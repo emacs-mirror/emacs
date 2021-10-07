@@ -88,7 +88,7 @@
 (require 'mh-buffers)
 (require 'mh-compat)
 
-(mh-font-lock-add-keywords
+(font-lock-add-keywords
  'emacs-lisp-mode
  (eval-when-compile
    `((,(concat "(\\("
@@ -483,7 +483,7 @@ all the strings have been used."
                 (count 0))
             (while (and (not (eobp)) (< count mh-index-max-cmdline-args))
               (push (buffer-substring-no-properties (point)
-                                                    (mh-line-end-position))
+                                                    (line-end-position))
                     arg-list)
               (cl-incf count)
               (forward-line))
@@ -3239,7 +3239,7 @@ function used to insert the signature with
   :group 'mh-letter
   :package-version '(MH-E . "8.0"))
 
-(mh-define-obsolete-variable-alias 'mh-kill-folder-suppress-prompt-hooks
+(define-obsolete-variable-alias 'mh-kill-folder-suppress-prompt-hooks
   'mh-kill-folder-suppress-prompt-functions "24.3")
 (defcustom-mh mh-kill-folder-suppress-prompt-functions '(mh-search-p)
   "Abnormal hook run at the beginning of \\<mh-folder-mode-map>\\[mh-kill-folder].
@@ -3555,7 +3555,7 @@ specified colors."
 
     (if mh-min-colors-defined-flag
         spec
-      (let ((cells (mh-display-color-cells))
+      (let ((cells (display-color-cells))
             new-spec)
         ;; Remove entries with min-colors, or delete them if we have
         ;; fewer colors than they specify.

@@ -74,7 +74,6 @@ in this order is used."
       (when type
         (goto-char (point-min))
         (when (re-search-forward "^from:" (point-max) t)
-          ;; GNU Emacs
           (mh-do-in-gnu-emacs
             (if (eq type 'url)
                 (mh-x-image-url-display url)
@@ -82,9 +81,9 @@ in this order is used."
                insert-image (create-image
                              raw type t
                              :foreground
-                             (mh-face-foreground 'mh-show-xface nil t)
+                             (face-foreground 'mh-show-xface nil t)
                              :background
-                             (mh-face-background 'mh-show-xface nil t))
+                             (face-background 'mh-show-xface nil t))
                " "))))))))
 
 (defun mh-face-to-png (data)
@@ -324,14 +323,14 @@ This is only done if `mh-x-image-cache-directory' is nil."
 (defun mh-x-image-url-cache-canonicalize (url)
   "Canonicalize URL.
 Replace the ?/ character with a ?! character and append .png.
-Also replaces special characters with `mh-url-hexify-string'
+Also replaces special characters with `url-hexify-string'
 since not all characters, such as :, are valid within Windows
 filenames.  In addition, replaces * with %2a. See URL
 `https://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/ifaces/iitemnamelimits/GetValidCharacters.asp'."
   (format "%s/%s.png" mh-x-image-cache-directory
-          (mh-replace-regexp-in-string
+          (replace-regexp-in-string
            "\\*" "%2a"
-           (mh-url-hexify-string
+           (url-hexify-string
             (with-temp-buffer
               (insert url)
               (mh-replace-string "/" "!")

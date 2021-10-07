@@ -144,7 +144,7 @@ displayed."
             (if (not clean-message-header)
                 (mh-start-of-uncleaned-message)))
         (mh-display-msg msg folder)))
-    (unless (mh-window-full-height-p) ; not vertically split
+    (unless (window-full-height-p) ; not vertically split
       (shrink-window (- (window-height) (or mh-summary-height
                                             (mh-summary-height)))))
     (mh-recenter nil)
@@ -857,7 +857,6 @@ See also `mh-folder-mode'.
    (t
     (setq font-lock-defaults '(mh-show-font-lock-keywords t))))
   (when mh-decode-mime-flag
-    (mh-make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook #'mh-mime-cleanup nil t))
   (make-local-variable 'mh-show-folder-buffer)
   (buffer-disable-undo)

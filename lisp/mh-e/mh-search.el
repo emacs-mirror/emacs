@@ -353,13 +353,13 @@ configuration and is used when the search folder is dismissed."
   (goto-char (point-min))
   (dotimes (_ 5)
     (add-text-properties (point) (1+ (point)) '(front-sticky t))
-    (add-text-properties (- (mh-line-end-position) 2)
-                         (1- (mh-line-end-position))
+    (add-text-properties (- (line-end-position) 2)
+                         (1- (line-end-position))
                          '(rear-nonsticky t))
-    (add-text-properties (point) (1- (mh-line-end-position)) '(read-only t))
+    (add-text-properties (point) (1- (line-end-position)) '(read-only t))
     (forward-line))
   (add-text-properties (point) (1+ (point)) '(front-sticky t))
-  (add-text-properties (point) (1- (mh-line-end-position)) '(read-only t))
+  (add-text-properties (point) (1- (line-end-position)) '(read-only t))
   (goto-char (point-max)))
 
 ;; Sequence Searches
@@ -519,10 +519,10 @@ group of results."
       (cond ((and (bolp) (eolp))
              (ignore-errors (forward-line -1))
              (setq msg (mh-get-msg-num t)))
-            ((equal (char-after (mh-line-beginning-position)) ?+)
+            ((equal (char-after (line-beginning-position)) ?+)
              (setq folder (buffer-substring-no-properties
-                           (mh-line-beginning-position)
-                           (mh-line-end-position))))
+                           (line-beginning-position)
+                           (line-end-position))))
             (t (setq msg (mh-get-msg-num t)))))
     (when (not folder)
       (setq folder (car (gethash (gethash msg mh-index-msg-checksum-map)
@@ -649,13 +649,13 @@ The cdr of the element is the pattern to search."
           start begin)
       (goto-char (point-min))
       (while (not (eobp))
-        (if (search-forward "--------" (mh-line-end-position) t)
+        (if (search-forward "--------" (line-end-position) t)
             (setq in-body-flag t)
           (beginning-of-line)
           (setq begin (point))
           (setq start (if in-body-flag
                           (point)
-                        (search-forward ":" (mh-line-end-position) t)
+                        (search-forward ":" (line-end-position) t)
                         (point)))
           (push (cons (and (not in-body-flag)
                            (intern (downcase
@@ -663,7 +663,7 @@ The cdr of the element is the pattern to search."
                                      begin (1- start)))))
                       (mh-index-parse-search-regexp
                        (buffer-substring-no-properties
-                        start (mh-line-end-position))))
+                        start (line-end-position))))
                 pattern-list))
         (forward-line))
       pattern-list)))
@@ -973,8 +973,8 @@ is used to search."
           (cl-return nil))
         (when (equal (char-after (point)) ?#)
           (cl-return 'error))
-        (let* ((start (search-forward " " (mh-line-end-position) t))
-               (end (search-forward " " (mh-line-end-position) t)))
+        (let* ((start (search-forward " " (line-end-position) t))
+               (end (search-forward " " (line-end-position) t)))
           (unless (and start end)
             (cl-return 'error))
           (setq end (1- end))
@@ -1052,7 +1052,7 @@ SEARCH-REGEXP-LIST is used to search."
           (cl-return 'error))
         (let ((start (point))
               end msg-start)
-          (setq end (mh-line-end-position))
+          (setq end (line-end-position))
           (unless (search-forward mh-mairix-folder end t)
             (cl-return 'error))
           (goto-char (match-beginning 0))
@@ -1193,7 +1193,7 @@ is used to search."
       (cl-block nil
         (when (eobp) (cl-return nil))
         (let ((file-name (buffer-substring-no-properties
-                          (point) (mh-line-end-position))))
+                          (point) (line-end-position))))
           (unless (equal (string-match mh-namazu-folder file-name) 0)
             (cl-return 'error))
           (unless (file-exists-p file-name)
@@ -1241,17 +1241,17 @@ is used to search."
   (prog1
       (cl-block nil
         (when (eobp) (cl-return nil))
-        (when (search-forward-regexp "^\\+" (mh-line-end-position) t)
+        (when (search-forward-regexp "^\\+" (line-end-position) t)
           (setq mh-index-pick-folder
-                (buffer-substring-no-properties (mh-line-beginning-position)
-                                                (mh-line-end-position)))
+                (buffer-substring-no-properties (line-beginning-position)
+                                                (line-end-position)))
           (cl-return 'error))
-        (unless (search-forward-regexp "^[1-9][0-9]*$" (mh-line-end-position) t)
+        (unless (search-forward-regexp "^[1-9][0-9]*$" (line-end-position) t)
           (cl-return 'error))
         (list mh-index-pick-folder
               (string-to-number
-               (buffer-substring-no-properties (mh-line-beginning-position)
-                                               (mh-line-end-position)))
+               (buffer-substring-no-properties (line-beginning-position)
+                                               (line-end-position)))
               nil))
     (forward-line)))
 
@@ -1328,8 +1328,8 @@ record is invalid return `error'."
       (cl-block nil
         (when (eobp)
           (cl-return nil))
-        (let ((eol-pos (mh-line-end-position))
-              (bol-pos (mh-line-beginning-position))
+        (let ((eol-pos (line-end-position))
+              (bol-pos (line-beginning-position))
               folder-start msg-end)
           (goto-char bol-pos)
           (unless (search-forward mh-user-path eol-pos t)
@@ -1411,7 +1411,7 @@ being the list of messages originally from that folder."
     (when cur-msg (mh-goto-msg cur-msg t t))
     (set-buffer-modified-p old-buffer-modified-flag)))
 
-(eval-and-compile (mh-require 'which-func nil t))
+(eval-and-compile (require 'which-func nil t))
 
 ;; Shush compiler.
 (defvar which-func-mode)                ; < Emacs 22, XEmacs
@@ -1428,7 +1428,7 @@ being the list of messages originally from that folder."
         (save-excursion
           (beginning-of-line)
           (push (cons (buffer-substring-no-properties
-                       (point) (mh-line-end-position))
+                       (point) (line-end-position))
                       (point-marker))
                 alist)))
       (setq imenu--index-alist (nreverse alist)))))
@@ -1713,7 +1713,7 @@ folder, is removed from `mh-index-data'."
                         "-format" "%{x-mhe-checksum}\n" folder msg)
     (goto-char (point-min))
     (string-equal (buffer-substring-no-properties
-                   (point) (mh-line-end-position))
+                   (point) (line-end-position))
                   checksum)))
 
 
@@ -1822,8 +1822,8 @@ PROC is used to convert the value to actual data."
 
 (defun mh-md5sum-parser ()
   "Parse md5sum output."
-  (let ((begin (mh-line-beginning-position))
-        (end (mh-line-end-position))
+  (let ((begin (line-beginning-position))
+        (end (line-end-position))
         first-space last-slash)
     (setq first-space (search-forward " " end t))
     (goto-char end)
@@ -1836,8 +1836,8 @@ PROC is used to convert the value to actual data."
 
 (defun mh-openssl-parser ()
   "Parse openssl output."
-  (let ((begin (mh-line-beginning-position))
-        (end (mh-line-end-position))
+  (let ((begin (line-beginning-position))
+        (end (line-end-position))
         last-space last-slash)
     (goto-char end)
     (setq last-space (search-backward " " begin t))
@@ -1870,7 +1870,7 @@ origin-index) map is updated too."
       (let (msg checksum)
         (while (not (eobp))
           (setq msg (buffer-substring-no-properties
-                     (point) (mh-line-end-position)))
+                     (point) (line-end-position)))
           (forward-line)
           (save-excursion
             (cond ((not (string-match "^[0-9]*$" msg)))
@@ -1881,7 +1881,7 @@ origin-index) map is updated too."
                   (t
                    ;; update maps
                    (setq checksum (buffer-substring-no-properties
-                                   (point) (mh-line-end-position)))
+                                   (point) (line-end-position)))
                    (let ((msg (string-to-number msg)))
                      (set-buffer folder)
                      (mh-index-update-single-msg msg checksum origin-map)))))

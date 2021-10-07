@@ -512,7 +512,7 @@ font-lock is done highlighting.")
   nil)
 
 ;; Register mh-folder-mode as supporting which-function-mode...
-(eval-and-compile (mh-require 'which-func nil t))
+(eval-and-compile (require 'which-func nil t))
 (when (and (boundp 'which-func-modes) (listp which-func-modes))
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
@@ -635,8 +635,7 @@ perform the operation on all messages in that region.
   (setq truncate-lines t)
   (auto-save-mode -1)
   (setq buffer-offer-save t)
-  (mh-make-local-hook (mh-write-file-functions))
-  (add-hook (mh-write-file-functions) #'mh-execute-commands nil t)
+  (add-hook 'write-file-functions #'mh-execute-commands nil t)
   (make-local-variable 'revert-buffer-function)
   (make-local-variable 'hl-line-mode)   ; avoid pollution
   (mh-funcall-if-exists hl-line-mode 1)

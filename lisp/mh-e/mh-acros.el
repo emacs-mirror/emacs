@@ -99,6 +99,7 @@ Otherwise, create macro NAME with ARG-LIST and BODY."
   "Make HOOK local if needed.
 XEmacs and versions of GNU Emacs before 21.1 require
 `make-local-hook' to be called."
+  (declare (obsolete nil "29.1"))
   (when (and (fboundp 'make-local-hook)
              (not (get 'make-local-hook 'byte-obsolete-info)))
     `(make-local-hook ,hook)))

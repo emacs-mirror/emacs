@@ -167,7 +167,7 @@ The list appears in a buffer named \"*MH-E Sequences*\"."
             (insert "\n"))
           (setq seq-list (cdr seq-list)))
         (goto-char (point-min))
-        (mh-view-mode-enter)
+        (view-mode-enter)
         (setq view-exit-action 'kill-buffer)
         (message "Listing sequences...done")))))
 
@@ -734,7 +734,7 @@ completion is over."
     (cl-multiple-value-bind (folder unseen total)
         (cl-values-list
          (mh-parse-flist-output-line
-          (buffer-substring (point) (mh-line-end-position))))
+          (buffer-substring (point) (line-end-position))))
       (list total unseen folder))))
 
 (defun mh-folder-size-folder (folder)
@@ -762,7 +762,7 @@ folders whose names end with a `+' character."
       (when (search-backward " out of " (point-min) t)
         (setq total (string-to-number
                      (buffer-substring-no-properties
-                      (match-end 0) (mh-line-end-position))))
+                      (match-end 0) (line-end-position))))
         (when (search-backward " in sequence " (point-min) t)
           (setq p (point))
           (when (search-backward " has " (point-min) t)
@@ -940,7 +940,7 @@ font-lock is turned on."
             ;; the case of user sequences.
             (mh-notate nil nil mh-cmd-note)
             (when font-lock-mode
-              (font-lock-fontify-region (point) (mh-line-end-position))))
+              (font-lock-fontify-region (point) (line-end-position))))
         (forward-char (+ mh-cmd-note mh-scan-field-destination-offset))
         (let ((stack (gethash msg mh-sequence-notation-history)))
           (setf (gethash msg mh-sequence-notation-history)

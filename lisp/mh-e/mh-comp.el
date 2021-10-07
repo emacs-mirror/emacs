@@ -596,7 +596,7 @@ See also `mh-compose-forward-as-mime-flag',
         (set (make-local-variable 'mh-mail-header-separator)
              (save-excursion
                (goto-char (mh-mail-header-end))
-               (buffer-substring-no-properties (point) (mh-line-end-position))))
+               (buffer-substring-no-properties (point) (line-end-position))))
         (set (make-local-variable 'mail-header-separator) mh-mail-header-separator) ;override sendmail.el
         ;; If using MML, translate MH-style directive
         (if (equal mh-compose-insertion 'mml)
@@ -1095,7 +1095,6 @@ letter."
   (setq mh-previous-window-config config)
   (setq mode-line-buffer-identification (list "    {%b}"))
   (mh-logo-display)
-  (mh-make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook #'mh-tidy-draft-buffer nil t)
   (run-hook-with-args 'mh-compose-letter-function to subject cc))
 
@@ -1234,7 +1233,7 @@ discarded."
   (cond ((and overwrite-flag
               (mh-goto-header-field (concat field ":")))
          (insert " " value)
-         (delete-region (point) (mh-line-end-position)))
+         (delete-region (point) (line-end-position)))
         ((and (not overwrite-flag)
               (mh-regexp-in-field-p (concat "\\b" (regexp-quote value) "\\b") field))
          ;; Already there, do nothing.

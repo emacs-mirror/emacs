@@ -52,7 +52,7 @@ used in lieu of `search' in the CL package."
   (let ((syntax-table (syntax-table)))
     (unwind-protect
         (save-excursion
-          (mh-mail-abbrev-make-syntax-table)
+          (mail-abbrev-make-syntax-table)
           (set-syntax-table mail-abbrev-syntax-table)
           (backward-word n)
           (point))
@@ -62,7 +62,7 @@ used in lieu of `search' in the CL package."
 (defun mh-colors-available-p ()
   "Check if colors are available in the Emacs being used."
   ;; FIXME: Can this be replaced with `display-color-p'?
-  (let ((color-cells (mh-display-color-cells)))
+  (let ((color-cells (display-color-cells)))
     (and (numberp color-cells) (>= color-cells 8))))
 
 ;;;###mh-autoload
@@ -102,7 +102,7 @@ PICK-EXPR is a list of strings. Return nil if PICK-EXPR is nil."
                  (not (string-equal string "")))
         (cl-loop for i from 0 to (1- (length mh-pick-regexp-chars)) do
                  (let ((s (string ?\\ (aref mh-pick-regexp-chars i))))
-                   (setq string (mh-replace-regexp-in-string s s string t t))))
+                   (setq string (replace-regexp-in-string s s string t t))))
         (setq quoted-pick-expr (append quoted-pick-expr (list string)))))
     quoted-pick-expr))
 
@@ -128,7 +128,7 @@ Ignores case when searching for OLD."
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
   (mh-do-in-gnu-emacs
-    (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
+    (let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
            (image-load-path (cons (car load-path)
                                   (when (boundp 'image-load-path)
                                     image-load-path))))
@@ -502,8 +502,8 @@ they will not be returned."
     ;; folder is specified, ensure it is nil to avoid adding the
     ;; folder to the folder-list and adding a slash to it.
     (when folder
-      (setq folder (mh-replace-regexp-in-string "^\\+" "" folder))
-      (setq folder (mh-replace-regexp-in-string "/+$" "" folder))
+      (setq folder (replace-regexp-in-string "^\\+" "" folder))
+      (setq folder (replace-regexp-in-string "/+$" "" folder))
       (if (equal folder "")
           (setq folder nil)))
     ;; Add provided folder to list, unless all folders are asked for.
@@ -566,10 +566,10 @@ Expects FOLDER to have already been normalized with
       (apply #'call-process arg-list)
       (goto-char (point-min))
       (while (not (and (eolp) (bolp)))
-        (goto-char (mh-line-end-position))
-        (let ((start-pos (mh-line-beginning-position))
+        (goto-char (line-end-position))
+        (let ((start-pos (line-beginning-position))
               (has-pos (search-backward " has "
-                                        (mh-line-beginning-position) t)))
+                                        (line-beginning-position) t)))
           (when (integerp has-pos)
             (while (equal (char-after has-pos) ? )
               (cl-decf has-pos))
@@ -584,7 +584,7 @@ Expects FOLDER to have already been normalized with
                   (setq name (substring name 0 (1- (length name)))))
                 (push
                  (cons name
-                       (search-forward "(others)" (mh-line-end-position) t))
+                       (search-forward "(others)" (line-end-position) t))
                  results))))
           (forward-line 1))))
     (setq results (nreverse results))
@@ -948,9 +948,9 @@ is hidden, if positive then the field is displayed."
                      (and (numberp arg)
                           (>= arg 0))
                      (and (eq arg 'long)
-                          (> (mh-line-beginning-position 5) end)))
+                          (> (line-beginning-position 5) end)))
                  (remove-text-properties begin end '(invisible nil))
-                 (search-forward ":" (mh-line-end-position) t)
+                 (search-forward ":" (line-end-position) t)
                  (mh-letter-skip-leading-whitespace-in-header-field))
                 ;; XXX Redesign to make usable by user. Perhaps use a positive
                 ;; numeric prefix to make that many lines visible.
