@@ -311,7 +311,7 @@ that closes only when clicked on the close button."
         `(menu-item "Duplicate" (lambda () (interactive)
                                   (tab-bar-duplicate-tab
                                    nil ,tab-number))
-                    :help "Duplicate the tab"))
+                    :help "Clone the tab"))
       (define-key-after menu [detach-tab]
         `(menu-item "Detach" (lambda () (interactive)
                                (tab-bar-detach-tab
@@ -1350,7 +1350,7 @@ If FROM-NUMBER is a tab number, a new tab is created from that tab."
     (tab-bar-new-tab-to)))
 
 (defun tab-bar-duplicate-tab (&optional arg from-number)
-  "Duplicate the current tab to ARG positions to the right.
+  "Clone the current tab to ARG positions to the right.
 ARG and FROM-NUMBER have the same meaning as in `tab-bar-new-tab'."
   (interactive "P")
   (let ((tab-bar-new-tab-choice nil)
@@ -2243,24 +2243,26 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 
 ;;; Short aliases and keybindings
 
-(defalias 'tab-new         'tab-bar-new-tab)
-(defalias 'tab-new-to      'tab-bar-new-tab-to)
-(defalias 'tab-duplicate   'tab-bar-duplicate-tab)
-(defalias 'tab-close       'tab-bar-close-tab)
-(defalias 'tab-close-other 'tab-bar-close-other-tabs)
-(defalias 'tab-close-group 'tab-bar-close-group-tabs)
-(defalias 'tab-undo        'tab-bar-undo-close-tab)
-(defalias 'tab-select      'tab-bar-select-tab)
-(defalias 'tab-switch      'tab-bar-switch-to-tab)
-(defalias 'tab-next        'tab-bar-switch-to-next-tab)
-(defalias 'tab-previous    'tab-bar-switch-to-prev-tab)
-(defalias 'tab-last        'tab-bar-switch-to-last-tab)
-(defalias 'tab-recent      'tab-bar-switch-to-recent-tab)
-(defalias 'tab-move        'tab-bar-move-tab)
-(defalias 'tab-move-to     'tab-bar-move-tab-to)
-(defalias 'tab-rename      'tab-bar-rename-tab)
-(defalias 'tab-group       'tab-bar-change-tab-group)
-(defalias 'tab-list        'tab-switcher)
+(defalias 'tab-new             'tab-bar-new-tab)
+(defalias 'tab-new-to          'tab-bar-new-tab-to)
+(defalias 'tab-duplicate       'tab-bar-duplicate-tab)
+(defalias 'tab-detach          'tab-bar-detach-tab)
+(defalias 'tab-window-detach   'tab-bar-move-window-to-tab)
+(defalias 'tab-close           'tab-bar-close-tab)
+(defalias 'tab-close-other     'tab-bar-close-other-tabs)
+(defalias 'tab-close-group     'tab-bar-close-group-tabs)
+(defalias 'tab-undo            'tab-bar-undo-close-tab)
+(defalias 'tab-select          'tab-bar-select-tab)
+(defalias 'tab-switch          'tab-bar-switch-to-tab)
+(defalias 'tab-next            'tab-bar-switch-to-next-tab)
+(defalias 'tab-previous        'tab-bar-switch-to-prev-tab)
+(defalias 'tab-last            'tab-bar-switch-to-last-tab)
+(defalias 'tab-recent          'tab-bar-switch-to-recent-tab)
+(defalias 'tab-move            'tab-bar-move-tab)
+(defalias 'tab-move-to         'tab-bar-move-tab-to)
+(defalias 'tab-rename          'tab-bar-rename-tab)
+(defalias 'tab-group           'tab-bar-change-tab-group)
+(defalias 'tab-list            'tab-switcher)
 
 (define-key tab-prefix-map "n" 'tab-duplicate)
 (define-key tab-prefix-map "N" 'tab-new-to)
