@@ -991,7 +991,8 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
              (gnus-message 9 "Defined mark handling function %s"
                            function-name))))))
     (define-key gnus-summary-mark-map "M"
-      (apply #'define-keymap :prefix "M" 'gnus-summary-mark-map keys-plist))
+      (apply #'define-keymap :prefix 'gnus-summary-mark-map
+             keys-plist))
     (add-hook 'gnus-summary-menu-hook
               (lambda ()
                 (easy-menu-add-item
