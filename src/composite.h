@@ -254,6 +254,10 @@ composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
 #define LGSTRING_HEADER(lgs) AREF (lgs, 0)
 #define LGSTRING_SET_HEADER(lgs, header) ASET (lgs, 0, header)
 
+/* LGSTRING_FONT retrieves the font used for LGSTRING, if we are going
+   to display it on a GUI frame.  On text-mode frames, that slot
+   stores the coding-system that should be used to write output to the
+   frame's terminal.  */
 #define LGSTRING_FONT(lgs) AREF (LGSTRING_HEADER (lgs), 0)
 #define LGSTRING_CHAR(lgs, i) AREF (LGSTRING_HEADER (lgs), (i) + 1)
 #define LGSTRING_CHAR_LEN(lgs) (ASIZE (LGSTRING_HEADER (lgs)) - 1)
