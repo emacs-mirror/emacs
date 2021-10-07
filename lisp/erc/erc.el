@@ -69,6 +69,9 @@
 (require 'iso8601)
 (eval-when-compile (require 'subr-x))
 
+(defconst erc-version "5.3"
+  "This version of ERC.")
+
 (defvar erc-official-location
   "https://www.gnu.org/software/emacs/erc.html (mailing list: emacs-erc@gnu.org)"
   "Location of the ERC client on the Internet.")
@@ -3613,7 +3616,7 @@ If USER is omitted, close the current query buffer if one exists
 
 (defun erc-quit/part-reason-default ()
   "Default quit/part message."
-  (format "\C-bERC\C-b (IRC client for Emacs %s)" emacs-version))
+  (erc-version nil 'bold-erc))
 
 
 (defun erc-quit-reason-normal (&optional s)
@@ -3766,7 +3769,8 @@ the message given by REASON."
 
 (defun erc-cmd-SV ()
   "Say the current ERC and Emacs version into channel."
-  (erc-send-message (format "I'm using ERC with GNU Emacs %s (%s%s)%s."
+  (erc-send-message (format "I'm using ERC %s with GNU Emacs %s (%s%s)%s."
+                            erc-version
                             emacs-version
                             system-configuration
                             (concat
@@ -4845,8 +4849,8 @@ See also `erc-display-message'."
   (unless erc-disable-ctcp-replies
     (erc-send-ctcp-notice
      nick (format
-           "VERSION \C-bERC\C-b - an IRC client for Emacs %s (\C-b%s\C-b)"
-           emacs-version
+           "VERSION %s (\C-b%s\C-b)"
+           (erc-version nil 'bold-erc)
            erc-official-location)))
   nil)
 
@@ -6632,12 +6636,18 @@ P may be an integer or a service name."
           s
         n))))
 
-(defun erc-version (&optional here)
+(defun erc-version (&optional here bold-erc)
   "Show the version number of ERC in the minibuffer.
-If optional argument HERE is non-nil, insert version number at point."
+If optional argument HERE is non-nil, insert version number at point.
+If optional argument BOLD-ERC is non-nil, display \"ERC\" as bold."
   (interactive "P")
   (let ((version-string
-         (format "ERC (IRC client for Emacs %s)" emacs-version)))
+         (format "%s %s (IRC client for GNU Emacs %s)"
+                 (if bold-erc
+                     "\C-bERC\C-b"
+                   "ERC")
+                 erc-version
+                 emacs-version)))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)
