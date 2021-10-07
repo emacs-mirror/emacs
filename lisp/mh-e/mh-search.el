@@ -318,10 +318,6 @@ folder containing the index search results."
                  (cl-loop for msg-hash being the hash-values of mh-index-data
                           count (> (hash-table-count msg-hash) 0)))))))
 
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar pick-folder))                    ;FIXME: Why?
-
 (defun mh-search-folder (folder window-config)
   "Search FOLDER for messages matching a pattern.
 
@@ -616,7 +612,6 @@ The hook `mh-search-mode-hook' is called upon entry to this mode.
 
 \\{mh-search-mode-map}"
 
-  (mh-do-in-xemacs (easy-menu-add mh-pick-menu))
   (mh-set-help mh-search-mode-help-messages))
 
 

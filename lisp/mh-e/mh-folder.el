@@ -527,8 +527,6 @@ font-lock is done highlighting.")
 ;; Shush compiler.
 (defvar desktop-save-buffer)
 (defvar font-lock-auto-fontify)
-(mh-do-in-xemacs
-  (defvar font-lock-defaults))
 
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)
@@ -595,8 +593,6 @@ perform the operation on all messages in that region.
         (mh-tool-bar-folder-buttons-init))
     (if (boundp 'tool-bar-map)
         (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)))
-  (mh-do-in-xemacs
-    (mh-tool-bar-init :folder))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mh-folder-font-lock-keywords t))
   (make-local-variable 'desktop-save-buffer)
@@ -655,10 +651,6 @@ perform the operation on all messages in that region.
   (mh-funcall-if-exists hl-line-mode 1)
   (setq revert-buffer-function #'mh-undo-folder)
   (add-to-list 'minor-mode-alist '(mh-showing-mode " Show"))
-  (mh-do-in-xemacs
-    (easy-menu-add mh-folder-sequence-menu)
-    (easy-menu-add mh-folder-message-menu)
-    (easy-menu-add mh-folder-folder-menu))
   (mh-inc-spool-make)
   (mh-set-help mh-folder-mode-help-messages)
   (if (and (featurep 'xemacs)

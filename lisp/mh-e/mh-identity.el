@@ -88,8 +88,8 @@ See `mh-identity-add-menu'."
 (defun mh-identity-add-menu ()
   "Add the current Identity menu.
 See `mh-identity-make-menu'."
-  (if mh-identity-menu
-      (mh-do-in-xemacs (easy-menu-add mh-identity-menu))))
+  (declare (obsolete nil "29.1"))
+  nil)
 
 (defvar mh-identity-local nil
   "Buffer-local variable that holds the identity currently in use.")

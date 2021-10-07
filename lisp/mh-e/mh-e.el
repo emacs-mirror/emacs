@@ -88,9 +88,6 @@
 (require 'mh-buffers)
 (require 'mh-compat)
 
-(mh-do-in-xemacs
-  (require 'mh-xemacs))
-
 (mh-font-lock-add-keywords
  'emacs-lisp-mode
  (eval-when-compile
@@ -618,10 +615,6 @@ Output is expected to be shown to user, not parsed by MH-E."
   ;; highlight a region containing the new messages, which is undesirable.
   ;; The bug wasn't seen in emacs21 but still occurred in XEmacs21.4.
   (mh-exchange-point-and-mark-preserving-active-mark))
-
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar mark-active))
 
 (defun mh-exchange-point-and-mark-preserving-active-mark ()
   "Put the mark where point is now, and point where the mark is now.
@@ -3116,42 +3109,6 @@ of your own choosing."
                  (function :tag "Other Function"))
   :group 'mh-tool-bar
   :package-version '(MH-E . "7.0"))
-
-;; XEmacs has a couple of extra customizations...
-(mh-do-in-xemacs
-  (defcustom-mh mh-xemacs-use-tool-bar-flag mh-xemacs-has-tool-bar-flag
-    "If non-nil, use tool bar.
-
-This option controls whether to show the MH-E icons at all. By
-default, this option is turned on if the window system supports
-tool bars. If your system doesn't support tool bars, then you
-won't be able to turn on this option."
-    :type 'boolean
-    :group 'mh-tool-bar
-    :set (lambda (symbol value)
-           (if (and (eq value t)
-                    (not mh-xemacs-has-tool-bar-flag))
-               (error "Tool bar not supported"))
-           (set-default symbol value))
-    :package-version '(MH-E . "7.3"))
-
-  (defcustom-mh mh-xemacs-tool-bar-position nil
-    "Tool bar location.
-
-This option controls the placement of the tool bar along the four
-edges of the frame. You can choose from one of \"Same As Default
-Tool Bar\", \"Top\", \"Bottom\", \"Left\", or \"Right\". If this
-variable is set to anything other than \"Same As Default Tool
-Bar\" and the default tool bar is in a different location, then
-two tool bars will be displayed: the MH-E tool bar and the
-default tool bar."
-    :type '(radio (const :tag "Same As Default Tool Bar" :value nil)
-                  (const :tag "Top" :value top)
-                  (const :tag "Bottom" :value bottom)
-                  (const :tag "Left" :value left)
-                  (const :tag "Right" :value right))
-    :group 'mh-tool-bar
-    :package-version '(MH-E . "7.3")))
 
 
 

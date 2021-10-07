@@ -194,8 +194,6 @@ MESSAGE appears."
                         " "))))
 
 ;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar tool-bar-mode))
 (defvar tool-bar-map)
 
 ;;;###mh-autoload

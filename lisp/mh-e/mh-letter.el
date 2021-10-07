@@ -260,10 +260,6 @@ searching for `mh-mail-header-separator' in the buffer."
 
 ;;; MH-Letter Mode
 
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar font-lock-defaults))
-
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-letter-mode 'mode-class 'special)
 
@@ -300,8 +296,6 @@ order).
       (mh-tool-bar-letter-buttons-init))
     (if (boundp 'tool-bar-map)
         (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map)))
-  (mh-do-in-xemacs
-    (mh-tool-bar-init :letter))
   ;; Set the local value of mh-mail-header-separator according to what is
   ;; present in the buffer...
   (set (make-local-variable 'mh-mail-header-separator)
@@ -328,12 +322,10 @@ order).
    (t
     ;; ...or the header only
     (setq font-lock-defaults '((mh-show-font-lock-keywords) t))))
-  (mh-do-in-xemacs (easy-menu-add mh-letter-menu))
   ;; Maybe we want to use the existing Mail menu from mail-mode in
   ;; 9.0; in the mean time, let's remove it since the redundancy will
   ;; only produce confusion.
   (define-key mh-letter-mode-map [menu-bar mail] #'undefined)
-  (mh-do-in-xemacs (easy-menu-remove mail-menubar-menu))
   (setq fill-column mh-letter-fill-column)
   (add-hook 'completion-at-point-functions
             #'mh-letter-completion-at-point nil 'local)

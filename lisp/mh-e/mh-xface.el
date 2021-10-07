@@ -88,36 +88,7 @@ in this order is used."
                              (mh-face-foreground 'mh-show-xface nil t)
                              :background
                              (mh-face-background 'mh-show-xface nil t))
-               " ")))
-          ;; XEmacs
-          (mh-do-in-xemacs
-            (cond
-             ((eq type 'url)
-              (mh-x-image-url-display url))
-             ((eq type 'png)
-              (when (featurep 'png)
-                (set-extent-begin-glyph
-                 (make-extent (point) (point))
-                 (make-glyph (vector 'png ':data (mh-face-to-png face))))))
-             ;; Try internal xface support if available...
-             ((and (eq type 'pbm) (featurep 'xface))
-              (set-glyph-face
-               (set-extent-begin-glyph
-                (make-extent (point) (point))
-                (make-glyph (vector 'xface ':data (concat "X-Face: " x-face))))
-               'mh-show-xface))
-             ;; Otherwise try external support with x-face...
-             ((and (eq type 'pbm)
-                   (fboundp 'x-face-xmas-wl-display-x-face)
-                   (fboundp 'executable-find) (executable-find "uncompface"))
-              (mh-funcall-if-exists x-face-xmas-wl-display-x-face))
-             ;; Picon display
-             ((and raw (member type '(xpm xbm gif)))
-              (when (featurep type)
-                (set-extent-begin-glyph
-                 (make-extent (point) (point))
-                 (make-glyph (vector type ':data raw))))))
-            (when raw (insert " "))))))))
+               " "))))))))
 
 (defun mh-face-to-png (data)
   "Convert base64 encoded DATA to png image."
@@ -178,8 +149,7 @@ The directories are searched for in the order they appear in the list.")
   (cl-loop for type in '(xpm xbm gif)
            when (or (mh-do-in-gnu-emacs
                      (ignore-errors
-                       (mh-funcall-if-exists image-type-available-p type)))
-                    (mh-do-in-xemacs (featurep type)))
+                       (mh-funcall-if-exists image-type-available-p type))))
            collect type))
 
 (autoload 'message-tokenize-header "sendmail")
@@ -405,15 +375,7 @@ filenames.  In addition, replaces * with %2a. See URL
                      (eq marker mh-x-image-marker))
             (goto-char marker)
             (mh-do-in-gnu-emacs
-              (mh-funcall-if-exists insert-image (create-image image 'png)))
-            (mh-do-in-xemacs
-              (when (featurep 'png)
-                (set-extent-begin-glyph
-                 (make-extent (point) (point))
-                 (make-glyph
-                  (vector 'png ':data (with-temp-buffer
-                                        (insert-file-contents-literally image)
-                                        (buffer-string))))))))
+              (mh-funcall-if-exists insert-image (create-image image 'png))))
         (set-buffer-modified-p buffer-modified-flag)))))
 
 (defun mh-x-image-url-fetch-image (url cache-file marker sentinel)

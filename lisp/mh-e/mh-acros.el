@@ -53,7 +53,7 @@
 ;;;###mh-autoload
 (defmacro mh-do-in-xemacs (&rest body)
   "Execute BODY if in XEmacs."
-  (declare (debug t) (indent defun))
+  (declare (obsolete nil "29.1") (debug t) (indent defun))
   (when (featurep 'xemacs) `(progn ,@body)))
 
 ;;;###mh-autoload

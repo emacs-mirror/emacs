@@ -839,8 +839,6 @@ See also `mh-folder-mode'.
   (mh-do-in-gnu-emacs
    (if (boundp 'tool-bar-map)
        (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)))
-  (mh-do-in-xemacs
-    (mh-tool-bar-init :show))
   (set (make-local-variable 'mail-header-separator) mh-mail-header-separator)
   (setq paragraph-start (default-value 'paragraph-start))
   (setq buffer-invisibility-spec '((vanish . t) t))
@@ -864,10 +862,6 @@ See also `mh-folder-mode'.
   (when mh-decode-mime-flag
     (mh-make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook #'mh-mime-cleanup nil t))
-  (mh-do-in-xemacs
-    (easy-menu-add mh-show-sequence-menu)
-    (easy-menu-add mh-show-message-menu)
-    (easy-menu-add mh-show-folder-menu))
   (make-local-variable 'mh-show-folder-buffer)
   (buffer-disable-undo)
   (use-local-map mh-show-mode-map))

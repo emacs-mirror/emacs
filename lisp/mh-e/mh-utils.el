@@ -139,14 +139,7 @@ Ignores case when searching for OLD."
                             (mh-funcall-if-exists
                              find-image '((:type xpm :ascent center
                                                  :file "mh-logo.xpm"))))))
-       (car mode-line-buffer-identification))))
-  (mh-do-in-xemacs
-    (setq modeline-buffer-identification
-          (list
-           (if mh-modeline-glyph
-               (cons modeline-buffer-id-left-extent mh-modeline-glyph)
-             (cons modeline-buffer-id-left-extent "XEmacs%N:"))
-           (cons modeline-buffer-id-right-extent " %17b")))))
+       (car mode-line-buffer-identification)))))
 
 
 
@@ -922,9 +915,6 @@ Handle RFC 822 (or later) continuation lines."
   (let ((map (make-sparse-keymap)))
     (mh-do-in-gnu-emacs
       (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button))
-    (mh-do-in-xemacs
-      (define-key map '(button2)
-        #'mh-letter-toggle-header-field-display-button))
     map))
 
 ;;;###mh-autoload

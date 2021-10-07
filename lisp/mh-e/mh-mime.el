@@ -189,8 +189,6 @@ Set from last use.")
       (set-keymap-parent map mh-show-mode-map))
     (mh-do-in-gnu-emacs
      (define-key map [mouse-2] #'mh-push-button))
-    (mh-do-in-xemacs
-     (define-key map '(button2) #'mh-push-button))
     (dolist (c mh-mime-button-commands)
       (define-key map (cadr c) (car c)))
     map))
@@ -215,8 +213,6 @@ Set from last use.")
     (define-key map "\r" #'mh-press-button)
     (mh-do-in-gnu-emacs
      (define-key map [mouse-2] #'mh-push-button))
-    (mh-do-in-xemacs
-     (define-key map '(button2) #'mh-push-button))
     map))
 
 
@@ -777,20 +773,13 @@ This is only useful if a Content-Disposition header is not present."
                                         ; this only tells us if the image is
                                         ; something that emacs can display
          (let ((image (mm-get-image handle)))
-           (or (mh-do-in-xemacs
-                 (and (mh-funcall-if-exists glyphp image)
-                      (< (glyph-width image)
-                         (or mh-max-inline-image-width (window-pixel-width)))
-                      (< (glyph-height image)
-                         (or mh-max-inline-image-height
-                             (window-pixel-height)))))
-               (mh-do-in-gnu-emacs
-                 (let ((size (and (fboundp 'image-size) (image-size image))))
-                   (and size
-                        (< (cdr size) (or mh-max-inline-image-height
-                                          (1- (window-height))))
-                        (< (car size) (or mh-max-inline-image-width
-                                          (window-width)))))))))))
+           (mh-do-in-gnu-emacs
+             (let ((size (and (fboundp 'image-size) (image-size image))))
+               (and size
+                    (< (cdr size) (or mh-max-inline-image-height
+                                      (1- (window-height))))
+                    (< (car size) (or mh-max-inline-image-width
+                                      (window-width))))))))))
 
 (defun mh-inline-vcard-p (handle)
   "Decide if HANDLE is a vcard that must be displayed inline."
@@ -821,18 +810,11 @@ being used to highlight the signature in a MIME part."
         (mh-do-in-gnu-emacs
           (let ((ov (make-overlay (point) (point-max))))
             (overlay-put ov 'face 'mh-show-signature)
-            (overlay-put ov 'evaporate t)))
-        (mh-do-in-xemacs
-          (set-extent-property (make-extent (point) (point-max))
-                               'face 'mh-show-signature))))))
+            (overlay-put ov 'evaporate t)))))))
 
 
 
 ;;; Button Display
-
-;; Shush compiler.
-(mh-do-in-xemacs
- (defvar ov))
 
 (defun mh-insert-mime-button (handle index displayed)
   "Insert MIME button for HANDLE.
