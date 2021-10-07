@@ -1107,18 +1107,8 @@ The versions of MH-E, Emacs, and MH are shown."
   ;; Lazily initialize mh-x-mailer-string.
   (when (and mh-insert-x-mailer-flag (null mh-x-mailer-string))
     (setq mh-x-mailer-string
-          (format "MH-E %s; %s; %sEmacs %s"
-                  mh-version mh-variant-in-use
-                  (if (featurep 'xemacs) "X" "GNU ")
-                  (cond ((not (featurep 'xemacs))
-                         (string-match "[0-9]+\\.[0-9]+\\(\\.[0-9]+\\)?"
-                                       emacs-version)
-                         (match-string 0 emacs-version))
-                        ((string-match "[0-9.]*\\( +([ a-z]+[0-9]+)\\)?"
-                                       emacs-version)
-                         (match-string 0 emacs-version))
-                        (t (format "%s.%s" emacs-major-version
-                                   emacs-minor-version))))))
+          (format "MH-E %s; %s; Emacs %s"
+                  mh-version mh-variant-in-use emacs-version)))
   ;; Insert X-Mailer, but only if it doesn't already exist.
   (save-excursion
     (when (and mh-insert-x-mailer-flag

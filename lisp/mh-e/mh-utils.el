@@ -61,9 +61,9 @@ used in lieu of `search' in the CL package."
 ;;;###mh-autoload
 (defun mh-colors-available-p ()
   "Check if colors are available in the Emacs being used."
-  (or (featurep 'xemacs)
-      (let ((color-cells (mh-display-color-cells)))
-        (and (numberp color-cells) (>= color-cells 8)))))
+  ;; FIXME: Can this be replaced with `display-color-p'?
+  (let ((color-cells (mh-display-color-cells)))
+    (and (numberp color-cells) (>= color-cells 8))))
 
 ;;;###mh-autoload
 (defun mh-colors-in-use-p ()

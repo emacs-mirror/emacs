@@ -39,8 +39,7 @@
 ;; TODO This is not in Gnus 5.11.
 (defun-mh mh-gnus-local-map-property gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
-  (cond ((featurep 'xemacs) (list 'keymap map))
-        ((>= emacs-major-version 21) (list 'keymap map))
+  (cond ((>= emacs-major-version 21) (list 'keymap map))
         (t (list 'local-map map))))
 
 ;; Copy of function from mm-decode.el.

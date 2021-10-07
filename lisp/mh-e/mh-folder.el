@@ -343,11 +343,7 @@ annotation.")
   [backtab]     mh-prev-button
   "\M-\t"       mh-prev-button)
 
-(cond
- ((featurep 'xemacs)
-  (define-key mh-folder-mode-map [button2] 'mh-show-mouse))
- (t
-  (define-key mh-folder-mode-map [mouse-2] 'mh-show-mouse)))
+(define-key mh-folder-mode-map [mouse-2] 'mh-show-mouse)
 
 ;; "C-c /" prefix is used in mh-folder-mode by pgp.el and mailcrypt
 
@@ -512,12 +508,8 @@ font-lock is done highlighting.")
 ;;; MH-Folder Mode
 
 (defmacro mh-remove-xemacs-horizontal-scrollbar ()
-  "Get rid of the horizontal scrollbar that XEmacs insists on putting in."
-  (when (featurep 'xemacs)
-    '(if (and (featurep 'scrollbar)
-              (fboundp 'set-specifier))
-         (set-specifier horizontal-scrollbar-visible-p nil
-                        (cons (current-buffer) nil)))))
+  (declare (obsolete nil "29.1"))
+  nil)
 
 ;; Register mh-folder-mode as supporting which-function-mode...
 (eval-and-compile (mh-require 'which-func nil t))
@@ -639,7 +631,6 @@ perform the operation on all messages in that region.
    'imenu-create-index-function 'mh-index-create-imenu-index
                                         ; Setup imenu support
    'mh-previous-window-config nil)      ; Previous window configuration
-  (mh-remove-xemacs-horizontal-scrollbar)
   (setq truncate-lines t)
   (auto-save-mode -1)
   (setq buffer-offer-save t)
@@ -651,10 +642,7 @@ perform the operation on all messages in that region.
   (setq revert-buffer-function #'mh-undo-folder)
   (add-to-list 'minor-mode-alist '(mh-showing-mode " Show"))
   (mh-inc-spool-make)
-  (mh-set-help mh-folder-mode-help-messages)
-  (if (and (featurep 'xemacs)
-           font-lock-auto-fontify)
-      (turn-on-font-lock)))             ; Force font-lock in XEmacs.
+  (mh-set-help mh-folder-mode-help-messages))
 
 
 

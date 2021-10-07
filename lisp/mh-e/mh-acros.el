@@ -105,14 +105,11 @@ XEmacs and versions of GNU Emacs before 21.1 require
 
 ;;;###mh-autoload
 (defmacro mh-mark-active-p (check-transient-mark-mode-flag)
-  "A macro that expands into appropriate code in XEmacs and nil in GNU Emacs.
-In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then
-check if variable `transient-mark-mode' is active."
-  (cond ((featurep 'xemacs)             ;XEmacs
-         '(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
-        ((not check-transient-mark-mode-flag) ;GNU Emacs
+  "If CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then check if
+variable `transient-mark-mode' is active."
+  (cond ((not check-transient-mark-mode-flag)
          '(and (boundp 'mark-active) mark-active))
-        (t                              ;GNU Emacs
+        (t
          '(and (boundp 'transient-mark-mode) transient-mark-mode
                (boundp 'mark-active) mark-active))))
 

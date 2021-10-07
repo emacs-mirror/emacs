@@ -31,10 +31,7 @@
 (autoload 'message-fetch-field "message")
 
 (defvar mh-show-xface-function
-  (cond ((and (featurep 'xemacs) (locate-library "x-face") (not (featurep 'xface)))
-         (load "x-face" t t)
-         #'mh-face-display-function)
-        ((>= emacs-major-version 21)
+  (cond ((>= emacs-major-version 21)
          #'mh-face-display-function)
         (t #'ignore))
   "Determine at run time what function should be called to display X-Face.")
