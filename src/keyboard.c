@@ -5130,7 +5130,8 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       window_or_frame = Qnil;
     }
 #endif
-  if (!FRAME_WINDOW_P (f)
+  if (f
+      && !FRAME_WINDOW_P (f)
       && FRAME_TAB_BAR_LINES (f) > 0
       && my >= FRAME_MENU_BAR_LINES (f)
       && my < FRAME_MENU_BAR_LINES (f) + FRAME_TAB_BAR_LINES (f))
