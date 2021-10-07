@@ -5,7 +5,7 @@ See the end of the file for license conditions.
 
 Please send ERC bug reports to 'bug-gnu-emacs@gnu.org',
 and Cc the 'emacs-erc@gnu.org' mailing list as well.
-If possible, use 'M-x report-emacs-bug'.
+If possible, use 'M-x erc-bug' or 'M-x report-emacs-bug'.
 
 This file is about changes in ERC, the powerful, modular, and
 extensible IRC (Internet Relay Chat) client distributed with
@@ -156,6 +156,11 @@ information for the nick along with idle time, even if the nick is on
 a different server than the one the current user is connected to.
 Using the given nick itself instead of the server it is connected to
 is not standardized, but is widely supported across IRC networks.
+
+*** Add 'erc-bug' command for reporting ERC bugs.
+The new 'erc-bug' command prompts for a subject, and passes it on to
+'report-emacs-bug' along with the current ERC version, and adds the
+ERC mailing list in Cc.
 
 
 * Changes in ERC 5.3

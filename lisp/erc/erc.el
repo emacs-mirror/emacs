@@ -6620,6 +6620,15 @@ If BUFFER is nil, update the mode line in all ERC buffers."
 
 ;; Miscellaneous
 
+(defun erc-bug (subject)
+  "Send a bug report to the Emacs bug tracker and ERC mailing list."
+  (interactive "sBug Subject: ")
+  (report-emacs-bug
+   (format "ERC %s: %s" erc-version subject))
+  (save-excursion
+    (goto-char (point-min))
+    (insert "X-Debbugs-CC: emacs-erc@gnu.org\n")))
+
 (defun erc-port-to-string (p)
   "Convert port P to a string.
 P may be an integer or a service name."
