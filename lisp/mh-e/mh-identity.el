@@ -54,8 +54,7 @@ This is normally set as part of an Identity in
 (defun mh-identity-make-menu ()
   "Build the Identity menu.
 This should be called any time `mh-identity-list' or
-`mh-auto-fields-list' change.
-See `mh-identity-add-menu'."
+`mh-auto-fields-list' change."
   (easy-menu-define mh-identity-menu mh-letter-mode-map
     "MH-E identity menu"
     (append

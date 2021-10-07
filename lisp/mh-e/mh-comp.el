@@ -1077,7 +1077,6 @@ letter."
   ;; Insert identity.
   (mh-insert-identity mh-identity-default t)
   (mh-identity-make-menu)
-  (mh-identity-add-menu)
 
   ;; Cleanup possibly RFC2047 encoded subject header
   (mh-decode-message-subject)
