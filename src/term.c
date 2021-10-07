@@ -550,7 +550,7 @@ encode_terminal_code (struct glyph *src, int src_len,
       if (src->type == COMPOSITE_GLYPH)
 	{
 	  struct composition *cmp;
-	  Lisp_Object gstring;
+	  Lisp_Object gstring UNINIT;
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
