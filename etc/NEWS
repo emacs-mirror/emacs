@@ -119,7 +119,7 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 ---
 ** The 'inhibit-changing-match-data' variable is now obsolete.
-Instead functions like 'string-match' and 'looking-at' now takes an
+Instead, functions like 'string-match' and 'looking-at' now take an
 optional 'inhibit-modify' argument.
 
 ---
