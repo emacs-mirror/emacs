@@ -1986,7 +1986,7 @@ feature for matching regular expressions from end to beginning.  It's
 not worth the trouble of implementing that.
 @end deffn
 
-@defun string-match regexp string &optional start
+@defun string-match regexp string &optional start inhibit-modify
 This function returns the index of the start of the first match for
 the regular expression @var{regexp} in @var{string}, or @code{nil} if
 there is no match.  If @var{start} is non-@code{nil}, the search starts
@@ -2011,8 +2011,10 @@ For example,
 The index of the first character of the
 string is 0, the index of the second character is 1, and so on.
 
-If this function finds a match, the index of the first character beyond
-the match is available as @code{(match-end 0)}.  @xref{Match Data}.
+By default, if this function finds a match, the index of the first
+character beyond the match is available as @code{(match-end 0)}.
+@xref{Match Data}.  If @var{inhibit-modify} is non-@code{nil}, the
+match data isn't modified.
 
 @example
 @group
@@ -2033,16 +2035,18 @@ This predicate function does what @code{string-match} does, but it
 avoids modifying the match data.
 @end defun
 
-@defun looking-at regexp
+@defun looking-at regexp &optional inhibit-modify
 This function determines whether the text in the current buffer directly
 following point matches the regular expression @var{regexp}.  ``Directly
 following'' means precisely that: the search is ``anchored'' and it can
 succeed only starting with the first character following point.  The
 result is @code{t} if so, @code{nil} otherwise.
 
-This function does not move point, but it does update the match data.
-@xref{Match Data}.  If you need to test for a match without modifying
-the match data, use @code{looking-at-p}, described below.
+This function does not move point, but it does update the match data
+(if @var{inhibit-modify} is @code{nil} or missing, which is the
+default).  @xref{Match Data}.  As a convenience, instead of using the
+@var{inhibit-modify} argument, you can use @code{looking-at-p},
+described below.
 
 In this example, point is located directly before the @samp{T}.  If it
 were anywhere else, the result would be @code{nil}.
@@ -2149,13 +2153,13 @@ backtracking specified by the POSIX standard for regular expression
 matching.
 @end deffn
 
-@defun posix-looking-at regexp
+@defun posix-looking-at regexp &optional inhibit-modify
 This is like @code{looking-at} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.
 @end defun
 
-@defun posix-string-match regexp string &optional start
+@defun posix-string-match regexp string &optional start inhibit-modify
 This is like @code{string-match} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.

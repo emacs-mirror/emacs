@@ -260,7 +260,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
 
 
 static Lisp_Object
-looking_at_1 (Lisp_Object string, bool posix)
+looking_at_1 (Lisp_Object string, bool posix, bool modify_data)
 {
   Lisp_Object val;
   unsigned char *p1, *p2;
@@ -278,11 +278,11 @@ looking_at_1 (Lisp_Object string, bool posix)
   CHECK_STRING (string);
 
   /* Snapshot in case Lisp changes the value.  */
-  bool preserve_match_data = NILP (Vinhibit_changing_match_data);
+  bool modify_match_data = NILP (Vinhibit_changing_match_data) && modify_data;
 
   struct regexp_cache *cache_entry = compile_pattern (
     string,
-    preserve_match_data ? &search_regs : NULL,
+    modify_match_data ? &search_regs : NULL,
     (!NILP (BVAR (current_buffer, case_fold_search))
      ? BVAR (current_buffer, case_canon_table) : Qnil),
     posix,
@@ -316,7 +316,7 @@ looking_at_1 (Lisp_Object string, bool posix)
   re_match_object = Qnil;
   i = re_match_2 (&cache_entry->buf, (char *) p1, s1, (char *) p2, s2,
 		  PT_BYTE - BEGV_BYTE,
-		  preserve_match_data ? &search_regs : NULL,
+		  modify_match_data ? &search_regs : NULL,
 		  ZV_BYTE - BEGV_BYTE);
 
   if (i == -2)
@@ -326,7 +326,7 @@ looking_at_1 (Lisp_Object string, bool posix)
     }
 
   val = (i >= 0 ? Qt : Qnil);
-  if (preserve_match_data && i >= 0)
+  if (modify_match_data && i >= 0)
   {
     for (i = 0; i < search_regs.num_regs; i++)
       if (search_regs.start[i] >= 0)
@@ -343,35 +343,37 @@ looking_at_1 (Lisp_Object string, bool posix)
   return unbind_to (count, val);
 }
 
-DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 1, 0,
+DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 2, 0,
        doc: /* Return t if text after point matches regular expression REGEXP.
-This function modifies the match data that `match-beginning',
-`match-end' and `match-data' access; save and restore the match
-data if you want to preserve them.  */)
-  (Lisp_Object regexp)
+By default, this function modifies the match data that
+`match-beginning', `match-end' and `match-data' access.  If
+INHIBIT-MODIFY is non-nil, don't modify the match data.  */)
+  (Lisp_Object regexp, Lisp_Object inhibit_modify)
 {
-  return looking_at_1 (regexp, 0);
+  return looking_at_1 (regexp, 0, NILP (inhibit_modify));
 }
 
-DEFUN ("posix-looking-at", Fposix_looking_at, Sposix_looking_at, 1, 1, 0,
+DEFUN ("posix-looking-at", Fposix_looking_at, Sposix_looking_at, 1, 2, 0,
        doc: /* Return t if text after point matches REGEXP according to Posix rules.
 Find the longest match, in accordance with Posix regular expression rules.
-This function modifies the match data that `match-beginning',
-`match-end' and `match-data' access; save and restore the match
-data if you want to preserve them.  */)
-  (Lisp_Object regexp)
+
+By default, this function modifies the match data that
+`match-beginning', `match-end' and `match-data' access.  If
+INHIBIT-MODIFY is non-nil, don't modify the match data.  */)
+  (Lisp_Object regexp, Lisp_Object inhibit_modify)
 {
-  return looking_at_1 (regexp, 1);
+  return looking_at_1 (regexp, 1, NILP (inhibit_modify));
 }
 
 static Lisp_Object
 string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
-		bool posix)
+		bool posix, bool modify_data)
 {
   ptrdiff_t val;
   struct re_pattern_buffer *bufp;
   EMACS_INT pos;
   ptrdiff_t pos_byte, i;
+  bool modify_match_data = NILP (Vinhibit_changing_match_data) && modify_data;
 
   if (running_asynch_code)
     save_search_regs ();
@@ -400,8 +402,7 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
 			 BVAR (current_buffer, case_eqv_table));
 
   bufp = &compile_pattern (regexp,
-                           (NILP (Vinhibit_changing_match_data)
-                            ? &search_regs : NULL),
+                           (modify_match_data ? &search_regs : NULL),
                            (!NILP (BVAR (current_buffer, case_fold_search))
                             ? BVAR (current_buffer, case_canon_table) : Qnil),
                            posix,
@@ -410,18 +411,17 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
   val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), pos_byte,
 		   SBYTES (string) - pos_byte,
-		   (NILP (Vinhibit_changing_match_data)
-		    ? &search_regs : NULL));
+		   (modify_match_data ? &search_regs : NULL));
 
   /* Set last_thing_searched only when match data is changed.  */
-  if (NILP (Vinhibit_changing_match_data))
+  if (modify_match_data)
     last_thing_searched = Qt;
 
   if (val == -2)
     matcher_overflow ();
   if (val < 0) return Qnil;
 
-  if (NILP (Vinhibit_changing_match_data))
+  if (modify_match_data)
     for (i = 0; i < search_regs.num_regs; i++)
       if (search_regs.start[i] >= 0)
 	{
@@ -434,32 +434,42 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
   return make_fixnum (string_byte_to_char (string, val));
 }
 
-DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
+DEFUN ("string-match", Fstring_match, Sstring_match, 2, 4, 0,
        doc: /* Return index of start of first match for REGEXP in STRING, or nil.
 Matching ignores case if `case-fold-search' is non-nil.
 If third arg START is non-nil, start search at that index in STRING.
-For index of first char beyond the match, do (match-end 0).
-`match-end' and `match-beginning' also give indices of substrings
-matched by parenthesis constructs in the pattern.
 
-You can use the function `match-string' to extract the substrings
-matched by the parenthesis constructions in REGEXP. */)
-  (Lisp_Object regexp, Lisp_Object string, Lisp_Object start)
+If INHIBIT-MODIFY is non-nil, match data is not changed.
+
+If INHIBIT-MODIFY is nil or missing, match data is changed, and
+`match-end' and `match-beginning' give indices of substrings matched
+by parenthesis constructs in the pattern.  You can use the function
+`match-string' to extract the substrings matched by the parenthesis
+constructions in REGEXP.  For index of first char beyond the match, do
+(match-end 0).  */)
+  (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
+   Lisp_Object inhibit_modify)
 {
-  return string_match_1 (regexp, string, start, 0);
+  return string_match_1 (regexp, string, start, 0, NILP (inhibit_modify));
 }
 
-DEFUN ("posix-string-match", Fposix_string_match, Sposix_string_match, 2, 3, 0,
+DEFUN ("posix-string-match", Fposix_string_match, Sposix_string_match, 2, 4, 0,
        doc: /* Return index of start of first match for Posix REGEXP in STRING, or nil.
 Find the longest match, in accord with Posix regular expression rules.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
-If third arg START is non-nil, start search at that index in STRING.
-For index of first char beyond the match, do (match-end 0).
-`match-end' and `match-beginning' also give indices of substrings
-matched by parenthesis constructs in the pattern.  */)
-  (Lisp_Object regexp, Lisp_Object string, Lisp_Object start)
+
+If INHIBIT-MODIFY is non-nil, match data is not changed.
+
+If INHIBIT-MODIFY is nil or missing, match data is changed, and
+`match-end' and `match-beginning' give indices of substrings matched
+by parenthesis constructs in the pattern.  You can use the function
+`match-string' to extract the substrings matched by the parenthesis
+constructions in REGEXP.  For index of first char beyond the match, do
+(match-end 0).  */)
+  (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
+   Lisp_Object inhibit_modify)
 {
-  return string_match_1 (regexp, string, start, 1);
+  return string_match_1 (regexp, string, start, 1, NILP (inhibit_modify));
 }
 
 /* Match REGEXP against STRING using translation table TABLE,
