@@ -580,10 +580,11 @@ region in the MH-Folder buffer, then the MH-E command will
 perform the operation on all messages in that region.
 
 \\{mh-folder-mode-map}"
-  (unless mh-folder-tool-bar-map
-    (mh-tool-bar-folder-buttons-init))
-  (if (boundp 'tool-bar-map)
-      (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map))
+  (mh-do-in-gnu-emacs
+    (unless mh-folder-tool-bar-map
+        (mh-tool-bar-folder-buttons-init))
+    (if (boundp 'tool-bar-map)
+        (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mh-folder-font-lock-keywords t))
   (make-local-variable 'desktop-save-buffer)

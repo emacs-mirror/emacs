@@ -74,16 +74,18 @@ in this order is used."
       (when type
         (goto-char (point-min))
         (when (re-search-forward "^from:" (point-max) t)
-          (if (eq type 'url)
-              (mh-x-image-url-display url)
-            (mh-funcall-if-exists
-             insert-image (create-image
-                           raw type t
-                           :foreground
-                           (mh-face-foreground 'mh-show-xface nil t)
-                           :background
-                           (mh-face-background 'mh-show-xface nil t))
-             " ")))))))
+          ;; GNU Emacs
+          (mh-do-in-gnu-emacs
+            (if (eq type 'url)
+                (mh-x-image-url-display url)
+              (mh-funcall-if-exists
+               insert-image (create-image
+                             raw type t
+                             :foreground
+                             (mh-face-foreground 'mh-show-xface nil t)
+                             :background
+                             (mh-face-background 'mh-show-xface nil t))
+               " "))))))))
 
 (defun mh-face-to-png (data)
   "Convert base64 encoded DATA to png image."
@@ -142,8 +144,9 @@ The directories are searched for in the order they appear in the list.")
 
 (defvar mh-picon-image-types
   (cl-loop for type in '(xpm xbm gif)
-           when (or (ignore-errors
-                      (mh-funcall-if-exists image-type-available-p type)))
+           when (or (mh-do-in-gnu-emacs
+                     (ignore-errors
+                       (mh-funcall-if-exists image-type-available-p type))))
            collect type))
 
 (autoload 'message-tokenize-header "sendmail")
@@ -368,7 +371,8 @@ filenames.  In addition, replaces * with %2a. See URL
           (when (and (file-readable-p image) (not (file-symlink-p image))
                      (eq marker mh-x-image-marker))
             (goto-char marker)
-            (mh-funcall-if-exists insert-image (create-image image 'png)))
+            (mh-do-in-gnu-emacs
+              (mh-funcall-if-exists insert-image (create-image image 'png))))
         (set-buffer-modified-p buffer-modified-flag)))))
 
 (defun mh-x-image-url-fetch-image (url cache-file marker sentinel)

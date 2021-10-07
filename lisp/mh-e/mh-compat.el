@@ -39,7 +39,8 @@
 
 (eval-when-compile (require 'mh-acros))
 
-(defalias 'mh-require #'require)
+(mh-do-in-gnu-emacs
+  (defalias 'mh-require #'require))
 
 (defun-mh mh-assoc-string assoc-string (key list case-fold)
   "Like `assoc' but specifically for strings.
