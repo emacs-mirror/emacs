@@ -459,6 +459,26 @@ If START or END is negative, it counts from the end."
       '(let (current-time-list) (current-time))
     '(current-time)))
 
+(defmacro erc-compat--defer-format-spec-in-buffer (&rest spec)
+  "Transform SPEC forms into functions that run in the current buffer.
+For convenience, ensure function wrappers return \"\" as a
+fallback."
+  (cl-check-type (car spec) cons)
+  (let ((buffer (make-symbol "buffer")))
+    `(let ((,buffer (current-buffer)))
+       ,(list '\`
+              (mapcar
+               (pcase-lambda (`(,k . ,v))
+                 (cons k
+                       (list '\,(if (>= emacs-major-version 29)
+                                    `(lambda ()
+                                       (or (if (eq ,buffer (current-buffer))
+                                               ,v
+                                             (with-current-buffer ,buffer
+                                               ,v))
+                                           ""))
+                                  `(or ,v "")))))
+               spec)))))
 
 (provide 'erc-compat)
 

@@ -751,7 +751,74 @@ parameters are not included.")
 (defcustom erc-prompt "ERC>"
   "Prompt used by ERC.  Trailing whitespace is not required."
   :group 'erc-display
-  :type '(choice string function))
+  :type '(choice string
+                 (function-item :tag "Interpret format specifiers"
+                                erc-prompt-format)
+                 function))
+
+(defvar erc--prompt-format-face-example
+  #("%p%m%a\u00b7%b>"
+    0 2 (font-lock-face erc-my-nick-prefix-face)
+    2 4 (font-lock-face font-lock-keyword-face)
+    4 6 (font-lock-face erc-error-face)
+    6 7 (font-lock-face shadow)
+    7 9 (font-lock-face font-lock-constant-face)
+    9 10 (font-lock-face shadow))
+  "An example value for option `erc-prompt-format' with faces.")
+
+(defcustom erc-prompt-format erc--prompt-format-face-example
+  "Format string when `erc-prompt' is `erc-prompt-format'.
+ERC recognizes these substitution specifiers:
+
+ %a - away indicator
+ %b - buffer name
+ %t - channel or query target, server domain, or dialed address
+ %S - target@network or buffer name
+ %s - target@server or server
+ %N - current network, like Libera.Chat
+ %p - channel membership prefix, like @ or +
+ %n - current nickname
+ %c - channel modes with args for select modes
+ %C - channel modes with all args
+ %u - user modes
+ %m - channel modes sans args in channels, user modes elsewhere
+ %M - like %m but show nothing in query buffers
+
+To pick your own colors, do something like:
+
+  (setopt erc-prompt-format
+          (concat
+           (propertize \"%b\" \\='font-lock-face \\='erc-input-face)
+           (propertize \"%a\" \\='font-lock-face \\='erc-error-face)))
+
+Please remember that ERC ignores this option completely unless
+the \"parent\" option `erc-prompt' is set to `erc-prompt-format'."
+  :package-version '(ERC . "5.6")
+  :group 'erc-display
+  :type `(choice (const :tag "{Prefix}{Mode}{Away}{MIDDLE DOT}{Buffer}>"
+                        ,erc--prompt-format-face-example)
+                 string))
+
+(defun erc-prompt-format ()
+  "Make predefined `format-spec' substitutions.
+
+See option `erc-prompt-format' and option `erc-prompt'."
+  (format-spec erc-prompt-format
+               (erc-compat--defer-format-spec-in-buffer
+                (?C erc--channel-modes 3 ",")
+                (?M erc--format-modes 'no-query-p)
+                (?N erc-format-network)
+                (?S erc-format-target-and/or-network)
+                (?a erc--format-away-indicator)
+                (?b buffer-name)
+                (?c erc-format-channel-modes)
+                (?m erc--format-modes)
+                (?n erc-current-nick)
+                (?p erc--format-channel-status-prefix)
+                (?s erc-format-target-and/or-server)
+                (?t erc-format-target)
+                (?u erc--format-user-modes))
+               'ignore-missing)) ; formerly `only-present'
 
 (defun erc-prompt ()
   "Return the input prompt as a string.
@@ -8310,6 +8377,62 @@ shortened server name instead."
     (if a
         (format-time-string erc-mode-line-away-status-format a)
       "")))
+
+(defvar-local erc--away-indicator nil
+  "Cons containing an away indicator for the connection.")
+
+(defvar erc-away-status-indicator "A"
+  "String shown by various formatting facilities to indicate away status.
+Currently only used by the option `erc-prompt-format'.")
+
+(defun erc--format-away-indicator ()
+  "Return char with `display' property of `erc--away-indicator'."
+  (and-let* ((indicator (erc-with-server-buffer
+                          (or erc--away-indicator
+                              (setq erc--away-indicator (list "")))))
+             (newcar (if (erc-away-time) erc-away-status-indicator "")))
+    ;; Inform other buffers of the change when necessary.
+    (let ((dispp (not erc--inhibit-prompt-display-property-p)))
+      (unless (eq newcar (car indicator))
+        (erc--refresh-prompt-continue (and dispp 'hooks-only-p))
+        (setcar indicator newcar))
+      (if dispp
+          (propertize "(away?)" 'display indicator)
+        newcar))))
+
+(defvar-local erc--user-modes-indicator nil
+  "Cons containing connection-wide indicator for user modes.")
+
+;; If adding more of these functions, should factor out commonalities.
+;; As of ERC 5.6, this is identical to the away variant aside from
+;; the var names and `eq', which isn't important.
+(defun erc--format-user-modes ()
+  "Return server's user modes as a string"
+  (and-let* ((indicator (erc-with-server-buffer
+                          (or erc--user-modes-indicator
+                              (setq erc--user-modes-indicator (list "")))))
+             (newcar (erc--user-modes 'string)))
+    (let ((dispp (not erc--inhibit-prompt-display-property-p)))
+      (unless (string= newcar (car indicator))
+        (erc--refresh-prompt-continue (and dispp 'hooks-only-p))
+        (setcar indicator newcar))
+      (if dispp
+          (propertize "(user-modes?)" 'display indicator)
+        newcar))))
+
+(defun erc--format-channel-status-prefix ()
+  "Return the current channel membership prefix."
+  (and (erc--target-channel-p erc--target)
+       (erc-get-user-mode-prefix (erc-current-nick))))
+
+(defun erc--format-modes (&optional no-query-p)
+  "Return a string of channel modes in channels and user modes elsewhere.
+With NO-QUERY-P, return nil instead of user modes in query
+buffers.  Also return nil when mode information is unavailable."
+  (cond ((erc--target-channel-p erc--target)
+         (erc--channel-modes 'string))
+        ((not (and erc--target no-query-p))
+         (erc--format-user-modes))))
 
 (defun erc-format-channel-modes ()
   "Return the current channel's modes."

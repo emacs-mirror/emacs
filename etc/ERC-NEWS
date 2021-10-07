@@ -191,6 +191,16 @@ been restored with a slightly revised role contingent on a few
 assumptions explained in its doc string.  For clarity, it has been
 renamed 'erc-ensure-target-buffer-on-privmsg'.
 
+** A smarter, more responsive prompt.
+ERC's prompt can be told to respond dynamically to incoming and
+outgoing messages by leveraging the familiar function variant of the
+option 'erc-prompt'.  With this release, only predefined functions can
+take full advantage of this new dynamism, but an interface to empower
+third parties with the same possibilities may follow suit.  To get
+started, customize 'erc-prompt' to 'erc-prompt-format', and see the
+option of the same name ('erc-prompt-format') for a rudimentary
+templating facility reminiscent of 'erc-mode-line-format'.
+
 ** Module 'scrolltobottom' now optionally more aggressive.
 Enabling the experimental option 'erc-scrolltobottom-all' makes ERC
 more vigilant about staking down the input area in all ERC windows.
