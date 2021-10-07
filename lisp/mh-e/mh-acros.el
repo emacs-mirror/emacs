@@ -47,7 +47,7 @@
 ;;;###mh-autoload
 (defmacro mh-do-in-gnu-emacs (&rest body)
   "Execute BODY if in GNU Emacs."
-  (declare (debug t) (indent defun))
+  (declare (obsolete progn "29.1") (debug t) (indent defun))
   (unless (featurep 'xemacs) `(progn ,@body)))
 
 ;;;###mh-autoload

@@ -27,8 +27,7 @@
 ;;; Code:
 
 (require 'mh-e)
-(mh-do-in-gnu-emacs
-  (require 'tool-bar))
+(require 'tool-bar)
 
 ;;; Tool Bar Commands
 
@@ -205,79 +204,77 @@ where,
       (unless (memq x letter-buttons)
         (error "Letter defaults contains unknown button %s" x)))
     `(eval-and-compile
-       ;; GNU Emacs tool bar specific code
-       (mh-do-in-gnu-emacs
-         (defun mh-buffer-exists-p (mode)
-           "Test whether a buffer with major mode MODE is present."
-           (cl-loop for buf in (buffer-list)
-                    when (with-current-buffer buf
-                           (eq major-mode mode))
-                    return t))
-         ;; Tool bar initialization functions
-         (defun mh-tool-bar-folder-buttons-init ()
-           (when (mh-buffer-exists-p 'mh-folder-mode)
-             (let* ((load-path (mh-image-load-path-for-library "mh-e"
-                                                               "mh-logo.xpm"))
-                    (image-load-path (cons (car load-path)
-                                           (when (boundp 'image-load-path)
-                                             image-load-path))))
-               (setq mh-folder-tool-bar-map
-                     (let ((tool-bar-map (make-sparse-keymap)))
-                       ,@(nreverse folder-button-setter)
-                       tool-bar-map))
-               (setq mh-folder-seq-tool-bar-map
-                     (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
-                       ,@(nreverse sequence-button-setter)
-                       tool-bar-map))
-               (setq mh-show-tool-bar-map
-                     (let ((tool-bar-map (make-sparse-keymap)))
-                       ,@(nreverse show-button-setter)
-                       tool-bar-map))
-               (setq mh-show-seq-tool-bar-map
-                     (let ((tool-bar-map (copy-keymap mh-show-tool-bar-map)))
-                       ,@(nreverse show-seq-button-setter)
-                       tool-bar-map)))))
-         (defun mh-tool-bar-letter-buttons-init ()
-           (when (mh-buffer-exists-p 'mh-letter-mode)
-             (let* ((load-path (mh-image-load-path-for-library "mh-e"
-                                                               "mh-logo.xpm"))
-                    (image-load-path (cons (car load-path)
-                                           (when (boundp 'image-load-path)
-                                             image-load-path))))
-               (setq mh-letter-tool-bar-map
-                     (let ((tool-bar-map (make-sparse-keymap)))
-                       ,@(nreverse letter-button-setter)
-                       tool-bar-map)))))
-         ;; Custom setter functions
-         (defun mh-tool-bar-update (mode default-map sequence-map)
-           "Update `tool-bar-map' in all buffers of MODE.
+       (defun mh-buffer-exists-p (mode)
+         "Test whether a buffer with major mode MODE is present."
+         (cl-loop for buf in (buffer-list)
+                  when (with-current-buffer buf
+                         (eq major-mode mode))
+                  return t))
+       ;; Tool bar initialization functions
+       (defun mh-tool-bar-folder-buttons-init ()
+         (when (mh-buffer-exists-p 'mh-folder-mode)
+           (let* ((load-path (mh-image-load-path-for-library "mh-e"
+                                                             "mh-logo.xpm"))
+                  (image-load-path (cons (car load-path)
+                                         (when (boundp 'image-load-path)
+                                           image-load-path))))
+             (setq mh-folder-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse folder-button-setter)
+                     tool-bar-map))
+             (setq mh-folder-seq-tool-bar-map
+                   (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
+                     ,@(nreverse sequence-button-setter)
+                     tool-bar-map))
+             (setq mh-show-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse show-button-setter)
+                     tool-bar-map))
+             (setq mh-show-seq-tool-bar-map
+                   (let ((tool-bar-map (copy-keymap mh-show-tool-bar-map)))
+                     ,@(nreverse show-seq-button-setter)
+                     tool-bar-map)))))
+       (defun mh-tool-bar-letter-buttons-init ()
+         (when (mh-buffer-exists-p 'mh-letter-mode)
+           (let* ((load-path (mh-image-load-path-for-library "mh-e"
+                                                             "mh-logo.xpm"))
+                  (image-load-path (cons (car load-path)
+                                         (when (boundp 'image-load-path)
+                                           image-load-path))))
+             (setq mh-letter-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse letter-button-setter)
+                     tool-bar-map)))))
+       ;; Custom setter functions
+       (defun mh-tool-bar-update (mode default-map sequence-map)
+         "Update `tool-bar-map' in all buffers of MODE.
 Use SEQUENCE-MAP if display is limited; DEFAULT-MAP otherwise."
-           (cl-loop for buf in (buffer-list)
-                    do (with-current-buffer buf
-                         (when (eq mode major-mode) ;FIXME: derived-mode-p?
-                           (let ((map (if mh-folder-view-stack
-                                          sequence-map
-                                        default-map)))
-                             ;; Yes, make-local-variable is necessary since we
-                             ;; get here during initialization when loading
-                             ;; mh-e.el, after the +inbox buffer has been
-                             ;; created, but before mh-folder-mode has run and
-                             ;; created the local map.
-                             (set (make-local-variable 'tool-bar-map) map))))))
-         (defun mh-tool-bar-folder-buttons-set (symbol value)
-           "Construct tool bar for `mh-folder-mode' and `mh-show-mode'."
-           (set-default symbol value)
-           (mh-tool-bar-folder-buttons-init)
-           (mh-tool-bar-update 'mh-folder-mode mh-folder-tool-bar-map
-                               mh-folder-seq-tool-bar-map)
-           (mh-tool-bar-update 'mh-show-mode mh-show-tool-bar-map
-                               mh-show-seq-tool-bar-map))
-         (defun mh-tool-bar-letter-buttons-set (symbol value)
-           "Construct tool bar for `mh-letter-mode'."
-           (set-default symbol value)
-           (mh-tool-bar-letter-buttons-init)
-           (mh-tool-bar-update 'mh-letter-mode mh-letter-tool-bar-map
-                               mh-letter-tool-bar-map)))
+         (cl-loop for buf in (buffer-list)
+                  do (with-current-buffer buf
+                       (when (eq mode major-mode) ;FIXME: derived-mode-p?
+                         (let ((map (if mh-folder-view-stack
+                                        sequence-map
+                                      default-map)))
+                           ;; Yes, make-local-variable is necessary since we
+                           ;; get here during initialization when loading
+                           ;; mh-e.el, after the +inbox buffer has been
+                           ;; created, but before mh-folder-mode has run and
+                           ;; created the local map.
+                           (set (make-local-variable 'tool-bar-map) map))))))
+       (defun mh-tool-bar-folder-buttons-set (symbol value)
+         "Construct tool bar for `mh-folder-mode' and `mh-show-mode'."
+         (set-default symbol value)
+         (mh-tool-bar-folder-buttons-init)
+         (mh-tool-bar-update 'mh-folder-mode mh-folder-tool-bar-map
+                  mh-folder-seq-tool-bar-map)
+         (mh-tool-bar-update 'mh-show-mode mh-show-tool-bar-map
+                  mh-show-seq-tool-bar-map))
+       (defun mh-tool-bar-letter-buttons-set (symbol value)
+         "Construct tool bar for `mh-letter-mode'."
+         (set-default symbol value)
+         (mh-tool-bar-letter-buttons-init)
+         (mh-tool-bar-update 'mh-letter-mode mh-letter-tool-bar-map
+                  mh-letter-tool-bar-map))
        ;; Declare customizable tool bars
        (custom-declare-variable
         'mh-tool-bar-folder-buttons
