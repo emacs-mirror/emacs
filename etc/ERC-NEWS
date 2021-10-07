@@ -3,6 +3,15 @@ ERC NEWS                                                       -*- outline -*-
 Copyright (C) 2006-2021 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+Please send ERC bug reports to 'bug-gnu-emacs@gnu.org',
+and Cc the 'emacs-erc@gnu.org' mailing list as well.
+If possible, use 'M-x report-emacs-bug'.
+
+This file is about changes in ERC, the powerful, modular, and
+extensible IRC (Internet Relay Chat) client distributed with
+GNU Emacs since Emacs version 22.1.
+
+
 * Changes in ERC 5.4
 
 ** Starting with Emacs 28.1 and ERC 5.4, ERC NEWS are added here again.
@@ -148,6 +157,7 @@ a different server than the one the current user is connected to.
 Using the given nick itself instead of the server it is connected to
 is not standardized, but is widely supported across IRC networks.
 
+
 * Changes in ERC 5.3
 
 ** New function `erc-tls' is to be used for connecting to a server via TLS.
@@ -392,6 +402,7 @@ message types are "333" and "353", respectively.
 **** Turn this into the "xdcc" module for ERC, so that it can be more
 easily enabled.
 
+
 * Changes in ERC 5.2
 
 ** M-x erc RET now starts ERC.
@@ -671,6 +682,7 @@ not.
 **** New function: `erc-toggle-timestamps'.
 Toggles display of timestamps.
 
+
 * Changes in ERC 5.1.4
 
 ** Make find-function and find-variable work in Emacs 22 for
@@ -694,6 +706,7 @@ is deactivated.
 **** Fix some errors that occur when exiting Emacs without first
 quitting open IRC servers.
 
+
 * Changes in ERC 5.1.3
 
 ** Fix use of /quote command with no initial whitespace.
@@ -808,6 +821,7 @@ modules.
 
 **** Don't complete the user's current nickname.
 
+
 * Changes in ERC 5.1.2
 
 ** Fix compiler errors in erc-autojoin.el and erc-dcc.el.
@@ -844,6 +858,7 @@ A side effect of using this new method is that there will only be one
 space before a right timestamp in any saved logs.  If this is
 unacceptable, set `erc-timestamp-use-align-to' to nil.
 
+
 * Changes in ERC 5.1.1
 
 ** Fix a requirement on cl.el.
@@ -877,6 +892,7 @@ new `erc-timestamp-right-align-by-pixel' option to non-nil.
 **** Since most of these changes are now merged into Emacs22, detect
 whether we need these changes and install them only if necessary.
 
+
 * Changes in ERC 5.1
 
 ** Improve XEmacs compatibility.
@@ -1083,10 +1099,12 @@ the right margin.
 
 **** Helps ERC work correctly in viper-mode.
 
+
 * Changes in ERC 5.0.4
 
 ** Fix a problem with undo in channels.
 
+
 * Changes in ERC 5.0.3
 
 ** Fix typo in the `ctcp-request-to' entry of the English catalog.
@@ -1128,6 +1146,7 @@ indicator.  Previously, there was an additional unnecessary space.
 **** Fix an error that occurred when unchecked buffers existed when
 invoking /QUIT.
 
+
 * Changes in ERC 5.0.2
 
 ** If a channel key is required for a certain channel, ERC will prompt
@@ -1161,6 +1180,7 @@ choice anymore.
 
 **** You can now save logs and truncate buffers from the menu-bar.
 
+
 * Changes in ERC 5.0.1
 
 ** Narrowing in ERC buffers no longer causes formatting errors.
@@ -1175,6 +1195,7 @@ choice anymore.
 This means that `erc-track-priority-faces-only', `erc-track-exclude',
 and `erc-track-exclude-types' now work with server buffers.
 
+
 * Changes in ERC 5.0
 
 ** Channel members are now stored as a hash-table.
@@ -1419,6 +1440,7 @@ in XEmacs.
     mode-line where modified channels are shown (only works in GNU
     Emacs versions above 21.3).
 
+
 * Changes in ERC 4.0
 
 ** The module system has again changed a lot.  You can now customize
@@ -1442,6 +1464,7 @@ in XEmacs.
   openprojects to freenode.  You may need to update your configuration
   for a successful automatic nickserv identification.
 
+
 * Changes in ERC 3.0.cvs.20030119
 
 ** New module erc-dcc:
@@ -1473,6 +1496,7 @@ Same applies to timestamps.  You no longer need to (require
 the rest should be automatic.
 
 
+----------------------------------------------------------------------
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
@@ -1487,3 +1511,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+
+Local variables:
+coding: utf-8
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:
