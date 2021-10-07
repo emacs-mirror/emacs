@@ -316,7 +316,7 @@ that closes only when clicked on the close button."
         `(menu-item "Detach" (lambda () (interactive)
                                (tab-bar-detach-tab
                                 ,tab-number))
-                    :help "Detach the tab to new frame"))
+                    :help "Move the tab to new frame"))
       (define-key-after menu [close]
         `(menu-item "Close" (lambda () (interactive)
                               (tab-bar-close-tab ,tab-number))
@@ -1208,8 +1208,8 @@ Interactively, ARG selects the ARGth different frame to move to."
       (force-mode-line-update t))))
 
 (defun tab-bar-detach-tab (&optional from-number)
-  "Detach tab number FROM-NUMBER to a new frame.
-Interactively or without argument, detach current tab."
+  "Move tab number FROM-NUMBER to a new frame.
+Interactively or without argument, move the current tab."
   (interactive (list (1+ (tab-bar--current-tab-index))))
   (let* ((tabs (funcall tab-bar-tabs-function))
          (tab-index (1- (or from-number (1+ (tab-bar--current-tab-index tabs)))))

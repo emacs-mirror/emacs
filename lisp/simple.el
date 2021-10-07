@@ -8429,21 +8429,29 @@ presented."
 
 (defcustom blink-matching-paren t
   "Non-nil means show matching open-paren when close-paren is inserted.
-In addition, if the opening paren is not visible on screen, show
-its position in the echo area.
+If this is non-nil, then when you type a closing delimiter, such as a
+closing parenthesis or brace, Emacs briefly indicates the location
+of the matching opening delimiter.
 
 The valid values are:
 
-  nil               Disable.
-  non-nil           Highlight the opening paren.
-  `jump'            Briefly move cursor to its position.
-  `jump-offscreen'  Briefly move cursor to its position,
-                    even if the opening paren is not on screen."
+  t                 Highlight the matching open-paren if it is visible
+                    in the window, otherwise show the text with matching
+                    open-paren in the echo area.  This is the default.
+  `jump'            If the matching open-paren is visible in the window,
+                    briefly move cursor to its position; otherwise show
+                    the text with matching open-paren in the echo area.
+  `jump-offscreen'  Briefly move cursor to the matching open-paren
+                    even if it is not visible in the window.
+  nil               Don't show the matching open-paren.
+
+Any other non-nil value is handled the same as t."
+
   :type '(choice
           (const :tag "Disable" nil)
-          (const :tag "Highlight" t)
-          (const :tag "Move cursor" jump)
-          (const :tag "Move cursor, even if off screen" jump-offscreen))
+          (const :tag "Highlight open-paren if visible" t)
+          (const :tag "Move cursor to open-paren if visible" jump)
+          (const :tag "Move cursor even if it's off screen" jump-offscreen))
   :group 'paren-blinking)
 
 (defcustom blink-matching-paren-on-screen t

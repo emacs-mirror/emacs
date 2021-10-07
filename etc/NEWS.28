@@ -352,8 +352,8 @@ of the next command to be displayed in a new frame.
 
 +++
 *** New command 'clone-frame' (bound to 'C-x 5 c').
-This is like 'C-x 5 2', but uses the frame parameters of the current
-frame instead of 'default-frame-alist'.
+This is like 'C-x 5 2', but uses the window configuration and frame
+parameters of the current frame instead of 'default-frame-alist'.
 
 ---
 *** Default values of 'frame-title-format' and 'icon-title-format' have changed.
@@ -2852,76 +2852,8 @@ non-nil.
 
 ** ERC
 
----
-*** NickServ passwords can now be retrieved from auth-source.
-The 'erc-use-auth-source-for-nickserv-password' user option enables
-querying auth-source for NickServ passwords.  To enable this, add the
-following to your init file:
-
-    (setq erc-use-auth-source-for-nickserv-password t)
-
----
-*** NickServ identification now prompts for password last.
-When 'erc-prompt-for-nickserv-password' is non-nil, the user used to
-be unconditionally prompted interactively for a password, regardless
-of the value of 'erc-nickserv-passwords', which was effectively
-ignored (same for the new
-'erc-use-auth-source-for-nickserv-password').  This limitation is now
-lifted, and the user is interactively prompted last, after the other
-identification methods have run.
-
----
-*** The '/ignore' command will now ask for a timeout to stop ignoring the user.
-Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
-
----
-*** ERC now recognizes 'C-]' for italic text.
-Italic text is displayed in the new 'erc-italic-face'.
-
----
-*** erc-match.el now supports 'message' highlight type (not including the nick).
-The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
-'erc-fool-highlight-type', 'erc-keyword-highlight-type', and
-'erc-dangerous-host-highlight-type' user options now support a
-'message' type for highlighting the entire message but not the
-sender's nick.
-
----
-*** erc-status-sidebar.el is now part of ERC.
-The 'erc-status-sidebar' package which provides a HexChat-like
-activity overview sidebar for joined IRC channels is now part of ERC.
-
-+++
-*** erc-tls now supports specifying a TLS client certificate.
-The 'erc-tls' function has been updated to allow specifying a TLS
-client certificate for authentication, as an alternative to NickServ
-password-based authentication.  This is referred to as "CertFP" (short
-for Certificate Fingerprint) by several IRC networks.  See the Info
-node "(erc) Connecting" in the ERC manual for more details and
-examples on how to specify and use TLS client certificates with
-'erc-tls'.
-
----
-*** Add 'erc-track-select-mode-line-face' (obsoletes 'erc-track-find-face').
-The 'erc-track-find-face' function of the erc-track module has been
-declared obsolete and rewritten as 'erc-track-select-mode-line-face',
-with different expected arguments (the current and old faces are now
-separated) and clearer documentation.
-
----
-*** Add '/opme' and '/deopme' convenience commands.
-The new '/opme' convenience command asks ChanServ to set the operator
-status for the current nick in the current channel, and '/deopme'
-unsets it.
-
----
-*** Add '/wii' convenience command for whois with idle time.
-The new '/wii' convenience command calls the '/whois' command with the
-given nick as both arguments, which is useful for displaying the whois
-information for the nick along with idle time, even if the nick is on
-a different server than the one the current user is connected to.
-Using the given nick itself instead of the server it is connected to
-is not standardized, but is widely supported across IRC networks.
+*** Starting with Emacs 28.1 and ERC 5.4, see the ERC-NEWS file for
+user-visible changes in ERC.
 
 ** xwidget-webkit mode
 
