@@ -42,6 +42,7 @@
 ;;; Code:
 
 (require 'mh-e)
+(require 'mh-letter)
 
 (require 'gnus-util)
 (require 'imenu)
@@ -548,20 +549,20 @@ group of results."
 ;;; MH-Search Keys
 
 ;; If this changes, modify mh-search-mode-help-messages accordingly, below.
-(gnus-define-keys  mh-search-mode-map
-  "\C-c?"               mh-help
-  "\C-c\C-c"            mh-index-do-search
-  "\C-c\C-p"            mh-pick-do-search
-  "\C-c\C-f\C-b"        mh-to-field
-  "\C-c\C-f\C-c"        mh-to-field
-  "\C-c\C-f\C-m"        mh-to-field
-  "\C-c\C-f\C-s"        mh-to-field
-  "\C-c\C-f\C-t"        mh-to-field
-  "\C-c\C-fb"           mh-to-field
-  "\C-c\C-fc"           mh-to-field
-  "\C-c\C-fm"           mh-to-field
-  "\C-c\C-fs"           mh-to-field
-  "\C-c\C-ft"           mh-to-field)
+(define-keymap :keymap mh-search-mode-map
+  "\C-c?"               #'mh-help
+  "\C-c\C-c"            #'mh-index-do-search
+  "\C-c\C-p"            #'mh-pick-do-search
+  "\C-c\C-f\C-b"        #'mh-to-field
+  "\C-c\C-f\C-c"        #'mh-to-field
+  "\C-c\C-f\C-m"        #'mh-to-field
+  "\C-c\C-f\C-s"        #'mh-to-field
+  "\C-c\C-f\C-t"        #'mh-to-field
+  "\C-c\C-fb"           #'mh-to-field
+  "\C-c\C-fc"           #'mh-to-field
+  "\C-c\C-fm"           #'mh-to-field
+  "\C-c\C-fs"           #'mh-to-field
+  "\C-c\C-ft"           #'mh-to-field)
 
 
 

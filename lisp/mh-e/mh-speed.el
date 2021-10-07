@@ -83,11 +83,11 @@
 (defvar mh-folder-speedbar-key-map (speedbar-make-specialized-keymap)
   "Specialized speedbar keymap for MH-E buffers.")
 
-(gnus-define-keys mh-folder-speedbar-key-map
-  "+"           mh-speed-expand-folder
-  "-"           mh-speed-contract-folder
-  "\r"          mh-speed-view
-  "r"           mh-speed-refresh)
+(define-keymap :keymap mh-folder-speedbar-key-map
+  "+"           #'mh-speed-expand-folder
+  "-"           #'mh-speed-contract-folder
+  "\r"          #'mh-speed-view
+  "r"           #'mh-speed-refresh)
 
 (defvar mh-show-speedbar-key-map mh-folder-speedbar-key-map)
 (defvar mh-letter-speedbar-key-map mh-folder-speedbar-key-map)
