@@ -963,12 +963,7 @@ If set to \"\\n\", each line in the history file will be interpreted as
 one command.  Multi-line commands are split into several commands when
 the input ring is initialized from a history file.
 
-This variable used to initialize `comint-input-ring-separator'.
-`comint-input-ring-separator' is part of Emacs 21; if your Emacs
-does not have it, setting `sql-input-ring-separator' will have no
-effect.  In that case multiline commands will be split into several
-commands when the input history is read, as if you had set
-`sql-input-ring-separator' to \"\\n\"."
+This variable used to initialize `comint-input-ring-separator'."
   :type 'string)
 
 ;; The usual hooks
@@ -2831,16 +2826,6 @@ configured."
     (when font-lock-mode
       (font-lock-mode-internal nil)
       (font-lock-mode-internal t))
-
-    (add-hook 'font-lock-mode-hook
-              (lambda ()
-                  ;; Provide defaults for new font-lock faces.
-                  (defvar font-lock-builtin-face
-                    (if (boundp 'font-lock-preprocessor-face)
-                        font-lock-preprocessor-face
-                      font-lock-keyword-face))
-                  (defvar font-lock-doc-face font-lock-string-face))
-	      nil t)
 
     ;; Setup imenu; it needs the same syntax-alist.
     (when imenu
