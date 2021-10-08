@@ -304,7 +304,6 @@
 
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
-(defvar quail-mode)
 (defvar viper-expert-level)
 (defvar viper-mode-string)
 (defvar viper-major-mode-modifier-list)

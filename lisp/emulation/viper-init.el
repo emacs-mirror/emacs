@@ -25,16 +25,12 @@
 ;;; Code:
 
 ;; compiler pacifier
-(defvar mark-even-if-inactive)
-(defvar quail-mode)
 (defvar iso-accents-mode)
 (defvar viper-current-state)
 (defvar viper-version)
 (defvar viper-expert-level)
 (defvar current-input-method)
 (defvar default-input-method)
-(defvar describe-current-input-method-function)
-(defvar bar-cursor)
 (defvar cursor-type)
 ;; end pacifier
 
@@ -48,7 +44,7 @@
 
 (define-obsolete-function-alias 'viper-device-type #'window-system "27.1")
 
-(defun viper-color-display-p ()
+(defun x-display-color-p ()
   (condition-case nil
       (display-color-p)
     (error nil)))
@@ -81,7 +77,7 @@ In all likelihood, you don't need to bother with this setting."
 (defun viper-has-face-support-p ()
   (cond ((viper-window-display-p))
 	(viper-force-faces)
-	((viper-color-display-p))
+        ((x-display-color-p))
 	(t (memq window-system '(pc)))))
 
 

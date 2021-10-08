@@ -25,7 +25,6 @@
 ;;; Code:
 
 ;; Compiler pacifier
-(defvar read-file-name-map)
 (defvar viper-use-register)
 (defvar viper-s-string)
 (defvar viper-shift-width)
