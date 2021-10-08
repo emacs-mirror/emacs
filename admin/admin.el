@@ -997,6 +997,61 @@ following form to see all bugs which block a given release:
 
   (debbugs-gnu-emacs-release-blocking-reports \"" version "\")\n")))))
 
+(defun admin-icons-update-material-icons (emacsdir materialdir)
+  "Update the Material icon set in in EMACSDIR from MATERIALDIR."
+  (interactive (list (admin--read-root-directory)
+                     (read-directory-name "Image directory: " nil nil t)))
+  (unless (file-exists-p (expand-file-name "src/action" materialdir))
+    (user-error "%s doesn't seem to be the root dir of Material icons" materialdir))
+  (setq emacsdir (expand-file-name "etc/images/material" emacsdir))
+  (let ((iconset-buf (get-buffer-create "icons-define-set: Material")))
+    (with-current-buffer iconset-buf
+      (erase-buffer)
+      (insert "(icons-define-set 'material\n  '("))
+    (dolist (top-dir (directory-files (expand-file-name "src" materialdir) t "[a-z]"))
+      (dolist (icon-dir (directory-files top-dir t "[a-z]"))
+        (let ((newdir (concat emacsdir "/" (file-name-nondirectory top-dir) "/"))
+              (newfil (concat (file-name-nondirectory icon-dir) ".svg"))
+              orig)
+          (mapc (lambda (dir)
+                  (let ((fil (expand-file-name "24px.svg"
+                                               (expand-file-name dir icon-dir))))
+                    (when (file-exists-p fil)
+                      (setq orig fil))))
+                (reverse '("materialiconssharp"
+                           "materialicons"
+                           "materialiconstwotone")))
+          (if (not orig)
+              (lwarn 'icons-update :warning "No suitable icon for: %s" icon-dir)
+            (message "new: %s" (expand-file-name newfil newdir))
+            (unless (file-exists-p newdir)
+              (make-directory newdir))
+            (unless (file-directory-p newdir)
+              (user-error "Not a directory: %s" newdir))
+            (with-temp-buffer
+              (insert-file-contents orig)
+              ;; Modifications here
+              (write-region nil nil (expand-file-name newfil newdir)))
+            (with-current-buffer iconset-buf
+              (insert (format "(%S %S 24)"
+                              (concat (file-name-nondirectory top-dir)
+                                      "/"
+                                      (file-name-nondirectory icon-dir))
+                              (concat "material/"
+                                      (file-name-nondirectory top-dir)
+                                      "/"
+                                      newfil))
+                      "\n    "))))))
+    (with-current-buffer iconset-buf
+      (insert "))\n")
+      (goto-char (point-min))
+      (emacs-lisp-mode))
+    (pop-to-buffer iconset-buf)))
+
+(admin-icons-update-material-icons
+ source-directory
+ (expand-file-name "~/wip/material/material-design-icons-4.0.0"))
+
 (provide 'admin)
 
 ;;; admin.el ends here
