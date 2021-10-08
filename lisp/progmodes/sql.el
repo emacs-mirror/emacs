@@ -1352,8 +1352,6 @@ specified, it's `sql-product' or `sql-connection' must match."
 (defvar sql-interactive-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map comint-mode-map)
-    (if (fboundp 'set-keymap-name)
-	(set-keymap-name map 'sql-interactive-mode-map)); XEmacs
     (define-key map (kbd "C-j") 'sql-accumulate-and-indent)
     (define-key map (kbd "C-c C-w") 'sql-copy-column)
     (define-key map (kbd "O") 'sql-magic-go)
@@ -4160,10 +4158,6 @@ must tell Emacs.  Here's how to do that in your init file:
 	    (modify-syntax-entry ?\\\\ \"\\\\\" sql-mode-syntax-table)))"
   :abbrev-table sql-mode-abbrev-table
 
-  (when (and (featurep 'xemacs)
-             sql-mode-menu)
-      (easy-menu-add sql-mode-menu))
-
   ;; (smie-setup sql-smie-grammar #'sql-smie-rules)
   (setq-local comment-start "--")
   ;; Make each buffer in sql-mode remember the "current" SQLi buffer.
@@ -4286,9 +4280,6 @@ you entered, right above the output it created.
   (setq mode-name
         (concat "SQLi[" (or (sql-get-product-feature sql-product :name)
                             (symbol-name sql-product)) "]"))
-  (when (and (featurep 'xemacs)
-             sql-interactive-mode-menu)
-    (easy-menu-add sql-interactive-mode-menu))
 
   ;; Note that making KEYWORDS-ONLY nil will cause havoc if you try
   ;; SELECT 'x' FROM DUAL with SQL*Plus, because the title of the column
