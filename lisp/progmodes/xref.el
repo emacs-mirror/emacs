@@ -1878,34 +1878,36 @@ Such as the current syntax table and the applied syntax properties."
                                  syntax-needed)))))
 
 (defun xref--collect-matches-1 (regexp file line line-beg line-end syntax-needed)
-  (let (match-pairs matches)
+  (let (matches
+        stop beg end
+        last-beg last-end
+        summary-end)
     (when syntax-needed
       (syntax-propertize line-end))
-    (while (and
-            ;; REGEXP might match an empty string.  Or line.
-            (or (null match-pairs)
-                (> (point) line-beg))
-            (re-search-forward regexp line-end t))
-      (push (cons (match-beginning 0)
-                  (match-end 0))
-            match-pairs))
-    (setq match-pairs (nreverse match-pairs))
-    (while match-pairs
-      (let* ((beg-end (pop match-pairs))
-             (beg-column (- (car beg-end) line-beg))
-             (end-column (- (cdr beg-end) line-beg))
-             (loc (xref-make-file-location file line beg-column))
-             (summary (buffer-substring (if matches (car beg-end) line-beg)
-                                        (if match-pairs
-                                            (caar match-pairs)
-                                          line-end))))
-        (when matches
-          (cl-decf beg-column (- (car beg-end) line-beg))
-          (cl-decf end-column (- (car beg-end) line-beg)))
-        (add-face-text-property beg-column end-column 'xref-match
-                                t summary)
-        (push (xref-make-match summary loc (- end-column beg-column))
-              matches)))
+    (while (not stop)
+      (if (and
+           ;; REGEXP might match an empty string.  Or line.
+           (not (and last-beg (eql end line-beg)))
+           (re-search-forward regexp line-end t))
+          (setq beg (match-beginning 0)
+                end (match-end 0)
+                summary-end beg)
+        (setq stop t
+              summary-end line-end))
+      (when last-beg
+        (let* ((beg-column (- last-beg line-beg))
+               (end-column (- last-end line-beg))
+               (summary-start (if matches last-beg line-beg))
+               (summary (buffer-substring summary-start
+                                          summary-end))
+               (loc (xref-make-file-location file line beg-column)))
+          (add-face-text-property (- last-beg summary-start)
+                                  (- last-end summary-start)
+                                  'xref-match t summary)
+          (push (xref-make-match summary loc (- end-column beg-column))
+                matches)))
+      (setq last-beg beg
+            last-end end))
     (nreverse matches)))
 
 (defun xref--find-file-buffer (file)
