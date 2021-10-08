@@ -945,7 +945,7 @@ the author's description of the changes in the revision on the current
 line.
 
 @item w
-Annotate the working revision--the one you are editing.  If you used
+Annotate the working revision---the one you are editing.  If you used
 @kbd{p} and @kbd{n} to browse to other revisions, use this key to
 return to your working revision.
 
