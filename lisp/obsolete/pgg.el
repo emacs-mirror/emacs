@@ -376,8 +376,7 @@ signer's public key from `pgg-default-keyserver-address'."
 	  (if (null signature) nil
 	    (with-temp-buffer
 	      (buffer-disable-undo)
-	      (unless (featurep 'xemacs)
-		(set-buffer-multibyte nil))
+              (set-buffer-multibyte nil)
 	      (insert-file-contents signature)
 	      (cdr (assq 2 (pgg-decode-armor-region
 			    (point-min)(point-max)))))))
