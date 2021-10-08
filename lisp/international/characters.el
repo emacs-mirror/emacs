@@ -116,11 +116,11 @@ Base characters (Unicode General Category L,N,P,S,Zs)")
 Combining diacritic or mark (Unicode General Category M)")
 
 ;; bidi types
-(define-category ?R "Right-to-left (strong)
+(define-category ?R "Strong R2L
 Characters with \"strong\" right-to-left directionality, i.e.
 with R, AL, RLE, or RLO Unicode bidi character type.")
 
-(define-category ?L "Left-to-right (strong)
+(define-category ?L "Strong L2R
 Characters with \"strong\" left-to-right directionality, i.e.
 with L, LRE, or LRO Unicode bidi character type.")
 
