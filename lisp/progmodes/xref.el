@@ -74,6 +74,20 @@
 (require 'ring)
 (require 'project)
 
+(eval-and-compile
+  (when (version< emacs-version "28")
+    ;; etags.el in Emacs 26 and 27 uses EIEIO, and its location type
+    ;; inherits from `xref-location'.
+    (require 'eieio)
+
+    ;; Suppressing byte-compilation warnings (in Emacs 28+) about
+    ;; `defclass' not being defined, which happens because the
+    ;; `require' statement above is not evaluated either.
+    ;; FIXME: Use `with-suppressed-warnings' when we stop supporting Emacs 26.
+    (with-no-warnings
+      (defclass xref-location () ()
+        :documentation "(Obsolete) location represents a position in a file or buffer."))))
+
 (defgroup xref nil "Cross-referencing commands."
   :version "25.1"
   :group 'tools)

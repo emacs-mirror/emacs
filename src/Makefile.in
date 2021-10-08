@@ -804,7 +804,7 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 		THEFILE=$< $<n
 
 ../native-lisp: | $(pdmp)
-	if test ! -d $@; then \
+	@if test ! -d $@; then \
 	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
 	  if test $(SYSTEM_TYPE) = cygwin; then \
 	    find $@ -name '*.eln' | rebase -v -O -T -; \

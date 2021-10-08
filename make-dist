@@ -366,9 +366,9 @@ possibly_non_vc_files="
   src/config.in
 "$(
   find admin doc etc lisp \
-    \( -name '*.el' -o -name '*.elc' -o -name '*.map' -o -name '*.stamp' \
-       -o -name '*.texi' -o -name '*.tex' -o -name '*.txt' \) \
-    ! -name 'site-init*' ! -name 'site-load*' ! -name 'default*'
+   \( -name '*.el' -o -name '*.elc' -o -name '*.map' -o -name '*.stamp' \
+      -o -name '*.texi' -o -name '*.tex' -o -name '*.txt' -o -name '*.pdf' \) \
+   ! -name 'site-init*' ! -name 'site-load*' ! -name 'default*'
 ) || exit
 
 if [ $with_info = yes ]; then
