@@ -3219,7 +3219,7 @@ PROMPT is also updated to show `help-char' like \"(y, n or C-h) \",
 where `help-char' is automatically bound to `help-form-show'.
 
 No confirmation of the answer is requested; a single character is
-enough.  SPC also means yes, and DEL means no.
+enough.  RET and SPC also means yes, and DEL means no.
 
 To be precise, this function translates user input into responses
 by consulting the bindings in `query-replace-map'; see the

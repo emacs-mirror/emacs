@@ -912,6 +912,109 @@ now been updated to point to Libera.Chat.
 https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html
 
 
+* Incompatible Editing Changes in Emacs 28.1
+
+---
+** 'toggle-truncate-lines' now disables 'visual-line-mode'.
+This is for symmetry with 'visual-line-mode', which disables
+'truncate-lines'.
+
+---
+** 'electric-indent-mode' now also indents inside strings and comments.
+(This only happens when indentation function also supports this.)
+
+To recover the previous behavior you can use:
+
+    (add-hook 'electric-indent-functions
+              (lambda (_) (if (nth 8 (syntax-ppss)) 'no-indent)))
+
+---
+** The 'M-o' ('facemenu-keymap') global binding has been removed.
+To restore the old binding, say something like:
+
+    (require 'facemenu)
+    (define-key global-map "\M-o" 'facemenu-keymap)
+    (define-key facemenu-keymap "\es" 'center-line)
+    (define-key facemenu-keymap "\eS" 'center-paragraph)
+
+The last two lines are not strictly necessary if you don't care about
+having those two commands on the 'M-o' keymap; see the next section.
+
+---
+** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
+Use 'M-x center-line' and 'M-x center-paragraph' instead.  See the
+previous section for how to get back the old bindings.  Alternatively,
+if you only want these two commands to have global bindings they had
+before, you can add the following to your init file:
+
+    (define-key global-map "\M-o\M-s" 'center-line)
+    (define-key global-map "\M-o\M-S" 'center-paragraph)
+
+---
+** The 'M-o M-o' global binding has been removed.
+Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
+command, which updates the syntax highlighting in the current buffer.
+
+---
+** The escape sequence '\e[29~' in Xterm is now mapped to 'menu'.
+Xterm sends this sequence for both 'F16' and 'Menu' keys
+It used to be mapped to 'print' but we couldn't find a terminal
+that uses this sequence for any kind of 'Print' key.
+This makes the Menu key (see https://en.wikipedia.org/wiki/Menu_key)
+work for 'context-menu-mode' in Xterm.
+
+---
+** New user option 'xterm-store-paste-on-kill-ring'.
+If non-nil (the default), Emacs pushes pasted text onto the kill ring
+(if using an xterm-like terminal that supports bracketed paste).
+Setting this to nil inhibits that.
+
+---
+** 'vc-print-branch-log' shows the change log from its root directory.
+It previously used to use the default directory.
+
+---
+** 'project-shell' and 'shell' now use 'pop-to-buffer-same-window'.
+This is to keep the same behavior as Eshell.
+
+---
+** In 'nroff-mode', 'center-line' is no longer bound to a key.
+The original key binding was 'M-s', which interfered with I-search,
+since the latter uses 'M-s' as a prefix key of the search prefix map.
+
+---
+** In 'f90-mode', the backslash character ('\') no longer escapes.
+For about a decade, the backslash character has no longer had a
+special escape syntax in Fortran F90.  To get the old behavior back,
+say something like:
+
+    (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
+
++++
+** Setting 'fill-column' to nil is obsolete.
+This undocumented use of 'fill-column' is now obsolete.  To disable
+auto filling, turn off 'auto-fill-mode' instead.
+
+For instance, you could add something like the following to your init
+file:
+
+    (add-hook 'foo-mode-hook (lambda () (auto-fill-mode -1))
+
+** Xref migrated from EIEIO to cl-defstruct for its core objects.
+This means that 'oref' and 'with-slots' no longer works on them, and
+'make-instance' can no longer be used to create those instances (which
+wasn't recommended anyway).  Packages should keep to using the
+functions like 'xref-make', 'xref-make-match', 'xref-make-*-location',
+as well as accessor functions 'xref-item-summary' and
+'xref-item-location'.
+
+Among the benefits are better performance (noticeable when there are a
+lot of matches) and improved flexibility: 'xref-match-item' instances
+do not require that 'location' inherits from 'xref-location' anymore
+(that class was removed), so packages can create new location types to
+use with "match items" without adding EIEIO as a dependency.
+
+
 * Editing Changes in Emacs 28.1
 
 ** Input methods
@@ -1090,7 +1193,7 @@ buffer to be able to move point to the inaccessible portion.
 'goto-line-relative' is bound to 'C-x n g'.
 
 +++
-** 'got-char' prompts for the character position.
+** 'goto-char' prompts for the character position.
 When called interactively, 'goto-char' now offers the position at
 point as the default.
 
@@ -3168,109 +3271,6 @@ structures.
 ** New major mode for displaying the "etc/AUTHORS" file.
 This new 'etc-authors-mode' provides font-locking for displaying the
 "etc/AUTHORS" file from the Emacs distribution, and not much else.
-
-
-* Incompatible Editing Changes in Emacs 28.1
-
----
-** 'toggle-truncate-lines' now disables 'visual-line-mode'.
-This is for symmetry with 'visual-line-mode', which disables
-'truncate-lines'.
-
----
-** 'electric-indent-mode' now also indents inside strings and comments.
-(This only happens when indentation function also supports this.)
-
-To recover the previous behavior you can use:
-
-    (add-hook 'electric-indent-functions
-              (lambda (_) (if (nth 8 (syntax-ppss)) 'no-indent)))
-
----
-** The 'M-o' ('facemenu-keymap') global binding has been removed.
-To restore the old binding, say something like:
-
-    (require 'facemenu)
-    (define-key global-map "\M-o" 'facemenu-keymap)
-    (define-key facemenu-keymap "\es" 'center-line)
-    (define-key facemenu-keymap "\eS" 'center-paragraph)
-
-The last two lines are not strictly necessary if you don't care about
-having those two commands on the 'M-o' keymap; see the next section.
-
----
-** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
-Use 'M-x center-line' and 'M-x center-paragraph' instead.  See the
-previous section for how to get back the old bindings.  Alternatively,
-if you only want these two commands to have global bindings they had
-before, you can add the following to your init file:
-
-  (define-key global-map "\M-o\M-s" 'center-line)
-  (define-key global-map "\M-o\M-S" 'center-paragraph)
-
----
-** The 'M-o M-o' global binding has been removed.
-Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
-command, which updates the syntax highlighting in the current buffer.
-
----
-** The escape sequence '\e[29~' in Xterm is now mapped to 'menu'.
-Xterm sends this sequence for both 'F16' and 'Menu' keys
-It used to be mapped to 'print' but we couldn't find a terminal
-that uses this sequence for any kind of 'Print' key.
-This makes the Menu key (see https://en.wikipedia.org/wiki/Menu_key)
-work for 'context-menu-mode' in Xterm.
-
----
-** New user option 'xterm-store-paste-on-kill-ring'.
-If non-nil (the default), Emacs pushes pasted text onto the kill ring
-(if using an xterm-like terminal that supports bracketed paste).
-Setting this to nil inhibits that.
-
----
-** 'vc-print-branch-log' shows the change log from its root directory.
-It previously used to use the default directory.
-
----
-** 'project-shell' and 'shell' now use 'pop-to-buffer-same-window'.
-This is to keep the same behavior as Eshell.
-
----
-** In 'nroff-mode', 'center-line' is no longer bound to a key.
-The original key binding was 'M-s', which interfered with I-search,
-since the latter uses 'M-s' as a prefix key of the search prefix map.
-
----
-** In 'f90-mode', the backslash character ('\') no longer escapes.
-For about a decade, the backslash character has no longer had a
-special escape syntax in Fortran F90.  To get the old behavior back,
-say something like:
-
-    (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
-
-+++
-** Setting 'fill-column' to nil is obsolete.
-This undocumented use of 'fill-column' is now obsolete.  To disable
-auto filling, turn off 'auto-fill-mode' instead.
-
-For instance, you could add something like the following to your init
-file:
-
-    (add-hook 'foo-mode-hook (lambda () (auto-fill-mode -1))
-
-** Xref migrated from EIEIO to cl-defstruct for its core objects.
-This means that 'oref' and 'with-slots' no longer works on them, and
-'make-instance' can no longer be used to create those instances (which
-wasn't recommended anyway).  Packages should keep to using the
-functions like 'xref-make', 'xref-make-match', 'xref-make-*-location',
-as well as accessor functions 'xref-item-summary' and
-'xref-item-location'.
-
-Among the benefits are better performance (noticeable when there are a
-lot of matches) and improved flexibility: 'xref-match-item' instances
-do not require that 'location' inherits from 'xref-location' anymore
-(that class was removed), so packages can create new location types to
-use with "match items" without adding EIEIO as a dependency.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
