@@ -956,13 +956,11 @@ GROUP is a string for decoration purposes and XREF is an
 `xref-item' object."
   (require 'compile) ; For the compilation faces.
   (cl-loop for (group . xrefs) in xref-alist
-           for max-line-width =
-           (cl-loop for xref in xrefs
-                    maximize (let ((line (xref-location-line
-                                          (xref-item-location xref))))
-                               (and line (1+ (floor (log line 10))))))
-           for line-format = (and max-line-width
-                                  (format "%%%dd: " max-line-width))
+           for max-line = (cl-loop for xref in xrefs
+                                   maximize (xref-location-line
+                                             (xref-item-location xref)))
+           for line-format = (and max-line
+                                  (format "%%%dd: " (1+ (floor (log max-line 10)))))
            with item-text-props = (list 'mouse-face 'highlight
                                         'keymap xref--button-map
                                         'help-echo
@@ -973,27 +971,27 @@ GROUP is a string for decoration purposes and XREF is an
            do
            (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
-           (cl-loop for xref in xrefs do
-                    (pcase-let (((cl-struct xref-item summary location) xref))
-                      (let* ((line (xref-location-line location))
-                             (prefix
-                              (cond
-                               ((not line) "  ")
-                               ((and (equal line prev-line)
-                                     (equal prev-group group))
-                                "")
-                               (t (propertize (format line-format line)
-                                              'face 'xref-line-number)))))
-                        ;; Render multiple matches on the same line, together.
-                        (when (and (equal prev-group group)
-                                   (or (null line)
-                                       (not (equal prev-line line))))
-                          (insert "\n"))
-                        (xref--insert-propertized (nconc (list 'xref-item xref)
-                                                         item-text-props)
-                                                  prefix summary)
-                        (setq prev-line line
-                              prev-group group))))
+           (dolist (xref xrefs)
+             (pcase-let (((cl-struct xref-item summary location) xref))
+               (let* ((line (xref-location-line location))
+                      (prefix
+                       (cond
+                        ((not line) "  ")
+                        ((and (equal line prev-line)
+                              (equal prev-group group))
+                         "")
+                        (t (propertize (format line-format line)
+                                       'face 'xref-line-number)))))
+                 ;; Render multiple matches on the same line, together.
+                 (when (and (equal prev-group group)
+                            (or (null line)
+                                (not (equal prev-line line))))
+                   (insert "\n"))
+                 (xref--insert-propertized (nconc (list 'xref-item xref)
+                                                  item-text-props)
+                                           prefix summary)
+                 (setq prev-line line
+                       prev-group group))))
            (insert "\n"))
   (add-to-invisibility-spec '(ellipsis . t))
   (save-excursion
