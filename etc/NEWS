@@ -1090,7 +1090,7 @@ buffer to be able to move point to the inaccessible portion.
 'goto-line-relative' is bound to 'C-x n g'.
 
 +++
-** 'got-char' prompts for the character position.
+** 'goto-char' prompts for the character position.
 When called interactively, 'goto-char' now offers the position at
 point as the default.
 
