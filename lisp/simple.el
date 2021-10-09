@@ -534,10 +534,7 @@ Other major modes are defined by comparison with this one."
     (dolist (overlay (overlays-in (point-min) (point-max)))
       (delete-overlay overlay))
     (set-text-properties (point-min) (point-max) nil)
-    (setq-local after-change-functions
-                (list
-                 (lambda (begin end _length)
-                   (set-text-properties begin end nil))))))
+    (setq-local yank-excluded-properties t)))
 
 ;; Special major modes to view specially formatted data rather than files.
 
