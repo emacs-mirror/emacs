@@ -2388,6 +2388,7 @@ If ARG is non-nil, show the *erc-protocol* buffer."
         (let ((inhibit-read-only t)
               (msg (list
                     (concat "Version: " erc-debug-irc-protocol-version)
+                    (concat "ERC-Version: " erc-version)
                     (concat "Emacs-Version: " emacs-version)
                     (erc-make-notice
                      (concat "This buffer displays all IRC protocol "
