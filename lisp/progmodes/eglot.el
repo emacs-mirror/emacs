@@ -2007,7 +2007,7 @@ When called interactively, use the currently active server"
                      (default-directory
                        (if (and (not (string-empty-p uri-path))
                                 (file-directory-p uri-path))
-                           uri-path
+                           (file-name-as-directory uri-path)
                          (project-root (eglot--project server)))))
                 (setq-local major-mode (eglot--major-mode server))
                 (hack-dir-local-variables-non-file-buffer)
