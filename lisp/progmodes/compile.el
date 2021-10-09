@@ -165,6 +165,11 @@ and a string describing how the process finished.")
    (t
     (error "No ongoing compilations"))))
 
+(defcustom compilation-mode-line-icons (display-graphic-p)
+  "Non-nil means to use icons in the mode-line."
+  :type 'boolean
+  :version "29.1")
+
 (defvar compilation-error "error"
   "Stem of message to print when no matches are found.")
 
@@ -175,17 +180,29 @@ and a string describing how the process finished.")
 (defvar compilation-num-warnings-found 0)
 (defvar compilation-num-infos-found 0)
 
-(defconst compilation-mode-line-errors
-  '(" [" (:propertize (:eval (int-to-string compilation-num-errors-found))
-                      face compilation-error
-                      help-echo "Number of errors so far")
-    " " (:propertize (:eval (int-to-string compilation-num-warnings-found))
-                     face compilation-warning
-                     help-echo "Number of warnings so far")
-    " " (:propertize (:eval (int-to-string compilation-num-infos-found))
-                     face compilation-info
-                     help-echo "Number of informational messages so far")
-    "]"))
+(defun compile--get-compilation-mode-line-errors ()
+  `(,(if compilation-mode-line-icons "  " " [")
+    ;; Errors
+    (:propertize (,@(if compilation-mode-line-icons `(,(icons-get-for-modeline "alert/error_outline") " "))
+                  (:eval (int-to-string compilation-num-errors-found)))
+                 face compilation-error
+                 help-echo "Number of errors so far")
+    " "
+    ;; Warnings
+    (:propertize (,@(if compilation-mode-line-icons `(,(icons-get-for-modeline "alert/warning_amber") " "))
+                  (:eval (int-to-string compilation-num-warnings-found)))
+                 face compilation-warning
+                 help-echo "Number of warnings so far")
+    " "
+    ;; Infos
+    (:propertize (,@(if compilation-mode-line-icons `(,(icons-get-for-modeline "action/info_outline") " "))
+                  (:eval (int-to-string compilation-num-infos-found)))
+                 face compilation-info
+                 help-echo "Number of informational messages so far")
+    ,(if compilation-mode-line-icons "  " " ]")))
+
+(defvar compilation-mode-line-errors
+  (compile--get-compilation-mode-line-errors))
 
 ;; If you make any changes to `compilation-error-regexp-alist-alist',
 ;; be sure to run the ERT test in test/lisp/progmodes/compile-tests.el.
