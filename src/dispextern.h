@@ -1326,7 +1326,9 @@ struct glyph_string
   /* The area within row.  */
   enum glyph_row_area area;
 
-  /* Characters to be drawn, and number of characters.  */
+  /* Characters to be drawn, and number of characters.  Note that
+     NCHARS can be zero if this is a composition glyph string, as
+     evidenced by FIRST_GLYPH->type.  */
   unsigned *char2b;
   int nchars;
 
