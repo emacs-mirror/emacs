@@ -979,8 +979,7 @@ Return nil if there is nothing appropriate in the buffer near point."
              ;; sort of fallback match scheme existed.
              ("(elisp)Index"          nil "^ -+ .*: " "\\( \\|$\\)")
              ("(cl)Function Index"    nil "^ -+ .*: " "\\( \\|$\\)")
-             ("(cl)Variable Index"    nil "^ -+ .*: " "\\( \\|$\\)")
-             ("(dired-x)Index"          nil "^ -+ .*: " "\\( \\|$\\)")))
+             ("(cl)Variable Index"    nil "^ -+ .*: " "\\( \\|$\\)")))
 
 (mapc
  (lambda (elem)
