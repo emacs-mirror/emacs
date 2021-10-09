@@ -947,8 +947,8 @@ previous section for how to get back the old bindings.  Alternatively,
 if you only want these two commands to have global bindings they had
 before, you can add the following to your init file:
 
-  (define-key global-map "\M-o\M-s" 'center-line)
-  (define-key global-map "\M-o\M-S" 'center-paragraph)
+    (define-key global-map "\M-o\M-s" 'center-line)
+    (define-key global-map "\M-o\M-S" 'center-paragraph)
 
 ---
 ** The 'M-o M-o' global binding has been removed.
