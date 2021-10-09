@@ -44,11 +44,6 @@
 
 (define-obsolete-function-alias 'viper-device-type #'window-system "27.1")
 
-(defun x-display-color-p ()
-  (condition-case nil
-      (display-color-p)
-    (error nil)))
-
 ;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun viper-window-display-p ()
   (and window-system (not (memq window-system '(tty stream pc)))))
