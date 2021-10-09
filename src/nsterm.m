@@ -2849,20 +2849,27 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
      External (RIF); compute left/right overhang of whole string and set in s
    -------------------------------------------------------------------------- */
 {
-  struct font *font = s->font;
-
   if (s->char2b)
     {
       struct font_metrics metrics;
-      unsigned int codes[2];
-      codes[0] = *(s->char2b);
-      codes[1] = *(s->char2b + s->nchars - 1);
+      if (s->first_glyph->type == CHAR_GLYPH && !s->font_not_found_p)
+        {
+          struct font *font = s->font;
+          font->driver->text_extents (font, s->char2b, s->nchars, &metrics);
+          s->left_overhang = -metrics.lbearing;
+          s->right_overhang
+            = metrics.rbearing > metrics.width
+            ? metrics.rbearing - metrics.width : 0;
+        }
+      else if (s->first_glyph->type == COMPOSITE_GLYPH)
+        {
+          Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
 
-      font->driver->text_extents (font, codes, 2, &metrics);
-      s->left_overhang = -metrics.lbearing;
-      s->right_overhang
-	= metrics.rbearing > metrics.width
-	? metrics.rbearing - metrics.width : 0;
+          composition_gstring_width (gstring, s->cmp_from, s->cmp_to, &metrics);
+          s->right_overhang = (metrics.rbearing > metrics.width
+                               ? metrics.rbearing - metrics.width : 0);
+          s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+        }
     }
   else
     {
