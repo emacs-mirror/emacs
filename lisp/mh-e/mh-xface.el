@@ -145,7 +145,7 @@ The directories are searched for in the order they appear in the list.")
   (cl-loop for type in '(xpm xbm gif)
            when (or (mh-do-in-gnu-emacs
                      (ignore-errors
-                       (mh-funcall-if-exists image-type-available-p type))))
+                       (image-type-available-p type))))
            collect type))
 
 (autoload 'message-tokenize-header "sendmail")
@@ -371,7 +371,7 @@ filenames.  In addition, replaces * with %2a. See URL
                      (eq marker mh-x-image-marker))
             (goto-char marker)
             (mh-do-in-gnu-emacs
-              (mh-funcall-if-exists insert-image (create-image image 'png))))
+              (insert-image (create-image image 'png))))
         (set-buffer-modified-p buffer-modified-flag)))))
 
 (defun mh-x-image-url-fetch-image (url cache-file marker sentinel)
@@ -381,8 +381,7 @@ be displayed in a buffer and position specified by MARKER. The
 actual display is carried out by the SENTINEL function."
   (if mh-wget-executable
       (let ((buffer (generate-new-buffer mh-temp-fetch-buffer))
-            (filename (or (mh-funcall-if-exists make-temp-file "mhe-fetch")
-                          (expand-file-name (make-temp-name "~/mhe-fetch")))))
+            (filename (make-temp-file "mhe-fetch")))
         (with-current-buffer buffer
           (set (make-local-variable 'mh-x-image-url-cache-file) cache-file)
           (set (make-local-variable 'mh-x-image-marker) marker)

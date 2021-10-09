@@ -516,10 +516,6 @@ font-lock is done highlighting.")
 (when (and (boundp 'which-func-modes) (listp which-func-modes))
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
-;; Shush compiler.
-(defvar desktop-save-buffer)
-(defvar font-lock-auto-fontify)
-
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)
 

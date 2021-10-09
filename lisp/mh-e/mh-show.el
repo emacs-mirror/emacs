@@ -363,11 +363,11 @@ still visible.\n")
                         folder-buffer)
            (delete-other-windows))
          (mh-goto-cur-msg t)
-         (mh-funcall-if-exists deactivate-mark)
+         (deactivate-mark)
          (unwind-protect
              (prog1 (call-interactively (function ,original-function))
                (setq normal-exit t))
-           (mh-funcall-if-exists deactivate-mark)
+           (deactivate-mark)
            (when (eq major-mode 'mh-folder-mode)
              (mh-funcall-if-exists hl-line-highlight))
            (cond ((not normal-exit)
@@ -816,9 +816,6 @@ operation."
 
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
-
-;; Shush compiler.
-(defvar font-lock-auto-fontify)
 
 ;;;###mh-autoload
 (define-derived-mode mh-show-mode text-mode "MH-Show"

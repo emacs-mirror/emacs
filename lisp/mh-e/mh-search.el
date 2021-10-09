@@ -1413,9 +1413,6 @@ being the list of messages originally from that folder."
 
 (eval-and-compile (require 'which-func nil t))
 
-;; Shush compiler.
-(defvar which-func-mode)                ; < Emacs 22, XEmacs
-
 ;;;###mh-autoload
 (defun mh-index-create-imenu-index ()
   "Create alist of folder names and positions in index folder buffers."

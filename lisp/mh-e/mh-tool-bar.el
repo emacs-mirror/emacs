@@ -77,9 +77,6 @@ When INCLUDE-FLAG is non-nil, include message body being replied to."
 
 ;;; Tool Bar Creation
 
-;; Shush compiler.
-(defvar image-load-path)
-
 (defmacro mh-tool-bar-define (defaults &rest buttons)
   "Define a tool bar for MH-E.
 DEFAULTS is the list of buttons that are present by default. It

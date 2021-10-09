@@ -121,9 +121,6 @@ Ignores case when searching for OLD."
 
 (defvar mh-logo-cache nil)
 
-;; Shush compiler.
-(defvar image-load-path)
-
 ;;;###mh-autoload
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."

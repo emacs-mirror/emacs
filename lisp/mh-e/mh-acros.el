@@ -162,12 +162,8 @@ preserved."
         (original-position (make-symbol "original-position"))
         (modified-flag (make-symbol "modified-flag")))
     `(save-excursion
-       (let* ((,event-window
-               (or (mh-funcall-if-exists posn-window (event-start ,event))
-                   (mh-funcall-if-exists event-window ,event)))
-              (,event-position
-               (or (mh-funcall-if-exists posn-point (event-start ,event))
-                   (mh-funcall-if-exists event-closest-point ,event)))
+       (let* ((,event-window (posn-window (event-start ,event)))
+              (,event-position (posn-point (event-start ,event)))
               (,original-window (selected-window))
               (,original-position (progn
                                    (set-buffer (window-buffer ,event-window))

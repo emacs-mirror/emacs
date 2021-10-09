@@ -859,12 +859,8 @@ by commands like \"K v\" which operate on individual MIME parts."
      :button-keymap mh-mime-button-map
      :help-echo
      "Mouse-2 click or press RET (in show buffer) to toggle display")
-    (dolist (ov (mh-funcall-if-exists overlays-in begin end))
-      (mh-funcall-if-exists overlay-put ov 'evaporate t))))
-
-;; Shush compiler.
-(defvar mm-verify-function-alist)       ; < Emacs 22
-(defvar mm-decrypt-function-alist)      ; < Emacs 22
+    (dolist (ov (overlays-in begin end))
+      (overlay-put ov 'evaporate t))))
 
 (defun mh-insert-mime-security-button (handle)
   "Display buttons for PGP message, HANDLE."
@@ -905,8 +901,8 @@ by commands like \"K v\" which operate on individual MIME parts."
                              :button-keymap mh-mime-security-button-map
                              :button-face face
                              :help-echo "Mouse-2 click or press RET (in show buffer) to see security details.")
-      (dolist (ov (mh-funcall-if-exists overlays-in begin end))
-        (mh-funcall-if-exists overlay-put ov 'evaporate t))
+      (dolist (ov (overlays-in begin end))
+        (overlay-put ov 'evaporate t))
       (when (equal info "Failed")
         (let* ((type (if (equal (car handle) "multipart/signed")
                          "verification" "decryption"))
@@ -1140,7 +1136,7 @@ this ;-)"
 (defun mh-display-smileys ()
   "Display smileys."
   (when (and mh-graphical-smileys-flag (mh-small-show-buffer-p))
-    (mh-funcall-if-exists smiley-region (point-min) (point-max))))
+    (smiley-region (point-min) (point-max))))
 
 ;;;###mh-autoload
 (defun mh-display-emphasis ()
@@ -1796,8 +1792,7 @@ initialized. Always use the command `mh-have-file-command'.")
 (defun mh-mime-cleanup ()
   "Free the decoded MIME parts."
   (let ((mime-data (gethash (current-buffer) mh-globals-hash)))
-    ;; This is for Emacs, what about XEmacs?
-    (mh-funcall-if-exists remove-images (point-min) (point-max))
+    (remove-images (point-min) (point-max))
     (when mime-data
       (mm-destroy-parts (mh-mime-handles mime-data))
       (remhash (current-buffer) mh-globals-hash))))

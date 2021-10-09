@@ -193,9 +193,6 @@ MESSAGE appears."
                         (mh-list-to-string (mh-seq-containing-msg message t))
                         " "))))
 
-;; Shush compiler.
-(defvar tool-bar-map)
-
 ;;;###mh-autoload
 (defun mh-narrow-to-seq (sequence)
   "Restrict display to messages in SEQUENCE.
