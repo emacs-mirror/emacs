@@ -1355,9 +1355,8 @@ you, configure the option ~org-table-auto-blank-field~.
   Re-align the table, move to the next field.  Creates a new row if
   necessary.
 
-- {{{kbd(C-c SPC)}}} (~org-table-blank-field~) ::
+- {{{kbd(M-x org-table-blank-field)}}} ::
 
-  #+kindex: C-c SPC
   #+findex: org-table-blank-field
   Blank the field at point.
 
@@ -16517,16 +16516,16 @@ keywords.
 :END:
 #+cindex: citation
 
-As of Org 9.5, a new library =oc.el= provides tooling to handle
-citations in Org via "citation processors" that offer some or all of
-the following capabilities:
+The =oc.el= library provides tooling to handle citations in Org via
+"citation processors" that offer some or all of the following
+capabilities:
 
-- "activate" :: Fontification, tooltip preview, etc.
-- "follow" :: At-point actions on citations via ~org-open-at-point~.
-- "insert" :: Add and edit citations via ~org-cite-insert~.
-- "export" :: Via different libraries for different target formats.
+- activate :: Fontification, tooltip preview, etc.
+- follow :: At-point actions on citations via ~org-open-at-point~.
+- insert :: Add and edit citations via ~org-cite-insert~.
+- export :: Via different libraries for different target formats.
 
-The user can configure these with ~org-cite-active-processor~,
+The user can configure these with ~org-cite-activate-processor~,
 ~org-cite-follow-processor~, ~org-cite-insert-processor~, and
 ~org-cite-export-processors~ respectively.
 
@@ -16544,8 +16543,10 @@ more "bibliography" keywords.
 #+bibliography: "/some/file/with spaces/in its name.bib"
 #+end_example
 
+#+kindex: C-c C-x @
+#+findex: org-cite-insert
 One can then insert and edit citations using ~org-cite-insert~, called
-with {{{kbd(M-x org-cite-insert)}}}.
+with {{{kbd(C-c C-x @)}}}.
 
 A /citation/ requires one or more citation /key(s)/, elements
 identifying a reference in the bibliography.
@@ -16554,9 +16555,10 @@ identifying a reference in the bibliography.
 
 - Each key starts with the character =@=.
 
-- Each key can be qualified by a /prefix/ (e.g. "see ") and/or a
-  /suffix/ (e.g. "p. 123"), giving informations useful or necessary fo
-  the comprehension of the citation but not included in the reference.
+- Each key can be qualified by a /prefix/ (e.g.\nbsp{}"see ") and/or
+  a /suffix/ (e.g.\nbsp{}"p.\nbsp{}123"), giving informations useful or necessary
+  fo the comprehension of the citation but not included in the
+  reference.
 
 - A single citation can cite more than one reference ; the keys are
   separated by semicolons ; the formatting of such citation groups is
@@ -16564,11 +16566,9 @@ identifying a reference in the bibliography.
 
 - One can also specify a stylistic variation for the citations by
   inserting a =/= and a style name between the =cite= keyword and the
-  colon ; this usially makes sense only for the author-year styles.
+  colon; this usually makes sense only for the author-year styles.
 
-#+begin_example
-[cite/style:common prefix ;prefix @key suffix; ... ; common suffix]
-#+end_example
+: [cite/style:common prefix ;prefix @key suffix; ... ; common suffix]
 
 The only mandatory elements are:
 
@@ -16583,7 +16583,7 @@ Org currently includes the following export processors:
 - Two processors can export to a variety of formats, including =latex=
   (and therefore =pdf=), =html=, =odt= and plain (UTF8) text:
 
-  - basic :: a basic export processors, well adapted to situations
+  - basic :: a basic export processor, well adapted to situations
     where backward compatibility is not a requirement and formatting
     needs are minimal;
 
@@ -16593,45 +16593,42 @@ Org currently includes the following export processors:
 - In contrast, two other processors target LaTeX and LaTeX-derived
   formats exclusively:
 
-  - natbib :: this export processor uses =bibtex=, the historical
+  - natbib :: this export processor uses BibTeX, the historical
     bibliographic processor used with LaTeX, thus allowing the use of
-    data and style files compatible with this processor (including a
-    large number of publishers' styles).  It uses citation commands
+    data and style files compatible with this processor (including
+    a large number of publishers' styles).  It uses citation commands
     implemented in the LaTeX package =natbib=, allowing more stylistic
     variants that LaTeX's =\cite= command.
 
   - biblatex :: this backend allows the use of data and formats
-    prepared for =biblatex=, an alternate bibliographic processor used
-    with LaTeX, which overcomes some serious =bibtex= limitations, but
-    has not (yet?) been widely adopted by publishers.
+    prepared for BibLaTeX, an alternate bibliographic processor used
+    with LaTeX, which overcomes some serious BibTeX limitations, but
+    has not (yet?)\nbsp{}been widely adopted by publishers.
 
-The =#+cite_export:= keyword specifies the export processor and the
+The =CITE_EXPORT= keyword specifies the export processor and the
 citation (and possibly reference) style(s); for example (all arguments
 are optional)
 
-#+begin_example
-#+cite_export: basic author author-year
-#+end_example
+: #+cite_export: basic author author-year
 
+#+texinfo: @noindent
 specifies the "basic" export processor with citations inserted as
 author's name and references indexed by author's names and year;
 
-#+begin_example
-#+cite_export: csl /some/path/to/vancouver-brackets.csl
-#+end_example
+: #+cite_export: csl /some/path/to/vancouver-brackets.csl
 
+#+texinfo: @noindent
 specifies the "csl" processor and CSL style, which in this case
 defines numeric citations and numeric references according to the
 =Vancouver= specification (as style used in many medical journals),
 following a typesetting variation putting citations between brackets;
 
-#+begin_example
-#+cite_export: natbib kluwer
-#+end_example
+: #+cite_export: natbib kluwer
 
-specifies the "natbib" export processor with a label citation style
+#+texinfo: @noindent
+specifies the =natbib= export processor with a label citation style
 conformant to the Harvard style and the specification of the
-Wolkers-Kluwer publisher; since it relies on the =bibtex= processor of
+Wolkers-Kluwer publisher; since it relies on the ~bibtex~ processor of
 your LaTeX installation, it won't export to anything but PDF.
 
 * Working with Source Code

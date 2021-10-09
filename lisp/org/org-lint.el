@@ -350,7 +350,7 @@ called with one argument, the key used for comparison."
    (lambda (datum name)
      (goto-char (org-element-property :begin datum))
      (re-search-forward
-      (format "^[ \t]*#\\+[A-Za-z]+: +%s *$" (regexp-quote name)))
+      (format "^[ \t]*#\\+[A-Za-z]+:[ \t]*%s[ \t]*$" (regexp-quote name)))
      (match-beginning 0))
    (lambda (key) (format "Duplicate NAME \"%s\"" key))))
 

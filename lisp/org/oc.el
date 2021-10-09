@@ -89,7 +89,6 @@
 (declare-function org-element-type "org-element" (element))
 
 (declare-function org-export-derived-backend-p "org-export" (backend &rest backends))
-(declare-function org-export-get-footnote-definition "org-export" (footnote-reference info))
 (declare-function org-export-get-next-element "org-export" (blob info &optional n))
 (declare-function org-export-get-previous-element "org-export" (blob info &optional n))
 (declare-function org-export-raw-string "org-export" (s))
@@ -152,10 +151,10 @@ triplet following the pattern
   (NAME BIBLIOGRAPHY-STYLE CITATION-STYLE)
 
 There, NAME is the name of a registered citation processor providing export
-functionality, as a symbol.  BIBLIOGRAPHY-STYLE (resp. CITATION-STYLE) is the
-desired default style to use when printing a bibliography (resp. exporting a
-citation), as a string or nil.  Both BIBLIOGRAPHY-STYLE and CITATION-STYLE are
-optional.  NAME is mandatory.
+functionality, as a symbol.  BIBLIOGRAPHY-STYLE (respectively CITATION-STYLE)
+is the desired default style to use when printing a bibliography (respectively
+exporting a citation), as a string or nil.  Both BIBLIOGRAPHY-STYLE and
+CITATION-STYLE are optional.  NAME is mandatory.
 
 The export process selects the citation processor associated to the current
 export back-end, or the most specific back-end the current one is derived from,
@@ -502,8 +501,8 @@ This function assumes S precedes CITATION."
 
 (defun org-cite--move-punct-before (punct citation s info)
   "Move punctuation PUNCT before CITATION object.
-String S contains PUNCT.  The function assumes S follows CITATION.
-Parse tree is modified by side-effect."
+String S contains PUNCT.  INFO is the export state, as a property list.
+The function assumes S follows CITATION.  Parse tree is modified by side-effect."
   (if (equal s punct)
       (org-element-extract-element s)   ;it would be empty anyway
     (org-element-set-element s (substring s (length punct))))
@@ -799,9 +798,20 @@ INFO is the export communication channel, as a property list."
 		        ;; Do not force entering inline definitions, since
 		        ;; `org-element-map' is going to enter it anyway.
                         ((guard (eq 'inline (org-element-property :type datum))))
+                        ;; Find definition for current standard
+                        ;; footnote reference.  Unlike to
+                        ;; `org-export-get-footnote-definition', do
+                        ;; not cache results as they would contain
+                        ;; un-processed citation objects.
                         (_
-                         (funcall search-cites
-                                  (org-export-get-footnote-definition datum info)))))
+                         (let ((label (org-element-property :label datum)))
+                           (funcall
+                            search-cites
+                            (org-element-map data 'footnote-definition
+                              (lambda (d)
+                                (and
+                                 (equal label (org-element-property :label d))
+                                 (or (org-element-contents d) "")))))))))
                     info nil 'footnote-definition t))))
         (funcall search-cites (plist-get info :parse-tree))
         (let ((result (nreverse cites)))
@@ -877,13 +887,16 @@ modified by side-effect."
 
 INFO is the export state, as a property list.
 
+Optional argument RULE is the punctuation rule used, as a triplet.  When nil,
+rule is determined according to `org-cite-note-rules', which see.
+
 Optional argument PUNCT is a list of punctuation marks to be considered.
 When nil, it defaults to `org-cite-punctuation-marks'.
 
 Parse tree is modified by side-effect.
 
 Note: when calling both `org-cite-adjust-note' and `org-cite-wrap-citation' on
-the same object, call `org-cite-adjust-punctuation' first."
+the same object, call `org-cite-adjust-note' first."
   (when org-cite-adjust-note-numbers
     (pcase-let* ((rule (or rule (org-cite--get-note-rule info)))
                  (punct-re (regexp-opt (or punct org-cite-punctuation-marks)))
@@ -1274,11 +1287,13 @@ by side-effect."
           ;; Before removing the citation, transfer its `:post-blank'
           ;; property to the object before, if any.
           (org-cite--set-previous-post-blank cite blanks info)
-        ;; We want to be sure any non-note citation is preceded by
-        ;; a space.  This is particularly important when using
+        ;; Make sure there is a space between a quotation mark and
+        ;; a citation.  This is particularly important when using
         ;; `adaptive' note rule.  See `org-cite-note-rules'.
-        (unless (org-cite-inside-footnote-p cite t)
-          (org-cite--set-previous-post-blank cite 1 info))
+        (let ((previous (org-export-get-previous-element cite info)))
+          (when (and (org-string-nw-p previous)
+                     (string-suffix-p "\"" previous))
+            (org-cite--set-previous-post-blank cite 1 info)))
         (pcase replacement
           ;; String.
           ((pred stringp)
@@ -1384,7 +1399,8 @@ ARG is the prefix argument received when calling `org-open-at-point', or nil."
 
 ;;; Meta-command for citation insertion (insert capability)
 (defun org-cite--allowed-p (context)
-  "Non-nil when a citation can be inserted at point."
+  "Non-nil when a citation can be inserted at point.
+CONTEXT is the element or object at point, as returned by `org-element-context'."
   (let ((type (org-element-type context)))
     (cond
      ;; No citation in attributes, except in parsed ones.
@@ -1430,7 +1446,11 @@ ARG is the prefix argument received when calling `org-open-at-point', or nil."
 			  (skip-chars-backward " \r\t\n")
 			  (if (eq (org-element-class context) 'object) (point)
 			    (line-beginning-position 2)))))
-     ;; At the start of a list item is fine, as long as the bullet is unaffected.
+     ;; At the beginning of a footnote definition, right after the
+     ;; label, is OK.
+     ((eq type 'footnote-definition) (looking-at (rx space)))
+     ;; At the start of a list item is fine, as long as the bullet is
+     ;; unaffected.
      ((eq type 'item)
       (> (point) (+ (org-element-property :begin context)
                     (current-indentation)
