@@ -59,9 +59,9 @@ database.
 * Setting up the mairix interface:: Set up mairix.el.
 * Using::                       List of interactive functions
 * Extending::                   Support your favorite mail reader!
+* GNU Free Documentation License::  The license for this documentation.
 * Function Index:               Function Index.
 * Variable Index:               Variable Index.
-* GNU Free Documentation License::  The license for this documentation.
 @end menu
 
 @node About
