@@ -10073,6 +10073,8 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 
 	case MOVE_NEWLINE_OR_CR:
 	  max_current_x = max (it->current_x, max_current_x);
+	  if (!IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+	    it->override_ascent = -1;
 	  set_iterator_to_next (it, true);
 	  it->continuation_lines_width = 0;
 	  break;
