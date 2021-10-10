@@ -139,6 +139,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mktime-internal:
   # Code from module multiarch:
   # Code from module nocrash:
+  # Code from module nproc:
   # Code from module nstrftime:
   # Code from module open:
   # Code from module openat-h:
@@ -413,6 +414,7 @@ AC_DEFUN([gl_INIT],
   fi
   gl_TIME_MODULE_INDICATOR([mktime])
   gl_MULTIARCH
+  gl_NPROC
   gl_FUNC_GNU_STRFTIME
   gl_PATHMAX
   gl_FUNC_PIPE2
@@ -1221,6 +1223,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mkostemp.c
   lib/mktime-internal.h
   lib/mktime.c
+  lib/nproc.c
+  lib/nproc.h
   lib/nstrftime.c
   lib/open.c
   lib/openat-priv.h
@@ -1370,6 +1374,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mode_t.m4
   m4/multiarch.m4
   m4/nocrash.m4
+  m4/nproc.m4
   m4/nstrftime.m4
   m4/off_t.m4
   m4/open-cloexec.m4

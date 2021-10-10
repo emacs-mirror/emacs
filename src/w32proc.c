@@ -3878,6 +3878,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
   return val - 2;
 }
 
+/* FIXME: Remove, merging any of its special features into num-processors.  */
 DEFUN ("w32-get-nproc", Fw32_get_nproc,
        Sw32_get_nproc, 0, 0, 0,
        doc: /* Return the number of system's processor execution units.  */)

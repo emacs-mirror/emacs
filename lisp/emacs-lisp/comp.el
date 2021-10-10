@@ -3876,26 +3876,13 @@ processes from `comp-async-compilations'"
    do (remhash file-name comp-async-compilations))
   (hash-table-count comp-async-compilations))
 
-(declare-function w32-get-nproc "w32.c")
 (defvar comp-num-cpus nil)
 (defun comp-effective-async-max-jobs ()
   "Compute the effective number of async jobs."
   (if (zerop native-comp-async-jobs-number)
       (or comp-num-cpus
           (setf comp-num-cpus
-                ;; FIXME: we already have a function to determine
-                ;; the number of processors, see get_native_system_info in w32.c.
-                ;; The result needs to be exported to Lisp.
-                (max 1 (/ (cond ((eq 'windows-nt system-type)
-                                 (w32-get-nproc))
-                                ((executable-find "nproc")
-                                 (string-to-number
-                                  (shell-command-to-string "nproc")))
-                                ((eq 'berkeley-unix system-type)
-                                 (string-to-number
-                                  (shell-command-to-string "sysctl -n hw.ncpu")))
-                                (t 1))
-                          2))))
+		(max 1 (/ (num-processors) 2))))
     native-comp-async-jobs-number))
 
 (defvar comp-last-scanned-async-output nil)

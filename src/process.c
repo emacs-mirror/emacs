@@ -90,6 +90,7 @@ static struct rlimit nofile_limit;
 
 #include <c-ctype.h>
 #include <flexmember.h>
+#include <nproc.h>
 #include <sig2str.h>
 #include <verify.h>
 
@@ -8212,6 +8213,20 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+DEFUN ("num-processors", Fnum_processors, Snum_processors, 0, 1, 0,
+       doc: /* Return the number of processors, a positive integer.
+Each usable thread execution unit counts as a processor.
+By default, count the number of available processors,
+overridable via the OMP_NUM_THREADS environment variable.
+If optional argument QUERY is `current', ignore OMP_NUM_THREADS.
+If QUERY is `all', also count processors not available.  */)
+  (Lisp_Object query)
+{
+  return make_uint (num_processors (EQ (query, Qall) ? NPROC_ALL
+				    : EQ (query, Qcurrent) ? NPROC_CURRENT
+				    : NPROC_CURRENT_OVERRIDABLE));
+}
+
 #ifdef subprocesses
 /* Arrange to catch SIGCHLD if this hasn't already been arranged.
    Invoke this after init_process_emacs, and after glib and/or GNUstep
@@ -8472,6 +8487,8 @@ syms_of_process (void)
   DEFSYM (Qpcpu, "pcpu");
   DEFSYM (Qpmem, "pmem");
   DEFSYM (Qargs, "args");
+  DEFSYM (Qall, "all");
+  DEFSYM (Qcurrent, "current");
 
   DEFVAR_BOOL ("delete-exited-processes", delete_exited_processes,
 	       doc: /* Non-nil means delete processes immediately when they exit.
@@ -8633,4 +8650,5 @@ amounts of data in one go.  */);
   defsubr (&Sprocess_inherit_coding_system_flag);
   defsubr (&Slist_system_processes);
   defsubr (&Sprocess_attributes);
+  defsubr (&Snum_processors);
 }

@@ -129,6 +129,7 @@
 #  minmax \
 #  mkostemp \
 #  mktime \
+#  nproc \
 #  nstrftime \
 #  pathmax \
 #  pipe2 \
@@ -2377,6 +2378,16 @@ EXTRA_libgnu_a_SOURCES += mktime.c
 
 endif
 ## end   gnulib module mktime-internal
+
+## begin gnulib module nproc
+ifeq (,$(OMIT_GNULIB_MODULE_nproc))
+
+libgnu_a_SOURCES += nproc.c
+
+EXTRA_DIST += nproc.h
+
+endif
+## end   gnulib module nproc
 
 ## begin gnulib module nstrftime
 ifeq (,$(OMIT_GNULIB_MODULE_nstrftime))
