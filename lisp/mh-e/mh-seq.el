@@ -781,10 +781,10 @@ If SAVE-REFILES is non-nil, then keep the sequences
 that note messages to be refiled."
   (let ((seqs ()))
     (cond (save-refiles
-           (mh-mapc (lambda (seq) ; Save the refiling sequences
-                      (if (mh-folder-name-p (mh-seq-name seq))
-                          (setq seqs (cons seq seqs))))
-                    mh-seq-list)))
+           (mapc (lambda (seq) ; Save the refiling sequences
+                   (if (mh-folder-name-p (mh-seq-name seq))
+                       (setq seqs (cons seq seqs))))
+                 mh-seq-list)))
     (save-excursion
       (if (eq 0 (mh-exec-cmd-quiet nil "mark" folder "-list"))
           (progn

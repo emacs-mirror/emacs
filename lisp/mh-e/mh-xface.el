@@ -30,11 +30,9 @@
 (autoload 'mail-header-parse-address "mail-parse")
 (autoload 'message-fetch-field "message")
 
-(defvar mh-show-xface-function
-  (cond ((>= emacs-major-version 21)
-         #'mh-face-display-function)
-        (t #'ignore))
+(defvar mh-show-xface-function #'mh-face-display-function
   "Determine at run time what function should be called to display X-Face.")
+(make-obsolete-variable 'mh-show-xface-function nil "29.1")
 
 (defvar mh-uncompface-executable
   (and (fboundp 'executable-find) (executable-find "uncompface")))
@@ -49,7 +47,7 @@
   (when (and window-system mh-show-use-xface-flag
              (or mh-decode-mime-flag mh-mhl-format-file
                  mh-clean-message-header-flag))
-    (funcall mh-show-xface-function)))
+    (mh-face-display-function)))
 
 (defun mh-face-display-function ()
   "Display a Face, X-Face, or X-Image-URL header field.

@@ -137,9 +137,7 @@
     ("text/html"
      ,(if (fboundp 'mm-inline-text-html) 'mm-inline-text-html 'mm-inline-text)
      (lambda (handle)
-       (or (and (boundp 'mm-inline-text-html-renderer)
-                mm-inline-text-html-renderer)
-           (and (boundp 'mm-text-html-renderer) mm-text-html-renderer))))
+       mm-text-html-renderer))
     ("text/x-vcard"
      mm-inline-text-vcard
      (lambda (handle)
@@ -184,9 +182,6 @@ Set from last use.")
   '((mh-press-button "\r" "Toggle Display")))
 (defvar mh-mime-button-map
   (let ((map (make-sparse-keymap)))
-    (unless (>= (string-to-number emacs-version) 21)
-      ;; XEmacs doesn't care.
-      (set-keymap-parent map mh-show-mode-map))
     (define-key map [mouse-2] #'mh-push-button)
     (dolist (c mh-mime-button-commands)
       (define-key map (cadr c) (car c)))
@@ -799,7 +794,7 @@ being used to highlight the signature in a MIME part."
                ((not (and (equal (mm-handle-media-supertype handle) "text")
                           (equal (mm-handle-media-subtype handle) "html")))
                 "^-- $")
-               ((eq (mh-mm-text-html-renderer) 'lynx) "^   --$")
+               ((eq mm-text-html-renderer 'lynx) "^   --$")
                (t "^--$"))))
     (save-excursion
       (goto-char (point-max))
@@ -843,10 +838,10 @@ by commands like \"K v\" which operate on individual MIME parts."
       (setq begin (point))
       (gnus-eval-format
        mh-mime-button-line-format mh-mime-button-line-format-alist
-       `(,@(mh-gnus-local-map-property mh-mime-button-map)
-         mh-callback mh-mm-display-part
-         mh-part ,index
-         mh-data ,handle)))
+       `(keymap ,mh-mime-button-map
+                mh-callback mh-mm-display-part
+                mh-part ,index
+                mh-data ,handle)))
     (setq end (point))
     (widget-convert-button
      'link begin end
@@ -885,11 +880,11 @@ by commands like \"K v\" which operate on individual MIME parts."
       (gnus-eval-format
        mh-mime-security-button-line-format
        mh-mime-security-button-line-format-alist
-       `(,@(mh-gnus-local-map-property mh-mime-security-button-map)
-         mh-button-pressed ,mh-mime-security-button-pressed
-         mh-callback mh-mime-security-press-button
-         mh-line-format ,mh-mime-security-button-line-format
-         mh-data ,handle))
+       `(keymap ,mh-mime-security-button-map
+                mh-button-pressed ,mh-mime-security-button-pressed
+                mh-callback mh-mime-security-press-button
+                mh-line-format ,mh-mime-security-button-line-format
+                mh-data ,handle))
       (setq end (point))
       (widget-convert-button 'link begin end
                              :mime-handle handle

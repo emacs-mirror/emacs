@@ -335,10 +335,9 @@ The current frame height is taken into consideration."
 
 
 
-;; Infrastructure to generate show-buffer functions from folder functions
-;; XEmacs does not have deactivate-mark? What is the equivalent of
-;; transient-mark-mode for XEmacs? Should we be restoring the mark in the
-;; folder buffer after the operation has been carried out.
+;; Infrastructure to generate show-buffer functions from folder functions.
+;; Should we be restoring the mark in the folder buffer after the
+;; operation has been carried out?
 (defmacro mh-defun-show-buffer (function original-function
                                          &optional dont-return)
   "Define FUNCTION to run ORIGINAL-FUNCTION in folder buffer.

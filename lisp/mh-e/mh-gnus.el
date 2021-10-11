@@ -35,10 +35,9 @@
   (require 'mm-view nil t)
   (require 'mml nil t))
 
-;; Copy of function from gnus-util.el.
-;; TODO This is not in Gnus 5.11.
-(defun-mh mh-gnus-local-map-property gnus-local-map-property (map)
+(defun mh-gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
+  (declare (obsolete nil "29.1"))
   (list 'keymap map))
 
 (define-obsolete-function-alias 'mh-mm-merge-handles
@@ -103,8 +102,8 @@ PROMPT overrides the default one used to ask user for a file name."
 
 (defun mh-mm-text-html-renderer ()
   "Find the renderer Gnus is using to display text/html MIME parts."
-  (or (and (boundp 'mm-inline-text-html-renderer) mm-inline-text-html-renderer)
-      (and (boundp 'mm-text-html-renderer) mm-text-html-renderer)))
+  (declare (obsolete mm-text-html-renderer "29.1"))
+  mm-text-html-renderer)
 
 (provide 'mh-gnus)
 

@@ -304,21 +304,7 @@ message and scan line."
   (let ((draft-buffer (current-buffer))
         (file-name buffer-file-name)
         (config mh-previous-window-config)
-        ;; FIXME this is subtly different to select-message-coding-system.
-        (coding-system-for-write
-         (if (fboundp 'select-message-coding-system)
-             (select-message-coding-system) ; Emacs has this since at least 21.1
-           (if (and (local-variable-p 'buffer-file-coding-system
-                                      (current-buffer)) ;XEmacs needs two args
-                    ;; We're not sure why, but buffer-file-coding-system
-                    ;; tends to get set to undecided-unix.
-                    (not (memq buffer-file-coding-system
-                               '(undecided undecided-unix undecided-dos))))
-               buffer-file-coding-system
-             (or (and (boundp 'sendmail-coding-system) sendmail-coding-system)
-                 (and (default-boundp 'buffer-file-coding-system)
-                      (default-value 'buffer-file-coding-system))
-                 'utf-8)))))
+        (coding-system-for-write (select-message-coding-system)))
     ;; Older versions of spost do not support -msgid and -mime.
     (unless mh-send-uses-spost-flag
       ;; Adding a Message-ID field looks good, makes it easier to search for
@@ -433,7 +419,7 @@ See also `mh-send'."
     (mh-clean-msg-header (point-min) mh-new-draft-cleaned-headers nil)
     (mh-insert-header-separator)
     ;; Merge in components
-    (mh-mapc
+    (mapc
      (lambda (header-field)
        (let ((field (car header-field))
              (value (cdr header-field))
@@ -697,7 +683,7 @@ message and scan line."
       ;; For "From", the first value wins, with the identity's "From"
       ;; trumping anything in the distcomps file.
       (let ((components-file (mh-bare-components mh-dist-formfile)))
-        (mh-mapc
+        (mapc
          (lambda (header-field)
            (let ((field (car header-field))
                  (value (cdr header-field))
@@ -1276,11 +1262,8 @@ discarded."
       (set-syntax-table old-syntax-table))))
 
 (defun mh-ascii-buffer-p ()
-  "Check if current buffer is entirely composed of ASCII.
-The function doesn't work for XEmacs since `find-charset-region'
-doesn't exist there."
-  (cl-loop for charset in (mh-funcall-if-exists
-                           find-charset-region (point-min) (point-max))
+  "Check if current buffer is entirely composed of ASCII."
+  (cl-loop for charset in (find-charset-region (point-min) (point-max))
            unless (eq charset 'ascii) return nil
            finally return t))
 

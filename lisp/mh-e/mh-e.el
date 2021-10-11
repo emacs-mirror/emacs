@@ -656,9 +656,6 @@ Set mark after inserted text."
 
 ;;; MH-E Customization Support Routines
 
-;; Shush compiler (Emacs 21 and XEmacs).
-(defvar customize-package-emacs-version-alist)
-
 ;; Temporary function and data structure used customization.
 ;; These will be unbound after the options are defined.
 (defmacro mh-strip-package-version (args)
@@ -1655,10 +1652,7 @@ using the Emacs 22 command \"emacsclient\" as follows:
         origMode
         polltime 10
         headertime 0
-        command emacsclient --eval \\='(mh-inc-spool-mh-e)\\='
-
-In XEmacs, the command \"gnuclient\" is used in a similar
-fashion."
+        command emacsclient --eval \\='(mh-inc-spool-mh-e)\\='"
   :type '(repeat (list (file :tag "Spool File")
                        (string :tag "Folder")
                        (character :tag "Key Binding")))
@@ -1813,7 +1807,7 @@ flavors of `mh-yank-behavior' or you have added a
   "Function to call when completing outside of address or folder fields.
 
 In the body of the message,
-\\<mh-letter-mode-map>\\[mh-letter-complete] runs this function,
+\\<mh-letter-mode-map>\\[completion-at-point] runs this function,
 which is set to \"ispell-complete-word\" by default."
   :type '(choice function (const nil))
   :group 'mh-letter
@@ -3022,15 +3016,12 @@ and off. This feature will be turned on by default if your system
 supports it.
 
 The first header field used, if present, is the Gnus-specific
-\"Face:\" field. The \"Face:\" field appeared in GNU Emacs 21 and
-XEmacs. For more information, see URL
+\"Face:\" field. The \"Face:\" field appeared in Emacs 21.
+For more information, see URL
 `https://quimby.gnus.org/circus/face/'. Next is the traditional
 \"X-Face:\" header field. The display of this field requires the
 \"uncompface\" program (see URL
-`ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.z'). Recent
-versions of XEmacs have internal support for \"X-Face:\" images. If
-your version of XEmacs does not, then you'll need both \"uncompface\"
-and the x-face package (see URL `https://www.jpl.org/ftp/pub/elisp/').
+`ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.z').
 
 Finally, MH-E will display images referenced by the \"X-Image-URL:\"
 header field if neither the \"Face:\" nor the \"X-Face:\" fields are
@@ -3522,14 +3513,13 @@ consumed by `defface-mh'.")
 
 (require 'cus-face)
 
-(defvar mh-inherit-face-flag (assq :inherit custom-face-attributes)
-  "Non-nil means that the `defface' :inherit keyword is available.
-The :inherit keyword is available on all supported versions of
-GNU Emacs and XEmacs from at least 21.5.23 on.")
+(defvar mh-inherit-face-flag t
+  "Non-nil means that the `defface' :inherit keyword is available.")
+(make-obsolete-variable 'mh-inherit-face-flag nil "29.1")
 
-(defvar mh-min-colors-defined-flag (and (not (featurep 'xemacs))
-                                        (>= emacs-major-version 22))
+(defvar mh-min-colors-defined-flag t
   "Non-nil means `defface' supports min-colors display requirement.")
+(make-obsolete-variable 'mh-min-colors-defined-flag nil "29.1")
 
 (defun mh-face-data (face &optional inherit)
   "Return spec for FACE.
@@ -3540,37 +3530,10 @@ keyword, return INHERIT literally; otherwise, return spec for
 FACE from the variable `mh-face-data'. This isn't a perfect
 implementation. In the case that the :inherit keyword is not
 supported, any additional attributes in the inherit parameter are
-not added to the returned spec.
-
-Furthermore, when `mh-min-colors-defined-flag' is nil, this
-function finds display entries with \"min-colors\" requirements
-and either removes the \"min-colors\" requirement or strips the
-display entirely if the display does not support the number of
-specified colors."
-  (let ((spec
-         (if (and inherit mh-inherit-face-flag)
-             inherit
-           (or (cadr (assq face mh-face-data))
-               (error "Could not find %s in mh-face-data" face)))))
-
-    (if mh-min-colors-defined-flag
-        spec
-      (let ((cells (display-color-cells))
-            new-spec)
-        ;; Remove entries with min-colors, or delete them if we have
-        ;; fewer colors than they specify.
-        (cl-loop
-         for entry in (reverse spec) do
-         (let ((requirement (if (eq (car entry) t)
-                                nil
-                              (assq 'min-colors (car entry)))))
-           (if requirement
-               (when (>= cells (nth 1 requirement))
-                 (setq new-spec (cons (cons (delq requirement (car entry))
-                                            (cdr entry))
-                                      new-spec)))
-             (setq new-spec (cons entry new-spec)))))
-        new-spec))))
+not added to the returned spec."
+  (or inherit
+      (cadr (assq face mh-face-data))
+      (error "Could not find %s in mh-face-data" face)))
 
 (defface-mh mh-folder-address
   (mh-face-data 'mh-folder-subject '((t (:inherit mh-folder-subject))))

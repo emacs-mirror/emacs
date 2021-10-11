@@ -70,13 +70,9 @@ The optional argument COMMON-SUBSTRING, if non-nil, should be a string
 specifying a common substring for adding the faces
 `completions-first-difference' and `completions-common-part' to
 the completions."
-  (cond ((< emacs-major-version 22) `(display-completion-list ,completions))
-        ((fboundp 'completion-hilit-commonality) ; Emacs 23.1 and later
-         `(display-completion-list
-           (completion-hilit-commonality ,completions
-                                         ,(length common-substring) nil)))
-        (t                              ; Emacs 22
-         `(display-completion-list ,completions ,common-substring))))
+  `(display-completion-list
+    (completion-hilit-commonality ,completions
+                                  ,(length common-substring) nil)))
 
 (define-obsolete-function-alias 'mh-face-foreground
   #'face-foreground "29.1")

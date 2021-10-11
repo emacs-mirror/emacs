@@ -83,11 +83,7 @@ used in lieu of `search' in the CL package."
     (setq pairs (cdr (cdr pairs)))))
 
 ;;;###mh-autoload
-(defun mh-mapc (function list)
-  "Apply FUNCTION to each element of LIST for side effects only."
-  (while list
-    (funcall function (car list))
-    (setq list (cdr list))))
+(define-obsolete-function-alias 'mh-mapc #'mapc "29.1")
 
 (defvar mh-pick-regexp-chars ".*$["
   "List of special characters in pick regular expressions.")
@@ -716,16 +712,12 @@ See Info node `(elisp) Programmed Completion' for details."
                    ((equal path mh-user-path) nil)
                    (t (file-directory-p path))))))))
 
-;; Shush compiler.
-(defvar completion-root-regexp) ;; Apparently used in XEmacs
-
 (defun mh-folder-completing-read (prompt default allow-root-folder-flag)
   "Read folder name with PROMPT and default result DEFAULT.
 If ALLOW-ROOT-FOLDER-FLAG is non-nil then \"+\" is allowed to be
 a folder name corresponding to `mh-user-path'."
   (mh-normalize-folder-name
-   (let ((completion-root-regexp "^[+/]") ;FIXME: Who/what uses that?
-         (minibuffer-local-completion-map mh-folder-completion-map)
+   (let ((minibuffer-local-completion-map mh-folder-completion-map)
          (mh-allow-root-folder-flag allow-root-folder-flag))
      (completing-read prompt 'mh-folder-completion-function nil nil nil
                       'mh-folder-hist default))
