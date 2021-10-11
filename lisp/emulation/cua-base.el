@@ -699,6 +699,11 @@ Repeating prefix key when region is active works as a single prefix key."
   (interactive)
   (cua--prefix-override-replay 0))
 
+;; These aliases are so that we can look up the commands and find the
+;; correct keys when generating menus.
+(defalias 'cua-cut-handler #'cua--prefix-override-handler)
+(defalias 'cua-copy-handler #'cua--prefix-override-handler)
+
 (defun cua--prefix-repeat-handler ()
   "Repeating prefix key when region is active works as a single prefix key."
   (interactive)
@@ -1258,10 +1263,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
     (define-key cua--cua-keys-keymap [(meta v)]
       #'delete-selection-repeat-replace-region))
 
-  (define-key cua--prefix-override-keymap [(control x)]
-    #'cua--prefix-override-handler)
-  (define-key cua--prefix-override-keymap [(control c)]
-    #'cua--prefix-override-handler)
+  (define-key cua--prefix-override-keymap [(control x)] #'cua-cut-handler)
+  (define-key cua--prefix-override-keymap [(control c)] #'cua-copy-handler)
 
   (define-key cua--prefix-repeat-keymap [(control x) (control x)]
     #'cua--prefix-repeat-handler)
