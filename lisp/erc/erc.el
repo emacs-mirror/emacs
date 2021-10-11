@@ -76,6 +76,14 @@
   "https://www.gnu.org/software/emacs/erc.html (mailing list: emacs-erc@gnu.org)"
   "Location of the ERC client on the Internet.")
 
+;; Map each :package-version to the associated Emacs version.
+;; (This eliminates the need for explicit :version keywords on the
+;; custom definitions.)
+(add-to-list
+ 'customize-package-emacs-version-alist
+ '(ERC ("5.2" . "22.1")
+       ("5.3" . "23.1")))
+
 (defgroup erc nil
   "Emacs Internet Relay Chat client."
   :link '(url-link "https://www.gnu.org/software/emacs/erc.html")
