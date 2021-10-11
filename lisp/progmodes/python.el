@@ -555,9 +555,6 @@ class declarations.")
           "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
           "in" "raise" "continue" "finally" "is" "return" "def" "for" "lambda"
           "try"
-          ;; Python 2:
-          "print" "exec"
-          ;; Python 3:
           ;; False, None, and True are listed as keywords on the Python 3
           ;; documentation, but since they also qualify as constants they are
           ;; fontified like that in order to keep font-lock consistent between
