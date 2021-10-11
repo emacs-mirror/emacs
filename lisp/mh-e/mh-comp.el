@@ -596,7 +596,7 @@ See also `mh-compose-forward-as-mime-flag',
         (set (make-local-variable 'mh-mail-header-separator)
              (save-excursion
                (goto-char (mh-mail-header-end))
-               (buffer-substring-no-properties (point) (mh-line-end-position))))
+               (buffer-substring-no-properties (point) (line-end-position))))
         (set (make-local-variable 'mail-header-separator) mh-mail-header-separator) ;override sendmail.el
         ;; If using MML, translate MH-style directive
         (if (equal mh-compose-insertion 'mml)
@@ -1077,7 +1077,6 @@ letter."
   ;; Insert identity.
   (mh-insert-identity mh-identity-default t)
   (mh-identity-make-menu)
-  (mh-identity-add-menu)
 
   ;; Cleanup possibly RFC2047 encoded subject header
   (mh-decode-message-subject)
@@ -1096,7 +1095,6 @@ letter."
   (setq mh-previous-window-config config)
   (setq mode-line-buffer-identification (list "    {%b}"))
   (mh-logo-display)
-  (mh-make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook #'mh-tidy-draft-buffer nil t)
   (run-hook-with-args 'mh-compose-letter-function to subject cc))
 
@@ -1107,18 +1105,8 @@ The versions of MH-E, Emacs, and MH are shown."
   ;; Lazily initialize mh-x-mailer-string.
   (when (and mh-insert-x-mailer-flag (null mh-x-mailer-string))
     (setq mh-x-mailer-string
-          (format "MH-E %s; %s; %sEmacs %s"
-                  mh-version mh-variant-in-use
-                  (if (featurep 'xemacs) "X" "GNU ")
-                  (cond ((not (featurep 'xemacs))
-                         (string-match "[0-9]+\\.[0-9]+\\(\\.[0-9]+\\)?"
-                                       emacs-version)
-                         (match-string 0 emacs-version))
-                        ((string-match "[0-9.]*\\( +([ a-z]+[0-9]+)\\)?"
-                                       emacs-version)
-                         (match-string 0 emacs-version))
-                        (t (format "%s.%s" emacs-major-version
-                                   emacs-minor-version))))))
+          (format "MH-E %s; %s; Emacs %s"
+                  mh-version mh-variant-in-use emacs-version)))
   ;; Insert X-Mailer, but only if it doesn't already exist.
   (save-excursion
     (when (and mh-insert-x-mailer-flag
@@ -1245,7 +1233,7 @@ discarded."
   (cond ((and overwrite-flag
               (mh-goto-header-field (concat field ":")))
          (insert " " value)
-         (delete-region (point) (mh-line-end-position)))
+         (delete-region (point) (line-end-position)))
         ((and (not overwrite-flag)
               (mh-regexp-in-field-p (concat "\\b" (regexp-quote value) "\\b") field))
          ;; Already there, do nothing.

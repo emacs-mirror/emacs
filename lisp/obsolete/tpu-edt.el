@@ -650,12 +650,8 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   (setq tpu-mark-flag (if transient-mark-mode "" (if (tpu-mark) " @" "  ")))
   (force-mode-line-update))
 
-(cond ((featurep 'xemacs)
-       (add-hook 'zmacs-deactivate-region-hook 'tpu-update-mode-line)
-       (add-hook 'zmacs-activate-region-hook 'tpu-update-mode-line))
-      (t
-       (add-hook 'activate-mark-hook 'tpu-update-mode-line)
-       (add-hook 'deactivate-mark-hook 'tpu-update-mode-line)))
+(add-hook 'activate-mark-hook 'tpu-update-mode-line)
+(add-hook 'deactivate-mark-hook 'tpu-update-mode-line)
 
 
 ;;;
@@ -727,15 +723,13 @@ Otherwise sets the tpu-match markers to nil and returns nil."
   "TPU-edt version of the mark function.
 Return the appropriate value of the mark for the current
 version of Emacs."
-  (cond ((featurep 'xemacs) (mark (not zmacs-regions)))
-	(t (and mark-active (mark (not transient-mark-mode))))))
+  (and mark-active (mark (not transient-mark-mode))))
 
 (defun tpu-set-mark (pos)
   "TPU-edt version of the `set-mark' function.
 Sets the mark at POS and activates the region according to the
 current version of Emacs."
-  (set-mark pos)
-  (when (featurep 'xemacs) (when pos (zmacs-activate-region))))
+  (set-mark pos))
 
 (defun tpu-string-prompt (prompt history-symbol)
   "Read a string with PROMPT."
@@ -2306,17 +2300,14 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 ;;;
 (defun tpu-load-xkeys (file)
   "Load the TPU-edt X-windows key definitions FILE.
-If FILE is nil, try to load a default file.  The default file names are
-`~/.tpu-lucid-keys' for XEmacs, and `~/.tpu-keys' for Emacs."
+If FILE is nil, try to load a default file.  The default file name is
+`~/.tpu-keys'."
   (interactive "fX key definition file: ")
   (cond (file
 	 (setq file (expand-file-name file)))
 	(tpu-xkeys-file
 	 (setq file (expand-file-name tpu-xkeys-file)))
-	((featurep 'xemacs)
-	 (setq file (convert-standard-filename
-		     (expand-file-name "~/.tpu-lucid-keys"))))
-	(t
+        (t
 	 (setq file (convert-standard-filename
 		     (expand-file-name "~/.tpu-keys")))
 	 (and (not (file-exists-p file))

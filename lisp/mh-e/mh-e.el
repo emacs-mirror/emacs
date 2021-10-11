@@ -88,10 +88,7 @@
 (require 'mh-buffers)
 (require 'mh-compat)
 
-(mh-do-in-xemacs
-  (require 'mh-xemacs))
-
-(mh-font-lock-add-keywords
+(font-lock-add-keywords
  'emacs-lisp-mode
  (eval-when-compile
    `((,(concat "(\\("
@@ -486,7 +483,7 @@ all the strings have been used."
                 (count 0))
             (while (and (not (eobp)) (< count mh-index-max-cmdline-args))
               (push (buffer-substring-no-properties (point)
-                                                    (mh-line-end-position))
+                                                    (line-end-position))
                     arg-list)
               (cl-incf count)
               (forward-line))
@@ -618,10 +615,6 @@ Output is expected to be shown to user, not parsed by MH-E."
   ;; highlight a region containing the new messages, which is undesirable.
   ;; The bug wasn't seen in emacs21 but still occurred in XEmacs21.4.
   (mh-exchange-point-and-mark-preserving-active-mark))
-
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar mark-active))
 
 (defun mh-exchange-point-and-mark-preserving-active-mark ()
   "Put the mark where point is now, and point where the mark is now.
@@ -3117,42 +3110,6 @@ of your own choosing."
   :group 'mh-tool-bar
   :package-version '(MH-E . "7.0"))
 
-;; XEmacs has a couple of extra customizations...
-(mh-do-in-xemacs
-  (defcustom-mh mh-xemacs-use-tool-bar-flag mh-xemacs-has-tool-bar-flag
-    "If non-nil, use tool bar.
-
-This option controls whether to show the MH-E icons at all. By
-default, this option is turned on if the window system supports
-tool bars. If your system doesn't support tool bars, then you
-won't be able to turn on this option."
-    :type 'boolean
-    :group 'mh-tool-bar
-    :set (lambda (symbol value)
-           (if (and (eq value t)
-                    (not mh-xemacs-has-tool-bar-flag))
-               (error "Tool bar not supported"))
-           (set-default symbol value))
-    :package-version '(MH-E . "7.3"))
-
-  (defcustom-mh mh-xemacs-tool-bar-position nil
-    "Tool bar location.
-
-This option controls the placement of the tool bar along the four
-edges of the frame. You can choose from one of \"Same As Default
-Tool Bar\", \"Top\", \"Bottom\", \"Left\", or \"Right\". If this
-variable is set to anything other than \"Same As Default Tool
-Bar\" and the default tool bar is in a different location, then
-two tool bars will be displayed: the MH-E tool bar and the
-default tool bar."
-    :type '(radio (const :tag "Same As Default Tool Bar" :value nil)
-                  (const :tag "Top" :value top)
-                  (const :tag "Bottom" :value bottom)
-                  (const :tag "Left" :value left)
-                  (const :tag "Right" :value right))
-    :group 'mh-tool-bar
-    :package-version '(MH-E . "7.3")))
-
 
 
 ;;; Hooks (:group 'mh-hooks + group where hook described)
@@ -3282,7 +3239,7 @@ function used to insert the signature with
   :group 'mh-letter
   :package-version '(MH-E . "8.0"))
 
-(mh-define-obsolete-variable-alias 'mh-kill-folder-suppress-prompt-hooks
+(define-obsolete-variable-alias 'mh-kill-folder-suppress-prompt-hooks
   'mh-kill-folder-suppress-prompt-functions "24.3")
 (defcustom-mh mh-kill-folder-suppress-prompt-functions '(mh-search-p)
   "Abnormal hook run at the beginning of \\<mh-folder-mode-map>\\[mh-kill-folder].
@@ -3598,7 +3555,7 @@ specified colors."
 
     (if mh-min-colors-defined-flag
         spec
-      (let ((cells (mh-display-color-cells))
+      (let ((cells (display-color-cells))
             new-spec)
         ;; Remove entries with min-colors, or delete them if we have
         ;; fewer colors than they specify.

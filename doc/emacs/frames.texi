@@ -458,8 +458,8 @@ Create a new frame using the default frame parameters
 @item C-x 5 c
 @kindex C-x 5 c
 @findex clone-frame
-Create a new frame using the parameters of the current frame
-(@code{clone-frame}).
+Create a new frame using the window configuration and frame parameters
+of the current frame (@code{clone-frame}).
 
 @item C-x 5 b @var{bufname} @key{RET}
 Select buffer @var{bufname} in another frame.  This runs

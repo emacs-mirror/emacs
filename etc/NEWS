@@ -118,6 +118,15 @@ Emacs buffers, like indentation and the like.  The new ert function
 * Incompatible Lisp Changes in Emacs 29.1
 
 ---
+** The 'inhibit-changing-match-data' variable is now obsolete.
+Instead, functions like 'string-match' and 'looking-at' now take an
+optional 'inhibit-modify' argument.
+
+---
+** 'gnus-define-keys' is now obsolete.
+Use 'define-keymap' instead.
+
+---
 ** MozRepl has been removed from js.el.
 MozRepl was removed from Firefox in 2017, so this code doesn't work
 with recent versions of Firefox.

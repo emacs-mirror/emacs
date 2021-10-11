@@ -290,6 +290,8 @@ holds a keymap."
       "Specify on which side the tool bar shall be.
 Possible values are `top' (tool bar on top), `bottom' (tool bar at bottom),
 `left' (tool bar on left) and `right' (tool bar on right).
+This option has effect only on graphical frames and only
+if Emacs was built with GTK.
 Customize `tool-bar-mode' if you want to show or hide the tool bar."
       :version "24.1"
       :type '(choice (const top)

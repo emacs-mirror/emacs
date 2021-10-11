@@ -803,8 +803,17 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="../src/emacs$(EXEEXT)"\
 		THEFILE=$< $<n
 
+## FIXME: this is fragile!  We lie to Make about the files produced by
+## this rule, and we rely on the absence of the native-lisp directory
+## to trigger it.  This means that if anything goes wrong during
+## native compilation, the only way to trigger it again is to remove
+## the directory and re-native-compile everything.  The main
+## underlying problem is that the name of the subdirectory of
+## native-lisp where the *.eln files will be produced, and the exact
+## names of those *.eln files, cannot be known in advance; we must ask
+## Emacs to produce them.
 ../native-lisp: | $(pdmp)
-	if test ! -d $@; then \
+	@if test ! -d $@; then \
 	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
 	  if test $(SYSTEM_TYPE) = cygwin; then \
 	    find $@ -name '*.eln' | rebase -v -O -T -; \

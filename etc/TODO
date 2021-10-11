@@ -444,6 +444,25 @@ consistency checks that make sure the new code computes the same results
 as the old code.  And once that works well, we can remove the old code
 and old fields.
 
+** Implement Unicode-compliant display of "default-ignorable" characters
+See the "Characters Ignored for Display" section of paragraph 5.21 in
+the Unicode Standard for the details.
+
+The implementation would import the data from Unicode UCD file
+DerivedCoreProperties.txt, and provide a minor mode that arranges for
+the characters with the Default_Ignorable_Code_Point (DI) property to
+be hidden on display.  One way of implementing that could be via
+glyphless-char-display-control; that one is global, but maybe there's
+a way of making it buffer-local.  Alternatively, this could be
+implemented in C in the display engine.
+
+An additional aspect of this is the display of U+00AD SOFT HYPHEN as
+invisible except at line boundaries.  Note that this would need to
+support hard (physical) newlines in the buffer as well as soft
+wrapping of long lines under 'visual-line-mode'.  The algorithm for
+selecting the wrap point may also need be changed to break at the soft
+hyphen.
+
 ** FFI (foreign function interface)
 See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 

@@ -35,9 +35,7 @@
 (defvar viper--key-maps)
 (defvar viper--intercept-key-maps)
 (defvar iso-accents-mode)
-(defvar quail-mode)
 (defvar quail-current-str)
-(defvar mark-even-if-inactive)
 (defvar viper--init-message)
 (defvar viper-initial)
 (defvar undo-beg-posn)
@@ -69,8 +67,7 @@
 	 (nm-p (intern (concat snm "-p")))
 	 (nms (intern (concat snm "s"))))
     `(defun ,nm-p (com)
-       (consp (viper-memq-char com ,nms)
-	      ))))
+       (consp (memq com ,nms)))))
 
 ;; Variables for defining VI commands
 
@@ -1035,23 +1032,23 @@ as a Meta key and any number of multiple escapes are allowed."
 	cmd-info
 	cmd-to-exec-at-end)
     (while (and cont
-		(viper-memq-char char
-				 (list ?c ?d ?y ?! ?< ?> ?= ?# ?r ?R ?\"
-				       viper-buffer-search-char)))
+                (memq char
+                      (list ?c ?d ?y ?! ?< ?> ?= ?# ?r ?R ?\"
+                            viper-buffer-search-char)))
       (if com
 	  ;; this means that we already have a command character, so we
 	  ;; construct a com list and exit while.  however, if char is "
 	  ;; it is an error.
 	  (progn
 	    ;; new com is (CHAR . OLDCOM)
-	    (if (viper-memq-char char '(?# ?\")) (user-error viper-ViperBell))
+            (if (memq char '(?# ?\")) (user-error viper-ViperBell))
 	    (setq com (cons char com))
 	    (setq cont nil))
 	;; If com is nil we set com as char, and read more.  Again, if char is
 	;; ", we read the name of register and store it in viper-use-register.
 	;; if char is !, =, or #, a complete com is formed so we exit the while
 	;; loop.
-	(cond ((viper-memq-char char '(?! ?=))
+        (cond ((memq char '(?! ?=))
 	       (setq com char)
 	       (setq char (read-char))
 	       (setq cont nil))
@@ -1091,7 +1088,7 @@ as a Meta key and any number of multiple escapes are allowed."
 		 `(key-binding (char-to-string ,char)))))
 
       ;; as com is non-nil, this means that we have a command to execute
-      (if (viper-memq-char (car com) '(?r ?R))
+      (if (memq (car com) '(?r ?R))
 	  ;; execute appropriate region command.
 	  (let ((char (car com)) (com (cdr com)))
 	    (setq prefix-arg (cons value com))
@@ -2603,12 +2600,12 @@ On reaching beginning of line, stop and signal error."
   (let ((prev-char (viper-char-at-pos 'backward))
 	(saved-point (point)))
     ;; skip non-newline separators backward
-    (while (and (not (viper-memq-char prev-char '(nil \n)))
+    (while (and (not (memq prev-char '(nil \n)))
 		(< lim (point))
 		;; must be non-newline separator
 		(if (eq viper-syntax-preference 'strict-vi)
-		    (viper-memq-char prev-char '(?\  ?\t))
-		  (viper-memq-char (char-syntax prev-char) '(?\  ?-))))
+                    (memq prev-char '(?\  ?\t))
+                  (memq (char-syntax prev-char) '(?\  ?-))))
       (viper-backward-char-carefully)
       (setq prev-char (viper-char-at-pos 'backward)))
 
@@ -2622,12 +2619,12 @@ On reaching beginning of line, stop and signal error."
 
     ;; skip again, but make sure we don't overshoot the limit
     (if twice
-	(while (and (not (viper-memq-char prev-char '(nil \n)))
+        (while (and (not (memq prev-char '(nil \n)))
 		    (< lim (point))
 		    ;; must be non-newline separator
 		    (if (eq viper-syntax-preference 'strict-vi)
-			(viper-memq-char prev-char '(?\  ?\t))
-		      (viper-memq-char (char-syntax prev-char) '(?\  ?-))))
+                        (memq prev-char '(?\  ?\t))
+                      (memq (char-syntax prev-char) '(?\  ?-))))
 	  (viper-backward-char-carefully)
 	  (setq prev-char (viper-char-at-pos 'backward))))
 
@@ -2645,10 +2642,10 @@ On reaching beginning of line, stop and signal error."
     (viper-forward-word-kernel val)
     (if com
 	(progn
-	  (cond ((viper-char-equal com ?c)
+          (cond ((eq com ?c)
 		 (viper-separator-skipback-special 'twice viper-com-point))
 		;; Yank words including the whitespace, but not newline
-		((viper-char-equal com ?y)
+                ((eq com ?y)
 		 (viper-separator-skipback-special nil viper-com-point))
 		((viper-dotable-command-p com)
 		 (viper-separator-skipback-special nil viper-com-point)))
@@ -2666,10 +2663,10 @@ On reaching beginning of line, stop and signal error."
 		(viper-skip-nonseparators 'forward)
 		(viper-skip-separators t))
     (if com (progn
-	      (cond ((viper-char-equal com ?c)
+              (cond ((eq com ?c)
 		     (viper-separator-skipback-special 'twice viper-com-point))
 		    ;; Yank words including the whitespace, but not newline
-		    ((viper-char-equal com ?y)
+                    ((eq com ?y)
 		     (viper-separator-skipback-special nil viper-com-point))
 		    ((viper-dotable-command-p com)
 		     (viper-separator-skipback-special nil viper-com-point)))
@@ -4714,15 +4711,15 @@ Please, specify your level now: "))
 (defun viper-submit-report ()
   "Submit bug report on Viper."
   (interactive)
-  (defvar viper-color-display-p)
+  (defvar x-display-color-p)
   (defvar viper-frame-parameters)
   (defvar viper-minibuffer-emacs-face)
   (defvar viper-minibuffer-vi-face)
   (defvar viper-minibuffer-insert-face)
   (let ((reporter-prompt-for-summary-p t)
-	(viper-color-display-p (if (viper-window-display-p)
-			      (viper-color-display-p)
-                              'non-x))
+        (x-display-color-p (if (viper-window-display-p)
+                              (x-display-color-p)
+                             'non-x))
         (viper-frame-parameters (frame-parameters (selected-frame)))
 	(viper-minibuffer-emacs-face (if (viper-has-face-support-p)
                                          (facep
@@ -4780,7 +4777,7 @@ Please, specify your level now: "))
 		        'viper-expert-level
 		        'major-mode
 		        'window-system
-			'viper-color-display-p
+                        'x-display-color-p
 			'viper-frame-parameters
 			'viper-minibuffer-vi-face
 			'viper-minibuffer-insert-face

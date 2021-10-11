@@ -294,7 +294,7 @@ at the end."
         (while (not (eobp))
           (forward-char address-start-offset)
           (unless (equal (string-match spaces (buffer-substring-no-properties
-                                               (point) (mh-line-end-position)))
+                                               (point) (line-end-position)))
                          0)
             (beginning-of-line)
             (backward-char)
@@ -455,8 +455,8 @@ If optional argument STRING is given then that is assumed to be
 the scan line. Otherwise uses the line at point as the scan line
 to parse."
   (let* ((string (or string (buffer-substring-no-properties
-                             (mh-line-beginning-position)
-                             (mh-line-end-position))))
+                             (line-beginning-position)
+                             (line-end-position))))
          (address-start (+ mh-cmd-note mh-scan-field-from-start-offset))
          (body-start (+ mh-cmd-note mh-scan-field-from-end-offset))
          (first-string (substring string 0 address-start)))
@@ -597,20 +597,20 @@ Only information about messages in MSG-LIST are added to the tree."
         (while (not (eobp))
           (cl-block process-message
             (let* ((index-line
-                    (prog1 (buffer-substring (point) (mh-line-end-position))
+                    (prog1 (buffer-substring (point) (line-end-position))
                       (forward-line)))
                    (index (string-to-number index-line))
-                   (id (prog1 (buffer-substring (point) (mh-line-end-position))
+                   (id (prog1 (buffer-substring (point) (line-end-position))
                          (forward-line)))
                    (refs (prog1
-                             (buffer-substring (point) (mh-line-end-position))
+                             (buffer-substring (point) (line-end-position))
                            (forward-line)))
                    (in-reply-to (prog1 (buffer-substring (point)
-                                                         (mh-line-end-position))
+                                                         (line-end-position))
                                   (forward-line)))
                    (subject (prog1
                                 (buffer-substring
-                                 (point) (mh-line-end-position))
+                                 (point) (line-end-position))
                               (forward-line)))
                    (subject-re-p nil))
               (unless (gethash index mh-thread-scan-line-map)

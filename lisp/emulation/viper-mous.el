@@ -26,7 +26,6 @@
 
 ;; compiler pacifier
 (defvar double-click-time)
-(defvar mouse-track-multi-click-time)
 (defvar viper-search-start-marker)
 (defvar viper-local-search-start-marker)
 (defvar viper-search-history)
@@ -76,8 +75,8 @@ or a triple-click."
 
 ;; remembers prefix argument to pass along to commands invoked by second
 ;; click.
-;; This is needed because in Emacs (not XEmacs), assigning to prefix-arg
-;; causes Emacs to count the second click as if it was a single click
+;; This is needed because assigning to prefix-arg causes Emacs to
+;; count the second click as if it was a single click
 (defvar viper-global-prefix-argument nil)
 
 

@@ -672,7 +672,6 @@ Return the byte's value as an integer."
     (let* ((result nil)
            (flen (length fname))
            (case-fold-search nil)
-           (inhibit-changing-match-data t)
            ;; Find a conservative bound for the loop below by using
            ;; Boyer-Moore on the raw dirstate without parsing it; we
            ;; know we can't possibly find fname _after_ the last place
@@ -976,10 +975,9 @@ REPO must be the directory name of an hg repository."
   "Test whether the ignore pattern set HGIP says to ignore FILENAME.
 FILENAME must be the file's true absolute name."
   (let ((patterns (vc-hg--ignore-patterns-ignore-patterns hgip))
-        (inhibit-changing-match-data t)
         (ignored nil))
     (while (and patterns (not ignored))
-      (setf ignored (string-match (pop patterns) filename)))
+      (setf ignored (string-match-p (pop patterns) filename)))
     ignored))
 
 (defvar vc-hg--cached-ignore-patterns nil
@@ -1043,7 +1041,8 @@ Avoids the need to repeatedly scan dirstate on repeated calls to
              (equal size (pop cache))
              (equal ascii-fname (pop cache)))
         (pop cache)
-      (let ((result (vc-hg--raw-dirstate-search dirstate ascii-fname)))
+      (let ((result (save-match-data
+                      (vc-hg--raw-dirstate-search dirstate ascii-fname))))
         (setf vc-hg--dirstate-scan-cache
               (list dirstate mtime size ascii-fname result))
         result))))

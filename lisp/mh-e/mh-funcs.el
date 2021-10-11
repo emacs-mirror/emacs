@@ -147,7 +147,7 @@ Display the results only if something went wrong."
                                             "-recurse"
                                           "-norecurse"))
         (goto-char (point-min))
-        (mh-view-mode-enter)
+        (view-mode-enter)
         (setq view-exit-action 'kill-buffer)
         (message "Listing folders...done")))))
 

@@ -53,7 +53,7 @@
 ;;;###mh-autoload
 (defmacro mh-do-in-xemacs (&rest body)
   "Execute BODY if in XEmacs."
-  (declare (debug t) (indent defun))
+  (declare (obsolete nil "29.1") (debug t) (indent defun))
   (when (featurep 'xemacs) `(progn ,@body)))
 
 ;;;###mh-autoload
@@ -99,20 +99,18 @@ Otherwise, create macro NAME with ARG-LIST and BODY."
   "Make HOOK local if needed.
 XEmacs and versions of GNU Emacs before 21.1 require
 `make-local-hook' to be called."
+  (declare (obsolete nil "29.1"))
   (when (and (fboundp 'make-local-hook)
              (not (get 'make-local-hook 'byte-obsolete-info)))
     `(make-local-hook ,hook)))
 
 ;;;###mh-autoload
 (defmacro mh-mark-active-p (check-transient-mark-mode-flag)
-  "A macro that expands into appropriate code in XEmacs and nil in GNU Emacs.
-In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then
-check if variable `transient-mark-mode' is active."
-  (cond ((featurep 'xemacs)             ;XEmacs
-         '(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
-        ((not check-transient-mark-mode-flag) ;GNU Emacs
+  "If CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then check if
+variable `transient-mark-mode' is active."
+  (cond ((not check-transient-mark-mode-flag)
          '(and (boundp 'mark-active) mark-active))
-        (t                              ;GNU Emacs
+        (t
          '(and (boundp 'transient-mark-mode) transient-mark-mode
                (boundp 'mark-active) mark-active))))
 
@@ -164,12 +162,8 @@ preserved."
         (original-position (make-symbol "original-position"))
         (modified-flag (make-symbol "modified-flag")))
     `(save-excursion
-       (let* ((,event-window
-               (or (mh-funcall-if-exists posn-window (event-start ,event))
-                   (mh-funcall-if-exists event-window ,event)))
-              (,event-position
-               (or (mh-funcall-if-exists posn-point (event-start ,event))
-                   (mh-funcall-if-exists event-closest-point ,event)))
+       (let* ((,event-window (posn-window (event-start ,event)))
+              (,event-position (posn-point (event-start ,event)))
               (,original-window (selected-window))
               (,original-position (progn
                                    (set-buffer (window-buffer ,event-window))

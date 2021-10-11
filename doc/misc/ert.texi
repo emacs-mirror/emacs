@@ -415,7 +415,7 @@ emacs -batch -l ert -l my-tests.el \
 @end example
 
 By default, ERT test failure summaries are quite brief in batch
-mode--only the names of the failed tests are listed.  If the
+mode---only the names of the failed tests are listed.  If the
 EMACS_TEST_VERBOSE environment variable is set, the failure summaries
 will also include the data from the failing test.
 

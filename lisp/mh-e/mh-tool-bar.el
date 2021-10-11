@@ -29,8 +29,6 @@
 (require 'mh-e)
 (mh-do-in-gnu-emacs
   (require 'tool-bar))
-(mh-do-in-xemacs
-  (require 'toolbar))
 
 ;;; Tool Bar Commands
 
@@ -78,9 +76,6 @@ When INCLUDE-FLAG is non-nil, include message body being replied to."
 
 
 ;;; Tool Bar Creation
-
-;; Shush compiler.
-(defvar image-load-path)
 
 (defmacro mh-tool-bar-define (defaults &rest buttons)
   "Define a tool bar for MH-E.
@@ -145,8 +140,6 @@ where,
       (let* ((name (nth 0 button))
              (name-str (symbol-name name))
              (icon (nth 2 button))
-             (xemacs-icon (mh-do-in-xemacs
-                            `(cdr (assoc (quote ,(intern icon)) mh-xemacs-icon-map))))
              (full-doc (nth 3 button))
              (doc (if (string-match "\\(.*\\)\n" full-doc)
                       (match-string 1 full-doc)
@@ -186,7 +179,7 @@ where,
                                  (t 'folder-buttons)))
                  (docs (cond ((eq mbuttons 'letter-buttons) 'letter-docs)
                              ((eq mbuttons 'folder-buttons) 'folder-docs))))
-            (add-to-list vector-list `(vector ,xemacs-icon ',function t ,full-doc))
+            (add-to-list vector-list `(vector nil ',function t ,full-doc))
             (add-to-list
              setter `(when (member ',name ,list)
                        (mh-funcall-if-exists
@@ -220,8 +213,8 @@ where,
          ;; Tool bar initialization functions
          (defun mh-tool-bar-folder-buttons-init ()
            (when (mh-buffer-exists-p 'mh-folder-mode)
-             (let* ((load-path (mh-image-load-path-for-library "mh-e"
-                                                               "mh-logo.xpm"))
+             (let* ((load-path (image-load-path-for-library "mh-e"
+                                                            "mh-logo.xpm"))
                     (image-load-path (cons (car load-path)
                                            (when (boundp 'image-load-path)
                                              image-load-path))))
@@ -243,8 +236,8 @@ where,
                        tool-bar-map)))))
          (defun mh-tool-bar-letter-buttons-init ()
            (when (mh-buffer-exists-p 'mh-letter-mode)
-             (let* ((load-path (mh-image-load-path-for-library "mh-e"
-                                                               "mh-logo.xpm"))
+             (let* ((load-path (image-load-path-for-library "mh-e"
+                                                            "mh-logo.xpm"))
                     (image-load-path (cons (car load-path)
                                            (when (boundp 'image-load-path)
                                              image-load-path))))
@@ -282,72 +275,6 @@ Use SEQUENCE-MAP if display is limited; DEFAULT-MAP otherwise."
            (mh-tool-bar-letter-buttons-init)
            (mh-tool-bar-update 'mh-letter-mode mh-letter-tool-bar-map
                                mh-letter-tool-bar-map)))
-       ;; XEmacs specific code
-       (mh-do-in-xemacs
-         (defvar mh-tool-bar-folder-vector-map
-           (list ,@(cl-loop for button in folder-buttons
-                            for vector in folder-vectors
-                            collect `(cons ',button ,vector))))
-         (defvar mh-tool-bar-show-vector-map
-           (list ,@(cl-loop for button in show-buttons
-                            for vector in show-vectors
-                            collect `(cons ',button ,vector))))
-         (defvar mh-tool-bar-letter-vector-map
-           (list ,@(cl-loop for button in letter-buttons
-                            for vector in letter-vectors
-                            collect `(cons ',button ,vector))))
-         (defvar mh-tool-bar-folder-buttons)
-         (defvar mh-tool-bar-show-buttons)
-         (defvar mh-tool-bar-letter-buttons)
-         ;; Custom setter functions
-         (defun mh-tool-bar-letter-buttons-set (symbol value)
-           (set-default symbol value)
-           (when mh-xemacs-has-tool-bar-flag
-             (setq mh-tool-bar-letter-buttons
-                   (cl-loop
-                    for b in value
-                    collect (cdr (assoc b mh-tool-bar-letter-vector-map))))))
-         (defun mh-tool-bar-folder-buttons-set (symbol value)
-           (set-default symbol value)
-           (when mh-xemacs-has-tool-bar-flag
-             (setq mh-tool-bar-folder-buttons
-                   (cl-loop
-                    for b in value
-                    collect (cdr (assoc b mh-tool-bar-folder-vector-map))))
-             (setq mh-tool-bar-show-buttons
-                   (cl-loop
-                    for b in value
-                    collect (cdr (assoc b mh-tool-bar-show-vector-map))))))
-         (defun mh-tool-bar-init (mode)
-           "Install tool bar in MODE."
-           (when mh-xemacs-use-tool-bar-flag
-             (let ((tool-bar (cond ((eq mode :folder)
-                                    mh-tool-bar-folder-buttons)
-                                   ((eq mode :letter)
-                                    mh-tool-bar-letter-buttons)
-                                   ((eq mode :show)
-                                    mh-tool-bar-show-buttons)))
-                   (height 37)
-                   (width 40)
-                   (buffer (current-buffer)))
-               (cond
-                ((eq mh-xemacs-tool-bar-position 'top)
-                 (set-specifier top-toolbar tool-bar buffer)
-                 (set-specifier top-toolbar-visible-p t)
-                 (set-specifier top-toolbar-height height))
-                ((eq mh-xemacs-tool-bar-position 'bottom)
-                 (set-specifier bottom-toolbar tool-bar buffer)
-                 (set-specifier bottom-toolbar-visible-p t)
-                 (set-specifier bottom-toolbar-height height))
-                ((eq mh-xemacs-tool-bar-position 'left)
-                 (set-specifier left-toolbar tool-bar buffer)
-                 (set-specifier left-toolbar-visible-p t)
-                 (set-specifier left-toolbar-width width))
-                ((eq mh-xemacs-tool-bar-position 'right)
-                 (set-specifier right-toolbar tool-bar buffer)
-                 (set-specifier right-toolbar-visible-p t)
-                 (set-specifier right-toolbar-width width))
-                (t (set-specifier default-toolbar tool-bar buffer)))))))
        ;; Declare customizable tool bars
        (custom-declare-variable
         'mh-tool-bar-folder-buttons
@@ -372,7 +299,6 @@ Use SEQUENCE-MAP if display is limited; DEFAULT-MAP otherwise."
         ;;:package-version '(MH-E "7.1")
         ))))
 
-;; The icon names are duplicated in the Makefile and mh-xemacs.el.
 (mh-tool-bar-define
  ((:folder mh-inc-folder mh-mime-save-parts
            mh-previous-undeleted-msg mh-page-msg
