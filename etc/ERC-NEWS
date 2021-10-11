@@ -27,6 +27,13 @@ to Emacs versions before 28, to avoid modifying the NEWS file for all
 of those releases, the ERC NEWS entries have only been copied below,
 and the NEWS.* files were left intact.
 
+** ERC is now available on GNU ELPA.
+Starting with ERC 5.4, in addition to being distributed with GNU Emacs
+itself, ERC is also included in GNU ELPA, allowing users to enjoy the
+improvements of newer ERC versions on older Emacs versions as well.
+
+ERC's package page on GNU ELPA: https://elpa.gnu.org/packages/erc.html
+
 ** New option 'erc-rename-buffers'.
 
 ** New faces 'erc-my-nick-prefix-face' and 'erc-nick-prefix-face'.
