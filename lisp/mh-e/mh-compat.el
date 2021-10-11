@@ -38,9 +38,7 @@
 
 (eval-when-compile (require 'mh-acros))
 
-(mh-do-in-gnu-emacs
-  (define-obsolete-function-alias 'mh-require #'require "29.1"))
-
+(define-obsolete-function-alias 'mh-require #'require "29.1")
 (define-obsolete-function-alias 'mh-assoc-string #'assoc-string "29.1")
 (define-obsolete-function-alias 'mh-cancel-timer #'cancel-timer "29.1")
 

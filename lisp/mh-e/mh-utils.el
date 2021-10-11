@@ -124,19 +124,18 @@ Ignores case when searching for OLD."
 ;;;###mh-autoload
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
-  (mh-do-in-gnu-emacs
-    (let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
-           (image-load-path (cons (car load-path)
-                                  (when (boundp 'image-load-path)
-                                    image-load-path))))
-      (add-text-properties
-       0 2
-       `(display ,(or mh-logo-cache
-                      (setq mh-logo-cache
-                            (mh-funcall-if-exists
-                             find-image '((:type xpm :ascent center
-                                                 :file "mh-logo.xpm"))))))
-       (car mode-line-buffer-identification)))))
+  (let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
+         (image-load-path (cons (car load-path)
+                                (when (boundp 'image-load-path)
+                                  image-load-path))))
+    (add-text-properties
+     0 2
+     `(display ,(or mh-logo-cache
+                    (setq mh-logo-cache
+                          (mh-funcall-if-exists
+                           find-image '((:type xpm :ascent center
+                                               :file "mh-logo.xpm"))))))
+     (car mode-line-buffer-identification))))
 
 
 
@@ -910,8 +909,7 @@ Handle RFC 822 (or later) continuation lines."
 
 (defvar mh-hidden-header-keymap
   (let ((map (make-sparse-keymap)))
-    (mh-do-in-gnu-emacs
-      (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button))
+    (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button)
     map))
 
 ;;;###mh-autoload

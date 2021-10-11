@@ -291,11 +291,10 @@ order).
   (make-local-variable 'mh-previous-window-config)
   (make-local-variable 'mh-sent-from-folder)
   (make-local-variable 'mh-sent-from-msg)
-  (mh-do-in-gnu-emacs
-    (unless mh-letter-tool-bar-map
-      (mh-tool-bar-letter-buttons-init))
-    (if (boundp 'tool-bar-map)
-        (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map)))
+  (unless mh-letter-tool-bar-map
+    (mh-tool-bar-letter-buttons-init))
+  (if (boundp 'tool-bar-map)
+      (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map))
   ;; Set the local value of mh-mail-header-separator according to what is
   ;; present in the buffer...
   (set (make-local-variable 'mh-mail-header-separator)

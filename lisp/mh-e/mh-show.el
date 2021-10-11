@@ -833,9 +833,8 @@ The hook `mh-show-mode-hook' is called upon entry to this mode.
 See also `mh-folder-mode'.
 
 \\{mh-show-mode-map}"
-  (mh-do-in-gnu-emacs
-   (if (boundp 'tool-bar-map)
-       (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)))
+  (if (boundp 'tool-bar-map)
+      (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map))
   (set (make-local-variable 'mail-header-separator) mh-mail-header-separator)
   (setq paragraph-start (default-value 'paragraph-start))
   (setq buffer-invisibility-spec '((vanish . t) t))
