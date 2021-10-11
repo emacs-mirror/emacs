@@ -135,6 +135,11 @@ with recent versions of Firefox.
 * Lisp Changes in Emacs 29.1
 
 +++
+** :keys in 'menu-item' can now be a function.
+If so, it is called whenever the menu is computed, and can be used to
+calculate the keys dynamically.
+
++++
 ** New major mode 'clean-mode'.
 This is a new major mode meant for debugging.  It kills absolutely all
 local variables and removes overlays and text properties.

@@ -7841,7 +7841,9 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 	      else if (EQ (tem, QCkeys))
 		{
 		  tem = XCAR (item);
-		  if (CONSP (tem) || STRINGP (tem))
+		  if (FUNCTIONP (tem))
+		    ASET (item_properties, ITEM_PROPERTY_KEYEQ, call0 (tem));
+		  else if (CONSP (tem) || STRINGP (tem))
 		    ASET (item_properties, ITEM_PROPERTY_KEYEQ, tem);
 		}
 	      else if (EQ (tem, QCbutton) && CONSP (XCAR (item)))

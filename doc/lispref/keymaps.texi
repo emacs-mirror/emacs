@@ -2319,6 +2319,12 @@ This property specifies that @var{string} is the string to display
 as the keyboard equivalent for this menu item.  You can use
 the @samp{\\[...]} documentation construct in @var{string}.
 
+This property can also be a function (which will be called with no
+arguments).  This function should return a string.  This function will
+be called every time the menu is computed, so using a function that
+takes a lot of time to compute is not a good idea, and it should
+expect to be called from any context.
+
 @item :filter @var{filter-fn}
 This property provides a way to compute the menu item dynamically.
 The property value @var{filter-fn} should be a function of one argument;
