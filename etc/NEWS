@@ -27,6 +27,10 @@ applies, and please also update docstrings as needed.
 
 * Startup Changes in Emacs 29.1
 
++++
+** Emacs now has a --fingerprint option.
+This will output a string identifying the current Emacs build.
+
 
 * Changes in Emacs 29.1
 
