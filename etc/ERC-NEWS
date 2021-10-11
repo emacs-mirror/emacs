@@ -27,67 +27,74 @@ to Emacs versions before 28, to avoid modifying the NEWS file for all
 of those releases, the ERC NEWS entries have only been copied below,
 and the NEWS.* files were left intact.
 
-*** New option 'erc-rename-buffers'.
+** ERC is now available on GNU ELPA.
+Starting with ERC 5.4, in addition to being distributed with GNU Emacs
+itself, ERC is also included in GNU ELPA, allowing users to enjoy the
+improvements of newer ERC versions on older Emacs versions as well.
 
-*** New faces 'erc-my-nick-prefix-face' and 'erc-nick-prefix-face'.
+ERC's package page on GNU ELPA: https://elpa.gnu.org/packages/erc.html
 
-*** 'erc-format-@nick' displays all user modes instead of only op and voice.
+** New option 'erc-rename-buffers'.
 
-*** The display of irc commands in the current buffer has been disabled.
+** New faces 'erc-my-nick-prefix-face' and 'erc-nick-prefix-face'.
 
-*** 'erc-version' now follows the Emacs version.
+** 'erc-format-@nick' displays all user modes instead of only op and voice.
 
-*** ERC can now hide message types by network or channel.
+** The display of irc commands in the current buffer has been disabled.
+
+** 'erc-version' now follows the Emacs version.
+
+** ERC can now hide message types by network or channel.
 'erc-hide-list' will hide all messages of the specified type, while
 'erc-network-hide-list' and 'erc-channel-hide-list' will only hide the
 specified message types for the respective specified targets.
 
-*** Reconnection is now asynchronous.
+** Reconnection is now asynchronous.
 
-*** Nick completion is now case-insensitive again after inadvertently
+** Nick completion is now case-insensitive again after inadvertently
 being made case-sensitive in Emacs 24.2.
 
-*** New variable 'erc-default-port-tls' used to connect to TLS IRC
+** New variable 'erc-default-port-tls' used to connect to TLS IRC
 servers.
 
-*** New hook 'erc-insert-done-hook'.
+** New hook 'erc-insert-done-hook'.
 This hook is called after strings have been inserted into the buffer,
 and is free to alter point and window configurations, as it's not
 called from inside a 'save-excursion', as opposed to 'erc-insert-post-hook'.
 
-*** 'erc-button-google-url' has been renamed to 'erc-button-search-url'
+** 'erc-button-google-url' has been renamed to 'erc-button-search-url'
 and its value has been changed to Duck Duck Go.
 
-*** 'erc-send-pre-hook' and 'erc-send-this' have been obsoleted.
+** 'erc-send-pre-hook' and 'erc-send-this' have been obsoleted.
 The user option to use instead to alter text to be sent is now
 'erc-pre-send-functions'.
 
-*** Improve matching/highlighting of nicknames.
+** Improve matching/highlighting of nicknames.
 Open and close parenthesis and apostrophe are not considered valid
 nick characters anymore, matching the given grammar in RFC 2812
 section 2.3.1.  This enables correct matching and highlighting of
 nicks when they are surrounded by parentheses, like "(nick)", and when
 adjacent to an apostrophe, like "nick's".
 
-*** Set 'erc-button-url-regexp' to 'browse-url-button-regexp'
+** Set 'erc-button-url-regexp' to 'browse-url-button-regexp'
 which better handles surrounding pair of parentheses.
 
-*** New function 'erc-switch-to-buffer-other-window'
+** New function 'erc-switch-to-buffer-other-window'
 which is like 'erc-switch-to-buffer', but opens the buffer in another
 window.
 
-*** New function 'erc-track-switch-buffer-other-window'
+** New function 'erc-track-switch-buffer-other-window'
 which is like 'erc-track-switch-buffer', but opens the buffer in
 another window.
 
-*** NickServ passwords can now be retrieved from auth-source.
+** NickServ passwords can now be retrieved from auth-source.
 The 'erc-use-auth-source-for-nickserv-password' user option enables
 querying auth-source for NickServ passwords.  To enable this, add the
 following to your init file:
 
     (setq erc-use-auth-source-for-nickserv-password t)
 
-*** NickServ identification now prompts for password last.
+** NickServ identification now prompts for password last.
 When 'erc-prompt-for-nickserv-password' is non-nil, the user used to
 be unconditionally prompted interactively for a password, regardless
 of the value of 'erc-nickserv-passwords', which was effectively
@@ -96,24 +103,24 @@ ignored (same for the new
 lifted, and the user is interactively prompted last, after the other
 identification methods have run.
 
-*** The '/ignore' command will now ask for a timeout to stop ignoring the user.
+** The '/ignore' command will now ask for a timeout to stop ignoring the user.
 Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
 
-*** ERC now recognizes 'C-]' for italic text.
+** ERC now recognizes 'C-]' for italic text.
 Italic text is displayed in the new 'erc-italic-face'.
 
-*** erc-match.el now supports 'message' highlight type (not including the nick).
+** erc-match.el now supports 'message' highlight type (not including the nick).
 The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
 'erc-fool-highlight-type', 'erc-keyword-highlight-type', and
 'erc-dangerous-host-highlight-type' user options now support a
 'message' type for highlighting the entire message but not the
 sender's nick.
 
-*** erc-status-sidebar.el is now part of ERC.
+** erc-status-sidebar.el is now part of ERC.
 The 'erc-status-sidebar' package which provides a HexChat-like
 activity overview sidebar for joined IRC channels is now part of ERC.
 
-*** erc-tls now supports specifying a TLS client certificate.
+** erc-tls now supports specifying a TLS client certificate.
 The 'erc-tls' function has been updated to allow specifying a TLS
 client certificate for authentication, as an alternative to NickServ
 password-based authentication.  This is referred to as "CertFP" (short
@@ -122,7 +129,7 @@ node "(erc) Connecting" in the ERC manual for more details and
 examples on how to specify and use TLS client certificates with
 'erc-tls'.
 
-*** Update IRC-related references to point to Libera.Chat.
+** Update IRC-related references to point to Libera.Chat.
 The Free Software Foundation and the GNU Project have moved their
 official IRC channels from the Freenode network to Libera.Chat.
 For the original announcement and the follow-up update, including
@@ -138,18 +145,18 @@ now been updated to point to Libera.Chat.
 
 https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html
 
-*** Add 'erc-track-select-mode-line-face' (obsoletes 'erc-track-find-face').
+** Add 'erc-track-select-mode-line-face' (obsoletes 'erc-track-find-face').
 The 'erc-track-find-face' function of the erc-track module has been
 declared obsolete and rewritten as 'erc-track-select-mode-line-face',
 with different expected arguments (the current and old faces are now
 separated) and clearer documentation.
 
-*** Add '/opme' and '/deopme' convenience commands.
+** Add '/opme' and '/deopme' convenience commands.
 The new '/opme' convenience command asks ChanServ to set the operator
 status for the current nick in the current channel, and '/deopme'
 unsets it.
 
-*** Add '/wii' convenience command for whois with idle time.
+** Add '/wii' convenience command for whois with idle time.
 The new '/wii' convenience command calls the '/whois' command with the
 given nick as both arguments, which is useful for displaying the whois
 information for the nick along with idle time, even if the nick is on
@@ -157,7 +164,7 @@ a different server than the one the current user is connected to.
 Using the given nick itself instead of the server it is connected to
 is not standardized, but is widely supported across IRC networks.
 
-*** Add 'erc-bug' command for reporting ERC bugs.
+** Add 'erc-bug' command for reporting ERC bugs.
 The new 'erc-bug' command prompts for a subject, and passes it on to
 'report-emacs-bug' along with the current ERC version, and adds the
 ERC mailing list in Cc.
