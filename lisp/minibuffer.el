@@ -4116,7 +4116,7 @@ which is at the core of flex logic.  The extra
                                           (+ (- point (length short))
                                              (length long))))))
 
-(defun completion-shorthand-all-completions (string table pred _point)
+(defun completion-shorthand-all-completions (_string _table _pred _point)
   ;; no-op: For now, we don't want shorthands to list all the possible
   ;; locally active longhands.  For the completion categories where
   ;; this style is active, it could hide other more interesting
