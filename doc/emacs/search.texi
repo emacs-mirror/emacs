@@ -1331,10 +1331,9 @@ matches @w{@samp{foo bar}}, @w{@samp{foo@ @ bar}},
 precisely, Emacs matches each sequence of space characters in the
 search string to a regular expression specified by the variable
 @code{search-whitespace-regexp}.  For example, to make spaces match
-sequences of newlines as well as spaces, set it to
-@samp{"[[:space:]\n]+"}.  The default value of this variable depends
-on the buffer's major mode; most major modes classify spaces, tabs,
-and formfeed characters as whitespace.
+sequences of newlines as well as spaces, set it to the regular expression
+@samp{[[:space:]\n]+}.  The default value of this variable considers
+any sequence of spaces and tab characters as whitespace.
 
   If you want whitespace characters to match exactly, you can turn lax
 space matching off by typing @kbd{M-s @key{SPC}}

@@ -3767,7 +3767,7 @@ Null string will repeat previous search."
   (define-key viper-vi-basic-map
     (cond ((characterp viper-buffer-search-char)
 	   (char-to-string viper-buffer-search-char))
-	  (t (error "viper-buffer-search-char: wrong value type, %S"
+          (t (error "viper-buffer-search-char: Wrong value type, %S"
 		    viper-buffer-search-char)))
     #'viper-command-argument)
   (aset viper-exec-array viper-buffer-search-char #'viper-exec-buffer-search)

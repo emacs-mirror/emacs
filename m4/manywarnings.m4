@@ -1,4 +1,4 @@
-# manywarnings.m4 serial 21
+# manywarnings.m4 serial 23
 dnl Copyright (C) 2008-2021 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -195,15 +195,9 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
     gl_AS_VAR_APPEND([$1], [' -Wno-uninitialized'])
   fi
 
-  # Some warnings have too many false alarms in GCC 10.1.
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93695
-  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-double-free'])
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94458
+  # This warning have too many false alarms in GCC 11.2.1.
+  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101713
   gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-malloc-leak'])
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94851
-  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-null-dereference'])
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95758
-  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-use-after-free'])
 
   AC_LANG_POP([C])
 ])

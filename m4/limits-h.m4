@@ -11,7 +11,7 @@ AC_DEFUN_ONCE([gl_LIMITS_H],
 [
   gl_CHECK_NEXT_HEADERS([limits.h])
 
-  AC_CACHE_CHECK([whether limits.h has LLONG_MAX, WORD_BIT, ULLONG_WIDTH etc.],
+  AC_CACHE_CHECK([whether limits.h has WORD_BIT, BOOL_WIDTH etc.],
     [gl_cv_header_limits_width],
     [AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
@@ -22,6 +22,7 @@ AC_DEFUN_ONCE([gl_LIMITS_H],
             long long llm = LLONG_MAX;
             int wb = WORD_BIT;
             int ullw = ULLONG_WIDTH;
+            int bw = BOOL_WIDTH;
           ]])],
        [gl_cv_header_limits_width=yes],
        [gl_cv_header_limits_width=no])])

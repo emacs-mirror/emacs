@@ -119,7 +119,11 @@ function `tab-line-tab-face-group'."
   :group 'tab-line-faces)
 
 (defface tab-line-highlight
-  '((t :inherit tab-line-tab))
+  '((((class color) (min-colors 88))
+     :box (:line-width 1 :style released-button)
+     :background "grey85"
+     :foreground "black")
+    (t :inverse-video nil))
   "Tab line face for highlighting."
   :version "27.1"
   :group 'tab-line-faces)

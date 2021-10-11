@@ -444,7 +444,7 @@ This is the opposite of `hilit-chg-hide-changes'."
 	  ;; We set the change property so we can tell this is one
 	  ;; of our overlays (so we don't delete someone else's).
           (overlay-put ov 'hilit-chg t))
-      (error "hilit-chg-make-ov: no face for prop: %s" prop))))
+      (error "hilit-chg-make-ov: No face for prop: %s" prop))))
 
 (defun hilit-chg-hide-changes (&optional beg end)
   "Remove face information for Highlight Changes mode.

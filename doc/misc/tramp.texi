@@ -4294,6 +4294,14 @@ passwords from @file{auth-source.el} (@pxref{Password handling}).  The
 latter does not happen for the @option{sudoedit} method, otherwise it
 would be unusable.
 
+If you use the GNU ELPA version of @value{tramp}, you must load it
+explicitly, because @command{emacs -Q} ignores installed ELPA
+packages.  Call (version number adapted)
+
+@example
+emacs -Q -l ~/.emacs.d/elpa/tramp-2.4.5.1/tramp-autoloads
+@end example
+
 When including @value{tramp}'s messages in the bug report, increase
 the verbosity level to 6 (@pxref{Traces and Profiles, Traces}) in the
 @file{~/.emacs} file before repeating steps to the bug.  Include the

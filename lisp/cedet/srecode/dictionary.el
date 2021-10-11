@@ -364,7 +364,7 @@ values but STATE is nil."
        ;; Value is some other object; create a compound value.
        (t
 	(unless state
-	  (error "Cannot insert compound values without state."))
+          (error "Cannot insert compound values without state"))
 
 	(srecode-dictionary-set-value
 	 dict name

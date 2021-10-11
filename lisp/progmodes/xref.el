@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
-;; Version: 1.2.2
+;; Version: 1.3.0
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -73,6 +73,20 @@
 (require 'cl-lib)
 (require 'ring)
 (require 'project)
+
+(eval-and-compile
+  (when (version< emacs-version "28")
+    ;; etags.el in Emacs 26 and 27 uses EIEIO, and its location type
+    ;; inherits from `xref-location'.
+    (require 'eieio)
+
+    ;; Suppressing byte-compilation warnings (in Emacs 28+) about
+    ;; `defclass' not being defined, which happens because the
+    ;; `require' statement above is not evaluated either.
+    ;; FIXME: Use `with-suppressed-warnings' when we stop supporting Emacs 26.
+    (with-no-warnings
+      (defclass xref-location () ()
+        :documentation "(Obsolete) location represents a position in a file or buffer."))))
 
 (defgroup xref nil "Cross-referencing commands."
   :version "25.1"
@@ -942,13 +956,11 @@ GROUP is a string for decoration purposes and XREF is an
 `xref-item' object."
   (require 'compile) ; For the compilation faces.
   (cl-loop for (group . xrefs) in xref-alist
-           for max-line-width =
-           (cl-loop for xref in xrefs
-                    maximize (let ((line (xref-location-line
-                                          (xref-item-location xref))))
-                               (and line (1+ (floor (log line 10))))))
-           for line-format = (and max-line-width
-                                  (format "%%%dd: " max-line-width))
+           for max-line = (cl-loop for xref in xrefs
+                                   maximize (xref-location-line
+                                             (xref-item-location xref)))
+           for line-format = (and max-line
+                                  (format "%%%dd: " (1+ (floor (log max-line 10)))))
            with item-text-props = (list 'mouse-face 'highlight
                                         'keymap xref--button-map
                                         'help-echo
@@ -959,27 +971,27 @@ GROUP is a string for decoration purposes and XREF is an
            do
            (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
-           (cl-loop for xref in xrefs do
-                    (pcase-let (((cl-struct xref-item summary location) xref))
-                      (let* ((line (xref-location-line location))
-                             (prefix
-                              (cond
-                               ((not line) "  ")
-                               ((and (equal line prev-line)
-                                     (equal prev-group group))
-                                "")
-                               (t (propertize (format line-format line)
-                                              'face 'xref-line-number)))))
-                        ;; Render multiple matches on the same line, together.
-                        (when (and (equal prev-group group)
-                                   (or (null line)
-                                       (not (equal prev-line line))))
-                          (insert "\n"))
-                        (xref--insert-propertized (nconc (list 'xref-item xref)
-                                                         item-text-props)
-                                                  prefix summary)
-                        (setq prev-line line
-                              prev-group group))))
+           (dolist (xref xrefs)
+             (pcase-let (((cl-struct xref-item summary location) xref))
+               (let* ((line (xref-location-line location))
+                      (prefix
+                       (cond
+                        ((not line) "  ")
+                        ((and (equal line prev-line)
+                              (equal prev-group group))
+                         "")
+                        (t (propertize (format line-format line)
+                                       'face 'xref-line-number)))))
+                 ;; Render multiple matches on the same line, together.
+                 (when (and (equal prev-group group)
+                            (or (null line)
+                                (not (equal prev-line line))))
+                   (insert "\n"))
+                 (xref--insert-propertized (nconc (list 'xref-item xref)
+                                                  item-text-props)
+                                           prefix summary)
+                 (setq prev-line line
+                       prev-group group))))
            (insert "\n"))
   (add-to-invisibility-spec '(ellipsis . t))
   (save-excursion
@@ -1025,7 +1037,7 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
                    (eq xref-file-name-display 'project-relative)
                    (project-current)))
          (project-root (and project
-                            (expand-file-name (project-root project)))))
+                            (expand-file-name (xref--project-root project)))))
     (mapcar
      (lambda (pair)
        (cons (xref--group-name-for-display (car pair) project-root)
@@ -1864,34 +1876,36 @@ Such as the current syntax table and the applied syntax properties."
                                  syntax-needed)))))
 
 (defun xref--collect-matches-1 (regexp file line line-beg line-end syntax-needed)
-  (let (match-pairs matches)
+  (let (matches
+        stop beg end
+        last-beg last-end
+        summary-end)
     (when syntax-needed
       (syntax-propertize line-end))
-    (while (and
-            ;; REGEXP might match an empty string.  Or line.
-            (or (null match-pairs)
-                (> (point) line-beg))
-            (re-search-forward regexp line-end t))
-      (push (cons (match-beginning 0)
-                  (match-end 0))
-            match-pairs))
-    (setq match-pairs (nreverse match-pairs))
-    (while match-pairs
-      (let* ((beg-end (pop match-pairs))
-             (beg-column (- (car beg-end) line-beg))
-             (end-column (- (cdr beg-end) line-beg))
-             (loc (xref-make-file-location file line beg-column))
-             (summary (buffer-substring (if matches (car beg-end) line-beg)
-                                        (if match-pairs
-                                            (caar match-pairs)
-                                          line-end))))
-        (when matches
-          (cl-decf beg-column (- (car beg-end) line-beg))
-          (cl-decf end-column (- (car beg-end) line-beg)))
-        (add-face-text-property beg-column end-column 'xref-match
-                                t summary)
-        (push (xref-make-match summary loc (- end-column beg-column))
-              matches)))
+    (while (not stop)
+      (if (and
+           ;; REGEXP might match an empty string.  Or line.
+           (not (and last-beg (eql end line-beg)))
+           (re-search-forward regexp line-end t))
+          (setq beg (match-beginning 0)
+                end (match-end 0)
+                summary-end beg)
+        (setq stop t
+              summary-end line-end))
+      (when last-beg
+        (let* ((beg-column (- last-beg line-beg))
+               (end-column (- last-end line-beg))
+               (summary-start (if matches last-beg line-beg))
+               (summary (buffer-substring summary-start
+                                          summary-end))
+               (loc (xref-make-file-location file line beg-column)))
+          (add-face-text-property (- last-beg summary-start)
+                                  (- last-end summary-start)
+                                  'xref-match t summary)
+          (push (xref-make-match summary loc (- end-column beg-column))
+                matches)))
+      (setq last-beg beg
+            last-end end))
     (nreverse matches)))
 
 (defun xref--find-file-buffer (file)

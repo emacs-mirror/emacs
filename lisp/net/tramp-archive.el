@@ -353,6 +353,7 @@ arguments to pass to the OPERATION."
 ;;;###autoload
 (progn (defun tramp-archive-autoload-file-name-handler (operation &rest args)
   "Load Tramp archive file name handler, and perform OPERATION."
+  (defvar tramp-archive-autoload)
   (when tramp-archive-enabled
     ;; We cannot use `tramp-compat-temporary-file-directory' here due
     ;; to autoload.  When installing Tramp's GNU ELPA package, there
@@ -360,7 +361,6 @@ arguments to pass to the OPERATION."
     ;; overload this.
     (let ((default-directory temporary-file-directory)
           (tramp-archive-autoload t))
-      tramp-archive-autoload ; Silence byte compiler.
       (apply #'tramp-autoload-file-name-handler operation args)))))
 
 ;;;###autoload

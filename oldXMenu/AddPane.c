@@ -30,8 +30,8 @@ without express or implied warranty.
  *
  */
 
-#include <string.h>
 #include "XMenuInt.h"
+#include <string.h>
 
 int
 XMenuAddPane(Display *display, register XMenu *menu, register char const *label, int active)

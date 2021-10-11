@@ -1093,6 +1093,17 @@ evaluation of BODY."
     (should (= 84 (funcall (intern-soft "f-test4---"))))
     (should (unintern "f-test4---"))))
 
+(ert-deftest elisp-dont-shadow-punctuation-only-symbols ()
+  (let* ((shorthanded-form '(/= 42 (-foo 42)))
+         (expected-longhand-form '(/= 42 (fooey-foo 42)))
+         (observed (let ((read-symbol-shorthands
+                          '(("-" . "fooey-"))))
+                     (car (read-from-string
+                           (with-temp-buffer
+                             (print shorthanded-form (current-buffer))
+                             (buffer-string)))))))
+    (should (equal observed expected-longhand-form))))
+
 (ert-deftest test-cl-flet-indentation ()
   :expected-result :failed              ; FIXME: bug#9622
   (should (equal

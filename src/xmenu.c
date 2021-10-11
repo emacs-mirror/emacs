@@ -1605,11 +1605,11 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 	    prev_wv->next = wv;
 	  else if (!save_wv)
 	    {
-	      /* This call to 'abort' pacifies gcc 11.2.1 when Emacs
+	      /* This emacs_abort call pacifies gcc 11.2.1 when Emacs
 		 is configured with --enable-gcc-warnings.  FIXME: If
 		 save_wv can be null, do something better; otherwise,
 		 explain why save_wv cannot be null.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 	  else
 	    save_wv->contents = wv;

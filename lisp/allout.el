@@ -823,12 +823,12 @@ such topics are encrypted.)"
   :group 'allout-encryption)
 (make-variable-buffer-local 'allout-encrypt-unencrypted-on-saves)
 (defvar allout-auto-save-temporarily-disabled nil
-  "True while topic encryption is pending and auto-saving was active.
+  "Non-nil while topic encryption is pending and auto-saving was active.
 
 The value of `buffer-saved-size' at the time of decryption is used,
 for restoring when all encryptions are established.")
 (defvar-local allout-just-did-undo nil
-  "True just after undo commands, until allout-post-command-business.")
+  "Non-nil just after undo commands, until allout-post-command-business.")
 
 ;;;_ + Developer
 ;;;_  = allout-developer group
@@ -3190,7 +3190,7 @@ Set by `allout-pre-command-business', to support allout addons in
 coordinating with allout activity.")
 ;;;_   = allout-this-command-hid-text
 (defvar-local allout-this-command-hid-text nil
-  "True if the most recent allout-mode command hid any text.")
+  "Non-nil if the most recent `allout-mode' command hid any text.")
 ;;;_   > allout-post-command-business ()
 (defun allout-post-command-business ()
   "Outline `post-command-hook' function.
@@ -4787,7 +4787,7 @@ Useful for coherently exposing to a random point in a hidden region."
 		   (setq bag-it (1+ bag-it))
                    (if (> bag-it 1)
                        (error "allout-show-to-offshoot: %s"
-                              "Stumped by aberrant nesting.")))
+                              "Stumped by aberrant nesting")))
           (if (> bag-it 0) (setq bag-it 0))
           (allout-show-children)
           (goto-char orig-pref)))
@@ -5402,7 +5402,7 @@ Defaults:
 	  ;; Specified but not a buffer -- get it:
 	  (let ((got (get-buffer frombuf)))
 	    (if (not got)
-		(error "allout-process-exposed: source buffer %s not found."
+                (error "allout-process-exposed: Source buffer %s not found"
 		       frombuf)
 	      (setq frombuf got))))
     ;; not specified -- default it:

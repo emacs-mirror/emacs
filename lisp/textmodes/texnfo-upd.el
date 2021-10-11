@@ -1508,7 +1508,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
 	       'normal
 	     'no-pointer))
 	  (t
-	   (error "texinfo-find-pointer: lack proper arguments")))))
+           (error "texinfo-find-pointer: Lack proper arguments")))))
 
 (defun texinfo-pointer-name (kind)
   "Return the node name preceding the section command.
@@ -1676,7 +1676,7 @@ or `Up' pointer."
 	       'normal
 	     'no-pointer))
 	  (t
-	   (error "texinfo-sequential-find-pointer: lack proper arguments")))))
+           (error "texinfo-sequential-find-pointer: Lack proper arguments")))))
 
 
 ;;; Inserting `@node' lines

@@ -12,7 +12,7 @@
 ;;               David Edmondson (dme@dme.org)
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Version: 5.3
+;; Version: 5.4
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: IRC, chat, client, Internet
 ;; URL: https://www.gnu.org/software/emacs/erc.html
@@ -58,7 +58,7 @@
 
 ;;; Code:
 
-(load "erc-loaddefs" nil t)
+(load "erc-loaddefs" 'noerror 'nomessage)
 
 (require 'cl-lib)
 (require 'format-spec)
@@ -69,9 +69,21 @@
 (require 'iso8601)
 (eval-when-compile (require 'subr-x))
 
+(defconst erc-version "5.4"
+  "This version of ERC.")
+
 (defvar erc-official-location
   "https://www.gnu.org/software/emacs/erc.html (mailing list: emacs-erc@gnu.org)"
   "Location of the ERC client on the Internet.")
+
+;; Map each :package-version to the associated Emacs version.
+;; (This eliminates the need for explicit :version keywords on the
+;; custom definitions.)
+(add-to-list
+ 'customize-package-emacs-version-alist
+ '(ERC ("5.2" . "22.1")
+       ("5.3" . "23.1")
+       ("5.4" . "28.1")))
 
 (defgroup erc nil
   "Emacs Internet Relay Chat client."
@@ -2385,6 +2397,7 @@ If ARG is non-nil, show the *erc-protocol* buffer."
         (let ((inhibit-read-only t)
               (msg (list
                     (concat "Version: " erc-debug-irc-protocol-version)
+                    (concat "ERC-Version: " erc-version)
                     (concat "Emacs-Version: " emacs-version)
                     (erc-make-notice
                      (concat "This buffer displays all IRC protocol "
@@ -3613,7 +3626,7 @@ If USER is omitted, close the current query buffer if one exists
 
 (defun erc-quit/part-reason-default ()
   "Default quit/part message."
-  (format "\C-bERC\C-b (IRC client for Emacs %s)" emacs-version))
+  (erc-version nil 'bold-erc))
 
 
 (defun erc-quit-reason-normal (&optional s)
@@ -3766,7 +3779,8 @@ the message given by REASON."
 
 (defun erc-cmd-SV ()
   "Say the current ERC and Emacs version into channel."
-  (erc-send-message (format "I'm using ERC with GNU Emacs %s (%s%s)%s."
+  (erc-send-message (format "I'm using ERC %s with GNU Emacs %s (%s%s)%s."
+                            erc-version
                             emacs-version
                             system-configuration
                             (concat
@@ -4845,8 +4859,8 @@ See also `erc-display-message'."
   (unless erc-disable-ctcp-replies
     (erc-send-ctcp-notice
      nick (format
-           "VERSION \C-bERC\C-b - an IRC client for Emacs %s (\C-b%s\C-b)"
-           emacs-version
+           "VERSION %s (\C-b%s\C-b)"
+           (erc-version nil 'bold-erc)
            erc-official-location)))
   nil)
 
@@ -6616,6 +6630,15 @@ If BUFFER is nil, update the mode line in all ERC buffers."
 
 ;; Miscellaneous
 
+(defun erc-bug (subject)
+  "Send a bug report to the Emacs bug tracker and ERC mailing list."
+  (interactive "sBug Subject: ")
+  (report-emacs-bug
+   (format "ERC %s: %s" erc-version subject))
+  (save-excursion
+    (goto-char (point-min))
+    (insert "X-Debbugs-CC: emacs-erc@gnu.org\n")))
+
 (defun erc-port-to-string (p)
   "Convert port P to a string.
 P may be an integer or a service name."
@@ -6632,12 +6655,18 @@ P may be an integer or a service name."
           s
         n))))
 
-(defun erc-version (&optional here)
+(defun erc-version (&optional here bold-erc)
   "Show the version number of ERC in the minibuffer.
-If optional argument HERE is non-nil, insert version number at point."
+If optional argument HERE is non-nil, insert version number at point.
+If optional argument BOLD-ERC is non-nil, display \"ERC\" as bold."
   (interactive "P")
   (let ((version-string
-         (format "ERC (IRC client for Emacs %s)" emacs-version)))
+         (format "%s %s (IRC client for GNU Emacs %s)"
+                 (if bold-erc
+                     "\C-bERC\C-b"
+                   "ERC")
+                 erc-version
+                 emacs-version)))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)

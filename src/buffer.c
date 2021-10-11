@@ -1434,7 +1434,7 @@ and `buffer-file-truename' are non-nil.  */)
 DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
        Srestore_buffer_modified_p, 1, 1, 0,
        doc: /* Like `set-buffer-modified-p', but doesn't redisplay buffer's mode line.
-This function also locks and unlocks the file visited by the buffer,
+This function also locks or unlocks the file visited by the buffer,
 if both `buffer-file-truename' and `buffer-file-name' are non-nil.
 
 It is not ensured that mode lines will be updated to show the modified

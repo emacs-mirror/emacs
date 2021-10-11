@@ -65,6 +65,7 @@ lib/ieee754.h
 lib/inttypes.h
 lib/libgnu.a
 lib/limits.h
+lib/malloc/*.gl.h
 lib/signal.h
 lib/std*.h
 !lib/std*.in.h

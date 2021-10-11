@@ -105,8 +105,9 @@ process buffer."
   :type 'regexp)
 
 (defcustom idlwave-shell-process-name "idl"
-  "Name to be associated with the IDL process.  The buffer for the
-process output is made by surrounding this name with `*'s."
+  "Name to be associated with the IDL process.
+The buffer for the process output is made by surrounding this
+name with `*'s."
   :group 'idlwave-shell-general-setup
   :type 'string)
 

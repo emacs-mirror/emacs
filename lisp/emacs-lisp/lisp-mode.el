@@ -556,7 +556,7 @@ This will generate compile-time constants from BINDINGS."
   "Gaudy highlighting from Emacs Lisp mode used in Backtrace mode.")
 
 (defun lisp-string-in-doc-position-p (listbeg startpos)
-   "Return true if a doc string may occur at STARTPOS inside a list.
+   "Return non-nil if a doc string may occur at STARTPOS inside a list.
 LISTBEG is the position of the start of the innermost list
 containing STARTPOS."
   (let* ((firstsym (and listbeg
@@ -589,7 +589,7 @@ containing STARTPOS."
                 (= (point) startpos))))))
 
 (defun lisp-string-after-doc-keyword-p (listbeg startpos)
-  "Return true if `:documentation' symbol ends at STARTPOS inside a list.
+  "Return non-nil if `:documentation' symbol ends at STARTPOS inside a list.
 LISTBEG is the position of the start of the innermost list
 containing STARTPOS."
   (and listbeg                          ; We are inside a Lisp form.

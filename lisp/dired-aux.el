@@ -2736,7 +2736,7 @@ This function takes some pains to conform to `ls -lR' output."
   ;; Check that it is valid to insert DIRNAME with SWITCHES.
   ;; Signal an error if invalid (e.g. user typed `i' on `..').
   (or (file-in-directory-p dirname (expand-file-name default-directory))
-      (error  "%s: not in this directory tree" dirname))
+      (error  "%s: Not in this directory tree" dirname))
   (let ((real-switches (or switches dired-subdir-switches)))
     (when real-switches
       (let (case-fold-search)

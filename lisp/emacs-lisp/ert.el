@@ -262,7 +262,7 @@ DATA is displayed to the user and should state the reason for skipping."
 ;; See Bug#24402 for why this exists
 (defun ert--should-signal-hook (error-symbol data)
   "Stupid hack to stop `condition-case' from catching ert signals.
-It should only be stopped when ran from inside ert--run-test-internal."
+It should only be stopped when ran from inside `ert--run-test-internal'."
   (when (and (not (symbolp debugger))   ; only run on anonymous debugger
              (memq error-symbol '(ert-test-failed ert-test-skipped)))
     (funcall debugger 'error (cons error-symbol data))))
@@ -783,6 +783,10 @@ This mainly sets up debugger-related bindings."
                           (ert--run-test-debugger test-execution-info
                                                   args)))
               (debug-on-error t)
+              ;; Don't infloop if the error being called is erroring
+              ;; out, and we have `debug-on-error' bound to nil inside
+              ;; the test.
+              (backtrace-on-error-noninteractive nil)
               (debug-on-quit t)
               ;; FIXME: Do we need to store the old binding of this
               ;; and consider it in `ert--run-test-debugger'?

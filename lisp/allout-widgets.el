@@ -880,7 +880,7 @@ encompassing condition-case."
     ;; reraise the error, or one concerning this function if unexpected:
     (if (equal mode 'error)
         (apply #'signal args)
-      (error "%s: unexpected mode, %s %s" this mode args))))
+      (error "%s: Unexpected mode, %s %s" this mode args))))
 ;;;_   > allout-widgets-changes-exceed-threshold-p ()
 (defun allout-widgets-adjusting-message (message)
   "Post MESSAGE when pending are likely to make a big enough delay.

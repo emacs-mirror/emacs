@@ -1770,7 +1770,7 @@ variables.")
 		      ; all XEmacsen.
 	  ((null c-macro-names-with-semicolon)
 	   nil)
-	  (t (error "c-make-macro-with-semi-re: invalid \
+	  (t (error "c-make-macro-with-semi-re: Invalid \
 c-macro-names-with-semicolon: %s"
 		    c-macro-names-with-semicolon))))))
 

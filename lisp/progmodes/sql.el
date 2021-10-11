@@ -3976,13 +3976,13 @@ for each match."
                        (cond
                         ((numberp c) (match-string c))
                         ((stringp c) (match-substitute-replacement c))
-                        (t (error "sql-redirect-value: unknown REGEXP-GROUPS value - %s" c))))
+                        (t (error "sql-redirect-value: Unknown REGEXP-GROUPS value - %s" c))))
                    regexp-groups))
           ;; String is specified; return replacement string
           ((stringp regexp-groups)
            (match-substitute-replacement regexp-groups))
           (t
-           (error "sql-redirect-value: unknown REGEXP-GROUPS value - %s"
+           (error "sql-redirect-value: Unknown REGEXP-GROUPS value - %s"
                   regexp-groups)))
          results)))
 

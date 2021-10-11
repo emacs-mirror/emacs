@@ -1990,6 +1990,7 @@ Similarly for Soar, Scheme, etc."
 
         ;; This used to call comint-output-filter-functions,
         ;; but that scrolled the buffer in undesirable ways.
+        (set-marker comint-last-output-start pmark)
         (run-hook-with-args 'comint-output-filter-functions "")))))
 
 (defvar comint-preoutput-filter-functions nil

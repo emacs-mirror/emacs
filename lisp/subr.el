@@ -696,7 +696,7 @@ If N is omitted or nil, remove the last element."
   "Destructively remove `equal' duplicates from LIST.
 Store the result in LIST and return it.  LIST must be a proper list.
 Of several `equal' occurrences of an element in LIST, the first
-one is kept."
+one is kept.  See `seq-uniq' for non-destructive operation."
   (let ((l (length list)))
     (if (> l 100)
         (let ((hash (make-hash-table :test #'equal :size l))
@@ -3035,6 +3035,7 @@ If there is a natural number at point, use it as default."
     (set-keymap-parent map minibuffer-local-map)
 
     (define-key map [remap self-insert-command] #'read-char-from-minibuffer-insert-char)
+    (define-key map [remap exit-minibuffer] #'read-char-from-minibuffer-insert-other)
 
     (define-key map [remap recenter-top-bottom] #'minibuffer-recenter-top-bottom)
     (define-key map [remap scroll-up-command] #'minibuffer-scroll-up-command)
@@ -3152,9 +3153,10 @@ There is no need to explicitly add `help-char' to CHARS;
     (define-key map [remap scroll-other-window] #'minibuffer-scroll-other-window)
     (define-key map [remap scroll-other-window-down] #'minibuffer-scroll-other-window-down)
 
-    (define-key map [escape] #'abort-recursive-edit)
-    (dolist (symbol '(quit exit exit-prefix))
+    (define-key map [remap exit] #'y-or-n-p-insert-other)
+    (dolist (symbol '(exit-prefix quit))
       (define-key map (vector 'remap symbol) #'abort-recursive-edit))
+    (define-key map [escape] #'abort-recursive-edit)
 
     ;; FIXME: try catch-all instead of explicit bindings:
     ;; (define-key map [remap t] #'y-or-n-p-insert-other)

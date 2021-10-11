@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
-;; Version: 0.7.1
+;; Version: 0.8.1
 ;; Package-Requires: ((emacs "26.1") (xref "1.0.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -316,16 +316,21 @@ to find the list of ignores for each directory."
                                       " "
                                       (shell-quote-argument ")"))
                             "")))
-         (output (with-output-to-string
-                   (with-current-buffer standard-output
-                     (let ((status
-                            (process-file-shell-command command nil t)))
-                       (unless (zerop status)
-                         (error "File listing failed: %s" (buffer-string))))))))
+         res)
+    (with-temp-buffer
+      (let ((status
+             (process-file-shell-command command nil t))
+            (pt (point-min)))
+        (unless (zerop status)
+          (error "File listing failed: %s" (buffer-string)))
+        (goto-char pt)
+        (while (search-forward "\0" nil t)
+          (push (buffer-substring-no-properties (1+ pt) (1- (point)))
+                res)
+          (setq pt (point)))))
     (project--remote-file-names
-     (mapcar (lambda (s) (concat dfn (substring s 1)))
-             (sort (split-string output "\0" t)
-                   #'string<)))))
+     (mapcar (lambda (s) (concat dfn s))
+             (sort res #'string<)))))
 
 (defun project--remote-file-names (local-files)
   "Return LOCAL-FILES as if they were on the system of `default-directory'.

@@ -2771,8 +2771,8 @@ implementation will be used."
 	      (stderr (plist-get args :stderr)))
 	  (unless (stringp name)
 	    (signal 'wrong-type-argument (list #'stringp name)))
-	  (unless (or (null buffer) (bufferp buffer) (stringp buffer))
-	    (signal 'wrong-type-argument (list #'stringp buffer)))
+	  (unless (or (bufferp buffer) (string-or-null-p buffer))
+	    (signal 'wrong-type-argument (list #'bufferp buffer)))
 	  (unless (or (null command) (consp command))
 	    (signal 'wrong-type-argument (list #'consp command)))
 	  (unless (or (null coding)
@@ -2789,7 +2789,7 @@ implementation will be used."
 	    (signal 'wrong-type-argument (list #'functionp filter)))
 	  (unless (or (null sentinel) (functionp sentinel))
 	    (signal 'wrong-type-argument (list #'functionp sentinel)))
-	  (unless (or (null stderr) (bufferp stderr) (stringp stderr))
+	  (unless (or (bufferp stderr) (string-or-null-p stderr))
 	    (signal 'wrong-type-argument (list #'bufferp stderr)))
 	  (when (and (stringp stderr)
 		     (not (tramp-equal-remote default-directory stderr)))
@@ -3513,7 +3513,7 @@ implementation will be used."
 	  (tramp-compat-funcall 'unlock-file lockname))
 
 	(when (and (null noninteractive)
-		   (or (eq visit t) (null visit) (stringp visit)))
+		   (or (eq visit t) (string-or-null-p visit)))
 	  (tramp-message v 0 "Wrote %s" filename))
 	(run-hooks 'tramp-handle-write-region-hook)))))
 

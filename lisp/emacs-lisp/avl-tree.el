@@ -330,8 +330,7 @@ inserted data."
 	       data)))
 	(if (or (funcall cmpfun newdata data)
 		(funcall cmpfun data newdata))
-	    (error "avl-tree-enter:\
- updated data does not match existing data"))
+            (error "avl-tree-enter: Updated data does not match existing data"))
 	(setf (avl-tree--node-data br) newdata)
 	(cons nil newdata))  ; return value
       ))))

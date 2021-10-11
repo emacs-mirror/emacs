@@ -5917,16 +5917,16 @@ Skip backwards if DIRECTION is negative, skip forward otherwise."
 ;; Functions to help finding the correct indentation column:
 
 (defun vhdl-first-word (point)
-  "If the keyword at POINT is at boi, then return (current-column) at
-that point, else nil."
+  "If the keyword at POINT is at boi, return (current-column) at that point.
+Otherwise return nil."
   (save-excursion
     (and (goto-char point)
 	 (eq (point) (vhdl-point 'boi))
 	 (current-column))))
 
 (defun vhdl-last-word (point)
-  "If the keyword at POINT is at eoi, then return (current-column) at
-that point, else nil."
+  "If keyword at POINT is at eoi, then return (current-column) at that point.
+Otherwise, return nil."
   (save-excursion
     (and (goto-char point)
 	 (save-excursion (or (eq (progn (forward-sexp) (point))
@@ -6266,13 +6266,11 @@ of an identifier that just happens to contain an \"end\" keyword."
 
 (defconst vhdl-statement-fwd-re
   "\\b\\(if\\|for\\|while\\|loop\\)\\b\\([^_]\\|\\'\\)"
-  "A regular expression for searching forward that matches all known
-\"statement\" keywords.")
+  "Regexp for searching forward that matches all known \"statement\" keywords.")
 
 (defconst vhdl-statement-bwd-re
   "\\b\\(if\\|for\\|while\\|loop\\)\\b[^_]"
-  "A regular expression for searching backward that matches all known
-\"statement\" keywords.")
+  "Regexp for searching backward that matches all known \"statement\" keywords.")
 
 (defun vhdl-statement-p (&optional _lim)
   "Return t if we are looking at a real \"statement\" keyword.
@@ -6723,8 +6721,9 @@ search, and an argument indicating an interactive call."
 	  vhdl-begin-bwd-re "\\|" vhdl-statement-bwd-re))
 
 (defun vhdl-beginning-of-statement-1 (&optional lim)
-  "Move to the start of the current statement, or the previous
-statement if already at the beginning of one."
+  "Move to the start of the current statement.
+If already at the beginning of a statement, move to the start of
+the previous statement instead."
   (let ((lim (or lim (point-min)))
 	(here (point))
 	(pos (point))

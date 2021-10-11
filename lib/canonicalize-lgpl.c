@@ -3,16 +3,16 @@
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   version 2.1 of the License, or (at your option) any later version.
 
    The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
@@ -21,7 +21,6 @@
    optimizes away the name == NULL test below.  */
 # define _GL_ARG_NONNULL(params)
 
-# define _GL_USE_STDLIB_ALLOC 1
 # include <libc-config.h>
 #endif
 
@@ -75,7 +74,12 @@
 # define __pathconf pathconf
 # define __rawmemchr rawmemchr
 # define __readlink readlink
-# define __stat stat
+# if IN_RELOCWRAPPER
+    /* When building the relocatable program wrapper, use the system's memmove
+       function, not the gnulib override, otherwise we would get a link error.
+     */
+#  undef memmove
+# endif
 #endif
 
 /* Suppress bogus GCC -Wmaybe-uninitialized warnings.  */
@@ -100,7 +104,7 @@ file_accessible (char const *file)
   return __faccessat (AT_FDCWD, file, F_OK, AT_EACCESS) == 0;
 # else
   struct stat st;
-  return __stat (file, &st) == 0 || errno == EOVERFLOW;
+  return stat (file, &st) == 0 || errno == EOVERFLOW;
 # endif
 }
 

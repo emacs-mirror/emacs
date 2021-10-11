@@ -7668,7 +7668,8 @@ get_next_display_element (struct it *it)
 		  /* Merge `nobreak-space' into the current face.  */
 		  face_id = merge_faces (it->w, Qnobreak_space, 0,
 					 it->face_id);
-		  XSETINT (it->ctl_chars[0], it->c);
+		  XSETINT (it->ctl_chars[0],
+			   nobreak_char_ascii_display ? ' ' : it->c);
 		  ctl_len = 1;
 		  goto display_control;
 		}
@@ -7681,7 +7682,8 @@ get_next_display_element (struct it *it)
 		  /* Merge `nobreak-space' into the current face.  */
 		  face_id = merge_faces (it->w, Qnobreak_hyphen, 0,
 					 it->face_id);
-		  XSETINT (it->ctl_chars[0], it->c);
+		  XSETINT (it->ctl_chars[0],
+			   nobreak_char_ascii_display ? '-' : it->c);
 		  ctl_len = 1;
 		  goto display_control;
 		}
@@ -10071,6 +10073,8 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 
 	case MOVE_NEWLINE_OR_CR:
 	  max_current_x = max (it->current_x, max_current_x);
+	  if (!IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+	    it->override_ascent = -1;
 	  set_iterator_to_next (it, true);
 	  it->continuation_lines_width = 0;
 	  break;
@@ -35048,6 +35052,26 @@ glyph followed by an ordinary space or hyphen.
 
 A value of nil means no special handling of these characters.  */);
   Vnobreak_char_display = Qt;
+
+  DEFVAR_BOOL ("nobreak-char-ascii-display", nobreak_char_ascii_display,
+    doc: /* Control display of non-ASCII space and hyphen chars.
+If the value of this variable is nil, the default, Emacs displays
+non-ASCII chars which have the same appearance as an ASCII space
+or hyphen as themselves, with the `nobreak-space' or `nobreak-hyphen'
+face, respectively.
+
+If the value is t, these characters are displayed as their ASCII
+counterparts: whitespace characters as ASCII space, hyphen characters
+as ASCII hyphen (a.k.a. \"dash\"), using the `nobreak-space' or
+the `nobreak-hyphen' face.
+
+This variable has effect only if `nobreak-char-display' is t;
+otherwise it is ignored.
+
+All of the non-ASCII characters in the Unicode horizontal whitespace
+character class, as well as U+00AD (soft hyphen), U+2010 (hyphen), and
+U+2011 (non-breaking hyphen) are affected.  */);
+  nobreak_char_ascii_display = false;
 
   DEFVAR_LISP ("void-text-area-pointer", Vvoid_text_area_pointer,
     doc: /* The pointer shape to show in void text areas.

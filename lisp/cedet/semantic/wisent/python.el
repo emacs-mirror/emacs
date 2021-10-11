@@ -118,9 +118,9 @@ curly braces."
         ;; look-ahead assertions.)
         (when (and (= (- end start) 2)
                    (looking-at "\"\\{3\\}\\|'\\{3\\}"))
-          (error "unterminated syntax"))
+          (error "Unterminated syntax"))
         (goto-char end))
-    (error "unterminated syntax")))
+    (error "Unterminated syntax")))
 
 (defun wisent-python-forward-balanced-expression ()
   "Move point to the end of the balanced expression at point.
@@ -145,7 +145,7 @@ triple-quoted string syntax."
        ;; delimiter (backquote) characters, line continuation, and end
        ;; of comment characters (AKA newline characters in Python).
        ((zerop (skip-syntax-forward "-w_.$\\>"))
-        (error "can't figure out how to go forward from here"))))
+        (error "Can't figure out how to go forward from here"))))
     ;; Skip closing character.  As a last resort this should raise an
     ;; error if we hit EOB before we find our closing character..
     (forward-char 1)))

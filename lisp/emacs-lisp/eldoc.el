@@ -477,6 +477,7 @@ This holds the results of the last documentation request."
       (let ((inhibit-read-only t)
             (things-reported-on))
         (erase-buffer) (setq buffer-read-only t)
+        (setq-local nobreak-char-display nil)
         (local-set-key "q" 'quit-window)
         (cl-loop for (docs . rest) on docs
                  for (this-doc . plist) = docs

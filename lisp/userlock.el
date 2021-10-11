@@ -194,7 +194,9 @@ really edit the buffer? (%s, %s, %s or %s) "
 		       (list "File reverted" filename)))
 	      ((eq answer ?n)
 	       (signal 'file-supersession
-		       (list "File changed on disk" filename)))))
+		       (list "File changed on disk" filename)))
+	      ((eq answer ?y))
+	      (t (setq answer nil))))
       (message
        "File on disk now will become a backup file if you save these changes.")
       (setq buffer-backed-up nil))))

@@ -176,8 +176,11 @@ with the current prefix.  The files are chosen according to
           completions))
 
 (defun help--symbol-completion-table (string pred action)
-  (if (and completions-detailed (eq action 'metadata))
-      '(metadata (affixation-function . help--symbol-completion-table-affixation))
+  (if (eq action 'metadata)
+      `(metadata
+        ,@(when completions-detailed
+            '((affixation-function . help--symbol-completion-table-affixation)))
+        (category . symbol-help))
     (when help-enable-completion-autoload
       (let ((prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
         (help--load-prefixes prefixes)))

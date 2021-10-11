@@ -1402,7 +1402,7 @@ Note that the style variables are always made local to the buffer."
 		     (memq (char-after) c-string-delims))
 	    (c-clear-syn-tab (point)))))
       (c-clear-syn-tab (point)))
-     (t (c-benign-error "c-remove-string-fences: wrong position")))))
+     (t (c-benign-error "c-remove-string-fences: Wrong position")))))
 
 (defun c-before-change-check-unbalanced-strings (beg end)
   ;; If BEG or END is inside an unbalanced string, remove the syntax-table
