@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/time.h>
 #include <sys/utime.h>
 #include <math.h>
+#include <nproc.h>
 
 /* Include (most) CRT headers *before* ms-w32.h.  */
 #include <ms-w32.h>
@@ -1960,6 +1961,16 @@ w32_get_nproc (void)
 	num_of_processors = 1;
     }
   return num_of_processors;
+}
+
+/* Emulate Gnulib's 'num_processors'.  We cannot use the Gnulib
+   version because it unconditionally calls APIs that aren't available
+   on old MS-Windows versions.  */
+unsigned long
+num_processors (enum nproc_query query)
+{
+  /* We ignore QUERY.  */
+  return w32_get_nproc ();
 }
 
 static void
