@@ -185,6 +185,11 @@ successfully.
 @item --version
 @opindex --version
 Print Emacs version, then exit successfully.
+
+@item --fingerprint
+@opindex --fingerprint
+Print the Emacs ``fingerprint'', which is used to uniquely identify
+the compiled version of Emacs.
 @end table
 
 @node Initial Options

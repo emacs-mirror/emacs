@@ -312,7 +312,7 @@ dump_reloc_set_offset (struct dump_reloc *reloc, dump_off offset)
     error ("dump relocation out of range");
 }
 
-static void
+void
 dump_fingerprint (char const *label,
 		  unsigned char const xfingerprint[sizeof fingerprint])
 {
