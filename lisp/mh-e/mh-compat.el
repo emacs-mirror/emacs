@@ -83,9 +83,13 @@ the completions."
 (define-obsolete-function-alias 'mh-font-lock-add-keywords
   #'font-lock-add-keywords "29.1")
 
+;; Not preloaded in without-x builds.
+(declare-function image-load-path-for-library "image")
 (define-obsolete-function-alias 'mh-image-load-path-for-library
   #'image-load-path-for-library "29.1")
 
+;; Not preloaded in without-x builds.
+(declare-function image-search-load-path "image")
 (define-obsolete-function-alias 'mh-image-search-load-path
   #'image-search-load-path "29.1")
 

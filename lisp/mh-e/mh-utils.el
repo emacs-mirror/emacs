@@ -116,22 +116,32 @@ Ignores case when searching for OLD."
 
 ;;; Logo Display
 
+;;;###mh-autoload
+(defmacro mh--with-image-load-path (&rest body)
+  "Load `image' and eval BODY with `image-load-path' set appropriately."
+  (declare (debug t) (indent 0))
+  `(progn
+     ;; Not preloaded in without-x builds.
+     (require 'image)
+     (defvar image-load-path)
+     (declare-function image-load-path-for-library "image")
+     (let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
+            (image-load-path (cons (car load-path) image-load-path)))
+       ,@body)))
+
 (defvar mh-logo-cache nil)
 
 ;;;###mh-autoload
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
-  (let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
-         (image-load-path (cons (car load-path)
-                                (when (boundp 'image-load-path)
-                                  image-load-path))))
+  (mh--with-image-load-path
     (add-text-properties
      0 2
      `(display ,(or mh-logo-cache
                     (setq mh-logo-cache
                           (mh-funcall-if-exists
-                           find-image '((:type xpm :ascent center
-                                               :file "mh-logo.xpm"))))))
+                           find-image '(( :type xpm :ascent center
+                                          :file "mh-logo.xpm" ))))))
      (car mode-line-buffer-identification))))
 
 

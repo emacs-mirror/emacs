@@ -604,6 +604,12 @@ This function assumes that the events can be stored in a string."
 (defun edmacro-fix-menu-commands (macro &optional noerror)
   (if (vectorp macro)
       (let (result)
+        ;; Not preloaded in without-x builds.
+        (require 'mwheel)
+        (defvar mouse-wheel-down-event)
+        (defvar mouse-wheel-left-event)
+        (defvar mouse-wheel-right-event)
+        (defvar mouse-wheel-up-event)
 	;; Make a list of the elements.
 	(setq macro (append macro nil))
 	(dolist (ev macro)

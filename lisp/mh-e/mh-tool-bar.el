@@ -211,11 +211,7 @@ where,
        ;; Tool bar initialization functions
        (defun mh-tool-bar-folder-buttons-init ()
          (when (mh-buffer-exists-p 'mh-folder-mode)
-           (let* ((load-path (image-load-path-for-library "mh-e"
-                                                          "mh-logo.xpm"))
-                  (image-load-path (cons (car load-path)
-                                         (when (boundp 'image-load-path)
-                                           image-load-path))))
+           (mh--with-image-load-path
              (setq mh-folder-tool-bar-map
                    (let ((tool-bar-map (make-sparse-keymap)))
                      ,@(nreverse folder-button-setter)
@@ -234,11 +230,7 @@ where,
                      tool-bar-map)))))
        (defun mh-tool-bar-letter-buttons-init ()
          (when (mh-buffer-exists-p 'mh-letter-mode)
-           (let* ((load-path (image-load-path-for-library "mh-e"
-                                                          "mh-logo.xpm"))
-                  (image-load-path (cons (car load-path)
-                                         (when (boundp 'image-load-path)
-                                           image-load-path))))
+           (mh--with-image-load-path
              (setq mh-letter-tool-bar-map
                    (let ((tool-bar-map (make-sparse-keymap)))
                      ,@(nreverse letter-button-setter)
