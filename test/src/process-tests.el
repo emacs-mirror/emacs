@@ -946,5 +946,11 @@ Return nil if FILENAME doesn't exist."
       (when buf
         (kill-buffer buf)))))
 
+(ert-deftest process-num-processors ()
+  "Sanity checks for num-processors."
+  (should (equal (num-processors) (num-processors)))
+  (should (integerp (num-processors)))
+  (should (< 0 (num-processors))))
+
 (provide 'process-tests)
 ;;; process-tests.el ends here

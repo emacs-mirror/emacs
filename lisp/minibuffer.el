@@ -943,7 +943,12 @@ When completing \"foo\" the glob \"*f*o*o*\" is used, so that
      completion-initials-try-completion completion-initials-all-completions
      "Completion of acronyms and initialisms.
 E.g. can complete M-x lch to list-command-history
-and C-x C-f ~/sew to ~/src/emacs/work."))
+and C-x C-f ~/sew to ~/src/emacs/work.")
+    (shorthand
+     completion-shorthand-try-completion completion-shorthand-all-completions
+     "Completion of symbol shorthands setup in `read-symbol-shorthands'.
+E.g. can complete \"x-foo\" to \"xavier-foo\" if the shorthand
+((\"x-\" . \"xavier-\")) is set up in the buffer of origin."))
   "List of available completion styles.
 Each element has the form (NAME TRY-COMPLETION ALL-COMPLETIONS DOC):
 where NAME is the name that should be used in `completion-styles',
@@ -990,7 +995,8 @@ styles for specific categories, such as files, buffers, etc."
     ;; e.g. one that does not anchor to bos.
     (project-file (styles . (substring)))
     (xref-location (styles . (substring)))
-    (info-menu (styles . (basic substring))))
+    (info-menu (styles . (basic substring)))
+    (symbol-help (styles . (basic shorthand substring))))
   "Default settings for specific completion categories.
 Each entry has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
@@ -1617,6 +1623,9 @@ DONT-CYCLE tells the function not to setup cycling."
 
 (defvar minibuffer--require-match nil
   "Value of REQUIRE-MATCH passed to `completing-read'.")
+
+(defvar minibuffer--original-buffer nil
+  "Buffer that was current when `completing-read' was called.")
 
 (defun minibuffer-complete-and-exit ()
   "Exit if the minibuffer contains a valid completion.
@@ -4080,6 +4089,40 @@ which is at the core of flex logic.  The extra
   (let ((newstr (completion-initials-expand string table pred)))
     (when newstr
       (completion-pcm-try-completion newstr table pred (length newstr)))))
+
+;; Shorthand completion
+;;
+;; Iff there is a (("x-" . "string-library-")) shorthand setup and
+;; string-library-foo is in candidates, complete x-foo to it.
+
+(defun completion-shorthand-try-completion (string table pred point)
+  "Try completion with `read-symbol-shorthands' of original buffer."
+  (cl-loop with expanded
+           for (short . long) in
+           (with-current-buffer minibuffer--original-buffer
+             read-symbol-shorthands)
+           for probe =
+           (and (> point (length short))
+                (string-prefix-p short string)
+                (try-completion (setq expanded
+                                      (concat long
+                                              (substring
+                                               string
+                                               (length short))))
+                                table pred))
+           when probe
+           do (message "Shorthand expansion")
+           and return (cons expanded (max (length long)
+                                          (+ (- point (length short))
+                                             (length long))))))
+
+(defun completion-shorthand-all-completions (_string _table _pred _point)
+  ;; no-op: For now, we don't want shorthands to list all the possible
+  ;; locally active longhands.  For the completion categories where
+  ;; this style is active, it could hide other more interesting
+  ;; matches from subsequent styles.
+  nil)
+
 
 (defvar completing-read-function #'completing-read-default
   "The function called by `completing-read' to do its work.
@@ -4111,6 +4154,7 @@ See `completing-read' for the meaning of the arguments."
                     ;; in minibuffer-local-filename-completion-map can
                     ;; override bindings in base-keymap.
                     base-keymap)))
+         (buffer (current-buffer))
          (result
           (minibuffer-with-setup-hook
               (lambda ()
@@ -4119,7 +4163,8 @@ See `completing-read' for the meaning of the arguments."
                 ;; FIXME: Remove/rename this var, see the next one.
                 (setq-local minibuffer-completion-confirm
                             (unless (eq require-match t) require-match))
-                (setq-local minibuffer--require-match require-match))
+                (setq-local minibuffer--require-match require-match)
+                (setq-local minibuffer--original-buffer buffer))
             (read-from-minibuffer prompt initial-input keymap
                                   nil hist def inherit-input-method))))
     (when (and (equal result "") def)

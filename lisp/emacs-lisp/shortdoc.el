@@ -1319,11 +1319,11 @@ function's documentation in the Info manual")))
                   (princ value (current-buffer))
                   (insert "\n"))
                  (:eg-result
-                  (insert "    eg. " double-arrow " ")
+                  (insert "    e.g. " double-arrow " ")
                   (prin1 value (current-buffer))
                   (insert "\n"))
                  (:eg-result-string
-                  (insert "    eg. " double-arrow " ")
+                  (insert "    e.g. " double-arrow " ")
                   (princ value (current-buffer))
                   (insert "\n")))))
     ;; Insert the arglist after doing the evals, in case that's pulled

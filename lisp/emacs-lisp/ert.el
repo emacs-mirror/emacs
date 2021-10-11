@@ -781,6 +781,10 @@ This mainly sets up debugger-related bindings."
                           (ert--run-test-debugger test-execution-info
                                                   args)))
               (debug-on-error t)
+              ;; Don't infloop if the error being called is erroring
+              ;; out, and we have `debug-on-error' bound to nil inside
+              ;; the test.
+              (backtrace-on-error-noninteractive nil)
               (debug-on-quit t)
               ;; FIXME: Do we need to store the old binding of this
               ;; and consider it in `ert--run-test-debugger'?

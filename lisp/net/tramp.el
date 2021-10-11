@@ -1304,7 +1304,7 @@ let-bind this variable."
 ;; "getconf PATH" yields:
 ;; HP-UX: /usr/bin:/usr/ccs/bin:/opt/ansic/bin:/opt/langtools/bin:/opt/fortran/bin
 ;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
-;; GNU/Linux (Debian, Suse, RHEL): /bin:/usr/bin
+;; GNU/Linux (Debian, Suse, RHEL, Cygwin, MINGW64): /bin:/usr/bin
 ;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
 ;; FreeBSD 12.1, Darwin: /usr/bin:/bin:/usr/sbin:/sbin
 ;; IRIX64: /usr/bin
@@ -1326,9 +1326,9 @@ tilde expansion, all directory names starting with \"~\" will be ignored.
 the command \"getconf PATH\".  It is recommended to use this
 entry on head of this list, because these are the default
 directories for POSIX compatible commands.  On remote hosts which
-do not offer the getconf command (like cygwin), the value
-\"/bin:/usr/bin\" is used instead.  This entry is represented in
-the list by the special value `tramp-default-remote-path'.
+do not offer the getconf command, the value \"/bin:/usr/bin\" is
+used instead.  This entry is represented in the list by the
+special value `tramp-default-remote-path'.
 
 `Private Directories' are the settings of the $PATH environment,
 as given in your `~/.profile'.  This entry is represented in
@@ -4127,8 +4127,8 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	    (stderr (plist-get args :stderr)))
 	(unless (stringp name)
 	  (signal 'wrong-type-argument (list #'stringp name)))
-	(unless (or (null buffer) (bufferp buffer) (stringp buffer))
-	  (signal 'wrong-type-argument (list #'stringp buffer)))
+	(unless (or (bufferp buffer) (string-or-null-p buffer))
+	  (signal 'wrong-type-argument (list #'bufferp buffer)))
 	(unless (consp command)
 	  (signal 'wrong-type-argument (list #'consp command)))
 	(unless (or (null coding)
@@ -4564,7 +4564,7 @@ of."
 
       ;; The end.
       (when (and (null noninteractive)
-		 (or (eq visit t) (null visit) (stringp visit)))
+		 (or (eq visit t) (string-or-null-p visit)))
 	(tramp-message v 0 "Wrote %s" filename))
       (run-hooks 'tramp-handle-write-region-hook))))
 
@@ -4630,9 +4630,8 @@ of."
   (let ((user (or (tramp-file-name-user vec)
 		  (with-tramp-connection-property vec "login-as"
 		    (save-window-excursion
-		      (let ((enable-recursive-minibuffers t))
-			(pop-to-buffer (tramp-get-connection-buffer vec))
-			(read-string (match-string 0))))))))
+		      (pop-to-buffer (tramp-get-connection-buffer vec))
+		      (read-string (match-string 0)))))))
     (with-current-buffer (tramp-get-connection-buffer vec)
       (tramp-message vec 6 "\n%s" (buffer-string)))
     (tramp-message vec 3 "Sending login name `%s'" user)
@@ -4642,8 +4641,7 @@ of."
 (defun tramp-action-password (proc vec)
   "Query the user for a password."
   (with-current-buffer (process-buffer proc)
-    (let ((enable-recursive-minibuffers t)
-	  (case-fold-search t))
+    (let ((case-fold-search t))
       ;; Let's check whether a wrong password has been sent already.
       ;; Sometimes, the process returns a new password request
       ;; immediately after rejecting the previous (wrong) one.
@@ -4674,14 +4672,13 @@ of."
 Send \"yes\" to remote process on confirmation, abort otherwise.
 See also `tramp-action-yn'."
   (save-window-excursion
-    (let ((enable-recursive-minibuffers t))
-      (pop-to-buffer (tramp-get-connection-buffer vec))
-      (unless (yes-or-no-p (match-string 0))
-	(kill-process proc)
-	(throw 'tramp-action 'permission-denied))
-      (with-current-buffer (tramp-get-connection-buffer vec)
-	(tramp-message vec 6 "\n%s" (buffer-string)))
-      (tramp-send-string vec (concat "yes" tramp-local-end-of-line))))
+    (pop-to-buffer (tramp-get-connection-buffer vec))
+    (unless (yes-or-no-p (match-string 0))
+      (kill-process proc)
+      (throw 'tramp-action 'permission-denied))
+    (with-current-buffer (tramp-get-connection-buffer vec)
+      (tramp-message vec 6 "\n%s" (buffer-string)))
+    (tramp-send-string vec (concat "yes" tramp-local-end-of-line)))
   t)
 
 (defun tramp-action-yn (proc vec)
@@ -4689,14 +4686,13 @@ See also `tramp-action-yn'."
 Send \"y\" to remote process on confirmation, abort otherwise.
 See also `tramp-action-yesno'."
   (save-window-excursion
-    (let ((enable-recursive-minibuffers t))
-      (pop-to-buffer (tramp-get-connection-buffer vec))
-      (unless (y-or-n-p (match-string 0))
-	(kill-process proc)
-	(throw 'tramp-action 'permission-denied))
-      (with-current-buffer (tramp-get-connection-buffer vec)
-	(tramp-message vec 6 "\n%s" (buffer-string)))
-      (tramp-send-string vec (concat "y" tramp-local-end-of-line))))
+    (pop-to-buffer (tramp-get-connection-buffer vec))
+    (unless (y-or-n-p (match-string 0))
+      (kill-process proc)
+      (throw 'tramp-action 'permission-denied))
+    (with-current-buffer (tramp-get-connection-buffer vec)
+      (tramp-message vec 6 "\n%s" (buffer-string)))
+    (tramp-send-string vec (concat "y" tramp-local-end-of-line)))
   t)
 
 (defun tramp-action-terminal (_proc vec)
@@ -4830,7 +4826,8 @@ performed successfully.  Any other value means an error."
   (save-restriction
     (with-tramp-progress-reporter
 	proc 3 "Waiting for prompts from remote shell"
-      (let (exit)
+      (let ((enable-recursive-minibuffers t)
+	    exit)
 	(if timeout
 	    (with-timeout (timeout (setq exit 'timeout))
 	      (while (not exit)

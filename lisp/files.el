@@ -5746,7 +5746,9 @@ This allows you to stop `save-some-buffers' from asking
 about certain files that you'd usually rather not save.
 
 This function is called (with no parameters) from the buffer to
-be saved."
+be saved.  When the function's symbol has the property
+`save-some-buffers-function', the higher-order function is supposed
+to return a predicate used to check buffers."
   :group 'auto-save
   ;; FIXME nil should not be a valid option, let alone the default,
   ;; eg so that add-function can be used.
@@ -5766,6 +5768,7 @@ of the directory that was default during command invocation."
                        (project-root (project-current)))
                   default-directory)))
     (lambda () (file-in-directory-p default-directory root))))
+(put 'save-some-buffers-root 'save-some-buffers-function t)
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
@@ -5797,9 +5800,10 @@ change the additional actions you can take on files."
     (setq pred save-some-buffers-default-predicate))
   ;; Allow `pred' to be a function that returns a predicate
   ;; with lexical bindings in its original environment (bug#46374).
-  (let ((pred-fun (and (functionp pred) (funcall pred))))
-    (when (functionp pred-fun)
-      (setq pred pred-fun)))
+  (when (and (symbolp pred) (get pred 'save-some-buffers-function))
+    (let ((pred-fun (and (functionp pred) (funcall pred))))
+      (when (functionp pred-fun)
+        (setq pred pred-fun))))
   (let* ((switched-buffer nil)
          (save-some-buffers--switch-window-callback
           (lambda (buffer)

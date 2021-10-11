@@ -39,7 +39,8 @@ GNULIB_MODULES='
   free-posix fstatat fsusage fsync futimens
   getloadavg getopt-gnu getrandom gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile libgmp lstat
-  manywarnings memmem-simple mempcpy memrchr minmax mkostemp mktime nstrftime
+  manywarnings memmem-simple mempcpy memrchr minmax mkostemp mktime
+  nproc nstrftime
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat regex
   sig2str sigdescr_np socklen stat-time std-gnu11 stdalign stddef stdio

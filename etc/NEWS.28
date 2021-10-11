@@ -4095,6 +4095,10 @@ Parse a string as a mail address-like string.
 Make a string appropriate for usage as a visual separator line.
 
 +++
+** New function 'num-processors'.
+Return the number of processors on the system.
+
++++
 ** New function 'object-intervals'.
 This function returns a copy of the list of intervals (i.e., text
 properties) in the object in question (which must either be a string
