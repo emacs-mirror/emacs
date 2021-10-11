@@ -32,6 +32,11 @@
 (require 'help-fns)
 (require 'subr-x)
 
+;; Catch information for bug#50902.
+(when (getenv "EMACS_EMBA_CI")
+  (start-process-shell-command
+   "*timeout*" nil (format "sleep 60; kill -ABRT %d" (emacs-pid))))
+
 (defconst mod-test-emacs
   (expand-file-name invocation-name invocation-directory)
   "File name of the Emacs binary currently running.")
