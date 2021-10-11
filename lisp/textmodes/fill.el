@@ -396,12 +396,8 @@ and `fill-nobreak-invisible'."
 	  (save-excursion
 	    (skip-chars-backward " ")
 	    (and (eq (preceding-char) ?.)
-		 (looking-at " \\([^ ]\\|$\\)"))))
-     ;; Another approach to the same problem.
-     (save-excursion
-       (skip-chars-backward " ")
-       (and (eq (preceding-char) ?.)
-	    (not (progn (forward-char -1) (looking-at (sentence-end))))))
+                 ;; There's something more after the space.
+		 (looking-at " [^ \n]"))))
      ;; Don't split a line if the rest would look like a new paragraph.
      (unless use-hard-newlines
        (save-excursion
