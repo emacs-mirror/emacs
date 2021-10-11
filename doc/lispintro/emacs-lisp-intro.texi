@@ -17456,9 +17456,9 @@ Manual}, for more information.
 @findex line-to-top-of-window
 @cindex Simple extension in @file{.emacs} file
 
-Here is a simple extension to Emacs that moves the line point is on to
-the top of the window.  I use this all the time, to make text easier
-to read.
+Here is a simple extension to Emacs that moves the line that point is
+on to the top of the window.  I use this all the time, to make text
+easier to read.
 
 You can put the following code into a separate file and then load it
 from your @file{.emacs} file, or you can include it within your
