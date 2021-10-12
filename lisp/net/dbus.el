@@ -2252,15 +2252,19 @@ keywords `:system-private' or `:session-private', respectively."
      bus nil dbus-path-local dbus-interface-local
      "Disconnected" #'dbus-handle-bus-disconnect)))
 
- 
-;; Initialize `:system' and `:session' buses.  This adds their file
-;; descriptors to input_wait_mask, in order to detect incoming
-;; messages immediately.
-(when (featurep 'dbusbind)
-  (dbus-ignore-errors
-    (dbus-init-bus :system))
-  (dbus-ignore-errors
-    (dbus-init-bus :session)))
+
+(defun dbus--init ()
+  ;; Initialize `:system' and `:session' buses.  This adds their file
+  ;; descriptors to input_wait_mask, in order to detect incoming
+  ;; messages immediately.
+  (when (featurep 'dbusbind)
+    (dbus-ignore-errors
+      (dbus-init-bus :system))
+    (dbus-ignore-errors
+      (dbus-init-bus :session))))
+
+(add-hook 'after-pdump-load-hook #'dbus--init)
+(dbus--init)
 
 (provide 'dbus)
 
