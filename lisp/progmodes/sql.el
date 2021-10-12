@@ -481,9 +481,9 @@ file.  Since that is a plaintext file, this could be dangerous."
      :list-all ("\\d+" . "\\dS+")
      :list-table ("\\d+ %s" . "\\dS+ %s")
      :completion-object sql-postgres-completion-object
-     :prompt-regexp "^[[:alnum:]_]*=[#>] "
+     :prompt-regexp "^[-[:alnum:]_]*[-=][#>] "
      :prompt-length 5
-     :prompt-cont-regexp "^[[:alnum:]_]*[-(][#>] "
+     :prompt-cont-regexp "^[-[:alnum:]_]*[-'(][#>] "
      :statement sql-postgres-statement-starters
      :input-filter sql-remove-tabs-filter
      :terminator ("\\(^\\s-*\\\\g\\|;\\)" . "\\g"))
@@ -700,8 +700,17 @@ making new SQLi sessions."
                                (sexp   :tag "Value Expression")))))
   :version "24.1")
 
-(defvaralias 'sql-dialect 'sql-product)
+(defun sql-add-connection (connection params)
+  "Add a new connection to `sql-connection-alist'.
 
+If CONNECTION already exists, it is replaced with PARAMS."
+  (setq sql-connection-alist
+        (assoc-delete-all connection sql-connection-alist))
+  (push
+   (cons connection params)
+   sql-connection-alist))
+
+(defvaralias 'sql-dialect 'sql-product)
 (defcustom sql-product 'ansi
   "Select the SQL database product used.
 This allows highlighting buffers properly when you open them."
