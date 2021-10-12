@@ -283,7 +283,7 @@ If the URL isn't present in the cache then it is fetched with wget."
   (let* ((cache-filename (mh-x-image-url-cache-canonicalize url))
          (state (mh-x-image-get-download-state cache-filename))
          (marker (point-marker)))
-    (set (make-local-variable 'mh-x-image-marker) marker)
+    (setq-local mh-x-image-marker marker)
     (cond ((not (mh-x-image-url-sane-p url)))
           ((eq state 'ok)
            (mh-x-image-display cache-filename marker))
@@ -378,9 +378,9 @@ actual display is carried out by the SENTINEL function."
       (let ((buffer (generate-new-buffer mh-temp-fetch-buffer))
             (filename (make-temp-file "mhe-fetch")))
         (with-current-buffer buffer
-          (set (make-local-variable 'mh-x-image-url-cache-file) cache-file)
-          (set (make-local-variable 'mh-x-image-marker) marker)
-          (set (make-local-variable 'mh-x-image-temp-file) filename))
+          (setq-local mh-x-image-url-cache-file cache-file)
+          (setq-local mh-x-image-marker marker)
+          (setq-local mh-x-image-temp-file filename))
         (set-process-sentinel
          (start-process "*mh-x-image-url-fetch*" buffer
                         mh-wget-executable mh-wget-option filename url)

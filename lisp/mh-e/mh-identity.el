@@ -234,11 +234,9 @@ added."
         (if (null value)
             (mh-insert-signature)
           (mh-insert-signature value))
-        (set (make-local-variable 'mh-identity-signature-start)
-             (point-min-marker))
+        (setq-local mh-identity-signature-start (point-min-marker))
         (set-marker-insertion-type mh-identity-signature-start t)
-        (set (make-local-variable 'mh-identity-signature-end)
-             (point-max-marker)))))))
+        (setq-local mh-identity-signature-end (point-max-marker)))))))
 
 (defvar mh-identity-attribution-verb-start nil
   "Marker for the beginning of the attribution verb.")
@@ -270,11 +268,9 @@ If VALUE is nil, use `mh-extract-from-attribution-verb'."
     (if (null value)
         (insert mh-extract-from-attribution-verb)
       (insert value))
-    (set (make-local-variable 'mh-identity-attribution-verb-start)
-         (point-min-marker))
+    (setq-local mh-identity-attribution-verb-start (point-min-marker))
     (set-marker-insertion-type mh-identity-attribution-verb-start t)
-    (set (make-local-variable 'mh-identity-attribution-verb-end)
-         (point-max-marker))))
+    (setq-local mh-identity-attribution-verb-end (point-max-marker))))
 
 (defun mh-identity-handler-default (field action top &optional value)
   "Process header FIELD.

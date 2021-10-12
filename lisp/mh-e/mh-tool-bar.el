@@ -260,7 +260,7 @@ Use SEQUENCE-MAP if display is limited; DEFAULT-MAP otherwise."
                            ;; mh-e.el, after the +inbox buffer has been
                            ;; created, but before mh-folder-mode has run and
                            ;; created the local map.
-                           (set (make-local-variable 'tool-bar-map) map))))))
+                           (setq-local tool-bar-map map))))))
        (defun mh-tool-bar-folder-buttons-set (symbol value)
          "Construct tool bar for `mh-folder-mode' and `mh-show-mode'."
          (set-default symbol value)

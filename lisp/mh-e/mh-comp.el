@@ -579,11 +579,12 @@ See also `mh-compose-forward-as-mime-flag',
         (goto-char (point-min))
         ;; Set the local value of mh-mail-header-separator according to what is
         ;; present in the buffer...
-        (set (make-local-variable 'mh-mail-header-separator)
-             (save-excursion
-               (goto-char (mh-mail-header-end))
-               (buffer-substring-no-properties (point) (line-end-position))))
-        (set (make-local-variable 'mail-header-separator) mh-mail-header-separator) ;override sendmail.el
+        (setq-local mh-mail-header-separator
+                    (save-excursion
+                      (goto-char (mh-mail-header-end))
+                      (buffer-substring-no-properties (point)
+                                                      (line-end-position))))
+        (setq-local mail-header-separator mh-mail-header-separator) ;override sendmail.el
         ;; If using MML, translate MH-style directive
         (if (equal mh-compose-insertion 'mml)
             (save-excursion

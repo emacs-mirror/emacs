@@ -294,18 +294,18 @@ order).
   (unless mh-letter-tool-bar-map
     (mh-tool-bar-letter-buttons-init))
   (if (boundp 'tool-bar-map)
-      (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map))
+      (setq-local tool-bar-map mh-letter-tool-bar-map))
   ;; Set the local value of mh-mail-header-separator according to what is
   ;; present in the buffer...
-  (set (make-local-variable 'mh-mail-header-separator)
-       (save-excursion
-         (goto-char (mh-mail-header-end))
-         (buffer-substring-no-properties (point) (line-end-position))))
+  (setq-local mh-mail-header-separator
+              (save-excursion
+                (goto-char (mh-mail-header-end))
+                (buffer-substring-no-properties (point) (line-end-position))))
   (make-local-variable 'mail-header-separator)
   (setq mail-header-separator mh-mail-header-separator) ;override sendmail.el
   (mh-set-help mh-letter-mode-help-messages)
   (setq buffer-invisibility-spec '((vanish . t) t))
-  (set (make-local-variable 'line-move-ignore-invisible) t)
+  (setq-local line-move-ignore-invisible t)
 
   ;; Enable undo since a show-mode buffer might have been reused.
   (buffer-enable-undo)

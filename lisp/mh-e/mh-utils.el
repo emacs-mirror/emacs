@@ -78,6 +78,7 @@ used in lieu of `search' in the CL package."
 ;;;###mh-autoload
 (defun mh-make-local-vars (&rest pairs)
   "Initialize local variables according to the variable-value PAIRS."
+  (declare (obsolete setq-local "29.1"))
   (while pairs
     (set (make-local-variable (car pairs)) (car (cdr pairs)))
     (setq pairs (cdr (cdr pairs)))))
