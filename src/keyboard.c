@@ -2943,20 +2943,8 @@ read_char (int commandflag, Lisp_Object map,
       last_input_event = c;
       call4 (Qcommand_execute, tem, Qnil, Fvector (1, &last_input_event), Qt);
 
-      if (CONSP (c)
-          && (EQ (XCAR (c), Qselect_window)
-              || EQ (XCAR (c), Qfocus_out)
-#ifdef HAVE_DBUS
-	      || EQ (XCAR (c), Qdbus_event)
-#endif
-#ifdef USE_FILE_NOTIFY
-	      || EQ (XCAR (c), Qfile_notify)
-#endif
-#ifdef THREADS_ENABLED
-	      || EQ (XCAR (c), Qthread_event)
-#endif
-	      || EQ (XCAR (c), Qconfig_changed_event))
-          && !end_time)
+      if (CONSP (c) && !NILP (Fmemq (XCAR (c), Vwhile_no_input_ignore_events))
+	  && !end_time)
 	/* We stopped being idle for this event; undo that.  This
 	   prevents automatic window selection (under
 	   mouse-autoselect-window) from acting as a real input event, for
@@ -11605,6 +11593,27 @@ static const struct event_head head_table[] = {
   {SYMBOL_INDEX (Qselect_window),       SYMBOL_INDEX (Qswitch_frame)}
 };
 
+static Lisp_Object
+init_while_no_input_ignore_events (void)
+{
+  Lisp_Object events = listn (9, Qselect_window, Qhelp_echo, Qmove_frame,
+			      Qiconify_frame, Qmake_frame_visible,
+			      Qfocus_in, Qfocus_out, Qconfig_changed_event,
+			      Qselection_request);
+
+#ifdef HAVE_DBUS
+  events = Fcons (Qdbus_event, events);
+#endif
+#ifdef USE_FILE_NOTIFY
+  events = Fcons (Qfile_notify, events);
+#endif
+#ifdef THREADS_ENABLED
+  events = Fcons (Qthread_event, events);
+#endif
+
+  return events;
+}
+
 static void syms_of_keyboard_for_pdumper (void);
 
 void
@@ -12499,7 +12508,11 @@ If nil, Emacs crashes immediately in response to fatal signals.  */);
 
   DEFVAR_LISP ("while-no-input-ignore-events",
                Vwhile_no_input_ignore_events,
-               doc: /* Ignored events from while-no-input.  */);
+               doc: /* Ignored events from `while-no-input'.
+Events in this list do not count as pending input while running
+`while-no-input' and do not cause any idle timers to get reset when they
+occur.  */);
+  Vwhile_no_input_ignore_events = init_while_no_input_ignore_events ();
 
   DEFVAR_BOOL ("translate-upper-case-key-bindings",
                translate_upper_case_key_bindings,
