@@ -2314,18 +2314,19 @@ non-nil."
         (dired-buf (image-dired-associated-dired-buffer)))
     (when (and dired-buf file-name)
       (with-current-buffer dired-buf
-        (when (dired-goto-file file-name)
-          (image-dired-dired-file-marked-p))))))
+        (save-excursion
+          (when (dired-goto-file file-name)
+            (image-dired-dired-file-marked-p)))))))
 
 (defun image-dired-delete-marked ()
   "Delete current or marked thumbnails and associated images."
   (interactive)
-  (with-current-buffer (image-dired-associated-dired-buffer)
-    (dired-do-delete))
   (image-dired--with-marked
    (image-dired-delete-char)
    (backward-char))
-  (image-dired--line-up-with-method))
+  (image-dired--line-up-with-method)
+  (with-current-buffer (image-dired-associated-dired-buffer)
+    (dired-do-delete)))
 
 (defun image-dired-thumb-update-marks ()
   "Update the marks in the thumbnail buffer."
