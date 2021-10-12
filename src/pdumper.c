@@ -313,13 +313,14 @@ dump_reloc_set_offset (struct dump_reloc *reloc, dump_off offset)
 }
 
 void
-dump_fingerprint (char const *label,
+dump_fingerprint (FILE *output, char const *label,
 		  unsigned char const xfingerprint[sizeof fingerprint])
 {
   enum { hexbuf_size = 2 * sizeof fingerprint };
   char hexbuf[hexbuf_size];
   hexbuf_digest (hexbuf, xfingerprint, sizeof fingerprint);
-  fprintf (stderr, "%s: %.*s\n", label, hexbuf_size, hexbuf);
+  fprintf (output, "%s%s%.*s\n", label, *label ? ": " : "",
+	   hexbuf_size, hexbuf);
 }
 
 /* To be used if some order in the relocation process has to be enforced. */
@@ -4127,7 +4128,7 @@ types.  */)
     ctx->header.fingerprint[i] = fingerprint[i];
 
   const dump_off header_start = ctx->offset;
-  dump_fingerprint ("Dumping fingerprint", ctx->header.fingerprint);
+  dump_fingerprint (stderr, "Dumping fingerprint", ctx->header.fingerprint);
   dump_write (ctx, &ctx->header, sizeof (ctx->header));
   const dump_off header_end = ctx->offset;
 
@@ -5596,8 +5597,8 @@ pdumper_load (const char *dump_filename, char *argv0)
     desired[i] = fingerprint[i];
   if (memcmp (header->fingerprint, desired, sizeof desired) != 0)
     {
-      dump_fingerprint ("desired fingerprint", desired);
-      dump_fingerprint ("found fingerprint", header->fingerprint);
+      dump_fingerprint (stderr, "desired fingerprint", desired);
+      dump_fingerprint (stderr, "found fingerprint", header->fingerprint);
       goto out;
     }
 

@@ -933,7 +933,7 @@ load_pdump (int argc, char **argv)
      copies and renames it.  */
   hexbuf_size = 2 * sizeof fingerprint;
   hexbuf = xmalloc (hexbuf_size + 1);
-  hexbuf_digest (hexbuf, (char *)fingerprint, sizeof fingerprint);
+  hexbuf_digest (hexbuf, (char *) fingerprint, sizeof fingerprint);
   hexbuf[hexbuf_size] = '\0';
   needed = (strlen (path_exec)
 	    + 1
@@ -1403,7 +1403,8 @@ main (int argc, char **argv)
     {
       if (initialized)
         {
-          dump_fingerprint ("fingerprint", (unsigned char *)fingerprint);
+          dump_fingerprint (stdout, "",
+			    (unsigned char *) fingerprint);
           exit (0);
         }
       else

@@ -313,7 +313,7 @@ TRANSFORM = @program_transform_name@
 EMACS_NAME = `echo emacs | sed '$(TRANSFORM)'`
 EMACS = ${EMACS_NAME}${EXEEXT}
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
-EMACS_PDMP = `./src/emacs${EXEEXT} --fingerprint 2>&1 | sed 's/.* //'`.pdmp
+EMACS_PDMP = `./src/emacs${EXEEXT} --fingerprint`.pdmp
 
 # Subdirectories to make recursively.
 SUBDIR = $(NTDIR) lib lib-src src lisp
