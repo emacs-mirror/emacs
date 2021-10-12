@@ -124,6 +124,49 @@
 ;; (ert-deftest keymap-lookup-key/accept-default ()
 ;;   ...)
 
+(ert-deftest keymap-lookup-key/mixed-case ()
+  "Backwards compatibility behaviour (Bug#50752)."
+  (let ((map (make-keymap)))
+    (define-key map [menu-bar foo bar] 'foo)
+    (should (eq (lookup-key map [menu-bar foo bar]) 'foo))
+    (should (eq (lookup-key map [menu-bar Foo Bar]) 'foo)))
+  (let ((map (make-keymap)))
+    (define-key map [menu-bar i-bar] 'foo)
+    (should (eq (lookup-key map [menu-bar I-bar]) 'foo))))
+
+(ert-deftest keymap-lookup-key/mixed-case-multibyte ()
+  "Backwards compatibility behaviour (Bug#50752)."
+  (let ((map (make-keymap)))
+    ;; (downcase "Åäö") => "åäö"
+    (define-key map [menu-bar åäö bar] 'foo)
+    (should (eq (lookup-key map [menu-bar åäö bar]) 'foo))
+    (should (eq (lookup-key map [menu-bar Åäö Bar]) 'foo))
+    ;; (downcase "Γ") => "γ"
+    (define-key map [menu-bar γ bar] 'baz)
+    (should (eq (lookup-key map [menu-bar γ bar]) 'baz))
+    (should (eq (lookup-key map [menu-bar Γ Bar]) 'baz))))
+
+(ert-deftest keymap-lookup-keymap/with-spaces ()
+  "Backwards compatibility behaviour (Bug#50752)."
+  (let ((map (make-keymap)))
+    (define-key map [menu-bar foo-bar] 'foo)
+    (should (eq (lookup-key map [menu-bar Foo\ Bar]) 'foo))))
+
+(ert-deftest keymap-lookup-keymap/with-spaces-multibyte ()
+  "Backwards compatibility behaviour (Bug#50752)."
+  (let ((map (make-keymap)))
+    (define-key map [menu-bar åäö-bar] 'foo)
+    (should (eq (lookup-key map [menu-bar Åäö\ Bar]) 'foo))))
+
+(ert-deftest keymap-lookup-keymap/with-spaces-multibyte-lang-env ()
+  "Backwards compatibility behaviour (Bug#50752)."
+  (let ((lang-env current-language-environment))
+    (set-language-environment "Turkish")
+    (let ((map (make-keymap)))
+      (define-key map [menu-bar i-bar] 'foo)
+      (should (eq (lookup-key map [menu-bar I-bar]) 'foo)))
+    (set-language-environment lang-env)))
+
 (ert-deftest describe-buffer-bindings/header-in-current-buffer ()
   "Header should be inserted into the current buffer.
 https://debbugs.gnu.org/39149#31"

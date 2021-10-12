@@ -65,6 +65,9 @@ static Lisp_Object exclude_keys;
 /* Pre-allocated 2-element vector for Fcommand_remapping to use.  */
 static Lisp_Object command_remapping_vector;
 
+/* Char table for the backwards-compatibility part in Flookup_key.  */
+static Lisp_Object unicode_case_table;
+
 /* Hash table used to cache a reverse-map to speed up calls to where-is.  */
 static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
@@ -1209,27 +1212,8 @@ remapping in all currently active keymaps.  */)
   return FIXNUMP (command) ? Qnil : command;
 }
 
-/* Value is number if KEY is too long; nil if valid but has no definition.  */
-/* GC is possible in this function.  */
-
-DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
-       doc: /* Look up key sequence KEY in KEYMAP.  Return the definition.
-A value of nil means undefined.  See doc of `define-key'
-for kinds of definitions.
-
-A number as value means KEY is "too long";
-that is, characters or symbols in it except for the last one
-fail to be a valid sequence of prefix characters in KEYMAP.
-The number is how many characters at the front of KEY
-it takes to reach a non-prefix key.
-KEYMAP can also be a list of keymaps.
-
-Normally, `lookup-key' ignores bindings for t, which act as default
-bindings, used when nothing else in the keymap applies; this makes it
-usable as a general function for probing keymaps.  However, if the
-third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will
-recognize the default bindings, just as `read-key-sequence' does.  */)
-  (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default)
+static Lisp_Object
+lookup_key_1 (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default)
 {
   bool t_ok = !NILP (accept_default);
 
@@ -1269,6 +1253,141 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 
       maybe_quit ();
     }
+}
+
+/* Value is number if KEY is too long; nil if valid but has no definition.  */
+/* GC is possible in this function.  */
+
+DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
+       doc: /* Look up key sequence KEY in KEYMAP.  Return the definition.
+A value of nil means undefined.  See doc of `define-key'
+for kinds of definitions.
+
+A number as value means KEY is "too long";
+that is, characters or symbols in it except for the last one
+fail to be a valid sequence of prefix characters in KEYMAP.
+The number is how many characters at the front of KEY
+it takes to reach a non-prefix key.
+KEYMAP can also be a list of keymaps.
+
+Normally, `lookup-key' ignores bindings for t, which act as default
+bindings, used when nothing else in the keymap applies; this makes it
+usable as a general function for probing keymaps.  However, if the
+third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will
+recognize the default bindings, just as `read-key-sequence' does.  */)
+  (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default)
+{
+  Lisp_Object found = lookup_key_1 (keymap, key, accept_default);
+  if (!NILP (found) && !NUMBERP (found))
+    return found;
+
+  /* Menu definitions might use mixed case symbols (notably in old
+     versions of `easy-menu-define'), or use " " instead of "-".
+     The rest of this function is about accepting these variations for
+     backwards-compatibility.  (Bug#50752) */
+
+  /* Just skip everything below unless this is a menu item.  */
+  if (!VECTORP (key) || !(ASIZE (key) > 0)
+      || !EQ (AREF (key, 0), Qmenu_bar))
+    return found;
+
+  /* Initialize the unicode case table, if it wasn't already.  */
+  if (NILP (unicode_case_table))
+    {
+      unicode_case_table = uniprop_table (intern ("lowercase"));
+      staticpro (&unicode_case_table);
+    }
+
+  ptrdiff_t key_len = ASIZE (key);
+  Lisp_Object new_key = make_vector (key_len, Qnil);
+
+  /* Try both the Unicode case table, and the buffer local one.
+     Otherwise, we will fail for e.g. the "Turkish" language
+     environment where 'I' does not downcase to 'i'.  */
+  Lisp_Object tables[2] = {unicode_case_table, Fcurrent_case_table ()};
+  for (int tbl_num = 0; tbl_num < 2; tbl_num++)
+    {
+      /* First, let's try converting all symbols like "Foo-Bar-Baz" to
+	 "foo-bar-baz".  */
+      for (int i = 0; i < key_len; i++)
+	{
+	  Lisp_Object key_item = Fsymbol_name (AREF (key, i));
+	  Lisp_Object new_item;
+	  if (!STRING_MULTIBYTE (key_item))
+	    new_item = Fdowncase (key_item);
+	  else
+	    {
+	      USE_SAFE_ALLOCA;
+	      ptrdiff_t size = SCHARS (key_item), n;
+	      if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &n))
+		n = PTRDIFF_MAX;
+	      unsigned char *dst = SAFE_ALLOCA (n);
+	      unsigned char *p = dst;
+	      ptrdiff_t j_char = 0, j_byte = 0;
+
+	      while (j_char < size)
+		{
+		  int ch = fetch_string_char_advance (key_item, &j_char, &j_byte);
+		  Lisp_Object ch_conv = CHAR_TABLE_REF (tables[tbl_num], ch);
+		  if (!NILP (ch_conv))
+		    CHAR_STRING (XFIXNUM (ch_conv), p);
+		  else
+		    CHAR_STRING (ch, p);
+		  p = dst + j_byte;
+		}
+	      new_item = make_multibyte_string ((char *) dst,
+						SCHARS (key_item),
+						SBYTES (key_item));
+	      SAFE_FREE ();
+	    }
+	  ASET (new_key, i, Fintern (new_item, Qnil));
+	}
+
+      /* Check for match.  */
+      found = lookup_key_1 (keymap, new_key, accept_default);
+      if (!NILP (found) && !NUMBERP (found))
+	break;
+
+      /* If we still don't have a match, let's convert any spaces in
+	 our lowercased string into dashes, e.g. "foo bar baz" to
+	 "foo-bar-baz".  */
+      for (int i = 0; i < key_len; i++)
+	{
+	  Lisp_Object lc_key = Fsymbol_name (AREF (new_key, i));
+
+	  /* If there are no spaces in this symbol, just skip it.  */
+	  if (!strstr (SSDATA (lc_key), " "))
+	    continue;
+
+	  USE_SAFE_ALLOCA;
+	  ptrdiff_t size = SCHARS (lc_key), n;
+	  if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &n))
+	    n = PTRDIFF_MAX;
+	  unsigned char *dst = SAFE_ALLOCA (n);
+
+	  /* We can walk the string data byte by byte, because UTF-8
+	     encoding ensures that no other byte of any multibyte
+	     sequence will ever include a 7-bit byte equal to an ASCII
+	     single-byte character.  */
+	  memcpy (dst, SSDATA (lc_key), SBYTES (lc_key));
+	  for (int i = 0; i < SBYTES (lc_key); ++i)
+	    {
+	      if (dst[i] == ' ')
+		dst[i] = '-';
+	    }
+	  Lisp_Object
+	    new_it = make_multibyte_string ((char *) dst, SCHARS (lc_key), SBYTES (lc_key));
+	  ASET (new_key, i, Fintern (new_it, Qnil));
+	  SAFE_FREE ();
+	}
+
+      /* Check for match.  */
+      found = lookup_key_1 (keymap, new_key, accept_default);
+      if (!NILP (found) && !NUMBERP (found))
+	break;
+    }
+
+  return found;
 }
 
 /* Make KEYMAP define event C as a keymap (i.e., as a prefix).

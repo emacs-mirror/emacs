@@ -426,6 +426,18 @@ This returns the width of a string in pixels.  This can be useful when
 dealing with variable pitch fonts and glyphs that have widths that
 aren't integer multiples of the default font.
 
+---
+** 'lookup-key' is more allowing when searching for extended menu items.
+In Emacs 28.1, the behavior of 'lookup-key' was changed: when looking
+for a menu item '[menu-bar Foo-Bar]', first try to find an exact
+match, then look for the lowercased '[menu-bar foo-bar]'.
+
+This has been extended, so that when looking for a menu item with a
+symbol containing spaces, as in '[menu-bar Foo\ Bar]', first look for
+an exact match, then the lowercased '[menu-bar foo\ bar]' and finally
+'[menu-bar foo-bar]'.  This further improves backwards-compatibility
+when converting menus to use 'easy-menu-define'.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
