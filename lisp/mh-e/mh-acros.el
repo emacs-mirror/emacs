@@ -47,16 +47,13 @@
 ;;;###mh-autoload
 (defmacro mh-do-in-gnu-emacs (&rest body)
   "Execute BODY if in GNU Emacs."
-  ;; FIXME: This cannot yet be obsoleted, due to one remaining call in
-  ;; mh-tool-bar.el.  Once that is removed, this can be obsoleted.
-  (declare ;; (obsolete nil "29.1")
-   (debug t) (indent defun))
+  (declare (obsolete progn "29.1") (debug t) (indent defun))
   (unless (featurep 'xemacs) `(progn ,@body)))
 
 ;;;###mh-autoload
 (defmacro mh-do-in-xemacs (&rest body)
   "Execute BODY if in XEmacs."
-  (declare (obsolete nil "29.1") (debug t) (indent defun))
+  (declare (obsolete ignore "29.1") (debug t) (indent defun))
   (when (featurep 'xemacs) `(progn ,@body)))
 
 ;;;###mh-autoload

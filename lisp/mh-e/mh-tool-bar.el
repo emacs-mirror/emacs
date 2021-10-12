@@ -27,10 +27,8 @@
 ;;; Code:
 
 (require 'mh-e)
-;; FIXME: Figure out why removing the call to the `mh-do-in-gnu-emacs'
-;;        macro here leads to errors.
-(mh-do-in-gnu-emacs
-  (require 'tool-bar))
+(require 'mh-acros)
+(require 'tool-bar)
 
 ;;; Tool Bar Commands
 
