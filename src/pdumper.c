@@ -5706,6 +5706,7 @@ pdumper_load (const char *dump_filename, char *argv0)
     dump_mmap_release (&sections[i]);
   if (dump_fd >= 0)
     emacs_close (dump_fd);
+
   return err;
 }
 
@@ -5790,6 +5791,7 @@ syms_of_pdumper (void)
   DEFSYM (Qdumped_with_pdumper, "dumped-with-pdumper");
   DEFSYM (Qload_time, "load-time");
   DEFSYM (Qdump_file_name, "dump-file-name");
+  DEFSYM (Qafter_pdump_load_hook, "after-pdump-load-hook");
   defsubr (&Spdumper_stats);
 #endif /* HAVE_PDUMPER */
 }

@@ -2333,6 +2333,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   if (dump_mode)
     Vdump_mode = build_string (dump_mode);
 
+#ifdef HAVE_PDUMPER
+  /* Allow code to be run (mostly useful after redumping). */
+  safe_run_hooks (Qafter_pdump_load_hook);
+#endif
+
   /* Enter editor command loop.  This never returns.  */
   set_initial_minibuffer_mode ();
   Frecursive_edit ();

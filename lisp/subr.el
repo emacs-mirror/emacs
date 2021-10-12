@@ -3568,6 +3568,9 @@ If either NAME or VAL are specified, both should be specified."
 (defvar suspend-resume-hook nil
   "Normal hook run by `suspend-emacs', after Emacs is continued.")
 
+(defvar after-pdump-load-hook nil
+  "Normal hook run after loading the .pdmp file.")
+
 (defvar temp-buffer-show-hook nil
   "Normal hook run by `with-output-to-temp-buffer' after displaying the buffer.
 When the hook runs, the temporary buffer is current, and the window it

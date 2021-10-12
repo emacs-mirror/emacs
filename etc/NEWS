@@ -31,6 +31,12 @@ applies, and please also update docstrings as needed.
 ** Emacs now has a --fingerprint option.
 This will output a string identifying the current Emacs build.
 
++++
+** New hook 'after-pdump-load-hook'.
+This is run at the end of the Emacs startup process, and it meant to
+be used to reinitialize structures that would normally be done at load
+time.
+
 
 * Changes in Emacs 29.1
 
