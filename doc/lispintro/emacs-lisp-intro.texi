@@ -8767,7 +8767,7 @@ keeps the kill ring from growing too long.  It looks like this:
 
 The code checks whether the length of the kill ring is greater than
 the maximum permitted length.  This is the value of
-@code{kill-ring-max} (which is 60, by default).  If the length of the
+@code{kill-ring-max} (which is 120, by default).  If the length of the
 kill ring is too long, then this code sets the last element of the
 kill ring to @code{nil}.  It does this by using two functions,
 @code{nthcdr} and @code{setcdr}.

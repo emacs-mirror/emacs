@@ -1342,7 +1342,7 @@ that @kbd{C-y} should yank.
 @defopt kill-ring-max
 The value of this variable is the maximum length to which the kill
 ring can grow, before elements are thrown away at the end.  The default
-value for @code{kill-ring-max} is 60.
+value for @code{kill-ring-max} is 120.
 @end defopt
 
 @node Undo

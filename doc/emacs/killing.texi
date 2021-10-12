@@ -353,7 +353,7 @@ other ways to move text around.)
 
 @vindex kill-ring-max
   The maximum number of entries in the kill ring is controlled by the
-variable @code{kill-ring-max}.  The default is 60.  If you make a new
+variable @code{kill-ring-max}.  The default is 120.  If you make a new
 kill when this limit has been reached, Emacs makes room by deleting
 the oldest entry in the kill ring.
 

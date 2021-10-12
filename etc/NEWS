@@ -78,6 +78,14 @@ the point is now moved only when releasing the mouse button.  This no
 longer results in a bogus selection, unless the mouse has been
 effectively dragged.
 
++++
+** 'kill-ring-max' now defaults to 120.
+
+---
+** New user option 'yank-menu-max-items'.
+Customize this option to limit the amount of entries in the menu
+"Edit->Paste from Kill Menu".  The default is 60.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
