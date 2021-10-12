@@ -110,8 +110,15 @@ message(s) as specified by the option `mh-junk-disposition'."
 ;;;###mh-autoload
 (defun mh-junk-whitelist (range)
   "Old name for `mh-junk-allowlist'; use \\[mh-junk-allowlist] instead."
-  (declare (obsolete mh-junk-allowlist "28.1"))
   (interactive (list (mh-interactive-range "Allowlist")))
+  ;; We do our own message here instead of using "declare obsolete"
+  ;; in order to talk about keys instead of function names.  Also, it
+  ;; lets us bind "J w" to this without the Emacs 29 compiler complaining.
+  (when (not (get 'mh-junk-whitelist 'command-execute-obsolete-warned))
+    (message "%s is an obsolete key (as of 28.1); use %s instead"
+             (substitute-command-keys "\\[mh-junk-whitelist]")
+             (substitute-command-keys "\\[mh-junk-allowlist]"))
+    (put 'mh-junk-whitelist 'command-execute-obsolete-warned t))
   (mh-junk-allowlist range))
 
 ;;;###mh-autoload
