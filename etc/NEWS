@@ -205,6 +205,10 @@ This function allows defining a number of keystrokes with one form.
 ** New macro 'defvar-keymap'.
 This macro allows defining keymap variables more conveniently.
 
+---
+** 'kbd' can now be used in built-in, preloaded libraries.
+It no longer depends on edmacro.el and cl-lib.el.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
