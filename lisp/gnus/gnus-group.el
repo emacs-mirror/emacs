@@ -683,27 +683,27 @@ simple manner."
         "z" #'gnus-group-compact-group
         "x" #'gnus-group-expunge-group
         "\177" #'gnus-group-delete-group
-        [delete] #'gnus-group-delete-group)
+        [delete] #'gnus-group-delete-group
 
-  "S" (define-keymap :prefix 'gnus-group-sort-map
-        "s" #'gnus-group-sort-groups
-        "a" #'gnus-group-sort-groups-by-alphabet
-        "u" #'gnus-group-sort-groups-by-unread
-        "l" #'gnus-group-sort-groups-by-level
-        "v" #'gnus-group-sort-groups-by-score
-        "r" #'gnus-group-sort-groups-by-rank
-        "m" #'gnus-group-sort-groups-by-method
-        "n" #'gnus-group-sort-groups-by-real-name)
+        "S" (define-keymap :prefix 'gnus-group-sort-map
+              "s" #'gnus-group-sort-groups
+              "a" #'gnus-group-sort-groups-by-alphabet
+              "u" #'gnus-group-sort-groups-by-unread
+              "l" #'gnus-group-sort-groups-by-level
+              "v" #'gnus-group-sort-groups-by-score
+              "r" #'gnus-group-sort-groups-by-rank
+              "m" #'gnus-group-sort-groups-by-method
+              "n" #'gnus-group-sort-groups-by-real-name)
 
-  "P" (define-keymap :prefix 'gnus-group-sort-selected-map
-        "s" #'gnus-group-sort-selected-groups
-        "a" #'gnus-group-sort-selected-groups-by-alphabet
-        "u" #'gnus-group-sort-selected-groups-by-unread
-        "l" #'gnus-group-sort-selected-groups-by-level
-        "v" #'gnus-group-sort-selected-groups-by-score
-        "r" #'gnus-group-sort-selected-groups-by-rank
-        "m" #'gnus-group-sort-selected-groups-by-method
-        "n" #'gnus-group-sort-selected-groups-by-real-name)
+        "P" (define-keymap :prefix 'gnus-group-sort-selected-map
+              "s" #'gnus-group-sort-selected-groups
+              "a" #'gnus-group-sort-selected-groups-by-alphabet
+              "u" #'gnus-group-sort-selected-groups-by-unread
+              "l" #'gnus-group-sort-selected-groups-by-level
+              "v" #'gnus-group-sort-selected-groups-by-score
+              "r" #'gnus-group-sort-selected-groups-by-rank
+              "m" #'gnus-group-sort-selected-groups-by-method
+              "n" #'gnus-group-sort-selected-groups-by-real-name))
 
   "A" (define-keymap :prefix 'gnus-group-list-map
         "k" #'gnus-group-list-killed
