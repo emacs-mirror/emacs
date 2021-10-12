@@ -72,10 +72,8 @@ the MH mail system."
 
 ;;; Desktop Integration
 
-;; desktop-buffer-mode-handlers appeared in Emacs 22.
-(if (boundp 'desktop-buffer-mode-handlers)
-    (add-to-list 'desktop-buffer-mode-handlers
-                 '(mh-folder-mode . mh-restore-desktop-buffer)))
+(add-to-list 'desktop-buffer-mode-handlers
+             '(mh-folder-mode . mh-restore-desktop-buffer))
 
 (defun mh-restore-desktop-buffer (_file-name name _misc)
   "Restore an MH folder buffer specified in a desktop file.

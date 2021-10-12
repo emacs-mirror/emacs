@@ -374,12 +374,9 @@ uses."
 (defvar mh-speed-flists-folder nil)
 
 (defmacro mh-process-kill-without-query (process)
-  "PROCESS can be killed without query on Emacs exit.
-Avoid using `process-kill-without-query' if possible since it is
-now obsolete."
-  (if (fboundp 'set-process-query-on-exit-flag)
-      `(set-process-query-on-exit-flag ,process nil)
-    `(process-kill-without-query ,process)))
+  "PROCESS can be killed without query on Emacs exit."
+  (declare (obsolete set-process-query-on-exit-flag "29.1"))
+  `(set-process-query-on-exit-flag ,process nil))
 
 ;;;###mh-autoload
 (defun mh-speed-flists (force &rest folders)
@@ -427,7 +424,7 @@ flists is run only for that one folder."
                             (or mh-speed-flists-folder '("-recurse"))))
                ;; Run flists on all folders the next time around...
                (setq mh-speed-flists-folder nil)
-               (mh-process-kill-without-query mh-speed-flists-process)
+               (set-process-query-on-exit-flag mh-speed-flists-process nil)
                (set-process-filter mh-speed-flists-process
                                    #'mh-speed-parse-flists-output)))))))
 

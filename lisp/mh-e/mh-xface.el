@@ -34,8 +34,7 @@
   "Determine at run time what function should be called to display X-Face.")
 (make-obsolete-variable 'mh-show-xface-function nil "29.1")
 
-(defvar mh-uncompface-executable
-  (and (fboundp 'executable-find) (executable-find "uncompface")))
+(defvar mh-uncompface-executable (executable-find "uncompface"))
 
 
 
@@ -86,8 +85,7 @@ in this order is used."
 (defun mh-face-to-png (data)
   "Convert base64 encoded DATA to png image."
   (with-temp-buffer
-    (if (fboundp 'set-buffer-multibyte)
-        (set-buffer-multibyte nil))
+    (set-buffer-multibyte nil)
     (insert data)
     (ignore-errors (base64-decode-region (point-min) (point-max)))
     (buffer-string)))
@@ -95,8 +93,7 @@ in this order is used."
 (defun mh-uncompface (data)
   "Run DATA through `uncompface' to generate bitmap."
   (with-temp-buffer
-    (if (fboundp 'set-buffer-multibyte)
-        (set-buffer-multibyte nil))
+    (set-buffer-multibyte nil)
     (insert data)
     (when (and mh-uncompface-executable
                (equal (call-process-region (point-min) (point-max)
@@ -232,8 +229,7 @@ file contents as a string is returned. If FILE is nil, then both
 elements of the list are nil."
   (if (stringp file)
       (with-temp-buffer
-        (if (fboundp 'set-buffer-multibyte)
-            (set-buffer-multibyte nil))
+        (set-buffer-multibyte nil)
         (let ((type (and (string-match ".*\\.\\(...\\)$" file)
                          (intern (match-string 1 file)))))
           (insert-file-contents-literally file)

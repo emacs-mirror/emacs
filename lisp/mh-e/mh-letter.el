@@ -692,7 +692,7 @@ and `mh-ins-buf-prefix' is not inserted."
           ;; Find displayed message
           (with-current-buffer show-buffer
             (let* ((from-attr (mh-extract-from-attribution))
-                   (yank-region (mh-mark-active-p nil))
+                   (yank-region mark-active)
                    (mh-ins-str
                     (cond ((and yank-region
                                 (or (eq 'supercite mh-yank-behavior)

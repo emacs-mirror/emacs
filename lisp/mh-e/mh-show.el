@@ -328,8 +328,7 @@ ignored if VISIBLE-HEADERS is non-nil."
 (defun mh-summary-height ()
   "Return ideal value for the variable `mh-summary-height'.
 The current frame height is taken into consideration."
-  (or (and (fboundp 'frame-height)
-           (> (frame-height) 24)
+  (or (and (> (frame-height) 24)
            (min 10 (/ (frame-height) 6)))
       4))
 

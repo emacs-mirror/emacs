@@ -110,11 +110,11 @@ XEmacs and versions of GNU Emacs before 21.1 require
 (defmacro mh-mark-active-p (check-transient-mark-mode-flag)
   "If CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then check if
 variable `transient-mark-mode' is active."
+  (declare (obsolete nil "29.1"))
   (cond ((not check-transient-mark-mode-flag)
-         '(and (boundp 'mark-active) mark-active))
+         'mark-active)
         (t
-         '(and (boundp 'transient-mark-mode) transient-mark-mode
-               (boundp 'mark-active) mark-active))))
+         '(and transient-mark-mode mark-active))))
 
 ;;;###mh-autoload
 (defmacro with-mh-folder-updating (save-modification-flag &rest body)

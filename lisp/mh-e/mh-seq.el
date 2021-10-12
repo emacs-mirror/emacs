@@ -577,7 +577,7 @@ Otherwise, the message number at point is returned.
 
 This function is usually used with `mh-iterate-on-range' in order to
 provide a uniform interface to MH-E functions."
-  (cond ((mh-mark-active-p t) (cons (region-beginning) (region-end)))
+  (cond ((and transient-mark-mode mark-active) (cons (region-beginning) (region-end)))
         (current-prefix-arg (mh-read-range range-prompt nil nil t t))
         (default default)
         (t (mh-get-msg-num t))))

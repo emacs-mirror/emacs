@@ -135,7 +135,7 @@
     ("application/emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-emacs-lisp" mm-display-elisp-inline identity)
     ("text/html"
-     ,(if (fboundp 'mm-inline-text-html) 'mm-inline-text-html 'mm-inline-text)
+     mm-inline-text-html
      (lambda (handle)
        mm-text-html-renderer))
     ("text/x-vcard"
@@ -202,8 +202,6 @@ Set from last use.")
     (?D pressed-details ?s)))
 (defvar mh-mime-security-button-map
   (let ((map (make-sparse-keymap)))
-    (unless (>= (string-to-number emacs-version) 21)
-      (set-keymap-parent map mh-show-mode-map))
     (define-key map "\r" #'mh-press-button)
     (define-key map [mouse-2] #'mh-push-button)
     map))
@@ -1144,6 +1142,7 @@ this ;-)"
 This is used to decide if smileys and graphical emphasis should be
 displayed."
   (let ((max nil))
+    ;; FIXME: font-lock-maximum-size is obsolete.
     (when (and (boundp 'font-lock-maximum-size) font-lock-maximum-size)
       (cond ((numberp font-lock-maximum-size)
              (setq max font-lock-maximum-size))
@@ -1768,8 +1767,7 @@ initialized. Always use the command `mh-have-file-command'.")
 'file -i' is used to get MIME type of composition insertion."
   (when (eq mh-have-file-command 'undefined)
     (setq mh-have-file-command
-          (and (fboundp 'executable-find)
-               (executable-find "file") ; file command exists
+          (and (executable-find "file") ; file command exists
                                         ;   and accepts -i and -b args.
                (zerop (call-process "file" nil nil nil "-i" "-b"
                                     (expand-file-name "inc" mh-progs))))))
