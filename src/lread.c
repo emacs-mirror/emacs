@@ -3805,7 +3805,13 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      ptrdiff_t longhand_bytes = 0;
 
 	      Lisp_Object tem;
-	      if (skip_shorthand)
+	      if (skip_shorthand
+		  /* The following ASCII characters are used in the
+		     only "core" Emacs Lisp symbols that are comprised
+		     entirely of characters that have the 'symbol
+		     constituent' syntax.  We exempt them from
+		     transforming according to shorthands.  */
+		  || strspn (read_buffer, "^*+-/<=>_|") >= nbytes)
 		tem = oblookup (obarray, read_buffer, nchars, nbytes);
 	      else
 		tem = oblookup_considering_shorthand (obarray, read_buffer,

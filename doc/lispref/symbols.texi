@@ -735,3 +735,19 @@ instead of @code{snu-}.
 ;;                          ("sns-" . "some-nice-string-utils-"))
 ;; End:
 @end example
+
+@subsection Exceptions
+
+There are two exceptions to rules governing Shorthand transformations:
+
+@itemize @bullet
+@item
+Symbol forms comprised entirely of symbol and punctuation characters
+(@pxref{Syntax Class Table}) are not transformed.  For example,
+it's possible to use @code{-} or @code{/=} as shorthand prefixes, but
+that won't shadow the arithmetic @emph{functions} of those names.
+
+@item
+Symbol forms whose names start with @samp{#} or @samp{_} are not
+transformed.
+@end itemize

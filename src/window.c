@@ -3199,8 +3199,10 @@ function in a program gives strange scrolling, make sure the
 window-start value is reasonable when this function is called.  */)
      (Lisp_Object window, Lisp_Object root)
 {
-  struct window *w, *r, *s;
-  struct frame *f;
+  struct window *w = decode_valid_window (window);
+  struct window *r, *s;
+  Lisp_Object frame = w->frame;
+  struct frame *f = XFRAME (frame);
   Lisp_Object sibling, pwindow, delta;
   Lisp_Object swindow UNINIT;
   ptrdiff_t startpos UNINIT, startbyte UNINIT;
@@ -3208,9 +3210,7 @@ window-start value is reasonable when this function is called.  */)
   int new_top;
   bool resize_failed = false;
 
-  w = decode_valid_window (window);
   XSETWINDOW (window, w);
-  f = XFRAME (w->frame);
 
   if (NILP (root))
     /* ROOT is the frame's root window.  */
@@ -3250,7 +3250,7 @@ window-start value is reasonable when this function is called.  */)
       /* Make sure WINDOW is the frame's selected window.  */
       if (!EQ (window, FRAME_SELECTED_WINDOW (f)))
 	{
-	  if (EQ (selected_frame, w->frame))
+	  if (EQ (selected_frame, frame))
 	    Fselect_window (window, Qnil);
 	  else
 	    /* Do not clear f->select_mini_window_flag here.  If the
@@ -3283,7 +3283,7 @@ window-start value is reasonable when this function is called.  */)
 
       if (!EQ (swindow, FRAME_SELECTED_WINDOW (f)))
 	{
-	  if (EQ (selected_frame, w->frame))
+	  if (EQ (selected_frame, frame))
 	    Fselect_window (swindow, Qnil);
 	  else
 	    fset_selected_window (f, swindow);
@@ -3318,18 +3318,12 @@ window-start value is reasonable when this function is called.  */)
       w->top_line = r->top_line;
       resize_root_window (window, delta, Qnil, Qnil, Qt);
       if (window_resize_check (w, false))
-	{
-	  window_resize_apply (w, false);
-	  window_pixel_to_total (w->frame, Qnil);
-	}
+	window_resize_apply (w, false);
       else
 	{
 	  resize_root_window (window, delta, Qnil, Qt, Qt);
 	  if (window_resize_check (w, false))
-	    {
-	      window_resize_apply (w, false);
-	      window_pixel_to_total (w->frame, Qnil);
-	    }
+	    window_resize_apply (w, false);
 	  else
 	    resize_failed = true;
 	}
@@ -3342,18 +3336,12 @@ window-start value is reasonable when this function is called.  */)
 	  XSETINT (delta, r->pixel_width - w->pixel_width);
 	  resize_root_window (window, delta, Qt, Qnil, Qt);
 	  if (window_resize_check (w, true))
-	    {
-	      window_resize_apply (w, true);
-	      window_pixel_to_total (w->frame, Qt);
-	    }
+	    window_resize_apply (w, true);
 	  else
 	    {
 	      resize_root_window (window, delta, Qt, Qt, Qt);
 	      if (window_resize_check (w, true))
-		{
-		  window_resize_apply (w, true);
-		  window_pixel_to_total (w->frame, Qt);
-		}
+		window_resize_apply (w, true);
 	      else
 		resize_failed = true;
 	    }
@@ -3395,6 +3383,12 @@ window-start value is reasonable when this function is called.  */)
     }
 
   replace_window (root, window, true);
+  /* Assign new total sizes to all windows on FRAME.  We can't do that
+     _before_ WINDOW replaces ROOT since 'window--pixel-to-total' works
+     on the whole frame and thus would work on the frame's old window
+     configuration (Bug#51007).  */
+  window_pixel_to_total (frame, Qnil);
+  window_pixel_to_total (frame, Qt);
 
   /* This must become SWINDOW anyway .......  */
   if (BUFFERP (w->contents) && !resize_failed)

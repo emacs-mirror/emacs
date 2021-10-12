@@ -1083,9 +1083,8 @@ evaluation of BODY."
     (should (unintern "f-test4---"))))
 
 (ert-deftest elisp-dont-shadow-punctuation-only-symbols ()
-  :expected-result :failed ;  bug#51089
-  (let* ((shorthanded-form '(- 42 (-foo 42)))
-         (expected-longhand-form '(- 42 (fooey-foo 42)))
+  (let* ((shorthanded-form '(/= 42 (-foo 42)))
+         (expected-longhand-form '(/= 42 (fooey-foo 42)))
          (observed (let ((read-symbol-shorthands
                           '(("-" . "fooey-"))))
                      (car (read-from-string
