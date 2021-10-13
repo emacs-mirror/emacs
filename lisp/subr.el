@@ -925,14 +925,18 @@ side-effects, and the argument LIST is not modified."
 
 ;;;; Keymap support.
 
-(defun kbd (keys)
+(defun kbd (keys &optional need-vector)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string in the format returned by commands such
 as `C-h k' (`describe-key').
 This is the same format used for saving keyboard macros (see
 `edmacro-mode').
 
-For an approximate inverse of this, see `key-description'."
+For an approximate inverse of this, see `key-description'.
+
+If NEED-VECTOR is non-nil, always return a vector instead of a
+string.  This is mainly intended for use by `edmacro-parse-keys',
+and should normally not be needed."
   (declare (pure t) (side-effect-free t))
   ;; A pure function is expected to preserve the match data.
   (save-match-data
@@ -1030,13 +1034,14 @@ For an approximate inverse of this, see `key-description'."
                                     (setq lres (cdr (cdr lres)))
                                     (nreverse lres)
                                     lres))))
-      (if (let ((ret t))
-            (dolist (ch (append res nil))
-              (unless (and (characterp ch)
-                           (let ((ch2 (logand ch (lognot ?\M-\^@))))
-                             (and (>= ch2 0) (<= ch2 127))))
-                (setq ret nil)))
-            ret)
+      (if (and (not need-vector)
+               (let ((ret t))
+                 (dolist (ch (append res nil))
+                   (unless (and (characterp ch)
+                                (let ((ch2 (logand ch (lognot ?\M-\^@))))
+                                  (and (>= ch2 0) (<= ch2 127))))
+                     (setq ret nil)))
+                 ret))
           (concat (mapcar (lambda (ch)
                             (if (= (logand ch ?\M-\^@) 0)
                                 ch (+ ch 128)))
