@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMACS_PDUMPER_H
 
 #include <stdio.h>
+#include "fingerprint.h"
 #include "lisp.h"
 
 INLINE_HEADER_BEGIN
@@ -52,7 +53,7 @@ enum { PDUMPER_NO_OBJECT = -1 };
   pdumper_remember_scalar (&(thing), sizeof (thing))
 
 extern void dump_fingerprint (FILE *output, const char *label,
-                              const unsigned char *xfingerprint);
+                              unsigned char const fingerp[sizeof fingerprint]);
 
 extern void pdumper_remember_scalar_impl (void *data, ptrdiff_t nbytes);
 
