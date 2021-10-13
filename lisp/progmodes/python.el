@@ -2724,16 +2724,12 @@ goes wrong and syntax highlighting in the shell gets messed up."
              (deactivate-mark nil)
              (start-pos prompt-end)
              (buffer-undo-list t)
-             (font-lock-buffer-pos nil)
              (replacement
               (python-shell-font-lock-with-font-lock-buffer
-                (delete-region (line-beginning-position)
-                               (point-max))
-                (setq font-lock-buffer-pos (point))
+                (delete-region (point-min) (point-max))
                 (insert input)
                 (font-lock-ensure)
-                (buffer-substring font-lock-buffer-pos
-                                  (point-max))))
+                (buffer-string)))
              (replacement-length (length replacement))
              (i 0))
         ;; Inject text properties to get input fontified.
