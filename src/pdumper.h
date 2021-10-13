@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef EMACS_PDUMPER_H
 #define EMACS_PDUMPER_H
 
+#include <stdio.h>
 #include "lisp.h"
 
 INLINE_HEADER_BEGIN
