@@ -5,7 +5,7 @@
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
 ;; Version: 0.28
-;; Package-Requires: ((emacs "24.2") (cl-lib "1.0"))
+;; Package-Requires: ((emacs "24.4") (cl-lib "1.0"))
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
 ;; Keywords: languages
