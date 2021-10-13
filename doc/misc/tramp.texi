@@ -290,7 +290,7 @@ file's contents.
 
 For external transfers, @value{tramp} sends a command as follows:
 @example
-rcp user@@host:/path/to/remote/file /tmp/tramp.4711
+$ rcp user@@host:/path/to/remote/file /tmp/tramp.4711
 @end example
 @value{tramp} reads the local temporary file @file{/tmp/tramp.4711}
 into a buffer, and then deletes the temporary file.
@@ -4299,7 +4299,7 @@ explicitly, because @command{emacs -Q} ignores installed ELPA
 packages.  Call (version number adapted)
 
 @example
-emacs -Q -l ~/.emacs.d/elpa/tramp-2.4.5.1/tramp-autoloads
+$ emacs -Q -l ~/.emacs.d/elpa/tramp-2.4.5.1/tramp-autoloads
 @end example
 
 When including @value{tramp}'s messages in the bug report, increase
@@ -4310,6 +4310,11 @@ buffers with the bug report.  Both buffers could contain
 non-@acronym{ASCII} characters which are relevant for analysis, append
 the buffers as attachments to the bug report.  This is also needed in
 order to avoid line breaks during mail transfer.
+
+If you send the message from Emacs, you are asked about to append
+these buffers to the bug report.  If you use an external mail program,
+you must save these buffers to files, and append them with that mail
+program.
 
 @strong{Note} that a verbosity level greater than 6 is not necessary
 at this stage.  Also note that a verbosity level of 6 or greater, the
@@ -5104,7 +5109,7 @@ location.
 Then start Emacs Client from the command line:
 
 @example
-emacsclient @trampfn{ssh,user@@host,/file/to/edit}
+$ emacsclient @trampfn{ssh,user@@host,/file/to/edit}
 @end example
 
 @code{user} and @code{host} refer to the local host.
@@ -5124,7 +5129,7 @@ Then change the environment variable @env{EDITOR} to point to the
 wrapper script:
 
 @example
-export EDITOR=/path/to/emacsclient.sh
+$ export EDITOR=/path/to/emacsclient.sh
 @end example
 
 
