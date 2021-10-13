@@ -2731,11 +2731,7 @@ goes wrong and syntax highlighting in the shell gets messed up."
                                (point-max))
                 (setq font-lock-buffer-pos (point))
                 (insert input)
-                ;; Ensure buffer is fontified, keeping it
-                ;; compatible with Emacs < 24.4.
-                (if (fboundp 'font-lock-ensure)
-                    (funcall 'font-lock-ensure)
-                  (font-lock-default-fontify-buffer))
+                (font-lock-ensure)
                 (buffer-substring font-lock-buffer-pos
                                   (point-max))))
              (replacement-length (length replacement))
