@@ -1596,10 +1596,16 @@ and some others."
       (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
     (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)))
 
+(defvar resize-temp-buffer-window-inhibit nil
+  "Non-nil means `resize-temp-buffer-window' should not resize.")
+
 (defun resize-temp-buffer-window (&optional window)
   "Resize WINDOW to fit its contents.
 WINDOW must be a live window and defaults to the selected one.
-Do not resize if WINDOW was not created by `display-buffer'.
+Do not resize if WINDOW was not created by `display-buffer'.  Do
+not resize either if a `window-height', `window-width' or
+`window-size' entry in `display-buffer-alist' prescribes some
+alternative resizing for WINDOW's buffer.
 
 If WINDOW is part of a vertical combination, restrain its new
 size by `temp-buffer-max-height' and do not resize if its minimum
@@ -1614,27 +1620,33 @@ provided `fit-frame-to-buffer' is non-nil.
 This function may call `preserve-window-size' to preserve the
 size of WINDOW."
   (setq window (window-normalize-window window t))
-  (let ((height (if (functionp temp-buffer-max-height)
+  (let* ((buffer (window-buffer window))
+         (height (if (functionp temp-buffer-max-height)
+		     (with-selected-window window
+		       (funcall temp-buffer-max-height buffer))
+		   temp-buffer-max-height))
+	 (width (if (functionp temp-buffer-max-width)
 		    (with-selected-window window
-		      (funcall temp-buffer-max-height (window-buffer)))
-		  temp-buffer-max-height))
-	(width (if (functionp temp-buffer-max-width)
-		   (with-selected-window window
-		     (funcall temp-buffer-max-width (window-buffer)))
-		 temp-buffer-max-width))
-	(quit-cadr (cadr (window-parameter window 'quit-restore))))
-    ;; Resize WINDOW iff it was made by `display-buffer'.
+		      (funcall temp-buffer-max-width buffer))
+		  temp-buffer-max-width))
+	 (quit-cadr (cadr (window-parameter window 'quit-restore))))
+    ;; Resize WINDOW only if it was made by `display-buffer'.
     (when (or (and (eq quit-cadr 'window)
 		   (or (and (window-combined-p window)
 			    (not (eq fit-window-to-buffer-horizontally
 				     'only))
-			    (pos-visible-in-window-p (point-min) window))
+			    (pos-visible-in-window-p
+                             (with-current-buffer buffer (point-min))
+                             window)
+                            (not resize-temp-buffer-window-inhibit))
 		       (and (window-combined-p window t)
-			    fit-window-to-buffer-horizontally)))
+			    fit-window-to-buffer-horizontally
+                            (not resize-temp-buffer-window-inhibit))))
 	      (and (eq quit-cadr 'frame)
                    fit-frame-to-buffer
-                   (eq window (frame-root-window window))))
-	(fit-window-to-buffer window height nil width nil t))))
+                   (eq window (frame-root-window window))
+                   (not resize-temp-buffer-window-inhibit)))
+      (fit-window-to-buffer window height nil width nil t))))
 
 ;;; Help windows.
 (defcustom help-window-select nil

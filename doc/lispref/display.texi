@@ -1334,6 +1334,11 @@ are not resized.  By default, this mode uses @code{fit-window-to-buffer}
 (@pxref{Resizing Windows}) for resizing.  You can specify a different
 function by customizing the options @code{temp-buffer-max-height} and
 @code{temp-buffer-max-width} below.
+
+The effect of this option can be overridden by providing a suitable
+@code{window-height}, @code{window-width} or @code{window-size} action
+alist entry for @code{display-buffer} (@pxref{Buffer Display Action
+Alists}).
 @end defopt
 
 @defopt temp-buffer-max-height

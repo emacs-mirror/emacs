@@ -2924,9 +2924,9 @@ A non-@code{nil} value prevents another frame from being raised or
 selected, if the window chosen by @code{display-buffer} is displayed
 there.  Primarily affected by this are
 @code{display-buffer-use-some-frame} and
-@code{display-buffer-reuse-window}.
-@code{display-buffer-pop-up-frame} should be affected as well, but
-there is no guarantee that the window manager will comply.
+@code{display-buffer-reuse-window}.  Ideally,
+@code{display-buffer-pop-up-frame} should be affected as well, but there
+is no guarantee that the window manager will comply.
 
 @vindex window-parameters@r{, a buffer display action alist entry}
 @item window-parameters
@@ -2972,8 +2972,8 @@ root window.
 If the value specifies a function, that function is called with one
 argument---the chosen window.  The function is supposed to adjust the
 height of the window; its return value is ignored.  Suitable functions
-are @code{shrink-window-if-larger-than-buffer} and
-@code{fit-window-to-buffer}, see @ref{Resizing Windows}.
+are @code{fit-window-to-buffer} and
+@code{shrink-window-if-larger-than-buffer}, see @ref{Resizing Windows}.
 @end itemize
 
 By convention, the height of the chosen window is adjusted only if the
@@ -3007,11 +3007,31 @@ argument---the chosen window.  The function is supposed to adjust the
 width of the window; its return value is ignored.
 @end itemize
 
-By convention, the width of the chosen window is adjusted only if the
-window is part of a horizontal combination (@pxref{Windows and
-Frames}) to avoid changing the width of other, unrelated windows.
-Also, this entry should be processed under only certain conditions
-which are specified right below this list.
+@vindex window-size@r{, a buffer display action alist entry}
+@item window-size
+This entry is a combination of the two preceding ones and can be used to
+adjust the chosen window's height and width.  Since windows can be
+resized in one direction only without affecting other windows,
+@code{window-size} is effective only to set up the size of a window
+appearing alone on a frame.  The value can be one of the following:
+
+@itemize @bullet
+@item
+@code{nil} means to leave the size of the chosen window alone.
+
+@item
+A cons cell of two integers specifies the desired total width and height
+of the chosen window in lines and columns.  It's effect is to adjust the
+size of the frame accordingly.
+
+@item
+If the value specifies a function, that function is called with one
+argument---the chosen window.  The function is supposed to adjust the
+size of the window's frame; its return value is ignored.
+@end itemize
+
+This entry should be processed under only certain conditions which are
+specified right below this list.
 
 @vindex dedicated@r{, a buffer display action alist entry}
 @item dedicated
@@ -3112,6 +3132,14 @@ the window was created earlier by @code{display-buffer} to show the
 buffer and never was used to show another buffer until it was reused
 by the current invocation of @code{display-buffer}.
 
+If no @code{window-height}, @code{window-width} or @code{window-size}
+entry was specified, the window may still be resized automatically when
+the buffer is temporary and @code{temp-buffer-resize-mode} has been
+enabled, @ref{Temporary Displays}.  In that case, the @sc{cdr} of a
+@code{window-height}, @code{window-width} or @code{window-size} entry
+can be used to inhibit or override the default behavior of
+@code{temp-buffer-resize-mode} for specific buffers or invocations of
+@code{display-buffer}.
 
 @node Choosing Window Options
 @subsection Additional Options for Displaying Buffers

@@ -108,11 +108,14 @@ Return the buffer."
       ;; Return the buffer.
       buffer)))
 
+;; Defined in help.el.
+(defvar resize-temp-buffer-window-inhibit)
+
 (defun temp-buffer-window-show (buffer &optional action)
   "Show temporary buffer BUFFER in a window.
 Return the window showing BUFFER.  Pass ACTION as action argument
 to `display-buffer'."
-  (let (window frame)
+  (let (resize-temp-buffer-window-inhibit window)
     (with-current-buffer buffer
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
@@ -130,9 +133,9 @@ to `display-buffer'."
 		       t
 		     window-combination-limit)))
 	      (setq window (display-buffer buffer action)))
-	(setq frame (window-frame window))
-	(unless (eq frame (selected-frame))
-	  (raise-frame frame))
+        ;; We used to raise the window's frame here.  Do not do that
+        ;; since it would override an `inhibit-switch-frame' entry
+        ;; specified for the action alist used by `display-buffer'.
 	(setq minibuffer-scroll-window window)
 	(set-window-hscroll window 0)
 	(with-selected-window window
@@ -7246,11 +7249,14 @@ Return WINDOW if BUFFER and WINDOW are live."
             (inhibit-modification-hooks t))
         (funcall (cdr (assq 'body-function alist)) window)))
 
-    (let ((quit-restore (window-parameter window 'quit-restore))
-	  (height (cdr (assq 'window-height alist)))
-	  (width (cdr (assq 'window-width alist)))
-	  (size (cdr (assq 'window-size alist)))
-	  (preserve-size (cdr (assq 'preserve-size alist))))
+    (let* ((quit-restore (window-parameter window 'quit-restore))
+	   (window-height (assq 'window-height alist))
+           (height (cdr window-height))
+	   (window-width (assq 'window-width alist))
+           (width (cdr window-width))
+           (window-size (assq 'window-size alist))
+           (size (cdr window-size))
+	   (preserve-size (cdr (assq 'preserve-size alist))))
       (cond
        ((or (eq type 'frame)
 	    (and (eq (car quit-restore) 'same)
@@ -7267,14 +7273,18 @@ Return WINDOW if BUFFER and WINDOW are live."
 		(height (cdr size))
 		(frame (window-frame window)))
 	    (when (and (numberp width) (numberp height))
-	      (set-frame-height
-	       frame (+ (frame-height frame)
-			(- height (window-total-height window))))
-	      (set-frame-width
-	       frame (+ (frame-width frame)
-			(- width (window-total-width window)))))))
+              ;; Modifying the parameters of a newly created frame might
+              ;; not work everywhere, but then `temp-buffer-resize-mode'
+              ;; will certainly fail in a similar fashion.
+	      (modify-frame-parameters
+	       frame `((height . ,(+ (frame-height frame)
+			             (- height (window-total-height window))))
+                       (width . ,(+ (frame-width frame)
+			            (- width (window-total-width window))))))))
+          (setq resize-temp-buffer-window-inhibit t))
 	 ((functionp size)
-	  (ignore-errors (funcall size window)))))
+	  (ignore-errors (funcall size window))
+          (setq resize-temp-buffer-window-inhibit t))))
        ((or (eq type 'window)
 	    (and (eq (car quit-restore) 'same)
 		 (eq (nth 1 quit-restore) 'window)))
@@ -7294,9 +7304,11 @@ Return WINDOW if BUFFER and WINDOW are live."
 		 (delta (- new-height (window-total-height window))))
 	    (when (and (window--resizable-p window delta nil 'safe)
 		       (window-combined-p window))
-	      (window-resize window delta nil 'safe))))
+	      (window-resize window delta nil 'safe)))
+          (setq resize-temp-buffer-window-inhibit 'vertical))
 	 ((functionp height)
-	  (ignore-errors (funcall height window))))
+	  (ignore-errors (funcall height window))
+          (setq resize-temp-buffer-window-inhibit 'vertical)))
 	;; Adjust width of window if asked for.
 	(cond
 	 ((not width))
@@ -7310,9 +7322,11 @@ Return WINDOW if BUFFER and WINDOW are live."
 		 (delta (- new-width (window-total-width window))))
 	    (when (and (window--resizable-p window delta t 'safe)
 		       (window-combined-p window t))
-	      (window-resize window delta t 'safe))))
+	      (window-resize window delta t 'safe)))
+          (setq resize-temp-buffer-window-inhibit 'horizontal))
 	 ((functionp width)
-	  (ignore-errors (funcall width window))))
+	  (ignore-errors (funcall width window))
+          (setq resize-temp-buffer-window-inhibit 'horizontal)))
 	;; Preserve window size if asked for.
 	(when (consp preserve-size)
 	  (window-preserve-size window t (car preserve-size))
@@ -7557,9 +7571,11 @@ perform.
 Action alist entries are:
  `inhibit-same-window' -- A non-nil value prevents the same
     window from being used for display.
- `inhibit-switch-frame' -- A non-nil value prevents any frame
-    used for showing the buffer from being raised or selected.
- `reusable-frames' -- The value specifies the set of frames to
+`inhibit-switch-frame' -- A non-nil value prevents any frame used
+    for showing the buffer from being raised or selected.  Note
+    that a window manager may still raise a new frame and give it
+    focus, effectively overriding the value specified here.
+`reusable-frames' -- The value specifies the set of frames to
     search for a window that already displays the buffer.
     Possible values are nil (the selected frame), t (any live
     frame), visible (any visible frame), 0 (any visible or
@@ -7582,7 +7598,14 @@ Action alist entries are:
     window) or a function to be called with one argument - the
     chosen window.  The function is supposed to adjust the width
     of the window; its return value is ignored.
- `preserve-size' -- The value should be either (t . nil) to
+ `window-size' -- This entry is only useful for windows appearing
+    alone on their frame and specifies the desired size of that
+    window either as a cons of integers (the total width and
+    height of the window on that frame), or a function to be
+    called with one argument - the chosen window.  The function
+    is supposed to adjust the size of the frame; its return value
+    is ignored.
+`preserve-size' -- The value should be either (t . nil) to
     preserve the width of the chosen window, (nil . t) to
     preserve its height or (t . t) to preserve its height and
     width in future changes of the window configuration.
