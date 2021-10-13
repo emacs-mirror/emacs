@@ -84,16 +84,119 @@
 ;;;; Keymap support.
 
 (ert-deftest subr-test-kbd ()
+  (should (equal (kbd "") ""))
   (should (equal (kbd "f") "f"))
+  (should (equal (kbd "X") "X"))
+  (should (equal (kbd "foobar") "foobar")) ; 6 characters
+  (should (equal (kbd "return") "return")) ; 6 characters
+
+  (should (equal (kbd "<F2>") [F2]))
+  (should (equal (kbd "<f1> <f2> TAB") [f1 f2 ?\t]))
+  (should (equal (kbd "<f1> RET") [f1 ?\r]))
+  (should (equal (kbd "<f1> SPC") [f1 ? ]))
   (should (equal (kbd "<f1>") [f1]))
-  (should (equal (kbd "RET") "\C-m"))
+  (should (equal (kbd "<f1>") [f1]))
+  (should (equal (kbd "[f1]") "[f1]"))
+  (should (equal (kbd "<return>") [return]))
+  (should (equal (kbd "< right >") "<right>")) ; 7 characters
+
+  ;; Modifiers:
+  (should (equal (kbd "C-x") "\C-x"))
   (should (equal (kbd "C-x a") "\C-xa"))
-  ;; Check that kbd handles both new and old style key descriptions
-  ;; (bug#45536).
+  (should (equal (kbd "C-;") [?\C-\;]))
+  (should (equal (kbd "C-a") "\C-a"))
+  (should (equal (kbd "C-c SPC") "\C-c "))
+  (should (equal (kbd "C-c TAB") "\C-c\t"))
+  (should (equal (kbd "C-c c") "\C-cc"))
+  (should (equal (kbd "C-x 4 C-f") "\C-x4\C-f"))
+  (should (equal (kbd "C-x C-f") "\C-x\C-f"))
+  (should (equal (kbd "C-M-<down>") [C-M-down]))
+  (should (equal (kbd "<C-M-down>") [C-M-down]))
+  (should (equal (kbd "C-RET") [?\C-\C-m]))
+  (should (equal (kbd "C-SPC") [?\C- ]))
+  (should (equal (kbd "C-TAB") [?\C-\t]))
+  (should (equal (kbd "C-<down>") [C-down]))
+  (should (equal (kbd "C-c C-c C-c") "\C-c\C-c\C-c"))
+
+  (should (equal (kbd "M-a") [?\M-a]))
+  (should (equal (kbd "M-<DEL>") [?\M-\d]))
+  (should (equal (kbd "M-C-a") [?\M-\C-a]))
+  (should (equal (kbd "M-ESC") [?\M-\e]))
+  (should (equal (kbd "M-RET") [?\M-\r]))
+  (should (equal (kbd "M-SPC") [?\M- ]))
+  (should (equal (kbd "M-TAB") [?\M-\t]))
+  (should (equal (kbd "M-x a") [?\M-x ?a]))
+  (should (equal (kbd "M-<up>") [M-up]))
+  (should (equal (kbd "M-c M-c M-c") [?\M-c ?\M-c ?\M-c]))
+
+  (should (equal (kbd "s-SPC") [?\s- ]))
+  (should (equal (kbd "s-a") [?\s-a]))
+  (should (equal (kbd "s-x a") [?\s-x ?a]))
+  (should (equal (kbd "s-c s-c s-c") [?\s-c ?\s-c ?\s-c]))
+
+  (should (equal (kbd "S-H-a") [?\S-\H-a]))
+  (should (equal (kbd "S-a") [?\S-a]))
+  (should (equal (kbd "S-x a") [?\S-x ?a]))
+  (should (equal (kbd "S-c S-c S-c") [?\S-c ?\S-c ?\S-c]))
+
+  (should (equal (kbd "H-<RET>") [?\H-\r]))
+  (should (equal (kbd "H-DEL") [?\H-\d]))
+  (should (equal (kbd "H-a") [?\H-a]))
+  (should (equal (kbd "H-x a") [?\H-x ?a]))
+  (should (equal (kbd "H-c H-c H-c") [?\H-c ?\H-c ?\H-c]))
+
+  (should (equal (kbd "A-H-a") [?\A-\H-a]))
+  (should (equal (kbd "A-SPC") [?\A- ]))
+  (should (equal (kbd "A-TAB") [?\A-\t]))
+  (should (equal (kbd "A-a") [?\A-a]))
+  (should (equal (kbd "A-c A-c A-c") [?\A-c ?\A-c ?\A-c]))
+
+  (should (equal (kbd "C-M-a") [?\C-\M-a]))
+  (should (equal (kbd "C-M-<up>") [C-M-up]))
+
+  ;; Special characters.
+  (should (equal (kbd "DEL") "\d"))
+  (should (equal (kbd "ESC C-a") "\e\C-a"))
+  (should (equal (kbd "ESC") "\e"))
+  (should (equal (kbd "LFD") "\n"))
+  (should (equal (kbd "NUL") "\0"))
+  (should (equal (kbd "RET") "\C-m"))
+  (should (equal (kbd "SPC") "\s"))
+  (should (equal (kbd "TAB") "\t"))
+  (should (equal (kbd "\^i") ""))
+  (should (equal (kbd "^M") "\^M"))
+
+  ;; With numbers.
+  (should (equal (kbd "\177") "\^?"))
+  (should (equal (kbd "\000") "\0"))
+  (should (equal (kbd "\\177") "\^?"))
+  (should (equal (kbd "\\000") "\0"))
+  (should (equal (kbd "C-x \\150") "\C-xh"))
+
+  ;; Multibyte
+  (should (equal (kbd "ñ") [?ñ]))
+  (should (equal (kbd "ü") [?ü]))
+  (should (equal (kbd "ö") [?ö]))
+  (should (equal (kbd "ğ") [?ğ]))
+  (should (equal (kbd "ա") [?ա]))
+  (should (equal (kbd "üüöö") [?ü ?ü ?ö ?ö]))
+  (should (equal (kbd "C-ü") [?\C-ü]))
+  (should (equal (kbd "M-ü") [?\M-ü]))
+  (should (equal (kbd "H-ü") [?\H-ü]))
+
+  ;; Handle both new and old style key descriptions (bug#45536).
   (should (equal (kbd "s-<return>") [s-return]))
   (should (equal (kbd "<s-return>") [s-return]))
   (should (equal (kbd "C-M-<return>") [C-M-return]))
-  (should (equal (kbd "<C-M-return>") [C-M-return])))
+  (should (equal (kbd "<C-M-return>") [C-M-return]))
+
+  ;; Error.
+  (should-error (kbd "C-xx"))
+  (should-error (kbd "M-xx"))
+  (should-error (kbd "M-x<TAB>"))
+
+  ;; These should be equivalent:
+  (should (equal (kbd "\C-xf") (kbd "C-x f"))))
 
 (ert-deftest subr-test-define-prefix-command ()
   (define-prefix-command 'foo-prefix-map)
