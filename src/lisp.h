@@ -3947,7 +3947,8 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_vector (ptrdiff_t, Lisp_Object);
-extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
+extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t)
+  ATTRIBUTE_RETURNS_NONNULL;
 
 /* Make an uninitialized vector for SIZE objects.  NOTE: you must
    be sure that GC cannot happen until the vector is completely
@@ -3960,7 +3961,8 @@ extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t);
 
    allocate_vector has a similar problem.  */
 
-extern struct Lisp_Vector *allocate_vector (ptrdiff_t);
+extern struct Lisp_Vector *allocate_vector (ptrdiff_t)
+  ATTRIBUTE_RETURNS_NONNULL;
 
 INLINE Lisp_Object
 make_uninit_vector (ptrdiff_t size)
@@ -3992,7 +3994,8 @@ make_nil_vector (ptrdiff_t size)
 }
 
 extern struct Lisp_Vector *allocate_pseudovector (int, int, int,
-						  enum pvec_type);
+						  enum pvec_type)
+  ATTRIBUTE_RETURNS_NONNULL;
 
 /* Allocate uninitialized pseudovector with no Lisp_Object slots.  */
 
@@ -4024,7 +4027,7 @@ extern void free_cons (struct Lisp_Cons *);
 extern void init_alloc_once (void);
 extern void init_alloc (void);
 extern void syms_of_alloc (void);
-extern struct buffer * allocate_buffer (void);
+extern struct buffer *allocate_buffer (void) ATTRIBUTE_RETURNS_NONNULL;
 extern int valid_lisp_object_p (Lisp_Object);
 
 /* Defined in gmalloc.c.  */
@@ -4182,7 +4185,8 @@ extern Lisp_Object internal_condition_case_n
     (Lisp_Object (*) (ptrdiff_t, Lisp_Object *), ptrdiff_t, Lisp_Object *,
      Lisp_Object, Lisp_Object (*) (Lisp_Object, ptrdiff_t, Lisp_Object *));
 extern Lisp_Object internal_catch_all (Lisp_Object (*) (void *), void *, Lisp_Object (*) (enum nonlocal_exit, Lisp_Object));
-extern struct handler *push_handler (Lisp_Object, enum handlertype);
+extern struct handler *push_handler (Lisp_Object, enum handlertype)
+  ATTRIBUTE_RETURNS_NONNULL;
 extern struct handler *push_handler_nosignal (Lisp_Object, enum handlertype);
 extern void specbind (Lisp_Object, Lisp_Object);
 extern void record_unwind_protect (void (*) (Lisp_Object), Lisp_Object);
@@ -4323,9 +4327,10 @@ extern void syms_of_marker (void);
 
 /* Defined in fileio.c.  */
 
-extern char *splice_dir_file (char *, char const *, char const *);
+extern char *splice_dir_file (char *, char const *, char const *)
+  ATTRIBUTE_RETURNS_NONNULL;
 extern bool file_name_absolute_p (const char *);
-extern char const *get_homedir (void);
+extern char const *get_homedir (void) ATTRIBUTE_RETURNS_NONNULL;
 extern Lisp_Object expand_and_dir_to_file (Lisp_Object);
 extern Lisp_Object write_region (Lisp_Object, Lisp_Object, Lisp_Object,
 				 Lisp_Object, Lisp_Object, Lisp_Object,
@@ -4479,7 +4484,7 @@ INLINE void fixup_locale (void) {}
 INLINE void synchronize_system_messages_locale (void) {}
 INLINE void synchronize_system_time_locale (void) {}
 #endif
-extern char *emacs_strerror (int);
+extern char *emacs_strerror (int) ATTRIBUTE_RETURNS_NONNULL;
 extern void shut_down_emacs (int, Lisp_Object);
 
 /* True means don't do interactive redisplay and don't change tty modes.  */
@@ -4545,7 +4550,7 @@ extern void setup_process_coding_systems (Lisp_Object);
 
 extern int emacs_spawn (pid_t *, int, int, int, char **, char **,
                         const char *, const char *, const sigset_t *);
-extern char **make_environment_block (Lisp_Object);
+extern char **make_environment_block (Lisp_Object) ATTRIBUTE_RETURNS_NONNULL;
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
 extern void set_initial_environment (void);
@@ -4814,17 +4819,24 @@ extern char my_edata[];
 extern char my_endbss[];
 extern char *my_endbss_static;
 
-extern void *xmalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));
-extern void *xzalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));
-extern void *xrealloc (void *, size_t) ATTRIBUTE_ALLOC_SIZE ((2));
+extern void *xmalloc (size_t)
+  ATTRIBUTE_MALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
+extern void *xzalloc (size_t)
+  ATTRIBUTE_MALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
+extern void *xrealloc (void *, size_t)
+  ATTRIBUTE_ALLOC_SIZE ((2)) ATTRIBUTE_RETURNS_NONNULL;
 extern void xfree (void *);
-extern void *xnmalloc (ptrdiff_t, ptrdiff_t) ATTRIBUTE_MALLOC_SIZE ((1,2));
+extern void *xnmalloc (ptrdiff_t, ptrdiff_t)
+  ATTRIBUTE_MALLOC_SIZE ((1,2)) ATTRIBUTE_RETURNS_NONNULL;
 extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t)
-  ATTRIBUTE_ALLOC_SIZE ((2,3));
-extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
+  ATTRIBUTE_ALLOC_SIZE ((2,3)) ATTRIBUTE_RETURNS_NONNULL;
+extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t)
+  ATTRIBUTE_RETURNS_NONNULL;
 
-extern char *xstrdup (const char *) ATTRIBUTE_MALLOC;
-extern char *xlispstrdup (Lisp_Object) ATTRIBUTE_MALLOC;
+extern char *xstrdup (char const *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_RETURNS_NONNULL;
+extern char *xlispstrdup (Lisp_Object)
+  ATTRIBUTE_MALLOC ATTRIBUTE_RETURNS_NONNULL;
 extern void dupstring (char **, char const *);
 
 /* Make DEST a copy of STRING's data.  Return a pointer to DEST's terminating
@@ -4874,7 +4886,8 @@ extern void init_system_name (void);
 
 enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 
-extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
+extern void *record_xmalloc (size_t)
+  ATTRIBUTE_ALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
 
 #define USE_SAFE_ALLOCA			\
   ptrdiff_t sa_avail = MAX_ALLOCA;	\
