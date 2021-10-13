@@ -26,7 +26,6 @@
 
 FROM debian:stretch as emacs-base
 
-RUN cat /proc/sys/kernel/core_pattern
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
