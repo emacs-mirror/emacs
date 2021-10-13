@@ -1000,6 +1000,7 @@ Bindings are always added before any inherited map.
 
 The order of bindings in a keymap matters only when it is used as
 a menu, so this function is not useful for non-menu keymaps."
+  (declare (indent defun))
   (unless after (setq after t))
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))
@@ -5572,6 +5573,7 @@ If HOOKVAR is nil, `mail-send-hook' is used.
 
 The properties used on SYMBOL are `composefunc', `sendfunc',
 `abortfunc', and `hookvar'."
+  (declare (indent defun))
   (put symbol 'composefunc composefunc)
   (put symbol 'sendfunc sendfunc)
   (put symbol 'abortfunc (or abortfunc #'kill-buffer))
@@ -6491,6 +6493,7 @@ also be the special symbol `:menu', in which case DEFINITION
 should be a MENU form as accepted by `easy-menu-define'.
 
 \(fn &key FULL PARENT SUPPRESS NAME PREFIX KEYMAP &rest [KEY DEFINITION]...)"
+  (declare (indent defun))
   (define-keymap--define definitions))
 
 (defun define-keymap--define (definitions)

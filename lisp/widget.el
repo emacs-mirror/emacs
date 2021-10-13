@@ -83,7 +83,7 @@ create identical widgets:
 * (apply #\\='widget-create CLASS ARGS)
 
 The third argument DOC is a documentation string for the widget."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;;
   (unless (or (null doc) (stringp doc))
     (error "Widget documentation must be nil or a string"))

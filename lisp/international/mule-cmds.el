@@ -2927,6 +2927,7 @@ Optional 3rd argument DOCSTRING is a documentation string of the property.
 
 See also the documentation of `get-char-code-property' and
 `put-char-code-property'."
+  (declare (indent defun))
   (or (symbolp name)
       (error "Not a symbol: %s" name))
   (if (char-table-p table)

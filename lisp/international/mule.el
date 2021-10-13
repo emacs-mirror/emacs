@@ -218,6 +218,7 @@ corresponding Unicode character code.
 If it is a string, it is a name of file that contains the above
 information.  The file format is the same as what described for `:map'
 attribute."
+  (declare (indent defun))
   (when (vectorp (car props))
     ;; Old style code:
     ;;   (define-charset CHARSET-ID CHARSET-SYMBOL INFO-VECTOR)
@@ -890,6 +891,7 @@ non-nil.
 VALUE non-nil means Emacs prefers UTF-8 on code detection for
 non-ASCII files.  This attribute is meaningful only when
 `:coding-type' is `undecided'."
+  (declare (indent defun))
   (let* ((common-attrs (mapcar 'list
 			       '(:mnemonic
 				 :coding-type
@@ -2320,6 +2322,7 @@ This function sets properties `translation-table' and
 `translation-table-id' of SYMBOL to the created table itself and the
 identification number of the table respectively.  It also registers
 the table in `translation-table-vector'."
+  (declare (indent defun))
   (let ((table (if (and (char-table-p (car args))
 			(eq (char-table-subtype (car args))
 			    'translation-table))
@@ -2394,6 +2397,7 @@ Value is what BODY returns."
 Analogous to `define-translation-table', but updates
 `translation-hash-table-vector' and the table is for use in the CCL
 `lookup-integer' and `lookup-character' functions."
+  (declare (indent defun))
   (unless (and (symbolp symbol)
 	       (hash-table-p table))
     (error "Bad args to define-translation-hash-table"))
