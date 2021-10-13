@@ -82,6 +82,7 @@ users will customize.
 
 Creates a customizable variable users can customize that will
 keep semantic data structures up to date."
+  (declare (indent defun))
   `(progn
      ;; Create a variable users can customize.
      (defcustom ,name ,value

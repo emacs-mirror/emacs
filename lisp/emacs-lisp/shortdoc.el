@@ -71,6 +71,7 @@ string, it'll be inserted as is, then the string will be `read',
 and then evaluated.
 
 There can be any number of :example/:result elements."
+  (declare (indent defun))
   `(progn
      (setq shortdoc--groups (delq (assq ',group shortdoc--groups)
                                   shortdoc--groups))

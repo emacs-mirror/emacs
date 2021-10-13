@@ -148,6 +148,7 @@
 (defmacro define-iso-single-byte-charset (symbol iso-symbol name nickname
 						 iso-ir iso-final
 						 emacs-mule-id map)
+  (declare (indent defun))
   `(progn
      (define-charset ,symbol
        ,name

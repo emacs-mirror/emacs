@@ -179,7 +179,7 @@ STYLE stands for the choice where the value is taken from some
 style setting.  PREAMBLE is optionally prepended to FOO; that is,
 if FOO contains :tag or :value, the respective two-element list
 component is ignored."
-  (declare (debug (symbolp form stringp &rest)))
+  (declare (debug (symbolp form stringp &rest)) (indent defun))
   (let* ((expanded-doc (concat doc "
 
 This is a style variable.  Apart from the valid values described

@@ -45,6 +45,7 @@
 (defmacro defezimage (variable imagespec docstring)
   "Define VARIABLE as an image if `defimage' is not available.
 IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
+  (declare (indent defun))
   `(progn
      (defimage ,variable ,imagespec ,docstring)
      (put (quote ,variable) 'ezimage t)))

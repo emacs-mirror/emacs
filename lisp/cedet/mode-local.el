@@ -156,7 +156,7 @@ local variables have been defined."
 DOCSTRING is optional and not used.
 To work properly, this should be put after PARENT mode local variables
 definition."
-  (declare (obsolete define-derived-mode "27.1"))
+  (declare (obsolete define-derived-mode "27.1") (indent 2))
   `(mode-local--set-parent ',mode ',parent))
 
 (defun mode-local-use-bindings-p (this-mode desired-mode)
@@ -567,6 +567,7 @@ appropriate arguments deduced from ARGS.
 OVERARGS is a list of arguments passed to the override and
 `NAME-default' function, in place of those deduced from ARGS."
   (declare (doc-string 3)
+           (indent defun)
            (debug (&define name lambda-list stringp def-body)))
   `(eval-and-compile
      (defun ,name ,args
@@ -595,6 +596,7 @@ DOCSTRING is the documentation string.
 BODY is the implementation of this function."
   ;; FIXME: Make this obsolete and use cl-defmethod with &context instead.
   (declare (doc-string 4)
+           (indent defun)
            (debug (&define name symbolp lambda-list stringp def-body)))
   (let ((newname (intern (format "%s-%s" name mode))))
     `(progn

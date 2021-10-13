@@ -758,6 +758,7 @@ clear what alternative to use.
 - `DOUBLE' is the generic case."
   (declare (debug (&define sexp lambda-list stringp
                            ("interactive" interactive) def-body))
+           (indent defun)
 	   (doc-string 3))
   (let ((style (cvs-cdr fun))
 	(fun (cvs-car fun)))

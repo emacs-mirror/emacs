@@ -52,6 +52,7 @@
 ;;; Keyword routines not supported by new package.
 
 (defmacro defkeyword (x &optional doc)
+  (declare (indent defun))
   (cl-list* 'defconst x (list 'quote x) (and doc (list doc))))
 
 (defun keyword-of (sym)

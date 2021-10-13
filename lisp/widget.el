@@ -44,7 +44,7 @@
   ;; 	(list 'or (list 'boundp (list 'car 'keywords))
   ;; 	  (list 'set (list 'car 'keywords) (list 'car 'keywords)))
   ;; 	(list 'setq 'keywords (list 'cdr 'keywords)))))
-  (declare (obsolete nil "27.1"))
+  (declare (obsolete nil "27.1") (indent defun))
   nil)
 
 ;;(define-widget-keywords :documentation-indent

@@ -110,7 +110,7 @@ Options in CLOS not supported in EIEIO:
 
 Due to the way class options are set up, you can add any tags you wish,
 and reference them using the function `class-option'."
-  (declare (doc-string 4))
+  (declare (doc-string 4) (indent defun))
   (cl-check-type superclasses list)
 
   (cond ((and (stringp (car options-and-doc))

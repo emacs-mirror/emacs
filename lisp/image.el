@@ -791,7 +791,7 @@ Example:
 
    (defimage test-image ((:type xpm :file \"~/test1.xpm\")
                          (:type xbm :file \"~/test1.xbm\")))"
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   `(defvar ,symbol (find-image ',specs) ,doc))
 
 

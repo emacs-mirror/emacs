@@ -494,7 +494,7 @@ This setting only applies to floats in normal display mode.")
 (defmacro defcalcmodevar (var defval &optional doc)
   "Declare VAR as a Calc variable, with default value DEFVAL and doc-string DOC.
 The variable VAR will be added to `calc-mode-var-list'."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   `(progn
      (defvar ,var ,defval ,doc)
      (add-to-list 'calc-mode-var-list (list (quote ,var) ,defval))))
@@ -3439,7 +3439,7 @@ The prefix `calcFunc-' is added to the specified name to get the
 actual Lisp function name.
 
 See Info node `(calc)Defining Functions'."
-  (declare (doc-string 3)) ;; FIXME: Edebug spec?
+  (declare (doc-string 3) (indent defun)) ;; FIXME: Edebug spec?
   (require 'calc-ext)
   (math-do-defmath func args body))
 

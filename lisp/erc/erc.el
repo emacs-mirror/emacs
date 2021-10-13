@@ -1291,7 +1291,7 @@ Example:
                #\\='erc-replace-insert))
     ((remove-hook \\='erc-insert-modify-hook
                   #\\='erc-replace-insert)))"
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   (let* ((sn (symbol-name name))
          (mode (intern (format "erc-%s-mode" (downcase sn))))
          (group (intern (format "erc-%s" (downcase sn))))
