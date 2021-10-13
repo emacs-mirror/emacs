@@ -210,7 +210,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (emacs-lisp--before-compile-buffer)
   (require 'bytecomp)
   (byte-recompile-file buffer-file-name nil 0)
-  (load buffer-file-name))
+  (load (byte-compile-dest-file buffer-file-name)))
 
 (declare-function native-compile "comp")
 (defun emacs-lisp-native-compile-and-load ()
