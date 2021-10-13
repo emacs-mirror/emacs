@@ -462,8 +462,7 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-toggle-tick mh-toggle-tick)
 (mh-defun-show-buffer mh-show-narrow-to-tick mh-narrow-to-tick)
 (mh-defun-show-buffer mh-show-junk-allowlist mh-junk-allowlist)
-(mh-defun-show-buffer mh-show-junk-whitelist mh-junk-allowlist)
-(make-obsolete 'mh-show-junk-whitelist 'mh-show-junk-allowlist "28.1")
+(mh-defun-show-buffer mh-show-junk-whitelist mh-junk-whitelist)
 (mh-defun-show-buffer mh-show-junk-blocklist mh-junk-blocklist)
 (mh-defun-show-buffer mh-show-index-new-messages mh-index-new-messages)
 (mh-defun-show-buffer mh-show-index-ticked-messages mh-index-ticked-messages)
@@ -635,7 +634,7 @@ still visible.\n")
         "?"    #'mh-prefix-help
         "a"    #'mh-show-junk-allowlist
         "b"    #'mh-show-junk-blocklist
-        "w"    #'mh-show-junk-allowlist)
+        "w"    #'mh-show-junk-whitelist)
 
   "P" (define-keymap :prefix 'mh-show-ps-print-map
         "?"   #'mh-prefix-help

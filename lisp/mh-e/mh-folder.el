@@ -278,7 +278,7 @@ annotation.")
         "?"           #'mh-prefix-help
         "a"           #'mh-junk-allowlist
         "b"           #'mh-junk-blocklist
-        "w"           #'mh-junk-allowlist)
+        "w"           #'mh-junk-whitelist)
 
   "P" (define-keymap :prefix 'mh-ps-print-map
         "?"           #'mh-prefix-help
