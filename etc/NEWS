@@ -123,6 +123,11 @@ also handle ANSI codes for faint, italic and blinking text, displaying
 it with new 'ansi-term-faint/italic/slow-blinking/fast-blinking'
 faces.
 
+** Xref
+
+*** 'project-find-file' and 'project-or-external-find-file' now accept
+a prefix argument which is interpreted to mean "include all files".
+
 
 * New Modes and Packages in Emacs 29.1
 

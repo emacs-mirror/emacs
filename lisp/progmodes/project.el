@@ -840,28 +840,36 @@ pattern to search for."
                  project-regexp-history-variable)))
 
 ;;;###autoload
-(defun project-find-file ()
+(defun project-find-file (&optional include-all)
   "Visit a file (with completion) in the current project.
 
 The filename at point (determined by `thing-at-point'), if any,
-is available as part of \"future history\"."
-  (interactive)
+is available as part of \"future history\".
+
+If INCLUDE-ALL is non-nil, or with prefix argument when called
+interactively, include all files under the project root, except
+for VCS directories listed in `vc-directory-exclusion-list'."
+  (interactive "P")
   (let* ((pr (project-current t))
          (dirs (list (project-root pr))))
-    (project-find-file-in (thing-at-point 'filename) dirs pr)))
+    (project-find-file-in (thing-at-point 'filename) dirs pr include-all)))
 
 ;;;###autoload
-(defun project-or-external-find-file ()
+(defun project-or-external-find-file (&optional include-all)
   "Visit a file (with completion) in the current project or external roots.
 
 The filename at point (determined by `thing-at-point'), if any,
-is available as part of \"future history\"."
-  (interactive)
+is available as part of \"future history\".
+
+If INCLUDE-ALL is non-nil, or with prefix argument when called
+interactively, include all files under the project root, except
+for VCS directories listed in `vc-directory-exclusion-list'."
+  (interactive "P")
   (let* ((pr (project-current t))
          (dirs (cons
                 (project-root pr)
                 (project-external-roots pr))))
-    (project-find-file-in (thing-at-point 'filename) dirs pr)))
+    (project-find-file-in (thing-at-point 'filename) dirs pr include-all)))
 
 (defcustom project-read-file-name-function #'project--read-file-cpd-relative
   "Function to call to read a file name from a list.
@@ -914,12 +922,25 @@ by the user at will."
                                    predicate
                                    hist mb-default))
 
-(defun project-find-file-in (suggested-filename dirs project)
+(defun project-find-file-in (suggested-filename dirs project &optional include-all)
   "Complete a file name in DIRS in PROJECT and visit the result.
 
 SUGGESTED-FILENAME is a relative file name, or part of it, which
-is used as part of \"future history\"."
-  (let* ((all-files (project-files project dirs))
+is used as part of \"future history\".
+
+If INCLUDE-ALL is non-nil, or with prefix argument when called
+interactively, include all files from DIRS, except for VCS
+directories listed in `vc-directory-exclusion-list'."
+  (let* ((vc-dirs-ignores (mapcar
+                           (lambda (dir)
+                             (concat dir "/"))
+                           vc-directory-exclusion-list))
+         (all-files
+          (if include-all
+              (mapcan
+               (lambda (dir) (project--files-in-directory dir vc-dirs-ignores))
+               dirs)
+            (project-files project dirs)))
          (completion-ignore-case read-file-name-completion-ignore-case)
          (file (funcall project-read-file-name-function
                         "Find file" all-files nil nil
