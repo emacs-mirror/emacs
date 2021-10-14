@@ -4141,7 +4141,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	  (setq connection-type 'pty))
 	(unless (memq connection-type '(nil pipe pty))
 	  (signal 'wrong-type-argument (list #'symbolp connection-type)))
-	(unless (or (null filter) (functionp filter))
+	(unless (or (null filter) (eq filter t) (functionp filter))
 	  (signal 'wrong-type-argument (list #'functionp filter)))
 	(unless (or (null sentinel) (functionp sentinel))
 	  (signal 'wrong-type-argument (list #'functionp sentinel)))
