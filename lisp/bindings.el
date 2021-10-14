@@ -505,7 +505,7 @@ mouse-1: Display Line and Column Mode Menu"))
      local-map ,mode-line-column-line-number-mode-map
      mouse-face mode-line-highlight
      ;; XXX needs better description
-     help-echo "Buffer Position
+     help-echo "Window Scroll Percentage
 mouse-1: Display Line and Column Mode Menu")
     (size-indication-mode
      (8 ,(propertize
