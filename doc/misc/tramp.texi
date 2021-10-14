@@ -5193,11 +5193,13 @@ tramp-compat-with-mutex}
 @value{tramp} comes with compatibility code for different Emacs
 versions.  When you see such a message (the text might differ), you
 don't use the Emacs built-in version of @value{tramp}.  In case you
-have installed @value{tramp} from GNU ELPA, see the package README
-file for instructions how to recompile it.
+have installed @value{tramp} from GNU ELPA,
 @ifset installchapter
-@xref{Recompilation}.
+@xref{ELPA Installation}.
 @end ifset
+@ifclear installchapter
+see the package README file for instructions how to recompile it.
+@end ifclear
 
 
 @item
