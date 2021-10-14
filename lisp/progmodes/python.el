@@ -3805,7 +3805,7 @@ With argument MSG show activation/deactivation message."
                   (comint-redirect-perform-sanity-check nil)
                   (comint-redirect-insert-matching-regexp t)
                   (comint-redirect-finished-regexp
-                   "1__dummy_completion__[[:space:]]*\n")
+                   "1__dummy_completion__.*\n")
                   (comint-redirect-output-buffer redirect-buffer))
               ;; Compatibility with Emacs 24.x.  Comint changed and
               ;; now `comint-redirect-filter' gets 3 args.  This
