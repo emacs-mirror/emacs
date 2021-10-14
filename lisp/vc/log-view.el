@@ -110,6 +110,7 @@
 ;;; Code:
 
 (require 'pcvs-util)
+(require 'easy-mmode)
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-diff-internal "vc")
 
@@ -121,39 +122,23 @@
   :group 'pcl-cvs
   :prefix "log-view-")
 
-(easy-mmode-defmap log-view-mode-map
-  '(
-    ("-"	. 	negative-argument)
-    ("0"	.	digit-argument)
-    ("1"	.	digit-argument)
-    ("2"	.	digit-argument)
-    ("3"	.	digit-argument)
-    ("4"	.	digit-argument)
-    ("5"	.	digit-argument)
-    ("6"	.	digit-argument)
-    ("7"	.	digit-argument)
-    ("8"	.	digit-argument)
-    ("9"	.	digit-argument)
-
-    ("\C-m" . log-view-toggle-entry-display)
-    ("m" . log-view-toggle-mark-entry)
-    ("e" . log-view-modify-change-comment)
-    ("d" . log-view-diff)
-    ("=" . log-view-diff)
-    ("D" . log-view-diff-changeset)
-    ("a" . log-view-annotate-version)
-    ("f" . log-view-find-revision)
-    ("n" . log-view-msg-next)
-    ("p" . log-view-msg-prev)
-    ("\t" . log-view-msg-next)
-    ([backtab] . log-view-msg-prev)
-    ("N" . log-view-file-next)
-    ("P" . log-view-file-prev)
-    ("\M-n" . log-view-file-next)
-    ("\M-p" . log-view-file-prev))
-  "Log-View's keymap."
-  :inherit special-mode-map
-  :group 'log-view)
+(defvar-keymap log-view-mode-map
+  (kbd "RET") #'log-view-toggle-entry-display
+  "m" #'log-view-toggle-mark-entry
+  "e" #'log-view-modify-change-comment
+  "d" #'log-view-diff
+  "=" #'log-view-diff
+  "D" #'log-view-diff-changeset
+  "a" #'log-view-annotate-version
+  "f" #'log-view-find-revision
+  "n" #'log-view-msg-next
+  "p" #'log-view-msg-prev
+  (kbd "TAB") #'log-view-msg-next
+  (kbd "<backtab>") #'log-view-msg-prev
+  "N" #'log-view-file-next
+  "P" #'log-view-file-prev
+  (kbd "M-n") #'log-view-file-next
+  (kbd "M-p") #'log-view-file-prev)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu."
