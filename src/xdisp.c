@@ -1179,6 +1179,11 @@ static void append_stretch_glyph (struct it *, Lisp_Object,
 static Lisp_Object get_it_property (struct it *, Lisp_Object);
 static Lisp_Object calc_line_height_property (struct it *, Lisp_Object,
 					      struct font *, int, bool);
+static int get_glyph_pixel_width_delta_for_mouse_face (struct glyph *,
+						       struct glyph_row *,
+						       struct window *,
+						       struct face *,
+						       struct face *);
 static void get_cursor_offset_for_mouse_face (struct window *w,
 					      struct glyph_row *row,
 					      int *offset);
@@ -28125,6 +28130,20 @@ fill_composite_glyph_string (struct glyph_string *s, struct face *base_face,
       s->font = s->face->font;
     }
 
+  if (s->hl == DRAW_MOUSE_FACE
+      || (s->hl == DRAW_CURSOR && cursor_in_mouse_face_p (s->w)))
+    {
+      int c = COMPOSITION_GLYPH (s->cmp, 0);
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (s->f);
+      s->face = FACE_FROM_ID_OR_NULL (s->f, hlinfo->mouse_face_face_id);
+
+      if (!s->face)
+	s->face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+
+      s->face = FACE_FROM_ID (s->f, FACE_FOR_CHAR (s->f, s->face, c, -1, Qnil));
+      prepare_face_for_display (s->f, s->face);
+    }
+
   /* All glyph strings for the same composition has the same width,
      i.e. the width set for the first component of the composition.  */
   s->width = s->first_glyph->pixel_width;
@@ -28161,7 +28180,17 @@ fill_gstring_glyph_string (struct glyph_string *s, int face_id,
   s->cmp_id = glyph->u.cmp.id;
   s->cmp_from = glyph->slice.cmp.from;
   s->cmp_to = glyph->slice.cmp.to + 1;
-  s->face = FACE_FROM_ID (s->f, face_id);
+  if (s->hl == DRAW_MOUSE_FACE
+      || (s->hl == DRAW_CURSOR && cursor_in_mouse_face_p (s->w)))
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (s->f);
+      s->face = FACE_FROM_ID_OR_NULL (s->f, hlinfo->mouse_face_face_id);
+      if (!s->face)
+	s->face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+      prepare_face_for_display (s->f, s->face);
+    }
+  else
+    s->face = FACE_FROM_ID (s->f, face_id);
   lgstring = composition_gstring_from_id (s->cmp_id);
   s->font = XFONT_OBJECT (LGSTRING_FONT (lgstring));
   /* The width of a composition glyph string is the sum of the
@@ -28217,6 +28246,15 @@ fill_glyphless_glyph_string (struct glyph_string *s, int face_id,
   voffset = glyph->voffset;
   s->face = FACE_FROM_ID (s->f, face_id);
   s->font = s->face->font ? s->face->font : FRAME_FONT (s->f);
+  if (s->hl == DRAW_MOUSE_FACE
+      || (s->hl == DRAW_CURSOR && cursor_in_mouse_face_p (s->w)))
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (s->f);
+      s->face = FACE_FROM_ID_OR_NULL (s->f, hlinfo->mouse_face_face_id);
+      if (!s->face)
+	s->face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+      prepare_face_for_display (s->f, s->face);
+    }
   s->nchars = 1;
   s->width = glyph->pixel_width;
   glyph++;
@@ -28280,6 +28318,19 @@ fill_glyph_string (struct glyph_string *s, int face_id,
 
   s->font = s->face->font;
 
+  if (s->hl == DRAW_MOUSE_FACE
+      || (s->hl == DRAW_CURSOR && cursor_in_mouse_face_p (s->w)))
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (s->f);
+      s->face = FACE_FROM_ID_OR_NULL (s->f, hlinfo->mouse_face_face_id);
+      if (!s->face)
+	s->face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+      s->face
+        = FACE_FROM_ID (s->f, FACE_FOR_CHAR (s->f, s->face,
+					     s->first_glyph->u.ch, -1, Qnil));
+      prepare_face_for_display (s->f, s->face);
+    }
+
   /* If the specified font could not be loaded, use the frame's font,
      but record the fact that we couldn't load it in
      S->font_not_found_p so that we can draw rectangles for the
@@ -28309,6 +28360,15 @@ fill_image_glyph_string (struct glyph_string *s)
   s->slice = s->first_glyph->slice.img;
   s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
   s->font = s->face->font;
+  if (s->hl == DRAW_MOUSE_FACE
+      || (s->hl == DRAW_CURSOR && cursor_in_mouse_face_p (s->w)))
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (s->f);
+      s->face = FACE_FROM_ID_OR_NULL (s->f, hlinfo->mouse_face_face_id);
+      if (!s->face)
+	s->face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+      prepare_face_for_display (s->f, s->face);
+    }
   s->width = s->first_glyph->pixel_width;
 
   /* Adjust base line for subscript/superscript text.  */
@@ -28323,6 +28383,15 @@ fill_xwidget_glyph_string (struct glyph_string *s)
   eassert (s->first_glyph->type == XWIDGET_GLYPH);
   s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
   s->font = s->face->font;
+  if (s->hl == DRAW_MOUSE_FACE
+      || (s->hl == DRAW_CURSOR && cursor_in_mouse_face_p (s->w)))
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (s->f);
+      s->face = FACE_FROM_ID_OR_NULL (s->f, hlinfo->mouse_face_face_id);
+      if (!s->face)
+	s->face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+      prepare_face_for_display (s->f, s->face);
+    }
   s->width = s->first_glyph->pixel_width;
   s->ybase += s->first_glyph->voffset;
   s->xwidget = s->first_glyph->u.xwidget;
@@ -28348,6 +28417,15 @@ fill_stretch_glyph_string (struct glyph_string *s, int start, int end)
   face_id = glyph->face_id;
   s->face = FACE_FROM_ID (s->f, face_id);
   s->font = s->face->font;
+  if (s->hl == DRAW_MOUSE_FACE
+      || (s->hl == DRAW_CURSOR && cursor_in_mouse_face_p (s->w)))
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (s->f);
+      s->face = FACE_FROM_ID_OR_NULL (s->f, hlinfo->mouse_face_face_id);
+      if (!s->face)
+	s->face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+      prepare_face_for_display (s->f, s->face);
+    }
   s->width = glyph->pixel_width;
   s->nchars = 1;
   voffset = glyph->voffset;
@@ -28595,7 +28673,12 @@ right_overwriting (struct glyph_string *s)
 
 /* Set background width of glyph string S.  START is the index of the
    first glyph following S.  LAST_X is the right-most x-position + 1
-   in the drawing area.  */
+   in the drawing area.
+
+   If S's hl is DRAW_CURSOR, S->f is a window system frame, and the
+   cursor in S's window is currently under mouse face, s->width will
+   also be updated to take into account differing :box properties
+   between the original face and the mouse face. */
 
 static void
 set_glyph_string_background_width (struct glyph_string *s, int start, int last_x)
@@ -28617,7 +28700,28 @@ set_glyph_string_background_width (struct glyph_string *s, int start, int last_x
   if (s->extends_to_end_of_line_p)
     s->background_width = last_x - s->x + 1;
   else
-    s->background_width = s->width;
+    {
+      s->background_width = s->width;
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (s->f)
+	  && s->hl == DRAW_CURSOR
+	  && cursor_in_mouse_face_p (s->w))
+	{
+	  /* We will have to adjust the background width of the string
+	     in this situation, because the glyph's pixel_width might
+	     be inconsistent with the box of the mouse face, which
+	     leads to an ugly over-wide cursor. */
+
+	  struct glyph *g = s->first_glyph;
+	  struct face *regular_face = FACE_FROM_ID (s->f, g->face_id);
+	  s->background_width +=
+	    get_glyph_pixel_width_delta_for_mouse_face (g, s->row, s->w,
+							regular_face, s->face);
+	  /* s->width is probably worth adjusting here as well. */
+	  s->width = s->background_width;
+        }
+#endif
+    }
 }
 
 
@@ -31752,10 +31856,6 @@ erase_phys_cursor (struct window *w)
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   int hpos = w->phys_cursor.hpos;
   int vpos = w->phys_cursor.vpos;
-#ifdef HAVE_WINDOW_SYSTEM
-  int mouse_delta;
-  int phys_x = w->phys_cursor.x;
-#endif
   bool mouse_face_here_p = false;
   struct glyph_matrix *active_glyphs = w->current_matrix;
   struct glyph_row *cursor_row;
@@ -31826,13 +31926,16 @@ erase_phys_cursor (struct window *w)
     mouse_face_here_p = true;
 
 #ifdef HAVE_WINDOW_SYSTEM
-  /* Adjust the physical cursor's X coordinate if needed.  The problem
-     solved by the code below is outlined in the comment above
-     'get_cursor_offset_for_mouse_face'.  */
-  if (mouse_face_here_p)
+  /* Since erasing the phys cursor will probably lead to corruption of
+     the mouse face display if the glyph's pixel_width is not kept up
+     to date with the :box property of the mouse face, just redraw the
+     mouse face. */
+  if (FRAME_WINDOW_P (WINDOW_XFRAME (w)) && mouse_face_here_p)
     {
-      get_cursor_offset_for_mouse_face (w, cursor_row, &mouse_delta);
-      w->phys_cursor.x += mouse_delta;
+      w->phys_cursor_on_p = false;
+      w->phys_cursor_type = NO_CURSOR;
+      show_mouse_face (MOUSE_HL_INFO (WINDOW_XFRAME (w)), DRAW_MOUSE_FACE);
+      return;
     }
 #endif
 
@@ -31871,10 +31974,6 @@ erase_phys_cursor (struct window *w)
   draw_phys_cursor_glyph (w, cursor_row, hl);
 
  mark_cursor_off:
-#ifdef HAVE_WINDOW_SYSTEM
-  /* Restore the original cursor position.  */
-  w->phys_cursor.x = phys_x;
-#endif
   w->phys_cursor_on_p = false;
   w->phys_cursor_type = NO_CURSOR;
 }
@@ -35993,6 +36092,65 @@ cancel_hourglass (void)
     }
 }
 
+/* Return a delta that must be applied to g->pixel_width in order to
+   obtain the correct pixel_width of G when drawn under MOUSE_FACE.
+   ORIGINAL_FACE is the face G was originally drawn in, and MOUSE_FACE
+   is the face it will be drawn in now.  ROW should be the row G is
+   located in.  W should be the window G is located in.  */
+static int
+get_glyph_pixel_width_delta_for_mouse_face (struct glyph *g,
+					    struct glyph_row *row,
+					    struct window *w,
+					    struct face *original_face,
+					    struct face *mouse_face)
+{
+  int sum = 0;
+
+  bool do_left_box_p = g->left_box_line_p;
+  bool do_right_box_p = g->right_box_line_p;
+
+  /* This is required because we test some parameters
+     of the image slice before applying the box in
+     produce_image_glyph. */
+
+  if (g->type == IMAGE_GLYPH)
+    {
+      if (!row->reversed_p)
+	{
+	  struct image *img = IMAGE_FROM_ID (WINDOW_XFRAME (w),
+					     g->u.img_id);
+	  do_left_box_p = g->left_box_line_p &&
+	    g->slice.img.x == 0;
+	  do_right_box_p = g->right_box_line_p &&
+	    g->slice.img.x + g->slice.img.width == img->width;
+	}
+      else
+	{
+	  struct image *img = IMAGE_FROM_ID (WINDOW_XFRAME (w),
+					     g->u.img_id);
+	  do_left_box_p = g->left_box_line_p &&
+	    g->slice.img.x + g->slice.img.width == img->width;
+	  do_right_box_p = g->right_box_line_p &&
+	    g->slice.img.x == 0;
+	}
+    }
+
+  /* If the glyph has a left box line, subtract it from the offset.  */
+  if (do_left_box_p)
+    sum -= max (0, original_face->box_vertical_line_width);
+  /* Likewise with the right box line, as there may be a
+     box there as well.  */
+  if (do_right_box_p)
+        sum -= max (0, original_face->box_vertical_line_width);
+  /* Now add the line widths from the new face.  */
+  if (g->left_box_line_p)
+    sum += max (0, mouse_face->box_vertical_line_width);
+  if (g->right_box_line_p)
+    sum += max (0, mouse_face->box_vertical_line_width);
+
+  return sum;
+}
+
 /* Get the offset due to mouse-highlight to apply before drawing
    phys_cursor, and return it in OFFSET.  ROW should be the row that
    is under mouse face and contains the phys cursor.
@@ -36036,57 +36194,15 @@ get_cursor_offset_for_mouse_face (struct window *w, struct glyph_row *row,
 	start = &row->glyphs[TEXT_AREA][row->used[TEXT_AREA] - 1];
     }
 
-  /* Calculate the offset to correct phys_cursor x if we are
+  /* Calculate the offset by which to correct phys_cursor x if we are
      drawing the cursor inside mouse-face highlighted text.  */
 
-  for (; row->reversed_p ? start >= end : start <= end;
+  for (; row->reversed_p ? start > end : start < end;
        row->reversed_p ? --start : ++start)
     {
-      struct glyph *g = start;
-      struct face *mouse = mouse_face;
-      struct face *regular_face = FACE_FROM_ID (f, g->face_id);
-
-      bool do_left_box_p = g->left_box_line_p;
-      bool do_right_box_p = g->right_box_line_p;
-
-      /* This is required because we test some parameters
-	 of the image slice before applying the box in
-	 produce_image_glyph. */
-
-      if (g->type == IMAGE_GLYPH)
-	{
-	  if (!row->reversed_p)
-	    {
-	      struct image *img = IMAGE_FROM_ID (WINDOW_XFRAME (w),
-						 g->u.img_id);
-	      do_left_box_p = g->left_box_line_p &&
-		g->slice.img.x == 0;
-	      do_right_box_p = g->right_box_line_p &&
-		g->slice.img.x + g->slice.img.width == img->width;
-	    }
-	  else
-	    {
-	      struct image *img = IMAGE_FROM_ID (WINDOW_XFRAME (w),
-						 g->u.img_id);
-	      do_left_box_p = g->left_box_line_p &&
-		g->slice.img.x + g->slice.img.width == img->width;
-	      do_right_box_p = g->right_box_line_p &&
-		g->slice.img.x == 0;
-	    }
-	}
-
-      /* If the glyph has a left box line, subtract it from the offset.  */
-      if (do_left_box_p)
-        sum -= max (0, regular_face->box_vertical_line_width);
-      /* Likewise with the right box line, as there may be a
-	 box there as well.  */
-      if (do_right_box_p)
-        sum -= max (0, regular_face->box_vertical_line_width);
-      /* Now add the line widths from the new face.  */
-      if (g->left_box_line_p)
-        sum += max (0, mouse->box_vertical_line_width);
-      if (g->right_box_line_p)
-        sum += max (0, mouse->box_vertical_line_width);
+      sum += get_glyph_pixel_width_delta_for_mouse_face (start, row, w,
+							 FACE_FROM_ID (f, start->face_id),
+							 mouse_face);
     }
 
   if (row->reversed_p)
