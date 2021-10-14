@@ -3848,6 +3848,9 @@ gui_update_window_end (struct window *w, bool cursor_on_p,
 				w->output_cursor.hpos, w->output_cursor.vpos,
 				w->output_cursor.x, w->output_cursor.y);
 
+      if (cursor_in_mouse_face_p (w) && cursor_on_p)
+	mouse_face_overwritten_p = 1;
+
       if (draw_window_fringes (w, true))
 	{
 	  if (WINDOW_RIGHT_DIVIDER_WIDTH (w))
