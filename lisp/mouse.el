@@ -571,7 +571,8 @@ This is the keyboard interface to \\[context-menu-map]."
 
 (defun mouse-minibuffer-check (event)
   (let ((w (posn-window (event-start event))))
-    (and (window-minibuffer-p w)
+    (and (windowp w)
+         (window-minibuffer-p w)
 	 (not (minibuffer-window-active-p w))
 	 (user-error "Minibuffer window is not active")))
   ;; Give temporary modes such as isearch a chance to turn off.
