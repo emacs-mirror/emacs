@@ -7267,7 +7267,9 @@ Return WINDOW if BUFFER and WINDOW are live."
         ;; Adjust size of frame if asked for.  We probably should do
         ;; that only for a single window frame.
 	(cond
-	 ((not size))
+	 ((not size)
+          (when window-size
+            (setq resize-temp-buffer-window-inhibit t)))
 	 ((consp size)
 	  (let ((width (car size))
 		(height (cdr size))
@@ -7293,7 +7295,9 @@ Return WINDOW if BUFFER and WINDOW are live."
         ;;
         ;; Adjust width and/or height of window if asked for.
 	(cond
-	 ((not height))
+         ((not height)
+	  (when window-height
+            (setq resize-temp-buffer-window-inhibit 'vertical)))
 	 ((numberp height)
 	  (let* ((new-height
 		  (if (integerp height)
@@ -7311,7 +7315,9 @@ Return WINDOW if BUFFER and WINDOW are live."
           (setq resize-temp-buffer-window-inhibit 'vertical)))
 	;; Adjust width of window if asked for.
 	(cond
-	 ((not width))
+	 ((not width)
+          (when window-width
+            (setq resize-temp-buffer-window-inhibit 'horizontal)))
 	 ((numberp width)
 	  (let* ((new-width
 		  (if (integerp width)
@@ -7327,10 +7333,12 @@ Return WINDOW if BUFFER and WINDOW are live."
 	 ((functionp width)
 	  (ignore-errors (funcall width window))
           (setq resize-temp-buffer-window-inhibit 'horizontal)))
+
 	;; Preserve window size if asked for.
 	(when (consp preserve-size)
 	  (window-preserve-size window t (car preserve-size))
 	  (window-preserve-size window nil (cdr preserve-size)))))
+
       ;; Assign any window parameters specified.
       (let ((parameters (cdr (assq 'window-parameters alist))))
         (dolist (parameter parameters)
