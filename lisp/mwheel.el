@@ -103,7 +103,7 @@ less than a full screen.
 If AMOUNT is the symbol 'hscroll', this means that with MODIFIER,
 the mouse wheel will scroll horizontally instead of vertically.
 
-If AMOUNT is the symbol text-scale, this means that with
+If AMOUNT is the symbol 'text-scale', this means that with
 MODIFIER, the mouse wheel will change the face height instead of
 scrolling."
   :group 'mouse
