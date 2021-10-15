@@ -3781,8 +3781,8 @@ Return the trampoline if found or nil otherwise."
                         for arg in lambda-list
                         unless (memq arg '(&optional &rest))
                         collect arg)))))
-         ;; Use speed 0 to maximize compilation speed and not to
-         ;; optimize away funcall calls!
+         ;; Use speed 1 for compilation speed and not to optimize away
+         ;; funcall calls!
          (byte-optimize nil)
          (native-comp-speed 1)
          (lexical-binding t))
