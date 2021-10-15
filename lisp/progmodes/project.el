@@ -322,7 +322,15 @@ to find the list of ignores for each directory."
              (process-file-shell-command command nil t))
             (pt (point-min)))
         (unless (zerop status)
-          (error "File listing failed: %s" (buffer-string)))
+          (goto-char (point-min))
+          (if (and
+               (not (eql status 127))
+               (search-forward "Permission denied\n" nil t))
+              (let ((end (1- (point))))
+                (re-search-backward "\\`\\|\0")
+                (error "File listing failed: %s"
+                       (buffer-substring (1+ (point)) end)))
+            (error "File listing failed: %s" (buffer-string))))
         (goto-char pt)
         (while (search-forward "\0" nil t)
           (push (buffer-substring-no-properties (1+ pt) (1- (point)))
