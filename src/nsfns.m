@@ -609,13 +609,72 @@ ns_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 }
 
+void
+ns_change_tab_bar_height (struct frame *f, int height)
+{
+  int unit = FRAME_LINE_HEIGHT (f);
+  int old_height = FRAME_TAB_BAR_HEIGHT (f);
+  int lines = (height + unit - 1) / unit;
+  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+
+  /* Make sure we redisplay all windows in this frame.  */
+  fset_redisplay (f);
+
+  /* Recalculate tab bar and frame text sizes.  */
+  FRAME_TAB_BAR_HEIGHT (f) = height;
+  FRAME_TAB_BAR_LINES (f) = lines;
+  store_frame_param (f, Qtab_bar_lines, make_fixnum (lines));
+
+  if (FRAME_NS_WINDOW (f) && FRAME_TAB_BAR_HEIGHT (f) == 0)
+    {
+      clear_frame (f);
+      clear_current_matrices (f);
+    }
+
+  if ((height < old_height) && WINDOWP (f->tab_bar_window))
+    clear_glyph_matrix (XWINDOW (f->tab_bar_window)->current_matrix);
+
+  if (!f->tab_bar_resized)
+    {
+      /* As long as tab_bar_resized is false, effectively try to change
+	 F's native height.  */
+      if (NILP (fullscreen) || EQ (fullscreen, Qfullwidth))
+	adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
+			   1, false, Qtab_bar_lines);
+      else
+	adjust_frame_size (f, -1, -1, 4, false, Qtab_bar_lines);
+
+      f->tab_bar_resized = f->tab_bar_redisplayed;
+    }
+  else
+    /* Any other change may leave the native size of F alone.  */
+    adjust_frame_size (f, -1, -1, 3, false, Qtab_bar_lines);
+
+  /* adjust_frame_size might not have done anything, garbage frame
+     here.  */
+  adjust_frame_glyphs (f);
+  SET_FRAME_GARBAGED (f);
+}
 
 /* tabbar support */
 static void
 ns_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-  /* Currently unimplemented.  */
-  NSTRACE ("ns_set_tab_bar_lines");
+  int olines = FRAME_TAB_BAR_LINES (f);
+  int nlines;
+
+  /* Treat tab bars like menu bars.  */
+  if (FRAME_MINIBUF_ONLY_P (f))
+    return;
+
+  /* Use VALUE only if an int >= 0.  */
+  if (RANGED_FIXNUMP (0, value, INT_MAX))
+    nlines = XFIXNAT (value);
+  else
+    nlines = 0;
+
+  if (nlines != olines && (olines == 0 || nlines == 0))
+    ns_change_tab_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
 
 

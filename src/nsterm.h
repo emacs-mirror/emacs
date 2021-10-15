@@ -1136,6 +1136,7 @@ extern void ns_implicitly_set_name (struct frame *f, Lisp_Object arg,
                                     Lisp_Object oldval);
 extern void ns_set_scroll_bar_default_width (struct frame *f);
 extern void ns_set_scroll_bar_default_height (struct frame *f);
+extern void ns_change_tab_bar_height (struct frame *f, int height);
 extern const char *ns_get_string_resource (void *_rdb,
                                            const char *name,
                                            const char *class);
