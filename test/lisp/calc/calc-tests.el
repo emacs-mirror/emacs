@@ -810,6 +810,12 @@ An existing calc stack is reused, otherwise a new one is created."
   (should (equal (calcFunc-test6 3) (* (* 3 2) (- 3 1))))
   (should (equal (calcFunc-test7 3) (* 3 2))))
 
+(ert-deftest calc-nth-root ()
+  ;; bug#51209
+  (let* ((calc-display-working-message nil)
+         (x (calc-tests--calc-to-number (math-pow 8 '(frac 1 6)))))
+    (should (< (abs (- x (sqrt 2.0))) 1.0e-10))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 
