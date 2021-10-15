@@ -3976,19 +3976,6 @@ ns_draw_glyph_string (struct glyph_string *s)
   NSRect r[2];
   int n;
   char box_drawn_p = 0;
-
-  struct face *face = s->face;
-  if (s->hl == DRAW_MOUSE_FACE)
-    {
-      face
-	= FACE_FROM_ID_OR_NULL (s->f,
-				MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-      if (!face)
-	face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-    }
-
-  s->face = face;
-
   struct font *font = s->face->font;
   if (! font) font = FRAME_FONT (s->f);
 
