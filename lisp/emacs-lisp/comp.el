@@ -3789,7 +3789,9 @@ Return the trampoline if found or nil otherwise."
     (comp--native-compile
      form nil
      (cl-loop
-      for dir in (comp-eln-load-path-eff)
+      for dir in (if native-compile-target-directory
+                     (list native-compile-target-directory)
+                   (comp-eln-load-path-eff))
       for f = (expand-file-name
                (comp-trampoline-filename subr-name)
                dir)
