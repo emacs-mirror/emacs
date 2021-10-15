@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2021.09.23.089128420
+;; Version: 2021.10.14.127365406
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2021-09-23-54ffde4-vpo-GNU"
+(defconst verilog-mode-version "2021-10-14-797711e-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -1264,7 +1264,9 @@ See `verilog-auto-inst-param-value'."
 Also affects AUTOINSTPARAM.  Declaration order is the default for
 backward compatibility, and as some teams prefer signals that are
 declared together to remain together.  Sorted order reduces
-changes when declarations are moved around in a file.
+changes when declarations are moved around in a file. Sorting is
+within input/output/inout groupings, there is intentionally no
+option to intermix between input/output/inouts.
 
 See also `verilog-auto-arg-sort'."
   :version "24.1"  ; rev688
@@ -6601,7 +6603,8 @@ Also move point to constraint."
                        (equal (char-before) ?\;)
                        (equal (char-before) ?\}))
                    ;; skip what looks like bus repetition operator {#{
-                   (not (string-match "^{\\s-*[\\(\\)0-9a-zA-Z_]*\\s-*{" (buffer-substring p (point)))))))))
+                   (not (string-match "^{\\s-*[()0-9a-zA-Z_\\]*\\s-*{"
+                                      (buffer-substring p (point)))))))))
       (progn
         (let ( (pt (point)) (pass 0))
           (verilog-backward-ws&directives)
