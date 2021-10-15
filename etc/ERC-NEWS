@@ -12,6 +12,14 @@ extensible IRC (Internet Relay Chat) client distributed with
 GNU Emacs since Emacs version 22.1.
 
 
+* Changes in ERC 5.4.1
+
+** No user-visible changes since ERC 5.4, but a few tweaks in some ERC
+file headers and the ERC manual in order to successfully build ERC for
+GNU ELPA.  (See below for the news item of ERC now being distributed
+on GNU ELPA in addition to its continued inclusion in GNU Emacs core.)
+
+
 * Changes in ERC 5.4
 
 ** Starting with Emacs 28.1 and ERC 5.4, ERC NEWS are added here again.
