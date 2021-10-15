@@ -2159,7 +2159,7 @@ otherwise it could decide to silently do nothing."
     (> count 1)))
 
 (defcustom yank-menu-length 20
-  "Maximum length to display in the `yank-menu'."
+  "Text of items in `yank-menu' longer than this will be truncated."
   :type 'integer
   :group 'menu)
 

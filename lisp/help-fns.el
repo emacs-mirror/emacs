@@ -823,7 +823,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                            ;; Advised & aliased function.
                            (and advised (symbolp real-function)
                                 (not (eq 'autoload (car-safe def))))
-                           (and (subrp def)
+                           (and (subrp def) (symbolp function)
                                 (not (string= (subr-name def)
                                               (symbol-name function)))))))
 	 (real-def (cond
