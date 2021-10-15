@@ -178,6 +178,33 @@ the tab bar is enabled."
   :group 'eww
   :type 'hook)
 
+(defcustom eww-auto-rename-buffer nil
+  "Automatically rename EWW buffers once the page is rendered.
+
+When nil, do not rename the buffer.  With a non-nil value
+determine the renaming scheme, as follows:
+
+- `title': Use the web page's title.
+- `url': Use the web page's URL.
+- a function's symbol: Run a user-defined function that returns a
+  string with which to rename the buffer.
+
+The string of `title' and `url' is always truncated to the value
+of `eww-buffer-name-length'."
+  :version "29.1"
+  :type '(choice
+          (const :tag "Do not rename buffers (default)" nil)
+          (const :tag "Rename buffer to web page title" title)
+          (const :tag "Rename buffer to web page URL" url)
+          (function :tag "A user-defined function to rename the buffer"))
+  :group 'eww)
+
+(defcustom eww-buffer-name-length 40
+  "Length of renamed buffer name, per `eww-auto-rename-buffer'."
+  :type 'natnum
+  :version "29.1"
+  :group 'eww)
+
 (defcustom eww-form-checkbox-selected-symbol "[X]"
   "Symbol used to represent a selected checkbox.
 See also `eww-form-checkbox-symbol'."
@@ -353,7 +380,7 @@ killed after rendering."
     (setq url (url-recreate-url parsed)))
   (plist-put eww-data :url url)
   (plist-put eww-data :title "")
-  (eww-update-header-line-format)
+  (eww--after-page-change)
   (let ((inhibit-read-only t))
     (insert (format "Loading %s..." url))
     (goto-char (point-min)))
@@ -502,6 +529,30 @@ Currently this means either text/html or application/xhtml+xml."
   (member content-type '("text/html"
 			 "application/xhtml+xml")))
 
+(defun eww--rename-buffer ()
+  "Rename the current EWW buffer.
+The renaming scheme is performed in accordance with
+`eww-auto-rename-buffer'."
+  (let ((rename-string)
+        (formatter
+         (lambda (string)
+           (format "*%s # eww*" (truncate-string-to-width
+                                 string eww-buffer-name-length))))
+        (site-title (plist-get eww-data :title))
+        (site-url (plist-get eww-data :url)))
+    (cond ((null eww-auto-rename-buffer))
+          ((eq eww-auto-rename-buffer 'url)
+           (setq rename-string (funcall formatter site-url)))
+          ((functionp eww-auto-rename-buffer)
+           (setq rename-string (funcall eww-auto-rename-buffer)))
+          (t (setq rename-string
+                   (funcall formatter (if (or (equal site-title "")
+                                              (null site-title))
+                                          "Untitled"
+                                        site-title)))))
+    (when rename-string
+      (rename-buffer rename-string t))))
+
 (defun eww-render (status url &optional point buffer encode)
   (let* ((headers (eww-parse-headers))
 	 (content-type
@@ -552,7 +603,7 @@ Currently this means either text/html or application/xhtml+xml."
 	    (eww-display-raw buffer (or encode charset 'utf-8))))
 	  (with-current-buffer buffer
 	    (plist-put eww-data :url url)
-	    (eww-update-header-line-format)
+	    (eww--after-page-change)
 	    (setq eww-history-position 0)
 	    (and last-coding-system-used
 		 (set-buffer-file-coding-system last-coding-system-used))
@@ -796,12 +847,16 @@ Currently this means either text/html or application/xhtml+xml."
 		 `((?u . ,(or url ""))
 		   (?t . ,title))))))))
 
+(defun eww--after-page-change ()
+  (eww-update-header-line-format)
+  (eww--rename-buffer))
+
 (defun eww-tag-title (dom)
   (plist-put eww-data :title
 	     (replace-regexp-in-string
 	      "^ \\| $" ""
 	      (replace-regexp-in-string "[ \t\r\n]+" " " (dom-text dom))))
-  (eww-update-header-line-format))
+  (eww--after-page-change))
 
 (defun eww-display-raw (buffer &optional encode)
   (let ((data (buffer-substring (point) (point-max))))
@@ -929,7 +984,7 @@ the like."
 		      nil (current-buffer))
     (dolist (elem '(:source :url :title :next :previous :up))
       (plist-put eww-data elem (plist-get old-data elem)))
-    (eww-update-header-line-format)))
+    (eww--after-page-change)))
 
 (defun eww-score-readability (node)
   (let ((score -1))
@@ -1161,7 +1216,7 @@ instead of `browse-url-new-window-flag'."
       (goto-char (plist-get elem :point))
       ;; Make buffer listings more informative.
       (setq list-buffers-directory (plist-get elem :url))
-      (eww-update-header-line-format))))
+      (eww--after-page-change))))
 
 (defun eww-next-url ()
   "Go to the page marked `next'.

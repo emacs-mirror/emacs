@@ -380,6 +380,14 @@ thus allowing for the use of the usual substitutions, such as
 @code{\[eww-reload]} for the current key binding of the
 @code{eww-reload} command.
 
+@vindex eww-auto-rename-buffer
+  If the @code{eww-auto-rename-buffer} user option is non-@code{nil},
+EWW buffers will be renamed after rendering a document.  If this is
+@code{title}, rename based on the title of the document.  If this is
+@code{url}, rename based on the @acronym{URL} of the document.  This
+can also be a user-defined function, which is called with no
+parameters in the EWW buffer, and should return a string.
+
 @node Command Line
 @chapter Command Line Usage
 

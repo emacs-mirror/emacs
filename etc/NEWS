@@ -89,6 +89,16 @@ Customize this option to limit the amount of entries in the menu
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** eww
+
++++
+*** New user option to automatically rename EWW buffers.
+The 'eww-auto-rename-buffer' user option can be configured to rename
+rendered web pages by using their title, URL, or a user-defined
+function which returns a string.  For the first two cases, the length
+of the resulting name is controlled by 'eww-buffer-name-length'.  By
+default, no automatic renaming is performed.
+
 ** image-dired
 
 ---
