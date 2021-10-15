@@ -516,9 +516,9 @@ codes for these non-@acronym{ASCII} control characters include the
 2**26
 @end ifnottex
 bit as well as the code for the corresponding non-control character.
-Ordinary text terminals have no way of generating non-@acronym{ASCII}
-control characters, but you can generate them straightforwardly using
-X and other window systems.
+Not all text terminals can generate non-@acronym{ASCII} control
+characters, but it is straightforward to generate them using X and
+other window systems.
 
   For historical reasons, Emacs treats the @key{DEL} character as
 the control equivalent of @kbd{?}:
@@ -588,8 +588,8 @@ character is upper case or lower case.  Emacs uses the
 2**25
 @end ifnottex
 bit to indicate that the shift key was used in typing a control
-character.  This distinction is possible only when you use X terminals
-or other special terminals; ordinary text terminals do not report the
+character.  This distinction is possible only on a graphical display
+such as a GUI display on X; text terminals do not report the
 distinction.  The Lisp syntax for the shift bit is @samp{\S-}; thus,
 @samp{?\C-\S-o} or @samp{?\C-\S-O} represents the shifted-control-o
 character.
