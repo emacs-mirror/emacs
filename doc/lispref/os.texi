@@ -3124,8 +3124,9 @@ watch for file attribute changes, like permissions or modification
 time
 @end table
 
-If @var{file} is a directory, changes for all files in that directory
-will be notified.  This does not work recursively.
+If @var{file} is a directory, @code{change} watches for file creation
+or deletion in that directory.  Some of the file notification backends
+report also file changes.  This does not work recursively.
 
 When any event happens, Emacs will call the @var{callback} function
 passing it a single argument @var{event}, which is of the form

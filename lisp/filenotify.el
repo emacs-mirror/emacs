@@ -390,7 +390,9 @@ include the following symbols:
                         permissions or modification time
 
 If FILE is a directory, `change' watches for file creation or
-deletion in that directory.  This does not work recursively.
+deletion in that directory.  Some of the file notification
+backends report also file changes.  This does not work
+recursively.
 
 When any event happens, Emacs will call the CALLBACK function passing
 it a single argument EVENT, which is of the form
