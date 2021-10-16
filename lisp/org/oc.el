@@ -789,6 +789,20 @@ Citations are ordered by appearance in the document, when following footnotes.
 INFO is the export communication channel, as a property list."
   (or (plist-get info :citations)
       (letrec ((cites nil)
+               (tree (plist-get info :parse-tree))
+               (find-definition
+                ;; Find definition for standard reference LABEL.  At
+                ;; this point, it is impossible to rely on
+                ;; `org-export-get-footnote-definition' because the
+                ;; function caches results that could contain
+                ;; un-processed citation objects.  So we use
+                ;; a simplified version of the function above.
+                (lambda (label)
+                  (org-element-map tree 'footnote-definition
+                    (lambda (d)
+                      (and (equal label (org-element-property :label d))
+                           (or (org-element-contents d) "")))
+                    info t)))
                (search-cites
                 (lambda (data)
                   (org-element-map data '(citation footnote-reference)
@@ -798,22 +812,13 @@ INFO is the export communication channel, as a property list."
 		        ;; Do not force entering inline definitions, since
 		        ;; `org-element-map' is going to enter it anyway.
                         ((guard (eq 'inline (org-element-property :type datum))))
-                        ;; Find definition for current standard
-                        ;; footnote reference.  Unlike to
-                        ;; `org-export-get-footnote-definition', do
-                        ;; not cache results as they would contain
-                        ;; un-processed citation objects.
+                        ;; Walk footnote definition.
                         (_
                          (let ((label (org-element-property :label datum)))
-                           (funcall
-                            search-cites
-                            (org-element-map data 'footnote-definition
-                              (lambda (d)
-                                (and
-                                 (equal label (org-element-property :label d))
-                                 (or (org-element-contents d) "")))))))))
+                           (funcall search-cites
+                                    (funcall find-definition label))))))
                     info nil 'footnote-definition t))))
-        (funcall search-cites (plist-get info :parse-tree))
+        (funcall search-cites tree)
         (let ((result (nreverse cites)))
           (plist-put info :citations result)
           result))))
@@ -1593,8 +1598,9 @@ The generated function inserts or edit a citation at point.  More specifically,
                             (concat "/" style)
                           ""))
                     "")
-                  (mapconcat (lambda (k) (concat "@" k)) keys ";"))))))))
+                  (mapconcat (lambda (k) (concat "@" k)) keys "; "))))))))
 
+;;;###autoload
 (defun org-cite-insert (arg)
   "Insert a citation at point.
 Insertion is done according to the processor set in `org-cite-insert-processor'.
@@ -1603,7 +1609,7 @@ ARG is the prefix argument received when calling interactively the function."
   (let ((name org-cite-insert-processor))
     (cond
      ((null name)
-      (user-error "No processor set to follow citations"))
+      (user-error "No processor set to insert citations"))
      ((not (org-cite--get-processor name))
       (user-error "Unknown processor %S" name))
      ((not (org-cite-processor-has-capability-p name 'insert))

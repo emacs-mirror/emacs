@@ -213,8 +213,8 @@ PROPS is the local properties of the bibliography, as a property list."
 
 (defun org-cite-biblatex-export-citation (citation style _ info)
   "Export CITATION object.
-STYLE is the citation style, as a string or nil.  INFO is the export state, as
-a property list."
+STYLE is the citation style, as a pair of either strings or nil.
+INFO is the export state, as a property list."
   (apply
    #'org-cite-biblatex--command citation info
    (pcase style
