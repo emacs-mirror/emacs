@@ -140,6 +140,11 @@ these test environments.
 $EMACS_HYDRA_CI indicates the hydra environment, and $EMACS_EMBA_CI
 indicates the emba environment, respectively.
 
+If tests on these premises take too long, and it is needed to create a
+core dump for further analysis, the environment variable
+$EMACS_TEST_TIMEOUT could set a limit (in seconds) when this shall
+happen.
+
 
 (Also, see etc/compilation.txt for compilation mode font lock tests
 and etc/grep.txt for grep mode font lock tests.)

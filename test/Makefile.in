@@ -77,8 +77,13 @@ EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)"
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS XDG_CONFIG_HOME
 
-## To run tests under a debugger, set this to eg: "gdb --args".
+# To run tests under a debugger, set this to eg: "gdb --args".
 GDB =
+
+# Whether a timeout shall be given, writing possibly a core dump.
+ifneq (${EMACS_TEST_TIMEOUT},)
+TEST_TIMEOUT = timeout -s ABRT ${EMACS_TEST_TIMEOUT}
+endif
 
 # Set this to 'yes' to run the tests in an interactive instance.
 TEST_INTERACTIVE ?= no
@@ -117,7 +122,7 @@ endif
 # and prevent locals to influence the text of the errors we expect to receive.
 emacs = LANG=C EMACSLOADPATH= 		   \
  EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
- $(GDB) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
+ $(GDB) $(TEST_TIMEOUT) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
 
 # Set HOME to a nonexistent directory to prevent tests from accessing
 # it accidentally (e.g., popping up a gnupg dialog if ~/.authinfo.gpg
