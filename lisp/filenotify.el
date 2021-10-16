@@ -478,6 +478,14 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
       ;; Modify `file-notify-descriptors' and send a `stopped' event.
       (file-notify--rm-descriptor descriptor))))
 
+(defun file-notify-rm-all-watches ()
+  "Remove all existing file notification watches from Emacs."
+  (interactive)
+  (maphash
+   (lambda (key _value)
+     (file-notify-rm-watch key))
+   file-notify-descriptors))
+
 (defun file-notify-valid-p (descriptor)
   "Check a watch specified by its DESCRIPTOR.
 DESCRIPTOR should be an object returned by `file-notify-add-watch'."

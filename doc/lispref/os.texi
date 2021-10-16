@@ -3230,6 +3230,10 @@ Removes an existing file watch specified by its @var{descriptor}.
 @code{file-notify-add-watch}.
 @end defun
 
+@deffn Command file-notify-rm-all-watches
+Removes all existing file notification watches from Emacs.
+@end deffn
+
 @defun file-notify-valid-p descriptor
 Checks a watch specified by its @var{descriptor} for validity.
 @var{descriptor} should be an object returned by

@@ -28,7 +28,7 @@ applies, and please also update docstrings as needed.
 * Startup Changes in Emacs 29.1
 
 +++
-** Emacs now has a --fingerprint option.
+** Emacs now has a '--fingerprint' option.
 This will output a string identifying the current Emacs build.
 
 +++
@@ -73,7 +73,7 @@ point.
 
 ---
 *** Improved mouse behavior with auto-scrolling modes.
-When clicking inside the `scroll-margin' or `hscroll-margin' region
+When clicking inside the 'scroll-margin' or 'hscroll-margin' region
 the point is now moved only when releasing the mouse button.  This no
 longer results in a bogus selection, unless the mouse has been
 effectively dragged.
@@ -106,6 +106,8 @@ default, no automatic renaming is performed.
 The new command 'image-dired-unmark-all-marks' has been added with a
 binding in the menu.
 
+** info-look
+
 ---
 *** info-look specs can now be expanded at run time instead of a load time.
 The new ':doc-spec-function' element can be used to compute the
@@ -115,9 +117,9 @@ mode (instead of at load time).
 ** subr-x
 
 +++
-*** New macro 'with-memoization' provides a very primitive form of memoization
+*** New macro 'with-memoization' provides a very primitive form of memoization.
 
-** ansi-color.el
+** ansi-color
 
 ---
 *** Support for ANSI 256-color and 24-bit colors.
@@ -130,13 +132,17 @@ filters and displayed with the specified color.
 *** Support for ANSI 256-color and 24-bit colors, italic and other fonts.
 Term-mode can now display 256-color and 24-bit color codes.  It can
 also handle ANSI codes for faint, italic and blinking text, displaying
-it with new 'ansi-term-faint/italic/slow-blinking/fast-blinking'
-faces.
+it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 
 ** Xref
 
 *** 'project-find-file' and 'project-or-external-find-file' now accept
 a prefix argument which is interpreted to mean "include all files".
+
+** File notifications
+
++++
+*** The new command 'file-notify-rm-all-watches' removes all file notifications.
 
 
 * New Modes and Packages in Emacs 29.1
@@ -183,7 +189,7 @@ If given the new optional KILL-PERMANENT argument, also kill permanent
 local variables.
 
 +++
-** Third 'mapconcat' argument 'separator' is now optional.
+** Third 'mapconcat' argument SEPARATOR is now optional.
 An explicit nil always meant the empty string, now it can be left out.
 
 ---
