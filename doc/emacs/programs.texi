@@ -868,6 +868,15 @@ highlighting also when point is in whitespace at the beginning of a
 line and there is a paren at the first or last non-whitespace position
 on the line, or when point is at the end of a line and there is a
 paren at the last non-whitespace position on the line.
+
+@item
+@vindex show-paren-context-when-offscreen
+@code{show-paren-context-when-offscreen}, when non-@code{nil}, shows
+some context in the echo area when point is in a closing delimiter and
+the opening delimiter is offscreen.  The context is usually the line
+that contains the opening delimiter, except if the opening delimiter
+is on its own line, in which case the context includes the previous
+nonblank line.
 @end itemize
 
 @cindex Electric Pair mode

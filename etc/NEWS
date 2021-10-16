@@ -86,6 +86,14 @@ effectively dragged.
 Customize this option to limit the amount of entries in the menu
 "Edit->Paste from Kill Menu".  The default is 60.
 
+** show-paren-mode
+
++++
+*** New user option 'show-paren-context-when-offscreen'.
+When non-nil, if the point is in a closing delimiter and the opening
+delimiter is offscreen, shows some context around the opening
+delimiter in the echo area.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

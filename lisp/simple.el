@@ -8577,40 +8577,43 @@ The function should return non-nil if the two tokens do not match.")
                                    (current-buffer))
                      (sit-for blink-matching-delay))
                  (delete-overlay blink-matching--overlay)))))
-       (t
-        (let ((open-paren-line-string
-               (save-excursion
-                 (goto-char blinkpos)
-                 ;; Show what precedes the open in its line, if anything.
-                 (cond
-                  ((save-excursion (skip-chars-backward " \t") (not (bolp)))
-                   (buffer-substring (line-beginning-position)
-                                     (1+ blinkpos)))
-                  ;; Show what follows the open in its line, if anything.
-                  ((save-excursion
-                     (forward-char 1)
-                     (skip-chars-forward " \t")
-                     (not (eolp)))
-                   (buffer-substring blinkpos
-                                     (line-end-position)))
-                  ;; Otherwise show the previous nonblank line,
-                  ;; if there is one.
-                  ((save-excursion (skip-chars-backward "\n \t") (not (bobp)))
-                   (concat
-                    (buffer-substring (progn
-                                        (skip-chars-backward "\n \t")
-                                        (line-beginning-position))
-                                      (progn (end-of-line)
-                                             (skip-chars-backward " \t")
-                                             (point)))
-                    ;; Replace the newline and other whitespace with `...'.
-                    "..."
-                    (buffer-substring blinkpos (1+ blinkpos))))
-                  ;; There is nothing to show except the char itself.
-                  (t (buffer-substring blinkpos (1+ blinkpos)))))))
-          (minibuffer-message
-           "Matches %s"
-           (substring-no-properties open-paren-line-string))))))))
+       ((not show-paren-context-when-offscreen)
+        (minibuffer-message
+         "Matches %s"
+         (substring-no-properties
+          (blink-paren-open-paren-line-string blinkpos))))))))
+
+(defun blink-paren-open-paren-line-string (pos)
+  "Return the line string that contains the openparen at POS."
+  (save-excursion
+    (goto-char pos)
+    ;; Show what precedes the open in its line, if anything.
+    (cond
+     ((save-excursion (skip-chars-backward " \t") (not (bolp)))
+      (buffer-substring (line-beginning-position)
+                        (1+ pos)))
+     ;; Show what follows the open in its line, if anything.
+     ((save-excursion
+        (forward-char 1)
+        (skip-chars-forward " \t")
+        (not (eolp)))
+      (buffer-substring pos
+                        (line-end-position)))
+     ;; Otherwise show the previous nonblank line,
+     ;; if there is one.
+     ((save-excursion (skip-chars-backward "\n \t") (not (bobp)))
+      (concat
+       (buffer-substring (progn
+                           (skip-chars-backward "\n \t")
+                           (line-beginning-position))
+                         (progn (end-of-line)
+                                (skip-chars-backward " \t")
+                                (point)))
+       ;; Replace the newline and other whitespace with `...'.
+       "..."
+       (buffer-substring pos (1+ pos))))
+     ;; There is nothing to show except the char itself.
+     (t (buffer-substring pos (1+ pos))))))
 
 (defvar blink-paren-function 'blink-matching-open
   "Function called, if non-nil, whenever a close parenthesis is inserted.

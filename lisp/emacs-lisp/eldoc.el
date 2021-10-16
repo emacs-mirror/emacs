@@ -380,7 +380,14 @@ Also store it in `eldoc-last-message' and return that value."
 ;; it undesirable to print eldoc messages right this instant.
 (defun eldoc-display-message-no-interference-p ()
   "Return nil if displaying a message would cause interference."
-  (not (or executing-kbd-macro (bound-and-true-p edebug-active))))
+  (not (or executing-kbd-macro
+           (bound-and-true-p edebug-active)
+           ;; The following configuration shows "Matches..." in the
+           ;; echo area when point is after a closing bracket, which
+           ;; conflicts with eldoc.
+           (and show-paren-context-when-offscreen
+                (not (pos-visible-in-window-p
+                      (overlay-end show-paren--overlay)))))))
 
 
 (defvar eldoc-documentation-functions nil
