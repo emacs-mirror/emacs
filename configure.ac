@@ -487,6 +487,7 @@ OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 OPTION_DEFAULT_OFF([native-compilation],[compile with Emacs Lisp native compiler support])
 OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
+OPTION_DEFAULT_OFF([xinput2],[use version 2.0 the X Input Extension for input])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -4237,6 +4238,26 @@ fi
 AC_SUBST(XFIXES_CFLAGS)
 AC_SUBST(XFIXES_LIBS)
 
+## Use XInput 2.0 if available
+HAVE_XINPUT2=no
+if test "${HAVE_X11}" = "yes" && test "${with_xinput2}" != "no"; then
+   EMACS_CHECK_MODULES([XINPUT], [xi])
+   if test $HAVE_XINPUT = yes; then
+     # Now check for XInput2.h
+     AC_CHECK_HEADER(X11/extensions/XInput2.h,
+       [AC_CHECK_LIB(Xi, XIGrabButton, HAVE_XINPUT2=yes)])
+   fi
+   if test $HAVE_XINPUT2 = yes; then
+     AC_DEFINE(HAVE_XINPUT2, 1, [Define to 1 if the X Input Extension version 2.0 is present.])
+     if test "$USE_GTK_TOOLKIT" = "GTK2"; then
+       AC_MSG_WARN([You are building Emacs with GTK+ 2 and the X Input Extension version 2.
+This might lead to problems if your version of GTK+ is not built with support for XInput 2.])
+     fi
+   fi
+fi
+AC_SUBST(XINPUT_CFLAGS)
+AC_SUBST(XINPUT_LIBS)
+
 ### Use Xdbe (-lXdbe) if available
 HAVE_XDBE=no
 if test "${HAVE_X11}" = "yes"; then
@@ -6011,6 +6032,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs support legacy unexec dumping?               ${with_unexec}
   Which dumping strategy does Emacs use?                  ${with_dumping}
   Does Emacs have native lisp compiler?                   ${HAVE_NATIVE_COMP}
+  Does Emacs use version 2 of the the X Input Extension?  ${HAVE_XINPUT2}
 "])
 
 if test -n "${EMACSDATA}"; then

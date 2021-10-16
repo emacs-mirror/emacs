@@ -30,6 +30,14 @@ The file is typically installed using a file name akin to
 If a constant file name is required, the file can be renamed to
 "emacs.pdmp", and Emacs will find it during startup anyway.
 
+** Emacs now supports use of XInput 2 for input events.
+If your X server has support and you have the XInput 2 development headers
+installed, you can configure Emacs with the option '--with-xinput2' to enable
+this support.
+
+The named feature `xinput2' can be used to test for the presence of
+XInput 2 support from Lisp programs.
+
 
 * Startup Changes in Emacs 29.1
 
@@ -223,6 +231,15 @@ delimiter in the echo area.  Default nil.
 The user option 'comint-terminfo-terminal' and variable
 'system-uses-terminfo' can now be set as connection-local variables to
 change the terminal used on a remote host.
+
+** Mwheel
+
+---
+*** New user options for alternate wheel events.
+The options 'mouse-wheel-down-alternate-event', 'mouse-wheel-up-alternate-event',
+'mouse-wheel-left-alternate-event', and 'mouse-wheel-right-alternate-event' have
+been added to better support systems where two kinds of wheel events can be
+received.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1

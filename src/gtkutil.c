@@ -47,6 +47,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <gdk/gdkkeysyms.h>
 
+#ifdef HAVE_XINPUT2
+#include <X11/extensions/XInput2.h>
+#endif
+
 #ifdef HAVE_XFT
 #include <X11/Xft/Xft.h>
 #endif
@@ -836,6 +840,23 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
 {
   if (!strstr (msg, "visible children"))
     fprintf (stderr, "XX %s-WARNING **: %s\n", log_domain, msg);
+}
+#endif
+
+#if defined HAVE_GTK3 && defined HAVE_XINPUT2
+bool
+xg_is_menu_window (Display *dpy, Window wdesc)
+{
+  GtkWidget *gwdesc = xg_win_to_widget (dpy, wdesc);
+
+  if (GTK_IS_WINDOW (gwdesc))
+    {
+      GtkWidget *fw = gtk_bin_get_child (GTK_BIN (gwdesc));
+      if (GTK_IS_MENU (fw))
+	return true;
+    }
+
+  return false;
 }
 #endif
 
@@ -3589,6 +3610,18 @@ xg_event_is_for_menubar (struct frame *f, const XEvent *event)
 
   if (! x->menubar_widget) return 0;
 
+#ifdef HAVE_XINPUT2
+  XIDeviceEvent *xev = (XIDeviceEvent *) event->xcookie.data;
+  if (event->type == GenericEvent) /* XI_ButtonPress or XI_ButtonRelease */
+    {
+      if (! (xev->event_x >= 0
+	     && xev->event_x < FRAME_PIXEL_WIDTH (f)
+	     && xev->event_y >= 0
+	     && xev->event_y < FRAME_MENUBAR_HEIGHT (f)))
+	return 0;
+    }
+  else
+#endif
   if (! (event->xbutton.x >= 0
          && event->xbutton.x < FRAME_PIXEL_WIDTH (f)
          && event->xbutton.y >= 0
@@ -3597,7 +3630,12 @@ xg_event_is_for_menubar (struct frame *f, const XEvent *event)
     return 0;
 
   gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
-  gw = gdk_x11_window_lookup_for_display (gdpy, event->xbutton.window);
+#ifdef HAVE_XINPUT2
+  if (event->type == GenericEvent)
+    gw = gdk_x11_window_lookup_for_display (gdpy, xev->event);
+  else
+#endif
+    gw = gdk_x11_window_lookup_for_display (gdpy, event->xbutton.window);
   if (! gw) return 0;
   gevent.any.window = gw;
   gevent.any.type = GDK_NOTHING;
@@ -4244,7 +4282,20 @@ xg_event_is_for_scrollbar (struct frame *f, const XEvent *event)
 {
   bool retval = 0;
 
+#ifdef HAVE_XINPUT2
+  XIDeviceEvent *xev = (XIDeviceEvent *) event->xcookie.data;
+  if (f && ((FRAME_DISPLAY_INFO (f)->supports_xi2
+	     && event->type == GenericEvent
+	     && (event->xgeneric.extension
+		 == FRAME_DISPLAY_INFO (f)->xi2_opcode)
+	     && ((event->xgeneric.evtype == XI_ButtonPress
+		  && xev->detail < 4)
+		 || (event->xgeneric.evtype == XI_Motion)))
+	    || (event->type == ButtonPress
+		&& event->xbutton.button < 4)))
+#else
   if (f && event->type == ButtonPress && event->xbutton.button < 4)
+#endif /* HAVE_XINPUT2 */
     {
       /* Check if press occurred outside the edit widget.  */
       GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
@@ -4262,10 +4313,29 @@ xg_event_is_for_scrollbar (struct frame *f, const XEvent *event)
       gwin = gdk_display_get_window_at_pointer (gdpy, NULL, NULL);
 #endif
       retval = gwin != gtk_widget_get_window (f->output_data.x->edit_widget);
+#ifdef HAVE_XINPUT2
+      GtkWidget *grab = gtk_grab_get_current ();
+      if (event->type == GenericEvent
+	  && event->xgeneric.evtype == XI_Motion)
+	retval = retval || (grab && GTK_IS_SCROLLBAR (grab));
+#endif
     }
+#ifdef HAVE_XINPUT2
+  else if (f && ((FRAME_DISPLAY_INFO (f)->supports_xi2
+		  && event->type == GenericEvent
+		  && (event->xgeneric.extension
+		      == FRAME_DISPLAY_INFO (f)->xi2_opcode)
+		  && ((event->xgeneric.evtype == XI_ButtonRelease
+		       && xev->detail < 4)
+		      || (event->xgeneric.evtype == XI_Motion)))
+		 || ((event->type == ButtonRelease
+		      && event->xbutton.button < 4)
+		     || event->type == MotionNotify)))
+#else
   else if (f
            && ((event->type == ButtonRelease && event->xbutton.button < 4)
                || event->type == MotionNotify))
+#endif /* HAVE_XINPUT2 */
     {
       /* If we are releasing or moving the scroll bar, it has the grab.  */
       GtkWidget *w = gtk_grab_get_current ();

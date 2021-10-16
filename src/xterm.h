@@ -88,6 +88,10 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include <X11/Xlib-xcb.h>
 #endif
 
+#ifdef HAVE_XKB
+#include <X11/XKBlib.h>
+#endif
+
 #include "dispextern.h"
 #include "termhooks.h"
 
@@ -162,6 +166,28 @@ struct color_name_cache_entry
   XColor rgb;
   char *name;
 };
+
+#ifdef HAVE_XINPUT2
+struct xi_scroll_valuator_t
+{
+  bool invalid_p;
+  double current_value;
+  double emacs_value;
+  double increment;
+
+  int number;
+  int horizontal;
+};
+
+struct xi_device_t
+{
+  int device_id;
+  int scroll_valuator_count;
+  int grab;
+
+  struct xi_scroll_valuator_t *valuators;
+};
+#endif
 
 Status x_parse_color (struct frame *f, const char *color_name,
 		      XColor *color);
@@ -474,11 +500,29 @@ struct x_display_info
 #ifdef HAVE_XDBE
   bool supports_xdbe;
 #endif
+
+#ifdef HAVE_XINPUT2
+  bool supports_xi2;
+  int xi2_version;
+  int xi2_opcode;
+
+  int num_devices;
+  struct xi_device_t *devices;
+#endif
+
+#ifdef HAVE_XKB
+  XkbDescPtr xkb_desc;
+#endif
 };
 
 #ifdef HAVE_X_I18N
 /* Whether or not to use XIM if we have it.  */
 extern bool use_xim;
+#endif
+
+#ifdef HAVE_XINPUT2
+/* Defined in xmenu.c. */
+extern int popup_activated_flag;
 #endif
 
 /* This is a chain of structures for all the X displays currently in use.  */
