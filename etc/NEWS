@@ -209,6 +209,13 @@ This macro allows defining keymap variables more conveniently.
 ** 'kbd' can now be used in built-in, preloaded libraries.
 It no longer depends on edmacro.el and cl-lib.el.
 
++++
+** New function 'kbd-valid-p'.
+The 'kbd' function is quite permissive, and will try to return
+something usable even if the syntax of the argument isn't completely
+correct.  The 'kbd-valid-p' predicate does a stricter check of the
+syntax.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 

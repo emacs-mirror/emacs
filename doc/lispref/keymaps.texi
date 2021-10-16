@@ -94,7 +94,14 @@ Manual}.
 (kbd "<f1> SPC") @result{} [f1 32]
 (kbd "C-M-<down>") @result{} [C-M-down]
 @end example
+
+@findex kbd-valid-p
+The @code{kbd} function is very permissive, and will try to return
+something sensible even if the syntax used isn't completely
+conforming.  To check whether the syntax is actually valid, use the
+@code{kbd-valid-p} function.
 @end defun
+
 
 @node Keymap Basics
 @section Keymap Basics
