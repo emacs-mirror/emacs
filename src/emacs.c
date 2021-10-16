@@ -928,9 +928,9 @@ load_pdump (int argc, char **argv)
   path_exec = ns_relocate (path_exec);
 #endif
 
-  /* Look for "emacs.pdmp" in PATH_EXEC.  We hardcode "emacs" in
-     "emacs.pdmp" so that the Emacs binary still works if the user
-     copies and renames it.  */
+  /* Look for "emacs-FINGERPRINT.pdmp" in PATH_EXEC.  We hardcode
+     "emacs" in "emacs-FINGERPRINT.pdmp" so that the Emacs binary
+     still works if the user copies and renames it.  */
   hexbuf_size = 2 * sizeof fingerprint;
   hexbuf = xmalloc (hexbuf_size + 1);
   hexbuf_digest (hexbuf, (char *) fingerprint, sizeof fingerprint);
