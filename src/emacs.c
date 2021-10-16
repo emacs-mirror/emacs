@@ -2360,6 +2360,9 @@ struct standard_args
 static const struct standard_args standard_args[] =
 {
   { "-version", "--version", 150, 0 },
+#ifdef HAVE_PDUMPER
+  { "-fingerprint", "--fingerprint", 140, 0 },
+#endif
   { "-chdir", "--chdir", 130, 1 },
   { "-t", "--terminal", 120, 1 },
   { "-nw", "--no-window-system", 110, 0 },
