@@ -3512,7 +3512,12 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
     }
 
   /* Calculate the inner rectangle.  */
-  inner = NSInsetRect (outer, hthickness, vthickness);
+  inner = NSMakeRect (NSMinX (outer) + (left_p ? hthickness : 0),
+                      NSMinY (outer) + (top_p ? vthickness : 0),
+                      NSWidth (outer) - (left_p ? hthickness : 0)
+                                      - (right_p ? hthickness : 0),
+                      NSHeight (outer) - (top_p ? vthickness : 0)
+                                       - (bottom_p ? vthickness : 0));
 
   [(raised_p ? lightCol : darkCol) set];
 
