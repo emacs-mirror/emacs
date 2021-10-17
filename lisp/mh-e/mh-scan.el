@@ -315,7 +315,7 @@ produced by \"inc\".")
 
 ;;; Widths, Offsets and Columns
 
-(defvar mh-cmd-note 4
+(defvar-local mh-cmd-note 4
   "Column for notations.
 
 This variable should be set with the function `mh-set-cmd-note'.
@@ -323,7 +323,6 @@ This variable may be updated dynamically if
 `mh-adaptive-cmd-note-flag' is on.
 
 Note that columns in Emacs start with 0.")
-(make-variable-buffer-local 'mh-cmd-note)
 
 (defvar mh-scan-cmd-note-width 1
   "Number of columns consumed by the cmd-note field in `mh-scan-format'.

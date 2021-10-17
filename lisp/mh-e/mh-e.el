@@ -345,15 +345,13 @@ when searching for a separator.")
   "This regular expression matches the signature separator.
 See `mh-signature-separator'.")
 
-(defvar mh-thread-scan-line-map nil
+(defvar-local mh-thread-scan-line-map nil
   "Map of message index to various parts of the scan line.")
-(make-variable-buffer-local 'mh-thread-scan-line-map)
 
-(defvar mh-thread-scan-line-map-stack nil
+(defvar-local mh-thread-scan-line-map-stack nil
   "Old map of message index to various parts of the scan line.
 This is the original map that is stored when the folder is
 narrowed.")
-(make-variable-buffer-local 'mh-thread-scan-line-map-stack)
 
 (defcustom mh-x-mailer-string nil
   "String containing the contents of the X-Mailer header field.

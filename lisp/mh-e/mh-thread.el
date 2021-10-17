@@ -86,41 +86,33 @@
   message parent children
   (real-child-p t))
 
-(defvar mh-thread-id-hash nil
+(defvar-local mh-thread-id-hash nil
   "Hash table used to canonicalize message identifiers.")
-(make-variable-buffer-local 'mh-thread-id-hash)
 
-(defvar mh-thread-subject-hash nil
+(defvar-local mh-thread-subject-hash nil
   "Hash table used to canonicalize subject strings.")
-(make-variable-buffer-local 'mh-thread-subject-hash)
 
-(defvar mh-thread-id-table nil
+(defvar-local mh-thread-id-table nil
   "Thread ID table maps from message identifiers to message containers.")
-(make-variable-buffer-local 'mh-thread-id-table)
 
-(defvar mh-thread-index-id-map nil
+(defvar-local mh-thread-index-id-map nil
   "Table to look up message identifier from message index.")
-(make-variable-buffer-local 'mh-thread-index-id-map)
 
-(defvar mh-thread-id-index-map nil
+(defvar-local mh-thread-id-index-map nil
   "Table to look up message index number from message identifier.")
-(make-variable-buffer-local 'mh-thread-id-index-map)
 
-(defvar mh-thread-subject-container-hash nil
+(defvar-local mh-thread-subject-container-hash nil
   "Hash table used to group messages by subject.")
-(make-variable-buffer-local 'mh-thread-subject-container-hash)
 
-(defvar mh-thread-duplicates nil
+(defvar-local mh-thread-duplicates nil
   "Hash table used to associate messages with the same message identifier.")
-(make-variable-buffer-local 'mh-thread-duplicates)
 
-(defvar mh-thread-history ()
+(defvar-local mh-thread-history ()
   "Variable to remember the transformations to the thread tree.
 When new messages are added, these transformations are rewound,
 then the links are added from the newly seen messages. Finally
 the transformations are redone to get the new thread tree. This
 makes incremental threading easier.")
-(make-variable-buffer-local 'mh-thread-history)
 
 (defvar mh-thread-body-width nil
   "Width of scan substring that contains subject and body of message.")

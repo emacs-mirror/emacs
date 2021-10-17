@@ -177,9 +177,8 @@ Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
   "Messages annotated, either a sequence name or a list of message numbers.
 This variable can be used by `mh-annotate-msg-hook'.")
 
-(defvar mh-insert-auto-fields-done-local nil
+(defvar-local mh-insert-auto-fields-done-local nil
   "Buffer-local variable set when `mh-insert-auto-fields' called successfully.")
-(make-variable-buffer-local 'mh-insert-auto-fields-done-local)
 
 
 

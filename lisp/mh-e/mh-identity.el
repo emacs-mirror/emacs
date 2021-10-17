@@ -39,11 +39,10 @@
 
 (autoload 'mml-insert-tag "mml")
 
-(defvar mh-identity-pgg-default-user-id nil
+(defvar-local mh-identity-pgg-default-user-id nil
   "Holds the GPG key ID to be used by pgg.el.
 This is normally set as part of an Identity in
 `mh-identity-list'.")
-(make-variable-buffer-local 'mh-identity-pgg-default-user-id)
 
 (defvar mh-identity-menu nil
   "The Identity menu.")
@@ -90,9 +89,8 @@ See `mh-identity-make-menu'."
   (declare (obsolete nil "29.1"))
   nil)
 
-(defvar mh-identity-local nil
+(defvar-local mh-identity-local nil
   "Buffer-local variable that holds the identity currently in use.")
-(make-variable-buffer-local 'mh-identity-local)
 
 (defun mh-header-field-delete (field value-only)
   "Delete header FIELD, or only its value if VALUE-ONLY is t.

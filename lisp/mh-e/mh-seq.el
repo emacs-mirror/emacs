@@ -38,9 +38,8 @@
 (defvar mh-last-seq-used nil
   "Name of seq to which a msg was last added.")
 
-(defvar mh-non-seq-mode-line-annotation nil
+(defvar-local mh-non-seq-mode-line-annotation nil
   "Saved value of `mh-mode-line-annotation' when narrowed to a seq.")
-(make-variable-buffer-local 'mh-non-seq-mode-line-annotation)
 
 (defvar mh-internal-seqs '(answered cur deleted forwarded printed))
 
