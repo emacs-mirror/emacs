@@ -260,6 +260,10 @@ a list of frames to update."
            keymap))))))
 
 (defun tab-bar-mouse-select-tab (event)
+  "Select the tab at mouse click, or add a new tab on the tab bar.
+Whether this command adds a new tab or selects an existing tab
+depends on whether the click is on the \"+\" button or on an
+existing tab."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
@@ -272,7 +276,9 @@ a list of frames to update."
           (tab-bar-select-tab tab-number))))))
 
 (defun tab-bar-mouse-close-tab-from-button (event)
-  "Close the tab only when clicked on the close button."
+  "Close the tab whose \"x\" close button you click.
+See also `tab-bar-mouse-close-tab', which closes the tab
+regardless of where you click on it."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
@@ -281,9 +287,9 @@ a list of frames to update."
         (tab-bar-close-tab tab-number)))))
 
 (defun tab-bar-mouse-close-tab (event)
-  "Close the tab when clicked anywhere on the tab.
+  "Close the tab you click on.
 This is in contrast with `tab-bar-mouse-close-tab-from-button'
-that closes only when clicked on the close button."
+that closes a tab only when you click on its \"x\" close button."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
@@ -291,6 +297,7 @@ that closes only when clicked on the close button."
       (tab-bar-close-tab tab-number))))
 
 (defun tab-bar-mouse-context-menu (event)
+  "Pop up the context menu for the tab on which you click."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item)))
@@ -330,6 +337,9 @@ that closes only when clicked on the close button."
     (popup-menu menu event)))
 
 (defun tab-bar-mouse-move-tab (event)
+  "Move a tab to a different position on the tab bar.
+This command should be bound to a drag event.  It moves the tab
+at the mouse-down event to the position at mouse-up event."
   (interactive "e")
   (let ((from (tab-bar--key-to-number
                (nth 0 (tab-bar--event-to-item
@@ -1089,7 +1099,8 @@ the tab bar."
       (force-mode-line-update))))
 
 (defun tab-bar-switch-to-next-tab (&optional arg)
-  "Switch to ARGth next tab."
+  "Switch to ARGth next tab.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (unless (integerp arg)
     (setq arg 1))
@@ -1099,20 +1110,24 @@ the tab bar."
     (tab-bar-select-tab (1+ to-index))))
 
 (defun tab-bar-switch-to-prev-tab (&optional arg)
-  "Switch to ARGth previous tab."
+  "Switch to ARGth previous tab.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (unless (integerp arg)
     (setq arg 1))
   (tab-bar-switch-to-next-tab (- arg)))
 
 (defun tab-bar-switch-to-last-tab (&optional arg)
-  "Switch to the last tab or ARGth tab from the end of the tab bar."
+  "Switch to the last tab or ARGth tab from the end of the tab bar.
+Interactively, ARG is the prefix numeric argument; it defaults to 1,
+which means the last tab on the tab bar."
   (interactive "p")
   (tab-bar-select-tab (- (length (funcall tab-bar-tabs-function))
                          (1- (or arg 1)))))
 
 (defun tab-bar-switch-to-recent-tab (&optional arg)
-  "Switch to ARGth most recently visited tab."
+  "Switch to ARGth most recently visited tab.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (unless (integerp arg)
     (setq arg 1))
@@ -1160,8 +1175,9 @@ where argument addressing is relative."
 
 (defun tab-bar-move-tab (&optional arg)
   "Move the current tab ARG positions to the right.
-If a negative ARG, move the current tab ARG positions to the left.
-Argument addressing is relative in contrast to `tab-bar-move-tab-to'
+Interactively, ARG is the prefix numeric argument and defaults to 1.
+If ARG is negative, move the current tab ARG positions to the left.
+Argument addressing is relative in contrast to `tab-bar-move-tab-to',
 where argument addressing is absolute."
   (interactive "p")
   (let* ((tabs (funcall tab-bar-tabs-function))
@@ -1171,6 +1187,7 @@ where argument addressing is absolute."
 
 (defun tab-bar-move-tab-backward (&optional arg)
   "Move the current tab ARG positions to the left.
+Interactively, ARG is the prefix numeric argument and defaults to 1.
 Like `tab-bar-move-tab', but moves in the opposite direction."
   (interactive "p")
   (tab-bar-move-tab (- (or arg 1))))
@@ -1181,7 +1198,8 @@ FROM-NUMBER defaults to the current tab number.
 FROM-NUMBER and TO-NUMBER count from 1.
 FROM-FRAME specifies the source frame and defaults to the selected frame.
 TO-FRAME specifies the target frame and defaults the next frame.
-Interactively, ARG selects the ARGth different frame to move to."
+Interactively, ARG selects the ARGth next frame on the same terminal,
+to which to move the tab; ARG defaults to 1."
   (interactive "P")
   (unless from-frame
     (setq from-frame (selected-frame)))
