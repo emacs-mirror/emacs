@@ -174,6 +174,13 @@ with recent versions of Firefox.
 * Lisp Changes in Emacs 29.1
 
 +++
+** 'define-key' now understands a new strict 'kbd' representation for keys.
+The (define-key map ["C-c M-f"] #'some-command) syntax is now
+supported, and is like the 'kbd' representation, but is stricter.  If
+the string doesn't represent a valid key sequence, an error is
+signalled (both when evaluating and byte compiling).
+
++++
 ** :keys in 'menu-item' can now be a function.
 If so, it is called whenever the menu is computed, and can be used to
 calculate the keys dynamically.

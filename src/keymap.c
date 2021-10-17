@@ -1084,6 +1084,22 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
       def = tmp;
     }
 
+  if (VECTORP (key) && ASIZE (key) == 1 && STRINGP (AREF (key, 0)))
+    {
+      /* KEY is on the ["C-c"] format, so translate to internal
+	 format.  */
+      if (NILP (Ffboundp (Qkbd_valid_p)))
+	xsignal2 (Qerror,
+		  build_string ("`kbd-valid-p' is not defined, so this syntax can't be used: %s"),
+		  key);
+      if (NILP (call1 (Qkbd_valid_p, AREF (key, 0))))
+	xsignal2 (Qerror, build_string ("Invalid `kbd' syntax: %S"), key);
+      key = call1 (Qkbd, AREF (key, 0));
+      length = CHECK_VECTOR_OR_STRING (key);
+      if (length == 0)
+	xsignal2 (Qerror, build_string ("Invalid `kbd' syntax: %S"), key);
+    }
+
   ptrdiff_t idx = 0;
   while (1)
     {
@@ -3263,4 +3279,7 @@ that describe key bindings.  That is why the default is nil.  */);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
   defsubr (&Sdescribe_buffer_bindings);
+
+  DEFSYM (Qkbd, "kbd");
+  DEFSYM (Qkbd_valid_p, "kbd-valid-p");
 }
