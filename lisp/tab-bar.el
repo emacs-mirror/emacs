@@ -239,11 +239,14 @@ and `t' for other values."
         (string-to-number (string-replace "tab-" "" key-name)))))
    (t t)))
 
+(defvar tab-bar-drag-maybe)
+
 (defun tab-bar--event-to-item (posn)
   "This function extracts extra info from the mouse event POSN.
 It returns a list that contains three elements: a key,
 a key binding, and a boolean value whether the close button \"+\"
 was clicked."
+  (setq tab-bar-drag-maybe nil)
   (if (posn-window posn)
       (let ((caption (car (posn-string posn))))
         (when caption
@@ -275,6 +278,7 @@ existing tab."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
+    (setq tab-bar-drag-maybe t)
     ;; Don't close the tab when clicked on the close button.  Also
     ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
     (unless (or (eq (car item) 'add-tab) (nth 2 item))
@@ -351,6 +355,7 @@ only when you click on its \"x\" close button."
 This command should be bound to a drag event.  It moves the tab
 at the mouse-down event to the position at mouse-up event."
   (interactive "e")
+  (setq tab-bar-drag-maybe nil)
   (let ((from (tab-bar--key-to-number
                (nth 0 (tab-bar--event-to-item
                        (event-start event)))))
