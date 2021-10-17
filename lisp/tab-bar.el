@@ -227,10 +227,10 @@ a list of frames to update."
 ;;; Key bindings
 
 (defun tab-bar--key-to-number (key)
-  "This function is used to interpret the key that represents a tab.
-It returns `t' for the `nil' value, `nil' for the current tab,
-returns the number for the symbol that begins with `tab-' like `tab-1',
-and `t' for other values."
+  "Return the tab number represented by KEY.
+If KEY is a symbol 'tab-N', where N is a tab number, the value is N.
+If KEY is \\='current-tab, the value is nil.
+For any other value of KEY, the value is t."
   (cond
    ((null key) t)
    ((eq key 'current-tab) nil)
@@ -242,10 +242,12 @@ and `t' for other values."
 (defvar tab-bar-drag-maybe)
 
 (defun tab-bar--event-to-item (posn)
-  "This function extracts extra info from the mouse event POSN.
-It returns a list that contains three elements: a key,
-a key binding, and a boolean value whether the close button \"+\"
-was clicked."
+  "This function extracts extra info from the mouse event at position POSN.
+It returns a list of the form (KEY KEY-BINDING CLOSE-P), where:
+ KEY is a symbol representing a tab, such as \\='tab-1 or \\='current-tab;
+ KEY-BINDING is the binding of KEY;
+ CLOSE-P is non-nil if the mouse event was a click on the close button \"x\",
+   nil otherwise."
   (setq tab-bar-drag-maybe nil)
   (if (posn-window posn)
       (let ((caption (car (posn-string posn))))
@@ -834,8 +836,8 @@ Function gets one argument: a tab."
 
 (defun tab-bar--format-tab-group (tab i &optional current-p)
   "Format TAB as a tab that represents a group of tabs.
-Use the argument I as its index, and non-nil CURRENT-P when the tab is
-current.  Return the result as a keymap."
+The argument I is the tab index, and CURRENT-P is non-nil
+when the tab is current.  Return the result as a keymap."
   (append
    `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
    `((,(intern (format "group-%i" i))
@@ -986,7 +988,8 @@ on the tab bar instead."
 
 (defun tab-bar--current-tab-make (&optional tab)
   "Make the current tab data structure from TAB.
-TAB here is an argument meaning \"use tab as template\".  This is
+TAB here is an argument meaning \"use tab as template\",
+i.e. the tab is created using data from TAB.  This is
 necessary when switching tabs, otherwise the destination tab
 inherits the current tab's `explicit-name' parameter."
   (let* ((tab-explicit-name (alist-get 'explicit-name tab))
@@ -2246,16 +2249,16 @@ indirectly called by the latter."
         (tab-bar-change-tab-group tab-group)))
     (window--display-buffer buffer (selected-window) 'tab alist)))
 
-(defun switch-to-buffer-other-tab (buffer-or-name &optional norecord)
+(defun switch-to-buffer-other-tab (buffer-or-name &optional _norecord)
   "Switch to buffer BUFFER-OR-NAME in another tab.
 Like \\[switch-to-buffer-other-frame] (which see), but creates a new tab.
 Interactively, prompt for the buffer to switch to."
+  (declare (advertised-calling-convention (buffer-or-name) "28.1"))
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other tab: ")))
   (display-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
                   '((display-buffer-in-tab)
-                    (inhibit-same-window . nil))
-                  norecord))
+                    (inhibit-same-window . nil))))
 
 (defun find-file-other-tab (filename &optional wildcards)
   "Edit file FILENAME, in another tab.
