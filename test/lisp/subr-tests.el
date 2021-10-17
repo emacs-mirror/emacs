@@ -308,6 +308,9 @@
   (should (kbd-valid-p "C-M-<return>"))
   (should (not (kbd-valid-p "<C-M-return>")))
 
+  (should (kbd-valid-p "<mouse-1>"))
+  (should (kbd-valid-p "<Scroll_Lock>"))
+
   (should (not (kbd-valid-p "C-xx")))
   (should (not (kbd-valid-p "M-xx")))
   (should (not (kbd-valid-p "M-x<TAB>"))))
