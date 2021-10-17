@@ -28674,7 +28674,7 @@ right_overwriting (struct glyph_string *s)
    in the drawing area.
 
    If S->hl is DRAW_CURSOR, S->f is a window system frame, and the
-   cursor in S's window is currently inside mouse face, also uodate
+   cursor in S's window is currently inside mouse face, also update
    S->width to take into account potentially differing :box
    properties between the original face and the mouse face.  */
 
@@ -28705,10 +28705,10 @@ set_glyph_string_background_width (struct glyph_string *s, int start, int last_x
 	  && s->hl == DRAW_CURSOR
 	  && cursor_in_mouse_face_p (s->w))
 	{
-	  /* Adjust the background width of the glyph string string,
-	     because if the glyph's face has the :box attribute, its
-	     pixel_width might be different from the :box attribute of
-	     the mouse face.  */
+	  /* Adjust the background width of the glyph string, because
+	     if the glyph's face has the :box attribute, its
+	     pixel_width might be different when it's displayed in the
+	     mouse-face, if that also has the :box attribute.  */
 	  struct glyph *g = s->first_glyph;
 	  struct face *regular_face = FACE_FROM_ID (s->f, g->face_id);
 	  s->background_width +=
