@@ -1237,14 +1237,17 @@ See Info node `(elisp) Integer Basics'."
 
 (defun byte-optimize-define-keymap--define (form)
   "Expand key bindings in FORM."
-  (let ((optimized (byte-optimize-define-keymap (nth 1 form))))
-    (if (eq optimized (nth 1 form))
-        ;; No improvement.
-        form
-      (list (car form) optimized))))
+  (if (not (consp (nth 1 form)))
+      form
+    (let ((optimized (byte-optimize-define-keymap (nth 1 form))))
+      (if (eq optimized (nth 1 form))
+          ;; No improvement.
+          form
+        (list (car form) optimized)))))
 
-;;(put 'define-keymap 'byte-optimizer #'byte-optimize-define-keymap)
-;;(put 'define-keymap--define 'byte-optimizer #'byte-optimize-define-keymap--define)
+(put 'define-keymap 'byte-optimizer #'byte-optimize-define-keymap)
+(put 'define-keymap--define 'byte-optimizer
+     #'byte-optimize-define-keymap--define)
 
 ;; I'm not convinced that this is necessary.  Doesn't the optimizer loop
 ;; take care of this? - Jamie
