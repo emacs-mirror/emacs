@@ -91,7 +91,7 @@ When it reaches that size (in bytes), a warning is sent."
 (defcustom thumbs-conversion-program
   (if (eq system-type 'windows-nt)
       ;; FIXME is this necessary, or can a sane PATHEXE be assumed?
-      ;; Eg find-program does not do this.
+      ;; E.g. find-program does not do this.
       "convert.exe"
     "convert")
   "Name of conversion program for thumbnails generation.
@@ -292,22 +292,11 @@ smaller according to whether INCREMENT is 1 or -1."
 	(thumbs-call-convert fn tn "sample" thumbs-geometry))
     tn))
 
-(defun thumbs-image-type (img)
-  "Return image type from filename IMG."
-  (cond ((string-match ".*\\.jpe?g\\'" img) 'jpeg)
-	((string-match ".*\\.xpm\\'" img) 'xpm)
-	((string-match ".*\\.xbm\\'" img) 'xbm)
-	((string-match ".*\\.pbm\\'" img) 'pbm)
-	((string-match ".*\\.gif\\'" img) 'gif)
-	((string-match ".*\\.bmp\\'" img) 'bmp)
-	((string-match ".*\\.png\\'" img) 'png)
-	((string-match ".*\\.tiff?\\'" img) 'tiff)))
-
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun thumbs-file-size (img)
   (let ((i (image-size
-	    (find-image `((:type ,(thumbs-image-type img) :file ,img))) t)))
+            (find-image `((:type ,(image-type-from-file-name img) :file ,img))) t)))
     (concat (number-to-string (round (car i))) "x"
 	    (number-to-string (round (cdr i))))))
 
@@ -410,7 +399,7 @@ and SAME-WINDOW to show thumbs in the same window."
 	    thumbs-image-num (or num 0))
       (delete-region (point-min)(point-max))
       (save-excursion
-	(thumbs-insert-image img (thumbs-image-type img) 0)))))
+        (thumbs-insert-image img (image-type-from-file-name img) 0)))))
 
 (defun thumbs-find-image-at-point (&optional img otherwin)
   "Display image IMG for thumbnail at point.
@@ -544,7 +533,7 @@ Open another window."
 		      " - " (number-to-string num)))
 	(let ((inhibit-read-only t))
 	  (erase-buffer)
-	  (thumbs-insert-image img (thumbs-image-type img) 0)
+          (thumbs-insert-image img (image-type-from-file-name img) 0)
 	  (goto-char (point-min))))
       (setq thumbs-image-num num
 	    thumbs-current-image-filename img))))
@@ -774,6 +763,9 @@ ACTION and ARG should be a valid convert command."
 (define-key dired-mode-map "\C-ta" 'thumbs-dired-show)
 (define-key dired-mode-map "\C-tm" 'thumbs-dired-show-marked)
 (define-key dired-mode-map "\C-tw" 'thumbs-dired-setroot)
+
+(define-obsolete-function-alias 'thumbs-image-type
+  #'image-type-from-file-name "29.1")
 
 (provide 'thumbs)
 
