@@ -3233,6 +3233,10 @@ Removes an existing file watch specified by its @var{descriptor}.
 
 @deffn Command file-notify-rm-all-watches
 Removes all existing file notification watches from Emacs.
+
+Use this command with caution, because it could have unexpected side
+effects on packages relying on file watches.  It is intended mainly
+for debugging purposes, or when Emacs has been stalled.
 @end deffn
 
 @defun file-notify-valid-p descriptor
