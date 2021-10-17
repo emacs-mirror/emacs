@@ -117,7 +117,6 @@
 
 (require 'cl-lib)
 (require 'ewoc)				;Ewoc was once cookie
-(require 'pcvs-defs)
 (require 'pcvs-util)
 (require 'pcvs-parse)
 (require 'pcvs-info)
@@ -137,6 +136,147 @@
 ;;;;
 
 (defvar cvs-from-vc nil "Bound to t inside VC advice.")
+
+(defvar-keymap cvs-mode-diff-map
+  :name "Diff"
+  "E" (cons "imerge" #'cvs-mode-imerge)
+  "=" #'cvs-mode-diff
+  "e" (cons "idiff" #'cvs-mode-idiff)
+  "2" (cons "other" #'cvs-mode-idiff-other)
+  "d" (cons "diff" #'cvs-mode-diff)
+  "b" (cons "backup" #'cvs-mode-diff-backup)
+  "h" (cons "head" #'cvs-mode-diff-head)
+  "r" (cons "repository" #'cvs-mode-diff-repository)
+  "y" (cons "yesterday" #'cvs-mode-diff-yesterday)
+  "v" (cons "vendor" #'cvs-mode-diff-vendor))
+;; This is necessary to allow correct handling of \\[cvs-mode-diff-map]
+;; in substitute-command-keys.
+(fset 'cvs-mode-diff-map cvs-mode-diff-map)
+
+(defvar-keymap cvs-mode-map
+  :full t
+  :suppress t
+  ;; various
+  "?"              #'cvs-help
+  "h"              #'cvs-help
+  "q"              #'cvs-bury-buffer
+  "z"              #'kill-this-buffer
+  "F"              #'cvs-mode-set-flags
+  "!"              #'cvs-mode-force-command
+  ["C-c C-c"]      #'cvs-mode-kill-process
+  ;; marking
+  "m"              #'cvs-mode-mark
+  "M"              #'cvs-mode-mark-all-files
+  "S"              #'cvs-mode-mark-on-state
+  "u"              #'cvs-mode-unmark
+  ["DEL"]          #'cvs-mode-unmark-up
+  "%"              #'cvs-mode-mark-matching-files
+  "T"              #'cvs-mode-toggle-marks
+  ["M-DEL"]        #'cvs-mode-unmark-all-files
+  ;; navigation keys
+  " "              #'cvs-mode-next-line
+  "n"              #'cvs-mode-next-line
+  "p"              #'cvs-mode-previous-line
+  "\t"             #'cvs-mode-next-line
+  [backtab]        #'cvs-mode-previous-line
+  ;; M- keys are usually those that operate on modules
+  ["M-c"]          #'cvs-checkout
+  ["M-e"]          #'cvs-examine
+  "g"              #'cvs-mode-revert-buffer
+  ["M-u"]          #'cvs-update
+  ["M-s"]          #'cvs-status
+  ;; diff commands
+  "="              #'cvs-mode-diff
+  "d"              cvs-mode-diff-map
+  ;; keys that operate on individual files
+  ["C-k"]          #'cvs-mode-acknowledge
+  "A"              #'cvs-mode-add-change-log-entry-other-window
+  "C"              #'cvs-mode-commit-setup
+  "O"              #'cvs-mode-update
+  "U"              #'cvs-mode-undo
+  "I"              #'cvs-mode-insert
+  "a"              #'cvs-mode-add
+  "b"              #'cvs-set-branch-prefix
+  "B"              #'cvs-set-secondary-branch-prefix
+  "c"              #'cvs-mode-commit
+  "e"              #'cvs-mode-examine
+  "f"              #'cvs-mode-find-file
+  ["RET"]          #'cvs-mode-find-file
+  "i"              #'cvs-mode-ignore
+  "l"              #'cvs-mode-log
+  "o"              #'cvs-mode-find-file-other-window
+  "r"              #'cvs-mode-remove
+  "s"              #'cvs-mode-status
+  "t"              #'cvs-mode-tag
+  "v"              #'cvs-mode-view-file
+  "x"              #'cvs-mode-remove-handled
+  ;; cvstree bindings
+  "+"              #'cvs-mode-tree
+  ;; mouse bindings
+  [mouse-2]        #'cvs-mode-find-file
+  [follow-link]    (lambda (pos)
+                     (eq (get-char-property pos 'face) 'cvs-filename))
+  [(down-mouse-3)] #'cvs-menu
+  ;; dired-like bindings
+  "\C-o"           #'cvs-mode-display-file)
+
+(easy-menu-define cvs-menu cvs-mode-map "Menu used in `cvs-mode'."
+  '("CVS"
+    ["Open file"		cvs-mode-find-file	t]
+    ["Open in other window"	cvs-mode-find-file-other-window	t]
+    ["Display in other window"  cvs-mode-display-file   t]
+    ["Interactive merge"	cvs-mode-imerge		t]
+    ("View diff"
+     ["Interactive diff"	cvs-mode-idiff		t]
+     ["Current diff"		cvs-mode-diff		t]
+     ["Diff with head"		cvs-mode-diff-head	t]
+     ["Diff with vendor"	cvs-mode-diff-vendor	t]
+     ["Diff against yesterday"	cvs-mode-diff-yesterday	t]
+     ["Diff with backup"	cvs-mode-diff-backup	t])
+    ["View log"			cvs-mode-log		t]
+    ["View status"		cvs-mode-status		t]
+    ["View tag tree"		cvs-mode-tree		t]
+    "----"
+    ["Insert"			cvs-mode-insert]
+    ["Update"			cvs-mode-update		(cvs-enabledp 'update)]
+    ["Re-examine"		cvs-mode-examine	t]
+    ["Commit"			cvs-mode-commit-setup	(cvs-enabledp 'commit)]
+    ["Tag"			cvs-mode-tag		(cvs-enabledp (when cvs-force-dir-tag 'tag))]
+    ["Undo changes"		cvs-mode-undo		(cvs-enabledp 'undo)]
+    ["Add"			cvs-mode-add		(cvs-enabledp 'add)]
+    ["Remove"			cvs-mode-remove		(cvs-enabledp 'remove)]
+    ["Ignore"			cvs-mode-ignore		(cvs-enabledp 'ignore)]
+    ["Add ChangeLog"		cvs-mode-add-change-log-entry-other-window t]
+    "----"
+    ["Mark"                     cvs-mode-mark t]
+    ["Mark all"			cvs-mode-mark-all-files	t]
+    ["Mark by regexp..."        cvs-mode-mark-matching-files t]
+    ["Mark by state..."         cvs-mode-mark-on-state t]
+    ["Unmark"                   cvs-mode-unmark	t]
+    ["Unmark all"		cvs-mode-unmark-all-files t]
+    ["Hide handled"		cvs-mode-remove-handled	t]
+    "----"
+    ["PCL-CVS Manual"		(lambda () (interactive)
+				  (info "(pcl-cvs)Top")) t]
+    "----"
+    ["Quit"			cvs-mode-quit		t]))
+
+;;;;
+;;;; CVS-Minor mode
+;;;;
+
+(defcustom cvs-minor-mode-prefix "\C-xc"
+  "Prefix key for the `cvs-mode' bindings in `cvs-minor-mode'."
+  :type 'string
+  :group 'pcl-cvs)
+
+(defvar-keymap cvs-minor-mode-map
+  cvs-minor-mode-prefix 'cvs-mode-map
+  "e" '(menu-item nil cvs-mode-edit-log
+	          :filter (lambda (x)
+                            (and (derived-mode-p 'log-view-mode) x))))
+
+(require 'pcvs-defs)
 
 ;;;;
 ;;;; flags variables
