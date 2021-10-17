@@ -1179,11 +1179,10 @@ static void append_stretch_glyph (struct it *, Lisp_Object,
 static Lisp_Object get_it_property (struct it *, Lisp_Object);
 static Lisp_Object calc_line_height_property (struct it *, Lisp_Object,
 					      struct font *, int, bool);
-static int get_glyph_pixel_width_delta_for_mouse_face (struct glyph *,
-						       struct glyph_row *,
-						       struct window *,
-						       struct face *,
-						       struct face *);
+static int adjust_glyph_width_for_mouse_face (struct glyph *,
+					      struct glyph_row *,
+					      struct window *, struct face *,
+					      struct face *);
 static void get_cursor_offset_for_mouse_face (struct window *w,
 					      struct glyph_row *row,
 					      int *offset);
@@ -28136,7 +28135,6 @@ fill_composite_glyph_string (struct glyph_string *s, struct face *base_face,
       int c = COMPOSITION_GLYPH (s->cmp, 0);
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (s->f);
       s->face = FACE_FROM_ID_OR_NULL (s->f, hlinfo->mouse_face_face_id);
-
       if (!s->face)
 	s->face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
 
@@ -28675,10 +28673,10 @@ right_overwriting (struct glyph_string *s)
    first glyph following S.  LAST_X is the right-most x-position + 1
    in the drawing area.
 
-   If S's hl is DRAW_CURSOR, S->f is a window system frame, and the
-   cursor in S's window is currently under mouse face, s->width will
-   also be updated to take into account differing :box properties
-   between the original face and the mouse face. */
+   If S->hl is DRAW_CURSOR, S->f is a window system frame, and the
+   cursor in S's window is currently inside mouse face, also uodate
+   S->width to take into account potentially differing :box
+   properties between the original face and the mouse face.  */
 
 static void
 set_glyph_string_background_width (struct glyph_string *s, int start, int last_x)
@@ -28707,17 +28705,16 @@ set_glyph_string_background_width (struct glyph_string *s, int start, int last_x
 	  && s->hl == DRAW_CURSOR
 	  && cursor_in_mouse_face_p (s->w))
 	{
-	  /* We will have to adjust the background width of the string
-	     in this situation, because the glyph's pixel_width might
-	     be inconsistent with the box of the mouse face, which
-	     leads to an ugly over-wide cursor. */
-
+	  /* Adjust the background width of the glyph string string,
+	     because if the glyph's face has the :box attribute, its
+	     pixel_width might be different from the :box attribute of
+	     the mouse face.  */
 	  struct glyph *g = s->first_glyph;
 	  struct face *regular_face = FACE_FROM_ID (s->f, g->face_id);
 	  s->background_width +=
-	    get_glyph_pixel_width_delta_for_mouse_face (g, s->row, s->w,
-							regular_face, s->face);
-	  /* s->width is probably worth adjusting here as well. */
+	    adjust_glyph_width_for_mouse_face (g, s->row, s->w,
+					       regular_face, s->face);
+	  /* S->width is probably worth adjusting here as well.  */
 	  s->width = s->background_width;
         }
 #endif
@@ -31929,7 +31926,7 @@ erase_phys_cursor (struct window *w)
   /* Since erasing the phys cursor will probably lead to corruption of
      the mouse face display if the glyph's pixel_width is not kept up
      to date with the :box property of the mouse face, just redraw the
-     mouse face. */
+     mouse face.  */
   if (FRAME_WINDOW_P (WINDOW_XFRAME (w)) && mouse_face_here_p)
     {
       w->phys_cursor_on_p = false;
@@ -36092,27 +36089,26 @@ cancel_hourglass (void)
     }
 }
 
-/* Return a delta that must be applied to g->pixel_width in order to
-   obtain the correct pixel_width of G when drawn under MOUSE_FACE.
+/* Return a correction to be applied to G->pixel_width when it is
+   displayed in MOUSE_FACE.  This is needed for the first and the last
+   glyphs of text inside a face with :box when it is displayed with
+   MOUSE_FACE that has a different or no :box attribute.
    ORIGINAL_FACE is the face G was originally drawn in, and MOUSE_FACE
-   is the face it will be drawn in now.  ROW should be the row G is
-   located in.  W should be the window G is located in.  */
+   is the face it will be drawn in now.  ROW is the G's glyph row and
+   W is its window.  */
 static int
-get_glyph_pixel_width_delta_for_mouse_face (struct glyph *g,
-					    struct glyph_row *row,
-					    struct window *w,
-					    struct face *original_face,
-					    struct face *mouse_face)
+adjust_glyph_width_for_mouse_face (struct glyph *g, struct glyph_row *row,
+				   struct window *w,
+				   struct face *original_face,
+				   struct face *mouse_face)
 {
   int sum = 0;
 
   bool do_left_box_p = g->left_box_line_p;
   bool do_right_box_p = g->right_box_line_p;
 
-  /* This is required because we test some parameters
-     of the image slice before applying the box in
-     produce_image_glyph. */
-
+  /* This is required because we test some parameters of the image
+     slice before applying the box in produce_image_glyph.  */
   if (g->type == IMAGE_GLYPH)
     {
       if (!row->reversed_p)
@@ -36141,7 +36137,7 @@ get_glyph_pixel_width_delta_for_mouse_face (struct glyph *g,
   /* Likewise with the right box line, as there may be a
      box there as well.  */
   if (do_right_box_p)
-        sum -= max (0, original_face->box_vertical_line_width);
+    sum -= max (0, original_face->box_vertical_line_width);
   /* Now add the line widths from the new face.  */
   if (g->left_box_line_p)
     sum += max (0, mouse_face->box_vertical_line_width);
@@ -36197,13 +36193,11 @@ get_cursor_offset_for_mouse_face (struct window *w, struct glyph_row *row,
   /* Calculate the offset by which to correct phys_cursor x if we are
      drawing the cursor inside mouse-face highlighted text.  */
 
-  for (; row->reversed_p ? start > end : start < end;
-       row->reversed_p ? --start : ++start)
-    {
-      sum += get_glyph_pixel_width_delta_for_mouse_face (start, row, w,
-							 FACE_FROM_ID (f, start->face_id),
-							 mouse_face);
-    }
+  for ( ; row->reversed_p ? start > end : start < end;
+	  row->reversed_p ? --start : ++start)
+    sum += adjust_glyph_width_for_mouse_face (start, row, w,
+					      FACE_FROM_ID (f, start->face_id),
+					      mouse_face);
 
   if (row->reversed_p)
     sum = -sum;
