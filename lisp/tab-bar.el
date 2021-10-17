@@ -362,8 +362,9 @@ at the mouse-down event to the position at mouse-up event."
         (to (tab-bar--key-to-number
              (nth 0 (tab-bar--event-to-item
                      (event-end event))))))
-    (unless (or (eq from t) (eq to t))
-      (tab-bar-move-tab-to to from))))
+    (unless (or (eq from to) (eq from t) (eq to t))
+      (tab-bar-move-tab-to
+       (if (null to) (1+ (tab-bar--current-tab-index)) to) from))))
 
 (defvar tab-bar-map
   (let ((map (make-sparse-keymap)))
