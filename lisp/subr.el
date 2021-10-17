@@ -939,24 +939,27 @@ which is
   (and (stringp keys)
        (string-match-p "\\`[^ ]+\\( [^ ]+\\)*\\'" keys)
        (save-match-data
-         (seq-every-p
-          (lambda (key)
-            ;; Every key might have these modifiers, and they should be
-            ;; in this order.
-            (when (string-match
-                   "\\`\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?"
-                   key)
-              (setq key (substring key (match-end 0))))
-            (or (and (= (length key) 1)
-                     ;; Don't accept control characters as keys.
-                     (not (< (aref key 0) ?\s))
-                     ;; Don't accept Meta'd characters as keys.
-                     (or (multibyte-string-p key)
-                         (not (<= 127 (aref key 0) 255))))
-                (string-match-p "\\`<[A-Za-z0-9]+>\\'" key)
-                (string-match-p
-                 "\\`\\(NUL\\|RET\\|TAB\\|LFD\\|ESC\\|SPC\\|DEL\\)\\'" key)))
-          (split-string keys " ")))))
+         (catch 'exit
+           (dolist (key (split-string keys " "))
+             ;; Every key might have these modifiers, and they should be
+             ;; in this order.
+             (when (string-match
+                    "\\`\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?"
+                    key)
+               (setq key (substring key (match-end 0))))
+             (unless (or (and (= (length key) 1)
+                              ;; Don't accept control characters as keys.
+                              (not (< (aref key 0) ?\s))
+                              ;; Don't accept Meta'd characters as keys.
+                              (or (multibyte-string-p key)
+                                  (not (<= 127 (aref key 0) 255))))
+                         (string-match-p "\\`<[A-Za-z0-9]+>\\'" key)
+                         (string-match-p
+                          "\\`\\(NUL\\|RET\\|TAB\\|LFD\\|ESC\\|SPC\\|DEL\\)\\'"
+                          key))
+               ;; Invalid.
+               (throw 'exit nil)))
+           t))))
 
 (defun kbd (keys &optional need-vector)
   "Convert KEYS to the internal Emacs key representation.
