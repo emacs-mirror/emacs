@@ -6421,9 +6421,8 @@ image_can_use_native_api (Lisp_Object type)
 }
 
 /*
- * These functions are actually defined in the OS-native implementation
- * file.  Currently, for Windows GDI+ interface, w32image.c, but other
- * operating systems can follow suit.
+ * These functions are actually defined in the OS-native implementation file.
+ * Currently, for Windows GDI+ interface, w32image.c, and nsimage.m for macOS.
  */
 
 /* Indices of image specification fields in native format, below.  */
