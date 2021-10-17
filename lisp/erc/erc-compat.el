@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(require 'format-spec)
-
 ;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
 (define-obsolete-function-alias 'erc-define-minor-mode
   #'define-minor-mode "28.1")
