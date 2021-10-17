@@ -967,18 +967,14 @@ which is
                  (throw 'exit nil)))
              t)))))
 
-(defun kbd (keys &optional need-vector)
+(defun kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string in the format returned by commands such
 as `C-h k' (`describe-key').
 This is the same format used for saving keyboard macros (see
 `edmacro-mode').
 
-For an approximate inverse of this, see `key-description'.
-
-If NEED-VECTOR is non-nil, always return a vector instead of a
-string.  This is mainly intended for use by `edmacro-parse-keys',
-and should normally not be needed."
+For an approximate inverse of this, see `key-description'."
   (declare (pure t) (side-effect-free t))
   ;; A pure function is expected to preserve the match data.
   (save-match-data
@@ -1076,15 +1072,13 @@ and should normally not be needed."
                                     (setq lres (cdr (cdr lres)))
                                     (nreverse lres)
                                     lres))))
-      (if (and (not need-vector)
-               (not (memq nil (mapcar (lambda (ch)
-                                        (and (numberp ch)
-                                             (<= 0 ch 127)))
-                                      res))))
-          (concat (mapcar (lambda (ch)
-                            (if (= (logand ch ?\M-\^@) 0)
-                                ch (+ ch 128)))
-                          res))
+      (if (not (memq nil (mapcar (lambda (ch)
+                                   (and (numberp ch)
+                                        (<= 0 ch 127)))
+                                 res)))
+          ;; Return a string.
+          (concat (mapcar #'identity res))
+        ;; Return a vector.
         res))))
 
 (defun undefined ()

@@ -640,7 +640,10 @@ This function assumes that the events can be stored in a string."
 ;;; Parsing a human-readable keyboard macro.
 
 (defun edmacro-parse-keys (string &optional need-vector)
-  (kbd string need-vector))
+  (let ((result (kbd string)))
+    (if (and need-vector (stringp result))
+        (seq-into result 'vector)
+      result)))
 
 (provide 'edmacro)
 
