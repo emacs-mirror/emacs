@@ -267,7 +267,7 @@ was clicked."
                (setq column (+ column (length (nth 1 binding))))))
            keymap))))))
 
-(defun tab-bar-mouse-select-tab (event)
+(defun tab-bar-mouse-down-1 (event)
   "Select the tab at mouse click, or add a new tab on the tab bar.
 Whether this command adds a new tab or selects an existing tab
 depends on whether the click is on the \"+\" button or on an
@@ -275,29 +275,31 @@ existing tab."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
-    ;; Don't close the tab when clicked on the close button.
-    ;; Let `tab-bar-mouse-close-tab-from-button' do this.
-    (unless (nth 2 item)
+    ;; Don't close the tab when clicked on the close button.  Also
+    ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
+    (unless (or (eq (car item) 'add-tab) (nth 2 item))
       (if (functionp (nth 1 item))
           (call-interactively (nth 1 item))
         (unless (eq tab-number t)
           (tab-bar-select-tab tab-number))))))
 
-(defun tab-bar-mouse-close-tab-from-button (event)
+(defun tab-bar-mouse-1 (event)
   "Close the tab whose \"x\" close button you click.
 See also `tab-bar-mouse-close-tab', which closes the tab
-regardless of where you click on it."
+regardless of where you click on it.  Also add a new tab."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
-    (when (nth 2 item)
-      (unless (eq tab-number t)
-        (tab-bar-close-tab tab-number)))))
+    (cond
+     ((and (eq (car item) 'add-tab) (functionp (nth 1 item)))
+      (call-interactively (nth 1 item)))
+     ((and (nth 2 item) (not (eq tab-number t)))
+      (tab-bar-close-tab tab-number)))))
 
 (defun tab-bar-mouse-close-tab (event)
   "Close the tab you click on.
-This is in contrast with `tab-bar-mouse-close-tab-from-button'
-that closes a tab only when you click on its \"x\" close button."
+This is in contrast with `tab-bar-mouse-1' that closes a tab
+only when you click on its \"x\" close button."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
@@ -360,11 +362,11 @@ at the mouse-down event to the position at mouse-up event."
 
 (defvar tab-bar-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [down-mouse-1] 'tab-bar-mouse-select-tab)
+    (define-key map [down-mouse-1] 'tab-bar-mouse-down-1)
     (define-key map [drag-mouse-1] 'tab-bar-mouse-move-tab)
-    (define-key map [mouse-1] 'tab-bar-mouse-close-tab-from-button)
+    (define-key map [mouse-1]      'tab-bar-mouse-1)
     (define-key map [down-mouse-2] 'tab-bar-mouse-close-tab)
-    (define-key map [mouse-2] 'ignore)
+    (define-key map [mouse-2]      'ignore)
     (define-key map [down-mouse-3] 'tab-bar-mouse-context-menu)
 
     (define-key map [mouse-4]     'tab-previous)
