@@ -1243,9 +1243,8 @@ See Info node `(elisp) Integer Basics'."
         form
       (list (car form) optimized))))
 
-(put 'define-keymap 'byte-optimizer #'byte-optimize-define-keymap)
-(put 'define-keymap--define 'byte-optimizer
-     #'byte-optimize-define-keymap--define)
+;;(put 'define-keymap 'byte-optimizer #'byte-optimize-define-keymap)
+;;(put 'define-keymap--define 'byte-optimizer #'byte-optimize-define-keymap--define)
 
 ;; I'm not convinced that this is necessary.  Doesn't the optimizer loop
 ;; take care of this? - Jamie
