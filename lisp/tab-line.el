@@ -269,7 +269,7 @@ the list of all tabs."
                         tab-line-tab-name-buffer)
                  (const :tag "Truncated buffer name"
                         tab-line-tab-name-truncated-buffer)
-                 (function  :tag "Function"))
+                 (function :tag "Function"))
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
@@ -543,7 +543,7 @@ This is used by `tab-line-format'."
 
 (defun tab-line-tab-face-inactive-alternating (tab tabs face _buffer-p selected-p)
   "Return FACE for TAB in TABS with alternation.
-SELECTED-P non-nil means TAB is not the selected tab.
+SELECTED-P nil means TAB is not the selected tab.
 When TAB is not selected and is even-numbered, make FACE
 inherit from `tab-line-tab-inactive-alternate'.  For use in
 `tab-line-tab-face-functions'."
