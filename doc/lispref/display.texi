@@ -2050,7 +2050,7 @@ displayed in a given window.  This function is used by
 (@pxref{Resizing Windows}) to make a window exactly as large as the text
 it contains.
 
-@defun window-text-pixel-size &optional window from to x-limit y-limit mode-and-header-line
+@defun window-text-pixel-size &optional window from to x-limit y-limit mode-lines
 This function returns the size of the text of @var{window}'s buffer in
 pixels.  @var{window} must be a live window and defaults to the
 selected one.  The return value is a cons of the maximum pixel-width
@@ -2092,12 +2092,12 @@ calculating the pixel-height of a large buffer can take some time, it
 makes sense to specify this argument; in particular, if the caller
 does not know the size of the buffer.
 
-The optional argument @var{mode-and-header-line} @code{nil} or omitted
-means to not include the height of the mode- or header-line of
-@var{window} in the return value.  If it is either the symbol
-@code{mode-line} or @code{header-line}, include only the height of that
+The optional argument @var{mode-lines} @code{nil} or omitted means to
+not include the height of the mode-, tab- or header-line of @var{window}
+in the return value.  If it is either the symbol @code{mode-line},
+@code{tab-line} or @code{header-line}, include only the height of that
 line, if present, in the return value.  If it is @code{t}, include the
-height of both, if present, in the return value.
+height of all of these lines, if present, in the return value.
 @end defun
 
 @code{window-text-pixel-size} treats the text displayed in a window as a

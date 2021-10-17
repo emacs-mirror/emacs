@@ -742,13 +742,12 @@ There are two exceptions to rules governing Shorthand transformations:
 
 @itemize @bullet
 @item
-Symbol forms comprised entirely of symbol constituents (@pxref{Syntax
-Class Table}) are exempt not transform.  For example, it's possible to
-use @code{-} or @code{/=} as shorthand prefixes, but that won't shadow
-the arithmetic @emph{functions} that have exactly that prefix as their
-full name.;
+Symbol forms comprised entirely of characters in the Emacs Lisp symbol
+constituent class (@pxref{Syntax Class Table}) are not transformed.
+For example, it's possible to use @code{-} or @code{/=} as shorthand
+prefixes, but that won't shadow the arithmetic @emph{functions} of
+those names.
 
 @item
-Symbol forms whose name starts with the the characters @code{#_} are
-also exempted.
+Symbol forms whose names start with @samp{#_} are not transformed.
 @end itemize

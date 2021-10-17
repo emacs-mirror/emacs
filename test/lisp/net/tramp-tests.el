@@ -4562,6 +4562,24 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
+      (unwind-protect
+	  (with-temp-buffer
+	    (setq proc (start-file-process "test3" (current-buffer) "cat"))
+	    (should (processp proc))
+	    (should (equal (process-status proc) 'run))
+	    (set-process-filter proc t)
+	    (process-send-string proc "foo\n")
+	    (process-send-eof proc)
+	    ;; Read output.
+	    (with-timeout (10 (tramp--test-timeout-handler))
+	      (while (process-live-p proc)
+		(while (accept-process-output proc 0 nil t))))
+	    ;; No output due to process filter.
+	    (should (= (point-min) (point-max))))
+
+	;; Cleanup.
+	(ignore-errors (delete-process proc)))
+
       ;; Process connection type.
       (when (and (tramp--test-sh-p)
 		 (not (tramp-direct-async-process-p))
@@ -4731,6 +4749,28 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	      (while (not (string-match-p "foo" (buffer-string)))
 		(while (accept-process-output proc 0 nil t))))
 	    (should (string-match-p "foo" (buffer-string))))
+
+	;; Cleanup.
+	(ignore-errors (delete-process proc)))
+
+      (unwind-protect
+	  (with-temp-buffer
+	    (setq proc
+		  (with-no-warnings
+		    (make-process
+		     :name "test3" :buffer (current-buffer) :command '("cat")
+		     :filter t
+		     :file-handler t)))
+	    (should (processp proc))
+	    (should (equal (process-status proc) 'run))
+	    (process-send-string proc "foo\n")
+	    (process-send-eof proc)
+	    ;; Read output.
+	    (with-timeout (10 (tramp--test-timeout-handler))
+	      (while (process-live-p proc)
+		(while (accept-process-output proc 0 nil t))))
+	    ;; No output due to process filter.
+	    (should (= (point-min) (point-max))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))

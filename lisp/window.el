@@ -1407,9 +1407,12 @@ before writing to it."
 		 (cadr fringes)
 		 (window-scroll-bar-width window)
 		 (window-right-divider-width window))
-	 (format "height header-line: %s  mode-line: %s  divider: %s\n"
+	 (format "height tab-line: %s header-line: %s  mode-line: %s\n"
+		 (window-tab-line-height window)
 		 (window-header-line-height window)
-		 (window-mode-line-height window)
+		 (window-mode-line-height window))
+	 (format "height scroll-bar: %s divider: %s"
+		 (window-scroll-bar-height window)
 		 (window-bottom-divider-width window)))))
     (insert "\n")))
 
@@ -1691,6 +1694,7 @@ return the minimum pixel-size of WINDOW."
 	 ((let ((char-size (frame-char-size window))
 		(pixel-height
 		 (+ (window-safe-min-size window nil t)
+		    (window-tab-line-height window)
 		    (window-header-line-height window)
 		    (window-scroll-bar-height window)
 		    (window-mode-line-height window)

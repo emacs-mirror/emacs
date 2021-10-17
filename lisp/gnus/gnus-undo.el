@@ -81,7 +81,7 @@
       "\M-\C-_"     gnus-undo
       "\C-_"        gnus-undo
       "\C-xu"       gnus-undo
-      ;; many people are used to type `C-/' on X terminals and get `C-_'.
+      ;; Many people are used to type `C-/' on GUI frames and get `C-_'.
       [(control /)] gnus-undo)
     map))
 

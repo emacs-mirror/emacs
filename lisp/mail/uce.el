@@ -30,6 +30,27 @@
 ;; uce-reply-to-uce.  Please let me know about your changes so I can
 ;; incorporate them.  I'd appreciate it.
 
+;; -- !!! NOTE !!! ---------------------------------------------
+;;
+;; Replying to spam is at best pointless, but most likely actively
+;; harmful.
+;;
+;; - You will confirm that your email address is valid, thus ensuring
+;;   you get more spam.
+;;
+;; - You will leak information and open yourself up for further
+;;   attack.  For example, they could use your \"geolocation\" to find
+;;   your home address and phone number.
+;;
+;; - The sender address is likely fake.
+;;
+;; - You help them refine their methods of spamming.
+;;
+;; Therefore, we strongly recommend that you do not use this package.
+;; Use a spam filter instead, or just delete the spam.
+;;
+;; -------------------------------------------------------------
+
 ;; The command uce-reply-to-uce, if called when the current message
 ;; buffer is a UCE, will setup a reply *mail* buffer as follows.  It
 ;; scans the full headers of the message for: 1) the normal return

@@ -2827,24 +2827,9 @@ keywords when no KEYWORD is given."
     string))
 
 (defvar rcirc-url-regexp
-  (concat
-   "\\b\\(\\(www\\.\\|\\(s?https?\\|ftp\\|file\\|gopher\\|"
-   "nntp\\|news\\|telnet\\|wais\\|mailto\\|info\\):\\)"
-   "\\(//[-a-z0-9_.]+:[0-9]*\\)?"
-   (if (string-match "[[:digit:]]" "1") ;; Support POSIX?
-       (let ((chars "-a-z0-9_=#$@~%&*+\\/[:word:]")
-	     (punct "!?:;.,"))
-	 (concat
-	  "\\(?:"
-	  ;; Match paired parentheses, e.g. in Wikipedia URLs:
-	  "[" chars punct "]+" "(" "[" chars punct "]+" ")" "[" chars "]"
-	  "\\|"
-	  "[" chars punct     "]+" "[" chars "]"
-	  "\\)"))
-     (concat ;; XEmacs 21.4 doesn't support POSIX.
-      "\\([-a-z0-9_=!?#$@~%&*+\\/:;.,]\\|\\w\\)+"
-      "\\([-a-z0-9_=#$@~%&*+\\/]\\|\\w\\)"))
-   "\\)")
+  (eval-when-compile
+    (require 'browse-url)
+    browse-url-button-regexp)
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
 ;; cf cl-remove-if-not

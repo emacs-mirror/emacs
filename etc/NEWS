@@ -1937,6 +1937,10 @@ tags to be considered as well.
 *** New user option 'vc-git-log-switches'.
 String or list of strings specifying switches for Git log under VC.
 
+*** Command 'vc-switch-backend' is now obsolete.
+If you are still using it with any regularity, please file a bug
+report with some details.
+
 ** Gnus
 
 +++

@@ -647,10 +647,12 @@ There can be any number of :example/:result elements."
 
 
 (define-short-documentation-group vector
+  "Making Vectors"
   (make-vector
    :eval (make-vector 5 "foo"))
   (vector
    :eval (vector 1 "b" 3))
+  "Operations on Vectors"
   (vectorp
    :eval (vectorp [1])
    :eval (vectorp "1"))
@@ -660,13 +662,16 @@ There can be any number of :example/:result elements."
    :eval (append [1 2] nil))
   (length
    :eval (length [1 2 3]))
-  (mapcar
-   :eval (mapcar #'identity [1 2 3]))
-  (reduce
-   :eval (reduce #'+ [1 2 3]))
+  (seq-reduce
+   :eval (seq-reduce #'+ [1 2 3] 0))
   (seq-subseq
    :eval (seq-subseq [1 2 3 4 5] 1 3)
-   :eval (seq-subseq [1 2 3 4 5] 1)))
+   :eval (seq-subseq [1 2 3 4 5] 1))
+  "Mapping Over Vectors"
+  (mapcar
+   :eval (mapcar #'identity [1 2 3]))
+  (mapc
+   :eval (mapc #'insert ["1" "2" "3"])))
 
 (define-short-documentation-group regexp
   "Matching Strings"

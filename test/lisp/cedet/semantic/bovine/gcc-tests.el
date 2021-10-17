@@ -124,6 +124,11 @@ gcc version 2.95.2 19991024 (release)"
   "Test the output parser against the machine currently running Emacs."
   (skip-unless (executable-find "gcc"))
   (let ((semantic-gcc-test-strings (list (semantic-gcc-query "gcc" "-v"))))
-    (semantic-gcc-test-output-parser)))
+    ;; Some macOS machines run llvm when you type gcc.  (!)
+    ;; We can't even check if it's a symlink; it's a binary placed in
+    ;; "/usr/bin/gcc".  So check the output and just skip this test if
+    ;; it says "Apple LLVM".
+    (unless (string-match "Apple LLVM" (car semantic-gcc-test-strings))
+        (semantic-gcc-test-output-parser))))
 
 ;;; gcc-tests.el ends here

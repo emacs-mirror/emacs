@@ -10661,13 +10661,13 @@ position specified by TO.  Since calculating the text height of a
 large buffer can take some time, it makes sense to specify this
 argument if the size of the buffer is large or unknown.
 
-Optional argument MODE-AND-HEADER-LINE nil or omitted means do not
-include the height of the mode- or header-line of WINDOW in the return
-value.  If it is either the symbol `mode-line' or `header-line', include
+Optional argument MODE-LINES nil or omitted means do not include the
+height of the mode-, tab- or header-line of WINDOW in the return value.
+If it is the symbol `mode-line', 'tab-line' or `header-line', include
 only the height of that line, if present, in the return value.  If t,
-include the height of both, if present, in the return value.  */)
+include the height of any of these, if present, in the return value.  */)
   (Lisp_Object window, Lisp_Object from, Lisp_Object to, Lisp_Object x_limit,
-   Lisp_Object y_limit, Lisp_Object mode_and_header_line)
+   Lisp_Object y_limit, Lisp_Object mode_lines)
 {
   struct window *w = decode_live_window (window);
   Lisp_Object buffer = w->contents;
@@ -10841,18 +10841,15 @@ include the height of both, if present, in the return value.  */)
   if (y > max_y)
     y = max_y;
 
-  if (EQ (mode_and_header_line, Qtab_line)
-      || EQ (mode_and_header_line, Qt))
+  if (EQ (mode_lines, Qtab_line) || EQ (mode_lines, Qt))
     /* Re-add height of tab-line as requested.  */
     y = y + WINDOW_TAB_LINE_HEIGHT (w);
 
-  if (EQ (mode_and_header_line, Qheader_line)
-      || EQ (mode_and_header_line, Qt))
+  if (EQ (mode_lines, Qheader_line) || EQ (mode_lines, Qt))
     /* Re-add height of header-line as requested.  */
     y = y + WINDOW_HEADER_LINE_HEIGHT (w);
 
-  if (EQ (mode_and_header_line, Qmode_line)
-      || EQ (mode_and_header_line, Qt))
+  if (EQ (mode_lines, Qmode_line) || EQ (mode_lines, Qt))
     /* Add height of mode-line as requested.  */
     y = y + WINDOW_MODE_LINE_HEIGHT (w);
 
@@ -33662,7 +33659,13 @@ note_mouse_highlight (struct frame *f, int x, int y)
   if (EQ (window, f->tab_bar_window))
     {
       note_tab_bar_highlight (f, x, y);
-      return;
+      if (tab_bar_drag_maybe)
+	{
+	  cursor = FRAME_OUTPUT_DATA (f)->hand_cursor;
+	  goto set_cursor;
+	}
+      else
+	return;
     }
 #endif
 
@@ -35791,6 +35794,10 @@ may be more familiar to users.  */);
 When nil, mouse-movement events will not be generated as long as the
 mouse stays within the extent of a single glyph (except for images).  */);
   mouse_fine_grained_tracking = false;
+
+  DEFVAR_BOOL ("tab-bar-drag-maybe", tab_bar_drag_maybe,
+    doc: /* Non-nil when maybe dragging tab bar item.  */);
+  tab_bar_drag_maybe = false;
 
   DEFVAR_BOOL ("redisplay-skip-initial-frame", redisplay_skip_initial_frame,
     doc: /* Non-nil to skip redisplay in initial frame.

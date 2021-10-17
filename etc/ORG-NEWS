@@ -98,6 +98,15 @@ latest stable version of Org should be compatible with Emacs 28.x,
 
 See [[https://orgmode.org/worg/org-maintenance.html#emacs-compatibility][this note on Worg]] and [[git::519947e508e081e71bf67db99e27b1c171ba4dfe][this commit]].
 
+*** The keybinding for ~org-table-blank-field~ has been removed
+
+If you prefer to keep the keybinding, you can add it back to
+~org-mode-map~ like so:
+
+#+begin_src emacs-lisp
+(define-key org-mode-map (kbd "C-c SPC") #'org-table-blank-field)
+#+end_src
+
 ** New features
 
 *** New citation engine

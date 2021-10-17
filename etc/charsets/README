@@ -27,7 +27,9 @@ character code separated by a space.  Both code points and Unicode
 character codes are in hexadecimal preceded by "0x".  Comments may be
 used, starting with "#".  Code ranges may also be used, with
 (inclusive) start and end code points separated by "-" followed by the
-Unicode of the start of the range
+Unicode of the start of the range.
+Code points for which there's no mapping to Unicode should be skipped,
+i.e. their lines should be omitted.
 
 Examples:
 0xA0 0x00A0  # no-break space

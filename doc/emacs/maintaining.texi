@@ -2283,12 +2283,12 @@ the match with @var{replacement}.  @xref{Identifier Search}.
 @item g
 @findex xref-revert-buffer
 Refresh the contents of the @file{*xref*} buffer
-(@code{xref-revert-buffer}.
+(@code{xref-revert-buffer}).
 
 @item M-,
 @findex xref-quit-and-pop-marker-stack
 Quit the window showing the @file{*xref*} buffer, and then jump to the
-previous Xref stack location (@code{xref-quit-and-pop-marker-stack}.
+previous Xref stack location (@code{xref-quit-and-pop-marker-stack}).
 
 @item q
 @findex xref-quit

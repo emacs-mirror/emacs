@@ -743,7 +743,7 @@ delivered."
 	     ;; the directory.  Except for
 	     ;; GFam{File,Directory}Monitor, GPollFileMonitor and
 	     ;; kqueue.  And GFam{File,Directory}Monitor and
-	     ;; GPollFileMonitordo not raise a `changed' event.
+	     ;; GPollFileMonitor do not raise a `changed' event.
 	     ((memq (file-notify--test-monitor)
                     '(GFamFileMonitor GFamDirectoryMonitor GPollFileMonitor))
 	      '(created deleted stopped))

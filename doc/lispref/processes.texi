@@ -1779,9 +1779,12 @@ or more batches of output; one way to do this is to insert the
 received text into a temporary buffer, which can then be searched.
 
 @defun set-process-filter process filter
-This function gives @var{process} the filter function @var{filter}.  If
-@var{filter} is @code{nil}, it gives the process the default filter,
-which inserts the process output into the process buffer.
+This function gives @var{process} the filter function @var{filter}.
+If @var{filter} is @code{nil}, it gives the process the default
+filter, which inserts the process output into the process buffer.  If
+@var{filter} is @code{t}, Emacs stops accepting output from the
+process, unless it's a network server process that listens for
+incoming connections.
 @end defun
 
 @defun process-filter process

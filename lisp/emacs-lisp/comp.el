@@ -3781,15 +3781,18 @@ Return the trampoline if found or nil otherwise."
                         for arg in lambda-list
                         unless (memq arg '(&optional &rest))
                         collect arg)))))
-         ;; Use speed 0 to maximize compilation speed and not to
-         ;; optimize away funcall calls!
+         ;; Use speed 1 for compilation speed and not to optimize away
+         ;; funcall calls!
          (byte-optimize nil)
          (native-comp-speed 1)
          (lexical-binding t))
     (comp--native-compile
      form nil
      (cl-loop
-      for dir in (comp-eln-load-path-eff)
+      for dir in (if native-compile-target-directory
+                     (list (expand-file-name comp-native-version-dir
+                                             native-compile-target-directory))
+                   (comp-eln-load-path-eff))
       for f = (expand-file-name
                (comp-trampoline-filename subr-name)
                dir)
