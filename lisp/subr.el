@@ -941,7 +941,8 @@ which is
        (save-match-data
          (catch 'exit
            (let ((prefixes
-                  "\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?"))
+                  "\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?")
+                 (case-fold-search nil))
              (dolist (key (split-string keys " "))
                ;; Every key might have these modifiers, and they should be
                ;; in this order.
