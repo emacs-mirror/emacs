@@ -2167,7 +2167,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   p->pty_flag = pty_flag;
   pset_status (p, Qrun);
 
-  if (!EQ (p->command, Qt))
+  if (!EQ (p->command, Qt)
+      && !EQ (p->filter, Qt))
     add_process_read_fd (inchannel);
 
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -2285,7 +2286,8 @@ create_pty (Lisp_Object process)
       pset_status (p, Qrun);
       setup_process_coding_systems (process);
 
-      add_process_read_fd (pty_fd);
+      if (!EQ (p->filter, Qt))
+	add_process_read_fd (pty_fd);
 
       pset_tty_name (p, build_string (pty_name));
     }
@@ -2394,7 +2396,8 @@ usage:  (make-pipe-process &rest ARGS)  */)
     pset_command (p, Qt);
   eassert (! p->pty_flag);
 
-  if (!EQ (p->command, Qt))
+  if (!EQ (p->command, Qt)
+      && !EQ (p->filter, Qt))
     add_process_read_fd (inchannel);
   p->adaptive_read_buffering
     = (NILP (Vprocess_adaptive_read_buffering) ? 0
@@ -3129,7 +3132,8 @@ usage:  (make-serial-process &rest ARGS)  */)
     pset_command (p, Qt);
   eassert (! p->pty_flag);
 
-  if (!EQ (p->command, Qt))
+  if (!EQ (p->command, Qt)
+      && !EQ (p->filter, Qt))
     add_process_read_fd (fd);
 
   update_process_mark (p);
