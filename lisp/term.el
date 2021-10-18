@@ -2409,7 +2409,14 @@ Checks if STRING contains a password prompt as defined by
   (when (term-in-line-mode)
     (when (let ((case-fold-search t))
             (string-match comint-password-prompt-regexp string))
-      (term-send-invisible (read-passwd string)))))
+      ;; Use `run-at-time' in order not to pause execution of the
+      ;; process filter with a minibuffer
+      (run-at-time
+       0 nil
+       (lambda (current-buf)
+         (with-current-buffer current-buf
+           (term-send-invisible (read-passwd string))))
+       (current-buffer)))))
 
 
 ;;; Low-level process communication

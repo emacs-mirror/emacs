@@ -2455,11 +2455,19 @@ This function could be in the list `comint-output-filter-functions'."
   (when (let ((case-fold-search t))
 	  (string-match comint-password-prompt-regexp
                         (string-replace "\r" "" string)))
-    (let ((comint--prompt-recursion-depth (1+ comint--prompt-recursion-depth)))
-      (if (> comint--prompt-recursion-depth 10)
-          (message "Password prompt recursion too deep")
-        (comint-send-invisible
-         (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+"))))))
+    ;; Use `run-at-time' in order not to pause execution of the
+    ;; process filter with a minibuffer
+    (run-at-time
+     0 nil
+     (lambda (current-buf)
+       (with-current-buffer current-buf
+         (let ((comint--prompt-recursion-depth
+                (1+ comint--prompt-recursion-depth)))
+           (if (> comint--prompt-recursion-depth 10)
+               (message "Password prompt recursion too deep")
+             (comint-send-invisible
+              (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+"))))))
+     (current-buffer))))
 
 ;; Low-level process communication
 

@@ -940,7 +940,14 @@ This function could be in the list `eshell-output-filter-functions'."
 	(beginning-of-line)
 	(if (re-search-forward eshell-password-prompt-regexp
 			       eshell-last-output-end t)
-	    (eshell-send-invisible))))))
+            ;; Use `run-at-time' in order not to pause execution of
+            ;; the process filter with a minibuffer
+	    (run-at-time
+             0 nil
+             (lambda (current-buf)
+               (with-current-buffer current-buf
+                 (eshell-send-invisible)))
+             (current-buffer)))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-watch-for-password-prompt)
