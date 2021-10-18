@@ -71,3 +71,18 @@ Name: def-indent2
 (define-keymap 1
   2 3)
 =-=-=
+
+Name: elisp-indents1
+
+=-=
+(defvar foo
+  ()
+  "bar")
+=-=-=
+
+Name: elisp-indents2
+
+=-=
+(defvar foo ()
+  "bar")
+=-=-=
