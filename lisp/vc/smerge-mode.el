@@ -47,6 +47,7 @@
 (require 'diff)				;For diff-check-labels.
 (require 'diff-mode)                    ;For diff-refine.
 (require 'newcomment)
+(require 'easy-mmode)
 
 ;;; The real definition comes later.
 (defvar smerge-mode)
