@@ -2124,6 +2124,17 @@ GSTRING, or modify GSTRING itself and return it.
 See also the documentation of `auto-composition-mode'.  */);
   Vcomposition_function_table = Fmake_char_table (Qnil, Qnil);
 
+  DEFVAR_LISP ("auto-composition-emoji-eligible-codepoints", Vauto_composition_emoji_eligible_codepoints,
+	       doc: /* List of codepoints for which auto-composition will check for an emoji font.
+
+These are codepoints which have Emoji_Presentation = No, and thus by
+default are not displayed as emoji.  In certain circumstances, such as
+when followed by U+FE0F (VS-16) the emoji font should be used for
+them anyway.
+
+This list is auto-generated, you should not need to modify it.  */);
+  Vauto_composition_emoji_eligible_codepoints = Qnil;
+
   defsubr (&Scompose_region_internal);
   defsubr (&Scompose_string_internal);
   defsubr (&Sfind_composition_internal);
