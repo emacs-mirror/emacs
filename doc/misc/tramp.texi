@@ -1071,7 +1071,7 @@ capable of servicing requests from @value{tramp}.
 
 This non-native @value{tramp} method connects via the Server Message
 Block (SMB) networking protocol to hosts running file servers that are
-typically based on @url{https://www.samba.org/,,Samba} or MS Windows.
+typically based on @uref{https://www.samba.org/,,Samba} or MS Windows.
 
 Using @command{smbclient} requires a few tweaks when working with
 @value{tramp}:
@@ -1323,7 +1323,7 @@ possible, @value{tramp} emulates those operations otherwise.
 
 @vindex tramp-rclone-program
 The program @command{rclone} allows to access different system
-storages in the cloud, see @url{https://rclone.org/} for a list of
+storages in the cloud, see @uref{https://rclone.org/} for a list of
 supported systems.  If the @command{rclone} program isn't found in
 your @env{PATH} environment variable, you can tell @value{tramp} its
 absolute path via the user option @code{tramp-rclone-program}.
@@ -1362,7 +1362,7 @@ for accessing the system storage, you should use it.
 On local hosts which have installed the @command{sshfs} client for
 mounting a file system based on @command{sftp}, this method can be
 used, see
-@url{https://github.com/libfuse/sshfs/blob/master/README.rst/}.  If
+@uref{https://github.com/libfuse/sshfs/blob/master/README.rst/}.  If
 the @command{sshfs} program isn't found in your @env{PATH} environment
 variable, you can tell @value{tramp} its absolute path via the user
 option @code{tramp-sshfs-program}.
@@ -5192,13 +5192,14 @@ tramp-compat-with-mutex}
 
 @value{tramp} comes with compatibility code for different Emacs
 versions.  When you see such a message (the text might differ), you
-don't use the Emacs built-in version of @value{tramp}.  In case you
-have installed @value{tramp} from GNU ELPA,
+don't use the Emacs built-in version of @value{tramp}, and you must
+recompile it.  In case you have installed @value{tramp} from GNU ELPA,
 @ifset installchapter
-@xref{ELPA Installation}.
+@xref{ELPA Installation}.  Otherwise, @xref{Recompilation}.
 @end ifset
 @ifclear installchapter
-see the package README file for instructions how to recompile it.
+see @uref{@value{trampurl}#ELPA-Installation}.  Otherwise, see
+@uref{@value{trampurl}#Recompilation}.
 @end ifclear
 
 
