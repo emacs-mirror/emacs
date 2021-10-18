@@ -1048,6 +1048,7 @@ Windows
 
 * Basic Windows::           Basic information on using windows.
 * Windows and Frames::      Relating windows to the frame they appear on.
+* Selecting Windows::       The selected window is the one that you edit in.
 * Window Sizes::            Accessing a window's size.
 * Resizing Windows::        Changing the sizes of windows.
 * Preserving Window Sizes:: Preserving the size of windows.
@@ -1055,7 +1056,6 @@ Windows
 * Deleting Windows::        Deleting a window gives its space to other windows.
 * Recombining Windows::     Preserving the frame layout when splitting and
                               deleting windows.
-* Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer.

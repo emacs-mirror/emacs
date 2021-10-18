@@ -248,11 +248,11 @@ If nil then the Chicago author-date style is used as a fallback.")
     ("paras."    . "paragraph")
     ("¶"         . "paragraph")
     ("¶¶"        . "paragraph")
-    ("§"         . "paragraph")
-    ("§§"        . "paragraph")
     ("part"      . "part")
     ("pt."       . "part")
     ("pts."      . "part")
+    ("§"         . "section")
+    ("§§"        . "section")
     ("section"   . "section")
     ("sec."      . "section")
     ("secs."     . "section")
@@ -270,11 +270,12 @@ If nil then the Chicago author-date style is used as a fallback.")
 (defconst org-cite-csl--label-regexp
   ;; Prior to Emacs-27.1 argument of `regexp' form must be a string literal.
   ;; It is the reason why `rx' is avoided here.
-  (rx-to-string `(seq word-start
-                      (regexp ,(regexp-opt (mapcar #'car org-cite-csl--label-alist) t))
-                      (0+ digit)
-                      (or word-start line-end (any ?\s ?\t)))
-                t)
+  (rx-to-string
+   `(seq (or line-start space)
+         (regexp ,(regexp-opt (mapcar #'car org-cite-csl--label-alist) t))
+         (0+ digit)
+         (or word-end line-end space " "))
+   t)
   "Regexp matching a label in a citation reference suffix.
 Label is in match group 1.")
 
@@ -371,7 +372,7 @@ or raise an error if the variable is unset."
     ((and (guard org-cite-csl-styles-dir) file)
      (expand-file-name file org-cite-csl-styles-dir))
     (other
-     (user-error "Cannot handle relative style file name" other))))
+     (user-error "Cannot handle relative style file name: %S" other))))
 
 (defun org-cite-csl--locale-getter ()
   "Return a locale getter.
@@ -425,7 +426,9 @@ The result is a association list.  Keys are: `id', `prefix',`suffix',
        ((re-search-forward org-cite-csl--label-regexp nil t)
         (setq location-start (match-beginning 0))
         (setq label (cdr (assoc (match-string 1) org-cite-csl--label-alist)))
-        (setq locator-start (match-end 1)))
+        (goto-char (match-end 1))
+        (skip-chars-forward "[:space:] ")
+        (setq locator-start (point)))
        ((re-search-forward (rx digit) nil t)
         (setq location-start (match-beginning 0))
         (setq label "page")

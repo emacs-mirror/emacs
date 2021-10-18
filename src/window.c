@@ -765,6 +765,19 @@ selected one.  */)
 {
   return make_fixnum (decode_live_window (window)->use_time);
 }
+
+DEFUN ("window-bump-use-time", Fwindow_bump_use_time,
+       Swindow_bump_use_time, 0, 1, 0,
+       doc: /* Mark WINDOW as having been most recently used.
+WINDOW must be a live window and defaults to the selected one.  */)
+  (Lisp_Object window)
+{
+  struct window *w = decode_live_window (window);
+
+  w->use_time = ++window_select_count;
+
+  return Qnil;
+}
 
 DEFUN ("window-pixel-width", Fwindow_pixel_width, Swindow_pixel_width, 0, 1, 0,
        doc: /* Return the width of window WINDOW in pixels.
@@ -8122,18 +8135,6 @@ and scrolling positions.  */)
     return Qt;
   return Qnil;
 }
-
-DEFUN ("window-bump-use-time", Fwindow_bump_use_time,
-       Swindow_bump_use_time, 1, 1, 0,
-       doc: /* Mark WINDOW as having been recently used.  */)
-  (Lisp_Object window)
-{
-  struct window *w = decode_valid_window (window);
-
-  w->use_time = ++window_select_count;
-  return Qnil;
-}
-
 
 
 static void init_window_once_for_pdumper (void);

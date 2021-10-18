@@ -2721,11 +2721,10 @@ ns_clear_under_internal_border (struct frame *f)
 
   if (FRAME_LIVE_P (f) && FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
     {
-      int border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
-      NSView *view = FRAME_NS_VIEW (f);
-      NSRect edge_rect, frame_rect = [view bounds];
-      NSRectEdge edge[] = {NSMinXEdge, NSMinYEdge, NSMaxXEdge, NSMaxYEdge};
-
+      int border = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int height = FRAME_PIXEL_HEIGHT (f);
+      int margin = FRAME_TOP_MARGIN_HEIGHT (f);
       int face_id =
         (FRAME_PARENT_FRAME (f)
          ? (!NILP (Vface_remapping_alist)
@@ -2747,12 +2746,12 @@ ns_clear_under_internal_border (struct frame *f)
 
       ns_focus (f, NULL, 1);
       [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
-      for (int i = 0; i < 4 ; i++)
-        {
-          NSDivideRect (frame_rect, &edge_rect, &frame_rect, border_width, edge[i]);
 
-          NSRectFill (edge_rect);
-        }
+      NSRectFill (NSMakeRect (0, margin, width, border));
+      NSRectFill (NSMakeRect (0, 0, border, height));
+      NSRectFill (NSMakeRect (0, margin, width, border));
+      NSRectFill (NSMakeRect (width - border, 0, border, height));
+      NSRectFill (NSMakeRect (0, height - border, width, border));
       ns_unfocus (f);
     }
 }
@@ -5066,6 +5065,7 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->free_pixmap = ns_free_pixmap;
   terminal->delete_frame_hook = ns_destroy_window;
   terminal->delete_terminal_hook = ns_delete_terminal;
+  terminal->change_tab_bar_height_hook = ns_change_tab_bar_height;
   /* Other hooks are NULL by default.  */
 
   return terminal;
@@ -6675,7 +6675,27 @@ not_in_argv (NSString *arg)
     }
   else
     {
-      emacs_event->kind = MOUSE_CLICK_EVENT;
+      Lisp_Object tab_bar_arg = Qnil;
+      bool tab_bar_p = false;
+
+      if (WINDOWP (emacsframe->tab_bar_window)
+	  && WINDOW_TOTAL_LINES (XWINDOW (emacsframe->tab_bar_window)))
+	{
+	  Lisp_Object window;
+	  int x = lrint (p.x);
+	  int y = lrint (p.y);
+
+	  window = window_from_coordinates (emacsframe, x, y, 0, true, true);
+	  tab_bar_p = EQ (window, emacsframe->tab_bar_window);
+
+	  if (tab_bar_p)
+	    tab_bar_arg = handle_tab_bar_click (emacsframe, x, y, EV_UDMODIFIERS (theEvent) & down_modifier,
+						EV_MODIFIERS (theEvent) | EV_UDMODIFIERS (theEvent));
+	}
+
+      if (!(tab_bar_p && NILP (tab_bar_arg)))
+	emacs_event->kind = MOUSE_CLICK_EVENT;
+      emacs_event->arg = tab_bar_arg;
       emacs_event->code = EV_BUTTON (theEvent);
       emacs_event->modifiers = EV_MODIFIERS (theEvent)
                              | EV_UDMODIFIERS (theEvent);
