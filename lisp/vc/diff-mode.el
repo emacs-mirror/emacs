@@ -55,6 +55,7 @@
 ;;; Code:
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
+(require 'easy-mmode)
 
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-find-revision-no-save "vc")

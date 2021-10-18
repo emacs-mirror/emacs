@@ -121,6 +121,7 @@
 (require 'pcvs-parse)
 (require 'pcvs-info)
 (require 'vc-cvs)
+(require 'easy-mmode)
 
 
 ;;;;
