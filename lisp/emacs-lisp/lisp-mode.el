@@ -591,6 +591,8 @@ containing STARTPOS."
 
 (defun lisp-string-after-doc-keyword-p (listbeg startpos)
   "Return non-nil if `:documentation' symbol ends at STARTPOS inside a list.
+`:doc' can also be used.
+
 LISTBEG is the position of the start of the innermost list
 containing STARTPOS."
   (and listbeg                          ; We are inside a Lisp form.
@@ -598,7 +600,7 @@ containing STARTPOS."
          (goto-char startpos)
          (ignore-errors
            (progn (backward-sexp 1)
-                  (looking-at ":documentation\\_>"))))))
+                  (looking-at ":documentation\\_>\\|:doc\\_>"))))))
 
 (defun lisp-font-lock-syntactic-face-function (state)
   "Return syntactic face function for the position represented by STATE.
