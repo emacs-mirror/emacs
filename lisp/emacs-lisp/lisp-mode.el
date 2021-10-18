@@ -1220,9 +1220,6 @@ Lisp function does not specify a special indentation."
                                        'lisp-indent-function)
 			 (get (intern-soft function) 'lisp-indent-hook)))
 	(cond ((or (eq method 'defun)
-		   (and (null method)
-			(> (length function) 3)
-			(string-match "\\`def" function))
                    ;; Check whether we are in flet-like form.
                    (lisp--local-defform-body-p state))
 	       (lisp-indent-defform state indent-point))

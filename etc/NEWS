@@ -165,6 +165,26 @@ Emacs buffers, like indentation and the like.  The new ert function
 * Incompatible Lisp Changes in Emacs 29.1
 
 ---
+** 'def' indentation changes.
+In 'emacs-lisp-mode', forms with a symbol with a name that start with
+"def" have been automatically indented as if they were 'defun'-like
+forms, for instance:
+
+  (defzot 1
+    2 3)
+
+This heuristic has now been removed, and all functions/macros that
+want to be indented this way have to be marked with
+
+  (declare (indent defun))
+
+or the like.  If the function/macro definition itself can't be
+changed, the indentation can also be adjusted by saying something
+like:
+
+  (put 'defzot 'lisp-indent-function 'defun)
+
+---
 ** The 'inhibit-changing-match-data' variable is now obsolete.
 Instead, functions like 'string-match' and 'looking-at' now take an
 optional 'inhibit-modify' argument.

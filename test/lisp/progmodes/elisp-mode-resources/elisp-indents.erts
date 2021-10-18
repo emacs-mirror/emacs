@@ -57,3 +57,17 @@ Name: defvar-keymap
   :foo bar
   "\r" #'eww-follow-link)
 =-=-=
+
+Name: def-indent1
+
+=-=
+(defzot-does-not-exist 1
+                       2 3)
+=-=-=
+
+Name: def-indent2
+
+=-=
+(define-keymap 1
+  2 3)
+=-=-=
