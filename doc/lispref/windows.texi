@@ -213,7 +213,8 @@ window} which is used for displaying a tooltip in a tooltip frame
 
 Each window belongs to exactly one frame (@pxref{Frames}).  For all
 windows belonging to a specific frame, we sometimes also say that these
-windows are @dfn{owned} by that frame or simply that they are on that frame.
+windows are @dfn{owned} by that frame or simply that they are on that
+frame.
 
 @defun window-frame &optional window
 This function returns the specified @var{window}'s frame---the frame
@@ -232,12 +233,6 @@ minibuffer window (@pxref{Minibuffer Windows}) in that list.  If
 @code{nil} or omitted, the minibuffer window is included only if it is
 active.  If @var{minibuffer} is neither @code{nil} nor @code{t}, the
 minibuffer window is never included.
-
-Note that the window returned by @code{minibuffer-window} called with
-the argument @var{frame} is returned by @code{window-list} called with
-the same argument if and only if that window actually belongs to
-@var{frame}.  If the minibuffer window is owned by another frame, it is
-not returned by this invocation.
 
 The optional argument @var{window}, if non-@code{nil}, must be a live
 window on the specified frame; then @var{window} will be the first
