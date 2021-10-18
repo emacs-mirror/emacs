@@ -65,15 +65,15 @@ another window.
 
 @cindex terminal screen
 @cindex screen of terminal
-@cindex window system window
+@cindex window-system window
   Emacs uses the term ``window'' with a different meaning than in
 graphical desktop environments and window systems, such as the X Window
 System.  When Emacs is run on X, each graphical X window owned by the
 Emacs process corresponds to one Emacs frame.  When Emacs is run on a
 text terminal, each Emacs frame fills the entire terminal screen.  In
 either case, the frame may contain one or more Emacs windows.  For
-disambiguation, we use the term @dfn{window system window} when we mean
-the window system window corresponding to an Emacs frame.
+disambiguation, we use the term @dfn{window-system window} when we mean
+the window-system window corresponding to an Emacs frame.
 
 @cindex tiled windows
   Unlike X windows, Emacs windows are @dfn{tiled}; they never overlap
@@ -82,7 +82,8 @@ deleted, the change in window space is taken from or given to other
 windows on the same frame, so that the total area of the frame is
 unchanged.
 
-In Emacs Lisp, windows are represented by a special Lisp object type.
+In Emacs Lisp, windows are represented by a special Lisp object type
+(@pxref{Window Type}).
 
 @defun windowp object
 This function returns @code{t} if @var{object} is a window (whether or
@@ -212,7 +213,7 @@ window} which is used for displaying a tooltip in a tooltip frame
 
 Each window belongs to exactly one frame (@pxref{Frames}).  For all
 windows belonging to a specific frame, we sometimes also say that these
-windows are owned by that frame or simply that they are on that frame.
+windows are @dfn{owned} by that frame or simply that they are on that frame.
 
 @defun window-frame &optional window
 This function returns the specified @var{window}'s frame---the frame
@@ -251,14 +252,15 @@ the first element.
 whose leaf nodes are the live windows.  The internal nodes of a window
 tree are not live; they exist for the purpose of organizing the
 relationships between live windows.  The root node of a window tree is
-called the @dfn{root window}.  It is either a live window (if the frame
-has just one window besides the minibuffer window or the frame is a
-minibuffer-only frame, see @ref{Frame Layout}), or an internal window.
+called the @dfn{root window}.  It is either a live window or an
+internal window.  If it is a live window, then the frame has just one
+window besides the minibuffer window, or the frame is a
+minibuffer-only frame, @pxref{Frame Layout}.
 
   A minibuffer window (@pxref{Minibuffer Windows}) that is not alone on
 its frame does not have a parent window, so it strictly speaking is not
 part of its frame's window tree.  Nonetheless, it is a sibling window of
-the frame's root window, and thus can be reached from there via
+the frame's root window, and thus can be reached from the root window via
 @code{window-next-sibling}, see below.  Also, the function
 @code{window-tree} described at the end of this section lists the
 minibuffer window alongside the actual window tree.
@@ -282,7 +284,7 @@ these live windows become leaf nodes of the window tree, as @dfn{child
 windows} of a single internal window.  If necessary, Emacs automatically
 creates this internal window, which is also called the @dfn{parent
 window}, and assigns it to the appropriate position in the window tree.
-A set of windows that share the same parent are called @dfn{siblings}.
+The set of windows that share the same parent are called @dfn{siblings}.
 
 @cindex parent window
 @defun window-parent &optional window
@@ -513,7 +515,7 @@ The following function explicitly selects a window and its frame.
 
 @defun select-window window &optional norecord
 This function makes @var{window} the selected window and the window
-selected within its frame and selects that frame.  It also makes
+selected within its frame, and selects that frame.  It also makes
 @var{window}'s buffer (@pxref{Buffers and Windows}) current and sets
 that buffer's value of @code{point} to the value of @code{window-point}
 (@pxref{Window Point}) in @var{window}.  @var{window} must be a live
@@ -529,7 +531,7 @@ update the display of @var{window} when its frame gets redisplayed the
 next time.  If @var{norecord} is non-@code{nil}, such updates are
 usually not performed.  If, however, @var{norecord} equals the special
 symbol @code{mark-for-redisplay}, the additional actions mentioned above
-are omitted but @var{window} will be nevertheless updated.
+are omitted but @var{window}'s display will be nevertheless updated.
 
 Note that sometimes selecting a window is not enough to show it, or
 make its frame the top-most frame on display: you may also need to
@@ -670,7 +672,7 @@ display a bigger portion of the buffer than one window could alone.
 It is often useful to consider such a @dfn{window group} as a single
 entity.  Several functions such as @code{window-group-start}
 (@pxref{Window Start and End}) allow you to do this by supplying, as
-an argument, one of the windows as a stand in for the whole group.
+an argument, one of the windows as a stand-in for the whole group.
 
 @defun selected-window-group
 @vindex selected-window-group-function

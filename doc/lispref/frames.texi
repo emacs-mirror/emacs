@@ -644,8 +644,9 @@ accommodate an overlong tool bar.
 @item Tab Bar
 @cindex internal tab bar
 The tab bar (@pxref{Tab Bars,,,emacs, The GNU Emacs Manual}) is always
-drawn by Emacs itself.  On builds with internal tool bars, the tab bar
-appears above the tool bar, on builds with external tool bars below.
+drawn by Emacs itself.  The tab bar appears above the tool bar in
+Emacs built with an internal tool bar, and below the tool bar in
+builds with an external tool bar.
 Display of the tab bar can be suppressed by setting the
 @code{tab-bar-lines} parameter (@pxref{Layout Parameters}) to zero.
 
@@ -3009,7 +3010,7 @@ Auto-selection}).
 
 Note that this option does not distinguish ``sloppy'' focus (where the
 frame that previously had focus retains focus as long as the mouse
-pointer does not move into another window system window) from ``strict''
+pointer does not move into another window-system window) from ``strict''
 focus (where a frame immediately loses focus when it's left by the mouse
 pointer).  Neither does it recognize whether your window manager
 supports delayed focusing or auto-raising where you can explicitly

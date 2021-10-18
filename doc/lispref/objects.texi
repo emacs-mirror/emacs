@@ -1625,7 +1625,7 @@ markers.
 @node Window Type
 @subsection Window Type
 
-  A @dfn{window} describes a portion of the screen that Emacs uses to
+  A @dfn{window} describes the portion of the screen that Emacs uses to
 display buffers.  Every live window (@pxref{Basic Windows}) has one
 associated buffer, whose contents appear in that window.  By contrast, a
 given buffer may appear in one window, no window, or several windows.

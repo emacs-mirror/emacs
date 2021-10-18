@@ -705,11 +705,14 @@ the formatted tab name to display in the tab bar."
   "Template for displaying tab bar items.
 Every item in the list is a function that returns
 a string, or a list of menu-item elements, or nil.
-When you add more items `tab-bar-format-align-right' and
-`tab-bar-format-global' to the end, then after enabling
-`display-time-mode' (or any other mode that uses `global-mode-string')
-it will display time aligned to the right on the tab bar instead of
-the mode line.  Replacing `tab-bar-format-tabs' with
+Adding a function to the list causes the tab bar to show
+that string, or display a menu with those menu items when
+you click on the tab bar.
+If the list ends with `tab-bar-format-align-right' and
+`tab-bar-format-global', then after enabling `display-time-mode'
+(or any other mode that uses `global-mode-string'),
+it will display time aligned to the right on the tab bar instead
+of the mode line.  Replacing `tab-bar-format-tabs' with
 `tab-bar-format-tabs-groups' will group tabs on the tab bar."
   :type 'hook
   :options '(tab-bar-format-menu-global
@@ -728,7 +731,7 @@ the mode line.  Replacing `tab-bar-format-tabs' with
   :version "28.1")
 
 (defun tab-bar-format-menu-global ()
-  "Show global menu on clicking the Menu button."
+  "Produce the Menu button for the tab bar that shows a global menu."
   `((add-tab menu-item (propertize "Menu" 'face 'tab-bar-tab-inactive)
              (lambda (event) (interactive "e")
                (let ((menu (make-sparse-keymap
@@ -745,7 +748,8 @@ the mode line.  Replacing `tab-bar-format-tabs' with
              :help "Global Menu")))
 
 (defun tab-bar-format-history ()
-  "Show back and forward buttons when `tab-bar-history-mode' is enabled.
+  "Produce back and forward buttons for the tab bar.
+These buttons will be shown when `tab-bar-history-mode' is enabled.
 You can hide these buttons by customizing `tab-bar-format' and removing
 `tab-bar-format-history' from it."
   (when tab-bar-history-mode
@@ -781,7 +785,7 @@ You can hide these buttons by customizing `tab-bar-format' and removing
         ,(alist-get 'close-binding tab))))))
 
 (defun tab-bar-format-tabs ()
-  "Show all tabs."
+  "Produce all the tabs for the tab bar."
   (let ((i 0))
     (mapcan
      (lambda (tab)
@@ -855,7 +859,7 @@ when the tab is current.  Return the result as a keymap."
       :help "Click to visit group"))))
 
 (defun tab-bar-format-tabs-groups ()
-  "Show tabs with their groups."
+  "Produce tabs for the tab bar grouped according to their groups."
   (let* ((tabs (funcall tab-bar-tabs-function))
          (current-group (funcall tab-bar-tab-group-function
                                  (tab-bar--current-tab-find tabs)))
@@ -899,7 +903,7 @@ when the tab is current.  Return the result as a keymap."
     `((align-right menu-item ,str ignore))))
 
 (defun tab-bar-format-global ()
-  "Format `global-mode-string' to display it in the tab bar.
+  "Produce display of `global-mode-string' in the tab bar.
 When `tab-bar-format-global' is added to `tab-bar-format'
 (possibly appended after `tab-bar-format-align-right'),
 then modes that display information on the mode line
