@@ -116,8 +116,12 @@ FONT-NAME-REGEXP is checked using `string-match'."
 
 Visit "emoji-zwj-sequences.txt" and "emoji-sequences.txt" with the
 rebuilt Emacs, and check that the sample sequences are composed
-properly.  Note that your emoji font might not have glyphs for the
-newest codepoints yet.
+properly.  Also check the Unicode style chart file available at
+https://unicode.org/emoji/charts/emoji-style.txt for any issues
+involving VS-15 and VS-16, if so you may need to update the value
+generated for auto-composition-emoji-eligible-codepoints by
+admin/unidata/emoji-zwj.awk.  Note that your emoji font might not have
+glyphs for the newest codepoints yet.
 
 Finally, etc/NEWS should be updated to announce the support for the
 new Unicode version.
