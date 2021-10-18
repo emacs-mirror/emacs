@@ -164,7 +164,7 @@ and hunk-based syntax highlighting otherwise as a fallback."
 ;;;;
 
 (defvar-keymap diff-mode-shared-map
-  :inherit special-mode-map
+  :parent special-mode-map
   "n" #'diff-hunk-next
   "N" #'diff-file-next
   "p" #'diff-hunk-prev
