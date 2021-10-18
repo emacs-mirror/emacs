@@ -187,7 +187,14 @@ determine the renaming scheme, as follows:
 - `title': Use the web page's title.
 - `url': Use the web page's URL.
 - a function's symbol: Run a user-defined function that returns a
-  string with which to rename the buffer.
+  string with which to rename the buffer.  Sample of a
+  user-defined function:
+
+  (defun my-eww-rename-buffer ()
+    (when (eq major-mode 'eww-mode)
+      (when-let ((string (or (plist-get eww-data :title)
+                             (plist-get eww-data :url))))
+        (format \"*%s*\" string))))
 
 The string of `title' and `url' is always truncated to the value
 of `eww-buffer-name-length'."
