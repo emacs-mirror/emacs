@@ -6664,7 +6664,8 @@ should be a MENU form as accepted by `easy-menu-define'.
             (:parent (setq parent value))
             (:suppress (setq suppress value))
             (:name (setq name value))
-            (:prefix (setq prefix value))))))
+            (:prefix (setq prefix value))
+            (_ (error "Invalid keyword: %s" keyword))))))
 
     (when (and prefix
                (or full parent suppress keymap))

@@ -1211,6 +1211,9 @@ See Info node `(elisp) Integer Basics'."
     (while (and form
                 (keywordp (car form))
                 (not (eq (car form) :menu)))
+      (unless (memq (car form)
+                    '(:full :keymap :parent :suppress :name :prefix))
+        (error "Invalid keyword: %s" (car form)))
       (push (pop form) result)
       (when (null form)
         (error "Uneven number of keywords in %S" form))
