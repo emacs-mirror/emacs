@@ -195,16 +195,23 @@ is not known."
 
 ;;; Cross-reference
 
-(cl-defstruct (xref-item
-               (:constructor xref-make (summary location))
-               (:noinline t))
+(defmacro xref--defstruct (name &rest fields)
+  (declare (indent 1))
+  `(cl-defstruct ,(if (>= emacs-major-version 27)
+                      name
+                    (remq (assq :noinline name) name))
+     ,@fields))
+
+(xref--defstruct (xref-item
+                  (:constructor xref-make (summary location))
+                  (:noinline t))
   "An xref item describes a reference to a location somewhere."
   summary location)
 
-(cl-defstruct (xref-match-item
-               (:include xref-item)
-               (:constructor xref-make-match (summary location length))
-               (:noinline t))
+(xref--defstruct (xref-match-item
+                  (:include xref-item)
+                  (:constructor xref-make-match (summary location length))
+                  (:noinline t))
   "A match xref item describes a search result."
   length)
 
