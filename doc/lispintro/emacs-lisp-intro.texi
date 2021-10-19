@@ -1177,7 +1177,7 @@ are different from the meaning the letters make as a word.  For
 example, the word for the South American sloth, the @samp{ai}, is
 completely different from the two words, @samp{a}, and @samp{i}.
 
-There are many kinds of atom in nature but only a few in Lisp: for
+There are many kinds of atoms in nature but only a few in Lisp: for
 example, @dfn{numbers}, such as 37, 511, or 1729, and @dfn{symbols}, such
 as @samp{+}, @samp{foo}, or @samp{forward-line}.  The words we have
 listed in the examples above are all symbols.  In everyday Lisp

@@ -64,6 +64,44 @@ END {
      print ";;; emoji-zwj.el --- emoji zwj character composition table  -*- lexical-binding:t -*-"
      print ";;; Automatically generated from admin/unidata/emoji-{zwj-,}sequences.txt"
      print "(eval-when-compile (require 'regexp-opt))"
+
+     # The following codepoints are not emoji, but they are part of
+     # emoji sequences.  We have code in font.c:font_range that will
+     # try to display them with the emoji font anyway.
+
+     trigger_codepoints[1] = "261D"
+     trigger_codepoints[2] = "26F9"
+     trigger_codepoints[3] = "270C"
+     trigger_codepoints[4] = "270D"
+     trigger_codepoints[5] = "2764"
+     trigger_codepoints[6] = "1F3CB"
+     trigger_codepoints[7] = "1F3CC"
+     trigger_codepoints[8] = "1F3F3"
+     trigger_codepoints[9] = "1F3F4"
+     trigger_codepoints[10] = "1F441"
+     trigger_codepoints[11] = "1F574"
+     trigger_codepoints[12] = "1F575"
+     trigger_codepoints[13] = "1F590"
+
+     printf "(setq auto-composition-emoji-eligible-codepoints\n"
+     printf "'("
+
+     for (trig in trigger_codepoints)
+     {
+         printf("\n?\\N{U+%s}", trigger_codepoints[trig])
+     }
+     printf "\n))\n\n"
+
+     #  We add entries for 'codepoint U+FE0F' here to ensure that the
+     # code in font_range is triggered.
+
+     for (trig in trigger_codepoints)
+     {
+         codepoint = trigger_codepoints[trig]
+         c = sprintf("\\N{U+%s}", codepoint)
+         vec[codepoint] = vec[codepoint] "\n\"" c "\\N{U+FE0F}\""
+     }
+
      print "(dolist (elt `("
 
      for (elt in ch)
@@ -98,6 +136,5 @@ END {
      print "                                           0"
      print "                                    'compose-gstring-for-graphic))))"
 
-     print "\n"
-     print "(provide 'emoji-zwj)"
+     printf "\n(provide 'emoji-zwj)"
 }

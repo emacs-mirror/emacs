@@ -642,7 +642,7 @@ automatically increase the outer width of a frame in order to
 accommodate an overlong tool bar.
 
 @item Tab Bar
-@cindex internal tab bar
+@cindex tab bar
 The tab bar (@pxref{Tab Bars,,,emacs, The GNU Emacs Manual}) is always
 drawn by Emacs itself.  The tab bar appears above the tool bar in
 Emacs built with an internal tool bar, and below the tool bar in
@@ -1218,10 +1218,10 @@ width of one scroll bar provided this option is @code{nil} and keep it
 unchanged if this option is @code{t} or a list containing
 @code{vertical-scroll-bars}.
 
-The default value is @code{'(tab-bar-lines tool-bar-lines)} for Lucid,
+The default value is @code{(tab-bar-lines tool-bar-lines)} for Lucid,
 Motif and MS-Windows (which means that adding/removing a tool or tab
 bar there does not change the outer frame height),
-@code{'(tab-bar-lines)} on all other window systems including GTK+
+@code{(tab-bar-lines)} on all other window systems including GTK+
 (which means that changing any of the parameters listed above with the
 exception of @code{tab-bar-lines} may change the size of the outer
 frame), and @code{t} otherwise (which means the outer frame size never

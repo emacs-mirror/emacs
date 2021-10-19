@@ -444,7 +444,7 @@ selected window write:
 @group
 (customize-set-variable
  'display-buffer-alist
- '("\\*scratch\\*" (display-buffer-same-window)))
+ '(("\\*scratch\\*" (display-buffer-same-window))))
 @end group
 @end example
 

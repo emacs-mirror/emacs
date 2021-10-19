@@ -788,7 +788,7 @@ It has been changed in GVFS 1.14.")
     (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
     (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . ignore)
-    (file-readable-p . tramp-gvfs-handle-file-readable-p)
+    (file-readable-p . tramp-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
     (file-selinux-context . tramp-handle-file-selinux-context)
@@ -1396,8 +1396,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   "Like `file-executable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-executable-p"
-      (and (file-exists-p filename)
-	   (tramp-check-cached-permissions v ?x)))))
+      (tramp-check-cached-permissions v ?x))))
 
 (defun tramp-gvfs-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
@@ -1518,31 +1517,6 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (when (zerop (length string)) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
     (process-put proc 'rest-string string)))
-
-(defun tramp-gvfs-handle-file-readable-p (filename)
-  "Like `file-readable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (with-tramp-file-property v localname "file-readable-p"
-      (and (file-exists-p filename)
-	   (or (tramp-check-cached-permissions v ?r)
-	       ;; `tramp-check-cached-permissions' doesn't handle
-	       ;; symbolic links.
-	       (and (stringp (file-symlink-p filename))
-		    (file-readable-p
-		     (concat
-		      (file-remote-p filename) (file-symlink-p filename))))
-	       ;; If the user is different from what we guess to be
-	       ;; the user, we don't know.  Let's check, whether
-	       ;; access is restricted explicitly.
-	       (and (/= (tramp-get-remote-uid v 'integer)
-			(tramp-compat-file-attribute-user-id
-			 (file-attributes filename 'integer)))
-		    (not
-		     (string-equal
-		      "FALSE"
-		      (cdr (assoc
-			    "access::can-read"
-			    (tramp-gvfs-get-file-attributes filename)))))))))))
 
 (defun tramp-gvfs-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."

@@ -221,31 +221,9 @@ FILENAME ~ "emoji-data.txt" && /^[0-9A-F].*; Emoji_Presentation / {
 }
 
 END {
-    ## These codepoints have Emoji_Presentation = No, but they are
-    ## used in emoji-sequences.txt and emoji-zwj-sequences.txt (with a
-    ## Variation Selector), so force them into the emoji script so
-    ## they will get composed correctly.  FIXME: delete this when we
-    ## can change the font used for a codepoint based on whether it's
-    ## followed by a VS (usually VS-16)
     idx = 0
-    override_start[idx] = "1F3CB"
-    override_end[idx] = "1F3CC"
-    idx++
-    override_start[idx] = "1F3F3"
-    override_end[idx] = "1F3F4"
-    idx++
-    override_start[idx] = "1F441"
-    override_end[idx] = "1F441"
-    idx++
-    override_start[idx] = "1F574"
-    override_end[idx] = "1F575"
-    idx++
-    override_start[idx] = "1F590"
-    override_end[idx] = "1F590"
-
-    ## These are here so that font_range can choose Emoji presentation
-    ## for the preceding codepoint when it encounters a VS
-    idx++
+    # ## These are here so that font_range can choose Emoji presentation
+    # ## for the preceding codepoint when it encounters a VS
     override_start[idx] = "FE00"
     override_end[idx] = "FE0F"
 

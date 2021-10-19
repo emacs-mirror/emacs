@@ -2567,7 +2567,7 @@ that prompt for a project directory.
 +++
 *** New prefix keymap 'project-prefix-map'.
 Key sequences that invoke project-related commands start with the
-prefix 'C-x p'.  Type "C-x p C-h" to show the full list.
+prefix 'C-x p'.  Type 'C-x p C-h' to show the full list.
 
 +++
 *** New commands 'project-dired', 'project-vc-dir', 'project-shell',
@@ -3220,19 +3220,20 @@ batch mode.
 
 +++
 ** New transient mode 'repeat-mode' to allow shorter key sequences.
-You can type 'C-x u u' instead of 'C-x u C-x u' to undo many changes,
-'C-x o o' instead of 'C-x o C-x o' to switch several windows,
-'C-x { { } } ^ ^ v v' to resize the selected window interactively,
-'M-g n n p p' to navigate next-error matches.  Any other key exits
-transient mode and then is executed normally.  'repeat-exit-key'
-defines an additional key to exit mode like 'isearch-exit' ('RET').
-The user option 'repeat-exit-timeout' specifies the number of
-seconds of idle time to break the repetition chain automatically.
-With 'repeat-keep-prefix' you can keep the prefix arg of the previous
-command.  For example, this can help to reverse the window navigation
-direction with e.g. 'C-x o M-- o o'.  Also it can help to set a new
-step with e.g. 'C-x { C-5 { { {', which will set the window resizing
-step to 5 columns.
+Type 'M-x repeat-mode RET' to enable this mode.  You can then type
+'C-x u u' instead of 'C-x u C-x u' to undo many changes, 'C-x o o'
+instead of 'C-x o C-x o' to switch windows, 'C-x { { } } ^ ^ v v' to
+resize the selected window interactively, 'M-g n n p p' to navigate
+next-error matches.  Any other key exits transient mode and then is
+executed normally.  'repeat-exit-key' defines an additional key to
+exit mode like 'isearch-exit' ('RET').  The user option
+'repeat-exit-timeout' specifies the number of seconds of idle time to
+break the repetition chain automatically.  With 'repeat-keep-prefix'
+you can keep the prefix arg of the previous command.  For example,
+this can help to reverse the window navigation direction with
+e.g. 'C-x o M-- o o'.  Also it can help to set a new step with
+e.g. 'C-x { C-5 { { {', which will set the window resizing step to 5
+columns.
 
 ---
 ** New themes 'modus-vivendi' and 'modus-operandi'.

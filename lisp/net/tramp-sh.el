@@ -1580,9 +1580,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `file-readable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-readable-p"
-      ;; Examine `file-attributes' cache to see if request can be
-      ;; satisfied without remote operation.
-      (or (tramp-check-cached-permissions v ?r)
+      (or (tramp-handle-file-readable-p filename)
 	  (tramp-run-test "-r" filename)))))
 
 ;; Functions implemented using the basic functions above.

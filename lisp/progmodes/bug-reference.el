@@ -72,7 +72,7 @@ so that it is considered safe, see `enable-local-variables'.")
                 (get s 'bug-reference-url-format)))))
 
 (defcustom bug-reference-bug-regexp
-  "\\(\\(?:[Bb]ug ?#?\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z+-]+/\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
+  "\\(\\b\\(?:[Bb]ug ?#?\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z+-]+/\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
   "Regular expression matching bug references.
 The first subexpression defines the region of the bug-reference
 overlay, i.e., the region being fontified and made clickable in
@@ -350,7 +350,7 @@ generated from `bug-reference-forge-alist'."
             ;; `bug-reference-url-format' and
             ;; `bug-reference-bug-regexp' aren't set already.
             ("git\\.\\(?:sv\\|savannah\\)\\.gnu\\.org:"
-             "\\<\\(\\(?:[Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)\\>"
+             "\\(\\b\\(?:[Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)\\>"
              ,(lambda (_) "https://debbugs.gnu.org/%s"))
 
             ;; Entries for the software forges of
@@ -395,7 +395,7 @@ applicable."
      ,(regexp-opt '("@debbugs.gnu.org" "-devel@gnu.org"
                     ;; List-Id of Gnus devel mailing list.
                     "ding.gnus.org"))
-     "\\([Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
+     "\\(\\b[Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in mail modes.
 
@@ -526,7 +526,7 @@ From, and Cc against HEADER-REGEXP in
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
                                 "erc") 'words))
      "Libera.Chat"
-     "\\([Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
+     "\\(\\b[Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in IRC modes.
 

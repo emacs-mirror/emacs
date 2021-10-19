@@ -3159,7 +3159,20 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 		  (regexp-opt (directory-files tmp-name1))
 		  (length (directory-files tmp-name1)))))))
 
-	    ;; Check error case.
+	    ;; Check error cases.
+	    (when (and (tramp--test-supports-file-modes-p)
+		       ;; With "sshfs", directories with zero file
+		       ;; modes are still "accessible".
+		       (not (tramp--test-sshfs-p))
+		       ;; A directory is always accessible for user "root".
+		       (not (zerop (tramp-compat-file-attribute-user-id
+				    (file-attributes tmp-name1)))))
+	      (set-file-modes tmp-name1 0)
+	      (with-temp-buffer
+		(should-error
+		 (insert-directory tmp-name1 nil)
+		 :type 'file-error))
+	      (set-file-modes tmp-name1 #o777))
 	    (delete-directory tmp-name1 'recursive)
 	    (with-temp-buffer
 	      (should-error
@@ -3372,9 +3385,22 @@ This tests also `access-file', `file-readable-p',
 		       (tramp-get-remote-gid tramp-test-vec 'integer)))
 	      (delete-file tmp-name1))
 
+	    (when (and (tramp--test-supports-file-modes-p)
+		       ;; A file is always accessible for user "root".
+		       (not (zerop (tramp-compat-file-attribute-user-id
+				    (file-attributes
+				     tramp-test-temporary-file-directory)))))
+	      (write-region "foo" nil tmp-name1)
+	      (set-file-modes tmp-name1 0)
+	      (should-error
+	       (access-file tmp-name1 "error")
+	       :type 'file-error)
+	      (set-file-modes tmp-name1 #o777)
+	      (delete-file tmp-name1))
 	    (should-error
 	     (access-file tmp-name1 "error")
 	     :type tramp-file-missing)
+
 	    ;; `file-ownership-preserved-p' should return t for
 	    ;; non-existing files.
 	    (when test-file-ownership-preserved-p

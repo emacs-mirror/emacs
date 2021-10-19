@@ -966,6 +966,17 @@ evaluation of BODY."
     (should (equal (elisp--xref-infer-namespace p7) 'variable)))
 
   (elisp-mode-test--with-buffer
+      (concat "(let (({p1}alpha {p2}beta)\n"
+              "      ({p3}gamma ({p4}delta {p5}epsilon)))\n"
+              "  ({p6}zeta))\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'variable))
+    (should (equal (elisp--xref-infer-namespace p2) 'variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'function))
+    (should (equal (elisp--xref-infer-namespace p5) 'maybe-variable))
+    (should (equal (elisp--xref-infer-namespace p6) 'function)))
+
+  (elisp-mode-test--with-buffer
       (concat "(defun {p1}alpha () {p2}beta)\n"
               "(defface {p3}gamma ...)\n"
               "(defvar {p4}delta {p5}epsilon)\n"
