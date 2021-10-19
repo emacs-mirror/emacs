@@ -24,9 +24,9 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 29.1
 
-** Emacs now installs the .pdmp file using a unique fingerprint in the name.
+** Emacs now installs the ".pdmp" file using a unique fingerprint in the name.
 The file is typically installed using a file name akin to
-...dir/libexec/emacs/29.0.50/x86_64-pc-linux-gnu/emacs-<fingerprint>.pdmp
+"...dir/libexec/emacs/29.1/x86_64-pc-linux-gnu/emacs-<fingerprint>.pdmp".
 If a constant file name is required, the file can be renamed to
 "emacs.pdmp", and Emacs will find it during startup anyway.
 
@@ -158,6 +158,14 @@ a prefix argument which is interpreted to mean "include all files".
 +++
 *** The new command 'file-notify-rm-all-watches' removes all file notifications.
 
+** Sql
+
+---
+*** Sql now supports sending of passwords in-process.
+To improve security, if an sql product has ':password-in-comint' set
+to t, a password supplied via the minibuffer will be sent in-process,
+as opposed to via the command-line.
+
 
 * New Modes and Packages in Emacs 29.1
 
@@ -176,19 +184,19 @@ In 'emacs-lisp-mode', forms with a symbol with a name that start with
 "def" have been automatically indented as if they were 'defun'-like
 forms, for instance:
 
-  (defzot 1
-    2 3)
+    (defzot 1
+      2 3)
 
 This heuristic has now been removed, and all functions/macros that
 want to be indented this way have to be marked with
 
-  (declare (indent defun))
+    (declare (indent defun))
 
 or the like.  If the function/macro definition itself can't be
 changed, the indentation can also be adjusted by saying something
 like:
 
-  (put 'defzot 'lisp-indent-function 'defun)
+    (put 'defzot 'lisp-indent-function 'defun)
 
 ---
 ** The 'inhibit-changing-match-data' variable is now obsolete.
@@ -209,7 +217,7 @@ with recent versions of Firefox.
 
 +++
 ** 'define-key' now understands a new strict 'kbd' representation for keys.
-The (define-key map ["C-c M-f"] #'some-command) syntax is now
+The '(define-key map ["C-c M-f"] #'some-command)' syntax is now
 supported, and is like the 'kbd' representation, but is stricter.  If
 the string doesn't represent a valid key sequence, an error is
 signalled (both when evaluating and byte compiling).
@@ -245,12 +253,6 @@ This function allows defining a number of keystrokes with one form.
 +++
 ** New macro 'defvar-keymap'.
 This macro allows defining keymap variables more conveniently.
-
----
-**** sql now supports sending of passwords in-process.
-To improve security, if a sql product has ':password-in-comint' set to
-true, a password supplied via the minibuffer will be sent in-process,
-as opposed to via the command-line.
 
 ---
 ** 'kbd' can now be used in built-in, preloaded libraries.
