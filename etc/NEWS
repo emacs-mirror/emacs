@@ -179,6 +179,18 @@ Emacs buffers, like indentation and the like.  The new ert function
 * Incompatible Lisp Changes in Emacs 29.1
 
 ---
+** 'downcase' details have changed slightly.
+In certain locales, changing the case of an ASCII-range character may
+turn it into a multibyte character, most notably with "I" in Turkish
+(the lowercase is "ı", 0x0131).  Previously, 'downcase' on a unibyte
+string was buggy, and would mistakenly just return the lower byte of
+this, 0x31 (the digit "1").  'downcase' on a unibyte string has now
+been changed to downcase such characters as if they were ASCII.  To
+get proper locale-dependent downcasing, the string has to be converted
+to multibyte first.  (This goes for the other case-changing functions,
+too.)
+
+---
 ** 'def' indentation changes.
 In 'emacs-lisp-mode', forms with a symbol with a name that start with
 "def" have been automatically indented as if they were 'defun'-like
