@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
-;; Version: 1.3.1
+;; Version: 1.3.2
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -75,7 +75,7 @@
 (require 'project)
 
 (eval-and-compile
-  (when (version< emacs-version "28")
+  (when (version< emacs-version "28.0.60")
     ;; etags.el in Emacs 26 and 27 uses EIEIO, and its location type
     ;; inherits from `xref-location'.
     (require 'eieio)
