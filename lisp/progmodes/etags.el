@@ -145,7 +145,9 @@ Otherwise, `find-tag-default' is used."
   :type '(choice (const nil) function))
 
 (define-obsolete-variable-alias 'find-tag-marker-ring-length
-  'xref-marker-ring-length "25.1")
+  'tags-location-ring-length "25.1")
+
+(defvar tags-location-ring-length 16)
 
 (defcustom tags-tag-face 'default
   "Face for tags in the output of `tags-apropos'."
@@ -180,7 +182,8 @@ Example value:
 		       (sexp :tag "Tags to search")))
   :version "21.1")
 
-(defvaralias 'find-tag-marker-ring 'xref--marker-ring)
+;; Obsolete variable kept for compatibility. We don't use it in any way.
+(defvar find-tag-marker-ring (make-ring 16))
 (make-obsolete-variable
  'find-tag-marker-ring
  "use `xref-push-marker-stack' or `xref-pop-marker-stack' instead."
@@ -191,7 +194,7 @@ Example value:
 This function receives no arguments and should return the default
 tags table file to use for the current buffer.")
 
-(defvar tags-location-ring (make-ring xref-marker-ring-length)
+(defvar tags-location-ring (make-ring tags-location-ring-length)
   "Ring of markers which are locations visited by \\[find-tag].
 Pop back to the last location with \\[negative-argument] \\[find-tag].")
 
@@ -731,13 +734,13 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
   (interactive)
   ;; Clear out the markers we are throwing away.
   (let ((i 0))
-    (while (< i xref-marker-ring-length)
+    (while (< i tags-location-ring-length)
       (if (aref (cddr tags-location-ring) i)
 	  (set-marker (aref (cddr tags-location-ring) i) nil))
       (setq i (1+ i))))
   (xref-clear-marker-stack)
   (setq tags-file-name nil
-	tags-location-ring (make-ring xref-marker-ring-length)
+	tags-location-ring (make-ring tags-location-ring-length)
 	tags-table-list nil
 	tags-table-computed-list nil
 	tags-table-computed-list-for nil

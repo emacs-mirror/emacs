@@ -341,15 +341,9 @@ backward."
           (t (goto-char start) nil))))
 
 
-;;; Marker stack  (M-. pushes, M-, pops)
-
-(defcustom xref-marker-ring-length 16
-  "Length of the xref marker ring.
-If this variable is not set through Customize, you must call
-`xref-set-marker-ring-length' for changes to take effect."
-  :type 'integer
-  :initialize #'custom-initialize-default
-  :set #'xref-set-marker-ring-length)
+;; Dummy variable retained for compatibility.
+(defvar xref-marker-ring-length 16)
+(make-obsolete-variable 'xref-marker-ring-length nil "29.1")
 
 (defcustom xref-prompt-for-identifier '(not xref-find-definitions
                                             xref-find-definitions-other-window
@@ -420,29 +414,47 @@ or earlier: it can break `dired-do-find-regexp-and-replace'."
   :version "28.1"
   :package-version '(xref . "1.2.0"))
 
-(defvar xref--marker-ring (make-ring xref-marker-ring-length)
-  "Ring of markers to implement the marker stack.")
+(defvar xref--history (cons nil nil)
+  "(BACKWARD-STACK . FORWARD-STACK) of markers to visited Xref locations.")
 
-(defun xref-set-marker-ring-length (var val)
-  "Set `xref-marker-ring-length'.
-VAR is the symbol `xref-marker-ring-length' and VAL is the new
-value."
-  (set-default var val)
-  (if (ring-p xref--marker-ring)
-      (ring-resize xref--marker-ring val)))
+(make-obsolete-variable 'xref-marker-ring nil "29.1")
+
+(defun xref-set-marker-ring-length (_var _val)
+  (declare (obsolete nil "29.1"))
+  nil)
 
 (defun xref-push-marker-stack (&optional m)
-  "Add point M (defaults to `point-marker') to the marker stack."
-  (ring-insert xref--marker-ring (or m (point-marker))))
+  "Add point M (defaults to `point-marker') to the marker stack.
+The future stack is erased."
+  (push (or m (point-marker)) (car xref--history))
+  (dolist (mk (cdr xref--history))
+    (set-marker mk nil nil))
+  (setcdr xref--history nil))
 
 ;;;###autoload
 (defun xref-pop-marker-stack ()
-  "Pop back to where \\[xref-find-definitions] was last invoked."
+  "Go back to the previous position in xref history.
+To undo, use \\[xref-go-forward]."
   (interactive)
-  (let ((ring xref--marker-ring))
-    (when (ring-empty-p ring)
-      (user-error "Marker stack is empty"))
-    (let ((marker (ring-remove ring 0)))
+  (if (null (car xref--history))
+      (user-error "At start of xref history")
+    (let ((marker (pop (car xref--history))))
+      (push (point-marker) (cdr xref--history))
+      (switch-to-buffer (or (marker-buffer marker)
+                            (user-error "The marked buffer has been deleted")))
+      (goto-char (marker-position marker))
+      (set-marker marker nil nil)
+      (run-hooks 'xref-after-return-hook))))
+;; FIXME: rename to `xref-go-back'.
+
+;;;###autoload
+(defun xref-go-forward ()
+  "Got to the point where a previous \\[xref-pop-marker-stack] was invoked."
+  (interactive)
+  (if (null (cdr xref--history))
+      (user-error "At end of xref history")
+    (let ((marker (pop (cdr xref--history))))
+      (push (point-marker) (car xref--history))
       (switch-to-buffer (or (marker-buffer marker)
                             (user-error "The marked buffer has been deleted")))
       (goto-char (marker-position marker))
@@ -465,17 +477,23 @@ value."
 
 ;; etags.el needs this
 (defun xref-clear-marker-stack ()
-  "Discard all markers from the marker stack."
-  (let ((ring xref--marker-ring))
-    (while (not (ring-empty-p ring))
-      (let ((marker (ring-remove ring)))
-        (set-marker marker nil nil)))))
+  "Discard all markers from the xref history."
+  (dolist (l (list (car xref--history) (cdr xref--history)))
+    (dolist (m l)
+      (set-marker m nil nil)))
+  (setq xref--history (cons nil nil))
+  nil)
 
 ;;;###autoload
 (defun xref-marker-stack-empty-p ()
-  "Return t if the marker stack is empty; nil otherwise."
-  (ring-empty-p xref--marker-ring))
+  "Whether the xref back-history is empty."
+  (null (car xref--history)))
+;; FIXME: rename this to `xref-back-history-empty-p'.
 
+;;;###autoload
+(defun xref-forward-history-empty-p ()
+  "Whether the xref forward-history is empty."
+  (null (cdr xref--history)))
 
 
 (defun xref--goto-char (pos)
@@ -1494,6 +1512,7 @@ output of this command when the backend is etags."
 ;;;###autoload (define-key esc-map "," #'xref-pop-marker-stack)
 ;;;###autoload (define-key esc-map "?" #'xref-find-references)
 ;;;###autoload (define-key esc-map [?\C-.] #'xref-find-apropos)
+;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 

@@ -2140,6 +2140,9 @@ Find definition of identifier at mouse click.
 @item M-,
 Go back to where you previously invoked @kbd{M-.} and friends
 (@code{xref-pop-marker-stack}).
+@item C-M-,
+Go forward to where you previously invoked @kbd{M-,}
+(@code{xref-go-forward}).
 @item M-x xref-etags-mode
 Switch @code{xref} to use the @code{etags} backend.
 @end table
@@ -2205,14 +2208,16 @@ buffer, but doesn't select any of them.
 
 @kindex M-,
 @findex xref-pop-marker-stack
-@vindex xref-marker-ring-length
   To go back to places @emph{from where} you've displayed the definition,
 use @kbd{M-,} (@code{xref-pop-marker-stack}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
-where you were with @kbd{M-,}.  @kbd{M-,} allows you to retrace your
-steps to a depth determined by the variable
-@code{xref-marker-ring-length}, which defaults to 16.
+where you were with @kbd{M-,}.
+
+@kindex C-M-,
+@findex xref-go-forward
+  Go forward to a place from where you previously went back using @kbd{M-,}.
+This is useful if you find that you went back too far.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might

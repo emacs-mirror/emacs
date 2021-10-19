@@ -419,6 +419,12 @@
                                 (not (xref-marker-stack-empty-p)))
                   :help "Back to the position of the last search"))
 
+    (bindings--define-key menu [xref-forward]
+      '(menu-item "Forward" xref-go-forward
+                  :visible (and (featurep 'xref)
+                                (not (xref-forward-history-empty-p)))
+                  :help "Forward to the position gone Back from"))
+
     (bindings--define-key menu [xref-apropos]
       '(menu-item "Find Apropos..." xref-find-apropos
                   :help "Find function/variables whose names match regexp"))

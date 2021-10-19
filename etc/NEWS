@@ -183,6 +183,11 @@ it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 *** 'project-find-file' and 'project-or-external-find-file' now accept
 a prefix argument which is interpreted to mean "include all files".
 
++++
+*** New command 'xref-go-forward'.
+It is bound to 'C-M-,' and jumps to the location where 'xref-pop-marker-stack'
+was invoked previously.
+
 ** File notifications
 
 +++
