@@ -2083,6 +2083,9 @@ directory.  Therefore, Emacs considers a file name as having two main
 parts: the @dfn{directory name} part, and the @dfn{nondirectory} part
 (or @dfn{file name within the directory}).  Either part may be empty.
 Concatenating these two parts reproduces the original file name.
+@footnote{Emacs follows the GNU convention to use the term @emph{file name}
+instead of the term @emph{pathname}.  We use the term @emph{path} only for
+search paths, which are lists of directory names.}
 
   On most systems, the directory part is everything up to and including
 the last slash (backslash is also allowed in input on MS-DOS or
