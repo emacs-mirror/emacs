@@ -416,6 +416,16 @@ The ACTION will be tested after set-up of PRODUCT."
 
     (kill-buffer "*SQL: exist*")))
 
+(ert-deftest sql-tests-comint-automatic-password ()
+  (let ((sql-password nil))
+    (should-not (sql-comint-automatic-password "Password: ")))
+  (let ((sql-password ""))
+    (should-not (sql-comint-automatic-password "Password: ")))
+  (let ((sql-password "password"))
+    (should (equal "password" (sql-comint-automatic-password "Password: "))))
+  ;; Also, we shouldn't care what the password is - we rely on comint for that.
+  (let ((sql-password "password"))
+    (should (equal "password" (sql-comint-automatic-password "")))))
 
 (provide 'sql-tests)
 ;;; sql-tests.el ends here

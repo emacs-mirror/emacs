@@ -4659,6 +4659,14 @@ the call to \\[sql-product-interactive] with
               (get-buffer new-sqli-buffer)))))
     (user-error "No default SQL product defined: set `sql-product'")))
 
+(defun sql-comint-automatic-password (_)
+  "Intercept password prompts when we know the password.
+This must also do the job of detecting password prompts."
+  (when (and
+         sql-password
+         (not (string= "" sql-password)))
+    sql-password))
+
 (defun sql-comint (product params &optional buf-name)
   "Set up a comint buffer to run the SQL processor.
 
@@ -4682,6 +4690,13 @@ buffer.  If nil, a name is chosen for it."
           (setq buf-name (concat "*" buf-name "*")))
       (setq buf-name (sql-generate-unique-sqli-buffer-name product nil)))
     (set-text-properties 0 (length buf-name) nil buf-name)
+
+    ;; Create the buffer first, because we want to set it up before
+    ;; comint starts to run.
+    (set-buffer (get-buffer-create buf-name))
+    ;; Set up the automatic population of passwords, if supported.
+    (when (sql-get-product-feature product :password-in-comint)
+      (setq comint-password-function #'sql-comint-automatic-password))
 
     ;; Start the command interpreter in the buffer
     ;;   PROC-NAME is BUF-NAME without enclosing asterisks

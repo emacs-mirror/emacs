@@ -247,6 +247,12 @@ This function allows defining a number of keystrokes with one form.
 This macro allows defining keymap variables more conveniently.
 
 ---
+**** sql now supports sending of passwords in-process.
+To improve security, if a sql product has ':password-in-comint' set to
+true, a password supplied via the minibuffer will be sent in-process,
+as opposed to via the command-line.
+
+---
 ** 'kbd' can now be used in built-in, preloaded libraries.
 It no longer depends on edmacro.el and cl-lib.el.
 
