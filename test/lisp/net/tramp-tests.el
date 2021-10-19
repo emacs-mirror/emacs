@@ -4588,23 +4588,25 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
-      (unwind-protect
-	  (with-temp-buffer
-	    (setq proc (start-file-process "test3" (current-buffer) "cat"))
-	    (should (processp proc))
-	    (should (equal (process-status proc) 'run))
-	    (set-process-filter proc t)
-	    (process-send-string proc "foo\n")
-	    (process-send-eof proc)
-	    ;; Read output.
-	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (process-live-p proc)
-		(while (accept-process-output proc 0 nil t))))
-	    ;; No output due to process filter.
-	    (should (= (point-min) (point-max))))
+      ;; `telnet' does not cooperate with disabled filter.
+      (unless (tramp--test-telnet-p)
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq proc (start-file-process "test3" (current-buffer) "cat"))
+	      (should (processp proc))
+	      (should (equal (process-status proc) 'run))
+	      (set-process-filter proc t)
+	      (process-send-string proc "foo\n")
+	      (process-send-eof proc)
+	      ;; Read output.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (process-live-p proc)
+		  (while (accept-process-output proc 0 nil t))))
+	      ;; No output due to process filter.
+	      (should (= (point-min) (point-max))))
 
-	;; Cleanup.
-	(ignore-errors (delete-process proc)))
+	  ;; Cleanup.
+	  (ignore-errors (delete-process proc))))
 
       ;; Process connection type.
       (when (and (tramp--test-sh-p)
@@ -4779,27 +4781,29 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
-      (unwind-protect
-	  (with-temp-buffer
-	    (setq proc
-		  (with-no-warnings
-		    (make-process
-		     :name "test3" :buffer (current-buffer) :command '("cat")
-		     :filter t
-		     :file-handler t)))
-	    (should (processp proc))
-	    (should (equal (process-status proc) 'run))
-	    (process-send-string proc "foo\n")
-	    (process-send-eof proc)
-	    ;; Read output.
-	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (process-live-p proc)
-		(while (accept-process-output proc 0 nil t))))
-	    ;; No output due to process filter.
-	    (should (= (point-min) (point-max))))
+      ;; `telnet' does not cooperate with disabled filter.
+      (unless (tramp--test-telnet-p)
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq proc
+		    (with-no-warnings
+		      (make-process
+		       :name "test3" :buffer (current-buffer) :command '("cat")
+		       :filter t
+		       :file-handler t)))
+	      (should (processp proc))
+	      (should (equal (process-status proc) 'run))
+	      (process-send-string proc "foo\n")
+	      (process-send-eof proc)
+	      ;; Read output.
+	      (with-timeout (10 (tramp--test-timeout-handler))
+		(while (process-live-p proc)
+		  (while (accept-process-output proc 0 nil t))))
+	      ;; No output due to process filter.
+	      (should (= (point-min) (point-max))))
 
-	;; Cleanup.
-	(ignore-errors (delete-process proc)))
+	  ;; Cleanup.
+	  (ignore-errors (delete-process proc))))
 
       ;; Process sentinel.
       (unwind-protect
@@ -6191,6 +6195,10 @@ This does not support external Emacs calls."
   (string-equal
    "mock" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
+(defun tramp--test-out-of-band-p ()
+  "Check, whether an out-of-band method is used."
+  (tramp-method-out-of-band-p tramp-test-vec 1))
+
 (defun tramp--test-rclone-p ()
   "Check, whether the remote host is offered by rclone.
 This requires restrictions of file name syntax."
@@ -6246,13 +6254,13 @@ This does not support special file names."
 (defun tramp--test-windows-nt-and-out-of-band-p ()
   "Check, whether the locale host runs MS Windows and an out-of-band method.
 This does not support utf8 based file transfer."
-  (and (eq system-type 'windows-nt)
-       (tramp-method-out-of-band-p tramp-test-vec 1)))
+  (and (tramp--test-windows-nt-p)
+       (tramp--test-out-of-band-p)))
 
 (defun tramp--test-windows-nt-or-smb-p ()
   "Check, whether the locale or remote host runs MS Windows.
 This requires restrictions of file name syntax."
-  (or (eq system-type 'windows-nt)
+  (or (tramp--test-windows-nt-p)
       (tramp--test-smb-p)))
 
 (defun tramp--test-smb-p ()
@@ -6662,7 +6670,7 @@ Use the `stat' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
+  (skip-unless (not (tramp--test-out-of-band-p))) ; SLOW
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   ;; We cannot use `tramp-test-vec', because this fails during compilation.
@@ -6685,7 +6693,7 @@ Use the `perl' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
+  (skip-unless (not (tramp--test-out-of-band-p))) ; SLOW
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   ;; We cannot use `tramp-test-vec', because this fails during compilation.
@@ -6711,7 +6719,7 @@ Use the `ls' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
+  (skip-unless (not (tramp--test-out-of-band-p))) ; SLOW
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
 
