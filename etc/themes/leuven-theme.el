@@ -287,6 +287,25 @@ more...")
    `(message-header-xheader ((,class ,mail-header-other)))
    `(message-mml ((,class (:foreground "forest green"))))
 
+   ;; ANSI colors.
+   `(ansi-color-bold ((,class (:weight bold))))
+   `(ansi-color-black ((,class (:foreground "black" :background "black"))))
+   `(ansi-color-red ((,class (:foreground "red3" :background "red3"))))
+   `(ansi-color-green ((,class (:foreground "forest green" :background "forest green"))))
+   `(ansi-color-yellow ((,class (:foreground "yellow3" :background "yellow3"))))
+   `(ansi-color-blue ((,class (:foreground "blue" :background "blue"))))
+   `(ansi-color-magenta ((,class (:foreground "magenta3" :background "magenta3"))))
+   `(ansi-color-cyan ((,class (:foreground "deep sky blue" :background "deep sky blue"))))
+   `(ansi-color-white ((,class (:foreground "gray60" :background "gray60"))))
+   `(ansi-color-bright-black ((,class (:foreground "gray30" :background "gray30"))))
+   `(ansi-color-bright-red ((,class (:foreground "red1" :background "red1"))))
+   `(ansi-color-bright-green ((,class (:foreground "lime green" :background "lime green"))))
+   `(ansi-color-bright-yellow ((,class (:foreground "yellow2" :background "yellow2"))))
+   `(ansi-color-bright-blue ((,class (:foreground "dodger blue" :background "dodger blue"))))
+   `(ansi-color-bright-magenta ((,class (:foreground "magenta" :background "magenta"))))
+   `(ansi-color-bright-cyan ((,class (:foreground "sky blue" :background "sky blue"))))
+   `(ansi-color-bright-white ((,class (:foreground "gray80" :background "gray80"))))
+
    ;; Diff.
    `(diff-added ((,class ,diff-added)))
    `(diff-changed ((,class ,diff-changed)))
@@ -1035,12 +1054,6 @@ more...")
   ;; highlight-sexp-mode.
   '(hl-sexp-background-color "#efebe9")
 
-  '(ansi-color-faces-vector
-    [default default default italic underline success warning error])
-
-  ;; Colors used in Shell mode.
-  '(ansi-color-names-vector
-    ["black" "red3" "ForestGreen" "yellow3" "blue" "magenta3" "DeepSkyBlue" "gray50"])
  )
 
 ;;;###autoload
