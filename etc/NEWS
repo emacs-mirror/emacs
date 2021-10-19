@@ -103,6 +103,15 @@ delimiter in the echo area.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** align
+
+---
+*** Alignment in 'text-mode' has changed.
+Previously, 'M-x align' didn't do anything, and you have to say 'C-u
+M-x align' for it to work.  This has now been changed.  The default
+for regexp for 'C-u M-x align-regexp' has also been changed to be
+easier for inexperienced users to use.
+
 ** eww
 
 +++
