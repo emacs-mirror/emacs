@@ -36,15 +36,14 @@
 ;;;; Images
 
 (defconst image-tests--files
-  `((jpeg . ,(create-image (expand-file-name
-                            "test/data/image/black.jpg"
-                            source-directory)))
+  `((jpeg . ,(expand-file-name "test/data/image/black.jpg"
+                               source-directory))
     (pbm . ,(find-image '((:file "splash.svg" :type svg))))
     (png . ,(find-image '((:file "splash.png" :type png))))
     (svg . ,(find-image '((:file "splash.pbm" :type pbm))))
-    (tiff . ,(create-image (expand-file-name
-                            "nextstep/GNUstep/Emacs.base/Resources/emacs.tiff"
-                            source-directory)))
+    (tiff . ,(expand-file-name
+              "nextstep/GNUstep/Emacs.base/Resources/emacs.tiff"
+              source-directory))
     (xbm . ,(find-image '((:file "gnus/gnus.xbm" :type xbm))))
     (xpm . ,(find-image '((:file "splash.xpm" :type xpm))))
     ;; TODO: gif
@@ -54,7 +53,7 @@
 
 (ert-deftest image-tests-image-size/jpeg ()
   (image-skip-unless 'jpeg)
-  (pcase (image-size (cdr (assq 'jpeg image-tests--files)))
+  (pcase (image-size (create-image (cdr (assq 'jpeg image-tests--files))))
     (`(,a . ,b)
      (should (floatp a))
      (should (floatp b)))))
@@ -82,7 +81,7 @@
 
 (ert-deftest image-tests-image-size/tiff ()
   (image-skip-unless 'tiff)
-  (pcase (image-size (cdr (assq 'tiff image-tests--files)))
+  (pcase (image-size (create-image (cdr (assq 'tiff image-tests--files))))
     (`(,a . ,b)
      (should (floatp a))
      (should (floatp b)))))
@@ -113,7 +112,8 @@
 
 (ert-deftest image-tests-image-mask-p/jpeg ()
   (image-skip-unless 'jpeg)
-  (should-not (image-mask-p (cdr (assq 'jpeg image-tests--files)))))
+  (should-not (image-mask-p (create-image
+			     (cdr (assq 'jpeg image-tests--files))))))
 
 (ert-deftest image-tests-image-mask-p/pbm ()
   (image-skip-unless 'pbm)
@@ -129,7 +129,8 @@
 
 (ert-deftest image-tests-image-mask-p/tiff ()
   (image-skip-unless 'tiff)
-  (should-not (image-mask-p (cdr (assq 'tiff image-tests--files)))))
+  (should-not (image-mask-p (create-image
+			     (cdr (assq 'tiff image-tests--files))))))
 
 (ert-deftest image-tests-image-mask-p/xbm ()
   (image-skip-unless 'xbm)
@@ -154,7 +155,8 @@
 
 (ert-deftest image-tests-image-metadata/jpeg ()
   (image-skip-unless 'jpeg)
-  (should-not (image-metadata (cdr (assq 'jpeg image-tests--files)))))
+  (should-not (image-metadata
+	       (create-image (cdr (assq 'jpeg image-tests--files))))))
 
 (ert-deftest image-tests-image-metadata/pbm ()
   (image-skip-unless 'pbm)
@@ -170,7 +172,8 @@
 
 (ert-deftest image-tests-image-metadata/tiff ()
   (image-skip-unless 'tiff)
-  (should-not (image-metadata (cdr (assq 'tiff image-tests--files)))))
+  (should-not (image-metadata
+	       (create-image (cdr (assq 'tiff image-tests--files))))))
 
 (ert-deftest image-tests-image-metadata/xbm ()
   (image-skip-unless 'xbm)
@@ -198,6 +201,7 @@
 ;;;; Initialization
 
 (ert-deftest image-tests-init-image-library ()
+  (skip-unless (fboundp 'init-image-library))
   (should (init-image-library 'pbm)) ; built-in
   (should (init-image-library 'xpm)) ; built-in
   (should-not (init-image-library 'invalid-image-type)))
