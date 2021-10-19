@@ -317,6 +317,13 @@ g .. h		foo
   (should (equal (single-key-description 'C-s-home)
                  "C-s-<home>")))
 
+(ert-deftest keymap-test-lookups ()
+  (should (eq (lookup-key (current-global-map) "\C-x\C-f") 'find-file))
+  (should (eq (lookup-key (current-global-map) [(control x) (control f)])
+              'find-file))
+  (should (eq (lookup-key (current-global-map) ["C-x C-f"]) 'find-file))
+  (should (eq (lookup-key (current-global-map) [?\C-x ?\C-f]) 'find-file)))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here
