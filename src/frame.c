@@ -6238,7 +6238,10 @@ when the mouse is over clickable text.  */);
 
   DEFVAR_LISP ("make-pointer-invisible", Vmake_pointer_invisible,
                doc: /* If non-nil, make mouse pointer invisible while typing.
-The pointer becomes visible again when the mouse is moved.  */);
+The pointer becomes visible again when the mouse is moved.
+
+When using this, you might also want to disable highlighting of
+clickable text.  See `mouse-highlight'.  */);
   Vmake_pointer_invisible = Qt;
 
   DEFVAR_LISP ("move-frame-functions", Vmove_frame_functions,
