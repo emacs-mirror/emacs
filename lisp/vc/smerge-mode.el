@@ -170,7 +170,7 @@ Used in `smerge-diff-base-upper' and related functions."
 		 string))
 
 (defvar-keymap smerge-mode-map
-  smerge-command-prefix 'smerge-basic-map)
+  smerge-command-prefix smerge-basic-map)
 
 (defvar-local smerge-check-cache nil)
 (defun smerge-check (n)
