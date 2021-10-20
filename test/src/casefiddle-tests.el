@@ -278,4 +278,17 @@
     (with-temp-buffer
       (should-error (upcase-region nil nil t)))))
 
+(ert-deftest casefiddle-turkish ()
+  (skip-unless (member "tr_TR.utf8" (get-locale-names)))
+  (with-locale-environment "tr_TR.utf8"
+    (should (string-equal (downcase "I ı") "ı ı"))
+    (should (string-equal (downcase "İ i") "i̇ i"))
+    (should (string-equal (downcase "I") "i"))
+    (should (string-equal (capitalize "bIte") "Bite"))
+    (should (string-equal (capitalize "bIté") "Bıté"))
+    (should (string-equal (capitalize "indIa") "India"))
+    ;; This does not work -- it produces "Indıa".
+    ;;(should (string-equal (capitalize "indIá") "İndıa"))
+    ))
+
 ;;; casefiddle-tests.el ends here

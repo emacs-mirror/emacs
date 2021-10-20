@@ -54,6 +54,9 @@ struct casing_context
 
   /* Whether the context is within a word.  */
   bool inword;
+
+  /* What the last operation was.  */
+  bool downcase_last;
 };
 
 /* Initialize CTX structure for casing characters.  */
@@ -143,10 +146,14 @@ case_character_impl (struct casing_str_buf *buf,
 
   /* Handle simple, one-to-one case.  */
   if (flag == CASE_DOWN)
-    cased = downcase (ch);
+    {
+      cased = downcase (ch);
+      ctx->downcase_last = true;
+    }
   else
     {
       bool cased_is_set = false;
+      ctx->downcase_last = false;
       if (!NILP (ctx->titlecase_char_table))
 	{
 	  prop = CHAR_TABLE_REF (ctx->titlecase_char_table, ch);
@@ -324,7 +331,7 @@ do_casify_unibyte_string (struct casing_context *ctx, Lisp_Object obj)
 	 character (this can happen in some locales, like the Turkish
 	 "I"), downcase using the ASCII char table.  */
       if (ASCII_CHAR_P (ch) && !SINGLE_BYTE_CHAR_P (cased))
-	cased = ascii_casify_character (ctx->flag == CASE_DOWN, ch);
+	cased = ascii_casify_character (ctx->downcase_last, ch);
       SSET (obj, i, make_char_unibyte (cased));
     }
   return obj;
