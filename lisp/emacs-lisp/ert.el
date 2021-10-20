@@ -92,6 +92,7 @@ Use nil for no limit (caution: backtrace lines can be very long)."
 
 ;;; Copies/reimplementations of cl functions.
 
+;; FIXME: Bug#6581 is fixed, so this should be deleted.
 (defun ert-equal-including-properties (a b)
   "Return t if A and B have similar structure and contents.
 

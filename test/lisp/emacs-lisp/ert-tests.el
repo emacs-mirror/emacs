@@ -715,27 +715,13 @@ This macro is used to test if macroexpansion in `should' works."
                  context-before "f" context-after "o"))))
 
 (ert-deftest ert-test-equal-including-properties ()
-  (should (equal-including-properties "foo" "foo"))
   (should (ert-equal-including-properties "foo" "foo"))
-
-  (should (equal-including-properties #("foo" 0 3 (a b))
-                                      (propertize "foo" 'a 'b)))
   (should (ert-equal-including-properties #("foo" 0 3 (a b))
                                           (propertize "foo" 'a 'b)))
-
-  (should (equal-including-properties #("foo" 0 3 (a b c d))
-                                      (propertize "foo" 'a 'b 'c 'd)))
   (should (ert-equal-including-properties #("foo" 0 3 (a b c d))
-                                          (propertize "foo" 'a 'b 'c 'd)))
-
-  (should-not (equal-including-properties #("foo" 0 3 (a b c e))
                                           (propertize "foo" 'a 'b 'c 'd)))
   (should-not (ert-equal-including-properties #("foo" 0 3 (a b c e))
                                               (propertize "foo" 'a 'b 'c 'd)))
-
-  ;; This is bug 6581.
-  (should-not (equal-including-properties #("foo" 0 3 (a (t)))
-                                          (propertize "foo" 'a (list t))))
   (should (ert-equal-including-properties #("foo" 0 3 (a (t)))
                                           (propertize "foo" 'a (list t)))))
 
