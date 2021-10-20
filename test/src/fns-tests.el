@@ -23,6 +23,29 @@
 
 (require 'cl-lib)
 
+(ert-deftest fns-tests-identity ()
+  (let ((num 12345)) (should (eq (identity num) num)))
+  (let ((str "foo")) (should (eq (identity str) str)))
+  (let ((lst '(11))) (should (eq (identity lst) lst))))
+
+(ert-deftest fns-tests-random ()
+  (should (integerp (random)))
+  (should (>= (random 10) 0))
+  (should (< (random 10) 10)))
+
+(ert-deftest fns-tests-length ()
+  (should (= (length nil) 0))
+  (should (= (length '(1 2 3)) 3))
+  (should (= (length '[1 2 3]) 3))
+  (should (= (length "foo") 3))
+  (should-error (length t)))
+
+(ert-deftest fns-tests-safe-length ()
+  (should (= (safe-length '(1 2 3)) 3)))
+
+(ert-deftest fns-tests-string-bytes ()
+  (should (= (string-bytes "abc") 3)))
+
 ;; Test that equality predicates work correctly on NaNs when combined
 ;; with hash tables based on those predicates.  This was not the case
 ;; for eql in Emacs 26.
