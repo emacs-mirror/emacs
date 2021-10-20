@@ -478,6 +478,18 @@
       (should-not (erc--valid-local-channel-p "#chan"))
       (should (erc--valid-local-channel-p "&local")))))
 
+(ert-deftest erc--target-from-string ()
+  (should (equal (erc--target-from-string "#chan")
+                 #s(erc--target-channel "#chan" \#chan)))
+
+  (should (equal (erc--target-from-string "Bob")
+                 #s(erc--target "Bob" bob)))
+
+  (let ((erc--isupport-params (make-hash-table)))
+    (puthash 'CHANTYPES  '("&#") erc--isupport-params)
+    (should (equal (erc--target-from-string "&Bitlbee")
+                   #s(erc--target-channel-local "&Bitlbee" &bitlbee)))))
+
 (ert-deftest erc-ring-previous-command-base-case ()
   (ert-info ("Create ring when nonexistent and do nothing")
     (let (erc-input-ring

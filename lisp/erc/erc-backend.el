@@ -1427,8 +1427,8 @@ add things to `%s' instead."
       (erc-buffer-filter
        (lambda ()
          (when (equal (erc-default-target) nick)
-           (setq erc-default-recipients
-                 (cons nn (cdr erc-default-recipients)))
+           (setq erc-default-recipients (cons nn (cdr erc-default-recipients))
+                 erc--target (erc--target-from-string nn))
            (rename-buffer nn t)         ; bug#12002
            (erc-update-mode-line)
            (cl-pushnew (current-buffer) bufs))))

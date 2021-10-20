@@ -1391,6 +1391,45 @@ if ARG is omitted or nil.
        (put ',enable  'definition-name ',name)
        (put ',disable 'definition-name ',name))))
 
+;; The rationale for favoring inheritance here (nicer dispatch) is
+;; kinda flimsy since there aren't yet any actual methods.
+
+(cl-defstruct erc--target
+  (string "" :type string :documentation "Received name of target.")
+  (symbol nil :type symbol :documentation "Case-mapped name as symbol."))
+
+;; These should probably take on a `joined' field to track joinedness,
+;; which should be toggled by `erc-server-JOIN', `erc-server-PART',
+;; etc.  Functions like `erc--current-buffer-joined-p' (bug#48598) may
+;; find it useful.
+
+(cl-defstruct (erc--target-channel (:include erc--target)))
+
+(cl-defstruct (erc--target-channel-local (:include erc--target-channel)))
+
+;; At some point, it may make sense to add a query type with an
+;; account field, which may help support reassociation across
+;; reconnects and nick changes (likely requires v3 extensions).
+
+(defun erc--target-from-string (string)
+  "Construct an `erc--target' variant from STRING."
+  (funcall (if (erc-channel-p string)
+               (if (erc--valid-local-channel-p string)
+                   #'make-erc--target-channel-local
+                 #'make-erc--target-channel)
+             #'make-erc--target)
+           :string string :symbol (intern (erc-downcase string))))
+
+(defvar-local erc--target nil
+  "Info about a buffer's target, if any.")
+
+;; Temporary internal getter to ease transition to `erc--target'
+;; everywhere.  Will be replaced by updated `erc-default-target'.
+(defun erc--default-target ()
+  "Return target string or nil."
+  (when erc--target
+    (erc--target-string erc--target)))
+
 (defun erc-once-with-server-event (event f)
   "Run function F the next time EVENT occurs in the `current-buffer'.
 
@@ -2091,6 +2130,7 @@ Returns the buffer for the given server or channel."
     (set-marker erc-insert-marker (point))
     ;; stack of default recipients
     (setq erc-default-recipients tgt-list)
+    (setq erc--target (and channel (erc--target-from-string channel)))
     (setq erc-server-current-nick nil)
     ;; Initialize erc-server-users and erc-channel-users
     (if connect
