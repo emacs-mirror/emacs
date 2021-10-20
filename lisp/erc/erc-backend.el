@@ -1339,7 +1339,9 @@ add things to `%s' instead."
                                              erc-server-process))
                       (when buffer
                         (set-buffer buffer)
-                        (erc-add-default-channel chnl)
+                        (with-suppressed-warnings
+                            ((obsolete erc-add-default-channel))
+                          (erc-add-default-channel chnl))
                         (erc-server-send (format "MODE %s" chnl)))
                       (erc-with-buffer (chnl proc)
                         (erc-channel-begin-receiving-names))
@@ -1376,7 +1378,8 @@ add things to `%s' instead."
         (erc-with-buffer
             (buffer)
           (erc-remove-channel-users))
-        (erc-delete-default-channel ch buffer)
+        (with-suppressed-warnings ((obsolete erc-delete-default-channel))
+          (erc-delete-default-channel ch buffer))
         (erc-update-mode-line buffer))
        ((string= nick (erc-current-nick))
         (erc-display-message
@@ -1465,7 +1468,8 @@ add things to `%s' instead."
         (erc-with-buffer
             (buffer)
           (erc-remove-channel-users))
-        (erc-delete-default-channel chnl buffer)
+        (with-suppressed-warnings ((obsolete erc-delete-default-channel))
+          (erc-delete-default-channel chnl buffer))
         (erc-update-mode-line buffer)
         (when erc-kill-buffer-on-part
           (kill-buffer buffer))))))

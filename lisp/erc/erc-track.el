@@ -353,8 +353,6 @@ of `erc-track-shorten-start' characters."
      (> (length s) erc-track-shorten-cutoff))
    erc-track-shorten-start))
 
-(defvar erc-default-recipients)
-
 (defun erc-all-buffer-names ()
   "Return all channel or query buffer names.
 Note that we cannot use `erc-channel-list' with a nil argument,

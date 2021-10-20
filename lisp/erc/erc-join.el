@@ -176,7 +176,7 @@ This function is run from `erc-nickserv-identified-hook'."
                                                 (erc-downcase current)))))))))
 	      (when (or (not buffer)
 			(not (with-current-buffer buffer
-			       (erc-server-process-alive))))
+                               (erc--current-buffer-joined-p))))
 		(erc-server-join-channel server chan))))))))
   ;; Return nil to avoid stomping on any other hook funcs.
   nil)
