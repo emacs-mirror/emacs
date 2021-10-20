@@ -757,7 +757,7 @@ comparing the subr with a much slower Lisp implementation."
   ;;   forwarding, but this needs to happen before the var is accessed
   ;;   from the Lisp side and before we switch to another buffer.
   ;; The trigger in bug#34318 doesn't exist any more because the C code has
-  ;; changes.  Instead I found the trigger below.
+  ;; changed.  Instead I found the trigger below.
   (with-temp-buffer
     (setq last-coding-system-used 'bug34318)
     (make-local-variable 'last-coding-system-used)
