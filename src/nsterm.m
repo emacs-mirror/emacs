@@ -5067,6 +5067,7 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->delete_frame_hook = ns_destroy_window;
   terminal->delete_terminal_hook = ns_delete_terminal;
   terminal->change_tab_bar_height_hook = ns_change_tab_bar_height;
+  terminal->activate_menubar_hook = ns_activate_menubar;
   /* Other hooks are NULL by default.  */
 
   return terminal;

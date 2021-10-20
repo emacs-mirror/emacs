@@ -2665,9 +2665,10 @@ first TTY menu-bar menu to be dropped down.  Interactively,
 this is the numeric argument to the command.
 This function decides which method to use to access the menu
 depending on FRAME's terminal device.  On X displays, it calls
-`x-menu-bar-open'; on Windows, `w32-menu-bar-open'; otherwise it
-calls either `popup-menu' or `tmm-menubar' depending on whether
-`tty-menu-open-use-tmm' is nil or not.
+`x-menu-bar-open'; on Windows, `w32-menu-bar-open';
+on NS, `ns-menu-bar-open'; otherwise it calls either `popup-menu'
+or `tmm-menubar' depending on whether `tty-menu-open-use-tmm'
+is nil or not.
 
 If FRAME is nil or not given, use the selected frame."
   (interactive
@@ -2676,6 +2677,7 @@ If FRAME is nil or not given, use the selected frame."
     (cond
      ((eq type 'x) (x-menu-bar-open frame))
      ((eq type 'w32) (w32-menu-bar-open frame))
+     ((eq type 'ns) (ns-menu-bar-open frame))
      ((and (null tty-menu-open-use-tmm)
 	   (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0))))
       ;; Make sure the menu bar is up to date.  One situation where
