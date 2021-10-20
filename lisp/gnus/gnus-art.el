@@ -6866,7 +6866,9 @@ KEY is a string or a vector."
 	       unread-command-events))
 	(let ((cursor-in-echo-area t)
 	      gnus-pick-mode)
-	  (describe-key (read-key-sequence nil t))))
+	  (describe-key (cons (read-key-sequence nil t)
+			      (this-single-command-raw-keys))
+			(current-buffer))))
     (describe-key key)))
 
 (defun gnus-article-describe-key-briefly (key &optional insert)
@@ -6889,7 +6891,9 @@ KEY is a string or a vector."
 	       unread-command-events))
 	(let ((cursor-in-echo-area t)
 	      gnus-pick-mode)
-	  (describe-key-briefly (read-key-sequence nil t) insert)))
+	  (describe-key-briefly (cons (read-key-sequence nil t)
+				      (this-single-command-raw-keys))
+				insert (current-buffer))))
     (describe-key-briefly key insert)))
 
 ;;`gnus-agent-mode' in gnus-agent.el will define it.
