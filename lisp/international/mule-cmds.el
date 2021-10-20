@@ -2665,6 +2665,20 @@ For example, translate \"swedish\" into \"sv_SE.ISO8859-1\"."
           locale))
     locale))
 
+(defvar current-locale-environment nil
+  "The currently set locale environment.")
+
+(defmacro with-locale-environment (locale-name &rest body)
+  "Execute BODY with the locale set to LOCALE-NAME."
+  (declare (indent 1) (debug (sexp def-body)))
+  (let ((current (gensym)))
+    `(let ((,current current-locale-environment))
+       (unwind-protect
+           (progn
+             (set-locale-environment ,locale-name)
+             ,@body)
+         (set-locale-environment ,current)))))
+
 (defun set-locale-environment (&optional locale-name frame)
   "Set up multilingual environment for using LOCALE-NAME.
 This sets the language environment, the coding system priority,
@@ -2689,6 +2703,10 @@ will be translated according to the table specified by
 If FRAME is non-nil, only set the keyboard coding system and the
 terminal coding system for the terminal of that frame, and don't
 touch session-global parameters like the language environment.
+
+This function sets the `current-locale-environment' variable.  To
+change the locale temporarily, `with-locale-environment' can be
+used.
 
 See also `locale-charset-language-names', `locale-language-names',
 `locale-preferred-coding-systems' and `locale-coding-system'."
@@ -2723,6 +2741,7 @@ See also `locale-charset-language-names', `locale-language-names',
 
     (when locale
       (setq locale (locale-translate locale))
+      (setq current-locale-environment locale)
 
       ;; Leave the system locales alone if the caller did not specify
       ;; an explicit locale name, as their defaults are set from

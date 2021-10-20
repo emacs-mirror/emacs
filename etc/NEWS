@@ -236,6 +236,17 @@ with recent versions of Firefox.
 
 * Lisp Changes in Emacs 29.1
 
+** Locale
+
+---
+*** New variable 'current-locale-environment'.
+This holds the value of the previous call to 'set-locale-environment'.
+
+---
+*** New macro 'with-locale-environment'.
+This macro can be used to change the locale temporarily while
+executing code.
+
 +++
 ** 'define-key' now understands a new strict 'kbd' representation for keys.
 The '(define-key map ["C-c M-f"] #'some-command)' syntax is now
