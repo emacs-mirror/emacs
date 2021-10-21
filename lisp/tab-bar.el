@@ -715,7 +715,7 @@ it will display time aligned to the right on the tab bar instead
 of the mode line.  Replacing `tab-bar-format-tabs' with
 `tab-bar-format-tabs-groups' will group tabs on the tab bar."
   :type 'hook
-  :options '(tab-bar-format-menu-global
+  :options '(tab-bar-format-menu-bar
              tab-bar-format-history
              tab-bar-format-tabs
              tab-bar-format-tabs-groups
@@ -730,22 +730,23 @@ of the mode line.  Replacing `tab-bar-format-tabs' with
   :group 'tab-bar
   :version "28.1")
 
-(defun tab-bar-format-menu-global ()
-  "Produce the Menu button for the tab bar that shows a global menu."
-  `((add-tab menu-item (propertize "Menu" 'face 'tab-bar-tab-inactive)
-             (lambda (event) (interactive "e")
-               (let ((menu (make-sparse-keymap
-                            (propertize "Global Menu" 'hide t))))
+(defun tab-bar-menu-bar (event)
+  "Pop up the same menu as displayed by the menu bar.
+Used by `tab-bar-format-menu-bar'."
+  (interactive "e")
+  (let ((menu (make-sparse-keymap (propertize "Menu Bar" 'hide t))))
+    (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+    (map-keymap (lambda (key binding)
+                  (when (consp binding)
+                    (define-key-after menu (vector key)
+                      (copy-sequence binding))))
+                (menu-bar-keymap))
+    (popup-menu menu event)))
 
-                 (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
-                 (map-keymap (lambda (key binding)
-                               (when (consp binding)
-                                 (define-key-after menu (vector key)
-                                   (copy-sequence binding))))
-                             (lookup-key global-map [menu-bar]))
-
-                 (popup-menu menu event)))
-             :help "Global Menu")))
+(defun tab-bar-format-menu-bar ()
+  "Produce the Menu button for the tab bar that shows the menu bar."
+  `((menu-bar menu-item (propertize "Menu" 'face 'tab-bar-tab-inactive)
+     tab-bar-menu-bar :help "Menu Bar")))
 
 (defun tab-bar-format-history ()
   "Produce back and forward buttons for the tab bar.

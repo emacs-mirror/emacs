@@ -344,8 +344,8 @@ For example, you can set it to <return> like `isearch-exit'."
 
 (defcustom repeat-exit-timeout nil
   "Break the repetition chain of keys after specified timeout.
-When a number, exit the repeat mode after idle time of the specified
-number of seconds."
+When a number, exit the transient repeating mode after idle time
+of the specified number of seconds."
   :type '(choice (const :tag "No timeout to exit repeating sequence" nil)
                  (number :tag "Timeout in seconds to exit repeating"))
   :group 'convenience
@@ -363,7 +363,7 @@ number of seconds."
 (defcustom repeat-echo-function #'repeat-echo-message
   "Function to display a hint about available keys.
 Function is called after every repeatable command with one argument:
-a repeating map, or nil after deactivating the repeat mode."
+a repeating map, or nil after deactivating the transient repeating mode."
   :type '(choice (const :tag "Show hints in the echo area"
                         repeat-echo-message)
                  (const :tag "Show indicator in the mode line"
@@ -374,11 +374,11 @@ a repeating map, or nil after deactivating the repeat mode."
   :version "28.1")
 
 (defvar repeat-in-progress nil
-  "Non-nil when the repeating map is active.")
+  "Non-nil when the repeating transient map is active.")
 
 ;;;###autoload
 (defvar repeat-map nil
-  "The value of the repeating map for the next command.
+  "The value of the repeating transient map for the next command.
 A command called from the map can set it again to the same map when
 the map can't be set on the command symbol property `repeat-map'.")
 

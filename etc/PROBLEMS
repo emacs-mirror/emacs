@@ -751,6 +751,18 @@ Try removing or moving aside "$XDG_CONFIG_HOME/fontconfig/conf.d" and
 "$XDG_CONFIG_HOME/fontconfig/fonts.conf"
 ($XDG_CONFIG_HOME is treated as "~/.config" if not set)
 
+Running Emacs as
+
+    FC_DEBUG=1024 emacs
+
+will cause fontconfig to output information about which configuration
+files it is reading.  Running Emacs as
+
+    FC_DEBUG=1 emacs
+
+will result in information about the results of fontconfig's font
+matching (including the filename(s) of the resulting fonts).
+
 *** This can occur when two different versions of FontConfig are used.
 For example, XFree86 4.3.0 has one version and Gnome usually comes
 with a newer version.  Emacs compiled with Gtk+ will then use the
@@ -763,7 +775,7 @@ same version of FontConfig as the rest of the system uses.  For KDE,
 it is sufficient to recompile Qt.
 
 *** Some fonts have a missing glyph and no default character.  This is
-known to occur for character number 160 (no-break space) in some
+known to occur for character number 160 (no-break space, U+A0) in some
 fonts, such as Lucida but Emacs sets the display table for the unibyte
 and Latin-1 version of this character to display a space.
 

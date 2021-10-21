@@ -95,12 +95,24 @@ are included.")
    `(message-header-subject ((,class (:foreground "#cae682"))))
    `(message-header-to ((,class (:foreground "#cae682"))))
    `(message-cited-text ((,class (:foreground "#99968b"))))
-   `(message-separator ((,class (:foreground "#e5786d" :weight bold))))))
-
-(custom-theme-set-variables
- 'wombat
- '(ansi-color-names-vector ["#242424" "#e5786d" "#95e454" "#cae682"
-			    "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"]))
+   `(message-separator ((,class (:foreground "#e5786d" :weight bold))))
+   ;; ANSI colors
+   `(ansi-color-black ((,class (:background "#242424" :foreground "#242424"))))
+   `(ansi-color-red ((,class (:background "#b85149" :foreground "#b85149"))))
+   `(ansi-color-green ((,class (:background "#92a65e" :foreground "#92a65e"))))
+   `(ansi-color-yellow ((,class (:background "#ccaa8f" :foreground "#ccaa8f"))))
+   `(ansi-color-blue ((,class (:background "#5b98c2" :foreground "#5b98c2"))))
+   `(ansi-color-magenta ((,class (:background "#64619a" :foreground "#64619a"))))
+   `(ansi-color-cyan ((,class (:background "#3f9f9e" :foreground "#3f9f9e"))))
+   `(ansi-color-white ((,class (:background "#f6f3e8" :foreground "#f6f3e8"))))
+   `(ansi-color-bright-black ((,class (:background "#444444" :foreground "#444444"))))
+   `(ansi-color-bright-red ((,class (:background "#e5786d" :foreground "#e5786d"))))
+   `(ansi-color-bright-green ((,class (:background "#95e454" :foreground "#95e454"))))
+   `(ansi-color-bright-yellow ((,class (:background "#edc4a3" :foreground "#edc4a3"))))
+   `(ansi-color-bright-blue ((,class (:background "#8ac6f2" :foreground "#8ac6f2"))))
+   `(ansi-color-bright-magenta ((,class (:background "#a6a1de" :foreground "#a6a1de"))))
+   `(ansi-color-bright-cyan ((,class (:background "#70cecc" :foreground "#70cecc"))))
+   `(ansi-color-bright-white ((,class (:background "#ffffff" :foreground "#ffffff"))))))
 
 (provide-theme 'wombat)
 
