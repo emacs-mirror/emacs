@@ -987,8 +987,8 @@ HOST:SERVER.SCREEN).
 If DEVICE is omitted or nil, it defaults to the selected
 frame's terminal device."
   (let* ((terminal (get-device-terminal device))
-	 (func #'(lambda (frame)
-		   (eq (frame-terminal frame) terminal))))
+         (func (lambda (frame)
+                 (eq (frame-terminal frame) terminal))))
     (filtered-frame-list func)))
 
 (defun framep-on-display (&optional terminal)
@@ -1165,9 +1165,9 @@ If you change this without using customize, you should use
 `frame-set-background-mode' to update existing frames;
 e.g. (mapc \\='frame-set-background-mode (frame-list))."
   :group 'faces
-  :set #'(lambda (var value)
-	   (set-default var value)
-	   (mapc #'frame-set-background-mode (frame-list)))
+  :set (lambda (var value)
+         (set-default var value)
+         (mapc #'frame-set-background-mode (frame-list)))
   :initialize #'custom-initialize-changed
   :type '(choice (const dark)
 		 (const light)

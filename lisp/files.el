@@ -6682,12 +6682,12 @@ auto-save file, if that is more recent than the visited file."
                        (abbreviate-file-name file-name)))
 	  ((with-temp-buffer-window
 	    "*Directory*" nil
-	    #'(lambda (window _value)
-		(with-selected-window window
-		  (unwind-protect
-		      (yes-or-no-p (format "Recover auto save file %s? " file-name))
-		    (when (window-live-p window)
-		      (quit-restore-window window 'kill)))))
+            (lambda (window _value)
+              (with-selected-window window
+                (unwind-protect
+                    (yes-or-no-p (format "Recover auto save file %s? " file-name))
+                  (when (window-live-p window)
+                    (quit-restore-window window 'kill)))))
 	    (with-current-buffer standard-output
 	      (let ((switches dired-listing-switches))
 		(if (file-symlink-p file)
@@ -7130,16 +7130,16 @@ default directory.  However, if FULL is non-nil, they are absolute."
 	  (let ((this-dir-contents
 		 ;; Filter out "." and ".."
 		 (delq nil
-		       (mapcar #'(lambda (name)
-				   (unless (string-match "\\`\\.\\.?\\'"
-							 (file-name-nondirectory name))
-				     name))
+                       (mapcar (lambda (name)
+                                 (unless (string-match "\\`\\.\\.?\\'"
+                                                       (file-name-nondirectory name))
+                                   name))
 			       (directory-files (or dir ".") full
 						(wildcard-to-regexp nondir))))))
 	    (setq contents
 		  (nconc
 		   (if (and dir (not full))
-		       (mapcar #'(lambda (name) (concat dir name))
+                       (mapcar (lambda (name) (concat dir name))
 			       this-dir-contents)
 		     this-dir-contents)
 		   contents)))))

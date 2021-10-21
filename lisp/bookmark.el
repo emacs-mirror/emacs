@@ -2314,10 +2314,10 @@ Prompt with completion for the new path."
             (lambda ()
               (setq timer (run-with-idle-timer
                            bookmark-search-delay 'repeat
-                           #'(lambda (buf)
-                               (with-current-buffer buf
-                                 (bookmark-bmenu-filter-alist-by-regexp
-                                  (minibuffer-contents))))
+                           (lambda (buf)
+                             (with-current-buffer buf
+                               (bookmark-bmenu-filter-alist-by-regexp
+                                (minibuffer-contents))))
                            (current-buffer))))
           (read-string "Pattern: ")
           (when timer (cancel-timer timer) (setq timer nil)))

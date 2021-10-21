@@ -1543,34 +1543,34 @@ after the commands are processed."
               (append folders-changed (mh-index-execute-commands))))
 
       ;; Then refile messages
-      (mapc #'(lambda (folder-msg-list)
-                (let* ((dest-folder (symbol-name (car folder-msg-list)))
-                       (last (car (mh-translate-range dest-folder "last")))
-                       (msgs (cdr folder-msg-list)))
-                  (push dest-folder folders-changed)
-                  (setq redraw-needed-flag t)
-                  (apply #'mh-exec-cmd
-                         "refile" "-src" folder dest-folder
-                         (mh-coalesce-msg-list msgs))
-                  (mh-delete-scan-msgs msgs)
-                  ;; Preserve sequences in destination folder...
-                  (when mh-refile-preserves-sequences-flag
-                    (clrhash dest-map)
-                    (cl-loop
-                     for i from (1+ (or last 0))
-                     for msg in (sort (copy-sequence msgs) #'<)
-                     do (cl-loop for seq-name in (gethash msg seq-map)
-                                 do (push i (gethash seq-name dest-map))))
-                    (maphash
-                     #'(lambda (seq msgs)
-                         ;; Can't be run in the background, since the
-                         ;; current folder is changed by mark this could
-                         ;; lead to a race condition with the next refile.
-                         (apply #'mh-exec-cmd "mark"
-                                "-sequence" (symbol-name seq) dest-folder
-                                "-add" (mapcar #'(lambda (x) (format "%s" x))
-                                               (mh-coalesce-msg-list msgs))))
-                     dest-map))))
+      (mapc (lambda (folder-msg-list)
+              (let* ((dest-folder (symbol-name (car folder-msg-list)))
+                     (last (car (mh-translate-range dest-folder "last")))
+                     (msgs (cdr folder-msg-list)))
+                (push dest-folder folders-changed)
+                (setq redraw-needed-flag t)
+                (apply #'mh-exec-cmd
+                       "refile" "-src" folder dest-folder
+                       (mh-coalesce-msg-list msgs))
+                (mh-delete-scan-msgs msgs)
+                ;; Preserve sequences in destination folder...
+                (when mh-refile-preserves-sequences-flag
+                  (clrhash dest-map)
+                  (cl-loop
+                   for i from (1+ (or last 0))
+                   for msg in (sort (copy-sequence msgs) #'<)
+                   do (cl-loop for seq-name in (gethash msg seq-map)
+                               do (push i (gethash seq-name dest-map))))
+                  (maphash
+                   #'(lambda (seq msgs)
+                       ;; Can't be run in the background, since the
+                       ;; current folder is changed by mark this could
+                       ;; lead to a race condition with the next refile.
+                       (apply #'mh-exec-cmd "mark"
+                              "-sequence" (symbol-name seq) dest-folder
+                              "-add" (mapcar #'(lambda (x) (format "%s" x))
+                                             (mh-coalesce-msg-list msgs))))
+                   dest-map))))
             mh-refile-list)
       (setq mh-refile-list ())
 
@@ -1614,14 +1614,14 @@ after the commands are processed."
                      do (cl-loop for seq-name in (gethash msg seq-map)
                                  do (push i (gethash seq-name allow-map))))
             (maphash
-             #'(lambda (seq msgs)
-                 ;; Can't be run in background, since the current
-                 ;; folder is changed by mark this could lead to a
-                 ;; race condition with the next refile/allowlist.
-                 (apply #'mh-exec-cmd "mark"
-                        "-sequence" (symbol-name seq) mh-inbox
-                        "-add" (mapcar #'(lambda(x) (format "%s" x))
-                                       (mh-coalesce-msg-list msgs))))
+             (lambda (seq msgs)
+               ;; Can't be run in background, since the current
+               ;; folder is changed by mark this could lead to a
+               ;; race condition with the next refile/allowlist.
+               (apply #'mh-exec-cmd "mark"
+                      "-sequence" (symbol-name seq) mh-inbox
+                      "-add" (mapcar #'(lambda(x) (format "%s" x))
+                                     (mh-coalesce-msg-list msgs))))
              allow-map))
           (setq mh-allowlist nil)))
 

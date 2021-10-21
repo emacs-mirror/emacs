@@ -2263,11 +2263,11 @@ See also `multi-occur'."
 
 (defun occur-engine-add-prefix (lines &optional prefix-face)
   (mapcar
-   #'(lambda (line)
-       (concat (if prefix-face
-		   (propertize "       :" 'font-lock-face prefix-face)
-		 "       :")
-	       line "\n"))
+   (lambda (line)
+     (concat (if prefix-face
+                 (propertize "       :" 'font-lock-face prefix-face)
+               "       :")
+             line "\n"))
    lines))
 
 (defun occur-accumulate-lines (count &optional keep-props pt)

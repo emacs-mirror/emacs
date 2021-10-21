@@ -739,9 +739,9 @@ All non-spacing characters have this function in
   (let ((elt `([,(purecopy "\\c.\\c^+") 1 compose-gstring-for-graphic]
 	       [nil 0 compose-gstring-for-graphic])))
     (map-char-table
-     #'(lambda (key val)
-	 (if (memq val '(Mn Mc Me))
-	     (set-char-table-range composition-function-table key elt)))
+     (lambda (key val)
+       (if (memq val '(Mn Mc Me))
+           (set-char-table-range composition-function-table key elt)))
      unicode-category-table))
   ;; for dotted-circle
   (aset composition-function-table #x25CC
@@ -900,7 +900,5 @@ For more information on Auto Composition mode, see
 (defalias 'toggle-auto-composition 'auto-composition-mode)
 
 (provide 'composite)
-
-
 
 ;;; composite.el ends here

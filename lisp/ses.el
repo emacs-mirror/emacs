@@ -3554,7 +3554,7 @@ With prefix, sorts in REVERSE order."
 	(push (cons (buffer-substring-no-properties (point) end)
 		    (+ minrow x))
 	      keys))
-      (setq keys (sort keys #'(lambda (x y) (string< (car x) (car y)))))
+      (setq keys (sort keys (lambda (x y) (string< (car x) (car y)))))
       ;;Extract the lines in reverse sorted order
       (or reverse
 	  (setq keys (nreverse keys)))

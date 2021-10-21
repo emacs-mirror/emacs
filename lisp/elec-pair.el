@@ -308,51 +308,51 @@ If point is not enclosed by any lists, return ((t) . (t))."
           ;; called when `scan-sexps' ran perfectly, when it found
           ;; a parenthesis pointing in the direction of travel.
           ;; Also when travel started inside a comment and exited it.
-          #'(lambda ()
-              (setq outermost (list t))
-              (unless innermost
-                (setq innermost (list t)))))
+          (lambda ()
+            (setq outermost (list t))
+            (unless innermost
+              (setq innermost (list t)))))
          (ended-prematurely-fn
           ;; called when `scan-sexps' crashed against a parenthesis
           ;; pointing opposite the direction of travel.  After
           ;; traversing that character, the idea is to travel one sexp
           ;; in the opposite direction looking for a matching
           ;; delimiter.
-          #'(lambda ()
-              (let* ((pos (point))
-                     (matched
-                      (save-excursion
-                        (cond ((< direction 0)
-                               (condition-case nil
-                                   (eq (char-after pos)
-                                       (electric-pair--with-uncached-syntax
-                                           (table)
-                                         (matching-paren
-                                          (char-before
-                                           (scan-sexps (point) 1)))))
-                                 (scan-error nil)))
-                              (t
-                               ;; In this case, no need to use
-                               ;; `scan-sexps', we can use some
-                               ;; `electric-pair--syntax-ppss' in this
-                               ;; case (which uses the quicker
-                               ;; `syntax-ppss' in some cases)
-                               (let* ((ppss (electric-pair--syntax-ppss
-                                             (1- (point))))
-                                      (start (car (last (nth 9 ppss))))
-                                      (opener (char-after start)))
-                                 (and start
-                                      (eq (char-before pos)
-                                          (or (with-syntax-table table
-                                                (matching-paren opener))
-                                              opener))))))))
-                     (actual-pair (if (> direction 0)
-                                      (char-before (point))
-                                    (char-after (point)))))
-                (unless innermost
-                  (setq innermost (cons matched actual-pair)))
-                (unless matched
-                  (setq outermost (cons matched actual-pair)))))))
+          (lambda ()
+            (let* ((pos (point))
+                   (matched
+                    (save-excursion
+                      (cond ((< direction 0)
+                             (condition-case nil
+                                 (eq (char-after pos)
+                                     (electric-pair--with-uncached-syntax
+                                      (table)
+                                      (matching-paren
+                                       (char-before
+                                        (scan-sexps (point) 1)))))
+                               (scan-error nil)))
+                            (t
+                             ;; In this case, no need to use
+                             ;; `scan-sexps', we can use some
+                             ;; `electric-pair--syntax-ppss' in this
+                             ;; case (which uses the quicker
+                             ;; `syntax-ppss' in some cases)
+                             (let* ((ppss (electric-pair--syntax-ppss
+                                           (1- (point))))
+                                    (start (car (last (nth 9 ppss))))
+                                    (opener (char-after start)))
+                               (and start
+                                    (eq (char-before pos)
+                                        (or (with-syntax-table table
+                                              (matching-paren opener))
+                                            opener))))))))
+                   (actual-pair (if (> direction 0)
+                                    (char-before (point))
+                                  (char-after (point)))))
+              (unless innermost
+                (setq innermost (cons matched actual-pair)))
+              (unless matched
+                (setq outermost (cons matched actual-pair)))))))
     (save-excursion
       (while (not outermost)
         (condition-case err

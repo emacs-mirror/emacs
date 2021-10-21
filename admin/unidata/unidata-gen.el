@@ -583,17 +583,17 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 		(aset vec (- range start) val-code))
 	    (setq tail (cdr tail)))
 	  (setq str "\002" val-code -1 count 0)
-	  (mapc #'(lambda (x)
-		    (if (= val-code x)
-			(setq count (1+ count))
-		      (if (> count 2)
-			  (setq str (concat str (string val-code
-							(+ count 128))))
-			(if (= count 2)
-			    (setq str (concat str (string val-code val-code)))
-			  (if (= count 1)
-			      (setq str (concat str (string val-code))))))
-		      (setq val-code x count 1)))
+          (mapc (lambda (x)
+                  (if (= val-code x)
+                      (setq count (1+ count))
+                    (if (> count 2)
+                        (setq str (concat str (string val-code
+                                                      (+ count 128))))
+                      (if (= count 2)
+                          (setq str (concat str (string val-code val-code)))
+                        (if (= count 1)
+                            (setq str (concat str (string val-code))))))
+                    (setq val-code x count 1)))
 		vec)
 	  (if (= count 128)
 	      (if val
@@ -613,8 +613,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 (defun unidata-gen-table-symbol (prop index default-value val-list)
   (let ((table (unidata-gen-table prop index
-				  #'(lambda (x) (and (> (length x) 0)
-						     (intern x)))
+                                  (lambda (x) (and (> (length x) 0)
+                                              (intern x)))
 				  default-value val-list)))
     (set-char-table-extra-slot table 1 0)
     (set-char-table-extra-slot table 2 1)
@@ -622,8 +622,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 (defun unidata-gen-table-integer (prop index default-value val-list)
   (let ((table (unidata-gen-table prop index
-				  #'(lambda (x) (and (> (length x) 0)
-						     (string-to-number x)))
+                                  (lambda (x) (and (> (length x) 0)
+                                              (string-to-number x)))
 				  default-value val-list)))
     (set-char-table-extra-slot table 1 0)
     (set-char-table-extra-slot table 2 1)
@@ -631,13 +631,13 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 (defun unidata-gen-table-numeric (prop index default-value val-list)
   (let ((table (unidata-gen-table prop index
-				  #'(lambda (x)
-				      (if (string-match "/" x)
-					  (/ (float (string-to-number x))
-					     (string-to-number
-					      (substring x (match-end 0))))
-					(if (> (length x) 0)
-					    (string-to-number x))))
+                                  (lambda (x)
+                                    (if (string-match "/" x)
+                                        (/ (float (string-to-number x))
+                                           (string-to-number
+                                            (substring x (match-end 0))))
+                                      (if (> (length x) 0)
+                                          (string-to-number x))))
 				  default-value val-list)))
     (set-char-table-extra-slot table 1 0)
     (set-char-table-extra-slot table 2 2)
@@ -1000,7 +1000,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
                       (cl-incf (alist-get elt (cdr word-list) 0)))))
 	      (set-char-table-range table (cons start limit) vec))))))
     (setq word-list (sort (cdr word-list)
-			  #'(lambda (x y) (> (cdr x) (cdr y)))))
+                          (lambda (x y) (> (cdr x) (cdr y)))))
     (setq tail word-list idx 0)
     (while tail
       (setcdr (car tail) (unidata-encode-word idx))
@@ -1266,11 +1266,11 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 (defun unidata-describe-decomposition (val)
   (mapconcat
-   #'(lambda (x)
-       (if (symbolp x) (symbol-name x)
-	 (concat (string ?')
-		 (compose-string (string x) 0 1 (string ?\t x ?\t))
-		 (string ?'))))
+   (lambda (x)
+     (if (symbolp x) (symbol-name x)
+       (concat (string ?')
+               (compose-string (string x) 0 1 (string ?\t x ?\t))
+               (string ?'))))
    val " "))
 
 (defun unidata-describe-bidi-bracket-type (val)

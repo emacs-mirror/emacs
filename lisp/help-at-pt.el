@@ -229,11 +229,11 @@ this option, or use \"In certain situations\" and specify no text
 properties, to enable buffer local values."
 			 never))
   :initialize 'custom-initialize-default
-  :set #'(lambda (variable value)
-	   (set-default variable value)
-	   (if (eq value 'never)
-	       (help-at-pt-cancel-timer)
-	     (help-at-pt-set-timer)))
+  :set (lambda (variable value)
+         (set-default variable value)
+         (if (eq value 'never)
+             (help-at-pt-cancel-timer)
+           (help-at-pt-set-timer)))
   :set-after '(help-at-pt-timer-delay)
   :require 'help-at-pt)
 

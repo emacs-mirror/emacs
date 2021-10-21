@@ -88,9 +88,9 @@ a font height that isn't optimal."
   :tag "Font selection order"
   :type '(list symbol symbol symbol symbol)
   :group 'font-selection
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (internal-set-font-selection-order value)))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (internal-set-font-selection-order value)))
 
 
 ;; In the absence of Fontconfig support, Monospace and Sans Serif are
@@ -140,9 +140,9 @@ ALTERNATIVE2 etc."
   :tag "Alternative font families to try"
   :type '(repeat (repeat string))
   :group 'font-selection
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (internal-set-alternative-font-family-alist value)))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (internal-set-alternative-font-family-alist value)))
 
 
 ;; This is defined originally in xfaces.c.
@@ -167,9 +167,9 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
   :type '(repeat (repeat string))
   :version "21.1"
   :group 'font-selection
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (internal-set-alternative-font-registry-alist value)))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (internal-set-alternative-font-registry-alist value)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1147,27 +1147,27 @@ an integer value."
            (:foundry
 	    (list nil))
 	   (:width
-	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
+            (mapcar (lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-width-table))
            (:weight
-	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
+            (mapcar (lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-weight-table))
 	   (:slant
-	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
+            (mapcar (lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-slant-table))
 	   ((or :inverse-video :extend)
-	    (mapcar #'(lambda (x) (cons (symbol-name x) x))
+            (mapcar (lambda (x) (cons (symbol-name x) x))
 		    (internal-lisp-face-attribute-values attribute)))
            ((or :underline :overline :strike-through :box)
             (if (window-system frame)
-                (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
+                (nconc (mapcar (lambda (x) (cons (symbol-name x) x))
                                (internal-lisp-face-attribute-values attribute))
-                       (mapcar #'(lambda (c) (cons c c))
+                       (mapcar (lambda (c) (cons c c))
                                (defined-colors frame)))
-	      (mapcar #'(lambda (x) (cons (symbol-name x) x))
+              (mapcar (lambda (x) (cons (symbol-name x) x))
 		      (internal-lisp-face-attribute-values attribute))))
            ((or :foreground :background)
-            (mapcar #'(lambda (c) (cons c c))
+            (mapcar (lambda (c) (cons c c))
                     (defined-colors frame)))
            (:height
             'integerp)
@@ -1182,7 +1182,7 @@ an integer value."
                                         x-bitmap-file-path)))))
            (:inherit
             (cons '("none" . nil)
-                  (mapcar #'(lambda (c) (cons (symbol-name c) c))
+                  (mapcar (lambda (c) (cons (symbol-name c) c))
                           (face-list))))
            (_
             (error "Internal error")))))
@@ -2286,19 +2286,19 @@ If you set `term-file-prefix' to nil, this function does nothing."
       (let* (term-init-func)
 	;; First, load the terminal initialization file, if it is
 	;; available and it hasn't been loaded already.
-	(tty-find-type #'(lambda (type)
-			   (let ((file (locate-library (concat term-file-prefix type))))
-			     (and file
-				  (or (assoc file load-history)
-				      (load (replace-regexp-in-string
-                                             "\\.el\\(\\.gz\\)?\\'" ""
-                                             file)
-                                            t t)))))
-		       type)
+        (tty-find-type (lambda (type)
+                         (let ((file (locate-library (concat term-file-prefix type))))
+                           (and file
+                                (or (assoc file load-history)
+                                    (load (replace-regexp-in-string
+                                           "\\.el\\(\\.gz\\)?\\'" ""
+                                           file)
+                                          t t)))))
+                       type)
 	;; Next, try to find a matching initialization function, and call it.
-	(tty-find-type #'(lambda (type)
-			   (fboundp (setq term-init-func
-					  (intern (concat "terminal-init-" type)))))
+        (tty-find-type (lambda (type)
+                         (fboundp (setq term-init-func
+                                        (intern (concat "terminal-init-" type)))))
 		       type)
 	(when (fboundp term-init-func)
 	  (funcall term-init-func))

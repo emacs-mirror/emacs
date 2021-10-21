@@ -90,12 +90,12 @@
 
 (defcustom server-use-tcp nil
   "If non-nil, use TCP sockets instead of local sockets."
-  :set #'(lambda (sym val)
-           (unless (featurep 'make-network-process '(:family local))
-             (setq val t)
-             (unless load-in-progress
-               (message "Local sockets unsupported, using TCP sockets")))
-           (set-default sym val))
+  :set (lambda (sym val)
+         (unless (featurep 'make-network-process '(:family local))
+           (setq val t)
+           (unless load-in-progress
+             (message "Local sockets unsupported, using TCP sockets")))
+         (set-default sym val))
   :type 'boolean
   :version "22.1")
 

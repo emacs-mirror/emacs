@@ -1561,7 +1561,7 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:fontset . "Fontset")
                   (:extend . "Extend")
 		  (:inherit . "Inherit")))
-	 (max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
+         (max-width (apply #'max (mapcar (lambda (x) (length (cdr x)))
 					 attrs))))
     (dolist (a attrs)
       (let ((attr (face-attribute face (car a) frame)))

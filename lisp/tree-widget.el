@@ -214,8 +214,8 @@ Give the image the specified properties PROPS."
 See also the option `widget-image-conversion'."
   (delq nil
         (mapcar
-         #'(lambda (fmt)
-             (and (image-type-available-p (car fmt)) fmt))
+         (lambda (fmt)
+           (and (image-type-available-p (car fmt)) fmt))
          widget-image-conversion)))
 
 ;; Buffer local cache of theme data.

@@ -354,8 +354,8 @@ The following values are possible:
 
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
-  :set #'(lambda (_symbol value)
-           (ido-mode (or value 0)))
+  :set (lambda (_symbol value)
+         (ido-mode (or value 0)))
   :initialize #'custom-initialize-default
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
@@ -620,9 +620,9 @@ hosts on first use of UNC path."
 		 (function-item :tag "Use `NET VIEW'"
 				:value ido-unc-hosts-net-view)
 		 (function :tag "Your own function"))
-  :set #'(lambda (symbol value)
-	   (set symbol value)
-	   (setq ido-unc-hosts-cache t)))
+  :set (lambda (symbol value)
+         (set symbol value)
+         (setq ido-unc-hosts-cache t)))
 
 (defcustom ido-downcase-unc-hosts t
   "Non-nil if UNC host names should be downcased."

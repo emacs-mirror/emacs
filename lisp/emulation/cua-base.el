@@ -396,17 +396,17 @@ and after the region marked by the rectangle to search."
 
 (defcustom cua-rectangle-mark-key [(control return)]
   "Global key used to toggle the cua rectangle mark."
-  :set #'(lambda (symbol value)
-	   (set symbol value)
-	   (when (and (boundp 'cua--keymaps-initialized)
-		      cua--keymaps-initialized)
-	     (define-key cua-global-keymap value
-	       #'cua-set-rectangle-mark)
-	     (when (boundp 'cua--rectangle-keymap)
-	       (define-key cua--rectangle-keymap value
-		 #'cua-clear-rectangle-mark)
-	       (define-key cua--region-keymap value
-		 #'cua-toggle-rectangle-mark))))
+  :set (lambda (symbol value)
+         (set symbol value)
+         (when (and (boundp 'cua--keymaps-initialized)
+                    cua--keymaps-initialized)
+           (define-key cua-global-keymap value
+             #'cua-set-rectangle-mark)
+           (when (boundp 'cua--rectangle-keymap)
+             (define-key cua--rectangle-keymap value
+               #'cua-clear-rectangle-mark)
+             (define-key cua--region-keymap value
+               #'cua-toggle-rectangle-mark))))
   :type 'key-sequence)
 
 (defcustom cua-rectangle-modifier-key 'meta

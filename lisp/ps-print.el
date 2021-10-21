@@ -3855,7 +3855,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 (defun ps-color-scale (color)
   ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
-  (mapcar #'(lambda (value) (/ value ps-print-color-scale))
+  (mapcar (lambda (value) (/ value ps-print-color-scale))
 	  (color-values color)))
 
 
@@ -4747,11 +4747,11 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 (defun ps-background-pages (page-list func)
   (if page-list
       (mapcar
-       #'(lambda (pages)
-	   (let ((start (if (consp pages) (car pages) pages))
-		 (end   (if (consp pages) (cdr pages) pages)))
-	     (and (integerp start) (integerp end) (<= start end)
-		  (add-to-list 'ps-background-pages (vector start end func)))))
+       (lambda (pages)
+         (let ((start (if (consp pages) (car pages) pages))
+               (end   (if (consp pages) (cdr pages) pages)))
+           (and (integerp start) (integerp end) (<= start end)
+                (add-to-list 'ps-background-pages (vector start end func)))))
        page-list)
     (setq ps-background-all-pages (cons func ps-background-all-pages))))
 
@@ -4789,76 +4789,76 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 (defun ps-background-text ()
   (mapcar
-   #'(lambda (text)
-       (setq ps-background-text-count (1+ ps-background-text-count))
-       (ps-output (format "/ShowBackText-%d{\n" ps-background-text-count))
-       (ps-output-string (nth 0 text))	; text
-       (ps-output
-	"\n"
-	(ps-float-format (nth 4 text) 200.0) ; font size
-	(format "/%s " (or (nth 3 text) "Times-Roman")) ; font name
-	(ps-float-format (nth 6 text)
-			 "PrintHeight PrintPageWidth atan") ; rotation
-	(ps-float-format (nth 5 text) 0.85) ; gray
-	(ps-float-format (nth 1 text) "0") ; x position
-	(ps-float-format (nth 2 text) "0") ; y position
-	"\nShowBackText}def\n")
-       (ps-background-pages (nthcdr 7 text) ; page list
-			    (format "ShowBackText-%d\n"
-				    ps-background-text-count)))
+   (lambda (text)
+     (setq ps-background-text-count (1+ ps-background-text-count))
+     (ps-output (format "/ShowBackText-%d{\n" ps-background-text-count))
+     (ps-output-string (nth 0 text))	; text
+     (ps-output
+      "\n"
+      (ps-float-format (nth 4 text) 200.0) ; font size
+      (format "/%s " (or (nth 3 text) "Times-Roman")) ; font name
+      (ps-float-format (nth 6 text)
+                       "PrintHeight PrintPageWidth atan") ; rotation
+      (ps-float-format (nth 5 text) 0.85) ; gray
+      (ps-float-format (nth 1 text) "0") ; x position
+      (ps-float-format (nth 2 text) "0") ; y position
+      "\nShowBackText}def\n")
+     (ps-background-pages (nthcdr 7 text) ; page list
+                          (format "ShowBackText-%d\n"
+                                  ps-background-text-count)))
    ps-print-background-text))
 
 
 (defun ps-background-image ()
   (mapcar
-   #'(lambda (image)
-       (let ((image-file (expand-file-name (nth 0 image))))
-	 (when (file-readable-p image-file)
-	   (setq ps-background-image-count (1+ ps-background-image-count))
-	   (ps-output
-	    (format "/ShowBackImage-%d{\n--back-- "
-		    ps-background-image-count)
-	    (ps-float-format (nth 5 image) 0.0) ; rotation
-	    (ps-float-format (nth 3 image) 1.0) ; x scale
-	    (ps-float-format (nth 4 image) 1.0) ; y scale
-	    (ps-float-format (nth 1 image) ; x position
-			     "PrintPageWidth 2 div")
-	    (ps-float-format (nth 2 image) ; y position
-			     "PrintHeight 2 div BottomMargin add")
-	    "\nBeginBackImage\n")
-	   (ps-insert-file image-file)
-	   ;; coordinate adjustment to center image
-	   ;; around x and y position
-	   (let ((box (ps-get-boundingbox)))
-	     (with-current-buffer ps-spool-buffer
-	       (save-excursion
-		 (if (re-search-backward "^--back--" nil t)
-		     (replace-match
-		      (format "%s %s"
-			      (ps-float-format
-			       (- (+ (/ (- (aref box 2) (aref box 0)) 2.0)
-				     (aref box 0))))
-			      (ps-float-format
-			       (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
-				     (aref box 1)))))
-		      t)))))
-	   (ps-output "\nEndBackImage}def\n")
-	   (ps-background-pages (nthcdr 6 image) ; page list
-				(format "ShowBackImage-%d\n"
-					ps-background-image-count)))))
+   (lambda (image)
+     (let ((image-file (expand-file-name (nth 0 image))))
+       (when (file-readable-p image-file)
+         (setq ps-background-image-count (1+ ps-background-image-count))
+         (ps-output
+          (format "/ShowBackImage-%d{\n--back-- "
+                  ps-background-image-count)
+          (ps-float-format (nth 5 image) 0.0) ; rotation
+          (ps-float-format (nth 3 image) 1.0) ; x scale
+          (ps-float-format (nth 4 image) 1.0) ; y scale
+          (ps-float-format (nth 1 image) ; x position
+                           "PrintPageWidth 2 div")
+          (ps-float-format (nth 2 image) ; y position
+                           "PrintHeight 2 div BottomMargin add")
+          "\nBeginBackImage\n")
+         (ps-insert-file image-file)
+         ;; coordinate adjustment to center image
+         ;; around x and y position
+         (let ((box (ps-get-boundingbox)))
+           (with-current-buffer ps-spool-buffer
+             (save-excursion
+               (if (re-search-backward "^--back--" nil t)
+                   (replace-match
+                    (format "%s %s"
+                            (ps-float-format
+                             (- (+ (/ (- (aref box 2) (aref box 0)) 2.0)
+                                   (aref box 0))))
+                            (ps-float-format
+                             (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
+                                   (aref box 1)))))
+                    t)))))
+         (ps-output "\nEndBackImage}def\n")
+         (ps-background-pages (nthcdr 6 image) ; page list
+                              (format "ShowBackImage-%d\n"
+                                      ps-background-image-count)))))
    ps-print-background-image))
 
 
 (defun ps-background (page-number)
   (let (has-local-background)
-    (mapc #'(lambda (range)
-	      (and (<= (aref range 0) page-number)
-		   (<= page-number (aref range 1))
-		   (if has-local-background
-		       (ps-output (aref range 2))
-		     (setq has-local-background t)
-		     (ps-output "/printLocalBackground{\n"
-				(aref range 2)))))
+    (mapc (lambda (range)
+            (and (<= (aref range 0) page-number)
+                 (<= page-number (aref range 1))
+                 (if has-local-background
+                     (ps-output (aref range 2))
+                   (setq has-local-background t)
+                   (ps-output "/printLocalBackground{\n"
+                              (aref range 2)))))
 	  ps-background-pages)
     (and has-local-background (ps-output "}def\n"))))
 
@@ -5697,8 +5697,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		  (> (car page) 0)
 		  (<= (car page) (cdr page))
 		  (setq new (cons page new))))))
-    (setq ps-selected-pages      (sort new #'(lambda (one other)
-					       (< (car one) (car other))))
+    (setq ps-selected-pages      (sort new (lambda (one other)
+                                             (< (car one) (car other))))
 	  ps-last-selected-pages ps-selected-pages
 	  ps-first-page          nil
 	  ps-last-page           nil))
@@ -5782,8 +5782,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       "unspecified-fg"
 			       0.0)
 	ps-foreground-list    (mapcar
-			       #'(lambda (arg)
-				   (ps-rgb-color arg "unspecified-fg" 0.0))
+                               (lambda (arg)
+                                 (ps-rgb-color arg "unspecified-fg" 0.0))
 			       (append (and (not (member ps-print-color-p
 							 '(nil black-white)))
 					    ps-fg-list)
@@ -6012,9 +6012,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (if (and (boundp 'ucs-mule-8859-to-mule-unicode)
 	   (char-table-p ucs-mule-8859-to-mule-unicode))
 	(map-char-table
-	 #'(lambda (k v)
-	     (if (and v (eq (char-charset v) 'latin-iso8859-1) (/= k v))
-		 (aset tbl k v)))
+         (lambda (k v)
+           (if (and v (eq (char-charset v) 'latin-iso8859-1) (/= k v))
+               (aset tbl k v)))
 	 ucs-mule-8859-to-mule-unicode))
     tbl)
   "Translation table for PostScript printing.

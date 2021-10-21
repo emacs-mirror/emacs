@@ -506,11 +506,11 @@ This list's members correspond to left single quote, right single
 quote, left double quote, and right double quote, respectively."
   :version "26.1"
   :type '(list character character character character)
-  :safe #'(lambda (x)
-	    (pcase x
-	      (`(,(pred characterp) ,(pred characterp)
-		 ,(pred characterp) ,(pred characterp))
-	       t)))
+  :safe (lambda (x)
+          (pcase x
+            (`(,(pred characterp) ,(pred characterp)
+               ,(pred characterp) ,(pred characterp))
+             t)))
   :group 'electricity)
 
 (defcustom electric-quote-paragraph t

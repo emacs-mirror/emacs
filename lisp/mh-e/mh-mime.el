@@ -238,24 +238,24 @@ usually reads the file \"/etc/mailcap\"."
   (when (consp part-index) (setq part-index (car part-index)))
   (mh-folder-mime-action
    part-index
-   #'(lambda ()
-       (let* ((part (get-text-property (point) 'mh-data))
-              (type (mm-handle-media-type part))
-              (methods (mapcar (lambda (x) (list (cdr (assoc 'viewer x))))
-                               (mailcap-mime-info type 'all)))
-              (def (caar methods))
-              (prompt (format-prompt "Viewer" def))
-              (method (completing-read prompt methods nil nil nil nil def))
-              (folder mh-show-folder-buffer)
-              (buffer-read-only nil))
-         (when (string-match "^[^% \t]+$" method)
-           (setq method (concat method " %s")))
-         (mh-flet
-          ((mm-handle-set-external-undisplayer
-            (handle function)
-            (mh-handle-set-external-undisplayer folder handle function)))
-          (unwind-protect (mm-display-external part method)
-            (set-buffer-modified-p nil)))))
+   (lambda ()
+     (let* ((part (get-text-property (point) 'mh-data))
+            (type (mm-handle-media-type part))
+            (methods (mapcar (lambda (x) (list (cdr (assoc 'viewer x))))
+                             (mailcap-mime-info type 'all)))
+            (def (caar methods))
+            (prompt (format-prompt "Viewer" def))
+            (method (completing-read prompt methods nil nil nil nil def))
+            (folder mh-show-folder-buffer)
+            (buffer-read-only nil))
+       (when (string-match "^[^% \t]+$" method)
+         (setq method (concat method " %s")))
+       (mh-flet
+        ((mm-handle-set-external-undisplayer
+          (handle function)
+          (mh-handle-set-external-undisplayer folder handle function)))
+        (unwind-protect (mm-display-external part method)
+          (set-buffer-modified-p nil)))))
    nil))
 
 ;;;###mh-autoload

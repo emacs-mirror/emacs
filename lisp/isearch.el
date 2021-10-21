@@ -2478,8 +2478,8 @@ The arguments passed to `highlight-regexp' are the regexp from
 the last search and the face from `hi-lock-read-face-name'."
   (interactive)
   (isearch--highlight-regexp-or-lines
-   #'(lambda (regexp face lighter)
-       (highlight-regexp regexp face nil lighter))))
+   (lambda (regexp face lighter)
+     (highlight-regexp regexp face nil lighter))))
 
 (defun isearch-highlight-lines-matching-regexp ()
   "Exit Isearch mode and call `highlight-lines-matching-regexp'.
@@ -2487,8 +2487,8 @@ The arguments passed to `highlight-lines-matching-regexp' are the
 regexp from the last search and the face from `hi-lock-read-face-name'."
   (interactive)
   (isearch--highlight-regexp-or-lines
-   #'(lambda (regexp face _lighter)
-       (highlight-lines-matching-regexp regexp face))))
+   (lambda (regexp face _lighter)
+     (highlight-lines-matching-regexp regexp face))))
 
 
 (defun isearch-delete-char ()

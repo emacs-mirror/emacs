@@ -540,8 +540,8 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	    (narrow-to-region beg1 end1)
 	    (goto-char beg1)
 	    (sort-subr reverse 'forward-line 'end-of-line
-		       #'(lambda () (move-to-column col-start) nil)
-		       #'(lambda () (move-to-column col-end) nil))))))))
+                       (lambda () (move-to-column col-start) nil)
+                       (lambda () (move-to-column col-end) nil))))))))
 
 ;;;###autoload
 (defun reverse-region (beg end)

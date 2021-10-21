@@ -59,11 +59,11 @@
     (let* ((chars (car l))
 	   (len (length chars))
 	   ;; Replace `c', `t', `v' to consonant, tone, and vowel.
-	   (regexp (mapconcat #'(lambda (c)
-				  (cond ((= c ?c) consonant)
-					((= c ?t) tone)
-					((= c ?v) vowel-upper-lower)
-					(t (string c))))
+           (regexp (mapconcat (lambda (c)
+                                (cond ((= c ?c) consonant)
+                                      ((= c ?t) tone)
+                                      ((= c ?v) vowel-upper-lower)
+                                      (t (string c))))
 			      (cdr l) ""))
 	   ;; Element of composition-function-table.
 	   (elt (list (vector regexp 1 #'lao-composition-function)
