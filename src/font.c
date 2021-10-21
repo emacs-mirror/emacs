@@ -57,24 +57,26 @@ struct table_entry
   int numeric;
   /* The first one is a valid name as a face attribute.
      The second one (if any) is a typical name in XLFD field.  */
-  const char *names[5];
+  const char *names[6];
 };
 
 /* Table of weight numeric values and their names.  This table must be
-   sorted by numeric values in ascending order.  */
+   sorted by numeric values in ascending order and the numeric values
+   must approximately match the weights in the font files.  */
 
 static const struct table_entry weight_table[] =
 {
   { 0, { "thin" }},
-  { 20, { "ultra-light", "ultralight" }},
-  { 40, { "extra-light", "extralight" }},
+  { 40, { "ultra-light", "ultralight", "extra-light", "extralight" }},
   { 50, { "light" }},
-  { 75, { "semi-light", "semilight", "demilight", "book" }},
-  { 100, { "normal", "medium", "regular", "unspecified" }},
-  { 180, { "semi-bold", "semibold", "demibold", "demi" }},
+  { 55, { "semi-light", "semilight", "demilight" }},
+  { 80, { "regular", "normal", "unspecified", "book" }},
+  { 100, { "medium" }},
+  { 180, { "semi-bold", "semibold", "demibold", "demi-bold", "demi" }},
   { 200, { "bold" }},
-  { 205, { "extra-bold", "extrabold" }},
-  { 210, { "ultra-bold", "ultrabold", "black" }}
+  { 205, { "extra-bold", "extrabold", "ultra-bold", "ultrabold" }},
+  { 210, { "black", "heavy" }},
+  { 250, { "ultra-heavy", "ultraheavy" }}
 };
 
 /* Table of slant numeric values and their names.  This table must be
@@ -1484,11 +1486,20 @@ font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 #define PROP_MATCH(STR) (word_len == strlen (STR)		\
 			 && memcmp (p, STR, strlen (STR)) == 0)
 
-		  if (PROP_MATCH ("light")
+		  if (PROP_MATCH ("thin")
+		      || PROP_MATCH ("ultra-light")
+		      || PROP_MATCH ("light")
+		      || PROP_MATCH ("semi-light")
+		      || PROP_MATCH ("book")
 		      || PROP_MATCH ("medium")
+		      || PROP_MATCH ("normal")
+		      || PROP_MATCH ("semibold")
 		      || PROP_MATCH ("demibold")
 		      || PROP_MATCH ("bold")
-		      || PROP_MATCH ("black"))
+		      || PROP_MATCH ("ultra-bold")
+		      || PROP_MATCH ("black")
+		      || PROP_MATCH ("heavy")
+		      || PROP_MATCH ("ultra-heavy"))
 		    FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, val);
 		  else if (PROP_MATCH ("roman")
 			   || PROP_MATCH ("italic")

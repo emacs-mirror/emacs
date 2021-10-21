@@ -2237,20 +2237,32 @@ xg_get_file_name (struct frame *f,
 
 #ifdef HAVE_GTK3
 
-#define XG_WEIGHT_TO_SYMBOL(w)			\
-  (w <= PANGO_WEIGHT_THIN ? Qextra_light	\
-   : w <= PANGO_WEIGHT_ULTRALIGHT ? Qlight	\
-   : w <= PANGO_WEIGHT_LIGHT ? Qsemi_light	\
-   : w < PANGO_WEIGHT_MEDIUM ? Qnormal		\
-   : w <= PANGO_WEIGHT_SEMIBOLD ? Qsemi_bold	\
-   : w <= PANGO_WEIGHT_BOLD ? Qbold		\
-   : w <= PANGO_WEIGHT_HEAVY ? Qextra_bold	\
-   : Qultra_bold)
+static
+Lisp_Object xg_weight_to_symbol (PangoWeight w)
+{
+  return
+    (w <= PANGO_WEIGHT_THIN ? Qthin                  /* 100 */
+     : w <= PANGO_WEIGHT_ULTRALIGHT ? Qultra_light   /* 200 */
+     : w <= PANGO_WEIGHT_LIGHT ? Qlight              /* 300 */
+     : w <= PANGO_WEIGHT_SEMILIGHT ? Qsemi_light     /* 350 */
+     : w <= PANGO_WEIGHT_BOOK ? Qbook                /* 380 */
+     : w <= PANGO_WEIGHT_NORMAL ? Qnormal            /* 400 */
+     : w <= PANGO_WEIGHT_MEDIUM ? Qmedium            /* 500 */
+     : w <= PANGO_WEIGHT_SEMIBOLD ? Qsemi_bold       /* 600 */
+     : w <= PANGO_WEIGHT_BOLD ? Qbold                /* 700 */
+     : w <= PANGO_WEIGHT_ULTRABOLD ? Qultra_bold     /* 800 */
+     : w <= PANGO_WEIGHT_HEAVY ? Qblack              /* 900 */
+     : Qultra_heavy);                                /* 1000 */
+}
 
-#define XG_STYLE_TO_SYMBOL(s)			\
-  (s == PANGO_STYLE_OBLIQUE ? Qoblique		\
-   : s == PANGO_STYLE_ITALIC ? Qitalic		\
-   : Qnormal)
+static
+Lisp_Object xg_style_to_symbol (PangoStyle s)
+{
+  return
+    (s == PANGO_STYLE_OBLIQUE ? Qoblique
+     : s == PANGO_STYLE_ITALIC ? Qitalic
+     : Qnormal);
+}
 
 #endif /* HAVE_GTK3 */
 
@@ -2341,8 +2353,8 @@ xg_get_font (struct frame *f, const char *default_name)
 	  font = CALLN (Ffont_spec,
 			QCfamily, build_string (family),
 			QCsize, make_float (pango_units_to_double (size)),
-			QCweight, XG_WEIGHT_TO_SYMBOL (weight),
-			QCslant, XG_STYLE_TO_SYMBOL (style));
+			QCweight, xg_weight_to_symbol (weight),
+			QCslant, xg_style_to_symbol (style));
 
           char *font_desc_str = pango_font_description_to_string (desc);
           dupstring (&x_last_font_name, font_desc_str);

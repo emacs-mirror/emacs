@@ -702,9 +702,10 @@ for it to be relative to).
 
 `:weight'
 
-VALUE specifies the weight of the font to use.  It must be one of the
-symbols `ultra-bold', `extra-bold', `bold', `semi-bold', `normal',
-`semi-light', `light', `extra-light', `ultra-light'.
+VALUE specifies the weight of the font to use.  It must be one of
+the symbols `ultra-heavy', `heavy', `ultra-bold', `extra-bold',
+`bold', `semi-bold', `medium', `normal', `book', `semi-light',
+`light', `extra-light', `ultra-light', or `thin'.
 
 `:slant'
 
