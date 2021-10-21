@@ -4893,6 +4893,23 @@ region.
 
 @c FIXME: the definition of append-to-buffer has been changed (in
 @c 2010-03-30).
+@c In Bug#8275, Stefan Monner <monnier@iro.umontreal.ca> writes:
+@c >> Do you want to fix this, or shall I try?  The problem is that
+@c >> append-to-buffer now uses let* and with-current-buffer, so this might
+@c >> break the flow of the text.  At this point in the book, let* and
+@c >> with-current-buffer are not yet introduced.
+@c >
+@c > Here are some thoughts:
+@c > - I don't think it's of any importance that the example code be
+@c >   identical to the currently used code.
+@c > - append-to-buffer might not be the best example since AFAICT copying
+@c >   text from one buffer to another is not a common operation and in most
+@c >   cases this is done via buffer-substring + insert (often with some
+@c >   processing on the string between the two) rather than with
+@c >   insert-buffer-substring which is a rarely used function.
+@c > - yes, I think the text would benefit from some rethink to try and present
+@c >   with-current-buffer in preference to set-buffer, but it's not
+@c >   a simple fix.
 @node append-to-buffer
 @section The Definition of @code{append-to-buffer}
 @findex append-to-buffer
