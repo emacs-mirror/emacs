@@ -695,35 +695,40 @@ This macro is used to test if macroexpansion in `should' works."
   (should (equal (ert--abbreviate-string "bar" 0 t) "")))
 
 (ert-deftest ert-test-explain-equal-string-properties ()
-  (should
-   (equal (ert--explain-equal-including-properties #("foo" 0 1 (a b))
-                                                   "foo")
-          '(char 0 "f"
-                 (different-properties-for-key a (different-atoms b nil))
-                 context-before ""
-                 context-after "oo")))
-  (should (equal (ert--explain-equal-including-properties
+  (should-not (ert--explain-equal-including-properties-rec "foo" "foo"))
+  (should-not (ert--explain-equal-including-properties-rec
+               #("foo" 0 3 (a b))
+               (propertize "foo" 'a 'b)))
+  (should-not (ert--explain-equal-including-properties-rec
+               #("foo" 0 3 (a b c d))
+               (propertize "foo" 'a 'b 'c 'd)))
+  (should-not (ert--explain-equal-including-properties-rec
+               #("foo" 0 3 (a (t)))
+               (propertize "foo" 'a (list t))))
+
+  (should (equal (ert--explain-equal-including-properties-rec
+                  #("foo" 0 3 (a b c e))
+                  (propertize "foo" 'a 'b 'c 'd))
+                 '(char 0 "f" (different-properties-for-key c (different-atoms e d))
+                        context-before ""
+                        context-after "oo")))
+  (should (equal (ert--explain-equal-including-properties-rec
+                  #("foo" 0 1 (a b))
+                  "foo")
+                 '(char 0 "f"
+                        (different-properties-for-key a (different-atoms b nil))
+                        context-before ""
+                        context-after "oo")))
+  (should (equal (ert--explain-equal-including-properties-rec
                   #("foo" 1 3 (a b))
                   #("goo" 0 1 (c d)))
                  '(array-elt 0 (different-atoms (?f "#x66" "?f")
                                                 (?g "#x67" "?g")))))
-  (should
-   (equal (ert--explain-equal-including-properties
-           #("foo" 0 1 (a b c d) 1 3 (a b))
-           #("foo" 0 1 (c d a b) 1 2 (a foo)))
-          '(char 1 "o" (different-properties-for-key a (different-atoms b foo))
-                 context-before "f" context-after "o"))))
-
-(ert-deftest ert-test-equal-including-properties ()
-  (should (ert-equal-including-properties "foo" "foo"))
-  (should (ert-equal-including-properties #("foo" 0 3 (a b))
-                                          (propertize "foo" 'a 'b)))
-  (should (ert-equal-including-properties #("foo" 0 3 (a b c d))
-                                          (propertize "foo" 'a 'b 'c 'd)))
-  (should-not (ert-equal-including-properties #("foo" 0 3 (a b c e))
-                                              (propertize "foo" 'a 'b 'c 'd)))
-  (should (ert-equal-including-properties #("foo" 0 3 (a (t)))
-                                          (propertize "foo" 'a (list t)))))
+  (should (equal (ert--explain-equal-including-properties-rec
+                  #("foo" 0 1 (a b c d) 1 3 (a b))
+                  #("foo" 0 1 (c d a b) 1 2 (a foo)))
+                 '(char 1 "o" (different-properties-for-key a (different-atoms b foo))
+                        context-before "f" context-after "o"))))
 
 (ert-deftest ert-test-stats-set-test-and-result ()
   (let* ((test-1 (make-ert-test :name 'test-1

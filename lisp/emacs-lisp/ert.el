@@ -89,24 +89,6 @@ Use nil for no limit (caution: backtrace lines can be very long)."
                                        :background "red3"))
   "Face used for unexpected results in the ERT results buffer.")
 
-
-;;; Copies/reimplementations of cl functions.
-
-;; FIXME: Bug#6581 is fixed, so this should be deleted.
-(defun ert-equal-including-properties (a b)
-  "Return t if A and B have similar structure and contents.
-
-This is like `equal-including-properties' except that it compares
-the property values of text properties structurally (by
-recursing) rather than with `eq'.  Perhaps this is what
-`equal-including-properties' should do in the first place; see
-Emacs bug 6581 at URL `https://debbugs.gnu.org/cgi/bugreport.cgi?bug=6581'."
-  ;; This implementation is inefficient.  Rather than making it
-  ;; efficient, let's hope bug 6581 gets fixed so that we can delete
-  ;; it altogether.
-  (not (ert--explain-equal-including-properties a b)))
-
-
 ;;; Defining and locating tests.
 
 ;; The data structure that represents a test case.
@@ -467,7 +449,7 @@ Errors during evaluation are caught and handled like nil."
 
 (defun ert--explain-equal-rec (a b)
   "Return a programmer-readable explanation of why A and B are not `equal'.
-Returns nil if they are."
+Return nil if they are."
   (if (not (eq (type-of a) (type-of b)))
       `(different-types ,a ,b)
     (pcase a
@@ -600,14 +582,9 @@ If SUFFIXP is non-nil, returns a suffix of S, otherwise a prefix."
           (t
            (substring s 0 len)))))
 
-;; TODO(ohler): Once bug 6581 is fixed, rename this to
-;; `ert--explain-equal-including-properties-rec' and add a fast-path
-;; wrapper like `ert--explain-equal'.
-(defun ert--explain-equal-including-properties (a b)
-  "Explainer function for `ert-equal-including-properties'.
-
-Returns a programmer-readable explanation of why A and B are not
-`ert-equal-including-properties', or nil if they are."
+(defun ert--explain-equal-including-properties-rec (a b)
+  "Return explanation of why A and B are not `equal-including-properties'.
+Return nil if they are."
   (if (not (equal a b))
       (ert--explain-equal a b)
     (cl-assert (stringp a) t)
@@ -629,15 +606,17 @@ Returns a programmer-readable explanation of why A and B are not
                                     ,(ert--abbreviate-string
                                       (substring-no-properties a (1+ i))
                                       10 nil))))
-             ;; TODO(ohler): Get `equal-including-properties' fixed in
-             ;; Emacs, delete `ert-equal-including-properties', and
-             ;; re-enable this assertion.
-             ;;finally (cl-assert (equal-including-properties a b) t)
-             )))
-(put 'ert-equal-including-properties
-     'ert-explainer
-     'ert--explain-equal-including-properties)
+             finally (cl-assert (equal-including-properties a b) t))))
 
+(defun ert--explain-equal-including-properties (a b)
+  "Explainer function for `equal-including-properties'."
+  ;; Do a quick comparison in C to avoid running our expensive
+  ;; comparison when possible.
+  (if (equal-including-properties a b)
+      nil
+    (ert--explain-equal-including-properties-rec a b)))
+(put 'equal-including-properties 'ert-explainer
+     'ert--explain-equal-including-properties)
 
 ;;; Implementation of `ert-info'.
 
@@ -2787,6 +2766,12 @@ TRANSFORM will be called to get from before to after."
 (defvar ert-unload-hook ())
 (add-hook 'ert-unload-hook #'ert--unload-function)
 
+;;; Obsolete
+
+(define-obsolete-function-alias 'ert-equal-including-properties
+  #'equal-including-properties "29.1")
+(put 'ert-equal-including-properties 'ert-explainer
+     'ert--explain-equal-including-properties)
 
 (provide 'ert)
 

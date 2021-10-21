@@ -90,10 +90,10 @@
                  "foo  baz")))
 
 (ert-deftest ert-propertized-string ()
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (ert-propertized-string "a" '(a b) "b" '(c t) "cd")
            #("abcd" 1 2 (a b) 2 4 (c t))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (ert-propertized-string "foo " '(face italic) "bar" " baz" nil
                                    " quux")
            #("foo bar baz quux" 4 11 (face italic)))))
@@ -166,7 +166,7 @@
 					  "1 skipped"))))
               (with-current-buffer buffer-name
                 (font-lock-mode 0)
-                (should (ert-equal-including-properties
+                (should (equal-including-properties
                          (ert-filter-string (buffer-string)
                                             '("Started at:\\(.*\\)$" 1)
                                             '("Finished at:\\(.*\\)$" 1))
@@ -175,7 +175,7 @@
                 ;; pretend we are.
                 (let ((noninteractive nil))
                   (font-lock-mode 1))
-                (should (ert-equal-including-properties
+                (should (equal-including-properties
                          (ert-filter-string (buffer-string)
                                             '("Started at:\\(.*\\)$" 1)
                                             '("Finished at:\\(.*\\)$" 1))
