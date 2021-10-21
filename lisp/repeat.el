@@ -355,7 +355,7 @@ of the specified number of seconds."
   "Timer activated after the last key typed in the repeating key sequence.")
 
 (defcustom repeat-keep-prefix t
-  "Keep the prefix arg of the previous command."
+  "Whether to keep the prefix arg of the previous command when repeating."
   :type 'boolean
   :group 'convenience
   :version "28.1")
