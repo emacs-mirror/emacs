@@ -2000,7 +2000,7 @@ w32_encode_weight (int n)
 static Lisp_Object
 w32_to_fc_weight (int n)
 {
-  if (n >= FW_HEAVY)     return Qbold;
+  if (n >= FW_HEAVY)     return Qblack;
   if (n >= FW_EXTRABOLD) return Qextra_bold;
   if (n >= FW_BOLD)      return Qbold;
   if (n >= FW_SEMIBOLD)  return intern ("demibold");
