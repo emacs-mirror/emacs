@@ -29,7 +29,7 @@ FROM debian:stretch as emacs-base
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo \
+      libdbus-1-dev libacl1-dev acl git texinfo gdb \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-base as emacs-inotify
@@ -42,7 +42,8 @@ RUN apt-get update && \
 COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
-RUN ./configure
+RUN ./configure --enable-checking='yes,glyphs' --enable-check-lisp-object-type \
+    CFLAGS='-O0 -g3'
 # 'make -j4 bootstrap' does not work reliably.
 RUN make bootstrap
 
