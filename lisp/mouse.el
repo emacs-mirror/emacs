@@ -364,7 +364,7 @@ Some context functions add menu items below the separator."
                 (when (consp binding)
                   (define-key-after menu (vector key)
                     (copy-sequence binding))))
-              (lookup-key global-map [menu-bar]))
+              (menu-bar-keymap global-map))
   menu)
 
 (defun context-menu-local (menu _click)
