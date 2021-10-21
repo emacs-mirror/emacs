@@ -2244,7 +2244,7 @@ Lisp_Object xg_weight_to_symbol (PangoWeight w)
     (w <= PANGO_WEIGHT_THIN ? Qthin                  /* 100 */
      : w <= PANGO_WEIGHT_ULTRALIGHT ? Qultra_light   /* 200 */
      : w <= PANGO_WEIGHT_LIGHT ? Qlight              /* 300 */
-#ifdef PANGO_WEIGHT_SEMILIGHT /* New in 1.36.7 */
+#if PANGO_VERSION_CHECK(1, 36, 7)
      : w <= PANGO_WEIGHT_SEMILIGHT ? Qsemi_light     /* 350 */
 #endif
      : w <= PANGO_WEIGHT_BOOK ? Qbook                /* 380 */
