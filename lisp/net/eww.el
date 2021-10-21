@@ -145,12 +145,12 @@ The string will be passed through `substitute-command-keys'."
   "Command to retrieve an URL via an external program.
 If nil, `url-retrieve' is used to download the data.
 If `sync', `url-retrieve-synchronously' is used.
-For other non-nil values, this should be a list where the first item
-is the program, and the rest are the arguments."
+For other non-nil values, this should be a list of strings where
+the first item is the program, and the rest are the arguments."
   :version "28.1"
   :type '(choice (const :tag "Use `url-retrieve'" nil)
                  (const :tag "Use `url-retrieve-synchronously'" sync)
-                 (repeat string)))
+                 (repeat :tag "Command/args" string )))
 
 (defcustom eww-use-external-browser-for-content-type
   "\\`\\(video/\\|audio/\\|application/ogg\\)"
@@ -1901,7 +1901,7 @@ Use link at point if there is one, else the current page's URL."
 (defun eww-set-character-encoding (charset)
   "Set character encoding to CHARSET.
 If CHARSET is nil then use UTF-8."
-  (interactive "zUse character set (default utf-8): " eww-mode)
+  (interactive "zUse character set (default `utf-8'): " eww-mode)
   (if (null charset)
       (eww-reload nil 'utf-8)
     (eww-reload nil charset)))
