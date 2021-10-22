@@ -35,8 +35,8 @@ As Motif becomes more and more important with moving farther into the
 past, we've reinstated the code which supports Motif in Emacs.
 
 @item
-Emacs once again supports versions 5.3 and older OpenBSD system, which
-will be needed as you move back in time.
+Emacs once again supports versions 5.3 and older OpenBSD systems,
+which will be needed as you move back in time.
 
 @item
 We've dropped support for Secure Computing filter on GNU/Linux.  The
