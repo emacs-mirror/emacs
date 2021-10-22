@@ -1524,6 +1524,39 @@ working due to this change."
   :type 'boolean
   :group 'c)
 
+(defcustom c-type-finder-time-slot 0.05
+  "The length in seconds of a background type search time slot.
+
+In CC Mode modes, \"found types\" wouldn't always get cleanly
+fontified without the background searching for them which happens
+in the seconds after starting Emacs or initializing the major
+mode.
+
+This background searching can be disabled by setting this option
+to nil."
+  :type '(choice (const :tag "disabled" nil)
+		 number)
+  :group 'c)
+
+(defcustom c-type-finder-repeat-time 0.1
+  "The interval, in seconds, at which background type searches occur.
+
+This interval must be greater than `c-type-finder-time-slot'."
+  :type 'number
+  :group 'c)
+
+(defcustom c-type-finder-chunk-size 1000
+  "The size, in characters, of a chunk for background type search.
+
+Chunks of this size are searched atomically for \"found types\"
+just after starting Emacs or initializing the major mode.
+
+This chunk size is a balance between efficiency (with larger
+values) and responsiveness of the keyboard (with smaller values).
+See also `c-type-finder-time-slot'."
+  :type 'integer
+  :group 'c)
+
 (define-widget 'c-extra-types-widget 'radio
   "Internal CC Mode widget for the `*-font-lock-extra-types' variables."
   :args '((const :tag "none" nil)
