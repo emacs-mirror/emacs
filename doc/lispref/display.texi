@@ -5264,13 +5264,13 @@ to modify the set of known names for these dynamic libraries.
   Supported image formats (and the required support libraries) include
 PBM and XBM (which do not depend on support libraries and are always
 available), XPM (@code{libXpm}), GIF (@code{libgif} or
-@code{libungif}), JPEG (@code{libjpeg}), TIFF
-(@code{libtiff}), PNG (@code{libpng}), and SVG (@code{librsvg}).
+@code{libungif}), JPEG (@code{libjpeg}), TIFF (@code{libtiff}), PNG
+(@code{libpng}), SVG (@code{librsvg}), and WebP (@code{libwebp}).
 
   Each of these image formats is associated with an @dfn{image type
 symbol}.  The symbols for the above formats are, respectively,
-@code{pbm}, @code{xbm}, @code{xpm}, @code{gif},
-@code{jpeg}, @code{tiff}, @code{png}, and @code{svg}.
+@code{pbm}, @code{xbm}, @code{xpm}, @code{gif}, @code{jpeg},
+@code{tiff}, @code{png}, @code{svg}, and @code{webp}.
 
   Furthermore, if you build Emacs with ImageMagick
 (@code{libMagickWand}) support, Emacs can display any image format
@@ -6274,6 +6274,9 @@ Image type @code{png}.
 @item TIFF
 Image type @code{tiff}.
 Supports the @code{:index} property.  @xref{Multi-Frame Images}.
+
+@item WebP
+Image type @code{webp}.
 @end table
 
 @node Defining Images

@@ -447,6 +447,7 @@ OPTION_DEFAULT_ON([tiff],[don't compile with TIFF image support])
 OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
+OPTION_DEFAULT_ON([webp],[don't compile with WebP image support])
 OPTION_DEFAULT_ON([lcms2],[don't compile with Little CMS support])
 OPTION_DEFAULT_ON([libsystemd],[don't compile with libsystemd support])
 OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
@@ -2586,6 +2587,28 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
       fi
     fi
   fi
+fi
+
+### Use -lwebp if available, unless '--with-webp=no'
+### mingw32 doesn't use -lwebp, since it loads the library dynamically.
+HAVE_WEBP=no
+if test "${with_webp}" != "no"; then
+   if test "$opsys" = mingw32; then
+      AC_CHECK_HEADER([webp/decode.h], [HAVE_WEBP=yes])
+   elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
+         || test "${HAVE_NS}" = "yes"; then
+      WEBP_REQUIRED=0.6.0
+      WEBP_MODULE="libwebp >= $WEBP_REQUIRED"
+
+      EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
+      AC_SUBST(WEBP_CFLAGS)
+      AC_SUBST(WEBP_LIBS)
+
+      if test $HAVE_WEBP = yes; then
+        AC_DEFINE(HAVE_WEBP, 1, [Define to 1 if using libwebp.])
+        CFLAGS="$CFLAGS $WEBP_CFLAGS"
+      fi
+   fi
 fi
 
 HAVE_IMAGEMAGICK=no
@@ -5882,8 +5905,8 @@ emacs_config_features=
 for opt in ACL CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
  HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
  M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PNG RSVG SECCOMP \
- SOUND THREADS TIFF \
- TOOLKIT_SCROLL_BARS UNEXEC X11 XAW3D XDBE XFT XIM XPM XWIDGETS X_TOOLKIT \
+ SOUND THREADS TIFF TOOLKIT_SCROLL_BARS \
+ UNEXEC WEBP X11 XAW3D XDBE XFT XIM XPM XWIDGETS X_TOOLKIT \
  ZLIB; do
 
     case $opt in
@@ -5928,6 +5951,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use a gif library?                           ${HAVE_GIF} $LIBGIF
   Does Emacs use a png library?                           ${HAVE_PNG} $LIBPNG
   Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}
+  Does Emacs use -lwebp?                                  ${HAVE_WEBP}
   Does Emacs use cairo?                                   ${HAVE_CAIRO}
   Does Emacs use -llcms2?                                 ${HAVE_LCMS2}
   Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}

@@ -44,6 +44,8 @@
     (tiff . ,(expand-file-name
               "nextstep/GNUstep/Emacs.base/Resources/emacs.tiff"
               source-directory))
+    (webp . ,(expand-file-name "test/data/image/black.webp"
+                               source-directory))
     (xbm . ,(find-image '((:file "gnus/gnus.xbm" :type xbm))))
     (xpm . ,(find-image '((:file "splash.xpm" :type xpm))))
     ;; TODO: gif
@@ -82,6 +84,13 @@
 (ert-deftest image-tests-image-size/tiff ()
   (image-skip-unless 'tiff)
   (pcase (image-size (create-image (cdr (assq 'tiff image-tests--files))))
+    (`(,a . ,b)
+     (should (floatp a))
+     (should (floatp b)))))
+
+(ert-deftest image-tests-image-size/webp ()
+  (image-skip-unless 'webp)
+  (pcase (image-size (create-image (cdr (assq 'webp image-tests--files))))
     (`(,a . ,b)
      (should (floatp a))
      (should (floatp b)))))
@@ -130,7 +139,12 @@
 (ert-deftest image-tests-image-mask-p/tiff ()
   (image-skip-unless 'tiff)
   (should-not (image-mask-p (create-image
-			     (cdr (assq 'tiff image-tests--files))))))
+                             (cdr (assq 'tiff image-tests--files))))))
+
+(ert-deftest image-tests-image-mask-p/webp ()
+  (image-skip-unless 'webp)
+  (should-not (image-mask-p (create-image
+                             (cdr (assq 'webp image-tests--files))))))
 
 (ert-deftest image-tests-image-mask-p/xbm ()
   (image-skip-unless 'xbm)
@@ -173,7 +187,12 @@
 (ert-deftest image-tests-image-metadata/tiff ()
   (image-skip-unless 'tiff)
   (should-not (image-metadata
-	       (create-image (cdr (assq 'tiff image-tests--files))))))
+               (create-image (cdr (assq 'tiff image-tests--files))))))
+
+(ert-deftest image-tests-image-metadata/webp ()
+  (image-skip-unless 'webp)
+  (should-not (image-metadata
+               (create-image (cdr (assq 'webp image-tests--files))))))
 
 (ert-deftest image-tests-image-metadata/xbm ()
   (image-skip-unless 'xbm)

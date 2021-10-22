@@ -61,6 +61,12 @@ Emacs previously didn't distinguish between the "regular" weight and
 the "medium" weight, but it now also supports the (heavier) "medium"
 weight.
 
++++
+** Support for the WebP image format.
+This support is built by default when the libwebp library is
+available.  To disable it, use the '--without-webp' configure flag.
+Image specifiers can now use ':type webp'.
+
 
 * Editing Changes in Emacs 29.1
 

@@ -187,6 +187,7 @@ X11 is being used.
   X libtiff for TIFF: http://www.simplesystems.org/libtiff/
   X libgif for GIF:   http://giflib.sourceforge.net/
     librsvg2 for SVG: https://wiki.gnome.org/Projects/LibRsvg
+    libwebp for WebP: https://developers.google.com/speed/webp/
 
 If you supply the appropriate --without-LIB option, 'configure' will
 omit the corresponding library from Emacs, even if that makes for a
@@ -313,6 +314,7 @@ or more of these options:
   --without-gif          for GIF image support
   --without-png          for PNG image support
   --without-rsvg         for SVG image support
+  --without-webp         for WebP image support
 
 Although ImageMagick support is disabled by default due to security
 and stability concerns, you can enable it with --with-imagemagick.

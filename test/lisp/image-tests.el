@@ -49,12 +49,14 @@
     (should (equal image '(image)))))
 
 (ert-deftest image-find-image ()
-  (find-image '((:type xpm :file "undo.xpm")))
-  (find-image '((:type png :file "newsticker/rss-feed.png" :ascent center))))
+  (should (listp (find-image '((:type xpm :file "undo.xpm")))))
+  (should (listp (find-image '((:type png :file "newsticker/rss-feed.png" :ascent center)))))
+  (should-not (find-image '((:type png :file "does-not-exist-foo-bar.png")))))
 
 (ert-deftest image-type-from-file-name ()
   (should (eq (image-type-from-file-name "foo.jpg") 'jpeg))
-  (should (eq (image-type-from-file-name "foo.png") 'png)))
+  (should (eq (image-type-from-file-name "foo.png") 'png))
+  (should (eq (image-type-from-file-name "foo.webp") 'webp)))
 
 (ert-deftest image-type/from-filename ()
   ;; On emba, `image-types' and `image-load-path' do not exist.

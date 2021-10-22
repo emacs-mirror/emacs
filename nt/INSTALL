@@ -488,6 +488,7 @@ build will run on Windows 9X and newer systems).
        Does Emacs use a gif library?                           yes
        Does Emacs use a png library?                           yes
        Does Emacs use -lrsvg-2?                                yes
+       Does Emacs use -lwebp?                                  yes
        Does Emacs use cairo?                                   no
        Does Emacs use -llcms2?                                 yes
        Does Emacs use imagemagick?                             no
@@ -597,8 +598,8 @@ build will run on Windows 9X and newer systems).
 * Optional image library support
 
   In addition to its "native" image formats (pbm and xbm), Emacs can
-  handle other image types: xpm, tiff, gif, png, jpeg and experimental
-  support for svg.
+  handle other image types: xpm, tiff, gif, png, jpeg, webp and
+  experimental support for svg.
 
   To build Emacs with support for them, the corresponding headers must
   be in the include path and libraries should be where the linker
@@ -735,6 +736,10 @@ build will run on Windows 9X and newer systems).
   SVG support too unstable to your taste, you can rebuild Emacs
   without it by specifying the --without-rsvg switch to the configure
   script.
+
+  For WebP images you will need libwebp:
+
+    https://developers.google.com/speed/webp/
 
   Binaries for the other image libraries can be found on the
   ezwinports site or at the GnuWin32 project (the latter are generally
