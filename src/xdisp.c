@@ -10847,17 +10847,42 @@ include the height of any of these, if present, in the return value.  */)
   if (y > max_y)
     y = max_y;
 
-  if (EQ (mode_lines, Qtab_line) || EQ (mode_lines, Qt))
-    /* Re-add height of tab-line as requested.  */
-    y = y + WINDOW_TAB_LINE_HEIGHT (w);
+  if ((EQ (mode_lines, Qtab_line) || EQ (mode_lines, Qt))
+      && window_wants_tab_line (w))
+    /* Add height of tab-line as requested.  */
+    {
+      Lisp_Object window_tab_line_format
+	= window_parameter (w, Qtab_line_format);
 
-  if (EQ (mode_lines, Qheader_line) || EQ (mode_lines, Qt))
-    /* Re-add height of header-line as requested.  */
-    y = y + WINDOW_HEADER_LINE_HEIGHT (w);
+      y = y + display_mode_line (w, TAB_LINE_FACE_ID,
+				 NILP (window_tab_line_format)
+				 ? BVAR (current_buffer, tab_line_format)
+				 : window_tab_line_format);
+    }
 
-  if (EQ (mode_lines, Qmode_line) || EQ (mode_lines, Qt))
-    /* Add height of mode-line as requested.  */
-    y = y + WINDOW_MODE_LINE_HEIGHT (w);
+  if ((EQ (mode_lines, Qheader_line) || EQ (mode_lines, Qt))
+      && window_wants_header_line (w))
+    {
+      Lisp_Object window_header_line_format
+	= window_parameter (w, Qheader_line_format);
+
+      y = y + display_mode_line (w, HEADER_LINE_FACE_ID,
+				 NILP (window_header_line_format)
+				 ? BVAR (current_buffer, header_line_format)
+				 : window_header_line_format);
+    }
+
+  if ((EQ (mode_lines, Qmode_line) || EQ (mode_lines, Qt))
+      && window_wants_mode_line (w))
+    {
+      Lisp_Object window_mode_line_format
+	= window_parameter (w, Qmode_line_format);
+
+      y = y + display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
+				 NILP (window_mode_line_format)
+				 ? BVAR (current_buffer, mode_line_format)
+				 : window_mode_line_format);
+    }
 
   bidi_unshelve_cache (itdata, false);
 
