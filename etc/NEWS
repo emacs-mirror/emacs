@@ -2971,6 +2971,18 @@ user-visible changes in ERC.
 point in history).
 
 ---
+*** Downloading files from xwidget-webkit is now supported.
+The new user option 'xwidget-webkit-download-dir' says where to download to.
+
+---
+*** New command 'xwidget-webkit-clone-and-split-below'.
+Open a new window below displaying the current URL.
+
+---
+*** New command 'xwidget-webkit-clone-and-split-right'.
+Open a new window to the right displaying the current URL.
+
+---
 *** Pixel-based scrolling.
 The 'xwidget-webkit-scroll-up', 'xwidget-webkit-scroll-down' commands
 now supports scrolling arbitrary pixel values.  It now treats the
@@ -4518,18 +4530,6 @@ to select previous/next frame are still bound to 's-~' and 's-`'.
 If Emacs was built with xwidget support, you can access the embedded
 webkit browser with 'M-x xwidget-webkit-browse-url'.  Viewing two
 instances of xwidget webkit is not supported.
-
----
-*** Downloading files from xwidget-webkit is now supported.
-The new user option 'xwidget-webkit-download-dir' says where to download to.
-
----
-*** New command 'xwidget-webkit-clone-and-split-below'.
-Open a new window below displaying the current URL.
-
----
-*** New command 'xwidget-webkit-clone-and-split-right'.
-Open a new window to the right displaying the current URL.
 
 ---
 *** New user option 'xwidget-webkit-enable-plugins'.
