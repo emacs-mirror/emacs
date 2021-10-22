@@ -387,7 +387,7 @@ the map can't be set on the command symbol property `repeat-map'.")
   "Toggle Repeat mode.
 When Repeat mode is enabled, and the command symbol has the property named
 `repeat-map', this map is activated temporarily for the next command.
-See `describe-repeat-maps' for a list of all repeatable command."
+See `describe-repeat-maps' for a list of all repeatable commands."
   :global t :group 'convenience
   (if (not repeat-mode)
       (remove-hook 'post-command-hook 'repeat-post-hook)
