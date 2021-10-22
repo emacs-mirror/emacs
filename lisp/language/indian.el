@@ -376,12 +376,12 @@ South Indian language Malayalam is supported in this language environment."))
 	 (kannada . ,kannada-composable-pattern)
 	 (malayalam . ,malayalam-composable-pattern))))
   (map-char-table
-   (lambda (key val)
-     (let ((slot (assq val script-regexp-alist)))
-       (if slot
-           (set-char-table-range
-            composition-function-table key
-            (list (vector (cdr slot) 0 #'font-shape-gstring))))))
+   #'(lambda (key val)
+       (let ((slot (assq val script-regexp-alist)))
+	 (if slot
+	     (set-char-table-range
+	      composition-function-table key
+	      (list (vector (cdr slot) 0 #'font-shape-gstring))))))
    char-script-table))
 
 (provide 'indian)

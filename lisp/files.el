@@ -6682,12 +6682,12 @@ auto-save file, if that is more recent than the visited file."
                        (abbreviate-file-name file-name)))
 	  ((with-temp-buffer-window
 	    "*Directory*" nil
-            (lambda (window _value)
-              (with-selected-window window
-                (unwind-protect
-                    (yes-or-no-p (format "Recover auto save file %s? " file-name))
-                  (when (window-live-p window)
-                    (quit-restore-window window 'kill)))))
+	    #'(lambda (window _value)
+		(with-selected-window window
+		  (unwind-protect
+		      (yes-or-no-p (format "Recover auto save file %s? " file-name))
+		    (when (window-live-p window)
+		      (quit-restore-window window 'kill)))))
 	    (with-current-buffer standard-output
 	      (let ((switches dired-listing-switches))
 		(if (file-symlink-p file)
