@@ -5,7 +5,7 @@ See the end of the file for license conditions.
 REFERENCE CARDS FOR GNU EMACS
 
 To generate these refcards, you need to install the TeX document
-production system.  For example, <http://www.tug.org/texlive/>.
+production system.  For example, <https://www.tug.org/texlive/>.
 
 All modern GNU/Linux distributions provide TeX packages, so the
 easiest way is just to install those.  Your distribution may have
