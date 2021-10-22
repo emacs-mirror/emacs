@@ -110,7 +110,7 @@ can log the choice only once, which makes the batch log easier to read.")
 Functions that touch the file system or run MH programs are either
 mocked out or pointed at a test tree.  Uses `mh-test-utils-setup' to
 select which."
-  (declare (indent defun))
+  (declare (indent 0) (debug t))
   `(cl-letf ((temp-home-dir nil)
              ;; make local bindings for things we will modify for test env
              (mh-user-path)
@@ -374,6 +374,7 @@ values for the FLAG argument of `mh-folder-completion-function'.
 NIL-EXPECTED is the expected value with FLAG nil.
 T-EXPECTED is the expected value with FLAG t.
 LAMBDA-EXPECTED is the expected value with FLAG lambda."
+  (declare (debug t))
   `(with-mh-test-env
      (mh-test-folder-completion-2 ,nil-expected ;case "a"
                                   (mh-folder-completion-function ,name nil nil))
@@ -388,6 +389,7 @@ LAMBDA-EXPECTED is the expected value with FLAG lambda."
 ACTUAL should evaluate to either EXPECTED or to a list containing EXPECTED.
 ACTUAL may be evaluated twice, but this gives a clearer error on failure,
 and the `should' macro requires idempotent evaluation anyway."
+  (declare (debug t))
   `(if (and (not (consp ,expected)) (consp ,actual))
        (should (member ,expected ,actual))
      (should (equal ,expected ,actual))))
