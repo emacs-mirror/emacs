@@ -737,9 +737,17 @@ build will run on Windows 9X and newer systems).
   without it by specifying the --without-rsvg switch to the configure
   script.
 
-  For WebP images you will need libwebp:
+  For WebP images you will need libwebp.  You can find it here:
+
+    http://sourceforge.net/projects/ezwinports/files/
+
+  Note: the MS-Windows binary distribution on the Google site:
 
     https://developers.google.com/speed/webp/
+
+  were compiled by MSVC, and include only static libraries, no DLLs.
+  So you cannot use that to build Emacs with WebP support on
+  MS-Windows, as that needs libwebp as a DLL.
 
   Binaries for the other image libraries can be found on the
   ezwinports site or at the GnuWin32 project (the latter are generally

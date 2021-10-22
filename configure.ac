@@ -2590,23 +2590,23 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
 fi
 
 ### Use -lwebp if available, unless '--with-webp=no'
-### mingw32 doesn't use -lwebp, since it loads the library dynamically.
 HAVE_WEBP=no
 if test "${with_webp}" != "no"; then
-   if test "$opsys" = mingw32; then
-      AC_CHECK_HEADER([webp/decode.h], [HAVE_WEBP=yes])
-   elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
-         || test "${HAVE_NS}" = "yes"; then
+   if test "${HAVE_X11}" = "yes" || test "${opsys}" = "mingw32" \
+   || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes"; then
       WEBP_REQUIRED=0.6.0
       WEBP_MODULE="libwebp >= $WEBP_REQUIRED"
 
       EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
       AC_SUBST(WEBP_CFLAGS)
       AC_SUBST(WEBP_LIBS)
-
-      if test $HAVE_WEBP = yes; then
-        AC_DEFINE(HAVE_WEBP, 1, [Define to 1 if using libwebp.])
-        CFLAGS="$CFLAGS $WEBP_CFLAGS"
+   fi
+   if test $HAVE_WEBP = yes; then
+      AC_DEFINE(HAVE_WEBP, 1, [Define to 1 if using libwebp.])
+      CFLAGS="$CFLAGS $WEBP_CFLAGS"
+      # Windows loads libwebp dynamically
+      if test "${opsys}" = "mingw32"; then
+	WEBP_LIBS=
       fi
    fi
 fi

@@ -8802,10 +8802,15 @@ webp_image_p (Lisp_Object object)
 /* WebP library details.  */
 
 DEF_DLL_FN (int, WebPGetInfo, (const uint8_t *, size_t, int *, int *));
-DEF_DLL_FN (VP8StatusCode, WebPGetFeatures, (const uint8_t *, size_t, WebPBitstreamFeatures *));
+/* WebPGetFeatures is a static inline function defined in WebP's
+   decode.h.  Since we cannot use that with dynamically-loaded libwebp
+   DLL, we instead load the internal function it calls and redirect to
+   that through a macro.  */
+DEF_DLL_FN (VP8StatusCode, WebPGetFeaturesInternal,
+	    (const uint8_t *, size_t, WebPBitstreamFeatures *, int));
+DEF_DLL_FN (uint8_t *, WebPDecodeRGBA, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (uint8_t *, WebPDecodeRGB, (const uint8_t *, size_t, int *, int *));
-DEF_DLL_FN (uint8_t *, WebPDecodeBGR, (const uint8_t *, size_t, int *, int *));
-DEF_DLL_FN (void, WebPFreeDecBuffer (WebPDecBuffer *));
+DEF_DLL_FN (void, WebPFree, (void *));
 
 static bool
 init_webp_functions (void)
@@ -8816,7 +8821,7 @@ init_webp_functions (void)
     return false;
 
   LOAD_DLL_FN (library, WebPGetInfo);
-  LOAD_DLL_FN (library, WebPGetFeatures);
+  LOAD_DLL_FN (library, WebPGetFeaturesInternal);
   LOAD_DLL_FN (library, WebPDecodeRGBA);
   LOAD_DLL_FN (library, WebPDecodeRGB);
   LOAD_DLL_FN (library, WebPFree);
@@ -8830,7 +8835,8 @@ init_webp_functions (void)
 #undef WebPFree
 
 #define WebPGetInfo fn_WebPGetInfo
-#define WebPGetFeatures fn_WebPGetFeatures
+#define WebPGetFeatures(d,s,f)					\
+  fn_WebPGetFeaturesInternal(d,s,f,WEBP_DECODER_ABI_VERSION)
 #define WebPDecodeRGBA fn_WebPDecodeRGBA
 #define WebPDecodeRGB fn_WebPDecodeRGB
 #define WebPFree fn_WebPFree
