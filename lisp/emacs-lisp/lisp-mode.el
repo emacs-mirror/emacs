@@ -1078,10 +1078,11 @@ is the buffer position of the start of the containing expression."
 		       ;; Handle prefix characters and whitespace
 		       ;; following an open paren.  (Bug#1012)
                        (backward-prefix-chars)
-                       (while (not (or (looking-back "^[ \t]*\\|([ \t]+"
-                                                      (line-beginning-position))
-                                       (and containing-sexp
-                                            (>= (1+ containing-sexp) (point)))))
+                       (while (not (save-excursion
+                                     (skip-chars-backward " \t")
+                                     (or (= (point) (line-beginning-position))
+                                         (and containing-sexp
+                                              (= (point) (1+ containing-sexp))))))
                          (forward-sexp -1)
                          (backward-prefix-chars))
                        (setq calculate-lisp-indent-last-sexp (point)))

@@ -5293,12 +5293,16 @@ Lisp programs should use this function for killing text.
 Supply two arguments, character positions BEG and END indicating the
  stretch of text to be killed.  If the optional argument REGION is
  non-nil, the function ignores BEG and END, and kills the current
- region instead."
+ region instead.  Interactively, REGION is always non-nil, and so
+ this command always kills the current region."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
-  (interactive (list (mark) (point) 'region))
-  (unless (and beg end)
-    (user-error "The mark is not set now, so there is no region"))
+  (interactive (progn
+                 (let ((beg (mark))
+                       (end (point)))
+                   (unless (and beg end)
+                     (user-error "The mark is not set now, so there is no region"))
+                   (list beg end 'region))))
   (condition-case nil
       (let ((string (if region
                         (funcall region-extract-function 'delete)

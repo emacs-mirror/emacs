@@ -706,8 +706,13 @@ the formatted tab name to display in the tab bar."
 Every item in the list is a function that returns
 a string, or a list of menu-item elements, or nil.
 Adding a function to the list causes the tab bar to show
-that string, or display a menu with those menu items when
-you click on the tab bar.
+that string, or display a tab button which, when clicked,
+will invoke the command that is the binding of the menu item.
+The menu-item binding of nil will produce a tab clicking
+on which will select that tab.  The menu-item's title is
+displayed as the label of the tab.
+If a function returns nil, it doesn't directly affect the
+tab bar appearance, but can do that by some side-effect.
 If the list ends with `tab-bar-format-align-right' and
 `tab-bar-format-global', then after enabling `display-time-mode'
 (or any other mode that uses `global-mode-string'),

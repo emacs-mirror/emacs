@@ -80,12 +80,13 @@ This was only ever relevant when building from a repository checkout.
 This now requires makeinfo, which is part of the texinfo package.
 
 ---
-** There is a new configure option '--disable-year2038' to cause
-Emacs to use only 32-bit time_t on platforms that have both 32- and
-64-bit time_t.  This may help link Emacs to a library with ABI
-requiring traditional 32-bit time_t.  This option currently affects
-only 32-bit ARM and x86 running GNU/Linux with glibc 2.34 and later.
-Emacs now defaults to 64-bit time_t on these platforms.
+** New configure option '--disable-year2038'.
+This causes Emacs to use only 32-bit time_t on platforms that have
+both 32- and 64-bit time_t.  This may help when linking Emacs with a
+library with an ABI requiring traditional 32-bit time_t.  This option
+currently affects only 32-bit ARM and x86 running GNU/Linux with glibc
+2.34 and later.  Emacs now defaults to 64-bit time_t on these
+platforms.
 
 ---
 ** Support for building with '-fcheck-pointer-bounds' has been removed.
@@ -273,9 +274,9 @@ whether the function 'read-answer' accepts short answers.
 +++
 ** New user option 'kill-buffer-delete-auto-save-files'.
 If non-nil, killing a buffer that has an auto-save file will prompt
-the user for whether that file should be deleted.  (Note that
-'delete-auto-save-files', if non-nil, was previously documented to
-result in deletion of auto-save files when killing a buffer without
+the user for whether that auto-save file should be deleted.  (Note
+that 'delete-auto-save-files', if non-nil, was previously documented
+to result in deletion of auto-save files when killing a buffer without
 unsaved changes, but this has apparently not worked for several
 decades, so the documented semantics of this variable has been changed
 to match the behavior.)
@@ -354,6 +355,8 @@ of the next command to be displayed in a new frame.
 *** New command 'clone-frame' (bound to 'C-x 5 c').
 This is like 'C-x 5 2', but uses the window configuration and frame
 parameters of the current frame instead of 'default-frame-alist'.
+When called interactively with a prefix arg, the window configuration
+is not cloned.
 
 ---
 *** Default values of 'frame-title-format' and 'icon-title-format' have changed.
@@ -393,12 +396,13 @@ of the next command to be displayed in a new window.
 
 +++
 *** New command 'recenter-other-window', bound to 'S-M-C-l'.
-Like 'recenter-top-bottom' acting on the other window.
+Like 'recenter-top-bottom', but acting on the other window.
 
 +++
 *** New user option 'delete-window-choose-selected'.
-This allows to choose a window that will be the frame's selected
-window after deleting the currently selected one.
+This allows specifying how Emacs chooses which window will be the
+frame's selected window after the currently selected window is
+deleted.
 
 +++
 *** New argument NO-OTHER for some window functions.
@@ -496,7 +500,7 @@ on each frame compared to the numerical value of 'tab-bar-show'.
 *** New command 'toggle-frame-tab-bar'.
 It can be used to enable/disable the tab bar on the currently selected
 frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
-This allows to enable/disable the tab bar independently on different
+This allows enabling/disabling the tab bar independently on different
 frames.
 
 ---
@@ -510,10 +514,10 @@ the tab bar displays tab groups.
 
 ---
 *** New optional key binding for 'tab-last'.
-If you customize the user option 'tab-bar-select-tab-modifiers' for
-selecting tabs using its index numbers, the '<MODIFIER>-9' key is
-bound to 'tab-last', and switches to the last tab.  Here <MODIFIER> is
-any of the modifiers in the list that is the value of
+If you customize the user option 'tab-bar-select-tab-modifiers' to
+allow selecting tabs using their index numbers, the '<MODIFIER>-9' key
+is bound to 'tab-last', and switches to the last tab.  Here <MODIFIER>
+is any of the modifiers in the list that is the value of
 'tab-bar-select-tab-modifiers'.  You can also use negative indices,
 which count from the last tab: -1 is the last tab, -2 the one before
 that, etc.
@@ -700,6 +704,7 @@ the same syntax as 'auto-save-file-name-transforms'.
 +++
 *** New user option 'remote-file-name-inhibit-locks'.
 When non-nil, this option suppresses lock files for remote files.
+Default is nil.
 
 +++
 *** New minor mode 'lock-file-mode'.
@@ -944,8 +949,8 @@ having those two commands on the 'M-o' keymap; see the next section.
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
 Use 'M-x center-line' and 'M-x center-paragraph' instead.  See the
 previous section for how to get back the old bindings.  Alternatively,
-if you only want these two commands to have global bindings they had
-before, you can add the following to your init file:
+if you only want these two commands to have the global bindings they
+had before, you can add the following to your init file:
 
     (define-key global-map "\M-o\M-s" 'center-line)
     (define-key global-map "\M-o\M-S" 'center-paragraph)
@@ -1003,10 +1008,10 @@ file:
 ** Xref migrated from EIEIO to cl-defstruct for its core objects.
 This means that 'oref' and 'with-slots' no longer works on them, and
 'make-instance' can no longer be used to create those instances (which
-wasn't recommended anyway).  Packages should keep to using the
-functions like 'xref-make', 'xref-make-match', 'xref-make-*-location',
-as well as accessor functions 'xref-item-summary' and
-'xref-item-location'.
+wasn't recommended anyway).  Packages should restrict themselves to
+using functions like 'xref-make', 'xref-make-match',
+'xref-make-*-location', as well as accessor functions
+'xref-item-summary' and 'xref-item-location'.
 
 Among the benefits are better performance (noticeable when there are a
 lot of matches) and improved flexibility: 'xref-match-item' instances
@@ -1143,7 +1148,8 @@ less.
 +++
 ** New user option 'revert-buffer-quick-short-answers'.
 This controls how the new 'revert-buffer-quick' ('C-x x g') command
-prompts.
+prompts.  A non-nil value will make it use 'y-or-n-p' rather than
+'yes-or-no-p'.  Defaults to nil.
 
 +++
 ** New user option 'query-about-changed-file'.
@@ -1197,7 +1203,7 @@ buffer to be able to move point to the inaccessible portion.
 When called interactively, 'goto-char' now offers the position at
 point as the default.
 
-** Autosaving via 'auto-save-visited-mode' can now be inhibited.
+** Auto-saving via 'auto-save-visited-mode' can now be inhibited.
 Set the variable 'auto-save-visited-mode' buffer-locally to nil to
 achieve that.
 
@@ -1211,7 +1217,7 @@ It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.
 
 ** 'show-paren-mode' is now enabled by default.
-To go back to the previous behavior, customize the user option by the
+To go back to the previous behavior, customize the user option of the
 same name to nil.
 
 +++
@@ -1305,8 +1311,8 @@ displaying "by name" or "by date" sort order.
 
 +++
 *** New user option 'dired-compress-directory-default-suffix'.
-This user option controls default suffix for compressing a directory.
-If it's nil, ".tar.gz" will be used.  Refer to
+This user option controls the default suffix for compressing a
+directory.  If it's nil, ".tar.gz" will be used.  Refer to
 'dired-compress-files-alist' for a list of supported suffixes.
 
 +++
@@ -1327,7 +1333,7 @@ select a different backup file instead.
 +++
 *** New user option 'dired-maybe-use-globstar'.
 If set, enables globstar (recursive globbing) in shells that support
-this feature, but turn it off by default.  This allows producing
+this feature, but have it turned off by default.  This allows producing
 directory listings with files matching a wildcard in all the
 subdirectories of a given directory.  The new variable
 'dired-enable-globstar-in-shell' lists which shells can have globstar
@@ -1419,7 +1425,7 @@ major mode.
 
 +++
 *** 'ispell-comments-and-strings' now accepts START and END arguments.
-These arguments default to active region when used interactively.
+These arguments default to the active region when used interactively.
 
 +++
 *** New command 'ispell-comment-or-string-at-point'.
@@ -2061,7 +2067,7 @@ consistency, the 'M-s M-r' key binding has been added for the
 'gnus-summary-search-article-backward' command.)
 
 ---
-*** The value of "all" in the 'large-newsgroup-initial' group parameter changes.
+*** The value for "all" in the 'large-newsgroup-initial' group parameter has changed.
 It was previously nil, which didn't work, because nil is
 indistinguishable from not being present.  The new value for "all" is
 the symbol 'all'.
@@ -2359,14 +2365,6 @@ Its default value matches localized abbreviations of the "reply"
 prefix on the Subject line in various languages.
 
 ---
-*** New user option 'shr-offer-extend-specpdl'.
-If this is nil, rendering of HTML in the email message body that
-requires to enlarge 'max-specpdl-size', the number of Lisp variable
-bindings, will be aborted, and Emacs will not ask you whether to
-enlarge 'max-specpdl-size' to complete the rendering.  The default is
-t, which preserves the original behavior.
-
----
 *** New user option 'rmail-show-message-set-modified'.
 If set non-nil, showing an unseen message will set the Rmail buffer's
 modified flag.  The default is nil, to preserve the old behavior.
@@ -2520,10 +2518,10 @@ However, if "~/Downloads/" already exists, that will continue to be
 used.
 
 ---
-*** The command 'eww-follow-link' now supports custom mailto handlers.
+*** The command 'eww-follow-link' now supports custom mailto: handlers.
 The function that is invoked when clicking on or otherwise following a
 'mailto:' link in an EWW buffer can now be customized.  For more
-information, see the related entry about 'shr-browse-url' above.
+information, see the related entry about 'shr-browse-url' below.
 
 ---
 *** Support for bookmark.el.
@@ -2539,6 +2537,14 @@ rendered by SHR previously invoked the command 'browse-url-mailto'.
 This is still the case by default, but if you customize
 'browse-url-mailto-function' or 'browse-url-handlers' to call some
 other function, it will now be called instead of the default.
+
+---
+*** New user option 'shr-offer-extend-specpdl'.
+If this is nil, rendering of HTML that requires enlarging
+'max-specpdl-size', the number of Lisp variable bindings, will be
+aborted, and Emacs will not ask you whether to enlarge
+'max-specpdl-size' to complete the rendering.  The default is t, which
+preserves the original behavior.
 
 +++
 *** New user option 'shr-max-width'.
@@ -2615,7 +2621,8 @@ sub-directory.
 
 +++
 *** 'project-find-file' doesn't use the string at point as default input.
-Now it's only suggested as part of the "future history".
+Now it's only suggested as part of the "future history", accessible
+via 'M-n'.
 
 +++
 *** New command 'project-find-dir' runs Dired in a directory inside project.
@@ -2971,6 +2978,18 @@ user-visible changes in ERC.
 point in history).
 
 ---
+*** Downloading files from xwidget-webkit is now supported.
+The new user option 'xwidget-webkit-download-dir' says where to download to.
+
+---
+*** New command 'xwidget-webkit-clone-and-split-below'.
+Open a new window below displaying the current URL.
+
+---
+*** New command 'xwidget-webkit-clone-and-split-right'.
+Open a new window to the right displaying the current URL.
+
+---
 *** Pixel-based scrolling.
 The 'xwidget-webkit-scroll-up', 'xwidget-webkit-scroll-down' commands
 now supports scrolling arbitrary pixel values.  It now treats the
@@ -3192,7 +3211,7 @@ effect.
 
 ---
 *** The width of the buffer-name column in 'list-buffers' is now dynamic.
-The width now depends of the width of the window, but will never be
+The width now depends on the width of the window, but will never be
 wider than the length of the longest buffer name, except that it will
 never be narrower than 19 characters.
 
@@ -3225,16 +3244,24 @@ Type 'M-x repeat-mode RET' to enable this mode.  You can then type
 instead of 'C-x o C-x o' to switch windows, 'C-x { { } } ^ ^ v v' to
 resize the selected window interactively, 'M-g n n p p' to navigate
 next-error matches.  Any other key exits this temporarily enabled
-transient mode that supports shorter keys, and then after exiting
-from this mode the default key binding is used for the last typed key.
-'repeat-exit-key' defines an additional key to exit mode like
-'isearch-exit' ('RET').  The user option 'repeat-exit-timeout'
-specifies the number of seconds of idle time to break the repetition
-chain automatically.  With 'repeat-keep-prefix' you can keep the
-prefix arg of the previous command.  For example, this can help to
-reverse the window navigation direction with e.g. 'C-x o M-- o o'.
-Also it can help to set a new step with e.g. 'C-x { C-5 { { {',
-which will set the window resizing step to 5 columns.
+transient mode that supports shorter keys, and then after exiting from
+this mode the default key binding is used for the last typed key.
+
+The user option 'repeat-exit-key' defines an additional key usable to
+exit the mode like 'isearch-exit' ('RET').
+
+The user option 'repeat-exit-timeout' (default nil, which means
+forever) specifies the number of seconds of idle time after which to
+break the repetition chain automatically.
+
+When user option 'repeat-keep-prefix' is non-nil (the default), the
+prefix arg of the previous command is kept.  This can be used to
+e.g. reverse the window navigation direction with 'C-x o M-- o o' or
+to set a new step with 'C-x { C-5 { { {', which will set the window
+resizing step to 5 columns.
+
+'M-x describe-repeat-maps' will display a buffer showing
+which commands are repeatable in 'repeat-mode'.
 
 ---
 ** New themes 'modus-vivendi' and 'modus-operandi'.
@@ -3683,7 +3710,7 @@ user option has been renamed to 'find-library-source-path', and
 ** The 'interactive' syntax has been extended to allow listing applicable modes.
 Forms like '(interactive "p" dired-mode)' can be used to annotate the
 commands as being applicable for modes derived from 'dired-mode',
-or if the mode is a minor mode, that the current buffer has that
+or if the mode is a minor mode, when the current buffer has that
 minor mode activated.  Note that using this form will create byte code
 that is not compatible with byte code in previous Emacs versions.
 
@@ -3694,7 +3721,7 @@ to say whether the command should be present when completing with
 'M-x TAB'.  '(declare (modes MODE...))' can be used as a short-hand
 way of saying that the command should be present when completing from
 buffers in major modes derived from MODE..., or, if it's a minor mode,
-whether that minor mode is enabled in the current buffer.
+when that minor mode is enabled in the current buffer.
 
 +++
 ** 'define-minor-mode'  now takes an ':interactive' argument.
@@ -4426,7 +4453,7 @@ also keep the type information of their arguments.  Use the
 
 +++
 *** New minor mode 'button-mode'.
-This minor mode does nothing else than install 'button-buffer-map' as
+This minor mode does nothing except install 'button-buffer-map' as
 a minor mode map (which binds the 'TAB' / 'S-TAB' key bindings to navigate
 to buttons), and can be used in any view-mode-like buffer that has
 buttons in it.
@@ -4444,7 +4471,8 @@ line when displaying that buffer.
 
 This is useful for major modes that arrange their display in a tabular
 form below the header line.  It is enabled by default in
-'tabulated-list-mode' and its derived modes.
+'tabulated-list-mode' and its derived modes, and disabled by default
+elsewhere.
 
 ---
 ** 'ascii' is now a coding system alias for 'us-ascii'.
@@ -4510,18 +4538,6 @@ to select previous/next frame are still bound to 's-~' and 's-`'.
 If Emacs was built with xwidget support, you can access the embedded
 webkit browser with 'M-x xwidget-webkit-browse-url'.  Viewing two
 instances of xwidget webkit is not supported.
-
----
-*** Downloading files from xwidget-webkit is now supported.
-The new user option 'xwidget-webkit-download-dir' says where to download to.
-
----
-*** New command 'xwidget-webkit-clone-and-split-below'.
-Open a new window below displaying the current URL.
-
----
-*** New command 'xwidget-webkit-clone-and-split-right'.
-Open a new window to the right displaying the current URL.
 
 ---
 *** New user option 'xwidget-webkit-enable-plugins'.

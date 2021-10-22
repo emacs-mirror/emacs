@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(require 'ert-x)                        ;For `ert-run-keys'.
+(require 'ert-x)                        ;For `ert-simulate-keys'.
 
 (ert-deftest find-auto-coding--bug27391 ()
   "Check that Bug#27391 is fixed."

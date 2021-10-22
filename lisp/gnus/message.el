@@ -2395,6 +2395,8 @@ If VERBATIM, use slrn style verbatim marks (\"#v+\" and \"#v-\")."
   (save-excursion
     ;; add to the end of the region first, otherwise end would be invalid
     (goto-char end)
+    (unless (bolp)
+      (insert "\n"))
     (insert (if verbatim "#v-\n" message-mark-insert-end))
     (goto-char beg)
     (insert (if verbatim "#v+\n" message-mark-insert-begin))))
