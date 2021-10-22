@@ -42,8 +42,7 @@ RUN apt-get update && \
 COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
-RUN ./configure --enable-checking='yes,glyphs' --enable-check-lisp-object-type \
-    CFLAGS='-O0 -g3'
+RUN ./configure CFLAGS='-O0 -g3'
 # 'make -j4 bootstrap' does not work reliably.
 RUN make bootstrap
 
