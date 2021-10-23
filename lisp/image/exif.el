@@ -68,6 +68,7 @@
 
 (defvar exif-tag-alist
   '((11 processing-software)
+    (270 description)
     (271 make)
     (272 model)
     (274 orientation)
@@ -76,7 +77,8 @@
     (296 resolution-unit)
     (305 software)
     (306 date-time)
-    (315 artist))
+    (315 artist)
+    (33432 copyright))
   "Alist of tag values and their names.")
 
 (defconst exif--orientation

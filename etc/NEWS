@@ -189,6 +189,15 @@ To improve security, if an sql product has ':password-in-comint' set
 to t, a password supplied via the minibuffer will be sent in-process,
 as opposed to via the command-line.
 
+** Image Dired
+
+---
+*** Reduce dependency on external "exiftool" command.
+The `image-dired-copy-with-exif-file-name' no longer requires an
+external "exiftool" command to be available.  The user options
+`image-dired-cmd-read-exif-data-program' and
+`image-dired-cmd-read-exif-data-options' are now obsolete.
+
 ** Exif
 
 *** New function 'exif-field'.
@@ -252,6 +261,10 @@ Use 'define-keymap' instead.
 ** MozRepl has been removed from js.el.
 MozRepl was removed from Firefox in 2017, so this code doesn't work
 with recent versions of Firefox.
+
+---
+** The function `image-dired-get-exif-data' is now obsolete.
+Use `exif-parse-file' and `exif-field' instead.
 
 
 * Lisp Changes in Emacs 29.1
