@@ -125,7 +125,7 @@ previous one, unless VALUE is nil.  Return the updated list."
   "Collect macro definitions in current buffer and setup files.
 Return an alist containing all macro templates found."
   (let ((templates
-         `(("author" . ,(org-macro--find-keyword-value "AUTHOR"))
+         `(("author" . ,(org-macro--find-keyword-value "AUTHOR" t))
 	   ("email" . ,(org-macro--find-keyword-value "EMAIL"))
 	   ("title" . ,(org-macro--find-keyword-value "TITLE" t))
 	   ("date" . ,(org-macro--find-date)))))
