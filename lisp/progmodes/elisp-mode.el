@@ -636,7 +636,8 @@ functions are annotated with \"<f>\" via the
                            :company-kind #'elisp--company-kind
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
-                           :company-location #'elisp--company-location))
+                           :company-location #'elisp--company-location
+                           :company-deprecated #'elisp--company-deprecated))
                     (quoted
                      (list nil (elisp--completion-local-symbols)
                            ;; Don't include all symbols (bug#16646).
@@ -652,7 +653,8 @@ functions are annotated with \"<f>\" via the
                            :company-kind #'elisp--company-kind
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
-                           :company-location #'elisp--company-location))
+                           :company-location #'elisp--company-location
+                           :company-deprecated #'elisp--company-deprecated))
                     (t
                      (list nil (completion-table-merge
                                 elisp--local-variables-completion-table
@@ -667,7 +669,8 @@ functions are annotated with \"<f>\" via the
                                'variable))
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
-                           :company-location #'elisp--company-location)))
+                           :company-location #'elisp--company-location
+                           :company-deprecated #'elisp--company-deprecated)))
                  ;; Looks like a funcall position.  Let's double check.
                  (save-excursion
                    (goto-char (1- beg))
@@ -714,13 +717,15 @@ functions are annotated with \"<f>\" via the
                               :company-kind (lambda (_) 'variable)
                               :company-doc-buffer #'elisp--company-doc-buffer
                               :company-docsig #'elisp--company-doc-string
-                              :company-location #'elisp--company-location))
+                              :company-location #'elisp--company-location
+                              :company-deprecated #'elisp--company-deprecated))
                        (_ (list nil (elisp--completion-local-symbols)
                                 :predicate #'elisp--shorthand-aware-fboundp
                                 :company-kind #'elisp--company-kind
                                 :company-doc-buffer #'elisp--company-doc-buffer
                                 :company-docsig #'elisp--company-doc-string
                                 :company-location #'elisp--company-location
+                                :company-deprecated #'elisp--company-deprecated
                                 ))))))))
           (nconc (list beg end)
                  (if (null (car table-etc))
@@ -742,6 +747,11 @@ functions are annotated with \"<f>\" via the
      ((featurep sym) 'module)
      ((facep sym) 'color)
      (t 'text))))
+
+(defun elisp--company-deprecated (str)
+  (let ((sym (intern-soft str)))
+    (or (get sym 'byte-obsolete-variable)
+        (get sym 'byte-obsolete-info))))
 
 (defun lisp-completion-at-point (&optional _predicate)
   (declare (obsolete elisp-completion-at-point "25.1"))
