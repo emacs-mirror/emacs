@@ -29,6 +29,7 @@
                               "../"))))
 
 (ert-deftest image-dired-tests-get-exif-file-name ()
+  (skip-unless (image-type-available-p 'jpeg))
   (let ((img (image-dired-test-image-file "black.jpg")))
     (should (equal (image-dired-get-exif-file-name img)
                    "2019_09_21_16_22_13_black.jpg"))))
