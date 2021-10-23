@@ -613,6 +613,21 @@ get_cgcolor(unsigned long idx, struct frame *f)
   return cgColor;
 }
 
+static CGColorRef
+get_cgcolor_from_nscolor (NSColor *nsColor, struct frame *f)
+{
+  [nsColor set];
+  CGColorSpaceRef colorSpace = [[nsColor colorSpace] CGColorSpace];
+  NSInteger noc = [nsColor numberOfComponents];
+  CGFloat *components = xmalloc (sizeof(CGFloat)*(1+noc));
+  CGColorRef cgColor;
+
+  [nsColor getComponents: components];
+  cgColor = CGColorCreate (colorSpace, components);
+  xfree (components);
+  return cgColor;
+}
+
 #define CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND(context, face, f)        \
   do {                                                                  \
     CGColorRef refcol_ = get_cgcolor (NS_FACE_FOREGROUND (face), f);    \
@@ -2911,14 +2926,14 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
   if (!CGRectIsNull (background_rect))
     {
-      if (s->hl == DRAW_MOUSE_FACE)
+      if (s->hl == DRAW_CURSOR)
         {
-          face = FACE_FROM_ID_OR_NULL (s->f,
-				       MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-          if (!face)
-            face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+	  CGColorRef *colorref = get_cgcolor_from_nscolor (FRAME_CURSOR_COLOR (f), f);
+	  CGContextSetFillColorWithColor (context, colorref);
+	  CGColorRelease (colorref);
         }
-      CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND (context, face, f);
+      else
+	CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND (context, face, f);
       CGContextFillRects (context, &background_rect, 1);
     }
 
@@ -2927,7 +2942,14 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CGAffineTransform atfm;
 
       CGContextScaleCTM (context, 1, -1);
-      CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND (context, face, s->f);
+      if (s->hl == DRAW_CURSOR)
+        {
+	  CGColorRef *colorref = get_cgcolor_from_nscolor (FRAME_BACKGROUND_COLOR (f), f);
+	  CGContextSetFillColorWithColor (context, colorref);
+	  CGColorRelease (colorref);
+        }
+      else
+	CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND (context, face, s->f);
       if (macfont_info->synthetic_italic_p)
         atfm = synthetic_italic_atfm;
       else

@@ -1236,6 +1236,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          "fontBackend", "FontBackend", RES_TYPE_STRING);
 
   {
+#ifdef NS_IMPL_COCOA
     /* use for default font name */
     id font = [NSFont userFixedPitchFontOfSize: -1.0]; /* default */
     gui_default_parameter (f, parms, Qfontsize,
@@ -1250,6 +1251,11 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                            build_string (fontname),
                            "font", "Font", RES_TYPE_STRING);
     xfree (fontname);
+#else
+    gui_default_parameter (f, parms, Qfont,
+                           build_string ("fixed"),
+                           "font", "Font", RES_TYPE_STRING);
+#endif
   }
   unblock_input ();
 

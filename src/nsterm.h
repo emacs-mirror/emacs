@@ -820,7 +820,7 @@ struct nsfont_info
   XCharStruct max_bounds;
   /* We compute glyph codes and metrics on-demand in blocks of 256 indexed
      by hibyte, lobyte.  */
-  unsigned short **glyphs; /* map Unicode index to glyph */
+  unsigned int **glyphs; /* map Unicode index to glyph */
   struct font_metrics **metrics;
 };
 #endif

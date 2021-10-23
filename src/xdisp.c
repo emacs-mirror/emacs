@@ -29306,7 +29306,6 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
   for (s = head; s; s = s->next)
     FRAME_RIF (f)->draw_glyph_string (s);
 
-#ifndef HAVE_NS
   /* When focus a sole frame and move horizontally, this clears on_p
      causing a failure to erase prev cursor position. */
   if (area == TEXT_AREA
@@ -29325,7 +29324,6 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
       notice_overwritten_cursor (w, TEXT_AREA, x0, x1,
 				 row->y, MATRIX_ROW_BOTTOM_Y (row));
     }
-#endif
 
   /* Value is the x-position up to which drawn, relative to AREA of W.
      This doesn't include parts drawn because of overhangs.  */
