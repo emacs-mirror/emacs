@@ -189,6 +189,12 @@ To improve security, if an sql product has ':password-in-comint' set
 to t, a password supplied via the minibuffer will be sent in-process,
 as opposed to via the command-line.
 
+** Exif
+
+*** New function 'exif-field'.
+This is a convenience function to extract the field data from
+`exif-parse-file' and `exif-parse-buffer'.
+
 
 * New Modes and Packages in Emacs 29.1
 
