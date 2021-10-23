@@ -5028,8 +5028,6 @@ gui_set_no_special_glyphs (struct frame *f, Lisp_Object new_value, Lisp_Object o
 }
 
 
-#ifndef HAVE_NS
-
 /* Non-zero if mouse is grabbed on DPYINFO
    and we know the frame where it is.  */
 
@@ -5053,8 +5051,6 @@ gui_redo_mouse_highlight (Display_Info *dpyinfo)
 			  dpyinfo->last_mouse_motion_x,
 			  dpyinfo->last_mouse_motion_y);
 }
-
-#endif /* HAVE_NS */
 
 /* Subroutines of creating an X frame.  */
 

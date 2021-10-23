@@ -13894,7 +13894,6 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
   clear_mouse_face (hlinfo);
 
   bool mouse_down_p = false;
-#ifndef HAVE_NS
   /* Mouse is down, but on different tab-bar item?  Or alternatively,
      the mouse might've been pressed somewhere we don't know about,
      and then have moved onto the tab bar.  In this case,
@@ -13907,7 +13906,6 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
   if (mouse_down_p && f->last_tab_bar_item != prop_idx
       && f->last_tab_bar_item != -1)
     return;
-#endif
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
 
   /* If tab-bar item is not enabled, don't highlight it.  */

@@ -65,6 +65,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #ifdef NS_IMPL_GNUSTEP
 #include "process.h"
+#import <GNUstepGUI/GSDisplayServer.h>
 #endif
 
 #ifdef NS_IMPL_COCOA
@@ -2256,13 +2257,19 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
   NSTRACE ("frame_set_mouse_pixel_position");
 
-  /* FIXME: what about GNUstep?  */
 #ifdef NS_IMPL_COCOA
   CGPoint mouse_pos =
     CGPointMake(f->left_pos + pix_x,
                 f->top_pos + pix_y +
                 FRAME_NS_TITLEBAR_HEIGHT(f) + FRAME_TOOLBAR_HEIGHT(f));
   CGWarpMouseCursorPosition (mouse_pos);
+#else
+  GSDisplayServer *server = GSServerForWindow ([FRAME_NS_VIEW (f) window]);
+  [server setMouseLocation: NSMakePoint (f->left_pos + pix_x,
+					 f->top_pos + pix_y
+					 + FRAME_NS_TITLEBAR_HEIGHT(f)
+					 + FRAME_TOOLBAR_HEIGHT(f))
+		  onScreen: [[[FRAME_NS_VIEW (f) window] screen] screenNumber]];
 #endif
 }
 
@@ -2575,8 +2582,7 @@ ns_get_shifted_character (NSEvent *event)
    ========================================================================== */
 
 
-#if 0
-/* FIXME: Remove this function. */
+#ifdef NS_IMPL_GNUSTEP
 static void
 ns_redraw_scroll_bars (struct frame *f)
 {
@@ -2621,10 +2627,9 @@ ns_clear_frame (struct frame *f)
   NSRectFill (r);
   ns_unfocus (f);
 
-  /* as of 2006/11 or so this is now needed */
-  /* FIXME: I don't see any reason for this and removing it makes no
-     difference here.  Do we need it for GNUstep?  */
-  //ns_redraw_scroll_bars (f);
+#ifdef NS_IMPL_GNUSTEP
+  ns_redraw_scroll_bars (f);
+#endif
   unblock_input ();
 }
 
@@ -4922,6 +4927,17 @@ ns_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
 }
 
+#ifdef NS_IMPL_GNUSTEP
+static void
+ns_update_window_end (struct window *w, bool cursor_on_p,
+		      bool mouse_face_overwritten_p)
+{
+  NSTRACE ("ns_update_window_end (cursor_on_p = %d)", cursor_on_p);
+
+  ns_redraw_scroll_bars (WINDOW_XFRAME (w));
+}
+#endif
+
 /* This and next define (many of the) public functions in this file.  */
 /* gui_* are generic versions in xdisp.c that we, and other terms, get away
          with using despite presence in the "system dependent" redisplay
@@ -4938,7 +4954,11 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_scroll_run,
   ns_after_update_window_line,
   NULL, /* update_window_begin */
+#ifndef NS_IMPL_GNUSTEP
   NULL, /* update_window_end   */
+#else
+  ns_update_window_end,
+#endif
   0, /* flush_display */
   gui_clear_window_mouse_face,
   gui_get_glyph_overhangs,
@@ -6165,9 +6185,11 @@ not_in_argv (NSString *arg)
       Lisp_Object kind = fnKeysym ? QCfunction : QCordinary;
       emacs_event->modifiers = EV_MODIFIERS2 (flags, kind);
 
+#ifndef NS_IMPL_GNUSTEP
       if (NS_KEYLOG)
         fprintf (stderr, "keyDown: code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",
                  code, fnKeysym, flags, emacs_event->modifiers);
+#endif
 
       /* If it was a function key or had control-like modifiers, pass
          it directly to Emacs.  */
@@ -6680,6 +6702,11 @@ not_in_argv (NSString *arg)
       emacs_event->code = EV_BUTTON (theEvent);
       emacs_event->modifiers = EV_MODIFIERS (theEvent)
                              | EV_UDMODIFIERS (theEvent);
+
+      if (emacs_event->modifiers & down_modifier)
+	FRAME_DISPLAY_INFO (emacsframe)->grabbed |= 1 << EV_BUTTON (theEvent);
+      else
+	FRAME_DISPLAY_INFO (emacsframe)->grabbed &= ~(1 << EV_BUTTON (theEvent));
     }
 
   XSETINT (emacs_event->x, lrint (p.x));
@@ -6980,7 +7007,6 @@ not_in_argv (NSString *arg)
   height = (int)NSHeight (frame);
 
   NSTRACE_SIZE ("New size", NSMakeSize (width, height));
-  NSTRACE_SIZE ("Original size", size);
 
   /* Reset the frame size to match the bounds of the superview (the
      NSWindow's contentView).  We need to do this as sometimes the

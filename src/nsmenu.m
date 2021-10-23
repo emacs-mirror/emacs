@@ -101,6 +101,15 @@ popup_activated (void)
 static void
 ns_update_menubar (struct frame *f, bool deep_p)
 {
+#ifdef NS_IMPL_GNUSTEP
+  static int inside = 0;
+
+  if (inside)
+    return;
+
+  inside++;
+#endif
+
   BOOL needsSet = NO;
   id menu = [NSApp mainMenu];
   bool owfi;
@@ -120,7 +129,12 @@ ns_update_menubar (struct frame *f, bool deep_p)
   NSTRACE ("ns_update_menubar");
 
   if (f != SELECTED_FRAME () || FRAME_EXTERNAL_MENU_BAR (f) == 0)
+    {
+#ifdef NS_IMPL_GNUSTEP
+      inside--;
+#endif
       return;
+    }
   XSETFRAME (Vmenu_updating_frame, f);
 /*fprintf (stderr, "ns_update_menubar: frame: %p\tdeep: %d\tsub: %p\n", f, deep_p, submenu); */
 
@@ -142,10 +156,6 @@ ns_update_menubar (struct frame *f, bool deep_p)
 #if NSMENUPROFILE
   ftime (&tb);
   t = -(1000*tb.time+tb.millitm);
-#endif
-
-#ifdef NS_IMPL_GNUSTEP
-  deep_p = 1; /* See comment in menuNeedsUpdate.  */
 #endif
 
   if (deep_p)
@@ -275,6 +285,9 @@ ns_update_menubar (struct frame *f, bool deep_p)
 	  free_menubar_widget_value_tree (first_wv);
 	  discard_menu_items ();
 	  unbind_to (specpdl_count, Qnil);
+#ifdef NS_IMPL_GNUSTEP
+	  inside--;
+#endif
 	  return;
 	}
 
@@ -408,6 +421,10 @@ ns_update_menubar (struct frame *f, bool deep_p)
   if (needsSet)
     [NSApp setMainMenu: menu];
 
+#ifdef NS_IMPL_GNUSTEP
+  inside--;
+#endif
+
   unblock_input ();
 
 }
@@ -452,17 +469,34 @@ set_frame_menubar (struct frame *f, bool deep_p)
    call to ns_update_menubar.  */
 - (void)menuNeedsUpdate: (NSMenu *)menu
 {
+#ifdef NS_IMPL_GNUSTEP
+  static int inside = 0;
+#endif
+
   if (!FRAME_LIVE_P (SELECTED_FRAME ()))
     return;
 
-#ifdef NS_IMPL_COCOA
-/* TODO: GNUstep calls this method when the menu is still being built
-   which results in a recursive stack overflow.  One possible solution
-   is to use menuWillOpen instead, but the Apple docs explicitly warn
-   against changing the contents of the menu in it.  I don't know what
-   the right thing to do for GNUstep is.  */
+#ifdef NS_IMPL_GNUSTEP
+  /* GNUstep calls this method when the menu is still being built
+     which results in a recursive stack overflow, which this variable
+     prevents.  */
+
+  if (!inside)
+    ++inside;
+  else
+    return;
+#endif
+
   if (needsUpdate)
-    ns_update_menubar (SELECTED_FRAME (), true);
+    {
+#ifdef NS_IMPL_GNUSTEP
+      needsUpdate = NO;
+#endif
+      ns_update_menubar (SELECTED_FRAME (), true);
+    }
+
+#ifdef NS_IMPL_GNUSTEP
+  --inside;
 #endif
 }
 
@@ -789,6 +823,9 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
 
   p.x = x; p.y = y;
 
+  /* Don't GC due to a mysterious bug.  */
+  inhibit_garbage_collection ();
+
   /* now parse stage 2 as in ns_update_menubar */
   wv = make_widget_value ("contextmenu", NULL, true, Qnil);
   wv->button_type = BUTTON_TYPE_NONE;
@@ -960,15 +997,17 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
 
   pmenu = [[EmacsMenu alloc] initWithTitle:
                    NILP (title) ? @"" : [NSString stringWithLispString: title]];
+  /* On GNUstep, this call makes menu_items nil for whatever reason
+     when displaying a context menu from `context-menu-mode'.  */
+  Lisp_Object items = menu_items;
   [pmenu fillWithWidgetValue: first_wv->contents];
+  menu_items = items;
   free_menubar_widget_value_tree (first_wv);
-  unbind_to (specpdl_count, Qnil);
-
   popup_activated_flag = 1;
   tem = [pmenu runMenuAt: p forFrame: f keymaps: keymaps];
   popup_activated_flag = 0;
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
-
+  unbind_to (specpdl_count, Qnil);
   unblock_input ();
   return tem;
 }
@@ -1019,6 +1058,15 @@ update_frame_tool_bar_1 (struct frame *f, EmacsToolbar *toolbar)
   [toolbar clearActive];
 #else
   [toolbar clearAll];
+  /* It takes at least 3 such adjustments to fix an issue where the
+     tool bar is 2x too tall when a frame's tool bar is first shown.
+     This is ugly, but I have no other solution for this problem.  */
+  if (FRAME_OUTPUT_DATA (f)->tool_bar_adjusted < 3)
+    {
+      [toolbar setVisible: NO];
+      FRAME_OUTPUT_DATA (f)->tool_bar_adjusted++;
+      [toolbar setVisible: YES];
+    }
 #endif
 
   /* Update EmacsToolbar as in GtkUtils, build items list.  */
