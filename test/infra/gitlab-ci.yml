@@ -44,8 +44,8 @@ workflow:
 variables:
   GIT_STRATEGY: fetch
   EMACS_EMBA_CI: 1
-  # Three hours, see below.
-  EMACS_TEST_TIMEOUT: 10800
+  # Four hours, see below.
+  EMACS_TEST_TIMEOUT: 14400
   EMACS_TEST_VERBOSE: 1
   # # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
   # DOCKER_HOST: tcp://docker:2376
@@ -60,7 +60,7 @@ variables:
 
 default:
   image: docker:19.03.12
-  timeout: 3 hours
+  timeout: 4 hours
   before_script:
     - docker info
     - echo "docker registry is ${CI_REGISTRY}"
