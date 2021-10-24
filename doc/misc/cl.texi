@@ -3370,9 +3370,13 @@ true for all elements.
 @end defun
 
 @defun cl-reduce function seq @t{&key :from-end :start :end :initial-value :key}
-This function combines the elements of @var{seq} using an associative
-binary operation.  Suppose @var{function} is @code{*} and @var{seq} is
-the list @code{(2 3 4 5)}.  The first two elements of the list are
+This function returns the result of calling @var{function} on the
+first and second element of @var{seq}, then calling @var{function}
+with that result and the third element of @var{seq}, then with that
+result and the third element of @var{seq}, etc.
+
+Here is an example.  Suppose @var{function} is @code{*} and @var{seq}
+is the list @code{(2 3 4 5)}.  The first two elements of the list are
 combined with @code{(* 2 3) = 6}; this is combined with the next
 element, @code{(* 6 4) = 24}, and that is combined with the final
 element: @code{(* 24 5) = 120}.  Note that the @code{*} function happens

@@ -629,6 +629,9 @@ the definition it is bound to.  The event may be a character range.
 If KEYMAP has a parent, the parent's bindings are included as well.
 This works recursively: if the parent has itself a parent, then the
 grandparent's bindings are also included and so on.
+
+For more information, see Info node `(elisp) Keymaps'.
+
 usage: (map-keymap FUNCTION KEYMAP)  */)
   (Lisp_Object function, Lisp_Object keymap, Lisp_Object sort_first)
 {

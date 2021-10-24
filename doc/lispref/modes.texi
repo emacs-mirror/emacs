@@ -59,12 +59,13 @@ runs just before Emacs suspends itself (@pxref{Suspending Emacs}).
 
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
-indicates it is probably an @dfn{abnormal hook}.  That means the hook
-functions are called with arguments, or their return values are used
-in some way.  The hook's documentation says how the functions are
-called.  Any functions added to an abnormal hook must follow the
-hook's calling convention.  By convention, abnormal hook names end in
-@samp{-functions}.
+indicates it is probably an @dfn{abnormal hook}.  These differ from
+normal hooks in two ways: they can be called with one or more
+arguments, and their return values can be used in some way.  The
+hook's documentation says how the functions are called and how their
+return values are used.  Any functions added to an abnormal hook must
+follow the hook's calling convention.  By convention, abnormal hook
+names end in @samp{-functions}.
 
 @cindex single-function hook
 If the name of the variable ends in @samp{-predicate} or

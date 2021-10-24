@@ -16543,7 +16543,7 @@ more "bibliography" keywords.
 #+bibliography: "/some/file/with spaces/in its name.bib"
 #+end_example
 
-#+kindex: C-c C-x @
+#+kindex: C-c C-x @@
 #+findex: org-cite-insert
 One can then insert and edit citations using ~org-cite-insert~, called
 with {{{kbd(C-c C-x @)}}}.

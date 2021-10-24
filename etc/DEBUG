@@ -590,7 +590,7 @@ recommend to follow the procedure below to try to identify the cause:
 If you cannot figure out the cause for the problem using the above,
 native-compile the problematic file after setting the variable
 'comp-libgccjit-reproducer' to a non-nil value.  That should produce a
-file names ELNFILENAME_libgccjit_repro.c, where ELNFILENAME is the
+file named ELNFILENAME_libgccjit_repro.c, where ELNFILENAME is the
 name of the problematic .eln file, in the same directory where the
 .eln file is produced.  Then attach that reproducer C file to your bug
 report.
