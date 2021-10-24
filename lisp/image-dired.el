@@ -599,13 +599,18 @@ Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
            'comment (image-dired-get-comment original-file-name)))))
 
 (defun image-dired-thumb-name (file)
-  "Return thumbnail file name for FILE.
-Depending on the value of `image-dired-thumbnail-storage', the file
-name will vary.  For central thumbnail file storage, make a
-MD5-hash of the image file's directory name and add that to make
-the thumbnail file name unique.  For per-directory storage, just
-add a subdirectory.  For standard storage, produce the file name
-according to the Thumbnail Managing Standard."
+  "Return absolute file name for thumbnail FILE.
+Depending on the value of `image-dired-thumbnail-storage', the
+file name of the thumbnail will vary:
+- For `use-image-dired-dir', make a SHA1-hash of the image file's
+  directory name and add that to make the thumbnail file name
+  unique.
+- For `per-directory' storage, just add a subdirectory.
+- For `standard' storage, produce the file name according to the
+  Thumbnail Managing Standard.  Among other things, an MD5-hash
+  of the image file's directory name will be added to the
+  filename.
+See also `image-dired-thumbnail-storage'."
   (cond ((memq image-dired-thumbnail-storage '(standard standard-large))
          (let* ((xdg (getenv "XDG_CACHE_HOME"))
                 (dir (if (and xdg (file-name-absolute-p xdg))
@@ -614,20 +619,19 @@ according to the Thumbnail Managing Standard."
                             (standard "thumbnails/normal")
                             (standard-large "thumbnails/large"))))
            (expand-file-name
+            ;; MD5 is mandated by the Thumbnail Managing Standard.
             (concat (md5 (concat "file://" (expand-file-name file))) ".png")
             (expand-file-name thumbdir dir))))
         ((eq 'use-image-dired-dir image-dired-thumbnail-storage)
          (let* ((f (expand-file-name file))
-                (md5-hash
-                 ;; Is MD5 hashes fast enough? The checksum of a
-                 ;; thumbnail file name need not be that
-                 ;; "cryptographically" good so a faster one could
-                 ;; be used here.
-                 (md5 (file-name-as-directory (file-name-directory f)))))
+                (hash
+                 ;; SHA1 is slightly faster than MD5, so let's use it.
+                 ;; (We don't need anything crytographically strong.)
+                 (sha1 (file-name-as-directory (file-name-directory f)))))
            (format "%s%s%s.thumb.%s"
                    (file-name-as-directory (expand-file-name (image-dired-dir)))
                    (file-name-base f)
-                   (if md5-hash (concat "_" md5-hash) "")
+                   (if hash (concat "_" hash) "")
                    (file-name-extension f))))
         ((eq 'per-directory image-dired-thumbnail-storage)
          (let ((f (expand-file-name file)))
