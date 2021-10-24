@@ -129,6 +129,16 @@
 ;   '
 (require 'cc-fonts) ;)
 
+(defvar c-type-finder-timer nil)
+;; The variable which holds the repeating idle timer which triggers off the
+;; background type finding search.
+
+(defvar c-inhibit-type-finder nil)
+;; When non-nil (set by `c-post-gc-hook') don't perform the type finding
+;; activities the next time `c-type-finder-timer' triggers.  This ensures
+;; keyboard/mouse input will be dealt with when garbage collection is taking a
+;; large portion of CPU time.
+
 ;; The following three really belong to cc-fonts.el, but they are required
 ;; even when cc-fonts.el hasn't been loaded (this happens in XEmacs when
 ;; font-lock-mode is nil).
@@ -179,6 +189,18 @@
   (when c-buffer-is-cc-mode
     (save-restriction
       (widen)
+      (let ((lst (buffer-list)))
+	(catch 'found
+	  (dolist (b lst)
+	    (if (and (not (eq b (current-buffer)))
+		     (with-current-buffer b
+		       c-buffer-is-cc-mode))
+		(throw 'found nil)))
+	  (remove-hook 'post-command-hook 'c-post-command)
+	  (remove-hook 'post-gc-hook 'c-post-gc-hook)
+	  (and c-type-finder-timer
+	       (progn (cancel-timer c-type-finder-timer)
+		      (setq c-type-finder-timer nil)))))
       (c-save-buffer-state ()
 	(c-clear-char-properties (point-min) (point-max) 'category)
 	(c-clear-char-properties (point-min) (point-max) 'syntax-table)
@@ -574,6 +596,12 @@ preferably use the `c-mode-menu' language constant directly."
 ;; currently no such text property.
 (make-variable-buffer-local 'c-max-syn-tab-mkr)
 
+;; `c-type-finder-pos' is a marker marking the current place in a CC Mode
+;; buffer which is due to be searched next for "found types", or nil if the
+;; searching is complete.
+(defvar c-type-finder-pos nil)
+(make-variable-buffer-local 'c-type-finder-pos)
+
 (defun c-basic-common-init (mode default-style)
   "Initialize the syntax handling routines and the line breaking/filling code.
 Intended to be used by other packages that embed CC Mode.
@@ -745,6 +773,19 @@ that requires a literal mode spec at compile time."
   ;; would do since font-lock uses a(n implicit) depth of 0) so we don't need
   ;; c-after-font-lock-init.
   (add-hook 'after-change-functions 'c-after-change nil t)
+  (add-hook 'post-command-hook 'c-post-command)
+  (setq c-type-finder-pos
+	(save-restriction
+	  (widen)
+	  (move-marker (make-marker) (point-min))))
+
+  ;; Install the functionality for seeking "found types" at mode startup:
+  (or c-type-finder-timer
+      (setq c-type-finder-timer
+	    (run-at-time
+	     c-type-finder-repeat-time nil #'c-type-finder-timer-func)))
+  (add-hook 'post-gc-hook #'c-post-gc-hook)
+
   (when (boundp 'font-lock-extend-after-change-region-function)
     (set (make-local-variable 'font-lock-extend-after-change-region-function)
          'c-extend-after-change-region))) ; Currently (2009-05) used by all
@@ -1950,6 +1991,46 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	;; confused by already processed single quotes.
 	(narrow-to-region (point) (point-max))))))
 
+;; The next two variables record the bounds of an identifier currently being
+;; typed in.  These are used to prevent such a partial identifier being
+;; recorded as a found type by c-add-type.
+(defvar c-new-id-start nil)
+(make-variable-buffer-local 'c-new-id-start)
+(defvar c-new-id-end nil)
+(make-variable-buffer-local 'c-new-id-end)
+;; The next variable, when non-nil, records that the previous two variables
+;; define a type.
+(defvar c-new-id-is-type nil)
+(make-variable-buffer-local 'c-new-id-is-type)
+
+(defun c-update-new-id (end)
+  ;; Note the bounds of any identifier that END is in or just after, in
+  ;; `c-new-id-start' and `c-new-id-end'.  Otherwise set these variables to
+  ;; nil.
+  (save-excursion
+    (goto-char end)
+    (let ((id-beg (c-on-identifier)))
+      (setq c-new-id-start id-beg
+	    c-new-id-end (and id-beg
+			      (progn (c-end-of-current-token) (point)))))))
+
+
+(defun c-post-command ()
+  ;; If point was inside of a new identifier and no longer is, record that
+  ;; fact.
+  (when (and c-buffer-is-cc-mode
+	     c-new-id-start c-new-id-end
+	     (or (> (point) c-new-id-end)
+		 (< (point) c-new-id-start)))
+    (when c-new-id-is-type
+      (c-add-type-1 c-new-id-start c-new-id-end))
+    (setq c-new-id-start nil
+	  c-new-id-end nil
+	  c-new-id-is-type nil)))
+
+(defun c-post-gc-hook (&optional _stats) ; For XEmacs.
+  (setq c-inhibit-type-finder t))
+
 (defun c-before-change (beg end)
   ;; Function to be put on `before-change-functions'.  Primarily, this calls
   ;; the language dependent `c-get-state-before-change-functions'.  It is
@@ -1969,11 +2050,16 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   (unless (c-called-from-text-property-change-p)
     (save-restriction
       (widen)
+      ;; Clear the list of found types if we make a change at the start of the
+      ;; buffer, to make it easier to get rid of misspelled types and
+      ;; variables that have gotten recognized as types in malformed code.
+      (when (eq beg (point-min))
+	(c-clear-found-types))
       (if c-just-done-before-change
-	  ;; We have two consecutive calls to `before-change-functions' without
-	  ;; an intervening `after-change-functions'.  An example of this is bug
-	  ;; #38691.  To protect CC Mode, assume that the entire buffer has
-	  ;; changed.
+	  ;; We have two consecutive calls to `before-change-functions'
+	  ;; without an intervening `after-change-functions'.  An example of
+	  ;; this is bug #38691.  To protect CC Mode, assume that the entire
+	  ;; buffer has changed.
 	  (setq beg (point-min)
 		end (point-max)
 		c-just-done-before-change 'whole-buffer)
@@ -2151,6 +2237,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 						      c->-as-paren-syntax)
 		    (c-clear-char-property-with-value beg end 'syntax-table nil)))
 
+		(c-update-new-id end)
 		(c-trim-found-types beg end old-len) ; maybe we don't
 						     ; need all of these.
 		(c-invalidate-sws-region-after beg end old-len)
