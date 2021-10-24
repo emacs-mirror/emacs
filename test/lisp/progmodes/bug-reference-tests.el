@@ -44,19 +44,19 @@
     "larsmagne/csid"))
   (should
    (equal
-    (test--get-github-entry "https://github.com/emacs-mirror/emacs.git")
-    "emacs-mirror/emacs"))
+    (test--get-github-entry "https://github.com/magit/magit.git")
+    "magit/magit"))
   (should
    (equal
-    (test--get-github-entry "https://github.com/emacs-mirror/emacs.git/")
-    "emacs-mirror/emacs"))
+    (test--get-github-entry "https://github.com/magit/magit.git/")
+    "magit/magit"))
   (should
    (equal
-    (test--get-github-entry "https://github.com/emacs-mirror/emacs")
-    "emacs-mirror/emacs"))
+    (test--get-github-entry "https://github.com/magit/magit")
+    "magit/magit"))
   (should
    (equal
-    (test--get-github-entry "https://github.com/emacs-mirror/emacs/")
-    "emacs-mirror/emacs")))
+    (test--get-github-entry "https://github.com/magit/magit/")
+    "magit/magit")))
 
 ;;; bug-reference-tests.el ends here
