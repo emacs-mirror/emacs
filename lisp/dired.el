@@ -35,6 +35,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'cl-lib))
 ;; When bootstrapping dired-loaddefs has not been generated.
 (require 'dired-loaddefs nil t)
 
@@ -280,6 +281,11 @@ with the buffer narrowed to the listing."
   :type 'hook)
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
+
+(defcustom dired-make-directory-clickable t
+  "When non-nil, make the directory at the start of the dired buffer clickable."
+  :version "29.1"
+  :type 'boolean)
 
 (defcustom dired-initial-position-hook nil
   "This hook is used to position the point.
@@ -1326,6 +1332,8 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 	    (set-visited-file-modtime (file-attribute-modification-time
                                        attributes))))
       (set-buffer-modified-p nil)
+      (when dired-make-directory-clickable
+        (dired--make-directory-clickable))
       ;; No need to narrow since the whole buffer contains just
       ;; dired-readin's output, nothing else.  The hook can
       ;; successfully use dired functions (e.g. dired-get-filename)
@@ -1642,6 +1650,31 @@ see `dired-use-ls-dired' for more details.")
 	    (put-text-property (+ (point) 4) (line-end-position)
 			       'invisible 'dired-hide-details-link))))
       (forward-line 1))))
+
+(defun dired--make-directory-clickable ()
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "^  /" nil t 1)
+      (let ((bound (line-end-position))
+            (segment-start (point))
+            (inhibit-read-only t)
+            (dir "/"))
+        (while (search-forward "/" bound t 1)
+          (setq dir (concat dir (buffer-substring segment-start (point))))
+          (add-text-properties
+           segment-start (1- (point))
+           `( mouse-face highlight
+              help-echo "mouse-1: goto this directory"
+              keymap ,(let* ((current-dir dir)
+                             (click (lambda ()
+                                      (interactive)
+                                      (if (assoc current-dir dired-subdir-alist)
+                                          (dired-goto-subdir current-dir)
+                                        (dired current-dir)))))
+                        (define-keymap
+                          [down-mouse-1] click
+                          ["RET"] click))))
+          (setq segment-start (point)))))))
 
 
 ;;; Reverting a dired buffer

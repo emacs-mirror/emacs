@@ -136,13 +136,6 @@ function which returns a string.  For the first two cases, the length
 of the resulting name is controlled by 'eww-buffer-name-length'.  By
 default, no automatic renaming is performed.
 
-** image-dired
-
----
-*** New command for the thumbnail buffer.
-The new command 'image-dired-unmark-all-marks' has been added with a
-binding in the menu.
-
 ** info-look
 
 ---
@@ -197,6 +190,20 @@ The `image-dired-copy-with-exif-file-name' no longer requires an
 external "exiftool" command to be available.  The user options
 `image-dired-cmd-read-exif-data-program' and
 `image-dired-cmd-read-exif-data-options' are now obsolete.
+
+---
+*** New command for the thumbnail buffer.
+The new command 'image-dired-unmark-all-marks' has been added with a
+binding in the menu.
+
+** Dired
+
+---
+*** New user option 'dired-make-directory-clickable'.
+If non-nil (which is the default), hitting 'RET' or 'mouse-1' on
+the directory components at the directory displayed at the start of
+the buffer will take you to that directory.
+
 
 ** Exif
 
