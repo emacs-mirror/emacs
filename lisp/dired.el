@@ -1672,7 +1672,8 @@ see `dired-use-ls-dired' for more details.")
                                           (dired-goto-subdir current-dir)
                                         (dired current-dir)))))
                         (define-keymap
-                          [down-mouse-1] click
+                          [mouse-2] click
+                          [follow-link] 'mouse-face
                           ["RET"] click))))
           (setq segment-start (point)))))))
 
