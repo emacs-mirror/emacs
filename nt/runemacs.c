@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* #define CHOOSE_NEWEST_EXE */
 
-#define DEFER_MS_W3_H
+#define DEFER_MS_W32_H
 #include <config.h>
 
 #include <windows.h>

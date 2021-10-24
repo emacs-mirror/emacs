@@ -144,6 +144,7 @@ LIBS_ADDPM = -lole32 -luuid
 ## Compilation and linking flags
 BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 	      $(WARN_CFLAGS) $(WERROR_CFLAGS) \
+	      -I../src -I${srcdir}/../src -I../lib -I${srcdir}/../lib \
 	      -I. -I${srcdir}
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
