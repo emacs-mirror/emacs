@@ -136,6 +136,14 @@ function which returns a string.  For the first two cases, the length
 of the resulting name is controlled by 'eww-buffer-name-length'.  By
 default, no automatic renaming is performed.
 
+** Help
+
+*** New user option 'help-link-key-to-documentation'.
+When this option is non-nil, key bindings displayed in the *Help*
+buffer will be linked to the documentation for the command they are
+bound to.  This does not affect listings of key bindings and
+functions (such as `C-h b').
+
 ** info-look
 
 ---

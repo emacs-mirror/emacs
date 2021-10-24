@@ -1058,6 +1058,14 @@ is currently activated with completion."
     result))
 
 
+(defcustom help-link-key-to-documentation t
+  "Non-nil means link keys to their command in *Help* buffers.
+This affects \\\\=\\[command] substitutions in documentation
+strings done by `substitute-command-keys'."
+  :type 'boolean
+  :version "29.1"
+  :group 'help)
+
 (defun substitute-command-keys (string)
   "Substitute key descriptions for command names in STRING.
 Each substring of the form \\\\=[COMMAND] is replaced by either a
@@ -1145,7 +1153,14 @@ Otherwise, return a new string."
                         (delete-char 1))
                     ;; Function is on a key.
                     (delete-char (- end-point (point)))
-                    (insert (help--key-description-fontified key)))))
+                    (let ((key (help--key-description-fontified key)))
+                      (insert (if (and help-link-key-to-documentation
+                                       (functionp fun))
+                                  ;; The `fboundp' fixes bootstrap.
+                                  (if (fboundp 'help-mode--add-function-link)
+                                      (help-mode--add-function-link key fun)
+                                    key)
+                                key))))))
                ;; 1D. \{foo} is replaced with a summary of the keymap
                ;;            (symbol-value foo).
                ;;     \<foo> just sets the keymap used for \[cmd].

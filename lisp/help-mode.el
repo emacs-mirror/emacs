@@ -376,6 +376,13 @@ The format is (FUNCTION ARGS...).")
     (view-buffer-other-window (find-file-noselect file))
     (goto-char pos))
   'help-echo (purecopy "mouse-2, RET: show corresponding NEWS announcement"))
+
+;;;###autoload
+(defun help-mode--add-function-link (str fun)
+  (make-text-button (copy-sequence str) nil
+                    'type 'help-function
+                    'help-args (list fun)))
+
 
 (defvar bookmark-make-record-function)
 (defvar help-mode--current-data nil)
