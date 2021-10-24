@@ -139,10 +139,10 @@ default, no automatic renaming is performed.
 ** Help
 
 *** New user option 'help-link-key-to-documentation'.
-When this option is non-nil, key bindings displayed in the *Help*
+When this option is non-nil, key bindings displayed in the "*Help*"
 buffer will be linked to the documentation for the command they are
 bound to.  This does not affect listings of key bindings and
-functions (such as `C-h b').
+functions (such as 'C-h b').
 
 ** info-look
 
@@ -194,10 +194,10 @@ as opposed to via the command-line.
 
 ---
 *** Reduce dependency on external "exiftool" command.
-The `image-dired-copy-with-exif-file-name' no longer requires an
+The 'image-dired-copy-with-exif-file-name' no longer requires an
 external "exiftool" command to be available.  The user options
-`image-dired-cmd-read-exif-data-program' and
-`image-dired-cmd-read-exif-data-options' are now obsolete.
+'image-dired-cmd-read-exif-data-program' and
+'image-dired-cmd-read-exif-data-options' are now obsolete.
 
 ---
 *** New command for the thumbnail buffer.
@@ -217,7 +217,7 @@ the buffer will take you to that directory.
 
 *** New function 'exif-field'.
 This is a convenience function to extract the field data from
-`exif-parse-file' and `exif-parse-buffer'.
+'exif-parse-file' and 'exif-parse-buffer'.
 
 
 * New Modes and Packages in Emacs 29.1
@@ -278,8 +278,8 @@ MozRepl was removed from Firefox in 2017, so this code doesn't work
 with recent versions of Firefox.
 
 ---
-** The function `image-dired-get-exif-data' is now obsolete.
-Use `exif-parse-file' and `exif-field' instead.
+** The function 'image-dired-get-exif-data' is now obsolete.
+Use 'exif-parse-file' and 'exif-field' instead.
 
 
 * Lisp Changes in Emacs 29.1
