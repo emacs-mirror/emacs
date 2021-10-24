@@ -551,10 +551,19 @@ Create the thumbnails directory if it does not exist."
 Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
   (let (beg end)
     (setq beg (point))
-    (image-dired-insert-image file
-                        (image-type-from-file-header file)
-                        image-dired-thumb-relief
-                        image-dired-thumb-margin)
+    (image-dired-insert-image
+     file
+     ;; Thumbnails are created asynchronously, so we might not yet
+     ;; have a file.  But if it exists, it might have been cached from
+     ;; before and we should use it instead of our current settings.
+     (or (and (file-exists-p file)
+              (image-type-from-file-header file))
+         (and (memq image-dired-thumbnail-storage
+                    '(standard standard-large))
+              'png)
+         'jpeg)
+     image-dired-thumb-relief
+     image-dired-thumb-margin)
     (setq end (point))
     (add-text-properties
      beg end
