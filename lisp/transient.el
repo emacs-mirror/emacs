@@ -1289,8 +1289,8 @@ variable instead.")
 
 (defvar transient--exitp nil "Whether to exit the transient.")
 (defvar transient--showp nil "Whether the transient is show in a popup buffer.")
-(defvar transient--helpp nil "Whether `help-mode' is active.")
-(defvar transient--editp nil "Whether `edit-mode' is active.")
+(defvar transient--helpp nil "Whether help-mode is active.")
+(defvar transient--editp nil "Whether edit-mode is active.")
 
 (defvar transient--active-infix nil "The active infix awaiting user input.")
 
@@ -3119,19 +3119,19 @@ and its value is returned to the caller."
       desc)))
 
 (cl-defmethod transient-format-description ((obj transient-group))
-  "Format the description by calling the next method.
-If the result doesn't use the `face' property at all, then apply
-the face `transient-heading' to the complete string."
+  "Format the description by calling the next method.  If the result
+doesn't use the `face' property at all, then apply the face
+`transient-heading' to the complete string."
   (when-let ((desc (cl-call-next-method obj)))
     (if (text-property-not-all 0 (length desc) 'face nil desc)
         desc
       (propertize desc 'face 'transient-heading))))
 
 (cl-defmethod transient-format-description :around ((obj transient-suffix))
-  "Format the description by calling the next method.
-If the result is nil, then use \"(BUG: no description)\" as the
-description.  If the OBJ's `key' is currently unreachable, then
-apply the face `transient-unreachable' to the complete string."
+  "Format the description by calling the next method.  If the result
+is nil, then use \"(BUG: no description)\" as the description.
+If the OBJ's `key' is currently unreachable, then apply the face
+`transient-unreachable' to the complete string."
   (let ((desc (or (cl-call-next-method obj)
                   (and (slot-boundp transient--prefix 'suffix-description)
                        (funcall (oref transient--prefix suffix-description)
@@ -3672,5 +3672,6 @@ we stop there."
 (provide 'transient)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
+;; checkdoc-symbol-words: ("command-line" "edit-mode" "help-mode")
 ;; End:
 ;;; transient.el ends here
