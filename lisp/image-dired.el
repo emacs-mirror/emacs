@@ -1,7 +1,7 @@
 ;;; image-dired.el --- use dired to browse and manipulate your images -*- lexical-binding: t -*-
-;;
+
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
-;;
+
 ;; Version: 0.4.11
 ;; Keywords: multimedia
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
@@ -22,7 +22,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; BACKGROUND
 ;; ==========
 ;;
@@ -86,10 +86,13 @@
 ;; ===========
 ;;
 ;; * Supports all image formats that Emacs and convert supports, but
-;; the thumbnails are hard-coded to JPEG format.
+;;   the thumbnails are hard-coded to JPEG or PNG format.  It uses
+;;   JPEG by default, but can optionally follow the Thumbnail Managing
+;;   Standard, which mandates PNG.  See the user option
+;;   `image-dired-thumbnail-storage'.
 ;;
 ;; * WARNING: The "database" format used might be changed so keep a
-;; backup of `image-dired-db-file' when testing new versions.
+;;   backup of `image-dired-db-file' when testing new versions.
 ;;
 ;; * `image-dired-display-image-mode' does not support animation
 ;;
@@ -97,13 +100,13 @@
 ;; ====
 ;;
 ;; * Support gallery creation when using per-directory thumbnail
-;; storage.
+;;   storage.
 ;;
 ;; * Some sort of auto-rotate function based on rotate info in the
-;; EXIF data.
+;;   EXIF data.
 ;;
 ;; * Investigate if it is possible to also write the tags to the image
-;; files.
+;;   files.
 ;;
 ;; * From thumbs.el: Add an option for clean-up/max-size functionality
 ;;   for thumbnail directory.
@@ -116,33 +119,32 @@
 ;; * From thumbs.el: Add the "modify" commands (emboss, negate,
 ;;   monochrome etc).
 ;;
-;; * Add `image-dired-display-thumbs-ring' and functions to cycle that.  Find
-;; out which is best, saving old batch just before inserting new, or
-;; saving the current batch in the ring when inserting it.  Adding it
-;; probably needs rewriting `image-dired-display-thumbs' to be more general.
+;; * Add `image-dired-display-thumbs-ring' and functions to cycle that.  Find out
+;;   which is best, saving old batch just before inserting new, or
+;;   saving the current batch in the ring when inserting it.  Adding
+;;   it probably needs rewriting `image-dired-display-thumbs' to be more general.
 ;;
 ;; * Find some way of toggling on and off really nice keybindings in
-;; dired (for example, using C-n or <down> instead of C-S-n).  Richard
-;; suggested that we could keep C-t as prefix for image-dired commands
-;; as it is currently not used in dired.  He also suggested that
-;; `dired-next-line' and `dired-previous-line' figure out if
-;; image-dired is enabled in the current buffer and, if it is, call
-;; `image-dired-dired-next-line' and
-;; `image-dired-dired-previous-line', respectively.  Update: This is
-;; partly done; some bindings have now been added to dired.
+;;   dired (for example, using C-n or <down> instead of C-S-n).
+;;   Richard suggested that we could keep C-t as prefix for
+;;   image-dired commands as it is currently not used in dired.  He
+;;   also suggested that `dired-next-line' and `dired-previous-line'
+;;   figure out if image-dired is enabled in the current buffer and,
+;;   if it is, call `image-dired-dired-next-line' and `image-dired-dired-previous-line',
+;;   respectively.  Update: This is partly done; some bindings have
+;;   now been added to dired.
 ;;
 ;; * Enhanced gallery creation with basic CSS-support and pagination
-;; of tag pages with many pictures.
+;;   of tag pages with many pictures.
 ;;
 ;; * Rewrite `image-dired-modify-mark-on-thumb-original-file' to be
-;; less ugly.
+;;   less ugly.
 ;;
 ;; * In some way keep track of buffers and windows and stuff so that
-;; it works as the user expects.
+;;   it works as the user expects.
 ;;
-;; * More/better documentation
-;;
-;;
+;; * More/better documentation.
+
 ;;; Code:
 
 (require 'dired)
@@ -165,15 +167,30 @@
   :type 'directory)
 
 (defcustom image-dired-thumbnail-storage 'use-image-dired-dir
-  "How to store image-dired's thumbnail files.
-Image-Dired can store thumbnail files in one of two ways and this is
-controlled by this variable.  \"Use image-dired dir\" means that the
-thumbnails are stored in a central directory.  \"Per directory\"
-means that each thumbnail is stored in a subdirectory called
-\".image-dired\" in the same directory where the image file is.
-\"Thumbnail Managing Standard\" means that the thumbnails are
-stored and generated according to the Thumbnail Managing Standard
-that allows sharing of thumbnails across different programs."
+  "How `image-dired' stores thumbnail files.
+There are two ways that Image Dired can store and generate
+thumbnails.  If you set this variable to one of the two following
+values, they will be stored in the JPEG format:
+
+- `use-image-dired-dir' means that the thumbnails are stored in a
+  central directory.
+
+- `per-directory' means that each thumbnail is stored in a
+  subdirectory called \".image-dired\" in the same directory
+  where the image file is.
+
+It can also use the \"Thumbnail Managing Standard\", which allows
+sharing of thumbnails across different programs.  This method
+means that thumbnails are saved in the PNG format, and allows for
+use the following file sizes:
+
+- `standard' means use thumbnails sized 128x128.
+- `standard-large' means use thumbnails sized 256x256.
+
+Note that with this method of storing thumbnails, they will be
+saved in subdirectories of `image-dired-dir'.  For more
+information on the Thumbnail Managing Standard, see:
+https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html"
   :type '(choice :tag "How to store thumbnail files"
                  (const :tag "Use image-dired-dir" use-image-dired-dir)
                  (const :tag "Thumbnail Managing Standard (normal 128x128)" standard)
