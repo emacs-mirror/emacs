@@ -1082,7 +1082,6 @@ usage: (while TEST BODY...)  */)
 static void
 with_delayed_message_display (struct atimer *timer)
 {
-  printf("Here: %s\n", SDATA (timer->client_data));
   message3 (timer->client_data);
 }
 
