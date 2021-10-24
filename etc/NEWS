@@ -284,6 +284,16 @@ Use 'exif-parse-file' and 'exif-field' instead.
 
 * Lisp Changes in Emacs 29.1
 
++++
+** New macro 'with-delayed-message'.
+This macro is like 'progn', but will output the specified message if
+the body takes longer to execute than the specified timeout.
+
+---
+** New function 'funcall-with-delayed-message'.
+This function is like 'funcall', but will output the specified message
+is the function take longer to execute that the specified timeout.
+
 ** Locale
 
 ---

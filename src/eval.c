@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "buffer.h"
 #include "pdumper.h"
+#include "atimer.h"
 
 /* CACHEABLE is ordinarily nothing, except it is 'volatile' if
    necessary to cajole GCC into not warning incorrectly that a
@@ -1076,6 +1077,49 @@ usage: (while TEST BODY...)  */)
     }
 
   return Qnil;
+}
+
+static void
+with_delayed_message_display (struct atimer *timer)
+{
+  printf("Here: %s\n", SDATA (timer->client_data));
+  message3 (timer->client_data);
+}
+
+static void
+with_delayed_message_cancel (void *timer)
+{
+  cancel_atimer (timer);
+}
+
+DEFUN ("funcall-with-delayed-message",
+       Ffuncall_with_delayed_message, Sfuncall_with_delayed_message,
+       3, 3, 0,
+       doc: /* Like `funcall', but display MESSAGE if FUNCTION takes longer than TIMEOUT.
+TIMEOUT is a number of seconds, and can be an integer or a floating
+point number.
+
+If FUNCTION takes less time to execute than TIMEOUT seconds, MESSAGE
+is not displayed.  */)
+  (Lisp_Object timeout, Lisp_Object message, Lisp_Object function)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  CHECK_NUMBER (timeout);
+  CHECK_STRING (message);
+
+  /* Set up the atimer.  */
+  struct timespec interval = dtotimespec (XFLOATINT (timeout));
+  struct atimer *timer = start_atimer (ATIMER_RELATIVE, interval,
+				       with_delayed_message_display,
+				       message);
+  record_unwind_protect_ptr (with_delayed_message_cancel, timer);
+
+  Lisp_Object result = CALLN (Ffuncall, function);
+
+  cancel_atimer (timer);
+
+  return unbind_to (count, result);
 }
 
 DEFUN ("macroexpand", Fmacroexpand, Smacroexpand, 1, 2, 0,
@@ -4511,6 +4555,7 @@ alist of active lexical bindings.  */);
   defsubr (&Slet);
   defsubr (&SletX);
   defsubr (&Swhile);
+  defsubr (&Sfuncall_with_delayed_message);
   defsubr (&Smacroexpand);
   defsubr (&Scatch);
   defsubr (&Sthrow);
