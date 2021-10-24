@@ -543,11 +543,7 @@ Create the thumbnails directory if it does not exist."
 			   (file-attribute-modification-time
 			    (file-attributes file))))
       (image-dired-create-thumb file thumb-file))
-    (create-image thumb-file)
-;;     (list 'image :type 'jpeg
-;;           :file thumb-file
-;; 	  :relief image-dired-thumb-relief :margin image-dired-thumb-margin)
-    ))
+    (create-image thumb-file)))
 
 (defun image-dired-insert-thumbnail (file original-file-name
                                      associated-dired-buffer)
@@ -556,10 +552,7 @@ Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
   (let (beg end)
     (setq beg (point))
     (image-dired-insert-image file
-                        ;; TODO: this should depend on the real file type
-                        (if (memq image-dired-thumbnail-storage
-                                  '(standard standard-large))
-                            'png 'jpeg)
+                        (image-type-from-file-header file)
                         image-dired-thumb-relief
                         image-dired-thumb-margin)
     (setq end (point))
