@@ -143,7 +143,6 @@
   (setq-local comment-start-skip ";+[ \t]*")
   (setq-local comment-use-syntax t)
   (setq-local comment-column 40)
-  (setq-local parse-sexp-ignore-comments t)
   (setq-local lisp-indent-function 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
   (setq-local imenu-case-fold-search t)
