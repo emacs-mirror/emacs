@@ -504,11 +504,12 @@ with the comment."
   ;; dired-view-command-alist.
   (cond ((executable-find "display"))
         ((executable-find "xli"))
-        ((executable-find "qiv") "qiv -t"))
+        ((executable-find "qiv") "qiv -t")
+        ((executable-find "feh") "feh"))
   "Name of external viewer.
 Including parameters.  Used when displaying original image from
 `image-dired-thumbnail-mode'."
-  :version "27.1"
+  :version "28.1"
   :type '(choice string
                  (const :tag "Not Set" nil)))
 
