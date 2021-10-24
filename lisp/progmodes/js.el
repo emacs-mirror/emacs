@@ -3290,10 +3290,7 @@ marker."
           (setf (car bounds) (point))))
       (buffer-substring (car bounds) (cdr bounds)))))
 
-(defvar find-tag-marker-ring)           ; etags
-
-;; etags loads ring.
-(declare-function ring-insert "ring" (ring item))
+(declare-function xref-push-marker-stack "xref" (&optional m))
 
 (defun js-find-symbol (&optional arg)
   "Read a JavaScript symbol and jump to it.
@@ -3301,7 +3298,7 @@ With a prefix argument, restrict symbols to those from the
 current buffer.  Pushes a mark onto the tag ring just like
 `find-tag'."
   (interactive "P")
-  (require 'etags)
+  (require 'xref)
   (let (symbols marker)
     (if (not arg)
         (setq symbols (js--get-all-known-symbols))
@@ -3313,7 +3310,7 @@ current buffer.  Pushes a mark onto the tag ring just like
                        symbols "Jump to: "
                        (js--guess-symbol-at-point))))
 
-    (ring-insert find-tag-marker-ring (point-marker))
+    (xref-push-marker-stack)
     (switch-to-buffer (marker-buffer marker))
     (push-mark)
     (goto-char marker)))
