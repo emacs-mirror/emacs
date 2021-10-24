@@ -245,16 +245,23 @@ is replaced by the file name of the temporary file."
   :type '(repeat (string :tag "Argument")))
 
 (defcustom image-dired-cmd-pngnq-program
-  (or (executable-find "pngnq")
-      (executable-find "pngnq-s9"))
-  "The file name of the `pngnq' program.
+  ;; Prefer pngquant to pngnq-s9 as it is faster on my machine.
+  ;;   The project also seems more active than the alternatives.
+  ;; Prefer pngnq-s9 to pngnq as it fixes bugs in pngnq.
+  ;; The pngnq project seems dead (?) since 2011 or so.
+  (or (executable-find "pngquant")
+      (executable-find "pngnq-s9")
+      (executable-find "pngnq"))
+  "The file name of the `pngquant' or `pngnq' program.
 It quantizes colors of PNG images down to 256 colors or fewer
 using the NeuQuant algorithm."
-  :version "26.1"
+  :version "29.1"
   :type '(choice (const :tag "Not Set" nil) file))
 
 (defcustom image-dired-cmd-pngnq-options
-  '("-f" "%t")
+  (if (executable-find "pngquant")
+      '("--ext" "-nq8.png" "%t") ; same extension as "pngnq"
+    '("-f" "%t"))
   "Arguments to pass `image-dired-cmd-pngnq-program'.
 Available format specifiers are the same as in
 `image-dired-cmd-create-thumbnail-options'."
