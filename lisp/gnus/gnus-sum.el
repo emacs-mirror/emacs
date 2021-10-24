@@ -8064,9 +8064,7 @@ Return nil if there are no unread articles."
 Return nil if there are no unread articles."
   (interactive nil gnus-summary-mode)
   (prog1
-      (when (gnus-summary-first-subject t)
-	(gnus-summary-show-thread)
-	(gnus-summary-first-subject t))
+      (gnus-summary--goto-and-possibly-unhide t)
     (gnus-summary-position-point)))
 
 (defun gnus-summary-next-unseen-article (&optional backward)
@@ -8100,10 +8098,18 @@ Return nil if there are no unread articles."
 Return nil if there are no unseen articles."
   (interactive nil gnus-summary-mode)
   (prog1
-      (when (gnus-summary-first-subject nil nil t)
-	(gnus-summary-show-thread)
-	(gnus-summary-first-subject nil nil t))
+      (gnus-summary--goto-and-possibly-unhide)
     (gnus-summary-position-point)))
+
+(defun gnus-summary--goto-and-possibly-unhide (&optional unread undownloaded
+                                                         unseen)
+  (let ((first (gnus-summary-first-subject unread undownloaded unseen)))
+    (if (and first
+             (not (= first (gnus-summary-article-number))))
+        (progn
+          (gnus-summary-show-thread)
+          (gnus-summary-first-subject unread undownloaded unseen))
+      first)))
 
 (defun gnus-summary-first-unseen-or-unread-subject ()
   "Place the point on the subject line of the first unseen and unread article.
@@ -8111,12 +8117,8 @@ If all articles have been seen, on the subject line of the first unread
 article."
   (interactive nil gnus-summary-mode)
   (prog1
-      (unless (when (gnus-summary-first-subject nil nil t)
-		(gnus-summary-show-thread)
-		(gnus-summary-first-subject nil nil t))
-	(when (gnus-summary-first-subject t)
-	  (gnus-summary-show-thread)
-	  (gnus-summary-first-subject t)))
+      (unless (gnus-summary--goto-and-possibly-unhide nil nil t)
+        (gnus-summary-first-subject t))
     (gnus-summary-position-point)))
 
 (defun gnus-summary-first-article ()
