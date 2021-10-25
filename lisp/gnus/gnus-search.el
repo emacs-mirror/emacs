@@ -1084,7 +1084,8 @@ Responsible for handling and, or, and parenthetical expressions.")
 Currently takes into account support for the LITERAL+ capability.
 Other capabilities could be tested here."
   (with-slots (literal-plus) engine
-    (when literal-plus
+    (when (and literal-plus
+               (string-match-p "\n" query))
       (setq query (split-string query "\n")))
     (cond
      ((consp query)
