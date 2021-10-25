@@ -204,6 +204,13 @@ external "exiftool" command to be available.  The user options
 The new command 'image-dired-unmark-all-marks' has been added with a
 binding in the menu.
 
+---
+*** Support Thumbnail Managing Standard v0.9.0 (Dec 2020).
+This standard allows sharing generated thumbnails across different
+programs.  Version 0.9.0 adds two larger thumbnail sizes: 512x512 and
+1024x1024 pixels.  See the user option `image-dired-thumbnail-storage'
+to use it; it is not enabled by default.
+
 ** Dired
 
 ---

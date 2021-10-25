@@ -88,8 +88,8 @@
 ;; * Supports all image formats that Emacs and convert supports, but
 ;;   the thumbnails are hard-coded to JPEG or PNG format.  It uses
 ;;   JPEG by default, but can optionally follow the Thumbnail Managing
-;;   Standard, which mandates PNG.  See the user option
-;;   `image-dired-thumbnail-storage'.
+;;   Standard (v0.9.0, Dec 2020), which mandates PNG.  See the user
+;;   option `image-dired-thumbnail-storage'.
 ;;
 ;; * WARNING: The "database" format used might be changed so keep a
 ;;   backup of `image-dired-db-file' when testing new versions.
@@ -180,22 +180,35 @@ values, they will be stored in the JPEG format:
   where the image file is.
 
 It can also use the \"Thumbnail Managing Standard\", which allows
-sharing of thumbnails across different programs.  This method
-means that thumbnails are saved in the PNG format, and allows for
-use the following file sizes:
+sharing of thumbnails across different programs.  Thumbnails will
+be stored in \"$XDG_CACHE_HOME/thumbnails/\" instead of in
+`image-dired-dir'.  Thumbnails are saved in the PNG format, and
+can be one of the following sizes:
 
 - `standard' means use thumbnails sized 128x128.
 - `standard-large' means use thumbnails sized 256x256.
+- `standard-x-large' means use thumbnails sized 512x512.
+- `standard-xx-large' means use thumbnails sized 1024x1024.
 
-Note that with this method of storing thumbnails, they will be
-saved in subdirectories of `image-dired-dir'.  For more
-information on the Thumbnail Managing Standard, see:
+For more information on the Thumbnail Managing Standard, see:
 https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html"
   :type '(choice :tag "How to store thumbnail files"
                  (const :tag "Use image-dired-dir" use-image-dired-dir)
-                 (const :tag "Thumbnail Managing Standard (normal 128x128)" standard)
-                 (const :tag "Thumbnail Managing Standard (large 256x256)" standard-large)
-                 (const :tag "Per-directory" per-directory)))
+                 (const :tag "Thumbnail Managing Standard (normal 128x128)"
+                        standard)
+                 (const :tag "Thumbnail Managing Standard (large 256x256)"
+                        standard-large)
+                 (const :tag "Thumbnail Managing Standard (larger 512x512)"
+                        standard-x-large)
+                 (const :tag "Thumbnail Managing Standard (extra large 1024x1024)"
+                        standard-xx-large)
+                 (const :tag "Per-directory" per-directory))
+  :version "29.1")
+
+(defconst image-dired--thumbnail-standard-sizes
+  '( standard standard-large
+     standard-x-large standard-xx-large)
+  "List of symbols representing thumbnail sizes in Thumbnail Managing Standard.")
 
 (defcustom image-dired-db-file
   (expand-file-name ".image-dired_db" image-dired-dir)
@@ -410,6 +423,8 @@ Used by `image-dired-gallery-generate' to leave out \"hidden\" images."
   (cond
    ((eq 'standard image-dired-thumbnail-storage) 128)
    ((eq 'standard-large image-dired-thumbnail-storage) 256)
+   ((eq 'standard-x-large image-dired-thumbnail-storage) 512)
+   ((eq 'standard-xx-large image-dired-thumbnail-storage) 1024)
    (t 100))
   "Size of thumbnails, in pixels.
 This is the default size for both `image-dired-thumb-width'
@@ -583,7 +598,7 @@ Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
      (or (and (file-exists-p file)
               (image-type-from-file-header file))
          (and (memq image-dired-thumbnail-storage
-                    '(standard standard-large))
+                    image-dired--thumbnail-standard-sizes)
               'png)
          'jpeg)
      image-dired-thumb-relief
@@ -611,13 +626,16 @@ file name of the thumbnail will vary:
   of the image file's directory name will be added to the
   filename.
 See also `image-dired-thumbnail-storage'."
-  (cond ((memq image-dired-thumbnail-storage '(standard standard-large))
+  (cond ((memq image-dired-thumbnail-storage
+               image-dired--thumbnail-standard-sizes)
          (let* ((xdg (getenv "XDG_CACHE_HOME"))
                 (dir (if (and xdg (file-name-absolute-p xdg))
                          xdg "~/.cache"))
                 (thumbdir (cl-case image-dired-thumbnail-storage
                             (standard "thumbnails/normal")
-                            (standard-large "thumbnails/large"))))
+                            (standard-large "thumbnails/large")
+                            (standard-x-large "thumbnails/x-large")
+                            (standard-xx-large "thumbnails/xx-large"))))
            (expand-file-name
             ;; MD5 is mandated by the Thumbnail Managing Standard.
             (concat (md5 (concat "file://" (expand-file-name file))) ".png")
@@ -650,6 +668,8 @@ DIMENSION should be either the symbol `width' or `height'."
   (cond
    ((eq 'standard image-dired-thumbnail-storage) 128)
    ((eq 'standard-large image-dired-thumbnail-storage) 256)
+   ((eq 'standard-x-large image-dired-thumbnail-storage) 512)
+   ((eq 'standard-xx-large image-dired-thumbnail-storage) 1024)
    (t (cl-ecase dimension
         (width image-dired-thumb-width)
         (height image-dired-thumb-height)))))
@@ -764,7 +784,7 @@ Increase at own risk.")
                  (mapcar
                   (lambda (arg) (format-spec arg spec))
                   (if (memq image-dired-thumbnail-storage
-                            '(standard standard-large))
+                            image-dired--thumbnail-standard-sizes)
                       image-dired-cmd-create-standard-thumbnail-options
                     image-dired-cmd-create-thumbnail-options))))
 
@@ -783,7 +803,7 @@ Increase at own risk.")
               ;; PNG thumbnail has been created since we are
               ;; following the XDG thumbnail spec, so try to optimize
               (when (memq image-dired-thumbnail-storage
-                          '(standard standard-large))
+                          image-dired--thumbnail-standard-sizes)
                 (cond
                  ((and image-dired-cmd-pngnq-program
                        (executable-find image-dired-cmd-pngnq-program))
