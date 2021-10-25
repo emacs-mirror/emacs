@@ -170,7 +170,12 @@
   :group 'multimedia)
 
 (defcustom image-dired-dir (locate-user-emacs-file "image-dired/")
-  "Directory where thumbnail images are stored."
+  "Directory where thumbnail images are stored.
+
+The value of this option will be ignored if Image Dired is
+customized to use the Thumbnail Managing Standard; they will be
+saved in \"$XDG_CACHE_HOME/thumbnails/\" instead.  See
+`image-dired-thumbnail-storage'."
   :type 'directory)
 
 (defcustom image-dired-thumbnail-storage 'use-image-dired-dir
@@ -446,7 +451,11 @@ Used by `image-dired-gallery-generate' to leave out \"hidden\" images."
    (t 100))
   "Size of thumbnails, in pixels.
 This is the default size for both `image-dired-thumb-width'
-and `image-dired-thumb-height'."
+and `image-dired-thumb-height'.
+
+The value of this option will be ignored if Image Dired is
+customized to use the Thumbnail Managing Standard; the standard
+sizes will be used instead.  See `image-dired-thumbnail-storage'."
   :type 'integer)
 
 (defcustom image-dired-thumb-width image-dired-thumb-size
@@ -582,7 +591,8 @@ Create the thumbnails directory if it does not exist."
   (let ((image-dired-dir (file-name-as-directory
                     (expand-file-name image-dired-dir))))
     (unless (file-directory-p image-dired-dir)
-      (make-directory image-dired-dir t)
+      (with-file-modes #o700
+        (make-directory image-dired-dir t))
       (message "Creating thumbnails directory"))
     image-dired-dir))
 
@@ -1122,10 +1132,12 @@ Signal error if there are problems creating it."
       (let (dir buf)
         (unless (file-directory-p (setq dir (file-name-directory
                                              image-dired-db-file)))
-          (make-directory dir t))
+          (with-file-modes #o700
+            (make-directory dir t)))
         (with-current-buffer (setq buf (create-file-buffer
                                         image-dired-db-file))
-          (write-file image-dired-db-file))
+          (with-file-modes #o600
+            (write-file image-dired-db-file)))
         (kill-buffer buf)
         (file-exists-p image-dired-db-file))
       (error "Could not create %s" image-dired-db-file)))
@@ -2552,6 +2564,7 @@ when using per-directory thumbnail file storage"))
     (if (file-exists-p image-dired-gallery-dir)
         (if (not (file-directory-p image-dired-gallery-dir))
             (error "Variable image-dired-gallery-dir is not a directory"))
+      ;; FIXME: Should we set umask to 077 here, as we do for thumbnails?
       (make-directory image-dired-gallery-dir))
     ;; Open index file
     (with-temp-file index-file

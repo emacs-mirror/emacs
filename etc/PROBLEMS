@@ -742,6 +742,18 @@ completed" message that tls.el relies upon, causing affected Emacs
 functions to hang.  To work around the problem, use older or newer
 versions of gnutls-cli, or use Emacs's built-in gnutls support.
 
+*** Stack overflow in regexp matcher.
+Due to fundamental limitations in the way Emacs' regular expression
+engine is designed, you might run into combinatorial explosions in
+backtracking with certain regexps.
+
+Avoid "\(...\(...\)*...\)*" and "\(...\)*\(...\)*".  Look for a way to
+anchor your regular expression, to avoid matching the null string in
+infinite ways.  The latter is what creates backtrack points, and
+eventual overflow in practice.
+
+(Also prefer "\(?:...\)" to "\(...\)" unless you need the latter.)
+
 * Runtime problems related to font handling
 
 ** Characters are displayed as empty boxes or with wrong font under X.

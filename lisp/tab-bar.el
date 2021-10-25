@@ -2378,12 +2378,13 @@ Used in `repeat-mode'.")
 
 (defvar tab-bar-move-repeat-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "m" 'tab-bar-move-tab)
+    (define-key map "m" 'tab-move)
     (define-key map "M" 'tab-bar-move-tab-backward)
     map)
   "Keymap to repeat tab move key sequences `C-x t m m M'.
 Used in `repeat-mode'.")
 (put 'tab-move 'repeat-map 'tab-bar-move-repeat-map)
+(put 'tab-bar-move-tab-backward 'repeat-map 'tab-bar-move-repeat-map)
 
 
 (provide 'tab-bar)
