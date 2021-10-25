@@ -694,7 +694,7 @@ The renaming scheme is performed in accordance with
                 (meta . eww-tag-meta)
                 (a . eww-tag-a)))))
 	(erase-buffer)
-        (with-delayed-message 2 "Rendering HTML..."
+        (with-delayed-message (2 "Rendering HTML...")
 	  (shr-insert-document document))
 	(cond
 	 (point

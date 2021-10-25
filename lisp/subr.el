@@ -6723,12 +6723,14 @@ as the variable documentation string.
        (define-keymap--define (list ,@(nreverse opts) ,@defs))
        ,@(and doc (list doc)))))
 
-(defmacro with-delayed-message (timeout message &rest body)
+(defmacro with-delayed-message (args &rest body)
   "Like `progn', but display MESSAGE if BODY takes longer than TIMEOUT seconds.
 The MESSAGE form will be evaluated immediately, but the resulting
-string will be displayed only if BODY takes longer than TIMEOUT seconds."
-  (declare (indent 2))
-  `(funcall-with-delayed-message ,timeout ,message
+string will be displayed only if BODY takes longer than TIMEOUT seconds.
+
+\(fn (timeout message) &rest body)"
+  (declare (indent 1))
+  `(funcall-with-delayed-message ,(car args) ,(cadr args)
                                  (lambda ()
                                    ,@body)))
 

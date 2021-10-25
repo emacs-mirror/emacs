@@ -561,13 +561,13 @@ You can rewrite the previous example with this macro as follows:
 @end example
 @end defmac
 
-@defmac with-delayed-message timeout message body@dots{}
+@defmac with-delayed-message (timeout message) body@dots{}
 Sometimes it's unclear whether an operation will take a long time to
 execute or not, or it can be inconvenient to implement a progress
 reporter.  This macro can be used in those situations.
 
 @lisp
-(with-delayed-message 2 (format "Gathering data for %s" entry)
+(with-delayed-message (2 (format "Gathering data for %s" entry))
   (setq data (gather-data entry)))
 @end lisp
 
