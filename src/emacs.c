@@ -1872,7 +1872,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_bignum ();
   init_threads ();
   init_eval ();
-  init_atimer ();
   running_asynch_code = 0;
   init_random ();
 
@@ -2033,6 +2032,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
      until calling init_callproc.  Do not do it when dumping.  */
   if (!will_dump_p ())
     set_initial_environment ();
+
+  /* Has to run after the environment is set up. */
+  init_atimer ();
 
 #ifdef WINDOWSNT
   globals_of_w32 ();
