@@ -1082,12 +1082,13 @@ usage: (while TEST BODY...)  */)
 static void
 with_delayed_message_display (struct atimer *timer)
 {
-  message3 (timer->client_data);
+  message3 (build_string (timer->client_data));
 }
 
 static void
 with_delayed_message_cancel (void *timer)
 {
+  xfree (((struct atimer *) timer)->client_data);
   cancel_atimer (timer);
 }
 
@@ -1111,12 +1112,10 @@ is not displayed.  */)
   struct timespec interval = dtotimespec (XFLOATINT (timeout));
   struct atimer *timer = start_atimer (ATIMER_RELATIVE, interval,
 				       with_delayed_message_display,
-				       message);
+				       xstrdup (SSDATA (message)));
   record_unwind_protect_ptr (with_delayed_message_cancel, timer);
 
   Lisp_Object result = CALLN (Ffuncall, function);
-
-  cancel_atimer (timer);
 
   return unbind_to (count, result);
 }
