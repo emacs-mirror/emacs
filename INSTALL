@@ -220,7 +220,7 @@ GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
 like 'apt-get build-dep emacs' (on older systems, replace 'emacs' with
-eg 'emacs25').  On Red Hat-based systems, the corresponding command is
+e.g. 'emacs25').  On Red Hat-based systems, the corresponding command is
 'dnf builddep emacs' (on older systems, use 'yum-builddep' instead).
 
 On FreeBSD, the command is 'pkg install -y `pkg rquery %dn emacs-devel`'.

@@ -774,7 +774,7 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
           ;; Check that the process has indeed exited, as it might
           ;; be simply suspended.
           ;;
-          (when (eq 'exit (process-status proc))
+          (when (memq (process-status proc) '(exit signal))
             (unwind-protect
                 ;; Only proceed if `proc' is the same as
                 ;; `ruby--flymake-proc', which indicates that

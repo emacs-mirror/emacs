@@ -672,6 +672,9 @@ DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a string.
 The result is a string whose elements are the elements of all the arguments.
 Each argument may be a string or a list or vector of characters (integers).
+
+Values of the `composition' property of the result are not guaranteed
+to be `eq'.
 usage: (concat &rest SEQUENCES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {

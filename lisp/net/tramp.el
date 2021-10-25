@@ -2087,8 +2087,7 @@ VEC-OR-PROC identifies the connection to use, SIGNAL is the
 signal identifier to be raised, remaining arguments passed to
 `tramp-message'.  Finally, signal SIGNAL is raised with
 FMT-STRING and ARGUMENTS."
-  (let ((inhibit-message t)
-	signal-hook-function)
+  (let (signal-hook-function)
     (tramp-backtrace vec-or-proc)
     (unless arguments
       ;; FMT-STRING could be just a file name, as in
@@ -2198,9 +2197,10 @@ the resulting error message."
   ;; `custom-initialize-*' functions provoke `void-variable' errors.
   ;; We don't want to see them in the backtrace.
   (unless (eq error-symbol 'void-variable)
-    (tramp-error
-     (car tramp-current-connection) error-symbol
-     (mapconcat (lambda (x) (format "%s" x)) data " "))))
+    (let ((inhibit-message t))
+      (tramp-error
+       (car tramp-current-connection) error-symbol
+       (mapconcat (lambda (x) (format "%s" x)) data " ")))))
 
 (put #'tramp-signal-hook-function 'tramp-suppress-trace t)
 
@@ -3275,10 +3275,18 @@ User is always nil."
 
 (defun tramp-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
-  (unless (file-readable-p (file-truename filename))
-    (tramp-compat-file-missing
-     (tramp-dissect-file-name filename)
-     (format "%s: %s" string filename))))
+  (setq filename (file-truename filename))
+  (with-parsed-tramp-file-name filename v
+    (if (file-exists-p filename)
+	(unless
+	    (funcall
+	     (if (file-directory-p filename)
+		 #'file-accessible-directory-p #'file-readable-p)
+	     filename)
+	  (tramp-error
+	   v 'file-error (format "%s: Permission denied, %s" string filename)))
+      (tramp-compat-file-missing
+       v (format "%s: No such file or directory, %s" string filename)))))
 
 (defun tramp-handle-add-name-to-file
   (filename newname &optional ok-if-already-exists)
@@ -3567,6 +3575,17 @@ User is always nil."
        (tramp-compat-file-attribute-modification-time (file-attributes file2))
        (tramp-compat-file-attribute-modification-time
 	(file-attributes file1))))))
+
+(defun tramp-handle-file-readable-p (filename)
+  "Like `file-readable-p' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (with-tramp-file-property v localname "file-readable-p"
+      (or (tramp-check-cached-permissions v ?r)
+	  ;; `tramp-check-cached-permissions' doesn't handle symbolic
+	  ;; links.
+	  (when-let ((symlink (file-symlink-p filename)))
+	    (and (stringp symlink)
+		 (file-readable-p (concat (file-remote-p filename) symlink))))))))
 
 (defun tramp-handle-file-regular-p (filename)
   "Like `file-regular-p' for Tramp files."
@@ -4220,7 +4239,12 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 		:name name :buffer buffer
 		:command (append `(,login-program) login-args command)
 		:coding coding :noquery noquery :connection-type connection-type
-		:filter filter :sentinel sentinel :stderr stderr))
+		:sentinel sentinel :stderr stderr))
+	    ;; Set filter.  Prior Emacs 29.1, it doesn't work reliable
+	    ;; to provide it as `make-process' argument when filter is
+	    ;; t.  See Bug#51177.
+	    (when filter
+	      (set-process-filter p filter))
 
 	    (tramp-message v 6 "%s" (string-join (process-command p) " "))
 	    p))))))

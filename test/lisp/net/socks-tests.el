@@ -203,7 +203,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
                    (should (equal host "example.com"))
                    (list 93 184 216 34)))
                 ((symbol-function 'user-full-name)
-                 (lambda () "foo")))
+                 (lambda (&optional _) "foo")))
         (socks-tests-perform-hello-world-http-request)))))
 
 ;; Replace first pattern below with ([5 3 0 1 2] . [5 2]) to validate

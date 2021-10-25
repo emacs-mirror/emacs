@@ -826,12 +826,20 @@ This function returns a new function which, when called, will call
 @var{func} with the list of arguments composed from @var{args} and
 additional arguments specified at the time of the call.  If @var{func}
 accepts @var{n} arguments, then a call to @code{apply-partially} with
-@w{@code{@var{m} < @var{n}}} arguments will produce a new function of
-@w{@code{@var{n} - @var{m}}} arguments.
+@w{@code{@var{m} <= @var{n}}} arguments will produce a new function of
+@w{@code{@var{n} - @var{m}}} arguments@footnote{
+If the number of arguments that @var{func} can accept is unlimited,
+then the new function will also accept an unlimited number of
+arguments, so in that case @code{apply-partially} doesn't reduce the
+number of arguments that the new function could accept.
+}.
 
 Here's how we could define the built-in function @code{1+}, if it
 didn't exist, using @code{apply-partially} and @code{+}, another
-built-in function:
+built-in function@footnote{
+Note that unlike the built-in function, this version accepts any
+number of arguments.
+}:
 
 @example
 @group

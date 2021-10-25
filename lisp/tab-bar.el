@@ -239,7 +239,7 @@ For any other value of KEY, the value is t."
         (string-to-number (string-replace "tab-" "" key-name)))))
    (t t)))
 
-(defvar tab-bar-drag-maybe)
+(defvar tab-bar--dragging-in-progress)
 
 (defun tab-bar--event-to-item (posn)
   "This function extracts extra info from the mouse event at position POSN.
@@ -248,7 +248,7 @@ It returns a list of the form (KEY KEY-BINDING CLOSE-P), where:
  KEY-BINDING is the binding of KEY;
  CLOSE-P is non-nil if the mouse event was a click on the close button \"x\",
    nil otherwise."
-  (setq tab-bar-drag-maybe nil)
+  (setq tab-bar--dragging-in-progress nil)
   (if (posn-window posn)
       (let ((caption (car (posn-string posn))))
         (when caption
@@ -280,7 +280,7 @@ existing tab."
   (interactive "e")
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
-    (setq tab-bar-drag-maybe t)
+    (setq tab-bar--dragging-in-progress t)
     ;; Don't close the tab when clicked on the close button.  Also
     ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
     (unless (or (eq (car item) 'add-tab) (nth 2 item))
@@ -357,7 +357,7 @@ only when you click on its \"x\" close button."
 This command should be bound to a drag event.  It moves the tab
 at the mouse-down event to the position at mouse-up event."
   (interactive "e")
-  (setq tab-bar-drag-maybe nil)
+  (setq tab-bar--dragging-in-progress nil)
   (let ((from (tab-bar--key-to-number
                (nth 0 (tab-bar--event-to-item
                        (event-start event)))))
@@ -705,14 +705,22 @@ the formatted tab name to display in the tab bar."
   "Template for displaying tab bar items.
 Every item in the list is a function that returns
 a string, or a list of menu-item elements, or nil.
-When you add more items `tab-bar-format-align-right' and
-`tab-bar-format-global' to the end, then after enabling
-`display-time-mode' (or any other mode that uses `global-mode-string')
-it will display time aligned to the right on the tab bar instead of
-the mode line.  Replacing `tab-bar-format-tabs' with
+Adding a function to the list causes the tab bar to show
+that string, or display a tab button which, when clicked,
+will invoke the command that is the binding of the menu item.
+The menu-item binding of nil will produce a tab clicking
+on which will select that tab.  The menu-item's title is
+displayed as the label of the tab.
+If a function returns nil, it doesn't directly affect the
+tab bar appearance, but can do that by some side-effect.
+If the list ends with `tab-bar-format-align-right' and
+`tab-bar-format-global', then after enabling `display-time-mode'
+(or any other mode that uses `global-mode-string'),
+it will display time aligned to the right on the tab bar instead
+of the mode line.  Replacing `tab-bar-format-tabs' with
 `tab-bar-format-tabs-groups' will group tabs on the tab bar."
   :type 'hook
-  :options '(tab-bar-format-menu-global
+  :options '(tab-bar-format-menu-bar
              tab-bar-format-history
              tab-bar-format-tabs
              tab-bar-format-tabs-groups
@@ -727,25 +735,27 @@ the mode line.  Replacing `tab-bar-format-tabs' with
   :group 'tab-bar
   :version "28.1")
 
-(defun tab-bar-format-menu-global ()
-  "Show global menu on clicking the Menu button."
-  `((add-tab menu-item (propertize "Menu" 'face 'tab-bar-tab-inactive)
-             (lambda (event) (interactive "e")
-               (let ((menu (make-sparse-keymap
-                            (propertize "Global Menu" 'hide t))))
+(defun tab-bar-menu-bar (event)
+  "Pop up the same menu as displayed by the menu bar.
+Used by `tab-bar-format-menu-bar'."
+  (interactive "e")
+  (let ((menu (make-sparse-keymap (propertize "Menu Bar" 'hide t))))
+    (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+    (map-keymap (lambda (key binding)
+                  (when (consp binding)
+                    (define-key-after menu (vector key)
+                      (copy-sequence binding))))
+                (menu-bar-keymap))
+    (popup-menu menu event)))
 
-                 (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
-                 (map-keymap (lambda (key binding)
-                               (when (consp binding)
-                                 (define-key-after menu (vector key)
-                                   (copy-sequence binding))))
-                             (lookup-key global-map [menu-bar]))
-
-                 (popup-menu menu event)))
-             :help "Global Menu")))
+(defun tab-bar-format-menu-bar ()
+  "Produce the Menu button for the tab bar that shows the menu bar."
+  `((menu-bar menu-item (propertize "Menu" 'face 'tab-bar-tab-inactive)
+     tab-bar-menu-bar :help "Menu Bar")))
 
 (defun tab-bar-format-history ()
-  "Show back and forward buttons when `tab-bar-history-mode' is enabled.
+  "Produce back and forward buttons for the tab bar.
+These buttons will be shown when `tab-bar-history-mode' is enabled.
 You can hide these buttons by customizing `tab-bar-format' and removing
 `tab-bar-format-history' from it."
   (when tab-bar-history-mode
@@ -781,7 +791,7 @@ You can hide these buttons by customizing `tab-bar-format' and removing
         ,(alist-get 'close-binding tab))))))
 
 (defun tab-bar-format-tabs ()
-  "Show all tabs."
+  "Produce all the tabs for the tab bar."
   (let ((i 0))
     (mapcan
      (lambda (tab)
@@ -855,7 +865,7 @@ when the tab is current.  Return the result as a keymap."
       :help "Click to visit group"))))
 
 (defun tab-bar-format-tabs-groups ()
-  "Show tabs with their groups."
+  "Produce tabs for the tab bar grouped according to their groups."
   (let* ((tabs (funcall tab-bar-tabs-function))
          (current-group (funcall tab-bar-tab-group-function
                                  (tab-bar--current-tab-find tabs)))
@@ -899,7 +909,7 @@ when the tab is current.  Return the result as a keymap."
     `((align-right menu-item ,str ignore))))
 
 (defun tab-bar-format-global ()
-  "Format `global-mode-string' to display it in the tab bar.
+  "Produce display of `global-mode-string' in the tab bar.
 When `tab-bar-format-global' is added to `tab-bar-format'
 (possibly appended after `tab-bar-format-align-right'),
 then modes that display information on the mode line
@@ -2368,12 +2378,13 @@ Used in `repeat-mode'.")
 
 (defvar tab-bar-move-repeat-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "m" 'tab-bar-move-tab)
+    (define-key map "m" 'tab-move)
     (define-key map "M" 'tab-bar-move-tab-backward)
     map)
   "Keymap to repeat tab move key sequences `C-x t m m M'.
 Used in `repeat-mode'.")
 (put 'tab-move 'repeat-map 'tab-bar-move-repeat-map)
+(put 'tab-bar-move-tab-backward 'repeat-map 'tab-bar-move-repeat-map)
 
 
 (provide 'tab-bar)

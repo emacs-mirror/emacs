@@ -677,9 +677,11 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 (defun help--binding-undefined-p (defn)
   (or (null defn) (integerp defn) (equal defn 'undefined)))
 
-(defun help--analyze-key (key untranslated)
+(defun help--analyze-key (key untranslated &optional buffer)
   "Get information about KEY its corresponding UNTRANSLATED events.
-Returns a list of the form (BRIEF-DESC DEFN EVENT MOUSE-MSG)."
+Returns a list of the form (BRIEF-DESC DEFN EVENT MOUSE-MSG).
+When BUFFER is nil, it defaults to the buffer displayed
+in the selected window."
   (if (numberp untranslated)
       (error "Missing `untranslated'!"))
   (let* ((event (when (> (length key) 0)
@@ -699,9 +701,8 @@ Returns a list of the form (BRIEF-DESC DEFN EVENT MOUSE-MSG)."
          ;; is selected from the context menu that should describe KEY
          ;; at the position of mouse click that opened the context menu.
          ;; When no mouse was involved, don't use `mouse-set-point'.
-         (defn (if (consp event)
-                   (save-excursion (mouse-set-point event) (key-binding key t))
-                 (key-binding key t))))
+         (defn (if buffer (key-binding key t)
+                 (save-excursion (mouse-set-point event) (key-binding key t)))))
     ;; Handle the case where we faked an entry in "Select and Paste" menu.
     (when (and (eq defn nil)
 	       (stringp (aref key (1- (length key))))
@@ -731,7 +732,7 @@ Returns a list of the form (BRIEF-DESC DEFN EVENT MOUSE-MSG)."
    ;; If nothing left, then keep one (the last one).
    (last info-list)))
 
-(defun describe-key-briefly (&optional key-list insert untranslated)
+(defun describe-key-briefly (&optional key-list insert buffer)
   "Print the name of the functions KEY-LIST invokes.
 KEY-LIST is a list of pairs (SEQ . RAW-SEQ) of key sequences, where
 RAW-SEQ is the untranslated form of the key sequence SEQ.
@@ -739,8 +740,10 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer.
 
 While reading KEY-LIST interactively, this command temporarily enables
 menu items or tool-bar buttons that are disabled to allow getting help
-on them."
-  (declare (advertised-calling-convention (key-list &optional insert) "27.1"))
+on them.
+
+BUFFER is the buffer in which to lookup those keys; it defaults to the
+current buffer."
   (interactive
    ;; Ignore mouse movement events because it's too easy to miss the
    ;; message while moving the mouse.
@@ -748,15 +751,13 @@ on them."
      `(,key-list ,current-prefix-arg)))
   (when (arrayp key-list)
     ;; Old calling convention, changed
-    (setq key-list (list (cons key-list
-                               (if (numberp untranslated)
-                                   (this-single-command-raw-keys)
-                                 untranslated)))))
-  (let* ((info-list (mapcar (lambda (kr)
-                              (help--analyze-key (car kr) (cdr kr)))
-                            key-list))
-         (msg (mapconcat #'car (help--filter-info-list info-list 1) "\n")))
-    (if insert (insert msg) (message "%s" msg))))
+    (setq key-list (list (cons key-list nil))))
+  (with-current-buffer (if (buffer-live-p buffer) buffer (current-buffer))
+    (let* ((info-list (mapcar (lambda (kr)
+                                (help--analyze-key (car kr) (cdr kr) buffer))
+                              key-list))
+           (msg (mapconcat #'car (help--filter-info-list info-list 1) "\n")))
+      (if insert (insert msg) (message "%s" msg)))))
 
 (defun help--key-binding-keymap (key &optional accept-default no-remap position)
   "Return a keymap holding a binding for KEY within current keymaps.
@@ -916,7 +917,7 @@ current buffer."
              (mapcar (lambda (x)
                        (pcase-let* ((`(,seq . ,raw-seq) x)
                                     (`(,brief-desc ,defn ,event ,_mouse-msg)
-                                     (help--analyze-key seq raw-seq))
+                                     (help--analyze-key seq raw-seq buffer))
                                     (locus
                                      (help--binding-locus
                                       seq (event-start event))))

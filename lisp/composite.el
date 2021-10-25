@@ -834,8 +834,15 @@ and the second is a glyph for a variation selector."
 	      (lgstring-set-glyph gstring 1 nil)
 	      (throw 'tag gstring)))))))
 
+;; We explicitly don't handle #xFE0F (VS-16) here, because that's
+;; taken care of by font_range in font.c, which will check for an
+;; emoji font for codepoints used in compositions even if they're not
+;; emoji themselves, and thus choose the Emoji presentation for them
+;; when followed by VS-16.  VS-15 *is* handled here, because if it's
+;; handled in font_range, we end up choosing the Emoji presentation
+;; rather than the Text presentation.
 (let ((elt '([".." 1 compose-gstring-for-variation-glyph])))
-  (set-char-table-range composition-function-table '(#xFE00 . #xFE0F) elt)
+  (set-char-table-range composition-function-table '(#xFE00 . #xFE0E) elt)
   (set-char-table-range composition-function-table '(#xE0100 . #xE01EF) elt))
 
 (defun auto-compose-chars (func from to font-object string direction)

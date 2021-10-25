@@ -89,11 +89,12 @@ in which most editing takes place.  Most of the primitives for
 examining or changing text operate implicitly on the current buffer
 (@pxref{Text}).
 
-  Normally, the buffer displayed in the selected window is the current
-buffer, but this is not always so: a Lisp program can temporarily
-designate any buffer as current in order to operate on its contents,
-without changing what is displayed on the screen.  The most basic
-function for designating a current buffer is @code{set-buffer}.
+  Normally, the buffer displayed in the selected window
+(@pxref{Selecting Windows}) is the current buffer, but this is not
+always so: a Lisp program can temporarily designate any buffer as
+current in order to operate on its contents, without changing what is
+displayed on the screen.  The most basic function for designating a
+current buffer is @code{set-buffer}.
 
 @defun current-buffer
 This function returns the current buffer.
@@ -118,12 +119,12 @@ on it.
 
   When an editing command returns to the editor command loop, Emacs
 automatically calls @code{set-buffer} on the buffer shown in the
-selected window.  This is to prevent confusion: it ensures that the
-buffer that the cursor is in, when Emacs reads a command, is the
-buffer to which that command applies (@pxref{Command Loop}).  Thus,
-you should not use @code{set-buffer} to switch visibly to a different
-buffer; for that, use the functions described in @ref{Switching
-Buffers}.
+selected window (@pxref{Selecting Windows}).  This is to prevent
+confusion: it ensures that the buffer that the cursor is in, when Emacs
+reads a command, is the buffer to which that command applies
+(@pxref{Command Loop}).  Thus, you should not use @code{set-buffer} to
+switch visibly to a different buffer; for that, use the functions
+described in @ref{Switching Buffers}.
 
   When writing a Lisp function, do @emph{not} rely on this behavior of
 the command loop to restore the current buffer after an operation.
@@ -912,16 +913,17 @@ History}) provided it is shown in that window.
 
 If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
 current buffer.  In addition, if the current buffer is displayed in the
-selected window, this makes sure that the window is either deleted or
-another buffer is shown in it.  More precisely, if the selected window
-is dedicated (@pxref{Dedicated Windows}) and there are other windows on
-its frame, the window is deleted.  If it is the only window on its frame
-and that frame is not the only frame on its terminal, the frame is
-dismissed by calling the function specified by
-@code{frame-auto-hide-function} (@pxref{Quitting Windows}).  Otherwise,
-it calls @code{switch-to-prev-buffer} (@pxref{Window History}) to show
-another buffer in that window.  If @var{buffer-or-name} is displayed in
-some other window, it remains displayed there.
+selected window (@pxref{Selecting Windows}), this makes sure that the
+window is either deleted or another buffer is shown in it.  More
+precisely, if the selected window is dedicated (@pxref{Dedicated
+Windows}) and there are other windows on its frame, the window is
+deleted.  If it is the only window on its frame and that frame is not
+the only frame on its terminal, the frame is dismissed by calling the
+function specified by @code{frame-auto-hide-function} (@pxref{Quitting
+Windows}).  Otherwise, it calls @code{switch-to-prev-buffer}
+(@pxref{Window History}) to show another buffer in that window.  If
+@var{buffer-or-name} is displayed in some other window, it remains
+displayed there.
 
 To replace a buffer in all the windows that display it, use
 @code{replace-buffer-in-windows}, @xref{Buffers and Windows}.

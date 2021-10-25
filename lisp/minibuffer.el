@@ -3214,7 +3214,6 @@ See `read-file-name' for the meaning of the arguments."
         (unless val (error "No file name specified"))
 
         (if (and default-filename
-		 (not (file-remote-p dir))
                  (string-equal val (if (consp insdef) (car insdef) insdef)))
             (setq val default-filename))
         (setq val (substitute-in-file-name val))

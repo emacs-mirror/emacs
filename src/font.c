@@ -3860,6 +3860,23 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+/* Check if CH is a codepoint for which we should attempt to use the
+   emoji font, even if the codepoint itself has Emoji_Presentation =
+   No.  Vauto_composition_emoji_eligible_codepoints is filled in for
+   us by admin/unidata/emoji-zwj.awk.  */
+static bool
+codepoint_is_emoji_eligible (int ch)
+{
+  if (EQ (CHAR_TABLE_REF (Vchar_script_table, ch), Qemoji))
+    return true;
+
+  if (! NILP (Fmemq (make_fixnum (ch),
+		     Vauto_composition_emoji_eligible_codepoints)))
+    return true;
+
+  return false;
+}
+
 /* Check how many characters after character/byte position POS/POS_BYTE
    (at most to *LIMIT) can be displayed by the same font in the window W.
    FACE, if non-NULL, is the face selected for the character at POS.
@@ -3907,8 +3924,7 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
   /* If the composition was triggered by an emoji, use a character
      from 'script-representative-chars', rather than the first
      character in the string, to determine the font to use.  */
-  if (EQ (CHAR_TABLE_REF (Vchar_script_table, ch),
-	  Qemoji))
+  if (codepoint_is_emoji_eligible (ch))
     {
       Lisp_Object val = assq_no_quit (Qemoji, Vscript_representative_chars);
       if (CONSP (val))

@@ -26,7 +26,7 @@
 
 (defmacro with-time-stamp-test-env (&rest body)
   "Evaluate BODY with some standard time-stamp test variables bound."
-  (declare (indent defun))
+  (declare (indent 0) (debug t))
   `(let ((user-login-name "test-logname")
          (user-full-name "100%d Tester") ;verify "%" passed unchanged
          (buffer-file-name "/emacs/test/time-stamped-file")
@@ -46,7 +46,7 @@
 
 (defmacro with-time-stamp-test-time (reference-time &rest body)
   "Force any contained time-stamp call to use time REFERENCE-TIME."
-  (declare (indent defun))
+  (declare (indent 1) (debug t))
   `(cl-letf*
          ((orig-time-stamp-string-fn (symbol-function 'time-stamp-string))
          ((symbol-function 'time-stamp-string)
@@ -56,13 +56,14 @@
 
 (defmacro with-time-stamp-system-name (name &rest body)
   "Force (system-name) to return NAME while evaluating BODY."
-  (declare (indent defun))
+  (declare (indent 1) (debug t))
   `(cl-letf (((symbol-function 'system-name)
               (lambda () ,name)))
      ,@body))
 
 (defmacro time-stamp-should-warn (form)
   "Similar to `should' but verifies that a format warning is generated."
+  (declare (debug t))
   `(let ((warning-count 0))
      (cl-letf (((symbol-function 'time-stamp-conv-warn)
                 (lambda (_old _new)
@@ -761,6 +762,7 @@ and is used for testing."
   "Formats ZONE and compares it to EXPECT.
 Uses the free variables `form-string' and `pattern-mod'.
 The functions in `pattern-mod' are composed left to right."
+  (declare (debug t))
   `(let ((result ,expect))
      (dolist (fn pattern-mod)
        (setq result (funcall fn result)))
@@ -895,10 +897,11 @@ BIG-MOD is the result for offset +100 hours and modifiers for the other
 expected results for hours greater than 99 with a whole number of minutes.
 SECBIG-MOD is the result for offset +100 hours 30 seconds and modifiers for
 the other expected results for hours greater than 99 with non-zero seconds."
-  (declare (indent 1))
+  (declare (indent 1) (debug (&rest sexp)))
   ;; Generate a form to create a list of tests to define.  When this
   ;; macro is called, the form is evaluated, thus defining the tests.
-  (let ((ert-test-list '(list)))
+  ;; We will modify this list, so start with a list consed at runtime.
+  (let ((ert-test-list (list 'list)))
     (dolist (form-string form-strings ert-test-list)
       (nconc
        ert-test-list

@@ -151,7 +151,7 @@ the window (a.k.a.@: the @dfn{dominating} monitor).
 
 This function itself does not make the new frame the selected frame.
 @xref{Input Focus}.  The previously selected frame remains selected.
-On graphical terminals, however, the windowing system may select the
+On graphical terminals, however, the window system may select the
 new frame for its own reasons.
 @end deffn
 
@@ -494,7 +494,8 @@ a graphical terminal:
      | |  |_____________ Title Bar ______________|  |
      | | (1)_____________ Menu Bar ______________|  | ^
      | | (2)_____________ Tool Bar ______________|  | ^
-     | | (3) _________ Internal Border ________  |  | ^
+     | | (3)_____________ Tab Bar _______________|  | ^
+     | |  |  _________ Internal Border ________  |  | ^
      | |  | |   ^                              | |  | |
      | |  | |   |                              | |  | |
 Outer  |  | | Inner                            | |  | Native
@@ -640,6 +641,15 @@ GTK+, on the other hand, never wraps the tool bar but may
 automatically increase the outer width of a frame in order to
 accommodate an overlong tool bar.
 
+@item Tab Bar
+@cindex tab bar
+The tab bar (@pxref{Tab Bars,,,emacs, The GNU Emacs Manual}) is always
+drawn by Emacs itself.  The tab bar appears above the tool bar in
+Emacs built with an internal tool bar, and below the tool bar in
+builds with an external tool bar.
+Display of the tab bar can be suppressed by setting the
+@code{tab-bar-lines} parameter (@pxref{Layout Parameters}) to zero.
+
 @item Native Frame
 @cindex native frame
 @cindex native edges
@@ -740,8 +750,8 @@ the internal border, one vertical scroll bar, and one left and one right
 fringe if they are specified for this frame, see @ref{Layout
 Parameters}.  Its height can be obtained by removing from that of the
 native height the widths of the internal border and the heights of the
-frame's internal menu and tool bars and one horizontal scroll bar if
-specified for this frame.
+frame's internal menu and tool bars, the tab bar and one horizontal
+scroll bar if specified for this frame.
 @end table
 
 @cindex absolute position
@@ -1208,10 +1218,10 @@ width of one scroll bar provided this option is @code{nil} and keep it
 unchanged if this option is @code{t} or a list containing
 @code{vertical-scroll-bars}.
 
-The default value is @code{'(tab-bar-lines tool-bar-lines)} for Lucid,
+The default value is @code{(tab-bar-lines tool-bar-lines)} for Lucid,
 Motif and MS-Windows (which means that adding/removing a tool or tab
 bar there does not change the outer frame height),
-@code{'(tab-bar-lines)} on all other window systems including GTK+
+@code{(tab-bar-lines)} on all other window systems including GTK+
 (which means that changing any of the parameters listed above with the
 exception of @code{tab-bar-lines} may change the size of the outer
 frame), and @code{t} otherwise (which means the outer frame size never
@@ -1874,6 +1884,13 @@ whenever the tool bar wraps (@pxref{Frame Layout}).
 The position of the tool bar when Emacs was built with GTK+.  Its value
 can be one of @code{top}, @code{bottom} @code{left}, @code{right}.  The
 default is @code{top}.
+
+@vindex tab-bar-lines@r{, a frame parameter}
+@item tab-bar-lines
+The number of lines to use for the tab bar (@pxref{Tab Bars,,,emacs, The
+GNU Emacs Manual}).  The default is one if Tab Bar mode is enabled and
+zero otherwise.  This value may change whenever the tab bar wraps
+(@pxref{Frame Layout}).
 
 @vindex line-spacing@r{, a frame parameter}
 @item line-spacing
@@ -2758,7 +2775,8 @@ Terminals}.
 @cindex selected frame
 
 At any time, one frame in Emacs is the @dfn{selected frame}.  The
-selected window always resides on the selected frame.
+selected window (@pxref{Selecting Windows}) always resides on the
+selected frame.
 
 When Emacs displays its frames on several terminals (@pxref{Multiple
 Terminals}), each terminal has its own selected frame.  But only one
@@ -2992,12 +3010,11 @@ Auto-selection}).
 
 Note that this option does not distinguish ``sloppy'' focus (where the
 frame that previously had focus retains focus as long as the mouse
-pointer does not move into another window manager window) from
-``strict'' focus (where a frame immediately loses focus when it's left
-by the mouse pointer).  Neither does it recognize whether your window
-manager supports delayed focusing or auto-raising where you can
-explicitly specify the time until a new frame gets focus or is
-auto-raised.
+pointer does not move into another window-system window) from ``strict''
+focus (where a frame immediately loses focus when it's left by the mouse
+pointer).  Neither does it recognize whether your window manager
+supports delayed focusing or auto-raising where you can explicitly
+specify the time until a new frame gets focus or is auto-raised.
 
 You can supply a ``focus follows mouse'' policy for individual Emacs
 windows by customizing the variable @code{mouse-autoselect-window}

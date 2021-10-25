@@ -20,6 +20,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+/* Temporary workaround for compilation problems with MinGW64 GCC 11.
+   The funky #ifdef's are to avoid warnings about unused macros.  */
+#define _GL_ATTRIBUTE_MALLOC
+#define _GL_ATTRIBUTE_DEALLOC_FREE
+#ifdef _GL_ATTRIBUTE_MALLOC
+#endif
+#ifdef _GL_ATTRIBUTE_DEALLOC_FREE
+#endif
+
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>

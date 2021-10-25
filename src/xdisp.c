@@ -13861,12 +13861,17 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
 
   bool mouse_down_p = false;
 #ifndef HAVE_NS
-  /* Mouse is down, but on different tab-bar item?  */
+  /* Mouse is down, but on different tab-bar item?  Or alternatively,
+     the mouse might've been pressed somewhere we don't know about,
+     and then have moved onto the tab bar.  In this case,
+     last_tab_bar_item is -1, so we DTRT and behave like other
+     programs by displaying the item as sunken. */
   Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   mouse_down_p = (gui_mouse_grabbed (dpyinfo)
 		  && f == dpyinfo->last_mouse_frame);
 
-  if (mouse_down_p && f->last_tab_bar_item != prop_idx)
+  if (mouse_down_p && f->last_tab_bar_item != prop_idx
+      && f->last_tab_bar_item != -1)
     return;
 #endif
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
@@ -33659,13 +33664,21 @@ note_mouse_highlight (struct frame *f, int x, int y)
   if (EQ (window, f->tab_bar_window))
     {
       note_tab_bar_highlight (f, x, y);
-      if (tab_bar_drag_maybe)
+      if (tab_bar__dragging_in_progress)
 	{
 	  cursor = FRAME_OUTPUT_DATA (f)->hand_cursor;
 	  goto set_cursor;
 	}
       else
 	return;
+    }
+  else
+    {
+      /* The mouse might have pressed into the tab bar, but might
+	 also have been released outside the tab bar, so
+	 f->last_tab_bar_item must be reset, in order to make sure the
+	 item can be still highlighted again in the future.  */
+      f->last_tab_bar_item = -1;
     }
 #endif
 
@@ -35795,9 +35808,9 @@ When nil, mouse-movement events will not be generated as long as the
 mouse stays within the extent of a single glyph (except for images).  */);
   mouse_fine_grained_tracking = false;
 
-  DEFVAR_BOOL ("tab-bar-drag-maybe", tab_bar_drag_maybe,
+  DEFVAR_BOOL ("tab-bar--dragging-in-progress", tab_bar__dragging_in_progress,
     doc: /* Non-nil when maybe dragging tab bar item.  */);
-  tab_bar_drag_maybe = false;
+  tab_bar__dragging_in_progress = false;
 
   DEFVAR_BOOL ("redisplay-skip-initial-frame", redisplay_skip_initial_frame,
     doc: /* Non-nil to skip redisplay in initial frame.

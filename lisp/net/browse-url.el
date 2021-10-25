@@ -1609,7 +1609,7 @@ used instead of `browse-url-new-window-flag'."
 
 ;; --- mailto ---
 
-(autoload 'rfc6068-parse-mailto-url "rfc2368")
+(autoload 'rfc6068-parse-mailto-url "rfc6068")
 
 ;;;###autoload
 (defun browse-url-mail (url &optional new-window)

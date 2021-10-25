@@ -101,12 +101,33 @@
    `(message-header-subject ((,class (:foreground "#dbdb95"))))
    `(message-header-to ((,class (:foreground "#00ede1"))))
    `(message-cited-text ((,class (:foreground "#74af68"))))
-   `(message-separator ((,class (:foreground "#23d7d7"))))))
-
-(custom-theme-set-variables
- 'misterioso
- '(ansi-color-names-vector ["#2d3743" "#ff4242" "#74af68" "#dbdb95"
-			    "#34cae2" "#008b8b" "#00ede1" "#e1e1e0"]))
+   `(message-separator ((,class (:foreground "#23d7d7"))))
+   ;; ANSI colors
+   `(ansi-color-black ((,class (:background "#2d3743" :foreground "#2d3743"))))
+   `(ansi-color-red ((,class (:background "#da3938" :foreground "#da3938"))))
+   `(ansi-color-green ((,class (:background "#74af68" :foreground "#74af68"))))
+   `(ansi-color-yellow ((,class (:background "#dbdb95" :foreground "#dbdb95"))))
+   `(ansi-color-blue ((,class (:background "#34cae2" :foreground "#34cae2"))))
+   `(ansi-color-magenta ((,class (:background "#b33c97"
+				  :foreground "#b33c97"))))
+   `(ansi-color-cyan ((,class (:background "#008b8b" :foreground "#008b8b"))))
+   `(ansi-color-white ((,class (:background "#e1e1e0" :foreground "#e1e1e0"))))
+   `(ansi-color-bright-black ((,class (:background "#415160"
+                                       :foreground "#415160"))))
+   `(ansi-color-bright-red ((,class (:background "#ff4242"
+                                     :foreground "#ff4242"))))
+   `(ansi-color-bright-green ((,class (:background "#74cd65"
+                                       :foreground "#74cd65"))))
+   `(ansi-color-bright-yellow ((,class (:background "#ffad29"
+                                        :foreground "#ffad29"))))
+   `(ansi-color-bright-blue ((,class (:background "#59e9ff"
+                                      :foreground "#59e9ff"))))
+   `(ansi-color-bright-magenta ((,class (:background "#ed74cd"
+                                         :foreground "#ed74cd"))))
+   `(ansi-color-bright-cyan ((,class (:background "#00ede1"
+                                      :foreground "#00ede1"))))
+   `(ansi-color-bright-white ((,class (:background "#eeeeec"
+                                       :foreground "#eeeeec"))))))
 
 (provide-theme 'misterioso)
 

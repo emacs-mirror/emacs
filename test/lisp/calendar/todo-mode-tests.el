@@ -567,7 +567,7 @@ The remaining arguments (except _ARG, which is ignored) specify
 item insertion parameters.  This provides a noninteractive API
 for todo-insert-item for use in automatic testing."
   (cl-letf (((symbol-function 'read-from-minibuffer)
-             (lambda (_prompt) item))
+             (lambda (_prompt &rest _) item))
             ((symbol-function 'read-number) ; For todo-set-item-priority
              (lambda (_prompt &optional _default) (or priority 1))))
     (todo-insert-item--basic nil diary-type date-type time where)))
