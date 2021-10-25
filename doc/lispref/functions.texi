@@ -910,11 +910,11 @@ length of @var{sequence}.  For example:
 
 @example
 @group
-(mapcar 'car '((a b) (c d) (e f)))
+(mapcar #'car '((a b) (c d) (e f)))
      @result{} (a c e)
-(mapcar '1+ [1 2 3])
+(mapcar #'1+ [1 2 3])
      @result{} (2 3 4)
-(mapcar 'string "abc")
+(mapcar #'string "abc")
      @result{} ("a" "b" "c")
 @end group
 
@@ -930,14 +930,14 @@ Return the list of results."
   ;; @r{If no list is exhausted,}
   (if (not (memq nil args))
       ;; @r{apply function to @sc{car}s.}
-      (cons (apply function (mapcar 'car args))
-            (apply 'mapcar* function
+      (cons (apply function (mapcar #'car args))
+            (apply #'mapcar* function
                    ;; @r{Recurse for rest of elements.}
-                   (mapcar 'cdr args)))))
+                   (mapcar #'cdr args)))))
 @end group
 
 @group
-(mapcar* 'cons '(a b c) '(1 2 3 4))
+(mapcar* #'cons '(a b c) '(1 2 3 4))
      @result{} ((a . 1) (b . 2) (c . 3))
 @end group
 @end example
@@ -954,10 +954,10 @@ the results (which must be lists), by altering the results (using
 @example
 @group
 ;; @r{Contrast this:}
-(mapcar 'list '(a b c d))
+(mapcar #'list '(a b c d))
      @result{} ((a) (b) (c) (d))
 ;; @r{with this:}
-(mapcan 'list '(a b c d))
+(mapcan #'list '(a b c d))
      @result{} (a b c d)
 @end group
 @end example
@@ -986,7 +986,7 @@ string.
 
 @example
 @group
-(mapconcat 'symbol-name
+(mapconcat #'symbol-name
            '(The cat in the hat)
            " ")
      @result{} "The cat in the hat"
