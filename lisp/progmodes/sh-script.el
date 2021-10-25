@@ -628,7 +628,8 @@ removed when closing the here document."
     (wksh sh-append ksh88)
 
     (zsh sh-append ksh88
-	 "autoload" "bindkey" "builtin" "chdir" "compctl" "declare" "dirs"
+	 "autoload" "always"
+         "bindkey" "builtin" "chdir" "compctl" "declare" "dirs"
 	 "disable" "disown" "echotc" "enable" "functions" "getln" "hash"
 	 "history" "integer" "limit" "local" "log" "popd" "pushd" "r"
 	 "readonly" "rehash" "sched" "setopt" "source" "suspend" "true"
