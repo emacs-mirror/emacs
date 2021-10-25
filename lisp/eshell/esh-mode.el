@@ -315,6 +315,8 @@ and the hook `eshell-exit-hook'."
   (setq-local bookmark-make-record-function #'eshell-bookmark-make-record)
   (setq local-abbrev-table eshell-mode-abbrev-table)
 
+  (setq-local window-point-insertion-type t)
+
   (setq-local list-buffers-directory (expand-file-name default-directory))
 
   ;; always set the tab width to 8 in Eshell buffers, since external
@@ -696,13 +698,10 @@ This is done after all necessary filtering has been done."
                   (setq oend (+ oend nchars)))
               ;; Let the ansi-color overlay hooks run.
               (let ((inhibit-modification-hooks nil))
-                (insert-before-markers string))
+                (insert string))
               (if (= (window-start) (point))
                   (set-window-start (selected-window)
                                     (- (point) nchars)))
-              (if (= (point) eshell-last-input-end)
-                  (set-marker eshell-last-input-end
-                              (- eshell-last-input-end nchars)))
               (set-marker eshell-last-output-start ostart)
               (set-marker eshell-last-output-end (point))
               (force-mode-line-update))
