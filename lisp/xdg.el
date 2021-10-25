@@ -61,6 +61,23 @@
   "Return the base directory for user specific data files."
   (xdg--dir-home "XDG_DATA_HOME" "~/.local/share"))
 
+(defun xdg-state-home ()
+  "Return the base directory for user-specific state data.
+
+According to the XDG Base Directory Specification version
+0.8 (8th May 2021):
+
+  \"The $XDG_STATE_HOME contains state data that should persist
+  between (application) restarts, but that is not important or
+  portable enough to the user that it should be stored in
+  $XDG_DATA_HOME.  It may contain:
+
+  * actions history (logs, history, recently used files, …)
+
+  * current state of the application that can be reused on a
+    restart (view, layout, open files, undo history, …)\""
+  (xdg--dir-home "XDG_STATE_HOME" "~/.local/state"))
+
 (defun xdg-runtime-dir ()
   "Return the value of $XDG_RUNTIME_DIR."
   (getenv "XDG_RUNTIME_DIR"))

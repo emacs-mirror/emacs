@@ -296,6 +296,14 @@ Use 'exif-parse-file' and 'exif-field' instead.
 
 * Lisp Changes in Emacs 29.1
 
+** XDG support
+
+*** New function 'xdg-state-home' returns $XDG_STATE_HOME.
+This new location, introduced in the XDG Base Directory Specification
+version 0.8 (8th May 2021), "contains state data that should persist
+between (application) restarts, but that is not important or portable
+enough to the user that it should be stored in $XDG_DATA_HOME".
+
 +++
 ** New macro 'with-delayed-message'.
 This macro is like 'progn', but will output the specified message if
