@@ -163,7 +163,12 @@
   :group 'multimedia)
 
 (defcustom image-dired-dir (locate-user-emacs-file "image-dired/")
-  "Directory where thumbnail images are stored."
+  "Directory where thumbnail images are stored.
+
+The value of this option will be ignored if Image Dired is
+customized to use the Thumbnail Managing Standard; they will be
+saved in \"$XDG_CACHE_HOME/thumbnails/\" instead.  See
+`image-dired-thumbnail-storage'."
   :type 'directory)
 
 (defcustom image-dired-thumbnail-storage 'use-image-dired-dir
@@ -406,7 +411,11 @@ Used by `image-dired-gallery-generate' to leave out \"hidden\" images."
    (t 100))
   "Size of thumbnails, in pixels.
 This is the default size for both `image-dired-thumb-width'
-and `image-dired-thumb-height'."
+and `image-dired-thumb-height'.
+
+The value of this option will be ignored if Image Dired is
+customized to use the Thumbnail Managing Standard; the standard
+sizes will be used instead.  See `image-dired-thumbnail-storage'."
   :type 'integer)
 
 (defcustom image-dired-thumb-width image-dired-thumb-size
