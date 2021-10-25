@@ -413,17 +413,17 @@
     (bindings--define-key menu [separator-tag-file]
       '(menu-item "--" nil :visible (menu-bar-goto-uses-etags-p)))
 
-    (bindings--define-key menu [xref-pop]
-      '(menu-item "Back" xref-pop-marker-stack
-                  :visible (and (featurep 'xref)
-                                (not (xref-marker-stack-empty-p)))
-                  :help "Back to the position of the last search"))
-
     (bindings--define-key menu [xref-forward]
       '(menu-item "Forward" xref-go-forward
                   :visible (and (featurep 'xref)
                                 (not (xref-forward-history-empty-p)))
                   :help "Forward to the position gone Back from"))
+
+    (bindings--define-key menu [xref-pop]
+      '(menu-item "Back" xref-pop-marker-stack
+                  :visible (and (featurep 'xref)
+                                (not (xref-marker-stack-empty-p)))
+                  :help "Back to the position of the last search"))
 
     (bindings--define-key menu [xref-apropos]
       '(menu-item "Find Apropos..." xref-find-apropos
