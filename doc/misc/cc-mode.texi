@@ -1857,6 +1857,7 @@ sections apply to the other languages.
 * Faces::
 * Doc Comments::
 * Wrong Comment Style::
+* Found Types::
 * Misc Font Locking::
 * AWK Mode Font Locking::
 @end menu
