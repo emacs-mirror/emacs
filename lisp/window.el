@@ -7631,15 +7631,15 @@ Action alist entries are:
     preserve its height or (t . t) to preserve its height and
     width in future changes of the window configuration.
  `window-parameters' -- The value specifies an alist of window
-    parameters to give the chosen window.  `allow-no-window' -- A
-    non-nil value means that `display-buffer' may not display the
-    buffer and return nil immediately.  `body-function' -- A
-    function called with one argument - the displayed window.  It
-    is called after the buffer is displayed, and before
-    `window-height', `window-width' and `preserve-size' are
-    applied.  The function is supposed to fill the window body
-    with some contents that might depend on dimensions of the
-    displayed window.
+    parameters to give the chosen window.
+ `allow-no-window' -- A non-nil value means that `display-buffer'
+    may not display the buffer and return nil immediately.
+ `body-function' -- A function called with one argument - the
+    displayed window.  It is called after the buffer is
+    displayed, and before `window-height', `window-width'
+    and `preserve-size' are applied.  The function is supposed
+    to fill the window body with some contents that might depend
+    on dimensions of the displayed window.
 
 The entries `window-height', `window-width', `window-size' and
 `preserve-size' are applied only when the window used for
