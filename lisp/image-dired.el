@@ -556,10 +556,12 @@ Including parameters.  Used when displaying original image from
 Used by `image-dired-copy-with-exif-file-name'."
   :type 'string)
 
-(defcustom image-dired-show-all-from-dir-max-files 50
-  "Maximum number of files to show using `image-dired-show-all-from-dir'
-before warning."
-  :type 'integer)
+(defcustom image-dired-show-all-from-dir-max-files 100
+  "Maximum number of files in directory before prompting.
+If there are more files than this in a selected directory, the
+`image-dired-show-all-from-dir' command will show a prompt."
+  :type 'integer
+  :version "29.1")
 
 (defmacro image-dired--with-db-file (&rest body)
   "Run BODY in a temp buffer containing `image-dired-db-file'.
