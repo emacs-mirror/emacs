@@ -59,16 +59,22 @@
 ;; PREREQUISITES
 ;; =============
 ;;
-;; * The ImageMagick package.  Currently, `convert' and `mogrify' are
-;; used.  Find it here: https://www.imagemagick.org.
+;; * The GraphicsMagick or ImageMagick package; Image-Dired uses
+;;   whichever is available.
+;;
+;;   A) For GraphicsMagick, `gm' is used.
+;;      Find it here:  http://www.graphicsmagick.org/
+;;
+;;   B) For ImageMagick, `convert' and `mogrify' are used.
+;;      Find it here:  https://www.imagemagick.org.
 ;;
 ;; * For non-lossy rotation of JPEG images, the JpegTRAN program is
-;; needed.
+;;   needed.
 ;;
 ;; * For `image-dired-set-exif-data' to work, the command line tool `exiftool' is
-;; needed.  It can be found here: https://exiftool.org/.  This
-;; function is, among other things, used for writing comments to
-;; image files using `image-dired-thumbnail-set-image-description'.
+;;   needed.  It can be found here: https://exiftool.org/.  This
+;;   function is, among other things, used for writing comments to
+;;   image files using `image-dired-thumbnail-set-image-description'.
 ;;
 ;;
 ;; USAGE
@@ -242,36 +248,45 @@ expects to find pictures in this directory."
   :type 'string)
 
 (defcustom image-dired-cmd-create-thumbnail-program
-  "convert"
+  (if (executable-find "gm") "gm" "convert")
   "Executable used to create thumbnail.
 Used together with `image-dired-cmd-create-thumbnail-options'."
-  :type 'file)
+  :type 'file
+  :version "29.1")
 
 (defcustom image-dired-cmd-create-thumbnail-options
-  '("-size" "%wx%h" "%f[0]" "-resize" "%wx%h>" "-strip" "jpeg:%t")
+  (let ((opts '("-size" "%wx%h" "%f[0]"
+                "-resize" "%wx%h>"
+                "-strip" "jpeg:%t")))
+    (if (executable-find "gm") (cons "convert" opts) opts))
   "Options of command used to create thumbnail image.
 Used with `image-dired-cmd-create-thumbnail-program'.
 Available format specifiers are: %w which is replaced by
 `image-dired-thumb-width', %h which is replaced by `image-dired-thumb-height',
 %f which is replaced by the file name of the original image and %t
 which is replaced by the file name of the thumbnail file."
-  :version "26.1"
+  :version "29.1"
   :type '(repeat (string :tag "Argument")))
 
-(defcustom image-dired-cmd-create-temp-image-program "convert"
+(defcustom image-dired-cmd-create-temp-image-program
+  (if (executable-find "gm") "gm" "convert")
   "Executable used to create temporary image.
 Used together with `image-dired-cmd-create-temp-image-options'."
-  :type 'file)
+  :type 'file
+  :version "29.1")
 
 (defcustom image-dired-cmd-create-temp-image-options
-  '("-size" "%wx%h" "%f[0]" "-resize" "%wx%h>" "-strip" "jpeg:%t")
+  (let ((opts '("-size" "%wx%h" "%f[0]"
+                "-resize" "%wx%h>"
+                "-strip" "jpeg:%t")))
+    (if (executable-find "gm") (cons "convert" opts) opts))
   "Options of command used to create temporary image for display window.
 Used together with `image-dired-cmd-create-temp-image-program',
 Available format specifiers are: %w and %h which are replaced by
 the calculated max size for width and height in the image display window,
 %f which is replaced by the file name of the original image and %t which
 is replaced by the file name of the temporary file."
-  :version "26.1"
+  :version "29.1"
   :type '(repeat (string :tag "Argument")))
 
 (defcustom image-dired-cmd-pngnq-program
@@ -352,20 +367,22 @@ Available format specifiers are the same as in
   :type '(repeat (string :tag "Argument")))
 
 (defcustom image-dired-cmd-rotate-thumbnail-program
-  "mogrify"
+  (if (executable-find "gm") "gm" "mogrify")
   "Executable used to rotate thumbnail.
 Used together with `image-dired-cmd-rotate-thumbnail-options'."
-  :type 'file)
+  :type 'file
+  :version "29.1")
 
 (defcustom image-dired-cmd-rotate-thumbnail-options
-  '("-rotate" "%d" "%t")
+  (let ((opts '("-rotate" "%d" "%t")))
+    (if (executable-find "gm") (cons "mogrify" opts) opts))
   "Arguments of command used to rotate thumbnail image.
 Used with `image-dired-cmd-rotate-thumbnail-program'.
 Available format specifiers are: %d which is replaced by the
 number of (positive) degrees to rotate the image, normally 90 or 270
 \(for 90 degrees right and left), %t which is replaced by the file name
 of the thumbnail file."
-  :version "26.1"
+  :version "29.1"
   :type '(repeat (string :tag "Argument")))
 
 (defcustom image-dired-cmd-rotate-original-program

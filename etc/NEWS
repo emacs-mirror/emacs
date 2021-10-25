@@ -211,6 +211,11 @@ programs.  Version 0.9.0 adds two larger thumbnail sizes: 512x512 and
 1024x1024 pixels.  See the user option `image-dired-thumbnail-storage'
 to use it; it is not enabled by default.
 
+---
+*** Support GraphicsMagick command line tools.
+Support for the GraphicsMagick command line tool ("gm") has been
+added, and is used instead of ImageMagick when it is available.
+
 ** Dired
 
 ---
