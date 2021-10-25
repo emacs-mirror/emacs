@@ -157,6 +157,7 @@
 (require 'exif)
 (require 'image-mode)
 (require 'widget)
+(require 'xdg)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -551,10 +552,12 @@ Including parameters.  Used when displaying original image from
   :type '(choice string
                  (const :tag "Not Set" nil)))
 
-(defcustom image-dired-main-image-directory "~/pics/"
+(defcustom image-dired-main-image-directory
+  (or (xdg-user-dir "PICTURES") "~/pics/")
   "Name of main image directory, if any.
 Used by `image-dired-copy-with-exif-file-name'."
-  :type 'string)
+  :type 'string
+  :version "29.1")
 
 (defcustom image-dired-show-all-from-dir-max-files 100
   "Maximum number of files in directory before prompting.
@@ -647,18 +650,15 @@ file name of the thumbnail will vary:
 See also `image-dired-thumbnail-storage'."
   (cond ((memq image-dired-thumbnail-storage
                image-dired--thumbnail-standard-sizes)
-         (let* ((xdg (getenv "XDG_CACHE_HOME"))
-                (dir (if (and xdg (file-name-absolute-p xdg))
-                         xdg "~/.cache"))
-                (thumbdir (cl-case image-dired-thumbnail-storage
-                            (standard "thumbnails/normal")
-                            (standard-large "thumbnails/large")
-                            (standard-x-large "thumbnails/x-large")
-                            (standard-xx-large "thumbnails/xx-large"))))
+         (let ((thumbdir (cl-case image-dired-thumbnail-storage
+                           (standard "thumbnails/normal")
+                           (standard-large "thumbnails/large")
+                           (standard-x-large "thumbnails/x-large")
+                           (standard-xx-large "thumbnails/xx-large"))))
            (expand-file-name
             ;; MD5 is mandated by the Thumbnail Managing Standard.
             (concat (md5 (concat "file://" (expand-file-name file))) ".png")
-            (expand-file-name thumbdir dir))))
+            (expand-file-name thumbdir (xdg-cache-home)))))
         ((eq 'use-image-dired-dir image-dired-thumbnail-storage)
          (let* ((f (expand-file-name file))
                 (hash
