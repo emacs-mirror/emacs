@@ -51,7 +51,7 @@
 
   (unless (xref-marker-stack-empty-p)
     (define-key-after menu [xref-pop]
-      '(menu-item "Back Definition" xref-pop-marker-stack
+      '(menu-item "Back Definition" xref-go-back
                   :help "Back to the position of the last search")
       'prog-separator))
 

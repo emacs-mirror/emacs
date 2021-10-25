@@ -2139,7 +2139,7 @@ Find definition of identifier, and display it in a new frame
 Find definition of identifier at mouse click.
 @item M-,
 Go back to where you previously invoked @kbd{M-.} and friends
-(@code{xref-pop-marker-stack}).
+(@code{xref-go-back}).
 @item C-M-,
 Go forward to where you previously invoked @kbd{M-,}
 (@code{xref-go-forward}).
@@ -2207,9 +2207,9 @@ selects the window showing the first candidate.  The default value is
 buffer, but doesn't select any of them.
 
 @kindex M-,
-@findex xref-pop-marker-stack
+@findex xref-go-back
   To go back to places @emph{from where} you've displayed the definition,
-use @kbd{M-,} (@code{xref-pop-marker-stack}).  It jumps back to the
+use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
 where you were with @kbd{M-,}.

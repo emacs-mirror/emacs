@@ -420,7 +420,7 @@
                   :help "Forward to the position gone Back from"))
 
     (bindings--define-key menu [xref-pop]
-      '(menu-item "Back" xref-pop-marker-stack
+      '(menu-item "Back" xref-go-back
                   :visible (and (featurep 'xref)
                                 (not (xref-marker-stack-empty-p)))
                   :help "Back to the position of the last search"))

@@ -186,7 +186,7 @@ Example value:
 (defvar find-tag-marker-ring (make-ring 16))
 (make-obsolete-variable
  'find-tag-marker-ring
- "use `xref-push-marker-stack' or `xref-pop-marker-stack' instead."
+ "use `xref-push-marker-stack' or `xref-go-back' instead."
  "25.1")
 
 (defvar default-tags-table-function nil
@@ -1071,7 +1071,7 @@ See documentation of variable `tags-file-name'."
 	   regexp next-p t))
 
 ;;;###autoload
-(defalias 'pop-tag-mark 'xref-pop-marker-stack)
+(defalias 'pop-tag-mark 'xref-go-back)
 
 
 (defvar tag-lines-already-matched nil

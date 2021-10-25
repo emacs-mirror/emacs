@@ -432,7 +432,10 @@ The future stack is erased."
   (setcdr xref--history nil))
 
 ;;;###autoload
-(defun xref-pop-marker-stack ()
+(define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
+
+;;;###autoload
+(defun xref-go-back ()
   "Go back to the previous position in xref history.
 To undo, use \\[xref-go-forward]."
   (interactive)
@@ -445,11 +448,10 @@ To undo, use \\[xref-go-forward]."
       (goto-char (marker-position marker))
       (set-marker marker nil nil)
       (run-hooks 'xref-after-return-hook))))
-;; FIXME: rename to `xref-go-back'.
 
 ;;;###autoload
 (defun xref-go-forward ()
-  "Got to the point where a previous \\[xref-pop-marker-stack] was invoked."
+  "Got to the point where a previous \\[xref-go-back] was invoked."
   (interactive)
   (if (null (cdr xref--history))
       (user-error "At end of xref history")
@@ -708,7 +710,7 @@ quit the *xref* buffer."
   "Quit *xref* buffer, then pop the xref marker stack."
   (interactive)
   (quit-window)
-  (xref-pop-marker-stack))
+  (xref-go-back))
 
 (defun xref-query-replace-in-results (from to)
   "Perform interactive replacement of FROM with TO in all displayed xrefs.
@@ -1418,7 +1420,7 @@ definition for IDENTIFIER, display it in the selected window.
 Otherwise, display the list of the possible definitions in a
 buffer where the user can select from the list.
 
-Use \\[xref-pop-marker-stack] to return back to where you invoked this command."
+Use \\[xref-go-back] to return back to where you invoked this command."
   (interactive (list (xref--read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier nil))
 
@@ -1509,10 +1511,10 @@ output of this command when the backend is etags."
 ;;; Key bindings
 
 ;;;###autoload (define-key esc-map "." #'xref-find-definitions)
-;;;###autoload (define-key esc-map "," #'xref-pop-marker-stack)
+;;;###autoload (define-key esc-map "," #'xref-go-back)
+;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key esc-map "?" #'xref-find-references)
 ;;;###autoload (define-key esc-map [?\C-.] #'xref-find-apropos)
-;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 

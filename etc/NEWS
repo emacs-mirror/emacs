@@ -185,8 +185,8 @@ a prefix argument which is interpreted to mean "include all files".
 
 +++
 *** New command 'xref-go-forward'.
-It is bound to 'C-M-,' and jumps to the location where 'xref-pop-marker-stack'
-was invoked previously.
+It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
+('M-,', also known as 'xref-pop-marker-stack') was invoked previously.
 
 ** File notifications
 
