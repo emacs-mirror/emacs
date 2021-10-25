@@ -67,6 +67,12 @@ This support is built by default when the libwebp library is
 available.  To disable it, use the '--without-webp' configure flag.
 Image specifiers can now use ':type webp'.
 
+** Windows
+
++++
+*** 'display-buffer' now can set up the body size of the chosen window.
+For example, an alist entry as '(window-width . (body-columns . 40))'
+will make the body of the chosen window 40 columns wide.
 
 * Editing Changes in Emacs 29.1
 

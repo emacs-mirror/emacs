@@ -3036,6 +3036,11 @@ desired total height with respect to the total height of its frame's
 root window.
 
 @item
+A cons cell whose @sc{car} is @code{body-lines} and whose @sc{cdr} is an
+integer that specifies the height of the chosen window's body in frame
+lines.
+
+@item
 If the value specifies a function, that function is called with one
 argument---the chosen window.  The function is supposed to adjust the
 height of the window; its return value is ignored.  Suitable functions
@@ -3069,6 +3074,11 @@ desired total width with respect to the total width of the frame's
 root window.
 
 @item
+A cons cell whose @sc{car} is @code{body-columns} and whose @sc{cdr} is
+an integer that specifies the width of the chosen window's body in frame
+columns.
+
+@item
 If the value specifies a function, that function is called with one
 argument---the chosen window.  The function is supposed to adjust the
 width of the window; its return value is ignored.
@@ -3077,8 +3087,8 @@ width of the window; its return value is ignored.
 @vindex window-size@r{, a buffer display action alist entry}
 @item window-size
 This entry is a combination of the two preceding ones and can be used to
-adjust the chosen window's height and width.  Since windows can be
-resized in one direction only without affecting other windows,
+adjust the chosen window's height @emph{and} width.  Since windows can
+be resized in one direction only without affecting other windows,
 @code{window-size} is effective only to set up the size of a window
 appearing alone on a frame.  The value can be one of the following:
 
@@ -3090,6 +3100,12 @@ appearing alone on a frame.  The value can be one of the following:
 A cons cell of two integers specifies the desired total width and height
 of the chosen window in lines and columns.  It's effect is to adjust the
 size of the frame accordingly.
+
+@item
+A cons cell whose @sc{car} equals @code{body-chars} and whose @sc{cdr}
+is a cons cell of two integers---the desired body width and height of
+the chosen window in frame columns and lines.  It's effect is to adjust
+the size of the frame accordingly.
 
 @item
 If the value specifies a function, that function is called with one
