@@ -174,6 +174,7 @@
 (cc-bytecomp-defun c-clear-string-fences)
 (cc-bytecomp-defun c-restore-string-fences)
 (cc-bytecomp-defun c-remove-string-fences)
+(cc-bytecomp-defun c-fontify-new-found-type)
 
 
 ;; Make declarations for all the `c-lang-defvar' variables in cc-langs.
