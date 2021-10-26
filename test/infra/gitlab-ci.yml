@@ -117,7 +117,7 @@ default:
     - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
-    - ls -alR ${test_name}
+    # - ls -alR ${test_name}
 
 .build-template:
   needs: []
@@ -224,6 +224,8 @@ build-image-inotify:
   extends: [.job-template, .build-template]
   variables:
     target: emacs-inotify
+# Temporarily.
+  timeout: 8 hours
 
 # test-fast-inotify:
 #   stage: fast
@@ -300,8 +302,7 @@ test-native-comp-speed0:
   extends: [.job-template, .test-template, .native-comp-template]
   variables:
     target: emacs-native-comp-speed0
-    make_params: >-
-      "-C test check SELECTOR='(and (not (tag :unstable)) (tag :nativecomp)))'"
+    make_params: "-C test check SELECTOR='(not (tag :unstable))'"
 
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
