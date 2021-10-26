@@ -12102,7 +12102,10 @@ comment at the start of cc-engine.el for more info."
 	   (and (c-major-mode-is 'pike-mode)
 		c-decl-block-key)))
     (while (eq braceassignp 'dontknow)
-      (cond ((eq (char-after) ?\;)
+      (cond ((or (eq (char-after) ?\;)
+		 (save-excursion
+		   (progn (c-backward-syntactic-ws)
+			  (c-at-vsemi-p))))
 	     (setq braceassignp nil))
 	    ((and class-key
 		  (looking-at class-key))
@@ -14026,7 +14029,8 @@ comment at the start of cc-engine.el for more info."
 	      ;; clause - we assume only C++ needs it.
 	      (c-syntactic-skip-backward "^;,=" lim t))
 	    (setq placeholder (point))
-	    (memq (char-before) '(?, ?= ?<)))
+	    (and (memq (char-before) '(?, ?= ?<))
+		 (not (c-crosses-statement-barrier-p (point) indent-point))))
 	  (cond
 
 	   ;; CASE 5D.6: Something like C++11's "using foo = <type-exp>"
