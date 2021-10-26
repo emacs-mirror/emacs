@@ -41,13 +41,11 @@
 ;; XDG Base Directory Specification
 ;; https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
-(defmacro xdg--dir-home (environ default-path)
-  (declare (debug (stringp stringp)))
-  (let ((env (make-symbol "env")))
-    `(let ((,env (getenv ,environ)))
-       (if (or (null ,env) (not (file-name-absolute-p ,env)))
-           (expand-file-name ,default-path)
-         ,env))))
+(defun xdg--dir-home (environ default-path)
+  (let ((env (getenv environ)))
+    (if (or (null env) (not (file-name-absolute-p env)))
+        (expand-file-name default-path)
+      env)))
 
 (defun xdg-config-home ()
   "Return the base directory for user specific configuration files.
