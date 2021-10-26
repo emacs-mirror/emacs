@@ -287,7 +287,7 @@ via the internet it might also be http.")
 (cl-defmethod bug-reference--build-forge-setup-entry
   (host-domain (_forge-type (eql 'gitlab)) protocol)
   `(,(concat "[/@]" (regexp-quote host-domain)
-             "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+             "[/:]\\([.A-Za-z0-9_/-]+?\\)\\(?:\\.git\\)?/?\\'")
     "\\(\\([.A-Za-z0-9_/-]+\\)?\\([#!]\\)\\([0-9]+\\)\\)\\>"
     ,(lambda (groups)
        (let ((ns-project (nth 1 groups)))
@@ -304,7 +304,7 @@ via the internet it might also be http.")
 (cl-defmethod bug-reference--build-forge-setup-entry
   (host-domain (_forge-type (eql 'gitea)) protocol)
   `(,(concat "[/@]" (regexp-quote host-domain)
-             "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+             "[/:]\\([.A-Za-z0-9_/-]+?\\)\\(?:\\.git\\)?/?\\'")
     "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
     ,(lambda (groups)
        (let ((ns-project (nth 1 groups)))
