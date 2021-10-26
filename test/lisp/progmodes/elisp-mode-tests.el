@@ -782,11 +782,11 @@ to (xref-elisp-test-descr-to-target xref)."
    ))
 
 (xref-elisp-deftest find-defs-defvar-el
-  (elisp--xref-find-definitions 'xref--marker-ring)
+  (elisp--xref-find-definitions 'xref--history)
   (list
-   (xref-make "(defvar xref--marker-ring)"
+   (xref-make "(defvar xref--history)"
 	      (xref-make-elisp-location
-	       'xref--marker-ring 'defvar
+	       'xref--history 'defvar
 	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
     ))
 
