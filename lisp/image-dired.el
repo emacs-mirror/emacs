@@ -1766,7 +1766,8 @@ You probably want to use this together with
   "Browse and manipulate thumbnail images using dired.
 Use `image-dired-minor-mode' to get a nice setup."
   (buffer-disable-undo)
-  (add-hook 'file-name-at-point-functions 'image-dired-file-name-at-point nil t))
+  (add-hook 'file-name-at-point-functions 'image-dired-file-name-at-point nil t)
+  (setq-local bookmark-make-record-function #'image-dired-bookmark-make-record))
 
 (define-derived-mode image-dired-display-image-mode
   special-mode "image-dired-image-display"
@@ -2815,6 +2816,38 @@ tags to their respective image file.  Internal function used by
        (dolist (tag tag-list)
          (push (cons file tag) lst))))))
 
+
+;;;; bookmark.el support
+
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+
+(defun image-dired-bookmark-name ()
+  "Create a default bookmark name for the current EWW buffer."
+  (file-name-nondirectory
+   (directory-file-name
+    (file-name-directory (image-dired-original-file-name)))))
+
+(defun image-dired-bookmark-make-record ()
+  "Create a bookmark for the current EWW buffer."
+  `(,(image-dired-bookmark-name)
+    ,@(bookmark-make-record-default t)
+    (location . ,(file-name-directory (image-dired-original-file-name)))
+    (image-dired-file . ,(file-name-nondirectory (image-dired-original-file-name)))
+    (handler . image-dired-bookmark-jump)))
+
+;;;###autoload
+(defun image-dired-bookmark-jump (bookmark)
+  "Default bookmark handler for Image-Dired buffers."
+  ;; User already cached thumbnails, so disable any checking.
+  (let ((image-dired-show-all-from-dir-max-files most-positive-fixnum))
+    (image-dired (bookmark-prop-get bookmark 'location))
+    ;; TODO: Go to the bookmarked file, if it exists.
+    ;; (bookmark-prop-get bookmark 'image-dired-file)
+    (goto-char (point-min))))
+
+
 ;;;; Obsolete
 
 ;;;###autoload

@@ -227,6 +227,12 @@ to use it; it is not enabled by default.
 Support for the GraphicsMagick command line tool ("gm") has been
 added, and is used instead of ImageMagick when it is available.
 
+---
+*** Support for bookmark.el.
+The command 'bookmark-set' (bound to 'C-x r m') is now supported in
+the thumbnail view, and will create a bookmark that opens the current
+directory in Image-Dired.
+
 ** Dired
 
 ---
