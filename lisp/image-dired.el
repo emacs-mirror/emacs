@@ -1372,6 +1372,15 @@ With prefix argument, move ARG lines."
   (if image-dired-track-movement
       (image-dired-track-thumbnail)))
 
+(defun image-dired--display-thumb-properties-fun ()
+  (let ((old-buf (current-buffer))
+        (old-point (point)))
+    (lambda ()
+      (when (and (equal (current-buffer) old-buf)
+                 (= (point) old-point))
+        (ignore-errors
+          (image-dired-display-thumb-properties))))))
+
 (defun image-dired-forward-image (&optional arg)
   "Move to next image and display properties.
 Optional prefix ARG says how many images to move; default is one
@@ -1387,11 +1396,12 @@ image."
                    (forward-char))
                  (setq pos (point))
                  (image-dired-image-at-point-p)))
-          (goto-char pos)
-        (error "At last image"))))
+          (progn (goto-char pos)
+                 (image-dired-display-thumb-properties))
+        (message "At last image")
+        (run-at-time 1 nil (image-dired--display-thumb-properties-fun)))))
   (when image-dired-track-movement
-    (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+    (image-dired-track-original-file)))
 
 (defun image-dired-backward-image (&optional arg)
   "Move to previous image and display properties.
@@ -1408,11 +1418,12 @@ image."
                    (backward-char))
                  (setq pos (point))
                  (image-dired-image-at-point-p)))
-          (goto-char pos)
-        (error "At first image"))))
+          (progn (goto-char pos)
+                 (image-dired-display-thumb-properties))
+        (message "At first image")
+        (run-at-time 1 nil (image-dired--display-thumb-properties-fun)))))
   (when image-dired-track-movement
-    (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+    (image-dired-track-original-file)))
 
 (defun image-dired-next-line ()
   "Move to next line and display properties."
@@ -1612,10 +1623,10 @@ You probably want to use this together with
     (define-key map "\C-p" 'image-dired-previous-line)
     (define-key map "\C-n" 'image-dired-next-line)
 
-    (define-key map "<" 'image-dired-beginning-of-buffer)
-    (define-key map ">" 'image-dired-end-of-buffer)
-    (define-key map (kbd "M-<") 'image-dired-beginning-of-buffer)
-    (define-key map (kbd "M->") 'image-dired-end-of-buffer)
+    (define-key map "<" #'image-dired-beginning-of-buffer)
+    (define-key map ">" #'image-dired-end-of-buffer)
+    (define-key map (kbd "M-<") #'image-dired-beginning-of-buffer)
+    (define-key map (kbd "M->") #'image-dired-end-of-buffer)
 
     (define-key map "d" 'image-dired-flag-thumb-original-file)
     (define-key map [delete] 'image-dired-flag-thumb-original-file)
