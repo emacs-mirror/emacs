@@ -320,8 +320,8 @@ using the NeuQuant algorithm."
   "Arguments to pass `image-dired-cmd-pngnq-program'.
 Available format specifiers are the same as in
 `image-dired-cmd-create-thumbnail-options'."
-  :version "26.1"
-  :type '(repeat (string :tag "Argument")))
+  :type '(repeat (string :tag "Argument"))
+  :version "29.1")
 
 (defcustom image-dired-cmd-pngcrush-program (executable-find "pngcrush")
   "The file name of the `pngcrush' program.
