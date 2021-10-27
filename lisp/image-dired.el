@@ -1657,6 +1657,15 @@ You probably want to use this together with
     ;; Mouse
     (define-key map [mouse-2] 'image-dired-mouse-display-image)
     (define-key map [mouse-1] 'image-dired-mouse-select-thumbnail)
+    (define-key map [mouse-3] #'image-dired-mouse-select-thumbnail)
+    (define-key map [down-mouse-1] #'image-dired-mouse-select-thumbnail)
+    (define-key map [down-mouse-2] #'image-dired-mouse-select-thumbnail)
+    (define-key map [down-mouse-3] #'image-dired-mouse-select-thumbnail)
+    ;; Let's disable mouse dragging, as it currently doesn't do
+    ;; anything useful.
+    (define-key map [drag-mouse-1] #'ignore)
+    (define-key map [drag-mouse-2] #'ignore)
+    (define-key map [drag-mouse-3] #'ignore)
     ;; Seems I must first set C-down-mouse-1 to undefined, or else it
     ;; will trigger the buffer menu. If I try to instead bind
     ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
@@ -2410,6 +2419,8 @@ non-nil."
   (interactive "e")
   (mouse-set-point event)
   (goto-char (posn-point (event-end event)))
+  (unless (image-at-point-p)
+    (image-dired-backward-image))
   (let ((file (image-dired-original-file-name)))
     (when file
       (if image-dired-track-movement
@@ -2425,6 +2436,8 @@ non-nil."
   (interactive "e")
   (mouse-set-point event)
   (goto-char (posn-point (event-end event)))
+  (unless (image-at-point-p)
+    (image-dired-backward-image))
   (if image-dired-track-movement
       (image-dired-track-original-file))
   (image-dired-display-thumb-properties))
