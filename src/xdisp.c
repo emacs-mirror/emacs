@@ -10628,10 +10628,12 @@ in_display_vector_p (struct it *it)
 
 DEFUN ("window-text-pixel-size", Fwindow_text_pixel_size, Swindow_text_pixel_size, 0, 6, 0,
        doc: /* Return the size of the text of WINDOW's buffer in pixels.
-WINDOW must be a live window and defaults to the selected one.  The
+WINDOW can be any live window and defaults to the selected one.  The
 return value is a cons of the maximum pixel-width of any text line
 and the pixel-height of all the text lines in the accessible portion
 of buffer text.
+WINDOW can also be a buffer, in which case the selected window is used,
+and the function behaves as if that window was displaying this buffer.
 
 This function exists to allow Lisp programs to adjust the dimensions
 of WINDOW to the buffer text it needs to display.
@@ -10675,8 +10677,9 @@ include the height of any of these, if present, in the return value.  */)
   (Lisp_Object window, Lisp_Object from, Lisp_Object to, Lisp_Object x_limit,
    Lisp_Object y_limit, Lisp_Object mode_lines)
 {
-  struct window *w = decode_live_window (window);
-  Lisp_Object buffer = w->contents;
+  struct window *w = BUFFERP (window) ? XWINDOW (selected_window)
+                     : decode_live_window (window);
+  Lisp_Object buffer = BUFFERP (window) ? window : w->contents;
   struct buffer *b;
   struct it it;
   struct buffer *old_b = NULL;
