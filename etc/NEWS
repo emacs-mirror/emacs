@@ -50,7 +50,7 @@ when using Cairo.  Use 'ftcrhb' if your Emacs was built with HarfBuzz
 text shaping support, and 'ftcr' otherwise.  You can determine this by
 checking 'system-configuration-features'.  The 'ftcr' backend will
 still be available when HarfBuzz is supported, but will not be used by
-default.  We strongly recommend building with HarBuzz support.  'x' is
+default.  We strongly recommend building with HarfBuzz support.  'x' is
 still a valid backend.
 
 ---
@@ -222,12 +222,13 @@ groups.
 
 +++
 ** New minor mode 'context-menu-mode' for context menus popped by 'mouse-3'.
-When this mode is enabled, clicking 'down-mouse-3' anywhere in the buffer
-pops up a menu whose contents depends on surrounding context near the
-mouse click.  You can change the order of the default sub-menus in the
-context menu by customizing the user option 'context-menu-functions'.
-You can also invoke the context menu by pressing 'S-<F10>' or,
-on macOS, by clicking 'C-down-mouse-1'.
+When this mode is enabled, clicking 'down-mouse-3' (usually, the
+right mouse button) anywhere in the buffer pops up a menu whose
+contents depends on surrounding context near the mouse click.
+You can change the order of the default sub-menus in the context menu
+by customizing the user option 'context-menu-functions'.  You can also
+invoke the context menu by pressing 'S-<F10>' or, on macOS, by
+clicking 'C-down-mouse-1'.
 
 +++
 ** A new keymap for buffer actions has been added.
@@ -438,7 +439,8 @@ nor t.
 *** New user option 'read-minibuffer-restore-windows'.
 When customized to nil, it uses 'minibuffer-restore-windows' in
 'minibuffer-exit-hook' to remove only the window showing the
-"*Completions*" buffer.
+"*Completions*" buffer, but keeps all other windows created
+while the minibuffer was active.
 
 ---
 *** New variable 'redisplay-adhoc-scroll-in-resize-mini-windows'.
@@ -470,7 +472,7 @@ both modes are on).
 +++
 *** The prefix key 'C-x t t' can be used to display a buffer in a new tab.
 Typing 'C-x t t' before a command will cause the buffer shown by that
-command to be displayed in a new tab.  'C-x t t" is bound to the
+command to be displayed in a new tab.  'C-x t t' is bound to the
 command 'other-tab-prefix'.
 
 +++
@@ -3238,7 +3240,7 @@ instead of 'C-x o C-x o' to switch windows, 'C-x { { } } ^ ^ v v' to
 resize the selected window interactively, 'M-g n n p p' to navigate
 next-error matches.  Any other key exits this temporarily enabled
 transient mode that supports shorter keys, and then after exiting from
-this mode the default key binding is used for the last typed key.
+this mode, the last typed key uses the default key binding.
 
 The user option 'repeat-exit-key' defines an additional key usable to
 exit the mode like 'isearch-exit' ('RET').
