@@ -2670,10 +2670,11 @@ TRANSFORM will be called to get from before to after."
     (insert-file-contents file)
     (let ((gen-specs (list (cons 'dummy t)
                            (cons 'code transform))))
-      ;; The start of the "before" part starts with a form feed and then
-      ;; the name of the test.
+      ;; Find the start of a test.
       (while (re-search-forward "^=-=\n" nil t)
-        (setq gen-specs (ert-test--erts-test gen-specs file))))))
+        (setq gen-specs (ert-test--erts-test gen-specs file))
+        ;; Search to the end of the test.
+        (re-search-forward "^=-=-=\n")))))
 
 (defun ert-test--erts-test (gen-specs file)
   (let* ((file-buffer (current-buffer))
