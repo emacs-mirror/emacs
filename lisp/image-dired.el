@@ -1146,9 +1146,6 @@ displayed."
 ;;;###autoload
 (defalias 'image-dired 'image-dired-show-all-from-dir)
 
-;;;###autoload
-(define-obsolete-function-alias 'tumme 'image-dired "24.4")
-
 (defun image-dired-sane-db-file ()
   "Check if `image-dired-db-file' exists.
 If not, try to create it (including any parent directories).
@@ -1835,10 +1832,6 @@ Resized or in full-size."
 Note that n, p and <down> and <up> will be hijacked and bound to
 `image-dired-dired-x-line'."
   :keymap image-dired-minor-mode-map)
-
-;;;###autoload
-(define-obsolete-function-alias 'image-dired-setup-dired-keybindings 'image-dired-minor-mode
-  "26.1")
 
 (declare-function clear-image-cache "image.c" (&optional filter))
 
@@ -2823,6 +2816,13 @@ tags to their respective image file.  Internal function used by
          (push (cons file tag) lst))))))
 
 ;;;; Obsolete
+
+;;;###autoload
+(define-obsolete-function-alias 'tumme #'image-dired "24.4")
+
+;;;###autoload
+(define-obsolete-function-alias 'image-dired-setup-dired-keybindings
+  #'image-dired-minor-mode "26.1")
 
 (defcustom image-dired-cmd-read-exif-data-program "exiftool"
   "Program used to read EXIF data to image.
