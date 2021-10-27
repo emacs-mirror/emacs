@@ -1140,18 +1140,19 @@ never ask for confirmation."
   (interactive "DImage Dired: ")
   (dired dir)
   (dired-mark-files-regexp (image-file-name-regexp))
-  (let ((files (dired-get-marked-files)))
-    (if (or (not image-dired-show-all-from-dir-max-files)
-            (<= (length files) image-dired-show-all-from-dir-max-files)
-            (and (> (length files) image-dired-show-all-from-dir-max-files)
-                 (y-or-n-p
-                  (format
-                   "Directory contains more than %d image files.  Proceed? "
-                   image-dired-show-all-from-dir-max-files))))
-        (progn
-          (image-dired-display-thumbs)
-          (pop-to-buffer image-dired-thumbnail-buffer))
-      (message "Canceled."))))
+  (let ((files (dired-get-marked-files nil nil nil t)))
+    (cond ((and (null (cdr files)))
+           (message "No image files in directory"))
+          ((or (not image-dired-show-all-from-dir-max-files)
+               (<= (length (cdr files)) image-dired-show-all-from-dir-max-files)
+               (and (> (length (cdr files)) image-dired-show-all-from-dir-max-files)
+                    (y-or-n-p
+                     (format
+                      "Directory contains more than %d image files.  Proceed?"
+                      image-dired-show-all-from-dir-max-files))))
+           (image-dired-display-thumbs)
+           (pop-to-buffer image-dired-thumbnail-buffer))
+          (t (message "Image-Dired canceled")))))
 
 ;;;###autoload
 (defalias 'image-dired 'image-dired-show-all-from-dir)
