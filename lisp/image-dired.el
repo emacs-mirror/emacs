@@ -376,25 +376,6 @@ Available format specifiers are the same as in
   :version "26.1"
   :type '(repeat (string :tag "Argument")))
 
-(defcustom image-dired-cmd-rotate-thumbnail-program
-  (if (executable-find "gm") "gm" "mogrify")
-  "Executable used to rotate thumbnail.
-Used together with `image-dired-cmd-rotate-thumbnail-options'."
-  :type 'file
-  :version "29.1")
-
-(defcustom image-dired-cmd-rotate-thumbnail-options
-  (let ((opts '("-rotate" "%d" "%t")))
-    (if (executable-find "gm") (cons "mogrify" opts) opts))
-  "Arguments of command used to rotate thumbnail image.
-Used with `image-dired-cmd-rotate-thumbnail-program'.
-Available format specifiers are: %d which is replaced by the
-number of (positive) degrees to rotate the image, normally 90 or 270
-\(for 90 degrees right and left), %t which is replaced by the file name
-of the thumbnail file."
-  :version "29.1"
-  :type '(repeat (string :tag "Argument")))
-
 (defcustom image-dired-cmd-rotate-original-program
   "jpegtran"
   "Executable used to rotate original image.
@@ -1651,8 +1632,6 @@ You probably want to use this together with
     (define-key map "\C-m" 'image-dired-display-thumbnail-original-image)
     (define-key map [C-return] 'image-dired-thumbnail-display-external)
 
-    (define-key map "l" 'image-dired-rotate-thumbnail-left)
-    (define-key map "r" 'image-dired-rotate-thumbnail-right)
     (define-key map "L" 'image-dired-rotate-original-left)
     (define-key map "R" 'image-dired-rotate-original-right)
 
@@ -1698,8 +1677,6 @@ You probably want to use this together with
         ["Dynamic line up" image-dired-line-up-dynamic]
         ["Line up thumbnails" image-dired-line-up]
 
-        ["Rotate thumbnail left" image-dired-rotate-thumbnail-left]
-        ["Rotate thumbnail right" image-dired-rotate-thumbnail-right]
         ["Rotate original left" image-dired-rotate-original-left]
         ["Rotate original right" image-dired-rotate-original-right]
 
@@ -2121,30 +2098,6 @@ With prefix argument ARG, display image in its original size."
 (defun image-dired-image-at-point-p ()
   "Return non-nil if there is an `image-dired' thumbnail at point."
   (get-text-property (point) 'image-dired-thumbnail))
-
-(defun image-dired-rotate-thumbnail (degrees)
-  "Rotate thumbnail DEGREES degrees."
-  (image-dired--check-executable-exists
-   'image-dired-cmd-rotate-thumbnail-program)
-  (if (not (image-dired-image-at-point-p))
-      (message "No thumbnail at point")
-    (let* ((file (image-dired-thumb-name (image-dired-original-file-name)))
-           (thumb (expand-file-name file))
-           (spec (list (cons ?d degrees) (cons ?t thumb))))
-      (apply #'call-process image-dired-cmd-rotate-thumbnail-program nil nil nil
-             (mapcar (lambda (arg) (format-spec arg spec))
-                     image-dired-cmd-rotate-thumbnail-options))
-      (clear-image-cache thumb))))
-
-(defun image-dired-rotate-thumbnail-left ()
-  "Rotate thumbnail left (counter clockwise) 90 degrees."
-  (interactive)
-  (image-dired-rotate-thumbnail "270"))
-
-(defun image-dired-rotate-thumbnail-right ()
-  "Rotate thumbnail counter right (clockwise) 90 degrees."
-  (interactive)
-  (image-dired-rotate-thumbnail "90"))
 
 (defun image-dired-refresh-thumb ()
   "Force creation of new image for current thumbnail."
@@ -2911,6 +2864,56 @@ by the image file name and %t which is replaced by the tag name."
           (replace-match "" nil t))
         (setq tag-value (buffer-substring (point-min) (point-max)))))
     tag-value))
+
+(defcustom image-dired-cmd-rotate-thumbnail-program
+  (if (executable-find "gm") "gm" "mogrify")
+  "Executable used to rotate thumbnail.
+Used together with `image-dired-cmd-rotate-thumbnail-options'."
+  :type 'file
+  :version "29.1")
+(make-obsolete-variable 'image-dired-cmd-rotate-thumbnail-program nil "29.1")
+
+(defcustom image-dired-cmd-rotate-thumbnail-options
+  (let ((opts '("-rotate" "%d" "%t")))
+    (if (executable-find "gm") (cons "mogrify" opts) opts))
+  "Arguments of command used to rotate thumbnail image.
+Used with `image-dired-cmd-rotate-thumbnail-program'.
+Available format specifiers are: %d which is replaced by the
+number of (positive) degrees to rotate the image, normally 90 or 270
+\(for 90 degrees right and left), %t which is replaced by the file name
+of the thumbnail file."
+  :version "29.1"
+  :type '(repeat (string :tag "Argument")))
+(make-obsolete-variable 'image-dired-cmd-rotate-thumbnail-options nil "29.1")
+
+(defun image-dired-rotate-thumbnail (degrees)
+  "Rotate thumbnail DEGREES degrees."
+  (declare (obsolete image-dired-refresh-thumb "29.1"))
+  (image-dired--check-executable-exists
+   'image-dired-cmd-rotate-thumbnail-program)
+  (if (not (image-dired-image-at-point-p))
+      (message "No thumbnail at point")
+    (let* ((file (image-dired-thumb-name (image-dired-original-file-name)))
+           (thumb (expand-file-name file))
+           (spec (list (cons ?d degrees) (cons ?t thumb))))
+      (apply #'call-process image-dired-cmd-rotate-thumbnail-program nil nil nil
+             (mapcar (lambda (arg) (format-spec arg spec))
+                     image-dired-cmd-rotate-thumbnail-options))
+      (clear-image-cache thumb))))
+
+(defun image-dired-rotate-thumbnail-left ()
+  "Rotate thumbnail left (counter clockwise) 90 degrees."
+  (declare (obsolete image-dired-refresh-thumb "29.1"))
+  (interactive)
+  (with-suppressed-warnings ((obsolete image-dired-rotate-thumbnail))
+    (image-dired-rotate-thumbnail "270")))
+
+(defun image-dired-rotate-thumbnail-right ()
+  "Rotate thumbnail counter right (clockwise) 90 degrees."
+  (declare (obsolete image-dired-refresh-thumb "29.1"))
+  (interactive)
+  (with-suppressed-warnings ((obsolete image-dired-rotate-thumbnail))
+    (image-dired-rotate-thumbnail "90")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;

@@ -201,7 +201,7 @@ To improve security, if an sql product has ':password-in-comint' set
 to t, a password supplied via the minibuffer will be sent in-process,
 as opposed to via the command-line.
 
-** Image Dired
+** Image-Dired
 
 ---
 *** Reduce dependency on external "exiftool" command.
@@ -241,6 +241,12 @@ thumbnails in the background these days, so this is not as important
 as it used to be, back when entering a large directory could lock up
 Emacs for tens of seconds.  In addition, you can now customize this
 option to nil to disable this confirmation completely.
+
+---
+*** Make 'image-dired-rotate-thumbnail-(left|right)' obsolete.
+Instead, use 'M-x image-dired-refresh-thumb' to generate a new
+thumbnail, or 'M-x image-rotate' to rotate the thumbnail without
+updating the thumbnail file.
 
 ** Dired
 
