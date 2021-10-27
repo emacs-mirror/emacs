@@ -1444,6 +1444,28 @@ image."
       (image-dired-track-original-file))
   (image-dired-display-thumb-properties))
 
+(defun image-dired-beginning-of-buffer ()
+  "Move to the first image in the buffer and display properties."
+  (interactive nil image-dired-thumbnail-mode)
+  (goto-char (point-min))
+  (while (and (not (image-at-point-p))
+              (not (eobp)))
+    (forward-char 1))
+  (when image-dired-track-movement
+    (image-dired-track-original-file))
+  (image-dired-display-thumb-properties))
+
+(defun image-dired-end-of-buffer ()
+  "Move to the last image in the buffer and display properties."
+  (interactive nil image-dired-thumbnail-mode)
+  (goto-char (point-max))
+  (while (and (not (image-at-point-p))
+              (not (bobp)))
+    (forward-char -1))
+  (when image-dired-track-movement
+    (image-dired-track-original-file))
+  (image-dired-display-thumb-properties))
+
 (defun image-dired-format-properties-string (buf file props comment)
   "Format display properties.
 BUF is the associated dired buffer, FILE is the original image file
@@ -1589,6 +1611,11 @@ You probably want to use this together with
     (define-key map "\C-b" 'image-dired-backward-image)
     (define-key map "\C-p" 'image-dired-previous-line)
     (define-key map "\C-n" 'image-dired-next-line)
+
+    (define-key map "<" 'image-dired-beginning-of-buffer)
+    (define-key map ">" 'image-dired-end-of-buffer)
+    (define-key map (kbd "M-<") 'image-dired-beginning-of-buffer)
+    (define-key map (kbd "M->") 'image-dired-end-of-buffer)
 
     (define-key map "d" 'image-dired-flag-thumb-original-file)
     (define-key map [delete] 'image-dired-flag-thumb-original-file)
