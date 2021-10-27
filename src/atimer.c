@@ -584,9 +584,10 @@ init_atimer (void)
 	     timerfd_create (CLOCK_REALTIME, TFD_NONBLOCK | TFD_CLOEXEC));
 # endif
   /* We're starting the alarms even if we have timerfd, because
-     timerfd events do not fired while Emacs Lisp is busy.  This might
-     or might not mean that the timerfd code doesn't really give us
-     anything and should be removed, see discussion in bug#19776.  */
+     timerfd events do not fire while Emacs Lisp is busy and doesn't
+     call thread_select.  This might or might not mean that the
+     timerfd code doesn't really give us anything and should be
+     removed, see discussion in bug#19776.  */
   struct sigevent sigev;
   sigev.sigev_notify = SIGEV_SIGNAL;
   sigev.sigev_signo = SIGALRM;
