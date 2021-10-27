@@ -163,9 +163,6 @@ this:
     (set-fontset-font t 'emoji
                       '("My New Emoji Font" . "iso10646-1") nil 'prepend)
 
-where "My New Emoji Font" should be replaced by the actual name of the
-font you want to use.
-
 The Emoji characters are now assigned to a special script, 'emoji', so
 as to make it easier to customize fontsets for Emoji display, as in
 the above example.  (Previously, the Emoji characters were assigned to
