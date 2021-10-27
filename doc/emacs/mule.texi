@@ -576,6 +576,16 @@ using @kbd{C-x 8 @key{RET}} (@code{insert-char}) to insert a single
 character based on its Unicode name or code-point; see @ref{Inserting
 Text}.
 
+@cindex emoji
+  There are specialized commands for inserting emojis, and these can
+be found on the @kbd{C-x 8 e} submap.  @kbd{C-x 8 e e}
+(@code{emoji-insert}) will let you navigate through different emoji
+categories and then choose one.  @kbd{C-x 8 e l} (@code{emoji-list})
+will pop up a new buffer and list all the emojis; clicking (or using
+@kbd{RET}) on an emoji will insert it in the original buffer.
+Finally, @kbd{C-x 8 e s} (@code{emoji-search}) will allow you to
+search for an emoji based on its name.
+
 @node Select Input Method
 @section Selecting an Input Method
 

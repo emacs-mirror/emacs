@@ -3258,5 +3258,11 @@ as names, not numbers."
 
 (define-obsolete-function-alias 'ucs-insert 'insert-char "24.3")
 (define-key ctl-x-map "8\r" 'insert-char)
+(define-key ctl-x-map "8e"
+            (define-keymap
+              "e" #'emoji-insert
+              "i" #'emoji-insert
+              "s" #'emoji-search
+              "l" #'emoji-list))
 
 ;;; mule-cmds.el ends here
