@@ -2008,7 +2008,8 @@ The return value is an approximation: it only considers the values
 returned by @code{char-width} for the constituent characters, always
 takes a tab character as taking @code{tab-width} columns, ignores
 display properties and fonts, etc.  For these reasons, we recommend
-using @code{window-text-pixel-size}, described below, instead.
+using @code{window-text-pixel-size} or @code{string-pixel-width},
+described below, instead.
 @end defun
 
 @defun truncate-string-to-width string width &optional start-column padding ellipsis ellipsis-text-property
@@ -2188,6 +2189,11 @@ This function returns @code{nil} if the current glyph matrix of
 for example, when processing a command.  The value should be retrievable
 though when this function is run from an idle timer with a delay of zero
 seconds.
+@end defun
+
+@defun string-pixel-width string
+This is a convenience function that uses @code{window-text-pixel-size}
+to compute the width of @var{string} (in pixels).
 @end defun
 
 @defun line-pixel-height

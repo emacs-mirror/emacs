@@ -242,7 +242,14 @@ There can be any number of :example/:result elements."
    :eval (number-to-string 42))
   "Data About Strings"
   (length
-   :eval (length "foo"))
+   :eval (length "foo")
+   :eval (length "avocado: 🥑"))
+  (string-width
+   :eval (string-width "foo")
+   :eval (string-width "avocado: 🥑"))
+  (string-pixel-width
+   :eval (string-pixel-width "foo")
+   :eval (string-pixel-width "avocado: 🥑"))
   (string-search
    :eval (string-search "bar" "foobarzot"))
   (assoc-string

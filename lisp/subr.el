@@ -6734,5 +6734,4 @@ string will be displayed only if BODY takes longer than TIMEOUT seconds.
                                  (lambda ()
                                    ,@body)))
 
-
 ;;; subr.el ends here
