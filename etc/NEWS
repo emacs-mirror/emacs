@@ -233,6 +233,15 @@ The command 'bookmark-set' (bound to 'C-x r m') is now supported in
 the thumbnail view, and will create a bookmark that opens the current
 directory in Image-Dired.
 
++++
+*** 'image-dired-show-all-from-dir-max-files' has been increased to 500.
+This option controls asking for confirmation when starting Image-Dired
+in a directory with many files.  However, Image-Dired creates
+thumbnails in the background these days, so this is not as important
+as it used to be, back when entering a large directory could lock up
+Emacs for tens of seconds.  In addition, you can now customize this
+option to nil to disable this confirmation completely.
+
 ** Dired
 
 ---

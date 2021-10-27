@@ -573,11 +573,15 @@ Used by `image-dired-copy-with-exif-file-name'."
   :type 'string
   :version "29.1")
 
-(defcustom image-dired-show-all-from-dir-max-files 100
+(defcustom image-dired-show-all-from-dir-max-files 500
   "Maximum number of files in directory before prompting.
-If there are more files than this in a selected directory, the
-`image-dired-show-all-from-dir' command will show a prompt."
-  :type 'integer
+
+If there are more image files than this in a selected directory,
+the `image-dired-show-all-from-dir' command will ask for
+confirmation before creating the thumbnail buffer.  If this
+variable is nil, it will never ask."
+  :type '(choice integer
+                 (const :tag "Disable warning" nil))
   :version "29.1")
 
 (defvar image-dired-debug nil
@@ -1125,15 +1129,20 @@ thumbnail buffer to be selected."
 
 ;;;###autoload
 (defun image-dired-show-all-from-dir (dir)
-  "Make a preview buffer for all images in DIR and display it.
-If the number of files in DIR matching `image-file-name-regexp'
-exceeds `image-dired-show-all-from-dir-max-files', a warning will be
-displayed."
+  "Make a thumbnail buffer for all images in DIR and display it.
+Any file matching `image-file-name-regexp' is considered an image
+file.
+
+If the number of image files in DIR exceeds
+`image-dired-show-all-from-dir-max-files', ask for confirmation
+before creating the thumbnail buffer.  If that variable is nil,
+never ask for confirmation."
   (interactive "DImage Dired: ")
   (dired dir)
   (dired-mark-files-regexp (image-file-name-regexp))
   (let ((files (dired-get-marked-files)))
-    (if (or (<= (length files) image-dired-show-all-from-dir-max-files)
+    (if (or (not image-dired-show-all-from-dir-max-files)
+            (<= (length files) image-dired-show-all-from-dir-max-files)
             (and (> (length files) image-dired-show-all-from-dir-max-files)
                  (y-or-n-p
                   (format
@@ -2844,7 +2853,7 @@ tags to their respective image file.  Internal function used by
 (defun image-dired-bookmark-jump (bookmark)
   "Default bookmark handler for Image-Dired buffers."
   ;; User already cached thumbnails, so disable any checking.
-  (let ((image-dired-show-all-from-dir-max-files most-positive-fixnum))
+  (let ((image-dired-show-all-from-dir-max-files nil))
     (image-dired (bookmark-prop-get bookmark 'location))
     ;; TODO: Go to the bookmarked file, if it exists.
     ;; (bookmark-prop-get bookmark 'image-dired-file)
