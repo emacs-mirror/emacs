@@ -701,7 +701,13 @@ in the selected window."
          ;; is selected from the context menu that should describe KEY
          ;; at the position of mouse click that opened the context menu.
          ;; When no mouse was involved, don't use `mouse-set-point'.
-         (defn (if buffer (key-binding key t)
+         (defn (if (or buffer
+                       ;; Clicks on the menu bar produce "event" that
+                       ;; is just '(menu-bar)', for which
+                       ;; `mouse-set-point' is not useful.
+                       (and (not (windowp (posn-window (event-start event))))
+                            (not (framep (posn-window (event-start event))))))
+                   (key-binding key t)
                  (save-excursion (mouse-set-point event) (key-binding key t)))))
     ;; Handle the case where we faked an entry in "Select and Paste" menu.
     (when (and (eq defn nil)
