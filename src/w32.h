@@ -161,8 +161,9 @@ extern void prepare_standard_handles (int in, int out,
 extern void reset_standard_handles (int in, int out,
 				    int err, HANDLE handles[4]);
 
-/* Return the string resource associated with KEY of type TYPE.  */
-extern LPBYTE w32_get_resource (const char * key, LPDWORD type);
+/* Query Windows Registry and return the resource associated
+   associated with KEY and NAME of type TYPE.  */
+extern LPBYTE w32_get_resource (const char * key, const char * name, LPDWORD type);
 
 extern void release_listen_threads (void);
 extern void init_ntproc (int);

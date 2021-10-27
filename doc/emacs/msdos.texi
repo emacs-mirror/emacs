@@ -1181,6 +1181,13 @@ The default is @code{t}, which fits well with the Windows default
 click-to-focus policy.
 @end ifnottex
 
+  On Windows 10 (version 1809 and higher) and Windows 11, Emacs title
+bars and scroll bars will follow the system Light or Dark mode,
+similar to other programs such as Explorer and Command Prompt. To
+change the color mode: Windows Settings > Personalization > Colors >
+Choose your color (or Choose your default app mode); then restart
+Emacs.
+
 @ifnottex
 @include msdos-xtra.texi
 @end ifnottex

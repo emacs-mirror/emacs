@@ -2820,8 +2820,15 @@ sys_putenv (char *str)
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
+/* Query a value from the Windows Registry (under HKCU and HKLM),
+   where `key` is the registry key, `name` is the name, and `lpdwtype`
+   is a pointer to the return value's type. `lpwdtype` can be NULL if
+   you do not care about the type.
+
+   Returns: pointer to the value, or null pointer if the key/name does
+   not exist. */
 LPBYTE
-w32_get_resource (const char *key, LPDWORD lpdwtype)
+w32_get_resource (const char *key, const char *name, LPDWORD lpdwtype)
 {
   LPBYTE lpvalue;
   HKEY hrootkey = NULL;
@@ -2830,13 +2837,13 @@ w32_get_resource (const char *key, LPDWORD lpdwtype)
   /* Check both the current user and the local machine to see if
      we have any resources.  */
 
-  if (RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+  if (RegOpenKeyEx (HKEY_CURRENT_USER, key, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
       lpvalue = NULL;
 
-      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
+      if (RegQueryValueEx (hrootkey, name, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
 	  && (lpvalue = xmalloc (cbData)) != NULL
-	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	  && RegQueryValueEx (hrootkey, name, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
           RegCloseKey (hrootkey);
 	  return (lpvalue);
@@ -2847,13 +2854,13 @@ w32_get_resource (const char *key, LPDWORD lpdwtype)
       RegCloseKey (hrootkey);
     }
 
-  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, key, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
       lpvalue = NULL;
 
-      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
+      if (RegQueryValueEx (hrootkey, name, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
 	  && (lpvalue = xmalloc (cbData)) != NULL
-	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	  && RegQueryValueEx (hrootkey, name, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
           RegCloseKey (hrootkey);
 	  return (lpvalue);
@@ -3077,7 +3084,7 @@ init_environment (char ** argv)
 	    int dont_free = 0;
 	    char bufc[SET_ENV_BUF_SIZE];
 
-	    if ((lpval = w32_get_resource (env_vars[i].name, &dwType)) == NULL
+	    if ((lpval = w32_get_resource (REG_ROOT, env_vars[i].name, &dwType)) == NULL
 		/* Also ignore empty environment variables.  */
 		|| *lpval == 0)
 	      {

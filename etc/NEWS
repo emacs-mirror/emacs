@@ -73,6 +73,14 @@ Image specifiers can now use ':type webp'.
 *** 'display-buffer' now can set up the body size of the chosen window.
 For example, an alist entry as '(window-width . (body-columns . 40))'
 will make the body of the chosen window 40 columns wide.
+
+** MS-Windows
+
++++
+*** Supports dark mode on Windows 10 (version 1809 and higher) and Windows 11.
+Graphical frames now use the appropriate light or dark title bar and
+scroll bars, based on the user's Windows color settings.
+
 
 * Editing Changes in Emacs 29.1
 
