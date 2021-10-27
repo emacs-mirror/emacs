@@ -1140,6 +1140,13 @@ default is 20%."
       (error "No image under point"))
     image))
 
+;;;###autoload
+(defun image-at-point-p ()
+  "Return non-nil if there is an image at point."
+  (condition-case nil
+      (prog1 t (image--get-image))
+    (error nil)))
+
 (defun image--get-imagemagick-and-warn (&optional position)
   (declare-function image-transforms-p "image.c" (&optional frame))
   (unless (or (fboundp 'imagemagick-types) (image-transforms-p))

@@ -6549,6 +6549,11 @@ cache, it can always be displayed, even if the value of
 @code{max-image-size} is subsequently changed (@pxref{Image Cache}).
 @end defvar
 
+@defun image-at-point-p
+This function returns @code{t} if point is on an image, and @code{nil}
+otherwise.
+@end defun
+
 Images inserted with the insertion functions above also get a local
 keymap installed in the text properties (or overlays) that span the
 displayed image.  This keymap defines the following commands:

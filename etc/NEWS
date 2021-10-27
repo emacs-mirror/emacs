@@ -386,6 +386,11 @@ something usable even if the syntax of the argument isn't completely
 correct.  The 'kbd-valid-p' predicate does a stricter check of the
 syntax.
 
++++
+** New function 'image-at-point-p'.
+This function returns t if point is on a valid image, and nil
+otherwise.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
