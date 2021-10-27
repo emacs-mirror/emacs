@@ -1552,7 +1552,6 @@ The door of all subtleties!
   (should-error (file-name-with-extension "/is/a/directory/" "css")))
 
 (ert-deftest files-tests-file-name-base ()
-  (should (equal (file-name-base) "files-tests"))
   (should (equal (file-name-base "") ""))
   (should (equal (file-name-base "/foo/") ""))
   (should (equal (file-name-base "/foo") "foo"))
