@@ -1551,6 +1551,15 @@ The door of all subtleties!
   (should-error (file-name-with-extension "Jack" "."))
   (should-error (file-name-with-extension "/is/a/directory/" "css")))
 
+(ert-deftest files-tests-file-name-base ()
+  (should (equal (file-name-base) "files-tests"))
+  (should (equal (file-name-base "") ""))
+  (should (equal (file-name-base "/foo/") ""))
+  (should (equal (file-name-base "/foo") "foo"))
+  (should (equal (file-name-base "/foo/bar") "bar"))
+  (should (equal (file-name-base "foo") "foo"))
+  (should (equal (file-name-base "foo/bar") "bar")))
+
 (ert-deftest files-test-dir-locals-auto-mode-alist ()
   "Test an `auto-mode-alist' entry in `.dir-locals.el'"
   (find-file (ert-resource-file "whatever.quux"))
