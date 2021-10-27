@@ -447,18 +447,12 @@ is inserted before adjusting the number of empty lines."
   (with-temp-buffer
     (insert string)
     (save-window-excursion
-      (let ((dedicated (window-dedicated-p)))
-        ;; Avoid errors if the selected window is a dedicated one,
-        ;; and they just want to insert a document into it.
-        (unwind-protect
-            (progn
-              (when dedicated
-                (set-window-dedicated-p nil nil))
-              (set-window-buffer nil (current-buffer))
-              (car (window-text-pixel-size
-                    nil (line-beginning-position) (point))))
-          (when dedicated
-            (set-window-dedicated-p nil dedicated)))))))
+      ;; Avoid errors if the selected window is a dedicated one,
+      ;; and they just want to insert a document into it.
+      (set-window-dedicated-p nil nil)
+      (set-window-buffer nil (current-buffer))
+      (car (window-text-pixel-size
+            nil (line-beginning-position) (point))))))
 
 (provide 'subr-x)
 
