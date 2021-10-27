@@ -240,18 +240,22 @@ the index.html page that image-dired creates."
   :type 'directory)
 
 (defcustom image-dired-gallery-image-root-url
-"https://your.own.server/image-diredpics"
-  "URL where the full size images are to be found.
-Note that this path has to be configured in your web server.  Image-Dired
-expects to find pictures in this directory."
-  :type 'string)
+  "https://example.org/image-diredpics"
+  "URL where the full size images are to be found on your web server.
+Note that this path has to be configured on your web server.
+Image-Dired expects to find pictures in this directory.
+This is used by `image-dired-gallery-generate'."
+  :type 'string
+  :version "29.1")
 
 (defcustom image-dired-gallery-thumb-image-root-url
-"https://your.own.server/image-diredthumbs"
-  "URL where the thumbnail images are to be found.
-Note that this path has to be configured in your web server.  Image-Dired
-expects to find pictures in this directory."
-  :type 'string)
+  "https://example.org/image-diredthumbs"
+  "URL where the thumbnail images are to be found on your web server.
+Note that this path has to be configured on your web server.
+Image-Dired expects to find pictures in this directory.
+This is used by `image-dired-gallery-generate'."
+  :type 'string
+  :version "29.1")
 
 (defcustom image-dired-cmd-create-thumbnail-program
   (if (executable-find "gm") "gm" "convert")
