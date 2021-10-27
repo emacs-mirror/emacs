@@ -146,41 +146,34 @@ of files visited via 'C-x C-f' and other commands.
 ** Emacs now supports Unicode Standard version 14.0.
 
 +++
-** New character script 'emoji' has been created.
-Various blocks of codepoints have been split out of the 'symbol'
-script into their own 'emoji' script to allow easier specification of
-their treatment.  Which codepoints are treated as emoji is derived
-from the Unicode specifications.  Also, Emacs will now use "Noto Color
-Emoji" by default for that script.  Use:
+** Improved support for Emoji.
+On capable systems, Emacs now correctly displays Emoji and Emoji
+sequences by default, provided that a suitable font is available to
+Emacs.  With a few exceptions, all of the Emoji sequences specified by
+Unicode 14.0 are automatically composed and displayed as a single
+colorful glyph.  This is achieved by changes in the Emacs font
+configuration, and by additional character-composition rules for the
+Emoji codepoints that follow from the Unicode-defined sequences.
+
+If your system lacks a suitable font, we recommend to install "Noto
+Color Emoji"; Emacs will use it automatically if it's installed.  If
+you prefer to use another font for Emoji, customize your fontset like
+this:
 
     (set-fontset-font t 'emoji
                       '("My New Emoji Font" . "iso10646-1") nil 'prepend)
 
-to change the font used.
-
-+++
-** Zero Width Joiner (ZWJ) and emoji sequences are now composed.
-Emacs can now compose (almost) all the Unicode-14 ZWJ and emoji
-sequences (if a suitable font is installed) so that they are displayed
-as single glyphs instead of multiple ones.  "Noto Color Emoji" is one
-such suitable font.
-
-+++
-** Composition of emoji has been improved.
-If autocomposition is triggered by an emoji character, then the emoji
-font is now used to check if composition can be performed, rather than
-the font of the first character of the string being composed.  This
-allows e.g.
-
-    'Emoji codepoint' + VS-16
-
-to be displayed using the emoji font even if 'Emoji codepoint' does
-not have emoji presentation by default.
+The Emoji characters are now assigned to a special script, 'emoji', so
+as to make it easier to customize fontsets for Emoji display, as in
+the above example.  (Previously, the Emoji characters were assigned to
+the 'symbol' script, together with other symbol and punctuation
+characters.)
 
 +++
 ** 'glyphless-char-display-control' now applies to Variation Selectors.
 VS-1 through VS-16 are now displayed as 'thin-space' by default when
-not composed.
+not composed with previous characters (typically, as part of Emoji
+sequences).
 
 +++
 ** New command 'execute-extended-command-for-buffer'.

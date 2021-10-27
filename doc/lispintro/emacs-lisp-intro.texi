@@ -1162,6 +1162,10 @@ computer.  Often, people use the term @dfn{expression}
 indiscriminately.  (Also, in many texts, the word @dfn{form} is used
 as a synonym for expression.)
 
+@c This and the next paragraph say ``kinds of atom'', but that is not
+@c a typo, just slightly ``old-fashioned wording which adds a fillip
+@c of interest to it'', and ``is more elegant writing'', according to
+@c RMS.
 Incidentally, the atoms that make up our universe were named such when
 they were thought to be indivisible; but it has been found that physical
 atoms are not indivisible.  Parts can split off an atom or it can
