@@ -146,7 +146,7 @@ of files visited via 'C-x C-f' and other commands.
 ** Emacs now supports Unicode Standard version 14.0.
 
 +++
-** Improved support for Emoji
+** Improved support for Emoji.
 On capable systems, Emacs now correctly displays Emoji and Emoji
 sequences by default, provided that a suitable font is available to
 Emacs.  With a few exceptions, all of the Emoji sequences specified by
@@ -155,8 +155,8 @@ colorful glyph.  This is achieved by changes in the Emacs font
 configuration, and by additional character-composition rules for the
 Emoji codepoints that follow from the Unicode-defined sequences.
 
-If your system lacks a suitable font, we recommend to install Noto
-Color Emoji; Emacs will use it automatically if it's installed.  If
+If your system lacks a suitable font, we recommend to install "Noto
+Color Emoji"; Emacs will use it automatically if it's installed.  If
 you prefer to use another font for Emoji, customize your fontset like
 this:
 
