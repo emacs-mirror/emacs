@@ -4344,6 +4344,14 @@ The new optional "," parameter has been added, and
 These have a format like "2020-01-15T16:12:21-08:00".
 
 ---
+** 'lookup-key' is more allowing when searching for extended menu items.
+When looking for a menu item '[menu-bar Foo-Bar]', first try to find
+an exact match, then look for the lowercased '[menu-bar foo-bar]'.
+It will only try to downcase ASCII characters in the range "A-Z".
+This improves backwards-compatibility when converting menus to use
+'easy-menu-define'.
+
+---
 ** 'make-network-process', 'make-serial-process' ':coding' behavior change.
 Previously, passing ':coding nil' to either of these functions would
 override any non-nil binding for 'coding-system-for-read' and

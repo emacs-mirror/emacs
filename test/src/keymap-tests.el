@@ -124,6 +124,16 @@
 ;; (ert-deftest keymap-lookup-key/accept-default ()
 ;;   ...)
 
+(ert-deftest keymap-lookup-key/mixed-case ()
+  "Backwards compatibility behaviour (Bug#50752)."
+  (let ((map (make-keymap)))
+    (define-key map [menu-bar foo bar] 'foo)
+    (should (eq (lookup-key map [menu-bar foo bar]) 'foo))
+    (should (eq (lookup-key map [menu-bar Foo Bar]) 'foo)))
+  (let ((map (make-keymap)))
+    (define-key map [menu-bar i-bar] 'foo)
+    (should (eq (lookup-key map [menu-bar I-bar]) 'foo))))
+
 (ert-deftest describe-buffer-bindings/header-in-current-buffer ()
   "Header should be inserted into the current buffer.
 https://debbugs.gnu.org/39149#31"
