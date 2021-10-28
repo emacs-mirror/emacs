@@ -120,6 +120,14 @@ When non-nil, if the point is in a closing delimiter and the opening
 delimiter is offscreen, shows some context around the opening
 delimiter in the echo area.
 
+** Comint
+
++++
+*** 'comint-term-environment' is now aware of connection-local variables.
+The user option 'comint-terminfo-terminal' and variable
+'system-uses-terminfo' can now be set as connection-local variables to
+change the terminal used on a remote host.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

@@ -1497,14 +1497,20 @@ directory stack if they are not already on it
 underlying shell, of course.
 
 @vindex comint-terminfo-terminal
+@vindex system-uses-terminfo
 @vindex TERM@r{, environment variable, in sub-shell}
 Comint mode sets the @env{TERM} environment variable to a safe default
 value, but this value disables some useful features.  For example,
 color is disabled in applications that use @env{TERM} to determine if
 color is supported.  Therefore, Emacs provides an option
-@code{comint-terminfo-terminal}, which you can set to a terminal that
-is present in your system's terminfo database, in order to take
-advantage of advanced features of that terminal.
+@code{comint-terminfo-terminal} to let you choose a terminal with more
+advanced features, as defined in your system's terminfo database.
+Emacs will use this option as the value for @env{TERM} so long as
+@code{system-uses-terminfo} is non-nil.
+
+Both @code{comint-terminfo-terminal} and @code{system-uses-terminfo}
+can be declared as connection-local variables to adjust these options
+to match what a remote system expects (@pxref{Connection Variables}).
 
 @node Terminal emulator
 @subsection Emacs Terminal Emulator
