@@ -1253,8 +1253,8 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   /* Menu definitions might use mixed case symbols (notably in old
      versions of `easy-menu-define').  We accept this variation for
      backwards-compatibility.  (Bug#50752)  */
-  ptrdiff_t key_len = ASIZE (key);
-  if (VECTORP (key) && key_len > 0 && EQ (AREF (key, 0), Qmenu_bar))
+  ptrdiff_t key_len = VECTORP (key) ? ASIZE (key) : 0;
+  if (key_len > 0 && EQ (AREF (key, 0), Qmenu_bar))
     {
       Lisp_Object new_key = make_vector (key_len, Qnil);
       for (int i = 0; i < key_len; ++i)
