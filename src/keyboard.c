@@ -3472,10 +3472,10 @@ readable_events (int flags)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		    (flags & READABLE_EVENTS_FILTER_EVENTS) &&
 #endif
-		    ((input_pending_p_filter_events
+		    ((!input_pending_p_filter_events
 		      && (event->kind == FOCUS_IN_EVENT
 			  || event->kind == FOCUS_OUT_EVENT))
-		     || (!input_pending_p_filter_events
+		     || (input_pending_p_filter_events
 			 && is_ignored_event (event))))
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		  && !((flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
