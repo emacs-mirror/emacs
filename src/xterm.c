@@ -4563,8 +4563,9 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
     }
 }
 
-/* Return the Emacs frame-object corresponding to an X window.
-   It could be the frame's main window or an icon window.  */
+/* Return the Emacs frame-object corresponding to an X window.  It
+   could be the frame's main window, an icon window, or an xwidget
+   window.  */
 
 static struct frame *
 x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
@@ -4574,6 +4575,13 @@ x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 
   if (wdesc == None)
     return NULL;
+
+#ifdef HAVE_XWIDGETS
+  struct xwidget_view *xvw = xwidget_view_from_window (wdesc);
+
+  if (xvw && xvw->frame)
+    return xvw->frame;
+#endif
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -8211,6 +8219,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case Expose:
       f = x_window_to_frame (dpyinfo, event->xexpose.window);
+#ifdef HAVE_XWIDGETS
+      {
+	struct xwidget_view *xv =
+	  xwidget_view_from_window (event->xexpose.window);
+
+	if (xv)
+	  {
+	    xwidget_expose (xv);
+	    goto OTHER;
+	  }
+      }
+#endif
       if (f)
         {
           if (!FRAME_VISIBLE_P (f))

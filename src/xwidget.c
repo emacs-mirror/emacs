@@ -35,8 +35,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef USE_GTK
 #include <webkit2/webkit2.h>
 #include <JavaScriptCore/JavaScript.h>
+#include <cairo.h>
+#include <X11/Xlib.h>
 #elif defined NS_IMPL_COCOA
 #include "nsxwidget.h"
+#endif
+
+#ifdef USE_GTK
+static Lisp_Object x_window_to_xwv_map;
 #endif
 
 static struct xwidget *
@@ -222,15 +228,28 @@ xwidget_hidden (struct xwidget_view *xv)
 }
 
 #ifdef USE_GTK
+
+struct xwidget_view *
+xwidget_view_from_window (Window wdesc)
+{
+  Lisp_Object key = make_fixnum (wdesc);
+  Lisp_Object xwv = Fgethash (key, x_window_to_xwv_map, Qnil);
+
+  if (NILP (xwv))
+    return NULL;
+
+  return XXWIDGET_VIEW (xwv);
+}
+
 static void
 xwidget_show_view (struct xwidget_view *xv)
 {
   xv->hidden = false;
-  gtk_widget_show (xv->widgetwindow);
-  gtk_fixed_move (GTK_FIXED (xv->emacswindow),
-                  xv->widgetwindow,
-                  xv->x + xv->clip_left,
-                  xv->y + xv->clip_top);
+  XMoveWindow (xv->dpy, xv->wdesc,
+	       xv->x + xv->clip_left,
+	       xv->y + xv->clip_top);
+  XMapWindow (xv->dpy, xv->wdesc);
+  XFlush (xv->dpy);
 }
 
 /* Hide an xwidget view.  */
@@ -238,27 +257,47 @@ static void
 xwidget_hide_view (struct xwidget_view *xv)
 {
   xv->hidden = true;
-  gtk_fixed_move (GTK_FIXED (xv->emacswindow), xv->widgetwindow,
-                  10000, 10000);
+  XUnmapWindow (xv->dpy, xv->wdesc);
+  XFlush (xv->dpy);
+}
+
+static void
+xv_do_draw (struct xwidget_view *xw, struct xwidget *w)
+{
+  block_input ();
+
+  cairo_save (xw->cr_context);
+  cairo_translate (xw->cr_context, -xw->clip_left,
+		   -xw->clip_top);
+  gtk_widget_draw (w->widget_osr, xw->cr_context);
+  cairo_restore (xw->cr_context);
+
+  unblock_input ();
 }
 
 /* When the off-screen webkit master view changes this signal is called.
    It copies the bitmap from the off-screen instance.  */
 static gboolean
 offscreen_damage_event (GtkWidget *widget, GdkEvent *event,
-                        gpointer xv_widget)
+                        gpointer xwidget_view)
 {
-  /* Queue a redraw of onscreen widget.
-     There is a guard against receiving an invalid widget,
-     which should only happen if we failed to remove the
-     specific signal handler for the damage event.  */
-  if (GTK_IS_WIDGET (xv_widget))
-    gtk_widget_queue_draw (GTK_WIDGET (xv_widget));
-  else
-    message ("Warning, offscreen_damage_event received invalid xv pointer:%p\n",
-             xv_widget);
+  struct xwidget_view *xw = xwidget_view;
+  struct xwidget *w = XXWIDGET (xw->model);
+
+  if (xw->wdesc == None)
+    return FALSE;
+
+  xv_do_draw (xw, w);
 
   return FALSE;
+}
+
+void
+xwidget_expose (struct xwidget_view *xv)
+{
+  struct xwidget *xw = XXWIDGET (xv->model);
+
+  xv_do_draw (xv, xw);
 }
 #endif /* USE_GTK */
 
@@ -498,51 +537,6 @@ webkit_decide_policy_cb (WebKitWebView *webView,
     return FALSE;
   }
 }
-
-
-/* For gtk3 offscreen rendered widgets.  */
-static gboolean
-xwidget_osr_draw_cb (GtkWidget *widget, cairo_t *cr, gpointer data)
-{
-  struct xwidget *xw = g_object_get_data (G_OBJECT (widget), XG_XWIDGET);
-  struct xwidget_view *xv = g_object_get_data (G_OBJECT (widget),
-                                               XG_XWIDGET_VIEW);
-
-  cairo_rectangle (cr, 0, 0, xv->clip_right, xv->clip_bottom);
-  cairo_clip (cr);
-
-  gtk_widget_draw (xw->widget_osr, cr);
-  return FALSE;
-}
-
-static gboolean
-xwidget_osr_event_forward (GtkWidget *widget, GdkEvent *event,
-			   gpointer user_data)
-{
-  /* Copy events that arrive at the outer widget to the offscreen widget.  */
-  struct xwidget *xw = g_object_get_data (G_OBJECT (widget), XG_XWIDGET);
-  GdkEvent *eventcopy = gdk_event_copy (event);
-  eventcopy->any.window = gtk_widget_get_window (xw->widget_osr);
-
-  /* TODO: This might leak events.  They should be deallocated later,
-     perhaps in xwgir_event_cb.  */
-  gtk_main_do_event (eventcopy);
-
-  /* Don't propagate this event further.  */
-  return TRUE;
-}
-
-static gboolean
-xwidget_osr_event_set_embedder (GtkWidget *widget, GdkEvent *event,
-				gpointer data)
-{
-  struct xwidget_view *xv = data;
-  struct xwidget *xww = XXWIDGET (xv->model);
-  gdk_offscreen_window_set_embedder (gtk_widget_get_window
-				     (xww->widgetwindow_osr),
-                                     gtk_widget_get_window (xv->widget));
-  return FALSE;
-}
 #endif /* USE_GTK */
 
 
@@ -568,63 +562,21 @@ xwidget_init_view (struct xwidget *xww,
   XSETXWIDGET (xv->model, xww);
 
 #ifdef USE_GTK
-  if (EQ (xww->type, Qwebkit))
-    {
-      xv->widget = gtk_drawing_area_new ();
-      /* Expose event handling.  */
-      gtk_widget_set_app_paintable (xv->widget, TRUE);
-      gtk_widget_add_events (xv->widget, GDK_ALL_EVENTS_MASK);
+  xv->dpy = FRAME_X_DISPLAY (s->f);
 
-      /* Draw the view on damage-event.  */
-      g_signal_connect (G_OBJECT (xww->widgetwindow_osr), "damage-event",
-                        G_CALLBACK (offscreen_damage_event), xv->widget);
-
-      if (EQ (xww->type, Qwebkit))
-        {
-          g_signal_connect (G_OBJECT (xv->widget), "button-press-event",
-                            G_CALLBACK (xwidget_osr_event_forward), NULL);
-          g_signal_connect (G_OBJECT (xv->widget), "button-release-event",
-                            G_CALLBACK (xwidget_osr_event_forward), NULL);
-          g_signal_connect (G_OBJECT (xv->widget), "motion-notify-event",
-                            G_CALLBACK (xwidget_osr_event_forward), NULL);
-        }
-      else
-        {
-          /* xwgir debug, orthogonal to forwarding.  */
-          g_signal_connect (G_OBJECT (xv->widget), "enter-notify-event",
-                            G_CALLBACK (xwidget_osr_event_set_embedder), xv);
-        }
-      g_signal_connect (G_OBJECT (xv->widget), "draw",
-                        G_CALLBACK (xwidget_osr_draw_cb), NULL);
-    }
-
-  /* Widget realization.
-
-     Make container widget first, and put the actual widget inside the
-     container later.  Drawing should crop container window if necessary
-     to handle case where xwidget is partially obscured by other Emacs
-     windows.  Other containers than gtk_fixed where explored, but
-     gtk_fixed had the most predictable behavior so far.  */
-
-  xv->emacswindow = FRAME_GTK_WIDGET (s->f);
-  xv->widgetwindow = gtk_fixed_new ();
-  gtk_widget_set_has_window (xv->widgetwindow, TRUE);
-  gtk_container_add (GTK_CONTAINER (xv->widgetwindow), xv->widget);
-
-  /* Store some xwidget data in the gtk widgets.  */
-  g_object_set_data (G_OBJECT (xv->widget), XG_FRAME_DATA, s->f);
-  g_object_set_data (G_OBJECT (xv->widget), XG_XWIDGET, xww);
-  g_object_set_data (G_OBJECT (xv->widget), XG_XWIDGET_VIEW, xv);
-  g_object_set_data (G_OBJECT (xv->widgetwindow), XG_XWIDGET, xww);
-  g_object_set_data (G_OBJECT (xv->widgetwindow), XG_XWIDGET_VIEW, xv);
-
-  gtk_widget_set_size_request (GTK_WIDGET (xv->widget), xww->width,
-                               xww->height);
-  gtk_widget_set_size_request (xv->widgetwindow, xww->width, xww->height);
-  gtk_fixed_put (GTK_FIXED (FRAME_GTK_WIDGET (s->f)), xv->widgetwindow, x, y);
   xv->x = x;
   xv->y = y;
-  gtk_widget_show_all (xv->widgetwindow);
+
+  xv->clip_left = 0;
+  xv->clip_right = xww->width;
+  xv->clip_top = 0;
+  xv->clip_bottom = xww->height;
+
+  xv->wdesc = None;
+  xv->frame = s->f;
+
+  g_signal_connect (G_OBJECT (xww->widgetwindow_osr), "damage-event",
+		    G_CALLBACK (offscreen_damage_event), xv);
 #elif defined NS_IMPL_COCOA
   nsxwidget_init_view (xv, xww, s, x, y);
   nsxwidget_resize_view(xv, xww->width, xww->height);
@@ -681,6 +633,8 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
   window_box (s->w, TEXT_AREA, &text_area_x, &text_area_y,
               &text_area_width, &text_area_height);
 
+  /* On X11, this keeps generating expose events.  */
+#ifndef USE_GTK
   /* Resize xwidget webkit if its container window size is changed in
      some ways, for example, a buffer became hidden in small split
      window, then it can appear front in merged whole window.  */
@@ -693,6 +647,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
                        make_int (text_area_width),
                        make_int (text_area_height));
     }
+#endif
 
   clip_left = max (0, text_area_x - x);
   clip_right = max (clip_left,
@@ -711,15 +666,45 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
      later.  */
   bool moved = (xv->x + xv->clip_left != x + clip_left
 		|| xv->y + xv->clip_top != y + clip_top);
+
+#ifdef USE_GTK
+  bool wdesc_was_none = xv->wdesc == None;
+#endif
   xv->x = x;
   xv->y = y;
+
+#ifdef USE_GTK
+  block_input ();
+  if (xv->wdesc == None)
+    {
+      Lisp_Object xvw;
+      XSETXWIDGET_VIEW (xvw, xv);
+      XSetWindowAttributes a;
+      a.event_mask = ExposureMask;
+
+      xv->wdesc = XCreateWindow (xv->dpy, FRAME_X_WINDOW (s->f),
+				 x + clip_left, y + clip_top,
+				 clip_right - clip_left,
+				 clip_bottom - clip_top, 0,
+				 CopyFromParent, CopyFromParent,
+				 CopyFromParent, CWEventMask, &a);
+      xv->cr_surface = cairo_xlib_surface_create (xv->dpy,
+						  xv->wdesc,
+						  FRAME_DISPLAY_INFO (s->f)->visual,
+						  clip_right - clip_left,
+						  clip_bottom - clip_top);
+      xv->cr_context = cairo_create (xv->cr_surface);
+      Fputhash (make_fixnum (xv->wdesc), xvw, x_window_to_xwv_map);
+
+      moved = false;
+    }
+#endif
 
   /* Has it moved?  */
   if (moved)
     {
 #ifdef USE_GTK
-      gtk_fixed_move (GTK_FIXED (FRAME_GTK_WIDGET (s->f)),
-                      xv->widgetwindow, x + clip_left, y + clip_top);
+      XMoveWindow (xv->dpy, xv->wdesc, x + clip_left, y + clip_top);
 #elif defined NS_IMPL_COCOA
       nsxwidget_move_view (xv, x + clip_left, y + clip_top);
 #endif
@@ -735,10 +720,14 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
       || xv->clip_top != clip_top || xv->clip_left != clip_left)
     {
 #ifdef USE_GTK
-      gtk_widget_set_size_request (xv->widgetwindow, clip_right - clip_left,
-                                   clip_bottom - clip_top);
-      gtk_fixed_move (GTK_FIXED (xv->widgetwindow), xv->widget, -clip_left,
-                      -clip_top);
+      if (!wdesc_was_none)
+	{
+	  XResizeWindow (xv->dpy, xv->wdesc, clip_right - clip_left,
+			 clip_bottom - clip_top);
+	  XFlush (xv->dpy);
+	  cairo_xlib_surface_set_size (xv->cr_surface, clip_right - clip_left,
+				       clip_bottom - clip_top);
+	}
 #elif defined NS_IMPL_COCOA
       nsxwidget_resize_view (xv, clip_right - clip_left,
                              clip_bottom - clip_top);
@@ -758,12 +747,15 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
   if (!xwidget_hidden (xv))
     {
 #ifdef USE_GTK
-      gtk_widget_queue_draw (xv->widgetwindow);
-      gtk_widget_queue_draw (xv->widget);
+      xv_do_draw (xv, xww);
 #elif defined NS_IMPL_COCOA
       nsxwidget_set_needsdisplay (xv);
 #endif
     }
+
+#ifdef USE_GTK
+  unblock_input ();
+#endif
 }
 
 static bool
@@ -976,8 +968,13 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
           if (XXWIDGET (xv->model) == xw)
             {
 #ifdef USE_GTK
-              gtk_widget_set_size_request (GTK_WIDGET (xv->widget), xw->width,
-                                           xw->height);
+	      if (xv->wdesc != None)
+		{
+		  XResizeWindow (xv->dpy, xv->wdesc, xw->width, xw->height);
+		  XFlush (xv->dpy);
+		  cairo_xlib_surface_set_size (xv->cr_surface,
+					       xw->width, xw->height);
+		}
 #elif defined NS_IMPL_COCOA
               nsxwidget_resize_view(xv, xw->width, xw->height);
 #endif
@@ -1084,13 +1081,21 @@ DEFUN ("delete-xwidget-view",
   CHECK_XWIDGET_VIEW (xwidget_view);
   struct xwidget_view *xv = XXWIDGET_VIEW (xwidget_view);
 #ifdef USE_GTK
-  gtk_widget_destroy (xv->widgetwindow);
-  /* xv->model still has signals pointing to the view.  There can be
-     several views.  Find the matching signals and delete them all.  */
-  g_signal_handlers_disconnect_matched  (XXWIDGET (xv->model)->widgetwindow_osr,
-                                         G_SIGNAL_MATCH_DATA,
-                                         0, 0, 0, 0,
-                                         xv->widget);
+  if (xv->wdesc != None)
+    {
+      block_input ();
+      XDestroyWindow (xv->dpy, xv->wdesc);
+      /* xv->model still has signals pointing to the view.  There can be
+	 several views.  Find the matching signals and delete them all.  */
+      g_signal_handlers_disconnect_matched  (XXWIDGET (xv->model)->widgetwindow_osr,
+					     G_SIGNAL_MATCH_DATA,
+					     0, 0, 0, 0, xv);
+
+      cairo_destroy (xv->cr_context);
+      cairo_surface_destroy (xv->cr_surface);
+      Fremhash (make_fixnum (xv->wdesc), x_window_to_xwv_map);
+      unblock_input ();
+    }
 #elif defined NS_IMPL_COCOA
   nsxwidget_delete_view (xv);
 #endif
@@ -1236,6 +1241,12 @@ syms_of_xwidget (void)
   Vxwidget_view_list = Qnil;
 
   Fprovide (intern ("xwidget-internal"), Qnil);
+
+#ifdef USE_GTK
+  x_window_to_xwv_map = CALLN (Fmake_hash_table, QCtest, Qeq);
+
+  staticpro (&x_window_to_xwv_map);
+#endif
 }
 
 
