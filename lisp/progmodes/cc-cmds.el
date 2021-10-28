@@ -1896,16 +1896,18 @@ defun."
 	    (if (< arg 0)
 		(c-while-widening-to-decl-block
 		 (< (setq arg (- (c-forward-to-nth-EOF-\;-or-} (- arg) where))) 0)))
-	    ;; Move forward to the next opening brace....
-	    (when (and (= arg 0)
-		       (progn
-			 (c-while-widening-to-decl-block
-			  (not (c-syntactic-re-search-forward "{" nil 'eob)))
-			 (eq (char-before) ?{)))
-	      (backward-char)
-	      ;; ... and backward to the function header.
-	      (c-beginning-of-decl-1)
-	      t))
+	    (prog1
+		;; Move forward to the next opening brace....
+		(when (and (= arg 0)
+			   (progn
+			     (c-while-widening-to-decl-block
+			      (not (c-syntactic-re-search-forward "{" nil 'eob)))
+			     (eq (char-before) ?{)))
+		  (backward-char)
+		  ;; ... and backward to the function header.
+		  (c-beginning-of-decl-1)
+		  t)
+	      (c-keep-region-active)))
 
 	;; Move backward to the opening brace of a function, making successively
 	;; larger portions of the buffer visible as necessary.
@@ -3413,7 +3415,8 @@ to call `c-scan-conditionals' directly instead."
   (interactive "p")
   (let ((new-point (c-scan-conditionals count target-depth with-else)))
     (push-mark)
-    (goto-char new-point)))
+    (goto-char new-point))
+  (c-keep-region-active))
 
 (defun c-scan-conditionals (count &optional target-depth with-else)
   "Scan forward across COUNT preprocessor conditionals.
