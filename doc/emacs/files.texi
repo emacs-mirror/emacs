@@ -2273,12 +2273,14 @@ behavior by using the options @code{image-auto-resize} and
 @findex image-transform-set-scale
 @findex image-transform-reset
 To resize the image manually you can use the command
-@code{image-transform-fit-to-window} bound to @kbd{s w}
-that fits the image to both the window height and width.
-To scale the image specifying a scale factor, use the command
-@code{image-transform-set-scale} bound to @kbd{s s}.
-To reset all transformations to the initial state, use
-@code{image-transform-reset} bound to @kbd{s 0}.
+@code{image-transform-fit-to-window} bound to @kbd{s w} that fits the
+image to both the window height and width.  To scale the image to a
+percentage of its original size, use the command
+@code{image-transform-set-percent} bound to @kbd{s p}.  To scale
+the image specifying a scale factor, use the command
+@code{image-transform-set-scale} bound to @kbd{s s}.  To reset all
+transformations to the initial state, use @code{image-transform-reset}
+bound to @kbd{s 0}.
 
 @findex image-next-file
 @findex image-previous-file

@@ -494,6 +494,7 @@ image as text, when opening such images in `image-mode'."
   "s h"     #'image-transform-fit-to-height
   "s i"     #'image-transform-fit-to-width
   "s b"     #'image-transform-fit-both
+  "s p"     #'image-transform-set-percent
   "s s"     #'image-transform-set-scale
   "s r"     #'image-transform-set-rotation
   "s m"     #'image-transform-set-smoothing
@@ -1529,6 +1530,16 @@ return value is suitable for appending to an image spec."
         ,@(when image--transform-smoothing
             (list :transform-smoothing
                   (string= image--transform-smoothing "smooth")))))))
+
+(defun image-transform-set-percent (scale)
+  "Prompt for a percentage, and resize the current image to that size.
+The percentage is in relation to the original size of the image."
+  (interactive (list (read-number "Scale (% of original): " 100
+                                  'read-number-history)))
+  (unless (cl-plusp scale)
+    (error "Not a positive number: %s" scale))
+  (setq image-transform-resize (/ scale 100.0))
+  (image-toggle-display-image))
 
 (defun image-transform-set-scale (scale)
   "Prompt for a number, and resize the current image by that amount."
