@@ -375,6 +375,7 @@ static void timer_resume_idle (void);
 static void deliver_user_signal (int);
 static char *find_user_signal_name (int);
 static void store_user_signal_events (void);
+static bool is_ignored_event (union buffered_input_event *);
 
 /* Advance or retreat a buffered input event pointer.  */
 
@@ -3446,8 +3447,13 @@ readable_events (int flags)
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
     timer_check ();
 
-  /* If the buffer contains only FOCUS_IN/OUT_EVENT events, and
-     READABLE_EVENTS_FILTER_EVENTS is set, report it as empty.  */
+  /* READABLE_EVENTS_FILTER_EVENTS is meant to be used only by
+     input-pending-p and similar callers, which aren't interested in
+     some input events.  If this flag is set, and
+     input-pending-p-filter-events is non-nil, ignore events in
+     while-no-input-ignore-events.  If the flag is set and
+     input-pending-p-filter-events is nil, ignore only
+     FOCUS_IN/OUT_EVENT events.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
       /* See https://lists.gnu.org/r/emacs-devel/2005-05/msg00297.html
@@ -3466,8 +3472,11 @@ readable_events (int flags)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		    (flags & READABLE_EVENTS_FILTER_EVENTS) &&
 #endif
-		    (event->kind == FOCUS_IN_EVENT
-                     || event->kind == FOCUS_OUT_EVENT))
+		    ((input_pending_p_filter_events
+		      && (event->kind == FOCUS_IN_EVENT
+			  || event->kind == FOCUS_OUT_EVENT))
+		     || (!input_pending_p_filter_events
+			 && is_ignored_event (event))))
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		  && !((flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
 		       && (event->kind == SCROLL_BAR_CLICK_EVENT
@@ -3649,29 +3658,10 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
 #endif	/* subprocesses */
     }
 
-  Lisp_Object ignore_event;
-
-  switch (event->kind)
-    {
-    case FOCUS_IN_EVENT: ignore_event = Qfocus_in; break;
-    case FOCUS_OUT_EVENT: ignore_event = Qfocus_out; break;
-    case HELP_EVENT: ignore_event = Qhelp_echo; break;
-    case ICONIFY_EVENT: ignore_event = Qiconify_frame; break;
-    case DEICONIFY_EVENT: ignore_event = Qmake_frame_visible; break;
-    case SELECTION_REQUEST_EVENT: ignore_event = Qselection_request; break;
-#ifdef USE_FILE_NOTIFY
-    case FILE_NOTIFY_EVENT: ignore_event = Qfile_notify; break;
-#endif
-#ifdef HAVE_DBUS
-    case DBUS_EVENT: ignore_event = Qdbus_event; break;
-#endif
-    default: ignore_event = Qnil; break;
-    }
-
   /* If we're inside while-no-input, and this event qualifies
      as input, set quit-flag to cause an interrupt.  */
   if (!NILP (Vthrow_on_input)
-      && NILP (Fmemq (ignore_event, Vwhile_no_input_ignore_events)))
+      && !is_ignored_event (event))
     Vquit_flag = Vthrow_on_input;
 }
 
@@ -11629,6 +11619,31 @@ init_while_no_input_ignore_events (void)
   return events;
 }
 
+static bool
+is_ignored_event (union buffered_input_event *event)
+{
+  Lisp_Object ignore_event;
+
+  switch (event->kind)
+    {
+    case FOCUS_IN_EVENT: ignore_event = Qfocus_in; break;
+    case FOCUS_OUT_EVENT: ignore_event = Qfocus_out; break;
+    case HELP_EVENT: ignore_event = Qhelp_echo; break;
+    case ICONIFY_EVENT: ignore_event = Qiconify_frame; break;
+    case DEICONIFY_EVENT: ignore_event = Qmake_frame_visible; break;
+    case SELECTION_REQUEST_EVENT: ignore_event = Qselection_request; break;
+#ifdef USE_FILE_NOTIFY
+    case FILE_NOTIFY_EVENT: ignore_event = Qfile_notify; break;
+#endif
+#ifdef HAVE_DBUS
+    case DBUS_EVENT: ignore_event = Qdbus_event; break;
+#endif
+    default: ignore_event = Qnil; break;
+    }
+
+  return !NILP (Fmemq (ignore_event, Vwhile_no_input_ignore_events));
+}
+
 static void syms_of_keyboard_for_pdumper (void);
 
 void
@@ -12538,6 +12553,14 @@ command, and the user enters an upper case key sequence that is not
 bound to a command, Emacs will use the lower case binding.  Setting
 this variable to nil inhibits this behaviour.  */);
   translate_upper_case_key_bindings = true;
+
+  DEFVAR_BOOL ("input-pending-p-filter-events",
+               input_pending_p_filter_events,
+               doc: /* If non-nil, `input-pending-p' ignores some input events.
+If this variable is non-nil (the default), `input-pending-p' and
+other similar functions ignore input events in `while-no-input-ignore-events'.
+This flag may eventually be removed once this behavior is deemed safe.  */);
+  input_pending_p_filter_events = true;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }
