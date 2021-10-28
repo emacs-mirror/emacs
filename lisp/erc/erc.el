@@ -1591,6 +1591,7 @@ Defaults to the server buffer."
   (setq-local paragraph-start
               (concat "\\(" (regexp-quote (erc-prompt)) "\\)"))
   (setq-local completion-ignore-case t)
+  (add-hook 'kill-buffer-hook #'erc-kill-buffer-function nil t)
   (add-hook 'completion-at-point-functions #'erc-complete-word-at-point nil t))
 
 ;; activation
@@ -7110,9 +7111,6 @@ See also `format-spec'."
     (format-spec entry (apply #'format-spec-make args))))
 
 ;;; Various hook functions
-
-;; FIXME: Don't set the hook globally!
-(add-hook 'kill-buffer-hook #'erc-kill-buffer-function)
 
 (defcustom erc-kill-server-hook '(erc-kill-server
                                   erc-networks-shrink-ids-and-buffer-names)
