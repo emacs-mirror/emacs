@@ -1114,56 +1114,46 @@ is the buffer position of the start of the containing expression."
 STATE is the `parse-partial-sexp' state for current position."
   (when-let ((start-of-innermost-containing-list (nth 1 state)))
     (let* ((parents (nth 9 state))
-           (second-cons-after (cddr parents))
-           second-order-parent)
+           (first-cons-after (cdr parents))
+           (second-cons-after (cdr first-cons-after))
+           first-order-parent second-order-parent)
       (while second-cons-after
         (when (= start-of-innermost-containing-list
                  (car second-cons-after))
-          (setq second-order-parent (car parents)
+          (setq second-order-parent (pop parents)
+                first-order-parent (pop parents)
                 ;; Leave the loop.
                 second-cons-after nil))
         (pop second-cons-after)
         (pop parents))
       (when second-order-parent
-        (save-excursion
-          (goto-char (1+ second-order-parent))
-          (and (when-let ((head (ignore-errors
-                                  ;; FIXME: This does not distinguish
-                                  ;; between reading nil and a read error.
-                                  ;; We don't care but still, better fix this.
-                                  (read (current-buffer)))))
-                 (memq head '( cl-flet cl-labels cl-macrolet cl-flet*
-                               cl-symbol-macrolet)))
-               ;; Now we must check that we are
-               ;; in the second element of the flet-like form.
-               ;; It would be easier if `parse-partial-sexp' also recorded
-               ;; relative positions of subsexps in supersexps
-               ;; but it doesn't so we check manually.
-               ;;
-               ;; First, we must be looking at list now.
-               (ignore-errors (when (= (scan-lists (point) 1 0)
-                                       (scan-sexps (point) 1))
-                                ;; Looking at list; descend into it:
-                                (down-list 1)
-                                t))
-               ;; In Wishful Lisp, the following form would be
-               ;; (cl-member start-of-innermost-containing-list
-               ;;            (points-at-beginning-of-lists-at-this-level)
-               ;;            :test #'=)
-               (cl-loop
-                with pos = (ignore-errors
-                             ;; The first local definition may be indented
-                             ;; with whitespace following open paren.
-                             (goto-char (scan-lists (point) 1 0))
-                             (goto-char (scan-lists (point) -1 0))
-                             (point))
-                while pos
-                do (if (= start-of-innermost-containing-list pos)
-                       (cl-return t)
-                     (setq pos (ignore-errors
-                                 (goto-char (scan-lists (point) 2 0))
-                                 (goto-char (scan-lists (point) -1 0))
-                                 (point)))))))))))
+        (let (local-definitions-starting-point)
+          (and (save-excursion
+                 (goto-char (1+ second-order-parent))
+                 (when-let ((head (ignore-errors
+                                    ;; FIXME: This does not distinguish
+                                    ;; between reading nil and a read error.
+                                    ;; We don't care but still, better fix this.
+                                    (read (current-buffer)))))
+                   (when (memq head '( cl-flet cl-labels cl-macrolet cl-flet*
+                                       cl-symbol-macrolet))
+                     ;; In what follows, we rely on (point) returning non-nil.
+                     (setq local-definitions-starting-point
+                           (progn
+                             (parse-partial-sexp
+                              (point) first-order-parent nil
+                              ;; From docstring of `parse-partial-sexp':
+                              ;; Fourth arg non-nil means stop
+                              ;; when we come to any character
+                              ;; that starts a sexp.
+                              t)
+                             (point))))))
+               (ignore-errors
+                 ;; We rely on `backward-up-list' working
+                 ;; even when sexp is incomplete “to the right”.
+                 (backward-up-list 2)
+                 t)
+               (= local-definitions-starting-point (point))))))))
 
 (defun lisp-indent-function (indent-point state)
   "This function is the normal value of the variable `lisp-indent-function'.

@@ -220,3 +220,124 @@ Name: flet15
             h
             i)))
 =-=-=
+
+Name: flet-indentation-incomplete-sexp-no-side-effects-1
+Code: (lambda () (emacs-lisp-mode) (setq indent-tabs-mode nil) (newline nil t))
+Point-Char: |
+
+=-=
+(let ((x (and y|
+=-=
+(let ((x (and y
+              |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-no-side-effects-2
+
+=-=
+(let ((x|
+=-=
+(let ((x
+       |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-whitespace-1
+Point-Char: |
+
+=-=
+(cl-flet((f (x)|
+=-=
+(cl-flet((f (x)
+           |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-whitespace-2
+Point-Char: |
+
+=-=
+(cl-flet((f(x)|
+=-=
+(cl-flet((f(x)
+           |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-whitespace-3
+
+=-=
+(cl-flet ((f(x)|
+=-=
+(cl-flet ((f(x)
+            |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-whitespace-4
+
+=-=
+(cl-flet( (f (x)|
+=-=
+(cl-flet( (f (x)
+            |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-whitespace-5
+
+=-=
+(cl-flet( (f(x)|
+=-=
+(cl-flet( (f(x)
+            |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-and-excessive-whitespace-1
+
+=-=
+(cl-flet((f  (x)|
+=-=
+(cl-flet((f  (x)
+           |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-and-excessive-whitespace-2
+
+=-=
+(cl-flet  ((f(x)|
+=-=
+(cl-flet  ((f(x)
+             |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-and-excessive-whitespace-3
+
+=-=
+(cl-flet( (f  (x)|
+=-=
+(cl-flet( (f  (x)
+            |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-and-excessive-whitespace-4
+
+=-=
+(cl-flet(  (f (x)|
+=-=
+(cl-flet(  (f (x)
+             |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-and-excessive-whitespace-5
+
+=-=
+(cl-flet(  (f  (x)|
+=-=
+(cl-flet(  (f  (x)
+             |
+=-=-=
+
+Name: flet-indentation-incomplete-sexp-missing-and-excessive-whitespace-6
+
+=-=
+(cl-flet(  (f(x)|
+=-=
+(cl-flet(  (f(x)
+             |
+=-=-=
