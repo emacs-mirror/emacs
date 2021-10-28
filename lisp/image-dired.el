@@ -1547,33 +1547,33 @@ You probably want to use this together with
     (easy-menu-define nil map
       "Menu for `image-dired-thumbnail-mode'."
       '("Image-Dired"
-        ["Quit" quit-window]
-        ["Delete thumbnail from buffer" image-dired-delete-char]
-        ["Delete marked images" image-dired-delete-marked]
-        ["Remove tag from current or marked thumbnails"
-         image-dired-tag-thumbnail-remove]
-        ["Tag current or marked thumbnails" image-dired-tag-thumbnail]
-        ["Comment thumbnail" image-dired-comment-thumbnail]
-        ["Refresh thumb" image-dired-refresh-thumb]
-        ["Dynamic line up" image-dired-line-up-dynamic]
-        ["Line up thumbnails" image-dired-line-up]
+        ["Display image" image-dired-display-thumbnail-original-image]
+        ["Display in external viewer" image-dired-thumbnail-display-external]
 
-        ["Rotate thumbnail left" image-dired-rotate-thumbnail-left]
-        ["Rotate thumbnail right" image-dired-rotate-thumbnail-right]
-        ["Rotate original left" image-dired-rotate-original-left]
-        ["Rotate original right" image-dired-rotate-original-right]
+        ["Mark original" image-dired-mark-thumb-original-file]
+        ["Unmark original" image-dired-unmark-thumb-original-file]
+        ["Flag original for deletion" image-dired-flag-thumb-original-file]
+
+        ["Track original" image-dired-track-original-file]
+        ["Jump to dired buffer" image-dired-jump-original-dired-buffer]
 
         ["Toggle movement tracking on/off" image-dired-toggle-movement-tracking]
 
-        ["Jump to dired buffer" image-dired-jump-original-dired-buffer]
-        ["Track original" image-dired-track-original-file]
+        ["Rotate original right" image-dired-rotate-original-right]
+        ["Rotate original left" image-dired-rotate-original-left]
+        ["Rotate thumbnail right" image-dired-rotate-thumbnail-right]
+        ["Rotate thumbnail left" image-dired-rotate-thumbnail-left]
 
-        ["Flag original for deletion" image-dired-flag-thumb-original-file]
-        ["Unmark original" image-dired-unmark-thumb-original-file]
-        ["Mark original" image-dired-mark-thumb-original-file]
-
-        ["Display in external viewer" image-dired-thumbnail-display-external]
-        ["Display image" image-dired-display-thumbnail-original-image]))
+        ["Line up thumbnails" image-dired-line-up]
+        ["Dynamic line up" image-dired-line-up-dynamic]
+        ["Refresh thumb" image-dired-refresh-thumb]
+        ["Comment thumbnail" image-dired-comment-thumbnail]
+        ["Tag current or marked thumbnails" image-dired-tag-thumbnail]
+        ["Remove tag from current or marked thumbnails"
+         image-dired-tag-thumbnail-remove]
+        ["Delete marked images" image-dired-delete-marked]
+        ["Delete thumbnail from buffer" image-dired-delete-char]
+        ["Quit" quit-window]))
     map)
   "Keymap for `image-dired-thumbnail-mode'.")
 
@@ -1606,9 +1606,9 @@ You probably want to use this together with
     (easy-menu-define nil map
       "Menu for `image-dired-display-image-mode-map'."
       '("Image-Dired"
-        ["Quit" quit-window]
+        ["Display original, full size" image-dired-display-current-image-full]
         ["Display original, sized to fit" image-dired-display-current-image-sized]
-        ["Display original, full size" image-dired-display-current-image-full]))
+        ["Quit" quit-window]))
     map)
   "Keymap for `image-dired-display-image-mode'.")
 
@@ -1675,25 +1675,25 @@ Resized or in full-size."
     (easy-menu-define nil map
       "Menu for `image-dired-minor-mode'."
       '("Image-dired"
-        ["Copy with EXIF file name" image-dired-copy-with-exif-file-name]
-        ["Comment files" image-dired-dired-comment-files]
-        ["Mark tagged files" image-dired-mark-tagged-files]
-        ["Jump to thumbnail buffer" image-dired-jump-thumbnail-buffer]
-
-        ["Toggle movement tracking" image-dired-toggle-movement-tracking]
-        ["Toggle append browsing" image-dired-toggle-append-browsing]
-        ["Toggle display properties" image-dired-toggle-dired-display-properties]
-
-        ["Display in external viewer" image-dired-dired-display-external]
-        ["Display image" image-dired-dired-display-image]
-        ["Display this thumbnail" image-dired-display-thumb]
-        ["Display thumbnails append" image-dired-display-thumbs-append]
+        ["Display thumb for next file" image-dired-next-line-and-display]
+        ["Display thumb for previous file" image-dired-previous-line-and-display]
+        ["Mark and display next" image-dired-mark-and-display-next]
 
         ["Create thumbnails for marked files" image-dired-create-thumbs]
 
-        ["Mark and display next" image-dired-mark-and-display-next]
-        ["Display thumb for previous file" image-dired-previous-line-and-display]
-        ["Display thumb for next file" image-dired-next-line-and-display]))
+        ["Display thumbnails append" image-dired-display-thumbs-append]
+        ["Display this thumbnail" image-dired-display-thumb]
+        ["Display image" image-dired-dired-display-image]
+        ["Display in external viewer" image-dired-dired-display-external]
+
+        ["Toggle display properties" image-dired-toggle-dired-display-properties]
+        ["Toggle append browsing" image-dired-toggle-append-browsing]
+        ["Toggle movement tracking" image-dired-toggle-movement-tracking]
+
+        ["Jump to thumbnail buffer" image-dired-jump-thumbnail-buffer]
+        ["Mark tagged files" image-dired-mark-tagged-files]
+        ["Comment files" image-dired-dired-comment-files]
+        ["Copy with EXIF file name" image-dired-copy-with-exif-file-name]))
     map)
   "Keymap for `image-dired-minor-mode'.")
 
