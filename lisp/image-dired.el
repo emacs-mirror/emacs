@@ -1046,7 +1046,7 @@ calling `image-dired-restore-window-configuration'."
   "Restore window configuration.
 Restore any changes to the window configuration made by calling
 `image-dired-dired-with-window-configuration'."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (if image-dired-saved-window-configuration
       (set-window-configuration image-dired-saved-window-configuration)
     (message "No saved window configuration")))
@@ -1416,7 +1416,7 @@ image."
 
 (defun image-dired-next-line ()
   "Move to next line and display properties."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((goal-column (current-column)))
     (forward-line 1)
     (move-to-column goal-column))
@@ -1430,7 +1430,7 @@ image."
 
 (defun image-dired-previous-line ()
   "Move to previous line and display properties."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((goal-column (current-column)))
     (forward-line -1)
     (move-to-column goal-column))
@@ -1524,25 +1524,25 @@ Dired."
 
 (defun image-dired-mark-thumb-original-file ()
   "Mark original image file in associated Dired buffer."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (image-dired-modify-mark-on-thumb-original-file 'mark)
   (image-dired-forward-image))
 
 (defun image-dired-unmark-thumb-original-file ()
   "Unmark original image file in associated Dired buffer."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (image-dired-modify-mark-on-thumb-original-file 'unmark)
   (image-dired-forward-image))
 
 (defun image-dired-flag-thumb-original-file ()
   "Flag original image file for deletion in associated Dired buffer."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (image-dired-modify-mark-on-thumb-original-file 'flag)
   (image-dired-forward-image))
 
 (defun image-dired-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated Dired buffer."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (image-dired-modify-mark-on-thumb-original-file 'toggle))
 
 (defun image-dired-unmark-all-marks ()
@@ -1557,7 +1557,7 @@ Do this in the Dired buffer and update this thumbnail buffer."
   "Jump to the Dired buffer associated with the current image file.
 You probably want to use this together with
 `image-dired-track-original-file'."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((buf (image-dired-associated-dired-buffer))
         window frame)
     (setq window (image-dired-get-buffer-window buf))
@@ -1882,7 +1882,7 @@ Ask user for number of images to show and the delay in between."
 
 (defun image-dired-delete-char ()
   "Remove current thumbnail from thumbnail buffer and line up."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((inhibit-read-only t))
     (delete-char 1)
     (when (= (following-char) ?\s)
@@ -2101,7 +2101,7 @@ With prefix argument ARG, display image in its original size."
 
 (defun image-dired-refresh-thumb ()
   "Force creation of new image for current thumbnail."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let* ((file (image-dired-original-file-name))
          (thumb (expand-file-name (image-dired-thumb-name file))))
     (clear-image-cache (expand-file-name thumb))
@@ -2236,13 +2236,13 @@ function.  The result is a couple of new files in
 
 (defun image-dired-display-next-thumbnail-original ()
   "In thumbnail buffer, move to next thumbnail and display the image."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (image-dired-forward-image)
   (image-dired-display-thumbnail-original-image))
 
 (defun image-dired-display-previous-thumbnail-original ()
   "Move to previous thumbnail and display image."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (image-dired-backward-image)
   (image-dired-display-thumbnail-original-image))
 
