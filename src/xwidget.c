@@ -41,6 +41,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "nsxwidget.h"
 #endif
 
+static Lisp_Object id_to_xwidget_map;
+static uint32_t xwidget_counter = 0;
+
 #ifdef USE_GTK
 static Lisp_Object x_window_to_xwv_map;
 #endif
@@ -114,6 +117,9 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
   XSETXWIDGET (val, xw);
   Vxwidget_list = Fcons (val, Vxwidget_list);
   xw->plist = Qnil;
+  xw->xwidget_id = ++xwidget_counter;
+
+  Fputhash (make_fixnum (xw->xwidget_id), val, id_to_xwidget_map);
 
 #ifdef USE_GTK
   xw->widgetwindow_osr = NULL;
@@ -225,6 +231,18 @@ static bool
 xwidget_hidden (struct xwidget_view *xv)
 {
   return xv->hidden;
+}
+
+struct xwidget *
+xwidget_from_id (uint32_t id)
+{
+  Lisp_Object key = make_fixnum (id);
+  Lisp_Object xwidget = Fgethash (key, id_to_xwidget_map, Qnil);
+
+  if (NILP (xwidget))
+    emacs_abort ();
+
+  return XXWIDGET (xwidget);
 }
 
 #ifdef USE_GTK
@@ -1242,6 +1260,9 @@ syms_of_xwidget (void)
 
   Fprovide (intern ("xwidget-internal"), Qnil);
 
+  id_to_xwidget_map = CALLN (Fmake_hash_table, QCtest, Qeq);
+  staticpro (&id_to_xwidget_map);
+
 #ifdef USE_GTK
   x_window_to_xwv_map = CALLN (Fmake_hash_table, QCtest, Qeq);
 
@@ -1385,7 +1406,7 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
 		  /* The only call to xwidget_end_redisplay is in dispnew.
 		     xwidget_end_redisplay (w->current_matrix);  */
 		  struct xwidget_view *xv
-		    = xwidget_view_lookup (glyph->u.xwidget, w);
+		    = xwidget_view_lookup (xwidget_from_id (glyph->u.xwidget), w);
 #ifdef USE_GTK
 		  /* FIXME: Is it safe to assume xwidget_view_lookup
 		     always succeeds here?  If so, this comment can be removed.
@@ -1448,6 +1469,7 @@ kill_buffer_xwidgets (Lisp_Object buffer)
       {
         CHECK_XWIDGET (xwidget);
         struct xwidget *xw = XXWIDGET (xwidget);
+	Fremhash (make_fixnum (xw->xwidget_id), id_to_xwidget_map);
 #ifdef USE_GTK
         if (xw->widget_osr && xw->widgetwindow_osr)
           {

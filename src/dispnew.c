@@ -4449,16 +4449,6 @@ scrolling_window (struct window *w, int tab_line_p)
 	break;
     }
 
-#ifdef HAVE_XWIDGETS
-  /* Currently this seems needed to detect xwidget movement reliably.
-     This is most probably because an xwidget glyph is represented in
-     struct glyph's 'union u' by a pointer to a struct, which takes 8
-     bytes in 64-bit builds, and thus the comparison of u.val values
-     done by GLYPH_EQUAL_P doesn't work reliably, since it assumes the
-     size of the union is 4 bytes.  FIXME.  */
-    return 0;
-#endif
-
   /* Can't scroll the display of w32 GUI frames when position of point
      is indicated by the system caret, because scrolling the display
      will then "copy" the pixels used by the caret.  */

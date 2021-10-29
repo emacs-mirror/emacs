@@ -28429,7 +28429,7 @@ fill_xwidget_glyph_string (struct glyph_string *s)
     }
   s->width = s->first_glyph->pixel_width;
   s->ybase += s->first_glyph->voffset;
-  s->xwidget = s->first_glyph->u.xwidget;
+  s->xwidget = xwidget_from_id (s->first_glyph->u.xwidget);
 }
 #endif
 /* Fill glyph string S from a sequence of stretch glyphs.
@@ -29832,7 +29832,7 @@ produce_xwidget_glyph (struct it *it)
           glyph->padding_p = 0;
 	  glyph->glyph_not_available_p = 0;
 	  glyph->face_id = it->face_id;
-          glyph->u.xwidget = it->xwidget;
+          glyph->u.xwidget = it->xwidget->xwidget_id;
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
 	  if (it->bidi_p)
 	    {

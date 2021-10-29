@@ -536,8 +536,8 @@ struct glyph
     int img_id;
 
 #ifdef HAVE_XWIDGETS
-    /* Xwidget reference (type == XWIDGET_GLYPH).  */
-    struct xwidget *xwidget;
+    /* Xwidget ID.  */
+    uint32_t xwidget;
 #endif
 
     /* Sub-structure for type == STRETCH_GLYPH.  */

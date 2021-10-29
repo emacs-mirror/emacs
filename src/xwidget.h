@@ -60,6 +60,7 @@ struct xwidget
 
   int height;
   int width;
+  uint32_t xwidget_id;
 
 #if defined (USE_GTK)
   /* For offscreen widgets, unused if not osr.  */
@@ -168,6 +169,8 @@ void store_xwidget_js_callback_event (struct xwidget *xw,
                                       Lisp_Object argument);
 struct xwidget_view *xwidget_view_from_window (Window wdesc);
 void xwidget_expose (struct xwidget_view *xv);
+
+extern struct xwidget *xwidget_from_id (uint32_t id);
 #else
 INLINE_HEADER_BEGIN
 INLINE void syms_of_xwidget (void) {}
