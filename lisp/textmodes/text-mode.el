@@ -95,7 +95,7 @@ inherit all the commands defined in this map.")
      :style toggle
      :selected (memq 'turn-on-auto-fill text-mode-hook)]))
 
-(defun text-mode-menu (menu click)
+(defun text-mode-context-menu (menu click)
   "Populate MENU with text selection commands at CLICK."
 
   (when (thing-at-mouse click 'word)
@@ -127,7 +127,7 @@ You can thus get the full benefit of adaptive filling
 Turning on Text mode runs the normal hook `text-mode-hook'."
   (setq-local text-mode-variant t)
   (setq-local require-final-newline mode-require-final-newline)
-  (add-hook 'context-menu-functions 'text-mode-menu 10 t))
+  (add-hook 'context-menu-functions 'text-mode-context-menu 10 t))
 
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
   "Major mode for editing text, with leading spaces starting a paragraph.
