@@ -12210,6 +12210,10 @@ x_free_frame_resources (struct frame *f)
 	xfree (f->shell_position);
 #else  /* !USE_X_TOOLKIT */
 
+#ifdef HAVE_XWIDGETS
+      kill_frame_xwidget_views (f);
+#endif
+
 #ifdef USE_GTK
       xg_free_frame_widgets (f);
 #endif /* USE_GTK */

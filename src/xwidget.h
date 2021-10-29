@@ -171,6 +171,7 @@ struct xwidget_view *xwidget_view_from_window (Window wdesc);
 void xwidget_expose (struct xwidget_view *xv);
 
 extern struct xwidget *xwidget_from_id (uint32_t id);
+extern void kill_frame_xwidget_views (struct frame *f);
 #else
 INLINE_HEADER_BEGIN
 INLINE void syms_of_xwidget (void) {}

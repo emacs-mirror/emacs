@@ -46,6 +46,7 @@ static uint32_t xwidget_counter = 0;
 
 #ifdef USE_GTK
 static Lisp_Object x_window_to_xwv_map;
+static gboolean offscreen_damage_event (GtkWidget *, GdkEvent *, gpointer);
 #endif
 
 static struct xwidget *
@@ -193,6 +194,9 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
                             xw);
         }
 
+      g_signal_connect (G_OBJECT (xw->widgetwindow_osr), "damage-event",
+			G_CALLBACK (offscreen_damage_event), xw);
+
       unblock_input ();
     }
 #elif defined NS_IMPL_COCOA
@@ -297,15 +301,20 @@ xv_do_draw (struct xwidget_view *xw, struct xwidget *w)
    It copies the bitmap from the off-screen instance.  */
 static gboolean
 offscreen_damage_event (GtkWidget *widget, GdkEvent *event,
-                        gpointer xwidget_view)
+                        gpointer xwidget)
 {
-  struct xwidget_view *xw = xwidget_view;
-  struct xwidget *w = XXWIDGET (xw->model);
+  block_input ();
 
-  if (xw->wdesc == None)
-    return FALSE;
+  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
+       tail = XCDR (tail))
+    {
+      struct xwidget_view *view = XXWIDGET_VIEW (XCAR (tail));
 
-  xv_do_draw (xw, w);
+      if (view->wdesc && XXWIDGET (view->model) == xwidget)
+	xv_do_draw (view, XXWIDGET (view->model));
+    }
+
+  unblock_input ();
 
   return FALSE;
 }
@@ -592,9 +601,6 @@ xwidget_init_view (struct xwidget *xww,
 
   xv->wdesc = None;
   xv->frame = s->f;
-
-  g_signal_connect (G_OBJECT (xww->widgetwindow_osr), "damage-event",
-		    G_CALLBACK (offscreen_damage_event), xv);
 #elif defined NS_IMPL_COCOA
   nsxwidget_init_view (xv, xww, s, x, y);
   nsxwidget_resize_view(xv, xww->width, xww->height);
@@ -1102,15 +1108,9 @@ DEFUN ("delete-xwidget-view",
   if (xv->wdesc != None)
     {
       block_input ();
-      XDestroyWindow (xv->dpy, xv->wdesc);
-      /* xv->model still has signals pointing to the view.  There can be
-	 several views.  Find the matching signals and delete them all.  */
-      g_signal_handlers_disconnect_matched  (XXWIDGET (xv->model)->widgetwindow_osr,
-					     G_SIGNAL_MATCH_DATA,
-					     0, 0, 0, 0, xv);
-
       cairo_destroy (xv->cr_context);
       cairo_surface_destroy (xv->cr_surface);
+      XDestroyWindow (xv->dpy, xv->wdesc);
       Fremhash (make_fixnum (xv->wdesc), x_window_to_xwv_map);
       unblock_input ();
     }
@@ -1455,6 +1455,26 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
         }
     }
 }
+
+#ifdef USE_GTK
+void
+kill_frame_xwidget_views (struct frame *f)
+{
+  Lisp_Object rem = Qnil;
+
+  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
+       tail = XCDR (tail))
+    {
+      if (XXWIDGET_VIEW (XCAR (tail))->frame == f)
+	rem = Fcons (XCAR (tail), rem);
+    }
+
+  for (; CONSP (rem); rem = XCDR (rem))
+    {
+      Fdelete_xwidget_view (XCAR (rem));
+    }
+}
+#endif
 
 /* Kill all xwidget in BUFFER.  */
 void
