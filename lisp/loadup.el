@@ -354,7 +354,7 @@
 (load "electric")
 (load "paren")
 
-(load "shorthands")
+(load "emacs-lisp/shorthands")
 
 (load "emacs-lisp/eldoc")
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)

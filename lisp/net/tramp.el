@@ -1758,6 +1758,9 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
 	    tramp-postfix-host-format
 	    localname)))
 
+(set-advertised-calling-convention
+ #'tramp-make-tramp-file-name '(vec &optional localname hop) "27.1")
+
 (defun tramp-make-tramp-hop-name (vec)
   "Construct a Tramp hop name from VEC."
   (replace-regexp-in-string
