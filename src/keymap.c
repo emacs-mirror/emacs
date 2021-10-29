@@ -1295,6 +1295,9 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   if (NILP (unicode_case_table))
     {
       unicode_case_table = uniprop_table (intern ("lowercase"));
+      /* uni-lowercase.el might be unavailable during bootstrap.  */
+      if (NILP (unicode_case_table))
+	return found;
       staticpro (&unicode_case_table);
     }
 
