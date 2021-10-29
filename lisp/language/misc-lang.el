@@ -193,14 +193,19 @@ thin (i.e. 1-dot width) space."
    #x13437
    (list (vector "\U00013437[\U00013000-\U0001343F]+"
                  0 #'egyptian-shape-grouping)))
-  ;; As of late 2021, Egyptian Hieroglyph Format Controls are not yet
-  ;; supported in existing fonts and shaping engines, but some fonts
-  ;; do provide ligatures with which texts in Egyptian Hieroglyphs are
-  ;; correctly displayed.  If and when these format controls are
-  ;; supported, the five lines below (which cancel the effect of the
-  ;; above lines) can be removed, and the entry in etc/HELLO can be
+  ;; "Normal" hieroglyphs, for fonts that don't support the above
+  ;; controls, but do shape sequences of hieroglyphs without the
+  ;; controls.
+  ;; FIXME: As of late 2021, Egyptian Hieroglyph Format Controls are
+  ;; not yet supported in existing fonts and/or shaping engines, but
+  ;; some fonts do provide ligatures with which texts in Egyptian
+  ;; Hieroglyphs are correctly displayed.  If and when these format
+  ;; controls are supported, as described in section 11.4 "Egyptian
+  ;; Hieroglyphs" of the Unicode Standard, the five lines below (which
+  ;; allow composition of hieroglyphs without formatting controls
+  ;; around) can be removed, and the entry in etc/HELLO can be
   ;; restored to:
-  ;; Egyptian Hieroglyphs (𓂋𓐰𓏤𓈖𓆎𓅓𓏏𓐰𓊖)	𓅓𓊵𓐰𓐷𓏏𓊪𓐸, 𓇍𓇋𓂻𓍘𓇋
+  ;; Egyptian Hieroglyphs (𓂋𓐰𓏤𓈖𓆎𓅓𓏏𓐰𓊖) 𓅓𓊵𓐰𓐷𓏏𓊪𓐸, 𓇍𓇋𓂻𓍘𓇋
   (set-char-table-range
    composition-function-table
    '(#x13000 . #x1342E)
