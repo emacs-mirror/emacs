@@ -3385,17 +3385,16 @@ This tests also `access-file', `file-readable-p',
 		       (tramp-get-remote-gid tramp-test-vec 'integer)))
 	      (delete-file tmp-name1))
 
-	    (when (and (tramp--test-supports-set-file-modes-p)
-		       ;; A file is always accessible for user "root".
-		       (not (zerop (tramp-compat-file-attribute-user-id
-				    (file-attributes
-				     tramp-test-temporary-file-directory)))))
+	    (when (tramp--test-supports-set-file-modes-p)
 	      (write-region "foo" nil tmp-name1)
-	      (set-file-modes tmp-name1 0)
-	      (should-error
-	       (access-file tmp-name1 "error")
-	       :type 'file-error)
-	      (set-file-modes tmp-name1 #o777)
+	      ;; A file is always accessible for user "root".
+	      (when (not (zerop (tramp-compat-file-attribute-user-id
+				 (file-attributes tmp-name1))))
+		(set-file-modes tmp-name1 0)
+		(should-error
+		 (access-file tmp-name1 "error")
+		 :type 'file-error)
+		(set-file-modes tmp-name1 #o777))
 	      (delete-file tmp-name1))
 	    (should-error
 	     (access-file tmp-name1 "error")
@@ -4443,8 +4442,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Check `process-file'."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
-  (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (tramp--test-supports-processes-p))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let* ((tmp-name (tramp--test-make-temp-name nil quoted))
@@ -4524,8 +4522,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Check `start-file-process'."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
-  (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (tramp--test-supports-processes-p))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((default-directory tramp-test-temporary-file-directory)
@@ -4704,8 +4701,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   "Check `make-process'."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
-  (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (tramp--test-supports-processes-p))
   ;; `make-process' supports file name handlers since Emacs 27.
   (skip-unless (tramp--test-emacs27-p))
 
@@ -5008,11 +5004,11 @@ INPUT, if non-nil, is a string sent to the process."
   "Check `shell-command'."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-supports-processes-p))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
   ;; remote processes in Emacs.  That doesn't work for tramp-adb.el.
-  (skip-unless (or (and (tramp--test-adb-p) (tramp--test-emacs27-p))
-		   (tramp--test-sh-p) (tramp--test-sshfs-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (when (tramp--test-adb-p)
+    (skip-unless (tramp--test-emacs27-p)))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let ((tmp-name (tramp--test-make-temp-name nil quoted))
@@ -5110,8 +5106,7 @@ INPUT, if non-nil, is a string sent to the process."
   :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless nil)
-  (skip-unless (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (tramp--test-supports-processes-p))
   ;; Prior Emacs 27, `shell-command-dont-erase-buffer' wasn't working properly.
   (skip-unless (tramp--test-emacs27-p))
 
@@ -5432,11 +5427,11 @@ Use direct async.")
   "Check that connection-local `explicit-shell-file-name' is set."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-supports-processes-p))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
   ;; remote processes in Emacs.  That doesn't work for tramp-adb.el.
-  (skip-unless (or (and (tramp--test-adb-p) (tramp--test-emacs27-p))
-		   (tramp--test-sh-p) (tramp--test-sshfs-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (when (tramp--test-adb-p)
+    (skip-unless (tramp--test-emacs27-p)))
   ;; Since Emacs 26.1.
   (skip-unless (and (fboundp 'connection-local-set-profile-variables)
 		    (fboundp 'connection-local-set-profiles)))
@@ -5491,6 +5486,7 @@ Use direct async.")
 (ert-deftest tramp-test35-exec-path ()
   "Check `exec-path' and `executable-find'."
   (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-supports-processes-p))
   (skip-unless (tramp--test-supports-set-file-modes-p))
   ;; Since Emacs 27.1.
   (skip-unless (fboundp 'exec-path))
@@ -6270,6 +6266,11 @@ This requires restrictions of file name syntax."
 This requires restrictions of file name syntax."
   (tramp-smb-file-name-p tramp-test-temporary-file-directory))
 
+(defun tramp--test-supports-processes-p ()
+  "Return whether the method under test supports external processes."
+  (and (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p))
+       (not (tramp--test-crypt-p))))
+
 (defun tramp--test-supports-set-file-modes-p ()
   "Return whether the method under test supports setting file modes."
   ;; "smb" does not unless the SMB server supports "posix" extensions.
@@ -6801,13 +6802,14 @@ process sentinels.  They shall not disturb each other."
   :tags (if (getenv "EMACS_EMBA_CI")
 	    '(:expensive-test :unstable) '(:expensive-test))
   (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-supports-processes-p))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
   ;; remote processes in Emacs.  That doesn't work for tramp-adb.el.
-  (skip-unless (or (and (tramp--test-adb-p) (tramp--test-emacs27-p))
-		   (tramp--test-sh-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (when (tramp--test-adb-p)
+    (skip-unless (tramp--test-emacs27-p)))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-telnet-p)))
+  (skip-unless (not (tramp--test-sshfs-p)))
   (skip-unless (not (tramp--test-windows-nt-p)))
 
   (with-timeout
