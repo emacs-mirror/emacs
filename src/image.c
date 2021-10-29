@@ -8277,8 +8277,8 @@ DEF_DLL_FN (GifFileType *, DGifOpenFileName, (const char *));
 #  else
 DEF_DLL_FN (GifFileType *, DGifOpen, (void *, InputFunc, int *));
 DEF_DLL_FN (GifFileType *, DGifOpenFileName, (const char *, int *));
-DEF_DLL_FN (int, DGifSavedExtensionToGCB, (GifFileType *, int,
-					   GraphicsControlBlock *));
+DEF_DLL_FN (int, DGifSavedExtensionToGCB,
+	    (GifFileType *, int, GraphicsControlBlock *));
 #  endif
 #  if HAVE_GIFERRORSTRING
 DEF_DLL_FN (char const *, GifErrorString, (int));
@@ -8309,14 +8309,18 @@ init_gif_functions (void)
 #  undef DGifOpen
 #  undef DGifOpenFileName
 #  undef DGifSlurp
-#  undef DGifSavedExtensionToGCB
+#  if GIFLIB_MAJOR >= 5
+#   undef DGifSavedExtensionToGCB
+#  endif
 #  undef GifErrorString
 
 #  define DGifCloseFile fn_DGifCloseFile
 #  define DGifOpen fn_DGifOpen
 #  define DGifOpenFileName fn_DGifOpenFileName
 #  define DGifSlurp fn_DGifSlurp
-#  define DGifSavedExtensionToGCB fn_DGifSavedExtensionToGCB
+#  if GIFLIB_MAJOR >= 5
+#   define DGifSavedExtensionToGCB fn_DGifSavedExtensionToGCB
+#  endif
 #  define GifErrorString fn_GifErrorString
 
 # endif /* WINDOWSNT */
