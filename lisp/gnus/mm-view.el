@@ -451,7 +451,7 @@ This is only used if `mm-inline-large-images' is set to
 
 (defvar mm-inline-message-prepare-function nil
   "Function called by `mm-inline-message' to do client specific setup.
-It is called with one parameter -- the charset.")
+It is called with two parameters -- the MIME handle and the charset.")
 
 (defun mm-inline-message (handle)
   "Insert HANDLE (a message/rfc822 part) into the current buffer.
@@ -471,7 +471,7 @@ after inserting the part."
 	(narrow-to-region b b)
 	(mm-insert-part handle)
         (when mm-inline-message-prepare-function
-	  (funcall mm-inline-message-prepare-function charset))
+	  (funcall mm-inline-message-prepare-function handle charset))
 	(goto-char (point-min))
 	(unless bolp
 	  (insert "\n"))
