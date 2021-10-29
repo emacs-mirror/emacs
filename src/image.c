@@ -8382,7 +8382,7 @@ gif_load (struct frame *f, struct image *img)
       if (!STRINGP (file))
 	{
 	  image_error ("Cannot find image file `%s'", specified_file);
-	  return 0;
+	  return false;
 	}
 
       Lisp_Object encoded_file = ENCODE_FILE (file);
@@ -8405,8 +8405,7 @@ gif_load (struct frame *f, struct image *img)
 	  else
 #endif
 	  image_error ("Cannot open `%s'", file);
-
-	  return 0;
+	  return false;
 	}
     }
   else
@@ -8414,7 +8413,7 @@ gif_load (struct frame *f, struct image *img)
       if (!STRINGP (specified_data))
 	{
 	  image_error ("Invalid image data `%s'", specified_data);
-	  return 0;
+	  return false;
 	}
 
       /* Read from memory! */
@@ -8438,7 +8437,7 @@ gif_load (struct frame *f, struct image *img)
 	  else
 #endif
 	  image_error ("Cannot open memory source `%s'", img->spec);
-	  return 0;
+	  return false;
 	}
     }
 
@@ -8446,8 +8445,7 @@ gif_load (struct frame *f, struct image *img)
   if (!check_image_size (f, gif->SWidth, gif->SHeight))
     {
       image_size_error ();
-      gif_close (gif, NULL);
-      return 0;
+      goto gif_error;
     }
 
   /* Read entire contents.  */
@@ -8458,8 +8456,7 @@ gif_load (struct frame *f, struct image *img)
 	image_error ("Error reading `%s'", img->spec);
       else
 	image_error ("Error reading GIF data");
-      gif_close (gif, NULL);
-      return 0;
+      goto gif_error;
     }
 
   /* Which sub-image are we to display?  */
@@ -8470,8 +8467,7 @@ gif_load (struct frame *f, struct image *img)
       {
 	image_error ("Invalid image number `%s' in image `%s'",
 		     image_number, img->spec);
-	gif_close (gif, NULL);
-	return 0;
+	goto gif_error;
       }
   }
 
@@ -8488,8 +8484,7 @@ gif_load (struct frame *f, struct image *img)
   if (!check_image_size (f, width, height))
     {
       image_size_error ();
-      gif_close (gif, NULL);
-      return 0;
+      goto gif_error;
     }
 
   /* Check that the selected subimages fit.  It's not clear whether
@@ -8506,18 +8501,14 @@ gif_load (struct frame *f, struct image *img)
 	     && 0 <= subimg_left && subimg_left <= width - subimg_width))
 	{
 	  image_error ("Subimage does not fit in image");
-	  gif_close (gif, NULL);
-	  return 0;
+	  goto gif_error;
 	}
     }
 
   /* Create the X image and pixmap.  */
   Emacs_Pix_Container ximg;
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
-    {
-      gif_close (gif, NULL);
-      return 0;
-    }
+    goto gif_error;
 
   /* Clear the part of the screen image not covered by the image.
      Full animated GIF support requires more here (see the gif89 spec,
@@ -8733,7 +8724,11 @@ gif_load (struct frame *f, struct image *img)
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
 
-  return 1;
+  return true;
+
+ gif_error:
+  gif_close (gif, NULL);
+  return false;
 }
 
 #endif /* HAVE_GIF */
