@@ -8567,13 +8567,17 @@ gif_load (struct frame *f, struct image *img)
 	 char *, which invites problems with bytes >= 0x80.  */
       struct SavedImage *subimage = gif->SavedImages + j;
       unsigned char *raster = (unsigned char *) subimage->RasterBits;
-      int transparency_color_index = -1;
-      int disposal = 0;
       int subimg_width = subimage->ImageDesc.Width;
       int subimg_height = subimage->ImageDesc.Height;
       int subimg_top = subimage->ImageDesc.Top;
       int subimg_left = subimage->ImageDesc.Left;
 
+      /* From gif89a spec: 1 = "keep in place", 2 = "restore
+	 to background".  Treat any other value like 2.  */
+      int disposal = 0;
+      int transparency_color_index = -1;
+
+#if GIFLIB_MAJOR < 5
       /* Find the Graphic Control Extension block for this sub-image.
 	 Extract the disposal method and transparency color.  */
       for (i = 0; i < subimage->ExtensionBlockCount; i++)
@@ -8584,13 +8588,17 @@ gif_load (struct frame *f, struct image *img)
 	      && extblock->ByteCount == 4
 	      && extblock->Bytes[0] & 1)
 	    {
-	      /* From gif89a spec: 1 = "keep in place", 2 = "restore
-		 to background".  Treat any other value like 2.  */
 	      disposal = (extblock->Bytes[0] >> 2) & 7;
 	      transparency_color_index = (unsigned char) extblock->Bytes[3];
 	      break;
 	    }
 	}
+#else
+      GraphicsControlBlock gcb;
+      DGifSavedExtensionToGCB (gif, j, &gcb);
+      disposal = gcb.DisposalMode;
+      transparency_color_index = gcb.TransparentColor;
+#endif
 
       /* We can't "keep in place" the first subimage.  */
       if (j == 0)
