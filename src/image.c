@@ -8249,6 +8249,11 @@ gif_image_p (Lisp_Object object)
 /* Giflib before 5.0 didn't define these macros.  */
 # ifndef GIFLIB_MAJOR
 #  define GIFLIB_MAJOR 4
+#  define DISPOSAL_UNSPECIFIED    0    /* No disposal specified.  */
+#  define DISPOSE_DO_NOT          1    /* Leave image in place.  */
+#  define DISPOSE_BACKGROUND      2    /* Set area too background color.  */
+#  define DISPOSE_PREVIOUS        3    /* Restore to previous content.  */
+#  define NO_TRANSPARENT_COLOR    -1
 # endif
 
 /* GifErrorString is declared to return char const * when GIFLIB_MAJOR
@@ -8574,8 +8579,8 @@ gif_load (struct frame *f, struct image *img)
 
       /* From gif89a spec: 1 = "keep in place", 2 = "restore
 	 to background".  Treat any other value like 2.  */
-      int disposal = 0;
-      int transparency_color_index = -1;
+      int disposal = DISPOSAL_UNSPECIFIED;
+      int transparency_color_index = NO_TRANSPARENT_COLOR;
 
 #if GIFLIB_MAJOR < 5
       /* Find the Graphic Control Extension block for this sub-image.
@@ -8602,14 +8607,15 @@ gif_load (struct frame *f, struct image *img)
 
       /* We can't "keep in place" the first subimage.  */
       if (j == 0)
-	disposal = 2;
+	disposal = DISPOSE_BACKGROUND;
 
-      /* For disposal == 0, the spec says "No disposal specified. The
-	 decoder is not required to take any action."  In practice, it
-	 seems we need to treat this like "keep in place", see e.g.
+      /* For disposal == 0 (DISPOSAL_UNSPECIFIED), the spec says
+	 "No disposal specified.  The decoder is not required to take
+	 any action."  In practice, it seems we need to treat this
+	 like "keep in place" (DISPOSE_DO_NOT), see e.g.
 	 https://upload.wikimedia.org/wikipedia/commons/3/37/Clock.gif */
-      if (disposal == 0)
-	disposal = 1;
+      if (disposal == DISPOSAL_UNSPECIFIED)
+	disposal = DISPOSE_DO_NOT;
 
       gif_color_map = subimage->ImageDesc.ColorMap;
       if (!gif_color_map)
@@ -8648,7 +8654,7 @@ gif_load (struct frame *f, struct image *img)
 	      for (x = 0; x < subimg_width; x++)
 		{
 		  int c = raster[y * subimg_width + x];
-		  if (transparency_color_index != c || disposal != 1)
+		  if (transparency_color_index != c || disposal != DISPOSE_DO_NOT)
                     {
                       PUT_PIXEL (ximg, x + subimg_left, row + subimg_top,
                                  pixel_colors[c]);
@@ -8662,7 +8668,7 @@ gif_load (struct frame *f, struct image *img)
 	    for (x = 0; x < subimg_width; ++x)
 	      {
 		int c = raster[y * subimg_width + x];
-		if (transparency_color_index != c || disposal != 1)
+		if (transparency_color_index != c || disposal != DISPOSE_DO_NOT)
                   {
                     PUT_PIXEL (ximg, x + subimg_left, y + subimg_top,
                                pixel_colors[c]);
