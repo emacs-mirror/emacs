@@ -3785,6 +3785,8 @@ just the host name."
 	  (setq foreign server
 		group (substring group (+ 1 colon))))
 	(setq foreign (concat foreign ":")))
+      ;; Remove braces from name (common in IMAP groups).
+      (setq group (replace-regexp-in-string "[][]+" "" group))
       ;; Collapse group name leaving LEVELS uncollapsed elements
       (let* ((slist (split-string group "/"))
 	     (slen (length slist))
