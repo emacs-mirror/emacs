@@ -1474,9 +1474,10 @@ as Dired buffers (@pxref{Dired}).
 
   Most of the variables reflect the situation on the local machine.
 Often, they must use a different value when you operate in buffers
-with a remote default directory.  Think about the shell to be applied
-when calling @code{shell} -- it might be @file{/bin/bash} on your
-local machine, and @file{/bin/ksh} on a remote machine.
+with a remote default directory.  Think about the behavior when
+calling @code{shell} -- on your local machine, you might use
+@file{/bin/bash} and rely on termcap, but on a remote machine, it may
+be @file{/bin/ksh} and terminfo.
 
   This can be accomplished with @dfn{connection-local variables}.
 Directory and file local variables override connection-local
@@ -1492,6 +1493,10 @@ variables/value pairs in a @dfn{profile}, using the
 criteria, identifying a remote machine:
 
 @example
+(connection-local-set-profile-variables 'remote-terminfo
+   '((system-uses-terminfo . t)
+     (comint-terminfo-terminal . "dumb-emacs-ansi")))
+
 (connection-local-set-profile-variables 'remote-ksh
    '((shell-file-name . "/bin/ksh")
      (shell-command-switch . "-c")))
@@ -1501,13 +1506,15 @@ criteria, identifying a remote machine:
      (shell-command-switch . "-c")))
 
 (connection-local-set-profiles
-   '(:application tramp :machine "remotemachine") 'remote-ksh)
+   '(:application tramp :machine "remotemachine")
+   'remote-terminfo 'remote-ksh)
 @end example
 
-  This code declares two different profiles, @code{remote-ksh} and
-@code{remote-bash}. The profile @code{remote-ksh} is applied to all
+  This code declares three different profiles, @code{remote-terminfo},
+@code{remote-ksh}, and @code{remote-bash}.  The profiles
+@code{remote-terminfo} and @code{remote-ksh} are applied to all
 buffers which have a remote default directory matching the regexp
-@code{"remotemachine} as host name.  Such a criteria can also
+@code{"remotemachine"} as host name.  Such a criteria can also
 discriminate for the properties @code{:protocol} (this is the Tramp
 method) or @code{:user} (a remote user name).  The @code{nil} criteria
 matches all buffers with a remote default directory.
