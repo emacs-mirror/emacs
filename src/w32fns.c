@@ -79,7 +79,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 */
 #define DARK_MODE_APP_NAME L"DarkMode_Explorer"
 /* For Windows 10 version 1809, 1903, 1909. */
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE_OLD
 #define DWMWA_USE_IMMERSIVE_DARK_MODE_OLD 19
+#endif
 /* For Windows 10 version 2004 and higher, and Windows 11. */
 #ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
@@ -271,7 +273,7 @@ int w32_major_version;
 int w32_minor_version;
 int w32_build_number;
 
-/* If the OS is set to use dark mode. */
+/* If the OS is set to use dark mode.  */
 BOOL w32_darkmode = FALSE;
 
 /* Distinguish between Windows NT and Windows 95.  */
@@ -2301,28 +2303,28 @@ w32_init_class (HINSTANCE hinst)
     }
 }
 
-/* Applies the Windows system theme (light or dark) to a window handle. */
+/* Applies the Windows system theme (light or dark) to the window
+   handle HWND.  */
 static void
 w32_applytheme (HWND hwnd)
 {
   if (w32_darkmode)
     {
-      /* Set window theme to that of a built-in Windows app (Explorer)
-	 because it has dark scroll bars and other UI elements. */
+      /* Set window theme to that of a built-in Windows app (Explorer),
+	 because it has dark scroll bars and other UI elements.  */
       if (SetWindowTheme_fn)
-	{
-	  SetWindowTheme_fn (hwnd, DARK_MODE_APP_NAME, NULL);
-	}
-      /* Set the titlebar to system dark mode. */
+	SetWindowTheme_fn (hwnd, DARK_MODE_APP_NAME, NULL);
+
+      /* Set the titlebar to system dark mode.  */
       if (DwmSetWindowAttribute_fn)
 	{
-	  /* Windows 10 version 2004 and up, Windows 11. */
+	  /* Windows 10 version 2004 and up, Windows 11.  */
 	  DWORD attr = DWMWA_USE_IMMERSIVE_DARK_MODE;
-	  /* Windows 10 older than 2004. */
+	  /* Windows 10 older than 2004.  */
 	  if (w32_build_number < 19041)
 	    attr = DWMWA_USE_IMMERSIVE_DARK_MODE_OLD;
-	  DwmSetWindowAttribute_fn
-	    (hwnd, attr, &w32_darkmode, sizeof(w32_darkmode));
+	  DwmSetWindowAttribute_fn (hwnd, attr,
+				    &w32_darkmode, sizeof (w32_darkmode));
 	}
     }
 }
@@ -2444,7 +2446,7 @@ w32_createwindow (struct frame *f, int *coords)
       /* Enable drag-n-drop.  */
       DragAcceptFiles (hwnd, TRUE);
 
-      /* Enable system light/dark theme. */
+      /* Enable system light/dark theme.  */
       w32_applytheme (hwnd);
 
       /* Do this to discard the default setting specified by our parent. */
@@ -11090,10 +11092,11 @@ globals_of_w32fns (void)
      For future wretches who may need to understand Windows build numbers:
      https://docs.microsoft.com/en-us/windows/release-health/release-information
   */
-  if (w32_major_version >= 10 && w32_build_number >= 17763
-      && os_subtype == OS_SUBTYPE_NT)
+  if (os_subtype == OS_SUBTYPE_NT
+      && w32_major_version >= 10 && w32_build_number >= 17763)
     {
-      /* Load dwmapi and uxtheme, which will be needed to set window themes. */
+      /* Load dwmapi.dll and uxtheme.dll, which will be needed to set
+	 window themes.  */
       HMODULE dwmapi_lib = LoadLibrary("dwmapi.dll");
       DwmSetWindowAttribute_fn = (DwmSetWindowAttribute_Proc)
 	get_proc_addr (dwmapi_lib, "DwmSetWindowAttribute");
@@ -11101,17 +11104,17 @@ globals_of_w32fns (void)
       SetWindowTheme_fn = (SetWindowTheme_Proc)
 	get_proc_addr (uxtheme_lib, "SetWindowTheme");
 
-      /* Check Windows Registry for system theme. DWORD set to 0 or 1.
+      /* Check Windows Registry for system theme and set w32_darkmode.
 	 TODO: "Nice to have" would be to create a lisp setting (which
 	 defaults to this Windows Registry value), then read that lisp
 	 value here instead. This would allow the user to forcibly
 	 override the system theme (which is also user-configurable in
 	 Windows settings; see MS-Windows section in Emacs manual). */
-      LPBYTE val = w32_get_resource
-	("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-	 "AppsUseLightTheme",
-	 NULL);
-      if (val && (DWORD)*val == 0)
+      LPBYTE val =
+	w32_get_resource ("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+			  "AppsUseLightTheme",
+			  NULL);
+      if (val && *val == 0)
 	w32_darkmode = TRUE;
     }
 
