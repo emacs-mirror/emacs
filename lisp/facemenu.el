@@ -551,8 +551,8 @@ If the optional argument CALLBACK is non-nil, it should be a
 function to call each time the user types RET or clicks on a
 color.  The function should accept a single argument, the color name."
   (interactive)
-  (when (and (null list) (> (display-color-cells) 0))
-    (setq list (list-colors-duplicates (defined-colors)))
+  (when (> (display-color-cells) 0)
+    (setq list (list-colors-duplicates (or list (defined-colors))))
     (when list-colors-sort
       ;; Schwartzian transform with `(color key1 key2 key3 ...)'.
       (setq list (mapcar
