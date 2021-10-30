@@ -1185,9 +1185,9 @@ click-to-focus policy.
 bars and scroll bars will follow the system's Light or Dark mode,
 similar to other programs such as Explorer and Command Prompt.  To
 change the color mode, select @code{Personalization} from
-@w{@code{Windows Settings->}}, then
+@w{@code{Windows Settings}}, then
 @w{@code{Colors->Choose your color}} (or @w{@code{Choose your default
-app mode}}; then restart Emacs.
+app mode}}); then restart Emacs.
 
 @ifnottex
 @include msdos-xtra.texi
