@@ -427,6 +427,12 @@ This returns the width of a string in pixels.  This can be useful when
 dealing with variable pitch fonts and glyphs that have widths that
 aren't integer multiples of the default font.
 
++++
+** New function 'string-glyph-split'.
+This function splits a string into a list of strings representing
+separate glyphs.  This takes into account combining characters and
+grapheme clusters.
+
 ---
 ** 'lookup-key' is more allowing when searching for extended menu items.
 In Emacs 28.1, the behavior of 'lookup-key' was changed: when looking

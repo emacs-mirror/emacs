@@ -248,6 +248,24 @@ equivalent to 0.  Thus, @w{@code{(substring-no-properties
 properties removed.
 @end defun
 
+@defun string-glyph-split string
+Special care has to be taken when handling strings that are meant to
+be displayed.  @code{substring} and friends work on individual
+characters (i.e., code points), but things like emojis are often
+represented by @dfn{grapheme clusters}, which are basically a bunch of
+code points ``glued together'' in various ways.  This function splits
+up strings like that into a list of strings, where each of these
+resulting strings represents a glyph that should be displayed as a
+unit.
+
+For instance, if you want to display a string without the first glyph,
+you can say:
+
+@example
+(apply #'insert (cdr (string-glyph-split string))))
+@end example
+@end defun
+
 @defun concat &rest sequences
 @cindex copying strings
 @cindex concatenating strings

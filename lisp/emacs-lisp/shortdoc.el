@@ -159,6 +159,8 @@ There can be any number of :example/:result elements."
    :eval (split-string-and-unquote "foo \"bar zot\""))
   (split-string-shell-command
    :eval (split-string-shell-command "ls /tmp/'foo bar'"))
+  (string-glyph-split
+   :eval (string-glyph-split "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻"))
   (string-lines
    :eval (string-lines "foo\n\nbar")
    :eval (string-lines "foo\n\nbar" t))

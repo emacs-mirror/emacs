@@ -449,6 +449,22 @@ is inserted before adjusting the number of empty lines."
     (car (window-text-pixel-size
           (current-buffer) (point-min) (point)))))
 
+;;;###autoload
+(defun string-glyph-split (string)
+  "Split STRING into a list of strings representing separate glyphs.
+This takes into account combining characters and grapheme clusters."
+  (let ((result nil)
+        (start 0)
+        comp)
+    (while (< start (length string))
+      (if (setq comp (find-composition-internal start nil string nil))
+          (progn
+            (push (substring string (car comp) (cadr comp)) result)
+            (setq start (cadr comp)))
+        (push (substring string start (1+ start)) result)
+        (setq start (1+ start))))
+    (nreverse result)))
+
 (provide 'subr-x)
 
 ;;; subr-x.el ends here
