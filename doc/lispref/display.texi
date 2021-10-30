@@ -2212,6 +2212,31 @@ selected window.  The value includes the line spacing of the line
 (@pxref{Line Height}).
 @end defun
 
+@cindex grapheme cluster
+@defun string-glyph-split string
+When character compositions are in effect, sequence of characters can
+be composed for display to form @dfn{grapheme clusters}, for example
+to display accented characters, or ligatures, or Emoji, or when
+complex text shaping requires that for some scripts.  When that
+happens, characters no longer map in a simple way to display columns,
+and display layout decisions with such strings, such as truncating too
+wide strings, can be a complex job.  This function helps in performing
+suvh jobs: it splits up its argument @var{string} into a list of
+substrings, where each substring produces a single grapheme cluster
+that should be displayed as a unit.  Lisp programs can then use this
+list to construct visually-valid substrings of @var{string} which will
+look correctly on display, or compute the width of any substring of
+@var{string} by adding the width of its constituents in the returned
+list, etc.
+
+For instance, if you want to display a string without the first glyph,
+you can say:
+
+@example
+(apply #'insert (cdr (string-glyph-split string))))
+@end example
+@end defun
+
 When a buffer is displayed with line numbers (@pxref{Display Custom,,,
 emacs, The GNU Emacs Manual}), it is sometimes useful to know the
 width taken for displaying the line numbers.  The following function
