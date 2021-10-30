@@ -3162,7 +3162,7 @@ struct image_cache
 
 /* Size of bucket vector of image caches.  Should be prime.  */
 
-#define IMAGE_CACHE_BUCKETS_SIZE 1001
+#define IMAGE_CACHE_BUCKETS_SIZE 1009
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

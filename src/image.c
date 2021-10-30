@@ -4116,9 +4116,9 @@ struct xpm_cached_color
 };
 
 /* The hash table used for the color cache, and its bucket vector
-   size.  */
+   size (which should be prime).  */
 
-#define XPM_COLOR_CACHE_BUCKETS	1001
+#define XPM_COLOR_CACHE_BUCKETS 1009
 static struct xpm_cached_color **xpm_color_cache;
 
 /* Initialize the color cache.  */
