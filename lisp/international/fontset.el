@@ -816,11 +816,16 @@
 			   (#x1D7EC #x1D7F5 mathematical-sans-serif-bold)
 			   (#x1D7F6 #x1D7FF mathematical-monospace)))
     (let ((slot (assq (nth 2 math-subgroup) script-representative-chars)))
+      ;; Add both ends of each subgroup to help filter out some
+      ;; incomplete fonts, e.g. those that cover MATHEMATICAL SCRIPT
+      ;; CAPITAL glyphs but not MATHEMATICAL SCRIPT SMALL ones.
       (if slot
-	  (if (vectorp (cdr slot))
-	      (setcdr slot (vconcat (cdr slot) (vector (car math-subgroup))))
-	    (setcdr slot (vector (cadr slot) (car math-subgroup))))
-	(setq slot (list (nth 2 math-subgroup) (car math-subgroup)))
+          (setcdr slot (append (list (nth 0 math-subgroup)
+                                     (nth 1 math-subgroup))
+                               (cdr slot)))
+        (setq slot (list (nth 2 math-subgroup)
+                         (nth 0 math-subgroup)
+                         (nth 1 math-subgroup)))
 	(nconc script-representative-chars (list slot))))
     (set-fontset-font
      "fontset-default"
