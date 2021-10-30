@@ -1997,11 +1997,11 @@ If a multi-column character in @var{string} exceeds the goal
 result can sometimes fall short of @var{width}, but cannot go beyond
 it.
 
-The optional argument @var{start-column} specifies the starting column.
-If this is non-@code{nil}, then the first @var{start-column} columns of
-the string are omitted from the result.  If one multi-column character in
-@var{string} extends across the column @var{start-column}, that
-character is omitted.
+The optional argument @var{start-column} specifies the starting
+column; it defaults to zero.  If this is non-@code{nil}, then the
+first @var{start-column} columns of the string are omitted from the
+result.  If one multi-column character in @var{string} extends across
+the column @var{start-column}, that character is omitted.
 
 The optional argument @var{padding}, if non-@code{nil}, is a padding
 character added at the beginning and end of the result string, to
@@ -2026,12 +2026,22 @@ means hide the excess parts of @var{string} with a @code{display} text
 property (@pxref{Display Property}) showing the ellipsis, instead of
 actually truncating the string.
 
+@group
 @example
 (truncate-string-to-width "\tab\t" 12 4)
      @result{} "ab"
 (truncate-string-to-width "\tab\t" 12 4 ?\s)
      @result{} "    ab  "
 @end example
+@end group
+
+This function uses @code{string-width} and @code{char-width} to find
+the suitable truncation point when @var{string} is too wide, so it
+suffers from the same basic issues as @code{string-width} does.  In
+particular, when character composition happens within @var{string},
+the display width of a string could be smaller than the sum of widths
+of the constituent characters, and this function might return
+inaccurate results.
 @end defun
 
 @defun truncate-string-ellipsis
