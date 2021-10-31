@@ -4979,13 +4979,16 @@ If the font is not OpenType font, CAPABILITY is nil.  */)
 
 DEFUN ("font-has-char-p", Ffont_has_char_p, Sfont_has_char_p, 2, 3, 0,
        doc:
-       /* Say whether FONT-OBJECT has a glyph for CHAR.
-If the optional FRAME parameter is nil, the selected frame is used.  */)
-  (Lisp_Object font_object, Lisp_Object character, Lisp_Object frame)
+       /* Return non-nil if FONT on FRAME has a glyph for character CH.
+FONT can be either a font-entity or a font-object.  If it is
+a font-entity and the result is nil, it means the font needs to be
+opened (with `open-font') to check.
+FRAME defaults to the selected frame if it is nil or omitted.  */)
+  (Lisp_Object font, Lisp_Object ch, Lisp_Object frame)
 {
-  struct frame* f;
-  CHECK_FONT (font_object);
-  CHECK_CHARACTER (character);
+  struct frame *f;
+  CHECK_FONT (font);
+  CHECK_CHARACTER (ch);
 
   if (NILP (frame))
     f = XFRAME (selected_frame);
@@ -4995,7 +4998,7 @@ If the optional FRAME parameter is nil, the selected frame is used.  */)
       f = XFRAME (frame);
     }
 
-  if (font_has_char (f, font_object, XFIXNAT (character)) <= 0)
+  if (font_has_char (f, font, XFIXNAT (ch)) <= 0)
     return Qnil;
   else
     return Qt;
