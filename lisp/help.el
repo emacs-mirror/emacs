@@ -561,11 +561,11 @@ To record all your input, use `open-dribble-file'."
               'font-lock-face 'help-key-binding
               'face 'help-key-binding))
 
-(defcustom describe-bindings-outline nil
+(defcustom describe-bindings-outline t
   "Non-nil enables outlines in the output buffer of `describe-bindings'."
   :type 'boolean
   :group 'help
-  :version "28.1")
+  :version "29.1")
 
 (defun describe-bindings (&optional prefix buffer)
   "Display a buffer showing a list of all defined keys, and their definitions.
@@ -592,18 +592,19 @@ or a buffer name."
         (setq-local outline-level (lambda () 1))
         (setq-local outline-minor-mode-cycle t
                     outline-minor-mode-highlight t)
+        (setq-local outline-minor-mode-use-buttons t)
         (outline-minor-mode 1)
         (save-excursion
+          (goto-char (point-min))
           (let ((inhibit-read-only t))
-            (goto-char (point-min))
-            (insert (substitute-command-keys
-                     (concat "\\<outline-minor-mode-cycle-map>Type "
-                             "\\[outline-cycle] or \\[outline-cycle-buffer] "
-                             "on headings to cycle their visibility.\n\n")))
             ;; Hide the longest body
             (when (and (re-search-forward "Key translations" nil t)
                        (fboundp 'outline-cycle))
-              (outline-cycle))))))))
+              (outline-cycle))
+            ;; Hide ^Ls.
+            (while (search-forward "\n\f\n" nil t)
+              (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
+                                 'invisible t))))))))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke the command DEFINITION.

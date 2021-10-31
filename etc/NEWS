@@ -49,6 +49,10 @@ time.
 ** Help
 
 ---
+*** 'C-h b' uses outlining by default.
+Set 'describe-bindings-outline' to nil to get the old behaviour.
+
+---
 *** Jumping to function/variable source now saves mark before moving point.
 Jumping to source from "*Help*" buffer moves the point when the source
 buffer is already open.  Now, the old point is pushed to mark ring.
@@ -56,6 +60,17 @@ buffer is already open.  Now, the old point is pushed to mark ring.
 +++
 *** New key bindings in *Help* buffers: 'n' and 'p'.
 These will take you (respectively) to the next and previous "page".
+
+** Outline Minor Mode
+
++++
+*** New user option 'outline-minor-mode-use-buttons'.
+If non-nil, Outline Minor Mode will use buttons to hide/show outlines
+in addition to the ellipsis.
+
+---
+*** New user option 'outline-minor-mode-buttons'.
+This is a list of pairs of open/close strings used to display buttons.
 
 ** Fonts
 
