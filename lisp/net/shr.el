@@ -1572,15 +1572,14 @@ ones, in case fg and bg are nil."
       (shr-urlify (or shr-start start) (shr-expand-url url) title))))
 
 (defun shr-tag-abbr (dom)
-  (when-let* ((title (dom-attr dom 'title))
-	      (start (point)))
+  (let ((title (dom-attr dom 'title))
+	(start (point)))
     (shr-generic dom)
     (shr-add-font start (point) 'shr-abbreviation)
-    (add-text-properties
-     start (point)
-     (list
-      'help-echo title
-      'mouse-face 'highlight))))
+    (when title
+      (add-text-properties start (point)
+                           (list 'help-echo title
+                                 'mouse-face 'highlight)))))
 
 (defun shr-tag-acronym (dom)
   ;; `acronym' is deprecated in favor of `abbr'.
