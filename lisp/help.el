@@ -567,6 +567,8 @@ To record all your input, use `open-dribble-file'."
   :group 'help
   :version "29.1")
 
+(declare-function outline-hide-subtree "outline")
+
 (defun describe-bindings (&optional prefix buffer)
   "Display a buffer showing a list of all defined keys, and their definitions.
 The keys are displayed in order of precedence.
@@ -598,9 +600,8 @@ or a buffer name."
           (goto-char (point-min))
           (let ((inhibit-read-only t))
             ;; Hide the longest body
-            (when (and (re-search-forward "Key translations" nil t)
-                       (fboundp 'outline-cycle))
-              (outline-cycle))
+            (when (re-search-forward "Key translations" nil t)
+              (outline-hide-subtree))
             ;; Hide ^Ls.
             (while (search-forward "\n\f\n" nil t)
               (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
