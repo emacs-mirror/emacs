@@ -1314,36 +1314,44 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	 "foo-bar-baz".  */
       for (int i = 0; i < key_len; i++)
 	{
-	  Lisp_Object key_item = Fsymbol_name (AREF (key, i));
-	  Lisp_Object new_item;
-	  if (!STRING_MULTIBYTE (key_item))
-	    new_item = Fdowncase (key_item);
+	  Lisp_Object item = AREF (key, i);
+	  if (!SYMBOLP (item))
+	    ASET (new_key, i, item);
 	  else
 	    {
-	      USE_SAFE_ALLOCA;
-	      ptrdiff_t size = SCHARS (key_item), n;
-	      if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &n))
-		n = PTRDIFF_MAX;
-	      unsigned char *dst = SAFE_ALLOCA (n);
-	      unsigned char *p = dst;
-	      ptrdiff_t j_char = 0, j_byte = 0;
-
-	      while (j_char < size)
+	      Lisp_Object key_item = Fsymbol_name (item);
+	      Lisp_Object new_item;
+	      if (!STRING_MULTIBYTE (key_item))
+		new_item = Fdowncase (key_item);
+	      else
 		{
-		  int ch = fetch_string_char_advance (key_item, &j_char, &j_byte);
-		  Lisp_Object ch_conv = CHAR_TABLE_REF (tables[tbl_num], ch);
-		  if (!NILP (ch_conv))
-		    CHAR_STRING (XFIXNUM (ch_conv), p);
-		  else
-		    CHAR_STRING (ch, p);
-		  p = dst + j_byte;
+		  USE_SAFE_ALLOCA;
+		  ptrdiff_t size = SCHARS (key_item), n;
+		  if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &n))
+		    n = PTRDIFF_MAX;
+		  unsigned char *dst = SAFE_ALLOCA (n);
+		  unsigned char *p = dst;
+		  ptrdiff_t j_char = 0, j_byte = 0;
+
+		  while (j_char < size)
+		    {
+		      int ch = fetch_string_char_advance (key_item,
+							  &j_char, &j_byte);
+		      Lisp_Object ch_conv = CHAR_TABLE_REF (tables[tbl_num],
+							    ch);
+		      if (!NILP (ch_conv))
+			CHAR_STRING (XFIXNUM (ch_conv), p);
+		      else
+			CHAR_STRING (ch, p);
+		      p = dst + j_byte;
+		    }
+		  new_item = make_multibyte_string ((char *) dst,
+						    SCHARS (key_item),
+						    SBYTES (key_item));
+		  SAFE_FREE ();
 		}
-	      new_item = make_multibyte_string ((char *) dst,
-						SCHARS (key_item),
-						SBYTES (key_item));
-	      SAFE_FREE ();
+	      ASET (new_key, i, Fintern (new_item, Qnil));
 	    }
-	  ASET (new_key, i, Fintern (new_item, Qnil));
 	}
 
       /* Check for match.  */
@@ -1356,6 +1364,9 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	 "foo-bar-baz".  */
       for (int i = 0; i < key_len; i++)
 	{
+	  if (!SYMBOLP (AREF (new_key, i)))
+	    continue;
+
 	  Lisp_Object lc_key = Fsymbol_name (AREF (new_key, i));
 
 	  /* If there are no spaces in this symbol, just skip it.  */
@@ -1378,8 +1389,9 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	      if (dst[i] == ' ')
 		dst[i] = '-';
 	    }
-	  Lisp_Object
-	    new_it = make_multibyte_string ((char *) dst, SCHARS (lc_key), SBYTES (lc_key));
+	  Lisp_Object new_it =
+	    make_multibyte_string ((char *) dst,
+				   SCHARS (lc_key), SBYTES (lc_key));
 	  ASET (new_key, i, Fintern (new_it, Qnil));
 	  SAFE_FREE ();
 	}
