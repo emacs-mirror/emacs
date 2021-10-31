@@ -459,6 +459,14 @@ Move point back to the previous hyperlink (@code{backward-button}).
 @item mouse-1
 @itemx mouse-2
 Follow a hyperlink that you click on.
+@item n
+@itemx p
+Some help pages (like the list of key bindings you get with @kbd{C-h
+b}) are divided into pages (by the @samp{^L} character).  The @kbd{n}
+(@code{help-goto-next-page}) command will take you to the start of the
+next page, and the @kbd{p} (@code{help-goto-previous-page}) command
+will take you to the start of the previous page, or (if point isn't at
+the start of the current page) to the start of the current page.
 @item C-c C-c
 Show all documentation about the symbol at point
 (@code{help-follow-symbol}).

@@ -35,6 +35,8 @@
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map (make-composed-keymap button-buffer-map
                                                  special-mode-map))
+    (define-key map "n" 'help-goto-next-page)
+    (define-key map "p" 'help-goto-previous-page)
     (define-key map "l" 'help-go-back)
     (define-key map "r" 'help-go-forward)
     (define-key map "\C-c\C-b" 'help-go-back)
@@ -805,6 +807,26 @@ See `help-make-xrefs'."
   (if help-xref-forward-stack
       (help-xref-go-forward (current-buffer))
     (user-error "No next help buffer")))
+
+(defun help-goto-next-page ()
+  "Go to the next page (if any) in the current buffer.
+The help buffers are divided into \"pages\" by the ^L character."
+  (interactive)
+  (push-mark)
+  (forward-page)
+  (unless (eobp)
+    (forward-line 1)))
+
+(defun help-goto-previous-page ()
+  "Go to the previous page (if any) in the current buffer.
+(If not at the start of a page, go to the start of the current page.)
+
+The help buffers are divided into \"pages\" by the ^L character."
+  (interactive)
+  (push-mark)
+  (backward-page (if (looking-back "\f\n" (- (point) 5)) 2 1))
+  (unless (bobp)
+    (forward-line 1)))
 
 (defun help-view-source ()
   "View the source of the current help item."
