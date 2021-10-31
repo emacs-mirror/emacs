@@ -1259,22 +1259,28 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
       Lisp_Object new_key = make_vector (key_len, Qnil);
       for (int i = 0; i < key_len; ++i)
 	{
-	  Lisp_Object sym = Fsymbol_name (AREF (key, i));
-	  USE_SAFE_ALLOCA;
-	  unsigned char *dst = SAFE_ALLOCA (SBYTES (sym) + 1);
-	  memcpy (dst, SSDATA (sym), SBYTES (sym));
-	  /* We can walk the string data byte by byte, because UTF-8
-	     encoding ensures that no other byte of any multibyte
-	     sequence will ever include a 7-bit byte equal to an ASCII
-	     single-byte character.  */
-	  for (int j = 0; j < SBYTES (sym); ++j)
-	    if (dst[j] >= 'A' && dst[j] <= 'Z')
-	      dst[j] += 'a' - 'A';  /* Convert to lower case.  */
-	  ASET (new_key, i, Fintern (make_multibyte_string ((char *) dst,
-							    SCHARS (sym),
-							    SBYTES (sym)),
-				     Qnil));
-	  SAFE_FREE ();
+	  Lisp_Object item = AREF (key, i);
+	  if (!SYMBOLP (item))
+	    ASET (new_key, i, item);
+	  else
+	    {
+	      Lisp_Object sym = Fsymbol_name (item);
+	      USE_SAFE_ALLOCA;
+	      unsigned char *dst = SAFE_ALLOCA (SBYTES (sym) + 1);
+	      memcpy (dst, SSDATA (sym), SBYTES (sym));
+	      /* We can walk the string data byte by byte, because
+		 UTF-8 encoding ensures that no other byte of any
+		 multibyte sequence will ever include a 7-bit byte
+		 equal to an ASCII single-byte character.  */
+	      for (int j = 0; j < SBYTES (sym); ++j)
+		if (dst[j] >= 'A' && dst[j] <= 'Z')
+		  dst[j] += 'a' - 'A';  /* Convert to lower case.  */
+	      ASET (new_key, i, Fintern (make_multibyte_string ((char *) dst,
+								SCHARS (sym),
+								SBYTES (sym)),
+					 Qnil));
+	      SAFE_FREE ();
+	    }
 	}
       found = lookup_key_1 (keymap, new_key, accept_default);
     }
