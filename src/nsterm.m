@@ -7073,6 +7073,7 @@ not_in_argv (NSString *arg)
       XSETFRAME (frame, emacsframe);
       help_echo_string = Qnil;
       gen_help_event (Qnil, frame, Qnil, Qnil, 0);
+      any_help_event_p = NO;
     }
 
   if (emacs_event && is_focus_frame)
