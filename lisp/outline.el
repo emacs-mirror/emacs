@@ -944,7 +944,8 @@ Note that this does not hide the lines preceding the first heading line."
   "Hide everything after this heading at deeper levels.
 If non-nil, EVENT should be a mouse event."
   (interactive (list last-nonmenu-event))
-  (mouse-set-point event)
+  (when event
+    (mouse-set-point event))
   (when (and outline-minor-mode-use-buttons outline-minor-mode)
     (outline--insert-close-button))
   (outline-flag-subtree t))
@@ -1016,7 +1017,8 @@ If non-nil, EVENT should be a mouse event."
 (defun outline-show-subtree (&optional event)
   "Show everything after this heading at deeper levels."
   (interactive (list last-nonmenu-event))
-  (mouse-set-point event)
+  (when event
+    (mouse-set-point event))
   (when (and outline-minor-mode-use-buttons outline-minor-mode)
     (outline--insert-open-button))
   (outline-flag-subtree nil))
