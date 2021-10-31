@@ -976,6 +976,7 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'help-echo "Click to hide")
       (overlay-put o 'keymap
                    (define-keymap
+                     :parent outline-minor-mode-cycle-map
                      ["RET"] #'outline-hide-subtree
                      ["<follow-link>"] 'mouse-face
                      ["<mouse-2>"] #'outline-hide-subtree)))))
@@ -987,6 +988,7 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'help-echo "Click to show")
       (overlay-put o 'keymap
                    (define-keymap
+                     :parent outline-minor-mode-cycle-map
                      ["RET"] #'outline-show-subtree
                      ["<follow-link>"] 'mouse-face
                      ["<mouse-2>"] #'outline-show-subtree)))))
