@@ -341,6 +341,11 @@ Use 'exif-parse-file' and 'exif-field' instead.
 
 * Lisp Changes in Emacs 29.1
 
+---
+*** New function 'font-has-char-p'.
+This can be used to check whether a specific font has a glyph for a
+character.
+
 ** XDG support
 
 *** New function 'xdg-state-home' returns $XDG_STATE_HOME.

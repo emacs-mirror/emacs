@@ -4977,6 +4977,30 @@ If the font is not OpenType font, CAPABILITY is nil.  */)
 		 : Qnil));
 }
 
+DEFUN ("font-has-char-p", Ffont_has_char_p, Sfont_has_char_p, 2, 3, 0,
+       doc:
+       /* Say whether FONT-OBJECT has a glyph for CHAR.
+If the optional FRAME parameter is nil, the selected frame is used.  */)
+  (Lisp_Object font_object, Lisp_Object character, Lisp_Object frame)
+{
+  struct frame* f;
+  CHECK_FONT (font_object);
+  CHECK_CHARACTER (character);
+
+  if (NILP (frame))
+    f = XFRAME (selected_frame);
+  else
+    {
+      CHECK_FRAME (frame);
+      f = XFRAME (frame);
+    }
+
+  if (font_has_char (f, font_object, XFIXNAT (character)) <= 0)
+    return Qnil;
+  else
+    return Qt;
+}
+
 DEFUN ("font-get-glyphs", Ffont_get_glyphs, Sfont_get_glyphs, 3, 4, 0,
        doc:
        /* Return a vector of FONT-OBJECT's glyphs for the specified characters.
@@ -4995,8 +5019,13 @@ where
   CODE is the glyph-code of C in FONT-OBJECT.
   WIDTH thru DESCENT are the metrics (in pixels) of the glyph.
   ADJUSTMENT is always nil.
-If FONT-OBJECT doesn't have a glyph for a character,
-the corresponding element is nil.  */)
+
+If FONT-OBJECT doesn't have a glyph for a character, the corresponding
+element is nil.
+
+Also see `font-has-char-p', which is more efficient than this function
+if you just want to check whether FONT-OBJECT has a glyph for a
+character.  */)
   (Lisp_Object font_object, Lisp_Object from, Lisp_Object to,
    Lisp_Object object)
 {
@@ -5548,6 +5577,7 @@ syms_of_font (void)
   defsubr (&Sclose_font);
   defsubr (&Squery_font);
   defsubr (&Sfont_get_glyphs);
+  defsubr (&Sfont_has_char_p);
   defsubr (&Sfont_match_p);
   defsubr (&Sfont_at);
 #if 0
