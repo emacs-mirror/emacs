@@ -811,7 +811,7 @@ See `help-make-xrefs'."
 (defun help-goto-next-page ()
   "Go to the next page (if any) in the current buffer.
 The help buffers are divided into \"pages\" by the ^L character."
-  (interactive)
+  (interactive nil help-mode)
   (push-mark)
   (forward-page)
   (unless (eobp)
@@ -822,7 +822,7 @@ The help buffers are divided into \"pages\" by the ^L character."
 (If not at the start of a page, go to the start of the current page.)
 
 The help buffers are divided into \"pages\" by the ^L character."
-  (interactive)
+  (interactive nil help-mode)
   (push-mark)
   (backward-page (if (looking-back "\f\n" (- (point) 5)) 2 1))
   (unless (bobp)
