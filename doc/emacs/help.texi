@@ -461,21 +461,16 @@ Move point back to the previous hyperlink (@code{backward-button}).
 Follow a hyperlink that you click on.
 @item n
 @itemx p
-Some help pages (like the list of key bindings you get with @kbd{C-h
-b}) are divided into pages (by the @samp{^L} character).  The @kbd{n}
-(@code{help-goto-next-page}) command will take you to the start of the
-next page, and the @kbd{p} (@code{help-goto-previous-page}) command
-will take you to the start of the previous page, or (if point isn't at
-the start of the current page) to the start of the current page.
+Move forward and back between pages in the Help buffer.
 @item C-c C-c
 Show all documentation about the symbol at point
 (@code{help-follow-symbol}).
 @item C-c C-f
 @itemx r
-Go forward to the next help topic (@code{help-go-forward}).
+Go forward in history of help commands (@code{help-go-forward}).
 @item C-c C-b
 @itemx l
-Go back to the previous help topic (@code{help-go-back}).
+Go back in history of help commands (@code{help-go-back}).
 @item s
 View the source of the current help topic (if any)
 (@code{help-view-source}).
@@ -504,6 +499,30 @@ C-b} or @kbd{l} (@code{help-go-back}).  While retracing your steps,
 you can go forward by using @kbd{C-c C-f} or @kbd{r}
 (@code{help-go-forward}).
 
+@kindex TAB @r{(Help mode)}
+@findex forward-button
+@kindex S-TAB @r{(Help mode)}
+@findex backward-button
+  To move between hyperlinks in a help buffer, use @key{TAB}
+(@code{forward-button}) to move forward to the next hyperlink and
+@kbd{S-@key{TAB}} (@code{backward-button}) to move back to the
+previous hyperlink.  These commands act cyclically; for instance,
+typing @key{TAB} at the last hyperlink moves back to the first
+hyperlink.
+
+@kindex n @r{(Help mode)}
+@kindex p @r{(Help mode)}
+@findex help-goto-next-page
+@findex help-goto-previous-page
+  Help buffers produced by some Help commands (like @kbd{C-h b}, which
+shows a long list of key bindings) are divided into pages by the
+@samp{^L} character.  In such buffers, the @kbd{n}
+(@code{help-goto-next-page}) command will take you to the next start
+of page, and the @kbd{p} (@code{help-goto-previous-page}) command will
+take you to the previous start of page.  This way you can quickly
+navigate between the different kinds of documentation in a help
+buffer.
+
 @cindex URL, viewing in help
 @cindex help, viewing web pages
 @cindex viewing web pages in help
@@ -512,16 +531,6 @@ you can go forward by using @kbd{C-c C-f} or @kbd{r}
 code definitions, and URLs (web pages).  The first two are opened in
 Emacs, and the third using a web browser via the @code{browse-url}
 command (@pxref{Browse-URL}).
-
-@kindex TAB @r{(Help mode)}
-@findex forward-button
-@kindex S-TAB @r{(Help mode)}
-@findex backward-button
-  In a help buffer, @key{TAB} (@code{forward-button}) moves point
-forward to the next hyperlink, while @kbd{S-@key{TAB}}
-(@code{backward-button}) moves point back to the previous hyperlink.
-These commands act cyclically; for instance, typing @key{TAB} at the
-last hyperlink moves back to the first hyperlink.
 
   To view all documentation about any symbol in the text, move point
 to the symbol and type @kbd{C-c C-c} (@code{help-follow-symbol}).
