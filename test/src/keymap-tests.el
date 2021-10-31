@@ -146,6 +146,12 @@
     (should (eq (lookup-key map [menu-bar γ bar]) 'baz))
     (should (eq (lookup-key map [menu-bar Γ Bar]) 'baz))))
 
+(ert-deftest keymap-lookup-key/menu-non-symbol ()
+  "Test for Bug#51527."
+  (let ((map (make-keymap)))
+    (define-key map [menu-bar buffer 1] 'foo)
+    (should (eq (lookup-key map [menu-bar buffer 1]) 'foo))))
+
 (ert-deftest keymap-lookup-keymap/with-spaces ()
   "Backwards compatibility behaviour (Bug#50752)."
   (let ((map (make-keymap)))
