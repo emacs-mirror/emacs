@@ -543,8 +543,10 @@ ns_init_locale (void)
       NSString *localeID = [NSString stringWithFormat:@"%@.UTF-8",
                                      [locale localeIdentifier]];
 
-      /* Set LANG to locale, but not if LANG is already set.  */
+      /* Set LANG and LC_ALL to locale, but not if the variables are
+         already set.  */
       setenv("LANG", [localeID UTF8String], 0);
+      setenv("LC_ALL", [localeID UTF8String], 0);
     }
   @catch (NSException *e)
     {
