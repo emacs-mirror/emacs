@@ -700,18 +700,19 @@ slot values, and use the previously mentioned set/ref routines.
 @defun slot-value object slot
 @anchor{slot-value}
 This function retrieves the value of @var{slot} from @var{object}.
+It can also be used on objects defined by @code{cl-defstruct}.
 
 This is a generalized variable that can be used with @code{setf} to
-modify the value stored in @var{slot}.  @xref{Generalized
-Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
+modify the value stored in @var{slot}, tho not for objects defined by
+@code{cl-defstruct}.
+@xref{Generalized Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
 @end defun
 
 @defun set-slot-value object slot value
 @anchor{set-slot-value}
 This function sets the value of @var{slot} from @var{object}.
 
-This is not a CLOS function, but is the obsolete setter for
-@code{slot-value} used by the @code{setf} macro.  It is therefore
+This is not a CLOS function.  It is therefore
 recommended to use @w{@code{(setf (slot-value @var{object} @var{slot})
 @var{value})}} instead.
 @end defun

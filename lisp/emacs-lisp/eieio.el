@@ -359,9 +359,7 @@ variable name of the same name as the slot."
 
 (defun eieio-pcase-slot-index-from-index-table (index-table slot)
   "Find the index to pass to `aref' to access SLOT."
-  (let ((index (gethash slot index-table)))
-    (if index (+ (eval-when-compile eieio--object-num-slots)
-                 index))))
+  (gethash slot index-table))
 
 (pcase-defmacro eieio (&rest fields)
   "Pcase patterns that match EIEIO object EXPVAL.

@@ -132,6 +132,10 @@ change the terminal used on a remote host.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** EIEIO
++++
+*** 'slot-value' can now be used to read slots of 'cl-defstruct' objects
+
 ** align
 
 ---

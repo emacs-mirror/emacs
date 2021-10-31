@@ -969,6 +969,18 @@ Subclasses to override slot attributes.")
     (should (eieio-instance-inheritor-slot-boundp C :b))
     (should-not (eieio-instance-inheritor-slot-boundp C :c))))
 
+;;;; Interaction with defstruct
+
+(cl-defstruct eieio-test--struct a b c)
+
+(ert-deftest eieio-test-defstruct-slot-value ()
+  (let ((x (make-eieio-test--struct :a 'A :b 'B :c 'C)))
+    (should (eq (eieio-test--struct-a x)
+                (slot-value x 'a)))
+    (should (eq (eieio-test--struct-b x)
+                (slot-value x 'b)))
+    (should (eq (eieio-test--struct-c x)
+                (slot-value x 'c)))))
 
 (provide 'eieio-tests)
 
