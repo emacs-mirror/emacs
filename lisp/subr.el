@@ -927,8 +927,28 @@ side-effects, and the argument LIST is not modified."
 
 (defun kbd-valid-p (keys)
   "Say whether KEYS is a valid `kbd' sequence.
-In particular, this checks the order of the modifiers, and they
-have to be specified in this order:
+A `kbd' sequence is a string consisting of one and more key
+strokes.  The key strokes are separated by a space character.
+
+Each key stroke is either a single character, or the name of an
+event, surrounded by angle brackets.  In addition, any key stroke
+may be preceded by one or more modifier keys.  Finally, a limited
+number of characters have a special shorthand syntax.
+
+Here's some example key sequences.
+
+  \"f\"           (the key 'f')
+  \"S o m\"       (a three key sequence of the keys 'S', 'o' and 'm')
+  \"C-c o\"       (a two key sequence of the keys 'c' with the control modifier
+                 and then the key 'o')
+  \"H-<left>\"    (the key named \"left\" with the hyper modifier)
+  \"M-RET\"       (the \"return\" key with a meta modifier)
+  \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)
+
+These are the characters that have shorthand syntax:
+NUL, RET, TAB, LFD, ESC, SPC, DEL.
+
+Modifiers have to be specified in this order:
 
    A-C-H-M-S-s
 
