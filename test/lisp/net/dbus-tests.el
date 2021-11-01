@@ -630,16 +630,19 @@ This includes initialization and closing the bus."
             :session dbus--test-service dbus--test-path
             dbus--test-interface method1 "foo" "bar"))
           `(dbus-error ,dbus-error-invalid-args "Wrong arguments (foo bar)")))
-        ;; Three arguments, D-Bus error activated by `dbus-error' signal.
-        (should
-         (equal
-          (should-error
-           (dbus-call-method
-            :session dbus--test-service dbus--test-path
-            dbus--test-interface method1 "foo" "bar" "baz"))
-          `(dbus-error
-            ,dbus-error-failed
-            "D-Bus error: \"D-Bus signal\", \"foo\", \"bar\", \"baz\"")))
+        ;; Three arguments, D-Bus error activated by `dbus-error'
+        ;; signal.  On hydra, it is not guaranteed which format the
+        ;; error message arises.  (Bug#51369)
+        (unless (getenv "EMACS_HYDRA_CI")
+          (should
+           (equal
+            (should-error
+             (dbus-call-method
+              :session dbus--test-service dbus--test-path
+              dbus--test-interface method1 "foo" "bar" "baz"))
+            `(dbus-error
+              ,dbus-error-failed
+              "D-Bus error: \"D-Bus signal\", \"foo\", \"bar\", \"baz\""))))
 
         ;; Unregister method.
         (should (dbus-unregister-object registered))
