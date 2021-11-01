@@ -360,6 +360,11 @@ Use 'exif-parse-file' and 'exif-field' instead.
 
 * Lisp Changes in Emacs 29.1
 
+*** New function 'file-has-changed-p'.
+This convenience function is useful when writing code that parses
+files run-time, and allows you to easily re-parse files when they have
+changed (but not otherwise).
+
 ---
 *** New function 'font-has-char-p'.
 This can be used to check whether a specific font has a glyph for a

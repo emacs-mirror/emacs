@@ -1314,6 +1314,15 @@ on the 19th, @file{aug-20} was written on the 20th, and the file
 @end example
 @end defun
 
+@defun file-has-changed-p filename
+This convenience function is useful when, for instance, parsing files
+run-time, and you typically want to re-read a file when it has
+changed.  This function returns non-@code{nil} the first time it's
+called on @var{filename} in an Emacs session, but will return
+@code{nil} on subsequent calls in that session (unless the file
+changes its modification time).
+@end defun
+
 @defun file-attributes filename &optional id-format
 @anchor{Definition of file-attributes}
 This function returns a list of attributes of file @var{filename}.  If

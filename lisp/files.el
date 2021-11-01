@@ -6181,6 +6181,22 @@ Return nil if DIR is not an existing directory."
 	  (unless mismatch
 	    (file-equal-p root dir)))))))
 
+(defvar file-has-changed-p--hash-table (make-hash-table)
+  "Internal variable used by `file-has-changed-p'.")
+
+(defun file-has-changed-p (file)
+  "Return non-nil if FILE has changed.
+The modification time of FILE is compared to the modification
+time of FILE during a previous invocation of `file-has-changed-p'.
+Therefore the first invocation of `file-has-changed-p' always
+returns non-nil."
+  (let* ((attr (file-attributes file 'integer))
+	  (mtime (file-attribute-modification-time attr))
+	  (saved-mtime (gethash (intern file)
+				file-has-changed-p--hash-table)))
+     (when (not (equal mtime saved-mtime))
+       (puthash (intern file) mtime file-has-changed-p--hash-table))))
+
 (defun copy-directory (directory newname &optional keep-time parents copy-contents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
 This function always sets the file modes of the output files to match

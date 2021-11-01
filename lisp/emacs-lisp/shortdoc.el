@@ -358,6 +358,9 @@ There can be any number of :example/:result elements."
   (file-newer-than-file-p
    :no-eval (file-newer-than-file-p "/tmp/foo" "/tmp/bar")
    :eg-result nil)
+  (file-has-changed-p
+   :no-eval (file-has-changed-p "/tmp/foo")
+   :eg-result t)
   (file-equal-p
    :no-eval (file-equal-p "/tmp/foo" "/tmp/bar")
    :eg-result nil)

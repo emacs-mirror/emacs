@@ -447,18 +447,19 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
               ("/etc/mailcap" system)
               ("/usr/etc/mailcap" system)
 	      ("/usr/local/etc/mailcap" system)))))
-    ;; The ~/.mailcap entries will end up first in the resulting data.
-    (dolist (spec (reverse
-                   (if (stringp path)
-                       (split-string path path-separator t)
-                     path)))
-      (let ((source (and (consp spec) (cadr spec)))
-            (file-name (if (stringp spec)
-                           spec
-                         (car spec))))
-        (when (and (file-readable-p file-name)
-                   (file-regular-p file-name))
-          (mailcap-parse-mailcap file-name source))))
+    (when (seq-some (lambda (f) (file-has-changed-p (car f))) path)
+      ;; The ~/.mailcap entries will end up first in the resulting data.
+      (dolist (spec (reverse
+		     (if (stringp path)
+			 (split-string path path-separator t)
+		       path)))
+	(let ((source (and (consp spec) (cadr spec)))
+	      (file-name (if (stringp spec)
+			     spec
+			   (car spec))))
+	  (when (and (file-readable-p file-name)
+		     (file-regular-p file-name))
+	    (mailcap-parse-mailcap file-name source)))))
     (setq mailcap-parsed-p t)))
 
 (defun mailcap-parse-mailcap (fname &optional source)
