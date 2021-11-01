@@ -1317,7 +1317,7 @@ Any inserted text ends in two newlines (used by
                           (concat " Starting With "
                                   (help--key-description-fontified prefix)))
                       ":\n"))
-          "\nkey             binding\n"
+          "\nKey             Binding\n"
           (make-separator-line)))))))
 
 (defun help--shadow-lookup (keymap key accept-default remap)

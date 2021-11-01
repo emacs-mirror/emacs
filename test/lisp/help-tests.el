@@ -92,7 +92,7 @@
   (with-substitute-command-keys-test
    (test "\\{minibuffer-local-must-match-map}"
          "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 C-g		abort-minibuffers
 TAB		minibuffer-complete
@@ -249,7 +249,7 @@ M-g M-c		switch-to-completions
      (help-tests-major-mode)
      (test "\\{help-tests-major-mode-map}"
            "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 ( .. )		short-range
 1 .. 4		foo-range
@@ -267,7 +267,7 @@ x		foo-original
      (help-tests-minor-mode)
      (test "\\{help-tests-major-mode-map}"
            "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 ( .. )		short-range
 1 .. 4		foo-range
@@ -288,7 +288,7 @@ x		foo-original
       (define-key help-tests-major-mode-map [remap foo] 'bar)
       (test "\\{help-tests-major-mode-map}"
             "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 <remap>		Prefix Command
 
@@ -305,7 +305,7 @@ key             binding
                                           :help "Help text"))))))
       (describe-map-tree map nil nil nil nil t nil nil nil)
       (should (equal (buffer-string) "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 C-a		foo
 ")))))
@@ -320,7 +320,7 @@ C-a		foo
                                           :help "Help text"))))))
       (describe-map-tree map nil nil nil nil nil nil nil nil)
       (should (equal (buffer-string) "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 C-a		foo
 <menu-bar>	Prefix Command
@@ -336,7 +336,7 @@ C-a		foo
           (shadow-maps '((keymap . ((1 . baz))))))
       (describe-map-tree map t shadow-maps nil nil t nil nil t)
       (should (equal (buffer-string) "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 C-a		foo
   (this binding is currently shadowed)
@@ -351,7 +351,7 @@ C-b		bar
           (shadow-maps '((keymap . ((1 . baz))))))
       (describe-map-tree map t shadow-maps nil nil t nil nil nil)
       (should (equal (buffer-string) "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 C-b		bar
 ")))))
@@ -363,7 +363,7 @@ C-b		bar
                            (2 . undefined)))))
       (describe-map-tree map t nil nil nil nil nil nil nil)
       (should (equal (buffer-string) "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 C-a		foo
 ")))))
@@ -375,7 +375,7 @@ C-a		foo
                            (2 . undefined)))))
       (describe-map-tree map nil nil nil nil nil nil nil nil)
       (should (equal (buffer-string) "
-key             binding
+Key             Binding
 -------------------------------------------------------------------------------
 C-a		foo
 C-b		undefined
