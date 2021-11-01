@@ -1865,12 +1865,9 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 		    host (tramp-file-name-host v)
 		    port (tramp-file-name-port v)))))
 	(when (member method tramp-gvfs-methods)
-	  (with-parsed-tramp-file-name
-	      ;; This must be changed when we throw the old signature
-	      ;; away in Emacs 27.1 and higher.
-	      (with-no-warnings
-		(tramp-make-tramp-file-name method user domain host port ""))
-	      nil
+          (let ((v (make-tramp-file-name
+	            :method method :user user :domain domain
+	            :host host :port port)))
 	    (tramp-message
 	     v 6 "%s %s"
 	     signal-name (tramp-gvfs-stringify-dbus-message mount-info))
