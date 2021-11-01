@@ -307,6 +307,12 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 * Incompatible Lisp Changes in Emacs 29.1
 
+** Keymap descriptions have changed.
+'help--describe-command', 'C-h b' and associated functions that output
+keymap descriptions have changed.  In particular, prefix commands are
+not output at all, and instead of "??" for closures/functions,
+"[closure]"/"[lambda]" is output.
+
 ---
 ** 'downcase' details have changed slightly.
 In certain locales, changing the case of an ASCII-range character may

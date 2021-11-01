@@ -98,7 +98,6 @@ C-g		abort-minibuffers
 TAB		minibuffer-complete
 C-j		minibuffer-complete-and-exit
 RET		minibuffer-complete-and-exit
-ESC		Prefix Command
 SPC		minibuffer-complete-word
 ?		minibuffer-completion-help
 C-<tab>		file-cache-minibuffer-complete
@@ -109,10 +108,7 @@ C-<tab>		file-cache-minibuffer-complete
 <prior>		switch-to-completions
 <up>		previous-line-or-history-element
 
-M-g		Prefix Command
 M-v		switch-to-completions
-
-M-g ESC		Prefix Command
 
 M-<		minibuffer-beginning-of-buffer
 M-n		next-history-element
@@ -290,8 +286,6 @@ x		foo-original
             "
 Key             Binding
 -------------------------------------------------------------------------------
-<remap>		Prefix Command
-
 <remap> <foo>	bar
 ")))))
 
@@ -323,7 +317,6 @@ C-a		foo
 Key             Binding
 -------------------------------------------------------------------------------
 C-a		foo
-<menu-bar>	Prefix Command
 
 <menu-bar> <foo>		foo
 ")))))
