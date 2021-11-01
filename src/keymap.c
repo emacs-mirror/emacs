@@ -2933,7 +2933,10 @@ You type        Translation\n\
 	{
 	  if (EQ (start1, BVAR (XBUFFER (buffer), keymap)))
 	    {
-	      Lisp_Object msg = build_unibyte_string ("\f\nMajor Mode Bindings");
+	      Lisp_Object msg =
+		CALLN (Fformat,
+		       build_unibyte_string ("\f\n`%s' Major Mode Bindings"),
+		       XBUFFER (buffer)->major_mode_);
 	      CALLN (Ffuncall,
 		     Qdescribe_map_tree,
 		     start1, Qt, shadow, prefix,

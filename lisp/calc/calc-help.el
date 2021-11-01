@@ -111,9 +111,6 @@ C-w  Describe how there is no warranty for Calc."
   (with-current-buffer "*Help*"
     (let ((inhibit-read-only t))
       (goto-char (point-min))
-      (when (search-forward "Major Mode Bindings:" nil t)
-        (delete-region (point-min) (point))
-        (insert "Calc Mode Bindings:"))
       (when (search-forward "Global bindings:" nil t)
         (forward-line -1)
         (delete-region (point) (point-max)))
