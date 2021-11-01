@@ -338,11 +338,22 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
 
 (autoload 'align "align" "\
 Attempt to align a region based on a set of alignment rules.
-BEG and END mark the region.  If BEG and END are specifically set to
-nil (this can only be done programmatically), the beginning and end of
-the current alignment section will be calculated based on the location
-of point, and the value of `align-region-separate' (or possibly each
-rule's `separate' attribute).
+Interactively, BEG and END are the mark/point of the current region.
+
+Many modes define specific alignment rules, and some of these
+rules in some modes react to the current prefix argument.  For
+instance, in `text-mode', `M-x align' will align into columns
+based on space delimiters, while `C-u - M-x align' will align
+into columns based on the \"$\" character.  See the
+`align-rules-list' variable definition for the specific rules.
+
+Also see `align-regexp', which will guide you through various
+parameters for aligning text.
+
+Non-interactively, if BEG and END are nil, the beginning and end
+of the current alignment section will be calculated based on the
+location of point, and the value of `align-region-separate' (or
+possibly each rule's `separate' attribute).
 
 If SEPARATE is non-nil, it overrides the value of
 `align-region-separate' for all rules, except those that have their
@@ -359,6 +370,15 @@ on the format of these lists.
 Align the current region using an ad-hoc rule read from the minibuffer.
 BEG and END mark the limits of the region.  Interactively, this function
 prompts for the regular expression REGEXP to align with.
+
+Interactively, if you specify a prefix argument, the function
+will guide you through entering the full regular expression, and
+then prompts for which subexpression parenthesis GROUP (default
+1) within REGEXP to modify, the amount of SPACING (default
+`align-default-spacing') to use, and whether or not to REPEAT the
+rule throughout the line.
+
+See `align-rules-list' for more information about these options.
 
 For example, let's say you had a list of phone numbers, and wanted to
 align them so that the opening parentheses would line up:
@@ -379,15 +399,8 @@ regular expression after you enter it.  Interactively, you only
 need to supply the characters to be lined up, and any preceding
 whitespace is replaced.
 
-Non-interactively (or if you specify a prefix argument), you must
-enter the full regular expression, including the subexpression.
-Interactively, the function also then prompts for which
-subexpression parenthesis GROUP (default 1) within REGEXP to
-modify, the amount of SPACING (default `align-default-spacing')
-to use, and whether or not to REPEAT the rule throughout the
-line.
-
-See `align-rules-list' for more information about these options.
+Non-interactively, you must enter the full regular expression,
+including the subexpression.
 
 The non-interactive form of the previous example would look something like:
   (align-regexp (point-min) (point-max) \"\\\\(\\\\s-*\\\\)(\")
@@ -1622,7 +1635,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'autoarg-kp-mode)'.
+evaluate `(default-value \\='autoarg-kp-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1665,6 +1678,8 @@ or if CONDITION had no actions, after all other CONDITIONs.
 
 \(fn CONDITION ACTION &optional AFTER)" nil nil)
 
+(function-put 'define-auto-insert 'lisp-indent-function 'defun)
+
 (defvar auto-insert-mode nil "\
 Non-nil if Auto-Insert mode is enabled.
 See the `auto-insert-mode' command
@@ -1687,7 +1702,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'auto-insert-mode)'.
+evaluate `(default-value \\='auto-insert-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -1873,7 +1888,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'global-auto-revert-mode)'.
+evaluate `(default-value \\='global-auto-revert-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -2012,7 +2027,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'display-battery-mode)'.
+evaluate `(default-value \\='display-battery-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -3438,6 +3453,8 @@ See Info node `(calc)Defining Functions'.
 
 (function-put 'defmath 'doc-string-elt '3)
 
+(function-put 'defmath 'lisp-indent-function 'defun)
+
 (register-definition-prefixes "calc" '("calc" "defcalcmodevar" "inexact-result" "math-" "var-"))
 
 ;;;***
@@ -4467,6 +4484,8 @@ MAP-ID := integer
 
 (function-put 'define-ccl-program 'doc-string-elt '3)
 
+(function-put 'define-ccl-program 'lisp-indent-function 'defun)
+
 (autoload 'check-ccl-program "ccl" "\
 Check validity of CCL-PROGRAM.
 If CCL-PROGRAM is a symbol denoting a CCL program, return
@@ -4930,7 +4949,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'cl-font-lock-built-in-mode)'.
+evaluate `(default-value \\='cl-font-lock-built-in-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -5165,7 +5184,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'cl-old-struct-compat-mode)'.
+evaluate `(default-value \\='cl-old-struct-compat-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -5776,7 +5795,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'dynamic-completion-mode)'.
+evaluate `(default-value \\='dynamic-completion-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -6345,7 +6364,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'cua-mode)'.
+evaluate `(default-value \\='cua-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -7318,7 +7337,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'delete-selection-mode)'.
+evaluate `(default-value \\='delete-selection-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -7408,6 +7427,8 @@ See Info node `(elisp)Derived Modes' for more details.
 \(fn CHILD PARENT NAME [DOCSTRING] [KEYWORD-ARGS...] &rest BODY)" nil t)
 
 (function-put 'define-derived-mode 'doc-string-elt '4)
+
+(function-put 'define-derived-mode 'lisp-indent-function 'defun)
 
 (autoload 'derived-mode-init-mode-variables "derived" "\
 Initialize variables for a new MODE.
@@ -7506,7 +7527,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'desktop-save-mode)'.
+evaluate `(default-value \\='desktop-save-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -8801,6 +8822,8 @@ INIT-VALUE LIGHTER KEYMAP.
 
 (function-put 'define-minor-mode 'doc-string-elt '2)
 
+(function-put 'define-minor-mode 'lisp-indent-function 'defun)
+
 (defalias 'easy-mmode-define-global-mode #'define-globalized-minor-mode)
 
 (defalias 'define-global-minor-mode #'define-globalized-minor-mode)
@@ -8837,6 +8860,8 @@ on if the hook has explicitly disabled it.
 \(fn GLOBAL-MODE MODE TURN-ON [KEY VALUE]... BODY...)" nil t)
 
 (function-put 'define-globalized-minor-mode 'doc-string-elt '2)
+
+(function-put 'define-globalized-minor-mode 'lisp-indent-function 'defun)
 
 (autoload 'easy-mmode-define-keymap "easy-mmode" "\
 Return a keymap built from bindings BS.
@@ -9388,7 +9413,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'global-ede-mode)'.
+evaluate `(default-value \\='global-ede-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -10250,7 +10275,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'electric-pair-mode)'.
+evaluate `(default-value \\='electric-pair-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -10277,7 +10302,8 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(buffer-local-value 'electric-pair-mode (current-buffer))'.
+evaluate `(buffer-local-value \\='electric-pair-mode
+\(current-buffer))'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -10862,7 +10888,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'epa-global-mail-mode)'.
+evaluate `(default-value \\='epa-global-mail-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -10928,7 +10954,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;;### (autoloads nil "erc" "erc/erc.el" (0 0 0 0))
 ;;; Generated autoloads from erc/erc.el
-(push (purecopy '(erc 5 3)) package--builtin-versions)
+(push (purecopy '(erc 5 4 1)) package--builtin-versions)
 
 (autoload 'erc-select-read-args "erc" "\
 Prompt the user for values of nick, server, port, and password." nil nil)
@@ -11494,7 +11520,7 @@ See documentation of variable `tags-file-name'.
 
 (make-obsolete 'find-tag-regexp 'xref-find-apropos '"25.1")
 
-(defalias 'pop-tag-mark 'xref-pop-marker-stack)
+(defalias 'pop-tag-mark 'xref-go-back)
 
 (defalias 'next-file 'tags-next-file)
 
@@ -11575,7 +11601,7 @@ for \\[find-tag] (which see)." t nil)
 
 (autoload 'etags--xref-backend "etags" nil nil nil)
 
-(register-definition-prefixes "etags" '("default-tags-table-function" "etags-" "file-of-tag" "find-tag-" "goto-tag-location-function" "initialize-new-tags-table" "last-tag" "list-tags-function" "select-tags-table-" "snarf-tag-function" "tag" "verify-tags-table-function" "xref-"))
+(register-definition-prefixes "etags" '("default-tags-table-function" "etags-" "file-of-tag" "find-tag-" "goto-tag-location-function" "initialize-new-tags-table" "last-tag" "list-tags-function" "select-tags-table-" "snarf-tag-function" "tag" "verify-tags-table-function"))
 
 ;;;***
 
@@ -12511,8 +12537,9 @@ If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
 See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
-`ffap-url-unwrap-local', `ffap-url-unwrap-remote', and the functions
-`ffap-file-at-point' and `ffap-url-at-point'.
+`ffap-url-unwrap-local', `ffap-url-unwrap-remote',
+`ffap-file-name-with-spaces', and the functions `ffap-file-at-point'
+and `ffap-url-at-point'.
 
 \(fn &optional FILENAME)" t nil)
 
@@ -14063,7 +14090,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'gdb-enable-debug)'.
+evaluate `(default-value \\='gdb-enable-debug)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -14470,7 +14497,7 @@ CLEAN is obsolete and ignored.
 (autoload 'gnus-article-prepare-display "gnus-art" "\
 Make the current buffer look like a nice article." nil nil)
 
-(register-definition-prefixes "gnus-art" '("article-" "gnus-"))
+(register-definition-prefixes "gnus-art" '(":keymap" "article-" "gnus-"))
 
 ;;;***
 
@@ -14778,7 +14805,7 @@ The arguments have the same meaning as those of
 
 \(fn IDS &optional WINDOW-CONF)" t nil)
 
-(register-definition-prefixes "gnus-group" '("gnus-"))
+(register-definition-prefixes "gnus-group" '(":keymap" "gnus-"))
 
 ;;;***
 
@@ -15005,7 +15032,7 @@ Like `message-reply'.
 
 (define-mail-user-agent 'gnus-user-agent 'gnus-msg-mail 'message-send-and-exit 'message-kill-buffer 'message-send-hook)
 
-(register-definition-prefixes "gnus-msg" '("gnus-"))
+(register-definition-prefixes "gnus-msg" '(":prefix" "gnus-"))
 
 ;;;***
 
@@ -15219,7 +15246,7 @@ BOOKMARK is a bookmark name or a bookmark record.
 
 \(fn BOOKMARK)" nil nil)
 
-(register-definition-prefixes "gnus-sum" '("gnus-"))
+(register-definition-prefixes "gnus-sum" '(":keymap" "gnus-"))
 
 ;;;***
 
@@ -15734,7 +15761,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'gud-tooltip-mode)'.
+evaluate `(default-value \\='gud-tooltip-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16245,6 +16272,11 @@ gives the window that lists the options.")
 
 ;;;### (autoloads nil "help-mode" "help-mode.el" (0 0 0 0))
 ;;; Generated autoloads from help-mode.el
+
+(autoload 'help-mode--add-function-link "help-mode" "\
+
+
+\(fn STR FUN)" nil nil)
 
 (autoload 'help-mode "help-mode" "\
 Major mode for viewing help text and navigating references in it.
@@ -17066,7 +17098,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'global-hl-line-mode)'.
+evaluate `(default-value \\='global-hl-line-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -17487,7 +17519,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'fido-mode)'.
+evaluate `(default-value \\='fido-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -17519,7 +17551,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'icomplete-mode)'.
+evaluate `(default-value \\='icomplete-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -17561,7 +17593,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'icomplete-vertical-mode)'.
+evaluate `(default-value \\='icomplete-vertical-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -17598,7 +17630,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'fido-vertical-mode)'.
+evaluate `(default-value \\='fido-vertical-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -18339,6 +18371,8 @@ Example:
 
 (function-put 'defimage 'doc-string-elt '3)
 
+(function-put 'defimage 'lisp-indent-function 'defun)
+
 (autoload 'imagemagick-register-types "image" "\
 Register file types that can be handled by ImageMagick.
 This function is called at startup, after loading the init file.
@@ -18350,6 +18384,9 @@ Emacs visits them in Image mode.  They are also added to
 recognizes these files as having image type `imagemagick'.
 
 If Emacs is compiled without ImageMagick support, this does nothing." nil nil)
+
+(autoload 'image-at-point-p "image" "\
+Return non-nil if there is an image at point." nil nil)
 
 (register-definition-prefixes "image" '("find-image--cache" "image" "unknown-image-type"))
 
@@ -18368,7 +18405,7 @@ If Emacs is compiled without ImageMagick support, this does nothing." nil nil)
 (push (purecopy '(image-dired 0 4 11)) package--builtin-versions)
 
 (autoload 'image-dired-dired-toggle-marked-thumbs "image-dired" "\
-Toggle thumbnails in front of file names in the dired buffer.
+Toggle thumbnails in front of file names in the Dired buffer.
 If no marked file could be found, insert or hide thumbnails on the
 current line.  ARG, if non-nil, specifies the files to use instead
 of the marked files.  If ARG is an integer, use the next ARG (or
@@ -18381,12 +18418,12 @@ Open directory DIR and create a default window configuration.
 
 Convenience command that:
 
- - Opens dired in folder DIR
+ - Opens Dired in folder DIR
  - Splits windows in most useful (?) way
- - Set `truncate-lines' to t
+ - Sets `truncate-lines' to t
 
 After the command has finished, you would typically mark some
-image files in dired and type
+image files in Dired and type
 \\[image-dired-display-thumbs] (`image-dired-display-thumbs').
 
 If called with prefix argument ARG, skip splitting of windows.
@@ -18404,7 +18441,7 @@ point (this is useful if you have marked some files but want to show
 another one).
 
 Recommended usage is to split the current frame horizontally so that
-you have the dired buffer in the left window and the
+you have the Dired buffer in the left window and the
 `image-dired-thumbnail-buffer' buffer in the right window.
 
 With optional argument APPEND, append thumbnail to thumbnail buffer
@@ -18420,19 +18457,21 @@ thumbnail buffer to be selected.
 \(fn &optional ARG APPEND DO-NOT-POP)" t nil)
 
 (autoload 'image-dired-show-all-from-dir "image-dired" "\
-Make a preview buffer for all images in DIR and display it.
-If the number of files in DIR matching `image-file-name-regexp'
-exceeds `image-dired-show-all-from-dir-max-files', a warning will be
-displayed.
+Make a thumbnail buffer for all images in DIR and display it.
+Any file matching `image-file-name-regexp' is considered an image
+file.
+
+If the number of image files in DIR exceeds
+`image-dired-show-all-from-dir-max-files', ask for confirmation
+before creating the thumbnail buffer.  If that variable is nil,
+never ask for confirmation.
 
 \(fn DIR)" t nil)
 
 (defalias 'image-dired 'image-dired-show-all-from-dir)
 
-(define-obsolete-function-alias 'tumme 'image-dired "24.4")
-
 (autoload 'image-dired-tag-files "image-dired" "\
-Tag marked file(s) in dired.  With prefix ARG, tag file at point.
+Tag marked file(s) in Dired.  With prefix ARG, tag file at point.
 
 \(fn ARG)" t nil)
 
@@ -18446,7 +18485,7 @@ With prefix argument ARG, remove tag from file at point.
 Jump to thumbnail buffer." t nil)
 
 (autoload 'image-dired-minor-mode "image-dired" "\
-Setup easy-to-use keybindings for the commands to be used in dired mode.
+Setup easy-to-use keybindings for the commands to be used in Dired mode.
 Note that n, p and <down> and <up> will be hijacked and bound to
 `image-dired-dired-x-line'.
 
@@ -18466,8 +18505,6 @@ disabled.
 
 \(fn &optional ARG)" t nil)
 
-(define-obsolete-function-alias 'image-dired-setup-dired-keybindings 'image-dired-minor-mode "26.1")
-
 (autoload 'image-dired-display-thumbs-append "image-dired" "\
 Append thumbnails to `image-dired-thumbnail-buffer'." t nil)
 
@@ -18485,7 +18522,7 @@ With prefix argument ARG, display image in its original size.
 \(fn &optional ARG)" t nil)
 
 (autoload 'image-dired-dired-comment-files "image-dired" "\
-Add comment to current or marked files in dired." t nil)
+Add comment to current or marked files in Dired." t nil)
 
 (autoload 'image-dired-mark-tagged-files "image-dired" "\
 Use regexp to mark files with matching tag.
@@ -18493,12 +18530,21 @@ A `tag' is a keyword, a piece of meta data, associated with an
 image file and stored in image-dired's database file.  This command
 lets you input a regexp and this will be matched against all tags
 on all image files in the database file.  The files that have a
-matching tag will be marked in the dired buffer." t nil)
+matching tag will be marked in the Dired buffer." t nil)
 
 (autoload 'image-dired-dired-edit-comment-and-tags "image-dired" "\
 Edit comment and tags of current or marked image files.
 Edit comment and tags for all marked image files in an
 easy-to-use form." t nil)
+
+(autoload 'image-dired-bookmark-jump "image-dired" "\
+Default bookmark handler for Image-Dired buffers.
+
+\(fn BOOKMARK)" nil nil)
+
+(define-obsolete-function-alias 'tumme #'image-dired "24.4")
+
+(define-obsolete-function-alias 'image-dired-setup-dired-keybindings #'image-dired-minor-mode "26.1")
 
 (register-definition-prefixes "image-dired" '("image-dired-"))
 
@@ -18507,7 +18553,7 @@ easy-to-use form." t nil)
 ;;;### (autoloads nil "image-file" "image-file.el" (0 0 0 0))
 ;;; Generated autoloads from image-file.el
 
-(defvar image-file-name-extensions (purecopy '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm" "svg")) "\
+(defvar image-file-name-extensions (purecopy '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm" "svg" "webp")) "\
 A list of image-file filename extensions.
 Filenames having one of these extensions are considered image files,
 in addition to those matching `image-file-name-regexps'.
@@ -18564,7 +18610,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'auto-image-file-mode)'.
+evaluate `(default-value \\='auto-image-file-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -19739,7 +19785,7 @@ one of the aforementioned options instead of using this mode.
 
 (dolist (name (list "node" "nodejs" "gjs" "rhino")) (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'js-mode)))
 
-(register-definition-prefixes "js" '("js-" "with-js"))
+(register-definition-prefixes "js" '("js-"))
 
 ;;;***
 
@@ -20844,7 +20890,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'mail-abbrevs-mode)'.
+evaluate `(default-value \\='mail-abbrevs-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -21272,7 +21318,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'minibuffer-depth-indicate-mode)'.
+evaluate `(default-value \\='minibuffer-depth-indicate-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -21673,7 +21719,7 @@ perform the operation on all messages in that region.
 
 \(fn)" t nil)
 
-(register-definition-prefixes "mh-folder" '("mh-"))
+(register-definition-prefixes "mh-folder" '(":keymap" "mh-"))
 
 ;;;***
 
@@ -21709,7 +21755,7 @@ perform the operation on all messages in that region.
 ;;;### (autoloads nil "mh-letter" "mh-e/mh-letter.el" (0 0 0 0))
 ;;; Generated autoloads from mh-e/mh-letter.el
 
-(register-definition-prefixes "mh-letter" '("mh-"))
+(register-definition-prefixes "mh-letter" '(":keymap" "mh-"))
 
 ;;;***
 
@@ -21744,7 +21790,7 @@ perform the operation on all messages in that region.
 ;;;### (autoloads nil "mh-search" "mh-e/mh-search.el" (0 0 0 0))
 ;;; Generated autoloads from mh-e/mh-search.el
 
-(register-definition-prefixes "mh-search" '("mh-"))
+(register-definition-prefixes "mh-search" '(":keymap" "mh-"))
 
 ;;;***
 
@@ -21758,14 +21804,14 @@ perform the operation on all messages in that region.
 ;;;### (autoloads nil "mh-show" "mh-e/mh-show.el" (0 0 0 0))
 ;;; Generated autoloads from mh-e/mh-show.el
 
-(register-definition-prefixes "mh-show" '("mh-"))
+(register-definition-prefixes "mh-show" '(":keymap" "mh-"))
 
 ;;;***
 
 ;;;### (autoloads nil "mh-speed" "mh-e/mh-speed.el" (0 0 0 0))
 ;;; Generated autoloads from mh-e/mh-speed.el
 
-(register-definition-prefixes "mh-speed" '("mh-"))
+(register-definition-prefixes "mh-speed" '(":keymap" "mh-"))
 
 ;;;***
 
@@ -21840,7 +21886,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'midnight-mode)'.
+evaluate `(default-value \\='midnight-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -21896,7 +21942,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'minibuffer-electric-default-mode)'.
+evaluate `(default-value \\='minibuffer-electric-default-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -22480,7 +22526,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'msb-mode)'.
+evaluate `(default-value \\='msb-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -22643,10 +22689,15 @@ Embed OBJ (string or character) at index IDX of STRING.
 (autoload 'truncate-string-to-width "mule-util" "\
 Truncate string STR to end at column END-COLUMN.
 The optional 3rd arg START-COLUMN, if non-nil, specifies the starting
-column; that means to return the characters occupying columns
-START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and START-COLUMN
-are specified in terms of character display width in the current
-buffer; see also `char-width'.
+column (default: zero); that means to return the characters occupying
+columns START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and
+START-COLUMN are specified in terms of character display width in the
+current buffer; see `char-width'.
+
+Since character composition on display can produce glyphs whose
+width is smaller than the sum of `char-width' values of the
+composed characters, this function can produce inaccurate results
+when used in such cases.
 
 The optional 4th arg PADDING, if non-nil, specifies a padding
 character (which should have a display width of 1) to add at the end
@@ -22803,7 +22854,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'mouse-wheel-mode)'.
+evaluate `(default-value \\='mouse-wheel-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -23857,6 +23908,13 @@ Many aspects this mode can be customized using
 ;;;### (autoloads nil "oc" "org/oc.el" (0 0 0 0))
 ;;; Generated autoloads from org/oc.el
 
+(autoload 'org-cite-insert "oc" "\
+Insert a citation at point.
+Insertion is done according to the processor set in `org-cite-insert-processor'.
+ARG is the prefix argument received when calling interactively the function.
+
+\(fn ARG)" t nil)
+
 (register-definition-prefixes "oc" '("org-cite-"))
 
 ;;;***
@@ -23985,6 +24043,13 @@ startup file, `~/.emacs-octave'.
 ;;; Generated autoloads from org/ol-info.el
 
 (register-definition-prefixes "ol-info" '("org-info-"))
+
+;;;***
+
+;;;### (autoloads nil "ol-man" "org/ol-man.el" (0 0 0 0))
+;;; Generated autoloads from org/ol-man.el
+
+(register-definition-prefixes "ol-man" '("org-man-"))
 
 ;;;***
 
@@ -25060,67 +25125,6 @@ archive).
 
 ;;;***
 
-;;;### (autoloads nil "paren" "paren.el" (0 0 0 0))
-;;; Generated autoloads from paren.el
-
-(defcustom show-paren-mode t "\
-Non-nil if Show-Paren mode is enabled.
-See the `show-paren-mode' command
-for a description of this minor mode.
-Setting this variable directly does not take effect;
-either customize it (see the info node `Easy Customization')
-or call the function `show-paren-mode'." :set #'custom-set-minor-mode :initialize 'custom-initialize-delay :type 'boolean :group 'paren-showing)
-
-(custom-autoload 'show-paren-mode "paren" nil)
-
-(autoload 'show-paren-mode "paren" "\
-Toggle visualization of matching parens (Show Paren mode).
-
-This is a minor mode.  If called interactively, toggle the `Show-Paren
-mode' mode.  If the prefix argument is positive, enable the mode, and
-if it is zero or negative, disable the mode.
-
-If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
-mode if ARG is nil, omitted, or is a positive number.  Disable the
-mode if ARG is a negative number.
-
-To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'show-paren-mode)'.
-
-The mode's hook is called both when the mode is enabled and when it is
-disabled.
-
-When enabled, any matching parenthesis is highlighted in `show-paren-style'
-after `show-paren-delay' seconds of Emacs idle time.
-
-This is a global minor mode.  To toggle the mode in a single buffer,
-use `show-paren-local-mode'.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'show-paren-local-mode "paren" "\
-Toggle `show-paren-mode' only in this buffer.
-
-This is a minor mode.  If called interactively, toggle the
-`Show-Paren-Local mode' mode.  If the prefix argument is positive,
-enable the mode, and if it is zero or negative, disable the mode.
-
-If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
-mode if ARG is nil, omitted, or is a positive number.  Disable the
-mode if ARG is a negative number.
-
-To check whether the minor mode is enabled in the current buffer,
-evaluate `(buffer-local-value 'show-paren-mode (current-buffer))'.
-
-The mode's hook is called both when the mode is enabled and when it is
-disabled.
-
-\(fn &optional ARG)" t nil)
-
-(register-definition-prefixes "paren" '("show-paren-"))
-
-;;;***
-
 ;;;### (autoloads nil "parse-time" "calendar/parse-time.el" (0 0
 ;;;;;;  0 0))
 ;;; Generated autoloads from calendar/parse-time.el
@@ -25839,7 +25843,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'pixel-scroll-mode)'.
+evaluate `(default-value \\='pixel-scroll-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -26555,7 +26559,7 @@ Open profile FILENAME.
 
 ;;;### (autoloads nil "project" "progmodes/project.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/project.el
-(push (purecopy '(project 0 7 1)) package--builtin-versions)
+(push (purecopy '(project 0 8 1)) package--builtin-versions)
 
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
@@ -26629,13 +26633,25 @@ pattern to search for.
 Visit a file (with completion) in the current project.
 
 The filename at point (determined by `thing-at-point'), if any,
-is available as part of \"future history\"." t nil)
+is available as part of \"future history\".
+
+If INCLUDE-ALL is non-nil, or with prefix argument when called
+interactively, include all files under the project root, except
+for VCS directories listed in `vc-directory-exclusion-list'.
+
+\(fn &optional INCLUDE-ALL)" t nil)
 
 (autoload 'project-or-external-find-file "project" "\
 Visit a file (with completion) in the current project or external roots.
 
 The filename at point (determined by `thing-at-point'), if any,
-is available as part of \"future history\"." t nil)
+is available as part of \"future history\".
+
+If INCLUDE-ALL is non-nil, or with prefix argument when called
+interactively, include all files under the project root, except
+for VCS directories listed in `vc-directory-exclusion-list'.
+
+\(fn &optional INCLUDE-ALL)" t nil)
 
 (autoload 'project-find-dir "project" "\
 Start Dired in a directory inside the current project." t nil)
@@ -27103,7 +27119,7 @@ Optional argument FACE specifies the face to do the highlighting.
 
 ;;;### (autoloads nil "python" "progmodes/python.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/python.el
-(push (purecopy '(python 0 27 1)) package--builtin-versions)
+(push (purecopy '(python 0 28)) package--builtin-versions)
 
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.py[iw]?\\'") 'python-mode))
 
@@ -27620,7 +27636,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'rcirc-track-minor-mode)'.
+evaluate `(default-value \\='rcirc-track-minor-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -27680,7 +27696,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'recentf-mode)'.
+evaluate `(default-value \\='recentf-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28135,7 +28151,7 @@ recently executed command not bound to an input event\".
 \(fn REPEAT-ARG)" t nil)
 
 (defvar repeat-map nil "\
-The value of the repeating map for the next command.
+The value of the repeating transient map for the next command.
 A command called from the map can set it again to the same map when
 the map can't be set on the command symbol property `repeat-map'.")
 
@@ -28153,7 +28169,7 @@ or call the function `repeat-mode'.")
 Toggle Repeat mode.
 When Repeat mode is enabled, and the command symbol has the property named
 `repeat-map', this map is activated temporarily for the next command.
-See `describe-repeat-maps' for a list of all repeatable command.
+See `describe-repeat-maps' for a list of all repeatable commands.
 
 This is a minor mode.  If called interactively, toggle the `Repeat
 mode' mode.  If the prefix argument is positive, enable the mode, and
@@ -28164,7 +28180,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'repeat-mode)'.
+evaluate `(default-value \\='repeat-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28288,7 +28304,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'global-reveal-mode)'.
+evaluate `(default-value \\='global-reveal-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -29332,7 +29348,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'savehist-mode)'.
+evaluate `(default-value \\='savehist-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -29396,7 +29412,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'save-place-mode)'.
+evaluate `(default-value \\='save-place-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -29515,7 +29531,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'scroll-all-mode)'.
+evaluate `(default-value \\='scroll-all-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -29630,7 +29646,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'semantic-mode)'.
+evaluate `(default-value \\='semantic-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -30308,7 +30324,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'server-mode)'.
+evaluate `(default-value \\='server-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -30804,6 +30820,8 @@ SKELETON is as defined under `skeleton-insert'.
 
 (function-put 'define-skeleton 'doc-string-elt '2)
 
+(function-put 'define-skeleton 'lisp-indent-function 'defun)
+
 (autoload 'skeleton-proxy-new "skeleton" "\
 Insert SKELETON.
 Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
@@ -31172,7 +31190,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'global-so-long-mode)'.
+evaluate `(default-value \\='global-so-long-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -31516,7 +31534,7 @@ installed through `spam-necessary-extra-headers'.
 
 \(fn &rest SYMBOLS)" t nil)
 
-(register-definition-prefixes "spam" '("spam-"))
+(register-definition-prefixes "spam" '(":keymap" "spam-"))
 
 ;;;***
 
@@ -32294,7 +32312,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'strokes-mode)'.
+evaluate `(default-value \\='strokes-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -32400,7 +32418,33 @@ If OMIT-NULLS, empty lines will be removed from the results.
 
 \(fn STRING &optional OMIT-NULLS)" nil nil)
 
-(register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let*" "internal--" "named-let" "replace-region-contents" "string-" "thread-" "when-let*"))
+(autoload 'ensure-empty-lines "subr-x" "\
+Ensure that there's LINES number of empty lines before point.
+If LINES is nil or missing, a this ensures that there's a single
+empty line before point.
+
+Interactively, this command uses the numerical prefix for LINES.
+
+If there's already more empty lines before point than LINES, the
+number of blank lines will be reduced.
+
+If point is not at the beginning of a line, a newline character
+is inserted before adjusting the number of empty lines.
+
+\(fn &optional LINES)" t nil)
+
+(autoload 'string-pixel-width "subr-x" "\
+Return the width of STRING in pixels.
+
+\(fn STRING)" nil nil)
+
+(autoload 'string-glyph-split "subr-x" "\
+Split STRING into a list of strings representing separate glyphs.
+This takes into account combining characters and grapheme clusters.
+
+\(fn STRING)" nil nil)
+
+(register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let*" "internal--" "named-let" "replace-region-contents" "string-" "thread-" "when-let*" "with-memoization"))
 
 ;;;***
 
@@ -32597,7 +32641,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'gpm-mouse-mode)'.
+evaluate `(default-value \\='gpm-mouse-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -32620,7 +32664,7 @@ GPM.  This is due to limitations in GPM and the Linux kernel.
 ;;; Generated autoloads from tab-line.el
 
 (autoload 'tab-line-mode "tab-line" "\
-Toggle display of window tab line in the buffer.
+Toggle display of tab line in the windows displaying the current buffer.
 
 This is a minor mode.  If called interactively, toggle the `Tab-Line
 mode' mode.  If the prefix argument is positive, enable the mode, and
@@ -34314,7 +34358,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'display-time-mode)'.
+evaluate `(default-value \\='display-time-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -34461,7 +34505,7 @@ Convert the time interval in seconds to a short string.
 (put 'time-stamp-time-zone 'safe-local-variable 'time-stamp-zone-type-p)
 
 (autoload 'time-stamp-zone-type-p "time-stamp" "\
-Return whether or not ZONE is of the correct type for a timezone rule.
+Return non-nil if ZONE is of the correct type for a timezone rule.
 Valid ZONE values are described in the documentation of `format-time-string'.
 
 \(fn ZONE)" nil nil)
@@ -34500,7 +34544,7 @@ this line to a local variables list near the end of the file:
 
 If the file has no time-stamp template, this function does nothing.
 
-You can set `time-stamp-pattern' in a files's local variables list
+You can set `time-stamp-pattern' in a file's local variables list
 to customize the information in the time stamp and where it is written.
 
 The time stamp is updated only if `time-stamp-active' is non-nil." t nil)
@@ -35003,7 +35047,7 @@ It must be supported by libarchive(3).")
 Regular expression matching archive file names." '(concat "\\`" "\\(" ".+" "\\." (regexp-opt tramp-archive-suffixes) "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*" "\\)" "\\(" "/" ".*" "\\)" "\\'"))
 
 (defun tramp-archive-autoload-file-name-handler (operation &rest args) "\
-Load Tramp archive file name handler, and perform OPERATION." (when tramp-archive-enabled (let ((default-directory temporary-file-directory) (tramp-archive-autoload t)) tramp-archive-autoload (apply #'tramp-autoload-file-name-handler operation args))))
+Load Tramp archive file name handler, and perform OPERATION." (defvar tramp-archive-autoload) (when tramp-archive-enabled (let ((default-directory temporary-file-directory) (tramp-archive-autoload t)) (apply #'tramp-autoload-file-name-handler operation args))))
 
 (defun tramp-register-archive-file-name-handler nil "\
 Add archive file name handler to `file-name-handler-alist'." (when tramp-archive-enabled (add-to-list 'file-name-handler-alist (cons (tramp-archive-autoload-file-name-regexp) #'tramp-archive-autoload-file-name-handler)) (put #'tramp-archive-autoload-file-name-handler 'safe-magic t)))
@@ -35183,7 +35227,7 @@ See info node `(transient)Modifying Existing Transients'.
 
 (function-put 'transient-remove-suffix 'lisp-indent-function 'defun)
 
-(register-definition-prefixes "transient" '("transient-"))
+(register-definition-prefixes "transient" '("magit--fit-window-to-buffer" "transient-"))
 
 ;;;***
 
@@ -35308,7 +35352,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'type-break-mode)'.
+evaluate `(default-value \\='type-break-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -35843,7 +35887,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'url-handler-mode)'.
+evaluate `(default-value \\='url-handler-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -36771,6 +36815,8 @@ To get a prompt, use a prefix argument.
 
 \(fn FILE BACKEND)" t nil)
 
+(make-obsolete 'vc-switch-backend 'nil '"28.1")
+
 (autoload 'vc-transfer-file "vc" "\
 Transfer FILE to another version control system NEW-BACKEND.
 If NEW-BACKEND has a higher precedence than FILE's current backend
@@ -37147,7 +37193,7 @@ Key bindings:
 ;;;### (autoloads nil "verilog-mode" "progmodes/verilog-mode.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from progmodes/verilog-mode.el
-(push (purecopy '(verilog-mode 2021 9 23 89128420)) package--builtin-versions)
+(push (purecopy '(verilog-mode 2021 10 14 127365406)) package--builtin-versions)
 
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.
@@ -38415,7 +38461,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'which-function-mode)'.
+evaluate `(default-value \\='which-function-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -38507,7 +38553,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'global-whitespace-mode)'.
+evaluate `(default-value \\='global-whitespace-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -38539,7 +38585,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'global-whitespace-newline-mode)'.
+evaluate `(default-value \\='global-whitespace-newline-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -39129,7 +39175,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'winner-mode)'.
+evaluate `(default-value \\='winner-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -39295,15 +39341,24 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;;### (autoloads nil "xref" "progmodes/xref.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/xref.el
-(push (purecopy '(xref 1 2 2)) package--builtin-versions)
+(push (purecopy '(xref 1 3 2)) package--builtin-versions)
 
 (autoload 'xref-find-backend "xref" nil nil nil)
 
-(autoload 'xref-pop-marker-stack "xref" "\
-Pop back to where \\[xref-find-definitions] was last invoked." t nil)
+(defalias 'xref-pop-marker-stack #'xref-go-back)
+
+(autoload 'xref-go-back "xref" "\
+Go back to the previous position in xref history.
+To undo, use \\[xref-go-forward]." t nil)
+
+(autoload 'xref-go-forward "xref" "\
+Got to the point where a previous \\[xref-go-back] was invoked." t nil)
 
 (autoload 'xref-marker-stack-empty-p "xref" "\
-Return t if the marker stack is empty; nil otherwise." nil nil)
+Whether the xref back-history is empty." nil nil)
+
+(autoload 'xref-forward-history-empty-p "xref" "\
+Whether the xref forward-history is empty." nil nil)
 
 (autoload 'xref-find-definitions "xref" "\
 Find the definition of the identifier at point.
@@ -39315,7 +39370,7 @@ definition for IDENTIFIER, display it in the selected window.
 Otherwise, display the list of the possible definitions in a
 buffer where the user can select from the list.
 
-Use \\[xref-pop-marker-stack] to return back to where you invoked this command.
+Use \\[xref-go-back] to return back to where you invoked this command.
 
 \(fn IDENTIFIER)" t nil)
 
@@ -39359,7 +39414,8 @@ output of this command when the backend is etags.
 
 \(fn PATTERN)" t nil)
  (define-key esc-map "." #'xref-find-definitions)
- (define-key esc-map "," #'xref-pop-marker-stack)
+ (define-key esc-map "," #'xref-go-back)
+ (define-key esc-map [?\C-,] #'xref-go-forward)
  (define-key esc-map "?" #'xref-find-references)
  (define-key esc-map [?\C-.] #'xref-find-apropos)
  (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
@@ -39437,7 +39493,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the
 mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value 'xterm-mouse-mode)'.
+evaluate `(default-value \\='xterm-mouse-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -39546,26 +39602,26 @@ Zone out, completely." t nil)
 ;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el" "emacs-lisp/eieio-compat.el"
 ;;;;;;  "emacs-lisp/eieio-custom.el" "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el"
 ;;;;;;  "emacs-lisp/lisp-mode.el" "emacs-lisp/lisp.el" "emacs-lisp/macroexp.el"
-;;;;;;  "emacs-lisp/map-ynp.el" "emacs-lisp/nadvice.el" "emacs-lisp/syntax.el"
-;;;;;;  "emacs-lisp/timer.el" "env.el" "epa-hook.el" "erc/erc-autoaway.el"
-;;;;;;  "erc/erc-button.el" "erc/erc-capab.el" "erc/erc-compat.el"
-;;;;;;  "erc/erc-dcc.el" "erc/erc-desktop-notifications.el" "erc/erc-ezbounce.el"
-;;;;;;  "erc/erc-fill.el" "erc/erc-identd.el" "erc/erc-imenu.el"
-;;;;;;  "erc/erc-join.el" "erc/erc-list.el" "erc/erc-log.el" "erc/erc-match.el"
-;;;;;;  "erc/erc-menu.el" "erc/erc-netsplit.el" "erc/erc-notify.el"
-;;;;;;  "erc/erc-page.el" "erc/erc-pcomplete.el" "erc/erc-replace.el"
-;;;;;;  "erc/erc-ring.el" "erc/erc-services.el" "erc/erc-sound.el"
-;;;;;;  "erc/erc-speedbar.el" "erc/erc-spelling.el" "erc/erc-stamp.el"
-;;;;;;  "erc/erc-status-sidebar.el" "erc/erc-track.el" "erc/erc-truncate.el"
-;;;;;;  "erc/erc-xdcc.el" "eshell/em-alias.el" "eshell/em-banner.el"
-;;;;;;  "eshell/em-basic.el" "eshell/em-cmpl.el" "eshell/em-dirs.el"
-;;;;;;  "eshell/em-glob.el" "eshell/em-hist.el" "eshell/em-ls.el"
-;;;;;;  "eshell/em-pred.el" "eshell/em-prompt.el" "eshell/em-rebind.el"
-;;;;;;  "eshell/em-script.el" "eshell/em-smart.el" "eshell/em-term.el"
-;;;;;;  "eshell/em-tramp.el" "eshell/em-unix.el" "eshell/em-xtra.el"
-;;;;;;  "faces.el" "files.el" "font-core.el" "font-lock.el" "format.el"
-;;;;;;  "frame.el" "help.el" "hfy-cmap.el" "ibuf-ext.el" "indent.el"
-;;;;;;  "international/characters.el" "international/charscript.el"
+;;;;;;  "emacs-lisp/map-ynp.el" "emacs-lisp/nadvice.el" "emacs-lisp/shorthands.el"
+;;;;;;  "emacs-lisp/syntax.el" "emacs-lisp/timer.el" "env.el" "epa-hook.el"
+;;;;;;  "erc/erc-autoaway.el" "erc/erc-button.el" "erc/erc-capab.el"
+;;;;;;  "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-desktop-notifications.el"
+;;;;;;  "erc/erc-ezbounce.el" "erc/erc-fill.el" "erc/erc-identd.el"
+;;;;;;  "erc/erc-imenu.el" "erc/erc-join.el" "erc/erc-list.el" "erc/erc-log.el"
+;;;;;;  "erc/erc-match.el" "erc/erc-menu.el" "erc/erc-netsplit.el"
+;;;;;;  "erc/erc-notify.el" "erc/erc-page.el" "erc/erc-pcomplete.el"
+;;;;;;  "erc/erc-replace.el" "erc/erc-ring.el" "erc/erc-services.el"
+;;;;;;  "erc/erc-sound.el" "erc/erc-speedbar.el" "erc/erc-spelling.el"
+;;;;;;  "erc/erc-stamp.el" "erc/erc-status-sidebar.el" "erc/erc-track.el"
+;;;;;;  "erc/erc-truncate.el" "erc/erc-xdcc.el" "eshell/em-alias.el"
+;;;;;;  "eshell/em-banner.el" "eshell/em-basic.el" "eshell/em-cmpl.el"
+;;;;;;  "eshell/em-dirs.el" "eshell/em-glob.el" "eshell/em-hist.el"
+;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
+;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
+;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
+;;;;;;  "eshell/em-xtra.el" "faces.el" "files.el" "font-core.el"
+;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
+;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charscript.el"
 ;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
 ;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
 ;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
@@ -39612,7 +39668,7 @@ Zone out, completely." t nil)
 ;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
 ;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
 ;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
-;;;;;;  "org/ox-texinfo.el" "org/ox.el" "progmodes/elisp-mode.el"
+;;;;;;  "org/ox-texinfo.el" "org/ox.el" "paren.el" "progmodes/elisp-mode.el"
 ;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
 ;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
 ;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
