@@ -67,10 +67,15 @@ decide whether the selected frame can display that Unicode character."
                                      ellipsis-text-property)
   "Truncate string STR to end at column END-COLUMN.
 The optional 3rd arg START-COLUMN, if non-nil, specifies the starting
-column; that means to return the characters occupying columns
-START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and START-COLUMN
-are specified in terms of character display width in the current
-buffer; see also `char-width'.
+column (default: zero); that means to return the characters occupying
+columns START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and
+START-COLUMN are specified in terms of character display width in the
+current buffer; see `char-width'.
+
+Since character composition on display can produce glyphs whose
+width is smaller than the sum of `char-width' values of the
+composed characters, this function can produce inaccurate results
+when used in such cases.
 
 The optional 4th arg PADDING, if non-nil, specifies a padding
 character (which should have a display width of 1) to add at the end

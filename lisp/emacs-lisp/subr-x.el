@@ -264,13 +264,13 @@ result will have lines that are longer than LENGTH."
     (buffer-string)))
 
 (defun string-limit (string length &optional end coding-system)
-  "Return (up to) a LENGTH substring of STRING.
-If STRING is shorter than or equal to LENGTH, the entire string
-is returned unchanged.
+  "Return a substring of STRING that is (up to) LENGTH characters long.
+If STRING is shorter than or equal to LENGTH characters, return the
+entire string unchanged.
 
-If STRING is longer than LENGTH, return a substring consisting of
-the first LENGTH characters of STRING.  If END is non-nil, return
-the last LENGTH characters instead.
+If STRING is longer than LENGTH characters, return a substring
+consisting of the first LENGTH characters of STRING.  If END is
+non-nil, return the last LENGTH characters instead.
 
 If CODING-SYSTEM is non-nil, STRING will be encoded before
 limiting, and LENGTH is interpreted as the number of bytes to

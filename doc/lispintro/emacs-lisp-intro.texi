@@ -1162,6 +1162,10 @@ computer.  Often, people use the term @dfn{expression}
 indiscriminately.  (Also, in many texts, the word @dfn{form} is used
 as a synonym for expression.)
 
+@c This and the next paragraph say ``kinds of atom'', but that is not
+@c a typo, just slightly ``old-fashioned wording which adds a fillip
+@c of interest to it'', and ``is more elegant writing'', according to
+@c RMS.
 Incidentally, the atoms that make up our universe were named such when
 they were thought to be indivisible; but it has been found that physical
 atoms are not indivisible.  Parts can split off an atom or it can
@@ -1177,7 +1181,7 @@ are different from the meaning the letters make as a word.  For
 example, the word for the South American sloth, the @samp{ai}, is
 completely different from the two words, @samp{a}, and @samp{i}.
 
-There are many kinds of atoms in nature but only a few in Lisp: for
+There are many kinds of atom in nature but only a few in Lisp: for
 example, @dfn{numbers}, such as 37, 511, or 1729, and @dfn{symbols}, such
 as @samp{+}, @samp{foo}, or @samp{forward-line}.  The words we have
 listed in the examples above are all symbols.  In everyday Lisp
@@ -17839,7 +17843,7 @@ xmodmap -e "keysym Alt_L = Meta_L Alt_L"
 Finally, a feature I really like: a modified mode line.
 
 When I work over a network, I forget which machine I am using.  Also,
-I tend to I lose track of where I am, and which line point is on.
+I tend to lose track of where I am, and which line point is on.
 
 So I reset my mode line to look like this:
 

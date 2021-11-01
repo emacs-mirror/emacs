@@ -5329,6 +5329,12 @@ handlers.
 
 @node External packages
 @section Integrating with external Lisp packages
+
+In general, it is not recommended to use @value{tramp} functions and
+variables not described in this manual.  They might change their
+signature and/or semantics without any announcement.
+
+
 @subsection File name completion
 
 @vindex non-essential

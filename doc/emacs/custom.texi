@@ -1507,7 +1507,7 @@ criteria, identifying a remote machine:
   This code declares two different profiles, @code{remote-ksh} and
 @code{remote-bash}. The profile @code{remote-ksh} is applied to all
 buffers which have a remote default directory matching the regexp
-@code{"remotemachine} as host name.  Such a criteria can also
+@code{"remotemachine"} as host name.  Such a criteria can also
 discriminate for the properties @code{:protocol} (this is the Tramp
 method) or @code{:user} (a remote user name).  The @code{nil} criteria
 matches all buffers with a remote default directory.

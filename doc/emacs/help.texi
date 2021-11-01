@@ -443,11 +443,13 @@ alphabetical order, change the variable
 
 @node Help Mode
 @section Help Mode Commands
+@findex help-mode
+@cindex help mode
 
-  Help buffers provide the same commands as View mode (@pxref{View
-Mode}); for instance, @key{SPC} scrolls forward, and @key{DEL} or
-@kbd{S-@key{SPC}} scrolls backward.  A few special commands are also
-provided:
+  Help buffers have Help mode as their major mode.  Help mode provides
+the same commands as View mode (@pxref{View Mode}); for instance,
+@key{SPC} scrolls forward, and @key{DEL} or @kbd{S-@key{SPC}} scrolls
+backward.  It also provides a few special commands:
 
 @table @kbd
 @item @key{RET}

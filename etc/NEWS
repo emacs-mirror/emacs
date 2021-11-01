@@ -50,7 +50,7 @@ when using Cairo.  Use 'ftcrhb' if your Emacs was built with HarfBuzz
 text shaping support, and 'ftcr' otherwise.  You can determine this by
 checking 'system-configuration-features'.  The 'ftcr' backend will
 still be available when HarfBuzz is supported, but will not be used by
-default.  We strongly recommend building with HarBuzz support.  'x' is
+default.  We strongly recommend building with HarfBuzz support.  'x' is
 still a valid backend.
 
 ---
@@ -146,41 +146,34 @@ of files visited via 'C-x C-f' and other commands.
 ** Emacs now supports Unicode Standard version 14.0.
 
 +++
-** New character script 'emoji' has been created.
-Various blocks of codepoints have been split out of the 'symbol'
-script into their own 'emoji' script to allow easier specification of
-their treatment.  Which codepoints are treated as emoji is derived
-from the Unicode specifications.  Also, Emacs will now use "Noto Color
-Emoji" by default for that script.  Use:
+** Improved support for Emoji.
+On capable systems, Emacs now correctly displays Emoji and Emoji
+sequences by default, provided that a suitable font is available to
+Emacs.  With a few exceptions, all of the Emoji sequences specified by
+Unicode 14.0 are automatically composed and displayed as a single
+colorful glyph.  This is achieved by changes in the Emacs font
+configuration, and by additional character-composition rules for the
+Emoji codepoints that follow from the Unicode-defined sequences.
+
+If your system lacks a suitable font, we recommend to install "Noto
+Color Emoji"; Emacs will use it automatically if it's installed.  If
+you prefer to use another font for Emoji, customize your fontset like
+this:
 
     (set-fontset-font t 'emoji
                       '("My New Emoji Font" . "iso10646-1") nil 'prepend)
 
-to change the font used.
-
-+++
-** Zero Width Joiner (ZWJ) and emoji sequences are now composed.
-Emacs can now compose (almost) all the Unicode-14 ZWJ and emoji
-sequences (if a suitable font is installed) so that they are displayed
-as single glyphs instead of multiple ones.  "Noto Color Emoji" is one
-such suitable font.
-
-+++
-** Composition of emoji has been improved.
-If autocomposition is triggered by an emoji character, then the emoji
-font is now used to check if composition can be performed, rather than
-the font of the first character of the string being composed.  This
-allows e.g.
-
-    'Emoji codepoint' + VS-16
-
-to be displayed using the emoji font even if 'Emoji codepoint' does
-not have emoji presentation by default.
+The Emoji characters are now assigned to a special script, 'emoji', so
+as to make it easier to customize fontsets for Emoji display, as in
+the above example.  (Previously, the Emoji characters were assigned to
+the 'symbol' script, together with other symbol and punctuation
+characters.)
 
 +++
 ** 'glyphless-char-display-control' now applies to Variation Selectors.
 VS-1 through VS-16 are now displayed as 'thin-space' by default when
-not composed.
+not composed with previous characters (typically, as part of Emoji
+sequences).
 
 +++
 ** New command 'execute-extended-command-for-buffer'.
@@ -229,12 +222,13 @@ groups.
 
 +++
 ** New minor mode 'context-menu-mode' for context menus popped by 'mouse-3'.
-When this mode is enabled, clicking 'down-mouse-3' anywhere in the buffer
-pops up a menu whose contents depends on surrounding context near the
-mouse click.  You can change the order of the default sub-menus in the
-context menu by customizing the user option 'context-menu-functions'.
-You can also invoke the context menu by pressing 'S-<F10>' or,
-on macOS, by clicking 'C-down-mouse-1'.
+When this mode is enabled, clicking 'down-mouse-3' (usually, the
+right mouse button) anywhere in the buffer pops up a menu whose
+contents depends on surrounding context near the mouse click.
+You can change the order of the default sub-menus in the context menu
+by customizing the user option 'context-menu-functions'.  You can also
+invoke the context menu by pressing 'S-<F10>' or, on macOS, by
+clicking 'C-down-mouse-1'.
 
 +++
 ** A new keymap for buffer actions has been added.
@@ -445,7 +439,8 @@ nor t.
 *** New user option 'read-minibuffer-restore-windows'.
 When customized to nil, it uses 'minibuffer-restore-windows' in
 'minibuffer-exit-hook' to remove only the window showing the
-"*Completions*" buffer.
+"*Completions*" buffer, but keeps all other windows created
+while the minibuffer was active.
 
 ---
 *** New variable 'redisplay-adhoc-scroll-in-resize-mini-windows'.
@@ -477,7 +472,7 @@ both modes are on).
 +++
 *** The prefix key 'C-x t t' can be used to display a buffer in a new tab.
 Typing 'C-x t t' before a command will cause the buffer shown by that
-command to be displayed in a new tab.  'C-x t t" is bound to the
+command to be displayed in a new tab.  'C-x t t' is bound to the
 command 'other-tab-prefix'.
 
 +++
@@ -3245,7 +3240,7 @@ instead of 'C-x o C-x o' to switch windows, 'C-x { { } } ^ ^ v v' to
 resize the selected window interactively, 'M-g n n p p' to navigate
 next-error matches.  Any other key exits this temporarily enabled
 transient mode that supports shorter keys, and then after exiting from
-this mode the default key binding is used for the last typed key.
+this mode, the last typed key uses the default key binding.
 
 The user option 'repeat-exit-key' defines an additional key usable to
 exit the mode like 'isearch-exit' ('RET').
@@ -4347,6 +4342,14 @@ The new optional "," parameter has been added, and
 +++
 ** 'parse-time-string' can now parse ISO 8601 format strings.
 These have a format like "2020-01-15T16:12:21-08:00".
+
+---
+** 'lookup-key' is more allowing when searching for extended menu items.
+When looking for a menu item '[menu-bar Foo-Bar]', first try to find
+an exact match, then look for the lowercased '[menu-bar foo-bar]'.
+It will only try to downcase ASCII characters in the range "A-Z".
+This improves backwards-compatibility when converting menus to use
+'easy-menu-define'.
 
 ---
 ** 'make-network-process', 'make-serial-process' ':coding' behavior change.

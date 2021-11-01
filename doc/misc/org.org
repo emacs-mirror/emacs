@@ -7981,7 +7981,7 @@ patches.  Then you would configure this option like this:
 
 #+begin_src emacs-lisp
 (setq org-capture-templates-contexts
-      '(("p" (in-mode . "message-mode"))))
+      '(("p" ((in-mode . "message-mode")))))
 #+end_src
 
 You can also tell that the command key {{{kbd(p)}}} should refer to
@@ -7989,7 +7989,7 @@ another template.  In that case, add this command key like this:
 
 #+begin_src emacs-lisp
 (setq org-capture-templates-contexts
-      '(("p" "q" (in-mode . "message-mode"))))
+      '(("p" "q" ((in-mode . "message-mode")))))
 #+end_src
 
 See the docstring of the variable for more information.
