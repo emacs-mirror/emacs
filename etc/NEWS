@@ -369,8 +369,8 @@ Use 'exif-parse-file' and 'exif-field' instead.
 +++
 *** New function 'file-has-changed-p'.
 This convenience function is useful when writing code that parses
-files run-time, and allows you to easily re-parse files when they have
-changed (but not otherwise).
+files at run-time, and allows Lisp programs to re-parse files only
+when they have changed.
 
 ---
 *** New function 'font-has-char-p'.

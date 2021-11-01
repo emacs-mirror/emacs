@@ -1315,12 +1315,14 @@ on the 19th, @file{aug-20} was written on the 20th, and the file
 @end defun
 
 @defun file-has-changed-p filename
-This convenience function is useful when, for instance, parsing files
-run-time, and you typically want to re-read a file when it has
-changed.  This function returns non-@code{nil} the first time it's
-called on @var{filename} in an Emacs session, but will return
-@code{nil} on subsequent calls in that session (unless the file
-changes its modification time).
+This function returns non-@code{nil} if the time stamp of
+@var{filename} has changed since the last call.  When called for the
+first time for some @var{filename}, it records the last modification
+time of the file and returns non-@code{nil}.  Thereafter, when called
+for the same @var{filename}, it compares the current time stamp with
+the recorded one and returns non-@code{nil} only if they are
+different.  This is useful when a Lisp program wants to re-read a file
+whenever it changes.
 @end defun
 
 @defun file-attributes filename &optional id-format
