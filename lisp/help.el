@@ -1275,17 +1275,8 @@ Any inserted text ends in two newlines (used by
                             result))
                       amaps))
          (maps orig-maps)
-         (print-title (or maps always-title)))
-    ;; Print title.
-    (when print-title
-      (insert (concat (if title
-                          (concat title
-                                  (if prefix
-                                      (concat " Starting With "
-                                              (help--key-description-fontified prefix)))
-                                  ":\n"))
-                      "key             binding\n"
-                      "---             -------\n")))
+         (print-title (or maps always-title))
+         (start-point (point)))
     ;; Describe key bindings.
     (setq help--keymaps-seen nil)
     (while (consp maps)
@@ -1310,8 +1301,24 @@ Any inserted text ends in two newlines (used by
           (describe-map (cdr elt) elt-prefix transl partial
                         sub-shadows no-menu mention-shadow)))
       (setq maps (cdr maps)))
-    (when print-title
-      (insert "\n"))))
+    ;; Print title...
+    (when (and print-title
+               ;; ... unless the keymap was empty.
+               (/= (point) start-point))
+      (save-excursion
+        (goto-char start-point)
+        (when (eolp)
+          (delete-region (point) (1+ (point))))
+        (insert
+         (concat
+          (if title
+              (concat title
+                      (if prefix
+                          (concat " Starting With "
+                                  (help--key-description-fontified prefix)))
+                      ":\n"))
+          "\nkey             binding\n"
+          (make-separator-line)))))))
 
 (defun help--shadow-lookup (keymap key accept-default remap)
   "Like `lookup-key', but with command remapping.
