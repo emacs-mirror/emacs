@@ -661,8 +661,9 @@ that."
                           (help-xref-button 3 'help-function symbol))
                         (forward-line)
                         ;; Skip empty line.
-                        (while (or (eolp)
-                                   (looking-at-p " *(this binding"))
+                        (while (and (not (eobp))
+                                    (or (eolp)
+                                        (looking-at-p " *(this binding")))
                           (forward-line)))))))
             (set-syntax-table stab))
           ;; Delete extraneous newlines at the end of the docstring
