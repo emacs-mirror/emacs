@@ -659,6 +659,7 @@ that."
                         (when (and (fboundp symbol)
                                    (kbd-valid-p key))
                           (help-xref-button 3 'help-function symbol))
+                        (goto-char (match-end 0))
                         (forward-line)
                         ;; Skip empty line.
                         (while (and (not (eobp))
