@@ -105,7 +105,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
+#ifndef HAVE_XINPUT2
 static int popup_activated_flag;
+#else
+int popup_activated_flag;
+#endif
 
 
 #ifdef USE_X_TOOLKIT

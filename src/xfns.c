@@ -57,6 +57,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/extensions/Xdbe.h>
 #endif
 
+#ifdef HAVE_XINPUT2
+#include <X11/extensions/XInput2.h>
+#endif
+
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
 
@@ -3074,6 +3078,43 @@ x_window (struct frame *f, long window_prompting)
   class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
+#ifdef HAVE_XINPUT2
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      XIEventMask mask;
+      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+      unsigned char *m;
+      mask.mask = m = alloca (l);
+      memset (m, 0, l);
+      mask.mask_len = l;
+      mask.deviceid = XIAllMasterDevices;
+
+      XISetMask (m, XI_ButtonPress);
+      XISetMask (m, XI_ButtonRelease);
+      XISetMask (m, XI_KeyPress);
+      XISetMask (m, XI_KeyRelease);
+      XISetMask (m, XI_Motion);
+      XISetMask (m, XI_Enter);
+      XISetMask (m, XI_Leave);
+      XISetMask (m, XI_FocusIn);
+      XISetMask (m, XI_FocusOut);
+      XISetMask (m, XI_DeviceChanged);
+
+      XISelectEvents (FRAME_X_DISPLAY (f),
+		      FRAME_X_WINDOW (f),
+		      &mask, 1);
+
+      mask.deviceid = XIAllDevices;
+      memset (m, 0, l);
+      XISetMask (m, XI_PropertyEvent);
+      XISetMask (m, XI_HierarchyChanged);
+
+      XISelectEvents (FRAME_X_DISPLAY (f),
+		      FRAME_X_WINDOW (f),
+		      &mask, 1);
+    }
+#endif
+
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
   if (use_xim)
@@ -3253,6 +3294,43 @@ x_window (struct frame *f)
 	}
     }
 #endif /* HAVE_X_I18N */
+
+#ifdef HAVE_XINPUT2
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      XIEventMask mask;
+      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+      unsigned char *m;
+      mask.mask = m = alloca (l);
+      memset (m, 0, l);
+      mask.mask_len = l;
+      mask.deviceid = XIAllMasterDevices;
+
+      XISetMask (m, XI_ButtonPress);
+      XISetMask (m, XI_ButtonRelease);
+      XISetMask (m, XI_KeyPress);
+      XISetMask (m, XI_KeyRelease);
+      XISetMask (m, XI_Motion);
+      XISetMask (m, XI_Enter);
+      XISetMask (m, XI_Leave);
+      XISetMask (m, XI_FocusIn);
+      XISetMask (m, XI_FocusOut);
+      XISetMask (m, XI_DeviceChanged);
+
+      XISelectEvents (FRAME_X_DISPLAY (f),
+		      FRAME_X_WINDOW (f),
+		      &mask, 1);
+
+      mask.deviceid = XIAllDevices;
+      memset (m, 0, l);
+      XISetMask (m, XI_PropertyEvent);
+      XISetMask (m, XI_HierarchyChanged);
+
+      XISelectEvents (FRAME_X_DISPLAY (f),
+		      FRAME_X_WINDOW (f),
+		      &mask, 1);
+    }
+#endif
 
   validate_x_resource_name ();
 
