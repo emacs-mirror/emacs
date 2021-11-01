@@ -1255,10 +1255,7 @@ maps to look through.
 
 If MENTION_SHADOW is non-nil, then when something is shadowed by
 SHADOW, don't omit it; instead, mention it but say it is
-shadowed.
-
-Any inserted text ends in two newlines (used by
-`help-make-xrefs')."
+shadowed."
   (let* ((amaps (accessible-keymaps startmap prefix))
          (orig-maps (if no-menu
                         (progn
