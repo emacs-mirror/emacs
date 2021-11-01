@@ -1349,7 +1349,10 @@ Return nil if the key sequence is too long."
                                          font-lock-face nil)))
     (setq help--previous-description-column description-column)
     (cond ((symbolp definition)
-           (insert (symbol-name definition) "\n"))
+           (insert-text-button (symbol-name definition)
+                               'type 'help-function
+                               'help-args (list definition))
+           (insert "\n"))
           ((or (stringp definition) (vectorp definition))
            (insert "Keyboard Macro\n"))
           ((keymapp definition)

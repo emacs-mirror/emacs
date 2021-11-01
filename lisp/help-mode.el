@@ -644,28 +644,7 @@ that."
                           "\\<M-x\\s-+\\(\\sw\\(\\sw\\|\\s_\\)*\\sw\\)" nil t)
                     (let ((sym (intern-soft (match-string 1))))
                       (if (fboundp sym)
-                          (help-xref-button 1 'help-function sym)))))
-                ;; Look for commands in whole keymap substitutions:
-                (save-excursion
-                  ;; Make sure to find the first keymap.
-                  (goto-char (point-min))
-                  ;; Find a header and the column at which the command
-                  ;; name will be found.
-                  (while (re-search-forward "^Key +Binding\n.*\n"
-                                            nil t)
-                    (while (looking-at "\\([^\t\n]+\\)\\(\t+\\|\n\t+\\)\\([^\n\t ]+\\)")
-                      (let ((key (match-string 1))
-                            (symbol (intern-soft (match-string 3))))
-                        (when (and (fboundp symbol)
-                                   (kbd-valid-p key))
-                          (help-xref-button 3 'help-function symbol))
-                        (goto-char (match-end 0))
-                        (forward-line)
-                        ;; Skip empty line.
-                        (while (and (not (eobp))
-                                    (or (eolp)
-                                        (looking-at-p " *(this binding")))
-                          (forward-line)))))))
+                          (help-xref-button 1 'help-function sym))))))
             (set-syntax-table stab))
           ;; Delete extraneous newlines at the end of the docstring
           (goto-char (point-max))
