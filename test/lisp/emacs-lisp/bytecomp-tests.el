@@ -640,6 +640,9 @@ inner loops respectively."
            (f (list (lambda (x) (setq a x)))))
       (funcall (car f) 3)
       (list a b))
+
+    (cond)
+    (mapcar (lambda (x) (cond ((= x 0)))) '(0 1))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

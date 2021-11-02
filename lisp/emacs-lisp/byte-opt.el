@@ -1327,7 +1327,7 @@ See Info node `(elisp) Integer Basics'."
 	    (list 'or (car (car clauses))
 		  (byte-optimize-cond
 		   (cons (car form) (cdr (cdr form)))))
-	  form))
+	  (and clauses form)))
     form))
 
 (defun byte-optimize-if (form)
