@@ -115,16 +115,25 @@ where:
 This should be either a function, or a list.
 If a list, each element has the form (ID [DESC1 ... DESCN]),
 where:
+
  - ID is nil, or a Lisp object uniquely identifying this entry,
    which is used to keep the cursor on the \"same\" entry when
    rearranging the list.  Comparison is done with `equal'.
 
  - Each DESC is a column descriptor, one for each column
-   specified in `tabulated-list-format'.  A descriptor is either
-   a string, which is printed as-is, or a list (LABEL . PROPS),
-   which means to use `insert-text-button' to insert a text
-   button with label LABEL and button properties PROPS.
-   The string, or button label, must not contain any newline.
+   specified in `tabulated-list-format'.  The descriptor DESC is
+   one of:
+
+    - A string, which is printed as-is, and must not contain any
+      newlines.
+
+    - An image descriptor (a list), which is used to insert an
+      image (see Info node `(elisp) Image Descriptors').
+
+    - A list (LABEL . PROPS), which means to use
+      `insert-text-button' to insert a text button with label
+      LABEL and button properties PROPS.  LABEL must not contain
+      any newlines.
 
 If `tabulated-list-entries' is a function, it is called with no
 arguments and must return a list of the above form.")
@@ -547,7 +556,9 @@ Return the column number after insertion."
 	 (props     (nthcdr 3 format))
 	 (pad-right (or (plist-get props :pad-right) 1))
          (right-align (plist-get props :right-align))
-	 (label     (if (stringp col-desc) col-desc (car col-desc)))
+         (label (cond ((stringp col-desc) col-desc)
+                      ((eq (car col-desc) 'image) " ")
+                      (t (car col-desc))))
          (label-width (string-width label))
 	 (help-echo (concat (car format) ": " label))
 	 (opoint (point))
@@ -571,11 +582,15 @@ Return the column number after insertion."
                             'display `(space :align-to ,(+ x shift))))
         (setq width (- width shift))
         (setq x (+ x shift))))
-    (if (stringp col-desc)
-	(insert (if (get-text-property 0 'help-echo label)
-		    label
-		  (propertize label 'help-echo help-echo)))
-      (apply 'insert-text-button label (cdr col-desc)))
+    (cond ((stringp col-desc)
+           (insert (if (get-text-property 0 'help-echo label)
+                       label
+                     (propertize label 'help-echo help-echo))))
+          ((eq (car col-desc) 'image)
+           (insert (propertize " "
+                               'display col-desc
+                               'help-echo help-echo)))
+          ((apply 'insert-text-button label (cdr col-desc))))
     (let ((next-x (+ x pad-right width)))
       ;; No need to append any spaces if this is the last column.
       (when not-last-col

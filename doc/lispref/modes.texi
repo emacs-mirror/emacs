@@ -1150,10 +1150,11 @@ re-sorting entries.  Comparison is done with @code{equal}.
 @item
 @var{contents} is a vector with the same number of elements as
 @code{tabulated-list-format}.  Each vector element is either a string,
-which is inserted into the buffer as-is, or a list @code{(@var{label}
-. @var{properties})}, which means to insert a text button by calling
-@code{insert-text-button} with @var{label} and @var{properties} as
-arguments (@pxref{Making Buttons}).
+which is inserted into the buffer as-is, an image descriptor, which is
+used to insert an image (@pxref{Image Descriptors}), or a list
+@code{(@var{label} . @var{properties})}, which means to insert a text
+button by calling @code{insert-text-button} with @var{label} and
+@var{properties} as arguments (@pxref{Making Buttons}).
 
 There should be no newlines in any of these strings.
 @end itemize
