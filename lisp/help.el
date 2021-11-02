@@ -1329,7 +1329,7 @@ Return nil if the key sequence is too long."
           (t value))))
 
 (defvar help--previous-description-column 0)
-(defun help--describe-command (definition)
+(defun help--describe-command (definition &optional translation)
   ;; Converted from describe_command in keymap.c.
   ;; If column 16 is no good, go to col 32;
   ;; but don't push beyond that--go to next line instead.
@@ -1354,7 +1354,9 @@ Return nil if the key sequence is too long."
                                'help-args (list definition))
            (insert "\n"))
           ((or (stringp definition) (vectorp definition))
-           (insert "Keyboard Macro\n"))
+           (if translation
+               (insert (key-description definition nil) "\n")
+             (insert "Keyboard Macro\n")))
           ((keymapp definition)
            (insert "Prefix Command\n"))
           ((byte-code-function-p definition)
@@ -1365,20 +1367,8 @@ Return nil if the key sequence is too long."
           (t
            (insert "??\n")))))
 
-(defun help--describe-translation (definition)
-  ;; Converted from describe_translation in keymap.c.
-  ;; Avoid using the `help-keymap' face.
-  (let ((op (point)))
-    (indent-to 16 1)
-    (set-text-properties op (point) '( face nil
-                                      font-lock-face nil)))
-  (cond ((symbolp definition)
-         (insert (symbol-name definition) "\n"))
-        ((or (stringp definition) (vectorp definition))
-         (insert (key-description definition nil) "\n"))
-        ((keymapp definition)
-         (insert "Prefix Command\n"))
-        (t (insert "??\n"))))
+(define-obsolete-function-alias 'help--describe-translation
+  #'help--describe-command "29.1")
 
 (defun help--describe-map-compare (a b)
   (let ((a (car a))
@@ -1392,7 +1382,8 @@ Return nil if the key sequence is too long."
            (string-version-lessp (symbol-name a) (symbol-name b)))
           (t nil))))
 
-(defun describe-map (map prefix transl partial shadow nomenu mention-shadow)
+(defun describe-map (map &optional prefix transl partial shadow
+                         nomenu mention-shadow)
   "Describe the contents of keymap MAP.
 Assume that this keymap itself is reached by the sequence of
 prefix keys PREFIX (a string or vector).
@@ -1404,9 +1395,7 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
          (map (keymap-canonicalize map))
          (tail map)
          (first t)
-         (describer (if transl
-                        #'help--describe-translation
-                      #'help--describe-command))
+         (describer #'help--describe-command)
          done vect)
     (while (and (consp tail) (not done))
       (cond ((or (vectorp (car tail)) (char-table-p (car tail)))
@@ -1492,9 +1481,7 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
             ;; Print a description of the definition of this character.
             ;; Called function will take care of spacing out far enough
             ;; for alignment purposes.
-            (if transl
-                (help--describe-translation definition)
-              (help--describe-command definition))
+            (help--describe-command definition transl)
             ;; Print a description of the definition of this character.
             ;; elt_describer will take care of spacing out far enough for
             ;; alignment purposes.
