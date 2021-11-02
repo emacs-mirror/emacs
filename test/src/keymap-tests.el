@@ -323,12 +323,12 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
     (with-temp-buffer
       (help--describe-vector (cadr orig-map) nil #'help--describe-command
                              t shadow-map orig-map t)
-      (should (equal (buffer-string)
-                     "
+      (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                     (string-replace "\t" "" "
 e		foo
 f		foo  (currently shadowed by `bar')
 g .. h		foo
-")))))
+"))))))
 
 (ert-deftest help--describe-vector/bug-9293-same-command-does-not-shadow ()
   "Check that a command can't be shadowed by the same command."
@@ -349,10 +349,10 @@ g .. h		foo
    (with-temp-buffer
      (help--describe-vector (cadr range-map) nil #'help--describe-command
                             t shadow-map range-map t)
-     (should (equal (buffer-string)
-                    "
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    (string-replace "\t" "" "
 0 .. 3		foo
-")))))
+"))))))
 
 (ert-deftest keymap--key-description ()
   (should (equal (key-description [right] [?\C-x])
