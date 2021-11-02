@@ -1078,14 +1078,6 @@ The solution is to remove the corresponding lines from the appropriate
 'fonts.alias' file, then run 'mkfontdir' in that directory, and then run
 'xset fp rehash'.
 
-** The 'oc-unicode' package doesn't work with Emacs 21.
-
-This package tries to define more private charsets than there are free
-slots now.  The current built-in Unicode support is actually more
-flexible.  (Use option 'utf-translate-cjk-mode' if you need CJK
-support.)  Files encoded as emacs-mule using oc-unicode aren't
-generally read correctly by Emacs 21.
-
 * X runtime problems
 
 ** X keyboard problems
