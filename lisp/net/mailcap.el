@@ -447,7 +447,9 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
               ("/etc/mailcap" system)
               ("/usr/etc/mailcap" system)
 	      ("/usr/local/etc/mailcap" system)))))
-    (when (seq-some (lambda (f) (file-has-changed-p (car f))) path)
+    (when (seq-some (lambda (f)
+                      (file-has-changed-p (car f) 'mail-parse-mailcaps))
+                    path)
       ;; The ~/.mailcap entries will end up first in the resulting data.
       (dolist (spec (reverse
 		     (if (stringp path)

@@ -6181,21 +6181,25 @@ Return nil if DIR is not an existing directory."
 	  (unless mismatch
 	    (file-equal-p root dir)))))))
 
-(defvar file-has-changed-p--hash-table (make-hash-table)
+(defvar file-has-changed-p--hash-table (make-hash-table :test #'equal)
   "Internal variable used by `file-has-changed-p'.")
 
-(defun file-has-changed-p (file)
+(defun file-has-changed-p (file &optional tag)
   "Return non-nil if FILE has changed.
-The modification time of FILE is compared to the modification
-time of FILE during a previous invocation of `file-has-changed-p'.
-Therefore the first invocation of `file-has-changed-p' always
-returns non-nil."
-  (let* ((attr (file-attributes file 'integer))
-	  (mtime (file-attribute-modification-time attr))
-	  (saved-mtime (gethash (intern file)
-				file-has-changed-p--hash-table)))
-     (when (not (equal mtime saved-mtime))
-       (puthash (intern file) mtime file-has-changed-p--hash-table))))
+The size and modification time of FILE is compared to the size
+and modification time of FILE during a previous invocation of
+`file-has-changed-p'.  Therefore the first invocation of
+`file-has-changed-p' always returns non-nil.
+The optional argument TAG can be used to limit the comparison to
+invocations with identical tags; it can for example be the symbol
+of the calling function."
+  (let* ((fileattr (file-attributes file 'integer))
+	 (attr (cons (file-attribute-size fileattr)
+		     (file-attribute-modification-time fileattr)))
+	 (sym (concat (symbol-name tag) "@" file))
+	 (cachedattr (gethash sym file-has-changed-p--hash-table)))
+     (when (not (equal attr cachedattr))
+       (puthash sym attr file-has-changed-p--hash-table))))
 
 (defun copy-directory (directory newname &optional keep-time parents copy-contents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
