@@ -85,6 +85,7 @@ can handle, whenever this is possible.
 Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
 
+;;;###autoload
 (defun pp-display-expression (expression out-buffer-name)
   "Prettify and display EXPRESSION in an appropriate way, depending on length.
 If a temporary buffer is needed for representation, it will be named
