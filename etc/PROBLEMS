@@ -2282,20 +2282,6 @@ are compiling with the system's 'cc' and CFLAGS containing '-O5'.  If
 so, you have hit a compiler bug.  Please make sure to re-configure
 Emacs so that it isn't compiled with '-O5'.
 
-*** AIX 4.3.x or 4.4: Compiling fails.
-
-This could happen if you use /bin/c89 as your compiler, instead of
-the default 'cc'.  /bin/c89 treats certain warnings, such as benign
-redefinitions of macros, as errors, and fails the build.  A solution
-is to use the default compiler 'cc'.
-
-*** AIX 4: Some programs fail when run in a Shell buffer
-with an error message like   No terminfo entry for "unknown".
-
-On AIX, many terminal type definitions are not installed by default.
-'unknown' is one of them.  Install the "Special Generic Terminal
-Definitions" to make them defined.
-
 ** Solaris
 
 We list bugs in current versions here.  See also the section on legacy
@@ -2346,13 +2332,6 @@ runtime shared library, distributed with Windows 9X.
 
 A workaround is to build Emacs with MinGW runtime 3.x (the latest
 version is 3.20).
-
-** addpm fails to run on Windows NT4, complaining about Shell32.dll
-
-This is likely to happen because Shell32.dll shipped with NT4 lacks
-the updates required by Emacs.  Installing Internet Explorer 4 solves
-the problem.  Note that it is NOT enough to install IE6, because doing
-so will not install the Shell32.dll update.
 
 ** A few seconds delay is seen at startup and for many file operations
 
@@ -2467,15 +2446,6 @@ C:\Users\<UserName>\):
 
 Look for the file 'emacs.lnk' there.
 
-** Windows 95 and networking.
-
-To support server sockets, Emacs loads ws2_32.dll.  If this file is
-missing, all Emacs networking features are disabled.
-
-Old versions of Windows 95 may not have the required DLL.  To use
-Emacs's networking features on Windows 95, you must install the
-"Windows Socket 2" update available from MicroSoft's support Web.
-
 ** Emacs exits with "X protocol error" when run with an X server for MS-Windows.
 
 A certain X server for Windows had a bug which caused this.
@@ -2511,11 +2481,6 @@ under Windows is synchronous, so we cannot handle repaint (or any
 other) messages while waiting for a system function, which popped up
 the menu/dialog, to return the result of the dialog or pop-up menu
 interaction.
-
-** Help text in tooltips does not work on old Windows versions
-
-Windows 95 and Windows NT up to version 4.0 do not support help text
-for menus.  Help text is only available in later versions of Windows.
 
 ** Display problems with ClearType method of smoothing
 
@@ -3104,15 +3069,6 @@ of PURESIZE in puresize.h.
 But in some of the cases listed above, this problem is a consequence
 of something else that is wrong.  Be sure to check and fix the real problem.
 
-*** OpenBSD 4.0 macppc: Segfault during dumping.
-
-The build aborts with signal 11 when the command './temacs --batch
---load loadup bootstrap' tries to load files.el.  A workaround seems
-to be to reduce the level of compiler optimization used during the
-build (from -O2 to -O1).  It is possible this is an OpenBSD
-GCC problem specific to the macppc architecture, possibly only
-occurring with older versions of GCC (e.g. 3.3.5).
-
 *** openSUSE 10.3: Segfault in bcopy during dumping.
 
 This is due to a bug in the bcopy implementation in openSUSE 10.3.
@@ -3267,7 +3223,50 @@ should do.
 pen@lysator.liu.se says (Feb 1998) that the Compose key does work
 if you link with the MIT X11 libraries instead of the Solaris X11 libraries.
 
+** OpenBSD
+
+*** OpenBSD 4.0 macppc: Segfault during dumping.
+
+The build aborts with signal 11 when the command './temacs --batch
+--load loadup bootstrap' tries to load files.el.  A workaround seems
+to be to reduce the level of compiler optimization used during the
+build (from -O2 to -O1).  It is possible this is an OpenBSD
+GCC problem specific to the macppc architecture, possibly only
+occurring with older versions of GCC (e.g. 3.3.5).
+
+** AIX
+
+*** AIX 4.3.x or 4.4: Compiling fails.
+
+This could happen if you use /bin/c89 as your compiler, instead of
+the default 'cc'.  /bin/c89 treats certain warnings, such as benign
+redefinitions of macros, as errors, and fails the build.  A solution
+is to use the default compiler 'cc'.
+
+*** AIX 4: Some programs fail when run in a Shell buffer
+with an error message like   No terminfo entry for "unknown".
+
+On AIX, many terminal type definitions are not installed by default.
+'unknown' is one of them.  Install the "Special Generic Terminal
+Definitions" to make them defined.
+
 ** MS-Windows 95, 98, ME, and NT
+
+*** MS-Windows 95: Networking.
+
+To support server sockets, Emacs loads ws2_32.dll.  If this file is
+missing, all Emacs networking features are disabled.
+
+Old versions of Windows 95 may not have the required DLL.  To use
+Emacs's networking features on Windows 95, you must install the
+"Windows Socket 2" update available from MicroSoft's support Web.
+
+*** MS-Windows NT4: addpm fails to run, complaining about Shell32.dll
+
+This is likely to happen because Shell32.dll shipped with NT4 lacks
+the updates required by Emacs.  Installing Internet Explorer 4 solves
+the problem.  Note that it is NOT enough to install IE6, because doing
+so will not install the Shell32.dll update.
 
 *** MS-Windows NT/95: Problems running Perl under Emacs
 
@@ -3331,6 +3330,11 @@ For Perl 4:
           $rcfile="perldb.ini";
       }
       else {
+
+*** MS-Windows NT/95: Help text in tooltips does not work
+
+Windows 95 and Windows NT up to version 4.0 do not support help text
+for menus.  Help text is only available in later versions of Windows.
 
 *** MS-Windows 95: Alt-f6 does not get through to Emacs.
 
