@@ -88,7 +88,7 @@
 
   ;; Include text-mode select menu only in strings and comments.
   (when (nth 8 (save-excursion (syntax-ppss (posn-point (event-end click)))))
-    (text-mode-menu menu click))
+    (text-mode-context-menu menu click))
 
   menu)
 
