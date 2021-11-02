@@ -6186,13 +6186,13 @@ Return nil if DIR is not an existing directory."
 
 (defun file-has-changed-p (file &optional tag)
   "Return non-nil if FILE has changed.
-The size and modification time of FILE is compared to the size
-and modification time of FILE during a previous invocation of
-`file-has-changed-p'.  Therefore the first invocation of
-`file-has-changed-p' always returns non-nil.
-The optional argument TAG can be used to limit the comparison to
-invocations with identical tags; it can for example be the symbol
-of the calling function."
+The size and modification time of FILE are compared to the size
+and modification time of tghe same FILE during a previous
+invocation of `file-has-changed-p'.  Thus, the first invocation
+of `file-has-changed-p' always returns non-nil.
+The optional argument TAG, which must be a symbol, can be used to
+limit the comparison to invocations with identical tags; it can be
+the symbol of the calling function, for example."
   (let* ((fileattr (file-attributes file 'integer))
 	 (attr (cons (file-attribute-size fileattr)
 		     (file-attribute-modification-time fileattr)))
