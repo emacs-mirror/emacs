@@ -318,7 +318,7 @@ Key             Binding
 -------------------------------------------------------------------------------
 C-a		foo
 
-<menu-bar> <foo>		foo
+<menu-bar> <foo>	foo
 ")))))
 
 (ert-deftest help-tests-describe-map-tree/mention-shadow-t ()
