@@ -35,6 +35,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defgroup outlines nil
   "Support for hierarchical outlining."
   :prefix "outline-"
