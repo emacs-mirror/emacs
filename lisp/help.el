@@ -580,32 +580,43 @@ to display (default, the current buffer).  BUFFER can be a buffer
 or a buffer name."
   (interactive)
   (or buffer (setq buffer (current-buffer)))
-  (help-setup-xref (list #'describe-bindings prefix buffer)
-		   (called-interactively-p 'interactive))
-  (with-help-window (help-buffer)
-    ;; Be aware that `describe-buffer-bindings' puts its output into
-    ;; the current buffer.
-    (with-current-buffer (help-buffer)
-      (describe-buffer-bindings buffer prefix)
+  (let ((overlays (overlays-at (point))))
+    (help-setup-xref (list #'describe-bindings prefix buffer)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (with-current-buffer (help-buffer)
+        ;; Output keymaps from overlays, if any.  (Keymaps from text
+        ;; properties is handled by `describe-buffer-bindings'.)
+        (dolist (o overlays)
+          (when-let ((map (overlay-get o 'local-map)))
+            (insert "Overriding Overlay Bindings:\n")
+            (describe-map map)
+            (insert "\n"))
+          (when-let ((map (overlay-get o 'keymap)))
+            (insert "Overlay Bindings:\n")
+            (describe-map map)
+            (insert "\n")))
 
-      (when describe-bindings-outline
-        (setq-local outline-regexp ".*:$")
-        (setq-local outline-heading-end-regexp ":\n")
-        (setq-local outline-level (lambda () 1))
-        (setq-local outline-minor-mode-cycle t
-                    outline-minor-mode-highlight t)
-        (setq-local outline-minor-mode-use-buttons t)
-        (outline-minor-mode 1)
-        (save-excursion
-          (goto-char (point-min))
-          (let ((inhibit-read-only t))
-            ;; Hide the longest body
-            (when (re-search-forward "Key translations" nil t)
-              (outline-hide-subtree))
-            ;; Hide ^Ls.
-            (while (search-forward "\n\f\n" nil t)
-              (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
-                                 'invisible t))))))))
+        (describe-buffer-bindings buffer prefix)
+
+        (when describe-bindings-outline
+          (setq-local outline-regexp ".*:$")
+          (setq-local outline-heading-end-regexp ":\n")
+          (setq-local outline-level (lambda () 1))
+          (setq-local outline-minor-mode-cycle t
+                      outline-minor-mode-highlight t)
+          (setq-local outline-minor-mode-use-buttons t)
+          (outline-minor-mode 1)
+          (save-excursion
+            (goto-char (point-min))
+            (let ((inhibit-read-only t))
+              ;; Hide the longest body.
+              (when (re-search-forward "Key translations" nil t)
+                (outline-hide-subtree))
+              ;; Hide ^Ls.
+              (while (search-forward "\n\f\n" nil t)
+                (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
+                                   'invisible t)))))))))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke the command DEFINITION.
