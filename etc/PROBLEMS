@@ -2737,6 +2737,21 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 * Runtime problems specific to macOS
 
+** Error "Emacs can't be opened because Apple cannot check it for malicious software".
+
+Apple may incorrectly catalog Emacs as potentially malicious software
+and show an error that resembles the following when you try to open
+Emacs for the first time:
+
+  "Emacs" can't be opened because Apple cannot check it for malicious
+  software. This software needs to be updated. Contact the developer
+  for more information.
+
+To avoid this alert, open Finder, go to Applications, control-click
+the Emacs app icon, and then choose Open.  This adds a security
+exception for Emacs and from now on you should be able to open it by
+double-clicking on its icon, like any other app.
+
 ** macOS doesn't come with libxpm, so only XPM3 is supported.
 
 Libxpm is available for macOS as part of the XQuartz project.
