@@ -971,6 +971,8 @@ If non-nil, EVENT should be a mouse event."
                      (overlays-at (point)))))
     (unless o
       (setq o (make-overlay (point) (1+ (point))))
+      (overlay-put o 'follow-link 'mouse-face)
+      (overlay-put o 'mouse-face 'highlight)
       (overlay-put o 'outline-button t))
     (overlay-put o 'display (outline--make-button type))
     o))
@@ -984,7 +986,6 @@ If non-nil, EVENT should be a mouse event."
                    (define-keymap
                      :parent outline-minor-mode-cycle-map
                      ["RET"] #'outline-hide-subtree
-                     ["<follow-link>"] 'mouse-face
                      ["<mouse-2>"] #'outline-hide-subtree)))))
 
 (defun outline--insert-close-button ()
@@ -996,7 +997,6 @@ If non-nil, EVENT should be a mouse event."
                    (define-keymap
                      :parent outline-minor-mode-cycle-map
                      ["RET"] #'outline-show-subtree
-                     ["<follow-link>"] 'mouse-face
                      ["<mouse-2>"] #'outline-show-subtree)))))
 
 (defun outline--fix-up-all-buttons ()
