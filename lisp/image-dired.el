@@ -469,7 +469,6 @@ deletion."
   '((((class color) (min-colors 16)) :background "DarkOrange")
     (((class color)) :foreground "yellow"))
   "Face for marked images in thumbnail buffer."
-  :group 'image-dired
   :version "29.1")
 
 (defface image-dired-thumb-flagged
@@ -480,7 +479,6 @@ deletion."
     (((class color) (min-colors 8)) :background "red")
     (t :inverse-video t))
   "Face for images flagged for deletion in thumbnail buffer."
-  :group 'image-dired
   :version "29.1")
 
 (defcustom image-dired-line-up-method 'dynamic
