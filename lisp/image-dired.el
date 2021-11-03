@@ -143,9 +143,6 @@
 ;; * Enhanced gallery creation with basic CSS-support and pagination
 ;;   of tag pages with many pictures.
 ;;
-;; * Rewrite `image-dired-modify-mark-on-thumb-original-file' to be
-;;   less ugly.
-;;
 ;; * In some way keep track of buffers and windows and stuff so that
 ;;   it works as the user expects.
 ;;
@@ -1498,49 +1495,48 @@ comment."
     (beginning-of-line)
     (looking-at-p dired-re-mark)))
 
-(defun image-dired-modify-mark-on-thumb-original-file (command)
-  "Modify mark in Dired buffer.
-COMMAND is one of `mark' for marking file in Dired, `unmark' for
-unmarking file in Dired or `flag' for flagging file for delete in
-Dired."
-  (let ((file-name (image-dired-original-file-name))
-        (dired-buf (image-dired-associated-dired-buffer)))
-    (if (not (and dired-buf file-name))
-        (message "No image, or image with correct properties, at point.")
-    (with-current-buffer dired-buf
-        (message "%s" file-name)
-        (when (dired-goto-file file-name)
-          (cond ((eq command 'mark) (dired-mark 1))
-                ((eq command 'unmark) (dired-unmark 1))
-                ((eq command 'toggle)
-                 (if (image-dired-dired-file-marked-p)
-                     (dired-unmark 1)
-                   (dired-mark 1)))
-                ((eq command 'flag) (dired-flag-file-deletion 1)))
-          (image-dired-thumb-update-marks))))))
+(defmacro image-dired--on-file-in-dired-buffer (&rest body)
+  "Run BODY with point on file at point in Dired buffer.
+Should be called from commands in `image-dired-thumbnail-mode'."
+  (declare ((indent defun)
+            (debug 1)))
+  `(let ((file-name (image-dired-original-file-name))
+         (dired-buf (image-dired-associated-dired-buffer)))
+     (if (not (and dired-buf file-name))
+         (message "No image, or image with correct properties, at point.")
+       (with-current-buffer dired-buf
+         (when (dired-goto-file file-name)
+           ,@body
+           (image-dired-thumb-update-marks))))))
 
 (defun image-dired-mark-thumb-original-file ()
   "Mark original image file in associated Dired buffer."
   (interactive nil image-dired-thumbnail-mode)
-  (image-dired-modify-mark-on-thumb-original-file 'mark)
+  (image-dired--on-file-in-dired-buffer
+    (dired-mark 1))
   (image-dired-forward-image))
 
 (defun image-dired-unmark-thumb-original-file ()
   "Unmark original image file in associated Dired buffer."
   (interactive nil image-dired-thumbnail-mode)
-  (image-dired-modify-mark-on-thumb-original-file 'unmark)
+  (image-dired--on-file-in-dired-buffer
+    (dired-unmark 1))
   (image-dired-forward-image))
 
 (defun image-dired-flag-thumb-original-file ()
   "Flag original image file for deletion in associated Dired buffer."
   (interactive nil image-dired-thumbnail-mode)
-  (image-dired-modify-mark-on-thumb-original-file 'flag)
+  (image-dired--on-file-in-dired-buffer
+    (dired-flag-file-deletion 1))
   (image-dired-forward-image))
 
 (defun image-dired-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated Dired buffer."
   (interactive nil image-dired-thumbnail-mode)
-  (image-dired-modify-mark-on-thumb-original-file 'toggle))
+  (image-dired--on-file-in-dired-buffer
+    (if (image-dired-dired-file-marked-p)
+        (dired-unmark 1)
+      (dired-mark 1))))
 
 (defun image-dired-unmark-all-marks ()
   "Remove all marks from all files.
@@ -2922,6 +2918,28 @@ of the thumbnail file."
   (interactive)
   (with-suppressed-warnings ((obsolete image-dired-rotate-thumbnail))
     (image-dired-rotate-thumbnail "90")))
+
+(defun image-dired-modify-mark-on-thumb-original-file (command)
+  "Modify mark in Dired buffer.
+COMMAND is one of `mark' for marking file in Dired, `unmark' for
+unmarking file in Dired or `flag' for flagging file for delete in
+Dired."
+  (declare (obsolete image-dired--on-file-in-dired-buffer "29.1"))
+  (let ((file-name (image-dired-original-file-name))
+        (dired-buf (image-dired-associated-dired-buffer)))
+    (if (not (and dired-buf file-name))
+        (message "No image, or image with correct properties, at point.")
+    (with-current-buffer dired-buf
+        (message "%s" file-name)
+        (when (dired-goto-file file-name)
+          (cond ((eq command 'mark) (dired-mark 1))
+                ((eq command 'unmark) (dired-unmark 1))
+                ((eq command 'toggle)
+                 (if (image-dired-dired-file-marked-p)
+                     (dired-unmark 1)
+                   (dired-mark 1)))
+                ((eq command 'flag) (dired-flag-file-deletion 1)))
+          (image-dired-thumb-update-marks))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
