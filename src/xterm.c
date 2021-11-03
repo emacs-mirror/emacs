@@ -8893,6 +8893,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
+#ifdef HAVE_XWIDGETS
+      {
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
+
+	if (xvw)
+	  {
+	    xwidget_motion_or_crossing (xvw, event);
+	    goto OTHER;
+	  }
+      }
+#endif
+
       f = any;
 
       if (f && x_mouse_click_focus_ignore_position)
@@ -8936,6 +8948,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case LeaveNotify:
+#ifdef HAVE_XWIDGETS
+      {
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
+
+	if (xvw)
+	  {
+	    xwidget_motion_or_crossing (xvw, event);
+	    goto OTHER;
+	  }
+      }
+#endif
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
@@ -8985,6 +9008,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
         if (f && xg_event_is_for_scrollbar (f, event))
           f = 0;
+#endif
+#ifdef HAVE_XWIDGETS
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xmotion.window);
+
+	if (xvw)
+	  xwidget_motion_or_crossing (xvw, event);
 #endif
         if (f)
           {
@@ -9240,6 +9269,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
     case ButtonRelease:
     case ButtonPress:
       {
+#ifdef HAVE_XWIDGETS
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xmotion.window);
+
+	if (xvw)
+	  {
+	    xwidget_button (xvw, event->type == ButtonPress,
+			    event->xbutton.x, event->xbutton.y,
+			    event->xbutton.button, event->xbutton.state,
+			    event->xbutton.time);
+
+	  }
+#endif
         /* If we decide we want to generate an event to be seen
            by the rest of Emacs, we put it here.  */
         Lisp_Object tab_bar_arg = Qnil;

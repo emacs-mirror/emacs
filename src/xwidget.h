@@ -172,6 +172,10 @@ void xwidget_expose (struct xwidget_view *xv);
 
 extern struct xwidget *xwidget_from_id (uint32_t id);
 extern void kill_frame_xwidget_views (struct frame *f);
+extern void xwidget_button (struct xwidget_view *, bool, int,
+			    int, int, int, Time);
+extern void xwidget_motion_or_crossing (struct xwidget_view *,
+					const XEvent *);
 #else
 INLINE_HEADER_BEGIN
 INLINE void syms_of_xwidget (void) {}

@@ -47,6 +47,7 @@ static uint32_t xwidget_counter = 0;
 #ifdef USE_GTK
 static Lisp_Object x_window_to_xwv_map;
 static gboolean offscreen_damage_event (GtkWidget *, GdkEvent *, gpointer);
+static void synthesize_focus_in_event (GtkWidget *offscreen_window);
 #endif
 
 static struct xwidget *
@@ -170,6 +171,7 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
 
       gtk_widget_show (xw->widget_osr);
       gtk_widget_show (xw->widgetwindow_osr);
+      synthesize_focus_in_event (xw->widgetwindow_osr);
 
       /* Store some xwidget data in the gtk widgets for convenient
          retrieval in the event handlers.  */
@@ -251,6 +253,143 @@ xwidget_from_id (uint32_t id)
 
 #ifdef USE_GTK
 
+static GdkDevice *
+find_suitable_pointer (struct frame *f)
+{
+  GdkSeat *seat = gdk_display_get_default_seat
+    (gtk_widget_get_display (FRAME_GTK_WIDGET (f)));
+
+  if (!seat)
+    return NULL;
+
+  return gdk_seat_get_pointer (seat);
+}
+
+static void
+xwidget_button_1 (struct xwidget_view *view,
+		  bool down_p, int x, int y, int button,
+		  int modifier_state, Time time)
+{
+  GdkEvent *xg_event = gdk_event_new (down_p ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
+  struct xwidget *model = XXWIDGET (view->model);
+
+  /* X and Y should be relative to the origin of view->wdesc.  */
+  x += view->clip_left;
+  y += view->clip_top;
+
+  xg_event->any.window = gtk_widget_get_window (model->widget_osr);
+  g_object_ref (xg_event->any.window); /* The window will be unrefed
+					  later by gdk_event_free. */
+
+  xg_event->button.x = x;
+  xg_event->button.x_root = x;
+  xg_event->button.y = y;
+  xg_event->button.y_root = y;
+  xg_event->button.button = button;
+  xg_event->button.state = modifier_state;
+  xg_event->button.time = time;
+  xg_event->button.device = find_suitable_pointer (view->frame);
+
+  gtk_main_do_event (xg_event);
+  gdk_event_free (xg_event);
+}
+
+void
+xwidget_button (struct xwidget_view *view,
+		bool down_p, int x, int y, int button,
+		int modifier_state, Time time)
+{
+  if (button < 4 || button > 8)
+    xwidget_button_1 (view, down_p, x, y, button, modifier_state, time);
+  else
+    {
+      GdkEvent *xg_event = gdk_event_new (GDK_SCROLL);
+      struct xwidget *model = XXWIDGET (view->model);
+
+      xg_event->any.window = gtk_widget_get_window (model->widget_osr);
+      g_object_ref (xg_event->any.window); /* The window will be unrefed
+					      later by gdk_event_free. */
+      if (button == 4)
+	xg_event->scroll.direction = GDK_SCROLL_UP;
+      else if (button == 5)
+	xg_event->scroll.direction = GDK_SCROLL_DOWN;
+      else if (button == 6)
+	xg_event->scroll.direction = GDK_SCROLL_LEFT;
+      else
+	xg_event->scroll.direction = GDK_SCROLL_RIGHT;
+
+      xg_event->scroll.device = find_suitable_pointer (view->frame);
+
+      xg_event->scroll.x = x;
+      xg_event->scroll.x_root = x;
+      xg_event->scroll.y = y;
+      xg_event->scroll.y_root = y;
+      xg_event->scroll.state = modifier_state;
+      xg_event->scroll.time = time;
+
+      xg_event->scroll.delta_x = 0;
+      xg_event->scroll.delta_y = 0;
+
+      gtk_main_do_event (xg_event);
+      gdk_event_free (xg_event);
+    }
+}
+
+void
+xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
+{
+  GdkEvent *xg_event = gdk_event_new (event->type == MotionNotify ? GDK_MOTION_NOTIFY :
+				      (event->type == LeaveNotify ? GDK_LEAVE_NOTIFY :
+				       GDK_ENTER_NOTIFY));
+  struct xwidget *model = XXWIDGET (view->model);
+
+  xg_event->any.window = gtk_widget_get_window (model->widget_osr);
+  g_object_ref (xg_event->any.window); /* The window will be unrefed
+					  later by gdk_event_free. */
+
+  if (event->type == MotionNotify)
+    {
+      xg_event->motion.x = event->xmotion.x + view->clip_left;
+      xg_event->motion.y = event->xmotion.y + view->clip_top;
+      xg_event->motion.x_root = event->xmotion.x_root;
+      xg_event->motion.y_root = event->xmotion.y_root;
+      xg_event->motion.time = event->xmotion.time;
+      xg_event->motion.device = find_suitable_pointer (view->frame);
+    }
+  else
+    {
+      xg_event->crossing.detail = min (5, event->xcrossing.detail);
+      xg_event->crossing.time = event->xcrossing.time;
+      xg_event->crossing.x = event->xcrossing.x + view->clip_left;
+      xg_event->crossing.y = event->xcrossing.y + view->clip_top;
+      xg_event->crossing.x_root = event->xcrossing.x_root;
+      xg_event->crossing.y_root = event->xcrossing.y_root;
+    }
+
+  gtk_main_do_event (xg_event);
+  gdk_event_free (xg_event);
+}
+
+static void
+synthesize_focus_in_event (GtkWidget *offscreen_window)
+{
+  GdkWindow *wnd;
+  GdkEvent *focus_event;
+
+  if (!gtk_widget_get_realized (offscreen_window))
+    gtk_widget_realize (offscreen_window);
+
+  wnd = gtk_widget_get_window (offscreen_window);
+
+  focus_event = gdk_event_new (GDK_FOCUS_CHANGE);
+  focus_event->any.window = wnd;
+  focus_event->focus_change.in = TRUE;
+  g_object_ref (wnd);
+
+  gtk_main_do_event (focus_event);
+  gdk_event_free (focus_event);
+}
+
 struct xwidget_view *
 xwidget_view_from_window (Window wdesc)
 {
@@ -291,7 +430,7 @@ xv_do_draw (struct xwidget_view *xw, struct xwidget *w)
   cairo_save (xw->cr_context);
   cairo_translate (xw->cr_context, -xw->clip_left,
 		   -xw->clip_top);
-  gtk_widget_draw (w->widget_osr, xw->cr_context);
+  gtk_widget_draw (w->widgetwindow_osr, xw->cr_context);
   cairo_restore (xw->cr_context);
 
   unblock_input ();
@@ -704,7 +843,8 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
       Lisp_Object xvw;
       XSETXWIDGET_VIEW (xvw, xv);
       XSetWindowAttributes a;
-      a.event_mask = ExposureMask;
+      a.event_mask = (ExposureMask | ButtonPressMask | ButtonReleaseMask
+		      | PointerMotionMask);
 
       xv->wdesc = XCreateWindow (xv->dpy, FRAME_X_WINDOW (s->f),
 				 x + clip_left, y + clip_top,
