@@ -210,7 +210,7 @@ In Emacs 23, typing 'M-x' ('read-extended-command') and then 'C-s' (to
 do an interactive search) would search over possible completions.
 This was lost in Emacs 24, but is now back again.
 
----
++++
 ** User option 'completions-format' supports a new value 'one-column'.
 
 +++
@@ -380,10 +380,12 @@ requiring the user to specify the value via the prefix argument.
 
 ** Windows
 
++++
 *** The key prefix 'C-x 4 1' displays next command buffer in the same window.
 It's bound to the command 'same-window-prefix' that requests the buffer
 of the next command to be displayed in the same window.
 
++++
 *** The key prefix 'C-x 4 4' displays next command buffer in a new window.
 It's bound to the command 'other-window-prefix' that requests the buffer
 of the next command to be displayed in a new window.
@@ -569,9 +571,9 @@ in other ways.
 
 ---
 *** Mouse wheel scrolling now works on more parts of frame's display.
-When using 'mwheel-mode', the mouse wheel will now scroll also when
+When using 'mouse-wheel-mode', the mouse wheel will now scroll also when
 the mouse cursor is on the scroll bars, fringes, margins, header line,
-and mode line.  ('mwheel-mode' is enabled by default on most graphical
+and mode line.  ('mouse-wheel-mode' is enabled by default on most graphical
 displays.)
 
 +++
@@ -602,7 +604,7 @@ built without SVG support, the old icons will be used instead.
 ** Help
 
 ---
-*** The order things are displayed in the "*Help*" buffer has been changed.
+*** The order of things displayed in the "*Help*" buffer has been changed.
 The indented "administrative" block (containing the "probably
 introduced" and "other relevant functions" (and similar things) has
 been moved to after the doc string.
@@ -655,11 +657,6 @@ It enables outlines in the output buffer of 'describe-bindings' that
 can provide a better overview in a long list of available bindings.
 
 +++
-*** New command 'lossage-size'.
-It allows users to change the maximum number of keystrokes and
-commands recorded for the purpose of 'view-lossage'.
-
-+++
 *** New commands to describe buttons and widgets.
 'widget-describe' (on a widget) will pop up a help buffer and give a
 description of the properties.  Likewise 'button-describe' does the
@@ -680,6 +677,11 @@ These new navigation commands are bound to 'n' and 'p' in
 *** The command 'view-lossage' can now be invoked from the menu bar.
 The menu bar "Help" menu now has a "Show Recent Inputs" item under the
 "Describe" sub-menu.
+
++++
+*** New command 'lossage-size'.
+It allows users to change the maximum number of keystrokes and
+commands recorded for the purpose of 'view-lossage'.
 
 ---
 *** Closing the "*Help*" buffer from the toolbar now buries the buffer.
@@ -760,13 +762,13 @@ Haddock, Javadoc or Doxygen.  By default this face inherits from
 'font-lock-constant-face'.
 
 +++
-*** New face 'flat-button'.
+*** New face box style 'flat-button'.
 This is a plain 2D button, but uses the background color instead of
 the foreground color.
 
 ---
-*** New face 'shortdoc-heading'.
-Applies to headings of shortdoc sections.
+*** New faces 'shortdoc-heading' and 'shortdoc-section'.
+Applied to shortdoc headings and sections.
 
 ---
 *** New face 'separator-line'.
