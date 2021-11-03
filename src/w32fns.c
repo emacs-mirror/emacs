@@ -273,8 +273,10 @@ int w32_major_version;
 int w32_minor_version;
 int w32_build_number;
 
+#ifndef CYGWIN
 /* If the OS is set to use dark mode.  */
 BOOL w32_darkmode = FALSE;
+#endif
 
 /* Distinguish between Windows NT and Windows 95.  */
 int os_subtype;
@@ -2308,6 +2310,7 @@ w32_init_class (HINSTANCE hinst)
 static void
 w32_applytheme (HWND hwnd)
 {
+#ifndef CYGWIN
   if (w32_darkmode)
     {
       /* Set window theme to that of a built-in Windows app (Explorer),
@@ -2327,6 +2330,7 @@ w32_applytheme (HWND hwnd)
 				    &w32_darkmode, sizeof (w32_darkmode));
 	}
     }
+#endif
 }
 
 static HWND
@@ -11087,6 +11091,7 @@ globals_of_w32fns (void)
   set_thread_description = (SetThreadDescription_Proc)
     get_proc_addr (hm_kernel32, "SetThreadDescription");
 
+#ifndef CYGWIN
   /* Support OS dark mode on Windows 10 version 1809 and higher.
      See `w32_applytheme` which uses appropriate APIs per version of Windows.
      For future wretches who may need to understand Windows build numbers:
@@ -11117,6 +11122,7 @@ globals_of_w32fns (void)
       if (val && *val == 0)
 	w32_darkmode = TRUE;
     }
+#endif
 
   except_code = 0;
   except_addr = 0;
