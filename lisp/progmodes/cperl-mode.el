@@ -5951,7 +5951,7 @@ default function."
                                         (eval cperl--basic-identifier-rx)))
                    (0+ blank) "(")
 ;;	    '("\\<for\\(each\\)?\\([ \t]+\\(state\\|my\\|local\\|our\\)\\)?[ \t]*\\(\\$[a-zA-Z_][a-zA-Z_0-9]*\\)[ \t]*("
-	      4 font-lock-variable-name-face)
+	      1 font-lock-variable-name-face)
 	    ;; Avoid $!, and s!!, qq!! etc. when not fontifying syntactically
 	    '("\\(?:^\\|[^smywqrx$]\\)\\(!\\)" 1 font-lock-negation-char-face)
 	    '("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)))
