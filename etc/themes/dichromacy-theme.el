@@ -101,6 +101,7 @@ Ansi-Color faces are included.")
    `(gnus-header-subject ((,class (:foreground ,orange))))
    `(gnus-header-name ((,class (:foreground ,skyblue))))
    `(gnus-header-newsgroups ((,class (:foreground ,vermillion))))
+   `(image-dired-thumb-mark ((,class (:background ,orange))))
    ;; Message faces
    `(message-header-name ((,class (:foreground ,skyblue))))
    `(message-header-cc ((,class (:foreground ,vermillion))))

@@ -632,6 +632,7 @@ more...")
    `(ilog-echo-face ((,class (:height 2.0 :foreground "#006FE0"))))
    `(ilog-load-face ((,class (:foreground "#BA36A5"))))
    `(ilog-message-face ((,class (:foreground "#808080"))))
+   `(image-dired-thumb-mark ((,class :background ,marked-line)))
    `(indent-guide-face ((,class (:foreground "#D3D3D3"))))
    `(info-file ((,class (:family "Sans Serif" :height 1.8 :weight bold :box (:line-width 1 :color "#0000CC") :foreground "cornflower blue" :background "LightSteelBlue1"))))
    `(info-header-node ((,class (:underline t :foreground "orange")))) ; nodes in header
