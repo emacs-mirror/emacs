@@ -2820,60 +2820,6 @@ sys_putenv (char *str)
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
-/* Query a value from the Windows Registry (under HKCU and HKLM),
-   where `key` is the registry key, `name` is the name, and `lpdwtype`
-   is a pointer to the return value's type. `lpwdtype` can be NULL if
-   you do not care about the type.
-
-   Returns: pointer to the value, or null pointer if the key/name does
-   not exist. */
-LPBYTE
-w32_get_resource (const char *key, const char *name, LPDWORD lpdwtype)
-{
-  LPBYTE lpvalue;
-  HKEY hrootkey = NULL;
-  DWORD cbData;
-
-  /* Check both the current user and the local machine to see if
-     we have any resources.  */
-
-  if (RegOpenKeyEx (HKEY_CURRENT_USER, key, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
-    {
-      lpvalue = NULL;
-
-      if (RegQueryValueEx (hrootkey, name, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
-	  && (lpvalue = xmalloc (cbData)) != NULL
-	  && RegQueryValueEx (hrootkey, name, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
-	{
-          RegCloseKey (hrootkey);
-	  return (lpvalue);
-	}
-
-      xfree (lpvalue);
-
-      RegCloseKey (hrootkey);
-    }
-
-  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, key, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
-    {
-      lpvalue = NULL;
-
-      if (RegQueryValueEx (hrootkey, name, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
-	  && (lpvalue = xmalloc (cbData)) != NULL
-	  && RegQueryValueEx (hrootkey, name, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
-	{
-          RegCloseKey (hrootkey);
-	  return (lpvalue);
-	}
-
-      xfree (lpvalue);
-
-      RegCloseKey (hrootkey);
-    }
-
-  return (NULL);
-}
-
 /* The argv[] array holds ANSI-encoded strings, and so this function
    works with ANS_encoded strings.  */
 void

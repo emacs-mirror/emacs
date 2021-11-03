@@ -273,10 +273,8 @@ int w32_major_version;
 int w32_minor_version;
 int w32_build_number;
 
-#ifndef CYGWIN
 /* If the OS is set to use dark mode.  */
 BOOL w32_darkmode = FALSE;
-#endif
 
 /* Distinguish between Windows NT and Windows 95.  */
 int os_subtype;
@@ -2310,7 +2308,6 @@ w32_init_class (HINSTANCE hinst)
 static void
 w32_applytheme (HWND hwnd)
 {
-#ifndef CYGWIN
   if (w32_darkmode)
     {
       /* Set window theme to that of a built-in Windows app (Explorer),
@@ -2330,7 +2327,6 @@ w32_applytheme (HWND hwnd)
 				    &w32_darkmode, sizeof (w32_darkmode));
 	}
     }
-#endif
 }
 
 static HWND
@@ -10320,6 +10316,60 @@ to be converted to forward slashes by the caller.  */)
 }
 
 #endif	/* WINDOWSNT */
+
+/* Query a value from the Windows Registry (under HKCU and HKLM),
+   where `key` is the registry key, `name` is the name, and `lpdwtype`
+   is a pointer to the return value's type. `lpwdtype` can be NULL if
+   you do not care about the type.
+
+   Returns: pointer to the value, or null pointer if the key/name does
+   not exist. */
+LPBYTE
+w32_get_resource (const char *key, const char *name, LPDWORD lpdwtype)
+{
+  LPBYTE lpvalue;
+  HKEY hrootkey = NULL;
+  DWORD cbData;
+
+  /* Check both the current user and the local machine to see if
+     we have any resources.  */
+
+  if (RegOpenKeyEx (HKEY_CURRENT_USER, key, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      lpvalue = NULL;
+
+      if (RegQueryValueEx (hrootkey, name, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
+	  && (lpvalue = xmalloc (cbData)) != NULL
+	  && RegQueryValueEx (hrootkey, name, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	{
+          RegCloseKey (hrootkey);
+	  return (lpvalue);
+	}
+
+      xfree (lpvalue);
+
+      RegCloseKey (hrootkey);
+    }
+
+  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, key, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      lpvalue = NULL;
+
+      if (RegQueryValueEx (hrootkey, name, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
+	  && (lpvalue = xmalloc (cbData)) != NULL
+	  && RegQueryValueEx (hrootkey, name, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	{
+          RegCloseKey (hrootkey);
+	  return (lpvalue);
+	}
+
+      xfree (lpvalue);
+
+      RegCloseKey (hrootkey);
+    }
+
+  return (NULL);
+}
 
 /***********************************************************************
 			    Initialization
@@ -11091,7 +11141,6 @@ globals_of_w32fns (void)
   set_thread_description = (SetThreadDescription_Proc)
     get_proc_addr (hm_kernel32, "SetThreadDescription");
 
-#ifndef CYGWIN
   /* Support OS dark mode on Windows 10 version 1809 and higher.
      See `w32_applytheme` which uses appropriate APIs per version of Windows.
      For future wretches who may need to understand Windows build numbers:
@@ -11122,7 +11171,6 @@ globals_of_w32fns (void)
       if (val && *val == 0)
 	w32_darkmode = TRUE;
     }
-#endif
 
   except_code = 0;
   except_addr = 0;
