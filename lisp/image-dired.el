@@ -458,15 +458,28 @@ This is where you see the cursor."
   :type 'integer)
 
 (defcustom image-dired-thumb-visible-marks t
-  "Make marks visible in thumbnail buffer.
+  "Make marks and flags visible in thumbnail buffer.
 If non-nil, apply the `image-dired-thumb-mark' face to marked
-images."
+images and `image-dired-thumb-flagged' to images flagged for
+deletion."
   :type 'boolean
   :version "28.1")
 
 (defface image-dired-thumb-mark
-  '((t (:background "DarkOrange")))
-  "Background-color for marked images in thumbnail buffer."
+  '((((class color) (min-colors 16)) :background "DarkOrange")
+    (((class color)) :foreground "yellow"))
+  "Face for marked images in thumbnail buffer."
+  :group 'image-dired
+  :version "29.1")
+
+(defface image-dired-thumb-flagged
+  '((((class color) (min-colors 88) (background light)) :background "Red3")
+    (((class color) (min-colors 88) (background dark))  :background "Pink")
+    (((class color) (min-colors 16) (background light)) :background "Red3")
+    (((class color) (min-colors 16) (background dark))  :background "Pink")
+    (((class color) (min-colors 8)) :background "red")
+    (t :inverse-video t))
+  "Face for images flagged for deletion in thumbnail buffer."
   :group 'image-dired
   :version "29.1")
 
@@ -1490,11 +1503,19 @@ comment."
               props
               comment))))))
 
-(defun image-dired-dired-file-marked-p ()
-  "Check whether file on current line is marked or not."
+(defun image-dired-dired-file-marked-p (&optional marker)
+  "In Dired, return t if file on current line is marked.
+If optional argument MARKER is non-nil, it is a character to look
+for.  The default is to look for `dired-marker-char'."
+  (setq marker (or marker dired-marker-char))
   (save-excursion
     (beginning-of-line)
-    (looking-at-p dired-re-mark)))
+    (and (looking-at dired-re-mark)
+         (= (aref (match-string 0) 0) marker))))
+
+(defun image-dired-dired-file-flagged-p ()
+  "In Dired, return t if file on current line is flagged for deletion."
+  (image-dired-dired-file-marked-p dired-del-marker))
 
 (defmacro image-dired--on-file-in-dired-buffer (&rest body)
   "Run BODY with point on file at point in Dired buffer.
@@ -2408,15 +2429,23 @@ non-nil."
       (image-dired-track-original-file))
   (image-dired-display-thumb-properties))
 
-(defun image-dired-thumb-file-marked-p ()
-  "Check if file is marked in associated Dired buffer."
+(defun image-dired-thumb-file-marked-p (&optional flagged)
+  "Check if file is marked in associated Dired buffer.
+If optional argument FLAGGED is non-nil, check if file is flagged
+for deletion instead."
   (let ((file-name (image-dired-original-file-name))
         (dired-buf (image-dired-associated-dired-buffer)))
     (when (and dired-buf file-name)
       (with-current-buffer dired-buf
         (save-excursion
           (when (dired-goto-file file-name)
-            (image-dired-dired-file-marked-p)))))))
+            (if flagged
+                (image-dired-dired-file-flagged-p)
+              (image-dired-dired-file-marked-p))))))))
+
+(defun image-dired-thumb-file-flagged-p ()
+  "Check if file is flagged for deletion in associated Dired buffer."
+  (image-dired-thumb-file-marked-p t))
 
 (defun image-dired-delete-marked ()
   "Delete current or marked thumbnails and associated images."
@@ -2437,11 +2466,14 @@ non-nil."
         (let ((inhibit-read-only t))
           (while (not (eobp))
             (with-silent-modifications
-              (if (image-dired-thumb-file-marked-p)
-                  (add-face-text-property (point) (1+ (point))
-                                          'image-dired-thumb-mark)
-                (remove-text-properties (point) (1+ (point))
-                                        '(face image-dired-thumb-mark))))
+              (cond ((image-dired-thumb-file-marked-p)
+                     (add-face-text-property (point) (1+ (point))
+                                             'image-dired-thumb-mark))
+                    ((image-dired-thumb-file-flagged-p)
+                     (add-face-text-property (point) (1+ (point))
+                                             'image-dired-thumb-flagged))
+                    (t (remove-text-properties (point) (1+ (point))
+                                               '(face image-dired-thumb-mark)))))
             (forward-char)))))))
 
 (defun image-dired-mouse-toggle-mark-1 ()
