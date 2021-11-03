@@ -868,7 +868,11 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
   if (moved)
     {
 #ifdef USE_GTK
-      XMoveWindow (xv->dpy, xv->wdesc, x + clip_left, y + clip_top);
+      XMoveResizeWindow (xv->dpy, xv->wdesc, x + clip_left, y + clip_top,
+			 clip_right - clip_left, clip_bottom - clip_top);
+      XFlush (xv->dpy);
+      cairo_xlib_surface_set_size (xv->cr_surface, clip_right - clip_left,
+				   clip_bottom - clip_top);
 #elif defined NS_IMPL_COCOA
       nsxwidget_move_view (xv, x + clip_left, y + clip_top);
 #endif
@@ -884,7 +888,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
       || xv->clip_top != clip_top || xv->clip_left != clip_left)
     {
 #ifdef USE_GTK
-      if (!wdesc_was_none)
+      if (!wdesc_was_none && !moved)
 	{
 	  XResizeWindow (xv->dpy, xv->wdesc, clip_right - clip_left,
 			 clip_bottom - clip_top);
