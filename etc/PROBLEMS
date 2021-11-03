@@ -742,18 +742,6 @@ completed" message that tls.el relies upon, causing affected Emacs
 functions to hang.  To work around the problem, use older or newer
 versions of gnutls-cli, or use Emacs's built-in gnutls support.
 
-*** Stack overflow in regexp matcher.
-Due to fundamental limitations in the way Emacs' regular expression
-engine is designed, you might run into combinatorial explosions in
-backtracking with certain regexps.
-
-Avoid "\(...\(...\)*...\)*" and "\(...\)*\(...\)*".  Look for a way to
-anchor your regular expression, to avoid matching the null string in
-infinite ways.  The latter is what creates backtrack points, and
-eventual overflow in practice.
-
-(Also prefer "\(?:...\)" to "\(...\)" unless you need the latter.)
-
 * Runtime problems related to font handling
 
 ** Characters are displayed as empty boxes or with wrong font under X.
@@ -2705,6 +2693,23 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 
 * Runtime problems specific to macOS
+
+** Error message when opening Emacs on macOS
+
+When opening Emacs, you may see an error message saying something like
+this:
+
+  "Emacs" can't be opened because Apple cannot check it for malicious
+  software. This software needs to be updated. Contact the developer
+  for more information.
+
+The reason is that Apple incorrectly catalogs Emacs as potentially
+malicious software and thus shows this error message.
+
+To avoid this alert, open Finder, go to Applications, control-click
+the Emacs app icon, and then choose Open.  This adds a security
+exception for Emacs and from now on you should be able to open it by
+double-clicking on its icon, like any other app.
 
 ** macOS doesn't come with libxpm, so only XPM3 is supported.
 

@@ -5296,6 +5296,9 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  error ("Trying to load incoherent dumped eln file %s",
 		 SSDATA (comp_u->file));
 
+	if (!CONSP (comp_u->file))
+	  error ("Incoherent compilation unit for dump was dumped");
+
 	/* emacs_execdir is always unibyte, but the file names in
 	   comp_u->file could be multibyte, so we need to encode
 	   them.  */

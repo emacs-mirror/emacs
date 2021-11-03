@@ -263,6 +263,7 @@ case-sensitive.
 * Rx Notation::             An alternative, structured regexp notation.
 @end ifnottex
 * Regexp Functions::        Functions for operating on regular expressions.
+* Regexp Problems::         Some problems and how they may be avoided.
 @end menu
 
 @node Syntax of Regexps
@@ -342,15 +343,6 @@ first tries to match all three @samp{a}s; but the rest of the pattern is
 @samp{ar} and there is only @samp{r} left to match, so this try fails.
 The next alternative is for @samp{a*} to match only two @samp{a}s.  With
 this choice, the rest of the regexp matches successfully.
-
-@strong{Warning:} Nested repetition operators can run for a very
-long time, if they lead to ambiguous matching.  For
-example, trying to match the regular expression @samp{\(x+y*\)*a}
-against the string @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could
-take hours before it ultimately fails.  Emacs may try each way of
-grouping the @samp{x}s before concluding that none of them can work.
-In general, avoid expressions that can match the same string in
-multiple ways.
 
 @item @samp{+}
 @cindex @samp{+} in regexp
@@ -1883,6 +1875,73 @@ string at all.  It is particularly useful as default value for
 variables that may be set to a pattern that actually matches
 something.
 @end defvar
+
+@node Regexp Problems
+@subsection Problems with Regular Expressions
+@cindex regular expression problems
+@cindex regexp stack overflow
+@cindex stack overflow in regexp
+
+The Emacs regexp implementation, like many of its kind, is generally
+robust but occasionally causes trouble in either of two ways: matching
+may run out of internal stack space and signal an error, and it can
+take a long time to complete.  The advice below will make these
+symptoms less likely and help alleviate problems that do arise.
+
+@itemize
+@item
+Anchor regexps at the beginning of a line, string or buffer using
+zero-width assertions (@samp{^} and @code{\`}). This takes advantage
+of fast paths in the implementation and can avoid futile matching
+attempts.  Other zero-width assertions may also bring benefits by
+causing a match to fail early.
+
+@item
+Avoid or-patterns in favour of character alternatives: write
+@samp{[ab]} instead of @samp{a\|b}.  Recall that @samp{\s-} and @samp{\sw}
+are equivalent to @samp{[[:space:]]} and @samp{[[:word:]]}, respectively.
+
+@item
+Since the last branch of an or-pattern does not add a backtrack point
+on the stack, consider putting the most likely matched pattern last.
+For example, @samp{^\(?:a\|.b\)*c} will run out of stack if trying to
+match a very long string of @samp{a}s, but the equivalent
+@samp{^\(?:.b\|a\)*c} will not.
+
+(It is a trade-off: successfully matched or-patterns run faster with
+the most frequently matched pattern first.)
+
+@item
+Try to ensure that any part of the text can only match in a single
+way.  For example, @samp{a*a*} will match the same set of strings as
+@samp{a*}, but the former can do so in many ways and will therefore
+cause slow backtracking if the match fails later on.  Make or-pattern
+branches mutually exclusive if possible, so that matching will not go
+far into more than one branch before failing.
+
+Be especially careful with nested repetitions: they can easily result
+in very slow matching in the presence of ambiguities.  For example,
+@samp{\(?:a*b*\)+c} will take a long time attempting to match even a
+moderately long string of @samp{a}s before failing.  The equivalent
+@samp{\(?:a\|b\)*c} is much faster, and @samp{[ab]*c} better still.
+
+@item
+Don't use capturing groups unless they are really needed; that is, use
+@samp{\(?:@dots{}\)} instead of @samp{\(@dots{}\)} for bracketing
+purposes.
+
+@ifnottex
+@item
+Consider using @code{rx} (@pxref{Rx Notation}); it can optimise some
+or-patterns automatically and will never introduce capturing groups
+unless explicitly requested.
+@end ifnottex
+@end itemize
+
+If you run into regexp stack overflow despite following the above
+advice, don't be afraid of performing the matching in multiple
+function calls, each using a simpler regexp where backtracking can
+more easily be contained.
 
 @node Regexp Search
 @section Regular Expression Searching
