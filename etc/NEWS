@@ -2794,18 +2794,18 @@ trying to identify the thing at point.
 *** New function 'thing-at-mouse'.
 This is like 'thing-at-point', but uses the mouse event position instead.
 
-** image-dired
-
----
-*** 'image-dired-mouse-toggle-mark' now toggles files in the active region.
+** Image-Dired
 
 +++
 *** New user option 'image-dired-thumb-visible-marks'.
-If non-nil (the default), use 'image-dired-thumb-mark' to say what
-images are marked.
+If non-nil (the default), use the new face 'image-dired-thumb-mark'
+for marked images.
 
 ---
 *** New command 'image-dired-delete-marked'.
+
+---
+*** 'image-dired-mouse-toggle-mark' now toggles files in the active region.
 
 ** Flymake mode
 
