@@ -1316,6 +1316,7 @@ Regular Expressions
 * Rx Notation::             An alternative, structured regexp notation.
 @end ifnottex
 * Regexp Functions::        Functions for operating on regular expressions.
+* Regexp Problems::         Some problems and how they may be avoided.
 
 Syntax of Regular Expressions
 
