@@ -961,7 +961,8 @@ If non-nil, EVENT should be a mouse event."
                           " " (buffer-substring (point) (1+ (point))))))
 
 (defun outline--valid-emoji-p (string)
-  (when-let ((font (car (internal-char-font nil ?😀))))
+  (when-let ((font (and (display-multi-font-p)
+                        (car (internal-char-font nil ?😀)))))
     (font-has-char-p font (aref string 0))))
 
 (defun outline--valid-char-p (string)
