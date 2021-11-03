@@ -1370,49 +1370,46 @@ With prefix argument, move ARG lines."
         (ignore-errors
           (image-dired-display-thumb-properties))))))
 
-(defun image-dired-forward-image (&optional arg)
+(defun image-dired-forward-image (&optional arg wrap-around)
   "Move to next image and display properties.
-Optional prefix ARG says how many images to move; default is one
-image."
+Optional prefix ARG says how many images to move; the default is
+one image.  Negative means move backwards.
+On reaching end or beginning of buffer, stop and show a message.
+
+If optional argument WRAP-AROUND is non-nil, wrap around: if
+point is on the last image, move to the last one and vice versa."
   (interactive "p")
-  (let (pos (steps (or arg 1)))
-    (dotimes (_ steps)
-      (if (and (not (eobp))
+  (setq arg (or arg 1))
+  (let (pos)
+    (dotimes (_ (abs arg))
+      (if (and (not (if (> arg 0) (eobp) (bobp)))
                (save-excursion
-                 (forward-char)
-                 (while (and (not (eobp))
+                 (forward-char (if (> arg 0) 1 -1))
+                 (while (and (not (if (> arg 0) (eobp) (bobp)))
                              (not (image-dired-image-at-point-p)))
-                   (forward-char))
+                   (forward-char (if (> arg 0) 1 -1)))
                  (setq pos (point))
                  (image-dired-image-at-point-p)))
           (progn (goto-char pos)
                  (image-dired-display-thumb-properties))
-        (message "At last image")
-        (run-at-time 1 nil (image-dired--display-thumb-properties-fun)))))
+        (if wrap-around
+            (progn (goto-char (if (> arg 0)
+                                  (point-min)
+                                ;; There are two spaces after the last image.
+                                (- (point-max) 2)))
+                   (image-dired-display-thumb-properties))
+          (message "At %s image" (if (> arg 0) "last" "first"))
+          (run-at-time 1 nil (image-dired--display-thumb-properties-fun))))))
   (when image-dired-track-movement
     (image-dired-track-original-file)))
 
 (defun image-dired-backward-image (&optional arg)
   "Move to previous image and display properties.
-Optional prefix ARG says how many images to move; default is one
-image."
+Optional prefix ARG says how many images to move; the default is
+one image.  Negative means move forward.
+On reaching end or beginning of buffer, stop and show a message."
   (interactive "p")
-  (let (pos (steps (or arg 1)))
-    (dotimes (_ steps)
-      (if (and (not (bobp))
-               (save-excursion
-                 (backward-char)
-                 (while (and (not (bobp))
-                             (not (image-dired-image-at-point-p)))
-                   (backward-char))
-                 (setq pos (point))
-                 (image-dired-image-at-point-p)))
-          (progn (goto-char pos)
-                 (image-dired-display-thumb-properties))
-        (message "At first image")
-        (run-at-time 1 nil (image-dired--display-thumb-properties-fun)))))
-  (when image-dired-track-movement
-    (image-dired-track-original-file)))
+  (image-dired-forward-image (- (or arg 1))))
 
 (defun image-dired-next-line ()
   "Move to next line and display properties."
@@ -2244,17 +2241,18 @@ function.  The result is a couple of new files in
        (copy-file curr-file new-name))
      files)))
 
-(defun image-dired-display-next-thumbnail-original ()
-  "In thumbnail buffer, move to next thumbnail and display the image."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired-forward-image)
+(defun image-dired-display-next-thumbnail-original (&optional arg)
+  "In thumbnail buffer, move to next thumbnail and display the image.
+With prefix ARG, move that many thumbnails."
+  (interactive "p" image-dired-thumbnail-mode)
+  (image-dired-forward-image arg t)
   (image-dired-display-thumbnail-original-image))
 
-(defun image-dired-display-previous-thumbnail-original ()
-  "Move to previous thumbnail and display image."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired-backward-image)
-  (image-dired-display-thumbnail-original-image))
+(defun image-dired-display-previous-thumbnail-original (arg)
+  "In thumbnail buffer, move to previous thumbnail and display image.
+With prefix ARG, move that many thumbnails."
+  (interactive "p" image-dired-thumbnail-mode)
+  (image-dired-display-next-thumbnail-original (- arg)))
 
 (defun image-dired-write-comments (file-comments)
   "Write file comments to database.
