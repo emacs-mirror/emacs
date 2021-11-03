@@ -915,7 +915,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
   if (!xwidget_hidden (xv))
     {
 #ifdef USE_GTK
-      xv_do_draw (xv, xww);
+      gtk_widget_queue_draw (xww->widget_osr);
 #elif defined NS_IMPL_COCOA
       nsxwidget_set_needsdisplay (xv);
 #endif
