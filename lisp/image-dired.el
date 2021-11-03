@@ -465,10 +465,10 @@ images."
   :version "28.1")
 
 (defface image-dired-thumb-mark
-  '((t (:background "orange")))
+  '((t (:background "DarkOrange")))
   "Background-color for marked images in thumbnail buffer."
   :group 'image-dired
-  :version "28.1")
+  :version "29.1")
 
 (defcustom image-dired-line-up-method 'dynamic
   "Default method for line-up of thumbnails in thumbnail buffer.
@@ -1129,7 +1129,8 @@ never ask for confirmation."
                       "Directory contains more than %d image files.  Proceed?"
                       image-dired-show-all-from-dir-max-files))))
            (image-dired-display-thumbs)
-           (pop-to-buffer image-dired-thumbnail-buffer))
+           (pop-to-buffer image-dired-thumbnail-buffer)
+           (image-dired-unmark-all-marks))
           (t (message "Image-Dired canceled")))))
 
 ;;;###autoload
@@ -1539,9 +1540,9 @@ Should be called from commands in `image-dired-thumbnail-mode'."
       (dired-mark 1))))
 
 (defun image-dired-unmark-all-marks ()
-  "Remove all marks from all files.
-Do this in the Dired buffer and update this thumbnail buffer."
-  (interactive)
+  "Remove all marks from all files in associated Dired buffer.
+Also update the marks in the thumbnail buffer."
+  (interactive nil image-dired-thumbnail-mode)
   (with-current-buffer (image-dired-associated-dired-buffer)
     (dired-unmark-all-marks))
   (image-dired-thumb-update-marks))
@@ -1614,6 +1615,7 @@ You probably want to use this together with
     (define-key map [delete] 'image-dired-flag-thumb-original-file)
     (define-key map "m" 'image-dired-mark-thumb-original-file)
     (define-key map "u" 'image-dired-unmark-thumb-original-file)
+    (define-key map "U" 'image-dired-unmark-all-marks)
     (define-key map "." 'image-dired-track-original-file)
     (define-key map [tab] 'image-dired-jump-original-dired-buffer)
 

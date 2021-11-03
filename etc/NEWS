@@ -244,8 +244,8 @@ external "exiftool" command to be available.  The user options
 
 ---
 *** New command for the thumbnail buffer.
-The new command 'image-dired-unmark-all-marks' has been added with a
-binding in the menu.
+The new command 'image-dired-unmark-all-marks' has been added.  It is
+bound to "U" in the thumbnail buffer.
 
 ---
 *** Support Thumbnail Managing Standard v0.9.0 (Dec 2020).
