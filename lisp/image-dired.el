@@ -2040,6 +2040,8 @@ original size."
         (window (image-dired-display-window))
         (image-type 'jpeg))
     (setq file (expand-file-name file))
+    (when (not (file-exists-p file))
+      (error "No such file: %s" file))
     (if (not original-size)
         (let* ((spec
                 (list
