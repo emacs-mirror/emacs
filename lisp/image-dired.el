@@ -1499,8 +1499,8 @@ comment."
 (defmacro image-dired--on-file-in-dired-buffer (&rest body)
   "Run BODY with point on file at point in Dired buffer.
 Should be called from commands in `image-dired-thumbnail-mode'."
-  (declare ((indent defun)
-            (debug 1)))
+  (declare (indent defun)
+           (debug 1))
   `(let ((file-name (image-dired-original-file-name))
          (dired-buf (image-dired-associated-dired-buffer)))
      (if (not (and dired-buf file-name))
