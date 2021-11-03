@@ -15,12 +15,16 @@ The file system needs to be organized like so:
 
 ~/emacs-build/git
 
-Contains a checkout of the Emacs git repository, organized according
-to branches, with git worktree
+Contains checkouts and worktrees of the Emacs git repository,
+organized according to branches.
+
+~/emacs-build/git/master
+
+A checkout out of the master branch of the Emacs git repository.
 
 ~/emacs-build/git/emacs-$branch
 
-A branch of the git repository containing the current release
+A worktree of the git repository containing the current release
 branch. This has to be created by hand.
 
 ~/emacs-build/git/emacs-$version
