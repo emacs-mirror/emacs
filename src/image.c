@@ -8232,23 +8232,24 @@ gif_image_p (Lisp_Object object)
 #   undef DrawText
 #  endif
 
-/* Giflib before 5.0 didn't define these macros (used only if HAVE_NTGUI).  */
-#  ifndef GIFLIB_MINOR
-#   define GIFLIB_MINOR 0
-#  endif
-#  ifndef GIFLIB_RELEASE
-#   define GIFLIB_RELEASE 0
-#  endif
-
 # else /* HAVE_NTGUI */
 
 #  include <gif_lib.h>
 
 # endif /* HAVE_NTGUI */
 
-/* Giflib before 5.0 didn't define these macros.  */
+/* Giflib before 4.1.6 didn't define these macros.  */
 # ifndef GIFLIB_MAJOR
 #  define GIFLIB_MAJOR 4
+# endif
+# ifndef GIFLIB_MINOR
+#  define GIFLIB_MINOR 0
+# endif
+# ifndef GIFLIB_RELEASE
+#  define GIFLIB_RELEASE 0
+# endif
+/* Giflib before 5.0 didn't define these macros.  */
+# if GIFLIB_MAJOR < 5
 #  define DISPOSAL_UNSPECIFIED    0    /* No disposal specified.  */
 #  define DISPOSE_DO_NOT          1    /* Leave image in place.  */
 #  define DISPOSE_BACKGROUND      2    /* Set area too background color.  */
