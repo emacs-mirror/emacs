@@ -423,14 +423,6 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
   (interactive (list nil t))
   (when (or (not mailcap-parsed-p)
 	    force)
-    ;; Clear out all old data.
-    (setq mailcap--computed-mime-data nil)
-    ;; Add the Emacs-distributed defaults (which will be used as
-    ;; fallbacks).  Do it this way instead of just copying the list,
-    ;; since entries are destructively modified.
-    (cl-loop for (major . minors) in mailcap-mime-data
-             do (cl-loop for (minor . entry) in minors
-                         do (mailcap-add-mailcap-entry major minor entry)))
     (cond
      (path nil)
      ((getenv "MAILCAPS")
@@ -450,6 +442,14 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
     (when (seq-some (lambda (f)
                       (file-has-changed-p (car f) 'mail-parse-mailcaps))
                     path)
+      ;; Clear out all old data.
+      (setq mailcap--computed-mime-data nil)
+      ;; Add the Emacs-distributed defaults (which will be used as
+      ;; fallbacks).  Do it this way instead of just copying the list,
+      ;; since entries are destructively modified.
+      (cl-loop for (major . minors) in mailcap-mime-data
+               do (cl-loop for (minor . entry) in minors
+                           do (mailcap-add-mailcap-entry major minor entry)))
       ;; The ~/.mailcap entries will end up first in the resulting data.
       (dolist (spec (reverse
 		     (if (stringp path)
