@@ -103,9 +103,6 @@
 ;; TODO
 ;; ====
 ;;
-;; * Support gallery creation when using per-directory thumbnail
-;;   storage.
-;;
 ;; * Some sort of auto-rotate function based on rotate info in the
 ;;   EXIF data.
 ;;
@@ -137,9 +134,6 @@
 ;;   if it is, call `image-dired-dired-next-line' and `image-dired-dired-previous-line',
 ;;   respectively.  Update: This is partly done; some bindings have
 ;;   now been added to Dired.
-;;
-;; * Enhanced gallery creation with basic CSS-support and pagination
-;;   of tag pages with many pictures.
 ;;
 ;; * In some way keep track of buffers and windows and stuff so that
 ;;   it works as the user expects.
@@ -222,30 +216,7 @@ https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html
   "Database file where file names and their associated tags are stored."
   :type 'file)
 
-(defcustom image-dired-gallery-dir
-  (expand-file-name ".image-dired_gallery" image-dired-dir)
-  "Directory to store generated gallery html pages.
-This path needs to be \"shared\" to the public so that it can access
-the index.html page that image-dired creates."
-  :type 'directory)
 
-(defcustom image-dired-gallery-image-root-url
-  "https://example.org/image-diredpics"
-  "URL where the full size images are to be found on your web server.
-Note that this path has to be configured on your web server.
-Image-Dired expects to find pictures in this directory.
-This is used by `image-dired-gallery-generate'."
-  :type 'string
-  :version "29.1")
-
-(defcustom image-dired-gallery-thumb-image-root-url
-  "https://example.org/image-diredthumbs"
-  "URL where the thumbnail images are to be found on your web server.
-Note that this path has to be configured on your web server.
-Image-Dired expects to find pictures in this directory.
-This is used by `image-dired-gallery-generate'."
-  :type 'string
-  :version "29.1")
 
 (defcustom image-dired-cmd-create-thumbnail-program
   (if (executable-find "gm") "gm" "convert")
@@ -389,12 +360,6 @@ the image file name, %t which is replaced by the tag name and %v
 which is replaced by the tag value."
   :version "26.1"
   :type '(repeat (string :tag "Argument")))
-
-(defcustom image-dired-gallery-hidden-tags
-  (list "private" "hidden" "pending")
-  "List of \"hidden\" tags.
-Used by `image-dired-gallery-generate' to leave out \"hidden\" images."
-  :type '(repeat string))
 
 (defcustom image-dired-thumb-size
   (cond
@@ -2380,6 +2345,52 @@ Track this in associated Dired buffer if
           props
           comment)))))
 
+
+;;;; Gallery support
+
+;; TODO:
+;; * Support gallery creation when using per-directory thumbnail
+;;   storage.
+;; * Enhanced gallery creation with basic CSS-support and pagination
+;;   of tag pages with many pictures.
+
+(defgroup image-dired-gallery nil
+  "Image-Dired support for generating a HTML gallery."
+  :prefix "image-dired-"
+  :group 'image-dired
+  :version "29.1")
+
+(defcustom image-dired-gallery-dir
+  (expand-file-name ".image-dired_gallery" image-dired-dir)
+  "Directory to store generated gallery html pages.
+This path needs to be \"shared\" to the public so that it can access
+the index.html page that image-dired creates."
+  :type 'directory)
+
+(defcustom image-dired-gallery-image-root-url
+  "https://example.org/image-diredpics"
+  "URL where the full size images are to be found on your web server.
+Note that this path has to be configured on your web server.
+Image-Dired expects to find pictures in this directory.
+This is used by `image-dired-gallery-generate'."
+  :type 'string
+  :version "29.1")
+
+(defcustom image-dired-gallery-thumb-image-root-url
+  "https://example.org/image-diredthumbs"
+  "URL where the thumbnail images are to be found on your web server.
+Note that this path has to be configured on your web server.
+Image-Dired expects to find pictures in this directory.
+This is used by `image-dired-gallery-generate'."
+  :type 'string
+  :version "29.1")
+
+(defcustom image-dired-gallery-hidden-tags
+  (list "private" "hidden" "pending")
+  "List of \"hidden\" tags.
+Used by `image-dired-gallery-generate' to leave out \"hidden\" images."
+  :type '(repeat string))
+
 (defvar image-dired-tag-file-list nil
   "List to store tag-file structure.")
 
@@ -2389,19 +2400,8 @@ Track this in associated Dired buffer if
 (defvar image-dired-file-comment-list nil
   "List to store file comments.")
 
-(defun image-dired-add-to-tag-file-list (tag file)
-  "Add relation between TAG and FILE."
-  (let (curr)
-    (if image-dired-tag-file-list
-        (if (setq curr (assoc tag image-dired-tag-file-list))
-            (if (not (member file curr))
-                (setcdr curr (cons file (cdr curr))))
-          (setcdr image-dired-tag-file-list
-                  (cons (list tag file) (cdr image-dired-tag-file-list))))
-      (setq image-dired-tag-file-list (list (list tag file))))))
-
-(defun image-dired-add-to-tag-file-lists (tag file)
-  "Helper function used from `image-dired-create-gallery-lists'.
+(defun image-dired--add-to-tag-file-lists (tag file)
+  "Helper function used from `image-dired--create-gallery-lists'.
 
 Add TAG to FILE in one list and FILE to TAG in the other.
 
@@ -2435,8 +2435,8 @@ image-dired-tag-file-list:
                   (cons (list tag file) (cdr image-dired-tag-file-list))))
       (setq image-dired-tag-file-list (list (list tag file))))))
 
-(defun image-dired-add-to-file-comment-list (file comment)
-  "Helper function used from `image-dired-create-gallery-lists'.
+(defun image-dired--add-to-file-comment-list (file comment)
+  "Helper function used from `image-dired--create-gallery-lists'.
 
 For FILE, add COMMENT to list.
 
@@ -2454,7 +2454,7 @@ image-dired-file-comment-list:
                         (cdr image-dired-file-comment-list))))
     (setq image-dired-file-comment-list (list (cons file comment)))))
 
-(defun image-dired-create-gallery-lists ()
+(defun image-dired--create-gallery-lists ()
   "Create temporary lists used by `image-dired-gallery-generate'."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
@@ -2475,15 +2475,15 @@ image-dired-file-comment-list:
        (setq file (car row-tags))
        (dolist (x (cdr row-tags))
 	 (if (not (string-match "^comment:\\(.*\\)" x))
-	     (image-dired-add-to-tag-file-lists x file)
-	   (image-dired-add-to-file-comment-list file (match-string 1 x)))))))
+             (image-dired--add-to-tag-file-lists x file)
+           (image-dired--add-to-file-comment-list file (match-string 1 x)))))))
   ;; Sort tag-file list
   (setq image-dired-tag-file-list
         (sort image-dired-tag-file-list
               (lambda (x y)
                 (string< (car x) (car y))))))
 
-(defun image-dired-hidden-p (file)
+(defun image-dired--hidden-p (file)
   "Return t if image FILE has a \"hidden\" tag."
   (cl-loop for tag in (cdr (assoc file image-dired-file-tag-list))
            if (member tag image-dired-gallery-hidden-tags) return t))
@@ -2497,7 +2497,7 @@ it easier to generate, then HTML-files are created in
   (if (eq 'per-directory image-dired-thumbnail-storage)
       (error "Currently, gallery generation is not supported \
 when using per-directory thumbnail file storage"))
-  (image-dired-create-gallery-lists)
+  (image-dired--create-gallery-lists)
   (let ((tags image-dired-tag-file-list)
 	(index-file (format "%s/index.html" image-dired-gallery-dir))
         count tag tag-file
@@ -2578,6 +2578,9 @@ when using per-directory thumbnail file storage"))
 	  (setq count (1+ count))))
       (insert "  </body>\n")
       (insert "</html>"))))
+
+
+;;;; Tag support
 
 (defvar image-dired-widget-list nil
   "List to keep track of meta data in edit buffer.")
@@ -2923,8 +2926,28 @@ Dired."
           (image-dired-display-image file))
       (error "No original file name at point"))))
 
+(defun image-dired-add-to-tag-file-list (tag file)
+  "Add relation between TAG and FILE."
+  (declare (obsolete nil "29.1"))
+  (let (curr)
+    (if image-dired-tag-file-list
+        (if (setq curr (assoc tag image-dired-tag-file-list))
+            (if (not (member file curr))
+                (setcdr curr (cons file (cdr curr))))
+          (setcdr image-dired-tag-file-list
+                  (cons (list tag file) (cdr image-dired-tag-file-list))))
+      (setq image-dired-tag-file-list (list (list tag file))))))
+
 (define-obsolete-function-alias 'image-dired-create-display-image-buffer
   #'ignore "29.1")
+(define-obsolete-function-alias 'image-dired-create-gallery-lists
+  #'image-dired--create-gallery-lists "29.1")
+(define-obsolete-function-alias 'image-dired-add-to-file-comment-list
+  #'image-dired--add-to-file-comment-list "29.1")
+(define-obsolete-function-alias 'image-dired-add-to-tag-file-lists
+  #'image-dired--add-to-tag-file-lists "29.1")
+(define-obsolete-function-alias 'image-dired-hidden-p
+  #'image-dired--hidden-p "29.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
