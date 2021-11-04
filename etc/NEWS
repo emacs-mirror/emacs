@@ -157,6 +157,18 @@ change the terminal used on a remote host.
 *** New user option 'mml-attach-file-at-the-end'.
 If non-nil, 'C-c C-a' will put attached files at the end of the message.
 
+** Gnus
+
++++
+*** New user option 'gnus-treat-emojize-symbols'.
+If non-nil, symbols that have an emoji representation will be
+displayed as emojis.
+
++++
+*** New command 'gnus-article-emojize-symbols'.
+This is bound to 'W D e' and will display symbols that have emoji
+representation as emojis.
+
 ** EIEIO
 
 +++

@@ -2267,6 +2267,7 @@ increase the score of each group you read."
               "x" #'gnus-article-display-x-face
               "d" #'gnus-article-display-face
               "s" #'gnus-treat-smiley
+              "e" #'gnus-article-emojize-symbols
               "D" #'gnus-article-remove-images
               "W" #'gnus-article-show-images
               "F" #'gnus-article-toggle-fonts

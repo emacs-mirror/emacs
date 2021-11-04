@@ -2660,6 +2660,7 @@ are always t.")
       gnus-article-hide-headers gnus-article-hide-boring-headers
       gnus-article-treat-overstrike
       gnus-article-remove-cr gnus-article-remove-trailing-blank-lines
+      gnus-article-emojize-symbols
       gnus-article-display-x-face gnus-article-de-quoted-unreadable
       gnus-article-de-base64-unreadable
       gnus-article-decode-HZ

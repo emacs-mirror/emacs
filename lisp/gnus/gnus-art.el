@@ -1167,6 +1167,19 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 
+(defcustom gnus-treat-emojize-symbols nil
+  "Display emoji versions of symbol.
+Some symbols have both a non-emoji presentation and an emoji
+presentation.  This treatment will make Gnus display the latter
+as emojis even when they weren't sent as such.
+
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles'."
+  :version "29.1"
+  :group 'gnus-article-treat
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :type gnus-article-treat-custom)
+
 (defcustom gnus-treat-unsplit-urls nil
   "Remove newlines from within URLs.
 Valid values are nil, t, `head', `first', `last', an integer or a
@@ -1650,6 +1663,7 @@ regexp."
 (defvar gnus-article-mime-handle-alist-1 nil)
 (defvar gnus-treatment-function-alist
   '((gnus-treat-strip-cr gnus-article-remove-cr)
+    (gnus-treat-emojize-symbols gnus-article-emojize-symbols)
     (gnus-treat-x-pgp-sig gnus-article-verify-x-pgp-sig)
     (gnus-treat-strip-banner gnus-article-strip-banner)
     (gnus-treat-strip-headers-in-body gnus-article-strip-headers-in-body)
@@ -2359,6 +2373,20 @@ fill width."
       (goto-char (point-min))
       (while (search-forward "\r" nil t)
 	(replace-match "\n" t t)))))
+
+(defun article-emojize-symbols ()
+  "Display symbols (that have an emoji version) as emojis."
+  (interactive nil gnus-article-mode)
+  (when-let ((font (and (display-multi-font-p)
+                        (car (internal-char-font nil ?😀)))))
+    (save-excursion
+      (let ((inhibit-read-only t))
+        (goto-char (point-min))
+        (while (re-search-forward "[[:multibyte:]]" nil t)
+          ;; If there's already a grapheme cluster here, skip it.
+          (when (and (not (find-composition (point)))
+                     (font-has-char-p font (char-after (match-beginning 0))))
+            (insert "\N{VARIATION SELECTOR-16}")))))))
 
 (defun article-remove-trailing-blank-lines ()
   "Remove all trailing blank lines from the article."
@@ -4341,6 +4369,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
            article-fill-long-lines
            article-capitalize-sentences
            article-remove-cr
+           article-emojize-symbols
            article-remove-leading-whitespace
            article-display-x-face
            article-display-face
@@ -4448,6 +4477,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
        ["Treat overstrike" gnus-article-treat-overstrike t]
        ["Treat ANSI sequences" gnus-article-treat-ansi-sequences t]
        ["Remove carriage return" gnus-article-remove-cr t]
+       ["Emojize Symbols" gnus-article-emojize-symbols t]
        ["Remove leading whitespace" gnus-article-remove-leading-whitespace t]
        ["Remove quoted-unreadable" gnus-article-de-quoted-unreadable t]
        ["Remove base64" gnus-article-de-base64-unreadable t]
