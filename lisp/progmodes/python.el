@@ -1518,7 +1518,10 @@ Returns nil if point is not in a def or class."
       (python-util-forward-comment -1)
       (forward-line 1)
       ;; Ensure point moves forward.
-      (and (> beg-pos (point)) (goto-char beg-pos)))))
+      (and (> beg-pos (point)) (goto-char beg-pos))
+      ;; Return non-nil if we did something (because then we were in a
+      ;; def/class).
+      (/= beg-pos (point)))))
 
 (defun python-nav--syntactically (fn poscompfn &optional contextfn)
   "Move point using FN avoiding places with specific context.
