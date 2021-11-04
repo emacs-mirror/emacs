@@ -755,11 +755,11 @@ Applies to buttons that indicate a face.
 +++
 *** New face 'font-lock-doc-markup-face'.
 Intended for documentation mark-up syntax and tags inside text that
-uses 'font-lock-doc-face', with which it should harmonize.  It would
-typically be used in structured documentation comments in program
-source code by language-specific modes, for mark-up conventions like
-Haddock, Javadoc or Doxygen.  By default this face inherits from
-'font-lock-constant-face'.
+uses 'font-lock-doc-face', which it should appropriately stand out
+against and harmonize with.  It would typically be used in structured
+documentation comments in program source code by language-specific
+modes, for mark-up conventions like Haddock, Javadoc or Doxygen.  By
+default this face inherits from 'font-lock-constant-face'.
 
 +++
 *** New face box style 'flat-button'.
