@@ -507,7 +507,11 @@ The remaining arguments should have the form
    [KEYWORD VALUE]...
 
 For a list of valid keywords, see the common keywords listed in
-`defcustom'.
+`defcustom'.  The keyword :prefix can only be used for
+customization groups, and means that the given string should be
+removed from variable names before creating unlispified names,
+when the user option `custom-unlispify-remove-prefixes' is
+non-nil.
 
 See Info node `(elisp) Customization' in the Emacs Lisp manual
 for more information."
