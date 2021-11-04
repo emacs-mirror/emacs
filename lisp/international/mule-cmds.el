@@ -3293,6 +3293,22 @@ specify the portion of the buffer to check."
                     (point) end nil
                     (current-bidi-paragraph-direction)))
         (goto-char next)
+        ;; We detect the problematic parts by watching directional
+        ;; properties of strong L2R and R2L characters.  But malicious
+        ;; reordering in source buffers can, and usuually does,
+        ;; include syntactically-important punctuation characters.
+        ;; Those have "weak" directionality, so we cannot easily
+        ;; detect when they are affected in malicious ways.
+        ;; Therefore, once we find a strong directional character
+        ;; whose directionality was tweaked, we highlight the text
+        ;; around it, between the first bidi control character we find
+        ;; before it that starts an override/embedding/isolate, and
+        ;; the first control after it that ends these.  This could
+        ;; sometimes highlight only part of the affected text.  An
+        ;; alternative would be to find the first "starter" following
+        ;; BOL and the last "ender" before EOL, and highlight
+        ;; everything in between them -- this could sometimes
+        ;; highlight too much.
         (let ((start
                (save-excursion
                  (re-search-backward reorder-starters nil t)))
