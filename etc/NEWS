@@ -414,6 +414,11 @@ Use 'exif-parse-file' and 'exif-field' instead.
 
 * Lisp Changes in Emacs 29.1
 
+---
+*** New function 'pp-emacs-lisp-code'.
+'pp' formats general Lisp sexps.  This function does much the same,
+but applies formatting rules appropriate for Emacs Lisp code.
+
 +++
 *** New function 'file-has-changed-p'.
 This convenience function is useful when writing code that parses

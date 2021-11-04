@@ -82,6 +82,10 @@ to make output that `read' can handle, whenever this is possible."
   "Output the pretty-printed representation of OBJECT, any Lisp object.
 Quoting characters are printed as needed to make output that `read'
 can handle, whenever this is possible.
+
+This function does not apply special formatting rules for Emacs
+Lisp code.  See `pp-emacs-lisp-code' instead.
+
 Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
 
@@ -179,6 +183,124 @@ Ignores leading comment characters."
   (if arg
       (insert (pp-to-string (macroexpand-1 (pp-last-sexp))))
     (pp-macroexpand-expression (pp-last-sexp))))
+
+;;;###autoload
+(defun pp-emacs-lisp-code (sexp)
+  "Insert SEXP into the current buffer, formatted as Emacs Lisp code."
+  (require 'edebug)
+  (let ((standard-output (current-buffer)))
+    (save-restriction
+      (narrow-to-region (point) (point))
+      (pp--insert-lisp sexp)
+      (insert "\n")
+      (goto-char (point-min))
+      (indent-sexp))))
+
+(defun pp--insert-lisp (sexp)
+  (cl-case (type-of sexp)
+    (vector (pp--format-vector sexp))
+    (cons (cond
+           ((consp (cdr sexp))
+            (if (and (length= sexp 2)
+                     (eq (car sexp) 'quote))
+                (let ((print-quoted t))
+                  (prin1 sexp))
+              (pp--format-list sexp)))
+           (t
+            (princ sexp))))
+    ;; Print some of the smaller integers as characters, perhaps?
+    (integer
+     (if (<= ?0 sexp ?z)
+         (let ((print-integers-as-characters t))
+           (princ sexp))
+       (princ sexp)))
+    (string
+     (let ((print-escape-newlines t))
+       (prin1 sexp)))
+    (otherwise (princ sexp))))
+
+(defun pp--format-vector (sexp)
+  (prin1 sexp))
+
+(defun pp--format-list (sexp)
+  (if (and (symbolp (car sexp))
+           (not (keywordp (car sexp))))
+      (pp--format-function sexp)
+    (prin1 sexp)))
+
+(defun pp--format-function (sexp)
+  (let* ((sym (car sexp))
+         (edebug (get sym 'edebug-form-spec))
+         (indent (get sym 'lisp-indent-function)))
+    (when (eq indent 'defun)
+      (setq indent 2))
+    (pp--insert "(" sym)
+    (pop sexp)
+    ;; Get the first entries on the first line.
+    (if indent
+        (pp--format-definition sexp indent edebug)
+      (while sexp
+        (pp--insert " " (pop sexp))))
+    (insert ")")))
+
+(defun pp--format-definition (sexp indent edebug)
+  (while (and (cl-plusp indent)
+              sexp)
+    (insert " ")
+    (if (and (consp (car edebug))
+             (eq (caar edebug) '&rest))
+        (pp--insert-binding (pop sexp))
+      (if (null (car sexp))
+          (insert "()")
+        (pp--insert-lisp (car sexp)))
+      (pop sexp))
+    (pop edebug)
+    (cl-decf indent))
+  (when (stringp (car sexp))
+    (insert "\n")
+    (prin1 (pop sexp)))
+  ;; Then insert the rest with line breaks before each form.
+  (while sexp
+    (insert "\n")
+    (if (keywordp (car sexp))
+        (progn
+          (pp--insert-lisp (pop sexp))
+          (when sexp
+            (pp--insert " " (pop sexp))))
+      (pp--insert-lisp (pop sexp)))))
+
+(defun pp--insert-binding (sexp)
+  (insert "(")
+  (while sexp
+    (if (consp (car sexp))
+        ;; Newlines after each (...) binding.
+        (progn
+          (pp--insert-lisp (car sexp))
+          (when (cdr sexp)
+            (insert "\n")))
+      ;; Keep plain symbols on the same line.
+      (pp--insert " " (car sexp)))
+    (pop sexp))
+  (insert ")"))
+
+(defun pp--insert (delim &rest things)
+  (let ((start (point)))
+    (when delim
+      (insert delim))
+    (dolist (thing things)
+      (pp--insert-lisp thing))
+    ;; We need to indent what we have so far to see if we have to fold.
+    (pp--indent-buffer)
+    (when (> (current-column) (window-width))
+      (save-excursion
+        (goto-char start)
+        (insert "\n")))))
+
+(defun pp--indent-buffer ()
+  (goto-char (point-min))
+  (while (not (eobp))
+    (lisp-indent-line)
+    (forward-line 1)))
 
 (provide 'pp)				; so (require 'pp) works
 
