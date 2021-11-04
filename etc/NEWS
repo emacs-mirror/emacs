@@ -151,7 +151,14 @@ change the terminal used on a remote host.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Message
+
+---
+*** New user option 'mml-attach-file-at-the-end'.
+If non-nil, 'C-c C-a' will put attached files at the end of the message.
+
 ** EIEIO
+
 +++
 *** 'slot-value' can now be used to read slots of 'cl-defstruct' objects
 
