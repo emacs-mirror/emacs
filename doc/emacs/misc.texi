@@ -1992,6 +1992,11 @@ the new frame displays the @file{*scratch*} buffer by default.  You
 can customize this behavior with the variable @code{initial-buffer-choice}
 (@pxref{Entering Emacs}).
 
+@item -r
+@itemx --reuse-frame
+Create a new graphical @dfn{client frame} if none exists, otherwise
+use an existing Emacs frame.
+
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
 Set the parameters for a newly-created graphical frame

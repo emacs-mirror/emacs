@@ -102,6 +102,14 @@ highlights segments of buffer text whose reordering for display is
 suspicious and could be malicious.
 
 
+
+** Emacs server and client changes
+
++++
+*** New command-line option '-r' for emacsclient.
+With this command-line option, Emacs reuses an existing graphical client
+frame if one exists; otherwise a new frame is created.
+
 * Editing Changes in Emacs 29.1
 
 ---
