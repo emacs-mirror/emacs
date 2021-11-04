@@ -3079,6 +3079,8 @@ Move to buffer limit in indicated direction if headings are exhausted."
          (backward (if (< arg 0) (setq arg (* -1 arg))))
 	 (step (if backward -1 1))
          (progress (allout-current-bullet-pos))
+         ;; Move to the next physical line.
+         (line-move-visual nil)
 	 prev got)
 
     (while (> arg 0)
