@@ -1316,11 +1316,6 @@ command applies to all frames, including frames yet to be created.  To
 control the use of tab bars at startup, customize the variable
 @code{tab-bar-mode} and save your customization.
 
-@findex toggle-frame-tab-bar
-  To toggle the use of the Tab Bar only on the selected frame, type
-@kbd{M-x toggle-frame-tab-bar}.  This command allows to enable the
-display of the Tab Bar on some frames and disable it on others.
-
 @vindex tab-bar-show
   The variable @code{tab-bar-show} controls whether the Tab Bar mode
 is turned on automatically.  If the value is @code{t}, then
@@ -1338,7 +1333,13 @@ Bar by using commands @kbd{M-x tab-new}, @kbd{M-x tab-close}, etc.
 
   Note that a numerical value of @code{tab-bar-show} can cause the Tab
 Bar to be displayed on some frames, but not on others, depending on
-the number of tabs defined on each frame.
+the number of tabs created on each frame.
+
+@findex toggle-frame-tab-bar
+  To toggle the use of the Tab Bar only on the selected frame, type
+@kbd{M-x toggle-frame-tab-bar}.  This command allows to enable the
+display of the Tab Bar on some frames and disable it on others,
+regardless of the values of @code{tab-bar-mode} and @code{tab-bar-show}.
 
 @kindex C-x t
   The prefix key @kbd{C-x t} is analogous to @kbd{C-x 5}.
