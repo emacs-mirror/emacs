@@ -2805,7 +2805,9 @@ for marked images.
 *** New command 'image-dired-delete-marked'.
 
 ---
-*** 'image-dired-mouse-toggle-mark' now toggles files in the active region.
+*** 'image-dired-mouse-toggle-mark' is now sensitive to the active region.
+If the region is active, this command now toggles Dired marks of all
+the thumbnails in the region.
 
 ** Flymake mode
 
