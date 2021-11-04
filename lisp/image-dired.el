@@ -1092,6 +1092,7 @@ never ask for confirmation."
                       image-dired-show-all-from-dir-max-files))))
            (image-dired-display-thumbs)
            (pop-to-buffer image-dired-thumbnail-buffer)
+           (setq default-directory dir)
            (image-dired-unmark-all-marks))
           (t (message "Image-Dired canceled")))))
 
