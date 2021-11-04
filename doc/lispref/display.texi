@@ -7067,7 +7067,7 @@ This inserts a button with the label @var{label} at point, using text
 properties.
 @end defun
 
-@defun button-buttonize string callback &optional data
+@defun buttonize string callback &optional data
 Sometimes it's more convenient to make a string into a button without
 inserting it into a buffer immediately, for instance when creating
 data structures that may then, later, be inserted into a buffer.  This

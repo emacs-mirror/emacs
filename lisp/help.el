@@ -1339,12 +1339,11 @@ Return nil if the key sequence is too long."
         ((keymapp definition)
          (insert "Prefix Command\n"))
         ((byte-code-function-p definition)
-         (insert "[%s]\n"
-                 (button-buttonize "byte-code" #'disassemble definition)))
+         (insert "[%s]\n" (buttonize "byte-code" #'disassemble definition)))
         ((and (consp definition)
               (memq (car definition) '(closure lambda)))
          (insert (format "[%s]\n"
-                         (button-buttonize
+                         (buttonize
                           (symbol-name (car definition))
                           (lambda (_)
                             (pp-display-expression

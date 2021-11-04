@@ -283,7 +283,7 @@ by counted more than once."
                                                       buffers)
                      do (insert (memory-report--format size)
                                 "  "
-                                (button-buttonize
+                                (buttonize
                                  (buffer-name buffer)
                                  #'memory-report--buffer-details buffer)
                                 "\n"))

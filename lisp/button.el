@@ -616,7 +616,9 @@ button at point is the button to describe."
       (button--describe props)
       t)))
 
-(defun button-buttonize (string callback &optional data)
+(define-obsolete-function-alias 'button-buttonize #'buttonize "29.1")
+
+(defun buttonize (string callback &optional data)
   "Make STRING into a button and return it.
 When clicked, CALLBACK will be called with the DATA as the
 function argument.  If DATA isn't present (or is nil), the button
