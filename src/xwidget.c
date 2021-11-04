@@ -520,12 +520,20 @@ xwidget_hide_view (struct xwidget_view *xv)
 static void
 xv_do_draw (struct xwidget_view *xw, struct xwidget *w)
 {
+  GtkOffscreenWindow *wnd;
+  cairo_surface_t *surface;
   block_input ();
+  wnd = GTK_OFFSCREEN_WINDOW (w->widgetwindow_osr);
+  surface = gtk_offscreen_window_get_surface (wnd);
 
   cairo_save (xw->cr_context);
-  cairo_translate (xw->cr_context, -xw->clip_left,
-		   -xw->clip_top);
-  gtk_widget_draw (w->widgetwindow_osr, xw->cr_context);
+  if (surface)
+    {
+      cairo_set_source_surface (xw->cr_context, surface, xw->clip_left,
+				xw->clip_top);
+      cairo_set_operator (xw->cr_context, CAIRO_OPERATOR_SOURCE);
+      cairo_paint (xw->cr_context);
+    }
   cairo_restore (xw->cr_context);
 
   unblock_input ();
