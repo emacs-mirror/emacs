@@ -1531,7 +1531,6 @@ commands to use in that buffer.
 					     (getenv "ESHELL")
 					     shell-file-name))))
   (set-buffer (make-term "terminal" program))
-  (term-mode)
   (term-char-mode)
   (switch-to-buffer "*terminal*"))
 
