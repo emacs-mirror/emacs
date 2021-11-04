@@ -2910,7 +2910,7 @@ Dired."
         (progn
           (image-dired-display-image file)
           (with-current-buffer image-dired-display-image-buffer
-            (image-mode-fit)))
+            (image-transform-original)))
       (error "No original file name at point"))))
 
 (defun image-dired-display-current-image-sized ()
