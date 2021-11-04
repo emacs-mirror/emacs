@@ -40,7 +40,8 @@ Name: code-formats3
   (let ((a 1)
         (b 2))
     (zot-zot-zot-zot-zot-zot 1 2 (funcall
-                                  bar-bar-bar-bar-bar-bar-bar-bar-bar-bar 2))))
+                                  bar-bar-bar-bar-bar-bar-bar-bar-bar-bar
+                                  2))))
 =-=-=
 
 
@@ -102,4 +103,14 @@ Name: code-formats9
 (lambda ()
   (interactive)
   1)
+=-=-=
+
+
+Name: code-formats10
+
+=-=
+(funcall foo (concat "zot" (if (length> site 0) site
+                             "bar")
+                     "+"
+                     (string-replace " " "+" query)))
 =-=-=

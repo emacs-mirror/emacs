@@ -267,8 +267,14 @@ Ignores leading comment characters."
     ;; Get the first entries on the first line.
     (if indent
         (pp--format-definition sexp indent edebug)
-      (while sexp
-        (pp--insert " " (pop sexp))))
+      (let ((prev 0))
+        (while sexp
+          (let ((start (point)))
+            ;; Don't put sexps on the same line as a multi-line sexp
+            ;; preceding it.
+            (pp--insert (if (> prev 1) "\n" " ")
+                        (pop sexp))
+            (setq prev (count-lines start (point)))))))
     (insert ")")))
 
 (defun pp--format-definition (sexp indent edebug)
