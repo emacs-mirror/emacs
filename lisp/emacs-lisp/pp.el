@@ -333,7 +333,17 @@ Ignores leading comment characters."
       (save-excursion
         (goto-char start)
         (unless (looking-at "[ \t]+$")
-          (insert "\n"))))))
+          (insert "\n"))
+        (pp--indent-buffer)
+        (goto-char (point-max))
+        ;; If we're still too wide, then go up one step and try to
+        ;; insert a newline there.
+        (when (> (current-column) (window-width))
+          (condition-case ()
+              (backward-up-list 1)
+            (:success (when (looking-back " " 2)
+                        (insert "\n")))
+            (error nil)))))))
 
 (defun pp--indent-buffer ()
   (goto-char (point-min))
