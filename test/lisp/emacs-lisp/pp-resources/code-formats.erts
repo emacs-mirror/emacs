@@ -95,3 +95,11 @@ Also add the value to the front of the list in the variable `values'."
     (values--store-value result)
     (pp-display-expression result "*Pp Eval Output*")))
 =-=-=
+
+Name: code-formats9
+
+=-=
+(lambda ()
+  (interactive)
+  1)
+=-=-=
