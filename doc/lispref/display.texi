@@ -2428,8 +2428,10 @@ value @code{unspecified}.  This special value means that the face
 doesn't specify that attribute directly.  An @code{unspecified}
 attribute tells Emacs to refer instead to a parent face (see the
 description @code{:inherit} attribute below); or, failing that, to an
-underlying face (@pxref{Displaying Faces}).  The @code{default} face
-must specify all attributes.
+underlying face (@pxref{Displaying Faces}).  (However,
+@code{unspecified} is not a valid value in @code{defface}.)
+
+  The @code{default} face must specify all attributes.
 
   Some of these attributes are meaningful only on certain kinds of
 displays.  If your display cannot handle a certain attribute, the
