@@ -90,8 +90,10 @@ Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
 
 ;;;###autoload
-(defun pp-display-expression (expression out-buffer-name)
+(defun pp-display-expression (expression out-buffer-name &optional lisp)
   "Prettify and display EXPRESSION in an appropriate way, depending on length.
+If LISP, format with `pp-emacs-lisp-code'; use `pp' otherwise.
+
 If a temporary buffer is needed for representation, it will be named
 after OUT-BUFFER-NAME."
   (let* ((old-show-function temp-buffer-show-function)
@@ -119,7 +121,10 @@ after OUT-BUFFER-NAME."
                       (message "See buffer %s." out-buffer-name)))
                 (message "%s" (buffer-substring (point-min) (point))))))))
     (with-output-to-temp-buffer out-buffer-name
-      (pp expression)
+      (if lisp
+          (with-current-buffer standard-output
+            (pp-emacs-lisp-code expression))
+        (pp expression))
       (with-current-buffer standard-output
 	(emacs-lisp-mode)
 	(setq buffer-read-only nil)
