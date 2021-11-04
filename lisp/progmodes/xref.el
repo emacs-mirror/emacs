@@ -432,7 +432,7 @@ The future stack is erased."
   (setcdr xref--history nil))
 
 ;;;###autoload
-(defalias 'xref-pop-marker-stack #'xref-go-back)
+(define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 
 ;;;###autoload
 (defun xref-go-back ()
