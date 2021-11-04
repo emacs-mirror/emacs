@@ -93,6 +93,14 @@ Image specifiers can now use ':type webp'.
 For example, an alist entry as '(window-width . (body-columns . 40))'
 will make the body of the chosen window 40 columns wide.
 
+** Better detection of text suspiciously reordered on display.
+The function 'bidi-find-overridden-directionality' has been extended
+to detect reordering effects produced by embeddings and isolates
+(started by directional formatting control characters such as RLO and
+LRI).  The new command 'highlight-confusing-reorderings' finds and
+highlights segments of buffer text whose reordering for display is
+suspicious and could be malicious.
+
 
 * Editing Changes in Emacs 29.1
 

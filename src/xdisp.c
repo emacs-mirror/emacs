@@ -24511,7 +24511,7 @@ See also `bidi-paragraph-direction'.  */)
 
 DEFUN ("bidi-find-overridden-directionality",
        Fbidi_find_overridden_directionality,
-       Sbidi_find_overridden_directionality, 2, 3, 0,
+       Sbidi_find_overridden_directionality, 3, 4, 0,
        doc: /* Return position between FROM and TO where directionality was overridden.
 
 This function returns the first character position in the specified
@@ -24530,12 +24530,18 @@ a buffer is preferable when the buffer is displayed in some window,
 because this function will then be able to correctly account for
 window-specific overlays, which can affect the results.
 
+Optional argument BASE-DIR specifies the base paragraph directory
+of the text.  It should be a symbol, either `left-to-right'
+or `right-to-left', and defaults to `left-to-right'.
+
 Strong directional characters `L', `R', and `AL' can have their
 intrinsic directionality overridden by directional override
-control characters RLO (u+202e) and LRO (u+202d).  See the
-function `get-char-code-property' for a way to inquire about
+control characters RLO (u+202E) and LRO (u+202D).  They can also
+have their directionality affected by other formatting control
+characters: LRE (u+202A), RLE (u+202B), LRI (u+2066), and RLI (u+2067).
+See the function `get-char-code-property' for a way to inquire about
 the `bidi-class' property of a character.  */)
-  (Lisp_Object from, Lisp_Object to, Lisp_Object object)
+  (Lisp_Object from, Lisp_Object to, Lisp_Object object, Lisp_Object base_dir)
 {
   struct buffer *buf = current_buffer;
   struct buffer *old = buf;
@@ -24632,10 +24638,9 @@ the `bidi-class' property of a character.  */)
     }
 
   ptrdiff_t found;
+  bidi_dir_t bdir = EQ (base_dir, Qright_to_left) ? R2L : L2R;
   do {
-    /* For the purposes of this function, the actual base direction of
-       the paragraph doesn't matter, so just set it to L2R.  */
-    bidi_paragraph_init (L2R, &itb, false);
+    bidi_paragraph_init (bdir, &itb, false);
     while ((found = bidi_find_first_overridden (&itb)) < from_pos)
       ;
   } while (found == ZV && itb.ch == '\n' && itb.charpos < to_pos);

@@ -99,4 +99,19 @@
            (width-in-chars (/ (car size) char-width)))
       (should (equal width-in-chars 3)))))
 
+(ert-deftest xdisp-tests--find-directional-overrides ()
+  (with-temp-buffer
+    (insert "\
+int main() {
+  bool isAdmin = false;
+  /*‮ }⁦if (isAdmin)⁩ ⁦ begin admins only */
+  printf(\"You are an admin.\\n\");
+  /* end admins only ‮ { ⁦*/
+  return 0;
+}")
+    (goto-char (point-min))
+    (should (eq (bidi-find-overridden-directionality (point-min) (point-max)
+                                                     nil)
+                46))))
+
 ;;; xdisp-tests.el ends here

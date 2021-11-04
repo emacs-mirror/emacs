@@ -3259,4 +3259,51 @@ as names, not numbers."
 (define-obsolete-function-alias 'ucs-insert 'insert-char "24.3")
 (define-key ctl-x-map "8\r" 'insert-char)
 
+(defface confusingly-reordered
+  '((t :inherit underline :underline (:style wave :color "Red1")))
+  "Face for highlighting text that was bidi-reordered in confusing ways."
+  :version "29.1")
+
+(defvar reorder-starters "[\u202A\u202B\u202D\u202E\u2066-\u2068]+"
+  "Regular expression for characters that start forced-reordered text.")
+(defvar reorder-enders "[\u202C\u2069]+\\|\n"
+  "Regular expression for characters that end forced-reordered text.")
+
+(defun highlight-confusing-reorderings (beg end)
+  "Highlight text in region that might be bidi-reordered in suspicious ways.
+This command find and highlights segments of buffer text that could have
+been reordered on display by using directional control characters, such
+as RLO and LRI, in a way that their display is deliberately meant to
+confuse the reader.  These techniques can be used for obfuscating
+malicious source code.  The suspicious stretches of buffer text are
+highlighted using the `confusingly-reordered' face.
+
+If the region is active, check the text inside the region.  Otherwise
+check the entire buffer.  When called from Lisp, pass BEG and END to
+specify the portion of the buffer to check."
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     (list (point-min) (point-max))))
+  (save-excursion
+    (let (next)
+      (goto-char beg)
+      (while (setq next
+                   (bidi-find-overridden-directionality
+                    (point) end nil
+                    (current-bidi-paragraph-direction)))
+        (goto-char next)
+        (let ((start
+               (save-excursion
+                 (re-search-backward reorder-starters nil t)))
+              (finish
+               (save-excursion
+                 (re-search-forward reorder-enders nil t))))
+          (with-silent-modifications
+            (add-text-properties start (1- finish)
+                                 '(font-lock-face
+                                   'confusingly-reordered
+                                   face 'confusingly-reordered)))
+          (goto-char finish))))))
+
 ;;; mule-cmds.el ends here
