@@ -6878,6 +6878,21 @@ This function returns the current setting of @var{xwidget}s
 query-on-exit flag, either @code{t} or @code{nil}.
 @end defun
 
+@defun xwidget-perform-lispy-event xwidget event frame
+Send an input event @var{event} to @var{xwidget}.  The precise action
+performed is platform-specific.  See @ref{Input Events}.
+
+You can optionally pass the frame the event was generated from via
+@var{frame}.  On X11, modifier keys in key events will not be
+considered if @var{frame} is @code{nil}, and the selected frame is not
+an X-Windows frame.
+
+On GTK, only keyboard and function key events are implemented.  Mouse,
+motion, and click events are dispatched to the xwidget without going
+through Lisp code, and as such shouldn't require this function to be
+sent.
+@end defun
+
 @node Buttons
 @section Buttons
 @cindex buttons in buffers

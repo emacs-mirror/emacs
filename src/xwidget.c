@@ -47,7 +47,8 @@ static uint32_t xwidget_counter = 0;
 #ifdef USE_GTK
 static Lisp_Object x_window_to_xwv_map;
 static gboolean offscreen_damage_event (GtkWidget *, GdkEvent *, gpointer);
-static void synthesize_focus_in_event (GtkWidget *offscreen_window);
+static void synthesize_focus_in_event (GtkWidget *);
+static GdkDevice *find_suitable_keyboard (struct frame *);
 #endif
 
 static struct xwidget *
@@ -208,6 +209,88 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
   return val;
 }
 
+DEFUN ("xwidget-perform-lispy-event",
+       Fxwidget_perform_lispy_event, Sxwidget_perform_lispy_event,
+       2, 3, 0, doc: /* Send a lispy event to XWIDGET.
+EVENT should be the event that will be sent.  FRAME should be the
+frame which generated the event, or nil.  On X11, modifier keys will
+not be processed if FRAME is nil and the selected frame is not an
+X-Windows frame.  */)
+  (Lisp_Object xwidget, Lisp_Object event, Lisp_Object frame)
+{
+  struct xwidget *xw;
+  struct frame *f = NULL;
+  int character = -1, keycode = -1;
+  int modifiers = 0;
+  GdkEvent *xg_event;
+
+  CHECK_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+
+  if (!NILP (frame))
+    f = decode_window_system_frame (frame);
+  else if (FRAME_X_P (SELECTED_FRAME ()))
+    f = SELECTED_FRAME ();
+
+#ifdef USE_GTK
+  if (RANGED_FIXNUMP (0, event, INT_MAX))
+    {
+      character = XFIXNUM (event);
+      modifiers = x_emacs_to_x_modifiers (FRAME_DISPLAY_INFO (f), character);
+    }
+  else if (SYMBOLP (event))
+    {
+      Lisp_Object decoded = parse_modifiers (event);
+      Lisp_Object decoded_name = SYMBOL_NAME (XCAR (decoded));
+      int off = 0;
+      bool found = false;
+
+      while (off < 256)
+	{
+	  puts (SSDATA (decoded_name));
+	  if (lispy_function_keys[off]
+	      && !strcmp (lispy_function_keys[off],
+			  SSDATA (decoded_name)))
+	    {
+	      found = true;
+	      break;
+	    }
+	  ++off;
+	}
+
+      if (found)
+	keycode = off + 0xff00;
+    }
+
+  if (character == -1 && keycode == -1)
+    return Qnil;
+
+  block_input ();
+  xg_event = gdk_event_new (GDK_KEY_PRESS);
+  xg_event->any.window = gtk_widget_get_window (xw->widget_osr);
+  g_object_ref (xg_event->any.window);
+
+  if (character > -1)
+    xg_event->key.keyval = gdk_unicode_to_keyval (character & ~(1 << 21));
+  else if (keycode > -1)
+    xg_event->key.keyval = keycode;
+
+  xg_event->key.state = modifiers;
+
+  if (f)
+    gdk_event_set_device (xg_event,
+			  find_suitable_keyboard (SELECTED_FRAME ()));
+
+  gtk_main_do_event (xg_event);
+  xg_event->type = GDK_KEY_RELEASE;
+  gtk_main_do_event (xg_event);
+  gdk_event_free (xg_event);
+  unblock_input ();
+#endif
+
+  return Qnil;
+}
+
 DEFUN ("get-buffer-xwidgets", Fget_buffer_xwidgets, Sget_buffer_xwidgets,
        1, 1, 0,
        doc: /* Return a list of xwidgets associated with BUFFER.
@@ -263,6 +346,18 @@ find_suitable_pointer (struct frame *f)
     return NULL;
 
   return gdk_seat_get_pointer (seat);
+}
+
+static GdkDevice *
+find_suitable_keyboard (struct frame *f)
+{
+  GdkSeat *seat = gdk_display_get_default_seat
+    (gtk_widget_get_display (FRAME_GTK_WIDGET (f)));
+
+  if (!seat)
+    return NULL;
+
+  return gdk_seat_get_keyboard (seat);
 }
 
 static void
@@ -1382,6 +1477,7 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_plist);
   defsubr (&Sxwidget_buffer);
   defsubr (&Sset_xwidget_plist);
+  defsubr (&Sxwidget_perform_lispy_event);
 
   DEFSYM (QCxwidget, ":xwidget");
   DEFSYM (QCtitle, ":title");

@@ -5087,7 +5087,7 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
             | ((state & dpyinfo->hyper_mod_mask)	? mod_hyper	: 0));
 }
 
-static int
+int
 x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, intmax_t state)
 {
   EMACS_INT mod_ctrl = ctrl_modifier;
@@ -9278,7 +9278,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    event->xbutton.x, event->xbutton.y,
 			    event->xbutton.button, event->xbutton.state,
 			    event->xbutton.time);
-
+	    goto OTHER;
 	  }
 #endif
         /* If we decide we want to generate an event to be seen

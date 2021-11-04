@@ -4897,7 +4897,7 @@ static const char *const lispy_kana_keys[] =
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
-static const char *const lispy_function_keys[] =
+const char *const lispy_function_keys[] =
   {
     /* X Keysym value */
 
