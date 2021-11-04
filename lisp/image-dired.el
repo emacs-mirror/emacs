@@ -100,8 +100,6 @@
 ;; * WARNING: The "database" format used might be changed so keep a
 ;;   backup of `image-dired-db-file' when testing new versions.
 ;;
-;; * `image-dired-display-image-mode' does not support animation.
-;;
 ;; TODO
 ;; ====
 ;;
@@ -224,11 +222,6 @@ https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html
   "Database file where file names and their associated tags are stored."
   :type 'file)
 
-(defcustom image-dired-temp-image-file
-  (expand-file-name ".image-dired_temp" image-dired-dir)
-  "Name of temporary image file used by various commands."
-  :type 'file)
-
 (defcustom image-dired-gallery-dir
   (expand-file-name ".image-dired_gallery" image-dired-dir)
   "Directory to store generated gallery html pages.
@@ -272,27 +265,6 @@ Available format specifiers are: %w which is replaced by
 `image-dired-thumb-width', %h which is replaced by `image-dired-thumb-height',
 %f which is replaced by the file name of the original image and %t
 which is replaced by the file name of the thumbnail file."
-  :version "29.1"
-  :type '(repeat (string :tag "Argument")))
-
-(defcustom image-dired-cmd-create-temp-image-program
-  (if (executable-find "gm") "gm" "convert")
-  "Executable used to create temporary image.
-Used together with `image-dired-cmd-create-temp-image-options'."
-  :type 'file
-  :version "29.1")
-
-(defcustom image-dired-cmd-create-temp-image-options
-  (let ((opts '("-size" "%wx%h" "%f[0]"
-                "-resize" "%wx%h>"
-                "-strip" "jpeg:%t")))
-    (if (executable-find "gm") (cons "convert" opts) opts))
-  "Options of command used to create temporary image for display window.
-Used together with `image-dired-cmd-create-temp-image-program',
-Available format specifiers are: %w and %h which are replaced by
-the calculated max size for width and height in the image display window,
-%f which is replaced by the file name of the original image and %t which
-is replaced by the file name of the temporary file."
   :version "29.1"
   :type '(repeat (string :tag "Argument")))
 
@@ -496,18 +468,6 @@ and No line-up means that no automatic line-up will be done."
 
 (defcustom image-dired-thumbs-per-row 3
   "Number of thumbnails to display per row in thumb buffer."
-  :type 'integer)
-
-(defcustom image-dired-display-window-width-correction 1
-  "Number to be used to correct image display window width.
-Change if the default (1) does not work (i.e. if the image does not
-completely fit)."
-  :type 'integer)
-
-(defcustom image-dired-display-window-height-correction 0
-  "Number to be used to correct image display window height.
-Change if the default (0) does not work (i.e. if the image does not
-completely fit)."
   :type 'integer)
 
 (defcustom image-dired-track-movement t
@@ -1003,15 +963,6 @@ Otherwise, delete overlays."
 (defvar image-dired-display-image-buffer "*image-dired-display-image*"
   "Where larger versions of the images are display.")
 
-(defun image-dired-create-display-image-buffer ()
-  "Create image display buffer and set `image-dired-display-image-mode'."
-  (let ((buf (get-buffer-create image-dired-display-image-buffer)))
-    (with-current-buffer buf
-      (setq buffer-read-only t)
-      (if (not (eq major-mode 'image-dired-display-image-mode))
-          (image-dired-display-image-mode)))
-    buf))
-
 (defvar image-dired-saved-window-configuration nil
   "Saved window configuration.")
 
@@ -1035,7 +986,7 @@ The current window configuration is saved and can be restored by
 calling `image-dired-restore-window-configuration'."
   (interactive "DDirectory: \nP")
   (let ((buf (image-dired-create-thumbnail-buffer))
-        (buf2 (image-dired-create-display-image-buffer)))
+        (buf2 (get-buffer-create image-dired-display-image-buffer)))
     (setq image-dired-saved-window-configuration
           (current-window-configuration))
     (dired dir)
@@ -1713,58 +1664,18 @@ You probably want to use this together with
 
 (defvar image-dired-display-image-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; `image-mode-map' has bindings that do not make sense in image-dired
-    ;; (set-keymap-parent map image-mode-map)
-    (define-key map "f" 'image-dired-display-current-image-full)
-    (define-key map "s" 'image-dired-display-current-image-sized)
-    (define-key map "g" nil)
-
-    ;; Useful bindings from `image-mode-map'
-    (define-key map [remap forward-char] 'image-forward-hscroll)
-    (define-key map [remap backward-char] 'image-backward-hscroll)
-    (define-key map [remap right-char] 'image-forward-hscroll)
-    (define-key map [remap left-char] 'image-backward-hscroll)
-    (define-key map [remap previous-line] 'image-previous-line)
-    (define-key map [remap next-line] 'image-next-line)
-    (define-key map [remap scroll-up] 'image-scroll-up)
-    (define-key map [remap scroll-down] 'image-scroll-down)
-    (define-key map [remap scroll-up-command] 'image-scroll-up)
-    (define-key map [remap scroll-down-command] 'image-scroll-down)
-    (define-key map [remap scroll-left] 'image-scroll-left)
-    (define-key map [remap scroll-right] 'image-scroll-right)
-    (define-key map [remap move-beginning-of-line] 'image-bol)
-    (define-key map [remap move-end-of-line] 'image-eol)
-    (define-key map [remap beginning-of-buffer] 'image-bob)
-    (define-key map [remap end-of-buffer] 'image-eob)
+    ;; Disable keybindings from `image-mode-map' that doesn't make sense here.
+    (define-key map "o" nil) ; image-save
+    (define-key map "n" nil) ; image-next-file
+    (define-key map "p" nil) ; image-previous-file
+    ;; FIXME: Should be replaced with image-dired commands.
+    (define-key map (kbd "DEL") nil) ; image-next-file
+    (define-key map (kbd "SPC") nil) ; image-next-file
+    ;; FIXME: Should be replaced with image-dired commands.
+    (define-key map "m" nil) ; image-mode-mark-file
+    (define-key map "u" nil) ; image-mode-unmark-file
     map)
   "Keymap for `image-dired-display-image-mode'.")
-
-(easy-menu-define image-dired-display-image-mode-menu image-dired-display-image-mode-map
-  "Menu for `image-dired-display-image-mode-map'."
-  '("Image-Dired"
-    ["Display original, full size" image-dired-display-current-image-full]
-    ["Display original, sized to fit" image-dired-display-current-image-sized]
-    ["Quit" quit-window]))
-
-(defun image-dired-display-current-image-full ()
-  "Display current image in full size."
-  (interactive)
-  (let ((file (image-dired-original-file-name)))
-    (if file
-        (progn
-          (image-dired-display-image file t)
-          (message "Full size image displayed"))
-      (error "No original file name at point"))))
-
-(defun image-dired-display-current-image-sized ()
-  "Display current image in sized to fit window dimensions."
-  (interactive)
-  (let ((file (image-dired-original-file-name)))
-    (if file
-        (progn
-          (image-dired-display-image file)
-          (message "Fitted image displayed"))
-      (error "No original file name at point"))))
 
 (define-derived-mode image-dired-thumbnail-mode
   special-mode "image-dired-thumbnail"
@@ -1777,13 +1688,11 @@ Use `image-dired-minor-mode' to get a nice setup."
   (setq-local line-spacing (frame-char-width)))
 
 (define-derived-mode image-dired-display-image-mode
-  special-mode "image-dired-image-display"
+  image-mode "image-dired-image-display"
   "Mode for displaying and manipulating original image.
 Resized or in full-size."
-  (buffer-disable-undo)
-  (image-mode-setup-winprops)
-  (setq cursor-type nil)
-  (add-hook 'file-name-at-point-functions 'image-dired-file-name-at-point nil t))
+  :interactive nil
+  (add-hook 'file-name-at-point-functions #'image-dired-file-name-at-point nil t))
 
 (defvar image-dired-minor-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1843,7 +1752,7 @@ Resized or in full-size."
 (define-minor-mode image-dired-minor-mode
   "Setup easy-to-use keybindings for the commands to be used in Dired mode.
 Note that n, p and <down> and <up> will be hijacked and bound to
-`image-dired-dired-x-line'."
+`image-dired-dired-next-line' and `image-dired-dired-previous-line'."
   :keymap image-dired-minor-mode-map)
 
 (declare-function clear-image-cache "image.c" (&optional filter))
@@ -2006,11 +1915,6 @@ Ask user how many thumbnails should be displayed per row."
   "Calculate WINDOW width in pixels."
     (* (window-width window) (frame-char-width)))
 
-(defun image-dired-window-height-pixels (window)
-  "Calculate WINDOW height in pixels."
-  ;; Note: The mode-line consumes one line
-    (* (- (window-height window) 1) (frame-char-height)))
-
 (defun image-dired-display-window ()
   "Return window where `image-dired-display-image-buffer' is visible."
   (get-window-with-predicate
@@ -2036,61 +1940,24 @@ Ask user how many thumbnails should be displayed per row."
              (equal (window-buffer window) buf))))
       (error "No thumbnail image at point"))))
 
-(defun image-dired-display-window-width (window)
-  "Return width, in pixels, of WINDOW."
-  (- (image-dired-window-width-pixels window)
-     image-dired-display-window-width-correction))
-
-(defun image-dired-display-window-height (window)
-  "Return height, in pixels, of WINDOW."
-  (- (image-dired-window-height-pixels window)
-     image-dired-display-window-height-correction))
-
-(defun image-dired-display-image (file &optional original-size)
+(defun image-dired-display-image (file &optional _ignored)
   "Display image FILE in image buffer.
-Use this when you want to display the image, semi sized, in a new
-window.  The image is sized to fit the display window (using a
-temporary file, don't worry).  Because of this, it will not be as
-quick as opening it directly, but on most modern systems it
-should feel snappy enough.
-
-If optional argument ORIGINAL-SIZE is non-nil, display image in its
-original size."
-  (image-dired--check-executable-exists
-   'image-dired-cmd-create-temp-image-program)
-  (let ((new-file (expand-file-name image-dired-temp-image-file))
-        (window (image-dired-display-window))
-        (image-type 'jpeg))
-    (setq file (expand-file-name file))
-    (when (not (file-exists-p file))
-      (error "No such file: %s" file))
-    (if (not original-size)
-        (let* ((spec
-                (list
-                 (cons ?p image-dired-cmd-create-temp-image-program)
-                 (cons ?w (image-dired-display-window-width window))
-                 (cons ?h (image-dired-display-window-height window))
-                 (cons ?f file)
-                 (cons ?t new-file)))
-               (ret
-                (apply #'call-process
-                       image-dired-cmd-create-temp-image-program nil nil nil
-                       (mapcar
-                        (lambda (arg) (format-spec arg spec))
-                        image-dired-cmd-create-temp-image-options))))
-          (when (not (zerop ret))
-            (error "Could not resize image")))
-      (setq image-type (image-type-from-file-name file))
-      (copy-file file new-file t))
-    (with-current-buffer (image-dired-create-display-image-buffer)
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (clear-image-cache)
-        (image-dired-insert-image image-dired-temp-image-file image-type 0 0)
-        (goto-char (point-min))
-        (set-window-vscroll window 0)
-        (set-window-hscroll window 0)
-        (image-dired-update-property 'original-file-name file)))))
+Use this when you want to display the image, in a new window.
+The window will use `image-dired-display-image-mode' which is
+based on `image-mode'."
+  (declare (advertised-calling-convention (file) "29.1"))
+  (setq file (expand-file-name file))
+  (when (not (file-exists-p file))
+    (error "No such file: %s" file))
+  (let ((buf (get-buffer image-dired-display-image-buffer))
+        (cur-win (selected-window)))
+    (when buf
+      (kill-buffer buf))
+    (when-let ((buf (find-file-other-window file)))
+      (display-buffer buf)
+      (rename-buffer image-dired-display-image-buffer)
+      (image-dired-display-image-mode)
+      (select-window cur-win))))
 
 (defun image-dired-display-thumbnail-original-image (&optional arg)
   "Display current thumbnail's original image in display buffer.
@@ -2104,8 +1971,6 @@ With prefix argument ARG, display image in its original size."
           (message "No thumbnail at point")
         (if (not file)
             (message "No original file name found")
-	  (image-dired-create-display-image-buffer)
-          (display-buffer image-dired-display-image-buffer)
           (image-dired-display-image file arg))))))
 
 
@@ -2115,8 +1980,6 @@ With prefix argument ARG, display image in its original size."
 See documentation for `image-dired-display-image' for more information.
 With prefix argument ARG, display image in its original size."
   (interactive "P")
-  (image-dired-create-display-image-buffer)
-  (display-buffer image-dired-display-image-buffer)
   (image-dired-display-image (dired-get-filename) arg))
 
 (defun image-dired-image-at-point-p ()
@@ -2410,8 +2273,6 @@ non-nil."
     (when file
       (if image-dired-track-movement
 	  (image-dired-track-original-file))
-      (image-dired-create-display-image-buffer)
-      (display-buffer image-dired-display-image-buffer)
       (image-dired-display-image file))))
 
 (defun image-dired-mouse-select-thumbnail (event)
@@ -2859,6 +2720,72 @@ tags to their respective image file.  Internal function used by
 (define-obsolete-function-alias 'image-dired-setup-dired-keybindings
   #'image-dired-minor-mode "26.1")
 
+(defcustom image-dired-temp-image-file
+  (expand-file-name ".image-dired_temp" image-dired-dir)
+  "Name of temporary image file used by various commands."
+  :type 'file)
+(make-obsolete-variable 'image-dired-temp-image-file
+                        "no longer used." "29.1")
+
+(defcustom image-dired-cmd-create-temp-image-program
+  (if (executable-find "gm") "gm" "convert")
+  "Executable used to create temporary image.
+Used together with `image-dired-cmd-create-temp-image-options'."
+  :type 'file
+  :version "29.1")
+(make-obsolete-variable 'image-dired-cmd-create-temp-image-program
+                        "no longer used." "29.1")
+
+(defcustom image-dired-cmd-create-temp-image-options
+  (let ((opts '("-size" "%wx%h" "%f[0]"
+                "-resize" "%wx%h>"
+                "-strip" "jpeg:%t")))
+    (if (executable-find "gm") (cons "convert" opts) opts))
+  "Options of command used to create temporary image for display window.
+Used together with `image-dired-cmd-create-temp-image-program',
+Available format specifiers are: %w and %h which are replaced by
+the calculated max size for width and height in the image display window,
+%f which is replaced by the file name of the original image and %t which
+is replaced by the file name of the temporary file."
+  :version "29.1"
+  :type '(repeat (string :tag "Argument")))
+(make-obsolete-variable 'image-dired-cmd-create-temp-image-options
+                        "no longer used." "29.1")
+
+(defcustom image-dired-display-window-width-correction 1
+  "Number to be used to correct image display window width.
+Change if the default (1) does not work (i.e. if the image does not
+completely fit)."
+  :type 'integer)
+(make-obsolete-variable 'image-dired-display-window-width-correction
+                        "no longer used." "29.1")
+
+(defcustom image-dired-display-window-height-correction 0
+  "Number to be used to correct image display window height.
+Change if the default (0) does not work (i.e. if the image does not
+completely fit)."
+  :type 'integer)
+(make-obsolete-variable 'image-dired-display-window-height-correction
+                        "no longer used." "29.1")
+
+(defun image-dired-display-window-width (window)
+  "Return width, in pixels, of WINDOW."
+  (declare (obsolete nil "29.1"))
+  (- (image-dired-window-width-pixels window)
+     image-dired-display-window-width-correction))
+
+(defun image-dired-display-window-height (window)
+  "Return height, in pixels, of WINDOW."
+  (declare (obsolete nil "29.1"))
+  (- (image-dired-window-height-pixels window)
+     image-dired-display-window-height-correction))
+
+(defun image-dired-window-height-pixels (window)
+  "Calculate WINDOW height in pixels."
+  (declare (obsolete nil "29.1"))
+  ;; Note: The mode-line consumes one line
+    (* (- (window-height window) 1) (frame-char-height)))
+
 (defcustom image-dired-cmd-read-exif-data-program "exiftool"
   "Program used to read EXIF data to image.
 Used together with `image-dired-cmd-read-exif-data-options'."
@@ -2972,6 +2899,31 @@ Dired."
                    (dired-mark 1)))
                 ((eq command 'flag) (dired-flag-file-deletion 1)))
           (image-dired-thumb-update-marks))))))
+
+(defun image-dired-display-current-image-full ()
+  "Display current image in full size."
+  (declare (obsolete image-transform-original "29.1"))
+  (interactive nil image-dired-thumbnail-mode)
+  (let ((file (image-dired-original-file-name)))
+    (if file
+        (progn
+          (image-dired-display-image file)
+          (with-current-buffer image-dired-display-image-buffer
+            (image-mode-fit)))
+      (error "No original file name at point"))))
+
+(defun image-dired-display-current-image-sized ()
+  "Display current image in sized to fit window dimensions."
+  (declare (obsolete image-mode-fit-frame "29.1"))
+  (interactive nil image-dired-thumbnail-mode)
+  (let ((file (image-dired-original-file-name)))
+    (if file
+        (progn
+          (image-dired-display-image file))
+      (error "No original file name at point"))))
+
+(define-obsolete-function-alias 'image-dired-create-display-image-buffer
+  #'ignore "29.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;

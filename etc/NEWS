@@ -235,6 +235,21 @@ as opposed to via the command-line.
 
 ** Image-Dired
 
++++
+*** 'image-dired-display-image-mode' is now based on 'image-mode'.
+This avoids converting images in the background, and makes Image-Dired
+noticeably faster.  New keybindings from 'image-mode' are now
+available in the "*image-dired-display-image*" buffer; press '?' or
+'h' in that buffer to see the full list.  Finally, some commands and
+user options that are no longer needed are now obsolete:
+'image-dired-cmd-create-temp-image-options',
+'image-dired-cmd-create-temp-image-program',
+'image-dired-display-current-image-full',
+'image-dired-display-current-image-sized',
+'image-dired-display-window-height-correction',
+'image-dired-display-window-width-correction',
+'image-dired-temp-image-file'.
+
 ---
 *** Reduce dependency on external "exiftool" command.
 The 'image-dired-copy-with-exif-file-name' no longer requires an

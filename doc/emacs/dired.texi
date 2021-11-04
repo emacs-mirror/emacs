@@ -1512,10 +1512,9 @@ thumbnails are generated in the background and are loaded as they
 become available.
 
   With point in the thumbnail buffer, you can type @key{RET}
-(@code{image-dired-display-thumbnail-original-image}) to display a
-sized version of it in another window.  This sizes the image to fit
-the window.  Use the arrow keys to move around in the buffer.  For
-easy browsing, use @key{SPC}
+(@code{image-dired-display-thumbnail-original-image}) to display the
+image in another window.  Use the arrow keys to move around in the
+thumbnail buffer.  For easy browsing, use @key{SPC}
 (@code{image-dired-display-next-thumbnail-original}) to advance and
 display the next image.  Typing @key{DEL}
 (@code{image-dired-display-previous-thumbnail-original}) backs up to
