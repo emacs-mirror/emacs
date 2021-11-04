@@ -199,7 +199,9 @@ Ignores leading comment characters."
       (pp--insert-lisp sexp)
       (insert "\n")
       (goto-char (point-min))
-      (indent-sexp))))
+      (indent-sexp)
+      (while (re-search-forward " +$" nil t)
+        (replace-match "")))))
 
 (defun pp--insert-lisp (sexp)
   (cl-case (type-of sexp)
@@ -208,8 +210,14 @@ Ignores leading comment characters."
            ((consp (cdr sexp))
             (if (and (length= sexp 2)
                      (eq (car sexp) 'quote))
-                (let ((print-quoted t))
-                  (prin1 sexp))
+                (cond
+                 ((symbolp (cadr sexp))
+                  (let ((print-quoted t))
+                    (prin1 sexp)))
+                 ((consp (cadr sexp))
+                  (insert "'")
+                  (pp--format-list (cadr sexp)
+                                   (set-marker (make-marker) (1- (point))))))
               (pp--format-list sexp)))
            (t
             (princ sexp))))
@@ -227,11 +235,15 @@ Ignores leading comment characters."
 (defun pp--format-vector (sexp)
   (prin1 sexp))
 
-(defun pp--format-list (sexp)
+(defun pp--format-list (sexp &optional start)
   (if (and (symbolp (car sexp))
            (not (keywordp (car sexp))))
       (pp--format-function sexp)
-    (prin1 sexp)))
+    (insert "(")
+    (pp--insert start (pop sexp))
+    (while sexp
+      (pp--insert " " (pop sexp)))
+    (insert ")")))
 
 (defun pp--format-function (sexp)
   (let* ((sym (car sexp))
@@ -300,7 +312,11 @@ Ignores leading comment characters."
   (insert ")"))
 
 (defun pp--insert (delim &rest things)
-  (let ((start (point)))
+  (let ((start (if (markerp delim)
+                   (prog1
+                       delim
+                     (setq delim nil))
+                 (point-marker))))
     (when delim
       (insert delim))
     (dolist (thing things)
@@ -310,7 +326,8 @@ Ignores leading comment characters."
     (when (> (current-column) (window-width))
       (save-excursion
         (goto-char start)
-        (insert "\n")))))
+        (unless (looking-at "[ \t]+$")
+          (insert "\n"))))))
 
 (defun pp--indent-buffer ()
   (goto-char (point-min))
