@@ -449,6 +449,7 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
       xg_event->motion.x_root = event->xmotion.x_root;
       xg_event->motion.y_root = event->xmotion.y_root;
       xg_event->motion.time = event->xmotion.time;
+      xg_event->motion.state = event->xmotion.state;
       xg_event->motion.device = find_suitable_pointer (view->frame);
     }
   else
