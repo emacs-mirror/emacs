@@ -1793,7 +1793,6 @@ Return t if the buffer had changes, nil otherwise."
         (setq files (nreverse filtered))))
     (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async)
     (set-buffer buffer)
-    (diff-mode)
     (setq-local diff-vc-backend (car vc-fileset))
     (setq-local diff-vc-revisions (list rev1 rev2))
     (setq-local revert-buffer-function
@@ -1815,7 +1814,9 @@ Return t if the buffer had changes, nil otherwise."
       ;; after `pop-to-buffer'; the former assumes the diff buffer is
       ;; shown in some window.
       (let ((buf (current-buffer)))
-        (vc-run-delayed (vc-diff-finish buf (when verbose messages))))
+        (vc-run-delayed (progn
+                          (vc-diff-finish buf (when verbose messages))
+                          (diff-mode))))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.
       t)))

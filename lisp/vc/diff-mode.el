@@ -893,6 +893,9 @@ data such as \"Index: ...\" and such."
       ;; Fix the original hunk-header.
       (diff-fixup-modifs start pos))))
 
+(defun diff--outline-level ()
+  (if (string-match-p diff-hunk-header-re (match-string 0))
+      2 1))
 
 ;;;;
 ;;;; jump to other buffers
@@ -1493,7 +1496,6 @@ a diff with \\[diff-reverse-direction].
 
   (setq-local font-lock-defaults diff-font-lock-defaults)
   (add-hook 'font-lock-mode-hook #'diff--font-lock-cleanup nil 'local)
-  (setq-local outline-regexp diff-outline-regexp)
   (setq-local imenu-generic-expression
               diff-imenu-generic-expression)
   ;; These are not perfect.  They would be better done separately for
@@ -1542,7 +1544,12 @@ a diff with \\[diff-reverse-direction].
     (setq-local diff-buffer-type
                 (if (re-search-forward "^diff --git" nil t)
                     'git
-                  nil))))
+                  nil)))
+  (when (eq diff-buffer-type 'git)
+    (setq diff-outline-regexp
+          (concat "\\(^diff --git.*\n\\|" diff-hunk-header-re "\\)"))
+    (setq-local outline-level #'diff--outline-level))
+  (setq-local outline-regexp diff-outline-regexp))
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode
@@ -2602,13 +2609,15 @@ fixed, visit it in a buffer."
                            (or (match-beginning 2) (match-beginning 1))
                            'display (propertize
                                      (cond
-                                      ((null (match-beginning 1)) "new file  ")
-                                      ((null (match-beginning 2)) "deleted   ")
-                                      (t                          "modified  "))
+                                      ((null (match-beginning 1))
+                                       (concat "new file  " (match-string 2)))
+                                      ((null (match-beginning 2))
+                                       (concat "deleted   " (match-string 1)))
+                                      (t
+                                       (concat "modified  " (match-string 1))))
                                      'face '(diff-file-header diff-header)))
-        (unless (match-beginning 2)
-          (put-text-property (match-end 1) (1- (match-end 0))
-                             'display "")))))
+        (put-text-property (match-end 1) (1- (match-end 0))
+                           'display ""))))
   nil)
 
 ;;; Syntax highlighting from font-lock
