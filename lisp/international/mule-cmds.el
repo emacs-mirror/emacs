@@ -3260,7 +3260,10 @@ as names, not numbers."
 (define-key ctl-x-map "8\r" 'insert-char)
 
 (defface confusingly-reordered
-  '((t :inherit underline :underline (:style wave :color "Red1")))
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "Red1"))
+    (t
+     :inherit warning))
   "Face for highlighting text that was bidi-reordered in confusing ways."
   :version "29.1")
 
@@ -3269,7 +3272,11 @@ as names, not numbers."
 (defvar reorder-enders "[\u202C\u2069]+\\|\n"
   "Regular expression for characters that end forced-reordered text.")
 
-(defun highlight-confusing-reorderings (beg end)
+(autoload 'text-property-search-forward "text-property-search")
+(autoload 'prop-match-beginning "text-property-search")
+(autoload 'prop-match-end "text-property-search")
+
+(defun highlight-confusing-reorderings (beg end &optional remove)
   "Highlight text in region that might be bidi-reordered in suspicious ways.
 This command find and highlights segments of buffer text that could have
 been reordered on display by using directional control characters, such
@@ -3280,46 +3287,67 @@ highlighted using the `confusingly-reordered' face.
 
 If the region is active, check the text inside the region.  Otherwise
 check the entire buffer.  When called from Lisp, pass BEG and END to
-specify the portion of the buffer to check."
+specify the portion of the buffer to check.
+
+Optional argument REMOVE, if non-nil (interactively, prefix argument),
+means remove the highlighting from the region between BEG and END,
+or the active region if that is set."
   (interactive
    (if (use-region-p)
-       (list (region-beginning) (region-end))
-     (list (point-min) (point-max))))
+       (list (region-beginning) (region-end) current-prefix-arg)
+     (list (point-min) (point-max) current-prefix-arg)))
   (save-excursion
-    (let (next)
-      (goto-char beg)
-      (while (setq next
-                   (bidi-find-overridden-directionality
-                    (point) end nil
-                    (current-bidi-paragraph-direction)))
-        (goto-char next)
-        ;; We detect the problematic parts by watching directional
-        ;; properties of strong L2R and R2L characters.  But malicious
-        ;; reordering in source buffers can, and usuually does,
-        ;; include syntactically-important punctuation characters.
-        ;; Those have "weak" directionality, so we cannot easily
-        ;; detect when they are affected in malicious ways.
-        ;; Therefore, once we find a strong directional character
-        ;; whose directionality was tweaked, we highlight the text
-        ;; around it, between the first bidi control character we find
-        ;; before it that starts an override/embedding/isolate, and
-        ;; the first control after it that ends these.  This could
-        ;; sometimes highlight only part of the affected text.  An
-        ;; alternative would be to find the first "starter" following
-        ;; BOL and the last "ender" before EOL, and highlight
-        ;; everything in between them -- this could sometimes
-        ;; highlight too much.
-        (let ((start
-               (save-excursion
-                 (re-search-backward reorder-starters nil t)))
-              (finish
-               (save-excursion
-                 (re-search-forward reorder-enders nil t))))
-          (with-silent-modifications
-            (add-text-properties start (1- finish)
-                                 '(font-lock-face
-                                   'confusingly-reordered
-                                   face 'confusingly-reordered)))
-          (goto-char finish))))))
+    (if remove
+        (let (prop-match)
+          (goto-char beg)
+          (while (and
+                  (setq prop-match
+                        (text-property-search-forward 'font-lock-face
+                                                      'confusingly-reordered t))
+                  (< (prop-match-beginning prop-match) end))
+            (with-silent-modifications
+              (remove-list-of-text-properties (prop-match-beginning prop-match)
+                                              (prop-match-end prop-match)
+                                              '(font-lock-face face mouse-face
+                                                               help-echo)))))
+      (let (next)
+        (goto-char beg)
+        (while (setq next
+                     (bidi-find-overridden-directionality
+                      (point) end nil
+                      (current-bidi-paragraph-direction)))
+          (goto-char next)
+          ;; We detect the problematic parts by watching directional
+          ;; properties of strong L2R and R2L characters.  But
+          ;; malicious reordering in source buffers can, and usuually
+          ;; does, include syntactically-important punctuation
+          ;; characters.  Those have "weak" directionality, so we
+          ;; cannot easily detect when they are affected in malicious
+          ;; ways.  Therefore, once we find a strong directional
+          ;; character whose directionality was tweaked, we highlight
+          ;; the text around it, between the first bidi control
+          ;; character we find before it that starts an
+          ;; override/embedding/isolate, and the first control after
+          ;; it that ends these.  This could sometimes highlight only
+          ;; part of the affected text.  An alternative would be to
+          ;; find the first "starter" following BOL and the last
+          ;; "ender" before EOL, and highlight everything in between
+          ;; them -- this could sometimes highlight too much.
+          (let ((start
+                 (save-excursion
+                   (re-search-backward reorder-starters nil t)))
+                (finish
+                 (save-excursion
+                   (re-search-forward reorder-enders nil t))))
+            (with-silent-modifications
+              (add-text-properties start (1- finish)
+                                   '(font-lock-face
+                                     confusingly-reordered
+                                     face confusingly-reordered
+                                     mouse-face highlight
+                                     help-echo "\
+This text is reordered on display in a way that could change its semantics;
+use \\[forward-char] and \\[backward-char] to see the actual order of characters.")))
+            (goto-char finish)))))))
 
 ;;; mule-cmds.el ends here
