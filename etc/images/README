@@ -68,6 +68,7 @@ Emacs images and their source in the GNOME icons stock/ directory:
   bookmark_add.xpm          actions/bookmark_add
   cancel.xpm                slightly modified generic/stock_stop
   connect.xpm               net/stock_connect
+  connect-to-url.xpm        net/stock_connect-to-url
   contact.xpm               net/stock_contact
   data-save.xpm             data/stock_data-save
   delete.xpm                generic/stock_delete

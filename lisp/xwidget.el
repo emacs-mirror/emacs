@@ -192,6 +192,34 @@ in `split-window-right' with a new xwidget webkit session."
          :selected xwidget-webkit-edit-mode
          :help "Send self inserting characters to the WebKit widget"]))
 
+(defvar xwidget-webkit-tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    (prog1 map
+      (tool-bar-local-item-from-menu 'xwidget-webkit-back
+                                     "left-arrow"
+                                     map
+                                     xwidget-webkit-mode-map)
+      (tool-bar-local-item-from-menu 'xwidget-webkit-forward
+                                     "right-arrow"
+                                     map
+                                     xwidget-webkit-mode-map)
+      (tool-bar-local-item-from-menu 'xwidget-webkit-reload
+                                     "refresh"
+                                     map
+                                     xwidget-webkit-mode-map)
+      (tool-bar-local-item-from-menu 'xwidget-webkit-zoom-in
+                                     "zoom-in"
+                                     map
+                                     xwidget-webkit-mode-map)
+      (tool-bar-local-item-from-menu 'xwidget-webkit-zoom-out
+                                     "zoom-out"
+                                     map
+                                     xwidget-webkit-mode-map)
+      (tool-bar-local-item-from-menu 'xwidget-webkit-browse-url
+                                     "connect-to-url"
+                                     map
+                                     xwidget-webkit-mode-map))))
+
 (defun xwidget-webkit-zoom-in ()
   "Increase webkit view zoom factor."
   (interactive nil xwidget-webkit-mode)
@@ -337,6 +365,7 @@ If non-nil, plugins are enabled.  Otherwise, disabled."
 (define-derived-mode xwidget-webkit-mode special-mode "xwidget-webkit"
   "Xwidget webkit view mode."
   (setq buffer-read-only t)
+  (setq-local tool-bar-map xwidget-webkit-tool-bar-map)
   (setq-local bookmark-make-record-function
               #'xwidget-webkit-bookmark-make-record)
   ;; Keep track of [vh]scroll when switching buffers
