@@ -2961,6 +2961,9 @@ make those characters and other common editing keys insert themselves
 when pressed, you can enable @code{xwidget-webkit-edit-mode}, which
 redefines them to be passed through to the WebKit xwidget.
 
+You can also enable @code{xwidget-webkit-edit-mode} by typing @kbd{e}
+inside the xwidget webkit buffer.
+
 @node Browse-URL
 @subsection  Following URLs
 @cindex World Wide Web

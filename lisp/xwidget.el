@@ -146,6 +146,7 @@ in `split-window-right' with a new xwidget webkit session."
     (define-key map "w" 'xwidget-webkit-current-url)
     (define-key map "+" 'xwidget-webkit-zoom-in)
     (define-key map "-" 'xwidget-webkit-zoom-out)
+    (define-key map "e" 'xwidget-webkit-edit-mode)
 
     ;;similar to image mode bindings
     (define-key map (kbd "SPC")                 'xwidget-webkit-scroll-up)
