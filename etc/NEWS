@@ -377,6 +377,24 @@ To improve security, if an sql product has ':password-in-comint' set
 to t, a password supplied via the minibuffer will be sent in-process,
 as opposed to via the command-line.
 
+** Image Mode
+
++++
+*** New command 'image-transform-fit-to-window'.
+This command fits the image to the current window by scaling down or
+up as necessary.  Unlike 'image-transform-fit-both', this does not
+only scale the image down, but up as well.  It is bound to "s w" in
+Image Mode by default.
+
++++
+*** 'image-transform-fit-to-(height|width)' are now obsolete.
+Use the new command 'image-transform-fit-to-window' instead.
+The keybinding for 'image-transform-fit-to-width' is now 's i'.
+
+---
+*** User option 'image-auto-resize' can now be set to 'fit-window'.
+This works like 'image-transform-fit-to-window'.
+
 ** Image-Dired
 
 +++
