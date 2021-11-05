@@ -4411,14 +4411,12 @@ x_scroll_run (struct window *w, struct run *run)
 	    {
 	      int window_y = view->y + view->clip_top;
 	      int window_height = view->clip_bottom - view->clip_top;
-	      int min_y = min (from_y, to_y);
-	      int max_y = max (from_y, to_y);
 
 	      Emacs_Rectangle r1, r2, result;
 	      r1.x = w->pixel_left;
-	      r1.y = min_y;
+	      r1.y = from_y;
 	      r1.width = w->pixel_width;
-	      r1.height = max_y - min_y;
+	      r1.height = height;
 	      r2 = r1;
 	      r2.y = window_y;
 	      r2.height = window_height;
