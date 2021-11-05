@@ -209,6 +209,19 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
   return val;
 }
 
+#ifdef USE_GTK
+static void
+set_widget_if_text_view (GtkWidget *widget, void *data)
+{
+  GtkWidget **pointer = data;
+
+  if (GTK_IS_TEXT_VIEW (widget))
+    {
+      *pointer = widget;
+    }
+}
+#endif
+
 DEFUN ("xwidget-perform-lispy-event",
        Fxwidget_perform_lispy_event, Sxwidget_perform_lispy_event,
        2, 3, 0, doc: /* Send a lispy event to XWIDGET.
@@ -222,7 +235,13 @@ X-Windows frame.  */)
   struct frame *f = NULL;
   int character = -1, keycode = -1;
   int modifiers = 0;
+
+#ifdef USE_GTK
   GdkEvent *xg_event;
+  GtkContainerClass *klass;
+  GtkWidget *widget;
+  GtkWidget *temp = NULL;
+#endif
 
   CHECK_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
@@ -232,22 +251,42 @@ X-Windows frame.  */)
   else if (FRAME_X_P (SELECTED_FRAME ()))
     f = SELECTED_FRAME ();
 
+  widget = xw->widget_osr;
+
 #ifdef USE_GTK
   if (RANGED_FIXNUMP (0, event, INT_MAX))
     {
       character = XFIXNUM (event);
-      modifiers = x_emacs_to_x_modifiers (FRAME_DISPLAY_INFO (f), character);
+
+      if (character < 32)
+	modifiers |= ctrl_modifier;
+
+      modifiers |= character & meta_modifier;
+      modifiers |= character & hyper_modifier;
+      modifiers |= character & super_modifier;
+      modifiers |= character & shift_modifier;
+      modifiers |= character & ctrl_modifier;
+
+      character = character & ~(1 << 21);
+
+      if (character < 32)
+	character += '_';
+
+      if (f)
+	modifiers = x_emacs_to_x_modifiers (FRAME_DISPLAY_INFO (f), modifiers);
+      else
+	modifiers = 0;
     }
   else if (SYMBOLP (event))
     {
       Lisp_Object decoded = parse_modifiers (event);
       Lisp_Object decoded_name = SYMBOL_NAME (XCAR (decoded));
+
       int off = 0;
       bool found = false;
 
       while (off < 256)
 	{
-	  puts (SSDATA (decoded_name));
 	  if (lispy_function_keys[off]
 	      && !strcmp (lispy_function_keys[off],
 			  SSDATA (decoded_name)))
@@ -257,6 +296,12 @@ X-Windows frame.  */)
 	    }
 	  ++off;
 	}
+
+      if (f)
+	modifiers = x_emacs_to_x_modifiers (FRAME_DISPLAY_INFO (f),
+					    XFIXNUM (XCAR (XCDR (decoded))));
+      else
+	modifiers = 0;
 
       if (found)
 	keycode = off + 0xff00;
@@ -271,11 +316,33 @@ X-Windows frame.  */)
   g_object_ref (xg_event->any.window);
 
   if (character > -1)
-    xg_event->key.keyval = gdk_unicode_to_keyval (character & ~(1 << 21));
-  else if (keycode > -1)
-    xg_event->key.keyval = keycode;
+    keycode = gdk_unicode_to_keyval (character);
 
+  xg_event->key.keyval = keycode;
   xg_event->key.state = modifiers;
+
+  if (keycode > -1)
+    {
+      /* WebKitGTK internals abuse follows.  */
+      if (EQ (xw->type, Qwebkit))
+	{
+	  /* WebKitGTK relies on an internal GtkTextView object to
+	     "translate" keys such as backspace.  We must find that
+	     widget and activate its binding to this key if any.  */
+	  klass = GTK_CONTAINER_CLASS (G_OBJECT_GET_CLASS (widget));
+
+	  klass->forall (GTK_CONTAINER (xw->widget_osr), TRUE,
+			 set_widget_if_text_view, &temp);
+
+	  if (GTK_IS_WIDGET (temp))
+	    {
+	      if (!gtk_widget_get_realized (temp))
+		gtk_widget_realize (temp);
+
+	      gtk_bindings_activate (G_OBJECT (temp), keycode, modifiers);
+	    }
+	}
+    }
 
   if (f)
     gdk_event_set_device (xg_event,
