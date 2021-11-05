@@ -2849,12 +2849,13 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
      External (RIF); compute left/right overhang of whole string and set in s
    -------------------------------------------------------------------------- */
 {
+  struct font *font = s->font;
+
   if (s->char2b)
     {
       struct font_metrics metrics;
       if (s->first_glyph->type == CHAR_GLYPH && !s->font_not_found_p)
         {
-          struct font *font = s->font;
           font->driver->text_extents (font, s->char2b, s->nchars, &metrics);
           s->left_overhang = -metrics.lbearing;
           s->right_overhang
