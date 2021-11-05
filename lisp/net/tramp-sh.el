@@ -2494,9 +2494,14 @@ The method used must be an out-of-band method."
 	     (with-tramp-progress-reporter
                  v 0 (format "Uncompressing %s" file)
 	       (when (tramp-send-command-and-check
-		      v (concat (nth 2 suffix) " "
-				(tramp-shell-quote-argument localname)))
-		 (dired-remove-file file)
+		      v (if (string-match-p "%[io]" (nth 2 suffix))
+                            (replace-regexp-in-string
+                             "%i" (tramp-shell-quote-argument localname)
+                             (nth 2 suffix))
+                          (concat (nth 2 suffix) " "
+                                  (tramp-shell-quote-argument localname))))
+		 (unless (string-match-p "\\.tar\\.gz" file)
+                   (dired-remove-file file))
 		 (string-match (car suffix) file)
 		 (concat (substring file 0 (match-beginning 0))))))
 	    (t
@@ -2504,14 +2509,21 @@ The method used must be an out-of-band method."
 	     ;; Try gzip.
 	     (with-tramp-progress-reporter v 0 (format "Compressing %s" file)
 	       (when (tramp-send-command-and-check
-		      v (concat "gzip -f "
-				(tramp-shell-quote-argument localname)))
-		 (dired-remove-file file)
-		 (cond ((file-exists-p (concat file ".gz"))
-			(concat file ".gz"))
-		       ((file-exists-p (concat file ".z"))
-			(concat file ".z"))
-		       (t nil)))))))))
+		      v (if (file-directory-p file)
+                            (format "tar -cf - %s | gzip -c9 > %s.tar.gz"
+                                    (tramp-shell-quote-argument
+                                     (file-name-nondirectory localname))
+                                    (tramp-shell-quote-argument localname))
+                          (concat "gzip -f "
+				  (tramp-shell-quote-argument localname))))
+		 (unless (file-directory-p file)
+                   (dired-remove-file file))
+		 (catch 'found nil
+                        (dolist (target (mapcar (lambda (suffix)
+                                                  (concat file suffix))
+                                                '(".tar.gz" ".gz" ".z")))
+                          (when (file-exists-p target)
+                            (throw 'found target)))))))))))
 
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
