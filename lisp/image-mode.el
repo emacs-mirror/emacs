@@ -74,6 +74,15 @@ Resizing will always preserve the aspect ratio of the image."
   :version "29.1"
   :group 'image)
 
+(defcustom image-auto-resize-max-scale-percent nil
+  "Max size (in percent) to scale up to when `image-auto-resize' is `fit-window'.
+Can be either a number larger than 100, or nil, which means no
+max size."
+  :type '(choice (const nil "No max")
+                 natnum)
+  :version "29.1"
+  :group 'image)
+
 (defcustom image-auto-resize-on-window-resize 1
   "Non-nil to resize the image whenever the window's dimensions change.
 This will always keep the image fit to the window.
@@ -810,6 +819,21 @@ Remove text properties that display the image."
 (defvar tar-superior-buffer)
 (declare-function image-flush "image.c" (spec &optional frame))
 
+(defun image--scale-within-limits-p (image)
+  "Return t if `fit-window' will scale image within the customized limits.
+The limits are given by the user option
+`image-auto-resize-max-scale-percent'."
+  (or (not image-auto-resize-max-scale-percent)
+      (let ((scale (/ image-auto-resize-max-scale-percent 100))
+            (mw (plist-get (cdr image) :max-width))
+            (mh (plist-get (cdr image) :max-height))
+            ;; Note: `image-size' looks up and thus caches the
+            ;; untransformed image.  There's no easy way to
+            ;; prevent that.
+            (size (image-size image t)))
+        (or (<= mw (* (car size) scale))
+            (<= mh (* (cdr size) scale))))))
+
 (defun image-toggle-display-image ()
   "Show the image of the image file.
 Turn the image data into a real image, but only if the whole file
@@ -893,7 +917,8 @@ was inserted."
                                 :format (and filename data-p))))
 
     ;; Handle `fit-window'.
-    (when (eq image-transform-resize 'fit-window)
+    (when (and (eq image-transform-resize 'fit-window)
+               (image--scale-within-limits-p image))
       (setq image
             (cons (car image)
                   (plist-put (cdr image) :width

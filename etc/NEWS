@@ -395,6 +395,10 @@ The keybinding for 'image-transform-fit-to-width' is now 's i'.
 *** User option 'image-auto-resize' can now be set to 'fit-window'.
 This works like 'image-transform-fit-to-window'.
 
+*** New user option 'image-auto-resize-max-scale-percent'.
+The new 'fit-window' options will never scale an image more than this
+much (in percent).  It is nil by default.
+
 ** Image-Dired
 
 +++
