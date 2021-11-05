@@ -2980,23 +2980,6 @@ Dired."
 ;;       (setq dirsize (- dirsize (car (cdar files))))
 ;;       (setq files (cdr files)))))
 
-;;;;;;;;;;;;;;;;;;;;;;,
-
-;; (defun dired-speedbar-buttons (dired-buffer)
-;;   (when (and (boundp 'image-dired-use-speedbar)
-;; 	     image-dired-use-speedbar)
-;;     (let ((filename (with-current-buffer dired-buffer
-;; 		      (dired-get-filename))))
-;;       (when (and (not (string-equal filename (buffer-string)))
-;; 		 (string-match (image-file-name-regexp) filename))
-;; 	(erase-buffer)
-;; 	(insert (propertize
-;; 		 filename
-;; 		 'display
-;; 		 (image-dired-get-thumbnail-image filename)))))))
-
-;; (setq image-dired-use-speedbar t)
-
 (provide 'image-dired)
 
 ;;; image-dired.el ends here
