@@ -82,6 +82,18 @@ webkit_decide_policy_cb (WebKitWebView *,
                          WebKitPolicyDecision *,
                          WebKitPolicyDecisionType,
                          gpointer);
+static GtkWidget *find_widget_at_pos (GtkWidget *, int, int, int *, int *);
+
+struct widget_search_data
+{
+  int x;
+  int y;
+  bool foundp;
+  bool first;
+  GtkWidget *data;
+};
+
+static void find_widget (GtkWidget *t, struct widget_search_data *);
 #endif
 
 
@@ -130,6 +142,7 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
   if (EQ (xw->type, Qwebkit))
     {
       block_input ();
+      WebKitSettings *settings;
       WebKitWebContext *webkit_context = webkit_web_context_get_default ();
 
 # if WEBKIT_CHECK_VERSION (2, 26, 0)
@@ -144,6 +157,10 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
       if (EQ (xw->type, Qwebkit))
         {
           xw->widget_osr = webkit_web_view_new ();
+
+	  /* Enable the developer extras */
+	  settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (xw->widget_osr));
+	  g_object_set (G_OBJECT (settings), "enable-developer-extras", TRUE, NULL);
 
           /* webkitgtk uses GSubprocess which sets sigaction causing
              Emacs to not catch SIGCHLD with its usual handle setup in
@@ -251,9 +268,12 @@ X-Windows frame.  */)
   else if (FRAME_X_P (SELECTED_FRAME ()))
     f = SELECTED_FRAME ();
 
-  widget = xw->widget_osr;
-
 #ifdef USE_GTK
+  widget = gtk_window_get_focus (GTK_WINDOW (xw->widgetwindow_osr));
+
+  if (!widget)
+    widget = xw->widget_osr;
+
   if (RANGED_FIXNUMP (0, event, INT_MAX))
     {
       character = XFIXNUM (event);
@@ -324,7 +344,7 @@ X-Windows frame.  */)
   if (keycode > -1)
     {
       /* WebKitGTK internals abuse follows.  */
-      if (EQ (xw->type, Qwebkit))
+      if (WEBKIT_IS_WEB_VIEW (widget))
 	{
 	  /* WebKitGTK relies on an internal GtkTextView object to
 	     "translate" keys such as backspace.  We must find that
@@ -428,18 +448,149 @@ find_suitable_keyboard (struct frame *f)
 }
 
 static void
+find_widget_cb (GtkWidget *widget, void *user)
+{
+  find_widget (widget, user);
+}
+
+static void
+find_widget (GtkWidget *widget,
+	     struct widget_search_data *data)
+{
+  GtkAllocation new_allocation;
+  GdkWindow *window;
+  int x_offset = 0;
+  int y_offset = 0;
+
+  gtk_widget_get_allocation (widget, &new_allocation);
+
+  if (gtk_widget_get_has_window (widget))
+    {
+      new_allocation.x = 0;
+      new_allocation.y = 0;
+    }
+
+  if (gtk_widget_get_parent (widget) && !data->first)
+    {
+      window = gtk_widget_get_window (widget);
+      while (window != gtk_widget_get_window (gtk_widget_get_parent (widget)))
+        {
+          gint tx, ty, twidth, theight;
+
+	  if (!window)
+	    return;
+
+          twidth = gdk_window_get_width (window);
+          theight = gdk_window_get_height (window);
+
+          if (new_allocation.x < 0)
+            {
+              new_allocation.width += new_allocation.x;
+              new_allocation.x = 0;
+            }
+
+          if (new_allocation.y < 0)
+            {
+              new_allocation.height += new_allocation.y;
+              new_allocation.y = 0;
+            }
+
+          if (new_allocation.x + new_allocation.width > twidth)
+            new_allocation.width = twidth - new_allocation.x;
+          if (new_allocation.y + new_allocation.height > theight)
+            new_allocation.height = theight - new_allocation.y;
+
+          gdk_window_get_position (window, &tx, &ty);
+          new_allocation.x += tx;
+          x_offset += tx;
+          new_allocation.y += ty;
+          y_offset += ty;
+
+          window = gdk_window_get_parent (window);
+	}
+    }
+
+  if ((data->x >= new_allocation.x) && (data->y >= new_allocation.y) &&
+      (data->x < new_allocation.x + new_allocation.width) &&
+      (data->y < new_allocation.y + new_allocation.height))
+    {
+      /* First, check if the drag is in a valid drop site in
+       * one of our children
+       */
+      if (GTK_IS_CONTAINER (widget))
+        {
+          struct widget_search_data new_data = *data;
+
+          new_data.x -= x_offset;
+          new_data.y -= y_offset;
+          new_data.foundp = false;
+          new_data.first = false;
+
+          gtk_container_forall (GTK_CONTAINER (widget),
+                                find_widget_cb, &new_data);
+
+          data->foundp = new_data.foundp;
+          if (data->foundp)
+            data->data = new_data.data;
+        }
+
+      /* If not, and this widget is registered as a drop site, check to
+       * emit "drag_motion" to check if we are actually in
+       * a drop site.
+       */
+      if (!data->foundp)
+        {
+          data->foundp = true;
+          data->data = widget;
+        }
+    }
+}
+
+static GtkWidget *
+find_widget_at_pos (GtkWidget *w, int x, int y,
+		    int *new_x, int *new_y)
+{
+  struct widget_search_data data;
+
+  data.x = x;
+  data.y = y;
+  data.foundp = false;
+  data.first = true;
+
+  find_widget (w, &data);
+
+  if (data.foundp)
+    {
+      gtk_widget_translate_coordinates (w, data.data, x,
+					y, new_x, new_y);
+      return data.data;
+    }
+
+  *new_x = x;
+  *new_y = y;
+
+  return NULL;
+}
+
+static void
 xwidget_button_1 (struct xwidget_view *view,
 		  bool down_p, int x, int y, int button,
 		  int modifier_state, Time time)
 {
   GdkEvent *xg_event = gdk_event_new (down_p ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
   struct xwidget *model = XXWIDGET (view->model);
+  GtkWidget *target;
 
   /* X and Y should be relative to the origin of view->wdesc.  */
   x += view->clip_left;
   y += view->clip_top;
 
-  xg_event->any.window = gtk_widget_get_window (model->widget_osr);
+  target = find_widget_at_pos (model->widgetwindow_osr, x, y, &x, &y);
+
+  if (!target)
+    target = model->widget_osr;
+
+  xg_event->any.window = gtk_widget_get_window (target);
   g_object_ref (xg_event->any.window); /* The window will be unrefed
 					  later by gdk_event_free. */
 
@@ -467,8 +618,17 @@ xwidget_button (struct xwidget_view *view,
     {
       GdkEvent *xg_event = gdk_event_new (GDK_SCROLL);
       struct xwidget *model = XXWIDGET (view->model);
+      GtkWidget *target;
 
-      xg_event->any.window = gtk_widget_get_window (model->widget_osr);
+      x += view->clip_left;
+      y += view->clip_top;
+
+      target = find_widget_at_pos (model->widgetwindow_osr, x, y, &x, &y);
+
+      if (!target)
+	target = model->widget_osr;
+
+      xg_event->any.window = gtk_widget_get_window (target);
       g_object_ref (xg_event->any.window); /* The window will be unrefed
 					      later by gdk_event_free. */
       if (button == 4)
@@ -504,15 +664,28 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 				      (event->type == LeaveNotify ? GDK_LEAVE_NOTIFY :
 				       GDK_ENTER_NOTIFY));
   struct xwidget *model = XXWIDGET (view->model);
+  int x;
+  int y;
+  GtkWidget *target = find_widget_at_pos (model->widgetwindow_osr,
+					  (event->type == MotionNotify
+					   ? event->xmotion.x + view->clip_left
+					   : event->xmotion.y + view->clip_top),
+					  (event->type == MotionNotify
+					   ? event->xmotion.y + view->clip_left
+					   : event->xcrossing.y + view->clip_top),
+					  &x, &y);
 
-  xg_event->any.window = gtk_widget_get_window (model->widget_osr);
+  if (!target)
+    target = model->widgetwindow_osr;
+
+  xg_event->any.window = gtk_widget_get_window (target);
   g_object_ref (xg_event->any.window); /* The window will be unrefed
 					  later by gdk_event_free. */
 
   if (event->type == MotionNotify)
     {
-      xg_event->motion.x = event->xmotion.x + view->clip_left;
-      xg_event->motion.y = event->xmotion.y + view->clip_top;
+      xg_event->motion.x = x;
+      xg_event->motion.y = y;
       xg_event->motion.x_root = event->xmotion.x_root;
       xg_event->motion.y_root = event->xmotion.y_root;
       xg_event->motion.time = event->xmotion.time;
@@ -523,8 +696,8 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
     {
       xg_event->crossing.detail = min (5, event->xcrossing.detail);
       xg_event->crossing.time = event->xcrossing.time;
-      xg_event->crossing.x = event->xcrossing.x + view->clip_left;
-      xg_event->crossing.y = event->xcrossing.y + view->clip_top;
+      xg_event->crossing.x = x;
+      xg_event->crossing.y = y;
       xg_event->crossing.x_root = event->xcrossing.x_root;
       xg_event->crossing.y_root = event->xcrossing.y_root;
       gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));

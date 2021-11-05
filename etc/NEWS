@@ -497,10 +497,16 @@ This is a convenience function to extract the field data from
 
 ** Xwidgets
 
++++
 *** New minor mode `xwidget-webkit-edit-mode'.
 When this mode is enabled, self-inserting characters and other common
 web browser shotcut keys are redefined to send themselves to the
 WebKit widget.
+
+---
+*** On X11, the WebKit inspector is now available inside xwidgets.
+To access the inspector, right click on the widget and select "Inspect
+Element".
 
 
 * New Modes and Packages in Emacs 29.1
