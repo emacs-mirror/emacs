@@ -173,6 +173,25 @@ in `split-window-right' with a new xwidget webkit session."
     map)
   "Keymap for `xwidget-webkit-mode'.")
 
+(easy-menu-define nil xwidget-webkit-mode-map "Xwidget WebKit menu."
+  (list "Xwidget WebKit"
+        ["Browse URL" xwidget-webkit-browse-url
+         :active t
+         :help "Prompt for a URL, then instruct WebKit to browse it"]
+        ["Back" xwidget-webkit-back t]
+        ["Forward" xwidget-webkit-forward t]
+        ["Reload" xwidget-webkit-reload t]
+        ["Insert String" xwidget-webkit-insert-string
+         :active t
+         :help "Insert a string into the currently active field"]
+        ["Zoom In" xwidget-webkit-zoom-in t]
+        ["Zoom Out" xwidget-webkit-zoom-out t]
+        ["Edit Mode" xwidget-webkit-edit-mode
+         :active t
+         :style toggle
+         :selected xwidget-webkit-edit-mode
+         :help "Send self inserting characters to the WebKit widget"]))
+
 (defun xwidget-webkit-zoom-in ()
   "Increase webkit view zoom factor."
   (interactive nil xwidget-webkit-mode)
