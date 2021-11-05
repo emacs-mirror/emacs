@@ -8896,10 +8896,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XWIDGETS
       {
 	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
+	Mouse_HLInfo *hlinfo;
 
 	if (xvw)
 	  {
 	    xwidget_motion_or_crossing (xvw, event);
+	    hlinfo = MOUSE_HL_INFO (xvw->frame);
+
+	    if (xvw->frame == hlinfo->mouse_face_mouse_frame)
+	      {
+		clear_mouse_face (hlinfo);
+		hlinfo->mouse_face_mouse_frame = 0;
+	      }
+
+	    if (any_help_event_p)
+	      {
+		do_help = -1;
+	      }
 	    goto OTHER;
 	  }
       }

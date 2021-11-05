@@ -459,6 +459,7 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
       xg_event->crossing.y = event->xcrossing.y + view->clip_top;
       xg_event->crossing.x_root = event->xcrossing.x_root;
       xg_event->crossing.y_root = event->xcrossing.y_root;
+      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
     }
 
   gtk_main_do_event (xg_event);
@@ -947,7 +948,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
       XSETXWIDGET_VIEW (xvw, xv);
       XSetWindowAttributes a;
       a.event_mask = (ExposureMask | ButtonPressMask | ButtonReleaseMask
-		      | PointerMotionMask);
+		      | PointerMotionMask | EnterWindowMask | LeaveWindowMask);
 
       xv->wdesc = XCreateWindow (xv->dpy, FRAME_X_WINDOW (s->f),
 				 x + clip_left, y + clip_top,
