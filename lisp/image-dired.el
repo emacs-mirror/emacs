@@ -2363,14 +2363,14 @@ Track this in associated Dired buffer if
 (defcustom image-dired-gallery-dir
   (expand-file-name ".image-dired_gallery" image-dired-dir)
   "Directory to store generated gallery html pages.
-This path needs to be \"shared\" to the public so that it can access
-the index.html page that image-dired creates."
+The name of this directory needs to be \"shared\" to the public
+so that it can access the index.html page that image-dired creates."
   :type 'directory)
 
 (defcustom image-dired-gallery-image-root-url
   "https://example.org/image-diredpics"
   "URL where the full size images are to be found on your web server.
-Note that this path has to be configured on your web server.
+Note that this URL has to be configured on your web server.
 Image-Dired expects to find pictures in this directory.
 This is used by `image-dired-gallery-generate'."
   :type 'string
@@ -2379,7 +2379,7 @@ This is used by `image-dired-gallery-generate'."
 (defcustom image-dired-gallery-thumb-image-root-url
   "https://example.org/image-diredthumbs"
   "URL where the thumbnail images are to be found on your web server.
-Note that this path has to be configured on your web server.
+Note that URL path has to be configured on your web server.
 Image-Dired expects to find pictures in this directory.
 This is used by `image-dired-gallery-generate'."
   :type 'string
