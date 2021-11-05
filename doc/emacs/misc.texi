@@ -1994,8 +1994,8 @@ can customize this behavior with the variable @code{initial-buffer-choice}
 
 @item -r
 @itemx --reuse-frame
-Create a new graphical @dfn{client frame} if none exists, otherwise
-use an existing Emacs frame.
+Create a new graphical client frame if none exists, otherwise use an
+existing Emacs frame.
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}

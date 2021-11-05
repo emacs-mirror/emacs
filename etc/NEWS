@@ -108,7 +108,7 @@ suspicious and could be malicious.
 +++
 *** New command-line option '-r' for emacsclient.
 With this command-line option, Emacs reuses an existing graphical client
-frame if one exists; otherwise a new frame is created.
+frame if one exists; otherwise it creates a new frame.
 
 * Editing Changes in Emacs 29.1
 
