@@ -1307,20 +1307,12 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
           struct xwidget_view *xv = XXWIDGET_VIEW (XCAR (tail));
           if (XXWIDGET (xv->model) == xw)
             {
-#ifdef USE_GTK
-	      if (xv->wdesc != None)
-		{
-		  XResizeWindow (xv->dpy, xv->wdesc, xw->width, xw->height);
-		  XFlush (xv->dpy);
-		  cairo_xlib_surface_set_size (xv->cr_surface,
-					       xw->width, xw->height);
-		}
-#elif defined NS_IMPL_COCOA
-              nsxwidget_resize_view(xv, xw->width, xw->height);
-#endif
+	      wset_redisplay (XWINDOW (xv->w));
             }
         }
     }
+
+  redisplay ();
 
   return Qnil;
 }
