@@ -423,6 +423,11 @@ Use 'exif-parse-file' and 'exif-field' instead.
 * Lisp Changes in Emacs 29.1
 
 ---
+*** New user option 'pp-use-max-width'.
+If non-nil, 'pp' will attempt to limit the line length when formatting
+long lists and vectors.
+
+---
 *** New function 'pp-emacs-lisp-code'.
 'pp' formats general Lisp sexps.  This function does much the same,
 but applies formatting rules appropriate for Emacs Lisp code.

@@ -114,3 +114,11 @@ Name: code-formats10
                      "+"
                      (string-replace " " "+" query)))
 =-=-=
+
+
+Name: code-formats11
+
+=-=
+(lambda ()
+  [(foo bar) (foo bar)])
+=-=-=

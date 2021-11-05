@@ -33,22 +33,43 @@
 
 (defcustom pp-escape-newlines t
   "Value of `print-escape-newlines' used by pp-* functions."
+  :type 'boolean)
+
+(defcustom pp-max-width t
+  "Max width to use when formatting.
+If nil, there's no max width.  If t, use the window width.
+Otherwise this should be a number."
+  :type '(choice (const :tag "none" nil)
+                 (const :tag "window width" t)
+                 number)
+  :version "29.1")
+
+(defcustom pp-use-max-width nil
+  "If non-nil, `pp'-related functions will try to fold lines.
+The target width is given by the `pp-max-width' variable."
   :type 'boolean
-  :group 'pp)
+  :version "29.1")
+
+(defvar pp--inhibit-function-formatting nil)
 
 ;;;###autoload
 (defun pp-to-string (object)
   "Return a string containing the pretty-printed representation of OBJECT.
 OBJECT can be any Lisp object.  Quoting characters are used as needed
 to make output that `read' can handle, whenever this is possible."
-  (with-temp-buffer
-    (lisp-mode-variables nil)
-    (set-syntax-table emacs-lisp-mode-syntax-table)
-    (let ((print-escape-newlines pp-escape-newlines)
-          (print-quoted t))
-      (prin1 object (current-buffer)))
-    (pp-buffer)
-    (buffer-string)))
+  (if pp-use-max-width
+      (let ((pp--inhibit-function-formatting t))
+        (with-temp-buffer
+          (pp-emacs-lisp-code object)
+          (buffer-string)))
+    (with-temp-buffer
+      (lisp-mode-variables nil)
+      (set-syntax-table emacs-lisp-mode-syntax-table)
+      (let ((print-escape-newlines pp-escape-newlines)
+            (print-quoted t))
+        (prin1 object (current-buffer)))
+      (pp-buffer)
+      (buffer-string))))
 
 ;;;###autoload
 (defun pp-buffer ()
@@ -56,7 +77,6 @@ to make output that `read' can handle, whenever this is possible."
   (interactive)
   (goto-char (point-min))
   (while (not (eobp))
-    ;; (message "%06d" (- (point-max) (point)))
     (cond
      ((ignore-errors (down-list 1) t)
       (save-excursion
@@ -85,6 +105,9 @@ can handle, whenever this is possible.
 
 This function does not apply special formatting rules for Emacs
 Lisp code.  See `pp-emacs-lisp-code' instead.
+
+By default, this function won't limit the line length of lists
+and vectors.  Bind `pp-use-max-width' to a non-nil value to do so.
 
 Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
@@ -191,17 +214,19 @@ Ignores leading comment characters."
 
 ;;;###autoload
 (defun pp-emacs-lisp-code (sexp)
-  "Insert SEXP into the current buffer, formatted as Emacs Lisp code."
+  "Insert SEXP into the current buffer, formatted as Emacs Lisp code.
+Use the `pp-max-width' variable to control the desired line length."
   (require 'edebug)
-  (let ((standard-output (current-buffer)))
-    (save-restriction
-      (narrow-to-region (point) (point))
+  (let ((obuf (current-buffer)))
+    (with-temp-buffer
+      (emacs-lisp-mode)
       (pp--insert-lisp sexp)
       (insert "\n")
       (goto-char (point-min))
       (indent-sexp)
       (while (re-search-forward " +$" nil t)
-        (replace-match "")))))
+        (replace-match ""))
+      (insert-into-buffer obuf))))
 
 (defun pp--insert-lisp (sexp)
   (cl-case (type-of sexp)
@@ -213,30 +238,35 @@ Ignores leading comment characters."
                 (cond
                  ((symbolp (cadr sexp))
                   (let ((print-quoted t))
-                    (prin1 sexp)))
+                    (prin1 sexp (current-buffer))))
                  ((consp (cadr sexp))
                   (insert "'")
                   (pp--format-list (cadr sexp)
                                    (set-marker (make-marker) (1- (point))))))
               (pp--format-list sexp)))
            (t
-            (princ sexp))))
+            (princ sexp (current-buffer)))))
     ;; Print some of the smaller integers as characters, perhaps?
     (integer
      (if (<= ?0 sexp ?z)
          (let ((print-integers-as-characters t))
-           (princ sexp))
-       (princ sexp)))
+           (princ sexp (current-buffer)))
+       (princ sexp (current-buffer))))
     (string
      (let ((print-escape-newlines t))
-       (prin1 sexp)))
-    (otherwise (princ sexp))))
+       (prin1 sexp (current-buffer))))
+    (otherwise (princ sexp (current-buffer)))))
 
 (defun pp--format-vector (sexp)
-  (prin1 sexp))
+  (insert "[")
+  (cl-loop for i from 0
+           for element across sexp
+           do (pp--insert (and (> i 0) " ") element))
+  (insert "]"))
 
 (defun pp--format-list (sexp &optional start)
   (if (and (symbolp (car sexp))
+           (not pp--inhibit-function-formatting)
            (not (keywordp (car sexp))))
       (pp--format-function sexp)
     (insert "(")
@@ -292,7 +322,7 @@ Ignores leading comment characters."
     (cl-decf indent))
   (when (stringp (car sexp))
     (insert "\n")
-    (prin1 (pop sexp)))
+    (prin1 (pop sexp) (current-buffer)))
   ;; Then insert the rest with line breaks before each form.
   (while sexp
     (insert "\n")
@@ -329,7 +359,7 @@ Ignores leading comment characters."
       (pp--insert-lisp thing))
     ;; We need to indent what we have so far to see if we have to fold.
     (pp--indent-buffer)
-    (when (> (current-column) (window-width))
+    (when (> (current-column) (pp--max-width))
       (save-excursion
         (goto-char start)
         (unless (looking-at "[ \t]+$")
@@ -338,12 +368,22 @@ Ignores leading comment characters."
         (goto-char (point-max))
         ;; If we're still too wide, then go up one step and try to
         ;; insert a newline there.
-        (when (> (current-column) (window-width))
+        (when (> (current-column) (pp--max-width))
           (condition-case ()
               (backward-up-list 1)
             (:success (when (looking-back " " 2)
                         (insert "\n")))
             (error nil)))))))
+
+(defun pp--max-width ()
+  (cond ((numberp pp-max-width)
+         pp-max-width)
+        ((null pp-max-width)
+         most-positive-fixnum)
+        ((eq pp-max-width t)
+         (window-width))
+        (t
+         (error "Invalid pp-max-width value: %s" pp-max-width))))
 
 (defun pp--indent-buffer ()
   (goto-char (point-min))
