@@ -1318,14 +1318,14 @@ on the 19th, @file{aug-20} was written on the 20th, and the file
 This function returns non-@code{nil} if the time stamp of
 @var{filename} has changed since the last call.  When called for the
 first time for some @var{filename}, it records the last modification
-time and size of the file, and returns non-@code{nil}.  Thereafter,
-when called for the same @var{filename}, it compares the current time
-stamp and size with the recorded ones, and returns non-@code{nil} only
-if either the time stamp or the size (or both) are different.  This is
-useful when a Lisp program wants to re-read a file whenever it
-changes.  With an optional argument @var{tag}, which must be a symbol,
-the size and modification time comparisons are limited to calls with
-the same tag.
+time and size of the file, and returns non-@code{nil} when
+@var{filename} exists.  Thereafter, when called for the same
+@var{filename}, it compares the current time stamp and size with the
+recorded ones, and returns non-@code{nil} only if either the time
+stamp or the size (or both) are different.  This is useful when a Lisp
+program wants to re-read a file whenever it changes.  With an optional
+argument @var{tag}, which must be a symbol, the size and modification
+time comparisons are limited to calls with the same tag.
 @end defun
 
 @defun file-attributes filename &optional id-format
