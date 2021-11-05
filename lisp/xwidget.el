@@ -190,7 +190,10 @@ in `split-window-right' with a new xwidget webkit session."
          :active t
          :style toggle
          :selected xwidget-webkit-edit-mode
-         :help "Send self inserting characters to the WebKit widget"]))
+         :help "Send self inserting characters to the WebKit widget"]
+        ["Save Selection" xwidget-webkit-copy-selection-as-kill
+         :active t
+         :help "Save the browser's selection in the kill ring"]))
 
 (defvar xwidget-webkit-tool-bar-map
   (let ((map (make-sparse-keymap)))
