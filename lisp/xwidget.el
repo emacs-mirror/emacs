@@ -124,6 +124,14 @@ in `split-window-right' with a new xwidget webkit session."
     (with-selected-window (split-window-right)
       (xwidget-webkit-new-session url))))
 
+(declare-function xwidget-perform-lispy-event "xwidget.c")
+
+(defun xwidget-webkit-pass-command-event ()
+  "Pass `last-command-event' to the current buffer's WebKit widget."
+  (interactive)
+  (xwidget-perform-lispy-event (xwidget-webkit-current-session)
+                               last-command-event))
+
 ;;todo.
 ;; - check that the webkit support is compiled in
 (defvar xwidget-webkit-mode-map
@@ -684,6 +692,44 @@ You can retrieve the value with `xwidget-get'."
   (set-xwidget-plist xwidget
                      (plist-put (xwidget-plist xwidget) propname value)))
 
+(defvar xwidget-webkit-edit-mode-map (make-keymap))
+
+(define-key xwidget-webkit-edit-mode-map [backspace] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [tab] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [left] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [right] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [up] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [down] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-left] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-right] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-up] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-down] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-left] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-right] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-up] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-down] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-left] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-right] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-up] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-down] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-return] 'xwidget-webkit-pass-command-event)
+
+(define-minor-mode xwidget-webkit-edit-mode
+  "Minor mode for editing the content of WebKit buffers.
+
+This defines most self-inserting characters and some common
+keyboard shortcuts to `xwidget-webkit-pass-command-event', which
+will pass the key events corresponding to these characters to the
+WebKit widget."
+  :keymap xwidget-webkit-edit-mode-map)
+
+(substitute-key-definition 'self-insert-command
+                           'xwidget-webkit-pass-command-event
+                           xwidget-webkit-edit-mode-map
+                           global-map)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

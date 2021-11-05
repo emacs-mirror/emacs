@@ -495,6 +495,13 @@ the buffer will take you to that directory.
 This is a convenience function to extract the field data from
 'exif-parse-file' and 'exif-parse-buffer'.
 
+** Xwidgets
+
+*** New minor mode `xwidget-webkit-edit-mode'.
+When this mode is enabled, self-inserting characters and other common
+web browser shotcut keys are redefined to send themselves to the
+WebKit widget.
+
 
 * New Modes and Packages in Emacs 29.1
 
@@ -718,6 +725,14 @@ symbol containing spaces, as in '[menu-bar Foo\ Bar]', first look for
 an exact match, then the lowercased '[menu-bar foo\ bar]' and finally
 '[menu-bar foo-bar]'.  This further improves backwards-compatibility
 when converting menus to use 'easy-menu-define'.
+
++++
+** New function `xwidget-perform-lispy-event'.
+This function allows you to send events to xwidgets.  Usually, some
+equivalent of the event will be sent, but there is no guarantee of
+what the widget will actually receive.
+
+On GTK+, only key and function key events are implemented.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

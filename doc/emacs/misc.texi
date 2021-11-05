@@ -2953,6 +2953,14 @@ one-key commands for scrolling the widget, changing its size, and
 reloading it.  Type @w{@kbd{C-h b}} in that buffer to see the key
 bindings.
 
+@findex xwidget-webkit-edit-mode
+@cindex xwidget-webkit-edit-mode
+  By default, typing a self-inserting character inside an xwidget
+webkit buffer will do nothing, or trigger some special action.  To
+make those characters and other common editing keys insert themselves
+when pressed, you can enable @code{xwidget-webkit-edit-mode}, which
+redefines them to be passed through to the WebKit xwidget.
+
 @node Browse-URL
 @subsection  Following URLs
 @cindex World Wide Web
