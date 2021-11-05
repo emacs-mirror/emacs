@@ -345,13 +345,13 @@ will start Emacs and browse the GNU web site."
 
 
 ;;;###autoload
-(defun eww (url &optional arg buffer)
+(defun eww (url &optional new-buffer buffer)
   "Fetch URL and render the page.
 If the input doesn't look like an URL or a domain name, the
 word(s) will be searched for via `eww-search-prefix'.
 
-If called with a prefix ARG, use a new buffer instead of reusing
-the default EWW buffer.
+If NEW-BUFFER is non-nil (interactively, the prefix arg), use a
+new buffer instead of reusing the default EWW buffer.
 
 If BUFFER, the data to be rendered is in that buffer.  In that
 case, this function doesn't actually fetch URL.  BUFFER will be
@@ -361,11 +361,11 @@ killed after rendering."
      (list (read-string (format-prompt "Enter URL or keywords"
                                        (and uris (car uris)))
                         nil 'eww-prompt-history uris)
-           (prefix-numeric-value current-prefix-arg))))
+           current-prefix-arg)))
   (setq url (eww--dwim-expand-url url))
   (pop-to-buffer-same-window
    (cond
-    ((eq arg 4)
+    (new-buffer
      (generate-new-buffer "*eww*"))
     ((eq major-mode 'eww-mode)
      (current-buffer))
