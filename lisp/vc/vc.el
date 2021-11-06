@@ -937,11 +937,18 @@ repository, prompting for the directory and the VC backend to
 use."
   (catch 'found
     ;; First try: find a responsible backend, it must be a backend
-    ;; under which FILE is not yet registered.
-    (dolist (backend vc-handled-backends)
-      (and (not (vc-call-backend backend 'registered file))
-	   (vc-call-backend backend 'responsible-p file)
-	   (throw 'found backend)))
+    ;; under which FILE is not yet registered and with the most
+    ;; specific path to FILE.
+    (let ((max 0)
+          bk)
+      (dolist (backend vc-handled-backends)
+        (when (not (vc-call-backend backend 'registered file))
+          (let* ((path (vc-call-backend backend 'responsible-p file))
+                 (len (length path)))
+            (when (and len (> len max))
+              (setq max len bk backend)))))
+      (when bk
+        (throw 'found bk)))
     ;; no responsible backend
     (let* ((possible-backends
 	    (let (pos)
@@ -1188,7 +1195,11 @@ For old-style locking-based version control systems, like RCS:
    *vc-log* buffer to check in the changes.  Leave a
    read-only copy of each changed file after checking in.
   If every file is locked by you and unchanged, unlock them.
-  If every file is locked by someone else, offer to steal the lock."
+  If every file is locked by someone else, offer to steal the lock.
+
+When using this command to register a new file (or files), it
+will automatically deduce which VC repository to register it
+with, using the most specific one."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))

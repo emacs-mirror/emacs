@@ -167,6 +167,16 @@ change the terminal used on a remote host.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** vc
+
+---
+*** 'C-x v v' on an unregistered file will now use the most specific backend.
+Previously, if you had an SVN-covered ~/ directory, and a Git-covered
+directory in ~/foo/bar, using 'C-x v v' on a new, unregistered file
+~/foo/bar/zot would register it in the SVN repository in ~/ instead of
+in the Git repository in ~/foo/bar.  This makes this command
+consistent with 'vc-responsible-backend'.
+
 ** Message
 
 ---
@@ -432,7 +442,7 @@ long lists and vectors.
 'pp' formats general Lisp sexps.  This function does much the same,
 but applies formatting rules appropriate for Emacs Lisp code.
 
-+++
++++,
 *** New function 'file-has-changed-p'.
 This convenience function is useful when writing code that parses
 files at run-time, and allows Lisp programs to re-parse files only
