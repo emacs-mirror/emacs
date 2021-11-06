@@ -1068,6 +1068,14 @@ For instance, \"foo.png\" will result in \"image/png\"."
        (match-string 1 file-name)
      "")))
 
+(defun mailcap-mime-type-to-extension (mime-type)
+  "Return a file name extension based on a mime type.
+For instance, `image/png' will result in `png'."
+  (intern (cadr (split-string (if (symbolp mime-type)
+                                  (symbol-name mime-type)
+                                mime-type)
+                              "/"))))
+
 (defun mailcap-mime-types ()
   "Return a list of MIME media types."
   (mailcap-parse-mimetypes)
