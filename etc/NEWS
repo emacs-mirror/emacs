@@ -438,6 +438,10 @@ If set, 'isearch' will skip these areas, which can be useful (for
 instance) when covering huge amounts of data (that has no meaningful
 searchable data, like image data) with a 'display' text property.
 
+*** 'insert-image' now takes an INHIBIT-ISEARCH optional parameter.
+It marks the image with the 'inhibit-isearch' text parameter, which
+inhibits 'isearch' matching the STRING parameter.
+
 ---
 *** New user option 'pp-use-max-width'.
 If non-nil, 'pp' will attempt to limit the line length when formatting

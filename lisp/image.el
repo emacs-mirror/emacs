@@ -603,7 +603,7 @@ means display it in the right marginal area."
 
 
 ;;;###autoload
-(defun insert-image (image &optional string area slice)
+(defun insert-image (image &optional string area slice inhibit-isearch)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
 with a `display' property whose value is the image.
@@ -620,7 +620,11 @@ SLICE specifies slice of IMAGE to insert.  SLICE nil or omitted
 means insert whole image.  SLICE is a list (X Y WIDTH HEIGHT)
 specifying the X and Y positions and WIDTH and HEIGHT of image area
 to insert.  A float value 0.0 - 1.0 means relative to the width or
-height of the image; integer values are taken as pixel values."
+height of the image; integer values are taken as pixel values.
+
+Normally `isearch' is able to search for STRING in the buffer
+even if it's hidden behind a displayed image.  If INHIBIT-ISEARCH
+is non-nil, this is inhibited."
   ;; Use a space as least likely to cause trouble when it's a hidden
   ;; character in the buffer.
   (unless string (setq string " "))
@@ -644,7 +648,7 @@ height of the image; integer values are taken as pixel values."
 					(list (cons 'slice slice) image)
 				      image)
                                    rear-nonsticky t
-				   inhibit-isearch t
+				   inhibit-isearch ,inhibit-isearch
                                    keymap ,image-map))))
 
 

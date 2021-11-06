@@ -6505,7 +6505,7 @@ will compute a scaling factor based on the font pixel size.
 property yourself, but it is easier to use the functions in this
 section.
 
-@defun insert-image image &optional string area slice
+@defun insert-image image &optional string area slice inhibit-isearch
 This function inserts @var{image} in the current buffer at point.  The
 value @var{image} should be an image descriptor; it could be a value
 returned by @code{create-image}, or the value of a symbol defined with
@@ -6530,7 +6530,9 @@ image.
 
 Internally, this function inserts @var{string} in the buffer, and gives
 it a @code{display} property which specifies @var{image}.  @xref{Display
-Property}.
+Property}.  By default, doing interactive searches in the buffer will
+consider @var{string} when searching.  If @var{inhibit-isearch} is
+non-@code{nil}, this is inhibited.
 @end defun
 
 @cindex slice, image
