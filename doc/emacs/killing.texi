@@ -562,6 +562,14 @@ new yank to the clipboard.
   To prevent kill and yank commands from accessing the clipboard,
 change the variable @code{select-enable-clipboard} to @code{nil}.
 
+@findex yank-media
+  Programs can put other things than plain text on the clipboard.  For
+instance, a web browser will usually let you choose ``Copy Image'' on
+images, and this image will be put on the clipboard.  Emacs can yank
+these objects with the @code{yank-media} command---but only in modes
+that have support for it (@pxref{Yanking Media,,, elisp, The Emacs
+Lisp Reference Manual}).
+
 @cindex clipboard manager
 @vindex x-select-enable-clipboard-manager
   Many X desktop environments support a feature called the

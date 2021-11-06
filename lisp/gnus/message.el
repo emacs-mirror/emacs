@@ -48,6 +48,8 @@
 (require 'puny)
 (require 'rmc)                          ; read-multiple-choice
 (require 'subr-x)
+(require 'yank-media)
+(require 'mailcap)
 
 (autoload 'mailclient-send-it "mailclient")
 
@@ -3155,6 +3157,7 @@ Like `text-mode', but with these additional commands:
   (setq-local message-checksum nil)
   (setq-local message-mime-part 0)
   (message-setup-fill-variables)
+  (register-yank-media-handler "image/.*" #'message--yank-media-image-handler)
   (when message-fill-column
     (setq fill-column message-fill-column)
     (turn-on-auto-fill))
@@ -8873,24 +8876,28 @@ used to take the screenshot."
 		  (car message-screenshot-command) nil (current-buffer) nil
 		  (cdr message-screenshot-command))
 	   (buffer-string))))
-    (set-mark (point))
-    (insert-image
-     (create-image image 'png t
-		   :max-width (truncate (* (frame-pixel-width) 0.8))
-		   :max-height (truncate (* (frame-pixel-height) 0.8))
-		   :scale 1)
-     (format "<#part type=\"image/png\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
-	     ;; Get a base64 version of the image -- this avoids later
-	     ;; complications if we're auto-saving the buffer and
-	     ;; restoring from a file.
-	     (with-temp-buffer
-	       (set-buffer-multibyte nil)
-	       (insert image)
-	       (base64-encode-region (point-min) (point-max) t)
-	       (buffer-string)))
-     nil nil t)
-    (insert "\n\n")
+    (message--yank-media-image-handler 'image/png image)
     (message "")))
+
+(defun message--yank-media-image-handler (type image)
+  (set-mark (point))
+  (insert-image
+   (create-image image (mailcap-mime-type-to-extension type) t
+		 :max-width (truncate (* (frame-pixel-width) 0.8))
+		 :max-height (truncate (* (frame-pixel-height) 0.8))
+		 :scale 1)
+   (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
+           type
+	   ;; Get a base64 version of the image -- this avoids later
+	   ;; complications if we're auto-saving the buffer and
+	   ;; restoring from a file.
+	   (with-temp-buffer
+	     (set-buffer-multibyte nil)
+	     (insert image)
+	     (base64-encode-region (point-min) (point-max) t)
+	     (buffer-string)))
+   nil nil t)
+  (insert "\n\n"))
 
 (declare-function gnus-url-unhex-string "gnus-util")
 

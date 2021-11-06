@@ -105,6 +105,7 @@ window of another Emacs frame.  @xref{Child Frames}.
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shape::               Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
+* Yanking Media::           Yanking things that aren't plain text.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::                 Getting the definitions of color names.
 * Text Terminal Colors::        Defining colors for text terminals.
@@ -3922,6 +3923,41 @@ For backward compatibility, there are obsolete aliases
 @code{x-get-selection} and @code{x-set-selection}, which were the
 names of @code{gui-get-selection} and @code{gui-set-selection} before
 Emacs 25.1.
+
+@node Yanking Media
+@subsection Yanking Media
+
+  If you choose, for instance, ``Copy Image'' in a web browser, that
+image is put onto the clipboard, and Emacs can access it via
+@code{gui-get-selection}.  But in general, inserting image data into
+an arbitrary buffer isn't very useful---you can't really do much with
+it by default.
+
+  So Emacs has a system to let modes register handlers for these
+``complicated'' selections.
+
+@defun register-yank-media-handler types handler
+@var{types} can be a @acronym{MIME} media type symbol, a regexp to
+match these, or a list of these symbols and regexps.  For instance:
+
+@example
+(register-yank-media-handler 'text/html #'my-html-handler)
+(register-yank-media-handler "image/.*" #'my-image-handler)
+@end example
+
+A mode can register as many handlers as required.
+
+  The @var{handler} function is called with two parameters: The
+@acronym{MIME} media type symbol and the data (as a string).  The
+handler should then insert the object into the buffer, or save it, or
+do whatever is appropriate for the mode.
+@end defun
+
+  The @code{yank-media} command will consult the registered handlers in
+the current buffer, compare that with the available media types on the
+clipboard, and then pass on the matching selection to the handler (if
+any).  If there's more than one matching selection, the user is
+queried first.
 
 @node Drag and Drop
 @section Drag and Drop
