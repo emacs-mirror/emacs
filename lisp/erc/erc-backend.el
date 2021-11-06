@@ -197,8 +197,7 @@ active, use the `erc-server-process-alive' function instead.")
   "Non-nil if the user requests a quit.")
 
 (defvar-local erc-server-reconnecting nil
-  "Non-nil if the user requests an explicit reconnect, and the
-current IRC process is still alive.")
+  "Non-nil if reconnecting or scheduled to.")
 
 (defvar-local erc-server-timed-out nil
   "Non-nil if the IRC server failed to respond to a ping.")
@@ -616,36 +615,34 @@ Make sure you are in an ERC buffer when running this."
             (erc-log-irc-protocol line nil)
             (erc-parse-server-response process line)))))))
 
-(define-inline erc-server-reconnect-p (event)
+(defun erc--server-reconnect-p (event)
   "Return non-nil if ERC should attempt to reconnect automatically.
 EVENT is the message received from the closed connection process."
-  (inline-letevals (event)
-    (inline-quote
-     (or erc-server-reconnecting
-         (and erc-server-auto-reconnect
-              (not erc-server-banned)
-              ;; make sure we don't infinitely try to reconnect, unless the
-              ;; user wants that
-              (or (eq erc-server-reconnect-attempts t)
-                  (and (integerp erc-server-reconnect-attempts)
-                       (< erc-server-reconnect-count
-                          erc-server-reconnect-attempts)))
-              (or erc-server-timed-out
-                  (not (string-match "^deleted" ,event)))
-              ;; open-network-stream-nowait error for connection refused
-              (if (string-match "^failed with code 111" ,event) 'nonblocking t))))))
+  (and erc-server-auto-reconnect
+       (not erc-server-banned)
+       ;; make sure we don't infinitely try to reconnect, unless the
+       ;; user wants that
+       (or (eq erc-server-reconnect-attempts t)
+           (and (integerp erc-server-reconnect-attempts)
+                (< erc-server-reconnect-count
+                   erc-server-reconnect-attempts)))
+       (or erc-server-timed-out
+           (not (string-match "^deleted" event)))
+       ;; open-network-stream-nowait error for connection refused
+       (if (string-match "^failed with code 111" event) 'nonblocking t)))
 
 (defun erc-process-sentinel-2 (event buffer)
   "Called when `erc-process-sentinel-1' has detected an unexpected disconnect."
   (if (not (buffer-live-p buffer))
       (erc-update-mode-line)
     (with-current-buffer buffer
-      (let ((reconnect-p (erc-server-reconnect-p event)) message delay)
+      (let ((reconnect-p (erc--server-reconnect-p event)) message delay)
         (setq message (if reconnect-p 'disconnected 'disconnected-noreconnect))
         (erc-display-message nil 'error (current-buffer) message)
         (if (not reconnect-p)
             ;; terminate, do not reconnect
             (progn
+              (setq erc-server-reconnecting nil)
               (erc-display-message nil 'error (current-buffer)
                                    'terminated ?e event)
               ;; Update mode line indicators
@@ -654,7 +651,7 @@ EVENT is the message received from the closed connection process."
           ;; reconnect
           (condition-case nil
               (progn
-                (setq erc-server-reconnecting   nil
+                (setq erc-server-reconnecting t
                       erc-server-reconnect-count (1+ erc-server-reconnect-count))
                 (setq delay erc-server-reconnect-timeout)
                 (run-at-time delay nil
