@@ -721,10 +721,16 @@ When called from Lisp code, ARG may be a prefix string to copy."
 This uses the `separator-line' face.
 
 If LENGTH is nil, use the window width."
-  (if length
-      (concat (propertize (make-string length ?\s) 'face 'separator-line)
-              "\n")
-    (propertize "\n" 'face '(:inherit separator-line :extend t))))
+  (if (or (display-graphic-p)
+          (display-supports-face-attributes-p '(:underline t)))
+      (if length
+          (concat (propertize (make-string length ?\s) 'face 'separator-line)
+                  "\n")
+        (propertize "\n" 'face '(:inherit separator-line :extend t)))
+    ;; In terminals (that don't support underline), use a line of dashes.
+    (concat (propertize (make-string (or length (1- (window-width))) ?-)
+                        'face 'separator-line)
+            "\n")))
 
 (defun delete-indentation (&optional arg beg end)
   "Join this line to previous and fix up whitespace at join.
