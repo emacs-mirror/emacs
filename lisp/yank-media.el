@@ -37,24 +37,26 @@ the `register-yank-media-handler' mechanism."
   (interactive)
   (unless yank-media--registered-handlers
     (user-error "The `%s' mode hasn't registered any handlers" major-mode))
-  (catch 'found
+  (let ((all-types nil))
     (pcase-dolist (`(,handled-type . ,handler)
                    yank-media--registered-handlers)
-      (when-let ((types (yank-media--find-matching-media handled-type)))
-        ;; We have a handler in the current buffer; if there's just
-        ;; matching type, just call the handler.
-        (if (length= types 1)
-            (funcall handler (car types)
-                     (yank-media--get-selection (car types)))
-          ;; More than one type the user for what type to insert.
-          (let ((type
-                 (intern
-                  (completing-read "Several types available, choose one: "
-                                   types nil t))))
-            (funcall handler type (yank-media--get-selection type))))
-        (throw 'found nil)))
-    (user-error
-     "No handler in the current buffer for anything on the clipboard")))
+      (dolist (type (yank-media--find-matching-media handled-type))
+        (push (cons type handler) all-types)))
+    (unless all-types
+      (user-error
+       "No handler in the current buffer for anything on the clipboard"))
+    ;; We have a handler in the current buffer; if there's just
+    ;; matching type, just call the handler.
+    (if (length= all-types 1)
+        (funcall (cdar all-types)
+                 (yank-media--get-selection (caar all-types)))
+      ;; More than one type the user for what type to insert.
+      (let ((type
+             (intern
+              (completing-read "Several types available, choose one: "
+                               (mapcar #'car all-types) nil t))))
+        (funcall (alist-get type all-types)
+                 type (yank-media--get-selection type))))))
 
 (defun yank-media--find-matching-media (handled-type)
   (seq-filter
