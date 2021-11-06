@@ -1347,7 +1347,8 @@ Return nil if the key sequence is too long."
                           (symbol-name (car definition))
                           (lambda (_)
                             (pp-display-expression
-                             definition "*Help Source*" t))))))
+                             definition "*Help Source*" t))
+                          nil "View definition"))))
         (t
          (insert "??\n"))))
 

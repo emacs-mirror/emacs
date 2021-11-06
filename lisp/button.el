@@ -618,14 +618,17 @@ button at point is the button to describe."
 
 (define-obsolete-function-alias 'button-buttonize #'buttonize "29.1")
 
-(defun buttonize (string callback &optional data)
+(defun buttonize (string callback &optional data help-echo)
   "Make STRING into a button and return it.
 When clicked, CALLBACK will be called with the DATA as the
 function argument.  If DATA isn't present (or is nil), the button
-itself will be used instead as the function argument."
+itself will be used instead as the function argument.
+
+If HELP-ECHO, use that as the `help-echo' property."
   (propertize string
               'face 'button
               'mouse-face 'highlight
+              'help-echo help-echo
               'button t
               'follow-link t
               'category t
