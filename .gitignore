@@ -215,6 +215,7 @@ lisp/international/charprop.el
 lisp/international/charscript.el
 lisp/international/cp51932.el
 lisp/international/emoji-zwj.el
+lisp/international/emoji-labels.el
 lisp/international/eucjp-ms.el
 lisp/international/uni-*.el
 lisp/language/pinyin.el
