@@ -341,14 +341,6 @@ be $HOME."
            (progn ,@body)
          (advice-remove #',symbol ,function)))))
 
-(defmacro files-tests--with-temp-file (name &rest body)
-  (declare (indent 1) (debug (symbolp body)))
-  (cl-check-type name symbol)
-  `(let ((,name (make-temp-file "emacs")))
-     (unwind-protect
-         (progn ,@body)
-       (delete-file ,name))))
-
 (ert-deftest files-tests-file-name-non-special--buffers ()
   "Check that Bug#25951 is fixed.
 We call `verify-visited-file-modtime' on a buffer visiting a file
@@ -357,7 +349,7 @@ the buffer current and a nil argument, second passing the buffer
 object explicitly.  In both cases no error should be raised and
 the `file-name-non-special' handler for quoted file names should
 be invoked with the right arguments."
-  (files-tests--with-temp-file temp-file-name
+  (ert-with-temp-file temp-file-name
     (with-temp-buffer
      (let* ((buffer-visiting-file (current-buffer))
             (actual-args ())
@@ -1318,7 +1310,7 @@ name (Bug#28412)."
       (set-buffer-modified-p t)
       (should-error (save-buffer) :type 'error))
     ;; Then a buffer visiting a file: should save normally.
-    (files-tests--with-temp-file temp-file-name
+    (ert-with-temp-file temp-file-name
       (with-current-buffer (find-file-noselect temp-file-name)
         (setq write-contents-functions nil)
         (insert "p")
@@ -1509,7 +1501,7 @@ The door of all subtleties!
 
 (ert-deftest files-tests-revert-buffer ()
   "Test that revert-buffer is successful."
-  (files-tests--with-temp-file temp-file-name
+  (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
       (write-file temp-file-name)
@@ -1522,7 +1514,7 @@ The door of all subtleties!
 
 (ert-deftest files-tests-revert-buffer-with-fine-grain ()
   "Test that revert-buffer-with-fine-grain is successful."
-  (files-tests--with-temp-file temp-file-name
+  (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
       (write-file temp-file-name)

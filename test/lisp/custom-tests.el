@@ -25,20 +25,9 @@
 (require 'wid-edit)
 (require 'cus-edit)
 
-(defmacro custom-tests--with-temp-dir (&rest body)
-  "Eval BODY with `temporary-file-directory' bound to a fresh directory.
-Ensure the directory is recursively deleted after the fact."
-  (declare (debug t) (indent 0))
-  (let ((dir (make-symbol "dir")))
-    `(let ((,dir (file-name-as-directory (make-temp-file "custom-tests-" t))))
-       (unwind-protect
-           (let ((temporary-file-directory ,dir))
-             ,@body)
-         (delete-directory ,dir t)))))
-
 (ert-deftest custom-theme--load-path ()
   "Test `custom-theme--load-path' behavior."
-  (custom-tests--with-temp-dir
+  (ert-with-temp-directory temporary-file-directory
     ;; Path is empty.
     (let ((custom-theme-load-path ()))
       (should (null (custom-theme--load-path))))
@@ -97,7 +86,7 @@ Ensure the directory is recursively deleted after the fact."
 (ert-deftest custom-tests-require-theme ()
   "Test `require-theme'."
   (require 'warnings)
-  (custom-tests--with-temp-dir
+  (ert-with-temp-directory temporary-file-directory
     (let* ((default-directory temporary-file-directory)
            (custom-theme-load-path (list default-directory))
            (load-path ()))
