@@ -150,6 +150,8 @@ in `split-window-right' with a new xwidget webkit session."
     (define-key map "+" 'xwidget-webkit-zoom-in)
     (define-key map "-" 'xwidget-webkit-zoom-out)
     (define-key map "e" 'xwidget-webkit-edit-mode)
+    (define-key map "\C-s" 'xwidget-webkit-isearch-mode)
+    (define-key map "\C-r" 'xwidget-webkit-isearch-mode)
 
     ;;similar to image mode bindings
     (define-key map (kbd "SPC")                 'xwidget-webkit-scroll-up)
@@ -788,6 +790,120 @@ WebKit widget."
                            'xwidget-webkit-pass-command-event
                            xwidget-webkit-edit-mode-map
                            global-map)
+
+(declare-function xwidget-webkit-search "xwidget.c")
+(declare-function xwidget-webkit-next-result "xwidget.c")
+(declare-function xwidget-webkit-previous-result "xwidget.c")
+(declare-function xwidget-webkit-finish-search "xwidget.c")
+
+(defvar-local xwidget-webkit-isearch--string ""
+  "The current search query.")
+(defvar-local xwidget-webkit-isearch--is-reverse nil
+  "Whether or not the current isearch should be reverse.")
+
+(defun xwidget-webkit-isearch--update ()
+  "Update the current buffer's WebKit widget's search query.
+The query will be set to the contents of `xwidget-webkit-isearch--string'."
+  (xwidget-webkit-search xwidget-webkit-isearch--string
+                         (xwidget-webkit-current-session)
+                         t xwidget-webkit-isearch--is-reverse t)
+  (message "Search contents: %s" xwidget-webkit-isearch--string))
+
+(defun xwidget-webkit-isearch-erasing-char (count)
+  "Erase the last COUNT characters of the current query."
+  (interactive (list (prefix-numeric-value current-prefix-arg)))
+  (when (> (length xwidget-webkit-isearch--string) 0)
+    (setq xwidget-webkit-isearch--string
+          (substring xwidget-webkit-isearch--string 0
+                     (- (length xwidget-webkit-isearch--string) count))))
+  (xwidget-webkit-isearch--update))
+
+(defun xwidget-webkit-isearch-printing-char (char &optional count)
+  "Add ordinary character CHAR to the search string and search.
+With argument, add COUNT copies of CHAR."
+  (interactive (list last-command-event
+                     (prefix-numeric-value current-prefix-arg)))
+  (setq xwidget-webkit-isearch--string (concat xwidget-webkit-isearch--string
+                                               (make-string (or count 1) char)))
+  (xwidget-webkit-isearch--update))
+
+(defun xwidget-webkit-isearch-forward (count)
+  "Move to the next search result COUNT times."
+  (interactive (list (prefix-numeric-value current-prefix-arg)))
+  (let ((was-reverse xwidget-webkit-isearch--is-reverse))
+    (setq xwidget-webkit-isearch--is-reverse nil)
+    (when was-reverse
+      (xwidget-webkit-isearch--update)))
+  (let ((i 0))
+    (while (< i count)
+      (xwidget-webkit-next-result (xwidget-webkit-current-session))
+      (cl-incf i))))
+
+(defun xwidget-webkit-isearch-backward (count)
+  "Move to the previous search result COUNT times."
+  (interactive (list (prefix-numeric-value current-prefix-arg)))
+  (let ((was-reverse xwidget-webkit-isearch--is-reverse))
+    (setq xwidget-webkit-isearch--is-reverse t)
+    (unless was-reverse
+      (xwidget-webkit-isearch--update)))
+  (let ((i 0))
+    (while (< i count)
+      (xwidget-webkit-next-result (xwidget-webkit-current-session))
+      (cl-incf i))))
+
+(defun xwidget-webkit-isearch-exit ()
+  "Exit incremental search of a WebKit buffer."
+  (interactive)
+  (xwidget-webkit-isearch-mode 0))
+
+(defvar xwidget-webkit-isearch-mode-map (make-keymap)
+  "The keymap used inside xwidget-webkit-isearch-mode.")
+
+(set-char-table-range (nth 1 xwidget-webkit-isearch-mode-map)
+                      (cons 0 (max-char))
+                      'xwidget-webkit-isearch-exit)
+
+(substitute-key-definition 'self-insert-command
+                           'xwidget-webkit-isearch-printing-char
+                           xwidget-webkit-isearch-mode-map
+                           global-map)
+
+(define-key xwidget-webkit-isearch-mode-map (kbd "DEL")
+  'xwidget-webkit-isearch-erasing-char)
+(define-key xwidget-webkit-isearch-mode-map [return] 'xwidget-webkit-isearch-exit)
+(define-key xwidget-webkit-isearch-mode-map "\r" 'xwidget-webkit-isearch-exit)
+(define-key xwidget-webkit-isearch-mode-map "\C-g" 'xwidget-webkit-isearch-exit)
+(define-key xwidget-webkit-isearch-mode-map "\C-s" 'xwidget-webkit-isearch-forward)
+(define-key xwidget-webkit-isearch-mode-map "\C-r" 'xwidget-webkit-isearch-backward)
+(define-key xwidget-webkit-isearch-mode-map "\t" 'xwidget-webkit-isearch-printing-char)
+
+(let ((meta-map (make-keymap)))
+  (set-char-table-range (nth 1 meta-map)
+                        (cons 0 (max-char))
+                        'xwidget-webkit-isearch-exit)
+  (define-key xwidget-webkit-isearch-mode-map (char-to-string meta-prefix-char) meta-map))
+
+(define-minor-mode xwidget-webkit-isearch-mode
+  "Minor mode for performing incremental search inside WebKit buffers.
+
+An attempt was made for this to resemble regular incremental
+search, but it suffers from several limitations, such as not
+supporting recursive edits.
+
+If this mode is enabled with `C-r', then the search will default
+to being performed in reverse direction.
+
+To navigate around the search results, type
+\\[xwidget-webkit-isearch-forward] to move forward, and
+\\[xwidget-webkit-isearch-backward] to move backward.
+
+Press \\[xwidget-webkit-isearch-exit] to exit incremental search."
+  :keymap xwidget-webkit-isearch-mode-map
+  (if xwidget-webkit-isearch-mode
+      (progn
+        (setq xwidget-webkit-isearch--string "")
+        (setq xwidget-webkit-isearch--is-reverse (eq last-command-event ?\C-r)))
+    (xwidget-webkit-finish-search (xwidget-webkit-current-session))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

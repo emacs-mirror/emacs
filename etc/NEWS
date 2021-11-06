@@ -503,6 +503,12 @@ When this mode is enabled, self-inserting characters and other common
 web browser shotcut keys are redefined to send themselves to the
 WebKit widget.
 
++++
+*** New minor mode `xwidget-webkit-isearch-mode'.
+This mode acts similarly to incremental search, and allows to search
+the contents of a WebKit widget.  In xwidget-webkit mode, it is bound
+to `C-s' and `C-r'.
+
 ---
 *** On X11, the WebKit inspector is now available inside xwidgets.
 To access the inspector, right click on the widget and select "Inspect
