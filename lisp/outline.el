@@ -277,6 +277,9 @@ in the file it applies to.")
 
 (defcustom outline-minor-mode-use-buttons nil
   "If non-nil, use clickable buttons on the headings.
+Note that this feature is not meant to be used in editing
+buffers (yet) -- that will be amended in a future version.
+
 The `outline-minor-mode-buttons' variable specifies how the
 buttons should look."
   :type 'boolean
