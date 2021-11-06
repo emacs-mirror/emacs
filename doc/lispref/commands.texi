@@ -1931,6 +1931,15 @@ An event with @var{kind} set to @code{javascript-callback} contains
 JavaScript callback data.  These events are used internally by
 @code{xwidget-webkit-execute-script}.
 
+@cindex @code{xwidget-display-event} event
+@item (xwidget-display-event @var{xwidget})
+This event is sent whenever an xwidget requests that another xwidget
+be displayed.  @var{xwidget} is the xwidget that should be displayed.
+
+@var{xwidget}'s buffer will be set to a temporary buffer.  When
+displaying the widget, care should be taken to replace the buffer with
+the buffer in which the xwidget will be displayed, using
+@code{set-xwidget-buffer}  (@pxref{Xwidgets}).
 @end table
 
 @node Misc Events

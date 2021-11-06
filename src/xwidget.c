@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include "buffer.h"
 #include "xwidget.h"
 
 #include "lisp.h"
@@ -76,7 +77,7 @@ static void webkit_javascript_finished_cb (GObject *,
                                            GAsyncResult *,
                                            gpointer);
 static gboolean webkit_download_cb (WebKitWebContext *, WebKitDownload *, gpointer);
-
+static GtkWidget *webkit_create_cb (WebKitWebView *, WebKitNavigationAction *, gpointer);
 static gboolean
 webkit_decide_policy_cb (WebKitWebView *,
                          WebKitPolicyDecision *,
@@ -101,7 +102,7 @@ static void mouse_target_changed (WebKitWebView *, WebKitHitTestResult *, guint,
 
 DEFUN ("make-xwidget",
        Fmake_xwidget, Smake_xwidget,
-       5, 6, 0,
+       5, 7, 0,
        doc: /* Make an xwidget of TYPE.
 If BUFFER is nil, use the current buffer.
 If BUFFER is a string and no such buffer exists, create it.
@@ -109,10 +110,12 @@ TYPE is a symbol which can take one of the following values:
 
 - webkit
 
-Returns the newly constructed xwidget, or nil if construction fails.  */)
+RELATED is nil, or an xwidget.  This argument is used internally.
+Returns the newly constructed xwidget, or nil if construction
+fails.  */)
   (Lisp_Object type,
    Lisp_Object title, Lisp_Object width, Lisp_Object height,
-   Lisp_Object arguments, Lisp_Object buffer)
+   Lisp_Object arguments, Lisp_Object buffer, Lisp_Object related)
 {
 #ifdef USE_GTK
   if (!xg_gtk_initialized)
@@ -160,22 +163,33 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
 
       if (EQ (xw->type, Qwebkit))
         {
-          xw->widget_osr = webkit_web_view_new ();
+	  WebKitWebView *related_view;
 
-	  /* Enable the developer extras */
-	  settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (xw->widget_osr));
-	  g_object_set (G_OBJECT (settings), "enable-developer-extras", TRUE, NULL);
+	  if (NILP (related)
+	      || !XWIDGETP (related)
+	      || !EQ (XXWIDGET (related)->type, Qwebkit))
+	    {
+	      /* Enable the developer extras */
+	      settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (xw->widget_osr));
+	      g_object_set (G_OBJECT (settings), "enable-developer-extras", TRUE, NULL);
+	      xw->widget_osr = webkit_web_view_new ();
 
-          /* webkitgtk uses GSubprocess which sets sigaction causing
-             Emacs to not catch SIGCHLD with its usual handle setup in
-             catch_child_signal().  This resets the SIGCHLD
-             sigaction.  */
-          struct sigaction old_action;
-          sigaction (SIGCHLD, NULL, &old_action);
-          webkit_web_view_load_uri(WEBKIT_WEB_VIEW (xw->widget_osr),
-                                   "about:blank");
-          sigaction (SIGCHLD, &old_action, NULL);
-        }
+	      /* webkitgtk uses GSubprocess which sets sigaction causing
+		 Emacs to not catch SIGCHLD with its usual handle setup in
+		 catch_child_signal().  This resets the SIGCHLD
+		 sigaction.  */
+	      struct sigaction old_action;
+	      sigaction (SIGCHLD, NULL, &old_action);
+	      webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr),
+					"about:blank");
+	      sigaction (SIGCHLD, &old_action, NULL);
+	    }
+	  else
+	    {
+	      related_view = WEBKIT_WEB_VIEW (XXWIDGET (related)->widget_osr);
+	      xw->widget_osr = webkit_web_view_new_with_related_view (related_view);
+	    }
+	}
 
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
                                    xw->height);
@@ -220,6 +234,10 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
 	  g_signal_connect (G_OBJECT (xw->widget_osr),
 			    "mouse-target-changed",
 			    G_CALLBACK (mouse_target_changed),
+			    xw);
+	  g_signal_connect (G_OBJECT (xw->widget_osr),
+			    "create",
+			    G_CALLBACK (webkit_create_cb),
 			    xw);
         }
 
@@ -927,6 +945,88 @@ store_xwidget_js_callback_event (struct xwidget *xw,
 
 
 #ifdef USE_GTK
+static void
+store_xwidget_display_event (struct xwidget *xw)
+{
+  struct input_event evt;
+  Lisp_Object val;
+
+  XSETXWIDGET (val, xw);
+  EVENT_INIT (evt);
+  evt.kind = XWIDGET_DISPLAY_EVENT;
+  evt.frame_or_window = Qnil;
+  evt.arg = val;
+  kbd_buffer_store_event (&evt);
+}
+
+static void
+webkit_ready_to_show (WebKitWebView *new_view,
+		      gpointer user_data)
+{
+  Lisp_Object tem;
+  struct xwidget *xw;
+
+  for (tem = Vxwidget_list; CONSP (tem); tem = XCDR (tem))
+    {
+      if (XWIDGETP (XCAR (tem)))
+	{
+	  xw = XXWIDGET (XCAR (tem));
+
+	  if (EQ (xw->type, Qwebkit)
+	      && WEBKIT_WEB_VIEW (xw->widget_osr) == new_view)
+	    store_xwidget_display_event (xw);
+	}
+    }
+}
+
+static GtkWidget *
+webkit_create_cb_1 (WebKitWebView *webview,
+		    struct xwidget_view *xv)
+{
+  Lisp_Object related;
+  Lisp_Object xwidget;
+  GtkWidget *widget;
+
+  XSETXWIDGET (related, xv);
+  xwidget = Fmake_xwidget (Qwebkit, Qnil, make_fixnum (0),
+			   make_fixnum (0), Qnil,
+			   build_string (" *detached xwidget buffer*"),
+			   related);
+
+  if (NILP (xwidget))
+    return NULL;
+
+  widget = XXWIDGET (xwidget)->widget_osr;
+
+  g_signal_connect (G_OBJECT (widget), "ready-to-show",
+		    G_CALLBACK (webkit_ready_to_show), NULL);
+
+  return widget;
+}
+
+static GtkWidget *
+webkit_create_cb (WebKitWebView *webview,
+		  WebKitNavigationAction *nav_action,
+		  gpointer user_data)
+{
+  switch (webkit_navigation_action_get_navigation_type (nav_action))
+    {
+    case WEBKIT_NAVIGATION_TYPE_OTHER:
+      if (webkit_navigation_action_is_user_gesture (nav_action))
+	return NULL;
+
+      return webkit_create_cb_1 (webview, user_data);
+    case WEBKIT_NAVIGATION_TYPE_LINK_CLICKED:
+    case WEBKIT_NAVIGATION_TYPE_FORM_SUBMITTED:
+    case WEBKIT_NAVIGATION_TYPE_BACK_FORWARD:
+    case WEBKIT_NAVIGATION_TYPE_RELOAD:
+    case WEBKIT_NAVIGATION_TYPE_FORM_RESUBMITTED:
+      return webkit_create_cb_1 (webview, user_data);
+    default:
+      return NULL;
+    }
+}
+
 void
 webkit_view_load_changed_cb (WebKitWebView *webkitwebview,
                              WebKitLoadEvent load_event,
@@ -1722,6 +1822,19 @@ DEFUN ("xwidget-buffer",
   return XXWIDGET (xwidget)->buffer;
 }
 
+DEFUN ("set-xwidget-buffer",
+       Fset_xwidget_buffer, Sset_xwidget_buffer,
+       2, 2, 0,
+       doc: /* Set XWIDGET's buffer to BUFFER.  */)
+  (Lisp_Object xwidget, Lisp_Object buffer)
+{
+  CHECK_XWIDGET (xwidget);
+  CHECK_BUFFER (buffer);
+
+  XXWIDGET (xwidget)->buffer = buffer;
+  return Qnil;
+}
+
 DEFUN ("set-xwidget-plist",
        Fset_xwidget_plist, Sset_xwidget_plist,
        2, 2, 0,
@@ -1957,6 +2070,7 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_webkit_finish_search);
   defsubr (&Sxwidget_webkit_next_result);
   defsubr (&Sxwidget_webkit_previous_result);
+  defsubr (&Sset_xwidget_buffer);
 
   DEFSYM (QCxwidget, ":xwidget");
   DEFSYM (QCtitle, ":title");

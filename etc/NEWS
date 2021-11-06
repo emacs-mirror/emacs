@@ -514,6 +514,12 @@ to `C-s' and `C-r'.
 To access the inspector, right click on the widget and select "Inspect
 Element".
 
+---
+*** "Open in New Window" in a WebKit widget's context menu now works.
+The newly created buffer will be displayed via display-buffer, which
+can be customized through the usual mechanism of display-buffer-alist
+and friends.
+
 
 * New Modes and Packages in Emacs 29.1
 
@@ -758,6 +764,12 @@ state of the WebKit widget.  `load-finished' is sent when a load has
 completed, `load-started' when a load first starts, `load-redirected'
 after a redirect, and `load-committed' when the WebKit widget first
 commits to the load.
+
++++
+** New event type `xwidget-display-event'.
+These events are sent whenever an xwidget requests that Emacs display
+another.  The only argument to this event is the xwidget that should
+be displayed.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

@@ -6787,7 +6787,7 @@ Property}).
   Embedded widgets can send events notifying Lisp code about changes
 occurring within them.  (@pxref{Xwidget Events}).
 
-@defun make-xwidget type title width height arguments &optional buffer
+@defun make-xwidget type title width height arguments &optional buffer related
 This creates and returns an xwidget object.  If
 @var{buffer} is omitted or @code{nil}, it defaults to the current
 buffer.  If @var{buffer} names a buffer that doesn't exist, it will be
@@ -6800,7 +6800,9 @@ The WebKit component.
 @end table
 
 The @var{width} and @var{height} arguments specify the widget size in
-pixels, and @var{title}, a string, specifies its title.
+pixels, and @var{title}, a string, specifies its title.  @var{related}
+is used internally by the WebKit widget, and is not of interest to the
+programmer.
 @end defun
 
 @defun xwidgetp object
@@ -6819,6 +6821,10 @@ property list given by @var{plist}.
 
 @defun xwidget-buffer xwidget
 This function returns the buffer of @var{xwidget}.
+@end defun
+
+@defun set-xwidget-buffer xwidget buffer
+This function sets the buffer of @var{xwidget} to @var{buffer}.
 @end defun
 
 @defun get-buffer-xwidgets buffer

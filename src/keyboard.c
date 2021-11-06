@@ -3993,6 +3993,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
 #ifdef HAVE_XWIDGETS
       case XWIDGET_EVENT:
+      case XWIDGET_DISPLAY_EVENT:
 #endif
       case SAVE_SESSION_EVENT:
       case NO_EVENT:
@@ -6138,6 +6139,11 @@ make_lispy_event (struct input_event *event)
     case XWIDGET_EVENT:
       {
         return Fcons (Qxwidget_event, event->arg);
+      }
+
+    case XWIDGET_DISPLAY_EVENT:
+      {
+	return list2 (Qxwidget_display_event, event->arg);
       }
 #endif
 
@@ -11732,6 +11738,7 @@ syms_of_keyboard (void)
 
 #ifdef HAVE_XWIDGETS
   DEFSYM (Qxwidget_event, "xwidget-event");
+  DEFSYM (Qxwidget_display_event, "xwidget-display-event");
 #endif
 
 #ifdef USE_FILE_NOTIFY

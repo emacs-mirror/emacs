@@ -37,6 +37,7 @@
 (declare-function make-xwidget "xwidget.c"
                   (type title width height arguments &optional buffer))
 (declare-function xwidget-buffer "xwidget.c" (xwidget))
+(declare-function set-xwidget-buffer "xwidget.c" (xwidget buffer))
 (declare-function xwidget-size-request "xwidget.c" (xwidget))
 (declare-function xwidget-resize "xwidget.c" (xwidget new-width new-height))
 (declare-function xwidget-webkit-execute-script "xwidget.c"
@@ -701,6 +702,29 @@ For example, use this to display an anchor."
     (xwidget-webkit-mode)
     (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url)))
 
+(defun xwidget-webkit-import-widget (xwidget)
+  "Create a new webkit session buffer from XWIDGET, an existing xwidget.
+Return the buffer."
+  (let* ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
+         (callback #'xwidget-webkit-callback)
+         (buffer (get-buffer-create bufname)))
+    (with-current-buffer buffer
+      (save-excursion
+        (erase-buffer)
+        (insert ".")
+        (put-text-property (point-min) (point-max)
+                           'display (list 'xwidget :xwidget xwidget)))
+      (xwidget-put xwidget 'callback callback)
+      (set-xwidget-buffer xwidget buffer)
+      (xwidget-webkit-mode))
+    buffer))
+
+(defun xwidget-webkit-display-event (event)
+  "Import the xwidget inside EVENT and display it."
+  (interactive "e")
+  (display-buffer (xwidget-webkit-import-widget (nth 1 event))))
+
+(global-set-key [xwidget-display-event] 'xwidget-webkit-display-event)
 
 (defun xwidget-webkit-goto-url (url)
   "Goto URL with xwidget webkit."
