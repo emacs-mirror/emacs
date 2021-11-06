@@ -1,4 +1,4 @@
-;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
+;;; minibuffer.el --- Minibuffer functions -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
