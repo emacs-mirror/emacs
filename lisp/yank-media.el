@@ -76,9 +76,14 @@ the `register-yank-media-handler' mechanism."
 
 (defun yank-media--get-selection (type)
   (when-let ((data (gui-get-selection 'CLIPBOARD type)))
-    (if-let ((charset (get-text-property 0 'charset data)))
-        (encode-coding-string data charset)
-      data)))
+    (when-let ((charset (get-text-property 0 'charset data)))
+      (setq date (encode-coding-string data charset)))
+    ;; Some programs add a nul character at the end of text/*
+    ;; selections.  Remove that.
+    (when (and (string-match-p "\\`text/" (symbol-name type))
+               (zerop (elt data (1- (length data)))))
+      (setq data (substring data 0 (1- (length data)))))
+    data))
 
 ;;;###autoload
 (defun register-yank-media-handler (types handler)
