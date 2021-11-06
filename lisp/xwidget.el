@@ -150,8 +150,8 @@ in `split-window-right' with a new xwidget webkit session."
     (define-key map "+" 'xwidget-webkit-zoom-in)
     (define-key map "-" 'xwidget-webkit-zoom-out)
     (define-key map "e" 'xwidget-webkit-edit-mode)
-    (define-key map "\C-s" 'xwidget-webkit-isearch-mode)
     (define-key map "\C-r" 'xwidget-webkit-isearch-mode)
+    (define-key map "\C-s" 'xwidget-webkit-isearch-mode)
 
     ;;similar to image mode bindings
     (define-key map (kbd "SPC")                 'xwidget-webkit-scroll-up)
@@ -198,7 +198,10 @@ in `split-window-right' with a new xwidget webkit session."
          :help "Send self inserting characters to the WebKit widget"]
         ["Save Selection" xwidget-webkit-copy-selection-as-kill
          :active t
-         :help "Save the browser's selection in the kill ring"]))
+         :help "Save the browser's selection in the kill ring"]
+        ["Incremental Search" xwidget-webkit-isearch-mode
+         :active (not xwidget-webkit-isearch-mode)
+         :help "Perform incremental search inside the WebKit widget"]))
 
 (defvar xwidget-webkit-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -225,6 +228,10 @@ in `split-window-right' with a new xwidget webkit session."
                                      xwidget-webkit-mode-map)
       (tool-bar-local-item-from-menu 'xwidget-webkit-browse-url
                                      "connect-to-url"
+                                     map
+                                     xwidget-webkit-mode-map)
+      (tool-bar-local-item-from-menu 'xwidget-webkit-isearch-mode
+                                     "search"
                                      map
                                      xwidget-webkit-mode-map))))
 
@@ -873,8 +880,8 @@ With argument, add COUNT copies of CHAR."
 (define-key xwidget-webkit-isearch-mode-map [return] 'xwidget-webkit-isearch-exit)
 (define-key xwidget-webkit-isearch-mode-map "\r" 'xwidget-webkit-isearch-exit)
 (define-key xwidget-webkit-isearch-mode-map "\C-g" 'xwidget-webkit-isearch-exit)
-(define-key xwidget-webkit-isearch-mode-map "\C-s" 'xwidget-webkit-isearch-forward)
 (define-key xwidget-webkit-isearch-mode-map "\C-r" 'xwidget-webkit-isearch-backward)
+(define-key xwidget-webkit-isearch-mode-map "\C-s" 'xwidget-webkit-isearch-forward)
 (define-key xwidget-webkit-isearch-mode-map "\t" 'xwidget-webkit-isearch-printing-char)
 
 (let ((meta-map (make-keymap)))
