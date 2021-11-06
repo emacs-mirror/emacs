@@ -72,12 +72,12 @@ ${unifiles}: ${srcdir}/unidata-gen.el \
   ${srcdir}/BidiBrackets.txt | \
   ${srcdir}/unidata-gen.elc unidata.txt
 	$(AM_V_at)[ ! -f $@ ] || chmod +w $@
-	${emacs} -L ${srcdir} -l unidata-gen \
+	$(AM_V_at)${emacs} -L ${srcdir} -l unidata-gen \
 	  -f unidata-gen-file $@ ${srcdir}
 
 ${unidir}/emoji-labels.el: ${unidir}/../international/emoji.el \
-	$(AM_V_at)${srcdir}/emoji-test.txt
-	${emacs} -l emoji.el -f emoji--generate-file $@
+	  ${srcdir}/emoji-test.txt
+	$(AM_V_at)${emacs} -l emoji.el -f emoji--generate-file $@
 
 .PHONY: charscript.el
 charscript.el: ${unidir}/charscript.el
