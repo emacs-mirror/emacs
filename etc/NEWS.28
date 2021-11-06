@@ -210,7 +210,7 @@ In Emacs 23, typing 'M-x' ('read-extended-command') and then 'C-s' (to
 do an interactive search) would search over possible completions.
 This was lost in Emacs 24, but is now back again.
 
----
++++
 ** User option 'completions-format' supports a new value 'one-column'.
 
 +++
@@ -380,10 +380,12 @@ requiring the user to specify the value via the prefix argument.
 
 ** Windows
 
++++
 *** The key prefix 'C-x 4 1' displays next command buffer in the same window.
 It's bound to the command 'same-window-prefix' that requests the buffer
 of the next command to be displayed in the same window.
 
++++
 *** The key prefix 'C-x 4 4' displays next command buffer in a new window.
 It's bound to the command 'other-window-prefix' that requests the buffer
 of the next command to be displayed in a new window.
@@ -485,13 +487,13 @@ with items that operate on the clicked tab.  Dragging the tab with
 scrolling switches to the previous/next tab, and holding the Shift key
 during scrolling moves the tab to the left/right.
 
----
++++
 *** Frame-specific appearance of the tab bar when 'tab-bar-show' is a number.
 When 'tab-bar-show' is a number, the tab bar on different frames can
 be shown or hidden independently, as determined by the number of tabs
 on each frame compared to the numerical value of 'tab-bar-show'.
 
----
++++
 *** New command 'toggle-frame-tab-bar'.
 It can be used to enable/disable the tab bar on the currently selected
 frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
@@ -569,9 +571,9 @@ in other ways.
 
 ---
 *** Mouse wheel scrolling now works on more parts of frame's display.
-When using 'mwheel-mode', the mouse wheel will now scroll also when
+When using 'mouse-wheel-mode', the mouse wheel will now scroll also when
 the mouse cursor is on the scroll bars, fringes, margins, header line,
-and mode line.  ('mwheel-mode' is enabled by default on most graphical
+and mode line.  ('mouse-wheel-mode' is enabled by default on most graphical
 displays.)
 
 +++
@@ -602,7 +604,7 @@ built without SVG support, the old icons will be used instead.
 ** Help
 
 ---
-*** The order things are displayed in the "*Help*" buffer has been changed.
+*** The order of things displayed in the "*Help*" buffer has been changed.
 The indented "administrative" block (containing the "probably
 introduced" and "other relevant functions" (and similar things) has
 been moved to after the doc string.
@@ -655,11 +657,6 @@ It enables outlines in the output buffer of 'describe-bindings' that
 can provide a better overview in a long list of available bindings.
 
 +++
-*** New command 'lossage-size'.
-It allows users to change the maximum number of keystrokes and
-commands recorded for the purpose of 'view-lossage'.
-
-+++
 *** New commands to describe buttons and widgets.
 'widget-describe' (on a widget) will pop up a help buffer and give a
 description of the properties.  Likewise 'button-describe' does the
@@ -680,6 +677,11 @@ These new navigation commands are bound to 'n' and 'p' in
 *** The command 'view-lossage' can now be invoked from the menu bar.
 The menu bar "Help" menu now has a "Show Recent Inputs" item under the
 "Describe" sub-menu.
+
++++
+*** New command 'lossage-size'.
+It allows users to change the maximum number of keystrokes and
+commands recorded for the purpose of 'view-lossage'.
 
 ---
 *** Closing the "*Help*" buffer from the toolbar now buries the buffer.
@@ -753,20 +755,20 @@ Applies to buttons that indicate a face.
 +++
 *** New face 'font-lock-doc-markup-face'.
 Intended for documentation mark-up syntax and tags inside text that
-uses 'font-lock-doc-face', with which it should harmonize.  It would
-typically be used in structured documentation comments in program
-source code by language-specific modes, for mark-up conventions like
-Haddock, Javadoc or Doxygen.  By default this face inherits from
-'font-lock-constant-face'.
+uses 'font-lock-doc-face', which it should appropriately stand out
+against and harmonize with.  It would typically be used in structured
+documentation comments in program source code by language-specific
+modes, for mark-up conventions like Haddock, Javadoc or Doxygen.  By
+default this face inherits from 'font-lock-constant-face'.
 
 +++
-*** New face 'flat-button'.
+*** New face box style 'flat-button'.
 This is a plain 2D button, but uses the background color instead of
 the foreground color.
 
 ---
-*** New face 'shortdoc-heading'.
-Applies to headings of shortdoc sections.
+*** New faces 'shortdoc-heading' and 'shortdoc-section'.
+Applied to shortdoc headings and sections.
 
 ---
 *** New face 'separator-line'.
@@ -2792,18 +2794,20 @@ trying to identify the thing at point.
 *** New function 'thing-at-mouse'.
 This is like 'thing-at-point', but uses the mouse event position instead.
 
-** image-dired
-
----
-*** 'image-dired-mouse-toggle-mark' now toggles files in the active region.
+** Image-Dired
 
 +++
 *** New user option 'image-dired-thumb-visible-marks'.
-If non-nil (the default), use 'image-dired-thumb-mark' to say what
-images are marked.
+If non-nil (the default), use the new face 'image-dired-thumb-mark'
+for marked images.
 
 ---
 *** New command 'image-dired-delete-marked'.
+
+---
+*** 'image-dired-mouse-toggle-mark' is now sensitive to the active region.
+If the region is active, this command now toggles Dired marks of all
+the thumbnails in the region.
 
 ** Flymake mode
 
@@ -4342,6 +4346,14 @@ The new optional "," parameter has been added, and
 +++
 ** 'parse-time-string' can now parse ISO 8601 format strings.
 These have a format like "2020-01-15T16:12:21-08:00".
+
+---
+** 'lookup-key' is more allowing when searching for extended menu items.
+When looking for a menu item '[menu-bar Foo-Bar]', first try to find
+an exact match, then look for the lowercased '[menu-bar foo-bar]'.
+It will only try to downcase ASCII characters in the range "A-Z".
+This improves backwards-compatibility when converting menus to use
+'easy-menu-define'.
 
 ---
 ** 'make-network-process', 'make-serial-process' ':coding' behavior change.
