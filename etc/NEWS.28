@@ -36,6 +36,12 @@ to configure with the '--without-compress-install' option, so that the
 installed *.el files are not compressed; otherwise, you will not be
 able to use JIT native compilation of the installed *.el files.
 
+Note that JIT native compilation is done in a fresh session of Emacs
+that is run in a subprocess, so it can legitimately report some
+warnings and errors that aren't uncovered by byte-compilation.  We
+recommend examining any such warnings before you decide they are
+false.
+
 ** The Cairo graphics library is now used by default if present.
 '--with-cairo' is now the default, if the appropriate development files
 are found by 'configure'.  Note that building with Cairo means using
