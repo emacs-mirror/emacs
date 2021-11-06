@@ -228,4 +228,66 @@
     (kill-buffer "*erc-protocol*")
     (should-not erc-debug-irc-protocol)))
 
+
+;; The point of this test is to ensure output is handled identically
+;; regardless of whether a command handler is summoned.
+
+(ert-deftest erc-process-input-line ()
+  (let (erc-server-last-sent-time
+        erc-server-flood-queue
+        (orig-erc-cmd-MSG (symbol-function 'erc-cmd-MSG))
+        calls)
+    (with-temp-buffer
+      (cl-letf (((symbol-function 'erc-cmd-MSG)
+                 (lambda (line)
+                   (push line calls)
+                   (funcall orig-erc-cmd-MSG line)))
+                ((symbol-function 'erc-server-buffer)
+                 (lambda () (current-buffer)))
+                ((symbol-function 'erc-server-process-alive)
+                 (lambda () t))
+                ((symbol-function 'erc-server-send-queue)
+                 #'ignore)
+                ((symbol-function 'erc-default-target)
+                 (lambda () "" "#chan")))
+
+        (ert-info ("Dispatch to user command handler")
+
+          (ert-info ("Baseline")
+            (erc-process-input-line "/msg #chan hi\n")
+            (should (equal (pop calls) " #chan hi"))
+            (should (equal (pop erc-server-flood-queue)
+                           '("PRIVMSG #chan :hi\r\n" . utf-8))))
+
+          (ert-info ("Spaces preserved")
+            (erc-process-input-line "/msg #chan hi you\n")
+            (should (equal (pop calls) " #chan hi you"))
+            (should (equal (pop erc-server-flood-queue)
+                           '("PRIVMSG #chan :hi you\r\n" . utf-8))))
+
+          (ert-info ("Empty line honored")
+            (erc-process-input-line "/msg #chan\n")
+            (should (equal (pop calls) " #chan"))
+            (should (equal (pop erc-server-flood-queue)
+                           '("PRIVMSG #chan :\r\n" . utf-8)))))
+
+        (ert-info ("Implicit cmd via `erc-send-input-line-function'")
+
+          (ert-info ("Baseline")
+            (erc-process-input-line "hi")
+            (should (equal (pop erc-server-flood-queue)
+                           '("PRIVMSG #chan :hi\r\n" . utf-8))))
+
+          (ert-info ("Spaces preserved")
+            (erc-process-input-line "hi you")
+            (should (equal (pop erc-server-flood-queue)
+                           '("PRIVMSG #chan :hi you\r\n" . utf-8))))
+
+          (ert-info ("Empty line transmitted without injected-space kludge")
+            (erc-process-input-line "")
+            (should (equal (pop erc-server-flood-queue)
+                           '("PRIVMSG #chan :\r\n" . utf-8))))
+
+          (should-not calls))))))
+
 ;;; erc-tests.el ends here

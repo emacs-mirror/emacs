@@ -2817,20 +2817,17 @@ present."
   (let ((prop-val (erc-get-parsed-vector position)))
     (and prop-val (member (erc-response.command prop-val) list))))
 
-(defvar-local erc-send-input-line-function 'erc-send-input-line)
+(defvar-local erc-send-input-line-function 'erc-send-input-line
+  "Function for sending lines lacking a leading user command.
+When a line typed into a buffer contains an explicit command, like /msg,
+a corresponding handler (here, erc-cmd-MSG) is called.  But lines typed
+into a channel or query buffer already have an implicit target and
+command (PRIVMSG).  This function is called on such occasions and also
+for special purposes (see erc-dcc.el).")
 
 (defun erc-send-input-line (target line &optional force)
-  "Send LINE to TARGET.
-
-See also `erc-server-send'."
-  (setq line (format "PRIVMSG %s :%s"
-                     target
-                     ;; If the line is empty, we still want to
-                     ;; send it - i.e. an empty pasted line.
-                     (if (string= line "\n")
-                         " \n"
-                       line)))
-  (erc-server-send line force target))
+  "Send LINE to TARGET."
+  (erc-message "PRIVMSG" (concat target " " line) force))
 
 (defun erc-get-arglist (fun)
   "Return the argument list of a function without the parens."
