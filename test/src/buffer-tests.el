@@ -19,6 +19,8 @@
 
 ;;; Code:
 
+(require 'ert)
+(require 'ert-x)
 (require 'cl-lib)
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()
@@ -1421,25 +1423,23 @@ with parameters from the *Messages* buffer modification."
     (should (= (length (overlays-in (point-min) (point-max))) 0))))
 
 (ert-deftest test-kill-buffer-auto-save-default ()
-  (let ((file (make-temp-file "ert"))
-        auto-save)
-    (should (file-exists-p file))
-    ;; Always answer yes.
-    (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
-      (unwind-protect
-          (progn
-            (find-file file)
-            (auto-save-mode t)
-            (insert "foo\n")
-            (should buffer-auto-save-file-name)
-            (setq auto-save buffer-auto-save-file-name)
-            (do-auto-save)
-            (should (file-exists-p auto-save))
-            (kill-buffer (current-buffer))
-            (should (file-exists-p auto-save)))
-        (ignore-errors (delete-file file))
-        (when auto-save
-          (ignore-errors (delete-file auto-save)))))))
+  (ert-with-temp-file file
+    (let (auto-save)
+      ;; Always answer yes.
+      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
+        (unwind-protect
+            (progn
+              (find-file file)
+              (auto-save-mode t)
+              (insert "foo\n")
+              (should buffer-auto-save-file-name)
+              (setq auto-save buffer-auto-save-file-name)
+              (do-auto-save)
+              (should (file-exists-p auto-save))
+              (kill-buffer (current-buffer))
+              (should (file-exists-p auto-save)))
+          (when auto-save
+            (ignore-errors (delete-file auto-save))))))))
 
 (ert-deftest test-kill-buffer-auto-save-delete ()
   (let ((file (make-temp-file "ert"))

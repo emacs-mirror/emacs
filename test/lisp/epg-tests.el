@@ -58,48 +58,45 @@
 (cl-defmacro with-epg-tests ((&optional &key require-passphrase
 					require-public-key
 					require-secret-key)
-			    &rest body)
+                             &rest body)
   "Set up temporary locations and variables for testing."
   (declare (indent 1) (debug (sexp body)))
-  `(let* ((epg-tests-home-directory (make-temp-file "epg-tests-homedir" t))
-	  (process-environment
-	   (append
-	    (list "GPG_AGENT_INFO"
-		  (format "GNUPGHOME=%s" epg-tests-home-directory))
-	    process-environment)))
-     (unwind-protect
-         ;; GNUPGHOME is needed to find a usable gpg, so we can't
-         ;; check whether to skip any earlier (Bug#23561).
-         (let ((epg-config (or (epg-tests-find-usable-gpg-configuration
-                                ,require-passphrase ,require-public-key)
-                               (ert-skip "No usable gpg config")))
-               (context (epg-make-context 'OpenPGP)))
-           (setf (epg-context-program context)
-                 (alist-get 'program epg-config))
-	   (setf (epg-context-home-directory context)
-		 epg-tests-home-directory)
-	   ,(if require-passphrase
-		'(with-temp-file (expand-file-name
-                                  "gpg-agent.conf" epg-tests-home-directory)
-                   (insert "pinentry-program "
-                           (ert-resource-file "dummy-pinentry")
-                           "\n")
-                   (epg-context-set-passphrase-callback
-                    context
-                    #'epg-tests-passphrase-callback)))
-	   ,(if require-public-key
-		'(epg-import-keys-from-file
-		  context
-                  (ert-resource-file "pubkey.asc")))
-	   ,(if require-secret-key
-		'(epg-import-keys-from-file
-		  context
-                  (ert-resource-file "seckey.asc")))
-	   (with-temp-buffer
-             (setq-local epg-tests-context context)
-	     ,@body))
-       (when (file-directory-p epg-tests-home-directory)
-	 (delete-directory epg-tests-home-directory t)))))
+  `(ert-with-temp-directory epg-tests-home-directory
+     (let* ((process-environment
+             (append
+              (list "GPG_AGENT_INFO"
+                    (format "GNUPGHOME=%s" epg-tests-home-directory))
+              process-environment)))
+       ;; GNUPGHOME is needed to find a usable gpg, so we can't
+       ;; check whether to skip any earlier (Bug#23561).
+       (let ((epg-config (or (epg-tests-find-usable-gpg-configuration
+                           ,require-passphrase ,require-public-key)
+                          (ert-skip "No usable gpg config")))
+             (context (epg-make-context 'OpenPGP)))
+         (setf (epg-context-program context)
+               (alist-get 'program epg-config))
+         (setf (epg-context-home-directory context)
+               epg-tests-home-directory)
+         ,(if require-passphrase
+              '(with-temp-file (expand-file-name
+                                "gpg-agent.conf" epg-tests-home-directory)
+                 (insert "pinentry-program "
+                         (ert-resource-file "dummy-pinentry")
+                         "\n")
+                 (epg-context-set-passphrase-callback
+                  context
+                  #'epg-tests-passphrase-callback)))
+         ,(if require-public-key
+              '(epg-import-keys-from-file
+                context
+                (ert-resource-file "pubkey.asc")))
+         ,(if require-secret-key
+              '(epg-import-keys-from-file
+                context
+                (ert-resource-file "seckey.asc")))
+         (with-temp-buffer
+           (setq-local epg-tests-context context)
+           ,@body)))))
 
 (ert-deftest epg-decrypt-1 ()
   :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed) ; fixme

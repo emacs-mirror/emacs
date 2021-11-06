@@ -19,6 +19,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (require 'dired-aux)
 (eval-when-compile (require 'cl-lib))
 

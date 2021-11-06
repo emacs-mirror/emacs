@@ -173,35 +173,33 @@ wristwatches
 wrongheadedly
 wrongheadedness
 youthfulness
-")
-        (temp-dir (make-temp-file "diff-mode-test" 'dir)))
+"))
+    (ert-with-temp-directory temp-dir
+     (let ((buf  (find-file-noselect (format "%s/%s" temp-dir "fil" )))
+           (buf2 (find-file-noselect (format "%s/%s" temp-dir "fil2"))))
+       (unwind-protect
+           (progn
+             (with-current-buffer buf  (insert fil_before)  (save-buffer))
+             (with-current-buffer buf2 (insert fil2_before) (save-buffer))
 
-    (let ((buf  (find-file-noselect (format "%s/%s" temp-dir "fil" )))
-          (buf2 (find-file-noselect (format "%s/%s" temp-dir "fil2"))))
-      (unwind-protect
-          (progn
-            (with-current-buffer buf  (insert fil_before)  (save-buffer))
-            (with-current-buffer buf2 (insert fil2_before) (save-buffer))
+             (with-temp-buffer
+               (cd temp-dir)
+               (insert patch)
+               (goto-char (point-min))
+               (diff-apply-hunk)
+               (diff-apply-hunk)
+               (diff-apply-hunk))
 
-            (with-temp-buffer
-              (cd temp-dir)
-              (insert patch)
-              (goto-char (point-min))
-              (diff-apply-hunk)
-              (diff-apply-hunk)
-              (diff-apply-hunk))
+             (should (equal (with-current-buffer buf (buffer-string))
+                            fil_after))
+             (should (equal (with-current-buffer buf2 (buffer-string))
+                            fil2_after)))
 
-            (should (equal (with-current-buffer buf (buffer-string))
-                           fil_after))
-            (should (equal (with-current-buffer buf2 (buffer-string))
-                           fil2_after)))
-
-        (ignore-errors
-          (with-current-buffer buf (set-buffer-modified-p nil))
-          (kill-buffer buf)
-          (with-current-buffer buf2 (set-buffer-modified-p nil))
-          (kill-buffer buf2)
-          (delete-directory temp-dir 'recursive))))))
+         (ignore-errors
+           (with-current-buffer buf (set-buffer-modified-p nil))
+           (kill-buffer buf)
+           (with-current-buffer buf2 (set-buffer-modified-p nil))
+           (kill-buffer buf2)))))))
 
 (ert-deftest diff-mode-test-hunk-text-no-newline ()
   "Check output of `diff-hunk-text' with no newline at end of file."

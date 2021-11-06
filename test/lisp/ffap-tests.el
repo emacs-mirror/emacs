@@ -25,30 +25,29 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x)
 (require 'ffap)
 
 (ert-deftest ffap-tests-25243 ()
   "Test for https://debbugs.gnu.org/25243 ."
-  (let ((file (make-temp-file "test-Bug#25243")))
-    (unwind-protect
-        (with-temp-file file
-          (let ((str "diff --git b/lisp/ffap.el a/lisp/ffap.el
+  (ert-with-temp-file file
+    :suffix "-bug25243"
+    (let ((str "diff --git b/lisp/ffap.el a/lisp/ffap.el
 index 3d7cebadcf..ad4b70d737 100644
 --- b/lisp/ffap.el
 +++ a/lisp/ffap.el
 @@ -203,6 +203,9 @@ ffap-foo-at-bar-prefix
 "))
-            (transient-mark-mode 1)
-            (when (natnump ffap-max-region-length)
-              (insert
-               (concat
-                str
-                (make-string ffap-max-region-length #xa)
-                (format "%s ENDS HERE" file)))
-              (call-interactively 'mark-whole-buffer)
-              (should (equal "" (ffap-string-at-point)))
-              (should (equal '(1 1) ffap-string-at-point-region)))))
-      (and (file-exists-p file) (delete-file file)))))
+      (transient-mark-mode 1)
+      (when (natnump ffap-max-region-length)
+        (insert
+         (concat
+          str
+          (make-string ffap-max-region-length #xa)
+          (format "%s ENDS HERE" file)))
+        (call-interactively 'mark-whole-buffer)
+        (should (equal "" (ffap-string-at-point)))
+        (should (equal '(1 1) ffap-string-at-point-region))))))
 
 (ert-deftest ffap-gopher-at-point ()
   (with-temp-buffer

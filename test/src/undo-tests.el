@@ -46,6 +46,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'facemenu)
 
 (ert-deftest undo-test0 ()
@@ -218,17 +219,14 @@
 
 (ert-deftest undo-test-file-modified ()
   "Test undoing marks buffer visiting file unmodified."
-  (let ((tempfile (make-temp-file "undo-test")))
-    (unwind-protect
-        (progn
-          (with-current-buffer (find-file-noselect tempfile)
-            (insert "1")
-            (undo-boundary)
-            (set-buffer-modified-p nil)
-            (insert "2")
-            (undo)
-            (should-not (buffer-modified-p))))
-      (delete-file tempfile))))
+  (ert-with-temp-file tempfile
+    (with-current-buffer (find-file-noselect tempfile)
+      (insert "1")
+      (undo-boundary)
+      (set-buffer-modified-p nil)
+      (insert "2")
+      (undo)
+      (should-not (buffer-modified-p)))))
 
 (ert-deftest undo-test-region-not-most-recent ()
   "Test undo in region of an edit not the most recent."

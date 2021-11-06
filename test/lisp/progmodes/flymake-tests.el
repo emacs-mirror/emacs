@@ -23,6 +23,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (require 'flymake)
 (eval-when-compile (require 'subr-x)) ; string-trim
 
@@ -123,22 +124,21 @@ SEVERITY-PREDICATE is used to setup
   "Test the ruby backend."
   (skip-unless (executable-find "ruby"))
   ;; Some versions of ruby fail if HOME doesn't exist (bug#29187).
-  (let* ((tempdir (make-temp-file "flymake-tests-ruby" t))
-         (process-environment (cons (format "HOME=%s" tempdir)
-                                    process-environment))
-         ;; And see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19657#20
-         ;; for this particular yuckiness
-         (abbreviated-home-dir nil))
-    (unwind-protect
-        (let ((ruby-mode-hook
-               (lambda ()
-                 (setq flymake-diagnostic-functions '(ruby-flymake-simple)))))
-          (flymake-tests--with-flymake ("test.rb")
-            (flymake-goto-next-error)
-            (should (eq 'flymake-warning (face-at-point)))
-            (flymake-goto-next-error)
-            (should (eq 'flymake-error (face-at-point)))))
-      (delete-directory tempdir t))))
+  (ert-with-temp-directory  tempdir
+    :suffix "flymake-tests-ruby"
+    (let* ((process-environment (cons (format "HOME=%s" tempdir)
+                                      process-environment))
+           ;; And see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19657#20
+           ;; for this particular yuckiness
+           (abbreviated-home-dir nil)
+           (ruby-mode-hook
+            (lambda ()
+              (setq flymake-diagnostic-functions '(ruby-flymake-simple)))))
+      (flymake-tests--with-flymake ("test.rb")
+        (flymake-goto-next-error)
+        (should (eq 'flymake-warning (face-at-point)))
+        (flymake-goto-next-error)
+        (should (eq 'flymake-error (face-at-point)))))))
 
 (ert-deftest different-diagnostic-types ()
   "Test GCC warning via function predicate."

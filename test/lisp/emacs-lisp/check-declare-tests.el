@@ -28,6 +28,7 @@
 
 (require 'check-declare)
 (require 'ert)
+(require 'ert-x)
 (eval-when-compile (require 'subr-x))
 
 (ert-deftest check-declare-tests-locate ()
@@ -36,62 +37,53 @@
    (string-prefix-p "ext:" (check-declare-locate "ext:foo" ""))))
 
 (ert-deftest check-declare-tests-scan ()
-  (let ((file (make-temp-file "check-declare-tests-")))
-    (unwind-protect
-        (progn
-          (with-temp-file file
-            (insert
-             (string-join
-              '(";; foo comment"
-                "(declare-function ring-insert \"ring\" (ring item))"
-                "(let ((foo 'code)) foo)")
-              "\n")))
-          (let ((res (check-declare-scan file)))
-            (should (= (length res) 1))
-            (pcase-let ((`((,fnfile ,fn ,arglist ,fileonly)) res))
-              (should (string-match-p "ring" fnfile))
-              (should (equal "ring-insert" fn))
-              (should (equal '(ring item) arglist))
-              (should-not fileonly))))
-      (delete-file file))))
+  (ert-with-temp-file file
+    (with-temp-file file
+      (insert
+       (string-join
+        '(";; foo comment"
+          "(declare-function ring-insert \"ring\" (ring item))"
+          "(let ((foo 'code)) foo)")
+        "\n")))
+    (let ((res (check-declare-scan file)))
+      (should (= (length res) 1))
+      (pcase-let ((`((,fnfile ,fn ,arglist ,fileonly)) res))
+        (should (string-match-p "ring" fnfile))
+        (should (equal "ring-insert" fn))
+        (should (equal '(ring item) arglist))
+        (should-not fileonly)))))
 
 (ert-deftest check-declare-tests-verify ()
-  (let ((file (make-temp-file "check-declare-tests-")))
-    (unwind-protect
-        (progn
-          (with-temp-file file
-            (insert
-             (string-join
-              '(";; foo comment"
-                "(defun foo-fun ())"
-                "(defun ring-insert (ring item)"
-                "\"Insert onto ring RING the item ITEM.\""
-                "nil)")
-              "\n")))
-          (should-not
-           (check-declare-verify
-            file '(("foo.el" "ring-insert" (ring item))))))
-      (delete-file file))))
+  (ert-with-temp-file file
+    (with-temp-file file
+      (insert
+       (string-join
+        '(";; foo comment"
+          "(defun foo-fun ())"
+          "(defun ring-insert (ring item)"
+          "\"Insert onto ring RING the item ITEM.\""
+          "nil)")
+        "\n")))
+    (should-not
+     (check-declare-verify
+      file '(("foo.el" "ring-insert" (ring item)))))))
 
 (ert-deftest check-declare-tests-verify-mismatch ()
-  (let ((file (make-temp-file "check-declare-tests-")))
-    (unwind-protect
-        (progn
-          (with-temp-file file
-            (insert
-             (string-join
-              '(";; foo comment"
-                "(defun foo-fun ())"
-                "(defun ring-insert (ring)"
-                "\"Insert onto ring RING the item ITEM.\""
-                "nil)")
-              "\n")))
-          (should
-           (equal
-            (check-declare-verify
-             file '(("foo.el" "ring-insert" (ring item))))
-            '(("foo.el" "ring-insert" "arglist mismatch")))))
-      (delete-file file))))
+  (ert-with-temp-file file
+    (with-temp-file file
+      (insert
+       (string-join
+        '(";; foo comment"
+          "(defun foo-fun ())"
+          "(defun ring-insert (ring)"
+          "\"Insert onto ring RING the item ITEM.\""
+          "nil)")
+        "\n")))
+    (should
+     (equal
+      (check-declare-verify
+       file '(("foo.el" "ring-insert" (ring item))))
+      '(("foo.el" "ring-insert" "arglist mismatch"))))))
 
 (ert-deftest check-declare-tests-sort ()
   (should-not (check-declare-sort '()))

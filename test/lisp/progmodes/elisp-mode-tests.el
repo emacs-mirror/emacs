@@ -302,12 +302,9 @@
 
 ;; tmp may be on a different filesystem to the tests, but, ehh.
 (defvar xref--case-insensitive
-  (let ((dir (make-temp-file "xref-test" t)))
-    (unwind-protect
-        (progn
-          (with-temp-file (expand-file-name "hElLo" dir) "hello")
-          (file-exists-p (expand-file-name "HELLO" dir)))
-      (delete-directory dir t)))
+  (ert-with-temp-directory dir
+    (with-temp-file (expand-file-name "hElLo" dir) "hello")
+    (file-exists-p (expand-file-name "HELLO" dir)))
   "Non-nil if file system seems to be case-insensitive.")
 
 (defun xref-elisp-test-run (xrefs expected-xrefs)

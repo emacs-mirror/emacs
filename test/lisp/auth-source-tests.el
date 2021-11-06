@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'ert)
+(eval-when-compile (require 'ert-x))
 (require 'cl-lib)
 (require 'auth-source)
 (require 'secrets)
@@ -360,77 +361,73 @@
        (format "%s@%s" (plist-get auth-info :user) (plist-get auth-info :host))))))
 
 (ert-deftest auth-source-test-netrc-create-secret ()
-  (let* ((netrc-file (make-temp-file "auth-source-test"))
-         (auth-sources (list netrc-file))
-         (auth-source-save-behavior t)
-         host auth-info auth-passwd)
-    (unwind-protect
-        (dolist (passwd '("foo" "" nil))
-          ;; Redefine `read-*' in order to avoid interactive input.
-          (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
-                    ((symbol-function 'read-string)
-                     (lambda (_prompt &optional _initial _history default
-                                      _inherit-input-method)
-                       default)))
-            (setq host
-                  (md5 (concat (prin1-to-string process-environment) passwd))
-                  auth-info
-                  (car (auth-source-search
-                        :max 1 :host host :require '(:user :secret) :create t))
-	          auth-passwd (plist-get auth-info :secret)
-	          auth-passwd (if (functionp auth-passwd)
-			          (funcall auth-passwd)
-			        auth-passwd))
-            (should (string-equal (plist-get auth-info :user) (user-login-name)))
-            (should (string-equal (plist-get auth-info :host) host))
-            (should (equal auth-passwd passwd))
-            (when (functionp (plist-get auth-info :save-function))
-              (funcall (plist-get auth-info :save-function)))
+  (ert-with-temp-file netrc-file
+    :suffix "auth-source-test"
+    (let* ((auth-sources (list netrc-file))
+           (auth-source-save-behavior t)
+           host auth-info auth-passwd)
+      (dolist (passwd '("foo" "" nil))
+        ;; Redefine `read-*' in order to avoid interactive input.
+        (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
+                  ((symbol-function 'read-string)
+                   (lambda (_prompt &optional _initial _history default
+                               _inherit-input-method)
+                     default)))
+          (setq host
+                (md5 (concat (prin1-to-string process-environment) passwd))
+                auth-info
+                (car (auth-source-search
+                      :max 1 :host host :require '(:user :secret) :create t))
+                auth-passwd (plist-get auth-info :secret)
+                auth-passwd (if (functionp auth-passwd)
+                                (funcall auth-passwd)
+                              auth-passwd))
+          (should (string-equal (plist-get auth-info :user) (user-login-name)))
+          (should (string-equal (plist-get auth-info :host) host))
+          (should (equal auth-passwd passwd))
+          (when (functionp (plist-get auth-info :save-function))
+            (funcall (plist-get auth-info :save-function)))
 
-            ;; Check, that the item has been created indeed.
-            (auth-source-forget+ :host t)
-            (setq auth-source-netrc-cache nil)
-            (setq auth-info (car (auth-source-search :host host))
-	          auth-passwd (plist-get auth-info :secret)
-	          auth-passwd (if (functionp auth-passwd)
-			          (funcall auth-passwd)
-			        auth-passwd))
-            (with-temp-buffer
-              (insert-file-contents netrc-file)
-              (if (zerop (length passwd))
-                  (progn
-                    (should-not (plist-get auth-info :user))
-                    (should-not (plist-get auth-info :host))
-                    (should-not auth-passwd)
-                    (should-not (search-forward host nil 'noerror)))
-                (should
-                 (string-equal (plist-get auth-info :user) (user-login-name)))
-                (should (string-equal (plist-get auth-info :host) host))
-                (should (string-equal auth-passwd passwd))
-                (should (search-forward host nil 'noerror))))))
-
-      ;; Cleanup.
-      (delete-file netrc-file))))
+          ;; Check, that the item has been created indeed.
+          (auth-source-forget+ :host t)
+          (setq auth-source-netrc-cache nil)
+          (setq auth-info (car (auth-source-search :host host))
+                auth-passwd (plist-get auth-info :secret)
+                auth-passwd (if (functionp auth-passwd)
+                                (funcall auth-passwd)
+                              auth-passwd))
+          (with-temp-buffer
+            (insert-file-contents netrc-file)
+            (if (zerop (length passwd))
+                (progn
+                  (should-not (plist-get auth-info :user))
+                  (should-not (plist-get auth-info :host))
+                  (should-not auth-passwd)
+                  (should-not (search-forward host nil 'noerror)))
+              (should
+               (string-equal (plist-get auth-info :user) (user-login-name)))
+              (should (string-equal (plist-get auth-info :host) host))
+              (should (string-equal auth-passwd passwd))
+              (should (search-forward host nil 'noerror)))))))))
 
 (ert-deftest auth-source-delete ()
-  (let* ((netrc-file (make-temp-file "auth-source-test" nil nil "\
+  (ert-with-temp-file netrc-file
+    :suffix "auth-source-test" :text "\
 machine a1 port a2 user a3 password a4
 machine b1 port b2 user b3 password b4
-machine c1 port c2 user c3 password c4\n"))
-         (auth-sources (list netrc-file))
-         (auth-source-do-cache nil)
-         (expected '((:host "a1" :port "a2" :user "a3" :secret "a4")))
-         (parameters '(:max 1 :host t)))
-    (unwind-protect
-        (let ((found (apply #'auth-source-delete parameters)))
-          (dolist (f found)
-            (let ((s (plist-get f :secret)))
-              (setf f (plist-put f :secret
-                                 (if (functionp s) (funcall s) s)))))
-          ;; Note: The netrc backend doesn't delete anything, so
-          ;; this is actually the same as `auth-source-search'.
-          (should (equal found expected)))
-      (delete-file netrc-file))))
+machine c1 port c2 user c3 password c4\n"
+    (let* ((auth-sources (list netrc-file))
+           (auth-source-do-cache nil)
+           (expected '((:host "a1" :port "a2" :user "a3" :secret "a4")))
+           (parameters '(:max 1 :host t))
+           (found (apply #'auth-source-delete parameters)))
+      (dolist (f found)
+        (let ((s (plist-get f :secret)))
+          (setf f (plist-put f :secret
+                             (if (functionp s) (funcall s) s)))))
+      ;; Note: The netrc backend doesn't delete anything, so
+      ;; this is actually the same as `auth-source-search'.
+      (should (equal found expected)))))
 
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

@@ -1016,10 +1016,9 @@ byte-compiled.  Run with dynamic binding."
 (defmacro bytecomp-tests--with-temp-file (file-name-var &rest body)
   (declare (indent 1))
   (cl-check-type file-name-var symbol)
-  `(let ((,file-name-var (make-temp-file "emacs")))
+  `(ert-with-temp-file ,file-name-var
      (unwind-protect
          (progn ,@body)
-       (delete-file ,file-name-var)
        (let ((elc (concat ,file-name-var ".elc")))
          (if (file-exists-p elc) (delete-file elc))))))
 

@@ -37,25 +37,24 @@
 (defmacro with-todo-test (&rest body)
   "Set up an isolated `todo-mode' test environment."
   (declare (debug (body)))
-  `(let* ((todo-test-home (make-temp-file "todo-test-home-" t))
-          ;; Since we change HOME, clear this to avoid a conflict
-          ;; e.g. if Emacs runs within the user's home directory.
-          (abbreviated-home-dir nil)
-          (process-environment (cons (format "HOME=%s" todo-test-home)
-                                     process-environment))
-          (todo-directory (ert-resource-directory))
-          (todo-default-todo-file (todo-short-file-name
-				   (car (funcall todo-files-function)))))
-     (unwind-protect
-         (progn ,@body)
-       ;; Restore pre-test-run state of test files.
-       (dolist (f (directory-files todo-directory))
-         (let ((buf (get-file-buffer f)))
-           (when buf
-             (with-current-buffer buf
-               (restore-buffer-modified-p nil)
-               (kill-buffer)))))
-       (delete-directory todo-test-home t))))
+  `(ert-with-temp-directory todo-test-home
+     (let* (;; Since we change HOME, clear this to avoid a conflict
+            ;; e.g. if Emacs runs within the user's home directory.
+            (abbreviated-home-dir nil)
+            (process-environment (cons (format "HOME=%s" todo-test-home)
+                                       process-environment))
+            (todo-directory (ert-resource-directory))
+            (todo-default-todo-file (todo-short-file-name
+                                 (car (funcall todo-files-function)))))
+       (unwind-protect
+           (progn ,@body)
+         ;; Restore pre-test-run state of test files.
+         (dolist (f (directory-files todo-directory))
+           (let ((buf (get-file-buffer f)))
+             (when buf
+               (with-current-buffer buf
+                 (restore-buffer-modified-p nil)
+                 (kill-buffer)))))))))
 
 (defun todo-test--show (num &optional archive)
   "Display category NUM of test todo file.

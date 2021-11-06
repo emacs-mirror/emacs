@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'abbrev)
 (require 'seq)
 
@@ -236,44 +237,41 @@
 
 (ert-deftest read-write-abbrev-file-test ()
   "Test reading and writing abbrevs from file."
-  (let ((temp-test-file (make-temp-file "ert-abbrev-test"))
-        (ert-test-abbrevs (setup-test-abbrev-table)))
-    (write-abbrev-file temp-test-file)
-    (clear-abbrev-table ert-test-abbrevs)
-    (should (abbrev-table-empty-p ert-test-abbrevs))
-    (read-abbrev-file temp-test-file)
-    (should (equal "abbrev-ert-test" (abbrev-expansion "a-e-t" ert-test-abbrevs)))
-    (delete-file temp-test-file)))
+  (ert-with-temp-file temp-test-file
+    (let ((ert-test-abbrevs (setup-test-abbrev-table)))
+      (write-abbrev-file temp-test-file)
+      (clear-abbrev-table ert-test-abbrevs)
+      (should (abbrev-table-empty-p ert-test-abbrevs))
+      (read-abbrev-file temp-test-file)
+      (should (equal "abbrev-ert-test" (abbrev-expansion "a-e-t" ert-test-abbrevs))))))
 
 (ert-deftest read-write-abbrev-file-test-with-props ()
   "Test reading and writing abbrevs from file."
-  (let ((temp-test-file (make-temp-file "ert-abbrev-test"))
-        (ert-test-abbrevs (setup-test-abbrev-table-with-props)))
-    (write-abbrev-file temp-test-file)
-    (clear-abbrev-table ert-test-abbrevs)
-    (should (abbrev-table-empty-p ert-test-abbrevs))
-    (read-abbrev-file temp-test-file)
-    (should (equal "fooBar" (abbrev-expansion "fb" ert-test-abbrevs)))
-    (delete-file temp-test-file)))
+  (ert-with-temp-file temp-test-file
+    (let ((ert-test-abbrevs (setup-test-abbrev-table-with-props)))
+      (write-abbrev-file temp-test-file)
+      (clear-abbrev-table ert-test-abbrevs)
+      (should (abbrev-table-empty-p ert-test-abbrevs))
+      (read-abbrev-file temp-test-file)
+      (should (equal "fooBar" (abbrev-expansion "fb" ert-test-abbrevs))))))
 
 (ert-deftest abbrev-edit-save-to-file-test ()
   "Test saving abbrev definitions in buffer to file."
   (defvar ert-save-test-table nil)
-  (let ((temp-test-file (make-temp-file "ert-abbrev-test"))
-        (ert-test-abbrevs (setup-test-abbrev-table)))
-    (with-temp-buffer
-      (goto-char (point-min))
-      (insert "(ert-save-test-table)\n")
-      (insert "\n" "\"s-a-t\"\t" "0\t" "\"save-abbrevs-test\"\n")
-      (should (equal "abbrev-ert-test"
-                     (abbrev-expansion "a-e-t" ert-test-abbrevs)))
-      ;; clears abbrev tables
-      (abbrev-edit-save-to-file temp-test-file)
-      (should-not (abbrev-expansion "a-e-t" ert-test-abbrevs))
-      (read-abbrev-file temp-test-file)
-      (should (equal "save-abbrevs-test"
-                     (abbrev-expansion "s-a-t" ert-save-test-table)))
-      (delete-file temp-test-file))))
+  (ert-with-temp-file temp-test-file
+    (let ((ert-test-abbrevs (setup-test-abbrev-table)))
+      (with-temp-buffer
+        (goto-char (point-min))
+        (insert "(ert-save-test-table)\n")
+        (insert "\n" "\"s-a-t\"\t" "0\t" "\"save-abbrevs-test\"\n")
+        (should (equal "abbrev-ert-test"
+                       (abbrev-expansion "a-e-t" ert-test-abbrevs)))
+        ;; clears abbrev tables
+        (abbrev-edit-save-to-file temp-test-file)
+        (should-not (abbrev-expansion "a-e-t" ert-test-abbrevs))
+        (read-abbrev-file temp-test-file)
+        (should (equal "save-abbrevs-test"
+                       (abbrev-expansion "s-a-t" ert-save-test-table)))))))
 
 (ert-deftest inverse-add-abbrev-skips-trailing-nonword ()
   "Test that adding an inverse abbrev skips trailing nonword characters."

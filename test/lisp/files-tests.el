@@ -176,15 +176,14 @@ form.")
   ;; If called interactively, environment variable
   ;; $EMACS_TEST_DIRECTORY does not exist.
   (skip-unless (file-exists-p files-test-bug-18141-file))
-  (let ((tempfile (make-temp-file "files-test-bug-18141" nil ".gz")))
-    (unwind-protect
-	(progn
-	  (copy-file files-test-bug-18141-file tempfile t)
-	  (with-current-buffer (find-file-noselect tempfile)
-	    (set-buffer-modified-p t)
-	    (save-buffer)
-	    (should (eq buffer-file-coding-system 'iso-2022-7bit-unix))))
-      (delete-file tempfile))))
+  (ert-with-temp-file tempfile
+    :prefix "emacs-test-files-bug-18141"
+    :suffix ".gz"
+    (copy-file files-test-bug-18141-file tempfile t)
+    (with-current-buffer (find-file-noselect tempfile)
+      (set-buffer-modified-p t)
+      (save-buffer)
+      (should (eq buffer-file-coding-system 'iso-2022-7bit-unix)))))
 
 (ert-deftest files-tests-make-temp-file-empty-prefix ()
   "Test make-temp-file with an empty prefix."
@@ -283,22 +282,20 @@ If we are in a directory named `~', the default value should not
 be $HOME."
   (cl-letf (((symbol-function 'completing-read)
              (lambda (_prompt _coll &optional _pred _req init _hist def _)
-               (or def init)))
-            (dir (make-temp-file "read-file-name-test" t)))
-    (unwind-protect
-        (let ((subdir (expand-file-name "./~/" dir)))
-          (make-directory subdir t)
-          (with-temp-buffer
-            (setq default-directory subdir)
-            (should-not (equal
-                         (expand-file-name (read-file-name "File: "))
-                         (expand-file-name "~/")))
-            ;; Don't overquote either!
-            (setq default-directory (concat "/:" subdir))
-            (should-not (equal
-                         (expand-file-name (read-file-name "File: "))
-                         (concat "/:/:" subdir)))))
-      (delete-directory dir 'recursive))))
+               (or def init))))
+    (ert-with-temp-directory dir
+      (let ((subdir (expand-file-name "./~/" dir)))
+        (make-directory subdir t)
+        (with-temp-buffer
+          (setq default-directory subdir)
+          (should-not (equal
+                       (expand-file-name (read-file-name "File: "))
+                       (expand-file-name "~/")))
+          ;; Don't overquote either!
+          (setq default-directory (concat "/:" subdir))
+          (should-not (equal
+                       (expand-file-name (read-file-name "File: "))
+                       (concat "/:/:" subdir))))))))
 
 (ert-deftest files-tests-file-name-non-special-quote-unquote ()
   (let (;; Just in case it is quoted, who knows.
@@ -1231,26 +1228,26 @@ works as expected if the default directory is quoted."
         (insert-directory-wildcard-in-dir-p (car path-res)))))))
 
 (ert-deftest files-tests-make-directory ()
-  (let* ((dir (make-temp-file "files-mkdir-test" t))
-	 (dirname (file-name-as-directory dir))
-	 (file (concat dirname "file"))
-	 (subdir1 (concat dirname "subdir1"))
-	 (subdir2 (concat dirname "subdir2"))
-	 (a/b (concat dirname "a/b")))
-    (write-region "" nil file)
-    (should-error (make-directory "/"))
-    (should-not (make-directory "/" t))
-    (should-error (make-directory dir))
-    (should-not (make-directory dir t))
-    (should-error (make-directory dirname))
-    (should-not (make-directory dirname t))
-    (should-error (make-directory file))
-    (should-error (make-directory file t))
-    (should-not (make-directory subdir1))
-    (should-not (make-directory subdir2 t))
-    (should-error (make-directory a/b))
-    (should-not (make-directory a/b t))
-    (delete-directory dir 'recursive)))
+  (ert-with-temp-directory dir
+    (let* ((dirname (file-name-as-directory dir))
+           (file (concat dirname "file"))
+           (subdir1 (concat dirname "subdir1"))
+           (subdir2 (concat dirname "subdir2"))
+           (a/b (concat dirname "a/b")))
+      (write-region "" nil file)
+      (should-error (make-directory "/"))
+      (should-not (make-directory "/" t))
+      (should-error (make-directory dir))
+      (should-not (make-directory dir t))
+      (should-error (make-directory dirname))
+      (should-not (make-directory dirname t))
+      (should-error (make-directory file))
+      (should-error (make-directory file t))
+      (should-not (make-directory subdir1))
+      (should-not (make-directory subdir2 t))
+      (should-error (make-directory a/b))
+      (should-not (make-directory a/b t))
+      (delete-directory dir 'recursive))))
 
 (ert-deftest files-tests-file-modes-symbolic-to-number ()
   (let ((alist (list (cons "a=rwx" #o777)
@@ -1318,21 +1315,21 @@ name (Bug#28412)."
         (should (eq (buffer-size) 1))))))
 
 (ert-deftest files-tests-copy-directory ()
-  (let* ((dir (make-temp-file "files-mkdir-test" t))
-	 (dirname (file-name-as-directory dir))
-	 (source (concat dirname "source"))
-	 (dest (concat dirname "dest/new/directory/"))
-	 (file (concat (file-name-as-directory source) "file"))
-	 (source2 (concat dirname "source2"))
-	 (dest2 (concat dirname "dest/new2")))
-    (make-directory source)
-    (write-region "" nil file)
-    (copy-directory source dest t t t)
-    (should (file-exists-p (concat dest "file")))
-    (make-directory (concat (file-name-as-directory source2) "a") t)
-    (copy-directory source2 dest2)
-    (should (file-directory-p (concat (file-name-as-directory dest2) "a")))
-    (delete-directory dir 'recursive)))
+  (ert-with-temp-directory dir
+    (let* ((dirname (file-name-as-directory dir))
+           (source (concat dirname "source"))
+           (dest (concat dirname "dest/new/directory/"))
+           (file (concat (file-name-as-directory source) "file"))
+           (source2 (concat dirname "source2"))
+           (dest2 (concat dirname "dest/new2")))
+      (make-directory source)
+      (write-region "" nil file)
+      (copy-directory source dest t t t)
+      (should (file-exists-p (concat dest "file")))
+      (make-directory (concat (file-name-as-directory source2) "a") t)
+      (copy-directory source2 dest2)
+      (should (file-directory-p (concat (file-name-as-directory dest2) "a")))
+      (delete-directory dir 'recursive))))
 
 (ert-deftest files-tests-abbreviated-home-dir ()
   "Test that changing HOME does not confuse `abbreviate-file-name'.
@@ -1351,43 +1348,41 @@ See <https://debbugs.gnu.org/19657#20>."
 (ert-deftest files-tests-executable-find ()
   "Test that `executable-find' works also with a relative or remote PATH.
 See <https://debbugs.gnu.org/35241>."
-  (let ((tmpfile (make-temp-file "files-test" nil (car exec-suffixes))))
-    (unwind-protect
-        (progn
-          (set-file-modes tmpfile #o777)
-          (let ((exec-path `(,temporary-file-directory)))
-            (should
-             (equal tmpfile
-                    (executable-find (file-name-nondirectory tmpfile)))))
-          ;; An empty element of `exec-path' means `default-directory'.
-          (let ((default-directory temporary-file-directory)
-                (exec-path nil))
-            (should
-             (equal tmpfile
-                    (executable-find (file-name-nondirectory tmpfile)))))
-          ;; The remote file name shall be quoted, and handled like a
-          ;; non-existing directory.
-          (let ((default-directory "/ssh::")
-                (exec-path (append exec-path `("." ,temporary-file-directory))))
-            (should
-             (equal tmpfile
-                    (executable-find (file-name-nondirectory tmpfile))))))
-      (delete-file tmpfile))))
+  (ert-with-temp-file tmpfile
+    :suffix (car exec-suffixes)
+    (let ((tmpfile (make-temp-file "files-test" nil )))
+      (set-file-modes tmpfile #o777)
+      (let ((exec-path `(,temporary-file-directory)))
+        (should
+         (equal tmpfile
+                (executable-find (file-name-nondirectory tmpfile)))))
+      ;; An empty element of `exec-path' means `default-directory'.
+      (let ((default-directory temporary-file-directory)
+            (exec-path nil))
+        (should
+         (equal tmpfile
+                (executable-find (file-name-nondirectory tmpfile)))))
+      ;; The remote file name shall be quoted, and handled like a
+      ;; non-existing directory.
+      (let ((default-directory "/ssh::")
+            (exec-path (append exec-path `("." ,temporary-file-directory))))
+        (should
+         (equal tmpfile
+                (executable-find (file-name-nondirectory tmpfile))))))))
 
 (ert-deftest files-tests-dont-rewrite-precious-files ()
   "Test that `file-precious-flag' forces files to be saved by
 renaming only, rather than modified in-place."
-  (let* ((temp-file-name (make-temp-file "files-tests"))
-         (advice (lambda (_start _end filename &rest _r)
-                   (should-not (string= filename temp-file-name)))))
-    (unwind-protect
-        (with-current-buffer (find-file-noselect temp-file-name)
-          (advice-add #'write-region :before advice)
-          (setq-local file-precious-flag t)
-          (insert "foobar")
-          (should (null (save-buffer))))
-      (ignore-errors (advice-remove #'write-region advice))
-      (ignore-errors (delete-file temp-file-name)))))
+  (ert-with-temp-file temp-file-name
+    (let* ((advice (lambda (_start _end filename &rest _r)
+                     (should-not (string= filename temp-file-name)))))
+      (unwind-protect
+          (with-current-buffer (find-file-noselect temp-file-name)
+            (advice-add #'write-region :before advice)
+            (setq-local file-precious-flag t)
+            (insert "foobar")
+            (should (null (save-buffer))))
+        (ignore-errors (advice-remove #'write-region advice))))))
 
 (ert-deftest files-test-file-size-human-readable ()
   (should (equal (file-size-human-readable 13) "13"))
@@ -1578,40 +1573,39 @@ on BUF-1 and BUF-2 after the `save-some-buffers' call.
 The test is repeated with `save-some-buffers-default-predicate'
 let-bound to PRED and passing nil as second arg of
 `save-some-buffers'."
-  (let* ((dir (make-temp-file "testdir" 'dir))
-         (file-1 (expand-file-name "subdir-1/file.foo" dir))
-         (file-2 (expand-file-name "subdir-2/file.bar" dir))
-         (inhibit-message t)
-         buf-1 buf-2)
-    (unwind-protect
-        (progn
-          (make-empty-file file-1 'parens)
-          (make-empty-file file-2 'parens)
-          (setq buf-1 (find-file file-1)
-                buf-2 (find-file file-2))
-          (dolist (buf (list buf-1 buf-2))
-            (with-current-buffer buf (insert "foobar\n")))
-          ;; Run the test.
-          (with-current-buffer buf-1
-            (let ((save-some-buffers-default-predicate def-pred-bind))
-              (save-some-buffers t pred))
-            (should (eq exp-1 (buffer-modified-p buf-1)))
-            (should (eq exp-2 (buffer-modified-p buf-2))))
-          ;; Set both buffers as modified to run another test.
-          (dolist (buf (list buf-1 buf-2))
-            (with-current-buffer buf (set-buffer-modified-p t)))
-          ;; The result of this test must be identical as the previous one.
-          (with-current-buffer buf-1
-            (let ((save-some-buffers-default-predicate (or pred def-pred-bind)))
-              (save-some-buffers t nil))
-            (should (eq exp-1 (buffer-modified-p buf-1)))
-            (should (eq exp-2 (buffer-modified-p buf-2)))))
-      ;; Clean up.
-      (dolist (buf (list buf-1 buf-2))
-        (with-current-buffer buf
-          (set-buffer-modified-p nil)
-          (kill-buffer buf)))
-      (delete-directory dir 'recursive))))
+  (ert-with-temp-directory dir
+    (let* ((file-1 (expand-file-name "subdir-1/file.foo" dir))
+           (file-2 (expand-file-name "subdir-2/file.bar" dir))
+           (inhibit-message t)
+           buf-1 buf-2)
+      (unwind-protect
+          (progn
+            (make-empty-file file-1 'parens)
+            (make-empty-file file-2 'parens)
+            (setq buf-1 (find-file file-1)
+                  buf-2 (find-file file-2))
+            (dolist (buf (list buf-1 buf-2))
+              (with-current-buffer buf (insert "foobar\n")))
+            ;; Run the test.
+            (with-current-buffer buf-1
+              (let ((save-some-buffers-default-predicate def-pred-bind))
+                (save-some-buffers t pred))
+              (should (eq exp-1 (buffer-modified-p buf-1)))
+              (should (eq exp-2 (buffer-modified-p buf-2))))
+            ;; Set both buffers as modified to run another test.
+            (dolist (buf (list buf-1 buf-2))
+              (with-current-buffer buf (set-buffer-modified-p t)))
+            ;; The result of this test must be identical as the previous one.
+            (with-current-buffer buf-1
+              (let ((save-some-buffers-default-predicate (or pred def-pred-bind)))
+                (save-some-buffers t nil))
+              (should (eq exp-1 (buffer-modified-p buf-1)))
+              (should (eq exp-2 (buffer-modified-p buf-2)))))
+        ;; Clean up.
+        (dolist (buf (list buf-1 buf-2))
+          (with-current-buffer buf
+            (set-buffer-modified-p nil)
+            (kill-buffer buf)))))))
 
 (ert-deftest files-tests-save-some-buffers ()
   "Test `save-some-buffers'.
