@@ -49,32 +49,32 @@ time.
 ** Emoji
 
 +++
-*** Emacs now has several new methods for inserting emojis.
-The emoji commands are under the new 'C-x 8 e' submap.
+*** Emacs now has several new methods for inserting Emojis.
+The Emoji commands are under the new 'C-x 8 e' prefix.
 
 +++
 *** New command 'emoji-insert' (bound to 'C-x 8 e e' and 'C-x 8 e i').
-This command guides you through various emoji categories and
+This command guides you through various Emoji categories and
 combinations in a graphical menu system.
 
 +++
 *** New command 'emoji-search' (bound to 'C-x 8 e s').
-This command lets you search for emojis based on names.
+This command lets you search for Emojis based on names.
 
 +++
 *** New command 'emoji-list' (bound to 'C-x 8 e l').
-This command lists all emojis (categorised by themes) in a big buffer
-and lets you choose one of them.
+This command lists all Emojis (categorized by themes) in a special
+buffer and lets you choose one of them.
 
 ---
 *** New command 'emoji-recent' (bound to 'C-x 8 e r').
-This command lets you choose among the emojis you have recently
+This command lets you choose among the Emojis you have recently
 inserted.
 
 +++
 *** New command 'emoji-describe' (bound to 'C-x 8 e d').
-This command will tell you the name of the emoji under point.  (This
-command also works for non-emoji characters.)
+This command will tell you the name of the Emoji at point.  (This
+command also works for non-Emoji characters.)
 
 ** Help
 
