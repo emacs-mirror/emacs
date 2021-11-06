@@ -153,10 +153,13 @@ If NAME is nil or the empty string, a name will be auto-generated."
     (insert "Name: " name "\n\n")
     (insert "=-=\n")))
 
-(defun erts-run-test (test-function)
+(defun erts-run-test (test-function &optional verbose)
   "Run the current test.
 If the current erts file doesn't define a test function, the user
-will be prompted for one."
+will be prompted for one.
+
+If VERBOSE (interactively, the prefix), display a diff of the
+expected results and the actual results in a separate buffer."
   (interactive
    (list (save-excursion
            ;; Find the preceding Code spec.
@@ -167,7 +170,8 @@ will be prompted for one."
                (progn
                  (goto-char (match-beginning 0))
                  (cdr (assq 'code (ert--erts-specifications (point)))))
-             (read-string "Transformation function: "))))
+             (read-string "Transformation function: ")))
+         current-prefix-arg)
    erts-mode)
   (save-excursion
     (erts-mode--goto-start-of-test)
@@ -177,8 +181,23 @@ will be prompted for one."
                (cons 'code (car (read-from-string test-function))))
          (buffer-file-name))
       (:success (message "Test successful"))
-      (ert-test-failed (message "Test failure; result: \n%s"
-                                (substring-no-properties (cadr (cadr arg))))))))
+      (ert-test-failed
+       (if (not verbose)
+           (message "Test failure; result: \n%s"
+                    (substring-no-properties (cadr (cadr arg))))
+         (message "Test failure")
+         (let (expected got)
+           (unwind-protect
+               (progn
+                 (with-current-buffer
+                     (setq expected (generate-new-buffer "erts expected"))
+                   (insert (nth 1 (cadr arg))))
+                 (with-current-buffer
+                     (setq got (generate-new-buffer "erts results"))
+                   (insert (nth 2 (cadr arg))))
+                 (diff-buffers expected got))
+             (kill-buffer expected)
+             (kill-buffer got))))))))
 
 (defun erts-mode--goto-start-of-test ()
   (if (not (erts-mode--in-test-p (point)))
