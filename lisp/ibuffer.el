@@ -2484,6 +2484,7 @@ Other commands:
   `\\[ibuffer-update]' - Regenerate the list of all buffers.
           Prefix arg means to toggle whether buffers that match
           `ibuffer-maybe-show-predicates' should be displayed.
+  `\\[ibuffer-auto-mode]' - Toggle automatic updates.
 
   `\\[ibuffer-switch-format]' - Change the current display format.
   `\\[forward-line]' - Move point to the next line.

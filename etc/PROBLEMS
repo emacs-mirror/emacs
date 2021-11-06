@@ -1636,6 +1636,13 @@ restart the X server after the monitor configuration has been changed.
 
 * Runtime problems on character terminals
 
+*** With X forwarding, mouse highlighting can make Emacs slow.
+
+If you see slow updates when moving the mouse in an Emacs running on a
+remote X server, try this:
+
+    (setq mouse-highlight nil)
+
 ** The meta key does not work on xterm.
 
 Typing M-x rings the terminal bell, and inserts a string like ";120~".
