@@ -3615,6 +3615,11 @@ edited even in read-only buffers.  @xref{Read Only Buffers}.
 A non-@code{nil} @code{invisible} property can make a character invisible
 on the screen.  @xref{Invisible Text}, for details.
 
+@kindex inhibit-isearch @r{(text property)}
+@item inhibit-isearch
+A non-@code{nil} @code{inhibit-isearch} property will make isearch
+skip the text.
+
 @item intangible
 @kindex intangible @r{(text property)}
 If a group of consecutive characters have equal and non-@code{nil}

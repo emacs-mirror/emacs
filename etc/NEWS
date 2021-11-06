@@ -432,6 +432,12 @@ Use 'exif-parse-file' and 'exif-field' instead.
 
 * Lisp Changes in Emacs 29.1
 
++++
+*** New text property 'inhibit-isearch'.
+If set, 'isearch' will skip these areas, which can be useful (for
+instance) when covering huge amounts of data (that has no meaningful
+searchable data, like image data) with a 'display' text property.
+
 ---
 *** New user option 'pp-use-max-width'.
 If non-nil, 'pp' will attempt to limit the line length when formatting

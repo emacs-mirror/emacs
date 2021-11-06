@@ -644,6 +644,7 @@ height of the image; integer values are taken as pixel values."
 					(list (cons 'slice slice) image)
 				      image)
                                    rear-nonsticky t
+				   inhibit-isearch t
                                    keymap ,image-map))))
 
 
