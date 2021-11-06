@@ -8887,7 +8887,8 @@ used to take the screenshot."
 	       (set-buffer-multibyte nil)
 	       (insert image)
 	       (base64-encode-region (point-min) (point-max) t)
-	       (buffer-string))))
+	       (buffer-string)))
+     nil nil t)
     (insert "\n\n")
     (message "")))
 
