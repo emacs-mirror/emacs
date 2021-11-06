@@ -173,7 +173,7 @@ a file, \"input-file\" and \"modification-time\"."
                              modtime))))))))
 	 ;; Install generic macros.
 	 '(("keyword" . (lambda (arg1 &rest _)
-                          (org-macro--find-keyword-value arg1)))
+                          (org-macro--find-keyword-value arg1 t)))
 	   ("n" . (lambda (&optional arg1 arg2 &rest _)
                     (org-macro--counter-increment arg1 arg2)))
            ("property" . (lambda (arg1 &optional arg2 &rest _)
