@@ -826,6 +826,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
       (overlay-put o 'isearch-open-invisible
 		   (or outline-isearch-open-invisible-function
 		       #'outline-isearch-open-invisible))))
+  (outline--fix-up-all-buttons from to)
   ;; Seems only used by lazy-lock.  I.e. obsolete.
   (run-hooks 'outline-view-change-hook))
 
@@ -1002,13 +1003,18 @@ If non-nil, EVENT should be a mouse event."
                      ["RET"] #'outline-show-subtree
                      ["<mouse-2>"] #'outline-show-subtree)))))
 
-(defun outline--fix-up-all-buttons ()
-  (outline-map-region
-   (lambda ()
-     (if (eq (outline--cycle-state) 'show-all)
-         (outline--insert-open-button)
-       (outline--insert-close-button)))
-   (point-min) (point-max)))
+(defun outline--fix-up-all-buttons (&optional from to)
+  (when from
+    (save-excursion
+      (goto-char from)
+      (setq from (line-beginning-position))))
+  (when outline-minor-mode-use-buttons
+    (outline-map-region
+     (lambda ()
+       (if (eq (outline--cycle-state) 'show-all)
+           (outline--insert-open-button)
+         (outline--insert-close-button)))
+     (or from (point-min)) (or to (point-max)))))
 
 (define-obsolete-function-alias 'hide-subtree #'outline-hide-subtree "25.1")
 
@@ -1382,8 +1388,7 @@ Return either 'hide-all, 'headings-only, or 'show-all."
       (outline-show-all)
       (setq outline--cycle-buffer-state 'show-all)
       (message "Show all")))
-    (when outline-minor-mode-use-buttons
-      (outline--fix-up-all-buttons))))
+    (outline--fix-up-all-buttons)))
 
 (defvar outline-navigation-repeat-map
   (let ((map (make-sparse-keymap)))
