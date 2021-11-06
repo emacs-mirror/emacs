@@ -5373,6 +5373,10 @@ DEFUN ("display-supports-face-attributes-p",
 The optional argument DISPLAY can be a display name, a frame, or
 nil (meaning the selected frame's display).
 
+For instance, to check whether the display supports underlining:
+
+  (display-supports-face-attributes-p \\='(:underline t))
+
 The definition of `supported' is somewhat heuristic, but basically means
 that a face containing all the attributes in ATTRIBUTES, when merged
 with the default face for display, can be represented in a way that's
