@@ -105,7 +105,7 @@ window of another Emacs frame.  @xref{Child Frames}.
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shape::               Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
-* Yanking Media::           Yanking things that aren't plain text.
+* Yanking Media::               Yanking things that aren't plain text.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::                 Getting the definitions of color names.
 * Text Terminal Colors::        Defining colors for text terminals.
@@ -3925,7 +3925,7 @@ names of @code{gui-get-selection} and @code{gui-set-selection} before
 Emacs 25.1.
 
 @node Yanking Media
-@subsection Yanking Media
+@section Yanking Media
 
   If you choose, for instance, ``Copy Image'' in a web browser, that
 image is put onto the clipboard, and Emacs can access it via
