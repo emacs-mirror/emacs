@@ -65,7 +65,7 @@
                                 result))))
               (test-re
                (lambda (orig regexp)
-                 (should (string-match (concat "^" regexp "$")
+                 (should (string-match (concat "\\`" regexp "\\'")
                                        (substitute-command-keys orig))))))
      ,@body))
 
