@@ -388,6 +388,15 @@ EWW buffers will be renamed after rendering a document.  If this is
 can also be a user-defined function, which is called with no
 parameters in the EWW buffer, and should return a string.
 
+@cindex utm
+@vindex eww-url-transformers
+  EWW runs the URLs through @code{eww-url-transformers} before using
+them.  This user option is a list of functions, where each function is
+called with the URL as the parameter, and should return the (possibly)
+transformed URL.  By default, this variable contains
+@code{eww-remove-tracking}, which removes the common @samp{utm_}
+trackers from links.
+
 @node Command Line
 @chapter Command Line Usage
 

@@ -222,6 +222,13 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 ---
 *** HTML Mode now supports text/html and image/* yanking.
 
+** eww
+
++++
+*** New user option 'eww-url-transformers'.
+These are used to alter an URL before using it.  By default it removes
+the common utm_ trackers from URLs.
+
 ** Gnus
 
 +++
