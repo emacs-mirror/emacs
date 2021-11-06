@@ -91,6 +91,9 @@ buffer is already open.  Now, the old point is pushed to mark ring.
 *** New key bindings in *Help* buffers: 'n' and 'p'.
 These will take you (respectively) to the next and previous "page".
 
+---
+*** 'describe-char' now also outputs the name of emoji combinations.
+
 ** Outline Minor Mode
 
 +++
