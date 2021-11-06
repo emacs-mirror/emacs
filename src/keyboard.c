@@ -11331,6 +11331,8 @@ The elements of this list correspond to the arguments of
 DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 4, 0,
        doc: /* Return position information for pixel coordinates X and Y.
 By default, X and Y are relative to text area of the selected window.
+Note that the text area includes the header-line and the tab-line of
+the window, if any of them are present.
 Optional third arg FRAME-OR-WINDOW non-nil specifies frame or window.
 If optional fourth arg WHOLE is non-nil, X is relative to the left
 edge of the window.

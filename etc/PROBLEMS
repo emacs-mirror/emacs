@@ -123,98 +123,6 @@ load-path.
 
 * Crash bugs
 
-** Emacs crashes when running in a terminal, if compiled with GCC 4.5.0
-
-This version of GCC is buggy: see
-
-  https://debbugs.gnu.org/6031
-  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43904
-
-You can work around this error in gcc-4.5 by omitting sibling call
-optimization.  To do this, configure Emacs with
-
- ./configure CFLAGS="-g -O2 -fno-optimize-sibling-calls"
-
-** Emacs compiled with GCC 4.6.1 crashes on MS-Windows when C-g is pressed
-
-This is known to happen when Emacs is compiled with MinGW GCC 4.6.1
-with the -O2 option (which is the default in the Windows build).  The
-reason is a bug in MinGW GCC 4.6.1; to work around, either add the
-'-fno-omit-frame-pointer' switch to GCC or compile without
-optimizations ('--no-opt' switch to the configure.bat script).
-
-** Emacs crashes in x-popup-dialog.
-
-This can happen if the dialog widget cannot find the font it wants to
-use.  You can work around the problem by specifying another font with
-an X resource--for example, 'Emacs.dialog*.font: 9x15' (or any font that
-happens to exist on your X server).
-
-** Emacs crashes when you use Bibtex mode.
-
-This happens if your system puts a small limit on stack size.  You can
-prevent the problem by using a suitable shell command (often 'ulimit')
-to raise the stack size limit before you run Emacs.
-
-Patches to raise the stack size limit automatically in 'main'
-(src/emacs.c) on various systems would be greatly appreciated.
-
-** Error message 'Symbol’s value as variable is void: x', followed by
-a segmentation fault and core dump.
-
-This has been tracked to a bug in tar!  People report that tar erroneously
-added a line like this at the beginning of files of Lisp code:
-
-   x FILENAME, N bytes, B tape blocks
-
-If your tar has this problem, install GNU tar--if you can manage to
-untar it :-).
-
-** Emacs can crash when displaying PNG images with transparency.
-
-This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug should
-be fixed in ImageMagick 6.8.3-10.  See <URL:https://debbugs.gnu.org/13867>.
-
-** Crashes when displaying GIF images in Emacs built with version
-libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
-Configure checks for the correct version, but this problem could occur
-if a binary built against a shared libungif is run on a system with an
-older version.
-
-** SVG images may be cropped incorrectly with librsvg 2.45 and below.
-Librsvg 2.46 and above have improved geometry code which Emacs is able
-to take advantage of.
-
-** Emacs aborts inside the function 'tparam1'.
-
-This can happen if Emacs was built without terminfo support, but the
-terminal's capabilities use format that is only supported by terminfo.
-If your system has ncurses installed, this might happen if your
-version of ncurses is broken; upgrading to a newer version of ncurses
-and reconfiguring and rebuilding Emacs should solve this.
-
-All modern systems support terminfo, so even if ncurses is not the
-problem, you should look for a way to configure Emacs so that it uses
-terminfo when built.
-
-** Emacs crashes when using some version of the Exceed X server.
-
-Upgrading to a newer version of Exceed has been reported to prevent
-these crashes.  You should consider switching to a free X server, such
-as Xming or Cygwin/X.
-
-** Emacs crashes with SIGSEGV in XtInitializeWidgetClass.
-
-It crashes on X, but runs fine when called with option "-nw".
-
-This has been observed when Emacs is linked with GNU ld but without passing
-the -z nocombreloc flag.  Emacs normally knows to pass the -z nocombreloc
-flag when needed, so if you come across a situation where the flag is
-necessary but missing, please report it via M-x report-emacs-bug.
-
-On platforms such as Solaris, you can also work around this problem by
-configuring your compiler to use the native linker instead of GNU ld.
-
 ** When Emacs is compiled with Gtk+, closing a display kills Emacs.
 
 There is a long-standing bug in GTK that prevents it from recovering
@@ -270,11 +178,27 @@ The relevant bug report is here:
 A workaround is to set XLIB_SKIP_ARGB_VISUALS=1 in the environment
 before starting Emacs, or run Emacs as root.
 
+** Emacs crashes with SIGTRAP when trying to start a WebKit xwidget.
+
+This could happen if the version of WebKitGTK installed on your system
+is buggy, and errors out trying to start a subprocess through
+Bubblewrap sandboxing.  You can avoid the crash by setting the
+environment variables SNAP, SNAP_NAME and SNAP_REVISION, which will
+make WebKit use GLib to launch subprocesses instead.
+
 ** Emacs crashes when you try to view a file with complex characters.
 
 One possible reason for this could be a bug in the libotf or the
 libm17n-flt/m17n-db libraries Emacs uses for displaying complex
-scripts.  Make sure you have the latest versions of these libraries
+scripts.
+
+The easiest and the recommended way of solving these crashes is to
+build Emacs with HarfBuzz as the shaping engine library instead of
+libm17n-flt.  Building with HarfBuzz is the default since Emacs 27.1.
+
+If you must use libm17n-flt, read on.
+
+Make sure you have the latest versions of these libraries
 installed.  If the problem still persists with the latest released
 versions of these libraries, you can try building these libraries from
 their CVS repository:
@@ -321,6 +245,98 @@ wrapper shell script (or function) "emacs" that removes the offending
 element from LD_LIBRARY_PATH before starting emacs proper.
 Or you could recompile Emacs with an -Wl,-rpath option that
 gives the location of the correct libotf.
+
+** Emacs crashes in x-popup-dialog.
+
+This can happen if the dialog widget cannot find the font it wants to
+use.  You can work around the problem by specifying another font with
+an X resource--for example, 'Emacs.dialog*.font: 9x15' (or any font that
+happens to exist on your X server).
+
+** Emacs crashes when you use Bibtex mode.
+
+This happens if your system puts a small limit on stack size.  You can
+prevent the problem by using a suitable shell command (often 'ulimit')
+to raise the stack size limit before you run Emacs.
+
+Patches to raise the stack size limit automatically in 'main'
+(src/emacs.c) on various systems would be greatly appreciated.
+
+** Error message 'Symbol’s value as variable is void: x', followed by
+a segmentation fault and core dump.
+
+This has been tracked to a bug in tar!  People report that tar erroneously
+added a line like this at the beginning of files of Lisp code:
+
+   x FILENAME, N bytes, B tape blocks
+
+If your tar has this problem, install GNU tar--if you can manage to
+untar it :-).
+
+** Emacs crashes when running in a terminal, if compiled with GCC 4.5.0
+
+This version of GCC is buggy: see
+
+  https://debbugs.gnu.org/6031
+  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43904
+
+You can work around this error in gcc-4.5 by omitting sibling call
+optimization.  To do this, configure Emacs with
+
+ ./configure CFLAGS="-g -O2 -fno-optimize-sibling-calls"
+
+** Emacs compiled with GCC 4.6.1 crashes on MS-Windows when C-g is pressed
+
+This is known to happen when Emacs is compiled with MinGW GCC 4.6.1
+with the -O2 option (which is the default in the Windows build).  The
+reason is a bug in MinGW GCC 4.6.1; to work around, either add the
+'-fno-omit-frame-pointer' switch to GCC or compile without
+optimizations ('--no-opt' switch to the configure.bat script).
+
+** Emacs can crash when displaying PNG images with transparency.
+
+This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug should
+be fixed in ImageMagick 6.8.3-10.  See <URL:https://debbugs.gnu.org/13867>.
+
+** Crashes when displaying GIF images in Emacs built with version
+libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
+Configure checks for the correct version, but this problem could occur
+if a binary built against a shared libungif is run on a system with an
+older version.
+
+** SVG images may be cropped incorrectly with librsvg 2.45 and below.
+Librsvg 2.46 and above have improved geometry code which Emacs is able
+to take advantage of.
+
+** Emacs aborts inside the function 'tparam1'.
+
+This can happen if Emacs was built without terminfo support, but the
+terminal's capabilities use format that is only supported by terminfo.
+If your system has ncurses installed, this might happen if your
+version of ncurses is broken; upgrading to a newer version of ncurses
+and reconfiguring and rebuilding Emacs should solve this.
+
+All modern systems support terminfo, so even if ncurses is not the
+problem, you should look for a way to configure Emacs so that it uses
+terminfo when built.
+
+** Emacs crashes when using some version of the Exceed X server.
+
+Upgrading to a newer version of Exceed has been reported to prevent
+these crashes.  You should consider switching to a free X server, such
+as Xming or Cygwin/X.
+
+** Emacs crashes with SIGSEGV in XtInitializeWidgetClass.
+
+It crashes on X, but runs fine when called with option "-nw".
+
+This has been observed when Emacs is linked with GNU ld but without passing
+the -z nocombreloc flag.  Emacs normally knows to pass the -z nocombreloc
+flag when needed, so if you come across a situation where the flag is
+necessary but missing, please report it via M-x report-emacs-bug.
+
+On platforms such as Solaris, you can also work around this problem by
+configuring your compiler to use the native linker instead of GNU ld.
 
 * Problems when reading or debugging Emacs C code
 

@@ -131,8 +131,8 @@ including for the case where @var{object} is a deleted window.
        |______________ Header Line ______________|  | |
      ^ |LS|LM|LF|                       |RF|RM|RS|  | |
      | |  |  |  |                       |  |  |  |  | |
-Window |  |  |  |       Text Area       |  |  |  |  | Window
-Body | |  |  |  |     (Window Body)     |  |  |  |  | Total
+Window |  |  |  |                       |  |  |  |  | Window
+Body | |  |  |  |      Window Body      |  |  |  |  | Total
 Height |  |  |  |                       |  |  |  |  | Height
      | |  |  |  |<- Window Body Width ->|  |  |  |  | |
      v |__|__|__|_______________________|__|__|__|  | |
@@ -145,27 +145,29 @@ Height |  |  |  |                       |  |  |  |  | Height
 @end smallexample
 
 @cindex window body
-@cindex text area of a window
 @cindex body of a window
 @cindex window decorations
 @cindex left and right window decorations
 @cindex top and bottom window decorations
-  At the center of that window is the @dfn{text area}, or @dfn{body},
-where the buffer text is displayed.  The text area can be surrounded by
-a series of optional areas which we will call @dfn{window decorations}.
-On the left and right, from innermost to outermost, these are the left
-and right fringes, denoted by LF and RF (@pxref{Fringes}); the left and
-right margins, denoted by LM and RM in the schematic (@pxref{Display
+  At the center of that window is the @dfn{body}, where the buffer
+text is displayed.  The body can be surrounded by a series of optional
+areas which we will call @dfn{window decorations}.  On the left and
+right, from innermost to outermost, these are the left and right
+fringes, denoted by LF and RF (@pxref{Fringes}); the left and right
+margins, denoted by LM and RM in the schematic (@pxref{Display
 Margins}); the left or right vertical scroll bar, only one of which is
-present at any time, denoted by LS and RS (@pxref{Scroll Bars}); and the
-right divider, denoted by RD (@pxref{Window Dividers}).  Together these
-are the window's @dfn{left and right decorations}.
+present at any time, denoted by LS and RS (@pxref{Scroll Bars}); and
+the right divider, denoted by RD (@pxref{Window Dividers}).  Together
+these are the window's @dfn{left and right decorations}.
 
+@cindex text area of a window
   At the top of the window are the tab line and the header line
-(@pxref{Header Lines}).  At the bottom of the window are the horizontal
-scroll bar (@pxref{Scroll Bars}); the mode line (@pxref{Mode Line
-Format}); and the bottom divider (@pxref{Window Dividers}).  Together
-these form the window's @dfn{top and bottom decorations}.
+(@pxref{Header Lines}).  The @dfn{text area} of the window includes
+the header line and the tab line, if they are present in the window.
+At the bottom of the window are the horizontal scroll bar
+(@pxref{Scroll Bars}); the mode line (@pxref{Mode Line Format}); and
+the bottom divider (@pxref{Window Dividers}).  Together these form the
+window's @dfn{top and bottom decorations}.
 
   There are two special areas omitted in the schematic:
 
@@ -818,7 +820,7 @@ that of the root window on that frame.  If @var{window} is omitted or
 
 @cindex window body height
 @cindex body height of a window
-The @dfn{body height} of a window is the height of its text area, which
+The @dfn{body height} of a window is the height of its body, which
 does not include any of its top or bottom decorations (@pxref{Basic
 Windows}).
 
@@ -839,9 +841,9 @@ exceed its total height as returned by @code{window-total-height}.
 
 @cindex window body width
 @cindex body width of a window
-The @dfn{body width} of a window is the width of its text area, which
-does not include any of its left or right decorations (@pxref{Basic
-Windows}).
+The @dfn{body width} of a window is the width of its body and of the
+text area, which does not include any of its left or right decorations
+(@pxref{Basic Windows}).
 
 Note that when one or both fringes are removed (by setting their width
 to zero), the display engine reserves two character cells, one on each
@@ -1014,8 +1016,8 @@ Normally, the variables @code{window-min-height} and
 is non-@code{nil}, this function ignores @code{window-min-height} and
 @code{window-min-width}, as well as @code{window-size-fixed}.  Instead,
 it considers the minimum height of a window as the sum of its top and
-bottom decorations plus a text area of one line; and its minimum width
-as the sum of its left and right decorations plus a text area of two
+bottom decorations plus the text of one line; and its minimum width
+as the sum of its left and right decorations plus text that takes two
 columns.
 
 If the optional argument @var{pixelwise} is non-@code{nil},
@@ -1355,7 +1357,7 @@ Sizes}).  Thus, it signals an error if splitting would result in making
 a window smaller than those variables specify.  However, a
 non-@code{nil} value for @var{size} causes those variables to be
 ignored; in that case, the smallest allowable window is considered to be
-one that has space for a text area one line tall and/or two columns
+one that has space for a text that is one line tall and/or two columns
 wide.
 
 Hence, if @var{size} is specified, it's the caller's responsibility to
@@ -5201,7 +5203,7 @@ window.
 If @var{count} is negative, it scrolls backward instead.  If
 @var{count} is @code{nil} (or omitted), the distance scrolled is
 @code{next-screen-context-lines} lines less than the height of the
-window's text area.
+window's body.
 
 If the selected window cannot be scrolled any further, this function
 signals an error.  Otherwise, it returns @code{nil}.
@@ -5701,8 +5703,8 @@ and its neighbor.
 If the optional argument @var{body} is @code{nil}, this means to
 return the edges corresponding to the total size of @var{window}.
 @var{body} non-@code{nil} means to return the edges of @var{window}'s
-body (aka text area).  If @var{body} is non-@code{nil}, @var{window}
-must specify a live window.
+body.  If @var{body} is non-@code{nil}, @var{window} must specify a
+live window.
 
 If the optional argument @var{absolute} is @code{nil}, this means to
 return edges relative to the native position of @var{window}'s frame.
