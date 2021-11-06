@@ -3338,9 +3338,11 @@ or the active region if that is set."
                    (re-search-backward reorder-starters nil t)))
                 (finish
                  (save-excursion
-                   (re-search-forward reorder-enders nil t))))
+                   (let ((fin (re-search-forward reorder-enders nil t)))
+                     (if fin (1- fin)
+                       (point-max))))))
             (with-silent-modifications
-              (add-text-properties start (1- finish)
+              (add-text-properties start finish
                                    '(font-lock-face
                                      confusingly-reordered
                                      face confusingly-reordered
