@@ -32,6 +32,9 @@
 (require 'elec-pair)
 (require 'cl-lib)
 
+;; When running tests in c-mode, use single-line comments (//).
+(add-hook 'c-mode-hook (lambda () (c-toggle-comment-style -1)))
+
 (defun call-with-saved-electric-modes (fn)
   (let ((saved-electric (if electric-pair-mode 1 -1))
         (saved-layout (if electric-layout-mode 1 -1))
@@ -176,7 +179,7 @@ The buffer's contents should %s:
           expected-string
           expected-point
           bindings
-          (modes '(quote (ruby-mode js-mode python-mode)))
+          (modes '(quote (ruby-mode js-mode python-mode c-mode)))
           (test-in-comments t)
           (test-in-strings t)
           (test-in-code t)

@@ -2636,17 +2636,24 @@ This function is called from `c-common-init', once per mode initialization."
 
 At the time of call, point is just after the newly inserted CHAR.
 
-When CHAR is \", t will be returned unless the \" is marked with
-a string fence syntax-table text property.  For other characters,
-the default value of `electric-pair-inhibit-predicate' is called
-and its value returned.
+When CHAR is \" and not within a comment, t will be returned if
+the quotes on the current line are already balanced (i.e. if the
+last \" is not marked with a string fence syntax-table text
+property).  For other cases, the default value of
+`electric-pair-inhibit-predicate' is called and its value
+returned.
 
 This function is the appropriate value of
 `electric-pair-inhibit-predicate' for CC Mode modes, which mark
 invalid strings with such a syntax table text property on the
 opening \" and the next unescaped end of line."
-  (if (eq char ?\")
-      (not (equal (get-text-property (1- (point)) 'c-fl-syn-tab) '(15)))
+  (if (and (eq char ?\")
+	   (not (memq (cadr (c-semi-pp-to-literal (1- (point)))) '(c c++))))
+      (let ((last-quote (save-match-data
+			  (save-excursion
+			    (goto-char (c-point 'eoll))
+			    (search-backward "\"")))))
+	(not (equal (c-get-char-property last-quote 'c-fl-syn-tab) '(15))))
     (funcall (default-value 'electric-pair-inhibit-predicate) char)))
 
 
