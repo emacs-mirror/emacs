@@ -220,7 +220,7 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 *** Message Mode now supports image yanking.
 
 ---
-*** HTML Mode now supports text/html yanking.
+*** HTML Mode now supports text/html and image/* yanking.
 
 ** Gnus
 

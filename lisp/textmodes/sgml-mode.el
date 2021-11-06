@@ -2416,6 +2416,7 @@ To work around that, do:
 
   (setq imenu-create-index-function 'html-imenu-index)
   (register-yank-media-handler 'text/html #'html-mode--html-yank-handler)
+  (register-yank-media-handler "image/.*" #'html-mode--image-yank-handler)
 
   (setq-local sgml-empty-tags
 	      ;; From HTML-4.01's loose.dtd, parsed with
@@ -2435,6 +2436,24 @@ To work around that, do:
   (save-restriction
     (insert html)
     (sgml-pretty-print (point-min) (point-max))))
+
+(defun html-mode--image-yank-handler (type image)
+  (let ((file (read-file-name "Save %s image to: ")))
+    (when (file-directory-p file)
+      (user-error "%s is a directory"))
+    (when (and (file-exists-p file)
+               (not (yes-or-no-p "%s exists; overwrite?")))
+      (user-error "%s exists"))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (insert image)
+      (write-region (point-min) (point-max) file))
+    (insert-image
+     (create-image file (mailcap-mime-type-to-extension type) nil
+		   :max-width 200
+		   :max-height 200)
+     " ")
+    (insert (format "<img src=%S>\n" (file-relative-name file)))))
 
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
