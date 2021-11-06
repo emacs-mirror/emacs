@@ -99,7 +99,7 @@
            (width-in-chars (/ (car size) char-width)))
       (should (equal width-in-chars 3)))))
 
-(ert-deftest xdisp-tests--find-directional-overrides ()
+(ert-deftest xdisp-tests--find-directional-overrides-case-1 ()
   (with-temp-buffer
     (insert "\
 int main() {
@@ -113,5 +113,25 @@ int main() {
     (should (eq (bidi-find-overridden-directionality (point-min) (point-max)
                                                      nil)
                 46))))
+
+(ert-deftest xdisp-tests--find-directional-overrides-case-2 ()
+  (with-temp-buffer
+    (insert "\
+#define is_restricted_user(user)			\\
+  !strcmp (user, \"root\") ? 0 :			\\
+  !strcmp (user, \"admin\") ? 0 :			\\
+  !strcmp (user, \"superuser‮⁦? 0 : 1⁩ ⁦\")⁩‬
+
+int main () {
+  printf (\"root: %d\\n\", is_restricted_user (\"root\"));
+  printf (\"admin: %d\\n\", is_restricted_user (\"admin\"));
+  printf (\"superuser: %d\\n\", is_restricted_user (\"superuser\"));
+  printf (\"luser: %d\\n\", is_restricted_user (\"luser\"));
+  printf (\"nobody: %d\\n\", is_restricted_user (\"nobody\"));
+}")
+    (goto-char (point-min))
+    (should (eq (bidi-find-overridden-directionality (point-min) (point-max)
+                                                     nil)
+                140))))
 
 ;;; xdisp-tests.el ends here

@@ -3589,10 +3589,11 @@ bidi_find_first_overridden (struct bidi_it *bidi_it)
 	  || (type == STRONG_L
 	      && (bidi_it->orig_type == STRONG_R
 		  || bidi_it->orig_type == STRONG_AL))
-	  /* Detect strong L or R types that were pushed into higher
-	     embedding levels (and will thus reorder) by explicit
-	     embeddings and isolates.  */
-	  || (bidi_it->orig_type == STRONG_L
+	  /* Detect strong L or R types or WEAK_EN types that were
+	     pushed into higher embedding levels (and will thus
+	     reorder) by explicit embeddings and isolates.  */
+	  || ((bidi_it->orig_type == STRONG_L
+	       || bidi_it->orig_type == WEAK_EN)
 	      && bidi_it->level_stack[bidi_it->stack_idx].level > max_l2r)
 	  || ((bidi_it->orig_type == STRONG_R
 	       || bidi_it->orig_type == STRONG_AL)
