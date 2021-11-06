@@ -88,6 +88,9 @@ This returns the result of `make-xwidget'."
 (require 'seq)
 (require 'url-handlers)
 
+(defvar-local xwidget-webkit--title ""
+  "The title of the WebKit widget, used for the header line.")
+
 ;;;###autoload
 (defun xwidget-webkit-browse-url (url &optional new-session)
   "Ask xwidget-webkit to browse URL.
@@ -335,6 +338,8 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
     (with-current-buffer (xwidget-buffer xwidget)
       (cond ((eq xwidget-event-type 'load-changed)
              (let ((title (xwidget-webkit-title xwidget)))
+               (setq xwidget-webkit--title title)
+               (force-mode-line-update)
                (xwidget-log "webkit finished loading: %s" title)
                ;; Do not adjust webkit size to window here, the selected window
                ;; can be the mini-buffer window unwantedly.
@@ -371,6 +376,7 @@ If non-nil, plugins are enabled.  Otherwise, disabled."
   (setq-local tool-bar-map xwidget-webkit-tool-bar-map)
   (setq-local bookmark-make-record-function
               #'xwidget-webkit-bookmark-make-record)
+  (setq-local header-line-format 'xwidget-webkit--title)
   ;; Keep track of [vh]scroll when switching buffers
   (image-mode-setup-winprops))
 
