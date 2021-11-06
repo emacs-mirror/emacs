@@ -625,6 +625,7 @@ function argument.  If DATA isn't present (or is nil), the button
 itself will be used instead as the function argument."
   (propertize string
               'face 'button
+              'mouse-face 'highlight
               'button t
               'follow-link t
               'category t
