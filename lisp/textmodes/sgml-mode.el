@@ -2415,6 +2415,7 @@ To work around that, do:
     (setq-local css-id-list-function #'html-current-buffer-ids))
 
   (setq imenu-create-index-function 'html-imenu-index)
+  (register-yank-media-handler 'text/html #'html-mode--html-yank-handler)
 
   (setq-local sgml-empty-tags
 	      ;; From HTML-4.01's loose.dtd, parsed with
@@ -2429,6 +2430,11 @@ To work around that, do:
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
   )
+
+(defun html-mode--html-yank-handler (_type html)
+  (save-restriction
+    (insert html)
+    (sgml-pretty-print (point-min) (point-max))))
 
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
