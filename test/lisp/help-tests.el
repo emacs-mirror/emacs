@@ -93,7 +93,7 @@
    (test "\\{minibuffer-local-must-match-map}"
          "
 Key             Binding
--------------------------------------------------------------------------------
+
 C-g		abort-minibuffers
 TAB		minibuffer-complete
 C-j		minibuffer-complete-and-exit
@@ -246,7 +246,7 @@ M-g M-c		switch-to-completions
      (test "\\{help-tests-major-mode-map}"
            "
 Key             Binding
--------------------------------------------------------------------------------
+
 ( .. )		short-range
 1 .. 4		foo-range
 a .. c		foo-other-range
@@ -264,7 +264,7 @@ x		foo-original
      (test "\\{help-tests-major-mode-map}"
            "
 Key             Binding
--------------------------------------------------------------------------------
+
 ( .. )		short-range
 1 .. 4		foo-range
 a .. c		foo-other-range
@@ -285,7 +285,7 @@ x		foo-original
       (test "\\{help-tests-major-mode-map}"
             "
 Key             Binding
--------------------------------------------------------------------------------
+
 <remap> <foo>	bar
 ")))))
 
@@ -300,7 +300,7 @@ Key             Binding
       (describe-map-tree map nil nil nil nil t nil nil nil)
       (should (equal (buffer-string) "
 Key             Binding
--------------------------------------------------------------------------------
+
 C-a		foo
 ")))))
 
@@ -315,7 +315,7 @@ C-a		foo
       (describe-map-tree map nil nil nil nil nil nil nil nil)
       (should (equal (buffer-string) "
 Key             Binding
--------------------------------------------------------------------------------
+
 C-a		foo
 
 <menu-bar> <foo>	foo
@@ -330,7 +330,7 @@ C-a		foo
       (describe-map-tree map t shadow-maps nil nil t nil nil t)
       (should (equal (buffer-string) "
 Key             Binding
--------------------------------------------------------------------------------
+
 C-a		foo
   (this binding is currently shadowed)
 C-b		bar
@@ -345,7 +345,7 @@ C-b		bar
       (describe-map-tree map t shadow-maps nil nil t nil nil nil)
       (should (equal (buffer-string) "
 Key             Binding
--------------------------------------------------------------------------------
+
 C-b		bar
 ")))))
 
@@ -357,7 +357,7 @@ C-b		bar
       (describe-map-tree map t nil nil nil nil nil nil nil)
       (should (equal (buffer-string) "
 Key             Binding
--------------------------------------------------------------------------------
+
 C-a		foo
 ")))))
 
@@ -369,7 +369,7 @@ C-a		foo
       (describe-map-tree map nil nil nil nil nil nil nil nil)
       (should (equal (buffer-string) "
 Key             Binding
--------------------------------------------------------------------------------
+
 C-a		foo
 C-b		undefined
 ")))))
