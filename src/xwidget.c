@@ -142,6 +142,7 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
   xw->widgetwindow_osr = NULL;
   xw->widget_osr = NULL;
   xw->hit_result = 0;
+  xw->find_text = NULL;
   if (EQ (xw->type, Qwebkit))
     {
       block_input ();
@@ -1759,6 +1760,166 @@ DEFUN ("xwidget-query-on-exit-flag",
   return (XXWIDGET (xwidget)->kill_without_query ? Qnil : Qt);
 }
 
+DEFUN ("xwidget-webkit-search", Fxwidget_webkit_search, Sxwidget_webkit_search,
+       2, 5, 0,
+       doc: /* Begin an incremental search operation in an xwidget.
+QUERY should be a string containing the text to search for.  XWIDGET
+should be a WebKit xwidget where the search will take place.  When the
+search operation is complete, callers should also call
+`xwidget-webkit-finish-search' to complete the search operation.
+
+CASE-INSENSITIVE, when non-nil, will cause the search to ignore the
+case of characters inside QUERY.  BACKWARDS, when non-nil, will cause
+the search to proceed towards the beginning of the widget's contents.
+WRAP-AROUND, when nil, will cause the search to stop upon hitting the
+end of the widget's contents.
+
+It is OK to call this function even when a search is already in
+progress.  In that case, the previous search query will be replaced
+with QUERY.  */)
+  (Lisp_Object query, Lisp_Object xwidget, Lisp_Object case_insensitive,
+   Lisp_Object backwards, Lisp_Object wrap_around)
+{
+#ifdef USE_GTK
+  WebKitWebView *webview;
+  WebKitFindController *controller;
+  WebKitFindOptions opt;
+  struct xwidget *xw;
+  gchar *g_query;
+#endif
+
+  CHECK_STRING (query);
+  CHECK_XWIDGET (xwidget);
+
+#ifdef USE_GTK
+  xw = XXWIDGET (xwidget);
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  query = ENCODE_UTF_8 (query);
+  opt = WEBKIT_FIND_OPTIONS_NONE;
+  g_query = xstrdup (SSDATA (query));
+
+  if (!NILP (case_insensitive))
+    opt |= WEBKIT_FIND_OPTIONS_CASE_INSENSITIVE;
+  if (!NILP (backwards))
+    opt |= WEBKIT_FIND_OPTIONS_BACKWARDS;
+  if (!NILP (wrap_around))
+    opt |= WEBKIT_FIND_OPTIONS_WRAP_AROUND;
+
+  if (xw->find_text)
+    xfree (xw->find_text);
+  xw->find_text = g_query;
+
+  block_input ();
+  controller = webkit_web_view_get_find_controller (webview);
+  webkit_find_controller_search (controller, g_query, opt, G_MAXUINT);
+  unblock_input ();
+#endif
+
+  return Qnil;
+}
+
+DEFUN ("xwidget-webkit-next-result", Fxwidget_webkit_next_result,
+       Sxwidget_webkit_next_result, 1, 1, 0,
+       doc: /* Show the next result matching the current search query.
+
+XWIDGET should be an xwidget that currently has a search query.
+Before calling this function, you should start a search operation
+using `xwidget-webkit-search'.  */)
+  (Lisp_Object xwidget)
+{
+  struct xwidget *xw;
+#ifdef USE_GTK
+  WebKitWebView *webview;
+  WebKitFindController *controller;
+#endif
+
+  CHECK_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+
+  if (!xw->find_text)
+    error ("Widget has no ongoing search operation");
+
+#ifdef USE_GTK
+  block_input ();
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  controller = webkit_web_view_get_find_controller (webview);
+  webkit_find_controller_search_next (controller);
+  unblock_input ();
+#endif
+
+  return Qnil;
+}
+
+DEFUN ("xwidget-webkit-previous-result", Fxwidget_webkit_previous_result,
+       Sxwidget_webkit_previous_result, 1, 1, 0,
+       doc: /* Show the previous result matching the current search query.
+
+XWIDGET should be an xwidget that currently has a search query.
+Before calling this function, you should start a search operation
+using `xwidget-webkit-search'.  */)
+  (Lisp_Object xwidget)
+{
+  struct xwidget *xw;
+#ifdef USE_GTK
+  WebKitWebView *webview;
+  WebKitFindController *controller;
+#endif
+
+  CHECK_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+
+  if (!xw->find_text)
+    error ("Widget has no ongoing search operation");
+
+#ifdef USE_GTK
+  block_input ();
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  controller = webkit_web_view_get_find_controller (webview);
+  webkit_find_controller_search_previous (controller);
+
+  if (xw->find_text)
+    {
+      xfree (xw->find_text);
+      xw->find_text = NULL;
+    }
+  unblock_input ();
+#endif
+
+  return Qnil;
+}
+
+DEFUN ("xwidget-webkit-finish-search", Fxwidget_webkit_finish_search,
+       Sxwidget_webkit_finish_search, 1, 1, 0,
+       doc: /* Finish XWIDGET's search operation.
+
+XWIDGET should be an xwidget that currently has a search query.
+Before calling this function, you should start a search operation
+using `xwidget-webkit-search'.  */)
+  (Lisp_Object xwidget)
+{
+  struct xwidget *xw;
+#ifdef USE_GTK
+  WebKitWebView *webview;
+  WebKitFindController *controller;
+#endif
+
+  CHECK_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+
+  if (!xw->find_text)
+    error ("Widget has no ongoing search operation");
+
+#ifdef USE_GTK
+  block_input ();
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  controller = webkit_web_view_get_find_controller (webview);
+  webkit_find_controller_search_finish (controller);
+  unblock_input ();
+#endif
+
+  return Qnil;
+}
+
 void
 syms_of_xwidget (void)
 {
@@ -1792,6 +1953,10 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_buffer);
   defsubr (&Sset_xwidget_plist);
   defsubr (&Sxwidget_perform_lispy_event);
+  defsubr (&Sxwidget_webkit_search);
+  defsubr (&Sxwidget_webkit_finish_search);
+  defsubr (&Sxwidget_webkit_next_result);
+  defsubr (&Sxwidget_webkit_previous_result);
 
   DEFSYM (QCxwidget, ":xwidget");
   DEFSYM (QCtitle, ":title");
@@ -2050,6 +2215,8 @@ kill_buffer_xwidgets (Lisp_Object buffer)
             gtk_widget_destroy (xw->widget_osr);
             gtk_widget_destroy (xw->widgetwindow_osr);
           }
+	if (xw->find_text)
+	  xfree (xw->find_text);
 	if (!NILP (xw->script_callbacks))
 	  for (ptrdiff_t idx = 0; idx < ASIZE (xw->script_callbacks); idx++)
 	    {

@@ -741,6 +741,11 @@ what the widget will actually receive.
 On GTK+, only key and function key events are implemented.
 
 +++
+** New functions for performing searches on WebKit xwidgets.
+Some new functions, such as `xwidget-webkit-search', have been added
+for performing searches on WebKit xwidgets.
+
++++
 ** `load-changed' xwidget events are now more detailed.
 In particular, they can now have different arguments based on the
 state of the WebKit widget.  `load-finished' is sent when a load has

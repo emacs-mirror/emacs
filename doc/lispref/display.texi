@@ -6896,6 +6896,46 @@ through Lisp code, and as such shouldn't require this function to be
 sent.
 @end defun
 
+@defun xwidget-webkit-search query xwidget &optional case-insensitive backwards wrap-around
+Start an incremental search on the WebKit widget @var{xwidget} with
+the string @var{query} as a query.  @var{case-insensitive} denotes
+whether or not the search is case-insensitive, @var{backwards}
+determines if the search is performed backwards towards the start of
+the document, and @var{wrap-around} determines whether or not the
+search terminates at the end of the document.
+
+If the function is called while a search query is already present,
+then the query specified here will replace the existing query.
+
+To stop a search query, use @code{xwidget-webkit-finish-search}.
+@end defun
+
+@defun xwidget-webkit-next-result xwidget
+Display the next search result in @var{xwidget}.  This function will
+error unless a search query has already been started in @var{xwidget}
+through @code{xwidget-webkit-search}.
+
+If @code{wrap-around} was non-nil when @code{xwidget-webkit-search}
+was called, then the search will restart from the beginning of the
+document if the end is reached.
+@end defun
+
+@defun xwidget-webkit-previous-result xwidget
+Display the previous search result in @var{xwidget}.  This function
+will error unless a search query has already been started in
+@var{xwidget} through @code{xwidget-webkit-search}.
+
+If @code{wrap-around} was non-nil when @code{xwidget-webkit-search}
+was called, then the search will restart from the end of the
+document if the beginning is reached.
+@end defun
+
+@defun xwidget-webkit-finish-search xwidget
+Finish a search operation started with @code{xwidget-webkit-search} in
+@var{xwidget}.  If there is no query currently ongoing, then this
+function will error.
+@end defun
+
 @node Buttons
 @section Buttons
 @cindex buttons in buffers

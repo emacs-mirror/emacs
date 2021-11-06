@@ -68,6 +68,7 @@ struct xwidget
   GtkWidget *widget_osr;
   GtkWidget *widgetwindow_osr;
   guint hit_result;
+  gchar *find_text;
 #elif defined (NS_IMPL_COCOA)
 # ifdef __OBJC__
   /* For offscreen widgets, unused if not osr.  */
