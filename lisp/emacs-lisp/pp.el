@@ -140,8 +140,7 @@ after OUT-BUFFER-NAME."
                           (select-window window)
                           (run-hooks 'temp-buffer-show-hook))
                       (when (window-live-p old-selected)
-                        (select-window old-selected))
-                      (message "See buffer %s." out-buffer-name)))
+                        (select-window old-selected))))
                 (message "%s" (buffer-substring (point-min) (point))))))))
     (with-output-to-temp-buffer out-buffer-name
       (if lisp
