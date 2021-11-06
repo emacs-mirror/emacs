@@ -266,7 +266,9 @@ If set to nil, don't suppress any zero counters."
         (warning-type-format
          (format " [%s %s]"
                  (or sublog 'flymake)
-                 (current-buffer))))
+                 ;; Handle file names with "%" correctly.  (Bug#51549)
+                 (string-replace "%" "%%"
+                                 (buffer-name (current-buffer))))))
     (display-warning (list 'flymake sublog)
                      (apply #'format-message msg args)
                      (if (numberp level)
