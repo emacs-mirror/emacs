@@ -352,7 +352,6 @@ convert it to a string and pass it to COLLECTOR first."
 (defvar ert-resource-directory-trim-right-regexp "\\(-tests?\\)?\\.el"
   "Regexp for `string-trim' (right) used by `ert-resource-directory'.")
 
-;; Has to be a macro for `load-file-name'.
 (defmacro ert-resource-directory ()
   "Return absolute file name of the resource (test data) directory.
 
@@ -392,6 +391,17 @@ directory as returned by `ert-resource-directory'."
 (defvar ert-temp-file-suffix nil
   "Prefix used by `ert-with-temp-file' and `ert-with-temp-directory'.")
 
+(defun ert--with-temp-file-generate-suffix (filename)
+  "Generate temp file suffix from FILENAME."
+  (thread-last
+    (file-name-base filename)
+    (replace-regexp-in-string (rx string-start
+                                  (group (+? not-newline))
+                                  (regexp "-?tests?")
+                                  string-end)
+                              "\\1")
+    (concat "-")))
+
 (defmacro ert-with-temp-file (name &rest body)
   "Bind NAME to the name of a new temporary file and evaluate BODY.
 Delete the temporary file after BODY exits normally or
@@ -401,12 +411,15 @@ file.
 The following keyword arguments are supported:
 
 :prefix STRING  If non-nil, pass STRING to `make-temp-file' as
-                the PREFIX argument.  Otherwise, use the value
-                of `ert-temp-file-prefix'.
+                the PREFIX argument.  Otherwise, use the value of
+                `ert-temp-file-prefix'.
 
-:suffix STRING  If non-nil, pass STRING to `make-temp-file' as
-                the SUFFIX argument.  Otherwise, use the value
-                of `ert-temp-file-suffix'.
+:suffix STRING  If non-nil, pass STRING to `make-temp-file' as the
+                SUFFIX argument.  Otherwise, use the value of
+                `ert-temp-file-suffix'; if the value of that
+                variable is nil, generate a suffix based on the
+                name of the file that `ert-with-temp-file' is
+                called from.
 
 :text STRING    If non-nil, pass STRING to `make-temp-file' as
                 the TEXT argument.
@@ -427,7 +440,9 @@ See also `ert-with-temp-directory'."
       (error "Invalid keywords: %s" (mapconcat #'symbol-name extra-keywords " ")))
     (let ((temp-file (make-symbol "temp-file"))
           (prefix (or prefix ert-temp-file-prefix))
-          (suffix (or suffix ert-temp-file-suffix)))
+          (suffix (or suffix ert-temp-file-suffix
+                      (ert--with-temp-file-generate-suffix
+                       (or (macroexp-file-name) buffer-file-name)))))
       `(let* ((,temp-file (,(if directory 'file-name-as-directory 'identity)
                            (make-temp-file ,prefix ,directory ,suffix ,text)))
               (,name ,temp-file))
