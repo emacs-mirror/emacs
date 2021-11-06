@@ -178,6 +178,14 @@ The relevant bug report is here:
 A workaround is to set XLIB_SKIP_ARGB_VISUALS=1 in the environment
 before starting Emacs, or run Emacs as root.
 
+** Emacs crashes with SIGTRAP when trying to start a WebKit xwidget.
+
+This could happen if the version of WebKitGTK installed on your system
+is buggy, and errors out trying to start a subprocess through
+Bubblewrap sandboxing.  You can avoid the crash by setting the
+environment variables SNAP, SNAP_NAME and SNAP_REVISION, which will
+make WebKit use GLib to launch subprocesses instead.
+
 ** Emacs crashes when you try to view a file with complex characters.
 
 One possible reason for this could be a bug in the libotf or the
