@@ -868,17 +868,24 @@ webkit_view_load_changed_cb (WebKitWebView *webkitwebview,
                              WebKitLoadEvent load_event,
                              gpointer data)
 {
-  switch (load_event) {
-  case WEBKIT_LOAD_FINISHED:
+  struct xwidget *xw = g_object_get_data (G_OBJECT (webkitwebview),
+					  XG_XWIDGET);
+
+  switch (load_event)
     {
-      struct xwidget *xw = g_object_get_data (G_OBJECT (webkitwebview),
-                                              XG_XWIDGET);
-      store_xwidget_event_string (xw, "load-changed", "");
+    case WEBKIT_LOAD_FINISHED:
+      store_xwidget_event_string (xw, "load-changed", "load-finished");
+      break;
+    case WEBKIT_LOAD_STARTED:
+      store_xwidget_event_string (xw, "load-changed", "load-started");
+      break;
+    case WEBKIT_LOAD_REDIRECTED:
+      store_xwidget_event_string (xw, "load-changed", "load-redirected");
+      break;
+    case WEBKIT_LOAD_COMMITTED:
+      store_xwidget_event_string (xw, "load-changed", "load-committed");
       break;
     }
-  default:
-    break;
-  }
 }
 
 /* Recursively convert a JavaScript value to a Lisp value. */

@@ -6784,6 +6784,9 @@ xwidget object, and then use that object as the display specifier
 in a @code{display} text or overlay property (@pxref{Display
 Property}).
 
+  Embedded widgets can send events notifying Lisp code about changes
+occurring within them.  (@pxref{Xwidget Events}).
+
 @defun make-xwidget type title width height arguments &optional buffer
 This creates and returns an xwidget object.  If
 @var{buffer} is omitted or @code{nil}, it defaults to the current

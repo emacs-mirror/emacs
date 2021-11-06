@@ -740,6 +740,14 @@ what the widget will actually receive.
 
 On GTK+, only key and function key events are implemented.
 
++++
+** `load-changed' xwidget events are now more detailed.
+In particular, they can now have different arguments based on the
+state of the WebKit widget.  `load-finished' is sent when a load has
+completed, `load-started' when a load first starts, `load-redirected'
+after a redirect, and `load-committed' when the WebKit widget first
+commits to the load.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
