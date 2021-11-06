@@ -141,6 +141,7 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
 #ifdef USE_GTK
   xw->widgetwindow_osr = NULL;
   xw->widget_osr = NULL;
+  xw->hit_result = 0;
   if (EQ (xw->type, Qwebkit))
     {
       block_input ();
@@ -580,21 +581,19 @@ find_widget_at_pos (GtkWidget *w, int x, int y,
 }
 
 static Emacs_Cursor
-cursor_for_hit (WebKitHitTestResult *result,
-		struct frame *frame)
+cursor_for_hit (guint result, struct frame *frame)
 {
   Emacs_Cursor cursor = FRAME_OUTPUT_DATA (frame)->nontext_cursor;
 
-  if (webkit_hit_test_result_context_is_editable (result)
-      || webkit_hit_test_result_context_is_selection (result)
-      || (webkit_hit_test_result_get_context (result)
-	  & WEBKIT_HIT_TEST_RESULT_CONTEXT_DOCUMENT))
+  if ((result & WEBKIT_HIT_TEST_RESULT_CONTEXT_EDITABLE)
+      || (result & WEBKIT_HIT_TEST_RESULT_CONTEXT_SELECTION)
+      || (result & WEBKIT_HIT_TEST_RESULT_CONTEXT_DOCUMENT))
     cursor = FRAME_X_OUTPUT (frame)->text_cursor;
 
-  if (webkit_hit_test_result_context_is_scrollbar (result))
+  if (result & WEBKIT_HIT_TEST_RESULT_CONTEXT_SCROLLBAR)
     cursor = FRAME_X_OUTPUT (frame)->vertical_drag_cursor;
 
-  if (webkit_hit_test_result_context_is_link (result))
+  if (result & WEBKIT_HIT_TEST_RESULT_CONTEXT_LINK)
     cursor = FRAME_X_OUTPUT (frame)->hand_cursor;
 
   return cursor;
@@ -605,6 +604,8 @@ define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
 {
   struct xwidget_view *xvw;
 
+  xw->hit_result = webkit_hit_test_result_get_context (res);
+
   for (Lisp_Object tem = Vxwidget_view_list; CONSP (tem);
        tem = XCDR (tem))
     {
@@ -612,7 +613,7 @@ define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
 
       if (XXWIDGET (xvw->model) == xw)
 	{
-	  xvw->cursor = cursor_for_hit (res, xvw->frame);
+	  xvw->cursor = cursor_for_hit (xw->hit_result, xvw->frame);
 	  if (xvw->wdesc != None)
 	    XDefineCursor (xvw->dpy, xvw->wdesc, xvw->cursor);
 	}
@@ -1148,7 +1149,7 @@ xwidget_init_view (struct xwidget *xww,
 
   xv->wdesc = None;
   xv->frame = s->f;
-  xv->cursor = FRAME_X_OUTPUT (s->f)->nontext_cursor;
+  xv->cursor = cursor_for_hit (xww->hit_result, s->f);
 #elif defined NS_IMPL_COCOA
   nsxwidget_init_view (xv, xww, s, x, y);
   nsxwidget_resize_view(xv, xww->width, xww->height);

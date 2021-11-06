@@ -67,6 +67,7 @@ struct xwidget
   /* For offscreen widgets, unused if not osr.  */
   GtkWidget *widget_osr;
   GtkWidget *widgetwindow_osr;
+  guint hit_result;
 #elif defined (NS_IMPL_COCOA)
 # ifdef __OBJC__
   /* For offscreen widgets, unused if not osr.  */
