@@ -710,9 +710,10 @@ When called from Lisp code, ARG may be a prefix string to copy."
      :height 0.1 :background "#505050")
     (((type graphic) (background light))
      :height 0.1 :background "#a0a0a0")
-    (t :foreground "ForestGreen"))
+    (t
+     :foreground "ForestGreen" :underline t))
   "Face for separator lines."
-  :version "28.1"
+  :version "29.1"
   :group 'text)
 
 (defun make-separator-line (&optional length)
@@ -720,14 +721,10 @@ When called from Lisp code, ARG may be a prefix string to copy."
 This uses the `separator-line' face.
 
 If LENGTH is nil, use the window width."
-  (if (display-graphic-p)
-      (if length
-          (concat (propertize (make-string length ?\s) 'face 'separator-line)
-                  "\n")
-        (propertize "\n" 'face '(:inherit separator-line :extend t)))
-    (concat (propertize (make-string (or length (1- (window-width))) ?-)
-                        'face 'separator-line)
-            "\n")))
+  (if length
+      (concat (propertize (make-string length ?\s) 'face 'separator-line)
+              "\n")
+    (propertize "\n" 'face '(:inherit separator-line :extend t))))
 
 (defun delete-indentation (&optional arg beg end)
   "Join this line to previous and fix up whitespace at join.
