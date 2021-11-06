@@ -609,13 +609,16 @@ define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
   for (Lisp_Object tem = Vxwidget_view_list; CONSP (tem);
        tem = XCDR (tem))
     {
-      xvw = XXWIDGET_VIEW (XCAR (tem));
-
-      if (XXWIDGET (xvw->model) == xw)
+      if (XWIDGET_VIEW_P (XCAR (tem)))
 	{
-	  xvw->cursor = cursor_for_hit (xw->hit_result, xvw->frame);
-	  if (xvw->wdesc != None)
-	    XDefineCursor (xvw->dpy, xvw->wdesc, xvw->cursor);
+	  xvw = XXWIDGET_VIEW (XCAR (tem));
+
+	  if (XXWIDGET (xvw->model) == xw)
+	    {
+	      xvw->cursor = cursor_for_hit (xw->hit_result, xvw->frame);
+	      if (xvw->wdesc != None)
+		XDefineCursor (xvw->dpy, xvw->wdesc, xvw->cursor);
+	    }
 	}
     }
 }
@@ -849,10 +852,13 @@ offscreen_damage_event (GtkWidget *widget, GdkEvent *event,
   for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
        tail = XCDR (tail))
     {
-      struct xwidget_view *view = XXWIDGET_VIEW (XCAR (tail));
+      if (XWIDGET_VIEW_P (XCAR (tail)))
+	{
+	  struct xwidget_view *view = XXWIDGET_VIEW (XCAR (tail));
 
-      if (view->wdesc && XXWIDGET (view->model) == xwidget)
-	xv_do_draw (view, XXWIDGET (view->model));
+	  if (view->wdesc && XXWIDGET (view->model) == xwidget)
+	    xv_do_draw (view, XXWIDGET (view->model));
+	}
     }
 
   unblock_input ();
