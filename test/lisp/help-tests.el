@@ -90,16 +90,16 @@
 
 (ert-deftest help-tests-substitute-command-keys/keymaps ()
   (with-substitute-command-keys-test
-   (test "\\{minibuffer-local-must-match-map}"
+   (test-re "\\{minibuffer-local-must-match-map}"
          "
 Key             Binding
-
+-+
 C-g		abort-minibuffers
 TAB		minibuffer-complete
 C-j		minibuffer-complete-and-exit
 RET		minibuffer-complete-and-exit
 SPC		minibuffer-complete-word
-?		minibuffer-completion-help
+\\?		minibuffer-completion-help
 C-<tab>		file-cache-minibuffer-complete
 <XF86Back>	previous-history-element
 <XF86Forward>	next-history-element
@@ -243,10 +243,10 @@ M-g M-c		switch-to-completions
   (with-substitute-command-keys-test
    (with-temp-buffer
      (help-tests-major-mode)
-     (test "\\{help-tests-major-mode-map}"
+     (test-re "\\{help-tests-major-mode-map}"
            "
 Key             Binding
-
+-+
 ( .. )		short-range
 1 .. 4		foo-range
 a .. c		foo-other-range
@@ -261,10 +261,10 @@ x		foo-original
    (with-temp-buffer
      (help-tests-major-mode)
      (help-tests-minor-mode)
-     (test "\\{help-tests-major-mode-map}"
+     (test-re "\\{help-tests-major-mode-map}"
            "
 Key             Binding
-
+-+
 ( .. )		short-range
 1 .. 4		foo-range
 a .. c		foo-other-range
@@ -282,10 +282,10 @@ x		foo-original
     (with-temp-buffer
       (help-tests-major-mode)
       (define-key help-tests-major-mode-map [remap foo] 'bar)
-      (test "\\{help-tests-major-mode-map}"
+      (test-re "\\{help-tests-major-mode-map}"
             "
 Key             Binding
-
+-+
 <remap> <foo>	bar
 ")))))
 
@@ -298,11 +298,11 @@ Key             Binding
                                           :enable mark-active
                                           :help "Help text"))))))
       (describe-map-tree map nil nil nil nil t nil nil nil)
-      (should (equal (buffer-string) "
+      (should (string-match "
 Key             Binding
-
-C-a		foo
-")))))
+-+
+C-a		foo\n"
+                            (buffer-string))))))
 
 (ert-deftest help-tests-describe-map-tree/no-menu-nil ()
   (with-temp-buffer
@@ -313,13 +313,13 @@ C-a		foo
                                           :enable mark-active
                                           :help "Help text"))))))
       (describe-map-tree map nil nil nil nil nil nil nil nil)
-      (should (equal (buffer-string) "
+      (should (string-match "
 Key             Binding
-
+-+
 C-a		foo
 
-<menu-bar> <foo>	foo
-")))))
+<menu-bar> <foo>	foo\n"
+                            (buffer-string))))))
 
 (ert-deftest help-tests-describe-map-tree/mention-shadow-t ()
   (with-temp-buffer
@@ -328,13 +328,13 @@ C-a		foo
                            (2 . bar))))
           (shadow-maps '((keymap . ((1 . baz))))))
       (describe-map-tree map t shadow-maps nil nil t nil nil t)
-      (should (equal (buffer-string) "
+      (should (string-match "
 Key             Binding
-
+-+
 C-a		foo
   (this binding is currently shadowed)
-C-b		bar
-")))))
+C-b		bar\n"
+                            (buffer-string))))))
 
 (ert-deftest help-tests-describe-map-tree/mention-shadow-nil ()
   (with-temp-buffer
@@ -343,11 +343,11 @@ C-b		bar
                            (2 . bar))))
           (shadow-maps '((keymap . ((1 . baz))))))
       (describe-map-tree map t shadow-maps nil nil t nil nil nil)
-      (should (equal (buffer-string) "
+      (should (string-match "
 Key             Binding
-
-C-b		bar
-")))))
+-+
+C-b		bar\n"
+                            (buffer-string))))))
 
 (ert-deftest help-tests-describe-map-tree/partial-t ()
   (with-temp-buffer
@@ -355,11 +355,11 @@ C-b		bar
           (map '(keymap . ((1 . foo)
                            (2 . undefined)))))
       (describe-map-tree map t nil nil nil nil nil nil nil)
-      (should (equal (buffer-string) "
+      (should (string-match "
 Key             Binding
-
-C-a		foo
-")))))
+-+
+C-a		foo\n"
+                            (buffer-string))))))
 
 (ert-deftest help-tests-describe-map-tree/partial-nil ()
   (with-temp-buffer
@@ -367,12 +367,12 @@ C-a		foo
           (map '(keymap . ((1 . foo)
                            (2 . undefined)))))
       (describe-map-tree map nil nil nil nil nil nil nil nil)
-      (should (equal (buffer-string) "
+      (should (string-match "
 Key             Binding
-
+-+
 C-a		foo
-C-b		undefined
-")))))
+C-b		undefined\n"
+                            (buffer-string))))))
 
 (defvar help-tests--was-in-buffer nil)
 
