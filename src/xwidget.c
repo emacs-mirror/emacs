@@ -94,6 +94,8 @@ struct widget_search_data
 };
 
 static void find_widget (GtkWidget *t, struct widget_search_data *);
+static void mouse_target_changed (WebKitWebView *, WebKitHitTestResult *, guint,
+				  gpointer);
 #endif
 
 
@@ -212,6 +214,11 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
                             G_CALLBACK
                             (webkit_decide_policy_cb),
                             xw);
+
+	  g_signal_connect (G_OBJECT (xw->widget_osr),
+			    "mouse-target-changed",
+			    G_CALLBACK (mouse_target_changed),
+			    xw);
         }
 
       g_signal_connect (G_OBJECT (xw->widgetwindow_osr), "damage-event",
@@ -571,6 +578,55 @@ find_widget_at_pos (GtkWidget *w, int x, int y,
 
   return NULL;
 }
+
+static Emacs_Cursor
+cursor_for_hit (WebKitHitTestResult *result,
+		struct frame *frame)
+{
+  Emacs_Cursor cursor = FRAME_OUTPUT_DATA (frame)->nontext_cursor;
+
+  if (webkit_hit_test_result_context_is_editable (result)
+      || webkit_hit_test_result_context_is_selection (result)
+      || (webkit_hit_test_result_get_context (result)
+	  & WEBKIT_HIT_TEST_RESULT_CONTEXT_DOCUMENT))
+    cursor = FRAME_X_OUTPUT (frame)->text_cursor;
+
+  if (webkit_hit_test_result_context_is_scrollbar (result))
+    cursor = FRAME_X_OUTPUT (frame)->vertical_drag_cursor;
+
+  if (webkit_hit_test_result_context_is_link (result))
+    cursor = FRAME_X_OUTPUT (frame)->hand_cursor;
+
+  return cursor;
+}
+
+static void
+define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
+{
+  struct xwidget_view *xvw;
+
+  for (Lisp_Object tem = Vxwidget_view_list; CONSP (tem);
+       tem = XCDR (tem))
+    {
+      xvw = XXWIDGET_VIEW (XCAR (tem));
+
+      if (XXWIDGET (xvw->model) == xw)
+	{
+	  xvw->cursor = cursor_for_hit (res, xvw->frame);
+	  if (xvw->wdesc != None)
+	    XDefineCursor (xvw->dpy, xvw->wdesc, xvw->cursor);
+	}
+    }
+}
+
+static void
+mouse_target_changed (WebKitWebView *webview,
+		      WebKitHitTestResult *hitresult,
+		      guint modifiers, gpointer xw)
+{
+  define_cursors (xw, hitresult);
+}
+
 
 static void
 xwidget_button_1 (struct xwidget_view *view,
@@ -1092,6 +1148,7 @@ xwidget_init_view (struct xwidget *xww,
 
   xv->wdesc = None;
   xv->frame = s->f;
+  xv->cursor = FRAME_X_OUTPUT (s->f)->nontext_cursor;
 #elif defined NS_IMPL_COCOA
   nsxwidget_init_view (xv, xww, s, x, y);
   nsxwidget_resize_view(xv, xww->width, xww->height);
@@ -1204,6 +1261,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 				 clip_bottom - clip_top, 0,
 				 CopyFromParent, CopyFromParent,
 				 CopyFromParent, CWEventMask, &a);
+      XDefineCursor (xv->dpy, xv->wdesc, xv->cursor);
       xv->cr_surface = cairo_xlib_surface_create (xv->dpy,
 						  xv->wdesc,
 						  FRAME_DISPLAY_INFO (s->f)->visual,

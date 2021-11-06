@@ -33,6 +33,7 @@ struct window;
 #if defined (USE_GTK)
 #include <gtk/gtk.h>
 #include <X11/Xlib.h>
+#include "xterm.h"
 #elif defined (NS_IMPL_COCOA) && defined (__OBJC__)
 #import <AppKit/NSView.h>
 #import "nsxwidget.h"
@@ -102,6 +103,7 @@ struct xwidget_view
 #if defined (USE_GTK)
   Display *dpy;
   Window wdesc;
+  Emacs_Cursor cursor;
   struct frame *frame;
 
   cairo_surface_t *cr_surface;
