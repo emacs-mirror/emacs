@@ -1012,16 +1012,13 @@ webkit_create_cb (WebKitWebView *webview,
   switch (webkit_navigation_action_get_navigation_type (nav_action))
     {
     case WEBKIT_NAVIGATION_TYPE_OTHER:
-      if (webkit_navigation_action_is_user_gesture (nav_action))
-	return NULL;
-
       return webkit_create_cb_1 (webview, user_data);
-    case WEBKIT_NAVIGATION_TYPE_LINK_CLICKED:
-    case WEBKIT_NAVIGATION_TYPE_FORM_SUBMITTED:
+
     case WEBKIT_NAVIGATION_TYPE_BACK_FORWARD:
     case WEBKIT_NAVIGATION_TYPE_RELOAD:
+    case WEBKIT_NAVIGATION_TYPE_FORM_SUBMITTED:
     case WEBKIT_NAVIGATION_TYPE_FORM_RESUBMITTED:
-      return webkit_create_cb_1 (webview, user_data);
+    case WEBKIT_NAVIGATION_TYPE_LINK_CLICKED:
     default:
       return NULL;
     }
