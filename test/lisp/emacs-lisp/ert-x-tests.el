@@ -320,7 +320,8 @@ desired effect."
     (ert-with-temp-directory dir
       (setq saved dir)
       (should (file-exists-p dir))
-      (should (file-directory-p dir)))
+      (should (file-directory-p dir))
+      (should (equal dir (file-name-as-directory dir))))
     (should-not (file-exists-p saved))))
 
 (ert-deftest ert-x-tests-with-temp-directory/text-signals-error ()

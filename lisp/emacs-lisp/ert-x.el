@@ -445,7 +445,9 @@ See also `ert-with-temp-directory'."
                        (or (macroexp-file-name) buffer-file-name)))))
       `(let* ((,temp-file (,(if directory 'file-name-as-directory 'identity)
                            (make-temp-file ,prefix ,directory ,suffix ,text)))
-              (,name ,temp-file))
+              (,name ,(if directory
+                          `(file-name-as-directory ,temp-file)
+                        temp-file)))
          (unwind-protect
              (progn ,@body)
            (ignore-errors
