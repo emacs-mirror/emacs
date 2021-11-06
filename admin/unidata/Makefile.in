@@ -76,7 +76,7 @@ ${unifiles}: ${srcdir}/unidata-gen.el \
 	  -f unidata-gen-file $@ ${srcdir}
 
 ${unidir}/emoji-labels.el: ${unidir}/../international/emoji.el \
-	${srcdir}/emoji-test.txt
+	$(AM_V_at)${srcdir}/emoji-test.txt
 	${emacs} -l emoji.el -f emoji--generate-file $@
 
 .PHONY: charscript.el
