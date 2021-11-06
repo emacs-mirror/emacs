@@ -271,6 +271,52 @@ desired effect."
     (cl-loop for x in '(0 1 2 3 4 t) do
              (should (equal (c x) (lisp x))))))
 
+(ert-deftest ert-x-tests-with-temp-file ()
+  (let (saved)
+    (ert-with-temp-file fil
+      (setq saved fil)
+      (should (file-exists-p fil))
+      (should (file-regular-p fil)))
+    (should-not (file-exists-p saved))))
+
+(ert-deftest ert-x-tests-with-temp-file/handle-error ()
+  (let (saved)
+    (ignore-errors
+      (ert-with-temp-file fil
+        (setq saved fil)
+        (error "foo")))
+    (should-not (file-exists-p saved))))
+
+(ert-deftest ert-x-tests-with-temp-file/prefix-and-suffix-kwarg ()
+  (ert-with-temp-file fil
+    :prefix "foo"
+    :suffix "bar"
+    (should (string-match "foo.*bar" fil))))
+
+(ert-deftest ert-x-tests-with-temp-file/text-kwarg ()
+  (ert-with-temp-file fil
+    :text "foobar3"
+    (let ((buf (find-file-noselect fil)))
+      (unwind-protect
+          (with-current-buffer buf
+            (should (equal (buffer-string) "foobar3")))
+        (kill-buffer buf)))))
+
+(ert-deftest ert-x-tests-with-temp-file/unknown-kwarg-signals-error ()
+  (should-error
+   (ert-with-temp-file fil :foo "foo" nil)))
+
+(ert-deftest ert-x-tests-with-temp-directory ()
+  (let (saved)
+    (ert-with-temp-directory dir
+      (setq saved dir)
+      (should (file-exists-p dir))
+      (should (file-directory-p dir)))
+    (should-not (file-exists-p saved))))
+
+(ert-deftest ert-x-tests-with-temp-directory/text-signals-error ()
+  (should-error
+   (ert-with-temp-directory dir :text "foo" nil)))
 
 (provide 'ert-x-tests)
 
