@@ -185,8 +185,8 @@ is buggy, and errors out trying to start a subprocess through
 Bubblewrap sandboxing.  You can avoid the crash by setting the
 environment variables SNAP, SNAP_NAME and SNAP_REVISION, which will
 make WebKit use GLib to launch subprocesses instead.  For example,
-invoke Emacs like this (where "..." stands for the command-line
-arguments you need to pass to Emacs):
+invoke Emacs like this (where "..." stands for the other command-line
+arguments you intend to pass to Emacs):
 
   $ SNAP=1 SNAP_NAME=1 SNAP_REVISION=1 emacs ...
 
