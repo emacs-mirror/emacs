@@ -616,6 +616,14 @@ newline."
 		  (and eshell-send-direct-to-subprocesses
 		       proc-running-p))
 	(insert-before-markers-and-inherit ?\n))
+      ;; Delete and reinsert input.  This seems like a no-op, except
+      ;; for the resulting entries in the undo list: undoing this
+      ;; insertion will delete the region, moving the process mark
+      ;; back to its original position.
+      (let ((text (buffer-substring eshell-last-output-end (point)))
+            (inhibit-read-only t))
+        (delete-region eshell-last-output-end (point))
+        (insert text))
       (if proc-running-p
 	  (progn
 	    (eshell-update-markers eshell-last-output-end)
