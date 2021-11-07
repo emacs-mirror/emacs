@@ -266,15 +266,26 @@ character) under point is."
         ;; the search feature.
         (when-let ((name (emoji--name glyph)))
           (setf (gethash (downcase name) emoji--all-bases) glyph))
-        ;; Remove glyphs we don't have in graphical displays.
-        (if (let ((char (elt glyph 0)))
-              (if emoji--font
-                  (font-has-char-p emoji--font char)
-                (when-let ((font (car (internal-char-font nil char))))
-                  (setq emoji--font font))))
-            (setq alist (cdr alist))
-          ;; Remove the element.
-          (setcdr alist (cddr alist)))))))
+        (if (display-graphic-p)
+            ;; Remove glyphs we don't have in graphical displays.
+            (if (let ((char (elt glyph 0)))
+                  (if emoji--font
+                      (font-has-char-p emoji--font char)
+                    (when-let ((font (car (internal-char-font nil char))))
+                      (setq emoji--font font))))
+                (setq alist (cdr alist))
+              ;; Remove the element.
+              (setcdr alist (cddr alist)))
+          ;; We don't have font info on non-graphical displays.
+          (if (let ((char (elt glyph 0)))
+                ;; FIXME.  Some grapheme clusters display more or less
+                ;; correctly in the terminal, but we don't really know
+                ;; which ones.  None of these display totally
+                ;; correctly, though, so should they be filtered out?
+                (char-displayable-p char))
+              (setq alist (cdr alist))
+            ;; Remove the element.
+            (setcdr alist (cddr alist))))))))
 
 (defun emoji--parse-emoji-test ()
   (setq emoji--labels nil)
