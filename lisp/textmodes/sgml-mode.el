@@ -2438,22 +2438,22 @@ To work around that, do:
     (sgml-pretty-print (point-min) (point-max))))
 
 (defun html-mode--image-yank-handler (type image)
-  (let ((file (read-file-name "Save %s image to: ")))
+  (let ((file (read-file-name (format "Save %s image to: " type))))
     (when (file-directory-p file)
       (user-error "%s is a directory"))
     (when (and (file-exists-p file)
-               (not (yes-or-no-p "%s exists; overwrite?")))
+               (not (yes-or-no-p (format "%s exists; overwrite?" file))))
       (user-error "%s exists"))
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (insert image)
       (write-region (point-min) (point-max) file))
+    (insert (format "<img src=%S>\n" (file-relative-name file)))
     (insert-image
      (create-image file (mailcap-mime-type-to-extension type) nil
 		   :max-width 200
 		   :max-height 200)
-     " ")
-    (insert (format "<img src=%S>\n" (file-relative-name file)))))
+     " ")))
 
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
