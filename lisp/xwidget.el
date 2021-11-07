@@ -886,7 +886,7 @@ With argument, add COUNT copies of CHAR."
       (xwidget-webkit-isearch--update)))
   (let ((i 0))
     (while (< i count)
-      (xwidget-webkit-next-result (xwidget-webkit-current-session))
+      (xwidget-webkit-previous-result (xwidget-webkit-current-session))
       (cl-incf i)))
   (xwidget-webkit-isearch--update t))
 
