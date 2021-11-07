@@ -834,13 +834,17 @@ WebKit widget."
 (defvar-local xwidget-webkit-isearch--is-reverse nil
   "Whether or not the current isearch should be reverse.")
 
-(defun xwidget-webkit-isearch--update ()
+(defun xwidget-webkit-isearch--update (&optional only-message)
   "Update the current buffer's WebKit widget's search query.
-The query will be set to the contents of `xwidget-webkit-isearch--string'."
-  (xwidget-webkit-search xwidget-webkit-isearch--string
-                         (xwidget-webkit-current-session)
-                         t xwidget-webkit-isearch--is-reverse t)
-  (message "Search contents: %s" xwidget-webkit-isearch--string))
+If ONLY-MESSAGE is non-nil, the query will not be sent to the
+WebKit widget.  The query will be set to the contents of
+`xwidget-webkit-isearch--string'."
+  (unless only-message
+    (xwidget-webkit-search xwidget-webkit-isearch--string
+                           (xwidget-webkit-current-session)
+                           t xwidget-webkit-isearch--is-reverse t))
+  (message (concat (propertize "Search contents: " 'face 'minibuffer-prompt)
+                   xwidget-webkit-isearch--string)))
 
 (defun xwidget-webkit-isearch-erasing-char (count)
   "Erase the last COUNT characters of the current query."
@@ -870,7 +874,8 @@ With argument, add COUNT copies of CHAR."
   (let ((i 0))
     (while (< i count)
       (xwidget-webkit-next-result (xwidget-webkit-current-session))
-      (cl-incf i))))
+      (cl-incf i)))
+  (xwidget-webkit-isearch--update t))
 
 (defun xwidget-webkit-isearch-backward (count)
   "Move to the previous search result COUNT times."
@@ -882,7 +887,8 @@ With argument, add COUNT copies of CHAR."
   (let ((i 0))
     (while (< i count)
       (xwidget-webkit-next-result (xwidget-webkit-current-session))
-      (cl-incf i))))
+      (cl-incf i)))
+  (xwidget-webkit-isearch--update t))
 
 (defun xwidget-webkit-isearch-exit ()
   "Exit incremental search of a WebKit buffer."
@@ -935,7 +941,8 @@ Press \\[xwidget-webkit-isearch-exit] to exit incremental search."
   (if xwidget-webkit-isearch-mode
       (progn
         (setq xwidget-webkit-isearch--string "")
-        (setq xwidget-webkit-isearch--is-reverse (eq last-command-event ?\C-r)))
+        (setq xwidget-webkit-isearch--is-reverse (eq last-command-event ?\C-r))
+        (xwidget-webkit-isearch--update))
     (xwidget-webkit-finish-search (xwidget-webkit-current-session))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
