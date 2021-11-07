@@ -310,6 +310,9 @@ Use the `pp-max-width' variable to control the desired line length."
   (while (and (cl-plusp indent)
               sexp)
     (insert " ")
+    ;; We don't understand all the edebug specs.
+    (unless (consp edebug)
+      (setq edebug nil))
     (if (and (consp (car edebug))
              (eq (caar edebug) '&rest))
         (pp--insert-binding (pop sexp))
