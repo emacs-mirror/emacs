@@ -252,6 +252,13 @@ themselves; Lisp programmers find this disconcerting.
 Please put a copyright notice and copying permission notice on the
 file if you distribute copies.  @xref{Library Headers}.
 
+@item
+For variables holding (or functions returning) a file or directory name,
+avoid using @code{path} in its name, preferring @code{file},
+@code{file-name}, or @code{directory} instead, since Emacs follows the
+GNU convention to use the term @emph{path} only for search paths,
+which are lists of directory names.
+
 @end itemize
 
 @node Key Binding Conventions
