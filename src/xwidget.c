@@ -2025,12 +2025,6 @@ using `xwidget-webkit-search'.  */)
   webview = WEBKIT_WEB_VIEW (xw->widget_osr);
   controller = webkit_web_view_get_find_controller (webview);
   webkit_find_controller_search_previous (controller);
-
-  if (xw->find_text)
-    {
-      xfree (xw->find_text);
-      xw->find_text = NULL;
-    }
   unblock_input ();
 #endif
 
@@ -2063,6 +2057,12 @@ using `xwidget-webkit-search'.  */)
   webview = WEBKIT_WEB_VIEW (xw->widget_osr);
   controller = webkit_web_view_get_find_controller (webview);
   webkit_find_controller_search_finish (controller);
+
+  if (xw->find_text)
+    {
+      xfree (xw->find_text);
+      xw->find_text = NULL;
+    }
   unblock_input ();
 #endif
 
