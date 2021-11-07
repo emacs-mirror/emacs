@@ -4126,7 +4126,6 @@ x_show_hourglass (struct frame *f)
 
          XMapRaised (dpy, x->hourglass_window);
          XFlush (dpy);
-	 redisplay_preserve_echo_area (21);
        }
     }
 }
