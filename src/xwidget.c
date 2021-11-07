@@ -170,9 +170,6 @@ fails.  */)
 	      || !XWIDGETP (related)
 	      || !EQ (XXWIDGET (related)->type, Qwebkit))
 	    {
-	      /* Enable the developer extras */
-	      settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (xw->widget_osr));
-	      g_object_set (G_OBJECT (settings), "enable-developer-extras", TRUE, NULL);
 	      xw->widget_osr = webkit_web_view_new ();
 
 	      /* webkitgtk uses GSubprocess which sets sigaction causing
@@ -190,6 +187,10 @@ fails.  */)
 	      related_view = WEBKIT_WEB_VIEW (XXWIDGET (related)->widget_osr);
 	      xw->widget_osr = webkit_web_view_new_with_related_view (related_view);
 	    }
+
+	  /* Enable the developer extras */
+	  settings = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (xw->widget_osr));
+	  g_object_set (G_OBJECT (settings), "enable-developer-extras", TRUE, NULL);
 	}
 
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
