@@ -305,6 +305,7 @@ set_alarm (void)
 #ifdef HAVE_ITIMERSPEC
       if (0 <= timerfd || alarm_timer_ok)
 	{
+	  bool exit = false;
 	  struct itimerspec ispec;
 	  ispec.it_value = atimers->expiration;
 	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
@@ -312,11 +313,14 @@ set_alarm (void)
 	  if (timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
 	    {
 	      add_timer_wait_descriptor (timerfd);
-	      return;
+	      exit = true;
 	    }
 # endif
 	  if (alarm_timer_ok
 	      && timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
+	    exit = true;
+
+	  if (exit)
 	    return;
 	}
 #endif
@@ -333,9 +337,8 @@ set_alarm (void)
       memset (&it, 0, sizeof it);
       it.it_value = make_timeval (interval);
       setitimer (ITIMER_REAL, &it, 0);
-#else /* not HAVE_SETITIMER */
-      alarm (max (interval.tv_sec, 1));
 #endif /* not HAVE_SETITIMER */
+      alarm (max (interval.tv_sec, 1));
     }
 }
 
