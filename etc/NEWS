@@ -222,6 +222,12 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 ---
 *** HTML Mode now supports text/html and image/* yanking.
 
+** Texinfo Mode
+
+---
+*** 'texinfo-mode' now has a specialised 'narrow-to-defun' definition.
+It narrows to the current node.
+
 ** eww
 
 +++

@@ -416,6 +416,8 @@ value of `texinfo-mode-hook'."
   (setq-local fill-paragraph-function 'texinfo--fill-paragraph)
   (setq-local sentence-end-base "\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'”)}]*")
   (setq-local fill-column 70)
+  (setq-local beginning-of-defun-function #'texinfo--beginning-of-defun)
+  (setq-local end-of-defun-function #'texinfo--end-of-defun)
   (setq-local comment-start "@c ")
   (setq-local comment-start-skip "@c +\\|@comment +")
   (setq-local words-include-escapes t)
@@ -493,6 +495,20 @@ value of `texinfo-mode-hook'."
               (adaptive-fill-mode nil))
           (fill-paragraph justify))))
     t))
+
+(defun texinfo--beginning-of-defun (&optional arg)
+  "Go to the previous @node line."
+  (while (and (> arg 0)
+              (re-search-backward "^@node " nil t))
+    (setq arg (1- arg))))
+
+(defun texinfo--end-of-defun ()
+  "Go to the start of the next @node line."
+  (when (looking-at-p "@node")
+    (forward-line))
+  (if (re-search-forward "^@node " nil t)
+      (goto-char (match-beginning 0))
+    (goto-char (point-max))))
 
 
 ;;; Insert string commands
