@@ -32,9 +32,6 @@
 (require 'elec-pair)
 (require 'cl-lib)
 
-;; When running tests in c-mode, use single-line comments (//).
-(add-hook 'c-mode-hook (lambda () (c-toggle-comment-style -1)))
-
 (defun call-with-saved-electric-modes (fn)
   (let ((saved-electric (if electric-pair-mode 1 -1))
         (saved-layout (if electric-layout-mode 1 -1))
@@ -431,7 +428,9 @@ baz\"\""
   :bindings '((electric-pair-skip-whitespace . chomp))
   :test-in-strings nil
   :test-in-code nil
-  :test-in-comments t)
+  :test-in-comments t
+  :fixture-fn (lambda () (when (eq major-mode 'c-mode)
+                           (c-toggle-comment-style -1))))
 
 (define-electric-pair-test whitespace-skipping-for-quotes-not-outside
   "  \"  \"" "\"-----" :expected-string "\"\"  \"  \""
