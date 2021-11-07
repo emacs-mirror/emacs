@@ -1196,6 +1196,33 @@ webkit_decide_policy_cb (WebKitWebView *webView,
       break;
     }
   case WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION:
+    {
+      WebKitNavigationPolicyDecision *navigation_decision =
+        WEBKIT_NAVIGATION_POLICY_DECISION (decision);
+      WebKitNavigationAction *navigation_action =
+        webkit_navigation_policy_decision_get_navigation_action (navigation_decision);
+      WebKitURIRequest *request =
+        webkit_navigation_action_get_request (navigation_action);
+      WebKitWebView *newview;
+      struct xwidget *xw = g_object_get_data (G_OBJECT (webView), XG_XWIDGET);
+      Lisp_Object val, new_xwidget;
+
+      XSETXWIDGET (val, xw);
+
+      new_xwidget = Fmake_xwidget (Qwebkit, Qnil, make_fixnum (0),
+				   make_fixnum (0), Qnil,
+				   build_string (" *detached xwidget buffer*"),
+				   val);
+
+      if (NILP (new_xwidget))
+	return FALSE;
+
+      newview = WEBKIT_WEB_VIEW (XXWIDGET (new_xwidget)->widget_osr);
+      webkit_web_view_load_request (newview, request);
+
+      store_xwidget_display_event (XXWIDGET (new_xwidget));
+      return TRUE;
+    }
   case WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION:
     {
       WebKitNavigationPolicyDecision *navigation_decision =
