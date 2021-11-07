@@ -139,6 +139,7 @@ fails.  */)
   Vxwidget_list = Fcons (val, Vxwidget_list);
   xw->plist = Qnil;
   xw->xwidget_id = ++xwidget_counter;
+  xw->find_text = NULL;
 
   Fputhash (make_fixnum (xw->xwidget_id), val, id_to_xwidget_map);
 
@@ -146,7 +147,6 @@ fails.  */)
   xw->widgetwindow_osr = NULL;
   xw->widget_osr = NULL;
   xw->hit_result = 0;
-  xw->find_text = NULL;
   if (EQ (xw->type, Qwebkit))
     {
       block_input ();

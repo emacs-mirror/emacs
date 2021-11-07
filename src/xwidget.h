@@ -62,13 +62,13 @@ struct xwidget
   int height;
   int width;
   uint32_t xwidget_id;
+  char *find_text;
 
 #if defined (USE_GTK)
   /* For offscreen widgets, unused if not osr.  */
   GtkWidget *widget_osr;
   GtkWidget *widgetwindow_osr;
   guint hit_result;
-  gchar *find_text;
 #elif defined (NS_IMPL_COCOA)
 # ifdef __OBJC__
   /* For offscreen widgets, unused if not osr.  */
@@ -171,15 +171,18 @@ void store_xwidget_download_callback_event (struct xwidget *xw,
 void store_xwidget_js_callback_event (struct xwidget *xw,
                                       Lisp_Object proc,
                                       Lisp_Object argument);
-struct xwidget_view *xwidget_view_from_window (Window wdesc);
-void xwidget_expose (struct xwidget_view *xv);
 
 extern struct xwidget *xwidget_from_id (uint32_t id);
+
+#ifdef HAVE_X_WINDOWS
+struct xwidget_view *xwidget_view_from_window (Window wdesc);
+void xwidget_expose (struct xwidget_view *xv);
 extern void kill_frame_xwidget_views (struct frame *f);
 extern void xwidget_button (struct xwidget_view *, bool, int,
 			    int, int, int, Time);
 extern void xwidget_motion_or_crossing (struct xwidget_view *,
 					const XEvent *);
+#endif
 #else
 INLINE_HEADER_BEGIN
 INLINE void syms_of_xwidget (void) {}
