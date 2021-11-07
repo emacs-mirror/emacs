@@ -4126,6 +4126,8 @@ x_show_hourglass (struct frame *f)
 
          XMapRaised (dpy, x->hourglass_window);
          XFlush (dpy);
+	 /* Ensure that the spinning hourglass is shown.  */
+	 flush_frame (f);
        }
     }
 }
