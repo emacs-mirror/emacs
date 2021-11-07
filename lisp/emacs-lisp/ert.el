@@ -2759,7 +2759,7 @@ TRANSFORM will be called to get from before to after."
               (while (looking-at "[ \t]+\\(.*\\)")
                 (setq value (concat value (match-string 1)))
                 (forward-line 1))
-              (push (cons name value) specs))
+              (push (cons name (substring-no-properties value)) specs))
           (forward-line 1)))
       (nreverse specs))))
 
