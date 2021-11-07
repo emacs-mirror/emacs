@@ -386,10 +386,10 @@ directory as returned by `ert-resource-directory'."
   `(expand-file-name ,file (ert-resource-directory)))
 
 (defvar ert-temp-file-prefix "emacs-test-"
-  "Suffix used by `ert-with-temp-file' and `ert-with-temp-directory'.")
+  "Prefix used by `ert-with-temp-file' and `ert-with-temp-directory'.")
 
 (defvar ert-temp-file-suffix nil
-  "Prefix used by `ert-with-temp-file' and `ert-with-temp-directory'.")
+  "Suffix used by `ert-with-temp-file' and `ert-with-temp-directory'.")
 
 (defun ert--with-temp-file-generate-suffix (filename)
   "Generate temp file suffix from FILENAME."

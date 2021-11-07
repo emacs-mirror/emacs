@@ -32,7 +32,7 @@
 (require 'transient)
 
 (defgroup emoji nil
-  "Inserting Emojist."
+  "Inserting Emojis."
   :version "29.1"
   :group 'play)
 
