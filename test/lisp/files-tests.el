@@ -1383,25 +1383,24 @@ See <https://debbugs.gnu.org/19657#20>."
 See <https://debbugs.gnu.org/35241>."
   (ert-with-temp-file tmpfile
     :suffix (car exec-suffixes)
-    (let ((tmpfile (make-temp-file "files-test" nil )))
-      (set-file-modes tmpfile #o777)
-      (let ((exec-path `(,temporary-file-directory)))
-        (should
-         (equal tmpfile
-                (executable-find (file-name-nondirectory tmpfile)))))
-      ;; An empty element of `exec-path' means `default-directory'.
-      (let ((default-directory temporary-file-directory)
-            (exec-path nil))
-        (should
-         (equal tmpfile
-                (executable-find (file-name-nondirectory tmpfile)))))
-      ;; The remote file name shall be quoted, and handled like a
-      ;; non-existing directory.
-      (let ((default-directory "/ssh::")
-            (exec-path (append exec-path `("." ,temporary-file-directory))))
-        (should
-         (equal tmpfile
-                (executable-find (file-name-nondirectory tmpfile))))))))
+    (set-file-modes tmpfile #o755)
+    (let ((exec-path `(,temporary-file-directory)))
+      (should
+       (equal tmpfile
+              (executable-find (file-name-nondirectory tmpfile)))))
+    ;; An empty element of `exec-path' means `default-directory'.
+    (let ((default-directory temporary-file-directory)
+          (exec-path nil))
+      (should
+       (equal tmpfile
+              (executable-find (file-name-nondirectory tmpfile)))))
+    ;; The remote file name shall be quoted, and handled like a
+    ;; non-existing directory.
+    (let ((default-directory "/ssh::")
+          (exec-path (append exec-path `("." ,temporary-file-directory))))
+      (should
+       (equal tmpfile
+              (executable-find (file-name-nondirectory tmpfile)))))))
 
 (ert-deftest files-tests-dont-rewrite-precious-files ()
   "Test that `file-precious-flag' forces files to be saved by
