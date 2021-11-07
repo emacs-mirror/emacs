@@ -1535,6 +1535,7 @@ editing.
 * Keymap Type::         What function a keystroke invokes.
 * Overlay Type::        How an overlay is represented.
 * Font Type::           Fonts for displaying text.
+* Xwidget Type::        Embeddable widgets.
 @end menu
 
 @node Buffer Type
@@ -1859,6 +1860,20 @@ different properties.  None of them have a read syntax; their print
 syntax looks like @samp{#<font-object>}, @samp{#<font-spec>}, and
 @samp{#<font-entity>} respectively.  @xref{Low-Level Font}, for a
 description of these Lisp objects.
+
+@node Xwidget Type
+@subsection Xwidget Type
+@cindex xwidget type
+@cindex xwidget-view type
+
+  An @dfn{xwidget} is a special display element, such as a web
+browser, that can be embedded inside a buffer.  Each window that
+displays an xwidget will also have an @dfn{xwidget view}, which on
+X-Windows corresponds to a single X window used to display the widget.
+
+Neither of these objects are readable; their print syntaxes look like
+@samp{#<xwidget>} and @samp{#<xwidget-view>}, respectively.
+@xref{Xwidgets}, for a more detailed description of xwidgets.
 
 @node Circular Objects
 @section Read Syntax for Circular Objects

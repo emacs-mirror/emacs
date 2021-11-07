@@ -365,6 +365,7 @@ Editing Types
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
 * Font Type::               Fonts for displaying text.
+* Xwidget Type::            Embeddable widgets.
 
 Numbers
 
