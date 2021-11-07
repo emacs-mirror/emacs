@@ -342,9 +342,13 @@ but with a different end of line convention (bug#48137)."
 
 (declare-function macro-problem-func "macro-problem" ())
 (declare-function macro-problem-10-and-90 "macro-problem" ())
+(declare-function macro-builtin-func "macro-builtin" ())
+(declare-function macro-builtin-10-and-90 "macro-builtin" ())
 
 (ert-deftest package-test-macro-compilation ()
-  "Install a package which includes a dependency."
+  "\"Activation has to be done before compilation, so that if we're
+   upgrading and macros have changed we load the new definitions
+   before compiling.\" -- package.el"
   (with-package-test (:basedir (ert-resource-directory))
     (package-install-file (expand-file-name "macro-problem-package-1.0/"))
     (require 'macro-problem)
@@ -356,6 +360,32 @@ but with a different end of line convention (bug#48137)."
     (should (equal (macro-problem-func) '(1 b)))
     ;; `macro-problem-10-and-90' depends on an entirely new macro from `macro-aux'.
     (should (equal (macro-problem-10-and-90) '(10 90)))))
+
+(ert-deftest package-test-macro-compilation-gz ()
+  "Built-in's can be superseded as well."
+  (with-package-test (:basedir (ert-resource-directory))
+    (let ((dir (expand-file-name "macro-builtin-package-1.0")))
+      (unwind-protect
+          (let ((load-path load-path))
+            (add-to-list 'load-path (directory-file-name dir))
+            (byte-recompile-directory dir 0 t)
+            (mapc (lambda (f) (rename-file f (concat f ".gz")))
+                  (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))
+            (require 'macro-builtin)
+            (should (member (expand-file-name "macro-builtin-aux.elc" dir)
+                            (mapcar #'car load-history)))
+            ;; `macro-builtin-func' uses a macro from `macro-aux'.
+            (should (equal (macro-builtin-func) '(progn a b)))
+            (package-install-file (expand-file-name "macro-builtin-package-2.0/"))
+            ;; After upgrading, `macro-builtin-func' depends on a new version
+            ;; of the macro from `macro-builtin-aux'.
+            (should (equal (macro-builtin-func) '(1 b)))
+            ;; `macro-builtin-10-and-90' depends on an entirely new macro from `macro-aux'.
+            (should (equal (macro-builtin-10-and-90) '(10 90))))
+        (mapc #'delete-file
+              (directory-files-recursively dir "\\`[^\\.].*\\.elc\\'"))
+        (mapc (lambda (f) (rename-file f (file-name-sans-extension f)))
+              (directory-files-recursively dir "\\`[^\\.].*\\.el.gz\\'"))))))
 
 (ert-deftest package-test-install-two-dependencies ()
   "Install a package which includes a dependency."

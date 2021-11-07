@@ -758,47 +758,47 @@ PKG-DESC is a `package-desc' object."
    (format "%s-autoloads" (package-desc-name pkg-desc))
    (package-desc-dir pkg-desc)))
 
-(defun package--activate-autoloads-and-load-path (pkg-desc)
-  "Load the autoloads file and add package dir to `load-path'.
-PKG-DESC is a `package-desc' object."
-  (let* ((old-lp load-path)
-         (pkg-dir (package-desc-dir pkg-desc))
-         (pkg-dir-dir (file-name-as-directory pkg-dir)))
-    (with-demoted-errors "Error loading autoloads: %s"
-      (load (package--autoloads-file-name pkg-desc) nil t))
-    (when (and (eq old-lp load-path)
-               (not (or (member pkg-dir load-path)
-                        (member pkg-dir-dir load-path))))
-      ;; Old packages don't add themselves to the `load-path', so we have to
-      ;; do it ourselves.
-      (push pkg-dir load-path))))
-
 (defvar Info-directory-list)
 (declare-function info-initialize "info" ())
 
 (defvar package--quickstart-pkgs t
   "If set to a list, we're computing the set of pkgs to activate.")
 
-(defun package--load-files-for-activation (pkg-desc reload)
-  "Load files for activating a package given by PKG-DESC.
-Load the autoloads file, and ensure `load-path' is setup.  If
-RELOAD is non-nil, also load all files in the package that
-correspond to previously loaded files."
-  (let* ((loaded-files-list
-          (when reload
-            (package--list-loaded-files (package-desc-dir pkg-desc)))))
-    ;; Add to load path, add autoloads, and activate the package.
-    (package--activate-autoloads-and-load-path pkg-desc)
-    ;; Call `load' on all files in `package-desc-dir' already present in
-    ;; `load-history'.  This is done so that macros in these files are updated
-    ;; to their new definitions.  If another package is being installed which
-    ;; depends on this new definition, not doing this update would cause
-    ;; compilation errors and break the installation.
-    (with-demoted-errors "Error in package--load-files-for-activation: %s"
-      (mapc (lambda (feature) (load feature nil t))
-            ;; Skip autoloads file since we already evaluated it above.
-            (remove (file-truename (package--autoloads-file-name pkg-desc))
-                    loaded-files-list)))))
+(defsubst package--library-stem (file)
+  (catch 'done
+    (let (result)
+      (dolist (suffix (get-load-suffixes) file)
+        (setq result (string-trim file nil suffix))
+        (unless (equal file result)
+          (throw 'done result))))))
+
+(defun package--reload-previously-loaded (pkg-desc)
+  "Force reimportation of files in PKG-DESC already present in `load-history'.
+New editions of files contain macro definitions and
+redefinitions, the overlooking of which would cause
+byte-compilation of the new package to fail."
+  (with-demoted-errors "Error in package--load-files-for-activation: %s"
+    (let* (result
+           (dir (package-desc-dir pkg-desc))
+           (load-path-sans-dir
+            (cl-remove-if (apply-partially #'string= dir)
+                          (or (bound-and-true-p find-function-source-path)
+                              load-path)))
+           (files (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))
+           (history (mapcar #'file-truename
+                            (cl-remove-if-not #'stringp
+                                              (mapcar #'car load-history)))))
+      (dolist (file files)
+        (when-let ((library (package--library-stem
+                             (file-relative-name file dir)))
+                   (canonical (locate-library library nil load-path-sans-dir))
+                   (found (member (file-truename canonical) history))
+                   (recent-index (length found)))
+          (unless (equal (file-name-base library)
+                         (format "%s-autoloads" (package-desc-name pkg-desc)))
+            (push (cons (expand-file-name library dir) recent-index) result))))
+      (mapc (lambda (c) (load (car c) nil t))
+            (sort result (lambda (x y) (< (cdr x) (cdr y))))))))
 
 (defun package-activate-1 (pkg-desc &optional reload deps)
   "Activate package given by PKG-DESC, even if it was already active.
@@ -825,7 +825,11 @@ correspond to previously loaded files (those returned by
       (if (listp package--quickstart-pkgs)
           ;; We're only collecting the set of packages to activate!
           (push pkg-desc package--quickstart-pkgs)
-        (package--load-files-for-activation pkg-desc reload))
+        (when reload
+          (package--reload-previously-loaded pkg-desc))
+        (with-demoted-errors "Error loading autoloads: %s"
+          (load (package--autoloads-file-name pkg-desc) nil t))
+        (add-to-list 'load-path (directory-file-name pkg-dir)))
       ;; Add info node.
       (when (file-exists-p (expand-file-name "dir" pkg-dir))
         ;; FIXME: not the friendliest, but simple.
@@ -835,48 +839,6 @@ correspond to previously loaded files (those returned by
       (push name package-activated-list)
       ;; Don't return nil.
       t)))
-
-(defun package--files-load-history ()
-  (delq nil
-        (mapcar (lambda (x)
-                  (let ((f (car x)))
-                    (and (stringp f)
-                         (file-name-sans-extension (file-truename f)))))
-                load-history)))
-
-(defun package--list-of-conflicts (dir history)
-  (require 'find-func)
-  (declare-function find-library-name "find-func" (library))
-  (delq
-   nil
-   (mapcar
-    (lambda (x) (let* ((file (file-relative-name x dir))
-                  ;; Previously loaded file, if any.
-                  (previous
-                   (ignore-error file-error ;"Can't find library"
-                     (file-name-sans-extension
-                      (file-truename (find-library-name file)))))
-                  (pos (when previous (member previous history))))
-             ;; Return (RELATIVE-FILENAME . HISTORY-POSITION)
-             (when pos
-               (cons (file-name-sans-extension file) (length pos)))))
-    (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))))
-
-(defun package--list-loaded-files (dir)
-  "Recursively list all files in DIR which correspond to loaded features.
-Returns the `file-name-sans-extension' of each file, relative to
-DIR, sorted by most recently loaded last."
-  (let* ((history (package--files-load-history))
-         (dir (file-truename dir))
-         ;; List all files that have already been loaded.
-         (list-of-conflicts (package--list-of-conflicts dir history)))
-    ;; Turn the list of (FILENAME . POS) back into a list of features.  Files in
-    ;; subdirectories are returned relative to DIR (so not actually features).
-    (let ((default-directory (file-name-as-directory dir)))
-      (mapcar (lambda (x) (file-truename (car x)))
-              (sort list-of-conflicts
-                    ;; Sort the files by ascending HISTORY-POSITION.
-                    (lambda (x y) (< (cdr x) (cdr y))))))))
 
 ;;;; `package-activate'
 
@@ -996,7 +958,7 @@ untar into a directory named DIR; otherwise, signal an error."
           (package--native-compile-async new-desc))
         ;; After compilation, load again any files loaded by
         ;; `activate-1', so that we use the byte-compiled definitions.
-        (package--load-files-for-activation new-desc :reload)))
+        (package--reload-previously-loaded new-desc)))
     pkg-dir))
 
 (defun package-generate-description-file (pkg-desc pkg-file)
