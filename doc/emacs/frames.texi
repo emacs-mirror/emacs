@@ -1508,6 +1508,13 @@ to the right; with a negative argument @minus{}@var{n}, move it
 @var{n} positions to the left.
 @end table
 
+  You can use the mouse to operate on tabs.  Clicking @kbd{mouse-2}
+closes the tab.  Clicking @kbd{mouse-3} pops up the context menu with
+the items that operate on the clicked tab.  Dragging the tab with
+@kbd{mouse-1} moves it to another position on the tab bar.  Mouse
+wheel scrolling switches to the next or previous tab.  Holding down
+the @key{SHIFT} key during scrolling moves the tab to the left or right.
+
 @findex tab-bar-history-mode
   You can enable @code{tab-bar-history-mode} to remember window
 configurations used in every tab, and later restore them.
@@ -1523,6 +1530,9 @@ This navigates back in the history of window configurations.
 Cancel restoration of the previous window configuration.
 This moves forward in the history of window configurations.
 @end table
+
+  It's possible to customize the items displayed on the tab bar
+by the user option @code{tab-bar-format}.
 
 @node Dialog Boxes
 @section Using Dialog Boxes

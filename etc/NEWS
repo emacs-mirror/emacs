@@ -486,6 +486,7 @@ command 'other-tab-prefix'.
 +++
 *** New command 'C-x t C-r' to open file read-only in the other tab.
 
++++
 *** The tab bar now supports more mouse commands.
 Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
 with items that operate on the clicked tab.  Dragging the tab with
@@ -506,7 +507,7 @@ frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
 This allows enabling/disabling the tab bar independently on different
 frames.
 
----
++++
 *** New user option 'tab-bar-format' defines a list of tab bar items.
 When it contains 'tab-bar-format-global' (possibly appended after
 'tab-bar-format-align-right'), then after enabling 'display-time-mode'
