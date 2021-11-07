@@ -3536,20 +3536,6 @@ Can be changed via `isearch-search-fun-function' for special needs."
        (if isearch-forward #'re-search-forward #'re-search-backward)
        regexp bound noerror count))))
 
-(defun isearch--search-skip-inhibited (func string bound noerror)
-  "Search for STRING with FUNC, but skip areas where isearch is inhibited.
-Returns the value of the (final) call to the search function."
-  (let (pos)
-    (while (and (setq pos (funcall func string bound noerror))
-                ;; If we're inhibited here, skip to the end of that
-                ;; area and try again.
-                (get-text-property (match-beginning 0) 'inhibit-isearch)
-                (goto-char (next-single-property-change
-                            (match-beginning 0)
-                            'inhibit-isearch
-                            nil (point-max)))))
-    pos))
-
 (defun isearch-search-string (string bound noerror)
   "Search for the first occurrence of STRING or its translation.
 STRING's characters are translated using `translation-table-for-input'
@@ -3561,8 +3547,7 @@ The match found must not extend after that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil."
   (let* ((func (isearch-search-fun))
-         (pos1 (save-excursion
-                 (isearch--search-skip-inhibited func string bound noerror)))
+         (pos1 (save-excursion (funcall func string bound noerror)))
          pos2)
     (when (and
 	   ;; Avoid "obsolete" warnings for translation-table-for-input.
@@ -3585,8 +3570,7 @@ Optional third argument, if t, means if fail just return nil (no error).
         (when translated
           (save-match-data
             (save-excursion
-              (if (setq pos2 (isearch--search-skip-inhibited
-                              func string bound noerror))
+              (if (setq pos2 (funcall func translated bound noerror))
                   (setq match-data (match-data t)))))
           (when (and pos2
                      (or (not pos1)
@@ -3740,15 +3724,6 @@ Optional third argument, if t, means if fail just return nil (no error).
 	    (overlay-put ov 'isearch-invisible nil)))))))
 
 
-(defun isearch--invisible-p (val)
-  "Like `invisible-p', but also takes into account `inhibit-isearch' properties.
-If search is inhibited due to the latter, return `inhibit-isearch', and
-if it's due to the former, return `invisible'."
-  (or (and (invisible-p val)
-           'invisible)
-      (and (get-text-property (point) 'inhibit-isearch)
-           'inhibit-isearch)))
-
 (defun isearch-range-invisible (beg end)
   "Return t if all the text from BEG to END is invisible."
   (when (/= beg end)
@@ -3758,19 +3733,16 @@ if it's due to the former, return `invisible'."
       (let (;; can-be-opened keeps track if we can open some overlays.
 	    (can-be-opened (eq search-invisible 'open))
 	    ;; the list of overlays that could be opened
-	    (crt-overlays nil)
-            ii-prop)
+	    (crt-overlays nil))
 	(when (and can-be-opened isearch-hide-immediately)
 	  (isearch-close-unnecessary-overlays beg end))
 	;; If the following character is currently invisible,
 	;; skip all characters with that same `invisible' property value.
 	;; Do that over and over.
-	(while (and (< (point) end)
-                    (isearch--invisible-p (point)))
-	  (if (setq ii-prop (isearch--invisible-p
-                             (get-text-property (point) 'invisible)))
+	(while (and (< (point) end) (invisible-p (point)))
+	  (if (invisible-p (get-text-property (point) 'invisible))
 	      (progn
-		(goto-char (next-single-property-change (point) ii-prop
+		(goto-char (next-single-property-change (point) 'invisible
 							nil end))
 		;; if text is hidden by an `invisible' text property
 		;; we cannot open it at all.
@@ -3815,8 +3787,10 @@ Isearch, at least partially, as determined by `isearch-range-invisible'.
 If `search-invisible' is t, which allows Isearch matches inside
 invisible text, this function will always return non-nil, regardless
 of what `isearch-range-invisible' says."
-  (or (eq search-invisible t)
-      (not (isearch-range-invisible beg end))))
+  (and (or (eq search-invisible t)
+           (not (isearch-range-invisible beg end)))
+       (not (text-property-not-all (min beg end) (max beg end)
+                                   'inhibit-isearch nil))))
 
 
 ;; General utilities
