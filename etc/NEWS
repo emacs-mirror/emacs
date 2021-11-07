@@ -515,14 +515,14 @@ aligned to the right on the tab bar instead of on the mode line.
 When 'tab-bar-format-tabs' is replaced with 'tab-bar-format-tabs-groups',
 the tab bar displays tab groups.
 
----
++++
 *** New optional key binding for 'tab-last'.
 If you customize the user option 'tab-bar-select-tab-modifiers' to
 allow selecting tabs using their index numbers, the '<MODIFIER>-9' key
 is bound to 'tab-last', and switches to the last tab.  Here <MODIFIER>
 is any of the modifiers in the list that is the value of
-'tab-bar-select-tab-modifiers'.  You can also use negative indices,
-which count from the last tab: -1 is the last tab, -2 the one before
+'tab-bar-select-tab-modifiers'.  You can also use positive indices,
+which count from the last tab: 1 is the last tab, 2 the one before
 that, etc.
 
 ---

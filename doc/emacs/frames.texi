@@ -1456,9 +1456,7 @@ names is sorted by recency, so you can use @kbd{M-n}
 the second last, and so on.
 
 @kindex C-1, tab bar
-@kindex C-9, tab bar
 @kindex M-1, tab bar
-@kindex M-9, tab bar
 @findex tab-select
 @vindex tab-bar-select-tab-modifiers
 @vindex tab-bar-tab-hints
@@ -1473,6 +1471,15 @@ last tab. You can select any modifiers supported by Emacs,
 name, you can customize another variable @code{tab-bar-tab-hints}.
 This will help you decide which numerical key to press to select the
 tab by its number.
+
+@kindex C-9, tab bar
+@kindex M-9, tab bar
+@findex tab-last
+@item @var{modifier}-@kbd{9}
+Switch to the last tab (@code{tab-last}).  The key combination is
+the modifier key defined by @code{tab-bar-select-tab-modifiers} and
+the key @kbd{9}.  With a numeric argument @var{n}, switch to the
+@var{n}th last tab.
 
 @kindex C-0, tab bar
 @kindex M-0, tab bar
