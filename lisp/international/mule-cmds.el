@@ -3318,7 +3318,8 @@ or the active region if that is set."
                                               (prop-match-end prop-match)
                                               '(font-lock-face face mouse-face
                                                                help-echo)))))
-      (let (next)
+      (let ((count 0)
+            next)
         (goto-char beg)
         (while (setq next
                      (bidi-find-overridden-directionality
@@ -3358,6 +3359,15 @@ or the active region if that is set."
                                      help-echo "\
 This text is reordered on display in a way that could change its semantics;
 use \\[forward-char] and \\[backward-char] to see the actual order of characters.")))
-            (goto-char finish)))))))
+            (goto-char finish)
+            (setq count (1+ count))))
+        (message
+         (if (> count 0)
+             (ngettext
+              "Highlighted %d confusingly-reordered text string"
+              "Highlighted %d confusingly-reordered text strings"
+              count)
+           "No confusingly-reordered text strings were found")
+         count)))))
 
 ;;; mule-cmds.el ends here
