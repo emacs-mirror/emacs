@@ -1540,7 +1540,11 @@ DEFUN ("xwidget-webkit-goto-uri",
 DEFUN ("xwidget-webkit-goto-history",
        Fxwidget_webkit_goto_history, Sxwidget_webkit_goto_history,
        2, 2, 0,
-       doc: /* Make the XWIDGET webkit load REL-POS (-1, 0, 1) page in browse history.  */)
+       doc: /* Make the XWIDGET webkit the REL-POSth element in load history.
+
+If REL-POS is 0, the widget will be just reload the current element in
+history.  If REL-POS is more or less than 0, the widget will load the
+REL-POSth element around the current spot in the load history. */)
   (Lisp_Object xwidget, Lisp_Object rel_pos)
 {
   WEBKIT_FN_INIT ();
@@ -1550,11 +1554,20 @@ DEFUN ("xwidget-webkit-goto-history",
 
 #ifdef USE_GTK
   WebKitWebView *wkwv = WEBKIT_WEB_VIEW (xw->widget_osr);
-  switch (XFIXNAT (rel_pos))
+  WebKitBackForwardList *list;
+  WebKitBackForwardListItem *it;
+
+  if (XFIXNUM (rel_pos) == 0)
+    webkit_web_view_reload (wkwv);
+  else
     {
-    case -1: webkit_web_view_go_back (wkwv); break;
-    case 0: webkit_web_view_reload (wkwv); break;
-    case 1: webkit_web_view_go_forward (wkwv); break;
+      list = webkit_web_view_get_back_forward_list (wkwv);
+      it = webkit_back_forward_list_get_nth_item (list, XFIXNUM (rel_pos));
+
+      if (!it)
+	error ("There is no item at this index");
+
+      webkit_web_view_go_to_back_forward_list_item (wkwv, it);
     }
 #elif defined NS_IMPL_COCOA
   nsxwidget_webkit_goto_history (xw, XFIXNAT (rel_pos));
