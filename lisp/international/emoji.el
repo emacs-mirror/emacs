@@ -120,7 +120,7 @@ character) under point is."
   (interactive
    (list (if (eobp)
              (error "No glyph under point")
-           (let ((comp (find-composition (point))))
+           (let ((comp (find-composition (point) (1+ (point)))))
              (if comp
                  (buffer-substring-no-properties (car comp) (cadr comp))
                (buffer-substring-no-properties (point) (1+ (point))))))
