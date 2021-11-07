@@ -745,6 +745,12 @@ an exact match, then the lowercased '[menu-bar foo\ bar]' and finally
 when converting menus to use 'easy-menu-define'.
 
 +++
+** The function `make-xwidget' now accepts an optional RELATED argument.
+This argument is used as another widget for the newly created WebKit
+widget to share settings and subprocesses with.  It must be another
+WebKit widget.
+
++++
 ** New function `xwidget-perform-lispy-event'.
 This function allows you to send events to xwidgets.  Usually, some
 equivalent of the event will be sent, but there is no guarantee of

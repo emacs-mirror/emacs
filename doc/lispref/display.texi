@@ -6801,8 +6801,9 @@ The WebKit component.
 
 The @var{width} and @var{height} arguments specify the widget size in
 pixels, and @var{title}, a string, specifies its title.  @var{related}
-is used internally by the WebKit widget, and is not of interest to the
-programmer.
+is used internally by the WebKit widget, and specifies another WebKit
+widget that the newly created widget should share settings and
+subprocesses with.
 @end defun
 
 @defun xwidgetp object

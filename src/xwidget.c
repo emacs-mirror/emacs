@@ -110,7 +110,8 @@ TYPE is a symbol which can take one of the following values:
 
 - webkit
 
-RELATED is nil, or an xwidget.  This argument is used internally.
+RELATED is nil, or an xwidget.  When constructing a WebKit widget, it
+will share the same settings and internal subprocess as RELATED.
 Returns the newly constructed xwidget, or nil if construction
 fails.  */)
   (Lisp_Object type,

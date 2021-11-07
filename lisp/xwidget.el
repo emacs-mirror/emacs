@@ -35,7 +35,7 @@
 (require 'bookmark)
 
 (declare-function make-xwidget "xwidget.c"
-                  (type title width height arguments &optional buffer))
+                  (type title width height arguments &optional buffer related))
 (declare-function xwidget-buffer "xwidget.c" (xwidget))
 (declare-function set-xwidget-buffer "xwidget.c" (xwidget buffer))
 (declare-function xwidget-size-request "xwidget.c" (xwidget))
@@ -59,14 +59,14 @@
   "Displaying native widgets in Emacs buffers."
   :group 'widgets)
 
-(defun xwidget-insert (pos type title width height &optional args)
+(defun xwidget-insert (pos type title width height &optional args related)
   "Insert an xwidget at position POS.
-Supply the xwidget's TYPE, TITLE, WIDTH, and HEIGHT.
+Supply the xwidget's TYPE, TITLE, WIDTH, HEIGHT, and RELATED.
 See `make-xwidget' for the possible TYPE values.
 The usage of optional argument ARGS depends on the xwidget.
 This returns the result of `make-xwidget'."
   (goto-char pos)
-  (let ((id (make-xwidget type title width height args)))
+  (let ((id (make-xwidget type title width height args nil related)))
     (put-text-property (point) (+ 1 (point))
                        'display (list 'xwidget ':xwidget id))
     id))
@@ -685,6 +685,7 @@ For example, use this to display an anchor."
   (let*
       ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
        (callback (or callback #'xwidget-webkit-callback))
+       (current-session (xwidget-webkit-current-session))
        xw)
     (setq xwidget-webkit-last-session-buffer (switch-to-buffer
                                               (get-buffer-create bufname)))
@@ -697,7 +698,8 @@ For example, use this to display an anchor."
       (setq xw (xwidget-insert
                 start 'webkit bufname
                 (xwidget-window-inside-pixel-width (selected-window))
-                (xwidget-window-inside-pixel-height (selected-window)))))
+                (xwidget-window-inside-pixel-height (selected-window))
+                nil current-session)))
     (xwidget-put xw 'callback callback)
     (xwidget-webkit-mode)
     (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url)))
