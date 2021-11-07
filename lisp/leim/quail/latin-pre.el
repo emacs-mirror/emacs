@@ -541,14 +541,14 @@ Key translation rules are:
  ("`E" ?Ę)
  ("`L" ?Ł)
  ("`S" "ŞȘ")
- ("`T" ?Ţ)
+ ("`T" "ŢȚ") ; the second variant is for Romanian
  ("`Z" ?Ż)
  ("`a" ?ą)
  ("`l" ?ł)
  ("`c" ?ç)
  ("`e" ?ę)
  ("`s" "şș")
- ("`t" ?ţ)
+ ("`t" "ţț") ; the second variant is for Romanian
  ("`z" ?ż)
  ("``" ?Ş)
  ("`." ?˙)

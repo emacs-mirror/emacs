@@ -256,7 +256,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("S'" ?Ś)
  ("S," "ŞȘ") ; the second variant is for Romanian
  ("S~" ?Š)
- ("T," ?Ţ)
+ ("T," "ŢȚ") ; the second variant is for Romanian
  ("T~" ?Ť)
  ("U'" ?Ú)
  ("U:" ?Ű)
@@ -297,7 +297,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("s," "şș") ; the second variant is for Romanian
  ("s/" ?ß)
  ("s~" ?š)
- ("t," ?ţ)
+ ("t," "ţț") ; the second variant is for Romanian
  ("t~" ?ť)
  ("u'" ?ú)
  ("u:" ?ű)
