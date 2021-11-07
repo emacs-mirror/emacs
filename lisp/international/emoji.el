@@ -382,7 +382,9 @@ character) under point is."
     (insert ";; Local" " Variables:
 ;; coding: utf-8
 ;; version-control: never
-;; no-byte-compile: t
+;; no-byte-"
+            ;; Obfuscate to not inhibit compilation of this file, too.
+            "compile: t
 ;; no-update-autoloads: t
 ;; End:
 
