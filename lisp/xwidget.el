@@ -909,6 +909,7 @@ With argument, add COUNT copies of CHAR."
 
 (define-key xwidget-webkit-isearch-mode-map (kbd "DEL")
   'xwidget-webkit-isearch-erasing-char)
+(define-key xwidget-webkit-isearch-mode-map [backspace] 'xwidget-webkit-isearch-erasing-char)
 (define-key xwidget-webkit-isearch-mode-map [return] 'xwidget-webkit-isearch-exit)
 (define-key xwidget-webkit-isearch-mode-map "\r" 'xwidget-webkit-isearch-exit)
 (define-key xwidget-webkit-isearch-mode-map "\C-g" 'xwidget-webkit-isearch-exit)
