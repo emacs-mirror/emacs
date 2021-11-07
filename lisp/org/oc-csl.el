@@ -487,21 +487,25 @@ INFO is the export state, as a property list."
     (let ((global-prefix (org-element-property :prefix citation)))
       (when global-prefix
         (let* ((first (car cites))
-               (prefix (org-element-property :prefix first)))
-          (org-element-put-property
-           first :prefix (org-cite-concat global-prefix prefix)))))
+               (prefix-item (assq 'prefix first)))
+          (setcdr prefix-item
+                  (concat (org-element-interpret-data global-prefix)
+                          " "
+                          (cdr prefix-item))))))
     ;; Global suffix is appended to the suffix of the last reference.
     (let ((global-suffix (org-element-property :suffix citation)))
       (when global-suffix
         (let* ((last (org-last cites))
-               (suffix (org-element-property :suffix last)))
-          (org-element-put-property
-           last :suffix (org-cite-concat suffix global-suffix)))))
+               (suffix-item (assq 'suffix last)))
+          (setcdr suffix-item
+                  (concat (cdr suffix-item)
+                          " "
+                          (org-element-interpret-data global-suffix))))))
     ;; Check if CITATION needs wrapping, i.e., it should be wrapped in
     ;; a footnote, but isn't yet.
     (when (and (not footnote) (org-cite-csl--note-style-p info))
       (org-cite-adjust-note citation info)
-      (org-cite-wrap-citation citation info))
+      (setq footnote (org-cite-wrap-citation citation info)))
     ;; Return structure.
     (apply #'citeproc-citation-create
            `(:note-index

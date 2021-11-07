@@ -119,11 +119,7 @@ If \"natbib\" package is already required in the document, e.g., through
 (defun org-cite-natbib--build-optional-arguments (citation info)
   "Build optional arguments for citation command.
 CITATION is the citation object.  INFO is the export state, as a property list."
-  (let* ((origin (pcase (org-cite-get-references citation)
-                   (`(,reference) reference)
-                   (_ citation)))
-         (suffix (org-element-property :suffix origin))
-         (prefix (org-element-property :prefix origin)))
+  (pcase-let ((`(,prefix . ,suffix) (org-cite-main-affixes citation)))
     (concat (and prefix (format "[%s]" (org-trim (org-export-data prefix info))))
             (cond
              (suffix (format "[%s]" (org-trim (org-export-data suffix info))))
