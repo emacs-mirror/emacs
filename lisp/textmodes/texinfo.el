@@ -411,11 +411,9 @@ value of `texinfo-mode-hook'."
 		      "\\)\\>"))
   (setq-local require-final-newline mode-require-final-newline)
   (setq-local indent-tabs-mode nil)
-  (setq-local paragraph-separate
-	      (concat "@[a-zA-Z]*[ \n]\\|"
-		      paragraph-separate))
   (setq-local paragraph-start (concat "@[a-zA-Z]*[ \n]\\|"
 				      paragraph-start))
+  (setq-local fill-paragraph-function 'texinfo--fill-paragraph)
   (setq-local sentence-end-base "\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'”)}]*")
   (setq-local fill-column 70)
   (setq-local comment-start "@c ")
@@ -457,6 +455,44 @@ value of `texinfo-mode-hook'."
 		    prevent-filling
 		  (concat auto-fill-inhibit-regexp "\\|" prevent-filling)))))
 
+(defvar texinfo-fillable-commands '("@noindent")
+  "A list of commands that can be filled.")
+
+(defun texinfo--fill-paragraph (justify)
+  "Function to fill a paragraph in `texinfo-mode'."
+  (let ((command-re "\\(@[a-zA-Z]+\\)[ \t\n]"))
+    (catch 'no-fill
+      (save-restriction
+        ;; First check whether we're on a command line that can be
+        ;; filled by itself.
+        (or
+         (save-excursion
+           (beginning-of-line)
+           (when (looking-at command-re)
+             (let ((command (match-string 1)))
+               (if (member command texinfo-fillable-commands)
+                   (progn
+                     (narrow-to-region (point) (progn (forward-line 1) (point)))
+                     t)
+                 (throw 'no-fill nil)))))
+         ;; We're not on such a line, so fill the region.
+         (save-excursion
+           (let ((regexp (concat command-re "\\|^[ \t]*$\\|\f")))
+             (narrow-to-region
+              (if (re-search-backward regexp nil t)
+                  (progn
+                    (forward-line 1)
+                    (point))
+                (point-min))
+              (if (re-search-forward regexp nil t)
+                  (match-beginning 0)
+                (point-max)))
+             (goto-char (point-min)))))
+        ;; We've now narrowed to the region we want to fill.
+        (let ((fill-paragraph-function nil)
+              (adaptive-fill-mode nil))
+          (fill-paragraph justify))))
+    t))
 
 
 ;;; Insert string commands

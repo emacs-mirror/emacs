@@ -1,0 +1,70 @@
+Code:
+  (lambda ()
+    (texinfo-mode)
+    (fill-paragraph))
+
+Name: fill1
+Point-Char: |
+
+=-=
+@noindent Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
+=-=
+@noindent Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+=-=-=
+
+Name: fill2
+Point-Char: |
+
+=-=
+@cindex relative| remapping, faces
+@cindex base remapping, faces
+  The following functions implement a higher-level interface to @code{face-remapping-alist}.
+=-=-=
+
+
+Name: fill3
+Point-Char: |
+
+=-=
+@cindex relative remapping, faces
+@cindex base remapping, faces|
+  The following functions implement a higher-level interface to @code{face-remapping-alist}.
+=-=-=
+
+Name: fill4
+Point-Char: |
+
+=-=
+@cindex relative remapping, faces
+@cindex base remapping, faces
+  The following functions| implement a higher-level interface to @code{face-remapping-alist}.
+=-=
+@cindex relative remapping, faces
+@cindex base remapping, faces
+  The following functions| implement a higher-level interface to
+@code{face-remapping-alist}.
+=-=-=
+
+Name: fill5
+Point-Char: |
+
+=-=
+@defun face-remap-add-relative face &rest specs
+|This function adds the face spec in @var{specs} as relative
+remappings for face @var{face} in the current buffer.  The remaining
+arguments, @var{specs}, should form either a list of face names, or a
+property list of attribute/value pairs.
+=-=
+@defun face-remap-add-relative face &rest specs
+This function adds the face spec in @var{specs} as relative remappings
+for face @var{face} in the current buffer.  The remaining arguments,
+@var{specs}, should form either a list of face names, or a property
+list of attribute/value pairs.
+=-=-=
+
+Name: fill6
+
+=-=
+@subsection This is a very very very very very very very very very very long subsection name
+=-=-=
