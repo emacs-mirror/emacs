@@ -594,7 +594,8 @@ Use 'exif-parse-file' and 'exif-field' instead.
 *** New command 'yank-media'.
 This command supports yanking non-plain-text media like images and
 HTML from other applications into Emacs.  It is only supported in
-modes that have registered support for it.
+modes that have registered support for it, and only on capable
+platforms.
 
 +++
 *** New text property 'inhibit-isearch'.
