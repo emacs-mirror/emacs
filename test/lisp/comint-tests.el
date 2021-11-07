@@ -43,6 +43,7 @@
     "PIN for user:"        ; Bug#35523
     "Password (again):"
     "Enter password:"
+    "(user@host) Password: " ; openssh-8.6p1
     "Current password:"    ; "passwd" (to change password) in Debian.
     "Enter encryption key: " ; ccrypt
     "Enter decryption key: " ; ccrypt

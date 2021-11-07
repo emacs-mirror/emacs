@@ -385,10 +385,12 @@ This variable is buffer-local."
    "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:space:]]*\\'"
    ;; The ccrypt encryption dialogue doesn't end with a colon, so
    ;; treat it specially.
-   "\\|^Enter encryption key: (repeat) *\\'")
+   "\\|^Enter encryption key: (repeat) *\\'"
+   ;; openssh-8.6p1 format: "(user@host) Password:".
+   "\\|^([^)@ \t\n]+@[^)@ \t\n]+) Password: *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
-  :version "28.1"
+  :version "29.1"
   :type 'regexp
   :group 'comint)
 
