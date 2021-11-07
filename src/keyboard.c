@@ -6123,28 +6123,20 @@ make_lispy_event (struct input_event *event)
 
 #ifdef HAVE_DBUS
     case DBUS_EVENT:
-      {
-	return Fcons (Qdbus_event, event->arg);
-      }
+      return Fcons (Qdbus_event, event->arg);
 #endif /* HAVE_DBUS */
 
 #ifdef THREADS_ENABLED
     case THREAD_EVENT:
-      {
-	return Fcons (Qthread_event, event->arg);
-      }
+      return Fcons (Qthread_event, event->arg);
 #endif /* THREADS_ENABLED */
 
 #ifdef HAVE_XWIDGETS
     case XWIDGET_EVENT:
-      {
-        return Fcons (Qxwidget_event, event->arg);
-      }
+      return Fcons (Qxwidget_event, event->arg);
 
     case XWIDGET_DISPLAY_EVENT:
-      {
-	return list2 (Qxwidget_display_event, event->arg);
-      }
+      return list2 (Qxwidget_display_event, event->arg);
 #endif
 
 #ifdef USE_FILE_NOTIFY

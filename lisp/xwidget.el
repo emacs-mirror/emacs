@@ -926,18 +926,17 @@ With argument, add COUNT copies of CHAR."
 (define-minor-mode xwidget-webkit-isearch-mode
   "Minor mode for performing incremental search inside WebKit buffers.
 
-An attempt was made for this to resemble regular incremental
-search, but it suffers from several limitations, such as not
-supporting recursive edits.
+This resembles the regular incremental search, but it does not
+support recursive edits.
 
-If this mode is enabled with `C-r', then the search will default
-to being performed in reverse direction.
+If this mode is activated with `\\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-backward]', then the search will by default
+start in the reverse direction.
 
 To navigate around the search results, type
-\\[xwidget-webkit-isearch-forward] to move forward, and
-\\[xwidget-webkit-isearch-backward] to move backward.
+\\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-forward] to move forward, and
+\\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-backward] to move backward.
 
-Press \\[xwidget-webkit-isearch-exit] to exit incremental search."
+Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit incremental search."
   :keymap xwidget-webkit-isearch-mode-map
   (if xwidget-webkit-isearch-mode
       (progn

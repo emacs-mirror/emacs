@@ -1883,53 +1883,62 @@ contain various data describing the nature of the change.
 @cindex @code{xwidget-event} event
 @item (xwidget-event @var{kind} @var{xwidget} @var{arg})
 This event is sent whenever some kind of update occurs in
-@var{xwidget}.  There are several types of updates, which are
-identified by @var{kind}.
+@var{xwidget}.  There are several types of updates, identified by
+their @var{kind}.
 
-@cindex @code{load-changed} xwidget events
-An xwidget event with @var{kind} set to @code{load-changed} indicates
-that the @var{xwidget} has reached a particular point of the
-page-loading process.  When these events are sent, @var{arg} will
-contain a string that futher describes the status of the widget.
+@table @code
+@cindex @code{load-changed} xwidget event
+@item load-changed
+This xwidget event indicates that the @var{xwidget} has reached a
+particular point of the page-loading process.  When these events are
+sent, @var{arg} will contain a string that futher describes the status
+of the widget:
 
-@cindex @samp{"load-finished"} in xwidgets
-When @var{arg} is @samp{"load-finished"}, it means the xwidget has
-finished processing whatever page-loading operation that it was
-previously performing.
+@table @samp
+@cindex @samp{load-started} in xwidgets
+@item load-started
+This means the widget has begun a page-loading operation.
 
-@cindex @samp{"load-started"} in xwidgets
-Otherwise, if it is @samp{"load-started"}, then the widget has begun a
-page-loading operation.
+@cindex @samp{load-finished} in xwidgets
+@item load-finished
+This means the @var{xwidget} has finished processing whatever
+page-loading operation that it was previously performing.
 
-@cindex @samp{"load-redirected"} in xwidgets
-If @var{arg} is @samp{"load-redirected"}, it means the widget has
-encountered and followed a redirect during the page-loading operation.
+@cindex @samp{load-redirected} in xwidgets
+@item load-redirected
+This means the @var{xwidget} has encountered and followed a redirect
+during the page-loading operation.
 
-@cindex @samp{"load-committed"} in xwidgets
-If @var{arg} is @samp{"load-committed"}, then the widget has committed
-to a given URL during the page-loading operation.  This means that the
-URL is the final URL that will be rendered by @var{xwidget} during the
-current page-loading operation.
+@cindex @samp{load-committed} in xwidgets
+@item load-committed
+This means the @var{xwidget} has committed to a given URL during the
+page-loading operation, i.e.@: the URL is the final URL that will be
+rendered by @var{xwidget} during the current page-loading operation.
+@end table
 
 @cindex @code{download-callback} xwidget events
-An event with @var{kind} set to @code{download-callback} indicates
-that a download of some kind has been completed.
+@item download-callback
+This event indicates that a download of some kind has been completed.
+@end table
 
-In these events, there can be arguments after @var{arg}, which itself
-indicates the URL that the download file was retrieved from: the first
-argument after @var{arg} indicates the MIME type of the download, as a
-string, while the second such argument contains the full file path to
-the downloaded file.
+In the above events, there can be arguments after @var{arg}, which
+itself indicates the URL from which the download file was retrieved:
+the first argument after @var{arg} indicates the MIME type of the
+download, as a string, while the second argument contains the full
+file name of the downloaded file.
 
+@table @code
 @cindex @code{download-started} xwidget events
-An event with @var{kind} set to @code{download-started} indicates that
-a download has been started.  In these events, @var{arg} contains the
-URL of the file that is currently being downloaded.
+@item download-started
+This event indicates that a download has been started.  In these
+events, @var{arg} contains the URL of the file that is currently being
+downloaded.
 
 @cindex @code{javascript-callback} xwidget events
-An event with @var{kind} set to @code{javascript-callback} contains
-JavaScript callback data.  These events are used internally by
-@code{xwidget-webkit-execute-script}.
+@item javascript-callback
+This event contains JavaScript callback data.  These events are used
+internally by @code{xwidget-webkit-execute-script}.
+@end table
 
 @cindex @code{xwidget-display-event} event
 @item (xwidget-display-event @var{xwidget})

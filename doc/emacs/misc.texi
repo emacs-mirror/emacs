@@ -2965,19 +2965,18 @@ You can also enable @code{xwidget-webkit-edit-mode} by typing @kbd{e}
 inside the xwidget webkit buffer.
 
 @findex xwidget-webkit-isearch-mode
-@cindex xwidget-webkit-isearch-mode
 @cindex searching in webkit buffers
   @code{xwidget-webkit-isearch-mode} is a minor mode that behaves
 similarly to incremental search (@pxref{Incremental Search}), but
 operates on the contents of a WebKit widget instead of the current
 buffer.  It is bound to @kbd{C-s} and @kbd{C-r} inside xwidget-webkit
-buffers.  When it is enabled through @kbd{C-r}, the initial search
-will be performed in reverse direction.
+buffers.  When it is invoked by @kbd{C-r}, the initial search will be
+performed in reverse direction.
 
 Typing any self-inserting character will cause the character to be
 inserted into the current search query.  Typing @kbd{C-s} will cause
 the WebKit widget to display the next search result, while typing
-@kbd{C-r} will cause it to display the last.
+@kbd{C-r} will cause it to display the previous one.
 
 To leave incremental search, you can type @kbd{C-g}.
 

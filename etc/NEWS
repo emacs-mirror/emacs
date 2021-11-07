@@ -498,16 +498,16 @@ This is a convenience function to extract the field data from
 ** Xwidgets
 
 +++
-*** New minor mode `xwidget-webkit-edit-mode'.
+*** New minor mode 'xwidget-webkit-edit-mode'.
 When this mode is enabled, self-inserting characters and other common
 web browser shotcut keys are redefined to send themselves to the
 WebKit widget.
 
 +++
-*** New minor mode `xwidget-webkit-isearch-mode'.
+*** New minor mode 'xwidget-webkit-isearch-mode'.
 This mode acts similarly to incremental search, and allows to search
 the contents of a WebKit widget.  In xwidget-webkit mode, it is bound
-to `C-s' and `C-r'.
+to 'C-s' and 'C-r'.
 
 ---
 *** On X11, the WebKit inspector is now available inside xwidgets.
@@ -516,8 +516,8 @@ Element".
 
 ---
 *** "Open in New Window" in a WebKit widget's context menu now works.
-The newly created buffer will be displayed via display-buffer, which
-can be customized through the usual mechanism of display-buffer-alist
+The newly created buffer will be displayed via 'display-buffer', which
+can be customized through the usual mechanism of 'display-buffer-alist'
 and friends.
 
 
@@ -745,13 +745,15 @@ an exact match, then the lowercased '[menu-bar foo\ bar]' and finally
 when converting menus to use 'easy-menu-define'.
 
 +++
-** The function `make-xwidget' now accepts an optional RELATED argument.
+** xwidgets
+
+*** The function 'make-xwidget' now accepts an optional RELATED argument.
 This argument is used as another widget for the newly created WebKit
 widget to share settings and subprocesses with.  It must be another
 WebKit widget.
 
 +++
-** New function `xwidget-perform-lispy-event'.
+*** New function 'xwidget-perform-lispy-event'.
 This function allows you to send events to xwidgets.  Usually, some
 equivalent of the event will be sent, but there is no guarantee of
 what the widget will actually receive.
@@ -759,23 +761,23 @@ what the widget will actually receive.
 On GTK+, only key and function key events are implemented.
 
 +++
-** New functions for performing searches on WebKit xwidgets.
-Some new functions, such as `xwidget-webkit-search', have been added
+*** New functions for performing searches on WebKit xwidgets.
+Some new functions, such as 'xwidget-webkit-search', have been added
 for performing searches on WebKit xwidgets.
 
 +++
-** `load-changed' xwidget events are now more detailed.
+*** 'load-changed' xwidget events are now more detailed.
 In particular, they can now have different arguments based on the
-state of the WebKit widget.  `load-finished' is sent when a load has
-completed, `load-started' when a load first starts, `load-redirected'
-after a redirect, and `load-committed' when the WebKit widget first
+state of the WebKit widget.  'load-finished' is sent when a load has
+completed, 'load-started' when a load first starts, 'load-redirected'
+after a redirect, and 'load-committed' when the WebKit widget first
 commits to the load.
 
 +++
-** New event type `xwidget-display-event'.
+*** New event type 'xwidget-display-event'.
 These events are sent whenever an xwidget requests that Emacs display
-another.  The only argument to this event is the xwidget that should
-be displayed.
+another xwidget.  The only argument to this event is the xwidget that
+should be displayed.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

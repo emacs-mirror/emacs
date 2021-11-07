@@ -6890,22 +6890,22 @@ query-on-exit flag, either @code{t} or @code{nil}.
 
 @defun xwidget-perform-lispy-event xwidget event frame
 Send an input event @var{event} to @var{xwidget}.  The precise action
-performed is platform-specific.  See @ref{Input Events}.
+performed is platform-specific.  @xref{Input Events}.
 
-You can optionally pass the frame the event was generated from via
+You can optionally pass the frame on which the event was generated via
 @var{frame}.  On X11, modifier keys in key events will not be
 considered if @var{frame} is @code{nil}, and the selected frame is not
 an X-Windows frame.
 
-On GTK, only keyboard and function key events are implemented.  Mouse,
+On GTK, only keyboard and function key events are supported.  Mouse,
 motion, and click events are dispatched to the xwidget without going
 through Lisp code, and as such shouldn't require this function to be
-sent.
+called.
 @end defun
 
 @defun xwidget-webkit-search query xwidget &optional case-insensitive backwards wrap-around
 Start an incremental search on the WebKit widget @var{xwidget} with
-the string @var{query} as a query.  @var{case-insensitive} denotes
+the string @var{query} as the query.  @var{case-insensitive} denotes
 whether or not the search is case-insensitive, @var{backwards}
 determines if the search is performed backwards towards the start of
 the document, and @var{wrap-around} determines whether or not the
@@ -6919,28 +6919,28 @@ To stop a search query, use @code{xwidget-webkit-finish-search}.
 
 @defun xwidget-webkit-next-result xwidget
 Display the next search result in @var{xwidget}.  This function will
-error unless a search query has already been started in @var{xwidget}
-through @code{xwidget-webkit-search}.
+signal an error if a search query has not been already started in
+@var{xwidget} through @code{xwidget-webkit-search}.
 
 If @code{wrap-around} was non-nil when @code{xwidget-webkit-search}
 was called, then the search will restart from the beginning of the
-document if the end is reached.
+document when its end is reached.
 @end defun
 
 @defun xwidget-webkit-previous-result xwidget
 Display the previous search result in @var{xwidget}.  This function
-will error unless a search query has already been started in
+signals an error if a search query has not been already started in
 @var{xwidget} through @code{xwidget-webkit-search}.
 
 If @code{wrap-around} was non-nil when @code{xwidget-webkit-search}
 was called, then the search will restart from the end of the
-document if the beginning is reached.
+document when its beginning is reached.
 @end defun
 
 @defun xwidget-webkit-finish-search xwidget
 Finish a search operation started with @code{xwidget-webkit-search} in
-@var{xwidget}.  If there is no query currently ongoing, then this
-function will error.
+@var{xwidget}.  If there is no query currently ongoing, this function
+signals an error.
 @end defun
 
 @node Buttons
