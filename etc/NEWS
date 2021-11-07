@@ -246,6 +246,7 @@ representation as emojis.
 +++
 *** New command 'C-x t C-r' to open file read-only in the other tab.
 
++++
 *** The tab bar now supports more mouse commands.
 Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
 with items that operate on the clicked tab.  Dragging the tab with
@@ -266,7 +267,7 @@ frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
 This allows enabling/disabling the tab bar independently on different
 frames.
 
----
++++
 *** New user option 'tab-bar-format' defines a list of tab bar items.
 When it contains 'tab-bar-format-global' (possibly appended after
 'tab-bar-format-align-right'), then after enabling 'display-time-mode'
@@ -275,14 +276,14 @@ aligned to the right on the tab bar instead of on the mode line.
 When 'tab-bar-format-tabs' is replaced with 'tab-bar-format-tabs-groups',
 the tab bar displays tab groups.
 
----
++++
 *** New optional key binding for 'tab-last'.
 If you customize the user option 'tab-bar-select-tab-modifiers' to
 allow selecting tabs using their index numbers, the '<MODIFIER>-9' key
 is bound to 'tab-last', and switches to the last tab.  Here <MODIFIER>
 is any of the modifiers in the list that is the value of
-'tab-bar-select-tab-modifiers'.  You can also use negative indices,
-which count from the last tab: -1 is the last tab, -2 the one before
+'tab-bar-select-tab-modifiers'.  You can also use positive indices,
+which count from the last tab: 1 is the last tab, 2 the one before
 that, etc.
 
 ---
