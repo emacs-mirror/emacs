@@ -1649,6 +1649,7 @@ You probably want to use this together with
 Use `image-dired-minor-mode' to get a nice setup."
   (buffer-disable-undo)
   (add-hook 'file-name-at-point-functions 'image-dired-file-name-at-point nil t)
+  (setq-local window-resize-pixelwise t)
   (setq-local bookmark-make-record-function #'image-dired-bookmark-make-record)
   ;; Use approximately as much vertical spacing as horizontal.
   (setq-local line-spacing (frame-char-width)))
