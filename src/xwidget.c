@@ -1740,9 +1740,10 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
     {
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
-      gtk_container_resize_children (GTK_CONTAINER (xw->widgetwindow_osr));
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
                                    xw->height);
+
+      gtk_widget_queue_allocate (GTK_WIDGET (xw->widget_osr));
     }
 #elif defined NS_IMPL_COCOA
   nsxwidget_resize (xw);
