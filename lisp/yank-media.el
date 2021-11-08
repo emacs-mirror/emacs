@@ -80,12 +80,11 @@ all the different selection types."
               (yank-media--get-selection type)))))
    (gui-get-selection 'CLIPBOARD 'TARGETS)))
 
-(defun yank-media--get-selection (type)
-  (let ((selection-coding-system 'binary))
-    (when-let ((data (gui-get-selection 'CLIPBOARD type)))
-      (if (string-match-p "\\`text/" (symbol-name type))
-          (yank-media-types--format type data)
-        data))))
+(defun yank-media--get-selection (data-type)
+  (when-let ((data (gui-get-selection 'CLIPBOARD data-type)))
+    (if (string-match-p "\\`text/" (symbol-name data-type))
+        (yank-media-types--format data-type data)
+      data)))
 
 ;;;###autoload
 (defun yank-media-handler (types handler)
