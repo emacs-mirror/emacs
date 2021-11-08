@@ -1316,11 +1316,6 @@ command applies to all frames, including frames yet to be created.  To
 control the use of tab bars at startup, customize the variable
 @code{tab-bar-mode} and save your customization.
 
-@findex toggle-frame-tab-bar
-  To toggle the use of the Tab Bar only on the selected frame, type
-@kbd{M-x toggle-frame-tab-bar}.  This command allows to enable the
-display of the Tab Bar on some frames and disable it on others.
-
 @vindex tab-bar-show
   The variable @code{tab-bar-show} controls whether the Tab Bar mode
 is turned on automatically.  If the value is @code{t}, then
@@ -1338,7 +1333,13 @@ Bar by using commands @kbd{M-x tab-new}, @kbd{M-x tab-close}, etc.
 
   Note that a numerical value of @code{tab-bar-show} can cause the Tab
 Bar to be displayed on some frames, but not on others, depending on
-the number of tabs defined on each frame.
+the number of tabs created on each frame.
+
+@findex toggle-frame-tab-bar
+  To toggle the use of the Tab Bar only on the selected frame, type
+@kbd{M-x toggle-frame-tab-bar}.  This command allows to enable the
+display of the Tab Bar on some frames and disable it on others,
+regardless of the values of @code{tab-bar-mode} and @code{tab-bar-show}.
 
 @kindex C-x t
   The prefix key @kbd{C-x t} is analogous to @kbd{C-x 5}.
@@ -1455,9 +1456,7 @@ names is sorted by recency, so you can use @kbd{M-n}
 the second last, and so on.
 
 @kindex C-1, tab bar
-@kindex C-9, tab bar
 @kindex M-1, tab bar
-@kindex M-9, tab bar
 @findex tab-select
 @vindex tab-bar-select-tab-modifiers
 @vindex tab-bar-tab-hints
@@ -1472,6 +1471,15 @@ last tab. You can select any modifiers supported by Emacs,
 name, you can customize another variable @code{tab-bar-tab-hints}.
 This will help you decide which numerical key to press to select the
 tab by its number.
+
+@kindex C-9, tab bar
+@kindex M-9, tab bar
+@findex tab-last
+@item @var{modifier}-@kbd{9}
+Switch to the last tab (@code{tab-last}).  The key combination is
+the modifier key defined by @code{tab-bar-select-tab-modifiers} and
+the key @kbd{9}.  With a numeric argument @var{n}, switch to the
+@var{n}th last tab.
 
 @kindex C-0, tab bar
 @kindex M-0, tab bar
@@ -1500,6 +1508,13 @@ to the right; with a negative argument @minus{}@var{n}, move it
 @var{n} positions to the left.
 @end table
 
+  You can use the mouse to operate on tabs.  Clicking @kbd{mouse-2}
+closes the tab.  Clicking @kbd{mouse-3} pops up the context menu with
+the items that operate on the clicked tab.  Dragging the tab with
+@kbd{mouse-1} moves it to another position on the tab bar.  Mouse
+wheel scrolling switches to the next or previous tab.  Holding down
+the @key{SHIFT} key during scrolling moves the tab to the left or right.
+
 @findex tab-bar-history-mode
   You can enable @code{tab-bar-history-mode} to remember window
 configurations used in every tab, and later restore them.
@@ -1515,6 +1530,9 @@ This navigates back in the history of window configurations.
 Cancel restoration of the previous window configuration.
 This moves forward in the history of window configurations.
 @end table
+
+  It's possible to customize the items displayed on the tab bar
+by the user option @code{tab-bar-format}.
 
 @node Dialog Boxes
 @section Using Dialog Boxes

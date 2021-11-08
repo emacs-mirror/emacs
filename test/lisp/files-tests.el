@@ -1342,6 +1342,39 @@ name (Bug#28412)."
     (should (file-directory-p (concat (file-name-as-directory dest2) "a")))
     (delete-directory dir 'recursive)))
 
+(ert-deftest files-tests-abbreviate-file-name-homedir ()
+  ;; Check homedir abbreviation.
+  (let* ((homedir temporary-file-directory)
+         (process-environment (cons (format "HOME=%s" homedir)
+                                    process-environment))
+         (abbreviated-home-dir nil))
+    (should (equal "~/foo/bar"
+                   (abbreviate-file-name (concat homedir "foo/bar")))))
+  ;; Check that homedir abbreviation doesn't occur when homedir is just /.
+  (let* ((homedir "/")
+         (process-environment (cons (format "HOME=%s" homedir)
+                                    process-environment))
+         (abbreviated-home-dir nil))
+    (should (equal "/foo/bar"
+                   (abbreviate-file-name (concat homedir "foo/bar"))))))
+
+(ert-deftest files-tests-abbreviate-file-name-directory-abbrev-alist ()
+    ;; Check `directory-abbrev-alist' abbreviation.
+    (let ((directory-abbrev-alist '(("\\`/nowhere/special" . "/nw/sp"))))
+      (should (equal "/nw/sp/here"
+                     (abbreviate-file-name "/nowhere/special/here"))))
+    ;; Check homedir and `directory-abbrev-alist' abbreviation.
+    (let* ((homedir temporary-file-directory)
+           (process-environment (cons (format "HOME=%s" homedir)
+                                      process-environment))
+           (abbreviated-home-dir nil)
+           (directory-abbrev-alist
+            `((,(concat "\\`" (regexp-quote homedir) "nowhere/special")
+              . ,(concat homedir "nw/sp")))))
+      (should (equal "~/nw/sp/here"
+                     (abbreviate-file-name
+                      (concat homedir "nowhere/special/here"))))))
+
 (ert-deftest files-tests-abbreviated-home-dir ()
   "Test that changing HOME does not confuse `abbreviate-file-name'.
 See <https://debbugs.gnu.org/19657#20>."

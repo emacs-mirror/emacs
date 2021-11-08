@@ -630,16 +630,19 @@ This includes initialization and closing the bus."
             :session dbus--test-service dbus--test-path
             dbus--test-interface method1 "foo" "bar"))
           `(dbus-error ,dbus-error-invalid-args "Wrong arguments (foo bar)")))
-        ;; Three arguments, D-Bus error activated by `dbus-error' signal.
+        ;; Three arguments, D-Bus error activated by `dbus-error'
+        ;; signal.  On CentOS, it is not guaranteed which format the
+        ;; error message arises.  (Bug#51369)
         (should
-         (equal
+         (member
           (should-error
            (dbus-call-method
             :session dbus--test-service dbus--test-path
             dbus--test-interface method1 "foo" "bar" "baz"))
-          `(dbus-error
-            ,dbus-error-failed
-            "D-Bus error: \"D-Bus signal\", \"foo\", \"bar\", \"baz\"")))
+          `((dbus-error "D-Bus signal" "foo" "bar" "baz")
+            (dbus-error
+             ,dbus-error-failed
+             "D-Bus error: \"D-Bus signal\", \"foo\", \"bar\", \"baz\""))))
 
         ;; Unregister method.
         (should (dbus-unregister-object registered))

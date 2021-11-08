@@ -2287,7 +2287,7 @@ Return the server's response to the SELECT or EXAMINE command."
 	  nnimap-incoming-split-list)))
 
 (defun nnimap-make-thread-query (header)
-  (let* ((id  (mail-header-id header))
+  (let* ((id (substring-no-properties (mail-header-id header)))
 	 (refs (split-string
 		(or (mail-header-references header)
 		    "")))

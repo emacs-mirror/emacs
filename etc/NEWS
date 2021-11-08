@@ -36,6 +36,12 @@ to configure with the '--without-compress-install' option, so that the
 installed *.el files are not compressed; otherwise, you will not be
 able to use JIT native compilation of the installed *.el files.
 
+Note that JIT native compilation is done in a fresh session of Emacs
+that is run in a subprocess, so it can legitimately report some
+warnings and errors that aren't uncovered by byte-compilation.  We
+recommend examining any such warnings before you decide they are
+false.
+
 ** The Cairo graphics library is now used by default if present.
 '--with-cairo' is now the default, if the appropriate development files
 are found by 'configure'.  Note that building with Cairo means using
@@ -210,7 +216,7 @@ In Emacs 23, typing 'M-x' ('read-extended-command') and then 'C-s' (to
 do an interactive search) would search over possible completions.
 This was lost in Emacs 24, but is now back again.
 
----
++++
 ** User option 'completions-format' supports a new value 'one-column'.
 
 +++
@@ -380,10 +386,12 @@ requiring the user to specify the value via the prefix argument.
 
 ** Windows
 
++++
 *** The key prefix 'C-x 4 1' displays next command buffer in the same window.
 It's bound to the command 'same-window-prefix' that requests the buffer
 of the next command to be displayed in the same window.
 
++++
 *** The key prefix 'C-x 4 4' displays next command buffer in a new window.
 It's bound to the command 'other-window-prefix' that requests the buffer
 of the next command to be displayed in a new window.
@@ -478,6 +486,7 @@ command 'other-tab-prefix'.
 +++
 *** New command 'C-x t C-r' to open file read-only in the other tab.
 
++++
 *** The tab bar now supports more mouse commands.
 Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
 with items that operate on the clicked tab.  Dragging the tab with
@@ -485,20 +494,20 @@ with items that operate on the clicked tab.  Dragging the tab with
 scrolling switches to the previous/next tab, and holding the Shift key
 during scrolling moves the tab to the left/right.
 
----
++++
 *** Frame-specific appearance of the tab bar when 'tab-bar-show' is a number.
 When 'tab-bar-show' is a number, the tab bar on different frames can
 be shown or hidden independently, as determined by the number of tabs
 on each frame compared to the numerical value of 'tab-bar-show'.
 
----
++++
 *** New command 'toggle-frame-tab-bar'.
 It can be used to enable/disable the tab bar on the currently selected
 frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
 This allows enabling/disabling the tab bar independently on different
 frames.
 
----
++++
 *** New user option 'tab-bar-format' defines a list of tab bar items.
 When it contains 'tab-bar-format-global' (possibly appended after
 'tab-bar-format-align-right'), then after enabling 'display-time-mode'
@@ -507,14 +516,14 @@ aligned to the right on the tab bar instead of on the mode line.
 When 'tab-bar-format-tabs' is replaced with 'tab-bar-format-tabs-groups',
 the tab bar displays tab groups.
 
----
++++
 *** New optional key binding for 'tab-last'.
 If you customize the user option 'tab-bar-select-tab-modifiers' to
 allow selecting tabs using their index numbers, the '<MODIFIER>-9' key
 is bound to 'tab-last', and switches to the last tab.  Here <MODIFIER>
 is any of the modifiers in the list that is the value of
-'tab-bar-select-tab-modifiers'.  You can also use negative indices,
-which count from the last tab: -1 is the last tab, -2 the one before
+'tab-bar-select-tab-modifiers'.  You can also use positive indices,
+which count from the last tab: 1 is the last tab, 2 the one before
 that, etc.
 
 ---
@@ -569,9 +578,9 @@ in other ways.
 
 ---
 *** Mouse wheel scrolling now works on more parts of frame's display.
-When using 'mwheel-mode', the mouse wheel will now scroll also when
+When using 'mouse-wheel-mode', the mouse wheel will now scroll also when
 the mouse cursor is on the scroll bars, fringes, margins, header line,
-and mode line.  ('mwheel-mode' is enabled by default on most graphical
+and mode line.  ('mouse-wheel-mode' is enabled by default on most graphical
 displays.)
 
 +++
@@ -602,7 +611,7 @@ built without SVG support, the old icons will be used instead.
 ** Help
 
 ---
-*** The order things are displayed in the "*Help*" buffer has been changed.
+*** The order of things displayed in the "*Help*" buffer has been changed.
 The indented "administrative" block (containing the "probably
 introduced" and "other relevant functions" (and similar things) has
 been moved to after the doc string.
@@ -655,11 +664,6 @@ It enables outlines in the output buffer of 'describe-bindings' that
 can provide a better overview in a long list of available bindings.
 
 +++
-*** New command 'lossage-size'.
-It allows users to change the maximum number of keystrokes and
-commands recorded for the purpose of 'view-lossage'.
-
-+++
 *** New commands to describe buttons and widgets.
 'widget-describe' (on a widget) will pop up a help buffer and give a
 description of the properties.  Likewise 'button-describe' does the
@@ -680,6 +684,11 @@ These new navigation commands are bound to 'n' and 'p' in
 *** The command 'view-lossage' can now be invoked from the menu bar.
 The menu bar "Help" menu now has a "Show Recent Inputs" item under the
 "Describe" sub-menu.
+
++++
+*** New command 'lossage-size'.
+It allows users to change the maximum number of keystrokes and
+commands recorded for the purpose of 'view-lossage'.
 
 ---
 *** Closing the "*Help*" buffer from the toolbar now buries the buffer.
@@ -753,20 +762,20 @@ Applies to buttons that indicate a face.
 +++
 *** New face 'font-lock-doc-markup-face'.
 Intended for documentation mark-up syntax and tags inside text that
-uses 'font-lock-doc-face', with which it should harmonize.  It would
-typically be used in structured documentation comments in program
-source code by language-specific modes, for mark-up conventions like
-Haddock, Javadoc or Doxygen.  By default this face inherits from
-'font-lock-constant-face'.
+uses 'font-lock-doc-face', which it should appropriately stand out
+against and harmonize with.  It would typically be used in structured
+documentation comments in program source code by language-specific
+modes, for mark-up conventions like Haddock, Javadoc or Doxygen.  By
+default this face inherits from 'font-lock-constant-face'.
 
 +++
-*** New face 'flat-button'.
+*** New face box style 'flat-button'.
 This is a plain 2D button, but uses the background color instead of
 the foreground color.
 
 ---
-*** New face 'shortdoc-heading'.
-Applies to headings of shortdoc sections.
+*** New faces 'shortdoc-heading' and 'shortdoc-section'.
+Applied to shortdoc headings and sections.
 
 ---
 *** New face 'separator-line'.
@@ -1246,6 +1255,14 @@ Like 'search-highlight-submatches', this is controlled by the new user option
 'query-replace-highlight-submatches'.
 
 +++
+*** New key 'M-s M-.' starts isearch looking for the thing at point.
+This key is bound to the new command 'isearch-forward-thing-at-point'.
+The new user option 'isearch-forward-thing-at-point' defines
+a list of symbols to try to get the "thing" at point.  By default,
+the first element of the list is 'region' that tries to yank
+the currently active region to the search string.
+
++++
 *** New user option 'isearch-wrap-pause' defines how to wrap the search.
 There are choices to disable wrapping completely and to wrap immediately.
 When wrapping immediately, it consistently handles the numeric arguments
@@ -1258,12 +1275,17 @@ When this option is set, direction changes in Isearch move to another
 search match, if there is one, instead of moving point to the other
 end of the current match.
 
-*** New key 'M-s M-.' starts isearch looking for the thing at point.
-This key is bound to the new command 'isearch-forward-thing-at-point'.
-The new user option 'isearch-forward-thing-at-point' defines
-a list of symbols to try to get the "thing" at point.  By default,
-the first element of the list is 'region' that tries to yank
-the currently active region to the search string.
++++
+*** New user option 'isearch-allow-motion'.
+When 'isearch-allow-motion' is set, the commands 'beginning-of-buffer',
+'end-of-buffer', 'scroll-up-command' and 'scroll-down-command', when
+invoked during I-search, move respectively to the first occurrence of
+the current search string in the buffer, the last one, the first one
+after the current window, and the last one before the current window.
+Additionally, users can change the meaning of other motion commands
+during I-search by using their 'isearch-motion' property.  The user
+option 'isearch-motion-changes-direction' controls whether the
+direction of the search changes after a motion command.
 
 +++
 *** New user option 'lazy-highlight-no-delay-length'.
@@ -1375,17 +1397,6 @@ keys, add the following to your init file:
 Using it instead of 'read-char-choice' allows using 'C-x o'
 to switch to the help window displayed after typing 'C-h'.
 
-+++
-** New user option 'isearch-allow-motion'.
-When 'isearch-allow-motion' is set, the commands 'beginning-of-buffer',
-'end-of-buffer', 'scroll-up-command' and 'scroll-down-command', when
-invoked during I-search, move respectively to the first occurrence of
-the current search string in the buffer, the last one, the first one
-after the current window, and the last one before the current window.
-Additionally, users can change the meaning of other motion commands
-during I-search by using their 'isearch-motion' property.  The user
-option 'isearch-motion-changes-direction' controls whether the
-direction of the search changes after a motion command.
 
 +++
 ** Emacs 28.1 comes with Org v9.5.
@@ -2792,18 +2803,20 @@ trying to identify the thing at point.
 *** New function 'thing-at-mouse'.
 This is like 'thing-at-point', but uses the mouse event position instead.
 
-** image-dired
-
----
-*** 'image-dired-mouse-toggle-mark' now toggles files in the active region.
+** Image-Dired
 
 +++
 *** New user option 'image-dired-thumb-visible-marks'.
-If non-nil (the default), use 'image-dired-thumb-mark' to say what
-images are marked.
+If non-nil (the default), use the new face 'image-dired-thumb-mark'
+for marked images.
 
 ---
 *** New command 'image-dired-delete-marked'.
+
+---
+*** 'image-dired-mouse-toggle-mark' is now sensitive to the active region.
+If the region is active, this command now toggles Dired marks of all
+the thumbnails in the region.
 
 ** Flymake mode
 
