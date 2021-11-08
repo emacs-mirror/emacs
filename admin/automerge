@@ -108,7 +108,8 @@ OPTIND=1
 
 
 [ "$nocd" ] || {
-    cd $PD                      # this should be the admin directory
+    # $PD should be the admin directory
+    cd $PD || die "Could not change directory to $PD"
     cd ../
 }
 
