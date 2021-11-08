@@ -308,10 +308,6 @@ Configure checks for the correct version, but this problem could occur
 if a binary built against a shared libungif is run on a system with an
 older version.
 
-** SVG images may be cropped incorrectly with librsvg 2.45 and below.
-Librsvg 2.46 and above have improved geometry code which Emacs is able
-to take advantage of.
-
 ** Emacs aborts inside the function 'tparam1'.
 
 This can happen if Emacs was built without terminfo support, but the
@@ -761,6 +757,11 @@ gnutls-cli 3.5.3 (2016-08-09) does not generate a "- Handshake was
 completed" message that tls.el relies upon, causing affected Emacs
 functions to hang.  To work around the problem, use older or newer
 versions of gnutls-cli, or use Emacs's built-in gnutls support.
+
+*** SVG images may be cropped incorrectly with librsvg 2.45 or older.
+
+Librsvg 2.46 and above have improved geometry code which Emacs is able
+to take advantage of.
 
 * Runtime problems related to font handling
 
