@@ -38,8 +38,7 @@
 
 ;; (ert-deftest filewatch-file-watch-aspects-check ()
 ;;   "Test whether `file-watch' properly checks the aspects."
-;;   (let ((temp-file (make-temp-file "filewatch-aspects")))
-;;     (should (stringp temp-file))
+;;   (ert-with-temp-file temp-file
 ;;     (should-error (file-watch temp-file 'wrong nil)
 ;;                   :type 'error)
 ;;     (should-error (file-watch temp-file '(modify t) nil)

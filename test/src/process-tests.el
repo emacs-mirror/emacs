@@ -65,24 +65,22 @@
 (when (eq system-type 'windows-nt)
   (ert-deftest process-test-quoted-batfile ()
     "Check that Emacs hides CreateProcess deficiency (bug#18745)."
-    (let (batfile)
-      (unwind-protect
-          (progn
-            ;; CreateProcess will fail when both the bat file and 1st
-            ;; argument are quoted, so include spaces in both of those
-            ;; to force quoting.
-            (setq batfile (make-temp-file "echo args" nil ".bat"))
-            (with-temp-file batfile
-              (insert "@echo arg1=%1, arg2=%2\n"))
-            (with-temp-buffer
-              (call-process batfile nil '(t t) t "x &y")
-              (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n")))
-            (with-temp-buffer
-              (call-process-shell-command
-               (mapconcat #'shell-quote-argument (list batfile "x &y") " ")
-               nil '(t t) t)
-              (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n"))))
-        (when batfile (delete-file batfile))))))
+    (ert-with-temp-file batfile
+      ;; CreateProcess will fail when both the bat file and 1st
+      ;; argument are quoted, so include spaces in both of those
+      ;; to force quoting.
+      :prefix "echo args"
+      :suffix ".bat"
+      (with-temp-file batfile
+        (insert "@echo arg1=%1, arg2=%2\n"))
+      (with-temp-buffer
+        (call-process batfile nil '(t t) t "x &y")
+        (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n")))
+      (with-temp-buffer
+        (call-process-shell-command
+         (mapconcat #'shell-quote-argument (list batfile "x &y") " ")
+         nil '(t t) t)
+        (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n"))))))
 
 (ert-deftest process-test-stderr-buffer ()
   (skip-unless (executable-find "bash"))

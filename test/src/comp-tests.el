@@ -53,30 +53,32 @@
   "Compile the compiler and load it to compile it-self.
 Check that the resulting binaries do not differ."
   :tags '(:expensive-test :nativecomp)
-  (let* ((byte+native-compile t) ; FIXME HACK
-         (comp-src (expand-file-name "../../../lisp/emacs-lisp/comp.el"
+  (ert-with-temp-file comp1-src
+    :suffix "-comp-stage1.el"
+    (ert-with-temp-file comp2-src
+      :suffix "-comp-stage2.el"
+      (let* ((byte+native-compile t)     ; FIXME HACK
+             (comp-src (expand-file-name "../../../lisp/emacs-lisp/comp.el"
                                      (ert-resource-directory)))
-         (comp1-src (make-temp-file "stage1-" nil ".el"))
-         (comp2-src (make-temp-file "stage2-" nil ".el"))
-         ;; Can't use debug symbols.
-         (native-comp-debug 0))
-    (copy-file comp-src comp1-src t)
-    (copy-file comp-src comp2-src t)
-    (let ((load-no-native t))
-      (load (concat comp-src "c") nil nil t t))
-    (should-not (subr-native-elisp-p (symbol-function #'native-compile)))
-    (message "Compiling stage1...")
-    (let* ((t0 (current-time))
-           (comp1-eln (native-compile comp1-src)))
-      (message "Done in %d secs" (float-time (time-since t0)))
-      (load comp1-eln nil nil t t)
-      (should (subr-native-elisp-p (symbol-function 'native-compile)))
-      (message "Compiling stage2...")
-      (let ((t0 (current-time))
-            (comp2-eln (native-compile comp2-src)))
-        (message "Done in %d secs" (float-time (time-since t0)))
-        (message "Comparing %s %s" comp1-eln comp2-eln)
-        (should (= (call-process "cmp" nil nil nil comp1-eln comp2-eln) 0))))))
+             ;; Can't use debug symbols.
+             (native-comp-debug 0))
+        (copy-file comp-src comp1-src t)
+        (copy-file comp-src comp2-src t)
+        (let ((load-no-native t))
+          (load (concat comp-src "c") nil nil t t))
+        (should-not (subr-native-elisp-p (symbol-function #'native-compile)))
+        (message "Compiling stage1...")
+        (let* ((t0 (current-time))
+               (comp1-eln (native-compile comp1-src)))
+          (message "Done in %d secs" (float-time (time-since t0)))
+          (load comp1-eln nil nil t t)
+          (should (subr-native-elisp-p (symbol-function 'native-compile)))
+          (message "Compiling stage2...")
+          (let ((t0 (current-time))
+                (comp2-eln (native-compile comp2-src)))
+            (message "Done in %d secs" (float-time (time-since t0)))
+            (message "Comparing %s %s" comp1-eln comp2-eln)
+            (should (= (call-process "cmp" nil nil nil comp1-eln comp2-eln) 0))))))))
 
 (comp-deftest provide ()
   "Testing top level provide."

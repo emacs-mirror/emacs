@@ -278,34 +278,33 @@
                    "((:host \"a1\" :port \"a2\" :user \"a3\" :secret \"a4\") (:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\") (:host \"c1\" :port \"c2\" :user \"c3\" :secret \"c4\"))"
                    :host t :max 4)
                   ("host b1, default max is 1"
-                  "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
+                   "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
                    :host "b1")
                   ("host b1, port b2, user b3, default max is 1"
-                  "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
+                   "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
                    :host "b1" :port "b2" :user "b3")
-                  ))
+                  )))
+    (ert-with-temp-file netrc-file
+      :text (mapconcat 'identity entries "\n")
+      (let ((auth-sources (list netrc-file))
+            (auth-source-do-cache nil)
+            found found-as-string)
 
-         (netrc-file (make-temp-file "auth-source-test" nil nil
-                                     (mapconcat 'identity entries "\n")))
-         (auth-sources (list netrc-file))
-         (auth-source-do-cache nil)
-         found found-as-string)
+        (dolist (test tests)
+          (cl-destructuring-bind (testname needed &rest parameters) test
+            (setq found (apply #'auth-source-search parameters))
+            (when (listp found)
+              (dolist (f found)
+                (setf f (plist-put f :secret
+                                   (let ((secret (plist-get f :secret)))
+                                     (if (functionp secret)
+                                         (funcall secret)
+                                       secret))))))
 
-    (dolist (test tests)
-      (cl-destructuring-bind (testname needed &rest parameters) test
-        (setq found (apply #'auth-source-search parameters))
-        (when (listp found)
-          (dolist (f found)
-            (setf f (plist-put f :secret
-	                       (let ((secret (plist-get f :secret)))
-		                 (if (functionp secret)
-		                     (funcall secret)
-		                   secret))))))
-
-        (setq found-as-string (format "%s: %S" testname found))
-        ;; (message "With parameters %S found: [%s] needed: [%s]" parameters found-as-string needed)
-        (should (equal found-as-string (concat testname ": " needed)))))
-    (delete-file netrc-file)))
+            (setq found-as-string (format "%s: %S" testname found))
+            ;; (message "With parameters %S found: [%s] needed: [%s]"
+            ;;          parameters found-as-string needed)
+            (should (equal found-as-string (concat testname ": " needed)))))))))
 
 (ert-deftest auth-source-test-secrets-create-secret ()
   (skip-unless secrets-enabled)

@@ -1240,35 +1240,33 @@ Argument INPUT icalendar event string."
 
 (defun icalendar-tests--do-test-cycle ()
   "Actually perform import/export cycle test."
-  (let ((temp-diary (make-temp-file "icalendar-test-diary"))
-        (temp-ics (make-temp-file "icalendar-test-ics"))
-        (org-input (buffer-substring-no-properties (point-min) (point-max))))
+  (ert-with-temp-file temp-diary
+    (ert-with-temp-file temp-ics
+      (let ((org-input (buffer-substring-no-properties (point-min) (point-max))))
 
-    (unwind-protect
-	(progn
-	  ;; step 1: import
-	  (icalendar-import-buffer temp-diary t t)
+        (unwind-protect
+            (progn
+              ;; step 1: import
+              (icalendar-import-buffer temp-diary t t)
 
-	  ;; step 2: export what was just imported
-	  (save-excursion
-	    (find-file temp-diary)
-	    (icalendar-export-region (point-min) (point-max) temp-ics))
+              ;; step 2: export what was just imported
+              (save-excursion
+                (find-file temp-diary)
+                (icalendar-export-region (point-min) (point-max) temp-ics))
 
-	  ;; compare the output of step 2 with the input of step 1
-	  (save-excursion
-	    (find-file temp-ics)
-	    (goto-char (point-min))
-	    ;;(when (re-search-forward "\nUID:.*\n" nil t)
-	    ;;(replace-match "\n"))
-	    (let ((cycled (buffer-substring-no-properties (point-min) (point-max))))
-	      (should (string= org-input cycled)))))
-      ;; clean up
-      (kill-buffer (find-buffer-visiting temp-diary))
-      (with-current-buffer (find-buffer-visiting temp-ics)
-	(set-buffer-modified-p nil)
-	(kill-buffer (current-buffer)))
-      (delete-file temp-diary)
-      (delete-file temp-ics))))
+              ;; compare the output of step 2 with the input of step 1
+              (save-excursion
+                (find-file temp-ics)
+                (goto-char (point-min))
+                ;;(when (re-search-forward "\nUID:.*\n" nil t)
+                ;;(replace-match "\n"))
+                (let ((cycled (buffer-substring-no-properties (point-min) (point-max))))
+                  (should (string= org-input cycled)))))
+          ;; clean up
+          (kill-buffer (find-buffer-visiting temp-diary))
+          (with-current-buffer (find-buffer-visiting temp-ics)
+            (set-buffer-modified-p nil)
+            (kill-buffer (current-buffer))))))))
 
 (ert-deftest icalendar-cycle ()
   "Perform cycling tests.

@@ -26,20 +26,18 @@
 (ert-deftest dired-test-bug27496 ()
   "Test for https://debbugs.gnu.org/27496 ."
   (skip-unless (executable-find shell-file-name))
-  (let* ((foo (make-temp-file "foo"))
-         (files (list foo)))
-    (unwind-protect
-        (cl-letf (((symbol-function 'read-char-from-minibuffer) 'error))
-          (dired temporary-file-directory)
-          (dired-goto-file foo)
-          ;; `dired-do-shell-command' returns nil on success.
-          (should-error (dired-do-shell-command "ls ? ./?" nil files))
-          (should-error (dired-do-shell-command "ls ./? ?" nil files))
-          (should-not (dired-do-shell-command "ls ? ?" nil files))
-          (should-error (dired-do-shell-command "ls * ./*" nil files))
-          (should-not (dired-do-shell-command "ls * *" nil files))
-          (should-not (dired-do-shell-command "ls ? ./`?`" nil files)))
-      (delete-file foo))))
+  (ert-with-temp-file foo
+    (let* ((files (list foo)))
+      (cl-letf (((symbol-function 'read-char-from-minibuffer) 'error))
+        (dired temporary-file-directory)
+        (dired-goto-file foo)
+        ;; `dired-do-shell-command' returns nil on success.
+        (should-error (dired-do-shell-command "ls ? ./?" nil files))
+        (should-error (dired-do-shell-command "ls ./? ?" nil files))
+        (should-not (dired-do-shell-command "ls ? ?" nil files))
+        (should-error (dired-do-shell-command "ls * ./*" nil files))
+        (should-not (dired-do-shell-command "ls * *" nil files))
+        (should-not (dired-do-shell-command "ls ? ./`?`" nil files))))))
 
 ;; Auxiliary macro for `dired-test-bug28834': it binds
 ;; `dired-create-destination-dirs' to CREATE-DIRS and execute BODY.
@@ -48,24 +46,21 @@
 (defmacro with-dired-bug28834-test (create-dirs yes-or-no &rest body)
   (declare (debug (form symbolp body)))
   (let ((foo (make-symbol "foo")))
-    `(let* ((,foo (make-temp-file "foo" 'dir))
-            (dired-create-destination-dirs ,create-dirs))
-       (setq from (make-temp-file "from"))
-       (setq to-cp
-             (expand-file-name
-              "foo-cp" (file-name-as-directory (expand-file-name "bar" ,foo))))
-       (setq to-mv
-             (expand-file-name
-              "foo-mv" (file-name-as-directory (expand-file-name "qux" ,foo))))
-       (unwind-protect
-           (if ,yes-or-no
-               (cl-letf (((symbol-function 'yes-or-no-p)
-                          (lambda (_prompt) (eq ,yes-or-no 'yes))))
-                 ,@body)
-             ,@body)
-         ;; clean up
-         (delete-directory ,foo 'recursive)
-         (delete-file from)))))
+    `(ert-with-temp-directory ,foo
+       (ert-with-temp-file from
+         (let* ((dired-create-destination-dirs ,create-dirs))
+           (setq to-cp
+                 (expand-file-name
+                  "foo-cp" (file-name-as-directory (expand-file-name "bar" ,foo))))
+           (setq to-mv
+                 (expand-file-name
+                  "foo-mv" (file-name-as-directory (expand-file-name "qux" ,foo))))
+           (unwind-protect
+               (if ,yes-or-no
+                   (cl-letf (((symbol-function 'yes-or-no-p)
+                              (lambda (_prompt) (eq ,yes-or-no 'yes))))
+                     ,@body)
+                 ,@body)))))))
 
 (ert-deftest dired-test-bug28834 ()
   "test for https://debbugs.gnu.org/28834 ."

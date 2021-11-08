@@ -39,28 +39,28 @@
       (should (null (custom-theme--load-path))))
 
     ;; Path comprises existing file.
-    (let* ((file (make-temp-file "file"))
-           (custom-theme-load-path (list file)))
-      (should (file-exists-p file))
-      (should (not (file-directory-p file)))
-      (should (null (custom-theme--load-path))))
+    (ert-with-temp-file file
+      (let* ((custom-theme-load-path (list file)))
+        (should (file-exists-p file))
+        (should (not (file-directory-p file)))
+        (should (null (custom-theme--load-path)))))
 
     ;; Path comprises existing directory.
-    (let* ((dir (make-temp-file "dir" t))
-           (custom-theme-load-path (list dir)))
-      (should (file-directory-p dir))
-      (should (equal (custom-theme--load-path) custom-theme-load-path)))
+    (ert-with-temp-directory dir
+      (let* ((custom-theme-load-path (list dir)))
+        (should (file-directory-p dir))
+        (should (equal (custom-theme--load-path) custom-theme-load-path))))
 
     ;; Expand `custom-theme-directory' path element.
     (let ((custom-theme-load-path '(custom-theme-directory)))
       (let ((custom-theme-directory (make-temp-name temporary-file-directory)))
         (should (not (file-exists-p custom-theme-directory)))
         (should (null (custom-theme--load-path))))
-      (let ((custom-theme-directory (make-temp-file "file")))
+      (ert-with-temp-file custom-theme-directory
         (should (file-exists-p custom-theme-directory))
         (should (not (file-directory-p custom-theme-directory)))
         (should (null (custom-theme--load-path))))
-      (let ((custom-theme-directory (make-temp-file "dir" t)))
+      (ert-with-temp-directory custom-theme-directory
         (should (file-directory-p custom-theme-directory))
         (should (equal (custom-theme--load-path)
                        (list custom-theme-directory)))))
