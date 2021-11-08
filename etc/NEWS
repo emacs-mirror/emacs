@@ -599,6 +599,10 @@ Use 'exif-parse-file' and 'exif-field' instead.
 * Lisp Changes in Emacs 29.1
 
 +++
+*** New macro 'with-undo-amalgamate'
+It records a particular sequence of operations as a single undo step
+
++++
 *** New command 'yank-media'.
 This command supports yanking non-plain-text media like images and
 HTML from other applications into Emacs.  It is only supported in
