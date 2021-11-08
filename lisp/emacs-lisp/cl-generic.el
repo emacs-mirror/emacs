@@ -86,6 +86,14 @@
 
 ;;; Code:
 
+;; We provide a mechanism to define new specializers.
+;; Related work can be found in:
+;; - http://www.p-cos.net/documents/filtered-dispatch.pdf
+;; - Generalizers: New metaobjects for generalized dispatch
+;;   http://research.gold.ac.uk/9924/1/els-specializers.pdf
+;; This second one is closely related to what we do here (and that's
+;; the name "generalizer" comes from).
+
 ;; The autoloads.el mechanism which adds package--builtin-versions
 ;; maintenance to loaddefs.el doesn't work for preloaded packages (such
 ;; as this one), so we have to do it by hand!
