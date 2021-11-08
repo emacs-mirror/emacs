@@ -3991,17 +3991,17 @@ ns_draw_glyph_string (struct glyph_string *s)
 	   width += next->width, next = next->next)
 	if (next->first_glyph->type != IMAGE_GLYPH)
           {
+	    n = ns_get_glyph_string_clip_rect (s->next, r);
+	    ns_focus (s->f, r, n);
             if (next->first_glyph->type != STRETCH_GLYPH)
               {
-                n = ns_get_glyph_string_clip_rect (s->next, r);
-                ns_focus (s->f, r, n);
                 ns_maybe_dumpglyphs_background (s->next, 1);
-                ns_unfocus (s->f);
               }
             else
               {
                 ns_dumpglyphs_stretch (s->next);
               }
+	    ns_unfocus (s->f);
             next->num_clips = 0;
           }
     }
