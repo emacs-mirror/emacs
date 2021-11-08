@@ -1148,12 +1148,13 @@ STATE is the `parse-partial-sexp' state for current position."
                               ;; that starts a sexp.
                               t)
                              (point))))))
-               (ignore-errors
-                 ;; We rely on `backward-up-list' working
-                 ;; even when sexp is incomplete “to the right”.
-                 (backward-up-list 2)
-                 t)
-               (= local-definitions-starting-point (point))))))))
+               (save-excursion
+                 (ignore-errors
+                   ;; We rely on `backward-up-list' working
+                   ;; even when sexp is incomplete “to the right”.
+                   (backward-up-list 2)
+                   t)
+                 (= local-definitions-starting-point (point)))))))))
 
 (defun lisp-indent-function (indent-point state)
   "This function is the normal value of the variable `lisp-indent-function'.

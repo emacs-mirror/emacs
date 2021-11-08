@@ -221,6 +221,16 @@ Name: flet15
             i)))
 =-=-=
 
+Name: flet16
+
+=-=
+(cl-flet ((f (x)
+            (g x)))
+  (pcase e
+    ((dangerous-expression)
+     (form))))
+=-=-=
+
 Name: flet-indentation-incomplete-sexp-no-side-effects-1
 Code: (lambda () (emacs-lisp-mode) (setq indent-tabs-mode nil) (newline nil t))
 Point-Char: |
