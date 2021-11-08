@@ -303,23 +303,29 @@ addition to `STRING'; MS-Windows supports `TARGETS', which reports
 the formats available in the clipboard if TYPE is `CLIPBOARD'."
   (let ((data (gui-backend-get-selection (or type 'PRIMARY)
                                          (or data-type 'STRING))))
-    (when (and (stringp data)
-	       (setq data-type (get-text-property 0 'foreign-selection data)))
+    (when (stringp data)
       (let ((coding (or next-selection-coding-system
                         selection-coding-system
                         (pcase data-type
                           ('UTF8_STRING 'utf-8)
                           ('COMPOUND_TEXT 'compound-text-with-extensions)
                           ('C_STRING nil)
-                          ('STRING 'iso-8859-1)
-                          (_ (error "Unknown selection data type: %S"
-                                    type))))))
-        (setq data (if coding (decode-coding-string data coding)
-                     ;; This is for C_STRING case.
+                          ('STRING 'iso-8859-1)))))
+        (setq data
+              (cond (coding (decode-coding-string data coding))
                      ;; We want to convert each non-ASCII byte to the
                      ;; corresponding eight-bit character, which has
                      ;; a codepoint >= #x3FFF00.
-                     (string-to-multibyte data))))
+                    ((eq data-type 'C_STRING)
+                     (string-to-multibyte data))
+                    ;; Guess at the charset for types like text/html
+                    ;; -- it can be anything, and different
+                    ;; applications use different encodings.
+                    ((string-match-p "\\`text/" (symbol-name data-type))
+                     (decode-coding-string
+                      data (car (detect-coding-string data))))
+                    ;; Do nothing.
+                    (t data))))
       (setq next-selection-coding-system nil)
       (put-text-property 0 (length data) 'foreign-selection data-type data))
     data))
