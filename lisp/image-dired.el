@@ -152,6 +152,9 @@
   (require 'cl-lib)
   (require 'wid-edit))
 
+
+;;; Customizable variables
+
 (defgroup image-dired nil
   "Use Dired to browse your images as thumbnails, and more."
   :prefix "image-dired-"
@@ -215,8 +218,6 @@ https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html
   (expand-file-name ".image-dired_db" image-dired-dir)
   "Database file where file names and their associated tags are stored."
   :type 'file)
-
-
 
 (defcustom image-dired-cmd-create-thumbnail-program
   (if (executable-find "gm") "gm" "convert")
@@ -498,6 +499,9 @@ variable is nil, it will never ask."
                  (const :tag "Disable warning" nil))
   :version "29.1")
 
+
+;;; Util functions
+
 (defvar image-dired-debug nil
   "Non-nil means enable debug messages.")
 
@@ -622,6 +626,9 @@ See also `image-dired-thumbnail-storage'."
   (unless (executable-find (symbol-value executable))
     (error "Executable %S not found" executable)))
 
+
+;;; Creating thumbnails
+
 (defun image-dired-thumb-size (dimension)
   "Return thumb size depending on `image-dired-thumbnail-storage'.
 DIMENSION should be either the symbol `width' or `height'."
@@ -650,8 +657,6 @@ Increase at own risk.  If you want to experiment with this,
 consider setting `image-dired-debug' to a non-nil value to see
 the time spent on generating thumbnails.  Run `image-clear-cache'
 and remove the cached thumbnail files between each trial run.")
-
-(defvar image-dired-tag-history nil "Variable holding the tag history.")
 
 (defun image-dired-pngnq-thumb (spec)
   "Quantize thumbnail described by format SPEC with pngnq(1)."
@@ -1064,6 +1069,9 @@ never ask for confirmation."
 ;;;###autoload
 (defalias 'image-dired 'image-dired-show-all-from-dir)
 
+
+;;; Tags
+
 (defun image-dired-sane-db-file ()
   "Check if `image-dired-db-file' exists.
 If not, try to create it (including any parent directories).
@@ -1081,6 +1089,8 @@ Signal error if there are problems creating it."
         (kill-buffer buf)
         (file-exists-p image-dired-db-file))
       (error "Could not create %s" image-dired-db-file)))
+
+(defvar image-dired-tag-history nil "Variable holding the tag history.")
 
 (defun image-dired-write-tags (file-tags)
   "Write file tags to database.
@@ -1201,6 +1211,9 @@ With prefix argument ARG, remove tag from file at point."
      (image-dired-remove-tag (image-dired-original-file-name) tag)
      (image-dired-update-property
       'tags (image-dired-list-tags (image-dired-original-file-name))))))
+
+
+;;; Thumbnail mode (cont.)
 
 (defun image-dired-original-file-name ()
   "Get original file name for thumbnail or display image at point."
@@ -1654,6 +1667,9 @@ Use `image-dired-minor-mode' to get a nice setup."
   ;; Use approximately as much vertical spacing as horizontal.
   (setq-local line-spacing (frame-char-width)))
 
+
+;;; Display image mode
+
 (define-derived-mode image-dired-display-image-mode
   image-mode "image-dired-image-display"
   "Mode for displaying and manipulating original image.
@@ -1741,6 +1757,9 @@ With prefix argument ARG, create thumbnails even if they already exist
                 arg)
         (image-dired-create-thumb curr-file thumb-name)))))
 
+
+;;; Slideshow.
+
 (defvar image-dired-slideshow-timer nil
   "Slideshow timer.")
 
@@ -1777,6 +1796,9 @@ Ask user for number of images to show and the delay in between."
   "Cancel slideshow."
   (interactive)
   (cancel-timer image-dired-slideshow-timer))
+
+
+;;; Thumbnail mode (cont. 3)
 
 (defun image-dired-delete-char ()
   "Remove current thumbnail from thumbnail buffer and line up."
@@ -2008,6 +2030,9 @@ overwritten.  This confirmation can be turned off using
   (interactive)
   (image-dired-rotate-original "90"))
 
+
+;;; EXIF support
+
 (defun image-dired-get-exif-file-name (file)
   "Use the image's EXIF information to return a unique file name.
 The file name should be unique as long as you do not take more than
@@ -2088,6 +2113,8 @@ function.  The result is a couple of new files in
        (copy-file curr-file new-name))
      files)))
 
+;;; Thumbnail mode (cont.)
+
 (defun image-dired-display-next-thumbnail-original (&optional arg)
   "In thumbnail buffer, move to next thumbnail and display the image.
 With prefix ARG, move that many thumbnails."
@@ -2100,6 +2127,9 @@ With prefix ARG, move that many thumbnails."
 With prefix ARG, move that many thumbnails."
   (interactive "p" image-dired-thumbnail-mode)
   (image-dired-display-next-thumbnail-original (- arg)))
+
+
+;;; Image Comments
 
 (defun image-dired-write-comments (file-comments)
   "Write file comments to database.
@@ -2227,6 +2257,10 @@ matching tag will be marked in the Dired buffer."
 	  (dired-mark 1))))
     (message "%d files with matching tag marked." hits)))
 
+
+
+;;; Mouse support
+
 (defun image-dired-mouse-display-image (event)
   "Use mouse EVENT, call `image-dired-display-image' to display image.
 Track this in associated Dired buffer if `image-dired-track-movement' is
@@ -2254,6 +2288,10 @@ non-nil."
   (if image-dired-track-movement
       (image-dired-track-original-file))
   (image-dired-display-thumb-properties))
+
+
+
+;;; Dired marks and tags
 
 (defun image-dired-thumb-file-marked-p (&optional flagged)
   "Check if file is marked in associated Dired buffer.
@@ -2347,7 +2385,8 @@ Track this in associated Dired buffer if
           comment)))))
 
 
-;;;; Gallery support
+
+;;; Gallery support
 
 ;; TODO:
 ;; * Support gallery creation when using per-directory thumbnail
@@ -2581,7 +2620,7 @@ when using per-directory thumbnail file storage"))
       (insert "</html>"))))
 
 
-;;;; Tag support
+;;; Tag support
 
 (defvar image-dired-widget-list nil
   "List to keep track of meta data in edit buffer.")
@@ -2685,7 +2724,7 @@ tags to their respective image file.  Internal function used by
          (push (cons file tag) lst))))))
 
 
-;;;; bookmark.el support
+;;; bookmark.el support
 
 (declare-function bookmark-make-record-default
                   "bookmark" (&optional no-file no-context posn))
@@ -2716,7 +2755,7 @@ tags to their respective image file.  Internal function used by
     (goto-char (point-min))))
 
 
-;;;; Obsolete
+;;; Obsolete
 
 ;;;###autoload
 (define-obsolete-function-alias 'tumme #'image-dired "24.4")
