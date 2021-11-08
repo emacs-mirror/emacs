@@ -1402,22 +1402,6 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
   window_box (s->w, TEXT_AREA, &text_area_x, &text_area_y,
               &text_area_width, &text_area_height);
 
-  /* On X11, this keeps generating expose events.  */
-#ifndef USE_GTK
-  /* Resize xwidget webkit if its container window size is changed in
-     some ways, for example, a buffer became hidden in small split
-     window, then it can appear front in merged whole window.  */
-  if (EQ (xww->type, Qwebkit)
-      && (xww->width != text_area_width || xww->height != text_area_height))
-    {
-      Lisp_Object xwl;
-      XSETXWIDGET (xwl, xww);
-      Fxwidget_resize (xwl,
-                       make_int (text_area_width),
-                       make_int (text_area_height));
-    }
-#endif
-
   clip_left = max (0, text_area_x - x);
   clip_right = max (clip_left,
 		    min (xww->width, text_area_x + text_area_width - x));
