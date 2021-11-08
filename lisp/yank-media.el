@@ -82,15 +82,10 @@ all the different selection types."
 
 (defun yank-media--get-selection (type)
   (let ((selection-coding-system 'binary))
-    (when-let ((data (gui-backend-get-selection 'CLIPBOARD type)))
-      (when (string-match-p "\\`text/" (symbol-name type))
-        ;; Some programs add a nul character at the end of text/*
-        ;; selections.  Remove that.
-        (when (zerop (elt data (1- (length data))))
-          (setq data (substring data 0 (1- (length data)))))
-        (setq data (decode-coding-string
-                    data (car (detect-coding-string data)))))
-      data)))
+    (when-let ((data (gui-get-selection 'CLIPBOARD type)))
+      (if (string-match-p "\\`text/" (symbol-name type))
+          (yank-media-types--format type data)
+        data))))
 
 ;;;###autoload
 (defun yank-media-handler (types handler)
@@ -180,7 +175,11 @@ inserts images as images."
                     'utf-16-le))))))
       (if coding-system
           (decode-coding-string data coding-system)
-        data)))
+        ;; Some programs add a nul character at the end of text/*
+        ;; selections.  Remove that.
+        (if (zerop (elt data (1- (length data))))
+            (substring data 0 (1- (length data)))
+          data))))
    (t
     data)))
 
