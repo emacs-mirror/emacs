@@ -605,7 +605,7 @@ HTML from other applications into Emacs.  It is only supported in
 modes that have registered support for it, and only on capable
 platforms.
 
----
++++
 *** New command 'yank-media-types'.
 This command lets you examine all data in the current selection and
 the clipboard, and insert it into the buffer.

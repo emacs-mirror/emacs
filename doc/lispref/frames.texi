@@ -3959,6 +3959,12 @@ clipboard, and then pass on the matching selection to the handler (if
 any).  If there's more than one matching selection, the user is
 queried first.
 
+  The @code{yank-media-types} command can be used to explore the
+clipboard/primary selection.  It lists all the media types that are
+currently available, and can be handy when creating handlers---to see
+what data is actually available.  Some applications put a surprising
+amount of different data types on the clipboard.
+
 @node Drag and Drop
 @section Drag and Drop
 @cindex drag and drop
