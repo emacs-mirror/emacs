@@ -3936,13 +3936,13 @@ it by default.
   So Emacs has a system to let modes register handlers for these
 ``complicated'' selections.
 
-@defun register-yank-media-handler types handler
+@defun yank-media-handler types handler
 @var{types} can be a @acronym{MIME} media type symbol, a regexp to
 match these, or a list of these symbols and regexps.  For instance:
 
 @example
-(register-yank-media-handler 'text/html #'my-html-handler)
-(register-yank-media-handler "image/.*" #'my-image-handler)
+(yank-media-handler 'text/html #'my-html-handler)
+(yank-media-handler "image/.*" #'my-image-handler)
 @end example
 
 A mode can register as many handlers as required.

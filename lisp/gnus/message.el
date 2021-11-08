@@ -3157,7 +3157,7 @@ Like `text-mode', but with these additional commands:
   (setq-local message-checksum nil)
   (setq-local message-mime-part 0)
   (message-setup-fill-variables)
-  (register-yank-media-handler "image/.*" #'message--yank-media-image-handler)
+  (yank-media-handler "image/.*" #'message--yank-media-image-handler)
   (when message-fill-column
     (setq fill-column message-fill-column)
     (turn-on-auto-fill))

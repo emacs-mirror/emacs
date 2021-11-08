@@ -33,7 +33,7 @@
   "Yank media (images, HTML and the like) from the clipboard.
 This command depends on the current major mode having support for
 accepting the media type.  The mode has to register itself using
-the `register-yank-media-handler' mechanism."
+the `yank-media-handler' mechanism."
   (interactive)
   (unless yank-media--registered-handlers
     (user-error "The `%s' mode hasn't registered any handlers" major-mode))
@@ -89,7 +89,7 @@ the `register-yank-media-handler' mechanism."
       data)))
 
 ;;;###autoload
-(defun register-yank-media-handler (types handler)
+(defun yank-media-handler (types handler)
   "Register HANDLER for dealing with `yank-media' actions for TYPES.
 TYPES should be a MIME media type symbol, a regexp, or a list
 that can contain both symbols and regexps.
