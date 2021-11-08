@@ -2435,7 +2435,8 @@ To work around that, do:
 (defun html-mode--html-yank-handler (_type html)
   (save-restriction
     (insert html)
-    (sgml-pretty-print (point-min) (point-max))))
+    (ignore-errors
+      (sgml-pretty-print (point-min) (point-max)))))
 
 (defun html-mode--image-yank-handler (type image)
   (let ((file (read-file-name (format "Save %s image to: " type))))
