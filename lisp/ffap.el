@@ -651,7 +651,7 @@ also is substituted for the first empty-string component, if there is one.
 Uses `path-separator' to separate the path into substrings."
   ;; We cannot use parse-colon-path (files.el), since it kills
   ;; "//" entries using file-name-as-directory.
-  ;; Similar: dired-split, TeX-split-string, and RHOGEE's psg-list-env
+  ;; Similar: TeX-split-string, and RHOGEE's psg-list-env
   ;; in ff-paths and bib-cite.  The EMPTY arg may help mimic kpathsea.
   (if (or empty (getenv env))		; should return something
       (let ((start 0) match dir ret)

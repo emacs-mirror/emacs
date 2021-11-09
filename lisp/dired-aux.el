@@ -2860,8 +2860,8 @@ of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
   ;;   if dired-actual-switches contained t.
   (setq dir1 (file-name-as-directory dir1)
 	dir2 (file-name-as-directory dir2))
-  (let ((components-1 (dired-split "/" dir1))
-	(components-2 (dired-split "/" dir2)))
+  (let ((components-1 (split-string dir1 "/"))
+	(components-2 (split-string dir2 "/")))
     (while (and components-1
 		components-2
 		(equal (car components-1) (car components-2)))
@@ -2880,7 +2880,6 @@ of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
 	     nil)
 	    (t (error "This can't happen"))))))
 
-;; There should be a builtin split function - inverse to mapconcat.
 (defun dired-split (pat str &optional limit)
   "Splitting on regexp PAT, turn string STR into a list of substrings.
 Optional third arg LIMIT (>= 1) is a limit to the length of the
@@ -2890,6 +2889,7 @@ Thus, if SEP is a regexp that only matches itself,
    (mapconcat #'identity (dired-split SEP STRING) SEP)
 
 is always equal to STRING."
+  (declare (obsolete split-string "29.1"))
   (let* ((start (string-match pat str))
 	 (result (list (substring str 0 start)))
 	 (count 1)
