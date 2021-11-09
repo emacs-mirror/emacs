@@ -1076,6 +1076,9 @@ the like."
   [(meta n)] #'eww-next-bookmark
   [(meta p)] #'eww-previous-bookmark
 
+  [(mouse-8)] #'eww-back-url
+  [(mouse-9)] #'eww-forward-url
+
   :menu '("Eww"
           ["Exit" quit-window t]
           ["Close browser" quit-window t]
