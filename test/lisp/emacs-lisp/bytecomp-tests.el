@@ -1246,15 +1246,19 @@ writable (Bug#44631)."
            (byte-compile-dest-file-function
             (lambda (_) output-file))
            (byte-compile-error-on-warn t))
-      (write-region "" nil input-file nil nil nil 'excl)
-      (write-region "" nil output-file nil nil nil 'excl)
-      (set-file-modes input-file #o400)
-      (set-file-modes output-file #o200)
-      (set-file-modes directory #o500)
-      (should (byte-compile-file input-file))
-      (should (file-regular-p output-file))
-      (should (cl-plusp (file-attribute-size
-                         (file-attributes output-file)))))))
+      (unwind-protect
+          (progn
+            (write-region "" nil input-file nil nil nil 'excl)
+            (write-region "" nil output-file nil nil nil 'excl)
+            (set-file-modes input-file #o400)
+            (set-file-modes output-file #o200)
+            (set-file-modes directory #o500)
+            (should (byte-compile-file input-file))
+            (should (file-regular-p output-file))
+            (should (cl-plusp (file-attribute-size
+                               (file-attributes output-file)))))
+        ;; Allow the directory to be deleted.
+        (set-file-modes directory #o777)))))
 
 (ert-deftest bytecomp-tests--dest-mountpoint ()
   "Test that byte compilation works if the destination file is a
@@ -1277,26 +1281,30 @@ mountpoint (Bug#44631)."
         (should-not (file-remote-p output-file))
         (write-region "" nil input-file nil nil nil 'excl)
         (write-region "" nil output-file nil nil nil 'excl)
-        (set-file-modes input-file #o400)
-        (set-file-modes output-file #o200)
-        (set-file-modes directory #o500)
-        (with-temp-buffer
-          (let ((status (call-process
-                         bwrap nil t nil
-                         "--ro-bind" "/" "/"
-                         "--bind" unquoted-file unquoted-file
-                         emacs "--quick" "--batch" "--load=bytecomp"
-                         (format "--eval=%S"
-                                 `(setq byte-compile-dest-file-function
-                                        (lambda (_) ,output-file)
-                                        byte-compile-error-on-warn t))
-                         "--funcall=batch-byte-compile" input-file)))
-            (unless (eql status 0)
-              (ert-fail `((status . ,status)
-                          (output . ,(buffer-string)))))))
-        (should (file-regular-p output-file))
-        (should (cl-plusp (file-attribute-size
-                           (file-attributes output-file))))))))
+        (unwind-protect
+            (progn
+              (set-file-modes input-file #o400)
+              (set-file-modes output-file #o200)
+              (set-file-modes directory #o500)
+              (with-temp-buffer
+                (let ((status (call-process
+                               bwrap nil t nil
+                               "--ro-bind" "/" "/"
+                               "--bind" unquoted-file unquoted-file
+                               emacs "--quick" "--batch" "--load=bytecomp"
+                               (format "--eval=%S"
+                                       `(setq byte-compile-dest-file-function
+                                              (lambda (_) ,output-file)
+                                              byte-compile-error-on-warn t))
+                               "--funcall=batch-byte-compile" input-file)))
+                  (unless (eql status 0)
+                    (ert-fail `((status . ,status)
+                                (output . ,(buffer-string)))))))
+              (should (file-regular-p output-file))
+              (should (cl-plusp (file-attribute-size
+                                 (file-attributes output-file)))))
+          ;; Allow the directory to be deleted.
+          (set-file-modes directory #o777))))))
 
 (ert-deftest bytecomp-tests--target-file-no-directory ()
   "Check that Bug#45287 is fixed."
