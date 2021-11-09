@@ -559,7 +559,12 @@ If VALUE is nil, PROPERTY is removed from IMAGE."
   (declare (gv-setter image--set-property))
   (plist-get (cdr image) property))
 
-(defun image-compute-scaling-factor (scaling)
+(defun image-compute-scaling-factor (&optional scaling)
+  "Compute the scaling factor based on SCALING.
+If a number, use that.  If it's `auto', compute the factor.
+If nil, use the `image-scaling-factor' variable."
+  (unless scaling
+    (setq scaling image-scaling-factor))
   (cond
    ((numberp scaling) scaling)
    ((eq scaling 'auto)
