@@ -763,7 +763,7 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 					  &x, &y);
 
   if (!target)
-    target = model->widgetwindow_osr;
+    target = model->widget_osr;
 
   xg_event->any.window = gtk_widget_get_window (target);
   g_object_ref (xg_event->any.window); /* The window will be unrefed
