@@ -228,7 +228,14 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 *** 'texinfo-mode' now has a specialised 'narrow-to-defun' definition.
 It narrows to the current node.
 
-** eww
+** eww/shr
+
++++
+*** New user option 'shr-use-xwidgets-for-media'.
+If non-nil (and Emacs has been built with support for xwidgets),
+display <video> elements with an xwidget.  Note that this is
+experimental, and is known to crash Emacs on some systems, and just
+doesn't work on other systems.  Also see etc/PROBLEMS.
 
 +++
 *** New user option 'eww-url-transformers'.

@@ -397,6 +397,15 @@ transformed URL.  By default, this variable contains
 @code{eww-remove-tracking}, which removes the common @samp{utm_}
 trackers from links.
 
+@cindex video
+@vindex shr-use-xwidgets-for-media
+  If Emacs has been built with xwidget support, EWW can use that to
+display @samp{<video>} elements.  However, this support is still
+experimental, and on some systems doesn't work (and even worse) may
+crash your Emacs, so this feature is off by default.  If you wish to
+switch it on, set @code{shr-use-xwidgets-for-media} to a
+non-@code{nil} value.
+
 @node Command Line
 @chapter Command Line Usage
 
