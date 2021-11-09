@@ -100,13 +100,19 @@ data (a string)."
     (setf (alist-get type yank-media--registered-handlers nil nil #'equal)
           handler)))
 
-(defun yank-media-types ()
+(defun yank-media-types (&optional all)
   "Yank any element present in the primary selection or the clipboard.
 This is primarily meant as a debugging tool -- many of the
 elements (like images) will be inserted as raw data into the
 current buffer.  See `yank-media' instead for a command that
-inserts images as images."
-  (interactive)
+inserts images as images.
+
+By default, data types that aren't supported by
+`gui-get-selection' (i.e., that returns nothing if you actually
+try to look at the selection) are not included by this command.
+If ALL (interactively, the prefix), also include these
+non-supported selection data types."
+  (interactive "P")
   (let ((elements nil))
     ;; First gather all the data.
     (dolist (type '(PRIMARY CLIPBOARD))
@@ -115,15 +121,16 @@ inserts images as images."
           (seq-do (lambda (data-type)
                     (unless (memq data-type '( TARGETS MULTIPLE
                                                DELETE SAVE_TARGETS))
-                      (when-let ((data (gui-get-selection type data-type)))
-                        ;; Remove duplicates -- the data in PRIMARY and
-                        ;; CLIPBOARD are sometimes (mostly) identical,
-                        ;; and sometimes not.
-                        (let ((old (assq data-type elements)))
-                          (when (or (not old)
-                                    (not (equal (nth 2 old) data)))
-                            (push (list data-type type data)
-                                  elements))))))
+                      (let ((data (gui-get-selection type data-type)))
+                        (when (or data all)
+                          ;; Remove duplicates -- the data in PRIMARY and
+                          ;; CLIPBOARD are sometimes (mostly) identical,
+                          ;; and sometimes not.
+                          (let ((old (assq data-type elements)))
+                            (when (or (not old)
+                                      (not (equal (nth 2 old) data)))
+                              (push (list data-type type data)
+                                    elements)))))))
                   data-types))))
     ;; Then query the user.
     (unless elements
