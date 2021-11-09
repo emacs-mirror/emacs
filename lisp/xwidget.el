@@ -360,9 +360,11 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
     (cond ((eq xwidget-event-type 'load-changed)
            (let ((title (xwidget-webkit-title xwidget)))
              ;; This funciton will be called multi times, so only
-             ;; change buffer name when get a valid title. this can
-             ;; limit buffer-name flicker in mode-line.
-             (when (> (length title) 0)
+             ;; change buffer name when the load actually completes
+             ;; this can limit buffer-name flicker in mode-line.
+             (when (or (string-equal (nth 3 last-input-event)
+                                     "load-finished")
+                       (> (length title) 0))
                (with-current-buffer (xwidget-buffer xwidget)
                  (setq xwidget-webkit--title title)
                  (force-mode-line-update)
