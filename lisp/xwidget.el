@@ -348,7 +348,8 @@ If N is omitted or nil, scroll backwards by one char."
       ((xwidget-event-type (nth 1 last-input-event))
        (xwidget (nth 2 last-input-event))
        (xwidget-callback (xwidget-get xwidget 'callback)))
-    (funcall xwidget-callback xwidget xwidget-event-type)))
+    (when xwidget-callback
+      (funcall xwidget-callback xwidget xwidget-event-type))))
 
 (defun xwidget-webkit-callback (xwidget xwidget-event-type)
   "Callback for xwidgets.
