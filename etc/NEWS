@@ -1989,7 +1989,6 @@ instead of sets, the process mark.
 If non-nil (the default), the '#' command in the Group and Summary
 buffers will toggle, instead of set, the process mark.
 
-
 +++
 *** New user option 'gnus-registry-register-all'.
 If non-nil (the default), create registry entries for all messages.
@@ -2434,7 +2433,7 @@ and data svg images.
 *** 'svg-embed-base-uri-image' added to embed images.
 'svg-embed-base-uri-image' can be used to embed images located
 relatively to 'file-name-directory' of the ':base-uri' svg image property.
-This works much faster then 'svg-embed'.
+This works much faster than 'svg-embed'.
 
 +++
 *** New function 'image-cache-size'.
@@ -2522,7 +2521,8 @@ This is a regexp that can be set to alter how links are followed in eww.
 *** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
 (the default), then 'url-retrieve' is used.  When 'sync', then
-'url-retrieve-synchronously' is used.
+'url-retrieve-synchronously' is used.  A list of strings specifies
+an external program with parameters.
 
 +++
 *** New Emacs command line convenience command.
