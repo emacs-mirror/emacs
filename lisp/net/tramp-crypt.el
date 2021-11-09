@@ -293,9 +293,8 @@ arguments to pass to the OPERATION."
 
 (defun tramp-crypt-config-file-name (vec)
   "Return the encfs config file name for VEC."
-  (expand-file-name
-   (concat "tramp-" (tramp-file-name-host vec) tramp-crypt-encfs-config)
-   user-emacs-directory))
+  (locate-user-emacs-file
+   (concat "tramp-" (tramp-file-name-host vec) tramp-crypt-encfs-config)))
 
 (defun tramp-crypt-maybe-open-connection (vec)
   "Maybe open a connection VEC.
