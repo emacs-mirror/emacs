@@ -128,6 +128,9 @@ fails.  */)
   CHECK_FIXNAT (width);
   CHECK_FIXNAT (height);
 
+  if (!EQ (type, Qwebkit))
+    error ("Bad xwidget type");
+
   struct xwidget *xw = allocate_xwidget ();
   Lisp_Object val;
   xw->type = type;
