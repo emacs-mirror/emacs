@@ -95,7 +95,7 @@ This returns the result of `make-xwidget'."
   :group 'web
   :prefix "xwidget-webkit-")
 
-(defcustom xwidget-webkit-buffer-name-prefix "* xwidget-webkit: "
+(defcustom xwidget-webkit-buffer-name-prefix "*xwidget-webkit: "
   "Buffer name prefix used by `xwidget-webkit' buffers."
   :type 'string
   :version "29.1")
@@ -371,7 +371,7 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
                  ;; selected window can be the mini-buffer window
                  ;; unwantedly.
                  (rename-buffer (concat xwidget-webkit-buffer-name-prefix
-                                        title)
+                                        title "*")
                                 t)))))
           ((eq xwidget-event-type 'decide-policy)
            (let ((strarg  (nth 3 last-input-event)))
@@ -706,8 +706,7 @@ For example, use this to display an anchor."
           ;; will be renamed by `xwidget-webkit-callback' in the
           ;; future. This approach can limit flicker of buffer-name in
           ;; mode-line.
-          (concat xwidget-webkit-buffer-name-prefix
-                  (generate-new-buffer-name (buffer-name))))
+          (generate-new-buffer-name (buffer-name)))
          (callback (or callback #'xwidget-webkit-callback))
          (current-session (xwidget-webkit-current-session))
          xw)
@@ -736,11 +735,7 @@ Return the buffer."
           ;; will be renamed by `xwidget-webkit-callback' in the
           ;; future. This approach can limit flicker of buffer-name in
           ;; mode-line.
-          (if (string-prefix-p xwidget-webkit-buffer-name-prefix
-                               (buffer-name))
-              (generate-new-buffer-name (buffer-name))
-            (concat xwidget-webkit-buffer-name-prefix
-                    (generate-new-buffer-name (buffer-name)))))
+          (generate-new-buffer-name (buffer-name)))
          (callback #'xwidget-webkit-callback)
          (buffer (get-buffer-create bufname)))
     (with-current-buffer buffer
