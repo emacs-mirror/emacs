@@ -1254,6 +1254,14 @@ Like 'search-highlight-submatches', this is controlled by the new user option
 'query-replace-highlight-submatches'.
 
 +++
+*** New key 'M-s M-.' starts isearch looking for the thing at point.
+This key is bound to the new command 'isearch-forward-thing-at-point'.
+The new user option 'isearch-forward-thing-at-point' defines
+a list of symbols to try to get the "thing" at point.  By default,
+the first element of the list is 'region' that tries to yank
+the currently active region to the search string.
+
++++
 *** New user option 'isearch-wrap-pause' defines how to wrap the search.
 There are choices to disable wrapping completely and to wrap immediately.
 When wrapping immediately, it consistently handles the numeric arguments
@@ -1266,12 +1274,17 @@ When this option is set, direction changes in Isearch move to another
 search match, if there is one, instead of moving point to the other
 end of the current match.
 
-*** New key 'M-s M-.' starts isearch looking for the thing at point.
-This key is bound to the new command 'isearch-forward-thing-at-point'.
-The new user option 'isearch-forward-thing-at-point' defines
-a list of symbols to try to get the "thing" at point.  By default,
-the first element of the list is 'region' that tries to yank
-the currently active region to the search string.
++++
+*** New user option 'isearch-allow-motion'.
+When 'isearch-allow-motion' is set, the commands 'beginning-of-buffer',
+'end-of-buffer', 'scroll-up-command' and 'scroll-down-command', when
+invoked during I-search, move respectively to the first occurrence of
+the current search string in the buffer, the last one, the first one
+after the current window, and the last one before the current window.
+Additionally, users can change the meaning of other motion commands
+during I-search by using their 'isearch-motion' property.  The user
+option 'isearch-motion-changes-direction' controls whether the
+direction of the search changes after a motion command.
 
 +++
 *** New user option 'lazy-highlight-no-delay-length'.
@@ -1383,17 +1396,6 @@ keys, add the following to your init file:
 Using it instead of 'read-char-choice' allows using 'C-x o'
 to switch to the help window displayed after typing 'C-h'.
 
-+++
-** New user option 'isearch-allow-motion'.
-When 'isearch-allow-motion' is set, the commands 'beginning-of-buffer',
-'end-of-buffer', 'scroll-up-command' and 'scroll-down-command', when
-invoked during I-search, move respectively to the first occurrence of
-the current search string in the buffer, the last one, the first one
-after the current window, and the last one before the current window.
-Additionally, users can change the meaning of other motion commands
-during I-search by using their 'isearch-motion' property.  The user
-option 'isearch-motion-changes-direction' controls whether the
-direction of the search changes after a motion command.
 
 +++
 ** Emacs 28.1 comes with Org v9.5.
