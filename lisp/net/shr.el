@@ -1680,7 +1680,7 @@ The preference is a float determined from `shr-prefer-media-type'."
              (fboundp 'make-xwidget))
         ;; Play the video.
         (progn
-          (require 'xwidgets)
+          (require 'xwidget)
           (let ((widget (make-xwidget
                          'webkit
 			 "Video"
