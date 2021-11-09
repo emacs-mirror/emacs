@@ -983,9 +983,9 @@ STARTUP-HOOKS is a list of functions that Emacs calls without
 arguments after setting up the Ediff buffers."
   (interactive
    (let (bf)
-     (list (setq bf (read-buffer "Region's A buffer: "
+     (list (setq bf (read-buffer "Region A's buffer: "
 				 (ediff-other-buffer "") t))
-	   (read-buffer "Region's B buffer: "
+	   (read-buffer "Region B's buffer: "
 			(progn
 			  ;; realign buffers so that two visible bufs will be
 			  ;; at the top
