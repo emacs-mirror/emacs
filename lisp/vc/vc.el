@@ -739,6 +739,7 @@
 (require 'cl-lib)
 
 (declare-function diff-setup-whitespace "diff-mode" ())
+(declare-function diff-setup-buffer-type "diff-mode" ())
 
 (eval-when-compile
   (require 'dired))
@@ -1739,7 +1740,7 @@ to override the value of `vc-diff-switches' and `diff-switches'."
 	       (insert (cdr messages) ".\n")
 	       (message "%s" (cdr messages))))
 	(diff-setup-whitespace)
-        (diff-setup-buffer-type)
+	(diff-setup-buffer-type)
 	(goto-char (point-min))
 	(when window
 	  (shrink-window-if-larger-than-buffer window)))
