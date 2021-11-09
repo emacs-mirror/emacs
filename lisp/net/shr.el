@@ -1685,23 +1685,16 @@ The preference is a float determined from `shr-prefer-media-type'."
                          'webkit
 			 "Video"
                          (truncate (* (window-pixel-width) 0.8))
-                         (truncate (* (window-pixel-width) 0.8 0.75))))
-                (file (make-temp-file "shr" nil ".html")))
-            (run-at-time 1 nil (lambda ()
-                                 (ignore-errors
-                                   (delete-file file))))
+                         (truncate (* (window-pixel-width) 0.8 0.75)))))
             (insert
              (propertize
               " [video] "
               'display (list 'xwidget :xwidget widget)))
-            (with-temp-buffer
-              (insert
-               (format
-                "<video autoplay loop muted><source src=%S type=\"video/mp4\"></source></video>"
-                url))
-              (write-region (point-min) (point-max) file nil 'silent))
-            (xwidget-webkit-goto-uri widget
-                                     (concat "file://" file))))
+            (xwidget-webkit-execute-script
+             widget (format "document.body.innerHTML = %S;"
+                            (format
+                             "<video autoplay loop muted><source src=%S type='video/mp4\'></source></video>"
+                             url)))))
       ;; No xwidgets.
       (if (> (length image) 0)
 	  (shr-indirect-call 'img nil image)
