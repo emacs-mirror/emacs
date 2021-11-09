@@ -104,7 +104,7 @@ static void mouse_target_changed (WebKitWebView *, WebKitHitTestResult *, guint,
 
 DEFUN ("make-xwidget",
        Fmake_xwidget, Smake_xwidget,
-       5, 7, 0,
+       4, 7, 0,
        doc: /* Make an xwidget of TYPE.
 If BUFFER is nil, use the current buffer.
 If BUFFER is a string and no such buffer exists, create it.
