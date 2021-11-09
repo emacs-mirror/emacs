@@ -753,9 +753,9 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
   GtkWidget *target = find_widget_at_pos (model->widgetwindow_osr,
 					  (event->type == MotionNotify
 					   ? event->xmotion.x + view->clip_left
-					   : event->xmotion.y + view->clip_top),
+					   : event->xcrossing.x + view->clip_left),
 					  (event->type == MotionNotify
-					   ? event->xmotion.y + view->clip_left
+					   ? event->xmotion.y + view->clip_top
 					   : event->xcrossing.y + view->clip_top),
 					  &x, &y);
 
@@ -855,8 +855,8 @@ xv_do_draw (struct xwidget_view *xw, struct xwidget *w)
   cairo_save (xw->cr_context);
   if (surface)
     {
-      cairo_set_source_surface (xw->cr_context, surface, xw->clip_left,
-				xw->clip_top);
+      cairo_translate (xw->cr_context, -xw->clip_left, -xw->clip_top);
+      cairo_set_source_surface (xw->cr_context, surface, 0, 0);
       cairo_set_operator (xw->cr_context, CAIRO_OPERATOR_SOURCE);
       cairo_paint (xw->cr_context);
     }
