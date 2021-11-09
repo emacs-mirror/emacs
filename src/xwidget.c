@@ -2388,7 +2388,8 @@ kill_frame_xwidget_views (struct frame *f)
   for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
        tail = XCDR (tail))
     {
-      if (XXWIDGET_VIEW (XCAR (tail))->frame == f)
+      if (XWIDGET_VIEW_P (XCAR (tail))
+	  && XXWIDGET_VIEW (XCAR (tail))->frame == f)
 	rem = Fcons (XCAR (tail), rem);
     }
 
