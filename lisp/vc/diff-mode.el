@@ -1475,6 +1475,21 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
     ;; Added when diff--font-lock-prettify is non-nil!
     (cl-pushnew 'display font-lock-extra-managed-props)))
 
+(defun diff-setup-buffer-type ()
+  "Try to guess the `diff-buffer-type' from content of current Diff mode buffer.
+`outline-regexp' is updated accordingly."
+  (save-excursion
+    (goto-char (point-min))
+    (setq-local diff-buffer-type
+                (if (re-search-forward "^diff --git" nil t)
+                    'git
+                  nil)))
+  (when (eq diff-buffer-type 'git)
+    (setq diff-outline-regexp
+          (concat "\\(^diff --git.*\n\\|" diff-hunk-header-re "\\)"))
+    (setq-local outline-level #'diff--outline-level))
+  (setq-local outline-regexp diff-outline-regexp))
+
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
 
@@ -1540,16 +1555,7 @@ a diff with \\[diff-reverse-direction].
                 #'diff--filter-substring)
   (unless buffer-file-name
     (hack-dir-local-variables-non-file-buffer))
-  (save-excursion
-    (setq-local diff-buffer-type
-                (if (re-search-forward "^diff --git" nil t)
-                    'git
-                  nil)))
-  (when (eq diff-buffer-type 'git)
-    (setq diff-outline-regexp
-          (concat "\\(^diff --git.*\n\\|" diff-hunk-header-re "\\)"))
-    (setq-local outline-level #'diff--outline-level))
-  (setq-local outline-regexp diff-outline-regexp))
+  (diff-setup-buffer-type))
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode
