@@ -1845,17 +1845,21 @@ These options include 'windmove-default-keybindings',
 'windmove-display-default-keybindings',
 'windmove-delete-default-keybindings',
 'windmove-swap-states-default-keybindings'.
+Also new mode 'windmove-mode' enables the customized keybindings.
 
 ** Occur mode
 
+---
 *** New bindings in occur-mode.
 The command 'next-error-no-select' is now bound to 'n' and
 'previous-error-no-select' is bound to 'p'.
 
+---
 *** The new command 'recenter-current-error'.
 It is bound to 'l' in Occur or compilation buffers, and recenters the
 current displayed occurrence/error.
 
+---
 *** Matches in target buffers are now highlighted as in 'compilation-mode'.
 The method of highlighting is specified by the user options
 'next-error-highlight' and 'next-error-highlight-no-select'.
