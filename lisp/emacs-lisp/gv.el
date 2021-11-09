@@ -74,7 +74,7 @@
 ;; (defvar gv--macro-environment nil
 ;;   "Macro expanders for generalized variables.")
 
-(define-error 'gv-invalid-place "%S is not a valid place expression")
+(define-error 'gv-invalid-place "Invalid place expression")
 
 ;;;###autoload
 (defun gv-get (place do)

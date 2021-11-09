@@ -687,7 +687,7 @@ This is particularly useful when many different tags select the same set
 of methods, since this table then allows us to share a single combined-method
 for all those different tags in the method-cache.")
 
-(define-error 'cl--generic-cyclic-definition "Cyclic definition: %S")
+(define-error 'cl--generic-cyclic-definition "Cyclic definition")
 
 (defun cl--generic-build-combined-method (generic methods)
   (if (null methods)
