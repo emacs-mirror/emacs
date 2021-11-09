@@ -1670,6 +1670,9 @@ The preference is a float determined from `shr-prefer-media-type'."
                       pref (cdr ret)))))))))
   (cons url pref))
 
+(declare-function xwidget-webkit-execute-script "xwidget.c"
+                  (xwidget script &optional callback))
+
 (defun shr-tag-video (dom)
   (let ((image (dom-attr dom 'poster))
         (url (dom-attr dom 'src))
