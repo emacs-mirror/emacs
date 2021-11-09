@@ -3114,7 +3114,7 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
             (let ((undo-in-progress t))
               (while (and (consp ul) (eq (car ul) nil))
                 (setq ul (cdr ul)))
-              (primitive-undo arg ul)))
+              (primitive-undo (or arg 1) ul)))
            (new-pul (undo--last-change-was-undo-p new-ul)))
       (message "Redo%s" (if undo-in-region " in region" ""))
       (setq this-command 'undo)
