@@ -89,6 +89,17 @@ This returns the result of `make-xwidget'."
 (require 'seq)
 (require 'url-handlers)
 
+(defgroup xwidget-webkit nil
+  "Displaying webkit xwidgets in Emacs buffers."
+  :version "29.1"
+  :group 'web
+  :prefix "xwidget-webkit-")
+
+(defcustom xwidget-webkit-buffer-name-prefix "* xwidget-webkit: "
+  "Buffer name prefix used by `xwidget-webkit' buffers."
+  :type 'string
+  :version "29.1")
+
 (defvar-local xwidget-webkit--title ""
   "The title of the WebKit widget, used for the header line.")
 
@@ -345,32 +356,39 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
   (if (not (buffer-live-p (xwidget-buffer xwidget)))
       (xwidget-log
        "error: callback called for xwidget with dead buffer")
-    (with-current-buffer (xwidget-buffer xwidget)
-      (cond ((eq xwidget-event-type 'load-changed)
-             (let ((title (xwidget-webkit-title xwidget)))
-               (setq xwidget-webkit--title title)
-               (force-mode-line-update)
-               (xwidget-log "webkit finished loading: %s" title)
-               ;; Do not adjust webkit size to window here, the selected window
-               ;; can be the mini-buffer window unwantedly.
-               (rename-buffer (format "*xwidget webkit: %s *" title) t)))
-            ((eq xwidget-event-type 'decide-policy)
-             (let ((strarg  (nth 3 last-input-event)))
-               (if (string-match ".*#\\(.*\\)" strarg)
-                   (xwidget-webkit-show-id-or-named-element
-                    xwidget
-                    (match-string 1 strarg)))))
-            ;; TODO: Response handling other than download.
-            ((eq xwidget-event-type 'download-callback)
-             (let ((url  (nth 3 last-input-event))
-                   (mime-type (nth 4 last-input-event))
-                   (file-name (nth 5 last-input-event)))
-               (xwidget-webkit-save-as-file url mime-type file-name)))
-            ((eq xwidget-event-type 'javascript-callback)
-             (let ((proc (nth 3 last-input-event))
-                   (arg  (nth 4 last-input-event)))
-               (funcall proc arg)))
-            (t (xwidget-log "unhandled event:%s" xwidget-event-type))))))
+    (cond ((eq xwidget-event-type 'load-changed)
+           (let ((title (xwidget-webkit-title xwidget)))
+             ;; This funciton will be called multi times, so only
+             ;; change buffer name when get a valid title. this can
+             ;; limit buffer-name flicker in mode-line.
+             (when (> (length title) 0)
+               (with-current-buffer (xwidget-buffer xwidget)
+                 (setq xwidget-webkit--title title)
+                 (force-mode-line-update)
+                 (xwidget-log "webkit finished loading: %s" title)
+                 ;; Do not adjust webkit size to window here, the
+                 ;; selected window can be the mini-buffer window
+                 ;; unwantedly.
+                 (rename-buffer (concat xwidget-webkit-buffer-name-prefix
+                                        title)
+                                t)))))
+          ((eq xwidget-event-type 'decide-policy)
+           (let ((strarg  (nth 3 last-input-event)))
+             (if (string-match ".*#\\(.*\\)" strarg)
+                 (xwidget-webkit-show-id-or-named-element
+                  xwidget
+                  (match-string 1 strarg)))))
+          ;; TODO: Response handling other than download.
+          ((eq xwidget-event-type 'download-callback)
+           (let ((url  (nth 3 last-input-event))
+                 (mime-type (nth 4 last-input-event))
+                 (file-name (nth 5 last-input-event)))
+             (xwidget-webkit-save-as-file url mime-type file-name)))
+          ((eq xwidget-event-type 'javascript-callback)
+           (let ((proc (nth 3 last-input-event))
+                 (arg  (nth 4 last-input-event)))
+             (funcall proc arg)))
+          (t (xwidget-log "unhandled event:%s" xwidget-event-type)))))
 
 (defvar bookmark-make-record-function)
 (when (memq window-system '(mac ns))
@@ -682,11 +700,16 @@ For example, use this to display an anchor."
 
 (defun xwidget-webkit-new-session (url &optional callback)
   "Create a new webkit session buffer with URL."
-  (let*
-      ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
-       (callback (or callback #'xwidget-webkit-callback))
-       (current-session (xwidget-webkit-current-session))
-       xw)
+  (let* ((bufname
+          ;; Generate a temp-name based on current buffer name. it
+          ;; will be renamed by `xwidget-webkit-callback' in the
+          ;; future. This approach can limit flicker of buffer-name in
+          ;; mode-line.
+          (concat xwidget-webkit-buffer-name-prefix
+                  (generate-new-buffer-name (buffer-name))))
+         (callback (or callback #'xwidget-webkit-callback))
+         (current-session (xwidget-webkit-current-session))
+         xw)
     (setq xwidget-webkit-last-session-buffer (switch-to-buffer
                                               (get-buffer-create bufname)))
     ;; The xwidget id is stored in a text property, so we need to have
@@ -707,7 +730,16 @@ For example, use this to display an anchor."
 (defun xwidget-webkit-import-widget (xwidget)
   "Create a new webkit session buffer from XWIDGET, an existing xwidget.
 Return the buffer."
-  (let* ((bufname (generate-new-buffer-name "*xwidget-webkit*"))
+  (let* ((bufname
+          ;; Generate a temp-name based on current buffer name. it
+          ;; will be renamed by `xwidget-webkit-callback' in the
+          ;; future. This approach can limit flicker of buffer-name in
+          ;; mode-line.
+          (if (string-prefix-p xwidget-webkit-buffer-name-prefix
+                               (buffer-name))
+              (generate-new-buffer-name (buffer-name))
+            (concat xwidget-webkit-buffer-name-prefix
+                    (generate-new-buffer-name (buffer-name)))))
          (callback #'xwidget-webkit-callback)
          (buffer (get-buffer-create bufname)))
     (with-current-buffer buffer

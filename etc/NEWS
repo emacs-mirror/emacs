@@ -504,6 +504,10 @@ This is a convenience function to extract the field data from
 
 ** Xwidgets
 
+---
+*** New user option 'xwidget-webkit-buffer-name-prefix'.
+This allows the user to change the webkit buffer names.
+
 +++
 *** New minor mode 'xwidget-webkit-edit-mode'.
 When this mode is enabled, self-inserting characters and other common
