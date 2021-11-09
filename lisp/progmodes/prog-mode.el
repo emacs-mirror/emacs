@@ -49,9 +49,15 @@
   (define-key-after menu [prog-separator] menu-bar-separator
     'middle-separator)
 
+  (unless (xref-forward-history-empty-p)
+    (define-key-after menu [xref-forward]
+      '(menu-item "Go Forward" xref-go-forward
+                  :help "Forward to the position gone Back from")
+      'prog-separator))
+
   (unless (xref-marker-stack-empty-p)
     (define-key-after menu [xref-pop]
-      '(menu-item "Back Definition" xref-go-back
+      '(menu-item "Go Back" xref-go-back
                   :help "Back to the position of the last search")
       'prog-separator))
 
