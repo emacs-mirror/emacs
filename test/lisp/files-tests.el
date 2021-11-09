@@ -1800,6 +1800,12 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
          ;; `save-some-buffers-default-predicate' (i.e. the 2nd element) is ignored.
          (nil save-some-buffers-root ,nb-might-save))))))
 
+(defun test-file-name-split ()
+  (should (equal (file-name-split "foo/bar") '("foo" "bar")))
+  (should (equal (file-name-split "/foo/bar") '("" "foo" "bar")))
+  (should (equal (file-name-split "/foo/bar/zot") '("" "foo" "bar" "zot")))
+  (should (equal (file-name-split "/foo/bar/") '("" "foo" "bar" "")))
+  (should (equal (file-name-split "foo/bar/") '("foo" "bar" ""))))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

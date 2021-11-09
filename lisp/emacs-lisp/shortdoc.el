@@ -281,6 +281,9 @@ There can be any number of :example/:result elements."
    :eval (file-name-base "/tmp/foo.txt"))
   (file-relative-name
    :eval (file-relative-name "/tmp/foo" "/tmp"))
+  (file-name-split
+   :eval (file-name-split "/tmp/foo")
+   :eval (file-name-split "foo/bar"))
   (make-temp-name
    :eval (make-temp-name "/tmp/foo-"))
   (file-name-concat

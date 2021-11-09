@@ -613,6 +613,10 @@ Use 'exif-parse-file' and 'exif-field' instead.
 * Lisp Changes in Emacs 29.1
 
 +++
+*** New function 'file-name-split'.
+This returns a list of all the components of a file name.
+
++++
 *** New macro 'with-undo-amalgamate'
 It records a particular sequence of operations as a single undo step
 

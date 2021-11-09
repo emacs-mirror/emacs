@@ -2244,6 +2244,19 @@ and @code{file-name-nondirectory}.  For example,
 @end example
 @end defun
 
+@defun file-name-split filename
+This function splits a file name into its components, and can be
+thought of as the inverse of @code{string-joing} with the appropriate
+directory separator.  For example,
+
+@example
+(file-name-split "/tmp/foo.txt")
+    @result{} ("" "tmp" "foo.txt")
+(string-join (file-name-split "/tmp/foo.txt") "/")
+    @result{} "/tmp/foo.txt"
+@end example
+@end defun
+
 @node Relative File Names
 @subsection Absolute and Relative File Names
 @cindex absolute file name

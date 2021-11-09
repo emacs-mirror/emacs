@@ -5051,6 +5051,29 @@ See also `file-name-sans-extension'."
   (file-name-sans-extension
    (file-name-nondirectory (or filename (buffer-file-name)))))
 
+(defun file-name-split (filename)
+  "Return a list of all the components of FILENAME.
+On most systems, this will be true:
+
+  (equal (string-join (file-name-split filename) \"/\") filename)"
+  (let ((components nil))
+    ;; If this is a directory file name, then we have a null file name
+    ;; at the end.
+    (when (directory-name-p filename)
+      (push "" components)
+      (setq filename (directory-file-name filename)))
+    ;; Loop, chopping off components.
+    (while (length> filename 0)
+      (push (file-name-nondirectory filename) components)
+      (let ((dir (file-name-directory filename)))
+        (setq filename (and dir (directory-file-name dir)))
+        ;; If there's nothing left to peel off, we're at the root and
+        ;; we can stop.
+        (when (equal dir filename)
+          (push "" components)
+          (setq filename nil))))
+    components))
+
 (defcustom make-backup-file-name-function
   #'make-backup-file-name--default-function
   "A function that `make-backup-file-name' uses to create backup file names.
