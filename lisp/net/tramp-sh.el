@@ -2705,11 +2705,11 @@ the result will be a local, non-Tramp, file name."
     ;; Unless NAME is absolute, concat DIR and NAME.
     (unless (file-name-absolute-p name)
       (setq name (tramp-compat-file-name-concat dir name)))
-    ;; If connection is not established yet, run the real handler.
-    (if (not (tramp-connectable-p name))
-	(tramp-run-real-handler #'expand-file-name (list name nil))
-      ;; Dissect NAME.
-      (with-parsed-tramp-file-name name nil
+    ;; Dissect NAME.
+    (with-parsed-tramp-file-name name nil
+      ;; If connection is not established yet, run the real handler.
+      (if (not (tramp-connectable-p v))
+	  (tramp-run-real-handler #'expand-file-name (list name nil))
 	(unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	  (setq localname (concat "~/" localname)))
 	;; Tilde expansion if necessary.  This needs a shell which
