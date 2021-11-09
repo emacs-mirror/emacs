@@ -1439,6 +1439,13 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
       a.event_mask = (ExposureMask | ButtonPressMask | ButtonReleaseMask
 		      | PointerMotionMask | EnterWindowMask | LeaveWindowMask);
 
+      if (clip_right - clip_left <= 0
+	  || clip_bottom - clip_top <= 0)
+	{
+	  unblock_input ();
+	  return;
+	}
+
       xv->wdesc = XCreateWindow (xv->dpy, FRAME_X_WINDOW (s->f),
 				 x + clip_left, y + clip_top,
 				 clip_right - clip_left,
@@ -1484,8 +1491,17 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 #ifdef USE_GTK
       if (!wdesc_was_none && !moved)
 	{
-	  XResizeWindow (xv->dpy, xv->wdesc, clip_right - clip_left,
-			 clip_bottom - clip_top);
+	  if (clip_right - clip_left <= 0
+	      || clip_bottom - clip_top <= 0)
+	    {
+	      XUnmapWindow (xv->dpy, xv->wdesc);
+	      xv->hidden = true;
+	    }
+	  else
+	    {
+	      XResizeWindow (xv->dpy, xv->wdesc, clip_right - clip_left,
+			     clip_bottom - clip_top);
+	    }
 	  XFlush (xv->dpy);
 	  cairo_xlib_surface_set_size (xv->cr_surface, clip_right - clip_left,
 				       clip_bottom - clip_top);
