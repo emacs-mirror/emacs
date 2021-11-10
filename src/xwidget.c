@@ -530,8 +530,8 @@ from_embedder (GdkWindow *window, double x, double y,
 					FRAME_GTK_OUTER_WIDGET (xvw->frame),
 					0, 0, &xoff, &yoff);
 
-      *xout = x - (xvw->x + xvw->clip_left) - xoff;
-      *yout = y - (xvw->y + xvw->clip_top) - yoff;
+      *xout = x - xvw->x - xoff;
+      *yout = y - xvw->y - yoff;
     }
 }
 
@@ -562,8 +562,8 @@ to_embedder (GdkWindow *window, double x, double y,
 					FRAME_GTK_OUTER_WIDGET (xvw->frame),
 					0, 0, &xoff, &yoff);
 
-      *xout = x + xvw->x + xvw->clip_left + xoff;
-      *yout = y + xvw->y + xvw->clip_top + yoff;
+      *xout = x + xvw->x + xoff;
+      *yout = y + xvw->y + yoff;
     }
 }
 
