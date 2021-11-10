@@ -416,14 +416,14 @@ and return the value found in PLACE instead."
 
 ;;;###autoload
 (defun ensure-empty-lines (&optional lines)
-  "Ensure that there's LINES number of empty lines before point.
-If LINES is nil or missing, a this ensures that there's a single
-empty line before point.
+  "Ensure that there are LINES number of empty lines before point.
+If LINES is nil or omitted, ensure that there is a single empty
+line before point.
 
-Interactively, this command uses the numerical prefix for LINES.
+If called interactively, LINES is given by the prefix argument.
 
-If there's already more empty lines before point than LINES, the
-number of blank lines will be reduced.
+If there are more than LINES empty lines before point, the number
+of empty lines is reduced to LINES.
 
 If point is not at the beginning of a line, a newline character
 is inserted before adjusting the number of empty lines."
