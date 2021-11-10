@@ -920,6 +920,11 @@ synthesize_focus_in_event (GtkWidget *offscreen_window)
   focus_event = gdk_event_new (GDK_FOCUS_CHANGE);
   focus_event->any.window = wnd;
   focus_event->focus_change.in = TRUE;
+
+  if (FRAME_WINDOW_P (SELECTED_FRAME ()))
+    gdk_event_set_device (focus_event,
+			  find_suitable_pointer (SELECTED_FRAME ()));
+
   g_object_ref (wnd);
 
   gtk_main_do_event (focus_event);
