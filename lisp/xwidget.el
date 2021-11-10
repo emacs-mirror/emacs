@@ -947,6 +947,7 @@ With argument, add COUNT copies of CHAR."
 (define-key xwidget-webkit-isearch-mode-map "\C-g" 'xwidget-webkit-isearch-exit)
 (define-key xwidget-webkit-isearch-mode-map "\C-r" 'xwidget-webkit-isearch-backward)
 (define-key xwidget-webkit-isearch-mode-map "\C-s" 'xwidget-webkit-isearch-forward)
+(define-key xwidget-webkit-isearch-mode-map "\C-y" 'xwidget-webkit-isearch-yank-kill)
 (define-key xwidget-webkit-isearch-mode-map "\t" 'xwidget-webkit-isearch-printing-char)
 
 (let ((meta-map (make-keymap)))
@@ -968,6 +969,9 @@ To navigate around the search results, type
 \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-forward] to move forward, and
 \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-backward] to move backward.
 
+To insert the string at the front of the kill ring into the
+search query, type \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-yank-kill].
+
 Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit incremental search."
   :keymap xwidget-webkit-isearch-mode-map
   (if xwidget-webkit-isearch-mode
@@ -977,6 +981,15 @@ Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit
         (xwidget-webkit-isearch--update))
     (xwidget-webkit-finish-search (xwidget-webkit-current-session))))
 
+(defun xwidget-webkit-isearch-yank-kill ()
+  "Pull string from kill ring and append it to the current query."
+  (interactive)
+  (unless xwidget-webkit-isearch-mode
+    (xwidget-webkit-isearch-mode t))
+  (setq xwidget-webkit-isearch--string
+        (concat xwidget-webkit-isearch--string
+                (current-kill 0)))
+  (xwidget-webkit-isearch--update))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar xwidget-view-list)              ; xwidget.c
