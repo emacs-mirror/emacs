@@ -127,7 +127,11 @@ OPTIND=1
 [ "$test" ] && build=1
 
 
-tempfile=/tmp/$PN.$$
+if [ -x "$(command -v mktemp)" ]; then
+    tempfile=$(mktemp "/tmp/$PN.XXXXXXXXXX")
+else
+    tempfile=/tmp/$PN.$$
+fi
 
 trap "rm -f $tempfile 2> /dev/null" EXIT
 
