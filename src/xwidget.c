@@ -52,6 +52,9 @@ static void synthesize_focus_in_event (GtkWidget *);
 static GdkDevice *find_suitable_keyboard (struct frame *);
 static gboolean webkit_script_dialog_cb (WebKitWebView *, WebKitScriptDialog *,
 					 gpointer);
+static void record_osr_embedder (struct xwidget_view *);
+static void from_embedder (GdkWindow *, double, double, gpointer, gpointer, gpointer);
+static void to_embedder (GdkWindow *, double, double, gpointer, gpointer, gpointer);
 #endif
 
 static struct xwidget *
@@ -214,6 +217,12 @@ fails.  */)
       gtk_widget_show (xw->widget_osr);
       gtk_widget_show (xw->widgetwindow_osr);
       synthesize_focus_in_event (xw->widgetwindow_osr);
+
+
+      g_signal_connect (G_OBJECT (gtk_widget_get_window (xw->widgetwindow_osr)),
+			"from-embedder", G_CALLBACK (from_embedder), NULL);
+      g_signal_connect (G_OBJECT (gtk_widget_get_window (xw->widgetwindow_osr)),
+			"to-embedder", G_CALLBACK (to_embedder), NULL);
 
       /* Store some xwidget data in the gtk widgets for convenient
          retrieval in the event handlers.  */
@@ -457,6 +466,106 @@ xwidget_from_id (uint32_t id)
 }
 
 #ifdef USE_GTK
+static void
+record_osr_embedder (struct xwidget_view *view)
+{
+  struct xwidget *xw;
+  GdkWindow *window, *embedder;
+
+  xw = XXWIDGET (view->model);
+  window = gtk_widget_get_window (xw->widgetwindow_osr);
+  embedder = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (view->frame));
+
+  gdk_offscreen_window_set_embedder (window, embedder);
+  xw->embedder = view->frame;
+  xw->embedder_view = view;
+}
+
+static struct xwidget *
+find_xwidget_for_offscreen_window (GdkWindow *window)
+{
+  Lisp_Object tem;
+  struct xwidget *xw;
+  GdkWindow *w;
+
+  for (tem = Vxwidget_list; CONSP (tem); tem = XCDR (tem))
+    {
+      if (XWIDGETP (XCAR (tem)))
+	{
+	  xw = XXWIDGET (XCAR (tem));
+	  w = gtk_widget_get_window (xw->widgetwindow_osr);
+
+	  if (w == window)
+	    return xw;
+	}
+    }
+
+  return NULL;
+}
+
+static void
+from_embedder (GdkWindow *window, double x, double y,
+	       gpointer x_out_ptr, gpointer y_out_ptr,
+	       gpointer user_data)
+{
+  double *xout = x_out_ptr;
+  double *yout = y_out_ptr;
+  struct xwidget *xw = find_xwidget_for_offscreen_window (window);
+  struct xwidget_view *xvw;
+  gint xoff, yoff;
+
+  if (!xw)
+    emacs_abort ();
+
+  xvw = xw->embedder_view;
+
+  if (!xvw)
+    {
+      *xout = x;
+      *yout = y;
+    }
+  else
+    {
+      gtk_widget_translate_coordinates (FRAME_GTK_WIDGET (xvw->frame),
+					FRAME_GTK_OUTER_WIDGET (xvw->frame),
+					0, 0, &xoff, &yoff);
+
+      *xout = x - (xvw->x + xvw->clip_left) - xoff;
+      *yout = y - (xvw->y + xvw->clip_top) - yoff;
+    }
+}
+
+static void
+to_embedder (GdkWindow *window, double x, double y,
+	     gpointer x_out_ptr, gpointer y_out_ptr,
+	     gpointer user_data)
+{
+  double *xout = x_out_ptr;
+  double *yout = y_out_ptr;
+  struct xwidget *xw = find_xwidget_for_offscreen_window (window);
+  struct xwidget_view *xvw;
+  gint xoff, yoff;
+
+  if (!xw)
+    emacs_abort ();
+
+  xvw = xw->embedder_view;
+
+  if (!xvw)
+    {
+      *xout = x;
+      *yout = y;
+    }
+  else
+    {
+      gtk_widget_translate_coordinates (FRAME_GTK_WIDGET (xvw->frame),
+					FRAME_GTK_OUTER_WIDGET (xvw->frame),
+					0, 0, &xoff, &yoff);
+
+      *xout = x + xvw->x + xvw->clip_left + xoff;
+      *yout = y + xvw->y + xvw->clip_top + yoff;
+    }
+}
 
 static GdkDevice *
 find_suitable_pointer (struct frame *f)
@@ -697,6 +806,8 @@ xwidget_button (struct xwidget_view *view,
 		bool down_p, int x, int y, int button,
 		int modifier_state, Time time)
 {
+  record_osr_embedder (view);
+
   if (button < 4 || button > 8)
     xwidget_button_1 (view, down_p, x, y, button, modifier_state, time);
   else
@@ -765,6 +876,7 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
   if (!target)
     target = model->widget_osr;
 
+  record_osr_embedder (view);
   xg_event->any.window = gtk_widget_get_window (target);
   g_object_ref (xg_event->any.window); /* The window will be unrefed
 					  later by gdk_event_free.  */
@@ -1865,6 +1977,9 @@ DEFUN ("delete-xwidget-view",
   CHECK_XWIDGET_VIEW (xwidget_view);
   struct xwidget_view *xv = XXWIDGET_VIEW (xwidget_view);
 #ifdef USE_GTK
+  struct xwidget *xw = XXWIDGET (xv->model);
+  GdkWindow *w;
+
   if (xv->wdesc != None)
     {
       block_input ();
@@ -1873,6 +1988,16 @@ DEFUN ("delete-xwidget-view",
       XDestroyWindow (xv->dpy, xv->wdesc);
       Fremhash (make_fixnum (xv->wdesc), x_window_to_xwv_map);
       unblock_input ();
+    }
+
+  if (xw->embedder_view == xv)
+    {
+      w = gtk_widget_get_window (xw->widgetwindow_osr);
+
+      XXWIDGET (xv->model)->embedder_view = NULL;
+      XXWIDGET (xv->model)->embedder = NULL;
+
+      gdk_offscreen_window_set_embedder (w, NULL);
     }
 #elif defined NS_IMPL_COCOA
   nsxwidget_delete_view (xv);
