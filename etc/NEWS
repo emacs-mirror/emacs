@@ -99,7 +99,7 @@ These will take you (respectively) to the next and previous "page".
 +++
 *** New user option 'outline-minor-mode-use-buttons'.
 If non-nil, Outline Minor Mode will use buttons to hide/show outlines
-in addition to the ellipsis.
+in addition to the ellipsis.  Default nil.
 
 ---
 *** New user option 'outline-minor-mode-buttons'.
@@ -115,8 +115,12 @@ Image specifiers can now use ':type webp'.
 
 +++
 *** 'display-buffer' now can set up the body size of the chosen window.
-For example, an alist entry as '(window-width . (body-columns . 40))'
-will make the body of the chosen window 40 columns wide.
+For example, a 'display-buffer-alist' entry of
+
+    '(window-width . (body-columns . 40))'
+
+will make the body of the chosen window 40 columns wide.  For the
+height use 'window-height' in combination with 'body-lines'.
 
 ** Better detection of text suspiciously reordered on display.
 The function 'bidi-find-overridden-directionality' has been extended
@@ -128,7 +132,7 @@ suspicious and could be malicious.
 
 
 
-** Emacs server and client changes
+** Emacs server and client changes.
 
 +++
 *** New command-line option '-r' for emacsclient.
@@ -170,7 +174,7 @@ effectively dragged.
 
 ---
 ** New user option 'yank-menu-max-items'.
-Customize this option to limit the amount of entries in the menu
+Customize this option to limit the number of entries in the menu
 "Edit->Paste from Kill Menu".  The default is 60.
 
 ** show-paren-mode
@@ -179,7 +183,7 @@ Customize this option to limit the amount of entries in the menu
 *** New user option 'show-paren-context-when-offscreen'.
 When non-nil, if the point is in a closing delimiter and the opening
 delimiter is offscreen, shows some context around the opening
-delimiter in the echo area.
+delimiter in the echo area.  Default nil.
 
 ** Comint
 
@@ -211,6 +215,8 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 ---
 *** Message Mode now supports image yanking.
 
+** HTML Mode
+
 ---
 *** HTML Mode now supports text/html and image/* yanking.
 
@@ -239,7 +245,7 @@ the common utm_ trackers from URLs.
 +++
 *** New user option 'gnus-treat-emojize-symbols'.
 If non-nil, symbols that have an emoji representation will be
-displayed as emojis.
+displayed as emojis.  Default nil.
 
 +++
 *** New command 'gnus-article-emojize-symbols'.
@@ -249,7 +255,7 @@ representation as emojis.
 ** EIEIO
 
 +++
-*** 'slot-value' can now be used to read slots of 'cl-defstruct' objects
+*** 'slot-value' can now be used to read slots of 'cl-defstruct' objects.
 
 ** Tab Bars and Tab Lines
 
@@ -345,10 +351,10 @@ default, no automatic renaming is performed.
 ** Help
 
 *** New user option 'help-link-key-to-documentation'.
-When this option is non-nil, key bindings displayed in the "*Help*"
-buffer will be linked to the documentation for the command they are
-bound to.  This does not affect listings of key bindings and
-functions (such as 'C-h b').
+When this option is non-nil (which is the default), key bindings
+displayed in the "*Help*" buffer will be linked to the documentation
+for the command they are bound to.  This does not affect listings of
+key bindings and functions (such as 'C-h b').
 
 ** info-look
 
@@ -618,54 +624,54 @@ Use 'exif-parse-file' and 'exif-field' instead.
 * Lisp Changes in Emacs 29.1
 
 +++
-*** New function 'file-name-split'.
+** New function 'file-name-split'.
 This returns a list of all the components of a file name.
 
 +++
-*** New macro 'with-undo-amalgamate'
-It records a particular sequence of operations as a single undo step
+** New macro 'with-undo-amalgamate'
+It records a particular sequence of operations as a single undo step.
 
 +++
-*** New command 'yank-media'.
+** New command 'yank-media'.
 This command supports yanking non-plain-text media like images and
 HTML from other applications into Emacs.  It is only supported in
 modes that have registered support for it, and only on capable
 platforms.
 
 +++
-*** New command 'yank-media-types'.
+** New command 'yank-media-types'.
 This command lets you examine all data in the current selection and
 the clipboard, and insert it into the buffer.
 
 +++
-*** New text property 'inhibit-isearch'.
+** New text property 'inhibit-isearch'.
 If set, 'isearch' will skip these areas, which can be useful (for
 instance) when covering huge amounts of data (that has no meaningful
 searchable data, like image data) with a 'display' text property.
 
 +++
-*** 'insert-image' now takes an INHIBIT-ISEARCH optional parameter.
+** 'insert-image' now takes an INHIBIT-ISEARCH optional parameter.
 It marks the image with the 'inhibit-isearch' text parameter, which
 inhibits 'isearch' matching the STRING parameter.
 
 ---
-*** New user option 'pp-use-max-width'.
+** New user option 'pp-use-max-width'.
 If non-nil, 'pp' will attempt to limit the line length when formatting
 long lists and vectors.
 
 ---
-*** New function 'pp-emacs-lisp-code'.
+** New function 'pp-emacs-lisp-code'.
 'pp' formats general Lisp sexps.  This function does much the same,
 but applies formatting rules appropriate for Emacs Lisp code.
 
 +++
-*** New function 'file-has-changed-p'.
+** New function 'file-has-changed-p'.
 This convenience function is useful when writing code that parses
 files at run-time, and allows Lisp programs to re-parse files only
 when they have changed.
 
 ---
-*** New function 'font-has-char-p'.
+** New function 'font-has-char-p'.
 This can be used to check whether a specific font has a glyph for a
 character.
 
@@ -774,7 +780,7 @@ separate glyphs.  This takes into account combining characters and
 grapheme clusters.
 
 ---
-** 'lookup-key' is more allowing when searching for extended menu items.
+** 'lookup-key' is more permissive when searching for extended menu items.
 In Emacs 28.1, the behavior of 'lookup-key' was changed: when looking
 for a menu item '[menu-bar Foo-Bar]', first try to find an exact
 match, then look for the lowercased '[menu-bar foo-bar]'.
