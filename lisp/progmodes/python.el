@@ -3758,7 +3758,8 @@ With argument MSG show activation/deactivation message."
             (format "was t and %S is not part of the "
                     (file-name-nondirectory python-shell-interpreter))
             "`python-shell-completion-native-disabled-interpreters' "
-            "list.  Native completions have been disabled locally. "))
+            "list.  Native completions have been disabled locally. "
+            "Consider installing the python package \"readline\". "))
           (python-shell-completion-native-turn-off msg))))))
 
 (defun python-shell-completion-native-turn-on-maybe-with-msg ()
