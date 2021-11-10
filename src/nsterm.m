@@ -3510,6 +3510,12 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
 
   [(raised_p ? lightCol : darkCol) set];
 
+  if (top_p)
+    {
+      NSRectFill (NSMakeRect (NSMinX (outer), NSMinY (outer),
+			      NSWidth (outer), hthickness));
+    }
+
   if (top_p || left_p)
     {
       NSBezierPath *p = [NSBezierPath bezierPath];
@@ -3548,6 +3554,12 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
         }
       [p closePath];
       [p fill];
+    }
+
+  if (bottom_p)
+    {
+      NSRectFill (NSMakeRect (NSMinX (outer), NSMaxY (inner),
+			      NSWidth (outer), hthickness));
     }
 }
 
