@@ -1399,7 +1399,6 @@ keys, add the following to your init file:
 Using it instead of 'read-char-choice' allows using 'C-x o'
 to switch to the help window displayed after typing 'C-h'.
 
-
 +++
 ** Emacs 28.1 comes with Org v9.5.
 See the file ORG-NEWS for user-visible changes in Org.
@@ -1855,7 +1854,7 @@ The command 'next-error-no-select' is now bound to 'n' and
 'previous-error-no-select' is bound to 'p'.
 
 ---
-*** The new command 'recenter-current-error'.
+*** New command 'recenter-current-error'.
 It is bound to 'l' in Occur or compilation buffers, and recenters the
 current displayed occurrence/error.
 
