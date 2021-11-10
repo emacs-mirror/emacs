@@ -1492,7 +1492,7 @@ Emacs Lisp Reference Manual}.
 code not unlike the one produced by a C or Fortran compiler.  Native
 code runs even faster than byte-code.  Natively-compiled Emacs Lisp
 code is stored in files whose names end in @samp{.eln}.  @xref{Native
-Compilation,, Byte Compilation, elisp, the Emacs Lisp Reference Manual}.
+Compilation,, Native Compilation, elisp, the Emacs Lisp Reference Manual}.
 
 @findex load-file
   To @dfn{load} an Emacs Lisp file, type @kbd{M-x load-file}.  This

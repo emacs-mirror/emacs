@@ -1367,6 +1367,7 @@ Non-nil reverts the destination Dired buffer after performing one
 of these operations: 'dired-do-copy', 'dired-do-rename',
 'dired-do-symlink', 'dired-do-hardlink'.
 
+---
 *** New user option 'dired-mark-region'.
 This option affects all Dired commands that mark files.  When non-nil
 and the region is active in Transient Mark mode, then Dired commands
@@ -1374,6 +1375,7 @@ operate only on files in the active region.  The values 'file' and
 'line' of this user option define the details of marking the file at
 the end of the region.
 
++++
 *** State changing VC operations are supported in Dired.
 These operations are supported on files and directories via the new
 command 'dired-vc-next-action'.
@@ -1524,6 +1526,7 @@ used instead.
 
 ** Bookmarks
 
+---
 *** Bookmarks can now be targets for new tabs.
 When the bookmark.el library is loaded, a customize choice is added
 to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
@@ -1841,17 +1844,21 @@ These options include 'windmove-default-keybindings',
 'windmove-display-default-keybindings',
 'windmove-delete-default-keybindings',
 'windmove-swap-states-default-keybindings'.
+Also new mode 'windmove-mode' enables the customized keybindings.
 
 ** Occur mode
 
+---
 *** New bindings in occur-mode.
 The command 'next-error-no-select' is now bound to 'n' and
 'previous-error-no-select' is bound to 'p'.
 
+---
 *** The new command 'recenter-current-error'.
 It is bound to 'l' in Occur or compilation buffers, and recenters the
 current displayed occurrence/error.
 
+---
 *** Matches in target buffers are now highlighted as in 'compilation-mode'.
 The method of highlighting is specified by the user options
 'next-error-highlight' and 'next-error-highlight-no-select'.
@@ -1897,12 +1904,11 @@ To revert to the previous behavior,
 If this user option is 'kill', then the diff buffer will be killed
 after the 'vc-revert' action instead of buried.
 
+---
 *** More VC commands can be used from non-file buffers.
 The relevant commands are those that don't change the VC state.
 The non-file buffers which can use VC commands are those that have
 their 'default-directory' under VC.
-
-*** New command 'vc-dir-root' uses the root directory without asking.
 
 ---
 *** New face 'log-view-commit-body'.
@@ -1924,9 +1930,14 @@ specific (unregistered) file.  Previously, the first matching backend
 was chosen, but now the one with the most specific path is chosen (in
 case there's a directory handled by one backend inside another).
 
+---
+*** New command 'vc-dir-root' uses the root directory without asking.
+
+---
 *** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
 'vc-dir-mark-unregistered-files'.
 
+---
 *** Support for bookmark.el.
 Bookmark locations can refer to VC directory buffers.
 
@@ -1948,6 +1959,7 @@ tags to be considered as well.
 *** New user option 'vc-git-log-switches'.
 String or list of strings specifying switches for Git log under VC.
 
+---
 *** Command 'vc-switch-backend' is now obsolete.
 If you are still using it with any regularity, please file a bug
 report with some details.
@@ -1975,7 +1987,6 @@ instead of sets, the process mark.
 *** New user option 'gnus-process-mark-toggle'.
 If non-nil (the default), the '#' command in the Group and Summary
 buffers will toggle, instead of set, the process mark.
-
 
 +++
 *** New user option 'gnus-registry-register-all'.
@@ -2421,7 +2432,7 @@ and data svg images.
 *** 'svg-embed-base-uri-image' added to embed images.
 'svg-embed-base-uri-image' can be used to embed images located
 relatively to 'file-name-directory' of the ':base-uri' svg image property.
-This works much faster then 'svg-embed'.
+This works much faster than 'svg-embed'.
 
 +++
 *** New function 'image-cache-size'.
@@ -2509,7 +2520,8 @@ This is a regexp that can be set to alter how links are followed in eww.
 *** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
 (the default), then 'url-retrieve' is used.  When 'sync', then
-'url-retrieve-synchronously' is used.
+'url-retrieve-synchronously' is used.  A list of strings specifies
+an external program with parameters.
 
 +++
 *** New Emacs command line convenience command.
@@ -2634,11 +2646,6 @@ via 'M-n'.
 
 ** Xref
 
----
-*** Prefix arg of 'xref-goto-xref' quits the "*xref*" buffer.
-So typing 'C-u RET' in the "*xref*" buffer quits its window
-before navigating to the selected location.
-
 +++
 *** New user options to automatically show the first Xref match.
 The new user option 'xref-auto-jump-to-first-definition' controls the
@@ -2687,6 +2694,11 @@ TRT.
 *** New value 'project-relative' for 'xref-file-name-display'.
 If chosen, file names in "*xref*" buffers will be displayed relative
 to the 'project-root' of the current project, when available.
+
+---
+*** Prefix arg of 'xref-goto-xref' quits the "*xref*" buffer.
+So typing 'C-u RET' in the "*xref*" buffer quits its window
+before navigating to the selected location.
 
 +++
 *** The 'TAB' key binding in "*xref*" buffers is obsolete.

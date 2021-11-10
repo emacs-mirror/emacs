@@ -493,7 +493,7 @@ action on the current VC fileset: either registering it with a version
 control system, or committing it, or unlocking it, or merging changes
 into it.  The precise actions are described in detail in the following
 subsections.  You can use @kbd{C-x v v} either in a file-visiting
-buffer or in a VC Directory buffer.
+buffer, in a Dired buffer, or in a VC Directory buffer.
 
   Note that VC filesets are distinct from the named filesets used
 for viewing and visiting files in functional groups

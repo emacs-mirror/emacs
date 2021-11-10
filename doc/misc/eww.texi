@@ -229,11 +229,11 @@ in an external browser by customizing
 @findex eww-retrieve-command
   EWW normally uses @code{url-retrieve} to fetch the @acronym{HTML}
 before rendering it, and @code{url-retrieve-synchronously} when
-the value is @code{sync}.  It can sometimes be convenient to use an
-external program to do this, and @code{eww-retrieve-command} should
-then be a list that specifies a command and the parameters.  For
-instance, to use the Chromium browser, you could say something like
-this:
+the value of @code{eww-retrieve-command} is @code{sync}.  It can
+sometimes be convenient to use an external program to do this, and
+@code{eww-retrieve-command} should then be a list that specifies
+a command and the parameters.  For instance, to use the Chromium
+browser, you could say something like this:
 
 @lisp
 (setq eww-retrieve-command

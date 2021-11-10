@@ -704,9 +704,10 @@
 ;;;; Setup for tests of time offset formatting with %z
 
 (defun formatz (format zone)
-  "Uses time FORMAT string to format the offset of ZONE, returning the result.
-FORMAT is \"%z\" or a variation.
-ZONE is as the ZONE argument of the `format-time-string' function."
+  "Uses FORMAT to format the offset of ZONE, returning the result.
+FORMAT must be time format \"%z\" or some variation thereof.
+ZONE is as the ZONE argument of the `format-time-string' function.
+This function is called by 99% of the `time-stamp' \"%z\" unit tests."
   (with-time-stamp-test-env
    (let ((time-stamp-time-zone zone))
      ;; Call your favorite time formatter here.
@@ -718,9 +719,9 @@ ZONE is as the ZONE argument of the `format-time-string' function."
 
 (defun format-time-offset (format offset-secs)
   "Uses FORMAT to format the time zone represented by OFFSET-SECS.
-FORMAT must be \"%z\", possibly with a flag and padding.
+FORMAT must be time format \"%z\" or some variation thereof.
 This function is a wrapper around `time-stamp-formatz-from-parsed-options'
-and is used for testing."
+and is called by some low-level `time-stamp' \"%z\" unit tests."
   ;; This wrapper adds a simple regexp-based parser that handles only
   ;; %z and variants.  In normal use, time-stamp-formatz-from-parsed-options
   ;; is called from a parser that handles all time string formats.

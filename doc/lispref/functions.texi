@@ -1450,7 +1450,7 @@ is not a function, e.g., a keyboard macro (@pxref{Keyboard Macros}):
      @result{} "\^u2\^k"
 @end example
 
-It you wish to use @code{fset} to make an alternate name for a
+If you wish to use @code{fset} to make an alternate name for a
 function, consider using @code{defalias} instead.  @xref{Definition of
 defalias}.
 @end defun
