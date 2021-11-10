@@ -65,7 +65,7 @@ with %, as follows.
 
 Non-date items:
 %%   a literal percent character: `%'
-%f   file name without directory        %F  gives absolute pathname
+%f   file name without directory        %F  absolute file name
 %l   login name                         %L  full name of logged-in user
 %q   unqualified host name              %Q  fully-qualified host name
 %h   mail host name
@@ -661,7 +661,7 @@ and all `time-stamp-format' compatibility."
 	            (if buffer-file-name
 	                (file-name-nondirectory buffer-file-name)
 	              time-stamp-no-file))
-	           ((eq cur-char ?F)    ;buffer-file-name, full path
+	           ((eq cur-char ?F)    ;buffer-file-name, absolute name
 	            (or buffer-file-name
 	                time-stamp-no-file))
 	           ((eq cur-char ?s)    ;system name, legacy
