@@ -1740,9 +1740,7 @@ REL-POSth element around the current spot in the load history. */)
   (Lisp_Object xwidget, Lisp_Object rel_pos)
 {
   WEBKIT_FN_INIT ();
-  /* Should be one of -1, 0, 1 */
-  if (XFIXNUM (rel_pos) < -1 || XFIXNUM (rel_pos) > 1)
-    args_out_of_range_3 (rel_pos, make_fixnum (-1), make_fixnum (1));
+  CHECK_FIXNUM (rel_pos);
 
 #ifdef USE_GTK
   WebKitWebView *wkwv = WEBKIT_WEB_VIEW (xw->widget_osr);
