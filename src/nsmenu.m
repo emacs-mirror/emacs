@@ -439,44 +439,6 @@ set_frame_menubar (struct frame *f, bool deep_p)
   ns_update_menubar (f, deep_p);
 }
 
-void
-ns_activate_menubar (struct frame *frame)
-{
-  if (frame != SELECTED_FRAME ()
-      || !FRAME_EXTERNAL_MENU_BAR (frame))
-    return;
-
-  block_input ();
-  NSApplication *app = [NSApplication sharedApplication];
-  NSMenu *menu = [app mainMenu];
-  for (NSMenuItem *item in [menu itemArray])
-    {
-      if ([item hasSubmenu])
-	{
-#ifdef NS_IMPL_GNUSTEP
-	  [[item submenu] display];
-#else
-	  NSWindow *window = [FRAME_NS_VIEW (frame) window];
-	  NSScreen *screen = [window screen];
-
-	  NSRect screen_frame = [screen frame];
-	  [app postEvent: [NSEvent mouseEventWithType: NSLeftMouseDown
-					     location: NSMakePoint (NSMinX (screen_frame),
-								    NSMinY (screen_frame) + 10)
-					modifierFlags: 0
-					    timestamp: 0
-					 windowNumber: [window windowNumber]
-					      context: [NSGraphicsContext currentContext]
-					  eventNumber: 0
-					   clickCount: 1
-					     pressure: 1.0f]
-		 atStart: YES];
-#endif
-	  break;
-	}
-    }
-  unblock_input ();
-}
 
 /* ==========================================================================
 
@@ -1954,22 +1916,6 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
   return popup_activated () ? Qt : Qnil;
 }
 
-DEFUN ("ns-menu-bar-open", Fns_menu_bar_open, Sns_menu_bar_open, 0, 1, "i",
-       doc: /* Start key navigation of the menu bar in FRAME.
-This initially opens the first menu bar item and you can then navigate with the
-arrow keys, select a menu entry with the return key or cancel with the
-escape key.  If FRAME has no menu bar this function does nothing.
-
-If FRAME is nil or not given, use the selected frame.  */)
-  (Lisp_Object frame)
-{
-  struct frame *f = decode_window_system_frame (frame);
-
-  ns_activate_menubar (f);
-
-  return Qnil;
-}
-
 /* ==========================================================================
 
     Lisp interface declaration
@@ -1981,7 +1927,6 @@ syms_of_nsmenu (void)
 {
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);
-  defsubr (&Sns_menu_bar_open);
 
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
 }
