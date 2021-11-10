@@ -248,6 +248,10 @@ representation as emojis.
 
 ** EIEIO
 
+*** 'slot-value' can now be used to read slots of 'cl-defstruct' objects
+
+** Tab Bars and Tab Lines
+
 +++
 *** New command 'C-x t C-r' to open file read-only in the other tab.
 
