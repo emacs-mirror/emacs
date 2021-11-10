@@ -6943,6 +6943,16 @@ Finish a search operation started with @code{xwidget-webkit-search} in
 signals an error.
 @end defun
 
+@defun xwidget-webkit-load-html xwidget text &optional base-uri
+Load @var{text}, a string, into @var{xwidget}, which should be a
+WebKit xwidget.  Any HTML markup in @var{text} will be processed
+by @var{xwidget} while rendering the text.
+
+Optional argument @var{base-uri}, which should be a string, specifies
+the absolute location of the web resources referenced by @var{text},
+to be used for resolving relative links in @var{text}.
+@end defun
+
 @node Buttons
 @section Buttons
 @cindex buttons in buffers

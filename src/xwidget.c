@@ -2278,6 +2278,44 @@ using `xwidget-webkit-search'.  */)
   return Qnil;
 }
 
+#ifdef USE_GTK
+DEFUN ("xwidget-webkit-load-html", Fxwidget_webkit_load_html,
+       Sxwidget_webkit_load_html, 2, 3, 0,
+       doc: /* Make XWIDGET's WebKit widget render TEXT.
+XWIDGET should be a WebKit xwidget, that will receive TEXT.  TEXT
+should be a string that will be displayed by XWIDGET as HTML markup.
+BASE_URI should be a string containing a URI that is used to locate
+resources with relative URLs, and if not specified, defaults
+to "about:blank".  */)
+  (Lisp_Object xwidget, Lisp_Object text, Lisp_Object base_uri)
+{
+  struct xwidget *xw;
+  WebKitWebView *webview;
+  char *data, *uri;
+
+  CHECK_XWIDGET (xwidget);
+  CHECK_STRING (text);
+  if (NILP (base_uri))
+    base_uri = build_string ("about:blank");
+  else
+    CHECK_STRING (base_uri);
+
+  base_uri = ENCODE_UTF_8 (base_uri);
+  text = ENCODE_UTF_8 (text);
+  xw = XXWIDGET (xwidget);
+
+  data = SSDATA (text);
+  uri = SSDATA (base_uri);
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+
+  block_input ();
+  webkit_web_view_load_html (webview, data, uri);
+  unblock_input ();
+
+  return Qnil;
+}
+#endif
+
 void
 syms_of_xwidget (void)
 {
@@ -2316,6 +2354,9 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_webkit_next_result);
   defsubr (&Sxwidget_webkit_previous_result);
   defsubr (&Sset_xwidget_buffer);
+#ifdef USE_GTK
+  defsubr (&Sxwidget_webkit_load_html);
+#endif
 
   DEFSYM (QCxwidget, ":xwidget");
   DEFSYM (QCtitle, ":title");

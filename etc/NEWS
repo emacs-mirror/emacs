@@ -736,6 +736,13 @@ what the widget will actually receive.
 On GTK+, only key and function key events are implemented.
 
 +++
+*** New function 'xwidget-webkit-load-html'.
+This function is used to load HTML text into WebKit xwidgets
+directly, in contrast to creating a temporary file to hold the
+markup, and passing the URI of the file as an argument to
+'xwidget-webkit-goto-uri'.
+
++++
 *** New functions for performing searches on WebKit xwidgets.
 Some new functions, such as 'xwidget-webkit-search', have been added
 for performing searches on WebKit xwidgets.
